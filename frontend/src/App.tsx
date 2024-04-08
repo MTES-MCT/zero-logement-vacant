@@ -1,3 +1,4 @@
+import MuiDsfrThemeProvider from '@codegouvfr/react-dsfr/mui';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import {
   createInstance,
@@ -58,12 +59,14 @@ function AppWrapper() {
   startReactDsfr({ defaultColorScheme: 'light', Link });
 
   const AppMapProvider = () => (
-    <MapProvider>
-      <Provider store={store}>
-        <Notification />
-        <App />
-      </Provider>
-    </MapProvider>
+    <MuiDsfrThemeProvider>
+      <MapProvider>
+        <Provider store={store}>
+          <Notification />
+          <App />
+        </Provider>
+      </MapProvider>
+    </MuiDsfrThemeProvider>
   );
 
   if (config.matomo.urlBase && config.matomo.siteId) {

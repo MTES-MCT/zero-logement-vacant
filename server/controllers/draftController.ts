@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
@@ -22,6 +23,7 @@ import pdf from '../utils/pdf';
 import DRAFT_TEMPLATE_FILE from '../templates/draft';
 import { createOrReplaceSender, SenderApi } from '../models/SenderApi';
 import senderRepository from '../repositories/senderRepository';
+import { replaceVariables } from '../../shared/models/variable-options';
 
 interface DraftQuery {
   campaign?: string;
@@ -82,6 +84,7 @@ async function create(request: Request, response: Response) {
   );
   const draft: DraftApi = {
     id: uuidv4(),
+    subject: body.subject,
     body: body.body,
     sender,
     senderId: sender.id,
@@ -97,6 +100,7 @@ async function create(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
 }
 const createValidators: ValidationChain[] = [
+  body('subject').isString().notEmpty().withMessage('subject is required'),
   body('body').isString().notEmpty().withMessage('body is required'),
   body('campaign')
     .isUUID()
@@ -130,7 +134,28 @@ async function preview(request: Request, response: Response) {
     throw new DraftMissingError(params.id);
   }
 
-  const html = await pdf.compile<DraftApi>(DRAFT_TEMPLATE_FILE, draft);
+  const html = await pdf.compile<DraftApi>(DRAFT_TEMPLATE_FILE, {
+    ...draft,
+    body: replaceVariables(draft.body, {
+      housing: {
+        geoCode: faker.location.zipCode(),
+        localId: faker.string.numeric({ length: 12, allowLeadingZeros: true }),
+        rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
+        cadastralReference: faker.string.numeric(10),
+        housingKind: faker.helpers.arrayElement(['MAISON', 'APPART']),
+        livingArea: faker.number.int({ min: 20, max: 200 }),
+        buildingYear: faker.date
+          .past({ years: 20, refDate: new Date() })
+          .getFullYear(),
+        energyConsumption: faker.string.fromCharacters('ABCDEFG', 1),
+      },
+      owner: {
+        fullName: faker.person.fullName(),
+        rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
+        additionalAddress: faker.location.secondaryAddress(),
+      },
+    }),
+  });
   const finalPDF = await pdf.fromHTML(html);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
@@ -166,6 +191,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
   // Otherwise create a new sender
   const updated: DraftApi = {
     ...draft,
+    subject: body.subject,
     body: body.body,
     sender,
     senderId: sender.id,
@@ -181,6 +207,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
 }
 const updateValidators: ValidationChain[] = [
   isUUIDParam('id'),
+  body('subject').isString().notEmpty().withMessage('subject is required'),
   body('body').isString().notEmpty().withMessage('body is required'),
   body('writtenAt')
     .isString()

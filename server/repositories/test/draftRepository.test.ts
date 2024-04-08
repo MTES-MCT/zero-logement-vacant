@@ -124,6 +124,7 @@ describe('Draft repository', () => {
       const payload = genDraftApi(establishment, sender);
       const updated: DraftApi = {
         ...draft,
+        subject: payload.subject,
         body: payload.body,
         writtenAt: payload.writtenAt,
         writtenFrom: payload.writtenFrom,

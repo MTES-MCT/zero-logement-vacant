@@ -2,6 +2,7 @@ import { SenderDTO, SenderPayloadDTO } from './SenderDTO';
 
 export interface DraftDTO {
   id: string;
+  subject: string;
   body: string;
   sender: SenderDTO;
   writtenAt: string;
@@ -11,12 +12,15 @@ export interface DraftDTO {
 }
 
 export interface DraftCreationPayloadDTO
-  extends Pick<DraftDTO, 'body' | 'writtenAt' | 'writtenFrom'> {
+  extends Pick<DraftDTO, 'subject' | 'body' | 'writtenAt' | 'writtenFrom'> {
   campaign: string;
   sender: SenderPayloadDTO;
 }
 
 export interface DraftUpdatePayloadDTO
-  extends Pick<DraftDTO, 'id' | 'body' | 'writtenAt' | 'writtenFrom'> {
+  extends Pick<
+    DraftDTO,
+    'id' | 'subject' | 'body' | 'writtenAt' | 'writtenFrom'
+  > {
   sender: SenderPayloadDTO;
 }

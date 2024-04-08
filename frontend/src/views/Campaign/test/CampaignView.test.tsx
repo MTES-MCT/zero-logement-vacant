@@ -177,6 +177,7 @@ describe('Campaign view', () => {
   it('should update the draft on button click', async () => {
     const updated: Draft = {
       ...draft,
+      subject: 'New subject',
       body: 'New body',
       sender,
     };
@@ -222,11 +223,6 @@ describe('Campaign view', () => {
 
     // Fill the form
     const form = await screen.findByRole('form');
-    const body = await within(form).findByRole('textbox', {
-      name: /^Contenu de votre courrier/,
-    });
-    await user.clear(body);
-    await user.type(body, draft.body);
     const name = await within(form).findByLabelText(
       'Nom de la collectivité ou de l’administration*'
     );
@@ -260,6 +256,16 @@ describe('Campaign view', () => {
     const writtenFrom = await within(form).findByLabelText(/^Écrit à/);
     await user.clear(writtenFrom);
     await user.type(writtenFrom, draft.writtenFrom);
+    const subject = await within(form).findByRole('textbox', {
+      name: /^Objet/,
+    });
+    await user.clear(subject);
+    await user.type(subject, draft.subject);
+    const body = await within(form).findByRole('textbox', {
+      name: /^Contenu/,
+    });
+    await user.clear(body);
+    await user.type(body, draft.body);
 
     // Save the draft
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });

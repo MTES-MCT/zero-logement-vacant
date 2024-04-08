@@ -8,6 +8,7 @@ import { enableFetchMocks } from 'jest-fetch-mock';
 enableFetchMocks();
 
 jest.mock('./components/Aside/Aside.tsx');
+jest.mock('./components/RichEditor/RichEditor.tsx');
 
 global.URL.createObjectURL = jest.fn();
 

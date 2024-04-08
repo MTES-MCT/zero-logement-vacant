@@ -8,6 +8,10 @@ import config from '../utils/config';
 
 export function upload() {
   const upload = multer({
+    limits: {
+      files: 1,
+      fileSize: 1024 * 1024 * 5, // 5 MB
+    },
     fileFilter(
       request: Request,
       file: Express.Multer.File,

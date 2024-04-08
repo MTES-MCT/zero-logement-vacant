@@ -21,5 +21,23 @@
     "import/no-commonjs": "error",
     "eqeqeq": ["error", "always"],
     "semi": ["error", "always"]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["frontend-new"],
+      "extends": [
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended"
+      ],
+      "overrides": [
+        {
+          "files": ["**/*.test.tsx"],
+          "extends": [
+            "plugin:jest/recommended",
+            "plugin:testing-library/react"
+          ]
+        }
+      ]
+    }
+  ]
 }

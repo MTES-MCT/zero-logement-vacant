@@ -1,7 +1,10 @@
-node_modules/
-frontend/
-database/
+build/
 dist/
+database/
+frontend/
+node_modules/
+public/
+
 README.md
 tools
 bin
@@ -18,10 +21,7 @@ scalingo.json
 # shell script
 scripts/duplicate-database/
 
-build
-dist
-node_modules
-public
+frontend-new/src/components/_dsfr/
 
 # templates
 server/templates

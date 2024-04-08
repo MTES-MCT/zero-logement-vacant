@@ -9,8 +9,6 @@ import {
   Campaign,
   CampaignSort,
   CampaignSortable,
-  campaignStep,
-  CampaignSteps,
   isCampaignDeletable,
 } from '../../models/Campaign';
 import AppLink from '../../components/_app/AppLink/AppLink';
@@ -97,7 +95,7 @@ const CampaignsListView = () => {
               'Titre',
               getSortButton('status', 'Statut'),
               getSortButton('createdAt', 'Date de création'),
-              getSortButton('sendingDate', "Date d'envoi"),
+              getSortButton('sentAt', "Date d'envoi"),
               '',
             ]}
             data={campaigns.map((campaign, index) => [
@@ -105,35 +103,36 @@ const CampaignsListView = () => {
               <AppLink
                 isSimple
                 to={`${
-                  campaignStep(campaign) < CampaignSteps.InProgress
+                  campaign.status === 'draft' || campaign.status === 'sending'
                     ? ''
                     : '/parc-de-logements'
                 }/campagnes/${campaign.id}`}
               >
                 {campaign.title}
               </AppLink>,
-              <CampaignStatusBadge step={campaignStep(campaign)} />,
+              <CampaignStatusBadge status={campaign.status} />,
               format(new Date(campaign.createdAt), 'dd/MM/yyyy'),
-              campaign.sendingDate
-                ? format(new Date(campaign.sendingDate), 'dd/MM/yyyy')
+              campaign.sentAt
+                ? format(new Date(campaign.sentAt), 'dd/MM/yyyy')
                 : '',
               <div className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w">
                 <Button
                   priority="tertiary"
                   linkProps={{
                     to: `${
-                      campaignStep(campaign) < CampaignSteps.InProgress
+                      campaign.status === 'draft' ||
+                      campaign.status === 'sending'
                         ? ''
                         : '/parc-de-logements'
                     }/campagnes/${campaign.id}`,
                   }}
                   className={styles.buttonInGroup}
                 >
-                  {campaignStep(campaign) < CampaignSteps.InProgress
+                  {campaign.status === 'draft' || campaign.status === 'sending'
                     ? 'Accéder'
                     : 'Suivre'}
                 </Button>
-                {campaignStep(campaign) === CampaignSteps.InProgress && (
+                {campaign.status === 'in-progress' && (
                   <ConfirmationModal
                     onSubmit={() => onArchiveCampaign(campaign)}
                     modalId={`archive-${campaign.id}`}

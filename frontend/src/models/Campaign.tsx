@@ -1,12 +1,6 @@
-import { HousingFilters } from './HousingFilters';
 import { dateSort } from '../utils/dateUtils';
 import { Sort } from './Sort';
 import { CampaignDTO, CampaignStatus } from '../../../shared';
-
-export interface DraftCampaign {
-  filters: HousingFilters;
-  title?: string;
-}
 
 export interface Campaign extends CampaignDTO {
   exportURL: string;
@@ -42,12 +36,7 @@ export const campaignStep = (campaign: Campaign) => {
     : CampaignSteps.InProgress;
 };
 
-export interface CampaignUpdate {
-  titleUpdate?: Pick<Campaign, 'title'>;
-  stepUpdate?: { step: CampaignSteps } & Pick<Campaign, 'sendingDate'>;
-}
-
-export type CampaignSortable = Pick<Campaign, 'createdAt' | 'sendingDate'> & {
+export type CampaignSortable = Pick<Campaign, 'createdAt' | 'sentAt'> & {
   status: string;
 };
 export type CampaignSort = Sort<CampaignSortable>;
@@ -56,4 +45,4 @@ export const campaignSort = (c1: Campaign, c2: Campaign) =>
   dateSort(new Date(c2.createdAt), new Date(c1.createdAt));
 
 export const isCampaignDeletable = (campaign: Campaign) =>
-  campaignStep(campaign) !== CampaignSteps.Archived;
+  campaign.status !== 'archived';

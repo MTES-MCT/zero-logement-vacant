@@ -25,7 +25,7 @@ import LoginView from './views/Login/LoginView';
 import HousingListView from './views/HousingList/HousingListView';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
-import CampaignsListView from './views/Campaign/CampainListView';
+import CampaignsListView from './views/Campaign/CampaignListView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import AccountPasswordView from './views/Account/AccountPasswordView';

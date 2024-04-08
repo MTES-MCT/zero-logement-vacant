@@ -19,10 +19,13 @@ import PreviewButton from '../../components/Draft/PreviewButton';
 import styles from './campaign.module.scss';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
+import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
+import { SenderPayload } from '../../models/Sender';
 
-const shape = {
+const schema = yup.object({
   body: yup.string(),
-};
+  sender: senderSchema,
+});
 
 interface Props {
   campaign: Campaign;
@@ -31,32 +34,48 @@ interface Props {
 function CampaignDraft(props: Props) {
   const { count, draft, isLoadingDraft } = useCampaign();
 
-  useDocumentTitle(props.campaign.title ?? 'Campagne');
+  useDocumentTitle(props.campaign.title);
 
   const [values, setValues] = useState<DraftCreationPayloadDTO>({
     body: '',
-    campaign: props.campaign.id,
+    campaign: '',
+    sender: {
+      name: '',
+      service: '',
+      firstName: '',
+      lastName: '',
+      address: '',
+      email: '',
+      phone: '',
+    },
   });
-  const form = useForm(yup.object().shape(shape), {
-    body: values.body,
-  });
+
+  useEffect(() => {
+    if (draft) {
+      setValues({
+        body: draft.body,
+        sender: draft.sender,
+        campaign: props.campaign.id,
+      });
+    }
+  }, [draft, props.campaign.id]);
+
+  const form = useForm(schema, values);
 
   const [createDraft, createDraftMutation] = useCreateDraftMutation();
   function create(): void {
     if (!draft) {
-      createDraft({
-        body: values.body,
-        campaign: props.campaign.id,
+      form.validate(() => {
+        createDraft({ ...values, campaign: props.campaign.id });
       });
     }
   }
 
   const [updateDraft, updateDraftMutation] = useUpdateDraftMutation();
   function update(): void {
-    if (values && draft) {
-      updateDraft({
-        id: draft.id,
-        body: values.body,
+    if (draft) {
+      form.validate(() => {
+        updateDraft({ ...values, id: draft.id });
       });
     }
   }
@@ -65,15 +84,6 @@ function CampaignDraft(props: Props) {
   const [save, mutation] = exists
     ? [update, updateDraftMutation]
     : [create, createDraftMutation];
-
-  useEffect(() => {
-    if (draft) {
-      setValues({
-        body: draft.body ?? '',
-        campaign: props.campaign.id,
-      });
-    }
-  }, [draft, props.campaign.id]);
 
   if (isLoadingDraft) {
     return <Loading />;
@@ -84,6 +94,18 @@ function CampaignDraft(props: Props) {
   }
 
   const hasChanges = form.isDirty && !fp.equals(draft, values);
+
+  function setBody(body: string): void {
+    setValues({
+      body,
+      campaign: props.campaign.id,
+      sender: values.sender,
+    });
+  }
+
+  function setSender(sender: SenderPayload): void {
+    setValues({ ...values, sender });
+  }
 
   return (
     <Container as="article" fluid>
@@ -106,7 +128,7 @@ function CampaignDraft(props: Props) {
           </Col>
         </Row>
       </Container>
-      <form id="draft" className="fr-mt-2w">
+      <form id="draft" name="draft" className="fr-mt-2w">
         <UnsavedChanges when={hasChanges} />
         <Container as="section" fluid>
           <Row justifyContent="right" spacing="mb-2w">
@@ -117,13 +139,18 @@ function CampaignDraft(props: Props) {
               onSave={save}
             />
           </Row>
+          <Row spacing="mb-2w">
+            <Col n="7" offset="5">
+              <DraftSender
+                form={form}
+                value={values.sender}
+                onChange={setSender}
+              />
+            </Col>
+          </Row>
           <Row>
             <Col>
-              <DraftBody
-                form={form}
-                value={values.body}
-                onChangeValue={(body) => setValues({ ...values, body: body })}
-              />
+              <DraftBody form={form} value={values.body} onChange={setBody} />
             </Col>
           </Row>
         </Container>

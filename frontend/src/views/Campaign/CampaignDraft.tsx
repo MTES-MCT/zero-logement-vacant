@@ -7,7 +7,6 @@ import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import DraftBody from '../../components/Draft/DraftBody';
 import { Campaign } from '../../models/Campaign';
-import { DraftCreationPayloadDTO } from '../../../../shared/models/DraftDTO';
 import { Col, Container, Row } from '../../components/_dsfr';
 import {
   useCreateDraftMutation,
@@ -22,11 +21,22 @@ import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
 import { SenderPayload } from '../../models/Sender';
 import SendButton from '../../components/Draft/SendButton';
 import SaveButton from '../../components/SaveButton/SaveButton';
+import DraftMailInfo, {
+  Written,
+  writtenSchema,
+} from '../../components/Draft/DraftMailInfo';
+import { DraftCreationPayload } from '../../models/Draft';
 
-const schema = yup.object({
-  body: yup.string(),
-  sender: senderSchema,
-});
+const schema = yup
+  .object({
+    body: yup
+      .string()
+      .required('Veuillez renseigner le contenu de votre courrier'),
+    sender: senderSchema,
+  })
+  // Must do like that because the useForm hook has a validation bug
+  // where it creates an infinite render loop if passed a `written` object
+  .concat(writtenSchema);
 
 interface Props {
   campaign: Campaign;
@@ -37,7 +47,7 @@ function CampaignDraft(props: Props) {
 
   useDocumentTitle(props.campaign.title);
 
-  const [values, setValues] = useState<DraftCreationPayloadDTO>({
+  const [values, setValues] = useState<DraftCreationPayload>({
     body: '',
     campaign: '',
     sender: {
@@ -49,19 +59,30 @@ function CampaignDraft(props: Props) {
       email: '',
       phone: '',
     },
+    writtenAt: '',
+    writtenFrom: '',
   });
 
   useEffect(() => {
     if (draft) {
       setValues({
         body: draft.body,
-        sender: draft.sender,
         campaign: props.campaign.id,
+        sender: draft.sender,
+        writtenAt: draft.writtenAt,
+        writtenFrom: draft.writtenFrom,
       });
     }
   }, [draft, props.campaign.id]);
 
-  const form = useForm(schema, values);
+  const form = useForm(schema, {
+    body: values.body,
+    sender: values.sender,
+    writtenAt: values.writtenAt,
+    writtenFrom: values.writtenFrom,
+  });
+
+  const hasChanges = form.isDirty && !fp.equals(draft, values);
 
   const [createDraft, createDraftMutation] = useCreateDraftMutation();
   function create(): void {
@@ -86,26 +107,28 @@ function CampaignDraft(props: Props) {
     ? [update, updateDraftMutation]
     : [create, createDraftMutation];
 
+  function setBody(body: string): void {
+    setValues({ ...values, body });
+  }
+
+  function setSender(sender: SenderPayload): void {
+    setValues({ ...values, sender });
+  }
+
+  function setWritten(written: Written): void {
+    setValues({
+      ...values,
+      writtenAt: written.at,
+      writtenFrom: written.from,
+    });
+  }
+
   if (isLoadingDraft) {
     return <Loading />;
   }
 
   if (!values) {
     return <Loading />;
-  }
-
-  const hasChanges = form.isDirty && !fp.equals(draft, values);
-
-  function setBody(body: string): void {
-    setValues({
-      body,
-      campaign: props.campaign.id,
-      sender: values.sender,
-    });
-  }
-
-  function setSender(sender: SenderPayload): void {
-    setValues({ ...values, sender });
   }
 
   return (
@@ -145,8 +168,16 @@ function CampaignDraft(props: Props) {
               onSave={save}
             />
           </Row>
-          <Row spacing="mb-2w">
-            <Col n="7" offset="5">
+          <Row gutters spacing="mb-2w">
+            <Col n="5">
+              <DraftMailInfo
+                form={form}
+                writtenAt={values.writtenAt}
+                writtenFrom={values.writtenFrom}
+                onChange={setWritten}
+              />
+            </Col>
+            <Col n="7">
               <DraftSender
                 form={form}
                 value={values.sender}

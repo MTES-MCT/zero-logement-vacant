@@ -108,13 +108,17 @@ function toSenderPayloadDTO(sender: SenderPayload): SenderPayloadDTO {
     lastName: sender.lastName,
     address: sender.address,
     // Catch empty strings
-    email: sender.email || null,
-    phone: sender.phone || null,
-    signatoryLastName: sender.signatoryLastName || null,
-    signatoryFirstName: sender.signatoryFirstName || null,
-    signatoryRole: sender.signatoryRole || null,
-    signatoryFile: sender.signatoryFile || null,
+    email: catchEmptyString(sender.email),
+    phone: catchEmptyString(sender.phone),
+    signatoryLastName: catchEmptyString(sender.signatoryLastName),
+    signatoryFirstName: catchEmptyString(sender.signatoryFirstName),
+    signatoryRole: catchEmptyString(sender.signatoryRole),
+    signatoryFile: catchEmptyString(sender.signatoryFile),
   };
+}
+
+function catchEmptyString(str: string | null): string | null {
+  return str && str.length > 0 ? str : null;
 }
 
 export const {

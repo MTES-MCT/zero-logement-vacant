@@ -23,7 +23,7 @@ interface Props {
   campaign: Campaign;
 }
 
-function CampaignInProgress(props: Props) {
+function CampaignInProgress(props: Readonly<Props>) {
   useDocumentTitle(props.campaign.title);
 
   const { trackEvent } = useMatomo();

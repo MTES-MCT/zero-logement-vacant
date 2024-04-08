@@ -17,7 +17,7 @@ export interface Body {
   body: string;
 }
 
-function DraftBody(props: Props) {
+function DraftBody(props: Readonly<Props>) {
   return (
     <Container as="article" className={styles.article} fluid>
       <Row className="fr-mb-2w justify-space-between">

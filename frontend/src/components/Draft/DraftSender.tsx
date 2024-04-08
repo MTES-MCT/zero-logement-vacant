@@ -33,7 +33,7 @@ interface Props {
   onChange(value: SenderPayload): void;
 }
 
-function DraftSender(props: Props) {
+function DraftSender(props: Readonly<Props>) {
   const email = props.value.email ?? '';
   const phone = props.value.phone ?? '';
 

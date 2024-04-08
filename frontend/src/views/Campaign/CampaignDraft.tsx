@@ -47,7 +47,7 @@ interface Props {
   campaign: Campaign;
 }
 
-function CampaignDraft(props: Props) {
+function CampaignDraft(props: Readonly<Props>) {
   const { count, draft, isLoadingDraft } = useCampaign();
 
   useDocumentTitle(props.campaign.title);

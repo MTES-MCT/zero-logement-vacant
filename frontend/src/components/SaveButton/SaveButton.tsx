@@ -10,7 +10,7 @@ interface Props {
   onSave(): void;
 }
 
-function SaveButton(props: Props) {
+function SaveButton(props: Readonly<Props>) {
   useNotification({
     isError: props.isError,
     isLoading: props.isLoading,

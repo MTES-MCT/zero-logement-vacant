@@ -61,11 +61,11 @@ const campaignSortQuery = (sort?: CampaignSortApi) =>
     keys: {
       createdAt: (query) =>
         query.orderBy(`${campaignsTable}.created_at`, sort?.createdAt),
-      sendingDate: (query) =>
-        query.orderBy(`${campaignsTable}.sending_date`, sort?.sendingDate),
+      sentAt: (query) =>
+        query.orderBy(`${campaignsTable}.sent_at`, sort?.sentAt),
       status: (query) =>
         query.orderByRaw(
-          `(case when ${campaignsTable}.archived_at is not null then 2 when ${campaignsTable}.sending_date is not null then 1 else 0 end) ${sort?.status}`
+          `(case ${campaignsTable}.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end) ${sort?.status}`
         ),
     },
     default: (query) => query.orderBy('created_at', 'desc'),
@@ -132,11 +132,6 @@ export interface CampaignDBO {
   exported_at?: Date;
   sent_at?: Date;
   archived_at?: Date;
-  /**
-   * @deprecated
-   * Should be merged with sent_at
-   */
-  sending_date?: Date;
   confirmed_at?: Date;
   establishment_id: string;
   group_id?: string;
@@ -154,7 +149,6 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   exportedAt: campaign.exported_at?.toJSON(),
   sentAt: campaign.sent_at?.toJSON(),
   archivedAt: campaign.archived_at?.toJSON(),
-  sendingDate: campaign.sending_date?.toJSON(),
   confirmedAt: campaign.confirmed_at?.toJSON(),
   title: campaign.title,
   groupId: campaign.group_id,
@@ -175,9 +169,6 @@ export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
   exported_at: campaign.exportedAt ? new Date(campaign.exportedAt) : undefined,
   sent_at: campaign.sentAt ? new Date(campaign.sentAt) : undefined,
   archived_at: campaign.archivedAt ? new Date(campaign.archivedAt) : undefined,
-  sending_date: campaign.sendingDate
-    ? new Date(campaign.sendingDate)
-    : undefined,
   confirmed_at: campaign.confirmedAt
     ? new Date(campaign.confirmedAt)
     : undefined,

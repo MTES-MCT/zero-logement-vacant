@@ -17,8 +17,7 @@ export enum CampaignSteps {
   Archived,
 }
 
-export type CampaignSortableApi = Pick<
-  CampaignApi,
-  'createdAt' | 'sendingDate'
-> & { status: string };
+export type CampaignSortableApi = Pick<CampaignApi, 'createdAt' | 'sentAt'> & {
+  status: string;
+};
 export type CampaignSortApi = Sort<CampaignSortableApi>;

@@ -322,7 +322,6 @@ export const genCampaignApi = (
     },
     createdAt: new Date().toJSON(),
     userId: createdBy,
-    sendingDate: new Date().toJSON(),
     groupId: group?.id,
   };
 };

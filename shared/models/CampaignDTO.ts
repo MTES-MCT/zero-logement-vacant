@@ -11,6 +11,9 @@ export interface CampaignDTO {
   exportedAt?: string;
   sentAt?: string;
   archivedAt?: string;
+  /**
+   * @deprecated
+   */
   sendingDate?: string;
   confirmedAt?: string;
 }

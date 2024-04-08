@@ -26,7 +26,6 @@ const parseCampaign = (c: any): Campaign =>
     validatedAt: c.validatedAt ? parseISO(c.validatedAt) : undefined,
     sentAt: c.sentAt ? parseISO(c.sentAt) : undefined,
     archivedAt: c.archivedAt ? parseISO(c.archivedAt) : undefined,
-    sendingDate: c.sendingDate ? parseISO(c.sendingDate) : undefined,
     exportURL: getExportURL(c.id),
   } as Campaign);
 

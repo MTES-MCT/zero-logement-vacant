@@ -1,4 +1,4 @@
-import { SingleBar } from 'cli-progress';
+import { Presets, SingleBar } from 'cli-progress';
 import { HousingApi } from '../../server/models/HousingApi';
 import housingRepository from '../../server/repositories/housingRepository';
 import { tapAsync } from '../shared';
@@ -24,7 +24,9 @@ let totalHousingOwnersCount = 0;
 
 let progressBar: SingleBar;
 
-export async function existingHousingOwnersImporter(progressBarHousingOwners: SingleBar): Promise<Stream<HousingApi>> {
+export async function existingHousingOwnersImporter(
+  progressBarHousingOwners: SingleBar
+): Promise<Stream<HousingApi>> {
   logger.info('Importing housing owners...');
 
   progressBar = progressBarHousingOwners;
@@ -42,13 +44,16 @@ export async function existingHousingOwnersImporter(progressBarHousingOwners: Si
     .consume(tapAsync(processHousing))
     .errors((error) => {
       logger.error(error);
-    })
+    });
 }
 
 const datafoncierHousingRepository = createDatafoncierHousingRepository();
 const datafoncierOwnersRepository = createDatafoncierOwnersRepository();
 
 export async function processHousing(housing: HousingApi): Promise<void> {
+  if (!progressBar) {
+    progressBar = new SingleBar({}, Presets.shades_classic);
+  }
   progressBar.increment();
 
   const datafoncierHousing = await datafoncierHousingRepository.findOne({

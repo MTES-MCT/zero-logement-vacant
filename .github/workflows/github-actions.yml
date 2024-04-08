@@ -39,16 +39,10 @@ jobs:
         run: npm --prefix frontend run lint
       - name: Server linter
         run: npm run lint
+
       - name: Frontend tests
         run: npm --prefix frontend test -- --test-timeout=30000
-      - name: Migration tests
-        run: npm run test:database
-        env:
-          AUTH_SECRET: abcd1234
-          CEREMA_API_AUTH_TOKEN: ''
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
-          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
-          TZ: Etc/UTC
+
       - name: Server tests
         run: npm run test -- --test-timeout=30000
         env:
@@ -57,4 +51,13 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
           LOG_LEVEL: fatal
+          TZ: Etc/UTC
+
+      - name: Migration tests
+        run: npm run test:database
+        env:
+          AUTH_SECRET: abcd1234
+          CEREMA_API_AUTH_TOKEN: ''
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
+          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
           TZ: Etc/UTC

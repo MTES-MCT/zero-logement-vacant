@@ -2,6 +2,7 @@ import { string } from 'yup';
 
 import { useForm } from '../../hooks/useForm';
 import { Container } from '../_dsfr';
+import { format } from 'date-fns';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { DATE_REGEXP } from '../../utils/dateUtils';
 
@@ -27,6 +28,7 @@ function DraftSendingDate(props: Props) {
         inputForm={props.form}
         inputKey="sentAt"
         label="Date d’envoi de votre campagne*"
+        min={format(new Date(), 'yyyy-MM-dd')}
         type="date"
         value={value}
         onChange={(e) => props.onChange(e.target.value)}

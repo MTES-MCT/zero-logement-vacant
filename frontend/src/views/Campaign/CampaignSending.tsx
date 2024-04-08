@@ -1,4 +1,5 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { FormEvent, useState } from 'react';
 
 import { Campaign } from '../../models/Campaign';
@@ -15,6 +16,11 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import { useNotification } from '../../hooks/useNotification';
 import DraftDownloader from '../../components/Draft/DraftDownloader';
+
+const modal = createModal({
+  id: 'campaign-sending-modal',
+  isOpenedByDefault: false,
+});
 
 const schema = object({
   sentAt: sentAtSchema,
@@ -42,7 +48,12 @@ function CampaignSending(props: Props) {
 
   const disabled = !props.campaign.file;
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
+  const handleFormSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    modal.open();
+  };
+
+  function submit(event: FormEvent) {
     event.preventDefault();
     form.validate(() => {
       updateCampaign({
@@ -51,6 +62,7 @@ function CampaignSending(props: Props) {
         status: 'in-progress',
       });
     });
+    modal.close();
   }
 
   return (
@@ -81,15 +93,33 @@ function CampaignSending(props: Props) {
         )}
         <Row>
           <Col n="3">
-            <form onSubmit={submit}>
+            <modal.Component
+              title="Confirmation de la date d'envoi"
+              buttons={[
+                {
+                  children: 'Annuler',
+                  className: 'fr-mr-2w',
+                  priority: 'secondary',
+                },
+                {
+                  onClick: submit,
+                  children: 'Confirmer',
+                  doClosesModal: false,
+                },
+              ]}
+            >
+              <div className="fr-alert fr-alert--warning fr-alert--sm">
+                <p>Une fois confirmée, la date d'envoi pourra plus être modifiée. Veuillez confirmer pour poursuivre ou cliquer sur “Annuler” ou fermer la fenêtre pour revenir en arrière.</p>
+              </div>
+            </modal.Component>
+            <form onSubmit={handleFormSubmit}>
               <DraftSendingDate
                 className="fr-mb-5w"
-                disabled={disabled}
                 form={form}
                 value={sentAt}
                 onChange={setSentAt}
               />
-              <Button disabled={disabled} priority="primary">
+              <Button priority="primary" disabled={!sentAt}>
                 Confirmer et passer au suivi
               </Button>
             </form>

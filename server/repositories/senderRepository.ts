@@ -56,10 +56,10 @@ export interface SenderDBO {
   address: string;
   email: string | null;
   phone: string | null;
-  signatory_last_name: string;
-  signatory_first_name: string;
-  signatory_role: string;
-  signatory_file: string;
+  signatory_last_name: string | null;
+  signatory_first_name: string | null;
+  signatory_role: string | null;
+  signatory_file: string | null;
   created_at: Date | string;
   updated_at: Date | string;
   establishment_id: string;

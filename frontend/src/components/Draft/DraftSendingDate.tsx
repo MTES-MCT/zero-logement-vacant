@@ -18,7 +18,7 @@ interface Props {
   onChange(value: string): void;
 }
 
-function DraftSendingDate(props: Props) {
+function DraftSendingDate(props: Readonly<Props>) {
   const value = props.value;
 
   return (

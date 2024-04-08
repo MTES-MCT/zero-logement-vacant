@@ -9,11 +9,11 @@ interface Props {
   campaign: Campaign;
 }
 
-function DraftDownloader(props: Props) {
+function DraftDownloader(props: Readonly<Props>) {
   const description = props.campaign.file?.split('/').pop()?.split('?')[0];
-  const link = `${config.apiEndpoint}/api/campaigns/${props.campaign.id}/download?x-access-token=${
-    authService.authHeader()?.['x-access-token']
-  }`;
+  const link = `${config.apiEndpoint}/api/campaigns/${
+    props.campaign.id
+  }/download?x-access-token=${authService.authHeader()?.['x-access-token']}`;
 
   return (
     <Tile

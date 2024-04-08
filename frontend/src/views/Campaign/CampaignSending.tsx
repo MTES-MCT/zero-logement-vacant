@@ -30,7 +30,7 @@ interface Props {
   campaign: Campaign;
 }
 
-function CampaignSending(props: Props) {
+function CampaignSending(props: Readonly<Props>) {
   const [sentAt, setSentAt] = useState('');
   const { count } = useCampaign();
   const [updateCampaign, mutation] = useUpdateCampaignMutation();
@@ -109,7 +109,11 @@ function CampaignSending(props: Props) {
               ]}
             >
               <div className="fr-alert fr-alert--warning fr-alert--sm">
-                <p>Une fois confirmée, la date d'envoi pourra plus être modifiée. Veuillez confirmer pour poursuivre ou cliquer sur “Annuler” ou fermer la fenêtre pour revenir en arrière.</p>
+                <p>
+                  Une fois confirmée, la date d'envoi pourra plus être modifiée.
+                  Veuillez confirmer pour poursuivre ou cliquer sur “Annuler” ou
+                  fermer la fenêtre pour revenir en arrière.
+                </p>
               </div>
             </modal.Component>
             <form onSubmit={handleFormSubmit}>

@@ -21,7 +21,7 @@ interface Props {
   onChange(value: SenderPayload): void;
 }
 
-function DraftSignature(props: Props) {
+function DraftSignature(props: Readonly<Props>) {
   const signatoryFirstName = props.value.signatoryFirstName ?? '';
   const signatoryLastName = props.value.signatoryLastName ?? '';
   const signatoryRole = props.value.signatoryRole ?? '';
@@ -41,7 +41,7 @@ function DraftSignature(props: Props) {
     console.log(file);
     props.onChange({
       ...props.value,
-      signatoryFile: file.url
+      signatoryFile: file.url,
     });
   }
 
@@ -75,7 +75,7 @@ function DraftSignature(props: Props) {
         value={signatoryRole}
         onChange={onChange('signatoryRole')}
       />
-      <FileUpload onUpload={onFileUpload}/>
+      <FileUpload onUpload={onFileUpload} />
     </Container>
   );
 }

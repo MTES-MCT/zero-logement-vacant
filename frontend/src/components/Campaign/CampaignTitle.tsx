@@ -35,7 +35,7 @@ interface Props {
   look?: TitleAs;
 }
 
-function CampaignTitle({ campaign, className, as, look }: Props) {
+function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
   const { trackEvent } = useMatomo();
 
   const [updateCampaign] = useUpdateCampaignMutation();

@@ -54,6 +54,8 @@ jobs:
 
       - name: Build
         run: yarn run new:build
+        env:
+          DISABLE_ESLINT_PLUGIN: true
 
       - name: Lint
         run: yarn run new:lint

@@ -4,8 +4,10 @@ import { Container, Row } from '../_dsfr';
 import FileUpload from '../FileUpload/FileUpload';
 import styles from './draft.module.scss';
 import { FileUploadDTO } from '../../../../shared/models/FileUploadDTO';
+import classNames from 'classnames';
 
 interface Props {
+  className?: string;
   value: string[];
   onChange(value: string[]): void;
 }
@@ -22,7 +24,11 @@ function DraftSenderLogo(props: Readonly<Props>) {
   }
 
   return (
-    <Container as="section" className={styles.article} fluid>
+    <Container
+      as="section"
+      className={classNames(styles.article, props.className)}
+      fluid
+    >
       <Row>
         <FileUpload
           label={<h6 className="fr-mb-2w">Logos de l’expéditeur</h6>}

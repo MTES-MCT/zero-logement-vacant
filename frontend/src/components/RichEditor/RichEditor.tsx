@@ -23,7 +23,7 @@ import RestorePlugin from './RestorePlugin';
 
 interface Props {
   ariaLabelledBy?: string;
-  content?: string;
+  content: string;
   onChange(content: string): void;
 }
 

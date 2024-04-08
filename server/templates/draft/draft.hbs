@@ -7,7 +7,9 @@
     <title>Zéro Logement Vacant</title>
   </head>
   <body>
+    {{#if watermark}}
     <div class="watermark">Prévisualisation</div>
+    {{/if}}
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <header>
       <section class="header--left">
@@ -32,7 +34,7 @@
     </header>
     <main>
       <p class="main__written">À {{writtenFrom}}, le {{localdate writtenAt}}</p>
-      <p><strong>Object : </strong>{{subject}}</p>
+      <p><strong>Objet : </strong>{{subject}}</p>
       {{{body}}}
     </main>
     <footer>

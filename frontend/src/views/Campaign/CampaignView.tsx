@@ -8,6 +8,7 @@ import AppLink from '../../components/_app/AppLink/AppLink';
 import { useGetGroupQuery } from '../../services/group.service';
 import { useCampaign } from '../../hooks/useCampaign';
 import CampaignDraft from './CampaignDraft';
+import CampaignSending from './CampaignSending';
 import { CampaignStatus } from '../../../../shared';
 import NotFoundView from '../NotFoundView';
 
@@ -27,8 +28,8 @@ function CampaignView() {
 
   const steps: Record<CampaignStatus, JSX.Element> = {
     draft: <CampaignDraft campaign={campaign} />,
-    sending: <NotFoundView />,
-    'in-progress': <CampaignInProgress />,
+    sending: <CampaignSending campaign={campaign} />,
+    'in-progress': <CampaignInProgress campaign={campaign} />,
     archived: <NotFoundView />,
   };
   const CampaignComponent = steps[campaign.status] || <NotFoundView />;

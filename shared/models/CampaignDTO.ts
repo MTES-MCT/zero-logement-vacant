@@ -5,6 +5,7 @@ export interface CampaignDTO {
   title: string;
   status: CampaignStatus;
   filters: HousingFiltersDTO;
+  file?: string;
   createdAt: string;
   validatedAt?: string;
   exportedAt?: string;

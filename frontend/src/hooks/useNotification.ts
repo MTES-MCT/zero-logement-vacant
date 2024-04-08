@@ -1,17 +1,15 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 interface Props {
-  className?: string;
   isError: boolean;
   isLoading: boolean;
   isSuccess: boolean;
-  onSave(): void;
+  toastId: string;
 }
 
-function SaveButton(props: Props) {
-  const toastId = 'save';
+export function useNotification(props: Props) {
+  const toastId: string = props.toastId;
 
   useEffect(() => {
     if (props.isLoading) {
@@ -50,19 +48,7 @@ function SaveButton(props: Props) {
       }
       return;
     }
-  }, [props.isError, props.isLoading, props.isSuccess]);
 
-  return (
-    <Button
-      className={props.className}
-      disabled={props.isLoading}
-      priority="secondary"
-      type="button"
-      onClick={props.onSave}
-    >
-      Sauvegarder
-    </Button>
-  );
+    return () => toast.dismiss(toastId);
+  }, [props.isError, props.isLoading, props.isSuccess, toastId]);
 }
-
-export default SaveButton;

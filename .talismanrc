@@ -1,3 +1,12 @@
+scopeconfig:
+  - scope: node
+
+allowed_patterns:
+- key=\{.+\}
+
+version: "1.0"
+3cc3308bba9019d9091f4b8c291e4a2e4a4eb8
+
 fileignoreconfig:
 - filename: database/*
 - filename: frontend/src/components/Draft/DraftBody.tsx
@@ -10,7 +19,19 @@ fileignoreconfig:
   checksum: ac1a0b11973d197701473c203fb2eb777001413b9b602cbe5fdba2fc8d825e8c
 - filename: frontend/src/components/RichEditor/nodes/VariableNode.tsx
   checksum: 63b9536c3bb7c0ff7ca65f4f42eebe3031ad516497639be668392026be2f85f8
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
+- filename: frontend/src/components/Draft/draft-downloader.module.scss
+  checksum: 2eb831d9d9e6b816a1401fee277dfa058468ce7d9b917ad44702679233295e8e
+- filename: queue/.env.example
+  checksum: 30e4ee5808230342b969d42d9315fc7744900410a5797d7f7b2e984c678be2e7
+- filename: queue/README.md
+  checksum: fe2ac5277a42e6bf8dfc1e0fe53cc3308bba9019d9091f4b8c291e4a2e4a4eb8
+- filename: queue/src/config.ts
+  checksum: 8ca4d9a0b6118457fb7dcea24e43645eb63bea92d9e0f1d0c4ae763ea55491a5
+- filename: queue/src/events/index.ts
+  checksum: 8f1d707b3fe5e21228e543781d12f913db79e04a0a2f623c356c827041d91637
+- filename: queue/src/jobs.ts
+  checksum: e6400bba01b3a207cd8f07633a63c6772f855599a4e4124d583946c37cd1672f
+- filename: queue/src/queue.ts
+  checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
+- filename: queue/src/workers/generate-mails.ts
+  checksum: 5563f7911ccd1ff8fc7ccc8865ecc730d93d9b7c658aa7d02ada802601932998

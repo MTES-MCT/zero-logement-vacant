@@ -7,6 +7,7 @@
     <title>Zéro Logement Vacant</title>
   </head>
   <body>
+    <div class="watermark">Prévisualisation</div>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <header>
       <section class="header__sender">
@@ -16,6 +17,10 @@
         <p>{{sender.address}}</p>
         <p>{{sender.email}}</p>
         <p>{{sender.phone}}</p>
+      </section>
+      <section class="header__recipient">
+        <p>{{owner.fullName}}</p>
+        <p>{{owner.rawAdress}}</p>
       </section>
     </header>
     <main>

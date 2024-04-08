@@ -33,6 +33,7 @@ import {
 } from '../../shared/models/CampaignDTO';
 import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
 import CampaignStatusError from '../errors/campaignStatusError';
+import CampaignFileMissingError from '../errors/CampaignFileMissingError';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -54,6 +55,33 @@ const getCampaign = async (
   }
 
   return response.status(constants.HTTP_STATUS_OK).json(campaign);
+};
+
+const downloadCampaign = async (
+  request: Request,
+  response: Response
+) => {
+  const campaignId = request.params.id;
+  const { establishmentId } = (request as AuthenticatedRequest).auth;
+
+  logger.info('Download campaign', { campaignId });
+
+  const campaign = await campaignRepository.findOne({
+    id: campaignId,
+    establishmentId,
+  });
+  if (!campaign) {
+    throw new CampaignMissingError(campaignId);
+  }
+
+  if (!campaign.file) {
+    throw new CampaignFileMissingError(campaignId);
+  }
+
+  campaign.exportedAt = new Date().toISOString();
+  await campaignRepository.update(campaign);
+
+  response.redirect(campaign.file);
 };
 
 const listValidators: ValidationChain[] = [
@@ -297,6 +325,10 @@ async function update(request: Request, response: Response) {
 
   await campaignRepository.save(updated);
   logger.info('Campaign updated', updated);
+
+  if (campaign.status !== body.status && body.status === 'sending') {
+    await campaignRepository.generateMails(updated);
+  }
   response.status(constants.HTTP_STATUS_OK).json(updated);
 
   if (campaign.status !== updated.status) {
@@ -452,6 +484,7 @@ async function removeHousing(
 const campaignController = {
   getCampaignValidators,
   getCampaign,
+  downloadCampaign,
   listValidators,
   list,
   create,

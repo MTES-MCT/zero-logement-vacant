@@ -14,6 +14,7 @@ import { object } from 'yup';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import { useNotification } from '../../hooks/useNotification';
+import DraftDownloader from '../../components/Draft/DraftDownloader';
 
 const schema = object({
   sentAt: sentAtSchema,
@@ -39,7 +40,7 @@ function CampaignSending(props: Props) {
     toastId: 'update-sending-date',
   });
 
-  const disabled = true;
+  const disabled = !props.campaign.file;
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -71,7 +72,13 @@ function CampaignSending(props: Props) {
             severity="info"
             title="Chargement de vos courriers en cours"
           />
-        ) : null}
+        ) : (
+          <Row spacing="mb-5w">
+            <Col n="4">
+              <DraftDownloader campaign={props.campaign} />
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col n="3">
             <form onSubmit={submit}>

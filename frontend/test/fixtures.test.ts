@@ -127,6 +127,7 @@ export function genDraft(sender: Sender): Draft {
     id: randomstring.generate(),
     subject: randomstring.generate(),
     body: randomstring.generate(),
+    logo: ['https://via.placeholder.com/150.png'],
     sender,
     writtenAt: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
     writtenFrom: randomstring.generate(),

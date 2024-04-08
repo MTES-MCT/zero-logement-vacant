@@ -2,13 +2,6 @@ body {
   padding: 3rem 2.5rem;
 }
 
-header {
-  display: flex;
-  flex-flow: column nowrap;
-  justify-content: space-around;
-  margin-bottom: 1rem;
-}
-
 main {
   text-align: justify;
   font-size: 0.6875rem;
@@ -22,12 +15,38 @@ p {
   padding: 0;
 }
 
+header {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.header--left {
+  display: flex;
+  flex-flow: column nowrap;
+  width: 60%;
+}
+
+.header--right {
+  display: flex;
+  flex-flow: column nowrap;
+  width: 40%;
+}
+
+.header__image {
+  max-width: 140px;
+  height: auto;
+  margin-bottom: 0.5rem;
+}
+
 .header__sender {
   text-align: right;
   font-size: 0.6875rem;
   font-style: normal;
   font-weight: 400;
   line-height: 0.875rem;
+  margin-bottom: 1rem;
 }
 
 .watermark {

@@ -57,6 +57,7 @@ async function save(draft: DraftApi): Promise<void> {
     .merge([
       'subject',
       'body',
+      'logo',
       'written_at',
       'written_from',
       'updated_at',
@@ -101,6 +102,7 @@ export interface DraftRecordDBO {
   id: string;
   subject: string;
   body: string;
+  logo: string[];
   written_at: string;
   written_from: string;
   created_at: Date;
@@ -117,6 +119,7 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   id: draft.id,
   subject: draft.subject,
   body: draft.body,
+  logo: draft.logo,
   written_at: draft.writtenAt,
   written_from: draft.writtenFrom,
   created_at: new Date(draft.createdAt),
@@ -129,6 +132,7 @@ export const parseDraftApi = (draft: DraftDBO): DraftApi => ({
   id: draft.id,
   subject: draft.subject,
   body: draft.body,
+  logo: draft.logo,
   writtenAt: draft.written_at,
   writtenFrom: draft.written_from,
   createdAt: draft.created_at.toJSON(),

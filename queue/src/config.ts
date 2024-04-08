@@ -1,5 +1,6 @@
 import convict from 'convict';
 import dotenv from 'dotenv';
+import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '../../shared';
 
@@ -24,7 +25,9 @@ interface Config {
   };
 }
 
-dotenv.config();
+dotenv.config({
+  path: path.join(__dirname, '..', '..', '.env'),
+});
 
 const config = convict<Config>({
   log: {
@@ -78,13 +81,13 @@ const config = convict<Config>({
     accessKeyId: {
       env: 'S3_ACCESS_KEY_ID',
       format: String,
-      default: null,
+      default: isProduction ? null : 'key',
       sensitive: true,
     },
     secretAccessKey: {
       env: 'S3_SECRET_ACCESS_KEY',
       format: String,
-      default: null,
+      default: isProduction ? null : 'secret',
       sensitive: true,
     },
   },

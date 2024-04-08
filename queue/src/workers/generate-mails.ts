@@ -11,13 +11,13 @@ import CampaignMissingError from '../../../server/errors/campaignMissingError';
 import draftRepository from '../../../server/repositories/draftRepository';
 import DraftMissingError from '../../../server/errors/draftMissingError';
 import pdf from '../../../server/utils/pdf';
-import RELEASE_TEMPLATE_FILE from '../../../server/templates/release';
 import { slugify } from '../../../server/utils/stringUtils';
 import config from '../config';
 import { createLogger } from '../logger';
 import housingRepository from '../../../server/repositories/housingRepository';
 import ownerRepository from '../../../server/repositories/ownerRepository';
 import { createS3 } from '../../../shared/utils/s3';
+import DRAFT_TEMPLATE_FILE from '../../../server/templates/draft';
 
 type Name = 'campaign:generate';
 type Args = Jobs[Name];
@@ -86,7 +86,7 @@ export default function createWorker() {
         worksheet.addRow([owner[0].fullName, owner[0].rawAddress.join(' - ')]);
 
         html.push(
-          await pdf.compile(RELEASE_TEMPLATE_FILE, {
+          await pdf.compile(DRAFT_TEMPLATE_FILE, {
             body: draft.body,
             sender: draft.sender,
             owner: owner[0],
@@ -94,7 +94,7 @@ export default function createWorker() {
         );
       });
 
-      const finalPDF = await pdf.fromHTML(html, 'release');
+      const finalPDF = await pdf.fromHTML(html);
       logger.debug('Done writing PDF');
       const name = new Date()
         .toISOString()

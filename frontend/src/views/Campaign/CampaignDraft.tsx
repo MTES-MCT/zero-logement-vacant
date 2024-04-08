@@ -192,7 +192,11 @@ function CampaignDraft(props: Readonly<Props>) {
           </Row>
           <Row gutters spacing="mb-2w">
             <Col n="5">
-              <DraftSenderLogo value={values.logo} onChange={setLogo} />
+              <DraftSenderLogo
+                className="fr-mb-2w"
+                value={values.logo}
+                onChange={setLogo}
+              />
               <DraftMailInfo
                 form={form}
                 writtenAt={values.writtenAt}

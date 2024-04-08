@@ -2,12 +2,9 @@ body {
   padding: 3rem 2.5rem;
 }
 
-main {
-  text-align: justify;
-  font-size: 0.6875rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 0.875rem;
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 p {
@@ -19,7 +16,7 @@ header {
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 .header--left {
@@ -49,6 +46,10 @@ header {
   margin-bottom: 1rem;
 }
 
+.header__sender > p {
+  margin: 0;
+}
+
 .watermark {
   position: fixed;
   top: 30%;
@@ -60,4 +61,27 @@ header {
   transform: rotate(-45deg);
   transform-origin: 50% 50%;
   z-index: 1000;
+}
+
+main {
+  text-align: justify;
+  font-size: 0.6875rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 0.875rem;
+  margin-bottom: 2rem;
+}
+
+.main__written {
+  font-size: 0.75rem;
+}
+
+footer {
+  display: flex;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.footer__signature {
+  max-width: 200px;
 }

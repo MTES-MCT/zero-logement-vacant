@@ -64,7 +64,14 @@ const senderValidators: ValidationChain[] = [
       .notEmpty()
       .withMessage(`${prop} is required`)
   ),
-  ...['email', 'phone', 'signatoryLastName', 'signatoryFirstName', 'signatoryRole', 'signatoryFile'].map((prop) =>
+  ...[
+    'email',
+    'phone',
+    'signatoryLastName',
+    'signatoryFirstName',
+    'signatoryRole',
+    'signatoryFile',
+  ].map((prop) =>
     body(`sender.${prop}`)
       .optional({ checkFalsy: true })
       .isString()
@@ -152,9 +159,10 @@ async function preview(request: Request, response: Response) {
     fullName: faker.person.fullName(),
     rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
     additionalAddress: faker.location.secondaryAddress(),
-  }
+  };
   const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
     ...draft,
+    watermark: true,
     body: replaceVariables(draft.body, {
       housing: {
         geoCode: faker.location.zipCode(),
@@ -170,9 +178,9 @@ async function preview(request: Request, response: Response) {
       },
       owner,
     }),
-    owner
+    owner,
   });
-  const finalPDF = await pdf.fromHTML([html], 'draft');
+  const finalPDF = await pdf.fromHTML([html]);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
 const previewValidators: ValidationChain[] = [isUUIDParam('id')];

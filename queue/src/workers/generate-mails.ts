@@ -17,7 +17,10 @@ import { createLogger } from '../logger';
 import housingRepository from '../../../server/repositories/housingRepository';
 import ownerRepository from '../../../server/repositories/ownerRepository';
 import { createS3 } from '../../../shared/utils/s3';
-import DRAFT_TEMPLATE_FILE from '../../../server/templates/draft';
+import DRAFT_TEMPLATE_FILE, {
+  DraftData,
+} from '../../../server/templates/draft';
+import async from 'async';
 
 type Name = 'campaign:generate';
 type Args = Jobs[Name];
@@ -80,16 +83,18 @@ export default function createWorker() {
       const worksheet = workbook.addWorksheet('Liste des destinataires');
       worksheet.addRow(['Nom', 'Adresse']);
 
-      housings.forEach(async (housing) => {
+      await async.forEach(housings, async (housing) => {
         const owner = await ownerRepository.findByHousing(housing);
 
         worksheet.addRow([owner[0].fullName, owner[0].rawAddress.join(' - ')]);
 
         html.push(
-          await pdf.compile(DRAFT_TEMPLATE_FILE, {
-            body: draft.body,
-            sender: draft.sender,
-            owner: owner[0],
+          await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
+            ...draft,
+            owner: {
+              fullName: owner[0].fullName,
+              rawAddress: owner[0].rawAddress.join(', '),
+            },
           })
         );
       });
@@ -124,6 +129,7 @@ export default function createWorker() {
       const signedUrl = await getSignedUrl(s3, command, {
         expiresIn: 60 * 60 * 24, // TTL: 24 hours
       });
+      logger.info('Generated signed URL');
 
       await campaignRepository.save({
         ...campaign,

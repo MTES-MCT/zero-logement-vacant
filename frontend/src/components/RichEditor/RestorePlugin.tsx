@@ -9,14 +9,17 @@ interface Props {
 
 function RestorePlugin(props: Props) {
   const [editor] = useLexicalComposerContext();
-  const [state] = useState(props.content);
 
   useEffect(() => {
+    if (!props.content.length) {
+      return;
+    }
+
     return editor.update(() => {
       $getRoot().clear();
 
       const parser = new DOMParser();
-      const dom = parser.parseFromString(state, 'text/html');
+      const dom = parser.parseFromString(props.content, 'text/html');
 
       const nodes = $generateNodesFromDOM(editor, dom);
 
@@ -26,7 +29,7 @@ function RestorePlugin(props: Props) {
       // Insert them at a selection.
       selection.insertNodes(nodes);
     });
-  }, [editor, state]);
+  }, [editor, props.content]);
 
   return null;
 }

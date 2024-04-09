@@ -20,7 +20,7 @@ import DraftMissingError from '../errors/draftMissingError';
 import { isUUIDParam } from '../utils/validators';
 import { logger } from '../utils/logger';
 import pdf from '../utils/pdf';
-import DRAFT_TEMPLATE_FILE from '../templates/draft';
+import DRAFT_TEMPLATE_FILE, { DraftData } from '../templates/draft';
 import { createOrReplaceSender, SenderApi } from '../models/SenderApi';
 import senderRepository from '../repositories/senderRepository';
 import { replaceVariables } from '../../shared/models/variable-options';
@@ -160,7 +160,7 @@ async function preview(request: Request, response: Response) {
     rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
     additionalAddress: faker.location.secondaryAddress(),
   };
-  const html = await pdf.compile(DRAFT_TEMPLATE_FILE, {
+  const html = await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
     ...draft,
     watermark: true,
     body: replaceVariables(draft.body, {
@@ -178,7 +178,10 @@ async function preview(request: Request, response: Response) {
       },
       owner,
     }),
-    owner,
+    owner: {
+      fullName: owner.fullName,
+      rawAddress: owner.rawAddress.join(', '),
+    },
   });
   const finalPDF = await pdf.fromHTML([html]);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);

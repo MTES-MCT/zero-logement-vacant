@@ -1,0 +1,22 @@
+{
+  "name": "@zerologementvacant/schemas",
+  "engines": {
+    "node": "^20",
+    "yarn": "^4"
+  },
+  "packageManager": "yarn@4.1.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo",
+    "build": "tsc -b tsconfig.build.json"
+  },
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.4",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "yup": "^1"
+  }
+}

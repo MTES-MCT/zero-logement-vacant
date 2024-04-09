@@ -1,5 +1,5 @@
 {
-  "name": "@zerologementvacant/schemas",
+  "name": "@zerologementvacant/models",
   "engines": {
     "node": "^20",
     "yarn": "^4"
@@ -10,9 +10,6 @@
   "scripts": {
     "clean": "rimraf dist *.tsbuildinfo",
     "build": "tsc -b tsconfig.build.json"
-  },
-  "dependencies": {
-    "yup": "^1"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",

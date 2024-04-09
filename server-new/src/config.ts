@@ -2,6 +2,7 @@ import convict from 'convict';
 import formats from 'convict-format-with-validator';
 import dotenv from 'dotenv';
 import path from 'node:path';
+import { v4 as uuidv4 } from 'uuid';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/shared';
 
@@ -33,6 +34,7 @@ interface Config {
   app: {
     batchSize: number;
     env: 'development' | 'test' | 'production';
+    isReviewApp: boolean;
     host: string;
     port: number;
   };
@@ -49,6 +51,11 @@ interface Config {
       delay: string;
     };
   };
+  cerema: {
+    api: string;
+    enabled: boolean;
+    token: string;
+  };
   datafoncier: {
     api: string;
     enabled: boolean;
@@ -62,6 +69,10 @@ interface Config {
   };
   log: {
     level: LogLevel;
+  };
+  metabase: {
+    domain: string;
+    token: string;
   };
   sentry: {
     dsn: string | null;
@@ -81,6 +92,11 @@ const config = convict<Config>({
       format: ['development', 'test', 'production'],
       default: 'development',
     },
+    isReviewApp: {
+      env: 'IS_REVIEW_APP',
+      format: 'strict-boolean',
+      default: false,
+    },
     host: {
       env: 'APP_HOST',
       format: String,
@@ -97,7 +113,7 @@ const config = convict<Config>({
       env: 'AUTH_SECRET',
       format: String,
       sensitive: true,
-      default: null,
+      default: isProduction ? null : uuidv4(),
     },
     expiresIn: {
       env: 'AUTH_EXPIRES_IN',
@@ -124,6 +140,24 @@ const config = convict<Config>({
         format: String,
         default: '1 months',
       },
+    },
+  },
+  cerema: {
+    api: {
+      env: 'CEREMA_API',
+      format: 'url',
+      default: 'https://getdf.cerema.fr',
+    },
+    enabled: {
+      env: 'CEREMA_ENABLED',
+      format: 'strict-boolean',
+      default: isProduction,
+    },
+    token: {
+      env: 'CEREMA_TOKEN',
+      format: String,
+      sensitive: true,
+      default: null,
     },
   },
   datafoncier: {
@@ -167,6 +201,20 @@ const config = convict<Config>({
       env: 'LOG_LEVEL',
       format: LOG_LEVELS,
       default: LogLevel.INFO,
+    },
+  },
+  metabase: {
+    domain: {
+      env: 'METABASE_DOMAIN',
+      format: 'url',
+      nullable: true,
+      default: null,
+    },
+    token: {
+      env: 'METABASE_TOKEN',
+      format: String,
+      default: null,
+      sensitive: true,
     },
   },
   sentry: {

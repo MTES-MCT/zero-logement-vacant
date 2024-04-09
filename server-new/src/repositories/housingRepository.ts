@@ -4,6 +4,7 @@ import _ from 'lodash';
 import fp from 'lodash/fp';
 import validator from 'validator';
 
+import { HousingSource, PaginationOptions } from '@zerologementvacant/shared';
 import db, { where } from '~/infra/database';
 import {
   EnergyConsumptionGradesApi,
@@ -25,7 +26,6 @@ import establishmentRepository, {
   establishmentsTable,
 } from './establishmentRepository';
 import { banAddressesTable } from './banAddressesRepository';
-import { HousingSource, PaginationOptions } from '../../shared';
 import { logger } from '~/infra/logger';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';

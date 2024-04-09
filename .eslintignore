@@ -4,6 +4,9 @@ database/
 frontend/
 node_modules/
 public/
+scripts/
+server/
+tools/
 
 README.md
 tools
@@ -17,9 +20,6 @@ scalingo.json
 
 *.css
 *.hbs
-
-# shell script
-scripts/duplicate-database/
 
 frontend-new/src/components/_dsfr/
 

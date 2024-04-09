@@ -38,7 +38,6 @@ import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '~/models/LocalityApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import {
-  BuildingDBO,
   Buildings,
   formatBuildingApi,
   parseBuildingApi,

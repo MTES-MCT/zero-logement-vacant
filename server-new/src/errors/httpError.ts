@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface HttpError extends Error {
   status: number;
 }
@@ -9,6 +10,7 @@ interface HttpErrorOptions {
   data?: Record<string, unknown>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export abstract class HttpError extends Error implements HttpError {
   status: number;
   data?: Record<string, unknown>;

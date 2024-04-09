@@ -49,11 +49,9 @@ import {
   UserAccountDTO,
 } from '@zerologementvacant/shared';
 import { GroupApi } from '~/models/GroupApi';
-// @ts-ignore
 import { DatafoncierOwner } from '~/scripts/shared';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { MarkRequired } from 'ts-essentials';
-// @ts-ignore
 import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
 import {
   ConflictApi,

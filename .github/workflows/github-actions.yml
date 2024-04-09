@@ -53,10 +53,15 @@ jobs:
         run: yarn install --immutable
 
       - name: Build
-        run: yarn run new:build
+        run: yarn build
         env:
           DISABLE_ESLINT_PLUGIN: true
 
       - name: Lint
-        run: yarn run new:lint
+        run: yarn lint
 
+      - name: Test
+        run: yarn test
+
+      - name: Migrate database
+        run: yarn workspace @zerologementvacant/server run migrate

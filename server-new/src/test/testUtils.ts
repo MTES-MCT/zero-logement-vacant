@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import { Plugin } from 'superagent';
-import { Test } from 'supertest';
 
 import { TokenPayload, UserApi } from '~/models/UserApi';
 

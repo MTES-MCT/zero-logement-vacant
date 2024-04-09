@@ -70,6 +70,20 @@ interface Config {
   log: {
     level: LogLevel;
   };
+  mailer: {
+    from: string;
+    provider: 'brevo' | 'nodemailer';
+    host: string | null;
+    port: number | null;
+    user: string | null;
+    password: string | null;
+    /**
+     * Provide this if the provider is sendinblue
+     */
+    apiKey: string | null;
+    eventApiKey: string | null;
+    secure: boolean;
+  };
   metabase: {
     domain: string;
     token: string;
@@ -201,6 +215,63 @@ const config = convict<Config>({
       env: 'LOG_LEVEL',
       format: LOG_LEVELS,
       default: LogLevel.INFO,
+    },
+  },
+  mailer: {
+    from: {
+      // TODO: change this to 'MAILER_FROM'
+      env: 'MAIL_FROM',
+      format: String,
+      default: 'contact@zerologementvacant.beta.gouv.fr',
+    },
+    provider: {
+      env: 'MAILER_PROVIDER',
+      format: 'mail-provider',
+      default: 'nodemailer',
+    },
+    host: {
+      env: 'MAILER_HOST',
+      format: String,
+      default: null,
+      nullable: true,
+    },
+    port: {
+      env: 'MAILER_PORT',
+      format: 'port',
+      default: null,
+      nullable: true,
+    },
+    user: {
+      env: 'MAILER_USER',
+      format: String,
+      default: null,
+      nullable: true,
+    },
+    password: {
+      env: 'MAILER_PASSWORD',
+      format: String,
+      sensitive: true,
+      default: null,
+      nullable: true,
+    },
+    apiKey: {
+      env: 'MAILER_API_KEY',
+      format: String,
+      sensitive: true,
+      default: null,
+      nullable: true,
+    },
+    eventApiKey: {
+      env: 'MAILER_EVENT_API_KEY',
+      format: String,
+      sensitive: true,
+      default: null,
+      nullable: true,
+    },
+    secure: {
+      env: 'MAILER_SECURE',
+      format: Boolean,
+      default: false,
     },
   },
   metabase: {

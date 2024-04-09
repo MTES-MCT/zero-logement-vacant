@@ -5,11 +5,11 @@ import { sibTracker as EventsApi } from '@wecre8websites/sendinblue-tracker';
 import Brevo from '@getbrevo/brevo';
 
 import { MailEvent, MailService, SendOptions } from './mailService';
-import config from '../../utils/config';
-import { getAccountActivationLink } from '../../models/SignupLinkApi';
-import { getPasswordResetLink } from '../../models/ResetLinkApi';
-import { UserApi } from '../../models/UserApi';
-import { logger } from '../../utils/logger';
+import config from '~/config';
+import { getAccountActivationLink } from '~/models/SignupLinkApi';
+import { getPasswordResetLink } from '~/models/ResetLinkApi';
+import { UserApi } from '~/models/UserApi';
+import { logger } from '~/infra/logger';
 
 const PASSWORD_RESET_TEMPLATE_ID = 8;
 const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;
@@ -35,14 +35,14 @@ class BrevoService implements MailService {
       case 'housing:exported':
         return this.housingExported(
           email,
-          data as MailEvent['housing:exported']
+          data as MailEvent['housing:exported'],
         );
       case 'owner-prospect:created':
         return this.ownerProspectCreated(email);
       case 'prospect:initialized':
         return this.prospectInitialized(
           email,
-          data as MailEvent['prospect:initialized']
+          data as MailEvent['prospect:initialized'],
         );
       case 'user:created':
         return this.prospectActivated(email, data as MailEvent['user:created']);
@@ -71,7 +71,7 @@ class BrevoService implements MailService {
 
   async sendAccountActivationEmail(
     key: string,
-    options: SendOptions
+    options: SendOptions,
   ): Promise<void> {
     await this.send({
       ...options,
@@ -105,7 +105,7 @@ class BrevoService implements MailService {
 
   private prospectInitialized(
     email: string,
-    data: MailEvent['prospect:initialized']
+    data: MailEvent['prospect:initialized'],
   ) {
     this.contacts
       .getContactInfo(email)

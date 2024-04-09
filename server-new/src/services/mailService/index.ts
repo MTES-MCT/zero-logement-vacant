@@ -1,4 +1,4 @@
-import config from '../../utils/config';
+import config from '~/config';
 import createSendinblueService from './brevoService';
 import { MailService } from './mailService';
 import createNodemailerService from './nodemailerService';

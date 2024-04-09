@@ -287,10 +287,10 @@ describe('Group API', () => {
 
     it('should create the group immediately and add housing later if the volume of housing exceeds the threshold', async () => {
       const housingList = Array.from({
-        length: config.application.batchSize * 2,
+        length: config.app.batchSize * 2,
       }).map(() => genHousingApi(oneOf(establishment.geoCodes)));
       await async.forEach(
-        fp.chunk(config.application.batchSize, housingList),
+        fp.chunk(config.app.batchSize, housingList),
         async (chunk) => {
           await Housing().insert(chunk.map(formatHousingRecordApi));
         },

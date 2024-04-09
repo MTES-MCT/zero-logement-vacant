@@ -1,11 +1,14 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { differenceInYears } from 'date-fns';
+import fp from 'lodash/fp';
 
+import { isDefined } from '@zerologementvacant/shared';
 import housingRepository, {
   formatHousingRecordApi,
   Housing,
   ReferenceDataYear,
 } from '../housingRepository';
-import { Establishment1 } from '../../../database/seeds/test/001-establishments';
+import { Establishment1 } from '~/infra/database/seeds/test/20240405011849_establishments';
 import {
   genBuildingApi,
   genCampaignApi,
@@ -17,23 +20,20 @@ import {
   genUserApi,
   manyOf,
   oneOf,
-} from '../../test/testFixtures';
+} from '~/test/testFixtures';
 import {
   formatGroupApi,
   formatGroupHousingApi,
   Groups,
   GroupsHousing,
 } from '../groupRepository';
-import fp from 'lodash/fp';
 import { formatOwnerApi, Owners } from '../ownerRepository';
 import {
   formatHousingOwnersApi,
   HousingOwners,
 } from '../housingOwnerRepository';
 import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
-import { isDefined } from '../../../shared';
-import { Owner1 } from '../../../database/seeds/test/004-owner';
-import { differenceInYears } from 'date-fns';
+import { Owner1 } from '~/infra/database/seeds/test/20240405012710_owner';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '~/models/LocalityApi';
 import { BuildingApi } from '~/models/BuildingApi';
@@ -703,13 +703,13 @@ describe('Housing repository', () => {
           actual.map((housing) => housing.buildingId),
         );
         await async.forEach(buildingIds, async (id) => {
-          const building: BuildingDBO = await Buildings()
-            .where('id', id)
-            .first();
+          const building = await Buildings().where('id', id).first();
           expect(building).toBeDefined();
-          expect(
-            building.vacant_housing_count / building.housing_count,
-          ).toSatisfy((rate) => rate <= 0.2);
+          if (building) {
+            expect(
+              building.vacant_housing_count / building.housing_count,
+            ).toSatisfy((rate) => rate <= 0.2);
+          }
         });
       });
 

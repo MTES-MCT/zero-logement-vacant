@@ -1,9 +1,10 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver';
-import { Worker, WorkerOptions } from 'bullmq';
-import { Readable } from 'node:stream';
 import exceljs from 'exceljs';
+import { Worker, WorkerOptions } from 'bullmq';
+import { parseRedisUrl } from 'parse-redis-url-simple';
+import { Readable } from 'node:stream';
 
 import { Jobs } from '../jobs';
 import campaignRepository from '../../../server/repositories/campaignRepository';
@@ -33,13 +34,9 @@ export default function createWorker() {
     accessKeyId: config.s3.accessKeyId,
     secretAccessKey: config.s3.secretAccessKey,
   });
+  const [redis] = parseRedisUrl(config.redis.url);
   const workerConfig: WorkerOptions = {
-    connection: {
-      host: config.redis.host,
-      port: config.redis.port,
-      username: config.redis.username ?? undefined,
-      password: config.redis.password ?? undefined,
-    },
+    connection: redis,
   };
 
   logger.info('Worker created', {

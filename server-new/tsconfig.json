@@ -10,7 +10,8 @@
     "paths": {
       "~/*": ["src/*"]
     },
-    "rootDir": "src"
+    "rootDir": "src",
+    "typeRoots": ["node_modules", "types"]
   },
   "ts-node": {
     "require": ["tsconfig-paths/register"]

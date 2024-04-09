@@ -36,6 +36,10 @@ interface Config {
     host: string;
     port: number;
   };
+  auth: {
+    secret: string;
+    expiresIn: string;
+  };
   ban: {
     api: {
       endpoint: string;
@@ -86,6 +90,19 @@ const config = convict<Config>({
       env: 'APP_PORT',
       format: 'port',
       default: 3001,
+    },
+  },
+  auth: {
+    secret: {
+      env: 'AUTH_SECRET',
+      format: String,
+      sensitive: true,
+      default: null,
+    },
+    expiresIn: {
+      env: 'AUTH_EXPIRES_IN',
+      format: String,
+      default: '12 hours',
     },
   },
   ban: {

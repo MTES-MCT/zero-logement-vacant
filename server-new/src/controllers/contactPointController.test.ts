@@ -8,7 +8,7 @@ import {
   Establishment1,
   Establishment2,
 } from '~/infra/database/seeds/test/20240405011849_establishments';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import { ContactPoint1 } from '~/infra/database/seeds/test/20240405013328_contact-points';
 import {
   ContactPoints,

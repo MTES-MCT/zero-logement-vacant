@@ -1,7 +1,7 @@
 import { CeremaUser, ConsultUserService } from './consultUserService';
 import fetch from 'node-fetch';
 
-import config from '~/config';
+import config from '~/infra/config';
 
 class CeremaService implements ConsultUserService {
   async consultUsers(email: string): Promise<CeremaUser[]> {

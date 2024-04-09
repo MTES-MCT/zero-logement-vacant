@@ -13,7 +13,7 @@ import lovacRepository, {
 } from './lovac-repository';
 import modificationRepository from './modification-repository';
 import { OwnerDBO, ownerTable } from '~/repositories/ownerRepository';
-import config from '~/config';
+import config from '~/infra/config';
 import { tapAsync } from '../shared';
 import { logger } from '~/infra/logger';
 

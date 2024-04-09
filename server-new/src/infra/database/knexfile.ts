@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 import path from 'node:path';
 
-import config from '~/config';
+import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 
 const knexConfig: Knex.Config = {

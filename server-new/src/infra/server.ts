@@ -1,7 +1,7 @@
 import express, { Application, Request, Response } from 'express';
 import path from 'node:path';
 
-import config from '~/config';
+import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import sentry from '~/infra/sentry';

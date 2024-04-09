@@ -3,7 +3,7 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 import jwt from 'jsonwebtoken';
 
-import config from '~/config';
+import config from '~/infra/config';
 import { param, ValidationChain } from 'express-validator';
 import { createURL, getResource, Resource } from '~/models/DashboardApi';
 

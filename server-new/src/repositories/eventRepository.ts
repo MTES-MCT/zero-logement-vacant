@@ -6,7 +6,7 @@ import {
   EventKind,
   EventSection,
 } from '@zerologementvacant/shared';
-import config from '~/config';
+import config from '~/infra/config';
 import db from '~/infra/database';
 import { logger } from '~/infra/logger';
 import { CampaignApi } from '~/models/CampaignApi';

@@ -17,7 +17,7 @@ import {
 } from '~/repositories/resetLinkRepository';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 import { formatUserApi, Users } from '~/repositories/userRepository';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
 import {
   SALT_LENGTH,

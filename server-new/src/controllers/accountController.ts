@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 
 import { UserAccountDTO } from '@zerologementvacant/shared';
 import userRepository from '~/repositories/userRepository';
-import config from '~/config';
+import config from '~/infra/config';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
 import ResetLinkMissingError from '~/errors/resetLinkMissingError';

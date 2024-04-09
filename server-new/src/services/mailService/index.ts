@@ -1,4 +1,4 @@
-import config from '~/config';
+import config from '~/infra/config';
 import createSendinblueService from './brevoService';
 import { MailService } from './mailService';
 import createNodemailerService from './nodemailerService';

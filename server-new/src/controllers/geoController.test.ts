@@ -8,7 +8,7 @@ import {
   formatGeoPerimeterApi,
   GeoPerimeters,
 } from '~/repositories/geoRepository';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import {
   genEstablishmentApi,
   genGeoPerimeterApi,

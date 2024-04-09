@@ -1,4 +1,4 @@
-import config from '~/config';
+import config from '~/infra/config';
 import { ConsultUserService } from './consultUserService';
 import createMockCeremaService from './mockCeremaService';
 import createCeremaService from './ceremaService';

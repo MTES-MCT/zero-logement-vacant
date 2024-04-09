@@ -1,5 +1,5 @@
 import { isPast } from 'date-fns';
-import config from '~/config';
+import config from '~/infra/config';
 
 export interface SignupLinkApi {
   id: string;

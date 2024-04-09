@@ -1,7 +1,7 @@
 import { createTerminus } from '@godaddy/terminus';
 import { Application } from 'express';
 
-import config from '../config';
+import config from './config';
 import { logger } from './logger';
 
 export default function gracefulShutdown(app: Application) {

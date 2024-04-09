@@ -3,7 +3,7 @@ import { constants } from 'http2';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
 import {
   genAddressApi,

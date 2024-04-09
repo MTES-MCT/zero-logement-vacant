@@ -10,7 +10,7 @@ import {
   genOwnerProspectApi,
   genUserApi,
 } from '~/test/testFixtures';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import {
   formatOwnerProspectApi,
   OwnerProspects,

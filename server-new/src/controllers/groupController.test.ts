@@ -5,7 +5,7 @@ import fp from 'lodash/fp';
 import request from 'supertest';
 
 import { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/shared';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
 import { GroupApi } from '~/models/GroupApi';
 import {
@@ -49,7 +49,7 @@ import {
   HousingOwnerDBO,
   HousingOwners,
 } from '~/repositories/housingOwnerRepository';
-import config from '~/config';
+import config from '~/infra/config';
 import {
   Establishments,
   formatEstablishmentApi,

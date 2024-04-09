@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node';
 import { Express } from 'express';
 
-import config from '../config';
+import config from './config';
 import { logger } from './logger';
 
 function init(app: Express): void {

@@ -16,7 +16,7 @@ import campaignRepository from '~/repositories/campaignRepository';
 import { GroupHousingEventApi } from '~/models/EventApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingFiltersApi from '~/models/HousingFiltersApi';
-import config from '~/config';
+import config from '~/infra/config';
 
 const list = async (request: Request, response: Response): Promise<void> => {
   const { auth } = request as AuthenticatedRequest;

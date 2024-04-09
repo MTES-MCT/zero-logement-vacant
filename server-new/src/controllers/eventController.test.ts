@@ -2,7 +2,7 @@ import request from 'supertest';
 import { constants } from 'http2';
 
 import { tokenProvider } from '~/test/testUtils';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import {
   genEstablishmentApi,
   genHousingApi,

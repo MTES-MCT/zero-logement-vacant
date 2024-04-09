@@ -22,7 +22,7 @@ import {
   establishmentsTable,
   formatEstablishmentApi,
 } from '~/repositories/establishmentRepository';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import { CampaignIntent, EstablishmentApi } from '~/models/EstablishmentApi';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {

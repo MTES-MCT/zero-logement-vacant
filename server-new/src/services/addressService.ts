@@ -3,7 +3,7 @@ import FormData from 'form-data';
 import fs from 'fs';
 import fetch, { Response as FetchResponse } from 'node-fetch';
 
-import config from '~/config';
+import config from '~/infra/config';
 import db from '~/infra/database/';
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';

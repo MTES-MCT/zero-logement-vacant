@@ -9,7 +9,7 @@ import {
   genSiren,
   genUserApi,
 } from '~/test/testFixtures';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import signupLinkRepository, {
   formatSignupLinkApi,
   SignupLinks,

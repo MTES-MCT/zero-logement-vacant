@@ -2,7 +2,7 @@ import { subDays } from 'date-fns';
 import { constants } from 'http2';
 import request from 'supertest';
 
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import resetLinkRepository, {
   formatResetLinkApi,
   ResetLinks,

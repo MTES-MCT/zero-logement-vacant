@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 
 import { createQuery, DatafoncierOwner } from '@zerologementvacant/shared';
-import config from '~/config';
+import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import { DatafoncierResultDTO } from '~/models/DatafoncierResultDTO';
 

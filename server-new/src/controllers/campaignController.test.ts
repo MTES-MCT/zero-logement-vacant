@@ -25,7 +25,7 @@ import {
   Housing,
   housingTable,
 } from '~/repositories/housingRepository';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import {
   formatGroupApi,
   formatGroupHousingApi,

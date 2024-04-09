@@ -5,7 +5,7 @@ import { sibTracker as EventsApi } from '@wecre8websites/sendinblue-tracker';
 import Brevo from '@getbrevo/brevo';
 
 import { MailEvent, MailService, SendOptions } from './mailService';
-import config from '~/config';
+import config from '~/infra/config';
 import { getAccountActivationLink } from '~/models/SignupLinkApi';
 import { getPasswordResetLink } from '~/models/ResetLinkApi';
 import { UserApi } from '~/models/UserApi';

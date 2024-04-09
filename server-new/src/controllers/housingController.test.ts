@@ -26,7 +26,7 @@ import {
   HousingEvents,
   housingEventsTable,
 } from '~/repositories/eventRepository';
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
 import { HousingUpdateBody } from './housingController';
 import { housingNotesTable, Notes } from '~/repositories/noteRepository';

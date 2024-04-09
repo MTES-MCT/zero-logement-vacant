@@ -2,7 +2,7 @@ import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
-import { createServer } from '~/server';
+import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { genEstablishmentApi, oneOf } from '~/test/testFixtures';
 import {

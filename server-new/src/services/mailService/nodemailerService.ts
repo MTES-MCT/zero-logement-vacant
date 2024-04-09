@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-import config from '~/config';
+import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import { UserApi } from '~/models/UserApi';
 import { MailEvent, MailService, SendOptions } from './mailService';

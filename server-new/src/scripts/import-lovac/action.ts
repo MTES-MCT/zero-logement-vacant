@@ -8,7 +8,7 @@ import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 import { UserApi } from '~/models/UserApi';
-import config from '~/config';
+import config from '~/infra/config';
 import UserMissingError from '~/errors/userMissingError';
 
 export function compare({ before, now, modifications }: Comparison): Action {

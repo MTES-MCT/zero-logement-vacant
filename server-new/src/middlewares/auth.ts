@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { expressjwt } from 'express-jwt';
 import memoize from 'memoizee';
 
-import config from '~/config';
+import config from '~/infra/config';
 import userRepository from '~/repositories/userRepository';
 import UserMissingError from '~/errors/userMissingError';
 import AuthenticationMissingError from '~/errors/authenticationMissingError';

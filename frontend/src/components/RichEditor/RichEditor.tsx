@@ -44,10 +44,6 @@ function RichEditor(props: Readonly<Props>) {
     });
   }
 
-  if (!props.content) {
-    return null;
-  }
-
   return (
     <LexicalComposer initialConfig={config}>
       <ToolbarPlugin className="fr-mb-2w" variableOptions={VARIABLE_OPTIONS} />

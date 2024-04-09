@@ -112,10 +112,7 @@ interface Config {
     token: string;
   };
   redis: {
-    host: string;
-    port: number;
-    username: string | null;
-    password: string | null;
+    url: string;
   };
   s3: {
     endpoint: string;
@@ -360,28 +357,13 @@ const config = convict<Config>({
     },
   },
   redis: {
-    host: {
-      env: 'REDIS_HOST',
+    url: {
+      env: 'REDIS_URL',
       format: String,
-      default: 'localhost',
-    },
-    port: {
-      env: 'REDIS_PORT',
-      format: 'port',
-      default: 6379,
-    },
-    username: {
-      env: 'REDIS_USERNAME',
-      format: String,
-      default: null,
-      nullable: !isProduction,
-    },
-    password: {
-      env: 'REDIS_PASSWORD',
-      format: String,
-      default: null,
-      nullable: !isProduction,
-      sensitive: true,
+      default: isProduction
+        ? null
+        : 'redis://localhost:6379/zerologementvacant',
+      nullable: false,
     },
   },
   s3: {

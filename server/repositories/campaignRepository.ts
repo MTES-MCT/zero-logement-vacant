@@ -1,6 +1,8 @@
+import { Knex } from 'knex';
+import { parseRedisUrl } from 'parse-redis-url-simple';
+
 import { CampaignApi, CampaignSortApi } from '../models/CampaignApi';
 import db from './db';
-import { Knex } from 'knex';
 import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
 import { logger } from '../utils/logger';
 import { sortQuery } from '../models/SortApi';
@@ -103,13 +105,9 @@ const remove = async (campaignId: string): Promise<void> => {
   await db(campaignsTable).delete().where('id', campaignId);
 };
 
+const [redis] = parseRedisUrl(config.redis.url);
 const queue = createQueue({
-  connection: {
-    host: config.redis.host,
-    port: config.redis.port,
-    username: config.redis.username ?? undefined,
-    password: config.redis.password ?? undefined,
-  },
+  connection: redis,
 });
 
 async function generateMails(campaign: CampaignApi): Promise<void> {

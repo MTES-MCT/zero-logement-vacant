@@ -23,7 +23,8 @@
     "archiver": "^7.0.1",
     "bullmq": "^5.4.6",
     "convict": "^6.2.4",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "parse-redis-url-simple": "^1.0.2"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

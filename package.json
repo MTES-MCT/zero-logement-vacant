@@ -11,7 +11,8 @@
   "workspaces": [
     "frontend-new",
     "server-new",
-    "shared-new"
+    "shared-new",
+    "packages/**"
   ],
   "scripts": {
     "prepare": "husky",

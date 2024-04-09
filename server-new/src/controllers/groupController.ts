@@ -73,13 +73,13 @@ const create = async (request: Request, response: Response): Promise<void> => {
     archivedAt: null,
   };
 
-  if (housingList.length > config.application.batchSize) {
+  if (housingList.length > config.app.batchSize) {
     // Save the group immediately
     await groupRepository.save(group);
     response.status(constants.HTTP_STATUS_ACCEPTED).json(toGroupDTO(group));
 
     // Add housing later to avoid blocking the user
-    const chunks = fp.chunk(config.application.batchSize, housingList);
+    const chunks = fp.chunk(config.app.batchSize, housingList);
     await async.forEach(chunks, async (chunk) => {
       await groupRepository.addHousing(group, chunk);
     });

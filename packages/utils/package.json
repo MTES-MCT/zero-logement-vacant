@@ -1,0 +1,23 @@
+{
+  "name": "@zerologementvacant/utils",
+  "engines": {
+    "node": "^20",
+    "yarn": "^4"
+  },
+  "packageManager": "yarn@4.1.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo",
+    "build": "tsc -b tsconfig.build.json"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.4",
+    "@types/lodash": "^4.14.191",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.3"
+  }
+}

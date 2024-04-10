@@ -99,6 +99,7 @@
     "wuzzy": "^0.1.8"
   },
   "devDependencies": {
+    "@types/archiver": "^6.0.2",
     "@types/async": "^3.2.20",
     "@types/bcryptjs": "^2.4.2",
     "@types/cli-progress": "^3.11.0",

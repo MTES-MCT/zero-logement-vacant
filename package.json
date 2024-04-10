@@ -46,7 +46,7 @@
     "bullmq": "^5.4.6",
     "@adobe/node-fetch-retry": "^2.2.0",
     "@aws-sdk/s3-request-presigner": "^3.540.0",
-    "@faker-js/faker": "^8.2.0",
+    "@faker-js/faker": "^8.4.1",
     "@getbrevo/brevo": "^1.0.1",
     "@godaddy/terminus": "^4.12.1",
     "@jest-mock/express": "^1.4.5",
@@ -109,7 +109,6 @@
     "wuzzy": "^0.1.8"
   },
   "devDependencies": {
-    "@faker-js/faker": "^8.4.1",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.3",

@@ -8414,6 +8414,8 @@ __metadata:
     convict-format-with-validator: "npm:^6.2.0"
     cors: "npm:^2.8.5"
     dotenv: "npm:^16.4.5"
+    express: "npm:^4.19.2"
+    express-promise-router: "npm:^4.1.1"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     jest-sorted: "npm:^1.0.15"
@@ -13366,6 +13368,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"express-promise-router@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "express-promise-router@npm:4.1.1"
+  dependencies:
+    is-promise: "npm:^4.0.0"
+    lodash.flattendeep: "npm:^4.0.0"
+    methods: "npm:^1.0.0"
+  peerDependencies:
+    "@types/express": ^4.0.0
+    express: ^4.0.0
+  peerDependenciesMeta:
+    "@types/express":
+      optional: true
+  checksum: 10c0/18c358e0df6602c45611096e325cfc3777b3c7cdd24f3908d80cb922cacc23404dc0f6e6babf528853d57feecb15b19d27309ca301c3950cb5597e8a6f383499
+  languageName: node
+  linkType: hard
+
 "express-rate-limit@npm:^6.11.2":
   version: 6.11.2
   resolution: "express-rate-limit@npm:6.11.2"
@@ -13392,7 +13411,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express@npm:^4.17.3, express@npm:^4.18.2":
+"express@npm:^4.17.3, express@npm:^4.18.2, express@npm:^4.19.2":
   version: 4.19.2
   resolution: "express@npm:4.19.2"
   dependencies:
@@ -15718,6 +15737,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-promise@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "is-promise@npm:4.0.0"
+  checksum: 10c0/ebd5c672d73db781ab33ccb155fb9969d6028e37414d609b115cc534654c91ccd061821d5b987eefaa97cf4c62f0b909bb2f04db88306de26e91bfe8ddc01503
+  languageName: node
+  linkType: hard
+
 "is-regex@npm:^1.1.4":
   version: 1.1.4
   resolution: "is-regex@npm:1.1.4"
@@ -17904,6 +17930,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash.flattendeep@npm:^4.0.0":
+  version: 4.4.0
+  resolution: "lodash.flattendeep@npm:4.4.0"
+  checksum: 10c0/83cb80754b921fb4ed2c222b91a82b2524f3bdc60c3ae91e00688bd4bf1bcc28b8a2cc250e11fdc1b6da3a2de09e57008e13f15a209cafdd4f9163d047f97544
+  languageName: node
+  linkType: hard
+
 "lodash.groupby@npm:^4.6.0":
   version: 4.6.0
   resolution: "lodash.groupby@npm:4.6.0"
@@ -18423,7 +18456,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"methods@npm:^1.1.2, methods@npm:~1.1.2":
+"methods@npm:^1.0.0, methods@npm:^1.1.2, methods@npm:~1.1.2":
   version: 1.1.2
   resolution: "methods@npm:1.1.2"
   checksum: 10c0/bdf7cc72ff0a33e3eede03708c08983c4d7a173f91348b4b1e4f47d4cdbf734433ad971e7d1e8c77247d9e5cd8adb81ea4c67b0a2db526b758b2233d7814b8b2

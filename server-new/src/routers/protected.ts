@@ -1,4 +1,4 @@
-import express from 'express';
+import Router from 'express-promise-router';
 import { param } from 'express-validator';
 
 import accountController from '~/controllers/accountController';
@@ -21,7 +21,7 @@ import { jwtCheck, userCheck } from '~/middlewares/auth';
 import validator from '~/middlewares/validator';
 import { isUUIDParam } from '~/utils/validators';
 
-const router = express.Router();
+const router = Router();
 
 router.use(jwtCheck(true));
 router.use(userCheck());

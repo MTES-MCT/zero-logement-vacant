@@ -1,4 +1,4 @@
-import express from 'express';
+import Router from 'express-promise-router';
 import rateLimit from 'express-rate-limit';
 
 import accountController from '~/controllers/accountController';
@@ -15,7 +15,7 @@ import config from '~/infra/config';
 import { noop } from '~/middlewares/noop';
 import validator from '~/middlewares/validator';
 
-const router = express.Router();
+const router = Router();
 
 // Allow 10 requests by IP over 1 minute
 function rateLimiter() {

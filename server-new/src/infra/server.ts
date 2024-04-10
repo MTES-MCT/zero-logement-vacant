@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import path from 'node:path';
 
@@ -17,6 +18,9 @@ export function createServer(): Server {
   sentry.init(app);
 
   app.use(express.json());
+
+  // TODO: improve server
+  app.use(cors({ origin: [config.app.host, 'https://stats.beta.gouv.fr'] }));
 
   // Serve the frontend in production
   if (config.app.env === 'production') {

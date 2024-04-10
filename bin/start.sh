@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Run bin/start.sh..."
+
 if [ "$ZLV_APP" = "server" ] ; then
   npm run start
 fi

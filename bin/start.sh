@@ -3,9 +3,9 @@
 echo "Run bin/start.sh..."
 
 if [ "$ZLV_APP" = "server" ] ; then
-  npm run start
+  exec npm run start
 fi
 
 if [ "$ZLV_APP" = "queue" ] ; then
-  npm run queue:start
+  exec npm run queue:start
 fi

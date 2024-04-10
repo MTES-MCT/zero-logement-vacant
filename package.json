@@ -10,7 +10,7 @@
     "frontend:lint": "npm --prefix frontend run lint",
     "frontend:test": "npm --prefix frontend test",
     "queue:clean": "cd queue && rimraf dist",
-    "queue:build": "cd queue && npm run clean && tsc -b tsconfig.build.json",
+    "queue:build": "cd queue && tsc -b tsconfig.build.json",
     "queue:dev": "cd queue && nodemon src/bin/index.ts",
     "queue:start": "cd queue && node ./dist/queue/src/bin/index.js",
     "queue:test": "cd queue && jest",

@@ -1,11 +1,13 @@
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import sentry from '~/infra/sentry';
+import mockServices from '~/mocks';
 
 export interface Server {
   app: Application;
@@ -21,6 +23,21 @@ export function createServer(): Server {
 
   // TODO: improve server
   app.use(cors({ origin: [config.app.host, 'https://stats.beta.gouv.fr'] }));
+
+  // Mock services like Datafoncier API on specific environments
+  mockServices();
+
+  app.use(express.json());
+
+  app.use(
+    rateLimit({
+      windowMs: 5 * 60 * 1000, // 5 minutes window
+      max: config.rateLimit.max, // start blocking after X requests for windowMs time
+      message: 'Too many request from this address, try again later please.',
+      standardHeaders: true,
+      legacyHeaders: false,
+    }),
+  );
 
   // Serve the frontend in production
   if (config.app.env === 'production') {

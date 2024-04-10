@@ -88,6 +88,9 @@ interface Config {
     domain: string;
     token: string;
   };
+  rateLimit: {
+    max: number;
+  };
   sentry: {
     dsn: string | null;
     enabled: boolean;
@@ -286,6 +289,13 @@ const config = convict<Config>({
       format: String,
       default: null,
       sensitive: true,
+    },
+  },
+  rateLimit: {
+    max: {
+      env: 'RATE_LIMIT_MAX',
+      format: 'int',
+      default: 10_000,
     },
   },
   sentry: {

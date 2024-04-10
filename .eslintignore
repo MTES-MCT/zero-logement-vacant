@@ -4,6 +4,8 @@ database/
 dist/
 README.md
 tools
+bin
+Procfile
 
 *.css
 *.hbs

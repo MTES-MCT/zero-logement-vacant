@@ -24,6 +24,7 @@
     "bullmq": "^5.4.6",
     "convict": "^6.2.4",
     "dotenv": "^16.4.5",
+    "jest-extended": "^4.0.2",
     "parse-redis-url-simple": "^1.0.2"
   },
   "devDependencies": {
@@ -32,7 +33,6 @@
     "@types/convict": "^6.1.6",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.30",
-    "jest-extended": "^4.0.2",
     "nodemon": "^3.1.0",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",

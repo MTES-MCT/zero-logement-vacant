@@ -5,7 +5,7 @@
   "main": "server/index.ts",
   "scripts": {
     "prepare": "husky",
-    "frontend:build": "npm --prefix frontend ci --include=dev && npm run --prefix frontend build",
+    "frontend:build": "npm --prefix frontend ci --include=dev && npm run --prefix frontend build && rm -rf node_modules",
     "frontend:start": "npm --prefix frontend start",
     "frontend:lint": "npm --prefix frontend run lint",
     "frontend:test": "npm --prefix frontend test",

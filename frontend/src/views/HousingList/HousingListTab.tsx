@@ -235,6 +235,9 @@ const HousingListTab = ({
           </Text>
         )}
       <HousingList filters={filters} onSelectHousing={setSelected}>
+        <SelectableListHeader
+          entity="logement"
+        >
           <SelectableListHeaderActions>
             {filteredHousingCount !== undefined && filteredHousingCount > 0 && (
               <Row justifyContent="right">

@@ -301,7 +301,7 @@ function HousingListFiltersSidemenu(props: Props) {
           </Accordion>
           <Accordion
             label={
-              <TitleWithIcon icon="fr-icon-building-fill" title="Immeuble" />
+              <TitleWithIcon icon="fr-icon-building-fill" title="Bâtiment/DPE" />
             }
           >
             <Container as="section" fluid>

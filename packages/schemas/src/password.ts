@@ -1,7 +1,6 @@
 import { ref, string } from 'yup';
 
 export const password = string()
-  .string()
   .min(8, 'Au moins 8 caractères.')
   .matches(/[A-Z]/g, {
     name: 'uppercase',

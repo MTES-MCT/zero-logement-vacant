@@ -8371,6 +8371,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@zerologementvacant/models@workspace:packages/models":
+  version: 0.0.0-use.local
+  resolution: "@zerologementvacant/models@workspace:packages/models"
+  dependencies:
+    "@tsconfig/node20": "npm:^20.1.4"
+    rimraf: "npm:^5.0.5"
+    typescript: "npm:^5.4.3"
+  languageName: unknown
+  linkType: soft
+
 "@zerologementvacant/schemas@workspace:packages/schemas":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/schemas@workspace:packages/schemas"
@@ -8402,6 +8412,7 @@ __metadata:
     "@zerologementvacant/shared": "workspace:*"
     convict: "npm:^6.2.4"
     convict-format-with-validator: "npm:^6.2.0"
+    cors: "npm:^2.8.5"
     dotenv: "npm:^16.4.5"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
@@ -8434,6 +8445,32 @@ __metadata:
     pino: "npm:^8.19.0"
     pino-pretty: "npm:^11.0.0"
     rimraf: "npm:^5.0.5"
+    typescript: "npm:^5.4.3"
+  languageName: unknown
+  linkType: soft
+
+"@zerologementvacant/template@workspace:packages/template":
+  version: 0.0.0-use.local
+  resolution: "@zerologementvacant/template@workspace:packages/template"
+  dependencies:
+    "@tsconfig/node20": "npm:^20.1.4"
+    rimraf: "npm:^5.0.5"
+    typescript: "npm:^5.4.3"
+  languageName: unknown
+  linkType: soft
+
+"@zerologementvacant/utils@workspace:packages/utils":
+  version: 0.0.0-use.local
+  resolution: "@zerologementvacant/utils@workspace:packages/utils"
+  dependencies:
+    "@tsconfig/node20": "npm:^20.1.4"
+    "@types/jest": "npm:^29.5.12"
+    "@types/lodash": "npm:^4.14.191"
+    jest: "npm:^29.7.0"
+    jest-extended: "npm:^4.0.2"
+    lodash: "npm:^4.17.21"
+    rimraf: "npm:^5.0.5"
+    ts-jest: "npm:^29.1.2"
     typescript: "npm:^5.4.3"
   languageName: unknown
   linkType: soft

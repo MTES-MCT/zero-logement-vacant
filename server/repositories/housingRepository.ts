@@ -39,6 +39,7 @@ import {
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
+import { AddressKinds } from '../../shared/models/AdresseDTO';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -326,7 +327,13 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
         .join(housingOwnersTable, ownerHousingJoinClause)
         .join(ownerTable, `${housingOwnersTable}.owner_id`, `${ownerTable}.id`)
         .select(`${ownerTable}.id as owner_id`)
-        .select(db.raw(`to_json(${ownerTable}.*) AS owner`)),
+        .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
+        .leftJoin(banAddressesTable, (join) => {
+          join
+            .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
+            .andOnVal('address_kind', AddressKinds.Owner);
+        })
+        .select(db.raw(`to_json(${banAddressesTable}.*) AS owner_ban_address`)),
     events: (query) =>
       query.select('events.contact_count', 'events.last_contact').joinRaw(
         `left join lateral (
@@ -931,6 +938,10 @@ export interface HousingDBO extends HousingRecordDBO {
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;
+  owner_ban_address?: Pick<
+    OwnerDBO,
+    'postal_code' | 'house_number' | 'street' | 'city' | 'score'
+  >;
   coowners: OwnerDBO[];
   // TODO: fix this
   [key: string]: any;
@@ -976,7 +987,12 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   occupancyIntended: housing.occupancy_intended,
   localityKind: housing.locality_kind,
   geoPerimeters: housing.geo_perimeters,
-  owner: housing.owner ? parseOwnerApi(housing.owner) : undefined,
+  owner: housing.owner
+    ? parseOwnerApi({
+        ...housing.owner,
+        ...housing.owner_ban_address,
+      })
+    : undefined,
   coowners: [],
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
   contactCount: Number(housing.contact_count),

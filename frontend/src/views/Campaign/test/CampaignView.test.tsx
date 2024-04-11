@@ -5,8 +5,11 @@ import { Provider } from 'react-redux';
 import { Link, Route, Router } from 'react-router-dom';
 
 import {
+  genAddress,
   genCampaign,
   genDraft,
+  genHousing,
+  genOwner,
   genSender,
 } from '../../../../test/fixtures.test';
 import configureTestStore from '../../../utils/test/storeUtils';
@@ -16,6 +19,9 @@ import CampaignView from '../CampaignView';
 import { Draft } from '../../../models/Draft';
 import Notification from '../../../components/Notification/Notification';
 import { Campaign } from '../../../models/Campaign';
+import { Housing } from '../../../models/Housing';
+import { HousingPaginatedResult } from '../../../models/PaginatedResult';
+import { Owner } from '../../../models/Owner';
 
 describe('Campaign view', () => {
   const user = userEvent.setup();
@@ -326,6 +332,94 @@ describe('Campaign view', () => {
     });
     await user.click(confirm);
     expect(dialog).not.toBeVisible();
+  });
+
+  it('should edit a recipient’s address', async () => {
+    const housing: Housing = { ...genHousing(), owner: genOwner() };
+    const updated: Owner = {
+      ...housing.owner,
+      fullName: 'John Doe',
+      banAddress: genAddress(),
+      additionalAddress: genAddress().city,
+    };
+
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify(campaign),
+        },
+      },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([{ ...draft, sender }]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            housing: 1,
+            owners: 1,
+          }),
+        },
+      },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            entities: [housing],
+            loading: false,
+            page: 1,
+            perPage: 50,
+          } as HousingPaginatedResult),
+        },
+      },
+      {
+        pathname: `/api/owners/${housing.owner.id}`,
+        method: 'PUT',
+        response: async (request) => {
+          const payload = await request.json();
+          return {
+            body: JSON.stringify(updated),
+          };
+        },
+      },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            entities: [{ ...housing, owner: updated }],
+            loading: false,
+            page: 1,
+            perPage: 50,
+          } as HousingPaginatedResult),
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
+    await user.click(tab);
+    const [edit] = await screen.findAllByRole('button', {
+      name: /^Éditer l’adresse/,
+    });
+    await user.click(edit);
+    const aside = await screen.findByRole('complementary');
+    const fullName = await within(aside).findByLabelText('Nom prénom');
+    await user.clear(fullName);
+    await user.type(fullName, 'John Doe');
+    const save = await within(aside).findByRole('button', {
+      name: /^Enregistrer/,
+    });
+    await user.click(save);
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(/^Sauvegardé !/);
   });
 
   // Hard to mock window.confirm because it's a browser-level function

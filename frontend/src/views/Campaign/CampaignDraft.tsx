@@ -28,6 +28,8 @@ import DraftMailInfo, {
 import { DraftCreationPayload } from '../../models/Draft';
 import DraftSenderLogo from '../../components/Draft/DraftSenderLogo';
 import DraftSignature from '../../components/Draft/DraftSignature';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
 
 const schema = yup
   .object({
@@ -155,7 +157,7 @@ function CampaignDraft(props: Readonly<Props>) {
 
   return (
     <Container as="article" fluid>
-      <Container as="header" fluid>
+      <Container as="header" className="fr-mb-5w" fluid>
         <Row>
           <Col n="6">
             <CampaignTitle
@@ -179,64 +181,81 @@ function CampaignDraft(props: Readonly<Props>) {
           </Col>
         </Row>
       </Container>
-      <form id="draft" name="draft" className="fr-mt-2w">
-        <UnsavedChanges when={hasChanges} />
-        <Container as="section" fluid>
-          <Row justifyContent="right" spacing="mb-2w">
-            <SaveButton
-              autoClose={5000}
-              isError={mutation.isError}
-              isLoading={mutation.isLoading}
-              isSuccess={mutation.isSuccess}
-              message={{
-                success: 'Votre campagne a été sauvegardée avec succès',
-              }}
-              onSave={save}
-            />
-          </Row>
-          <Row gutters spacing="mb-2w">
-            <Col n="5">
-              <DraftSenderLogo
-                className="fr-mb-2w"
-                value={values.logo}
-                onChange={setLogo}
-              />
-              <DraftMailInfo
-                form={form}
-                writtenAt={values.writtenAt}
-                writtenFrom={values.writtenFrom}
-                onChange={setWritten}
-              />
-            </Col>
-            <Col n="7">
-              <DraftSender
-                form={form}
-                value={values.sender}
-                onChange={setSender}
-              />
-            </Col>
-          </Row>
-          <Row spacing="mb-2w">
-            <Col>
-              <DraftBody
-                body={values.body}
-                form={form}
-                subject={values.subject}
-                onChange={setBody}
-              />
-            </Col>
-          </Row>
-          <Row>
-            <Col n="7" offset="5">
-              <DraftSignature
-                form={form}
-                value={values.sender}
-                onChange={setSignature}
-              />
-            </Col>
-          </Row>
-        </Container>
-      </form>
+      <Tabs
+        className={styles.tabs}
+        classes={{
+          panel: styles.panel,
+        }}
+        tabs={[
+          {
+            label: 'Courrier',
+            content: (
+              <form id="draft" name="draft" className="fr-mt-2w">
+                <UnsavedChanges when={hasChanges} />
+                <Container as="section" fluid>
+                  <Row justifyContent="right" spacing="mb-2w">
+                    <SaveButton
+                      autoClose={5000}
+                      isError={mutation.isError}
+                      isLoading={mutation.isLoading}
+                      isSuccess={mutation.isSuccess}
+                      message={{
+                        success: 'Votre campagne a été sauvegardée avec succès',
+                      }}
+                      onSave={save}
+                    />
+                  </Row>
+                  <Row gutters spacing="mb-2w">
+                    <Col n="5">
+                      <DraftSenderLogo
+                        className="fr-mb-2w"
+                        value={values.logo}
+                        onChange={setLogo}
+                      />
+                      <DraftMailInfo
+                        form={form}
+                        writtenAt={values.writtenAt}
+                        writtenFrom={values.writtenFrom}
+                        onChange={setWritten}
+                      />
+                    </Col>
+                    <Col n="7">
+                      <DraftSender
+                        form={form}
+                        value={values.sender}
+                        onChange={setSender}
+                      />
+                    </Col>
+                  </Row>
+                  <Row spacing="mb-2w">
+                    <Col>
+                      <DraftBody
+                        body={values.body}
+                        form={form}
+                        subject={values.subject}
+                        onChange={setBody}
+                      />
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col n="7" offset="5">
+                      <DraftSignature
+                        form={form}
+                        value={values.sender}
+                        onChange={setSignature}
+                      />
+                    </Col>
+                  </Row>
+                </Container>
+              </form>
+            ),
+          },
+          {
+            label: 'Destinataires',
+            content: <CampaignRecipients campaign={props.campaign} />,
+          },
+        ]}
+      />
     </Container>
   );
 }

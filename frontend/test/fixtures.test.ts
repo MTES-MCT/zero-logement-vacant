@@ -67,7 +67,7 @@ export function genUser() {
   } as User;
 }
 
-export function genOwner() {
+export function genOwner(): Owner {
   return {
     id: randomstring.generate(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
@@ -75,7 +75,8 @@ export function genOwner() {
     birthDate: new Date(),
     email: genEmail(),
     phone: randomstring.generate(),
-  } as Owner;
+    banAddress: genAddress(),
+  };
 }
 
 export function genHousing(): Housing {
@@ -105,12 +106,12 @@ export function genHousing(): Housing {
   };
 }
 
-export const genAddress: Address = {
+export const genAddress = (): Address => ({
   street: randomstring.generate(),
   houseNumber: randomstring.generate(),
   postalCode: randomstring.generate(),
   city: randomstring.generate(),
-};
+});
 
 export const genCampaign = (): Campaign => ({
   id: randomstring.generate(),

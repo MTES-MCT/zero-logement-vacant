@@ -29,13 +29,17 @@ type Args = Jobs[Name];
 export default function createWorker() {
   const logger = createLogger('workers:generate-mails');
   logger.debug(`NODE_ENV=${process.env.NODE_ENV}`);
+
   const s3 = createS3({
     endpoint: config.s3.endpoint,
     region: config.s3.region,
     accessKeyId: config.s3.accessKeyId,
     secretAccessKey: config.s3.secretAccessKey,
   });
+
   const [redis] = parseRedisUrl(config.redis.url);
+  delete redis.database;
+
   logger.debug(`redis URL: ${config.redis.url}`)
   logger.debug(`redis configuration: ${JSON.stringify(redis)}`)
 

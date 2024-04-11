@@ -184,9 +184,13 @@ function CampaignDraft(props: Readonly<Props>) {
         <Container as="section" fluid>
           <Row justifyContent="right" spacing="mb-2w">
             <SaveButton
+              autoClose={5000}
               isError={mutation.isError}
               isLoading={mutation.isLoading}
               isSuccess={mutation.isSuccess}
+              message={{
+                success: 'Votre campagne a été sauvegardée avec succès',
+              }}
               onSave={save}
             />
           </Row>

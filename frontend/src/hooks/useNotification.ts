@@ -1,19 +1,25 @@
 import { useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { toast, ToastOptions } from 'react-toastify';
 
-interface Props {
+export interface NotificationProps extends Pick<ToastOptions, 'autoClose'> {
   isError: boolean;
   isLoading: boolean;
   isSuccess: boolean;
+  message?: {
+    error?: string;
+    loading?: string;
+    success?: string;
+  };
   toastId: string;
 }
 
-export function useNotification(props: Props) {
+export function useNotification(props: NotificationProps) {
   const toastId: string = props.toastId;
 
   useEffect(() => {
     if (props.isLoading) {
-      toast('Sauvegarde...', {
+      const loading = props.message?.loading || 'Sauvegarde...';
+      toast(loading, {
         autoClose: false,
         isLoading: true,
         toastId,
@@ -22,27 +28,30 @@ export function useNotification(props: Props) {
     }
 
     if (props.isError) {
+      const error = props.message?.error ?? 'Erreur lors de la sauvegarde';
       toast.update(toastId, {
-        autoClose: null,
+        autoClose: props.autoClose ?? null,
         isLoading: false,
-        render: 'Erreur lors de la sauvegarde',
+        render: error,
         type: 'error',
         toastId,
       });
     }
 
     if (props.isSuccess) {
+      const success = props.message?.success ?? 'Sauvegardé !';
       if (toast.isActive(toastId)) {
         toast.update(toastId, {
-          autoClose: null,
+          autoClose: props.autoClose ?? null,
           isLoading: false,
-          render: 'Sauvegardé !',
+          render: success,
           type: 'success',
           toastId,
         });
       } else {
-        toast.success('Sauvegardé !', {
+        toast.success(success, {
           type: 'success',
+          autoClose: props.autoClose,
           toastId,
         });
       }

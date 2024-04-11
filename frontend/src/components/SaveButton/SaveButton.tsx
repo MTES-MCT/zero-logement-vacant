@@ -1,20 +1,26 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 
-import { useNotification } from '../../hooks/useNotification';
+import {
+  NotificationProps,
+  useNotification,
+} from '../../hooks/useNotification';
 
-interface Props {
+interface Props
+  extends Pick<
+    NotificationProps,
+    'autoClose' | 'isError' | 'isLoading' | 'isSuccess' | 'message'
+  > {
   className?: string;
-  isError: boolean;
-  isLoading: boolean;
-  isSuccess: boolean;
   onSave(): void;
 }
 
 function SaveButton(props: Readonly<Props>) {
   useNotification({
+    autoClose: props.autoClose,
     isError: props.isError,
     isLoading: props.isLoading,
     isSuccess: props.isSuccess,
+    message: props.message,
     toastId: 'save',
   });
 

@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify';
 function Notification() {
   return (
     <ToastContainer
-      autoClose={3000}
+      autoClose={5000}
       closeOnClick
       draggable
       limit={3}

@@ -59,5 +59,14 @@ export function useNotification(props: NotificationProps) {
     }
 
     return () => toast.dismiss(toastId);
-  }, [props.isError, props.isLoading, props.isSuccess, toastId]);
+  }, [
+    props.autoClose,
+    props.isError,
+    props.isLoading,
+    props.isSuccess,
+    props.message?.error,
+    props.message?.loading,
+    props.message?.success,
+    toastId,
+  ]);
 }

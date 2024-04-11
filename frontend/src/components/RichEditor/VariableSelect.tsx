@@ -29,7 +29,7 @@ function VariableSelect(props: Readonly<Props>) {
       key={option.value}
       onClick={() => props.onSelect?.(option)}
     >
-      <Badge noIcon severity="new" small>
+      <Badge noIcon severity="success" small>
         {option.label}
       </Badge>
     </MenuItem>

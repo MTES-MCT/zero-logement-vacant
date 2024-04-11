@@ -40,7 +40,7 @@ const config = convict<Config>({
       format: String,
       default: isProduction
         ? null
-        : 'redis://localhost_test:6379/zerologementvacant',
+        : 'redis://localhost:6379/zerologementvacant',
       nullable: false,
     },
   },

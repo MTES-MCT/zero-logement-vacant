@@ -1,13 +1,20 @@
-import { QueueEvents } from 'bullmq';
+import { QueueEvents, QueueEventsOptions } from 'bullmq';
 import { createLogger } from '../logger';
 import { Jobs } from '../jobs';
+import config from '../config';
+import { parseRedisUrl } from 'parse-redis-url-simple';
 
 export default function registerEvents() {
   const logger = createLogger('queue');
   const queues: Array<keyof Jobs> = ['campaign:generate'];
 
   const listeners = queues.map((queue) => {
-    const queueEvents = new QueueEvents(queue);
+    const [redis] = parseRedisUrl(config.redis.url);
+    const queueEventsConfig: QueueEventsOptions = {
+      connection: redis,
+    };
+
+    const queueEvents = new QueueEvents(queue, queueEventsConfig);
 
     queueEvents.on('completed', ({ jobId }) => {
       logger.info('Job completed', { job: jobId });

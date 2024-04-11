@@ -20,7 +20,7 @@
     "clean": "rimraf dist",
     "copy": "copyfiles server/**/*.css server/**/*.hbs dist",
     "prebuild": "run-s clean copy",
-    "build": "npm run migrate-latest && tsc && npm run frontend:build && npm run queue:build",
+    "build": "npm run migrate-latest && tsc && copy && npm run frontend:build && npm run queue:build",
     "start": "node ./dist/server/index.js",
     "test": "jest",
     "test:database": "cd database && jest --run-in-band --test-timeout=30000",

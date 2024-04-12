@@ -229,7 +229,7 @@ const config = convict<Config>({
     },
     provider: {
       env: 'MAILER_PROVIDER',
-      format: 'mail-provider',
+      format: ['brevo', 'nodemailer'],
       default: 'nodemailer',
     },
     host: {

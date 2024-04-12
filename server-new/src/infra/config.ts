@@ -7,7 +7,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/shared';
 
 dotenv.config({
-  path: path.join(__dirname, '..', '.env'),
+  path: path.join(__dirname, '..', '..', '.env'),
+  debug: true,
 });
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -37,6 +38,7 @@ interface Config {
     isReviewApp: boolean;
     host: string;
     port: number;
+    system: string;
   };
   auth: {
     secret: string;
@@ -123,6 +125,11 @@ const config = convict<Config>({
       env: 'APP_PORT',
       format: 'port',
       default: 3001,
+    },
+    system: {
+      env: 'SYSTEM_ACCOUNT',
+      format: String,
+      default: 'admin@zerologementvacant.beta.gouv.fr',
     },
   },
   auth: {

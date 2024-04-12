@@ -39,6 +39,21 @@ interface FindOptions {
 }
 
 class DatafoncierOwnersRepository {
+  async count(): Promise<number> {
+    const subquery = DatafoncierOwners()
+      .distinctOn('idpersonne')
+      .where((whereBuilder) =>
+        whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8']),
+      )
+      .select('idpersonne'); // Sélectionnez uniquement 'idpersonne' pour le décompte distinct
+
+    const result = await DatafoncierOwners()
+      .from(subquery.as('sub'))
+      .count({ total: '*' });
+
+    return Number(result[0] ? result[0].total : 0);
+  }
+
   async find(opts?: FindOptions): Promise<OwnerApi[]> {
     const whereOptions = where<DatafoncierOwnerFilters>(['idprocpte']);
 

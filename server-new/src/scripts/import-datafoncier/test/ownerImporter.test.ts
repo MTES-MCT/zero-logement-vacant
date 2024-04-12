@@ -9,7 +9,7 @@ import {
 import { OwnerApi } from '~/models/OwnerApi';
 import { DatafoncierOwner, toOwnerApi } from '../../shared';
 import highland from 'highland';
-import { formatElapsed, timer } from '../../shared/elapsed';
+import { formatElapsed, timer } from '~/scripts/shared';
 import { logger } from '~/infra/logger';
 import randomstring from 'randomstring';
 import progress from 'cli-progress';

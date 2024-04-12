@@ -277,7 +277,9 @@ describe('Campaign view', () => {
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
     await user.click(save);
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(/^Sauvegardé !/);
+    expect(alert).toHaveTextContent(
+      /^Votre campagne a été sauvegardée avec succès/
+    );
   });
 
   it('should validate the campaign', async () => {

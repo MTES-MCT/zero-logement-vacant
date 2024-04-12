@@ -328,12 +328,12 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
         .join(ownerTable, `${housingOwnersTable}.owner_id`, `${ownerTable}.id`)
         .select(`${ownerTable}.id as owner_id`)
         .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
-        .leftJoin(banAddressesTable, (join) => {
+        .leftJoin({ ban: banAddressesTable }, (join) => {
           join
-            .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
+            .on(`${ownerTable}.id`, 'ban.ref_id')
             .andOnVal('address_kind', AddressKinds.Owner);
         })
-        .select(db.raw(`to_json(${banAddressesTable}.*) AS owner_ban_address`)),
+        .select(db.raw('to_json(ban.*) AS owner_ban_address')),
     events: (query) =>
       query.select('events.contact_count', 'events.last_contact').joinRaw(
         `left join lateral (

@@ -202,7 +202,7 @@ const config = convict<Config>({
       format: String,
       default: isProduction
         ? null
-        : 'postgresql://postgres:postgres@localhost:5432/zerologementvacant',
+        : 'postgresql://postgres:postgres@localhost:5432/zlv',
       nullable: false,
     },
     pool: {

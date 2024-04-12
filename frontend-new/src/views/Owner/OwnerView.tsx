@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Col, Row, Title } from '../../components/_dsfr';
 import styles from './owner.module.scss';
 import { useOwner } from '../../hooks/useOwner';

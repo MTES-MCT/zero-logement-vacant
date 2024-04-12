@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import fetchMock from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
@@ -57,7 +56,7 @@ describe('Owner view', () => {
               init: { status: 200 },
             };
           } else return { body: '', init: { status: 404 } };
-        })()
+        })(),
       );
     });
 
@@ -70,13 +69,13 @@ describe('Owner view', () => {
         <Router history={history}>
           <Route exact path="/proprietaires/:ownerId" component={OwnerView} />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     await screen.findByText(capitalize(owner.fullName));
     if (owner.birthDate) {
       await screen.findByText(
-        `né(e) le ${format(owner.birthDate, 'dd/MM/yyyy')}`
+        `né(e) le ${format(owner.birthDate, 'dd/MM/yyyy')}`,
       );
     }
     if (owner.email) {

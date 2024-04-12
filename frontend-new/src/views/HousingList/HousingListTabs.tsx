@@ -1,5 +1,4 @@
 import { getHousingState, HOUSING_STATUSES } from '../../models/HousingState';
-import React from 'react';
 import HousingListTab from './HousingListTab';
 import { HousingFilters } from '../../models/HousingFilters';
 import { useStatusTabs } from '../../hooks/useStatusTabs';
@@ -51,7 +50,7 @@ const HousingListTabs = ({
       onTabChange={(tab: string) => setActiveTab(tab)}
       tabs={tabs}
     >
-      {statuses.map((status, i) => (
+      {statuses.map((status) => (
         <HousingListTab
           filters={{ ...filters, status: status.value }}
           isActive={isActive(status)}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Col, Row, Title } from '../../components/_dsfr';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';

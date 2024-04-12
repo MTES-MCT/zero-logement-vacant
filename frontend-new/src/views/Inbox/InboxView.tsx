@@ -3,7 +3,7 @@ import InboxMessageList from '../../components/Inbox/InboxMessageList';
 import { Selection } from '../../hooks/useSelection';
 
 import { useAppSelector } from '../../hooks/useStore';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
 import InboxSidemenu from '../../components/Inbox/InboxSidemenu';
@@ -23,7 +23,7 @@ function InboxView() {
   useDocumentTitle('Messagerie');
   const [selected, setSelected] = useState<string>();
   const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment
+    (state) => state.authentication.authUser?.establishment,
   );
   const [sort, setSort] = useState<OwnerProspectSort>();
 
@@ -35,14 +35,14 @@ function InboxView() {
 
   const messages = useMemo(
     () => ownerProspects?.entities ?? [],
-    [ownerProspects]
+    [ownerProspects],
   );
 
   const expand = useMemo<boolean>(() => !!selected, [selected]);
   const link = establishment ? getEstablishmentUrl(establishment) : null;
   const selectedOwnerProspect = useMemo<OwnerProspect | undefined>(
     () => messages.find((message) => message.id === selected),
-    [messages, selected]
+    [messages, selected],
   );
 
   async function onChange(ownerProspect: OwnerProspect): Promise<void> {

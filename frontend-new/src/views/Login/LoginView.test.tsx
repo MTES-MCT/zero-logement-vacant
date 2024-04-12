@@ -1,4 +1,3 @@
-import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor } from '@testing-library/react';
 import LoginView from './LoginView';
@@ -21,7 +20,7 @@ describe('login view', () => {
         <Router history={createMemoryHistory()}>
           <LoginView />
         </Router>
-      </Provider>
+      </Provider>,
     );
     expect(screen.getAllByTestId('email-input')[0]).toBeInTheDocument();
     expect(screen.getAllByTestId('password-input')[0]).toBeInTheDocument();
@@ -36,7 +35,7 @@ describe('login view', () => {
         <Router history={createMemoryHistory()}>
           <LoginView />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const passwordInput = screen
@@ -69,7 +68,7 @@ describe('login view', () => {
         <Router history={history}>
           <LoginView />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const forgottenPassword = screen.getByText('Mot de passe perdu ?');
@@ -85,7 +84,7 @@ describe('login view', () => {
         establishment: { id: 123 },
         accessToken: 'accessToken',
       }),
-      { status: 200 }
+      { status: 200 },
     );
 
     const history = createMemoryHistory();
@@ -94,7 +93,7 @@ describe('login view', () => {
         <Router history={history}>
           <LoginView />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const passwordInput = screen

@@ -172,7 +172,7 @@ export function hasCoordinates(
   );
 }
 
-export const lastUpdate = (housing: Housing): String =>
+export const lastUpdate = (housing: Housing): string =>
   housing.lastContact
     ? `${format(housing.lastContact, 'dd/MM/yyyy')} (${differenceInDays(
         new Date(),

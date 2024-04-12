@@ -1,11 +1,5 @@
-import {
-  createInstance,
-  MatomoProvider,
-  useMatomo,
-} from '@jonkoops/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import React, { useEffect } from 'react';
-import { MapProvider } from 'react-map-gl';
-import { Provider as StoreProvider } from 'react-redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
   BrowserRouter,
@@ -33,7 +27,6 @@ import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
 import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
-import { store } from './store/store';
 import { useAppDispatch, useAppSelector } from './hooks/useStore';
 import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
@@ -41,7 +34,6 @@ import AccountView from './views/Account/AccountView';
 import GroupView from './views/Group/GroupView';
 import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
-import config from './utils/config';
 import './App.scss';
 
 function App() {
@@ -54,13 +46,12 @@ function App() {
       (query) => query?.status === 'pending',
     ),
   );
-  const matomo = createInstance(config.matomo);
 
   FetchInterceptor();
 
   useEffect(() => {
     pushInstruction('setUserId', user?.id);
-  }, [user]);
+  }, [pushInstruction, user]);
 
   useEffect(() => {
     if (isSomeQueryPending) {
@@ -68,125 +59,115 @@ function App() {
     } else {
       dispatch(hideLoading());
     }
-  }, [isSomeQueryPending]);
+  }, [dispatch, isSomeQueryPending]);
 
   return (
     <React.Suspense fallback={<></>}>
-      <MapProvider>
-        <MatomoProvider value={matomo}>
-          <StoreProvider store={store}>
-            <BrowserRouter>
-              <Header />
-              <ScrollToTop />
+      <BrowserRouter>
+        <Header />
+        <ScrollToTop />
 
-              <Switch>
-                <Route>
-                  <Route path="/stats" component={StatsView} />
-                  <Route path="/accessibilite" component={AccessibilityView} />
-                  <Route
-                    path="/mentions-legales"
-                    component={LegalNoticesView}
-                  />
-                  ,
-                  {isAuthenticated
-                    ? [
-                        ...[
-                          {
-                            path: '/parc-de-logements',
-                            component: HousingListView,
-                          },
-                          {
-                            path: '/parc-de-logements/campagnes/:campaignId',
-                            component: CampaignView,
-                          },
-                          { path: '/groupes/:id', component: GroupView },
-                          { path: '/campagnes', component: CampaignsListView },
-                          {
-                            path: '/campagnes/:campaignId',
-                            component: CampaignView,
-                          },
-                          {
-                            path: '/proprietaires/:ownerId/logements/:housingId',
-                            component: HousingView,
-                          },
-                          {
-                            path: '/proprietaires/:ownerId',
-                            component: OwnerView,
-                          },
-                          {
-                            path: '/logements/:housingId/proprietaires/:ownerId',
-                            component: OwnerView,
-                          },
-                          {
-                            path: '/logements/:housingId',
-                            component: HousingView,
-                          },
-                          {
-                            path: '/ressources/statuts',
-                            component: StatusView,
-                          },
-                          { path: '/ressources', component: ResourcesView },
-                          { path: '/compte', component: AccountView },
-                          {
-                            path: '/compte/mot-de-passe',
-                            component: AccountPasswordView,
-                          },
-                          { path: '/utilisateurs', component: UsersView },
-                          {
-                            path: '/autres-etablissements',
-                            component: TerritoryEstablishmentsView,
-                          },
-                        ].map((route: RouteProps) => (
-                          <Route
-                            path={route.path}
-                            exact
-                            component={route.component}
-                            key={`route_${route.path}`}
-                          />
-                        )),
-                        <Route path="/*" key="route_default">
-                          <Redirect to="/parc-de-logements" />
-                        </Route>,
-                      ]
-                    : [
-                        ...[
-                          {
-                            path: '/inscription*',
-                            component: AccountCreationView,
-                          },
-                          { path: '/connexion', component: LoginView },
-                          {
-                            path: '/mot-de-passe/oublie',
-                            component: ForgottenPasswordView,
-                          },
-                          {
-                            path: '/mot-de-passe/nouveau',
-                            component: ResetPasswordView,
-                          },
-                          { path: '/admin', component: LoginView },
-                          { path: '/', component: EstablishmentHomeView },
-                        ].map((route) => (
-                          <Route
-                            exact
-                            path={route.path}
-                            component={route.component}
-                            key={`route_${route.path}`}
-                          />
-                        )),
-                        <Route path="/*" key="route_default">
-                          {isLoggedOut ? (
-                            <Redirect to="/connexion" />
-                          ) : (
-                            <Redirect to="/" />
-                          )}
-                        </Route>,
-                      ]}
-                </Route>
-              </Switch>
-            </BrowserRouter>
-          </StoreProvider>
-        </MatomoProvider>
-      </MapProvider>
+        <Switch>
+          <Route>
+            <Route path="/stats" component={StatsView} />
+            <Route path="/accessibilite" component={AccessibilityView} />
+            <Route path="/mentions-legales" component={LegalNoticesView} />,
+            {isAuthenticated
+              ? [
+                  ...[
+                    {
+                      path: '/parc-de-logements',
+                      component: HousingListView,
+                    },
+                    {
+                      path: '/parc-de-logements/campagnes/:campaignId',
+                      component: CampaignView,
+                    },
+                    { path: '/groupes/:id', component: GroupView },
+                    { path: '/campagnes', component: CampaignsListView },
+                    {
+                      path: '/campagnes/:campaignId',
+                      component: CampaignView,
+                    },
+                    {
+                      path: '/proprietaires/:ownerId/logements/:housingId',
+                      component: HousingView,
+                    },
+                    {
+                      path: '/proprietaires/:ownerId',
+                      component: OwnerView,
+                    },
+                    {
+                      path: '/logements/:housingId/proprietaires/:ownerId',
+                      component: OwnerView,
+                    },
+                    {
+                      path: '/logements/:housingId',
+                      component: HousingView,
+                    },
+                    {
+                      path: '/ressources/statuts',
+                      component: StatusView,
+                    },
+                    { path: '/ressources', component: ResourcesView },
+                    { path: '/compte', component: AccountView },
+                    {
+                      path: '/compte/mot-de-passe',
+                      component: AccountPasswordView,
+                    },
+                    { path: '/utilisateurs', component: UsersView },
+                    {
+                      path: '/autres-etablissements',
+                      component: TerritoryEstablishmentsView,
+                    },
+                  ].map((route: RouteProps) => (
+                    <Route
+                      path={route.path}
+                      exact
+                      component={route.component}
+                      key={`route_${route.path}`}
+                    />
+                  )),
+                  <Route path="/*" key="route_default">
+                    <Redirect to="/parc-de-logements" />
+                  </Route>,
+                ]
+              : [
+                  ...[
+                    {
+                      path: '/inscription*',
+                      component: AccountCreationView,
+                    },
+                    { path: '/connexion', component: LoginView },
+                    {
+                      path: '/mot-de-passe/oublie',
+                      component: ForgottenPasswordView,
+                    },
+                    {
+                      path: '/mot-de-passe/nouveau',
+                      component: ResetPasswordView,
+                    },
+                    { path: '/admin', component: LoginView },
+                    { path: '/', component: EstablishmentHomeView },
+                  ].map((route) => (
+                    <Route
+                      exact
+                      path={route.path}
+                      component={route.component}
+                      key={`route_${route.path}`}
+                    />
+                  )),
+                  <Route path="/*" key="route_default">
+                    {isLoggedOut ? (
+                      <Redirect to="/connexion" />
+                    ) : (
+                      <Redirect to="/" />
+                    )}
+                  </Route>,
+                ]}
+          </Route>
+        </Switch>
+      </BrowserRouter>
     </React.Suspense>
   );
 }

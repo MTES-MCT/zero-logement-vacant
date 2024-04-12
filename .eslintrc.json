@@ -24,11 +24,20 @@
   },
   "overrides": [
     {
-      "files": ["frontend-new"],
+      "files": ["frontend-new/src/**/*.ts?"],
       "extends": [
         "plugin:react/recommended",
+        "plugin:react/jsx-runtime",
         "plugin:react-hooks/recommended"
       ],
+      "settings": {
+        "react": {
+          "version": "detect"
+        }
+      },
+      "rules": {
+        "no-irregular-whitespace": ["error", { "skipJSXText": true }]
+      },
       "overrides": [
         {
           "files": ["**/*.test.tsx"],

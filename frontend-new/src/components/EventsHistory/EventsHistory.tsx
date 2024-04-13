@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Text } from '../_dsfr';
 import styles from './events-history.module.scss';
 import { differenceInMilliseconds, format } from 'date-fns';
@@ -26,7 +26,7 @@ const EventsHistory = ({ events, notes }: Props) => {
   const [expandEvents, setExpandEvents] = useState(false);
 
   const eventAndNotes = [...events, ...notes].sort((e1, e2) =>
-    differenceInMilliseconds(e2.createdAt, e1.createdAt)
+    differenceInMilliseconds(e2.createdAt, e1.createdAt),
   );
 
   const isEvent = (e: Event | Note): e is Event => {
@@ -37,7 +37,7 @@ const EventsHistory = ({ events, notes }: Props) => {
   const findNewCampaign = (event: Event): Campaign =>
     event.new.campaignIds?.[0] &&
     campaignList?.find(
-      (campaing) => campaing.id === event.new.campaignIds?.[0]
+      (campaing) => campaing.id === event.new.campaignIds?.[0],
     );
 
   return (
@@ -74,7 +74,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                               partialHousing={
                                 getHousingDiff(
                                   eventOrNote.old,
-                                  eventOrNote.new ?? {}
+                                  eventOrNote.new ?? {},
                                 ).old
                               }
                             />
@@ -88,7 +88,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                                 partialHousing={
                                   getHousingDiff(
                                     eventOrNote.old,
-                                    eventOrNote.new
+                                    eventOrNote.new,
                                   ).new
                                 }
                               />
@@ -96,10 +96,10 @@ const EventsHistory = ({ events, notes }: Props) => {
                               <div
                                 className={classNames(
                                   styles.eventContent,
-                                  'd-inline-block'
+                                  'd-inline-block',
                                 )}
                               >
-                                Ce logement <b>n'est plus présent</b> dans Lovac
+                                Ce logement <b>n’est plus présent</b> dans Lovac
                               </div>
                             )}
                           </>
@@ -107,7 +107,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                           <div
                             className={classNames(
                               styles.eventContent,
-                              'd-inline-block'
+                              'd-inline-block',
                             )}
                           >
                             {eventOrNote.new ? (
@@ -116,7 +116,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                               </>
                             ) : (
                               <>
-                                Ce logement <b>n'est plus présent</b> dans Lovac
+                                Ce logement <b>n’est plus présent</b> dans Lovac
                               </>
                             )}
                           </div>
@@ -162,10 +162,10 @@ const EventsHistory = ({ events, notes }: Props) => {
                                 <div
                                   className={classNames(
                                     styles.eventContent,
-                                    'd-inline-block'
+                                    'd-inline-block',
                                   )}
                                 >
-                                  Ce logement <b>n'est plus présent</b> dans
+                                  Ce logement <b>n’est plus présent</b> dans
                                   Lovac
                                 </div>
                               )}
@@ -199,7 +199,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                       <div
                         className={classNames(
                           styles.eventContent,
-                          'd-inline-block'
+                          'd-inline-block',
                         )}
                       >
                         Ce logement a été <b>ajouté dans une campagne</b>{' '}
@@ -228,7 +228,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                     dangerouslySetInnerHTML={{
                       __html: eventOrNote.content.replaceAll(
                         /(\n|\\n)/g,
-                        '<br />'
+                        '<br />',
                       ),
                     }}
                     className={styles.eventContent}

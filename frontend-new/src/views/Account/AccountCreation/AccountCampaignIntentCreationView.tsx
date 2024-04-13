@@ -1,4 +1,4 @@
-import React, { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { Location } from 'history';
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
@@ -112,7 +112,6 @@ function AccountCampaignIntentCreationView() {
           onChange={setCampaignIntent}
         />
         <Row alignItems="middle" className="justify-space-between">
-          {/*@ts-ignore*/}
           <AppLink
             isSimple
             to={back}

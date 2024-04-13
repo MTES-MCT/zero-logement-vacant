@@ -1,10 +1,4 @@
-import React, {
-  ChangeEvent,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useState,
-} from 'react';
+import { ChangeEvent, ReactElement, ReactNode, useEffect, useState } from 'react';
 
 import { Pagination as DSFRPagination, Table } from '../_dsfr';
 import {

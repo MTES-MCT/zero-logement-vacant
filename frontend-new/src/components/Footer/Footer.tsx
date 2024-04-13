@@ -1,4 +1,3 @@
-import React from 'react';
 import { Footer as DSFRFooter } from '@codegouvfr/react-dsfr/Footer';
 import { useUser } from '../../hooks/useUser';
 

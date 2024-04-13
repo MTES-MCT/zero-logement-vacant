@@ -1,5 +1,5 @@
 import { Container, Title } from '../_dsfr';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 export interface Props {
   title?: ReactNode | ReactNode[];

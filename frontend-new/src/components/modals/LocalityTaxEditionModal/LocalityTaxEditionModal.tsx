@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useMemo, useState } from 'react';
+import { ChangeEvent, useMemo, useState } from 'react';
 import { Col, Container, Row } from '../../_dsfr';
 
 import * as yup from 'yup';

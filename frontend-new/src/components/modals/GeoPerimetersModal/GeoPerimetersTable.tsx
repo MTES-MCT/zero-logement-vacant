@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Row, Table, Text } from '../../_dsfr';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import { useSelection } from '../../../hooks/useSelection';

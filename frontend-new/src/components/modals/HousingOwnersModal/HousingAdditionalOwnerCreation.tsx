@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Col, Container, Row, Text } from '../../_dsfr';
 import { Owner } from '../../../models/Owner';
 import * as yup from 'yup';
@@ -18,7 +18,7 @@ interface Props {
   onCancel: () => void;
 }
 
-const HousingAdditionalOwnerCreation = ({ onAdd, onCancel }: Props) => {
+const HousingAdditionalOwnerCreation = ({ onAdd }: Props) => {
   const [fullName, setFullName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [rawAddress, setRawAddress] = useState<string[] | undefined>(undefined);

@@ -28,7 +28,6 @@ import {
   vacancyRateOptions,
 } from '../../models/HousingFilters';
 import styles from './housing-list-filters.module.scss';
-import React from 'react';
 import { OwnershipKinds } from '../../models/Housing';
 import {
   getSubStatusList,

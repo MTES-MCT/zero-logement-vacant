@@ -1,6 +1,5 @@
 import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import React from 'react';
 
 import ModalGraphStepper, { Step } from '../ModalStepper/ModalGraphStepper';
 import fillLocalId from './FillLocalId';

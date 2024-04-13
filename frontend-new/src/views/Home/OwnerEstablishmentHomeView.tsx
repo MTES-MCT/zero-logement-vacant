@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 
 import { useLocation, useParams } from 'react-router-dom';
@@ -276,7 +276,7 @@ const OwnerEstablishmentHomeView = () => {
             </Title>
             <Text>
               En mettant votre bien en location ou en le vendant pour qu’il soit
-              réoccupé, vous aiderez les personnes en quête d'un logement. Vous
+              réoccupé, vous aiderez les personnes en quête d’un logement. Vous
               contribuerez aussi à la vitalité ou à la revitalisation de votre
               territoire.
             </Text>

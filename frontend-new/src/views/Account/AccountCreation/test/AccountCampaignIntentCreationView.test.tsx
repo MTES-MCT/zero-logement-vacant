@@ -45,7 +45,7 @@ describe('AccountCampaignIntentCreationView', () => {
         <Router history={history}>
           <AccountCampaignIntentCreationView />
         </Router>
-      </Provider>
+      </Provider>,
     );
   }
 
@@ -60,9 +60,10 @@ describe('AccountCampaignIntentCreationView', () => {
   it('should render', async () => {
     setup();
 
-    await screen.findAllByText(
-      'Quand prévoyez-vous de contacter des propriétaires de logements vacants ?'
+    const elements = await screen.findAllByText(
+      'Quand prévoyez-vous de contacter des propriétaires de logements vacants ?',
     );
+    expect(elements).toBeTruthy();
   });
 
   it('should go back to the previous step', async () => {

@@ -1,4 +1,4 @@
-import React, {cloneElement, useEffect, useRef} from 'react';
+import { cloneElement, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 

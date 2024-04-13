@@ -7,7 +7,7 @@ import {
   applicationMiddlewares,
   applicationReducer,
 } from '../../../store/store';
-import { genAuthUser, genGroup } from '../../../../test/fixtures.test';
+import { genAuthUser, genGroup } from '../../../test/fixtures.test';
 import { Provider } from 'react-redux';
 
 describe('GroupHousingModal', () => {
@@ -38,7 +38,7 @@ describe('GroupHousingModal', () => {
       async () => ({
         status: 200,
         body: JSON.stringify(new Array(3).fill('0').map(genGroup)),
-      })
+      }),
     );
 
     render(
@@ -47,11 +47,11 @@ describe('GroupHousingModal', () => {
           onGroupSelect={onSubmit}
           onGroupCreate={onGroupCreate}
         />
-      </Provider>
+      </Provider>,
     );
 
     const select = await screen.findByLabelText(
-      /Ajoutez votre sélection à un groupe existant/
+      /Ajoutez votre sélection à un groupe existant/,
     );
     await user.click(select);
   });

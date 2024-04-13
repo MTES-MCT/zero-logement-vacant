@@ -1,4 +1,3 @@
-import React from 'react';
 import styles from './map-controls.module.scss';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
 import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
@@ -366,4 +366,4 @@ const HousingEditionForm = (
   );
 };
 
-export default React.forwardRef(HousingEditionForm);
+export default forwardRef(HousingEditionForm);

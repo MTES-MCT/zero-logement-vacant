@@ -3,7 +3,7 @@ import { enableFetchMocks } from 'jest-fetch-mock';
 
 enableFetchMocks();
 
-jest.mock('./components/Aside/Aside.tsx');
+jest.mock('../components/Aside/Aside.tsx');
 
 global.URL.createObjectURL = jest.fn();
 

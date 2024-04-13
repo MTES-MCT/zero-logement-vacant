@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SearchableSelect } from '../_dsfr';
 import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
 import _ from 'lodash';

@@ -1,4 +1,3 @@
-import React from 'react';
 import AppBadge from '../_app/AppBadge/AppBadge';
 import { CampaignSteps } from '../../models/Campaign';
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Col, Container, Row, Text, Title } from '../_dsfr';
 import { Campaign } from '../../models/Campaign';
 import {

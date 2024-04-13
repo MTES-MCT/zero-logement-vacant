@@ -1,4 +1,3 @@
-import React from 'react';
 import { Col, Container, Icon, Row, Text } from '../../components/_dsfr';
 import {
   campaignStep,
@@ -35,7 +34,7 @@ const CampaignView = () => {
   const [removeCampaign] = useRemoveCampaignMutation();
 
   const { campaign } = useCampaign();
-  const { data: group } = useGetGroupQuery(campaign?.groupId!, {
+  const { data: group } = useGetGroupQuery(campaign?.groupId ?? '', {
     skip: !campaign?.groupId,
   });
 
@@ -125,7 +124,7 @@ const CampaignView = () => {
               <Row spacing="mb-3w">
                 <Col>
                   <Text size="sm" className="fr-mb-1w">
-                    Filtres utilisés pour la création de l'échantillon :
+                    Filtres utilisés pour la création de l’échantillon :
                   </Text>
                   <HousingFiltersBadges filters={campaign.filters} />
                 </Col>

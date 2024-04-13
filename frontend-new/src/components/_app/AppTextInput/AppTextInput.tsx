@@ -1,4 +1,4 @@
-import React, {
+import {
   ComponentPropsWithoutRef,
   InputHTMLAttributes,
   TextareaHTMLAttributes,
@@ -28,7 +28,6 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
     inputForm,
     whenValid,
     placeholder,
-    dataTestId,
     state,
     stateRelatedMessage,
     ...textInputProps

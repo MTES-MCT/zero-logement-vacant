@@ -1,4 +1,4 @@
-import React, { FormEvent, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,

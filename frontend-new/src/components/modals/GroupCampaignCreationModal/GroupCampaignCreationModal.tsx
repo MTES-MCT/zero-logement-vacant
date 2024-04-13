@@ -2,7 +2,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import * as yup from 'yup';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { campaignTitleValidator, useForm } from '../../../hooks/useForm';
 import { Campaign } from '../../../models/Campaign';
 import { Group } from '../../../models/Group';

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Col, Row, Title } from '../../components/_dsfr';
 import {
   ContactPoint,

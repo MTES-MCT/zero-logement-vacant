@@ -1,5 +1,4 @@
 import { Text } from '../_dsfr';
-import React from 'react';
 import { Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import DPE from '../DPE/DPE';

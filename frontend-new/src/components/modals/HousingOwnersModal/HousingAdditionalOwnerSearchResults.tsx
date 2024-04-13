@@ -1,4 +1,3 @@
-import React from 'react';
 import { Col, Pagination, Row, Table, Text } from '../../_dsfr';
 import { format } from 'date-fns';
 import { displayCount } from '../../../utils/stringUtils';

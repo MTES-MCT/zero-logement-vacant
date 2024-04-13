@@ -1,7 +1,7 @@
 import { Col, Container, Row, Select, Text } from '../../_dsfr';
 
 import { Group } from '../../../models/Group';
-import React, { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useFindGroupsQuery } from '../../../services/group.service';
 import { SelectOption } from '../../../models/SelectOption';
 import styles from './group-add-housing-modal.module.scss';

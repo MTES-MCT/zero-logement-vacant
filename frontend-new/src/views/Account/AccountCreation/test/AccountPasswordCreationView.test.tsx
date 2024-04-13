@@ -40,7 +40,7 @@ describe('AccountPasswordCreationView', () => {
         <Router history={history}>
           <AccountPasswordCreationView />
         </Router>
-      </Provider>
+      </Provider>,
     );
   }
 
@@ -56,14 +56,16 @@ describe('AccountPasswordCreationView', () => {
     mockProspectServicePass();
     setup();
 
-    await screen.findAllByText('Créer votre mot de passe');
+    expect(await screen.findAllByText('Créer votre mot de passe')).toBeTruthy();
   });
 
   it('should display an error if the link is expired', async () => {
     mockProspectServiceFail();
     setup();
 
-    await screen.findByText('Ce lien n’existe pas ou est expiré !');
+    expect(
+      await screen.findByText('Ce lien n’existe pas ou est expiré !'),
+    ).toBeTruthy();
   });
 
   it("should be forbidden if one's establishment does not exist in ZLV", async () => {
@@ -120,11 +122,11 @@ describe('AccountPasswordCreationView', () => {
     const password = '123QWEasd';
 
     const passwordInput = await screen.findByLabelText(
-      /Créer votre mot de passe/
+      /Créer votre mot de passe/,
     );
     await user.type(passwordInput, password);
     const confirmationInput = await screen.findByLabelText(
-      /Confirmer votre mot de passe/
+      /Confirmer votre mot de passe/,
     );
     await user.type(confirmationInput, password);
     await user.keyboard('{Enter}');

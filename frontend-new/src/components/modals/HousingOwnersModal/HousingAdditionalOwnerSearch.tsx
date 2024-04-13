@@ -1,4 +1,3 @@
-import React from 'react';
 import { Owner } from '../../../models/Owner';
 import AppSearchBar from '../../_app/AppSearchBar/AppSearchBar';
 import HousingAdditionalOwnerSearchResults from './HousingAdditionalOwnerSearchResults';

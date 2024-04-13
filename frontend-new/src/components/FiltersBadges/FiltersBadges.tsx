@@ -1,4 +1,3 @@
-import React from 'react';
 import { SelectOption } from '../../models/SelectOption';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 

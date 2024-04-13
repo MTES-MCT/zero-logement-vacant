@@ -7,7 +7,6 @@ import {
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
 import { filterCount } from '../../models/HousingFilters';
-import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';

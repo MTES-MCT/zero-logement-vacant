@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Col, Container, Row, Title } from '../../components/_dsfr';
 
 import * as yup from 'yup';

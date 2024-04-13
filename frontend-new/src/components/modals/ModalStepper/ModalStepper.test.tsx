@@ -13,10 +13,12 @@ describe('Modal stepper', () => {
   const steps: Step[] = [
     {
       title: 'Title 1',
+      // eslint-disable-next-line react/display-name
       Component: forwardRef(() => <p>Step 1</p>),
     },
     {
       title: 'Title 2',
+      // eslint-disable-next-line react/display-name
       Component: forwardRef(() => <p>Step 2</p>),
     },
   ];
@@ -27,7 +29,7 @@ describe('Modal stepper', () => {
         openingButtonProps={button}
         steps={steps}
         title="Default title"
-      />
+      />,
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);
@@ -44,7 +46,7 @@ describe('Modal stepper', () => {
         openingButtonProps={button}
         steps={steps}
         title="Default title"
-      />
+      />,
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);
@@ -63,7 +65,7 @@ describe('Modal stepper', () => {
         openingButtonProps={button}
         steps={steps}
         title="Default title"
-      />
+      />,
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);
@@ -82,7 +84,7 @@ describe('Modal stepper', () => {
         openingButtonProps={button}
         steps={steps}
         title="Default title"
-      />
+      />,
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);
@@ -101,7 +103,7 @@ describe('Modal stepper', () => {
         openingButtonProps={button}
         steps={steps}
         title="Default title"
-      />
+      />,
     );
     const open = screen.getByText('Ouvrir');
     await user.click(open);

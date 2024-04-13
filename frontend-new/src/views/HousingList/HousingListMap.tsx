@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Text } from '../../components/_dsfr';
 import Map, { MapProps } from '../../components/Map/Map';
 import { ViewState } from 'react-map-gl';

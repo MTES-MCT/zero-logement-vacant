@@ -1,6 +1,6 @@
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import { createInstance, MatomoProvider } from '@jonkoops/matomo-tracker-react';
-import React from 'react';
+import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { MapProvider } from 'react-map-gl';
 import { Provider as StoreProvider } from 'react-redux';
@@ -26,7 +26,7 @@ const matomo = createInstance(config.matomo);
 const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container!);
 root.render(
-  <React.StrictMode>
+  <StrictMode>
     <MapProvider>
       <MatomoProvider value={matomo}>
         <StoreProvider store={store}>
@@ -34,5 +34,5 @@ root.render(
         </StoreProvider>
       </MatomoProvider>
     </MapProvider>
-  </React.StrictMode>,
+  </StrictMode>,
 );

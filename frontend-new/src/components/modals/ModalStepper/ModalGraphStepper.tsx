@@ -83,7 +83,6 @@ function ModalGraphStepper(props: Props) {
 
   return (
     <>
-      {/* @ts-ignore */}
       <Button {...props.openingButtonProps} onClick={open} />
       <modal.Component {...props} buttons={buttons} title={props.title}>
         <stepper.currentStep.Component ref={ref} />
@@ -93,7 +92,7 @@ function ModalGraphStepper(props: Props) {
 }
 
 export interface Step extends Identifiable {
-  Component: ForwardRefExoticComponent<RefAttributes<StepProps>>;
+  Component: ForwardRefExoticComponent<StepProps & RefAttributes<unknown>>;
 }
 
 export interface StepProps {

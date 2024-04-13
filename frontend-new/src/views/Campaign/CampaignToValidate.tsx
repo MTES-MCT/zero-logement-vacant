@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Col, Row, Text } from '../../components/_dsfr';
 import { CampaignSteps } from '../../models/Campaign';
 import { format } from 'date-fns';

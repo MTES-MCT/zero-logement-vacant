@@ -1,7 +1,6 @@
 import { Col, Row } from '../../components/_dsfr';
 import { useParams } from 'react-router-dom';
 import { filterCount } from '../../models/HousingFilters';
-import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';

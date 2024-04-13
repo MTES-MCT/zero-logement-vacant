@@ -1,5 +1,4 @@
 import { Text } from '../_dsfr';
-import React from 'react';
 import { Housing, OwnershipKindLabels } from '../../models/Housing';
 import { cadastralClassificationOptions } from '../../models/HousingFilters';
 import HousingDetailsSubCard from './HousingDetailsSubCard';

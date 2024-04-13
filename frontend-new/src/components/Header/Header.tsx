@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
 import styles from './header.module.scss';
@@ -92,6 +92,7 @@ function Header() {
                 <Collapse
                   icon="fr-icon-user-fill"
                   dropdown
+                  key="collapse-account"
                   title={displayName()}
                   content={
                     <Container

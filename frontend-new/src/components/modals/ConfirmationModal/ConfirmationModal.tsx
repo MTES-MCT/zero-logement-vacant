@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode, useMemo } from 'react';
+import { ReactElement, ReactNode, useMemo } from 'react';
 import { Container } from '../../_dsfr';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
@@ -31,18 +31,16 @@ const ConfirmationModal = ({
         id: `confirmation-modal-${modalId}`,
         isOpenedByDefault: false,
       }),
-    [modalId]
+    [modalId],
   );
 
   return (
     <>
       {openingButtonProps !== undefined ? (
-        // @ts-ignore
         <Button {...openingButtonProps} onClick={modal.open}>
           {openingButtonProps.children}
         </Button>
       ) : openingAppLinkAsButtonProps !== undefined ? (
-        // @ts-ignore
         <AppLinkAsButton {...openingAppLinkAsButtonProps} onClick={modal.open}>
           {openingAppLinkAsButtonProps.children}
         </AppLinkAsButton>

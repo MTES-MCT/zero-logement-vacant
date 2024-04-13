@@ -1,5 +1,5 @@
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import React, { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
   BrowserRouter,
@@ -62,7 +62,7 @@ function App() {
   }, [dispatch, isSomeQueryPending]);
 
   return (
-    <React.Suspense fallback={<></>}>
+    <Suspense fallback={<></>}>
       <BrowserRouter>
         <Header />
         <ScrollToTop />
@@ -168,7 +168,7 @@ function App() {
           </Route>
         </Switch>
       </BrowserRouter>
-    </React.Suspense>
+    </Suspense>
   );
 }
 

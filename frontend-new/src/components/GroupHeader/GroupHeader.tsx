@@ -1,5 +1,5 @@
 import { Col, Container, Row, Title } from '../_dsfr';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import GroupCard from '../GroupCard/GroupCard';
 import {

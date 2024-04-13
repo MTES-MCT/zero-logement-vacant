@@ -1,6 +1,5 @@
 import { useCountHousingQuery } from '../../services/housing.service';
 import { displayCount } from '../../utils/stringUtils';
-import React from 'react';
 
 interface CampaignCountsProps {
   campaignId: string;

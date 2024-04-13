@@ -1,5 +1,4 @@
 import styles from './events-history.module.scss';
-import React from 'react';
 import { hasValues } from '../../models/Diff';
 import { Owner } from '../../models/Owner';
 import { birthdate } from '../../utils/dateUtils';
@@ -56,7 +55,7 @@ const EventPartialOwnerContent = ({
           {partialOwner.additionalAddress !== undefined &&
             partialOwner.additionalAddress !== null && (
               <>
-                <span className="color-grey-625">Complément d'adresse</span>
+                <span className="color-grey-625">Complément d’adresse</span>
                 {partialOwner.additionalAddress}
               </>
             )}

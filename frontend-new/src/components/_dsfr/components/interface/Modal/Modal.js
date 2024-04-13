@@ -1,10 +1,4 @@
-import React, {
-  Children,
-  cloneElement,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { Children, cloneElement, useEffect, useRef, useState } from 'react';
 
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';

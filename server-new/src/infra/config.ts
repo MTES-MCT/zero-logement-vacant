@@ -8,7 +8,6 @@ import { LOG_LEVELS, LogLevel } from '@zerologementvacant/shared';
 
 dotenv.config({
   path: path.join(__dirname, '..', '..', '.env'),
-  debug: true,
 });
 
 const isProduction = process.env.NODE_ENV === 'production';

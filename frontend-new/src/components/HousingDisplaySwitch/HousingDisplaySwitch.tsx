@@ -1,19 +1,15 @@
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import classNames from 'classnames';
-import React from 'react';
+
 import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import housingSlice from '../../store/reducers/housingReducer';
 
-interface Props {
-  display?: 'list' | 'map';
-}
-
-export function HousingDisplaySwitch(props: Props) {
+export function HousingDisplaySwitch() {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
 

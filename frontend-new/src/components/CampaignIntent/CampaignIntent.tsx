@@ -1,6 +1,5 @@
 import { MessageType } from '../../hooks/useForm';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
-import React from 'react';
 
 interface Props {
   defaultValue?: string;
@@ -40,7 +39,7 @@ const CampaignIntent = (props: Props) => {
   return (
     <RadioButtons
       disabled={disabled}
-      options={values.map((item, index) => ({
+      options={values.map((item) => ({
         label: item.label,
         nativeInputProps: {
           value: item.value,

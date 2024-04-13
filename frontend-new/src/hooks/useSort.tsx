@@ -10,10 +10,10 @@ interface UseSortOptions<Sortable extends object> {
 }
 
 export function useSort<Sortable extends object>(
-  options?: UseSortOptions<Sortable>
+  options?: UseSortOptions<Sortable>,
 ) {
   const [sort, setSort] = useState<Sort<Sortable> | undefined>(
-    options?.default
+    options?.default,
   );
 
   function getSortButton(key: keyof Sortable, title: string): JSX.Element {
@@ -26,13 +26,14 @@ export function useSort<Sortable extends object>(
             : 'fr-icon-arrow-down-line'
         }
         iconPosition="right"
-        children={title}
         priority="tertiary no outline"
         size="small"
         className={classNames('fr-pl-0', { 'no-sort': !direction })}
         style={{ color: 'var(--text-title-grey)' }}
         onClick={() => cycleSort(key)}
-      />
+      >
+        {title}
+      </Button>
     );
   }
 
@@ -56,7 +57,7 @@ export function useSort<Sortable extends object>(
               ...acc,
               [k]: sort ? sort[k as keyof Sortable] : undefined,
             };
-          }, {})
+          }, {}),
       );
       return;
     }

@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import styles from './dpe.module.scss';
 import { format } from 'date-fns';
 import { isDefined } from '../../utils/compareUtils';
-import React, { ReactElement } from 'react';
+import { Fragment, ReactElement } from 'react';
 import AppLink from '../_app/AppLink/AppLink';
 
 interface Props {
@@ -30,23 +30,21 @@ function DPE(props: Props) {
     ) : undefined,
   ].filter(isDefined);
 
-  return (
-    <>
-      <div className={classNames(styles.dpe, styles[value])}>{value}</div>
-      {additionalInfos.length > 0 && (
-        <>
-           (
-          {additionalInfos.map((elt, index) => (
-            <React.Fragment key={index}>
-              {!!index && <> - </>}
-              {elt}
-            </React.Fragment>
-          ))}
-          )
-        </>
-      )}
-    </>
-  );
+  return <>
+    <div className={classNames(styles.dpe, styles[value])}>{value}</div>
+    {additionalInfos.length > 0 && (
+      <>
+         (
+        {additionalInfos.map((elt, index) => (
+          <Fragment key={index}>
+            {!!index && <> - </>}
+            {elt}
+          </Fragment>
+        ))}
+        )
+      </>
+    )}
+  </>;
 }
 
 export default DPE;

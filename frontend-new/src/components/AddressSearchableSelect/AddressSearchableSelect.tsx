@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { SearchableSelect } from '../_dsfr';
 import addressService, {
   AddressSearchResult,

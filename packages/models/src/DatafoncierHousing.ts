@@ -123,7 +123,7 @@ export interface DatafoncierHousing {
   ban_id: string;
   ban_geom: string | null;
   ban_type: string;
-  ban_score: string;
+  ban_score: number;
   ban_cp: string;
   code_epci: string | null;
   lib_epci: string | null;

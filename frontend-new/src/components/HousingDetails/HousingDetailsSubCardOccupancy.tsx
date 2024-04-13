@@ -1,5 +1,4 @@
 import { Col, Row, Text, Title } from '../_dsfr';
-import React from 'react';
 import {
   getOccupancy,
   getSource,

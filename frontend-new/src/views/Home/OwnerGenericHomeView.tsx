@@ -1,4 +1,3 @@
-import React from 'react';
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 
 import handsPoints from '../../assets/images/hands-point.svg';

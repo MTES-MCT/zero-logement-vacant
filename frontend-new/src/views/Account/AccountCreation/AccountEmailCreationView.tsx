@@ -1,5 +1,5 @@
 import { Container, Row, Text, Title } from '../../../components/_dsfr';
-import React, { FormEvent, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from 'yup';
 
@@ -47,7 +47,7 @@ function AccountEmailCreationView() {
       <Title as="h2">Créer votre compte</Title>
       <Text size="lead">
         Pour créer votre compte sur Zéro Logement Vacant, vous devez
-        impérativement avoir déjà signé l'acte d'engagement permettant d'accéder
+        impérativement avoir déjà signé l’acte d’engagement permettant d’accéder
         aux données LOVAC via la procédure indiquée sur le site du Cerema.
       </Text>
       <Container as="section" fluid>
@@ -82,7 +82,7 @@ function AccountEmailCreationView() {
           isSimple
           to="/"
         >
-          Revenir à l'écran d'accueil
+          Revenir à l’écran d’accueil
         </AppLink>
         <Button type="submit">Continuer</Button>
       </Row>

@@ -1,4 +1,5 @@
-import React, { ComponentPropsWithoutRef, ReactNode } from 'react';
+import { ComponentPropsWithoutRef, ReactNode } from 'react';
+import * as React from 'react';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 
 interface CheckboxProps

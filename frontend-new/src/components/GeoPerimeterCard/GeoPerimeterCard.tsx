@@ -1,5 +1,4 @@
 import { Col, Icon, Row, Text, Title } from '../_dsfr';
-import React from 'react';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';

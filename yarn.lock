@@ -8421,6 +8421,7 @@ __metadata:
     dotenv: "npm:^16.4.5"
     express: "npm:^4.19.2"
     express-promise-router: "npm:^4.1.1"
+    helmet: "npm:^7.1.0"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     jest-sorted: "npm:^1.0.15"
@@ -14777,6 +14778,13 @@ __metadata:
   version: 5.1.1
   resolution: "helmet@npm:5.1.1"
   checksum: 10c0/51ace0b4ab20f29007dd85b7558da63ed7c62552f0af96ca226ecb004d578c2e4f5320e2c67eed487c52cb9b7d08266b3dd3903d04376b00e19679a866830c15
+  languageName: node
+  linkType: hard
+
+"helmet@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "helmet@npm:7.1.0"
+  checksum: 10c0/8c3370d07487be11ac918577c68952e05d779a1a2c037023c1ba763034c381a025899bc52f8acfab5209304a1dc618a3764dbfd26386a0d1173befe4fb932e84
   languageName: node
   linkType: hard
 

@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import path from 'node:path';
 
 import config from '~/infra/config';
@@ -20,6 +21,67 @@ export function createServer(): Server {
   const app = express();
 
   sentry.init(app);
+
+  app.use(
+    helmet({
+      crossOriginEmbedderPolicy: false,
+      crossOriginResourcePolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            'https://stats.beta.gouv.fr',
+            'https://client.crisp.chat',
+            'https://www.googletagmanager.com',
+            'https://googleads.g.doubleclick.net',
+          ],
+          frameSrc: [
+            'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',
+            'https://zerologementvacant.crisp.help',
+          ],
+          styleSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css',
+            'https://client.crisp.chat/static/stylesheets/client_default.css',
+            'https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css',
+          ],
+          imgSrc: [
+            "'self'",
+            'https://stats.beta.gouv.fr',
+            'https://image.crisp.chat',
+            'https://client.crisp.chat',
+            'https://www.google.fr',
+            'https://www.google.com',
+            'data:',
+          ],
+          fontSrc: [
+            "'self'",
+            'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff',
+            'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
+            'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf',
+            'https://client.crisp.chat',
+            'data:',
+          ],
+          objectSrc: ["'self'"],
+          mediaSrc: ["'self'"],
+          connectSrc: [
+            "'self'",
+            'https://stats.beta.gouv.fr',
+            'https://api-adresse.data.gouv.fr',
+            'wss://client.relay.crisp.chat',
+            'https://client.crisp.chat',
+            'https://openmaptiles.geo.data.gouv.fr',
+            'https://openmaptiles.github.io',
+            'https://unpkg.com',
+          ],
+          workerSrc: ["'self'", 'blob:'],
+        },
+      },
+    }),
+  );
 
   app.use(express.json());
 

@@ -1,5 +1,5 @@
 const config = {
-  apiEndpoint: process.env.REACT_APP_API_URL,
+  apiEndpoint: process.env.REACT_APP_API_URL ?? 'http://localhost:3001',
   banEndpoint: 'https://api-adresse.data.gouv.fr',
   matomo: {
     urlBase: process.env.REACT_APP_MATOMO_URL_BASE ?? '',

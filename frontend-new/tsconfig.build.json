@@ -3,5 +3,5 @@
   "compilerOptions": {
     "moduleResolution": "bundler"
   },
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+  "exclude": ["node_modules", "dist","src/**/*.test.ts", "src/**/*.test.tsx"]
 }

@@ -7766,7 +7766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/validator@npm:^13.7.7":
+"@types/validator@npm:^13.11.9, @types/validator@npm:^13.7.7":
   version: 13.11.9
   resolution: "@types/validator@npm:13.11.9"
   checksum: 10c0/856ebfcfe25d6c91a90235e0eb27302a737832530898195bbfb265da52ae7fe6d68f684942574f8818d3c262cae7a1de99f145dac73fc57217933af1bfc199cb
@@ -8347,6 +8347,7 @@ __metadata:
     date-fns: "npm:^2.30.0"
     fetch-intercept: "npm:^2.4.0"
     history: "npm:^5.3.0"
+    identity-obj-proxy: "npm:^3.0.0"
     jest: "npm:^29.3.1"
     jest-extended: "npm:^4.0.2"
     jest-fetch-mock: "npm:^3.0.3"
@@ -8412,6 +8413,7 @@ __metadata:
     "@types/superagent": "npm:^8"
     "@types/supertest": "npm:^6"
     "@types/uuid": "npm:^9"
+    "@types/validator": "npm:^13.11.9"
     "@zerologementvacant/shared": "workspace:*"
     convict: "npm:^6.2.4"
     convict-format-with-validator: "npm:^6.2.0"
@@ -8437,6 +8439,7 @@ __metadata:
     tsconfig-paths: "npm:^4.2.0"
     typescript: "npm:^5.4.3"
     uuid: "npm:^9.0.1"
+    validator: "npm:^13.11.0"
   languageName: unknown
   linkType: soft
 
@@ -26182,7 +26185,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"validator@npm:^13.6.0, validator@npm:^13.9.0":
+"validator@npm:^13.11.0, validator@npm:^13.6.0, validator@npm:^13.9.0":
   version: 13.11.0
   resolution: "validator@npm:13.11.0"
   checksum: 10c0/0107da3add5a4ebc6391dac103c55f6d8ed055bbcc29a4c9cbf89eacfc39ba102a5618c470bdc33c6487d30847771a892134a8c791f06ef0962dd4b7a60ae0f5

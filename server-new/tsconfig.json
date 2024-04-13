@@ -11,7 +11,7 @@
       "~/*": ["src/*"]
     },
     "rootDir": "src",
-    "typeRoots": ["node_modules/@types", "types"]
+    "typeRoots": ["node_modules/@types", "src/types"]
   },
   "ts-node": {
     "require": ["tsconfig-paths/register"]
@@ -19,5 +19,5 @@
   "references": [
     { "path": "../shared-new/tsconfig.build.json" }
   ],
-  "include": ["src/**/*.ts"]
+  "include": ["src"]
 }

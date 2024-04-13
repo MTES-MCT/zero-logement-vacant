@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+import fp from 'lodash/fp';
 
 import { genSettingsApi } from '~/test/testFixtures';
 import { establishmentsTable } from '~/repositories/establishmentRepository';
@@ -6,6 +7,7 @@ import {
   formatSettingsApi,
   settingsTable,
 } from '~/repositories/settingsRepository';
+import async from 'async';
 
 export async function seed(knex: Knex): Promise<void> {
   const establishments = await knex(establishmentsTable).select('id');
@@ -19,5 +21,8 @@ export async function seed(knex: Knex): Promise<void> {
     }),
   );
 
-  await knex(settingsTable).insert(settings).onConflict().ignore();
+  const chunks = fp.chunk(1000, settings);
+  await async.forEach(chunks, async (chunk) => {
+    await knex(settingsTable).insert(chunk).onConflict().ignore();
+  });
 }

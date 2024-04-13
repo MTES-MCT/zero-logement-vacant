@@ -4,10 +4,12 @@ import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 
 import config from '~/infra/config';
-import { logger } from '~/infra/logger';
 import gracefulShutdown from '~/infra/graceful-shutdown';
+import { logger } from '~/infra/logger';
 import sentry from '~/infra/sentry';
 import mockServices from '~/mocks';
+import unprotectedRouter from '~/routers/unprotected';
+import protectedRouter from '~/routers/protected';
 
 export interface Server {
   app: Application;
@@ -22,7 +24,15 @@ export function createServer(): Server {
   app.use(express.json());
 
   // TODO: improve server
-  app.use(cors({ origin: [config.app.host, 'https://stats.beta.gouv.fr'] }));
+  app.use(
+    cors({
+      origin: [
+        config.app.host,
+        'https://stats.beta.gouv.fr',
+        'http://localhost:3000',
+      ],
+    }),
+  );
 
   // Mock services like Datafoncier API on specific environments
   mockServices();
@@ -38,6 +48,9 @@ export function createServer(): Server {
       legacyHeaders: false,
     }),
   );
+
+  app.use('/api', unprotectedRouter);
+  app.use('/api', protectedRouter);
 
   // Serve the frontend in production
   if (config.app.env === 'production') {

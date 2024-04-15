@@ -38,7 +38,6 @@ function DraftSignature(props: Readonly<Props>) {
   }
 
   function onFileUpload(file: FileUploadDTO) {
-    console.log(file);
     props.onChange({
       ...props.value,
       signatoryFile: file.url,

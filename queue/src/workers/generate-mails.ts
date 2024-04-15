@@ -125,14 +125,6 @@ export default function createWorker() {
       const archive = archiver('zip');
       archive.append(xlsxBuffer, { name: `${name}-destinataires.xlsx` });
       archive.append(finalPDF, { name: `${name}.pdf` });
-      archive.on('warning', (warning) => {
-        logger.warn(warning);
-      });
-      archive.on('error', (error) => {
-        throw error;
-      });
-      await archive.finalize();
-
       const command = new PutObjectCommand({
         Bucket: 'zerologementvacant',
         Key: `${name}.zip`,
@@ -141,8 +133,7 @@ export default function createWorker() {
         ContentType: 'application/x-zip',
         ACL: 'authenticated-read',
       });
-
-      await s3.send(command);
+      await Promise.all([archive.finalize(), s3.send(command)]);
 
       const signedUrl = await getSignedUrl(s3, command, {
         expiresIn: 60 * 60 * 24, // TTL: 24 hours

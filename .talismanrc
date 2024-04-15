@@ -40,3 +40,5 @@ fileignoreconfig:
   checksum: 5563f7911ccd1ff8fc7ccc8865ecc730d93d9b7c658aa7d02ada802601932998
 - filename: server/repositories/campaignRepository.ts
   checksum: ab0dcf6bbf41a911aef0755c619c92d18bd04dc651c6ecaf8b1c53ffd5a82309
+- filename: server/controllers/draftController.ts
+  checksum: 3627d5cc7172a79998517e1982424462c61116e248e5b6bd29aced81470113e6

@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
@@ -24,6 +25,8 @@ import DRAFT_TEMPLATE_FILE, { DraftData } from '../templates/draft';
 import { createOrReplaceSender, SenderApi } from '../models/SenderApi';
 import senderRepository from '../repositories/senderRepository';
 import { replaceVariables } from '../../shared/models/variable-options';
+import { createS3, toBase64 } from '../../shared/utils/s3';
+import config from '../utils/config';
 
 interface DraftQuery {
   campaign?: string;
@@ -160,8 +163,26 @@ async function preview(request: Request, response: Response) {
     rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
     additionalAddress: faker.location.secondaryAddress(),
   };
+  // Download logos from S3
+  const s3 = createS3({
+    endpoint: config.s3.endpoint,
+    region: config.s3.endpoint,
+    accessKeyId: config.s3.accessKeyId,
+    secretAccessKey: config.s3.secretAccessKey,
+  });
+  const logos = await async.map(draft.logo, async (logo: string) =>
+    toBase64(logo, { s3, bucket: config.s3.bucket })
+  );
+  const signature = draft.sender.signatoryFile
+    ? await toBase64(draft.sender.signatoryFile, {
+        s3,
+        bucket: config.s3.bucket,
+      })
+    : null;
   const html = await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
     ...draft,
+    sender: { ...draft.sender, signatoryFile: signature },
+    logo: logos,
     watermark: true,
     body: replaceVariables(draft.body, {
       housing: {

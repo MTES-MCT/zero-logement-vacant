@@ -17,7 +17,7 @@ import config from '../config';
 import { createLogger } from '../logger';
 import housingRepository from '../../../server/repositories/housingRepository';
 import ownerRepository from '../../../server/repositories/ownerRepository';
-import { createS3 } from '../../../shared/utils/s3';
+import { createS3, toBase64 } from '../../../shared/utils/s3';
 import DRAFT_TEMPLATE_FILE, {
   DraftData,
 } from '../../../server/templates/draft';
@@ -82,6 +82,17 @@ export default function createWorker() {
       const worksheet = workbook.addWorksheet('Liste des destinataires');
       worksheet.addRow(['Nom', 'Adresse']);
 
+      // Download logos
+      const logos = await async.map(draft.logo, async (logo: string) =>
+        toBase64(logo, { s3, bucket: config.s3.bucket })
+      );
+      const signature = draft.sender.signatoryFile
+        ? await toBase64(draft.sender.signatoryFile, {
+            s3,
+            bucket: config.s3.bucket,
+          })
+        : null;
+
       await async.forEach(housings, async (housing) => {
         const owner = await ownerRepository.findByHousing(housing);
 
@@ -90,6 +101,8 @@ export default function createWorker() {
         html.push(
           await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
             ...draft,
+            sender: { ...draft.sender, signatoryFile: signature },
+            logo: logos,
             owner: {
               fullName: owner[0].fullName,
               rawAddress: owner[0].rawAddress.join(', '),
@@ -112,6 +125,12 @@ export default function createWorker() {
       const archive = archiver('zip');
       archive.append(xlsxBuffer, { name: `${name}-destinataires.xlsx` });
       archive.append(finalPDF, { name: `${name}.pdf` });
+      archive.on('warning', (warning) => {
+        logger.warn(warning);
+      });
+      archive.on('error', (error) => {
+        throw error;
+      });
       await archive.finalize();
 
       const command = new PutObjectCommand({

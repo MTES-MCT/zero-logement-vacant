@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - prod
-      - ci-fix-sentry-release
 
 jobs:
   release:
@@ -17,7 +16,6 @@ jobs:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
           SENTRY_URL: ${{ secrets.SENTRY_URL }}
-          SENTRY_LOG_LEVEL: debug
         with:
           environment: production
           sourcemaps: 'dist/**/*.map'

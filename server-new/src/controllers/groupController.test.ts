@@ -1,10 +1,10 @@
-import { wait } from '@hapi/hoek';
 import async from 'async';
 import { constants } from 'http2';
 import fp from 'lodash/fp';
 import request from 'supertest';
 
-import { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/shared';
+import { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/models';
+import { wait } from '@zerologementvacant/utils';
 import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
 import { GroupApi } from '~/models/GroupApi';

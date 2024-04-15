@@ -8414,7 +8414,9 @@ __metadata:
     "@types/supertest": "npm:^6"
     "@types/uuid": "npm:^9"
     "@types/validator": "npm:^13.11.9"
+    "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/shared": "workspace:*"
+    "@zerologementvacant/utils": "workspace:*"
     convict: "npm:^6.2.4"
     convict-format-with-validator: "npm:^6.2.0"
     cors: "npm:^2.8.5"
@@ -8468,7 +8470,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zerologementvacant/utils@workspace:packages/utils":
+"@zerologementvacant/utils@workspace:*, @zerologementvacant/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/utils@workspace:packages/utils"
   dependencies:

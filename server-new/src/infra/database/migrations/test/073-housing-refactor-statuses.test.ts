@@ -11,10 +11,10 @@ import {
   HousingStatus,
 } from '../073-housing-refactor-statuses';
 
-const eventsTable = 'events';
-const housingEventsTable = 'housing_events';
-
 describe('073 Housing refactor statuses', () => {
+  const rollbackAll = true;
+  const eventsTable = 'events';
+  const housingEventsTable = 'housing_events';
   const housingList = [
     createHousing({ status: HousingStatus.NeverContacted }),
     createHousing({ status: HousingStatus.Waiting }),
@@ -32,6 +32,7 @@ describe('073 Housing refactor statuses', () => {
 
   beforeEach(async () => {
     const migrator = createMigrator(db);
+    await migrator.rollback(undefined, rollbackAll);
     await migrator.migrateUntil('073-housing-refactor-statuses.ts');
 
     // Create some housing
@@ -39,6 +40,11 @@ describe('073 Housing refactor statuses', () => {
 
     // Migrate the actual file
     await migrator.up();
+  });
+
+  afterEach(async () => {
+    const migrator = createMigrator(db);
+    await migrator.rollback(undefined, rollbackAll);
   });
 
   describe('up', () => {

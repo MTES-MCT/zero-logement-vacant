@@ -11,6 +11,7 @@ import sentry from '~/infra/sentry';
 import mockServices from '~/mocks';
 import unprotectedRouter from '~/routers/unprotected';
 import protectedRouter from '~/routers/protected';
+import errorHandler from '~/middlewares/error-handler';
 
 export interface Server {
   app: Application;
@@ -125,6 +126,7 @@ export function createServer(): Server {
   }
 
   sentry.errorHandler(app);
+  app.use(errorHandler());
 
   gracefulShutdown(app);
 

@@ -13,6 +13,7 @@
     "dev": "nodemon --watch src src/index.ts",
     "start": "node dist/index.js",
     "test": "jest",
+    "test:migrations": "jest -c database.jest.config.ts",
     "db": "knex --knexfile=src/infra/database/knexfile.ts",
     "migrate": "yarn db migrate:latest",
     "seed": "yarn db seed:run"
@@ -21,7 +22,9 @@
     "@godaddy/terminus": "^4.12.1",
     "@sentry/integrations": "^7.109.0",
     "@sentry/node": "^7.109.0",
+    "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/shared": "workspace:*",
+    "@zerologementvacant/utils": "workspace:*",
     "convict": "^6.2.4",
     "convict-format-with-validator": "^6.2.0",
     "cors": "^2.8.5",

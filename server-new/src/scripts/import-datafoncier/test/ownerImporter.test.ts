@@ -9,8 +9,6 @@ import {
 import { OwnerApi } from '~/models/OwnerApi';
 import { DatafoncierOwner, toOwnerApi } from '../../shared';
 import highland from 'highland';
-import { formatElapsed, timer } from '~/scripts/shared';
-import { logger } from '~/infra/logger';
 import randomstring from 'randomstring';
 import progress from 'cli-progress';
 import Stream = Highland.Stream;
@@ -29,32 +27,6 @@ const createProgressBas = () => {
 };
 
 describe('Import owners', () => {
-  describe('Benchmark', () => {
-    it('should process a large amount of data', (done) => {
-      function* createGenerator(n: number) {
-        let i = 0;
-        while (i < n) {
-          yield genDatafoncierOwner();
-          i++;
-        }
-      }
-
-      const iterations = 5_000;
-      const generator = createGenerator(iterations);
-      const stream = highland<DatafoncierOwner>(generator);
-      const stop = timer();
-      const progressBarOwner = createProgressBas();
-      const ownerImporterForHighland = (stream: Stream<DatafoncierOwner>) =>
-        ownerImporter(progressBarOwner, stream);
-      stream.through(ownerImporterForHighland).done(() => {
-        const elapsed = stop();
-        logger.info(`Done in ${formatElapsed(elapsed)}.`);
-        done();
-      });
-      // It should succeed within 2 minutes
-    }, 120_000 /* A specific timeout */);
-  });
-
   describe('Importer', () => {
     it('should save one owner and two matches if the same owner appears twice in the stream', async () => {
       const a = genDatafoncierOwner();

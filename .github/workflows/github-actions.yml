@@ -65,5 +65,8 @@ jobs:
       - name: Test
         run: yarn test
 
+      - name: Test database migrations
+        run: yarn workspace @zerologementvacant/server run test:migrations
+
       - name: Migrate database
         run: yarn workspace @zerologementvacant/server run migrate

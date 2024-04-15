@@ -1,3 +1,4 @@
+export * from './async';
 export * from './compare';
 export * from './http-request';
 export * from './log-level';

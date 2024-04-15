@@ -1,11 +1,10 @@
-import { wait } from '@hapi/hoek';
 import { formatISO } from 'date-fns';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import { isDefined } from '@zerologementvacant/shared';
+import { isDefined, wait } from '@zerologementvacant/utils';
 import {
   CampaignHousingDBO,
   CampaignsHousing,

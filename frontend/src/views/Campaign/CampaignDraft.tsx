@@ -151,10 +151,6 @@ function CampaignDraft(props: Readonly<Props>) {
     return <Loading />;
   }
 
-  if (!values) {
-    return <Loading />;
-  }
-
   return (
     <Container as="article" fluid>
       <Container as="header" className="fr-mb-5w" fluid>

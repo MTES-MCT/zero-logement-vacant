@@ -1,5 +1,6 @@
 import { $generateNodesFromDOM } from '@lexical/html';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { $isRootTextContentEmpty } from '@lexical/text';
 import { $getRoot } from 'lexical';
 import { useEffect } from 'react';
 
@@ -16,6 +17,10 @@ function RestorePlugin(props: Props) {
     }
 
     return editor.update(() => {
+      if (!$isRootTextContentEmpty(editor.isComposing(), true)) {
+        return;
+      }
+
       $getRoot().clear();
 
       const parser = new DOMParser();

@@ -1,5 +1,5 @@
 import { $generateHtmlFromNodes } from '@lexical/html';
-import { ListNode, ListItemNode } from '@lexical/list';
+import { ListItemNode, ListNode } from '@lexical/list';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { ClearEditorPlugin } from '@lexical/react/LexicalClearEditorPlugin';
 import {
@@ -32,7 +32,7 @@ function RichEditor(props: Readonly<Props>) {
     namespace: 'rich-editor',
     theme,
     nodes: [ListNode, ListItemNode, VariableNode],
-    onError(error: Error, editor: LexicalEditor) {
+    onError(error: Error) {
       console.error(error);
     },
   };

@@ -81,7 +81,7 @@ function OwnerEditionSideMenu(props: Props) {
       </Button>
       <Aside
         expand={active}
-        title="Modifier les infos du propriétaire"
+        title="Modifier les informations du propriétaire"
         content={
           <form id={formId} className="fr-px-6w">
             <AppTextInput<FormShape>

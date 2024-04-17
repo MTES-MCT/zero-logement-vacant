@@ -3,6 +3,7 @@ import * as yup from 'yup';
 import { ObjectShape } from 'yup/lib/object';
 import { isDate } from 'date-fns';
 import { parseDateInput } from '../utils/dateUtils';
+import fp from 'lodash/fp';
 
 export const emailValidator = yup
   .string()
@@ -153,7 +154,7 @@ export function useForm<
 
   async function validate(onValid?: () => Promise<void> | void) {
     try {
-      setTouchedKeys(new Set(Object.keys(schema.fields)));
+      setTouchedKeys(new Set(keysDeep(schema.fields)));
       await schema.validate(input, { abortEarly: false });
       setErrors(undefined);
       await onValid?.();
@@ -180,9 +181,9 @@ export function useForm<
   }
 
   useEffect(() => {
-    const validations = Object.entries(input)
+    const validations = entriesDeep(input)
       .filter(([k1, v1]) =>
-        Object.entries(previousInput.current || {}).find(
+        entriesDeep(previousInput.current || {}).find(
           ([k2, v2]) => k1 === k2 && v1 !== v2
         )
       )
@@ -213,4 +214,26 @@ export function useForm<
     validate,
     validateAt,
   };
+}
+
+function keysDeep(record: ObjectShape, prefix: string = ''): string[] {
+  return fp.pipe(
+    fp.toPairs,
+    fp.flatMap<[string, unknown], string>(([key, value]) =>
+      fp.isObject(value) && 'fields' in value
+        ? keysDeep(value.fields as ObjectShape, `${key}.`)
+        : `${prefix}${key}`
+    )
+  )(record);
+}
+
+function entriesDeep(record: object, prefix: string = ''): [string, unknown][] {
+  return fp.pipe(
+    fp.toPairs,
+    fp.flatMap<[string, unknown], [string, unknown]>(([key, value]) =>
+      fp.isObject(value)
+        ? entriesDeep(value, `${key}.`)
+        : [[`${prefix}${key}`, value]]
+    )
+  )(record);
 }

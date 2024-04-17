@@ -19,9 +19,7 @@ function DPE(props: Props) {
   const value = props.value.toUpperCase();
 
   const additionalInfos: ReactElement[] = [
-    props.madeAt ? <>{format(props.madeAt, 'dd/MM/yyyy')}</> : undefined,
-    props.bnbId ? (
-    ) : undefined,
+    props.madeAt ? <>{format(props.madeAt, 'dd/MM/yyyy')}</> : undefined
   ].filter(isDefined);
 
   return (

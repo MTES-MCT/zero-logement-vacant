@@ -62,6 +62,7 @@ export default function createWorker() {
 
       const housings = await housingRepository.find({
         filters: {
+          establishmentIds: [establishmentId],
           campaignIds: [campaignId],
         },
       });

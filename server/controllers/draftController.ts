@@ -1,4 +1,3 @@
-import { faker } from '@faker-js/faker/locale/fr';
 import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -148,7 +147,7 @@ const createValidators: ValidationChain[] = [
 ];
 
 async function preview(request: Request, response: Response) {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, body, params } = request as AuthenticatedRequest;
 
   const draft = await draftRepository.findOne({
     id: params.id,
@@ -158,11 +157,6 @@ async function preview(request: Request, response: Response) {
     throw new DraftMissingError(params.id);
   }
 
-  const owner = {
-    fullName: faker.person.fullName(),
-    rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
-    additionalAddress: faker.location.secondaryAddress(),
-  };
   // Download logos from S3
   const s3 = createS3({
     endpoint: config.s3.endpoint,
@@ -185,29 +179,45 @@ async function preview(request: Request, response: Response) {
     logo: logos,
     watermark: true,
     body: replaceVariables(draft.body, {
-      housing: {
-        geoCode: faker.location.zipCode(),
-        localId: faker.string.numeric({ length: 12, allowLeadingZeros: true }),
-        rawAddress: [faker.location.streetAddress({ useFullAddress: true })],
-        cadastralReference: faker.string.numeric(10),
-        housingKind: faker.helpers.arrayElement(['MAISON', 'APPART']),
-        livingArea: faker.number.int({ min: 20, max: 200 }),
-        buildingYear: faker.date
-          .past({ years: 20, refDate: new Date() })
-          .getFullYear(),
-        energyConsumption: faker.string.fromCharacters('ABCDEFG', 1),
-      },
-      owner,
+      housing: body.housing,
+      owner: body.owner,
     }),
     owner: {
-      fullName: owner.fullName,
-      rawAddress: owner.rawAddress.join(', '),
+      fullName: body.owner.fullName,
+      rawAddress: body.owner.rawAddress.join(', '),
     },
   });
   const finalPDF = await pdf.fromHTML([html]);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
-const previewValidators: ValidationChain[] = [isUUIDParam('id')];
+const previewValidators: ValidationChain[] = [
+  isUUIDParam('id'),
+  body('housing').isObject().withMessage('housing must be an object'),
+  body('housing.geoCode')
+    .isString()
+    .withMessage('geoCode must be a string')
+    .isLength({ min: 5, max: 5 })
+    .withMessage('geoCode must be 5 characters long')
+    .notEmpty()
+    .withMessage('geoCode is required'),
+  body('housing.localId').isInt().isLength({ min: 12, max: 12 }),
+  body('housing.rawAddress').isArray().isLength({ min: 1 }),
+  body('housing.cadastralReference').isString().notEmpty(),
+  body('housing.housingKind').isString().isIn(['MAISON', 'APPART']).notEmpty(),
+  body('housing.livingArea').isInt().notEmpty(),
+  body('housing.buildingYear').isInt().notEmpty(),
+  body('housing.energyConsumption')
+    .optional({
+      nullable: true,
+    })
+    .isIn(['A', 'B', 'C', 'D', 'E', 'F', 'G']),
+  body('owner').isObject().withMessage('owner must be an object'),
+  body('owner.fullName')
+    .isString()
+    .notEmpty()
+    .withMessage('fullName is required'),
+  body('owner.rawAddress').isArray().isLength({ min: 1 }),
+];
 
 async function update(request: Request, response: Response<DraftDTO>) {
   const { auth, params } = request as AuthenticatedRequest;

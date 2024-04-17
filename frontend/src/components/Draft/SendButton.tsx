@@ -39,7 +39,7 @@ function SendButton(props: Readonly<Props>) {
       onSubmit={submit}
     >
       <Alert
-        description="Une fois débuté l’envoi, votre campagne ne pourra plus être modifiée. Veuillez confirmer pour poursuivre ou cliquer sur “Annuler” ou fermer la fenêtre pour revenir en arrière."
+        description="Une fois débuté l’envoi, votre campagne ne pourra plus être modifiée. Cliquez sur “Confirmer” pour poursuivre si vous avez finalisé votre courrier et vérifié la liste des destinataires. Sinon, cliquez sur “Annuler” pour revenir en arrière."
         severity="warning"
         small
       />

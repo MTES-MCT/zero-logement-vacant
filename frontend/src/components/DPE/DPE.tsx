@@ -21,12 +21,6 @@ function DPE(props: Props) {
   const additionalInfos: ReactElement[] = [
     props.madeAt ? <>{format(props.madeAt, 'dd/MM/yyyy')}</> : undefined,
     props.bnbId ? (
-      <AppLink
-        target="_blank"
-        to={`https://particulier.gorenove.fr/map?bnb_id=${props.bnbId}`}
-      >
-        Voir Go Rénove
-      </AppLink>
     ) : undefined,
   ].filter(isDefined);
 

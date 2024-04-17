@@ -7,6 +7,7 @@ function Notification() {
       closeOnClick
       draggable
       limit={3}
+      pauseOnFocusLoss={false}
       position="top-right"
     />
   );

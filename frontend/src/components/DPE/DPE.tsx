@@ -4,7 +4,6 @@ import styles from './dpe.module.scss';
 import { format } from 'date-fns';
 import { isDefined } from '../../utils/compareUtils';
 import React, { ReactElement } from 'react';
-import AppLink from '../_app/AppLink/AppLink';
 
 interface Props {
   /**

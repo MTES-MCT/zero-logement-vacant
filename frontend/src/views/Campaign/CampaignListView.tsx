@@ -67,7 +67,7 @@ const CampaignsListView = () => {
           <Button
             priority="secondary"
             linkProps={{
-              to: 'https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R',
+              to: 'https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5',
               target: '_blank',
             }}
             className="float-right"

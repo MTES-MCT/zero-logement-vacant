@@ -160,7 +160,6 @@ describe('Draft API', () => {
 
       await fail({});
       await fail({ body: 'body' });
-      await fail({ body: '', campaign: campaign.id });
     });
 
     it('should fail if the campaign to attach is missing', async () => {

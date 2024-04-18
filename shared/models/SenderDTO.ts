@@ -1,10 +1,10 @@
 export interface SenderDTO {
   id: string;
-  name: string;
-  service: string;
-  firstName: string;
-  lastName: string;
-  address: string;
+  name: string | null;
+  service: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  address: string | null;
   email: string | null;
   phone: string | null;
   signatoryLastName: string | null;
@@ -17,5 +17,15 @@ export interface SenderDTO {
 
 export type SenderPayloadDTO = Pick<
   SenderDTO,
-  'name' | 'service' | 'firstName' | 'lastName' | 'address' | 'email' | 'phone' | 'signatoryLastName' | 'signatoryFirstName' | 'signatoryRole' | 'signatoryFile'
+  | 'name'
+  | 'service'
+  | 'firstName'
+  | 'lastName'
+  | 'address'
+  | 'email'
+  | 'phone'
+  | 'signatoryLastName'
+  | 'signatoryFirstName'
+  | 'signatoryRole'
+  | 'signatoryFile'
 >;

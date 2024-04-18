@@ -21,7 +21,7 @@ import { isUUIDParam } from '../utils/validators';
 import { logger } from '../utils/logger';
 import pdf from '../utils/pdf';
 import DRAFT_TEMPLATE_FILE, { DraftData } from '../templates/draft';
-import { createOrReplaceSender, SenderApi } from '../models/SenderApi';
+import { SenderApi } from '../models/SenderApi';
 import senderRepository from '../repositories/senderRepository';
 import { replaceVariables } from '../../shared/models/variable-options';
 import { createS3, toBase64 } from '../../shared/utils/s3';
@@ -46,25 +46,18 @@ async function list(request: Request, response: Response) {
 }
 
 const partialDraftValidators: ValidationChain[] = [
-  body('body').isString().notEmpty().withMessage('body is required'),
-  body('sender').isObject().withMessage('sender must be an object'),
-  body('logo')
-    .isArray({ min: 1, max: 2 })
-    .withMessage('logo must be an array of 1 or 2 URL'),
-  body('logo.*').notEmpty().withMessage('logo is required'),
-  // .isURL({
-  //   TODO
-  // })
-  // .withMessage('logo must be an array of URL'),
+  body('body').optional({ nullable: true }).isString(),
+  body('sender').optional({ nullable: true }).isObject(),
+  body('logo').optional({ nullable: true }).isArray({ min: 0, max: 2 }),
+  body('logo.*').isString(),
 ];
 const senderValidators: ValidationChain[] = [
   ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
     body(`sender.${prop}`)
+      .optional({ nullable: true })
       .isString()
       .withMessage(`${prop} must be a string`)
       .trim()
-      .notEmpty()
-      .withMessage(`${prop} is required`)
   ),
   ...[
     'email',
@@ -75,7 +68,7 @@ const senderValidators: ValidationChain[] = [
     'signatoryFile',
   ].map((prop) =>
     body(`sender.${prop}`)
-      .optional({ checkFalsy: true })
+      .optional({ nullable: true })
       .isString()
       .withMessage(`${prop} must be a string`)
       .trim()
@@ -94,15 +87,23 @@ async function create(request: Request, response: Response) {
     throw new CampaignMissingError(body.campaign);
   }
 
-  const existingSender = await senderRepository.findOne({
-    name: body.sender.name,
+  const sender: SenderApi = {
+    id: uuidv4(),
+    name: body.sender?.name ?? null,
+    service: body.sender?.service ?? null,
+    firstName: body.sender?.firstName ?? null,
+    lastName: body.sender?.lastName ?? null,
+    address: body.sender?.address ?? null,
+    email: body.sender?.email ?? null,
+    phone: body.sender?.phone ?? null,
+    signatoryLastName: body.sender?.signatoryLastName ?? null,
+    signatoryFirstName: body.sender?.signatoryFirstName ?? null,
+    signatoryRole: body.sender?.signatoryRole ?? null,
+    signatoryFile: body.sender?.signatoryFile ?? null,
     establishmentId: auth.establishmentId,
-  });
-  const sender: SenderApi = createOrReplaceSender(
-    body.sender,
-    existingSender,
-    auth.establishmentId
-  );
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+  };
   const draft: DraftApi = {
     id: uuidv4(),
     subject: body.subject,
@@ -122,26 +123,29 @@ async function create(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
 }
 const createValidators: ValidationChain[] = [
-  body('subject').isString().notEmpty().withMessage('subject is required'),
-  body('body').isString().notEmpty().withMessage('body is required'),
-  body('campaign')
-    .isUUID()
-    .withMessage('Must be an UUID')
-    .notEmpty()
-    .withMessage('campaign is required'),
+  body('subject')
+    .optional({ nullable: true })
+    .isString()
+    .withMessage('subject must be a string'),
+  body('body')
+    .optional({ nullable: true })
+    .isString()
+    .withMessage('body must be a string'),
+  body('campaign').isUUID().withMessage('Must be an UUID'),
   body('writtenAt')
+    .optional({ nullable: true })
     .isString()
     .withMessage('writtenAt must be a string')
-    .trim()
-    .isLength({ min: 10, max: 10 })
-    .isISO8601({ strict: true, strictSeparator: true }),
+    .trim(),
   body('writtenFrom')
+    .optional({ nullable: true })
     .isString()
     .withMessage('writtenFrom must be a string')
-    .trim()
-    .notEmpty()
-    .withMessage('writtenFrom is required'),
-  body('sender').isObject().withMessage('Sender must be an object'),
+    .trim(),
+  body('sender')
+    .optional({ nullable: true })
+    .isObject()
+    .withMessage('Sender must be an object'),
   ...partialDraftValidators,
   ...senderValidators,
 ];
@@ -164,9 +168,10 @@ async function preview(request: Request, response: Response) {
     accessKeyId: config.s3.accessKeyId,
     secretAccessKey: config.s3.secretAccessKey,
   });
-  const logos = await async.map(draft.logo, async (logo: string) =>
+  const logos = await async.map(draft.logo ?? [], async (logo: string) =>
     toBase64(logo, { s3, bucket: config.s3.bucket })
   );
+
   const signature = draft.sender.signatoryFile
     ? await toBase64(draft.sender.signatoryFile, {
         s3,
@@ -174,14 +179,29 @@ async function preview(request: Request, response: Response) {
       })
     : null;
   const html = await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
-    ...draft,
-    sender: { ...draft.sender, signatoryFile: signature },
+    subject: draft.subject ?? '',
     logo: logos,
     watermark: true,
-    body: replaceVariables(draft.body, {
-      housing: body.housing,
-      owner: body.owner,
-    }),
+    body: draft.body
+      ? replaceVariables(draft.body, {
+          housing: body.housing,
+          owner: body.owner,
+        })
+      : '',
+    sender: {
+      name: draft.sender.name ?? '',
+      service: draft.sender.service ?? '',
+      firstName: draft.sender.firstName ?? '',
+      lastName: draft.sender.lastName ?? '',
+      address: draft.sender.address ?? '',
+      phone: draft.sender.phone ?? '',
+      signatoryLastName: draft.sender.signatoryLastName ?? '',
+      signatoryFirstName: draft.sender.signatoryFirstName ?? '',
+      signatoryRole: draft.sender.signatoryRole ?? '',
+      signatoryFile: signature,
+    },
+    writtenAt: draft.writtenAt ?? '',
+    writtenFrom: draft.writtenFrom ?? '',
     owner: {
       fullName: body.owner.fullName,
       rawAddress: body.owner.rawAddress.join(', '),
@@ -231,22 +251,23 @@ async function update(request: Request, response: Response<DraftDTO>) {
     throw new DraftMissingError(params.id);
   }
 
-  const changeSender = !!draft.sender && draft.sender.name !== body.sender.name;
-  const existingSender: SenderApi | null = changeSender
-    ? await senderRepository.findOne({
-        name: body.sender.name,
-        establishmentId: auth.establishmentId,
-      })
-    : draft.sender;
-
-  const sender: SenderApi = createOrReplaceSender(
-    body.sender,
-    existingSender,
-    auth.establishmentId
-  );
-
-  // If the sender exists, update it
-  // Otherwise create a new sender
+  const sender: SenderApi = {
+    id: draft.sender.id,
+    name: body.sender.name,
+    service: body.sender.service,
+    firstName: body.sender.firstName,
+    lastName: body.sender.lastName,
+    address: body.sender.address,
+    email: body.sender.email,
+    phone: body.sender.phone,
+    signatoryLastName: body.sender.signatoryLastName,
+    signatoryFirstName: body.sender.signatoryFirstName,
+    signatoryRole: body.sender.signatoryRole,
+    signatoryFile: body.sender.signatoryFile,
+    createdAt: draft.sender.createdAt,
+    updatedAt: new Date().toJSON(),
+    establishmentId: draft.sender.establishmentId,
+  };
   const updated: DraftApi = {
     ...draft,
     subject: body.subject,
@@ -266,19 +287,26 @@ async function update(request: Request, response: Response<DraftDTO>) {
 }
 const updateValidators: ValidationChain[] = [
   isUUIDParam('id'),
-  body('subject').isString().notEmpty().withMessage('subject is required'),
-  body('body').isString().notEmpty().withMessage('body is required'),
+  body('subject')
+    .optional({ nullable: true })
+    .isString()
+    .withMessage('subject is required'),
+  body('body')
+    .optional({ nullable: true })
+    .isString()
+    .withMessage('body is required'),
   body('writtenAt')
+    .optional({ nullable: true })
     .isString()
     .withMessage('writtenAt must be a string')
     .trim()
     .isLength({ min: 10, max: 10 })
     .isISO8601({ strict: true, strictSeparator: true }),
   body('writtenFrom')
+    .optional({ nullable: true })
     .isString()
     .withMessage('writtenFrom must be a string')
     .trim()
-    .notEmpty()
     .withMessage('writtenFrom is required'),
   body('sender').isObject().withMessage('Sender must be an object'),
   ...partialDraftValidators,

@@ -160,7 +160,6 @@ describe('Draft API', () => {
 
       await fail({});
       await fail({ body: 'body' });
-      await fail({ campaign: campaign.id });
       await fail({ body: '', campaign: campaign.id });
     });
 
@@ -204,8 +203,18 @@ describe('Draft API', () => {
       expect(body).toMatchObject<Partial<DraftDTO>>({
         body: payload.body,
         sender: {
-          ...payload.sender,
           id: expect.any(String),
+          name: payload.sender?.name ?? null,
+          service: payload.sender?.service ?? null,
+          firstName: payload.sender?.firstName ?? null,
+          lastName: payload.sender?.lastName ?? null,
+          address: payload.sender?.address ?? null,
+          email: payload.sender?.email ?? null,
+          phone: payload.sender?.phone ?? null,
+          signatoryFile: payload.sender?.signatoryFile ?? null,
+          signatoryFirstName: payload.sender?.signatoryFirstName ?? null,
+          signatoryLastName: payload.sender?.signatoryLastName ?? null,
+          signatoryRole: payload.sender?.signatoryRole ?? null,
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
         },
@@ -250,61 +259,6 @@ describe('Draft API', () => {
         .where({ campaign_id: campaign.id })
         .first();
       expect(actualCampaignDraft).toBeDefined();
-    });
-
-    it('should attach an existing sender to the draft', async () => {
-      await Senders().insert(formatSenderApi(sender));
-      const payload: DraftCreationPayloadDTO = {
-        subject: draft.subject,
-        body: draft.body,
-        logo: draft.logo,
-        campaign: campaign.id,
-        sender: senderPayload,
-        writtenAt: draft.writtenAt,
-        writtenFrom: draft.writtenFrom,
-      };
-
-      const { body, status } = await request(app)
-        .post(testRoute)
-        .send(payload)
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_CREATED);
-
-      const actualDraft = await Drafts()
-        .where({ id: body.id, establishment_id: establishment.id })
-        .first();
-      expect(actualDraft).toHaveProperty('sender_id', sender.id);
-    });
-
-    it('should create a sender if it does not exist and attach it to the draft', async () => {
-      const payload: DraftCreationPayloadDTO = {
-        subject: draft.subject,
-        body: draft.body,
-        logo: draft.logo,
-        campaign: campaign.id,
-        sender: senderPayload,
-        writtenAt: draft.writtenAt,
-        writtenFrom: draft.writtenFrom,
-      };
-
-      const { body, status } = await request(app)
-        .post(testRoute)
-        .send(payload)
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_CREATED);
-
-      const actualDraft = await Drafts()
-        .where({ id: body.id, establishment_id: establishment.id })
-        .first();
-      const actualSender = await Senders()
-        .where({ id: actualDraft?.sender_id })
-        .first();
-      expect(actualSender).toMatchObject<Partial<SenderDBO>>({
-        name: sender.name,
-        establishment_id: sender.establishmentId,
-      });
     });
   });
 
@@ -422,45 +376,7 @@ describe('Draft API', () => {
       });
     });
 
-    it('should update an existing sender', async () => {
-      // Store the sender beforehand
-      const anotherSender = genSenderApi(establishment);
-      await Senders().insert(formatSenderApi(anotherSender));
-      payload = { ...payload, sender: anotherSender };
-
-      const { status } = await request(app)
-        .put(testRoute(draft.id))
-        .send(payload)
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-
-      const actual = await Senders()
-        .where({
-          name: sender.name,
-          establishment_id: sender.establishmentId,
-        })
-        .first();
-      expect(actual).toStrictEqual<SenderDBO>({
-        id: sender.id,
-        name: sender.name,
-        service: sender.service,
-        first_name: sender.firstName,
-        last_name: sender.lastName,
-        address: sender.address,
-        email: sender.email,
-        phone: sender.phone,
-        signatory_file: sender.signatoryFile,
-        signatory_role: sender.signatoryRole,
-        signatory_first_name: sender.signatoryFirstName,
-        signatory_last_name: sender.signatoryLastName,
-        created_at: expect.any(Date),
-        updated_at: expect.any(Date),
-        establishment_id: sender.establishmentId,
-      });
-    });
-
-    it('should create a new sender if the name changes', async () => {
+    it('should update the attached sender', async () => {
       payload = {
         ...payload,
         sender: {
@@ -478,7 +394,7 @@ describe('Draft API', () => {
 
       const actualSender = await Senders()
         .where({
-          name: payload.sender.name,
+          id: draft.sender.id,
           establishment_id: sender.establishmentId,
         })
         .first();
@@ -508,7 +424,5 @@ describe('Draft API', () => {
         .first();
       expect(actualDraft).toHaveProperty('sender_id', actualSender?.id);
     });
-
-    it.todo('should update a draft and update sender if existing');
   });
 });

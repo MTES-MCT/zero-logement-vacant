@@ -30,8 +30,9 @@ async function save(sender: SenderApi): Promise<void> {
   logger.debug('Saving sender...', sender);
   await Senders()
     .insert(formatSenderApi(sender))
-    .onConflict(['name', 'establishment_id'])
+    .onConflict('id')
     .merge([
+      'name',
       'service',
       'first_name',
       'last_name',
@@ -49,11 +50,11 @@ async function save(sender: SenderApi): Promise<void> {
 
 export interface SenderDBO {
   id: string;
-  name: string;
-  service: string;
-  first_name: string;
-  last_name: string;
-  address: string;
+  name: string | null;
+  service: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  address: string | null;
   email: string | null;
   phone: string | null;
   signatory_last_name: string | null;

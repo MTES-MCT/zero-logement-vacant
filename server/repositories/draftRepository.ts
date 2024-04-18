@@ -100,11 +100,11 @@ function filterQuery(filters?: DraftFilters) {
 
 export interface DraftRecordDBO {
   id: string;
-  subject: string;
-  body: string;
-  logo: string[];
-  written_at: string;
-  written_from: string;
+  subject: string | null;
+  body: string | null;
+  logo: string[] | null;
+  written_at: string | null;
+  written_from: string | null;
   created_at: Date;
   updated_at: Date;
   establishment_id: string;
@@ -122,10 +122,10 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   logo: draft.logo,
   written_at: draft.writtenAt,
   written_from: draft.writtenFrom,
-  created_at: new Date(draft.createdAt),
-  updated_at: new Date(draft.updatedAt),
   establishment_id: draft.establishmentId,
   sender_id: draft.senderId,
+  created_at: new Date(draft.createdAt),
+  updated_at: new Date(draft.updatedAt),
 });
 
 export const parseDraftApi = (draft: DraftDBO): DraftApi => ({
@@ -135,11 +135,11 @@ export const parseDraftApi = (draft: DraftDBO): DraftApi => ({
   logo: draft.logo,
   writtenAt: draft.written_at,
   writtenFrom: draft.written_from,
-  createdAt: draft.created_at.toJSON(),
-  updatedAt: draft.updated_at.toJSON(),
   establishmentId: draft.establishment_id,
   senderId: draft.sender_id,
   sender: parseSenderApi(draft.sender),
+  createdAt: draft.created_at.toJSON(),
+  updatedAt: draft.updated_at.toJSON(),
 });
 
 export default {

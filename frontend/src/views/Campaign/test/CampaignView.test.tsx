@@ -180,6 +180,85 @@ describe('Campaign view', () => {
     expect(modal).not.toBeVisible();
   });
 
+  it('should fail to submit the form if all the fields are empty', async () => {
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify(campaign),
+        },
+      },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            housing: 1,
+            owners: 1,
+          }),
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
+    await user.click(save);
+    const error = await screen.findByText(
+      /^Veuillez renseigner l’objet de votre courrier/
+    );
+    expect(error).toBeVisible();
+  });
+
+  it('should save the draft if at least one field is filled', async () => {
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify(campaign),
+        },
+      },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            housing: 1,
+            owners: 1,
+          }),
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    const form = await screen.findByRole('form');
+    const name = await within(form).findByLabelText(
+      'Nom de la collectivité ou de l’administration*'
+    );
+    if (sender.name) {
+      await user.type(name, sender.name);
+    }
+    const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
+    await user.click(save);
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(
+      /^Votre campagne a été sauvegardée avec succès/
+    );
+  });
+
   it('should update the draft on button click', async () => {
     const updated: Draft = {
       ...draft,
@@ -229,23 +308,33 @@ describe('Campaign view', () => {
 
     // Fill the form
     const form = await screen.findByRole('form');
-    const name = await within(form).findByLabelText(
-      'Nom de la collectivité ou de l’administration*'
-    );
-    await user.clear(name);
-    await user.type(name, sender.name);
-    const service = await within(form).findByLabelText('Service*');
-    await user.clear(service);
-    await user.type(service, sender.service);
-    const lastName = await within(form).findByLabelText('Nom*');
-    await user.clear(lastName);
-    await user.type(lastName, sender.lastName);
-    const firstName = await within(form).findByLabelText('Prénom*');
-    await user.clear(firstName);
-    await user.type(firstName, sender.firstName);
-    const address = await within(form).findByLabelText('Adresse*');
-    await user.clear(address);
-    await user.type(address, sender.address);
+    if (sender.name) {
+      const name = await within(form).findByLabelText(
+        'Nom de la collectivité ou de l’administration*'
+      );
+      await user.clear(name);
+      await user.type(name, sender.name);
+    }
+    if (sender.service) {
+      const service = await within(form).findByLabelText('Service*');
+      await user.clear(service);
+      await user.type(service, sender.service);
+    }
+    if (sender.lastName) {
+      const lastName = await within(form).findByLabelText('Nom*');
+      await user.clear(lastName);
+      await user.type(lastName, sender.lastName);
+    }
+    if (sender.firstName) {
+      const firstName = await within(form).findByLabelText('Prénom*');
+      await user.clear(firstName);
+      await user.type(firstName, sender.firstName);
+    }
+    if (sender.address) {
+      const address = await within(form).findByLabelText('Adresse*');
+      await user.clear(address);
+      await user.type(address, sender.address);
+    }
     if (sender.email) {
       const email = await within(form).findByLabelText('Adresse courriel');
       await user.clear(email);
@@ -256,22 +345,30 @@ describe('Campaign view', () => {
       await user.clear(phone);
       await user.type(phone, sender.phone);
     }
-    const writtenAt = await within(form).findByLabelText(/^En date du/);
-    await user.clear(writtenAt);
-    await user.type(writtenAt, draft.writtenAt);
-    const writtenFrom = await within(form).findByLabelText(/^Écrit à/);
-    await user.clear(writtenFrom);
-    await user.type(writtenFrom, draft.writtenFrom);
-    const subject = await within(form).findByRole('textbox', {
-      name: /^Objet/,
-    });
-    await user.clear(subject);
-    await user.type(subject, draft.subject);
-    const body = await within(form).findByRole('textbox', {
-      name: /^Contenu/,
-    });
-    await user.clear(body);
-    await user.type(body, draft.body);
+    if (draft.writtenAt) {
+      const writtenAt = await within(form).findByLabelText(/^En date du/);
+      await user.clear(writtenAt);
+      await user.type(writtenAt, draft.writtenAt);
+    }
+    if (draft.writtenFrom) {
+      const writtenFrom = await within(form).findByLabelText(/^Écrit à/);
+      await user.clear(writtenFrom);
+      await user.type(writtenFrom, draft.writtenFrom);
+    }
+    if (draft.subject) {
+      const subject = await within(form).findByRole('textbox', {
+        name: /^Objet/,
+      });
+      await user.clear(subject);
+      await user.type(subject, draft.subject);
+    }
+    if (draft.body) {
+      const body = await within(form).findByRole('textbox', {
+        name: /^Contenu/,
+      });
+      await user.clear(body);
+      await user.type(body, draft.body);
+    }
 
     // Save the draft
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });

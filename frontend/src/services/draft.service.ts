@@ -12,6 +12,7 @@ import {
 import { getURLQuery } from '../utils/fetchUtils';
 import { SenderPayload } from '../models/Sender';
 import { SenderPayloadDTO } from '../../../shared';
+import fp from 'lodash/fp';
 
 export interface FindOptions {
   campaign?: string;
@@ -62,11 +63,11 @@ function fromDraftDTO(draft: DraftDTO): Draft {
   return {
     id: draft.id,
     subject: draft.subject,
-    body: draft.body.replaceAll('<br />', '\n'),
+    body: draft.body?.replaceAll('<br />', '\n') ?? '',
     logo: draft.logo,
-    sender: draft.sender ?? undefined,
-    writtenAt: draft.writtenAt ?? undefined,
-    writtenFrom: draft.writtenFrom ?? undefined,
+    sender: draft.sender,
+    writtenAt: draft.writtenAt,
+    writtenFrom: draft.writtenFrom,
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
   };
@@ -76,13 +77,15 @@ function toDraftCreationPayloadDTO(
   draft: DraftCreationPayload
 ): DraftCreationPayloadDTO {
   return {
-    subject: draft.subject,
-    body: draft.body,
+    ...emptyToNull({
+      subject: draft.subject,
+      body: draft.body,
+      logo: draft.logo,
+      writtenAt: draft.writtenAt,
+      writtenFrom: draft.writtenFrom,
+    }),
     campaign: draft.campaign,
-    logo: draft.logo,
     sender: toSenderPayloadDTO(draft.sender),
-    writtenAt: draft.writtenAt,
-    writtenFrom: draft.writtenFrom,
   };
 }
 
@@ -90,35 +93,25 @@ function toDraftUpdatePayloadDTO(
   draft: DraftUpdatePayload
 ): DraftUpdatePayloadDTO {
   return {
+    ...emptyToNull({
+      subject: draft.subject,
+      body: draft.body,
+      writtenAt: draft.writtenAt,
+      writtenFrom: draft.writtenFrom,
+    }),
     id: draft.id,
-    subject: draft.subject,
-    body: draft.body,
     logo: draft.logo,
     sender: toSenderPayloadDTO(draft.sender),
-    writtenAt: draft.writtenAt,
-    writtenFrom: draft.writtenFrom,
   };
 }
 
 function toSenderPayloadDTO(sender: SenderPayload): SenderPayloadDTO {
-  return {
-    name: sender.name,
-    service: sender.service,
-    firstName: sender.firstName,
-    lastName: sender.lastName,
-    address: sender.address,
-    // Catch empty strings
-    email: catchEmptyString(sender.email),
-    phone: catchEmptyString(sender.phone),
-    signatoryLastName: catchEmptyString(sender.signatoryLastName),
-    signatoryFirstName: catchEmptyString(sender.signatoryFirstName),
-    signatoryRole: catchEmptyString(sender.signatoryRole),
-    signatoryFile: catchEmptyString(sender.signatoryFile),
-  };
+  return emptyToNull(sender);
 }
 
-function catchEmptyString(str: string | null): string | null {
-  return str && str.length > 0 ? str : null;
+function emptyToNull<T extends object>(obj: T): T {
+  // @ts-expect-error: lodash/fp’s types are awful
+  return fp.mapValues((value) => (fp.isEmpty(value) ? null : value), obj);
 }
 
 export const {

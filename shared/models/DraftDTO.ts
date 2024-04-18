@@ -2,20 +2,23 @@ import { SenderDTO, SenderPayloadDTO } from './SenderDTO';
 
 export interface DraftDTO {
   id: string;
-  subject: string;
-  body: string;
-  logo: string[];
+  subject: string | null;
+  body: string | null;
+  logo: string[] | null;
   sender: SenderDTO;
-  writtenAt: string;
-  writtenFrom: string;
+  writtenAt: string | null;
+  writtenFrom: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface DraftCreationPayloadDTO
-  extends Pick<DraftDTO, 'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'> {
+  extends Pick<
+    DraftDTO,
+    'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
+  > {
   campaign: string;
-  sender: SenderPayloadDTO;
+  sender: SenderPayloadDTO | null;
 }
 
 export interface DraftUpdatePayloadDTO

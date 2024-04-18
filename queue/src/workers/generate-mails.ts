@@ -22,6 +22,7 @@ import DRAFT_TEMPLATE_FILE, {
   DraftData,
 } from '../../../server/templates/draft';
 import async from 'async';
+import { replaceVariables } from '../../../shared';
 
 type Name = 'campaign:generate';
 type Args = Jobs[Name];
@@ -84,7 +85,7 @@ export default function createWorker() {
       worksheet.addRow(['Nom', 'Adresse']);
 
       // Download logos
-      const logos = await async.map(draft.logo, async (logo: string) =>
+      const logos = await async.map(draft.logo ?? [], async (logo: string) =>
         toBase64(logo, { s3, bucket: config.s3.bucket })
       );
       const signature = draft.sender.signatoryFile
@@ -95,18 +96,41 @@ export default function createWorker() {
         : null;
 
       await async.forEach(housings, async (housing) => {
-        const owner = await ownerRepository.findByHousing(housing);
+        const owners = await ownerRepository.findByHousing(housing);
 
-        worksheet.addRow([owner[0].fullName, owner[0].rawAddress.join(' - ')]);
+        worksheet.addRow([
+          owners[0].fullName,
+          owners[0].rawAddress.join(' - '),
+        ]);
 
         html.push(
           await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
-            ...draft,
-            sender: { ...draft.sender, signatoryFile: signature },
+            subject: draft.subject ?? '',
             logo: logos,
+            watermark: true,
+            body: draft.body
+              ? replaceVariables(draft.body, {
+                  housing,
+                  owner: owners[0],
+                })
+              : '',
+            sender: {
+              name: draft.sender.name ?? '',
+              service: draft.sender.service ?? '',
+              firstName: draft.sender.firstName ?? '',
+              lastName: draft.sender.lastName ?? '',
+              address: draft.sender.address ?? '',
+              phone: draft.sender.phone ?? '',
+              signatoryLastName: draft.sender.signatoryLastName ?? '',
+              signatoryFirstName: draft.sender.signatoryFirstName ?? '',
+              signatoryRole: draft.sender.signatoryRole ?? '',
+              signatoryFile: signature,
+            },
+            writtenAt: draft.writtenAt ?? '',
+            writtenFrom: draft.writtenFrom ?? '',
             owner: {
-              fullName: owner[0].fullName,
-              rawAddress: owner[0].rawAddress.join(', '),
+              fullName: owners[0].fullName,
+              rawAddress: owners[0].rawAddress.join(', '),
             },
           })
         );

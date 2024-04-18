@@ -21,6 +21,12 @@ function SendButton(props: Readonly<Props>) {
     toastId: 'sending',
   });
 
+  function open(openModal: () => void): void {
+    props.form.validate(() => {
+      openModal();
+    });
+  }
+
   function submit(): void {
     props.form.validate(() => {
       updateCampaign({
@@ -40,6 +46,7 @@ function SendButton(props: Readonly<Props>) {
       }}
       size="large"
       title="Envoi de la campagne"
+      onOpen={open}
       onSubmit={submit}
     >
       <Alert

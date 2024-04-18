@@ -57,7 +57,7 @@ function CampaignDraft(props: Readonly<Props>) {
   const [values, setValues] = useState<DraftCreationPayload>({
     subject: '',
     body: '',
-    campaign: '',
+    campaign: props.campaign.id,
     logo: [],
     sender: {
       name: '',
@@ -79,16 +79,33 @@ function CampaignDraft(props: Readonly<Props>) {
   useEffect(() => {
     if (draft) {
       setValues({
-        subject: draft.subject,
-        body: draft.body,
-        logo: draft.logo,
+        subject: draft.subject ?? values.subject,
+        body: draft.body ?? values.body,
         campaign: props.campaign.id,
-        sender: draft.sender,
-        writtenAt: draft.writtenAt,
-        writtenFrom: draft.writtenFrom,
+        logo: draft.logo ?? values.logo,
+        sender: {
+          name: draft.sender?.name ?? values.sender.name,
+          service: draft.sender?.service ?? values.sender.service,
+          firstName: draft.sender?.firstName ?? values.sender.firstName,
+          lastName: draft.sender?.lastName ?? values.sender.lastName,
+          address: draft.sender?.address ?? values.sender.address,
+          email: draft.sender?.email ?? values.sender.email,
+          phone: draft.sender?.phone ?? values.sender.phone,
+          signatoryFirstName:
+            draft.sender?.signatoryFirstName ??
+            values.sender.signatoryFirstName,
+          signatoryLastName:
+            draft.sender?.signatoryLastName ?? values.sender.signatoryLastName,
+          signatoryRole:
+            draft.sender?.signatoryRole ?? values.sender.signatoryRole,
+          signatoryFile:
+            draft.sender?.signatoryFile ?? values.sender.signatoryFile,
+        },
+        writtenAt: draft.writtenAt ?? values.writtenAt,
+        writtenFrom: draft.writtenFrom ?? values.writtenFrom,
       });
     }
-  }, [draft, props.campaign.id]);
+  }, [draft, props.campaign.id, values]);
 
   const form = useForm(schema, {
     subject: values.subject,
@@ -103,18 +120,14 @@ function CampaignDraft(props: Readonly<Props>) {
   const [createDraft, createDraftMutation] = useCreateDraftMutation();
   function create(): void {
     if (!draft) {
-      form.validate(() => {
-        createDraft({ ...values, campaign: props.campaign.id });
-      });
+      createDraft({ ...values, campaign: props.campaign.id });
     }
   }
 
   const [updateDraft, updateDraftMutation] = useUpdateDraftMutation();
   function update(): void {
     if (draft) {
-      form.validate(() => {
-        updateDraft({ ...values, id: draft.id });
-      });
+      updateDraft({ ...values, id: draft.id });
     }
   }
 

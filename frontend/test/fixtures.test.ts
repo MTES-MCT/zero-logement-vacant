@@ -150,6 +150,10 @@ export function genSender(): Sender {
       length: 10,
       charset: 'numeric',
     }),
+    signatoryFile: null,
+    signatoryRole: null,
+    signatoryFirstName: randomstring.generate(),
+    signatoryLastName: randomstring.generate(),
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
   };

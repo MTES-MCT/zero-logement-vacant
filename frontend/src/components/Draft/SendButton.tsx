@@ -3,10 +3,12 @@ import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import { Campaign } from '../../models/Campaign';
 import { useNotification } from '../../hooks/useNotification';
+import { useForm } from '../../hooks/useForm';
 
 interface Props {
   className?: string;
   campaign: Campaign;
+  form: ReturnType<typeof useForm>;
 }
 
 function SendButton(props: Readonly<Props>) {
@@ -20,9 +22,11 @@ function SendButton(props: Readonly<Props>) {
   });
 
   function submit(): void {
-    updateCampaign({
-      ...props.campaign,
-      status: 'sending',
+    props.form.validate(() => {
+      updateCampaign({
+        ...props.campaign,
+        status: 'sending',
+      });
     });
   }
 

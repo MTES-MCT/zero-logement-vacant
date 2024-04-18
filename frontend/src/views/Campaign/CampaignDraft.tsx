@@ -173,7 +173,7 @@ function CampaignDraft(props: Readonly<Props>) {
               disabled={!exists}
               draft={draft}
             />
-            <SendButton campaign={props.campaign} />
+            <SendButton campaign={props.campaign} form={form} />
           </Col>
         </Row>
       </Container>

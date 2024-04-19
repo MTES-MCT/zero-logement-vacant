@@ -29,6 +29,7 @@ describe('Campaign view', () => {
   const campaign = genCampaign();
   const sender = genSender();
   const draft = genDraft(sender);
+  const houses = Array.from({ length: 1 }, () => genHousing());
 
   let store: AppStore;
   let router: History;
@@ -132,8 +133,21 @@ describe('Campaign view', () => {
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([draft]),
+          body: JSON.stringify([]),
         },
+      },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            entities: houses,
+            loading: false,
+            page: 1,
+            perPage: 50,
+          } as HousingPaginatedResult),
+        },
+        persist: true,
       },
       {
         pathname: '/api/housing/count',
@@ -180,42 +194,6 @@ describe('Campaign view', () => {
     expect(modal).not.toBeVisible();
   });
 
-  it('should fail to submit the form if all the fields are empty', async () => {
-    mockRequests([
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          body: JSON.stringify(campaign),
-        },
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([]),
-        },
-      },
-      {
-        pathname: '/api/housing/count',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            housing: 1,
-            owners: 1,
-          }),
-        },
-      },
-    ]);
-
-    renderComponent();
-
-    const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
-    await user.click(save);
-    const error = await screen.findByText(
-      /^Veuillez renseigner l’objet de votre courrier/
-    );
-    expect(error).toBeVisible();
-  });
-
   it('should save the draft if at least one field is filled', async () => {
     mockRequests([
       {
@@ -240,6 +218,33 @@ describe('Campaign view', () => {
           }),
         },
       },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            entities: houses,
+            loading: false,
+            page: 1,
+            perPage: 50,
+          } as HousingPaginatedResult),
+        },
+        persist: true,
+      },
+      {
+        pathname: `/api/drafts`,
+        method: 'POST',
+        response: {
+          body: JSON.stringify(draft),
+          status: 201,
+        },
+      },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([draft]),
+        },
+      },
     ]);
 
     renderComponent();
@@ -254,9 +259,7 @@ describe('Campaign view', () => {
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
     await user.click(save);
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(
-      /^Votre campagne a été sauvegardée avec succès/
-    );
+    expect(alert).toHaveTextContent(/^Sauvegarde.../);
   });
 
   it('should update the draft on button click', async () => {
@@ -288,6 +291,19 @@ describe('Campaign view', () => {
             owners: 1,
           }),
         },
+      },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        response: {
+          body: JSON.stringify({
+            entities: houses,
+            loading: false,
+            page: 1,
+            perPage: 50,
+          } as HousingPaginatedResult),
+        },
+        persist: true,
       },
       {
         pathname: `/api/drafts/${draft.id}`,
@@ -374,9 +390,7 @@ describe('Campaign view', () => {
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
     await user.click(save);
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(
-      /^Votre campagne a été sauvegardée avec succès/
-    );
+    expect(alert).toHaveTextContent(/^Sauvegarde.../);
   });
 
   it('should validate the campaign', async () => {

@@ -79,33 +79,28 @@ function CampaignDraft(props: Readonly<Props>) {
   useEffect(() => {
     if (draft) {
       setValues({
-        subject: draft.subject ?? values.subject,
-        body: draft.body ?? values.body,
+        subject: draft.subject ?? '',
+        body: draft.body ?? '',
         campaign: props.campaign.id,
-        logo: draft.logo ?? values.logo,
+        logo: draft.logo ?? [],
         sender: {
-          name: draft.sender?.name ?? values.sender.name,
-          service: draft.sender?.service ?? values.sender.service,
-          firstName: draft.sender?.firstName ?? values.sender.firstName,
-          lastName: draft.sender?.lastName ?? values.sender.lastName,
-          address: draft.sender?.address ?? values.sender.address,
-          email: draft.sender?.email ?? values.sender.email,
-          phone: draft.sender?.phone ?? values.sender.phone,
-          signatoryFirstName:
-            draft.sender?.signatoryFirstName ??
-            values.sender.signatoryFirstName,
-          signatoryLastName:
-            draft.sender?.signatoryLastName ?? values.sender.signatoryLastName,
-          signatoryRole:
-            draft.sender?.signatoryRole ?? values.sender.signatoryRole,
-          signatoryFile:
-            draft.sender?.signatoryFile ?? values.sender.signatoryFile,
+          name: draft.sender?.name ?? '',
+          service: draft.sender?.service ?? '',
+          firstName: draft.sender?.firstName ?? '',
+          lastName: draft.sender?.lastName ?? '',
+          address: draft.sender?.address ?? '',
+          email: draft.sender?.email ?? '',
+          phone: draft.sender?.phone ?? '',
+          signatoryFirstName: draft.sender?.signatoryFirstName ?? '',
+          signatoryLastName: draft.sender?.signatoryLastName ?? '',
+          signatoryRole: draft.sender?.signatoryRole ?? '',
+          signatoryFile: draft.sender?.signatoryFile ?? '',
         },
-        writtenAt: draft.writtenAt ?? values.writtenAt,
-        writtenFrom: draft.writtenFrom ?? values.writtenFrom,
+        writtenAt: draft.writtenAt ?? '',
+        writtenFrom: draft.writtenFrom ?? '',
       });
     }
-  }, [draft, props.campaign.id, values]);
+  }, [draft, props.campaign.id]);
 
   const form = useForm(schema, {
     subject: values.subject,

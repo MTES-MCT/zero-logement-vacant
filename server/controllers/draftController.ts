@@ -164,7 +164,7 @@ async function preview(request: Request, response: Response) {
   // Download logos from S3
   const s3 = createS3({
     endpoint: config.s3.endpoint,
-    region: config.s3.endpoint,
+    region: config.s3.region,
     accessKeyId: config.s3.accessKeyId,
     secretAccessKey: config.s3.secretAccessKey,
   });

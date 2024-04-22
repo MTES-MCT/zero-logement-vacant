@@ -1,3 +1,7 @@
+html {
+  font-size: 16px;
+}
+
 body {
   padding: 3rem 2.5rem;
 }
@@ -12,7 +16,7 @@ p {
   padding: 0;
 }
 
-header {
+.header {
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
@@ -39,14 +43,21 @@ header {
 
 .header__sender {
   text-align: right;
-  font-size: 0.6875rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 0.875rem;
   margin-bottom: 1rem;
 }
 
 .header__sender > p {
+  font-size: 0.6875rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 0.875rem;
+  margin: 0;
+}
+
+.header__recipient > * {
+  font-size: 0.6875rem;
+  font-style: normal;
+  line-height: 0.875rem;
   margin: 0;
 }
 
@@ -64,16 +75,26 @@ header {
 }
 
 main {
-  text-align: justify;
+  margin-bottom: 1rem;
+}
+
+.main__header {
+  display: inline-block;
+}
+
+.main__header > p {
+  text-align: start;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 0.6875rem;
+  margin-bottom: 1rem;
+}
+
+.main__body > * {
   font-size: 0.6875rem;
   font-style: normal;
   font-weight: 400;
   line-height: 0.875rem;
-  margin-bottom: 2rem;
-}
-
-.main__written {
-  font-size: 0.75rem;
 }
 
 footer {

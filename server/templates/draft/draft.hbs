@@ -11,7 +11,7 @@
     <div class="watermark">Prévisualisation</div>
     {{/if}}
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <header>
+    <header class="header">
       <section class="header--left">
         {{#each logo}}
           <img alt="logo" class="header__image" src="{{this}}" />
@@ -27,15 +27,20 @@
           <p>{{sender.phone}}</p>
         </section>
         <section class="header__recipient">
+          <strong>À l’attention de</strong>
           <p>{{owner.fullName}}</p>
           <p>{{owner.rawAddress}}</p>
         </section>
       </section>
     </header>
     <main>
-      <p class="main__written">À {{writtenFrom}}, le {{localdate writtenAt}}</p>
-      <p><strong>Objet : </strong>{{subject}}</p>
-      {{{body}}}
+      <header class="main__header">
+        <p>À {{writtenFrom}}, le {{localdate writtenAt}}</p>
+        <p><strong>Objet : </strong>{{subject}}</p>
+      </header>
+      <section class="main__body">
+        {{{body}}}
+      </section>
     </main>
     <footer>
       <section class="footer__signature">

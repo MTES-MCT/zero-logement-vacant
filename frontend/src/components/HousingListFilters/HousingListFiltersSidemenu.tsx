@@ -1,6 +1,11 @@
-import Aside from '../Aside/Aside';
+import Accordion from '@codegouvfr/react-dsfr/Accordion';
+import Button from '@codegouvfr/react-dsfr/Button';
+import MuiDrawer from '@mui/material/Drawer';
+import { CSSObject, styled, Theme } from '@mui/material/styles';
+import Grid from '@mui/material/Unstable_Grid2';
+import classNames from 'classnames';
+
 import { Col, Container, Icon, Row, SearchableSelect, Text } from '../_dsfr';
-import HousingFiltersBadges from '../HousingFiltersBadges/HousingFiltersBadges';
 import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
 import {
   allOccupancyOptions,
@@ -36,7 +41,6 @@ import {
   HousingStatus,
 } from '../../models/HousingState';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
@@ -44,9 +48,8 @@ import { concat } from '../../utils/arrayUtils';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useCountHousingQuery } from '../../services/housing.service';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
-import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-import classNames from 'classnames';
+import { useToggle } from '../../hooks/useToggle';
 
 interface TitleWithIconProps {
   icon: string;
@@ -64,7 +67,7 @@ function TitleWithIcon(props: TitleWithIconProps) {
 
 interface Props {
   filters: HousingFilters;
-  expand: boolean;
+  expand?: boolean;
   onChange: (filters: HousingFilters, label?: string) => void;
   onReset: () => void;
   onClose: () => void;
@@ -74,7 +77,9 @@ function HousingListFiltersSidemenu(props: Props) {
   const establishment = useAppSelector(
     (state) => state.authentication.authUser?.establishment
   );
-  const expand = props.expand ?? true;
+
+  const toggle = useToggle(true);
+
   const filters = props.filters;
   const onChangeFilters = props.onChange;
   const onResetFilters = props.onReset;
@@ -102,468 +107,508 @@ function HousingListFiltersSidemenu(props: Props) {
   };
 
   return (
-    <Aside
-      expand={expand}
-      onClose={props.onClose}
-      title="Tous les filtres"
-      content={
-        <>
-          <section className={classNames(styles.asAccordionExpanded, 'bg-975')}>
-            <h3>
-              <span className="fr-icon-sm icon-left ds-fr--v-middle fr-icon-filter-fill"></span>
-              <span className="fr-text--md">
-                Filtres liés au suivi de la mobilisation
-              </span>
-            </h3>
-            <Container as="section" fluid spacing="p-2w pb-3w">
-              <Row gutters>
-                <Col n="12">
-                  <HousingStatusMultiSelect
-                    selectedStatus={filters.statusList}
-                    options={statusOptions()}
-                    onChange={onChangeStatusFilter}
-                  />
-                </Col>
-                <Col n="12">
-                  <AppMultiSelect
-                    label="Sous-statut de suivi"
-                    options={getSubStatusListOptions(filters.statusList)}
-                    initialValues={filters.subStatus}
-                    onChange={(values) =>
-                      onChangeFilters({ subStatus: values }, 'Sous-statut')
-                    }
-                  />
-                </Col>
-                {campaignList && (
-                  <Col n="6">
-                    <AppMultiSelect
-                      label="Campagne"
-                      options={campaignList.map((c) => ({
-                        value: c.id,
-                        label: c.title,
-                      }))}
-                      initialValues={filters.campaignIds}
-                      onChange={(values) =>
-                        onChangeFilters({ campaignIds: values }, 'Campagne')
-                      }
-                    />
-                  </Col>
-                )}
+    <Drawer
+      open={toggle.active}
+      sx={{
+        '& .MuiDrawer-root': {
+          position: 'relative',
+          zIndex: 1,
+        },
+        '& .MuiPaper-root': {
+          padding: '1rem',
+          position: 'relative',
+          zIndex: 1,
+        },
+      }}
+      variant="permanent"
+    >
+      <Button
+        children={toggle.active ? 'Réduire' : undefined}
+        className="fr-mb-2w"
+        iconId={
+          toggle.active
+            ? 'fr-icon-arrow-left-s-first-line'
+            : 'fr-icon-arrow-right-s-last-line'
+        }
+        priority="tertiary"
+        size="small"
+        style={{
+          alignSelf: toggle.active ? 'flex-end' : 'center',
+        }}
+        title={toggle.active ? 'Fermer' : 'Ouvrir'}
+        onClick={() => toggle.toggle()}
+      />
+
+      <Grid
+        className={classNames(styles.drawerContent, {
+          [styles.drawerContentExpanded]: toggle.active,
+        })}
+        xs
+      >
+        <section className={classNames(styles.asAccordionExpanded, 'bg-975')}>
+          <h3>
+            <span className="fr-icon-sm icon-left ds-fr--v-middle fr-icon-filter-fill"></span>
+            <span className="fr-text--md">
+              Filtres liés au suivi de la mobilisation
+            </span>
+          </h3>
+          <Container as="section" fluid spacing="p-2w pb-3w">
+            <Row gutters>
+              <Col n="12">
+                <HousingStatusMultiSelect
+                  selectedStatus={filters.statusList}
+                  options={statusOptions()}
+                  onChange={onChangeStatusFilter}
+                />
+              </Col>
+              <Col n="12">
+                <AppMultiSelect
+                  label="Sous-statut de suivi"
+                  options={getSubStatusListOptions(filters.statusList)}
+                  initialValues={filters.subStatus}
+                  onChange={(values) =>
+                    onChangeFilters({ subStatus: values }, 'Sous-statut')
+                  }
+                />
+              </Col>
+              {campaignList && (
                 <Col n="6">
                   <AppMultiSelect
-                    label="Prise de contact"
-                    options={campaignsCountOptions}
-                    initialValues={filters.campaignsCounts}
+                    label="Campagne"
+                    options={campaignList.map((c) => ({
+                      value: c.id,
+                      label: c.title,
+                    }))}
+                    initialValues={filters.campaignIds}
                     onChange={(values) =>
-                      onChangeFilters(
-                        { campaignsCounts: values },
-                        'Prise de contact'
-                      )
+                      onChangeFilters({ campaignIds: values }, 'Campagne')
                     }
                   />
                 </Col>
-              </Row>
-            </Container>
-          </section>
-          <Accordion
-            label={
-              <TitleWithIcon
-                icon="fr-icon-map-pin-user-fill"
-                title="Occupation"
-              />
-            }
-          >
-            <Container as="section" fluid>
-              <Row gutters>
-                <Col>
-                  <AppMultiSelect
-                    label="Statut d’occupation"
-                    options={allOccupancyOptions}
-                    initialValues={filters.occupancies}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { occupancies: values },
-                        'Statut d’occupation'
-                      )
-                    }
-                  />
-                </Col>
-              </Row>
-            </Container>
-          </Accordion>
-          <Accordion
-            label={
-              <TitleWithIcon icon="fr-icon-home-4-fill" title="Logement" />
-            }
-          >
-            <Container as="section" fluid>
-              <Row gutters>
-                <Col n="6">
+              )}
+              <Col n="6">
+                <AppMultiSelect
+                  label="Prise de contact"
+                  options={campaignsCountOptions}
+                  initialValues={filters.campaignsCounts}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { campaignsCounts: values },
+                      'Prise de contact'
+                    )
+                  }
+                />
+              </Col>
+            </Row>
+          </Container>
+        </section>
+        <Accordion
+          label={
+            <TitleWithIcon
+              icon="fr-icon-map-pin-user-fill"
+              title="Occupation"
+            />
+          }
+        >
+          <Container as="section" fluid>
+            <Row gutters>
+              <Col>
+                <AppMultiSelect
+                  label="Statut d’occupation"
+                  options={allOccupancyOptions}
+                  initialValues={filters.occupancies}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { occupancies: values },
+                      'Statut d’occupation'
+                    )
+                  }
+                />
+              </Col>
+            </Row>
+          </Container>
+        </Accordion>
+        <Accordion
+          label={<TitleWithIcon icon="fr-icon-home-4-fill" title="Logement" />}
+        >
+          <Container as="section" fluid>
+            <Row gutters>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Type"
+                  options={housingKindOptions}
+                  initialValues={filters.housingKinds}
+                  onChange={(values) =>
+                    onChangeFilters({ housingKinds: values }, 'Type')
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Date de construction"
+                  options={buildingPeriodOptions}
+                  initialValues={filters.buildingPeriods}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { buildingPeriods: values },
+                      'Date de construction'
+                    )
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Surface"
+                  options={housingAreaOptions}
+                  initialValues={filters.housingAreas}
+                  onChange={(values) =>
+                    onChangeFilters({ housingAreas: values }, 'Surface')
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Durée de vacance"
+                  options={vacancyDurationOptions}
+                  initialValues={filters.vacancyDurations}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { vacancyDurations: values },
+                      'Durée de vacance'
+                    )
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Nombre de pièces"
+                  options={roomsCountOptions}
+                  initialValues={filters.roomsCounts ?? []}
+                  onChange={(values) =>
+                    onChangeFilters({ roomsCounts: values }, 'Nombre de pièces')
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Taxé"
+                  options={taxedOptions}
+                  initialValues={filters.isTaxedValues}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { isTaxedValues: values as OwnershipKinds[] },
+                      'Taxé'
+                    )
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Classement cadastral"
+                  options={cadastralClassificationOptions}
+                  initialValues={filters.cadastralClassifications}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { cadastralClassifications: values },
+                      'Classement cadastral'
+                    )
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Type de propriété"
+                  options={ownershipKindsOptions}
+                  initialValues={filters.ownershipKinds}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { ownershipKinds: values },
+                      'Type de propriété'
+                    )
+                  }
+                />
+              </Col>
+            </Row>
+          </Container>
+        </Accordion>
+        <Accordion
+          label={
+            <TitleWithIcon icon="fr-icon-building-fill" title="Bâtiment/DPE" />
+          }
+        >
+          <Container as="section" fluid>
+            <Row gutters>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Nombre de logements"
+                  options={housingCountOptions}
+                  initialValues={filters.housingCounts}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { housingCounts: values },
+                      'Nombre de logements'
+                    )
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Taux de vacance"
+                  options={vacancyRateOptions}
+                  initialValues={filters.vacancyRates}
+                  onChange={(values) =>
+                    onChangeFilters({ vacancyRates: values }, 'Taux de vacance')
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Étiquette DPE représentatif (CSTB)"
+                  options={energyConsumptionOptions}
+                  initialValues={filters.energyConsumption}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { energyConsumption: values },
+                      'Étiquette DPE représentatif (CSTB)'
+                    )
+                  }
+                />
+              </Col>
+            </Row>
+          </Container>
+        </Accordion>
+        <Accordion
+          label={
+            <TitleWithIcon icon="fr-icon-user-fill" title="Propriétaires" />
+          }
+        >
+          <Container as="section" fluid>
+            <Row gutters>
+              <Col n="6">
+                <div data-testid="ownerkind-filter">
                   <AppMultiSelect
                     label="Type"
-                    options={housingKindOptions}
-                    initialValues={filters.housingKinds}
+                    options={ownerKindOptions}
+                    initialValues={filters.ownerKinds}
                     onChange={(values) =>
-                      onChangeFilters({ housingKinds: values }, 'Type')
+                      onChangeFilters({ ownerKinds: values }, 'Type')
                     }
                   />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Date de construction"
-                    options={buildingPeriodOptions}
-                    initialValues={filters.buildingPeriods}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { buildingPeriods: values },
-                        'Date de construction'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Surface"
-                    options={housingAreaOptions}
-                    initialValues={filters.housingAreas}
-                    onChange={(values) =>
-                      onChangeFilters({ housingAreas: values }, 'Surface')
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Durée de vacance"
-                    options={vacancyDurationOptions}
-                    initialValues={filters.vacancyDurations}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { vacancyDurations: values },
-                        'Durée de vacance'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Nombre de pièces"
-                    options={roomsCountOptions}
-                    initialValues={filters.roomsCounts ?? []}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { roomsCounts: values },
-                        'Nombre de pièces'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Taxé"
-                    options={taxedOptions}
-                    initialValues={filters.isTaxedValues}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { isTaxedValues: values as OwnershipKinds[] },
-                        'Taxé'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Classement cadastral"
-                    options={cadastralClassificationOptions}
-                    initialValues={filters.cadastralClassifications}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { cadastralClassifications: values },
-                        'Classement cadastral'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Type de propriété"
-                    options={ownershipKindsOptions}
-                    initialValues={filters.ownershipKinds}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { ownershipKinds: values },
-                        'Type de propriété'
-                      )
-                    }
-                  />
-                </Col>
-              </Row>
-            </Container>
-          </Accordion>
-          <Accordion
-            label={
-              <TitleWithIcon icon="fr-icon-building-fill" title="Bâtiment/DPE" />
-            }
-          >
-            <Container as="section" fluid>
-              <Row gutters>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Nombre de logements"
-                    options={housingCountOptions}
-                    initialValues={filters.housingCounts}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { housingCounts: values },
-                        'Nombre de logements'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Taux de vacance"
-                    options={vacancyRateOptions}
-                    initialValues={filters.vacancyRates}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { vacancyRates: values },
-                        'Taux de vacance'
-                      )
-                    }
-                  />
-                </Col>
-                  <Col n="6">
-                    <AppMultiSelect
-                      label="Étiquette DPE représentatif (CSTB)"
-                      options={energyConsumptionOptions}
-                      initialValues={filters.energyConsumption}
-                      onChange={(values) =>
-                        onChangeFilters(
-                          { energyConsumption: values },
-                          'Étiquette DPE représentatif (CSTB)'
-                        )
-                      }
-                    />
-                  </Col>
-              </Row>
-            </Container>
-          </Accordion>
-          <Accordion
-            label={
-              <TitleWithIcon icon="fr-icon-user-fill" title="Propriétaires" />
-            }
-          >
-            <Container as="section" fluid>
-              <Row gutters>
-                <Col n="6">
-                  <div data-testid="ownerkind-filter">
-                    <AppMultiSelect
-                      label="Type"
-                      options={ownerKindOptions}
-                      initialValues={filters.ownerKinds}
-                      onChange={(values) =>
-                        onChangeFilters({ ownerKinds: values }, 'Type')
-                      }
-                    />
-                  </div>
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Âge"
-                    options={ownerAgeOptions}
-                    initialValues={filters.ownerAges}
-                    onChange={(values) =>
-                      onChangeFilters({ ownerAges: values }, 'Âge')
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Multi-propriétaire"
-                    options={multiOwnerOptions}
-                    initialValues={filters.multiOwners}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { multiOwners: values },
-                        'Multi-propriétaire'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Ayants droit"
-                    options={beneficiaryCountOptions}
-                    initialValues={filters.beneficiaryCounts}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { beneficiaryCounts: values },
-                        'Ayants droit'
-                      )
-                    }
-                  />
-                </Col>
-              </Row>
-            </Container>
-          </Accordion>
-          <Accordion
-            label={
-              <TitleWithIcon icon="fr-icon-france-fill" title="Localisation" />
-            }
-          >
-            <Container as="section" fluid>
-              <Row gutters>
-                <Col n="6">
-                  <SearchableSelect
-                    options={unselectedOptions(
-                      localitiesOptions,
-                      filters.localities
-                    )}
-                    label="Commune"
-                    placeholder="Rechercher une commune"
-                    onChange={(value: string) => {
-                      if (value) {
-                        onChangeFilters(
-                          { localities: concat(filters.localities, value) },
-                          'Commune'
-                        );
-                      }
-                    }}
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Type de commune"
-                    options={localityKindsOptions}
-                    initialValues={filters.localityKinds}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { localityKinds: values },
-                        'Type de commune'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <SearchableSelect
-                    options={unselectedOptions(
-                      geoPerimeterOptions(geoPerimeters),
-                      filters.geoPerimetersIncluded
-                    )}
-                    label="Périmètre inclus"
-                    placeholder="Rechercher un périmètre"
-                    onChange={(value: string) => {
-                      if (value) {
-                        onChangeFilters(
-                          {
-                            geoPerimetersIncluded: concat(
-                              filters.geoPerimetersIncluded,
-                              value
-                            ),
-                          },
-                          'Périmètre inclus'
-                        );
-                      }
-                    }}
-                  />
-                </Col>
-                <Col n="6">
-                  <SearchableSelect
-                    options={unselectedOptions(
-                      geoPerimeterOptions(geoPerimeters),
-                      filters.geoPerimetersExcluded
-                    )}
-                    label="Périmètre exclu"
-                    placeholder="Rechercher un périmètre"
-                    onChange={(value: string) => {
-                      if (value) {
-                        onChangeFilters(
-                          {
-                            geoPerimetersExcluded: concat(
-                              filters.geoPerimetersExcluded,
-                              value
-                            ),
-                          },
-                          'Périmètre exclu'
-                        );
-                      }
-                    }}
-                  />
-                  <div className="float-right">
-                    <GeoPerimetersModalLink />
-                  </div>
-                </Col>
-              </Row>
-            </Container>
-          </Accordion>
-          <Accordion
-            label={
-              <TitleWithIcon icon="fr-icon-calendar-fill" title="Millésime" />
-            }
-          >
-            <Container as="section" fluid>
-              <Row gutters>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Millésime inclus"
-                    options={dataYearsIncludedOptions}
-                    initialValues={(filters.dataYearsIncluded ?? []).map((_) =>
-                      String(_)
-                    )}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { dataYearsIncluded: values.map(Number) },
-                        'Millésime inclus'
-                      )
-                    }
-                  />
-                </Col>
-                <Col n="6">
-                  <AppMultiSelect
-                    label="Millésime exclu"
-                    defaultOption="Aucun"
-                    options={dataYearsExcludedOptions}
-                    initialValues={(filters.dataYearsExcluded ?? []).map((_) =>
-                      String(_)
-                    )}
-                    onChange={(values) =>
-                      onChangeFilters(
-                        { dataYearsExcluded: values.map(Number) },
-                        'Millésime exclu'
-                      )
-                    }
-                  />
-                </Col>
-              </Row>
-            </Container>
-          </Accordion>
-        </>
-      }
-      footer={
-        <>
-          <HousingFiltersBadges
-            filters={filters}
-            onChange={onChangeFilters}
-            small
-          />
-          <Row gutters>
-            <Col>
-              <AppLinkAsButton onClick={onResetFilters}>
-                Réinitialiser les filtres
-              </AppLinkAsButton>
-            </Col>
-            {filteredCount !== undefined && (
-              <Col className="align-right">
-                <Text as="span" className="color-grey-625">
-                  <b>{filteredCount}</b> résultats
-                </Text>
+                </div>
               </Col>
-            )}
-          </Row>
-        </>
-      }
-    />
+              <Col n="6">
+                <AppMultiSelect
+                  label="Âge"
+                  options={ownerAgeOptions}
+                  initialValues={filters.ownerAges}
+                  onChange={(values) =>
+                    onChangeFilters({ ownerAges: values }, 'Âge')
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Multi-propriétaire"
+                  options={multiOwnerOptions}
+                  initialValues={filters.multiOwners}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { multiOwners: values },
+                      'Multi-propriétaire'
+                    )
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Ayants droit"
+                  options={beneficiaryCountOptions}
+                  initialValues={filters.beneficiaryCounts}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { beneficiaryCounts: values },
+                      'Ayants droit'
+                    )
+                  }
+                />
+              </Col>
+            </Row>
+          </Container>
+        </Accordion>
+        <Accordion
+          label={
+            <TitleWithIcon icon="fr-icon-france-fill" title="Localisation" />
+          }
+        >
+          <Container as="section" fluid>
+            <Row gutters>
+              <Col n="6">
+                <SearchableSelect
+                  options={unselectedOptions(
+                    localitiesOptions,
+                    filters.localities
+                  )}
+                  label="Commune"
+                  placeholder="Rechercher une commune"
+                  onChange={(value: string) => {
+                    if (value) {
+                      onChangeFilters(
+                        { localities: concat(filters.localities, value) },
+                        'Commune'
+                      );
+                    }
+                  }}
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Type de commune"
+                  options={localityKindsOptions}
+                  initialValues={filters.localityKinds}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { localityKinds: values },
+                      'Type de commune'
+                    )
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <SearchableSelect
+                  options={unselectedOptions(
+                    geoPerimeterOptions(geoPerimeters),
+                    filters.geoPerimetersIncluded
+                  )}
+                  label="Périmètre inclus"
+                  placeholder="Rechercher un périmètre"
+                  onChange={(value: string) => {
+                    if (value) {
+                      onChangeFilters(
+                        {
+                          geoPerimetersIncluded: concat(
+                            filters.geoPerimetersIncluded,
+                            value
+                          ),
+                        },
+                        'Périmètre inclus'
+                      );
+                    }
+                  }}
+                />
+              </Col>
+              <Col n="6">
+                <SearchableSelect
+                  options={unselectedOptions(
+                    geoPerimeterOptions(geoPerimeters),
+                    filters.geoPerimetersExcluded
+                  )}
+                  label="Périmètre exclu"
+                  placeholder="Rechercher un périmètre"
+                  onChange={(value: string) => {
+                    if (value) {
+                      onChangeFilters(
+                        {
+                          geoPerimetersExcluded: concat(
+                            filters.geoPerimetersExcluded,
+                            value
+                          ),
+                        },
+                        'Périmètre exclu'
+                      );
+                    }
+                  }}
+                />
+                <div className="float-right">
+                  <GeoPerimetersModalLink />
+                </div>
+              </Col>
+            </Row>
+          </Container>
+        </Accordion>
+        <Accordion
+          label={
+            <TitleWithIcon icon="fr-icon-calendar-fill" title="Millésime" />
+          }
+        >
+          <Container as="section" fluid>
+            <Row gutters>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Millésime inclus"
+                  options={dataYearsIncludedOptions}
+                  initialValues={(filters.dataYearsIncluded ?? []).map((_) =>
+                    String(_)
+                  )}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { dataYearsIncluded: values.map(Number) },
+                      'Millésime inclus'
+                    )
+                  }
+                />
+              </Col>
+              <Col n="6">
+                <AppMultiSelect
+                  label="Millésime exclu"
+                  defaultOption="Aucun"
+                  options={dataYearsExcludedOptions}
+                  initialValues={(filters.dataYearsExcluded ?? []).map((_) =>
+                    String(_)
+                  )}
+                  onChange={(values) =>
+                    onChangeFilters(
+                      { dataYearsExcluded: values.map(Number) },
+                      'Millésime exclu'
+                    )
+                  }
+                />
+              </Col>
+            </Row>
+          </Container>
+        </Accordion>
+      </Grid>
+    </Drawer>
   );
 }
+
+const drawerWidth = 330;
+
+const openedMixin = (theme: Theme): CSSObject => ({
+  width: drawerWidth,
+  transition: theme.transitions.create('width', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
+  overflowX: 'hidden',
+});
+
+const closedMixin = (theme: Theme): CSSObject => ({
+  transition: theme.transitions.create('width', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  overflowX: 'hidden',
+  width: `calc(${theme.spacing(7)} + 1px)`,
+  [theme.breakpoints.up('sm')]: {
+    width: `calc(${theme.spacing(8)} + 1px)`,
+  },
+});
+
+const Drawer = styled(MuiDrawer, {
+  shouldForwardProp: (prop) => prop !== 'open',
+})(({ theme, open }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  whiteSpace: 'nowrap',
+  boxSizing: 'border-box',
+  ...(open && {
+    ...openedMixin(theme),
+    '& .MuiDrawer-paper': openedMixin(theme),
+  }),
+  ...(!open && {
+    ...closedMixin(theme),
+    '& .MuiDrawer-paper': closedMixin(theme),
+  }),
+}));
 
 export default HousingListFiltersSidemenu;

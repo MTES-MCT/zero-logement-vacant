@@ -1,8 +1,8 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import { Campaign } from '../../models/Campaign';
-import { useNotification } from '../../hooks/useNotification';
 import { useForm } from '../../hooks/useForm';
 
 interface Props {
@@ -12,14 +12,7 @@ interface Props {
 }
 
 function SendButton(props: Readonly<Props>) {
-  const [updateCampaign, mutation] = useUpdateCampaignMutation();
-
-  useNotification({
-    isError: mutation.isError,
-    isLoading: mutation.isLoading,
-    isSuccess: mutation.isSuccess,
-    toastId: 'sending',
-  });
+  const [updateCampaign] = useUpdateCampaignMutation();
 
   function open(openModal: () => void): void {
     props.form.validate(() => {

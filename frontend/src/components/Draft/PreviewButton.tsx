@@ -7,6 +7,7 @@ import { Draft } from '../../models/Draft';
 import { useHousingList } from '../../hooks/useHousingList';
 import { useCampaign } from '../../hooks/useCampaign';
 import { toast } from 'react-toastify';
+import { useNotification } from '../../hooks/useNotification';
 
 interface Props {
   className?: string;
@@ -15,7 +16,9 @@ interface Props {
 }
 
 function PreviewButton(props: Readonly<Props>) {
+  const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const { campaign, isLoadingCampaign } = useCampaign();
   const { housingList: houses } = useHousingList(
     {
@@ -31,8 +34,25 @@ function PreviewButton(props: Readonly<Props>) {
     { skip: isLoadingCampaign || !campaign }
   );
 
+  useNotification({
+    isError,
+    isLoading,
+    isSuccess,
+    message: {
+      error: 'Une erreur est survenue lors de la génération du courrier.',
+      loading:
+        'Votre courrier est en cours de génération, veuillez patienter quelques secondes...',
+      success: 'Courrier généré !',
+    },
+    toastId: 'preview-draft',
+  });
+
   async function preview(): Promise<void> {
     try {
+      setIsError(false);
+      setIsLoading(true);
+      setIsSuccess(false);
+
       if (!houses?.length) {
         toast.error('Aucun logement trouvé pour cette campagne');
         return;
@@ -58,8 +78,11 @@ function PreviewButton(props: Readonly<Props>) {
         if (response.ok) {
           const url = window.URL.createObjectURL(blob);
           window.open(url, '_blank');
+          setIsSuccess(true);
         }
       }
+    } catch (error) {
+      setIsError(true);
     } finally {
       setIsLoading(false);
     }

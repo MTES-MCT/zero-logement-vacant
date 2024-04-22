@@ -46,7 +46,8 @@ function CampaignSending(props: Readonly<Props>) {
     toastId: 'update-sending-date',
   });
 
-  const disabled = !props.campaign.file;
+  const hasFile = !!props.campaign.file;
+  const disabled = !hasFile || !sentAt;
 
   const handleFormSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -76,7 +77,7 @@ function CampaignSending(props: Readonly<Props>) {
         />
       </Container>
       <Container as="section" fluid spacing="mb-5w">
-        {disabled ? (
+        {!hasFile ? (
           <Alert
             className="fr-mb-5w"
             closable
@@ -126,7 +127,7 @@ function CampaignSending(props: Readonly<Props>) {
                 value={sentAt}
                 onChange={setSentAt}
               />
-              <Button priority="primary" disabled={!sentAt}>
+              <Button priority="primary" disabled={disabled}>
                 Confirmer et passer au suivi
               </Button>
             </form>

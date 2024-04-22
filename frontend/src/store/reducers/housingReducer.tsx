@@ -40,7 +40,7 @@ const initialState: HousingState = {
   totalCount: 0,
   totalOwnerCount: 0,
   filters: initialHousingFilters,
-  filtersExpanded: false,
+  filtersExpanded: true,
   view: 'list',
   creator: {},
 };

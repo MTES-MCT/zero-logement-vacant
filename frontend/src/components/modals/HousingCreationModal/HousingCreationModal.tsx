@@ -18,7 +18,6 @@ const modal = createModal({
 function HousingCreationModal(props: Props) {
   const openingButtonProps: ButtonProps = {
     iconId: 'fr-icon-add-line',
-    size: 'small',
     children: 'Ajouter un logement',
     onClick: modal.open,
   };

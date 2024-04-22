@@ -69,6 +69,12 @@ interface Message {
   type: Omit<MessageType, ''>;
 }
 
+/**
+ * @deprecated Use [react-hook-form](https://react-hook-form.com/) instead.
+ * @param schema
+ * @param input
+ * @param fullValidationKeys
+ */
 export function useForm<
   T extends ObjectShape,
   U extends Record<keyof T, unknown>

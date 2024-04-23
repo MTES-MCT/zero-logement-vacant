@@ -186,11 +186,7 @@ function GroupView() {
       </Row>
 
       <Row>
-        <HousingFiltersBadges
-          filters={filters}
-          onChange={removeFilter}
-          onReset={onResetFilters}
-        />
+        <HousingFiltersBadges filters={filters} onChange={removeFilter} />
       </Row>
 
       {view === 'map' ? (

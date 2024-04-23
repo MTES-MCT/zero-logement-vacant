@@ -1,23 +1,18 @@
-import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
-import classNames from 'classnames';
+import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import React from 'react';
+
 import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
+import { useAppDispatch } from '../../hooks/useStore';
 import housingSlice from '../../store/reducers/housingReducer';
 
-interface Props {
-  display?: 'list' | 'map';
-}
-
-export function HousingDisplaySwitch(props: Props) {
+export function HousingDisplaySwitch() {
   const dispatch = useAppDispatch();
   const { trackEvent } = useMatomo();
 
-  const { view } = useAppSelector((state) => state.housing);
   const { changeView } = housingSlice.actions;
 
   function toList() {
@@ -37,28 +32,25 @@ export function HousingDisplaySwitch(props: Props) {
   }
 
   return (
-    <ButtonsGroup
-      inlineLayoutWhen="sm and up"
-      buttonsSize="medium"
-      alignment="right"
-      buttons={[
+    <SegmentedControl
+      hideLegend
+      segments={[
         {
-          children: 'Tableau',
-          title: 'Vue tableau',
-          priority: 'tertiary',
-          onClick: toList,
-          className: classNames('fr-mr-0', 'color-black-50', {
-            'bg-950': view !== 'list',
-          }),
+          iconId: 'fr-icon-table-line',
+          label: 'Tableau',
+          nativeInputProps: {
+            defaultChecked: true,
+            title: 'Vue tableau',
+            onClick: toList,
+          },
         },
         {
-          children: 'Cartographie',
-          title: 'Vue carte',
-          priority: 'tertiary',
-          onClick: toMap,
-          className: classNames('fr-ml-0', 'color-black-50', {
-            'bg-950': view !== 'map',
-          }),
+          iconId: 'fr-icon-map-pin-2-line',
+          label: 'Cartographie',
+          nativeInputProps: {
+            title: 'Vue carte',
+            onClick: toMap,
+          },
         },
       ]}
     />

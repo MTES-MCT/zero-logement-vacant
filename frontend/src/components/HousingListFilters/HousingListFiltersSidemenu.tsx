@@ -88,8 +88,6 @@ function HousingListFiltersSidemenu(props: Props) {
   const { data: campaigns } = useFindCampaignsQuery();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localitiesOptions } = useLocalityList(establishment?.id);
-  const { data: count } = useCountHousingQuery(filters);
-  const filteredCount = count?.housing;
 
   const onChangeStatusFilter = (status: HousingStatus, isChecked: boolean) => {
     const statusList = [

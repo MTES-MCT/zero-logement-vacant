@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   allOccupancyOptions,
   beneficiaryCountOptions,
@@ -30,24 +30,20 @@ import {
   getSubStatusList,
   getSubStatusListOptions,
 } from '../../models/HousingState';
-import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { OwnershipKinds } from '../../models/Housing';
 import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import styles from './housing-filters-badges.module.scss';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
   onChange?: (values: HousingFilters) => void;
-  onReset?: () => void;
   small?: boolean;
 }
 
 const HousingFiltersBadges = ({
   filters,
   onChange,
-  onReset,
   small,
 }: HousingFiltersBadgesProps) => {
   const establishment = useAppSelector(
@@ -56,12 +52,6 @@ const HousingFiltersBadges = ({
   const campaignList = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localitiesOptions } = useLocalityList(establishment?.id);
-
-  function reset() {
-    onReset?.();
-  }
-
-  const canReset = useMemo<boolean>(() => !!onReset, [onReset]);
 
   if (!filters) {
     return null;
@@ -297,11 +287,6 @@ const HousingFiltersBadges = ({
           small={small}
           onChange={onChange && (() => onChange({ query: '' }))}
         />
-        {canReset && (
-          <AppLinkAsButton onClick={reset} className={styles.reinit} size="sm">
-            Réinitialiser les filtres
-          </AppLinkAsButton>
-        )}
       </div>
     </>
   );

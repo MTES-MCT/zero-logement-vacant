@@ -30,7 +30,7 @@ function CampaignView() {
     draft: <CampaignDraft campaign={campaign} />,
     sending: <CampaignSending campaign={campaign} />,
     'in-progress': <CampaignInProgress campaign={campaign} />,
-    archived: <NotFoundView />,
+    archived: <CampaignInProgress campaign={campaign} />,
   };
   const CampaignComponent = steps[campaign.status] || <NotFoundView />;
 

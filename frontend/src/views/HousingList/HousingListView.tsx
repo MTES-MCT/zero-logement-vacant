@@ -1,11 +1,8 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import Button from '@codegouvfr/react-dsfr/Button';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-
-import { Col, Row, Title } from '../../components/_dsfr';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
@@ -18,19 +15,14 @@ import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppSelector } from '../../hooks/useStore';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import { filterCount } from '../../models/HousingFilters';
 import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
-import MainContainer from '../../components/MainContainer/MainContainer';
-import GroupHeader from '../../components/GroupHeader/GroupHeader';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
   const { trackEvent } = useMatomo();
-
-  const container = useRef(null);
 
   const {
     filters,

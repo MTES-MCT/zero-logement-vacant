@@ -65,7 +65,7 @@ const HousingListView = () => {
         onReset={onResetFilters}
         onClose={() => setExpand(false)}
       />
-      <Grid container px={3} py={4} xs>
+      <Grid container flexDirection="column" px={3} py={4} xs>
         {alert && (
           <Grid xs>
             <Alert
@@ -78,7 +78,7 @@ const HousingListView = () => {
           </Grid>
         )}
 
-        <Grid container spacing={2} xs={12}>
+        <Grid container mb={1} spacing={2} xs={12}>
           <Grid xs>
             <AppSearchBar
               onSearch={searchWithQuery}

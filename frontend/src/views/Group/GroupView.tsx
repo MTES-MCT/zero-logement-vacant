@@ -1,13 +1,15 @@
-import { Col, Row } from '../../components/_dsfr';
-import { Redirect, useHistory, useParams } from 'react-router-dom';
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import Grid from '@mui/material/Unstable_Grid2';
+import React from 'react';
+import { useHistory, useParams } from 'react-router-dom';
+
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
   useUpdateGroupMutation,
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
-import { filterCount } from '../../models/HousingFilters';
-import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
@@ -19,18 +21,15 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
 import { useAppSelector } from '../../hooks/useStore';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { Campaign } from '../../models/Campaign';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { GroupPayload } from '../../models/GroupPayload';
-import Button from '@codegouvfr/react-dsfr/Button';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import MainContainer from '../../components/MainContainer/MainContainer';
 import { useCreateCampaignFromGroupMutation } from '../../services/campaign.service';
+import NotFoundView from '../NotFoundView';
 
 interface RouterState {
   alert?: string;
@@ -117,88 +116,79 @@ function GroupView() {
     }
   }
 
-  const campaignList = useCampaignList({
+  const campaigns = useCampaignList({
     filters: {
       groupIds: [id],
     },
   });
 
-  if (!group || isLoadingGroup) {
+  if (isLoadingGroup) {
     return <></>;
   }
 
-  if (!!group.archivedAt) {
-    return <Redirect to="/parc-de-logements" push={false} />;
+  if (!group || !!group.archivedAt) {
+    return <NotFoundView />;
   }
 
   return (
-    <MainContainer>
-      <Row spacing="mb-5w">
+    <Grid container position="relative">
+      <HousingListFiltersSidemenu
+        filters={filters}
+        expand={expand}
+        onChange={onChangeFilters}
+        onReset={onResetFilters}
+        onClose={() => setExpand(false)}
+      />
+
+      <Grid container flexDirection="column" px={3} py={4} xs>
         <Group
-          campaigns={campaignList}
+          campaigns={campaigns}
+          className="fr-mb-8w"
           group={group}
           onCampaignCreate={onCampaignCreate}
           onExport={onGroupExport}
           onUpdate={onGroupUpdate}
           onRemove={onGroupRemove}
         />
-      </Row>
 
-      <Alert
-        severity="success"
-        description={alert}
-        closable
-        small
-        isClosed={!alert.length}
-        onClose={() => {}}
-        className="fr-mb-5w"
-      />
-
-      <Row spacing="mb-1w" alignItems="top">
-        <HousingListFiltersSidemenu
-          filters={filters}
-          expand={expand}
-          onChange={onChangeFilters}
-          onReset={onResetFilters}
-          onClose={() => setExpand(false)}
+        <Alert
+          severity="success"
+          description={alert}
+          closable
+          small
+          isClosed={!alert.length}
+          onClose={() => {}}
+          className="fr-mb-5w"
         />
-        <Col n="6" className="d-flex">
-          <AppSearchBar
-            onSearch={searchWithQuery}
-            initialQuery={filters.query}
-            placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
+
+        <Grid container mb={1} spacing={2} xs={12}>
+          <Grid xs>
+            <AppSearchBar
+              onSearch={searchWithQuery}
+              initialQuery={filters.query}
+              placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
+            />
+          </Grid>
+          <Grid xs="auto">
+            <HousingDisplaySwitch />
+          </Grid>
+        </Grid>
+
+        <Grid mb={4} xs={12}>
+          <HousingFiltersBadges filters={filters} onChange={removeFilter} />
+        </Grid>
+
+        {view === 'map' ? (
+          <HousingListMap filters={filters} />
+        ) : (
+          <HousingListTabs
+            filters={filters}
+            showCount={false}
+            showRemoveGroupHousing
           />
-          <Button
-            title="Filtrer"
-            iconId="ri-filter-fill"
-            priority="secondary"
-            className="fr-ml-1w"
-            onClick={() => setExpand(true)}
-            data-testid="filter-button"
-          >
-            Filtrer ({filterCount(filters)})
-          </Button>
-        </Col>
-
-        <Col>
-          <HousingDisplaySwitch />
-        </Col>
-      </Row>
-
-      <Row>
-        <HousingFiltersBadges filters={filters} onChange={removeFilter} />
-      </Row>
-
-      {view === 'map' ? (
-        <HousingListMap filters={filters} />
-      ) : (
-        <HousingListTabs
-          filters={filters}
-          showCount={false}
-          showRemoveGroupHousing
-        />
-      )}
-    </MainContainer>
+        )}
+      </Grid>
+    </Grid>
   );
 }
 

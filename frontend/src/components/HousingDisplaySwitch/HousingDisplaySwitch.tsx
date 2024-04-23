@@ -36,7 +36,7 @@ export function HousingDisplaySwitch() {
       hideLegend
       segments={[
         {
-          iconId: 'fr-icon-table-line',
+          iconId: 'fr-icon-table-2',
           label: 'Tableau',
           nativeInputProps: {
             defaultChecked: true,
@@ -46,7 +46,7 @@ export function HousingDisplaySwitch() {
         },
         {
           iconId: 'fr-icon-map-pin-2-line',
-          label: 'Cartographie',
+          label: 'Carte',
           nativeInputProps: {
             title: 'Vue carte',
             onClick: toMap,

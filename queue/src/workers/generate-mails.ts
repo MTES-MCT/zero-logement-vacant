@@ -170,7 +170,7 @@ export default function createWorker() {
       });
 
       const signedUrl = await getSignedUrl(s3, command, {
-        expiresIn: 60 * 60 * 24, // TTL: 24 hours
+        expiresIn: 60 * 60 * 24 * 7, // TTL: 7 days
       });
 
       logger.info(`Generated signed URL: ${signedUrl}`);

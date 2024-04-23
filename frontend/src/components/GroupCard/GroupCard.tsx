@@ -1,12 +1,15 @@
+import Typography from '@mui/material/Typography';
+
 import { Container } from '../_dsfr';
 import { Group } from '../../models/Group';
 import styles from './group-card.module.scss';
 import HousingCount from '../HousingCount/HousingCount';
 import AppLink from '../_app/AppLink/AppLink';
-import Typography from '@mui/material/Typography';
+import classNames from 'classnames';
 
 interface GroupCardProps {
   group: Group;
+  isActive?: boolean;
 }
 
 function GroupCard(props: GroupCardProps) {
@@ -14,7 +17,9 @@ function GroupCard(props: GroupCardProps) {
     <AppLink to={`/groupes/${props.group.id}`}>
       <Container
         as="article"
-        className={styles.container}
+        className={classNames(styles.container, {
+          [styles.active]: props.isActive,
+        })}
         fluid
         role="group-card"
       >

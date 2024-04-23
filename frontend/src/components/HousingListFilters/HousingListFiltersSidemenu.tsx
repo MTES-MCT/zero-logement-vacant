@@ -47,11 +47,11 @@ import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { concat } from '../../utils/arrayUtils';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
-import { useCountHousingQuery } from '../../services/housing.service';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { useToggle } from '../../hooks/useToggle';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
+import GroupHeader from '../GroupHeader/GroupHeader';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -136,6 +136,18 @@ function HousingListFiltersSidemenu(props: Props) {
         }}
         title={toggle.active ? 'Fermer' : 'Ouvrir'}
         onClick={() => toggle.toggle()}
+      />
+
+      <GroupHeader
+        className={classNames('fr-mb-4w', styles.drawerContent, {
+          [styles.drawerContentExpanded]: toggle.active,
+        })}
+      />
+
+      <hr
+        className={classNames('fr-pb-4w', styles.drawerContent, {
+          [styles.drawerContentExpanded]: toggle.active,
+        })}
       />
 
       <Grid

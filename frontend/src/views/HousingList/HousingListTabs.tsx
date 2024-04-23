@@ -1,10 +1,11 @@
-import { getHousingState, HOUSING_STATUSES } from '../../models/HousingState';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import fp from 'lodash/fp';
 import React from 'react';
+
+import { getHousingState, HOUSING_STATUSES } from '../../models/HousingState';
 import HousingListTab from './HousingListTab';
 import { HousingFilters } from '../../models/HousingFilters';
 import { useStatusTabs } from '../../hooks/useStatusTabs';
-import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import fp from 'lodash/fp';
 
 interface Props {
   filters: HousingFilters;

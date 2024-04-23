@@ -150,14 +150,14 @@ function HousingListFiltersSidemenu(props: Props) {
             <TitleWithIcon icon="fr-icon-folder-2-line" title="Mobilisation" />
           }
         >
-          <Grid component="article" xs={12}>
+          <Grid component="article" mb={2} xs={12}>
             <HousingStatusMultiSelect
               selectedStatus={filters.statusList}
               options={statusOptions()}
               onChange={onChangeStatusFilter}
             />
           </Grid>
-          <Grid component="article" xs={12}>
+          <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
               label="Sous-statut de suivi"
               options={getSubStatusListOptions(filters.statusList)}
@@ -168,7 +168,7 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           {campaigns && (
-            <Grid component="article" xs={12}>
+            <Grid component="article" mb={2} xs={12}>
               <AppMultiSelect
                 label="Campagne"
                 options={campaigns.map((c) => ({
@@ -182,7 +182,7 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
           )}
-          <Grid component="article" xs={12}>
+          <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
               label="Prise de contact"
               options={campaignsCountOptions}
@@ -196,367 +196,325 @@ function HousingListFiltersSidemenu(props: Props) {
         <Accordion
           label={
             <TitleWithIcon
-              icon="fr-icon-map-pin-user-fill"
+              icon="fr-icon-map-pin-user-line"
               title="Occupation"
             />
           }
         >
-          <Container as="section" fluid>
-            <Row gutters>
-              <Col>
-                <AppMultiSelect
-                  label="Statut d’occupation"
-                  options={allOccupancyOptions}
-                  initialValues={filters.occupancies}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { occupancies: values },
-                      'Statut d’occupation'
-                    )
-                  }
-                />
-              </Col>
-            </Row>
-          </Container>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Statut d’occupation"
+              options={allOccupancyOptions}
+              initialValues={filters.occupancies}
+              onChange={(values) =>
+                onChangeFilters({ occupancies: values }, 'Statut d’occupation')
+              }
+            />
+          </Grid>
         </Accordion>
         <Accordion
           label={
-            <TitleWithIcon icon="fr-icon-france-fill" title="Localisation" />
+            <TitleWithIcon icon="fr-icon-france-line" title="Localisation" />
           }
         >
-          <Container as="section" fluid>
-            <Row gutters>
-              <Col n="6">
-                <SearchableSelect
-                  options={unselectedOptions(
-                    localitiesOptions,
-                    filters.localities
-                  )}
-                  label="Commune"
-                  placeholder="Rechercher une commune"
-                  onChange={(value: string) => {
-                    if (value) {
-                      onChangeFilters(
-                        { localities: concat(filters.localities, value) },
-                        'Commune'
-                      );
-                    }
-                  }}
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Type de commune"
-                  options={localityKindsOptions}
-                  initialValues={filters.localityKinds}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { localityKinds: values },
-                      'Type de commune'
-                    )
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <SearchableSelect
-                  options={unselectedOptions(
-                    geoPerimeterOptions(geoPerimeters),
-                    filters.geoPerimetersIncluded
-                  )}
-                  label="Périmètre inclus"
-                  placeholder="Rechercher un périmètre"
-                  onChange={(value: string) => {
-                    if (value) {
-                      onChangeFilters(
-                        {
-                          geoPerimetersIncluded: concat(
-                            filters.geoPerimetersIncluded,
-                            value
-                          ),
-                        },
-                        'Périmètre inclus'
-                      );
-                    }
-                  }}
-                />
-              </Col>
-              <Col n="6">
-                <SearchableSelect
-                  options={unselectedOptions(
-                    geoPerimeterOptions(geoPerimeters),
-                    filters.geoPerimetersExcluded
-                  )}
-                  label="Périmètre exclu"
-                  placeholder="Rechercher un périmètre"
-                  onChange={(value: string) => {
-                    if (value) {
-                      onChangeFilters(
-                        {
-                          geoPerimetersExcluded: concat(
-                            filters.geoPerimetersExcluded,
-                            value
-                          ),
-                        },
-                        'Périmètre exclu'
-                      );
-                    }
-                  }}
-                />
-                <div className="float-right">
-                  <GeoPerimetersModalLink />
-                </div>
-              </Col>
-            </Row>
-          </Container>
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelect
+              options={unselectedOptions(localitiesOptions, filters.localities)}
+              label="Commune"
+              placeholder="Rechercher une commune"
+              onChange={(value: string) => {
+                if (value) {
+                  onChangeFilters(
+                    { localities: concat(filters.localities, value) },
+                    'Commune'
+                  );
+                }
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Type de commune"
+              options={localityKindsOptions}
+              initialValues={filters.localityKinds}
+              onChange={(values) =>
+                onChangeFilters({ localityKinds: values }, 'Type de commune')
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelect
+              options={unselectedOptions(
+                geoPerimeterOptions(geoPerimeters),
+                filters.geoPerimetersIncluded
+              )}
+              label="Périmètre inclus"
+              placeholder="Rechercher un périmètre"
+              onChange={(value: string) => {
+                if (value) {
+                  onChangeFilters(
+                    {
+                      geoPerimetersIncluded: concat(
+                        filters.geoPerimetersIncluded,
+                        value
+                      ),
+                    },
+                    'Périmètre inclus'
+                  );
+                }
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelect
+              options={unselectedOptions(
+                geoPerimeterOptions(geoPerimeters),
+                filters.geoPerimetersExcluded
+              )}
+              label="Périmètre exclu"
+              placeholder="Rechercher un périmètre"
+              onChange={(value: string) => {
+                if (value) {
+                  onChangeFilters(
+                    {
+                      geoPerimetersExcluded: concat(
+                        filters.geoPerimetersExcluded,
+                        value
+                      ),
+                    },
+                    'Périmètre exclu'
+                  );
+                }
+              }}
+            />
+            <div className="float-right">
+              <GeoPerimetersModalLink />
+            </div>
+          </Grid>
         </Accordion>
 
         <Accordion
           label={
-            <TitleWithIcon icon="fr-icon-building-fill" title="Bâtiment/DPE" />
+            <TitleWithIcon icon="fr-icon-building-line" title="Bâtiment/DPE" />
           }
         >
-          <Container as="section" fluid>
-            <Row gutters>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Nombre de logements"
-                  options={housingCountOptions}
-                  initialValues={filters.housingCounts}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { housingCounts: values },
-                      'Nombre de logements'
-                    )
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Taux de vacance"
-                  options={vacancyRateOptions}
-                  initialValues={filters.vacancyRates}
-                  onChange={(values) =>
-                    onChangeFilters({ vacancyRates: values }, 'Taux de vacance')
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Étiquette DPE représentatif (CSTB)"
-                  options={energyConsumptionOptions}
-                  initialValues={filters.energyConsumption}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { energyConsumption: values },
-                      'Étiquette DPE représentatif (CSTB)'
-                    )
-                  }
-                />
-              </Col>
-            </Row>
-          </Container>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Nombre de logements"
+              options={housingCountOptions}
+              initialValues={filters.housingCounts}
+              onChange={(values) =>
+                onChangeFilters(
+                  { housingCounts: values },
+                  'Nombre de logements'
+                )
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Taux de vacance"
+              options={vacancyRateOptions}
+              initialValues={filters.vacancyRates}
+              onChange={(values) =>
+                onChangeFilters({ vacancyRates: values }, 'Taux de vacance')
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Étiquette DPE représentatif (CSTB)"
+              options={energyConsumptionOptions}
+              initialValues={filters.energyConsumption}
+              onChange={(values) =>
+                onChangeFilters(
+                  { energyConsumption: values },
+                  'Étiquette DPE représentatif (CSTB)'
+                )
+              }
+            />
+          </Grid>
         </Accordion>
         <Accordion
-          label={<TitleWithIcon icon="fr-icon-home-4-fill" title="Logement" />}
+          label={<TitleWithIcon icon="fr-icon-home-4-line" title="Logement" />}
         >
-          <Container as="section" fluid>
-            <Row gutters>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Type"
-                  options={housingKindOptions}
-                  initialValues={filters.housingKinds}
-                  onChange={(values) =>
-                    onChangeFilters({ housingKinds: values }, 'Type')
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Date de construction"
-                  options={buildingPeriodOptions}
-                  initialValues={filters.buildingPeriods}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { buildingPeriods: values },
-                      'Date de construction'
-                    )
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Surface"
-                  options={housingAreaOptions}
-                  initialValues={filters.housingAreas}
-                  onChange={(values) =>
-                    onChangeFilters({ housingAreas: values }, 'Surface')
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Durée de vacance"
-                  options={vacancyDurationOptions}
-                  initialValues={filters.vacancyDurations}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { vacancyDurations: values },
-                      'Durée de vacance'
-                    )
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Nombre de pièces"
-                  options={roomsCountOptions}
-                  initialValues={filters.roomsCounts ?? []}
-                  onChange={(values) =>
-                    onChangeFilters({ roomsCounts: values }, 'Nombre de pièces')
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Taxé"
-                  options={taxedOptions}
-                  initialValues={filters.isTaxedValues}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { isTaxedValues: values as OwnershipKinds[] },
-                      'Taxé'
-                    )
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Classement cadastral"
-                  options={cadastralClassificationOptions}
-                  initialValues={filters.cadastralClassifications}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { cadastralClassifications: values },
-                      'Classement cadastral'
-                    )
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Type de propriété"
-                  options={ownershipKindsOptions}
-                  initialValues={filters.ownershipKinds}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { ownershipKinds: values },
-                      'Type de propriété'
-                    )
-                  }
-                />
-              </Col>
-            </Row>
-          </Container>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Type"
+              options={housingKindOptions}
+              initialValues={filters.housingKinds}
+              onChange={(values) =>
+                onChangeFilters({ housingKinds: values }, 'Type')
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Date de construction"
+              options={buildingPeriodOptions}
+              initialValues={filters.buildingPeriods}
+              onChange={(values) =>
+                onChangeFilters(
+                  { buildingPeriods: values },
+                  'Date de construction'
+                )
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Surface"
+              options={housingAreaOptions}
+              initialValues={filters.housingAreas}
+              onChange={(values) =>
+                onChangeFilters({ housingAreas: values }, 'Surface')
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Durée de vacance"
+              options={vacancyDurationOptions}
+              initialValues={filters.vacancyDurations}
+              onChange={(values) =>
+                onChangeFilters(
+                  { vacancyDurations: values },
+                  'Durée de vacance'
+                )
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Nombre de pièces"
+              options={roomsCountOptions}
+              initialValues={filters.roomsCounts ?? []}
+              onChange={(values) =>
+                onChangeFilters({ roomsCounts: values }, 'Nombre de pièces')
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Taxé"
+              options={taxedOptions}
+              initialValues={filters.isTaxedValues}
+              onChange={(values) =>
+                onChangeFilters(
+                  { isTaxedValues: values as OwnershipKinds[] },
+                  'Taxé'
+                )
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Classement cadastral"
+              options={cadastralClassificationOptions}
+              initialValues={filters.cadastralClassifications}
+              onChange={(values) =>
+                onChangeFilters(
+                  { cadastralClassifications: values },
+                  'Classement cadastral'
+                )
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Type de propriété"
+              options={ownershipKindsOptions}
+              initialValues={filters.ownershipKinds}
+              onChange={(values) =>
+                onChangeFilters({ ownershipKinds: values }, 'Type de propriété')
+              }
+            />
+          </Grid>
         </Accordion>
         <Accordion
           label={
-            <TitleWithIcon icon="fr-icon-user-fill" title="Propriétaires" />
+            <TitleWithIcon icon="fr-icon-user-line" title="Propriétaires" />
           }
         >
-          <Container as="section" fluid>
-            <Row gutters>
-              <Col n="6">
-                <div data-testid="ownerkind-filter">
-                  <AppMultiSelect
-                    label="Type"
-                    options={ownerKindOptions}
-                    initialValues={filters.ownerKinds}
-                    onChange={(values) =>
-                      onChangeFilters({ ownerKinds: values }, 'Type')
-                    }
-                  />
-                </div>
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Âge"
-                  options={ownerAgeOptions}
-                  initialValues={filters.ownerAges}
-                  onChange={(values) =>
-                    onChangeFilters({ ownerAges: values }, 'Âge')
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Multi-propriétaire"
-                  options={multiOwnerOptions}
-                  initialValues={filters.multiOwners}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { multiOwners: values },
-                      'Multi-propriétaire'
-                    )
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Ayants droit"
-                  options={beneficiaryCountOptions}
-                  initialValues={filters.beneficiaryCounts}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { beneficiaryCounts: values },
-                      'Ayants droit'
-                    )
-                  }
-                />
-              </Col>
-            </Row>
-          </Container>
+          <Grid component="article" mb={2} xs={12}>
+            <div data-testid="ownerkind-filter">
+              <AppMultiSelect
+                label="Type"
+                options={ownerKindOptions}
+                initialValues={filters.ownerKinds}
+                onChange={(values) =>
+                  onChangeFilters({ ownerKinds: values }, 'Type')
+                }
+              />
+            </div>
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Âge"
+              options={ownerAgeOptions}
+              initialValues={filters.ownerAges}
+              onChange={(values) =>
+                onChangeFilters({ ownerAges: values }, 'Âge')
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Multi-propriétaire"
+              options={multiOwnerOptions}
+              initialValues={filters.multiOwners}
+              onChange={(values) =>
+                onChangeFilters({ multiOwners: values }, 'Multi-propriétaire')
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Ayants droit"
+              options={beneficiaryCountOptions}
+              initialValues={filters.beneficiaryCounts}
+              onChange={(values) =>
+                onChangeFilters({ beneficiaryCounts: values }, 'Ayants droit')
+              }
+            />
+          </Grid>
         </Accordion>
         <Accordion
           label={
-            <TitleWithIcon icon="fr-icon-calendar-fill" title="Millésime" />
+            <TitleWithIcon icon="fr-icon-calendar-line" title="Millésime" />
           }
         >
-          <Container as="section" fluid>
-            <Row gutters>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Millésime inclus"
-                  options={dataYearsIncludedOptions}
-                  initialValues={(filters.dataYearsIncluded ?? []).map((_) =>
-                    String(_)
-                  )}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { dataYearsIncluded: values.map(Number) },
-                      'Millésime inclus'
-                    )
-                  }
-                />
-              </Col>
-              <Col n="6">
-                <AppMultiSelect
-                  label="Millésime exclu"
-                  defaultOption="Aucun"
-                  options={dataYearsExcludedOptions}
-                  initialValues={(filters.dataYearsExcluded ?? []).map((_) =>
-                    String(_)
-                  )}
-                  onChange={(values) =>
-                    onChangeFilters(
-                      { dataYearsExcluded: values.map(Number) },
-                      'Millésime exclu'
-                    )
-                  }
-                />
-              </Col>
-            </Row>
-          </Container>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Millésime inclus"
+              options={dataYearsIncludedOptions}
+              initialValues={(filters.dataYearsIncluded ?? []).map((_) =>
+                String(_)
+              )}
+              onChange={(values) =>
+                onChangeFilters(
+                  { dataYearsIncluded: values.map(Number) },
+                  'Millésime inclus'
+                )
+              }
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Millésime exclu"
+              defaultOption="Aucun"
+              options={dataYearsExcludedOptions}
+              initialValues={(filters.dataYearsExcluded ?? []).map((_) =>
+                String(_)
+              )}
+              onChange={(values) =>
+                onChangeFilters(
+                  { dataYearsExcluded: values.map(Number) },
+                  'Millésime exclu'
+                )
+              }
+            />
+          </Grid>
         </Accordion>
       </Grid>
     </Drawer>

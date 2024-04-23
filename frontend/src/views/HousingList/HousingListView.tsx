@@ -94,12 +94,8 @@ const HousingListView = () => {
           </Grid>
         </Grid>
 
-        <Grid mb={4}>
-          <HousingFiltersBadges
-            filters={filters}
-            onChange={removeFilter}
-            onReset={onResetFilters}
-          />
+        <Grid mb={4} xs={12}>
+          <HousingFiltersBadges filters={filters} onChange={removeFilter} />
         </Grid>
 
         {view === 'map' ? (

@@ -4,9 +4,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import MuiDrawer from '@mui/material/Drawer';
 import { CSSObject, styled, Theme } from '@mui/material/styles';
 import Grid from '@mui/material/Unstable_Grid2';
+import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 
-import { Col, Container, Icon, Row, SearchableSelect, Text } from '../_dsfr';
+import { Icon, SearchableSelect, Text } from '../_dsfr';
 import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
 import {
   allOccupancyOptions,
@@ -51,7 +52,6 @@ import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { useToggle } from '../../hooks/useToggle';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
-import { Typography } from '@mui/material';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;

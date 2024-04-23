@@ -296,7 +296,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={0} xs={12}>
+          <Grid component="article" mb={2} xs={12}>
             <SearchableSelect
               options={unselectedOptions(
                 geoPerimeterOptions(geoPerimeters),

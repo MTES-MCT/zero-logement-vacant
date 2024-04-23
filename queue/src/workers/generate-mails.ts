@@ -1,4 +1,4 @@
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+const { Upload } = require('@aws-sdk/lib-storage');
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver';
 import exceljs from 'exceljs';
@@ -23,6 +23,7 @@ import DRAFT_TEMPLATE_FILE, {
 } from '../../../server/templates/draft';
 import async from 'async';
 import { replaceVariables } from '../../../shared';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
 
 type Name = 'campaign:generate';
 type Args = Jobs[Name];
@@ -146,24 +147,33 @@ export default function createWorker() {
 
       const xlsxBuffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
-      // Add files to an archive
       const archive = archiver('zip');
       archive.append(xlsxBuffer, { name: `${name}-destinataires.xlsx` });
       archive.append(finalPDF, { name: `${name}.pdf` });
-      const command = new PutObjectCommand({
-        Bucket: 'zerologementvacant',
-        Key: `${name}.zip`,
-        ContentLanguage: 'fr',
-        Body: Readable.from(archive),
-        ContentType: 'application/x-zip',
-        ACL: 'authenticated-read',
+      const upload = new Upload({
+        client: s3,
+        params: {
+          Bucket: config.s3.bucket,
+          Key: `${name}.zip`,
+          Body: Readable.from(archive),
+          ContentLanguage: 'fr',
+          ContentType: 'application/x-zip',
+          ACL: 'authenticated-read',
+        },
       });
-      await Promise.all([archive.finalize(), s3.send(command)]);
+      const results = await Promise.all([archive.finalize(), upload.done()]);
+      const objectKey = results[1].Key;
+
+      const command = new GetObjectCommand({
+        Bucket: config.s3.bucket,
+        Key: objectKey,
+      });
 
       const signedUrl = await getSignedUrl(s3, command, {
         expiresIn: 60 * 60 * 24, // TTL: 24 hours
       });
-      logger.info('Generated signed URL');
+
+      logger.info(`Generated signed URL: ${signedUrl}`);
 
       await campaignRepository.save({
         ...campaign,

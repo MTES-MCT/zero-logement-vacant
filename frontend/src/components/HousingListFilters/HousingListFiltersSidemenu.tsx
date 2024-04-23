@@ -51,6 +51,7 @@ import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { useToggle } from '../../hooks/useToggle';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
+import { Typography } from '@mui/material';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -145,6 +146,26 @@ function HousingListFiltersSidemenu(props: Props) {
         })}
         xs
       >
+        <Grid
+          alignItems="center"
+          component="header"
+          container
+          mb={1}
+          justifyContent="space-between"
+        >
+          <Grid component="section" xs="auto">
+            <Typography variant="h6">Filtres</Typography>
+          </Grid>
+          <Grid component="section" xs="auto">
+            <Button
+              priority="tertiary no outline"
+              size="small"
+              onClick={onResetFilters}
+            >
+              Réinitialiser les filtres
+            </Button>
+          </Grid>
+        </Grid>
         <Accordion
           label={
             <TitleWithIcon icon="fr-icon-folder-2-line" title="Mobilisation" />

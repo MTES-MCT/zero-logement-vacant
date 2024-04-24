@@ -12,8 +12,8 @@ const GeoPerimetersModalLink = () => {
         onClick={() => {
           setIsGeoPerimetersModalOpen(true);
         }}
-        isSimple
-        iconId="fr-icon-settings-5-fill"
+        className="fr-btn fr-btn--tertiary fr-btn--sm fr-btn--icon-left fr-mb-1w"
+        iconId="fr-icon-france-line"
       >
         Gérer vos périmètres
       </AppLinkAsButton>

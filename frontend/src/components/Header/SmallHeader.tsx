@@ -124,13 +124,14 @@ function SmallHeader() {
             )}
           </Grid>
         </Grid>
+
+        <LoadingBar
+          className={styles.loading}
+          updateTime={10}
+          maxProgress={100}
+          progressIncrease={5}
+        />
       </Paper>
-      <LoadingBar
-        className={styles.loading}
-        updateTime={10}
-        maxProgress={100}
-        progressIncrease={5}
-      />
     </>
   );
 }

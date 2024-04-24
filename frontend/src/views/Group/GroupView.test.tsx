@@ -22,7 +22,7 @@ describe('Group view', () => {
     store = configureTestStore();
   });
 
-  it('should redirect to the housing list view if the group has been archived', async () => {
+  it('should show NotFoundView if the group has been archived', async () => {
     const router = createMemoryHistory({
       initialEntries: [`/groupes/${group.id}`],
     });
@@ -64,11 +64,8 @@ describe('Group view', () => {
       </Provider>
     );
 
-    await waitFor(() => {
-      expect(router.location).toMatchObject({
-        pathname: '/parc-de-logements',
-      });
-    });
+    const text = await screen.findByText('Page non trouvée');
+    expect(text).toBeVisible();
   });
 
   describe('Create a campaign from the group', () => {

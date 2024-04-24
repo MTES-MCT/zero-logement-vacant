@@ -1,4 +1,4 @@
-const { Upload } = require('@aws-sdk/lib-storage');
+import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver';
 import exceljs from 'exceljs';

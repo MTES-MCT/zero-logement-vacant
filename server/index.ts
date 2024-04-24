@@ -1,3 +1,3 @@
 import { createServer } from './server';
 
-createServer().start();
+createServer().start().catch(() => { process.exit(1); })

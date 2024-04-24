@@ -6,3 +6,11 @@
 .link {
   align-content: center;
 }
+
+.loading {
+  position: fixed;
+  top: 0;
+  background-color: var(--blue-france-113);
+  height: 2px;
+  z-index: 1000;
+}

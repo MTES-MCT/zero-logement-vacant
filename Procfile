@@ -1,1 +1,2 @@
-web: bash bin/start.sh
+web: npm run start
+worker: npm run queue:start

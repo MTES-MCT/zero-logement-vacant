@@ -10,6 +10,19 @@ function Footer() {
       accessibilityLinkProps={{
         to: '/accessibilite',
       }}
+      brandTop={
+        <>
+          Ministère de <br />
+          la transition <br />
+          écologique <br />
+          et de la cohésion <br />
+          des territoires
+        </>
+      }
+      homeLinkProps={{
+        to: '/',
+        title: 'Accueil - Zéro Logement Vacant',
+      }}
       termsLinkProps={{
         to: '/mentions-legales',
         content: 'Politique de confidentialité',

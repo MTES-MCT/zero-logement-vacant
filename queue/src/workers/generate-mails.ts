@@ -107,7 +107,7 @@ export default function createWorker() {
           await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
             subject: draft.subject ?? '',
             logo: logos,
-            watermark: true,
+            watermark: false,
             body: draft.body
               ? replaceVariables(draft.body, {
                   housing,

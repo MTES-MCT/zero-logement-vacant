@@ -21,7 +21,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
     return <></>;
   }
 
-  const campaignInProgress = campaigns.filter((_) => !_?.archivedAt);
+  const campaignInProgress = campaigns.filter((campaign) => campaign?.status != 'archived');
 
   return (
     <HousingDetailsSubCard

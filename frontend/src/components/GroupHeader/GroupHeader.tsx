@@ -1,12 +1,14 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import GroupCard from '../GroupCard/GroupCard';
 import { useFindGroupsQuery } from '../../services/group.service';
 import { Group } from '../../models/Group';
-import { useParams } from 'react-router-dom';
 
 export const DISPLAY_GROUPS = 3;
 
@@ -41,7 +43,9 @@ function GroupHeader(props: Props) {
         <Typography variant="h6">Vos groupes de logements</Typography>
       </Grid>
 
-      {isLoadingGroups ? null : (
+      {isLoadingGroups ? (
+        <Loading />
+      ) : (
         <Grid component="section" container justifyContent="center">
           {filteredGroups?.map((group) => (
             <Grid component="article" key={group.id} mb={1} xs={12}>
@@ -59,6 +63,31 @@ function GroupHeader(props: Props) {
         </Grid>
       )}
     </Grid>
+  );
+}
+
+function Loading() {
+  return (
+    <Stack spacing={1} width="100%">
+      <Skeleton
+        animation="wave"
+        height={58}
+        variant="rectangular"
+        width="100%"
+      />
+      <Skeleton
+        animation="wave"
+        height={58}
+        variant="rectangular"
+        width="100%"
+      />
+      <Skeleton
+        animation="wave"
+        height={58}
+        variant="rectangular"
+        width="100%"
+      />
+    </Stack>
   );
 }
 

@@ -3,7 +3,6 @@ import { Text } from '../../components/_dsfr';
 import Map, { MapProps } from '../../components/Map/Map';
 import { ViewState } from 'react-map-gl';
 import { hasPerimetersFilter, HousingFilters } from '../../models/HousingFilters';
-import GeoPerimetersModalLink from '../../components/modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { excludeWith, includeExcludeWith, includeWith } from '../../utils/arrayUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
@@ -72,9 +71,6 @@ const HousingListMap = ({ filters }: Props) => {
           filteredOwnerCount,
           totalCount,
         })}
-        <div className="d-inline-block fr-ml-2w">
-          <GeoPerimetersModalLink />
-        </div>
       </Text>
       <Label spacing="mb-1w">
         Les nombres affichés dans les cercles correspondent aux nombres de

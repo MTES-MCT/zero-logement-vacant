@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import React from 'react';
 import LoadingBar from 'react-redux-loading-bar';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
 import Collapse from '../Collapse/Collapse';
@@ -19,6 +19,7 @@ import styles from './small-header.module.scss';
 import { changeEstablishment } from '../../store/actions/authenticationAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import { useAppDispatch } from '../../hooks/useStore';
+import logo from '../../assets/images/zlv.svg';
 
 function SmallHeader() {
   const dispatch = useAppDispatch();
@@ -41,7 +42,7 @@ function SmallHeader() {
   return (
     <>
       <Paper
-        elevation={2}
+        className="fr-header"
         square
         sx={(theme) => ({
           position: 'sticky',
@@ -52,13 +53,23 @@ function SmallHeader() {
           alignItems="center"
           container
           component="header"
-          justifyContent="space-between"
           px={3}
           sx={{ height: '84px' }}
         >
+          <Link className="fr-header-operator fr-enlarge-link fr-mr-5w" to="/">
+            <img
+              className="fr-responsive-img-1x1"
+              height={44}
+              alt="Logo Zéro Logement Vacant"
+              src={logo}
+            />
+          </Link>
+
           <MainNavigation
+            className="fr-mr-5w"
             classes={{
               root: styles.root,
+              list: styles.linkList,
               link: styles.link,
             }}
             items={
@@ -71,7 +82,7 @@ function SmallHeader() {
                 : []
             }
           />
-          <Grid alignItems="center" display="flex">
+          <Grid alignItems="center" display="flex" ml="auto">
             {isAuthenticated ? (
               isAdmin ? (
                 <EstablishmentSearchableSelect

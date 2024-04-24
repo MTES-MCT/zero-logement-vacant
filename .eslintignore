@@ -6,6 +6,7 @@ README.md
 tools
 bin
 Procfile
+jest.config.js
 
 *.css
 *.hbs

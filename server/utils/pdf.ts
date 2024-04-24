@@ -1,10 +1,11 @@
+import { ReadableStream } from 'node:stream/web';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-global.ReadableStream = require('node:stream/web').ReadableStream;
+global.ReadableStream = ReadableStream;
 import * as handlebars from 'handlebars';
 import path from 'node:path';
+import { PDFDocument } from 'pdf-lib';
 import puppeteer from 'puppeteer';
-const { PDFDocument } = require('pdf-lib');
 
 handlebars.registerHelper('localdate', (date: string) => {
   return new Date(date).toLocaleDateString('fr-FR', {

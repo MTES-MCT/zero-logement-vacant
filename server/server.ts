@@ -15,7 +15,7 @@ import protectedRouter from './routers/protected';
 import { logger } from './utils/logger';
 import gracefulShutdown from './utils/graceful-shutdown';
 import mockServices from './mocks';
-const redis = require('redis');
+import { createClient } from 'redis';
 
 const PORT = config.serverPort;
 
@@ -129,7 +129,7 @@ export function createServer(): Server {
   function connectToRedis() {
     return new Promise((resolve, reject) => {
 
-      const client = redis.createClient({
+      const client = createClient({
         url: config.redis.url
       });
 

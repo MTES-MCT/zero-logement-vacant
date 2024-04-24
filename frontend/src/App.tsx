@@ -48,6 +48,7 @@ import GroupView from './views/Group/GroupView';
 import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
 import Notification from './components/Notification/Notification';
+import SmallHeader from './components/Header/SmallHeader';
 
 declare module '@codegouvfr/react-dsfr/spa' {
   interface RegisterLink {
@@ -175,6 +176,7 @@ function App() {
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
         <Header />
+        <SmallHeader />
         <ScrollToTop />
 
         <Switch>

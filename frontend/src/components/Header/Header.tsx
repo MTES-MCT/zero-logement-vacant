@@ -1,14 +1,18 @@
+import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
+import { MainNavigation } from '@codegouvfr/react-dsfr/MainNavigation';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Unstable_Grid2';
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
+
 import styles from './header.module.scss';
 import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { changeEstablishment } from '../../store/actions/authenticationAction';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
 import { useUser } from '../../hooks/useUser';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
-import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
 import AccountSideMenu from '../../views/Account/AccountSideMenu';
 import Collapse from '../Collapse/Collapse';
 import { Container } from '../_dsfr';

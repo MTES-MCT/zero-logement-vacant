@@ -145,6 +145,7 @@
     "copyfiles": "^2.4.1",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-import": "^2.29.1",
     "fast-check": "^3.17.1",
     "husky": "^9.0.11",
     "is-ci": "^3.0.1",

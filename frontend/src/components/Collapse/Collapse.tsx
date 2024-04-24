@@ -53,7 +53,7 @@ function Collapse(props: Props) {
               {props.icon && (
                 <Icon name={props.icon} iconPosition="left" size="1x" />
               )}
-              <Text as="span" size="sm">
+              <Text as="span" className="fr-mb-0" size="sm">
                 {props.title}
               </Text>
             </span>

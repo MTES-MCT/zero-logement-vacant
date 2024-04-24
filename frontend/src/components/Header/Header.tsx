@@ -1,8 +1,5 @@
 import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
-import { MainNavigation } from '@codegouvfr/react-dsfr/MainNavigation';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import Paper from '@mui/material/Paper';
-import Grid from '@mui/material/Unstable_Grid2';
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';

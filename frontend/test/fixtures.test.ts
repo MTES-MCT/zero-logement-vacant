@@ -12,6 +12,8 @@ import { LocalityKinds } from '../src/models/Locality';
 import { HousingStatus } from '../src/models/HousingState';
 import { Group } from '../src/models/Group';
 import { DatafoncierHousing } from '../../shared';
+import { Draft } from '../src/models/Draft';
+import { Sender } from '../src/models/Sender';
 
 const randomstring = require('randomstring');
 
@@ -20,17 +22,17 @@ export const genBoolean = () => Math.random() < 0.5;
 export const genSiren = () => genNumber(9);
 
 export function genEmail() {
-  return (
-    randomstring.generate({
-      length: 10,
-      charset: 'alphabetic',
-    }) +
-    '@' +
-    randomstring.generate({
-      length: 10,
-      charset: 'alphabetic',
-    })
-  );
+  const name = randomstring.generate({
+    length: 4,
+    charset: 'alphabetic',
+    readable: true,
+  });
+  const domain = randomstring.generate({
+    length: 4,
+    charset: 'alphabetic',
+    readable: true,
+  });
+  return `${name}@${domain}.com`;
 }
 
 export function genNumber(length = 10) {
@@ -65,7 +67,7 @@ export function genUser() {
   } as User;
 }
 
-export function genOwner() {
+export function genOwner(): Owner {
   return {
     id: randomstring.generate(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
@@ -73,7 +75,8 @@ export function genOwner() {
     birthDate: new Date(),
     email: genEmail(),
     phone: randomstring.generate(),
-  } as Owner;
+    banAddress: genAddress(),
+  };
 }
 
 export function genHousing(): Housing {
@@ -103,20 +106,58 @@ export function genHousing(): Housing {
   };
 }
 
-export const genAddress: Address = {
+export const genAddress = (): Address => ({
   street: randomstring.generate(),
   houseNumber: randomstring.generate(),
   postalCode: randomstring.generate(),
   city: randomstring.generate(),
-};
+});
 
 export const genCampaign = (): Campaign => ({
   id: randomstring.generate(),
   title: randomstring.generate(),
   filters: initialHousingFilters,
-  createdAt: new Date(),
+  status: 'draft',
+  createdAt: new Date().toJSON(),
+  validatedAt: new Date().toJSON(),
   exportURL: randomstring.generate(),
 });
+
+export function genDraft(sender: Sender): Draft {
+  return {
+    id: randomstring.generate(),
+    subject: randomstring.generate(),
+    body: randomstring.generate(),
+    logo: ['https://via.placeholder.com/150.png'],
+    sender,
+    writtenAt: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
+    writtenFrom: randomstring.generate(),
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+  };
+}
+
+export function genSender(): Sender {
+  return {
+    id: randomstring.generate(),
+    name: randomstring.generate(),
+    service: randomstring.generate(),
+    firstName: randomstring.generate(),
+    lastName: randomstring.generate(),
+    address: randomstring.generate(),
+    email: genEmail(),
+    phone: randomstring.generate({
+      length: 10,
+      charset: 'numeric',
+    }),
+    signatoryFile: null,
+    signatoryRole: null,
+    signatoryFirstName: randomstring.generate(),
+    signatoryLastName: randomstring.generate(),
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+  };
+}
 
 export function genPaginatedResult<T>(results: Array<T>) {
   return {
@@ -287,8 +328,13 @@ export function genDatafoncierHousing(): DatafoncierHousing {
     vecteur: randomstring.generate(1),
     ban_id: randomstring.generate(30),
     ban_type: randomstring.generate(15),
-    ban_score: Math.random(),
+    ban_score: Math.random().toString(),
+    ban_geom: randomstring.generate(),
     ban_cp: randomstring.generate(5),
+    geomloc: randomstring.generate(),
     dis_ban_ff: genNumber(1),
+    lib_epci: randomstring.generate(),
+    code_epci: randomstring.generate(),
+    idpk: null,
   };
 }

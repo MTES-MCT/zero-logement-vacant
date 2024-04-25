@@ -8,17 +8,19 @@ import { AddressSearchResult } from '../../services/address.service';
 
 interface Props {
   banAddress?: Address;
+  help?: boolean;
+  errorMessage?: string;
   rawAddress: string[];
   onSelectAddress: (address?: AddressSearchResult) => void;
-  errorMessage?: string;
 }
 
-const OwnerAddressEdition = ({
+function OwnerAddressEdition({
   banAddress,
+  help,
   rawAddress,
   onSelectAddress,
   errorMessage,
-}: Props) => {
+}: Props) {
   const [searchAddressFromLovac, setSearchAddressFromLovac] = useState(false);
   const [previousAddress, setPreviousAddress] = useState<Address | undefined>();
 
@@ -50,6 +52,7 @@ const OwnerAddressEdition = ({
             </div>
           )}
           <AppAddressSearchBar
+            help={help}
             initialQuery={rawAddress.join(' ')}
             initialSearch
             onSelectAddress={onSelectAddress}
@@ -62,6 +65,7 @@ const OwnerAddressEdition = ({
         <>
           <div>
             <AppAddressSearchBar
+              help={help}
               initialQuery={
                 banAddress ? addressToString(banAddress, false) : undefined
               }
@@ -115,6 +119,6 @@ const OwnerAddressEdition = ({
       )}
     </>
   );
-};
+}
 
 export default OwnerAddressEdition;

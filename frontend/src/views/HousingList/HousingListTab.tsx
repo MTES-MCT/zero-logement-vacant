@@ -91,23 +91,21 @@ const HousingListTab = ({
   }, [filteredCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const [createCampaign] = useCreateCampaignMutation();
-  const onSubmitCampaignCreation = async (campaignTitle?: string) => {
-    if (campaignTitle) {
+  const onSubmitCampaignCreation = async (title: string) => {
+    if (title) {
+      const created = await createCampaign({
+        title,
+        housing: {
+          filters,
+          all: selected.all,
+          ids: selected.ids,
+        },
+      }).unwrap();
       trackEvent({
         category: TrackEventCategories.HousingList,
         action: TrackEventActions.HousingList.SaveCampaign,
         value: selectedCount,
       });
-
-      const created = await createCampaign({
-        draftCampaign: {
-          filters,
-          title: campaignTitle,
-        },
-        allHousing: selected.all,
-        housingIds: selected.ids,
-      }).unwrap();
-
       router.push({
         pathname: `/campagnes/${created.id}`,
       });
@@ -277,9 +275,7 @@ const HousingListTab = ({
                     housingCount={selectedCount}
                     filters={filters}
                     housingExcludedCount={filteredHousingCount - selectedCount}
-                    onSubmit={(campaignTitle?: string) =>
-                      onSubmitCampaignCreation(campaignTitle)
-                    }
+                    onSubmit={onSubmitCampaignCreation}
                   />
                 )}
 

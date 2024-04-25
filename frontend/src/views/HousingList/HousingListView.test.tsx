@@ -82,6 +82,7 @@ describe('Housing list view', () => {
     },
     {
       pathname: '/api/housing/count',
+      persist: true,
       response: {
         body: JSON.stringify({ housing: 1, owners: 1 }),
       },
@@ -310,7 +311,9 @@ describe('Housing list view', () => {
         ...defaultMatches,
         {
           pathname: `/api/datafoncier/housing/${datafoncierHousing.idlocal}`,
-          response: { body: JSON.stringify(housing) },
+          response: {
+            body: JSON.stringify(housing),
+          },
         },
         {
           pathname: `/api/housing/${datafoncierHousing.idlocal}`,
@@ -339,8 +342,8 @@ describe('Housing list view', () => {
         </Provider>
       );
 
-      const button = screen.getByText('Ajouter un logement', {
-        selector: 'button',
+      const button = await screen.findByRole('button', {
+        name: /^Ajouter un logement/,
       });
       await user.click(button);
       const modal = await screen.findByRole('dialog');

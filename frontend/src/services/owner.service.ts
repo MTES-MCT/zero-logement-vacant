@@ -56,7 +56,10 @@ export const ownerApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: formatOwner(owner),
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Owner', id }],
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Owner', id },
+        'Housing',
+      ],
     }),
     updateHousingOwners: builder.mutation<
       void,

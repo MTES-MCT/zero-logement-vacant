@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { HousingStatus } from '../../models/HousingState';
 import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
-import AppHelp from '../../components/_app/AppHelp/AppHelp';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import { Row, Text } from '../../components/_dsfr';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
@@ -235,9 +234,7 @@ const HousingListTab = ({
           </Text>
         )}
       <HousingList filters={filters} onSelectHousing={setSelected}>
-        <SelectableListHeader
-          entity="logement"
-        >
+        <SelectableListHeader entity="logement">
           <SelectableListHeaderActions>
             {filteredHousingCount !== undefined && filteredHousingCount > 0 && (
               <Row justifyContent="right">

@@ -25,7 +25,7 @@ export interface DraftData {
   writtenAt: string;
   owner: {
     fullName: string;
-    rawAddress: string;
+    address: string;
   };
 }
 

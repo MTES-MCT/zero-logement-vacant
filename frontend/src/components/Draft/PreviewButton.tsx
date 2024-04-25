@@ -8,6 +8,7 @@ import { useHousingList } from '../../hooks/useHousingList';
 import { useCampaign } from '../../hooks/useCampaign';
 import { toast } from 'react-toastify';
 import { useNotification } from '../../hooks/useNotification';
+import { addressToString } from '../../models/Address';
 
 interface Props {
   className?: string;
@@ -60,6 +61,8 @@ function PreviewButton(props: Readonly<Props>) {
 
       if (props.draft) {
         setIsLoading(true);
+        const [housing] = houses;
+        const { owner } = housing;
         const response = await fetch(
           `${config.apiEndpoint}/api/drafts/${props.draft.id}/preview`,
           {
@@ -69,8 +72,13 @@ function PreviewButton(props: Readonly<Props>) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              housing: houses[0],
-              owner: houses[0].owner,
+              housing: housing,
+              owner: {
+                fullName: owner.fullName,
+                address: owner.banAddress
+                  ? addressToString(owner.banAddress)
+                  : owner.rawAddress.join('\n'),
+              },
             }),
           }
         );

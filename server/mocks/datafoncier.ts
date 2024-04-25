@@ -44,7 +44,7 @@ function mock() {
         const query = new URLSearchParams(uri);
         const owners = new Array(fp.random(1, 6))
           .fill(0)
-          .map(() => genDatafoncierOwner(query.get('idprocpte')));
+          .map(() => genDatafoncierOwner(query.get('idprocpte') ?? undefined));
 
         const body: DatafoncierResultDTO<DatafoncierOwner> = {
           count: owners.length,

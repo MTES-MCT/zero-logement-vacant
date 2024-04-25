@@ -15,6 +15,7 @@ import protectedRouter from './routers/protected';
 import { logger } from './utils/logger';
 import gracefulShutdown from './utils/graceful-shutdown';
 import mockServices from './mocks';
+import { createClient } from 'redis';
 
 const PORT = config.serverPort;
 
@@ -125,11 +126,37 @@ export function createServer(): Server {
 
   gracefulShutdown(app);
 
+  function connectToRedis() {
+    return new Promise((resolve, reject) => {
+
+      const client = createClient({
+        url: config.redis.url
+      });
+
+      client.on('connect', () => {
+        logger.info('Connected to Redis');
+        resolve(client);
+      });
+
+      client.on('error', () => {
+        client.quit();
+        reject(new Error('Failed to connect to Redis'));
+      });
+
+      client.connect();
+    });
+  }
+
   function start(): Promise<void> {
-    return new Promise((resolve) => {
-      app.listen(PORT, () => {
-        logger.info(`Server listening on ${PORT}`);
-        resolve();
+    return new Promise((resolve, reject) => {
+      connectToRedis().then(() => {
+        app.listen(PORT, () => {
+          logger.info(`Server listening on ${PORT}`);
+          resolve();
+        });
+      }).catch(error => {
+        logger.error(`Unable to start the server: ${error.message}`);
+        reject();
       });
     });
   }

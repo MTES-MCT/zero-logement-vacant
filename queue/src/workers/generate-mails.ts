@@ -24,6 +24,7 @@ import DRAFT_TEMPLATE_FILE, {
 import async from 'async';
 import { replaceVariables } from '../../../shared';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { formatAddressApi } from '../../../server/models/AddressApi';
 
 type Name = 'campaign:generate';
 type Args = Jobs[Name];
@@ -131,7 +132,10 @@ export default function createWorker() {
             writtenFrom: draft.writtenFrom ?? '',
             owner: {
               fullName: owners[0].fullName,
-              rawAddress: owners[0].rawAddress.join(', '),
+              address:
+                // @ts-expect-error wrong input type
+                formatAddressApi(owners[0].banAddress) ??
+                owners[0].rawAddress.join('\n'),
             },
           })
         );

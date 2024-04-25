@@ -204,7 +204,7 @@ async function preview(request: Request, response: Response) {
     writtenFrom: draft.writtenFrom ?? '',
     owner: {
       fullName: body.owner.fullName,
-      rawAddress: body.owner.rawAddress.join(', '),
+      address: body.owner.address,
     },
   });
   const finalPDF = await pdf.fromHTML([html]);
@@ -236,7 +236,10 @@ const previewValidators: ValidationChain[] = [
     .isString()
     .notEmpty()
     .withMessage('fullName is required'),
-  body('owner.rawAddress').isArray().isLength({ min: 1 }),
+  body('owner.address')
+    .isString()
+    .notEmpty()
+    .withMessage('address is required'),
 ];
 
 async function update(request: Request, response: Response<DraftDTO>) {

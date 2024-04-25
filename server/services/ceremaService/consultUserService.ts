@@ -28,6 +28,10 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
   },
 ];
 
+export const getTestEmails = (): string[] => {
+  return TEST_ACCOUNTS.map(user => user.email);
+}
+
 export const getTestAccount = (email: string): CeremaUser | null => {
   const testAccount = TEST_ACCOUNTS.find((account) => account.email === email);
   return testAccount ?? null;
@@ -36,6 +40,10 @@ export const getTestAccount = (email: string): CeremaUser | null => {
 export const isTestAccount = (email: string): boolean => {
   return getTestAccount(email) !== null;
 };
+
+export interface ConsultDossiersLovacService {
+  consultDossiersLovac(): Promise<string[]>;
+}
 
 export interface ConsultUserService {
   consultUsers(email: string): Promise<CeremaUser[]>;

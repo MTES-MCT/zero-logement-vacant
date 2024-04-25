@@ -1,11 +1,18 @@
 import {
   CeremaUser,
+  ConsultDossiersLovacService,
   ConsultUserService,
   getTestAccount,
+  getTestEmails,
 } from './consultUserService';
 import { SirenStrasbourg } from '../../../database/seeds/dummy/001-establishments';
 
-class MockCeremaService implements ConsultUserService {
+export class MockCeremaService implements ConsultDossiersLovacService, ConsultUserService {
+
+  async consultDossiersLovac(): Promise<string[]> {
+    return getTestEmails();
+  }
+
   async consultUsers(email: string): Promise<CeremaUser[]> {
     const testAccount = getTestAccount(email);
     return [testAccount ?? defaultOK(email)];
@@ -21,6 +28,6 @@ function defaultOK(email: string): CeremaUser {
   };
 }
 
-export default function createMockCeremaService(): ConsultUserService {
+export default function createMockCeremaService(): MockCeremaService {
   return new MockCeremaService();
 }

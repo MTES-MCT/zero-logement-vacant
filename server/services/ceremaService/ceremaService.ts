@@ -1,8 +1,40 @@
-import { CeremaUser, ConsultUserService } from './consultUserService';
+import { CeremaUser, ConsultDossiersLovacService, ConsultUserService } from './consultUserService';
+
 import fetch from 'node-fetch';
 import config from '../../utils/config';
+import { logger } from '../../utils/logger';
 
-class CeremaService implements ConsultUserService {
+export class CeremaService implements ConsultDossiersLovacService, ConsultUserService {
+  async consultDossiersLovac(): Promise<string[]> {
+    try {
+      const response = await fetch(
+        `${config.cerema.api.endpoint}/api/consult/dossiers/lovac`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Token ${config.cerema.api.authToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const content = await response.json();
+
+      if (response.status != 200) {
+        throw content.detail;
+      }
+
+      if (content) {
+        return content.filter((user: any) => user.status_lovac == 4).map(
+          (user: any) => (user.mail)
+        );
+      }
+      return [];
+    } catch (error) {
+      logger.error(error);
+      return [];
+    }
+  }
+
   async consultUsers(email: string): Promise<CeremaUser[]> {
     try {
       const response = await fetch(
@@ -15,9 +47,14 @@ class CeremaService implements ConsultUserService {
           },
         }
       );
-      const users = await response.json();
-      if (users) {
-        return users.map(
+      const content = await response.json();
+
+      if (response.status != 200) {
+        throw content.detail;
+      }
+
+      if (content) {
+        return content.map(
           (user: { email: any; siret: string; lovac_ok: boolean }) => ({
             email: user.email,
             establishmentSiren: Number(user.siret.substring(0, 9)),
@@ -28,12 +65,12 @@ class CeremaService implements ConsultUserService {
       }
       return [];
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return [];
     }
   }
 }
 
-export default function createCeremaService(): ConsultUserService {
+export default function createCeremaService(): CeremaService {
   return new CeremaService();
 }

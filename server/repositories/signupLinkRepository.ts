@@ -22,6 +22,13 @@ async function used(id: string): Promise<void> {
   await db(signupLinkTable).where('id', id).delete();
 }
 
+async function getByEmail(email: string): Promise<SignupLinkApi | null> {
+  logger.debug('Get signupLinkApi by prospect_email', email);
+
+  const link = await db(signupLinkTable).select().where('prospect_email', email).first();
+  return link ? parseSignupLinkApi(link) : null;
+}
+
 interface SignupLinkDBO {
   id: string;
   prospect_email: string;
@@ -44,4 +51,5 @@ export default {
   insert,
   get,
   used,
+  getByEmail,
 };

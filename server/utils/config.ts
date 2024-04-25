@@ -202,7 +202,7 @@ const config = convict<Config>({
     enable: {
       env: 'CEREMA_ENABLE',
       format: 'strict-boolean',
-      default: process.env.NODE_ENV === 'production',
+      default: false,
     },
   },
   databaseEnvironment: {

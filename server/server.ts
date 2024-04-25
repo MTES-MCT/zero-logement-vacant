@@ -1,21 +1,23 @@
+import cors from 'cors';
 import express, { Application } from 'express';
 // Allows to throw an error or reject a promise in controllers
 // instead of having to call the next(err) function.
 import 'express-async-errors';
-import path from 'path';
-import unprotectedRouter from './routers/unprotected';
-import config from './utils/config';
-import cors from 'cors';
-import sentry from './utils/sentry';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import path from 'node:path';
+import util from 'node:util';
+import { createClient } from 'redis';
+
+import unprotectedRouter from './routers/unprotected';
+import config from './utils/config';
+import sentry from './utils/sentry';
 import errorHandler from './middlewares/error-handler';
 import RouteNotFoundError from './errors/routeNotFoundError';
 import protectedRouter from './routers/protected';
 import { logger } from './utils/logger';
 import gracefulShutdown from './utils/graceful-shutdown';
 import mockServices from './mocks';
-import { createClient } from 'redis';
 
 const PORT = config.serverPort;
 
@@ -126,39 +128,32 @@ export function createServer(): Server {
 
   gracefulShutdown(app);
 
-  function connectToRedis() {
-    return new Promise((resolve, reject) => {
-
+  async function connectToRedis() {
+    try {
       const client = createClient({
-        url: config.redis.url
+        url: config.redis.url,
       });
-
-      client.on('connect', () => {
-        logger.info('Connected to Redis');
-        resolve(client);
-      });
-
-      client.on('error', () => {
-        client.quit();
-        reject(new Error('Failed to connect to Redis'));
-      });
-
-      client.connect();
-    });
+      await client.connect();
+      await client.disconnect();
+    } catch (error) {
+      logger.error('Failed to connect to Redis', error);
+      throw error;
+    }
   }
 
-  function start(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      connectToRedis().then(() => {
-        app.listen(PORT, () => {
-          logger.info(`Server listening on ${PORT}`);
-          resolve();
-        });
-      }).catch(error => {
-        logger.error(`Unable to start the server: ${error.message}`);
-        reject();
-      });
-    });
+  async function start(): Promise<void> {
+    const listen = util.promisify((port: number, cb: () => void) =>
+      app.listen(port, cb)
+    );
+
+    try {
+      await connectToRedis();
+      await listen(PORT);
+      logger.info(`Server listening on ${PORT}`);
+    } catch (error) {
+      logger.error('Unable to start the server', error);
+      throw error;
+    }
   }
 
   return {

@@ -18,7 +18,6 @@
       "value": "Etc/UTC"
     }
   },
-  "stack": "scalingo/scalingo-20",
   "scripts": {
     "first-deploy": "npm ci --include=dev && npm --prefix frontend ci --include=dev && npm run migrate-latest && psql $DATABASE_URL -f database/scripts/001-load-establishments_com_epci_reg_dep.sql -v filePath=database/data/common/com_epci_dep_reg.csv && psql $DATABASE_URL -f database/scripts/002-load-establishments_direction_territoriale.sql -v filePath=database/data/common/direction_territoriale.csv && psql $DATABASE_URL -f database/scripts/003-load-establishment_kinds.sql -v filePath=database/data/common/nature_juridique.csv && psql $DATABASE_URL -f database/scripts/004-load-data.sql -v filePath=database/data/dummy/dummy_data.csv -v dateFormat=\"'MM/DD/YY'\" && psql $DATABASE_URL -f database/scripts/006-load-locality-taxes.sql -v filePath=database/data/common/taxe.csv && npm run seed && npm prune --omit=dev && npm --prefix frontend prune --omit=dev"
   }

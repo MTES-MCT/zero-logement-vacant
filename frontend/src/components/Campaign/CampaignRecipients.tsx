@@ -7,7 +7,7 @@ import React, { ReactNode } from 'react';
 
 import { Campaign } from '../../models/Campaign';
 import { useHousingList } from '../../hooks/useHousingList';
-import { addressToString, isBanEligible } from '../../models/Address';
+import { Address, addressToString, isBanEligible } from '../../models/Address';
 import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
 import AppLink from '../_app/AppLink/AppLink';
 import { Housing } from '../../models/Housing';
@@ -34,6 +34,12 @@ function CampaignRecipients(props: Props) {
     });
   }
 
+  function formatAddress(address: Address): ReactNode[] {
+    return (addressToString(address) as string)
+      .split('\n')
+      .map((line) => <Typography>{line}</Typography>);
+  }
+
   const headers: ReactNode[] = [
     null,
     'Adresse du logement',
@@ -56,7 +62,9 @@ function CampaignRecipients(props: Props) {
       {housing.owner.fullName}
     </AppLink>,
     <>
-      <Typography>{addressToString(housing.owner.banAddress)}</Typography>
+      {housing.owner.banAddress
+        ? formatAddress(housing.owner.banAddress)
+        : null}
       {!isBanEligible(housing.owner.banAddress) && (
         <Badge severity="info" small>
           Adresse améliorable

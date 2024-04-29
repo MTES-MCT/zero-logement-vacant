@@ -1,3 +1,5 @@
+import fp from 'lodash/fp';
+
 import { Address } from './Address';
 
 export interface DraftOwner {
@@ -39,3 +41,16 @@ export const getHousingOwnerRankLabel = (rank: number) =>
     : rank === 1
     ? 'Propriétaire principal'
     : `${rank}ème ayant droit`;
+
+export function getAddress(owner: Owner): string[] {
+  if (owner.banAddress) {
+    return fp.compact([
+      owner.banAddress.street?.startsWith(owner.banAddress.houseNumber ?? '')
+        ? owner.banAddress.street
+        : `${owner.banAddress.houseNumber} ${owner.banAddress.street}`,
+      `${owner.banAddress.postalCode} ${owner.banAddress.city}`,
+    ]);
+  }
+
+  return owner.rawAddress;
+}

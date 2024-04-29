@@ -1,3 +1,5 @@
+import { formatAddress } from './AdresseDTO';
+
 export interface OwnerPayloadDTO {
   rawAddress: string[];
   fullName: string;
@@ -23,4 +25,12 @@ export interface OwnerDTO extends Omit<OwnerPayloadDTO, 'birthDate'> {
   birthDate?: Date;
   kind?: string;
   kindDetail?: string;
+}
+
+export function getAddress(owner: OwnerDTO): string[] {
+  if (owner.banAddress) {
+    return formatAddress(owner.banAddress);
+  }
+
+  return owner.rawAddress;
 }

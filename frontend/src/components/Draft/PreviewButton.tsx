@@ -1,14 +1,14 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { Draft } from '../../models/Draft';
 import { useHousingList } from '../../hooks/useHousingList';
 import { useCampaign } from '../../hooks/useCampaign';
-import { toast } from 'react-toastify';
 import { useNotification } from '../../hooks/useNotification';
-import { addressToString } from '../../models/Address';
+import { getAddress } from '../../models/Owner';
 
 interface Props {
   className?: string;
@@ -75,9 +75,7 @@ function PreviewButton(props: Readonly<Props>) {
               housing: housing,
               owner: {
                 fullName: owner.fullName,
-                address: owner.banAddress
-                  ? addressToString(owner.banAddress)
-                  : owner.rawAddress.join('\n'),
+                address: getAddress(owner),
               },
             }),
           }

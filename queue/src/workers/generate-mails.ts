@@ -1,8 +1,10 @@
+import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver';
-import exceljs from 'exceljs';
+import async from 'async';
 import { Worker, WorkerOptions } from 'bullmq';
+import exceljs from 'exceljs';
 import { parseRedisUrl } from 'parse-redis-url-simple';
 import { Readable } from 'node:stream';
 
@@ -21,10 +23,7 @@ import { createS3, toBase64 } from '../../../shared/utils/s3';
 import DRAFT_TEMPLATE_FILE, {
   DraftData,
 } from '../../../server/templates/draft';
-import async from 'async';
-import { replaceVariables } from '../../../shared';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { formatAddressApi } from '../../../server/models/AddressApi';
+import { getAddress, replaceVariables } from '../../../shared';
 
 type Name = 'campaign:generate';
 type Args = Jobs[Name];
@@ -99,11 +98,9 @@ export default function createWorker() {
 
       await async.forEach(housings, async (housing) => {
         const owners = await ownerRepository.findByHousing(housing);
+        const address = getAddress(owners[0]);
 
-        worksheet.addRow([
-          owners[0].fullName,
-          owners[0].rawAddress.join(' - '),
-        ]);
+        worksheet.addRow([owners[0].fullName, address.join('\n')]);
 
         html.push(
           await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
@@ -132,10 +129,7 @@ export default function createWorker() {
             writtenFrom: draft.writtenFrom ?? '',
             owner: {
               fullName: owners[0].fullName,
-              address:
-                // @ts-expect-error wrong input type
-                formatAddressApi(owners[0].banAddress) ??
-                owners[0].rawAddress.join('\n'),
+              address: address,
             },
           })
         );

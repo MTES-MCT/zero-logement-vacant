@@ -49,7 +49,6 @@ export function getAddress(owner: Owner): string[] {
         ? owner.banAddress.street
         : `${owner.banAddress.houseNumber} ${owner.banAddress.street}`,
       `${owner.banAddress.postalCode} ${owner.banAddress.city}`,
-      owner.additionalAddress,
     ]);
   }
 

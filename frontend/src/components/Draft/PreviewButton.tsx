@@ -76,6 +76,7 @@ function PreviewButton(props: Readonly<Props>) {
               owner: {
                 fullName: owner.fullName,
                 address: getAddress(owner),
+                additionalAddress: owner.additionalAddress,
               },
             }),
           }

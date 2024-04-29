@@ -130,6 +130,7 @@ export default function createWorker() {
             owner: {
               fullName: owners[0].fullName,
               address: address,
+              additionalAddress: owners[0].additionalAddress ?? '',
             },
           })
         );

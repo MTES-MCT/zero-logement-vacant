@@ -27,7 +27,6 @@ describe('OwnerDTO', () => {
       const owner: OwnerDTO = {
         ...genOwnerDTO(),
         banAddress: undefined,
-        additionalAddress: undefined,
         rawAddress: [address],
       };
 

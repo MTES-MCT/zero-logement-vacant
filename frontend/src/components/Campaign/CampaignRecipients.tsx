@@ -34,10 +34,9 @@ function CampaignRecipients(props: Props) {
     });
   }
 
-  function formatAddress(address: Address, additional?: string): ReactNode[] {
+  function formatAddress(address: Address): ReactNode[] {
     return (addressToString(address) as string)
       .split('\n')
-      .concat(additional ? additional : [])
       .map((line) => <Typography>{line}</Typography>);
   }
 
@@ -64,10 +63,7 @@ function CampaignRecipients(props: Props) {
     </AppLink>,
     <>
       {housing.owner.banAddress
-        ? formatAddress(
-            housing.owner.banAddress,
-            housing.owner.additionalAddress
-          )
+        ? formatAddress(housing.owner.banAddress)
         : null}
       {!isBanEligible(housing.owner.banAddress) && (
         <Badge severity="info" small>

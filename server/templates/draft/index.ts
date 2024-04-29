@@ -26,6 +26,7 @@ export interface DraftData {
   owner: {
     fullName: string;
     address: string[];
+    additionalAddress: string | null;
   };
 }
 

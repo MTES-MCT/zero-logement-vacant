@@ -83,7 +83,7 @@ export default function createWorker() {
       const html: string[] = [];
       const workbook = new exceljs.Workbook();
       const worksheet = workbook.addWorksheet('Liste des destinataires');
-      worksheet.addRow(['Nom', 'Adresse']);
+      worksheet.addRow(['Nom', 'Adresse', 'Complément d’addresse']);
 
       // Download logos
       const logos = await async.map(draft.logo ?? [], async (logo: string) =>
@@ -100,7 +100,11 @@ export default function createWorker() {
         const owners = await ownerRepository.findByHousing(housing);
         const address = getAddress(owners[0]);
 
-        worksheet.addRow([owners[0].fullName, address.join('\n')]);
+        worksheet.addRow([
+          owners[0].fullName,
+          address.join('\n'),
+          owners[0].additionalAddress,
+        ]);
 
         html.push(
           await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {

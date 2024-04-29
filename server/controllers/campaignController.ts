@@ -57,10 +57,7 @@ const getCampaign = async (
   return response.status(constants.HTTP_STATUS_OK).json(campaign);
 };
 
-const downloadCampaign = async (
-  request: Request,
-  response: Response
-) => {
+const downloadCampaign = async (request: Request, response: Response) => {
   const campaignId = request.params.id;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
@@ -352,12 +349,7 @@ async function update(request: Request, response: Response) {
           filters: {
             establishmentIds: [updated.establishmentId],
             campaignIds: [updated.id],
-            statusList: [
-              HousingStatusApi.FirstContact,
-              HousingStatusApi.InProgress,
-              HousingStatusApi.Completed,
-              HousingStatusApi.Blocked,
-            ],
+            status: HousingStatusApi.NeverContacted,
           },
         });
         const updatedHouses = houses.map((housing) => ({

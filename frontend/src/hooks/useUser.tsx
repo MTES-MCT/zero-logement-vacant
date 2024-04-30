@@ -22,7 +22,20 @@ export const useUser = () => {
   const user = authUser?.user;
   const establishment = authUser?.establishment;
 
+  function displayName(): string {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+
+    if (user?.email) {
+      return user.email;
+    }
+
+    return '';
+  }
+
   return {
+    displayName,
     establishment,
     isAdmin,
     isAuthenticated,

@@ -1,6 +1,10 @@
-import React from 'react';
 import { Footer as DSFRFooter } from '@codegouvfr/react-dsfr/Footer';
+import React from 'react';
+
 import { useUser } from '../../hooks/useUser';
+import anah from '../../assets/images/anah.svg';
+import fnv from '../../assets/images/france-nation-verte.svg';
+import styles from './footer.module.scss';
 
 function Footer() {
   const { isAuthenticated } = useUser();
@@ -9,6 +13,23 @@ function Footer() {
       accessibility="non compliant"
       accessibilityLinkProps={{
         to: '/accessibilite',
+      }}
+      brandTop={
+        <>
+          Ministère de <br />
+          la transition <br />
+          écologique <br />
+          et de la cohésion <br />
+          des territoires
+        </>
+      }
+      classes={{
+        partnersLogos: styles.partners,
+      }}
+      homeLinkProps={{
+        className: styles.brandLink,
+        to: 'https://www.ecologie.gouv.fr/',
+        title: 'Accueil - Zéro Logement Vacant',
       }}
       termsLinkProps={{
         to: '/mentions-legales',
@@ -97,6 +118,26 @@ function Footer() {
               ],
         },
       ]}
+      partnersLogos={{
+        sub: [
+          {
+            alt: 'Agence nationale de l’habitat',
+            imgUrl: anah,
+            linkProps: {
+              to: 'https://www.anah.gouv.fr/',
+              title: 'Agence national de l’habitat',
+            },
+          },
+          {
+            alt: 'France Nation Verte',
+            imgUrl: fnv,
+            linkProps: {
+              to: 'https://www.info.gouv.fr/france-nation-verte',
+              title: 'France Nation Verte',
+            },
+          },
+        ],
+      }}
     />
   );
 }

@@ -108,17 +108,17 @@ function HousingListFiltersSidemenu(props: Props) {
   return (
     <Drawer
       open={toggle.active}
-      sx={{
+      sx={(theme) => ({
+        zIndex: theme.zIndex.appBar - 1,
         '& .MuiDrawer-root': {
           position: 'relative',
-          zIndex: 1,
+          zIndex: theme.zIndex.appBar - 1,
         },
         '& .MuiPaper-root': {
           padding: '1rem',
           position: 'relative',
-          zIndex: 1,
         },
-      }}
+      })}
       variant="permanent"
     >
       <Button

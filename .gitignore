@@ -13,6 +13,7 @@ node_modules
 dist
 build
 .env
+.env.*
 
 # misc
 .DS_Store

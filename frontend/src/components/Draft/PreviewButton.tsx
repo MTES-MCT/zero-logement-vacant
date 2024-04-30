@@ -1,13 +1,14 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { Draft } from '../../models/Draft';
 import { useHousingList } from '../../hooks/useHousingList';
 import { useCampaign } from '../../hooks/useCampaign';
-import { toast } from 'react-toastify';
 import { useNotification } from '../../hooks/useNotification';
+import { getAddress } from '../../models/Owner';
 
 interface Props {
   className?: string;
@@ -60,6 +61,8 @@ function PreviewButton(props: Readonly<Props>) {
 
       if (props.draft) {
         setIsLoading(true);
+        const [housing] = houses;
+        const { owner } = housing;
         const response = await fetch(
           `${config.apiEndpoint}/api/drafts/${props.draft.id}/preview`,
           {
@@ -69,8 +72,12 @@ function PreviewButton(props: Readonly<Props>) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              housing: houses[0],
-              owner: houses[0].owner,
+              housing: housing,
+              owner: {
+                fullName: owner.fullName,
+                address: getAddress(owner),
+                additionalAddress: owner.additionalAddress,
+              },
             }),
           }
         );

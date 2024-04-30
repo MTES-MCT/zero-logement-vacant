@@ -29,7 +29,10 @@
         <section class="header__recipient">
           <strong>À l’attention de</strong>
           <p>{{owner.fullName}}</p>
-          <p>{{owner.rawAddress}}</p>
+          {{#each owner.address}}
+            <p>{{this}}</p>
+          {{/each}}
+          <p>{{owner.additionalAddress}}</p>
         </section>
       </section>
     </header>

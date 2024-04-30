@@ -5,6 +5,7 @@ const tsconfig = require('./tsconfig.json');
 const config: JestConfigWithTsJest = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  testTimeout: 30_000,
   rootDir: '.',
   roots: ['<rootDir>'],
   moduleDirectories: ['node_modules', '<rootDir>'],

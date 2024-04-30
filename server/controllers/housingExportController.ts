@@ -281,11 +281,11 @@ const writeOwnerWorksheet = (
         }),
         ownerRowData(ownerStreamApi, ownerAddress ?? undefined)
       );
-      ownerWorksheet.addRow(row).commit();
+      ownerWorksheet?.addRow(row)?.commit();
     })
     .collect()
     .tap(() => {
-      workbook.getWorksheet('Propriétaires').commit();
+      workbook?.getWorksheet?.('Propriétaires')?.commit();
     })
     .map(() => {
       logger.debug('Owner worksheet written');

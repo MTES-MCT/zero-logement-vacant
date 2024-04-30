@@ -1,5 +1,5 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { wait } from '@hapi/hoek';
-import { formatISO } from 'date-fns';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   CampaignHousingDBO,
   CampaignsHousing,
-  campaignsHousingTable,
 } from '../repositories/campaignHousingRepository';
 import {
   Campaigns,
@@ -17,12 +16,11 @@ import {
 import { tokenProvider } from '../test/testUtils';
 import { Campaign1 } from '../../database/seeds/test/006-campaigns';
 import { CampaignEvents, HousingEvents } from '../repositories/eventRepository';
-import { CampaignApi, CampaignSteps } from '../models/CampaignApi';
+import { CampaignApi } from '../models/CampaignApi';
 import { HousingStatusApi } from '../models/HousingStatusApi';
 import {
   formatHousingRecordApi,
   Housing,
-  housingTable,
 } from '../repositories/housingRepository';
 import { createServer } from '../server';
 import {
@@ -36,7 +34,6 @@ import {
   genEstablishmentApi,
   genGroupApi,
   genHousingApi,
-  genNumber,
   genUserApi,
   oneOf,
 } from '../test/testFixtures';
@@ -45,7 +42,12 @@ import {
   formatOwnerHousingApi,
   HousingOwners,
 } from '../repositories/housingOwnerRepository';
-import { isDefined } from '../../shared';
+import {
+  CampaignCreationPayloadDTO,
+  CampaignDTO,
+  CampaignUpdatePayloadDTO,
+  isDefined,
+} from '../../shared';
 import {
   Establishments,
   formatEstablishmentApi,
@@ -54,7 +56,7 @@ import { formatUserApi, Users } from '../repositories/userRepository';
 import { HousingApi } from '../models/HousingApi';
 import { GroupApi } from '../models/GroupApi';
 
-describe('Campaign controller', () => {
+describe('Campaign API', () => {
   const { app } = createServer();
 
   const establishment = genEstablishmentApi();
@@ -88,10 +90,11 @@ describe('Campaign controller', () => {
     });
 
     it('should return an error when there is no campaign with the required id', async () => {
-      await request(app)
+      const { status } = await request(app)
         .get(testRoute(uuidv4()))
-        .use(tokenProvider(user))
-        .expect(constants.HTTP_STATUS_NOT_FOUND);
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should return the campaign', async () => {
@@ -182,17 +185,18 @@ describe('Campaign controller', () => {
         genHousingApi(oneOf(establishment.geoCodes))
       );
       await Housing().insert(houses.map(formatHousingRecordApi));
+      const payload: CampaignCreationPayloadDTO = {
+        title,
+        housing: {
+          filters: {},
+          all: false,
+          ids: houses.map((housing) => housing.id),
+        },
+      };
 
       const { body, status } = await request(app)
         .post(testRoute)
-        .send({
-          draftCampaign: {
-            filters: {},
-            title,
-          },
-          housingIds: houses.map((housing) => housing.id),
-          allHousing: false,
-        })
+        .send(payload)
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
@@ -291,12 +295,13 @@ describe('Campaign controller', () => {
         id: expect.any(String),
         groupId: group.id,
         title: 'Logements prioritaires',
+        status: 'draft',
         establishmentId: establishment.id,
         filters: {
           groupIds: [group.id],
         },
         createdAt: expect.toBeDateString(),
-        createdBy: user.id,
+        userId: user.id,
         validatedAt: expect.toBeDateString(),
       });
     });
@@ -341,6 +346,10 @@ describe('Campaign controller', () => {
 
   describe('PUT /campaigns/{id}', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
+    const payload: CampaignUpdatePayloadDTO = {
+      title: 'New title',
+      status: 'sending',
+    };
 
     let campaign: CampaignApi;
 
@@ -349,8 +358,8 @@ describe('Campaign controller', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
     });
 
-    it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(app).put(testRoute(Campaign1.id));
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).put(testRoute(campaign.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -358,203 +367,143 @@ describe('Campaign controller', () => {
     it('should received a valid campaign id', async () => {
       await request(app)
         .put(testRoute(randomstring.generate()))
-        .send({ stepUpdate: { step: CampaignSteps.OwnersValidation } })
+        .send(payload)
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
       await request(app)
         .put(testRoute(uuidv4()))
-        .send({ stepUpdate: { step: CampaignSteps.OwnersValidation } })
+        .send(payload)
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should received a valid request', async () => {
-      const badRequestTest = async (payload?: Record<string, unknown>) => {
-        await request(app)
+      async function fail(payload?: Record<string, unknown>): Promise<void> {
+        const { status } = await request(app)
           .put(testRoute(Campaign1.id))
           .send(payload)
-          .use(tokenProvider(user))
-          .expect(constants.HTTP_STATUS_BAD_REQUEST);
-      };
+          .use(tokenProvider(user));
 
-      await badRequestTest({
-        titleUpdate: {},
-      });
-      await badRequestTest({
-        titleUpdate: {
-          title: genNumber(),
-        },
-      });
-      await badRequestTest({
-        stepUpdate: {},
-      });
-      await badRequestTest({
-        stepUpdate: {
-          step: 15,
-        },
-      });
-      await badRequestTest({
-        stepUpdate: {
-          step: CampaignSteps.Sending,
-        },
-      });
-      await badRequestTest({
-        stepUpdate: {
-          step: CampaignSteps.Sending,
-          sendingDate: randomstring.generate(),
-        },
-      });
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      }
+
+      await fail();
+      await fail({ title: payload.title });
+      await fail({ status: payload.status });
+      await fail({ ...payload, title: '' });
+      await fail({ ...payload, title: 42 });
+      await fail({ ...payload, status: '' });
+      await fail({ ...payload, status: 'invalid' });
+      await fail({ ...payload, status: 42 });
     });
 
     it('should update the campaign title', async () => {
-      const newTitle = randomstring.generate();
+      const payload: CampaignUpdatePayloadDTO = {
+        status: campaign.status,
+        title: 'New title',
+      };
+
       const { body, status } = await request(app)
         .put(testRoute(campaign.id))
-        .send({
-          titleUpdate: {
-            title: newTitle,
-          },
-        })
+        .send(payload)
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
         id: campaign.id,
-        title: newTitle,
+        status: campaign.status,
+        title: payload.title,
       });
 
       const actual = await Campaigns().where({ id: campaign.id }).first();
       expect(actual).toMatchObject({
         id: campaign.id,
-        title: newTitle,
+        status: campaign.status,
+        title: payload.title,
       });
     });
 
-    it('should update the campaign when validating step OwnersValidation', async () => {
-      const { body, status } = await request(app)
-        .put(testRoute(campaign.id))
-        .send({
-          stepUpdate: {
-            step: CampaignSteps.OwnersValidation,
-          },
-        })
-        .use(tokenProvider(user));
+    it.todo('should create a campaign event when its status changes');
 
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject({
-        id: campaign.id,
-        validatedAt: expect.any(String),
+    describe('Validate the campaign', () => {
+      it('should set the status from "draft" to "sending"', async () => {
+        const payload: CampaignUpdatePayloadDTO = {
+          title: campaign.title,
+          status: 'sending',
+        };
+
+        const { body, status } = await request(app)
+          .put(testRoute(campaign.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toMatchObject<Partial<CampaignDTO>>({
+          id: campaign.id,
+          title: campaign.title,
+          status: 'sending',
+          validatedAt: expect.any(String),
+        });
       });
     });
 
-    it('should update the campaign when validating step Export', async () => {
-      const { status } = await request(app)
-        .put(testRoute(campaign.id))
-        .send({
-          stepUpdate: {
-            step: CampaignSteps.Export,
-          },
-        })
-        .use(tokenProvider(user));
+    describe('Send the campaign', () => {
+      it('should set the status from "sending" to "in-progress"', async () => {
+        campaign = { ...campaign, status: 'sending' };
+        await Campaigns().where({ id: campaign.id }).update({
+          status: campaign.status,
+        });
+        const payload: CampaignUpdatePayloadDTO = {
+          title: campaign.title,
+          status: 'in-progress',
+          sentAt: faker.date.recent().toJSON(),
+        };
 
-      expect(status).toBe(constants.HTTP_STATUS_OK);
+        const { body, status } = await request(app)
+          .put(testRoute(campaign.id))
+          .send(payload)
+          .use(tokenProvider(user));
 
-      const actualCampaign = await Campaigns().where('id', campaign.id).first();
-      expect(actualCampaign).toMatchObject({
-        id: campaign.id,
-        exported_at: expect.any(Date),
-        sent_at: null,
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toMatchObject<Partial<CampaignDTO>>({
+          id: campaign.id,
+          title: campaign.title,
+          status: payload.status,
+          sentAt: payload.sentAt,
+          confirmedAt: expect.any(String),
+        });
       });
+
+      it.todo('should set contacted houses’ status to "waiting"');
     });
 
-    it('should update the campaign when validating step Sending and update housing status if needed', async () => {
-      const houses: HousingApi[] = [
-        {
-          ...genHousingApi(oneOf(establishment.geoCodes)),
-          status: HousingStatusApi.Waiting,
-        },
-        {
-          ...genHousingApi(oneOf(establishment.geoCodes)),
-          status: HousingStatusApi.NeverContacted,
-        },
-        {
-          ...genHousingApi(oneOf(establishment.geoCodes)),
-          status: HousingStatusApi.InProgress,
-        },
-      ];
-      await Housing().insert(houses.map(formatHousingRecordApi));
-      const campaignHouses: CampaignHousingDBO[] = houses.map((housing) => ({
-        campaign_id: campaign.id,
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id,
-      }));
-      await CampaignsHousing().insert(campaignHouses);
+    describe('Archive the campaign', () => {
+      it('should set the status from "in-progress" to "archived"', async () => {
+        campaign = { ...campaign, status: 'in-progress' };
+        await Campaigns().where({ id: campaign.id }).update({
+          status: campaign.status,
+        });
+        const payload: CampaignUpdatePayloadDTO = {
+          title: campaign.title,
+          status: 'archived',
+        };
 
-      const { status } = await request(app)
-        .put(testRoute(campaign.id))
-        .send({
-          stepUpdate: {
-            step: CampaignSteps.Sending,
-            sendingDate: formatISO(new Date()),
-          },
-        })
-        .use(tokenProvider(user));
+        const { body, status } = await request(app)
+          .put(testRoute(campaign.id))
+          .send(payload)
+          .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-
-      const actualCampaign = await Campaigns()
-        .where({ id: campaign.id })
-        .first();
-      expect(actualCampaign).toMatchObject({
-        id: campaign.id,
-        sent_at: expect.any(Date),
-        sending_date: expect.any(Date),
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toMatchObject<Partial<CampaignDTO>>({
+          id: campaign.id,
+          title: campaign.title,
+          status: payload.status,
+          archivedAt: expect.any(String),
+        });
       });
 
-      const actualHouses = await Housing()
-        .select(`${housingTable}.*`)
-        .join(campaignsHousingTable, (join) => {
-          join
-            .on(
-              `${housingTable}.geo_code`,
-              `${campaignsHousingTable}.housing_geo_code`
-            )
-            .andOn(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`);
-        })
-        .where(`${campaignsHousingTable}.campaign_id`, campaign.id);
-      expect(actualHouses).toIncludeAllPartialMembers([
-        {
-          id: houses[0].id,
-          status: HousingStatusApi.Waiting,
-        },
-        {
-          id: houses[1].id,
-          status: HousingStatusApi.Waiting,
-        },
-        {
-          id: houses[2].id,
-          status: HousingStatusApi.InProgress,
-        },
-      ]);
-    });
-
-    it('should update the campaign when validating step Confirmation', async () => {
-      await request(app)
-        .put(testRoute(campaign.id))
-        .send({
-          stepUpdate: {
-            step: CampaignSteps.Confirmation,
-          },
-        })
-        .use(tokenProvider(user))
-        .expect(constants.HTTP_STATUS_OK);
-
-      const actual = await Campaigns().where({ id: campaign.id }).first();
-      expect(actual).toMatchObject({
-        id: campaign.id,
-        confirmed_at: expect.any(Date),
-      });
+      it.todo('should create housing events when their status changes');
     });
   });
 

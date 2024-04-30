@@ -11,14 +11,12 @@ import {
 } from '../../../server/repositories/ownerMatchRepository';
 import { OwnerApi } from '../../../server/models/OwnerApi';
 import { DatafoncierOwner, toOwnerApi } from '../../shared';
-import { OwnerEvents } from '../../../server/repositories/eventRepository';
-import { HousingOwners } from '../../../server/repositories/housingOwnerRepository';
 import highland from 'highland';
 import { formatElapsed, timer } from '../../shared/elapsed';
 import { logger } from '../../../server/utils/logger';
 import randomstring from 'randomstring';
-import Stream = Highland.Stream;
 import progress from 'cli-progress';
+import Stream = Highland.Stream;
 
 const createProgressBas = () => {
   return new progress.SingleBar(
@@ -31,19 +29,10 @@ const createProgressBas = () => {
     },
     progress.Presets.shades_classic
   );
-}
+};
 
 describe('Import owners', () => {
   describe('Benchmark', () => {
-    beforeEach(async () => {
-      await Promise.all([
-        HousingOwners().delete(),
-        OwnerEvents().delete(),
-        OwnerMatches().delete(),
-      ]);
-      await Owners().delete();
-    });
-
     it('should process a large amount of data', (done) => {
       function* createGenerator(n: number) {
         let i = 0;
@@ -58,7 +47,8 @@ describe('Import owners', () => {
       const stream = highland<DatafoncierOwner>(generator);
       const stop = timer();
       const progressBarOwner = createProgressBas();
-      const ownerImporterForHighland = (stream: Stream<DatafoncierOwner>) => ownerImporter(progressBarOwner, stream);
+      const ownerImporterForHighland = (stream: Stream<DatafoncierOwner>) =>
+        ownerImporter(progressBarOwner, stream);
       stream.through(ownerImporterForHighland).done(() => {
         const elapsed = stop();
         logger.info(`Done in ${formatElapsed(elapsed)}.`);
@@ -74,7 +64,8 @@ describe('Import owners', () => {
       const b = { ...a, idpersonne: randomstring.generate(8) };
 
       const progressBarOwner = createProgressBas();
-      const ownerImporterForHighland = (stream: Stream<DatafoncierOwner>) => ownerImporter(progressBarOwner, stream);
+      const ownerImporterForHighland = (stream: Stream<DatafoncierOwner>) =>
+        ownerImporter(progressBarOwner, stream);
       await highland<DatafoncierOwner>([a, b])
         .through(ownerImporterForHighland)
         .collect()

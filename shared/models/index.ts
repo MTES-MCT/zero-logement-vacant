@@ -1,3 +1,4 @@
+export * from './CampaignDTO';
 export * from './ContactPoint';
 export * from './DatafoncierHousing';
 export * from './Feature';
@@ -7,5 +8,7 @@ export * from './HousingDTO';
 export * from './OwnerDTO';
 export * from './Pagination';
 export * from './RolesDTO';
+export * from './SenderDTO';
 export * from './SettingsDTO';
 export * from './UserDTO';
+export * from './variable-options';

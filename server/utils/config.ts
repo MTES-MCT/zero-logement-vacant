@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 import { LOG_LEVELS, LogLevel } from '../../shared/utils/log-level';
+import { isProduction } from '../../queue/src/config';
 
 convict.addFormats(formats);
 
@@ -109,6 +110,16 @@ interface Config {
   metabase: {
     domain: string;
     token: string;
+  };
+  redis: {
+    url: string;
+  };
+  s3: {
+    endpoint: string;
+    region: string;
+    bucket: string;
+    accessKeyId: string;
+    secretAccessKey: string;
   };
   sentry: {
     dsn: string | null;
@@ -342,6 +353,43 @@ const config = convict<Config>({
       env: 'METABASE_TOKEN',
       format: String,
       default: '',
+      sensitive: true,
+    },
+  },
+  redis: {
+    url: {
+      env: 'REDIS_URL',
+      format: String,
+      default: isProduction ? null : 'redis://localhost:6379',
+      nullable: false,
+    },
+  },
+  s3: {
+    endpoint: {
+      env: 'S3_ENDPOINT',
+      format: String,
+      default: isProduction ? null : 'http://localhost:9090',
+    },
+    region: {
+      env: 'S3_REGION',
+      format: String,
+      default: isProduction ? null : 'whatever',
+    },
+    bucket: {
+      env: 'S3_BUCKET',
+      format: String,
+      default: 'zerologementvacant',
+    },
+    accessKeyId: {
+      env: 'S3_ACCESS_KEY_ID',
+      format: String,
+      default: isProduction ? null : 'key',
+      sensitive: true,
+    },
+    secretAccessKey: {
+      env: 'S3_SECRET_ACCESS_KEY',
+      format: String,
+      default: isProduction ? null : 'secret',
       sensitive: true,
     },
   },

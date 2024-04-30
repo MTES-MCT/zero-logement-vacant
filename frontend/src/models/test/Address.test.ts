@@ -4,7 +4,7 @@ import config from '../../utils/config';
 
 describe('Address', () => {
   describe('addressToString', () => {
-    const address = genAddress;
+    const address = genAddress();
 
     it('should return undefined when the address is undefined', () => {
       const actual = addressToString(undefined);
@@ -30,7 +30,7 @@ describe('Address', () => {
   });
 
   describe('isBanEligible', () => {
-    const address = genAddress;
+    const address = genAddress();
     it('should return false when the score is undefined', () => {
       const actual = isBanEligible({ ...address, score: undefined });
       expect(actual).toBe(false);

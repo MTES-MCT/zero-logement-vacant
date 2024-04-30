@@ -17,6 +17,23 @@ jobs:
           POSTGRES_DB: zlv
         ports:
           - 5432:5432
+      redis:
+        image: redis:7.2.4-alpine
+        ports:
+          - 6379:6379
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      s3:
+        image: adobe/s3mock:3.5.2
+        ports:
+          - 9090:9090
+        env:
+          initialBuckets: "zerologementvacant"
+
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
@@ -24,8 +41,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+      - name: Frontend install
+        run: npm --prefix frontend ci
       - name: Server install
         run: npm ci
+      - name: Queue install
+        run: npm --prefix queue ci
       - name: build
         run: npm run build
         env:
@@ -34,21 +55,20 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
           NODE_ENV: production
+          REDIS_URL: redis://localhost:6379/zerologementvacant
+          S3_ENDPOINT: s3
+          S3_REGION: region
+          S3_ACCESS_KEY_ID: key
+          S3_SECRET_ACCESS_KEY: secret
           TZ: Etc/UTC
       - name: Frontend linter
         run: npm --prefix frontend run lint
       - name: Server linter
         run: npm run lint
+
       - name: Frontend tests
         run: npm --prefix frontend test -- --test-timeout=30000
-      - name: Migration tests
-        run: npm run test:database
-        env:
-          AUTH_SECRET: abcd1234
-          CEREMA_API_AUTH_TOKEN: ''
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
-          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
-          TZ: Etc/UTC
+
       - name: Server tests
         run: npm run test -- --test-timeout=30000
         env:
@@ -56,5 +76,16 @@ jobs:
           CEREMA_API_AUTH_TOKEN: ''
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
           DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
+          LOG_LEVEL: fatal
+          TZ: Etc/UTC
+
+      - name: Migration tests
+        run: npm run test:database
+        env:
+          AUTH_SECRET: abcd1234
+          CEREMA_API_AUTH_TOKEN: ''
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/zlv
+          DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5432/zlv
+          REDIS_URL: redis://localhost:6379/zerologementvacant
           LOG_LEVEL: fatal
           TZ: Etc/UTC

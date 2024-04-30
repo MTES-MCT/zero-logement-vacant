@@ -1,9 +1,15 @@
+import { Knex } from 'knex';
+import { parseRedisUrl } from 'parse-redis-url-simple';
+
 import { CampaignApi, CampaignSortApi } from '../models/CampaignApi';
 import db from './db';
-import { Knex } from 'knex';
 import { CampaignFiltersApi } from '../models/CampaignFiltersApi';
 import { logger } from '../utils/logger';
 import { sortQuery } from '../models/SortApi';
+import { CampaignStatus } from '../../shared';
+import { HousingFiltersDTO } from '../../shared/models/HousingFiltersDTO';
+import { createQueue } from '../../queue/src';
+import config from '../utils/config';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -57,11 +63,11 @@ const campaignSortQuery = (sort?: CampaignSortApi) =>
     keys: {
       createdAt: (query) =>
         query.orderBy(`${campaignsTable}.created_at`, sort?.createdAt),
-      sendingDate: (query) =>
-        query.orderBy(`${campaignsTable}.sending_date`, sort?.sendingDate),
+      sentAt: (query) =>
+        query.orderBy(`${campaignsTable}.sent_at`, sort?.sentAt),
       status: (query) =>
         query.orderByRaw(
-          `(case when ${campaignsTable}.archived_at is not null then 2 when ${campaignsTable}.sending_date is not null then 1 else 0 end) ${sort?.status}`
+          `(case ${campaignsTable}.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end) ${sort?.status}`
         ),
     },
     default: (query) => query.orderBy('created_at', 'desc'),
@@ -78,6 +84,15 @@ const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
     .then((_) => parseCampaignApi(_[0]));
 };
 
+async function save(campaign: CampaignApi): Promise<void> {
+  logger.debug('Saving campaign', campaign);
+  await Campaigns()
+    .insert(formatCampaignApi(campaign))
+    .onConflict(['id'])
+    .merge(['status', 'title', 'file', 'sent_at']);
+  logger.debug('Campaign saved', campaign);
+}
+
 const update = async (campaignApi: CampaignApi): Promise<string> => {
   return db(campaignsTable)
     .where('id', campaignApi.id)
@@ -90,61 +105,81 @@ const remove = async (campaignId: string): Promise<void> => {
   await db(campaignsTable).delete().where('id', campaignId);
 };
 
+const [redis] = parseRedisUrl(config.redis.url);
+const queue = createQueue({
+  connection: redis,
+});
+
+async function generateMails(campaign: CampaignApi): Promise<void> {
+  await queue.add('campaign:generate', {
+    campaignId: campaign.id,
+    establishmentId: campaign.establishmentId,
+  });
+  logger.info('Generating campaign mails', campaign);
+}
+
 export interface CampaignDBO {
   id: string;
-  establishment_id: string;
-  filters: object;
-  created_by: string;
+  title: string;
+  status: CampaignStatus;
+  filters: HousingFiltersDTO;
+  file?: string;
+  user_id: string;
   created_at: Date;
   validated_at?: Date;
   exported_at?: Date;
   sent_at?: Date;
   archived_at?: Date;
-  sending_date?: Date;
   confirmed_at?: Date;
-  title: string;
+  establishment_id: string;
   group_id?: string;
 }
 
-export const parseCampaignApi = (result: CampaignDBO): CampaignApi => ({
-  id: result.id,
-  establishmentId: result.establishment_id,
-  filters: result.filters,
-  createdBy: result.created_by,
-  createdAt: result.created_at,
-  validatedAt: result.validated_at,
-  exportedAt: result.exported_at,
-  sentAt: result.sent_at,
-  archivedAt: result.archived_at,
-  sendingDate: result.sending_date,
-  confirmedAt: result.confirmed_at,
-  title: result.title,
-  groupId: result.group_id,
+export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
+  id: campaign.id,
+  establishmentId: campaign.establishment_id,
+  status: campaign.status,
+  filters: campaign.filters,
+  file: campaign.file,
+  userId: campaign.user_id,
+  createdAt: campaign.created_at.toJSON(),
+  validatedAt: campaign.validated_at?.toJSON(),
+  exportedAt: campaign.exported_at?.toJSON(),
+  sentAt: campaign.sent_at?.toJSON(),
+  archivedAt: campaign.archived_at?.toJSON(),
+  confirmedAt: campaign.confirmed_at?.toJSON(),
+  title: campaign.title,
+  groupId: campaign.group_id,
 });
 
-export const formatCampaignApi = (campaignApi: CampaignApi) => ({
-  id: campaignApi.id,
-  establishment_id: campaignApi.establishmentId,
-  filters: campaignApi.filters,
-  title: campaignApi.title,
-  created_by: campaignApi.createdBy,
-  created_at: campaignApi.createdAt,
-  validated_at: campaignApi.validatedAt,
-  exported_at: campaignApi.exportedAt,
-  sent_at: campaignApi.sentAt,
-  archived_at: campaignApi.archivedAt,
-  sending_date: campaignApi.sendingDate
-    ? new Date(campaignApi.sendingDate)
+export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
+  id: campaign.id,
+  establishment_id: campaign.establishmentId,
+  status: campaign.status,
+  filters: campaign.filters,
+  file: campaign.file,
+  title: campaign.title,
+  user_id: campaign.userId,
+  created_at: new Date(campaign.createdAt),
+  validated_at: campaign.validatedAt
+    ? new Date(campaign.validatedAt)
     : undefined,
-  confirmed_at: campaignApi.confirmedAt,
-  group_id: campaignApi.groupId,
+  exported_at: campaign.exportedAt ? new Date(campaign.exportedAt) : undefined,
+  sent_at: campaign.sentAt ? new Date(campaign.sentAt) : undefined,
+  archived_at: campaign.archivedAt ? new Date(campaign.archivedAt) : undefined,
+  confirmed_at: campaign.confirmedAt
+    ? new Date(campaign.confirmedAt)
+    : undefined,
+  group_id: campaign.groupId,
 });
 
 export default {
   findOne,
   find,
   insert,
+  save,
   update,
   remove,
+  generateMails,
   formatCampaignApi,
 };

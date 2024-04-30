@@ -6,10 +6,9 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { format } from 'date-fns';
 import {
+  Campaign,
   CampaignSort,
   CampaignSortable,
-  campaignStep,
-  CampaignSteps,
   isCampaignDeletable,
 } from '../../models/Campaign';
 import AppLink from '../../components/_app/AppLink/AppLink';
@@ -18,10 +17,16 @@ import { displayCount } from '../../utils/stringUtils';
 import { Text } from '../../components/_dsfr';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
 import { useMatomo } from '@datapunt/matomo-tracker-react';
-import { TrackEventActions, TrackEventCategories } from '../../models/TrackEvent';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../models/TrackEvent';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import styles from './campaign.module.scss';
-import { useRemoveCampaignMutation, useUpdateCampaignMutation } from '../../services/campaign.service';
+import {
+  useRemoveCampaignMutation,
+  useUpdateCampaignMutation,
+} from '../../services/campaign.service';
 import { useSort } from '../../hooks/useSort';
 
 const CampaignsListView = () => {
@@ -33,27 +38,19 @@ const CampaignsListView = () => {
 
   const [removeCampaign] = useRemoveCampaignMutation();
   const onDeleteCampaign = async (campaignId: string) => {
+    await removeCampaign(campaignId).unwrap();
     trackEvent({
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.Campaigns.Delete,
     });
-    await removeCampaign(campaignId);
   };
 
-  const [updateCampaignStep] = useUpdateCampaignMutation();
-  const onArchiveCampaign = async (campaignId: string) => {
+  const [updateCampaign] = useUpdateCampaignMutation();
+  const onArchiveCampaign = async (campaign: Campaign) => {
+    await updateCampaign({ ...campaign, status: 'archived' }).unwrap();
     trackEvent({
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.Campaigns.Archive,
-    });
-
-    await updateCampaignStep({
-      id: campaignId,
-      campaignUpdate: {
-        stepUpdate: {
-          step: CampaignSteps.Archived,
-        },
-      },
     });
   };
 
@@ -70,7 +67,7 @@ const CampaignsListView = () => {
           <Button
             priority="secondary"
             linkProps={{
-              to: 'https://airtable.com/shrs2VFNm19BDMiVO/tblxKoKN1XGk0tM3R',
+              to: 'https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5',
               target: '_blank',
             }}
             className="float-right"
@@ -98,7 +95,7 @@ const CampaignsListView = () => {
               'Titre',
               getSortButton('status', 'Statut'),
               getSortButton('createdAt', 'Date de création'),
-              getSortButton('sendingDate', "Date d'envoi"),
+              getSortButton('sentAt', "Date d'envoi"),
               '',
             ]}
             data={campaigns.map((campaign, index) => [
@@ -106,37 +103,38 @@ const CampaignsListView = () => {
               <AppLink
                 isSimple
                 to={`${
-                  campaignStep(campaign) < CampaignSteps.InProgress
+                  campaign.status === 'draft' || campaign.status === 'sending'
                     ? ''
                     : '/parc-de-logements'
                 }/campagnes/${campaign.id}`}
               >
                 {campaign.title}
               </AppLink>,
-              <CampaignStatusBadge step={campaignStep(campaign)} />,
-              format(campaign.createdAt, 'dd/MM/yyyy'),
-              campaign.sendingDate
-                ? format(campaign.sendingDate, 'dd/MM/yyyy')
+              <CampaignStatusBadge status={campaign.status} />,
+              format(new Date(campaign.createdAt), 'dd/MM/yyyy'),
+              campaign.sentAt
+                ? format(new Date(campaign.sentAt), 'dd/MM/yyyy')
                 : '',
               <div className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w">
                 <Button
                   priority="tertiary"
                   linkProps={{
                     to: `${
-                      campaignStep(campaign) < CampaignSteps.InProgress
+                      campaign.status === 'draft' ||
+                      campaign.status === 'sending'
                         ? ''
                         : '/parc-de-logements'
                     }/campagnes/${campaign.id}`,
                   }}
                   className={styles.buttonInGroup}
                 >
-                  {campaignStep(campaign) < CampaignSteps.InProgress
+                  {campaign.status === 'draft' || campaign.status === 'sending'
                     ? 'Accéder'
                     : 'Suivre'}
                 </Button>
-                {campaignStep(campaign) === CampaignSteps.InProgress && (
+                {campaign.status === 'in-progress' && (
                   <ConfirmationModal
-                    onSubmit={() => onArchiveCampaign(campaign.id)}
+                    onSubmit={() => onArchiveCampaign(campaign)}
                     modalId={`archive-${campaign.id}`}
                     openingButtonProps={{
                       priority: 'tertiary',

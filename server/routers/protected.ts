@@ -1,4 +1,6 @@
 import express from 'express';
+import fileUpload from 'express-fileupload';
+import { param } from 'express-validator';
 
 import housingController from '../controllers/housingController';
 import ownerController from '../controllers/ownerController';
@@ -16,15 +18,19 @@ import settingsController from '../controllers/settingsController';
 import ownerProspectController from '../controllers/ownerProspectController';
 import { isUUIDParam } from '../utils/validators';
 import noteController from '../controllers/noteController';
-import { param } from 'express-validator';
 import groupController from '../controllers/groupController';
 import dashboardController from '../controllers/dashboardController';
 import datafoncierController from "../controllers/datafoncierHousingController";
+import draftController from "../controllers/draftController";
+import { upload } from "../middlewares/upload";
+import fileController from "../controllers/fileController";
 
 const router = express.Router();
 
 router.use(jwtCheck(true))
 router.use(userCheck());
+
+router.post('/files', upload(), fileController.create);
 
 // TODO: replace by GET /housing
 router.post('/housing', housingController.listValidators, validator.validate, housingController.list);
@@ -47,14 +53,21 @@ router.post('/groups/:id/housing', groupController.addHousingValidators, validat
 router.delete('/groups/:id/housing', groupController.removeHousingValidators, validator.validate, groupController.removeHousing)
 
 router.get('/campaigns', campaignController.listValidators, validator.validate, campaignController.list);
-router.post('/campaigns', campaignController.createCampaignValidators, validator.validate, campaignController.createCampaign);
+router.post('/campaigns', campaignController.createValidators, validator.validate, campaignController.create);
 router.get('/campaigns/:id', campaignController.getCampaignValidators, validator.validate, campaignController.getCampaign);
-router.put('/campaigns/:id', campaignController.updateCampaignValidators, validator.validate, campaignController.updateCampaign, campaignController.updateCampaign);
+router.put('/campaigns/:id', campaignController.updateValidators, validator.validate, campaignController.update, campaignController.update);
 router.delete('/campaigns/:id', [isUUIDParam('id')], validator.validate, campaignController.removeCampaign);
 // TODO: replace by /groups/:id/campaigns
 router.post('/campaigns/:id/groups', campaignController.createCampaignFromGroupValidators, validator.validate, campaignController.createCampaignFromGroup)
 router.get('/campaigns/:id/export', housingExportController.exportCampaignValidators, validator.validate, housingExportController.exportCampaign)
+router.get('/campaigns/:id/download', campaignController.getCampaignValidators, validator.validate, campaignController.downloadCampaign);
 router.delete('/campaigns/:id/housing', campaignController.removeHousingValidators, validator.validate, campaignController.removeHousing)
+
+router.get('/drafts', draftController.list);
+router.post('/drafts', draftController.createValidators, validator.validate, draftController.create);
+router.put('/drafts/:id', draftController.updateValidators, validator.validate, draftController.update);
+router.post('/drafts/:id/preview', draftController.previewValidators, validator.validate, draftController.preview);
+
 
 router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);
@@ -81,7 +94,7 @@ router.get('/users/:userId', [isUUIDParam('userId')], validator.validate, userCo
 
 // TODO: should be /geo-perimeters
 router.get('/geo/perimeters', geoController.listGeoPerimeters);
-router.post('/geo/perimeters', geoController.createGeoPerimeter);
+router.post('/geo/perimeters', fileUpload(), geoController.createGeoPerimeter);
 router.put('/geo/perimeters/:geoPerimeterId', geoController.updateGeoPerimeterValidators, validator.validate, geoController.updateGeoPerimeter);
 router.delete('/geo/perimeters', geoController.deleteGeoPerimeterListValidators, validator.validate, geoController.deleteGeoPerimeterList);
 

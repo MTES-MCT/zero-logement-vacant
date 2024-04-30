@@ -4,6 +4,11 @@ import { AddressDTO } from '../../../shared/models/AdresseDTO';
 
 export type Address = Omit<AddressDTO, 'refId' | 'addressKind'>;
 
+/**
+ * @deprecated
+ * @param address
+ * @param breakLine
+ */
 export const addressToString = (address?: Address, breakLine = true) => {
   if (address) {
     return reduceStringArray(

@@ -18,7 +18,6 @@ exports.seed = async (knex: Knex) => {
       })
     );
     await async.forEach(fp.chunk(1000, settings), async (settings) => {
-      console.log(settings.length);
       await knex.table(settingsTable).insert(settings).onConflict().ignore();
     });
   }

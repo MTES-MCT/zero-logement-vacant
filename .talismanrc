@@ -1,4 +1,6 @@
 fileignoreconfig:
+- filename: .env.example
+  checksum: 6ea28515d55254fe7ad64be60029c7f487c7255a7b5f8e9d85f6d632b2ee9187
 - filename: .github/workflows/github-actions.yml
   checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
 - filename: database/*

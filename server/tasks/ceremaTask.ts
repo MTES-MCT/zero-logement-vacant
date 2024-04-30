@@ -15,8 +15,11 @@ const run = async (): Promise<void> => {
     return;
   }
 
-  const emails: string[] = await ceremaService.consultDossiersLovac();
+  let emails: string[] = await ceremaService.consultDossiersLovac();
 
+  if (config.cerema.inviteLimit >= 0) {
+    emails = emails.slice(0, config.cerema.inviteLimit);
+  }
   let count = 0;
 
   await Promise.all(emails.map(async (email) => {

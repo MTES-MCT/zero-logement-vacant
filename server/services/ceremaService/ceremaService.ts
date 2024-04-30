@@ -24,7 +24,7 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultUserSe
       }
 
       if (content) {
-        return content.filter((user: any) => user.status_lovac == 4).map(
+        return content.filter((user: any) => user.lovac_ok).map(
           (user: any) => (user.mail)
         );
       }

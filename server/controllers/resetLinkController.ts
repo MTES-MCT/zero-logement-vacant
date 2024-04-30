@@ -1,5 +1,5 @@
 import { addHours } from 'date-fns';
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
@@ -42,7 +42,7 @@ async function create(request: Request, response: Response) {
 }
 const createValidators: ValidationChain[] = [body('email').isEmail()];
 
-async function show(request: Request, response: Response, next: NextFunction) {
+async function show(request: Request, response: Response) {
   const { id } = request.params;
   const link = await resetLinkRepository.get(id);
   if (!link) {

@@ -20,8 +20,7 @@ describe('Generate mails', () => {
   it('should fail if the campaign is missing', async () => {
     const events = new QueueEvents('campaign:generate');
 
-    events.on('failed', ({ failedReason, jobId }) => {
-      // TODO: use failedReason
+    events.on('failed', ({ jobId }) => {
       expect(jobId).toBe('campaign:generate');
     });
 

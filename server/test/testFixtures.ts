@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import randomstring from 'randomstring';
 import { UserApi, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import { v4 as uuidv4 } from 'uuid';
@@ -71,9 +72,6 @@ import { DraftApi } from '../models/DraftApi';
 import { SenderApi } from '../models/SenderApi';
 
 logger.debug(`Seed: ${faker.seed()}`);
-
-const randomstring = require('randomstring');
-
 export const genEmail = () => faker.internet.email();
 
 export const genGeoCode = (): string => {

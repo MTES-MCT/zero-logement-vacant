@@ -1,11 +1,10 @@
-import Typography from '@mui/material/Typography';
-
 import { Container } from '../_dsfr';
 import { Group } from '../../models/Group';
 import styles from './group-card.module.scss';
 import HousingCount from '../HousingCount/HousingCount';
 import AppLink from '../_app/AppLink/AppLink';
 import classNames from 'classnames';
+import Typography from '@mui/material/Typography';
 
 interface GroupCardProps {
   group: Group;

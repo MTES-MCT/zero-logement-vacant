@@ -38,9 +38,7 @@ const config = convict<Config>({
     url: {
       env: 'REDIS_URL',
       format: String,
-      default: isProduction
-        ? null
-        : 'redis://localhost:6379/zerologementvacant',
+      default: isProduction ? null : 'redis://localhost:6379',
       nullable: false,
     },
   },

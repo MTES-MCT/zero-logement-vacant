@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from './map-controls.module.scss';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
+import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 
 interface Props {
   clusterize: boolean;
@@ -17,6 +18,11 @@ function MapControls(props: Props) {
         label="Afficher vos périmètres déposés"
         onChange={props.onPerimetersChange}
       />
+
+      <GeoPerimetersModalLink />
+
+      <div style={{ width: '95%', height: '1px', backgroundColor: '#DDD'}}></div>
+
       <ToggleSwitch
         checked={props.clusterize}
         label="Grouper les bâtiments"

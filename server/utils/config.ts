@@ -65,6 +65,7 @@ interface Config {
       authToken: string;
     };
     enable: boolean;
+    inviteLimit: number;
   };
   databaseEnvironment: string;
   databaseUrl: string;
@@ -203,6 +204,11 @@ const config = convict<Config>({
       env: 'CEREMA_ENABLE',
       format: 'strict-boolean',
       default: false,
+    },
+    inviteLimit: {
+      env: 'CEREMA_INVITE_LIMIT',
+      format: Number,
+      default: 10,
     },
   },
   databaseEnvironment: {

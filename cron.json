@@ -4,7 +4,7 @@
       "command": "*/10 19-23,0-6 * * * node dist/server/tasks/addressTask.js"
     },
     {
-      "command": "0 22 * * * dist/server/tasks/ceremaTask.js"
+      "command": "30 7 * * * dist/server/tasks/ceremaTask.js"
     },
     {
       "command": "0 23 * * * scripts/duplicate-database/start.sh"

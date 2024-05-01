@@ -2,7 +2,7 @@ import { Variable } from './Variable';
 
 export const VARIABLE_OPTIONS: Variable[] = [
   {
-    label: 'Nom et prénom propriétaire',
+    label: 'Nom et prénom propriétaire principal',
     value: '{{owner.fullName}}',
   },
   {

@@ -2,6 +2,7 @@ import React from 'react';
 import styles from './map-controls.module.scss';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
+import { Divider } from '@mui/material';
 
 interface Props {
   clusterize: boolean;
@@ -21,7 +22,7 @@ function MapControls(props: Props) {
 
       <GeoPerimetersModalLink />
 
-      <div style={{ width: '95%', height: '1px', backgroundColor: '#DDD'}}></div>
+      <hr />
 
       <ToggleSwitch
         checked={props.clusterize}

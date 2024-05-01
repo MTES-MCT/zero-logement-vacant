@@ -2,7 +2,6 @@ import React from 'react';
 import styles from './map-controls.module.scss';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
-import { Divider } from '@mui/material';
 
 interface Props {
   clusterize: boolean;

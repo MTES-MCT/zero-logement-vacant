@@ -1,4 +1,14 @@
 {
+  "formation": {
+    "web": {
+      "amount": 1,
+      "size": "L"
+    },
+    "worker": {
+      "amount": 1,
+      "size": "L"
+    }
+  },
   "env": {
     "APPLICATION_HOST": {
       "generator": "url",

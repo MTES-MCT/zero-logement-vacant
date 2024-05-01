@@ -11,7 +11,6 @@ interface Props {
    */
   value: string;
   madeAt?: Date;
-  bnbId?: string;
 }
 
 function DPE(props: Props) {

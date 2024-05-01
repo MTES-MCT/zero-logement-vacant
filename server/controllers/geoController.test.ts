@@ -1,4 +1,7 @@
 import { constants } from 'http2';
+import { createReadStream } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
@@ -33,6 +36,35 @@ describe('Geo perimeters API', () => {
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert(formatUserApi(user));
+  });
+
+  describe('POST /geo/perimeters', () => {
+    const testRoute = '/api/geo/perimeters';
+    // const perimeter = genGeoPerimeterApi(establishment.id);
+
+    it('should create a geo perimeter', async () => {
+      const geojson = await readFile(
+        path.join(__dirname, 'test', 'test-geo-perimeters.geojson'),
+        'utf8'
+      );
+      const file = path.join(__dirname, 'test', 'test-geo-perimeters.zip');
+
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .attach('geoPerimeter', createReadStream(file))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+
+      const actual = await GeoPerimeters().where('establishment_id');
+      expect(actual).toIncludeAllMembers();
+
+      expect(body).toStrictEqual<Partial<GeoPerimeterApi>>({
+        id: expect.any(String),
+        geoJson: JSON.parse(geojson),
+        establishmentId: establishment.id,
+      });
+    });
   });
 
   describe('GET /geo/perimeters', () => {

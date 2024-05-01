@@ -1,9 +1,9 @@
-import { GeoJSON } from 'geojson';
+import * as turf from '@turf/turf';
 
 export interface GeoPerimeterApi {
   id: string;
   establishmentId: string;
   name: string;
   kind: string;
-  geoJson?: GeoJSON;
+  geoJson?: turf.MultiPolygon;
 }

@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import * as turf from '@turf/turf';
 
 import housingRepository, {
   formatHousingRecordApi,
@@ -10,6 +11,7 @@ import {
   genBuildingApi,
   genCampaignApi,
   genEstablishmentApi,
+  genGeoPerimeterApi,
   genGroupApi,
   genHousingApi,
   genLocalityApi,
@@ -55,6 +57,8 @@ import {
   formatEstablishmentApi,
 } from '../establishmentRepository';
 import { formatUserApi, Users } from '../userRepository';
+import { GeoPerimeterApi } from '../../models/GeoPerimeterApi';
+import { formatGeoPerimeterApi, GeoPerimeters } from '../geoRepository';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
@@ -781,13 +785,48 @@ describe('Housing repository', () => {
       });
 
       it('should filter by geo perimeter', async () => {
+        // A square around a famous town
+        const square = turf.polygon([
+          [
+            [-1.45019738029265, 43.65540208135528],
+            [-1.45019738029265, 43.62678723738355],
+            [-1.416965804158167, 43.62678723738355],
+            [-1.416965804158167, 43.65540208135528],
+            [-1.45019738029265, 43.65540208135528],
+          ],
+        ]);
+        const perimeter: GeoPerimeterApi = {
+          ...genGeoPerimeterApi(establishment.id),
+          geoJson: turf.getGeom(
+            turf.multiPolygon([square.geometry.coordinates])
+          ),
+        };
+        await GeoPerimeters().insert(formatGeoPerimeterApi(perimeter));
+        const housing: HousingApi = {
+          ...genHousingApi(),
+          longitude: -1.42,
+          latitude: 43.63,
+        };
+        await Housing().insert(formatHousingRecordApi(housing));
+
         const actual = await housingRepository.find({
           filters: {
-            geoPerimetersIncluded: ['OPAH'],
+            geoPerimetersIncluded: [perimeter.kind],
           },
         });
 
-        expect(actual).toHaveLength(0);
+        expect(actual.length).toBeGreaterThan(0);
+        expect(actual).toSatisfyAll<HousingApi>((actualHousing) => {
+          if (!actualHousing.longitude || !actualHousing.latitude) {
+            return false;
+          }
+
+          const point = turf.point([
+            actualHousing.longitude,
+            actualHousing.latitude,
+          ]);
+          return turf.inside(point, square);
+        });
       });
     });
   });

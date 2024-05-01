@@ -779,6 +779,16 @@ describe('Housing repository', () => {
             .includes(actualHousing.id);
         });
       });
+
+      it('should filter by geo perimeter', async () => {
+        const actual = await housingRepository.find({
+          filters: {
+            geoPerimetersIncluded: ['OPAH'],
+          },
+        });
+
+        expect(actual).toHaveLength(0);
+      });
     });
   });
 

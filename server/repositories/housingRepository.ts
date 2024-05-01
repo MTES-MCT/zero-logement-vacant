@@ -821,7 +821,7 @@ function filteredQuery(opts: ListQueryOptions) {
           .select('*')
           .from(geoPerimetersTable)
           .whereRaw(
-            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(longitude, latitude), 4326))`
+            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
           )
           .whereIn('kind', filters.geoPerimetersIncluded)
       );
@@ -832,7 +832,7 @@ function filteredQuery(opts: ListQueryOptions) {
           .select('*')
           .from(geoPerimetersTable)
           .whereRaw(
-            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(longitude, latitude), 4326))`
+            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
           )
           .whereIn('kind', filters.geoPerimetersExcluded);
       });

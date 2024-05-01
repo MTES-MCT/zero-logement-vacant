@@ -26,6 +26,9 @@
     },
     "TZ": {
       "value": "Etc/UTC"
+    },
+    "NODE_OPTIONS": {
+      "value": "--max-old-space-size=8192"
     }
   },
   "scripts": {

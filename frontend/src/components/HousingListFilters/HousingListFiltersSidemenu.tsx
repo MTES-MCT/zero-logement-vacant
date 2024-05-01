@@ -296,7 +296,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={0} xs={12}>
             <SearchableSelect
               options={unselectedOptions(
                 geoPerimeterOptions(geoPerimeters),
@@ -318,11 +318,8 @@ function HousingListFiltersSidemenu(props: Props) {
                 }
               }}
             />
-            <div className="float-right">
-              <GeoPerimetersModalLink />
-            </div>
 
-            <div style={{clear: 'both'}}></div>
+            <GeoPerimetersModalLink />
           </Grid>
         </Accordion>
 

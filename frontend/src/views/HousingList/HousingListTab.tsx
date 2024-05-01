@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { HousingStatus } from '../../models/HousingState';
 import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
-import AppHelp from '../../components/_app/AppHelp/AppHelp';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import { Row, Text } from '../../components/_dsfr';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
@@ -91,23 +90,21 @@ const HousingListTab = ({
   }, [filteredCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const [createCampaign] = useCreateCampaignMutation();
-  const onSubmitCampaignCreation = async (campaignTitle?: string) => {
-    if (campaignTitle) {
+  const onSubmitCampaignCreation = async (title: string) => {
+    if (title) {
+      const created = await createCampaign({
+        title,
+        housing: {
+          filters,
+          all: selected.all,
+          ids: selected.ids,
+        },
+      }).unwrap();
       trackEvent({
         category: TrackEventCategories.HousingList,
         action: TrackEventActions.HousingList.SaveCampaign,
         value: selectedCount,
       });
-
-      const created = await createCampaign({
-        draftCampaign: {
-          filters,
-          title: campaignTitle,
-        },
-        allHousing: selected.all,
-        housingIds: selected.ids,
-      }).unwrap();
-
       router.push({
         pathname: `/campagnes/${created.id}`,
       });
@@ -237,15 +234,7 @@ const HousingListTab = ({
           </Text>
         )}
       <HousingList filters={filters} onSelectHousing={setSelected}>
-        <SelectableListHeader
-          entity="logement"
-          default={
-            <AppHelp className="fr-mb-2w fr-py-2w">
-              <b>Sélectionnez</b> les logements que vous souhaitez cibler, puis
-              cliquez sur <b>Créer une campagne</b>.
-            </AppHelp>
-          }
-        >
+        <SelectableListHeader entity="logement" default={<></>}>
           <SelectableListHeaderActions>
             {filteredHousingCount !== undefined && filteredHousingCount > 0 && (
               <Row justifyContent="right">
@@ -277,9 +266,7 @@ const HousingListTab = ({
                     housingCount={selectedCount}
                     filters={filters}
                     housingExcludedCount={filteredHousingCount - selectedCount}
-                    onSubmit={(campaignTitle?: string) =>
-                      onSubmitCampaignCreation(campaignTitle)
-                    }
+                    onSubmit={onSubmitCampaignCreation}
                   />
                 )}
 

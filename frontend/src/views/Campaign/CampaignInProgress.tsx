@@ -1,7 +1,9 @@
-import { Col, Row } from '../../components/_dsfr';
-import { useParams } from 'react-router-dom';
-import { filterCount } from '../../models/HousingFilters';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import React from 'react';
+
+import { Col, Row } from '../../components/_dsfr';
+import { filterCount } from '../../models/HousingFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
@@ -13,15 +15,16 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
 import { useAppSelector } from '../../hooks/useStore';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
-import Button from '@codegouvfr/react-dsfr/Button';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
-import { useCampaign } from '../../hooks/useCampaign';
+import { Campaign } from '../../models/Campaign';
 
-function CampaignInProgress() {
-  const { campaign } = useCampaign();
-  useDocumentTitle(campaign?.title ?? 'Campagne');
+interface Props {
+  campaign: Campaign;
+}
+
+function CampaignInProgress(props: Readonly<Props>) {
+  useDocumentTitle(props.campaign.title);
 
   const { trackEvent } = useMatomo();
   const {
@@ -35,7 +38,7 @@ function CampaignInProgress() {
   } = useFilters({
     storage: 'state',
     initialState: {
-      campaignIds: [useParams<{ campaignId: string }>().campaignId],
+      campaignIds: [props.campaign.id],
     },
   });
 

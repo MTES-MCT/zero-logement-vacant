@@ -4,6 +4,15 @@ database/
 dist/
 README.md
 tools
+bin
+Procfile
+jest.config.js
+
+*.css
+*.hbs
 
 # shell script
 scripts/duplicate-database/
+
+# templates
+server/templates

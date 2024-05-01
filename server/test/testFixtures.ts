@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import randomstring from 'randomstring';
 import { UserApi, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
 import { v4 as uuidv4 } from 'uuid';
@@ -67,11 +68,10 @@ import { BuildingApi } from '../models/BuildingApi';
 import { AddressApi } from '../models/AddressApi';
 import { AddressKinds } from '../../shared/models/AdresseDTO';
 import { HousingNoteApi, NoteApi } from '../models/NoteApi';
+import { DraftApi } from '../models/DraftApi';
+import { SenderApi } from '../models/SenderApi';
 
 logger.debug(`Seed: ${faker.seed()}`);
-
-const randomstring = require('randomstring');
-
 export const genEmail = () => faker.internet.email();
 
 export const genGeoCode = (): string => {
@@ -313,13 +313,13 @@ export const genCampaignApi = (
     id: uuidv4(),
     establishmentId,
     title: randomstring.generate(),
+    status: 'draft',
     filters: {
       geoPerimetersIncluded: [randomstring.generate()],
       geoPerimetersExcluded: [randomstring.generate()],
     },
-    createdAt: new Date(),
-    createdBy,
-    sendingDate: new Date(),
+    createdAt: new Date().toJSON(),
+    userId: createdBy,
     groupId: group?.id,
   };
 };
@@ -725,3 +725,46 @@ export const genHousingNoteApi = (
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
 });
+
+export function genDraftApi(
+  establishment: EstablishmentApi,
+  sender: SenderApi
+): DraftApi {
+  return {
+    id: uuidv4(),
+    subject: faker.lorem.sentence(),
+    body: faker.lorem.paragraph(),
+    logo: faker.helpers.multiple(() => faker.image.url(), {
+      count: { min: 1, max: 2 },
+    }),
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+    sender,
+    senderId: sender.id,
+    writtenAt: faker.date.recent().toJSON().substring(0, 'yyyy-mm-dd'.length),
+    writtenFrom: faker.location.streetAddress({ useFullAddress: true }),
+    establishmentId: establishment.id,
+  };
+}
+
+export function genSenderApi(establishment: EstablishmentApi): SenderApi {
+  const firstName = faker.person.firstName();
+  const lastName = faker.person.lastName();
+  return {
+    id: uuidv4(),
+    name: `${faker.location.zipCode()} ${faker.location.city()}`,
+    service: faker.company.name(),
+    firstName,
+    lastName,
+    address: faker.location.streetAddress({ useFullAddress: true }),
+    email: faker.internet.email({ firstName, lastName }),
+    phone: faker.phone.number(),
+    signatoryFile: faker.image.urlPicsumPhotos(),
+    signatoryRole: faker.person.jobTitle(),
+    signatoryFirstName: faker.person.firstName(),
+    signatoryLastName: faker.person.lastName(),
+    createdAt: faker.date.past().toJSON(),
+    updatedAt: faker.date.recent().toJSON(),
+    establishmentId: establishment.id,
+  };
+}

@@ -10,21 +10,23 @@ interface Props {
   modalId: string;
   children: ReactNode | ReactNode[];
   title?: string | ReactElement;
-  onSubmit: (param?: any) => void | Promise<void>;
+  onOpen?(openModal: () => void): Promise<void> | void;
+  onSubmit(param?: any): Promise<void> | void;
   size?: 'small' | 'medium' | 'large';
   openingButtonProps?: Omit<ButtonProps, 'onClick'>;
   openingAppLinkAsButtonProps?: Omit<AppLinkAsButtonProps, 'onClick'>;
 }
 
-const ConfirmationModal = ({
+function ConfirmationModal({
   modalId,
   children,
   title,
+  onOpen,
   onSubmit,
   size,
   openingButtonProps,
   openingAppLinkAsButtonProps,
-}: Props) => {
+}: Props) {
   const modal = useMemo(
     () =>
       createModal({
@@ -34,16 +36,24 @@ const ConfirmationModal = ({
     [modalId]
   );
 
+  function open() {
+    if (!onOpen) {
+      return modal.open();
+    }
+
+    onOpen(modal.open);
+  }
+
   return (
     <>
       {openingButtonProps !== undefined ? (
         // @ts-ignore
-        <Button {...openingButtonProps} onClick={modal.open}>
+        <Button {...openingButtonProps} onClick={open}>
           {openingButtonProps.children}
         </Button>
       ) : openingAppLinkAsButtonProps !== undefined ? (
         // @ts-ignore
-        <AppLinkAsButton {...openingAppLinkAsButtonProps} onClick={modal.open}>
+        <AppLinkAsButton {...openingAppLinkAsButtonProps} onClick={open}>
           {openingAppLinkAsButtonProps.children}
         </AppLinkAsButton>
       ) : (
@@ -72,6 +82,6 @@ const ConfirmationModal = ({
       </modal.Component>
     </>
   );
-};
+}
 
 export default ConfirmationModal;

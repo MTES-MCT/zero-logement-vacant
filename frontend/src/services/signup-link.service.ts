@@ -9,7 +9,7 @@ export const signupLinkApi = zlvApi.injectEndpoints({
         body: { email },
       }),
       transformErrorResponse: (response) => {
-        if (response.status >= 500) {
+        if (typeof response.status === 'number' && response.status >= 500) {
           throw new Error('Cannot create sign-up link');
         }
       },

@@ -1,18 +1,33 @@
+import MuiDsfrThemeProvider from '@codegouvfr/react-dsfr/mui';
+import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
+import {
+  createInstance,
+  MatomoProvider,
+  useMatomo,
+} from '@datapunt/matomo-tracker-react';
 import React, { useEffect } from 'react';
 import { MapProvider } from 'react-map-gl';
+import { Provider } from 'react-redux';
+import { hideLoading, showLoading } from 'react-redux-loading-bar';
+import {
+  BrowserRouter,
+  Link,
+  Redirect,
+  Route,
+  RouteProps,
+  Switch,
+} from 'react-router-dom';
+
 import './App.scss';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import LoginView from './views/Login/LoginView';
-import { BrowserRouter, Link, Redirect, Route, RouteProps, Switch } from 'react-router-dom';
 import HousingListView from './views/HousingList/HousingListView';
-import { Provider } from 'react-redux';
 import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
-import CampaignsListView from './views/Campaign/CampainListView';
+import CampaignsListView from './views/Campaign/CampaignListView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import { createInstance, MatomoProvider, useMatomo } from '@datapunt/matomo-tracker-react';
 import AccountPasswordView from './views/Account/AccountPasswordView';
 import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
@@ -30,113 +45,148 @@ import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
 import AccountView from './views/Account/AccountView';
 import GroupView from './views/Group/GroupView';
-import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
-import { hideLoading, showLoading } from 'react-redux-loading-bar';
+import Notification from './components/Notification/Notification';
 
-declare module "@codegouvfr/react-dsfr/spa" {
+declare module '@codegouvfr/react-dsfr/spa' {
   interface RegisterLink {
     Link: typeof Link;
   }
 }
 
 function AppWrapper() {
+  startReactDsfr({ defaultColorScheme: 'light', Link });
 
-  startReactDsfr({ defaultColorScheme: "light", Link });
-
-  const AppMapProvider = () =>
-    <MapProvider>
-      <Provider store={store}>
-        <App/>
-      </Provider>
-    </MapProvider>
+  const AppMapProvider = () => (
+    <MuiDsfrThemeProvider>
+      <MapProvider>
+        <Provider store={store}>
+          <Notification />
+          <App />
+        </Provider>
+      </MapProvider>
+    </MuiDsfrThemeProvider>
+  );
 
   if (config.matomo.urlBase && config.matomo.siteId) {
     return (
       // @ts-ignore
       <MatomoProvider value={createInstance(config.matomo)}>
-        <AppMapProvider/>
+        <AppMapProvider />
       </MatomoProvider>
     );
   } else {
-    return <AppMapProvider/>;
+    return <AppMapProvider />;
   }
-
 }
 
+const publicRoutes: RouteProps[] = [
+  { path: '/stats', component: StatsView },
+  { path: '/accessibilite', component: AccessibilityView },
+  { path: '/mentions-legales', component: LegalNoticesView },
+];
+const authenticatedRoutes: RouteProps[] = [
+  {
+    path: '/parc-de-logements',
+    component: HousingListView,
+  },
+  // TODO: remove this
+  { path: '/parc-de-logements/campagnes/:id', component: CampaignView },
+  { path: '/groupes/:id', component: GroupView },
+  { path: '/campagnes', component: CampaignsListView },
+  { path: '/campagnes/:id', component: CampaignView },
+  {
+    path: '/proprietaires/:ownerId/logements/:housingId',
+    component: HousingView,
+  },
+  { path: '/proprietaires/:ownerId', component: OwnerView },
+  {
+    path: '/logements/:housingId/proprietaires/:ownerId',
+    component: OwnerView,
+  },
+  { path: '/logements/:housingId', component: HousingView },
+  { path: '/ressources/statuts', component: StatusView },
+  { path: '/ressources', component: ResourcesView },
+
+  { path: '/compte', component: AccountView },
+  { path: '/compte/mot-de-passe', component: AccountPasswordView },
+  { path: '/utilisateurs', component: UsersView },
+  { path: '/autres-etablissements', component: TerritoryEstablishmentsView },
+];
+const guestRoutes: RouteProps[] = [
+  { path: '/inscription*', component: AccountCreationView },
+  { path: '/connexion', component: LoginView },
+  {
+    path: '/mot-de-passe/oublie',
+    component: ForgottenPasswordView,
+  },
+  {
+    path: '/mot-de-passe/nouveau',
+    component: ResetPasswordView,
+  },
+  { path: '/admin', component: LoginView },
+  { path: '/', component: EstablishmentHomeView },
+];
+
 function App() {
-  const {pushInstruction} = useMatomo();
-  const {isAuthenticated, user} = useUser();
-  const {isLoggedOut} = useAppSelector(
-    (state) => state.authentication
-  );
+  const { pushInstruction } = useMatomo();
+  const { isAuthenticated, user } = useUser();
+  const { isLoggedOut } = useAppSelector((state) => state.authentication);
   const dispatch = useAppDispatch();
-  const isSomeQueryPending = useAppSelector(state => Object.values(state.api.queries).some(query => query?.status === 'pending'));
+  const isSomeQueryPending = useAppSelector((state) =>
+    Object.values(state.api.queries).some(
+      (query) => query?.status === 'pending'
+    )
+  );
 
   FetchInterceptor();
 
   useEffect(() => {
     pushInstruction('setUserId', user?.id);
-  }, [user])
-
+  }, [pushInstruction, user]);
 
   useEffect(() => {
     if (isSomeQueryPending) {
-      dispatch(showLoading())
+      dispatch(showLoading());
+    } else {
+      dispatch(hideLoading());
     }
-    else {
-      dispatch(hideLoading())
-    }
-  }, [isSomeQueryPending]);
+  }, [dispatch, isSomeQueryPending]);
 
+  const routes = publicRoutes
+    .concat(isAuthenticated ? authenticatedRoutes : guestRoutes)
+    .map((route) => (
+      <Route
+        exact
+        path={route.path}
+        component={route.component}
+        key={`route_${route.path}`}
+      />
+    ));
+
+  const redirection = isAuthenticated
+    ? '/parc-de-logements'
+    : isLoggedOut
+    ? '/connexion'
+    : '/';
 
   return (
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
-        <Header/>
-        <ScrollToTop/>
+        <Header />
+        <ScrollToTop />
 
         <Switch>
-          <Route path="/stats" component={StatsView}/>
-          <Route path="/accessibilite" component={AccessibilityView}/>
-          <Route path="/mentions-legales" component={LegalNoticesView}/>,
-          {isAuthenticated ? [
-            ...([
-              {path:"/parc-de-logements", component:HousingListView},
-              {path:"/parc-de-logements/campagnes/:campaignId", component:CampaignView},
-              {path:"/groupes/:id",component: GroupView},
-              {path:"/campagnes", component:CampaignsListView},
-              {path:"/campagnes/:campaignId", component:CampaignView},
-              {path:"/proprietaires/:ownerId/logements/:housingId", component:HousingView},
-              {path:"/proprietaires/:ownerId", component:OwnerView},
-              {path:"/logements/:housingId/proprietaires/:ownerId", component:OwnerView},
-              {path:"/logements/:housingId", component:HousingView},
-              {path:"/ressources/statuts", component:StatusView},
-              {path:"/ressources", component:ResourcesView},
-              {path:"/compte", component:AccountView},
-              {path:"/compte/mot-de-passe", component:AccountPasswordView},
-              {path:"/utilisateurs", component:UsersView},
-              {path:"/autres-etablissements", component:TerritoryEstablishmentsView},
-            ].map((route: RouteProps) => <Route path={route.path} exact component={route.component} key={`route_${route.path}`} /> )),
-              <Route path="/*" key="route_default">
-                <Redirect to="/parc-de-logements"/>
-              </Route>
-          ] : [
-            ...([
-              {path:"/inscription*", component:AccountCreationView},
-              {path:"/connexion", component:LoginView},
-              {path:"/mot-de-passe/oublie", component:ForgottenPasswordView},
-              {path:"/mot-de-passe/nouveau", component:ResetPasswordView},
-              {path:"/admin", component:LoginView},
-              {path:"/", component:EstablishmentHomeView},
-            ].map(route => <Route exact path={route.path} component={route.component} key={`route_${route.path}`} /> )),
-            <Route path="/*" key="route_default">
-              {isLoggedOut ? <Redirect to="/connexion"/> : <Redirect to="/"/>}
-            </Route>
-          ]}
+          <Route path="/stats" component={StatsView} />
+          <Route path="/accessibilite" component={AccessibilityView} />
+          <Route path="/mentions-legales" component={LegalNoticesView} />,
+          {routes}
+          <Route path="*">
+            <Redirect to={redirection} />
+          </Route>
         </Switch>
-        <Footer/>
+        <Footer />
       </BrowserRouter>
     </React.Suspense>
   );

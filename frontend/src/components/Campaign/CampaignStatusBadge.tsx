@@ -1,29 +1,30 @@
 import React from 'react';
+
 import AppBadge from '../_app/AppBadge/AppBadge';
-import { CampaignSteps } from '../../models/Campaign';
+import { CampaignStatus } from '../../../../shared';
 
 interface Props {
-  step: CampaignSteps;
+  status: CampaignStatus;
 }
 
-const CampaignStatusBadge = ({ step }: Props) => {
-  return (
-    <AppBadge
-      colorFamily={
-        step < CampaignSteps.InProgress
-          ? 'yellow-tournesol'
-          : step < CampaignSteps.Archived
-          ? 'green-bourgeon'
-          : 'blue-cumulus'
-      }
-    >
-      {step < CampaignSteps.InProgress
-        ? 'Envoi en attente'
-        : step < CampaignSteps.Archived
-        ? 'Envoyée'
-        : 'Archivée'}
-    </AppBadge>
-  );
-};
+function CampaignStatusBadge(props: Readonly<Props>) {
+  const colors: Record<CampaignStatus, string> = {
+    draft: 'yellow-tournesol',
+    sending: 'green-menthe',
+    'in-progress': 'green-bourgeon',
+    archived: 'blue-cumulus',
+  };
+  const texts = {
+    draft: 'Envoi en attente',
+    sending: 'En cours d’envoi',
+    'in-progress': 'Envoyée',
+    archived: 'Archivée',
+  };
+
+  const color = colors[props.status];
+  const text = texts[props.status];
+
+  return <AppBadge colorFamily={color}>{text}</AppBadge>;
+}
 
 export default CampaignStatusBadge;

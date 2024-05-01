@@ -1,0 +1,14 @@
+@import 'react-toastify/dist/ReactToastify.min.css';
+
+:root {
+  --toastify-color-light: var(--background-default-grey);
+  --toastify-color-dark: var(--background-default-grey);
+  --toastify-color-info: var(--text-default-info);
+  --toastify-color-success: var(--text-default-success);
+  --toastify-color-warning: var(--text-default-warning);
+  --toastify-color-error: var(--text-default-error);
+
+  --toastify-font-family: Marianne, sans-serif;
+  --toastify-text-color-light: var(--text-default-grey);
+  --toastify-text-color-dark: var(--text-default-grey);
+}

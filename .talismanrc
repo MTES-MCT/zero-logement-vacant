@@ -14,6 +14,8 @@ fileignoreconfig:
   checksum: 2eb831d9d9e6b816a1401fee277dfa058468ce7d9b917ad44702679233295e8e
 - filename: frontend/src/components/Dropdown/DropdownMenu.tsx
   checksum: ac1a0b11973d197701473c203fb2eb777001413b9b602cbe5fdba2fc8d825e8c
+- filename: frontend/src/components/HousingFiltersBadges/HousingFiltersBadges.tsx
+  checksum: bbf0f51b5624396489a49b287d4146f81ba4b5ed217965afc1c7131ca8e5b93b
 - filename: frontend/src/components/RichEditor/nodes/VariableNode.tsx
   checksum: 63b9536c3bb7c0ff7ca65f4f42eebe3031ad516497639be668392026be2f85f8
 - filename: frontend/src/views/Campaign/CampaignListView.tsx

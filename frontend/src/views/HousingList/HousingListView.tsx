@@ -94,7 +94,7 @@ const HousingListView = () => {
           </Grid>
         </Grid>
 
-        <Grid mb={4} xs={12}>
+        <Grid mb={3} xs={12}>
           <HousingFiltersBadges filters={filters} onChange={removeFilter} />
         </Grid>
 

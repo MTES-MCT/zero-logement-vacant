@@ -47,7 +47,7 @@ const HousingListTabs = ({
 
   return (
     <Tabs
-      className="tabs-no-border statusTabs fr-mt-2w"
+      className="tabs-no-border statusTabs"
       selectedTabId={activeTab}
       onTabChange={(tab: string) => setActiveTab(tab)}
       tabs={tabs}

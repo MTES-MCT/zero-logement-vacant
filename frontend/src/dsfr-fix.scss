@@ -38,10 +38,6 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
   margin: 0 !important;
 }
 
-.fr-collapse--expanded {
-  overflow: inherit !important;
-}
-
 .indeterminate {
   input[type='checkbox'] + label:before {
     background-size: 1rem;
@@ -77,4 +73,14 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
 
 .fr-footer__partners .fr-footer__logo {
   box-shadow: none !important;
+}
+
+.table-column-header {
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+
+  & > .fr-btn {
+    font-weight: 500 !important;
+    font-size: 0.75rem !important;
+  }
 }

@@ -174,7 +174,7 @@ function GroupView() {
           </Grid>
         </Grid>
 
-        <Grid mb={4} xs={12}>
+        <Grid xs={12}>
           <HousingFiltersBadges filters={filters} onChange={removeFilter} />
         </Grid>
 

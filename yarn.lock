@@ -27195,6 +27195,7 @@ __metadata:
     "@getbrevo/brevo": "npm:^1.0.1"
     "@godaddy/terminus": "npm:^4.12.1"
     "@jest-mock/express": "npm:^1.4.5"
+    "@jest/globals": "npm:^29.7.0"
     "@sendinblue/client": "npm:^3.3.1"
     "@sentry/integrations": "npm:^7.80.0"
     "@sentry/node": "npm:^7.80.0"

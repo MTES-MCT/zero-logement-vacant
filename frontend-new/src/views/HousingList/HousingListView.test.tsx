@@ -10,7 +10,7 @@ import {
   genGroup,
   genHousing,
   genPaginatedResult,
-} from '../../../test/fixtures.test';
+} from '../../test/fixtures.test';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { ownerKindOptions } from '../../models/HousingFilters';

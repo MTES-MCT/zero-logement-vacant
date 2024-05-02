@@ -3,10 +3,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'jest-fetch-mock';
 import { Store } from '@reduxjs/toolkit';
-import { genGroup } from '../../../test/fixtures.test';
+import { genGroup } from '../../test/fixtures.test';
 import { Provider } from 'react-redux';
-import { createMemoryHistory } from 'history';
-import { Router } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { getRequestCalls, mockRequests } from '../../utils/test/requestUtils';
 import config from '../../utils/config';
 import configureTestStore from '../../utils/test/storeUtils';
@@ -27,17 +26,17 @@ describe('GroupHeader', () => {
       async () => ({
         status: 200,
         body: JSON.stringify(
-          new Array(DISPLAY_GROUPS + 1).fill('0').map(genGroup)
+          new Array(DISPLAY_GROUPS + 1).fill('0').map(genGroup),
         ),
-      })
+      }),
     );
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <GroupHeader />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const displayMore = await screen.findByText(/^Afficher plus/);
@@ -59,15 +58,15 @@ describe('GroupHeader', () => {
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <GroupHeader />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const cards = await screen.findAllByRole('group-card');
     expect(cards).toBeArrayOfSize(
-      groups.filter((group) => !group.archivedAt).length
+      groups.filter((group) => !group.archivedAt).length,
     );
   });
 
@@ -78,7 +77,7 @@ describe('GroupHeader', () => {
         response: {
           status: 200,
           body: JSON.stringify(
-            new Array(DISPLAY_GROUPS).fill('0').map(genGroup)
+            new Array(DISPLAY_GROUPS).fill('0').map(genGroup),
           ),
         },
       },
@@ -86,10 +85,10 @@ describe('GroupHeader', () => {
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <GroupHeader />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     await expect(screen.findByText(/^Afficher plus/)).toReject();
@@ -109,16 +108,16 @@ describe('GroupHeader', () => {
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <GroupHeader />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const displayMore = await screen.findByText(/^Afficher plus/);
     await user.click(displayMore);
     const titles = await Promise.all(
-      groups.map((group) => screen.findByText(group.title))
+      groups.map((group) => screen.findByText(group.title)),
     );
     titles.forEach((title) => {
       expect(title).toBeVisible();
@@ -126,7 +125,6 @@ describe('GroupHeader', () => {
   });
 
   it('should display a modal to create a group', async () => {
-    const router = createMemoryHistory();
     const group = genGroup();
     mockRequests([
       {
@@ -149,10 +147,10 @@ describe('GroupHeader', () => {
 
     render(
       <Provider store={store}>
-        <Router history={router}>
+        <Router>
           <GroupHeader />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const createGroup = await screen.findByText(/Créer un nouveau groupe/);
@@ -174,11 +172,9 @@ describe('GroupHeader', () => {
       },
     });
 
-    expect(router.location).toMatchObject({
-      pathname: `/groupes/${group.id}`,
-      state: {
-        alert: 'Votre nouveau groupe a bien été créé.',
-      },
-    });
+    const text = await screen.findByText(
+      /^Votre nouveau groupe a bien été créé./,
+    );
+    expect(text).toBeVisible();
   });
 });

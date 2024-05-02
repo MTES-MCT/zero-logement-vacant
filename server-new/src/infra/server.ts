@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
+import fileUpload from 'express-fileupload';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import path from 'node:path';
@@ -84,9 +85,6 @@ export function createServer(): Server {
     }),
   );
 
-  app.use(express.json());
-
-  // TODO: improve server
   app.use(
     cors({
       origin: [
@@ -96,6 +94,12 @@ export function createServer(): Server {
       ],
     }),
   );
+
+  // Mock services like Datafoncier API on specific environments
+  mockServices();
+
+  app.use(fileUpload());
+  app.use(express.json());
 
   // Mock services like Datafoncier API on specific environments
   mockServices();

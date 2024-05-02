@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { applicationMiddlewares, applicationReducer } from '../../store/store';
-import { genAuthUser } from '../../../test/fixtures.test';
+import { genAuthUser } from '../../test/fixtures.test';
 
 interface TestStoreOptions {
   withAuth: boolean;

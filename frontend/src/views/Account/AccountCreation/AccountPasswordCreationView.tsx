@@ -37,7 +37,8 @@ function AccountPasswordCreationView() {
   const [confirmation, setConfirmation] = useState('');
 
   useEffect(() => {
-    form.validate()
+    form.validate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [password]);
 
   const shape = {

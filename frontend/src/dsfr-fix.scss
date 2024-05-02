@@ -38,6 +38,10 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
   margin: 0 !important;
 }
 
+.fr-collapse--expanded:not(.fr-collapsing) {
+  overflow: inherit !important;
+}
+
 .indeterminate {
   input[type='checkbox'] + label:before {
     background-size: 1rem;

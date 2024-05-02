@@ -1,4 +1,4 @@
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
@@ -35,6 +35,10 @@ function AccountPasswordCreationView() {
 
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
+
+  useEffect(() => {
+    form.validate()
+  }, [password]);
 
   const shape = {
     password: yup.string().required('Veuillez renseigner votre mot de passe.'),

@@ -27,7 +27,7 @@ import fileController from "../controllers/fileController";
 
 const router = express.Router();
 
-router.use(jwtCheck(true))
+router.use(jwtCheck(true));
 router.use(userCheck());
 
 router.post('/files', upload(), fileController.create);
@@ -43,14 +43,14 @@ router.post('/housing/list', housingController.updateListValidators, validator.v
 // TODO: replace by PUT /housing/:id
 router.post('/housing/:housingId', [param('housingId').isUUID(),...housingController.updateValidators], validator.validate, housingController.update);
 
-router.get('/groups', groupController.list)
-router.post('/groups', groupController.createValidators, validator.validate, groupController.create)
-router.get('/groups/:id', groupController.showValidators, validator.validate, groupController.show)
-router.put('/groups/:id', groupController.updateValidators, validator.validate, groupController.update)
-router.delete('/groups/:id', groupController.removeValidators, validator.validate, groupController.remove)
-router.get('/groups/:id/export', housingExportController.exportGroupValidators, validator.validate, housingExportController.exportGroup)
-router.post('/groups/:id/housing', groupController.addHousingValidators, validator.validate, groupController.addHousing)
-router.delete('/groups/:id/housing', groupController.removeHousingValidators, validator.validate, groupController.removeHousing)
+router.get('/groups', groupController.list);
+router.post('/groups', groupController.createValidators, validator.validate, groupController.create);
+router.get('/groups/:id', groupController.showValidators, validator.validate, groupController.show);
+router.put('/groups/:id', groupController.updateValidators, validator.validate, groupController.update);
+router.delete('/groups/:id', groupController.removeValidators, validator.validate, groupController.remove);
+router.get('/groups/:id/export', housingExportController.exportGroupValidators, validator.validate, housingExportController.exportGroup);
+router.post('/groups/:id/housing', groupController.addHousingValidators, validator.validate, groupController.addHousing);
+router.delete('/groups/:id/housing', groupController.removeHousingValidators, validator.validate, groupController.removeHousing);
 
 router.get('/campaigns', campaignController.listValidators, validator.validate, campaignController.list);
 router.post('/campaigns', campaignController.createValidators, validator.validate, campaignController.create);
@@ -58,10 +58,10 @@ router.get('/campaigns/:id', campaignController.getCampaignValidators, validator
 router.put('/campaigns/:id', campaignController.updateValidators, validator.validate, campaignController.update, campaignController.update);
 router.delete('/campaigns/:id', [isUUIDParam('id')], validator.validate, campaignController.removeCampaign);
 // TODO: replace by /groups/:id/campaigns
-router.post('/campaigns/:id/groups', campaignController.createCampaignFromGroupValidators, validator.validate, campaignController.createCampaignFromGroup)
-router.get('/campaigns/:id/export', housingExportController.exportCampaignValidators, validator.validate, housingExportController.exportCampaign)
+router.post('/campaigns/:id/groups', campaignController.createCampaignFromGroupValidators, validator.validate, campaignController.createCampaignFromGroup);
+router.get('/campaigns/:id/export', housingExportController.exportCampaignValidators, validator.validate, housingExportController.exportCampaign);
 router.get('/campaigns/:id/download', campaignController.getCampaignValidators, validator.validate, campaignController.downloadCampaign);
-router.delete('/campaigns/:id/housing', campaignController.removeHousingValidators, validator.validate, campaignController.removeHousing)
+router.delete('/campaigns/:id/housing', campaignController.removeHousingValidators, validator.validate, campaignController.removeHousing);
 
 router.get('/drafts', draftController.list);
 router.post('/drafts', draftController.createValidators, validator.validate, draftController.create);
@@ -76,8 +76,8 @@ router.put('/owners/:id', [param('id').isUUID().notEmpty(), ...ownerController.o
 router.get('/owners/housing/:housingId', ownerController.listByHousing);
 router.put('/owners/housing/:housingId', ownerController.updateHousingOwners);
 
-router.get('/owner-prospects', ownerProspectController.findOwnerProspectsValidators, validator.validate, ownerProspectController.find)
-router.put('/owner-prospects/:id', ownerProspectController.updateOwnerProspectValidators, validator.validate, ownerProspectController.update)
+router.get('/owner-prospects', ownerProspectController.findOwnerProspectsValidators, validator.validate, ownerProspectController.find);
+router.put('/owner-prospects/:id', ownerProspectController.updateOwnerProspectValidators, validator.validate, ownerProspectController.update);
 
 router.get('/owners/:id/events', [isUUIDParam('id')], validator.validate, eventController.listByOwnerId);
 router.get('/housing/:id/events', [isUUIDParam('id')], validator.validate, eventController.listByHousingId);
@@ -109,6 +109,6 @@ router.put('/establishments/:id/settings', settingsController.updateSettingsVali
 
 router.get('/dashboards/:id', dashboardController.findOneValidators, validator.validate, dashboardController.findOne);
 
-router.get('/datafoncier/housing/:localId', datafoncierController.findOne)
+router.get('/datafoncier/housing/:localId', datafoncierController.findOne);
 
 export default router;

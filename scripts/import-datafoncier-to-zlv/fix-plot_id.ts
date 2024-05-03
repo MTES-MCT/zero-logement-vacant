@@ -8,12 +8,12 @@ const processRow = async (housing: any) => {
   return new Promise<void>((resolve) => {
     progressBar.increment();
     const doProcess = async () => {
-      await db.raw(`UPDATE fast_housing SET plot_id='${housing.idpar}' WHERE local_id='${housing.local_id}'`)
+      await db.raw(`UPDATE fast_housing SET plot_id='${housing.idpar}' WHERE local_id='${housing.local_id}'`);
       resolve();
-    }
+    };
     doProcess();
-    })
-}
+    });
+};
 
 const main = async () => {
 
@@ -46,7 +46,7 @@ const main = async () => {
       queryStream.resume();
     }
   });
-}
+};
 
 main();
 

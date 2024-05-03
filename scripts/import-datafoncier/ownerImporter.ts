@@ -42,7 +42,7 @@ export function ownerImporter(
     .stopOnError((error) => {
       logger.error(error);
       throw error;
-    })
+    });
 }
 
 interface Result {

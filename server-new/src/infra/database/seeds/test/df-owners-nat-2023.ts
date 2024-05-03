@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
 
-import { genDatafoncierOwner } from '../../../server/test/testFixtures';
+import { genDatafoncierOwner } from '~/test/testFixtures';
 
 const DF_OWNERS_NAT_2023 = 'df_owners_nat_2023';
 

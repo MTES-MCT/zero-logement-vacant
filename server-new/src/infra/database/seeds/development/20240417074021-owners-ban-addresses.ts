@@ -1,11 +1,8 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { Knex } from 'knex';
 
-import { banAddressesTable } from '../../../server/repositories/banAddressesRepository';
-import {
-  OwnerDBO,
-  ownerTable,
-} from '../../../server/repositories/ownerRepository';
+import { banAddressesTable } from '~/repositories/banAddressesRepository';
+import { OwnerDBO, ownerTable } from '~/repositories/ownerRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   await knex(banAddressesTable).delete();

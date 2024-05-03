@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
 
-import { genDatafoncierHousing } from '../../../server/test/testFixtures';
+import { genDatafoncierHousing } from '~/test/testFixtures';
 
 const DF_HOUSING_NAT_2023 = 'df_housing_nat_2023';
 

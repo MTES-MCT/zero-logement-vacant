@@ -18,7 +18,7 @@
     "require": ["tsconfig-paths/register"]
   },
   "references": [
-    { "path": "../shared-new/tsconfig.build.json" }
+    { "path": "../shared/tsconfig.build.json"}
   ],
   "include": ["src"]
 }

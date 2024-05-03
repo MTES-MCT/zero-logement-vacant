@@ -11,7 +11,7 @@
   "workspaces": [
     "frontend-new",
     "server-new",
-    "shared-new",
+    "shared",
     "packages/**"
   ],
   "scripts": {

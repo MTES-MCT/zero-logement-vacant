@@ -17,6 +17,8 @@
   "rules": {
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-var-requires": "off",
-    "import/no-commonjs": "error"
+    "import/no-commonjs": "error",
+    "eqeqeq": ["error", "always"],
+    "semi": ["error", "always"]
   }
 }

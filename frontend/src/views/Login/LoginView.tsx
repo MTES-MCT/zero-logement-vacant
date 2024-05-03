@@ -18,7 +18,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
@@ -31,7 +31,7 @@ const LoginView = () => {
   const [establishmentId, setEstablishmentId] = useState<string>('');
 
   const { loginError, isLoggedOut } = useAppSelector(
-    (state) => state.authentication
+    (state) => state.authentication,
   );
 
   const shape = {
@@ -63,8 +63,8 @@ const LoginView = () => {
         login(
           email,
           password,
-          establishmentId.length ? establishmentId : undefined
-        )
+          establishmentId.length ? establishmentId : undefined,
+        ),
       );
     });
   }

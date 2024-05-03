@@ -4,7 +4,7 @@ import {
   ContactPoint,
   DraftContactPoint,
 } from '../../../../shared/models/ContactPoint';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import ContactPointEditionModal from '../../components/modals/ContactPointEditionModal/ContactPointEditionModal';
 import {
   TrackEventActions,
@@ -69,11 +69,11 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
       query
         ? contactPoints?.filter((cp) => cp.title.search(query) !== -1)
         : contactPoints,
-    [query, contactPoints]
+    [query, contactPoints],
   );
 
   const onSubmitEditingContactPoint = async (
-    contactPoint: DraftContactPoint | ContactPoint
+    contactPoint: DraftContactPoint | ContactPoint,
   ) => {
     const isDraft = !('id' in contactPoint);
     trackEvent({

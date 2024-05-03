@@ -24,7 +24,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
 import { findChild } from '../../utils/elementUtils';
@@ -230,10 +230,10 @@ const HousingList = ({
           _.uniq(
             campaignIds
               .map((campaignId) =>
-                campaignList?.find((c) => c.id === campaignId)
+                campaignList?.find((c) => c.id === campaignId),
               )
               .filter(isDefined)
-              .sort(campaignSort)
+              .sort(campaignSort),
           ).map((campaign, campaignIdx) => (
             <div key={id + '-campaign-' + campaignIdx}>
               <AppLink isSimple to={`/campagnes/${campaign.id}`}>
@@ -287,7 +287,7 @@ const HousingList = ({
   ];
   const submitHousingUpdate = async (
     housing: Housing,
-    housingUpdate: HousingUpdate
+    housingUpdate: HousingUpdate,
   ) => {
     trackEvent({
       category: location.pathname.includes('parc-de-logements')
@@ -334,7 +334,7 @@ const HousingList = ({
               'zlv-table',
               'with-modify-last',
               'with-row-number',
-              { 'with-select': onSelectHousing }
+              { 'with-select': onSelectHousing },
             )}
             data-testid="housing-table"
           />

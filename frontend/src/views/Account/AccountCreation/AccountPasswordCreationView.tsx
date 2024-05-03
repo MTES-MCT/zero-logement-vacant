@@ -17,7 +17,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 interface RouterState {
   prospect?: Prospect | undefined;
@@ -30,7 +30,7 @@ function AccountPasswordCreationView() {
   const { trackEvent } = useMatomo();
 
   const { linkExists, loading, prospect } = useProspect(
-    location.state?.prospect
+    location.state?.prospect,
   );
 
   const [password, setPassword] = useState('');

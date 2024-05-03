@@ -13,7 +13,7 @@ import { useAppDispatch } from '../../../hooks/useStore';
 import { useCreateUserMutation } from '../../../services/user.service';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import {
   TrackEventActions,
   TrackEventCategories,
@@ -33,7 +33,7 @@ function AccountCampaignIntentCreationView() {
   const password = location.state?.password;
 
   const [campaignIntent, setCampaignIntent] = useState<string | undefined>(
-    prospect?.establishment?.campaignIntent
+    prospect?.establishment?.campaignIntent,
   );
 
   const [createUser] = useCreateUserMutation();
@@ -50,7 +50,7 @@ function AccountCampaignIntentCreationView() {
 
   const disabled = useMemo<boolean>(
     () => !!prospect?.establishment?.campaignIntent,
-    [prospect?.establishment?.campaignIntent]
+    [prospect?.establishment?.campaignIntent],
   );
 
   async function createAccount(e: FormEvent) {

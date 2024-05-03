@@ -16,7 +16,7 @@ import CampaignStatusBadge from '../../components/Campaign/CampaignStatusBadge';
 import { displayCount } from '../../utils/stringUtils';
 import { Text } from '../../components/_dsfr';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import {
   TrackEventActions,
   TrackEventCategories,

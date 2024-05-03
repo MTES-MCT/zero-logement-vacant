@@ -7,7 +7,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 interface Props {
   onSelectAddress(addressSearchResult?: AddressSearchResult): void;
@@ -40,7 +40,7 @@ const AddressSearchableSelect = ({ onSelectAddress }: Props) => {
             _.map((address) => ({
               value: JSON.stringify(address),
               label: address.label,
-            }))
+            })),
           );
         })
         .catch((err) => console.log('error', err));

@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import classNames from 'classnames';
 import React, { useState } from 'react';
 
@@ -48,15 +48,15 @@ function HousingDetailsCard({
     useState(false);
 
   const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
-    housing.id
+    housing.id,
   );
   const { refetch: refetchHousingNotes } = useFindNotesByHousingQuery(
-    housing.id
+    housing.id,
   );
 
   const submitHousingUpdate = async (
     housing: Housing,
-    housingUpdate: HousingUpdate
+    housingUpdate: HousingUpdate,
   ) => {
     trackEvent({
       category: TrackEventCategories.Housing,
@@ -104,7 +104,7 @@ function HousingDetailsCard({
                 styles.link,
                 'fr-link',
                 'fr-ml-3w',
-                'float-right'
+                'float-right',
               )}
             >
               Voir sur la carte
@@ -122,7 +122,7 @@ function HousingDetailsCard({
                 event.kind === 'Update' &&
                 event.section === 'Situation' &&
                 event.name === "Modification du statut d'occupation" &&
-                event.old.occupancy !== event.new.occupancy
+                event.old.occupancy !== event.new.occupancy,
             )}
           />
           <HousingDetailsCardMobilisation

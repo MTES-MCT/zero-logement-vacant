@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { Col, Row, Text, Title } from '../../components/_dsfr';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import LocalityTaxCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { useLocalityList } from '../../hooks/useLocalityList';
 
@@ -44,18 +44,18 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
           (locality) =>
             (hasTLVFilter && locality.taxKind === TaxKinds.TLV) ||
             (hasTHLVFilter && locality.taxKind === TaxKinds.THLV) ||
-            (hasNoTaxFilter && locality.taxKind === TaxKinds.None)
-        )
+            (hasNoTaxFilter && locality.taxKind === TaxKinds.None),
+        ),
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxFilter]
+    [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxFilter],
   );
 
   const onSubmitEditingLocalityTax = (
     geoCode: string,
     taxKind: TaxKinds,
-    taxRate?: number
+    taxRate?: number,
   ) => {
     trackEvent({
       category: TrackEventCategories.LocalityTaxes,

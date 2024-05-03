@@ -1,2 +1,2 @@
-web: npm run start
-queue: npm run queue:start
+web: yarn start
+queue: yarn queue:start

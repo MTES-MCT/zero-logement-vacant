@@ -94,13 +94,13 @@ class BrevoService implements MailService {
       .trackEvent(email, 'housing:exported', {
         priority: data.priority,
       })
-      .catch(console.error);
+      .catch(logger.error);
   }
 
   private ownerProspectCreated(email: string) {
     this.events
       .trackEvent(email, 'owner-prospect:created')
-      .catch(console.error);
+      .catch(logger.error);
   }
 
   private prospectInitialized(
@@ -134,7 +134,7 @@ class BrevoService implements MailService {
         },
       })
       .then(() => this.events.trackEvent(email, 'user:created'))
-      .catch(console.error);
+      .catch(logger.error);
   }
 }
 

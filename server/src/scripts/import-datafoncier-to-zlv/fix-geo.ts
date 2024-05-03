@@ -4,8 +4,8 @@ import { Map } from 'immutable';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 
+import db from '~/infra/database';
 import { logger } from '~/infra/logger';
-import db from '~/infra/database/';
 
 const progressBarBAN = new SingleBar({}, Presets.shades_classic);
 const progressBarUpdate = new SingleBar({}, Presets.shades_classic);

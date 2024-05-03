@@ -9,8 +9,9 @@
   },
   "packageManager": "yarn@4.1.1",
   "workspaces": [
-    "frontend-new",
-    "server-new",
+    "frontend",
+    "queue",
+    "server",
     "shared",
     "packages/**"
   ],

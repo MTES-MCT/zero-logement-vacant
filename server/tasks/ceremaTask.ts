@@ -8,6 +8,7 @@ import ceremaService from '../services/ceremaService';
 import mailService from '../services/mailService';
 import config from '../utils/config';
 import { logger } from '../utils/logger';
+import async from 'async';
 
 const run = async (): Promise<void> => {
   if (config.application.isReviewApp) {
@@ -22,11 +23,11 @@ const run = async (): Promise<void> => {
   }
   let count = 0;
 
-  await Promise.all(emails.map(async (email) => {
+  await async.forEach(emails, async (email) => {
     const user = await userRepository.getByEmail(email);
-    if (user == null) {
+    if (user === null) {
       const link = await signupLinkRepository.getByEmail(email);
-      if (link == null) {
+      if (link === null) {
         count++;
 
         const link: SignupLinkApi = {
@@ -49,11 +50,11 @@ const run = async (): Promise<void> => {
         });
       }
     }
-  }));
+  });
 
   logger.info(`${count} users invited from Cerema API (LOVAC users)`);
 }
 
 run()
-  .catch(console.error)
+  .catch(logger.error)
   .finally(() => db.destroy());

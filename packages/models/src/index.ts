@@ -1,4 +1,5 @@
-export * from './AdresseDTO';
+export * from './AddressDTO';
+export * from './CampaignDTO';
 export * from './ContactPoint';
 export * from './DatafoncierHousing';
 export * from './DatafoncierOwner';
@@ -14,6 +15,8 @@ export * from './NoteDTO';
 export * from './OwnerDTO';
 export * from './Pagination';
 export * from './RolesDTO';
+export * from './SenderDTO';
 export * from './SettingsDTO';
 export * from './TimePerWeek';
 export * from './UserDTO';
+export * from './variable-options';

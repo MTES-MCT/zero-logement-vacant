@@ -1,4 +1,4 @@
-import { UserAccountDTO, UserDTO } from '@zerologementvacant/shared';
+import { UserAccountDTO, UserDTO } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
 
 export const SALT_LENGTH = 10;

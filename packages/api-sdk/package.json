@@ -1,0 +1,32 @@
+{
+  "name": "@zerologementvacant/api-sdk",
+  "engines": {
+    "node": "^20",
+    "yarn": "^4"
+  },
+  "packageManager": "yarn@4.1.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo",
+    "build": "tsc -b tsconfig.build.json"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@tsconfig/node20": "^20.1.4",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.12.3",
+    "jest": "^29.7.0",
+    "jest-extended": "^4.0.2",
+    "nock": "^13.5.4",
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "@zerologementvacant/models": "workspace:^",
+    "@zerologementvacant/utils": "workspace:^",
+    "axios": "^1.6.8",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

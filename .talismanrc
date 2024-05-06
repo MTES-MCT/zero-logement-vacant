@@ -37,7 +37,7 @@ fileignoreconfig:
 - filename: server/repositories/campaignRepository.ts
   checksum: ab0dcf6bbf41a911aef0755c619c92d18bd04dc651c6ecaf8b1c53ffd5a82309
 - filename: server/services/mailService/brevoService.ts
-  checksum: f0b32c2386a0f56a088fc6c4226bb3fc40070b6aa1a32bb0e154c2eee4c1e7c5
+  checksum: 4222e335e8cb0c7ac7c165e8656a8a5dc38ce32c5e85fcec634a3faeec55dd2c
 scopeconfig:
 - scope: node
 allowed_patterns:

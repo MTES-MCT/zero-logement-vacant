@@ -21,11 +21,15 @@ class BrevoService implements MailService {
   private events: EventsApi;
 
   constructor() {
-    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-    apiInstance.authentications['apiKey'] = config.mailer.apiKey;
+    if (!config.mailer.apiKey) {
+      throw new Error('Provide an API key for Sendinblue');
+    }
 
-    this.emails = new apiInstance.TransactionalEmailsApi();
-    this.contacts = new apiInstance.ContactsApi();
+    this.contacts = new SibApiV3Sdk.ContactsApi();
+    this.contacts.setApiKey(SibApiV3Sdk.ContactsApiApiKeys.apiKey, config.mailer.apiKey);
+
+    this.emails = new SibApiV3Sdk.TransactionalEmailsApi();
+    this.emails.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, config.mailer.apiKey);
 
     // FIXME
     this.events = new EventsApi(config.mailer.eventApiKey as string);
@@ -140,8 +144,5 @@ class BrevoService implements MailService {
 }
 
 export default function createSendinblueService(): MailService {
-  if (!config.mailer.apiKey) {
-    throw new Error('Provide an API key for Sendinblue');
-  }
   return new BrevoService();
 }

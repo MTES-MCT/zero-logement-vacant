@@ -41,7 +41,7 @@ async function getCampaign(request: Request, response: Response) {
   const campaignId = request.params.id;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
-  logger.info('Get campaign', { campaignId });
+  logger.info('Get campaign', { campaignId, establishmentId });
 
   const campaign = await campaignRepository.findOne({
     id: campaignId,

@@ -8,22 +8,13 @@ import exceljs from 'exceljs';
 import { parseRedisUrl } from 'parse-redis-url-simple';
 import { Readable } from 'node:stream';
 
+import { createSDK } from '@zerologementvacant/api-sdk';
+import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
+import { getAddress, replaceVariables } from '@zerologementvacant/models';
+import { createS3, slugify, toBase64 } from '@zerologementvacant/utils';
 import { Jobs } from '../jobs';
-import campaignRepository from '../../../server/repositories/campaignRepository';
-import CampaignMissingError from '../../../server/errors/campaignMissingError';
-import draftRepository from '../../../server/repositories/draftRepository';
-import DraftMissingError from '../../../server/errors/draftMissingError';
-import pdf from '../../../server/utils/pdf';
-import { slugify } from '../../../server/utils/stringUtils';
 import config from '../config';
 import { createLogger } from '../logger';
-import housingRepository from '../../../server/repositories/housingRepository';
-import ownerRepository from '../../../server/repositories/ownerRepository';
-import { createS3, toBase64 } from '../../../shared/utils/s3';
-import DRAFT_TEMPLATE_FILE, {
-  DraftData,
-} from '../../../server/templates/draft';
-import { getAddress, replaceVariables } from '../../../shared';
 
 type Name = 'campaign:generate';
 type Args = Jobs[Name];
@@ -51,33 +42,36 @@ export default function createWorker() {
     'campaign:generate',
     async (job) => {
       const { campaignId, establishmentId } = job.data;
+      const api = createSDK({
+        establishment: establishmentId,
+      });
 
       logger.info('Generating mail for campaign', job.data);
 
-      const campaign = await campaignRepository.findOne({
-        id: campaignId,
-        establishmentId,
-      });
+      const campaign = await api.campaign.get(campaignId);
       if (!campaign) {
-        throw new CampaignMissingError(campaignId);
+        throw new Error(`Campaign ${campaignId} missing`);
       }
 
-      const housings = await housingRepository.find({
-        filters: {
-          establishmentIds: [establishmentId],
-          campaignIds: [campaignId],
-        },
-      });
+      const [housings, drafts] = await Promise.all([
+        api.housing.find({
+          filters: {
+            campaignIds: [campaignId],
+          },
+          pagination: {
+            paginate: false,
+          },
+        }),
+        api.draft.find({
+          filters: {
+            campaign: campaign.id,
+          },
+        }),
+      ]);
 
-      const drafts = await draftRepository.find({
-        filters: {
-          campaign: campaign.id,
-          establishment: establishmentId,
-        },
-      });
       const [draft] = drafts;
       if (!draft) {
-        throw new DraftMissingError('');
+        throw new Error('Draft missing');
       }
 
       const html: string[] = [];
@@ -87,7 +81,7 @@ export default function createWorker() {
 
       // Download logos
       const logos = await async.map(draft.logo ?? [], async (logo: string) =>
-        toBase64(logo, { s3, bucket: config.s3.bucket })
+        toBase64(logo, { s3, bucket: config.s3.bucket }),
       );
       const signature = draft.sender.signatoryFile
         ? await toBase64(draft.sender.signatoryFile, {
@@ -97,7 +91,7 @@ export default function createWorker() {
         : null;
 
       await async.forEach(housings, async (housing) => {
-        const owners = await ownerRepository.findByHousing(housing);
+        const owners = [housing.owner];
         const address = getAddress(owners[0]);
 
         worksheet.addRow([
@@ -136,7 +130,7 @@ export default function createWorker() {
               address: address,
               additionalAddress: owners[0].additionalAddress ?? '',
             },
-          })
+          }),
         );
       });
 
@@ -178,11 +172,11 @@ export default function createWorker() {
 
       logger.info(`Generated signed URL: ${signedUrl}`);
 
-      await campaignRepository.save({
+      await api.campaign.update(campaign.id, {
         ...campaign,
         file: signedUrl,
       });
     },
-    workerConfig
+    workerConfig,
   );
 }

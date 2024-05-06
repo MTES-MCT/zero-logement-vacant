@@ -8,7 +8,7 @@ import {
 } from '~/models/SignupLinkApi';
 import randomstring from 'randomstring';
 import { addHours } from 'date-fns';
-import mailService from '../services/mailService';
+import mailService from '~/services/mailService';
 import signupLinkRepository from '~/repositories/signupLinkRepository';
 import { body, param, ValidationChain } from 'express-validator';
 import SignupLinkMissingError from '~/errors/signupLinkMissingError';

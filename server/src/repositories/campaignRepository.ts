@@ -1,13 +1,13 @@
 import { Knex } from 'knex';
 import { parseRedisUrl } from 'parse-redis-url-simple';
 
+import { CampaignStatus, HousingFiltersDTO } from '@zerologementvacant/models';
+import { createQueue } from '@zerologementvacant/queue';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import db from '~/infra/database';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
 import { logger } from '~/infra/logger';
 import { sortQuery } from '~/models/SortApi';
-import { CampaignStatus, HousingFiltersDTO } from '@zerologementvacant/models';
-import { createQueue } from '@zerologementvacant/queue';
 import config from '~/infra/config';
 
 export const campaignsTable = 'campaigns';

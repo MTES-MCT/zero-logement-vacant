@@ -1,7 +1,10 @@
+import { OwnerDTO } from './OwnerDTO';
+
 export interface HousingDTO {
   id: string;
   geoCode: string;
   localId: string;
+  owner: OwnerDTO;
   // TODO: complete this type
 }
 

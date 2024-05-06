@@ -1,4 +1,4 @@
-import { createLogger as logger } from '../../shared';
+import { createLogger as logger } from '@zerologementvacant/utils';
 import config, { isProduction } from './config';
 
 export function createLogger(name: string) {

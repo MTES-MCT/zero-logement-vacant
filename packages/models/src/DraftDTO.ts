@@ -28,3 +28,7 @@ export interface DraftUpdatePayloadDTO
   > {
   sender: SenderPayloadDTO;
 }
+
+export interface DraftFiltersDTO {
+  campaign?: string;
+}

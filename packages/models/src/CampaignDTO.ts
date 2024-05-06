@@ -41,6 +41,6 @@ export interface CampaignCreationPayloadDTO extends Pick<CampaignDTO, 'title'> {
 }
 
 export interface CampaignUpdatePayloadDTO
-  extends Pick<CampaignDTO, 'title' | 'status'> {
+  extends Pick<CampaignDTO, 'title' | 'status' | 'file'> {
   sentAt?: string;
 }

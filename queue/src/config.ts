@@ -2,7 +2,7 @@ import convict from 'convict';
 import dotenv from 'dotenv';
 import path from 'node:path';
 
-import { LOG_LEVELS, LogLevel } from '../../shared';
+import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
 export const isProduction = process.env.NODE_ENV === 'production';
 

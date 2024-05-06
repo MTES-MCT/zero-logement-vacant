@@ -4,9 +4,11 @@ import { CampaignAPI, createCampaignAPI } from './campaign-api';
 import createTokenProvider from './infra/token-provider';
 import config from './infra/config';
 import createErrorHandler from './infra/error-handler';
+import { createHousingAPI, HousingAPI } from './housing-api';
 
 interface SDK {
-  campaigns: CampaignAPI;
+  campaign: CampaignAPI;
+  housing: HousingAPI;
 }
 
 interface Options {
@@ -21,6 +23,7 @@ export function createSDK(opts: Options): SDK {
   http.interceptors.response.use(undefined, createErrorHandler());
 
   return {
-    campaigns: createCampaignAPI(http),
+    campaign: createCampaignAPI(http),
+    housing: createHousingAPI(http),
   };
 }

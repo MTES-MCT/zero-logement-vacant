@@ -1,3 +1,10 @@
+export interface HousingDTO {
+  id: string;
+  geoCode: string;
+  localId: string;
+  // TODO: complete this type
+}
+
 export interface HousingPayloadDTO {
   localId: string;
 }

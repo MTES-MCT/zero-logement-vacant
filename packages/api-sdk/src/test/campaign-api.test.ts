@@ -17,7 +17,7 @@ describe('Campaign API', () => {
         .get(`/campaigns/${id}`)
         .reply(constants.HTTP_STATUS_NOT_FOUND);
 
-      const actual = await api.campaigns.get(id);
+      const actual = await api.campaign.get(id);
 
       expect(actual).toBeNull();
     });
@@ -29,7 +29,7 @@ describe('Campaign API', () => {
         .get(`/campaigns/${id}`)
         .reply(constants.HTTP_STATUS_OK, campaign);
 
-      const actual = await api.campaigns.get(id);
+      const actual = await api.campaign.get(id);
 
       expect(actual).toStrictEqual(campaign);
     });

@@ -22,9 +22,10 @@ EOSQL
 echo "Databases created."
 
 # Create database structure
-cd server-new && yarn run migrate
+cd ../server && yarn run migrate
 echo "Migrated."
 
+cd -
 docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/001-load-establishments_com_epci_reg_dep.sql -v filePath=data/common/com_epci_dep_reg.csv
 echo "EPCI loaded."
 docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/002-load-establishments_direction_territoriale.sql -v filePath=data/common/direction_territoriale.csv
@@ -36,5 +37,7 @@ echo "Housings loaded."
 docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/006-load-locality-taxes.sql -v filePath=data/common/taxe.csv
 echo "Taxes loaded."
 
-yarn run seed
+cd ../server
+yarn seed
 echo "Data loaded."
+cd -

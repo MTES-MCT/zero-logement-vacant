@@ -2,8 +2,7 @@
 
 ## Initialize a new package
 
-- Create a new folder `packages/<your-package>`
-- Copy the files from the `template` folder
+- Copy the `template` folder to `packages/<your-package>` and rename it
 - Inside `package.json`, change the `"name"` field
 - Inside your package, create a folder named `src`
 

@@ -46,7 +46,7 @@
     "@aws-sdk/lib-storage": "^3.556.0",
     "@aws-sdk/s3-request-presigner": "^3.540.0",
     "@faker-js/faker": "^8.4.1",
-    "@getbrevo/brevo": "^2.1.0",
+    "@getbrevo/brevo": "^1.0.1",
     "@godaddy/terminus": "^4.12.1",
     "@jest-mock/express": "^1.4.5",
     "@sendinblue/client": "^3.3.1",

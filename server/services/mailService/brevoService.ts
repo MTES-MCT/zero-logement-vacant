@@ -2,7 +2,7 @@ import { ContactsApi, TransactionalEmailsApi } from '@sendinblue/client';
 import { sibTracker as EventsApi } from '@wecre8websites/sendinblue-tracker';
 // TODO: remove custom types when it will be officially supported.
 // See https://github.com/getbrevo/brevo-node/issues/1
-import SibApiV3Sdk from '@getbrevo/brevo';
+import Brevo from '@getbrevo/brevo';
 
 import { MailEvent, MailService, SendOptions } from './mailService';
 import config from '../../utils/config';
@@ -25,11 +25,11 @@ class BrevoService implements MailService {
       throw new Error('Provide an API key for Sendinblue');
     }
 
-    this.contacts = new SibApiV3Sdk.ContactsApi();
-    this.contacts.setApiKey(SibApiV3Sdk.ContactsApiApiKeys.apiKey, config.mailer.apiKey);
+    const client = Brevo.ApiClient.instance;
+    client.authentications['api-key'].apiKey = config.mailer.apiKey;
 
-    this.emails = new SibApiV3Sdk.TransactionalEmailsApi();
-    this.emails.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, config.mailer.apiKey);
+    this.emails = new Brevo.TransactionalEmailsApi();
+    this.contacts = new Brevo.ContactsApi();
 
     // FIXME
     this.events = new EventsApi(config.mailer.eventApiKey as string);

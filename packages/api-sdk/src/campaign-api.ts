@@ -1,15 +1,32 @@
 import { AxiosInstance } from 'axios';
 
-import { CampaignDTO } from '@zerologementvacant/models';
+import {
+  CampaignDTO,
+  CampaignUpdatePayloadDTO,
+} from '@zerologementvacant/models';
 
 export interface CampaignAPI {
   get(id: CampaignDTO['id']): Promise<CampaignDTO | null>;
+  update(
+    id: CampaignDTO['id'],
+    campaign: CampaignUpdatePayloadDTO,
+  ): Promise<CampaignDTO>;
 }
 
 export function createCampaignAPI(http: AxiosInstance): CampaignAPI {
   return {
     async get(id: string): Promise<CampaignDTO> {
       const response = await http.get<CampaignDTO>(`/campaigns/${id}`);
+      return response.data;
+    },
+    async update(
+      id: string,
+      campaign: CampaignUpdatePayloadDTO,
+    ): Promise<CampaignDTO> {
+      const response = await http.put<CampaignDTO>(
+        `/campaigns/${id}`,
+        campaign,
+      );
       return response.data;
     },
   };

@@ -12,7 +12,8 @@ export default function createTokenProvider(establishment: string) {
   ): Promise<InternalAxiosRequestConfig> => {
     const token = cache.get(establishment) ?? (await fetchToken(establishment));
 
-    config.headers.set('Authorization', `Bearer ${token}`);
+    // TODO: change this to "Authorization: `Bearer ${token}`"
+    config.headers.set('x-access-token', token);
     return config;
   };
 }

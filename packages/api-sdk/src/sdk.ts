@@ -1,13 +1,15 @@
 import axios from 'axios';
 
-import { CampaignAPI, createCampaignAPI } from './campaign-api';
-import createTokenProvider from './infra/token-provider';
 import config from './infra/config';
 import createErrorHandler from './infra/error-handler';
+import createTokenProvider from './infra/token-provider';
+import { CampaignAPI, createCampaignAPI } from './campaign-api';
+import { createDraftAPI, DraftAPI } from './draft-api';
 import { createHousingAPI, HousingAPI } from './housing-api';
 
 interface SDK {
   campaign: CampaignAPI;
+  draft: DraftAPI;
   housing: HousingAPI;
 }
 
@@ -24,6 +26,7 @@ export function createSDK(opts: Options): SDK {
 
   return {
     campaign: createCampaignAPI(http),
+    draft: createDraftAPI(http),
     housing: createHousingAPI(http),
   };
 }

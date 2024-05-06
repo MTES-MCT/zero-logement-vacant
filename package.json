@@ -17,19 +17,11 @@
   ],
   "scripts": {
     "copy": "copyfiles -V 'server/**/*.css' 'server/**/*.hbs' dist",
-    "queue:clean": "rimraf dist/queue",
-    "queue:build": "tsc -b queue/tsconfig.build.json",
-    "queue:dev": "cd queue && nodemon src/bin/index.ts",
-    "queue:start-local": "node --env-file=.env dist/queue/src/bin/index.js",
-    "queue:start": "node dist/queue/src/bin/index.js",
-    "queue:test": "cd queue && jest",
     "prepare": "husky",
     "clean": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Ap run clean",
     "build": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -pt --since=origin/main run build",
-    "start": "yarn workspace @zerologementvacant/server run start",
     "lint": "eslint .",
-    "test": "yarn workspaces foreach --exclude=. -Ap run test",
-    "db": "knex --knexfile=./server-new/src/infra/database/knexfile.ts"
+    "test": "yarn workspaces foreach --exclude=. -Ap run test"
   },
   "keywords": [],
   "author": "",

@@ -2,7 +2,6 @@
   "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -17,9 +16,5 @@
   "ts-node": {
     "require": ["tsconfig-paths/register"]
   },
-  "references": [
-    { "path": "../shared/tsconfig.build.json"},
-    { "path": "../queue/tsconfig.build.json" }
-  ],
   "include": ["src"]
 }

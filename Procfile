@@ -1,2 +1,2 @@
-web: yarn start
-queue: yarn queue:start
+web: yarn workspace @zerologementvacant/server start
+queue: yarn workspace @zerologementvacant/queue run start

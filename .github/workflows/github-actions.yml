@@ -64,6 +64,8 @@ jobs:
 
       - name: Test
         run: yarn test
+        env:
+          LOG_LEVEL: fatal
 
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations

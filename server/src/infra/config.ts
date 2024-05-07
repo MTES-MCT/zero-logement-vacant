@@ -190,6 +190,7 @@ const config = convict<Config>({
       format: String,
       sensitive: true,
       default: null,
+      nullable: !isProduction,
     },
   },
   datafoncier: {
@@ -303,6 +304,7 @@ const config = convict<Config>({
       env: 'METABASE_TOKEN',
       format: String,
       default: null,
+      nullable: !isProduction,
       sensitive: true,
     },
   },
@@ -318,7 +320,6 @@ const config = convict<Config>({
       env: 'REDIS_URL',
       format: String,
       default: isProduction ? null : 'redis://localhost:6379',
-      nullable: false,
     },
   },
   s3: {

@@ -19,7 +19,6 @@ import {
 } from 'react-router-dom';
 
 import './App.scss';
-import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import LoginView from './views/Login/LoginView';
 import HousingListView from './views/HousingList/HousingListView';
@@ -48,6 +47,8 @@ import GroupView from './views/Group/GroupView';
 import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
 import Notification from './components/Notification/Notification';
+import SmallHeader from './components/Header/SmallHeader';
+import Header from './components/Header/Header';
 
 declare module '@codegouvfr/react-dsfr/spa' {
   interface RegisterLink {
@@ -174,7 +175,7 @@ function App() {
   return (
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
-        <Header />
+        {isAuthenticated ? <SmallHeader /> : <Header />}
         <ScrollToTop />
 
         <Switch>

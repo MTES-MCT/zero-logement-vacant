@@ -116,6 +116,7 @@ function GroupAddHousingModal(props: Props) {
       <Button
         className={props.className}
         priority="secondary"
+        size="small"
         onClick={() => {
           setMode('default');
           modal.open();

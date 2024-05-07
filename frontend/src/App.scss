@@ -289,6 +289,7 @@ button.fr-select {
     width: 100%;
     display: none;
     padding: 0.5rem 1rem;
+    white-space: pre-wrap;
 
     &.select-multi-options__visible {
       display: inherit;
@@ -306,10 +307,6 @@ button.fr-select {
       margin-top: 0;
     }
   }
-}
-
-.select-search-input {
-  margin-top: 0.5rem;
 }
 
 .status-label {

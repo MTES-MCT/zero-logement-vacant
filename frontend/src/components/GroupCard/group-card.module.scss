@@ -5,9 +5,19 @@
   padding: 1rem;
 
   border: 1px solid var(--light-border-default-grey, #ddd);
+
+  &:hover {
+    background-color: var(--border-action-low-blue-france);
+  }
+
+  &.active {
+    background-color: var(--border-action-low-blue-france);
+    border-color: var(--border-action-high-blue-france);
+  }
 }
 
 .title {
+  font-weight: 500 !important;
   text-overflow: ellipsis;
   overflow-x: hidden;
   white-space: nowrap;

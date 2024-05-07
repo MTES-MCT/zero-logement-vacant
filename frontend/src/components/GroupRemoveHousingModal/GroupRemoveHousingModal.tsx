@@ -19,6 +19,7 @@ function GroupRemoveHousingModal(props: Props) {
         children: 'Supprimer du groupe',
         iconId: 'ri-close-line',
         priority: 'secondary',
+        size: 'small',
       }}
       size="large"
       title={title}

@@ -14,7 +14,6 @@ import {
 } from '../../../test/fixtures.test';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
-import { ownerKindOptions } from '../../models/HousingFilters';
 import userEvent from '@testing-library/user-event';
 import {
   getRequestCalls,
@@ -27,6 +26,8 @@ import { AppStore } from '../../store/store';
 import * as randomstring from 'randomstring';
 import { Housing } from '../../models/Housing';
 import { Group } from '../../models/Group';
+import fp from 'lodash/fp';
+import { Owner } from '../../models/Owner';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -93,8 +94,83 @@ describe('Housing list view', () => {
     store = configureTestStore();
   });
 
-  test('should show filters side menu', async () => {
-    fetchMock.mockResponse(defaultFetchMock);
+  it('should filter by housing kind', async () => {
+    const housings: Housing[] = [
+      genHousing(),
+      { ...genHousing(), housingKind: 'MAISON' },
+      { ...genHousing(), housingKind: 'APPART' },
+      { ...genHousing(), housingKind: 'APPART' },
+    ];
+    const apartments = housings.filter(
+      (housing) => housing.housingKind === 'APPART'
+    );
+    const uniqueOwners = fp.pipe(
+      fp.map<Housing, Owner>((housing) => housing.owner),
+      fp.uniqBy<Owner>('id')
+    );
+    mockRequests([
+      {
+        pathname: '/api/groups',
+        response: {
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/housing',
+        persist: true,
+        response: async (request) => {
+          const body = await request.json();
+          const { housingKinds, status } = body.filter;
+          const filtered = housings
+            .filter((housing) => (status ? status === housing.status : true))
+            .filter((housing) =>
+              housingKinds ? housingKinds.includes(housing.housingKind) : true
+            );
+          return {
+            body: JSON.stringify(genPaginatedResult(filtered)),
+          };
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        persist: true,
+        response: async (request) => {
+          const body = await request.json();
+          const { housingKinds, status } = body.filters;
+          const filtered = housings
+            .filter((housing) => (status ? status === housing.status : true))
+            .filter((housing) =>
+              housingKinds ? housingKinds.includes(housing.housingKind) : true
+            );
+          return {
+            body: JSON.stringify({
+              housing: filtered.length,
+              owners: uniqueOwners(filtered).length,
+            }),
+          };
+        },
+      },
+      {
+        pathname: '/api/campaigns',
+        response: {
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/geo/perimeters',
+        response: {
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/localities',
+        response: {
+          body: JSON.stringify([]),
+        },
+      },
+    ]);
+
     render(
       <Provider store={store}>
         <Router history={createMemoryHistory()}>
@@ -103,64 +179,14 @@ describe('Housing list view', () => {
       </Provider>
     );
 
-    const seeFilters = await screen.findByTestId('filter-button');
-    await user.click(seeFilters);
-
-    const filters = await screen.findByText('Tous les filtres');
-    expect(filters).toBeVisible();
-  });
-
-  test('should filter', async () => {
-    fetchMock.mockResponse(defaultFetchMock);
-
-    render(
-      <Provider store={store}>
-        <Router history={createMemoryHistory()}>
-          <HousingListView />
-        </Router>
-      </Provider>
-    );
-
-    const seeFilters = await screen.findByTestId('filter-button');
-    await user.click(seeFilters);
-
-    const ownerFilters = await screen.findByTestId('ownerkind-filter');
-
-    const ownerKindInput = await within(ownerFilters).findByText(/Type/);
-    await user.click(ownerKindInput);
-
-    const ownerKindCheckboxes = await screen.findAllByLabelText(
-      ownerKindOptions[0].label
-    );
-    await user.click(ownerKindCheckboxes[0]);
-
-    const requests = await getRequestCalls(fetchMock);
-
-    expect(requests).toContainEqual({
-      url: `${config.apiEndpoint}/api/housing`,
-      method: 'POST',
-      body: {
-        filters: {
-          ...initialHousingFilters,
-          ownerKinds: [ownerKindOptions[0].value],
-        },
-        page: 1,
-        perPage: config.perPageDefault,
-        paginate: true,
-      },
+    const accordion = await screen.findByRole('button', { name: /^Logement/ });
+    await user.click(accordion);
+    const checkbox = await screen.findByRole('checkbox', {
+      name: /^Appartement/,
     });
-
-    expect(requests).toContainEqual({
-      url: `${config.apiEndpoint}/api/housing/count`,
-      method: 'POST',
-      body: {
-        filters: {
-          dataYearsExcluded: initialHousingFilters.dataYearsExcluded,
-          dataYearsIncluded: initialHousingFilters.dataYearsIncluded,
-          occupancies: initialHousingFilters.occupancies,
-        },
-      },
-    });
+    await user.click(checkbox);
+    const text = `${apartments.length} logements (${apartments.length} propriétaires) filtrés sur un total de ${housings.length} logements`;
+    await screen.findByText(text);
   });
 
   test('should search', async () => {

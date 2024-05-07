@@ -1,7 +1,6 @@
 import ExcelJS from 'exceljs';
 import FormData from 'form-data';
 import fs from 'fs';
-import fetch, { Response as FetchResponse } from 'node-fetch';
 
 import config from '~/infra/config';
 import db from '~/infra/database/';
@@ -62,7 +61,7 @@ const run = async (): Promise<void> => {
         body: form,
       });
     })
-    .then((fetchResponse: FetchResponse) => fetchResponse.text());
+    .then((fetchResponse: Response) => fetchResponse.text());
 
   fs.unlinkSync(tmpCsvFileName);
 

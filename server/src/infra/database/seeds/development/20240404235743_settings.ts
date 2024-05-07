@@ -1,3 +1,4 @@
+import async from 'async';
 import { Knex } from 'knex';
 import fp from 'lodash/fp';
 
@@ -7,7 +8,6 @@ import {
   formatSettingsApi,
   settingsTable,
 } from '~/repositories/settingsRepository';
-import async from 'async';
 
 export async function seed(knex: Knex): Promise<void> {
   const establishments = await knex(establishmentsTable).select('id');

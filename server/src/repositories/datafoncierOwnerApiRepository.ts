@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 import { createQuery, DatafoncierOwner } from '@zerologementvacant/shared';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
@@ -35,7 +33,8 @@ const find = async (opts: FindOptions): Promise<DatafoncierOwner[]> => {
     return [];
   }
 
-  const data: DatafoncierResultDTO<DatafoncierOwner> = await response.json();
+  const data =
+    (await response.json()) as DatafoncierResultDTO<DatafoncierOwner>;
   logger.debug(`Found ${data.results.length} datafoncier owners.`);
   return data.results;
 };

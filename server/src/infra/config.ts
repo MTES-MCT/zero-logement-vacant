@@ -2,7 +2,6 @@ import convict from 'convict';
 import formats from 'convict-format-with-validator';
 import dotenv from 'dotenv';
 import path from 'node:path';
-import { v4 as uuidv4 } from 'uuid';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/shared';
 

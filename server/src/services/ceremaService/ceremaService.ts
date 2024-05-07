@@ -1,5 +1,4 @@
 import { CeremaUser, ConsultUserService } from './consultUserService';
-import fetch from 'node-fetch';
 
 import config from '~/infra/config';
 
@@ -16,7 +15,7 @@ class CeremaService implements ConsultUserService {
           },
         },
       );
-      const users = await response.json();
+      const users: any = await response.json();
       if (users) {
         return users.map(
           (user: { email: any; siret: string; lovac_ok: boolean }) => ({

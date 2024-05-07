@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 import { logger } from '~/infra/logger';
 import config from '~/infra/config';
 import { createQuery, DatafoncierHousing } from '@zerologementvacant/shared';
@@ -34,7 +32,8 @@ const find = async (opts: FindOptions): Promise<DatafoncierHousing[]> => {
     return [];
   }
 
-  const data: DatafoncierResultDTO<DatafoncierHousing> = await response.json();
+  const data =
+    (await response.json()) as DatafoncierResultDTO<DatafoncierHousing>;
   return data.results.filter(isAllowed);
 };
 
@@ -57,7 +56,7 @@ const findOne = async (
     logger.error('Cannot fetch datafoncier housing', response.statusText);
     return null;
   }
-  const housing: DatafoncierHousing = await response.json();
+  const housing = (await response.json()) as DatafoncierHousing;
   return isAllowed(housing) ? housing : null;
 };
 

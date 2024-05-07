@@ -5,7 +5,7 @@ import { FileUploadDTO } from '@zerologementvacant/models';
 import FileUploadError from '~/errors/fileUploadError';
 
 function create(request: Request, response: Response<FileUploadDTO>): void {
-  const { file } = request;
+  const file = request.file as Express.MulterS3.File;
 
   if (!file) {
     throw new FileUploadError();

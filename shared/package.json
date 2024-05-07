@@ -4,7 +4,7 @@
     "node": "^20",
     "yarn": "^4"
   },
-  "packageManager": "yarn@4.1.1",
+  "packageManager": "yarn@4.2.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -13,9 +13,11 @@
     "test": "jest"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@tsconfig/node20": "^20.1.4",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.14.191",
+    "@types/node": "^20.12.10",
     "jest": "^29.7.0",
     "jest-extended": "^4.0.2",
     "rimraf": "^5.0.5",
@@ -23,6 +25,7 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.569.0",
     "lodash": "^4.17.21",
     "pino": "^8.19.0",
     "pino-pretty": "^11.0.0"

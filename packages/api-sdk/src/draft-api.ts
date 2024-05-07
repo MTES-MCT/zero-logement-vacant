@@ -13,9 +13,7 @@ export function createDraftAPI(http: AxiosInstance): DraftAPI {
       const query = createQuery({
         ...opts?.filters,
       });
-      const response = await http.get('/drafts', {
-        params: query,
-      });
+      const response = await http.get(`/drafts${query}`);
       return response.data;
     },
   };

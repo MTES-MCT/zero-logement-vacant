@@ -18,7 +18,7 @@ export function createHousingAPI(http: AxiosInstance): HousingAPI {
           'Content-Type': 'application/json',
         },
       });
-      return response.data;
+      return response.data.entities;
     },
   };
 }

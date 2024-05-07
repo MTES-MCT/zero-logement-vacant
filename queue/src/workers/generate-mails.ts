@@ -44,6 +44,10 @@ export default function createWorker() {
       const { campaignId, establishmentId } = job.data;
       const api = createSDK({
         establishment: establishmentId,
+        db: {
+          url: config.db.url,
+        },
+        serviceAccount: config.auth.serviceAccount,
       });
 
       logger.info('Generating mail for campaign', job.data);
@@ -91,7 +95,7 @@ export default function createWorker() {
         : null;
 
       await async.forEach(housings, async (housing) => {
-        const owners = [housing.owner];
+        const owners = await api.owner.findByHousing(housing.id);
         const address = getAddress(owners[0]);
 
         worksheet.addRow([

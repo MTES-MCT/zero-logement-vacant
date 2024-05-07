@@ -146,7 +146,7 @@ const config = convict<Config>({
       env: 'AUTH_SECRET',
       format: String,
       sensitive: true,
-      default: isProduction ? null : uuidv4(),
+      default: isProduction ? null : 'secret',
     },
     expiresIn: {
       env: 'AUTH_EXPIRES_IN',

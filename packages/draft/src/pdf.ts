@@ -34,10 +34,10 @@ async function fromHTML(htmlArray: string[]): Promise<Buffer> {
       waitUntil: 'networkidle0',
     });
     await page.addStyleTag({
-      path: path.join(__dirname, '..', 'templates', 'dsfr.min.css'),
+      path: path.join(__dirname, 'templates', 'dsfr.min.css'),
     });
     await page.addStyleTag({
-      path: path.join(__dirname, '..', 'templates', 'draft', 'draft.css'),
+      path: path.join(__dirname, 'templates', 'draft', 'draft.css'),
     });
     const pdfBuffer = await page.pdf({ format: 'A4' });
     pdfDocs.push(pdfBuffer);

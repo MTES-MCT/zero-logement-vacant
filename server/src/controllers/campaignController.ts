@@ -272,6 +272,7 @@ const updateValidators: ValidationChain[] = [
     .if(body('status').equals('in-progress'))
     .isISO8601()
     .notEmpty(),
+  body('file').optional({ nullable: true }).isString(),
 ];
 async function update(request: Request, response: Response) {
   const { auth, params } = request as AuthenticatedRequest;
@@ -299,6 +300,7 @@ async function update(request: Request, response: Response) {
     ...campaign,
     title: body.title,
     status: body.status,
+    file: body.file,
     validatedAt:
       campaign.status !== body.status && body.status === 'sending'
         ? new Date().toJSON()

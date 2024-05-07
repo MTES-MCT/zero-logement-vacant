@@ -7,6 +7,12 @@ import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 export const isProduction = process.env.NODE_ENV === 'production';
 
 interface Config {
+  auth: {
+    serviceAccount: string;
+  };
+  db: {
+    url: string;
+  };
   log: {
     level: LogLevel;
   };
@@ -27,6 +33,22 @@ dotenv.config({
 });
 
 const config = convict<Config>({
+  auth: {
+    serviceAccount: {
+      env: 'SERVICE_ACCOUNT',
+      format: String,
+      default: 'admin@zerologementvacant.beta.gouv.fr',
+    },
+  },
+  db: {
+    url: {
+      env: 'DATABASE_URL',
+      format: String,
+      default: isProduction
+        ? null
+        : 'postgresql://postgres:postgres@localhost:5432/zlv',
+    },
+  },
   log: {
     level: {
       env: 'LOG_LEVEL',

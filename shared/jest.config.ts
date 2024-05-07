@@ -1,7 +1,5 @@
 import { JestConfigWithTsJest } from 'ts-jest';
 
-const tsconfig = require('./tsconfig.json');
-
 const config: JestConfigWithTsJest = {
   preset: 'ts-jest',
   testEnvironment: 'node',

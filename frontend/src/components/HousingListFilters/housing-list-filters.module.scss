@@ -1,3 +1,13 @@
+.drawerContent {
+  opacity: 0;
+  transition: opacity 0s;
+}
+
+.drawerContentExpanded {
+  opacity: 1;
+  transition: opacity 0.4s var(--material-transition-curve);
+}
+
 .icon {
   display: inline-flex;
   flex-direction: row;

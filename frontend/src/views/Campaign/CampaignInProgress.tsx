@@ -90,11 +90,7 @@ function CampaignInProgress(props: Readonly<Props>) {
       </Row>
 
       <Row>
-        <HousingFiltersBadges
-          filters={filters}
-          onChange={removeFilter}
-          onReset={onResetFilters}
-        />
+        <HousingFiltersBadges filters={filters} onChange={removeFilter} />
       </Row>
 
       {view === 'map' ? (

@@ -49,13 +49,13 @@ const CampaignCreationModal = ({
 
   return (
     <>
-      <>
-        {
-          <Button onClick={modal.open} data-testid="create-campaign-button">
-            Créer une campagne
-          </Button>
-        }
-      </>
+      <Button
+        onClick={modal.open}
+        data-testid="create-campaign-button"
+        size="small"
+      >
+        Créer une campagne
+      </Button>
       <modal.Component
         size="large"
         title={

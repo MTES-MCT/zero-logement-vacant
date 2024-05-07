@@ -30,7 +30,7 @@
     ]
   },
   "dependencies": {
-    "@codegouvfr/react-dsfr": "^1.9.2",
+    "@codegouvfr/react-dsfr": "^1.9.9",
     "@craco/craco": "^7.1.0",
     "@datapunt/matomo-tracker-react": "^0.5.1",
     "@emotion/react": "^11.11.4",

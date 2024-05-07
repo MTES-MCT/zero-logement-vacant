@@ -1,5 +1,7 @@
+import * as turf from '@turf/turf';
+import { Geometry } from 'geojson';
+
 import db from './db';
-import { GeoJSON, Geometry } from 'geojson';
 import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
 import { logger } from '../utils/logger';
 
@@ -7,10 +9,49 @@ export const geoPerimetersTable = 'geo_perimeters';
 export const GeoPerimeters = (transaction = db) =>
   transaction<GeoPerimeterDBO>(geoPerimetersTable);
 
+interface FindOptions {
+  filters?: {
+    establishmentId?: string;
+  };
+}
+
+const SELECT_FIELDS = [
+  'id',
+  'name',
+  'kind',
+  'establishment_id',
+  db.raw('ST_AsGeoJSON(geom)::jsonb AS geom'),
+];
+
+async function find(opts?: FindOptions): Promise<GeoPerimeterApi[]> {
+  logger.debug('Finding perimeters...', opts);
+
+  const perimeters: GeoPerimeterDBO[] = await GeoPerimeters()
+    .select(...SELECT_FIELDS)
+    .modify((query) => {
+      if (opts?.filters?.establishmentId) {
+        query.where('establishment_id', opts.filters.establishmentId);
+      }
+    })
+    .orderBy('name');
+
+  logger.info(`Found ${perimeters.length} perimeters`);
+  return perimeters.map(parseGeoPerimeterApi);
+}
+
 async function get(id: string): Promise<GeoPerimeterApi | null> {
-  logger.info('Get GeoPerimeter with id', id);
-  const geoPerimeter = await GeoPerimeters().where('id', id).first();
-  return geoPerimeter ? parseGeoPerimeterApi(geoPerimeter) : null;
+  logger.debug('Getting perimeter by id...', { id });
+  const geoPerimeter: GeoPerimeterDBO | undefined = await GeoPerimeters()
+    .select(...SELECT_FIELDS)
+    .where('id', id)
+    .first();
+
+  if (!geoPerimeter) {
+    return null;
+  }
+
+  logger.info('Got perimeter', { id });
+  return parseGeoPerimeterApi(geoPerimeter);
 }
 
 async function insert(
@@ -42,38 +83,28 @@ async function update(geoPerimeterApi: GeoPerimeterApi): Promise<void> {
   logger.info('Update geoPerimeterApi with id', geoPerimeterApi.id);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, establishment_id, geo_json, ...updatedData } =
+  const { id, establishment_id, geom, ...updatedData } =
     formatGeoPerimeterApi(geoPerimeterApi);
 
   await GeoPerimeters().where({ id: geoPerimeterApi.id }).update(updatedData);
-}
-
-async function find(establishmentId: string): Promise<GeoPerimeterApi[]> {
-  logger.info(
-    'List geoPerimeterApi for establishment with id',
-    establishmentId
-  );
-
-  const geoPerimeters = await GeoPerimeters()
-    .select('*', db.raw('st_asgeojson(geom)::jsonb as geo_json'))
-    .where('establishment_id', establishmentId)
-    .orWhereNull('establishment_id')
-    .orderBy('name');
-  return geoPerimeters.map(parseGeoPerimeterApi);
 }
 
 async function removeMany(
   geoPerimeterIds: string[],
   establishmentId: string
 ): Promise<void> {
-  logger.info('Remove geoPerimeters with ids %s into establishment', {
-    geoPerimeter: geoPerimeterIds,
+  logger.debug('Removing perimeters...', {
+    perimeters: geoPerimeterIds,
     establishment: establishmentId,
   });
   await db(geoPerimetersTable)
     .whereIn('id', geoPerimeterIds)
     .andWhere('establishment_id', establishmentId)
     .delete();
+  logger.info('Removed perimeters', {
+    perimeters: geoPerimeterIds,
+    establishment: establishmentId,
+  });
 }
 
 export interface GeoPerimeterDBO {
@@ -81,32 +112,33 @@ export interface GeoPerimeterDBO {
   establishment_id: string;
   name: string;
   kind: string;
-  geo_json?: GeoJSON;
+  geom?: turf.MultiPolygon;
 }
 
 export const formatGeoPerimeterApi = (
-  geoPerimeterApi: GeoPerimeterApi
+  perimeter: GeoPerimeterApi
 ): GeoPerimeterDBO => ({
-  id: geoPerimeterApi.id,
-  establishment_id: geoPerimeterApi.establishmentId,
-  name: geoPerimeterApi.name,
-  kind: geoPerimeterApi.kind,
+  id: perimeter.id,
+  establishment_id: perimeter.establishmentId,
+  name: perimeter.name,
+  kind: perimeter.kind,
+  geom: perimeter.geoJson,
 });
 
 export const parseGeoPerimeterApi = (
-  geoPerimeterDbo: GeoPerimeterDBO
+  perimeter: GeoPerimeterDBO
 ): GeoPerimeterApi => ({
-  id: geoPerimeterDbo.id,
-  establishmentId: geoPerimeterDbo.establishment_id,
-  name: geoPerimeterDbo.name,
-  kind: geoPerimeterDbo.kind,
-  geoJson: geoPerimeterDbo.geo_json,
+  id: perimeter.id,
+  establishmentId: perimeter.establishment_id,
+  name: perimeter.name,
+  kind: perimeter.kind,
+  geoJson: perimeter.geom,
 });
 
 export default {
+  find,
   get,
   insert,
   update,
-  find,
   removeMany,
 };

@@ -1,9 +1,13 @@
+import * as turf from '@turf/turf';
+import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import shpjs, { FeatureCollectionWithFilename } from 'shpjs';
-import geoRepository from '../repositories/geoRepository';
 import { body, param } from 'express-validator';
 import { constants } from 'http2';
+import shpjs from 'shpjs';
+import { v4 as uuidv4 } from 'uuid';
+
+import geoRepository from '../repositories/geoRepository';
 import { isArrayOf, isUUID } from '../utils/validators';
 import { logger } from '../utils/logger';
 import { GeoPerimeterApi } from '../models/GeoPerimeterApi';
@@ -13,38 +17,60 @@ async function listGeoPerimeters(request: Request, response: Response) {
 
   logger.info('List geo perimeters', auth.establishmentId);
 
-  const geoPerimeters = await geoRepository.find(auth.establishmentId);
+  const geoPerimeters = await geoRepository.find({
+    filters: {
+      establishmentId: auth.establishmentId,
+    },
+  });
   response.status(constants.HTTP_STATUS_OK).json(geoPerimeters);
 }
 
 async function createGeoPerimeter(
   // TODO: type this
   request: any,
-  response: Response
+  response: Response<GeoPerimeterApi>
 ) {
-  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
+  const { auth } = request as AuthenticatedRequest;
   const file = request.files.geoPerimeter;
 
   logger.info('Create geo perimeter', {
-    establishment: establishmentId,
+    establishment: auth.establishmentId,
     name: file.name,
   });
 
   const geojson = await shpjs(file.data);
+  if (Array.isArray(geojson)) {
+    throw new Error(
+      'There must be only one feature collection in the zip file'
+    );
+  }
 
+  const perimeters = geojson.features.map<GeoPerimeterApi>((feature) => {
+    return {
+      id: uuidv4(),
+      name: feature.properties?.nom ?? '',
+      kind: feature.properties?.type ?? '',
+      establishmentId: auth.establishmentId,
+      geoJson: toMultiPolygon(feature.geometry),
+    };
+  });
+  await async.forEach(perimeters, async (perimeter) => {
+    await geoRepository.insert(perimeter.geoJson);
+  });
+  await geoRepository.insert(geometry);
   await Promise.all(
-    (<FeatureCollectionWithFilename>geojson).features.map((feature) =>
+    geojson.features.map((feature) =>
       geoRepository.insert(
         feature.geometry,
-        establishmentId,
+        auth.establishmentId,
         feature.properties?.type ?? '',
         feature.properties?.nom ?? '',
-        userId
+        auth.userId
       )
     )
   );
 
-  response.status(constants.HTTP_STATUS_OK).send();
+  response.status(constants.HTTP_STATUS_CREATED).json();
 }
 
 const deleteGeoPerimeterListValidators = [
@@ -91,6 +117,10 @@ async function updateGeoPerimeter(request: Request, response: Response) {
   };
   await geoRepository.update(updated);
   response.status(constants.HTTP_STATUS_OK).json(updated);
+}
+
+function toMultiPolygon(feature: turf.Feature): turf.MultiPolygon {
+  return turf.polygonize(feature.geometry);
 }
 
 const geoController = {

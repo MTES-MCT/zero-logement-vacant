@@ -1,15 +1,18 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import * as turf from '@turf/turf';
+import { addHours } from 'date-fns';
 import randomstring from 'randomstring';
+import { MarkRequired } from 'ts-essentials';
+import { v4 as uuidv4 } from 'uuid';
+
 import { UserApi, UserRoles } from '../models/UserApi';
 import { OwnerApi } from '../models/OwnerApi';
-import { v4 as uuidv4 } from 'uuid';
 import {
   CampaignIntent,
   EstablishmentApi,
   hasPriority,
   INTENTS,
 } from '../models/EstablishmentApi';
-import { addHours } from 'date-fns';
 import {
   ENERGY_CONSUMPTION_GRADES,
   HousingApi,
@@ -52,7 +55,6 @@ import {
 import { GroupApi } from '../models/GroupApi';
 import { DatafoncierOwner } from '../../scripts/shared';
 import { HousingOwnerApi } from '../models/HousingOwnerApi';
-import { MarkRequired } from 'ts-essentials';
 import { OwnerMatchDBO } from '../repositories/ownerMatchRepository';
 import {
   ConflictApi,
@@ -324,16 +326,17 @@ export const genCampaignApi = (
   };
 };
 
-export const genGeoPerimeterApi = (
-  establishmentId: string
-): GeoPerimeterApi => {
+export function genGeoPerimeterApi(establishment: string): GeoPerimeterApi {
   return {
     id: uuidv4(),
-    establishmentId,
+    establishmentId: establishment,
     name: randomstring.generate(),
     kind: randomstring.generate(),
+    geoJson: turf.multiPolygon([
+      turf.bboxPolygon(turf.square([0, 48, 2, 50])).geometry.coordinates,
+    ]).geometry,
   };
-};
+}
 
 export const genResetLinkApi = (userId: string): ResetLinkApi => {
   return {

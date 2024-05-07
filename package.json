@@ -26,6 +26,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^20.12.10",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
     "@typescript-eslint/parser": "^7.4.0",
     "eslint": "^8.57.0",
@@ -41,6 +42,7 @@
     "lint-staged": "^13.1.2",
     "node-talisman": "^1.29.11",
     "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
     "type-fest": "^3.5.0",
     "typescript": "^5.4.5"
   }

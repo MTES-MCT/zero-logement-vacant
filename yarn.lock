@@ -714,9 +714,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/lib-storage@npm:^3.540.0":
-  version: 3.568.0
-  resolution: "@aws-sdk/lib-storage@npm:3.568.0"
+"@aws-sdk/lib-storage@npm:^3.569.0":
+  version: 3.569.0
+  resolution: "@aws-sdk/lib-storage@npm:3.569.0"
   dependencies:
     "@smithy/abort-controller": "npm:^2.2.0"
     "@smithy/middleware-endpoint": "npm:^2.5.1"
@@ -726,8 +726,8 @@ __metadata:
     stream-browserify: "npm:3.0.0"
     tslib: "npm:^2.6.2"
   peerDependencies:
-    "@aws-sdk/client-s3": ^3.568.0
-  checksum: 10c0/85c66ee3b2eacd4b2f6988b2b76b606d93ea8359667dd1be3365fcdaf32df5cae2355ad8f2654920c9f0d1264cf58cac41244fbdf39daf78b334cd789038ef3f
+    "@aws-sdk/client-s3": ^3.569.0
+  checksum: 10c0/d06ee02516688e9288d828a52848bda6711159c1286b3529a4416f2ca590daa4b0fb6b3526d7094bcaa72c98211efaf95924884ba8cfd0cc7017ff77a4ae0473
   languageName: node
   linkType: hard
 
@@ -9398,8 +9398,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/queue@workspace:queue"
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.540.0"
-    "@aws-sdk/lib-storage": "npm:^3.540.0"
+    "@aws-sdk/client-s3": "npm:^3.569.0"
+    "@aws-sdk/lib-storage": "npm:^3.569.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.569.0"
     "@faker-js/faker": "npm:^8.4.1"
     "@sentry/integrations": "npm:^7.108.0"
@@ -9566,6 +9566,7 @@ __metadata:
     pino-pretty: "npm:^11.0.0"
     rimraf: "npm:^5.0.5"
     ts-jest: "npm:^29.1.2"
+    ts-node: "npm:^10.9.2"
     typescript: "npm:^5.4.3"
   languageName: unknown
   linkType: soft
@@ -27799,6 +27800,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "zero-logement-vacant@workspace:."
   dependencies:
+    "@types/node": "npm:^20.12.10"
     "@typescript-eslint/eslint-plugin": "npm:^7.4.0"
     "@typescript-eslint/parser": "npm:^7.4.0"
     eslint: "npm:^8.57.0"
@@ -27814,6 +27816,7 @@ __metadata:
     lint-staged: "npm:^13.1.2"
     node-talisman: "npm:^1.29.11"
     prettier: "npm:^3.2.5"
+    ts-node: "npm:^10.9.2"
     type-fest: "npm:^3.5.0"
     typescript: "npm:^5.4.5"
   languageName: unknown

@@ -45,5 +45,9 @@
     "ts-node": "^10.9.2",
     "type-fest": "^3.5.0",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "pg": "^8.11.5",
+    "pg-query-stream": "^4.5.5"
   }
 }

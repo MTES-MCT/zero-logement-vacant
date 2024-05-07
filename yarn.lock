@@ -3699,6 +3699,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@getbrevo/brevo@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@getbrevo/brevo@npm:1.0.1"
+  dependencies:
+    querystring: "npm:^0.2.1"
+    superagent: "npm:^8.0.9"
+  checksum: 10c0/0832329aa15168245a5ac6c0cb4ef5bb8265717b269d491d79d9c3fdc1691af168e451fc8c632cd1e762be52a804935316ca2f0b05f1b5f703d936378c3b9278
+  languageName: node
+  linkType: hard
+
 "@godaddy/terminus@npm:^4.12.1":
   version: 4.12.1
   resolution: "@godaddy/terminus@npm:4.12.1"
@@ -9447,6 +9457,7 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.540.0"
     "@faker-js/faker": "npm:^8.4.1"
+    "@getbrevo/brevo": "npm:^1.0.1"
     "@godaddy/terminus": "npm:^4.12.1"
     "@sendinblue/client": "npm:^3.3.1"
     "@sentry/integrations": "npm:^7.109.0"
@@ -22876,6 +22887,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"querystring@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "querystring@npm:0.2.1"
+  checksum: 10c0/6841b32bec4f16ffe7f5b5e4373b47ad451f079cde3a7f45e63e550f0ecfd8f8189ef81fb50079413b3fc1c59b06146e4c98192cb74ed7981aca72090466cd94
+  languageName: node
+  linkType: hard
+
 "querystringify@npm:^2.1.1":
   version: 2.2.0
   resolution: "querystringify@npm:2.2.0"
@@ -25315,7 +25333,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"superagent@npm:^8.1.2":
+"superagent@npm:^8.0.9, superagent@npm:^8.1.2":
   version: 8.1.2
   resolution: "superagent@npm:8.1.2"
   dependencies:
@@ -27815,6 +27833,8 @@ __metadata:
     is-ci: "npm:^3.0.1"
     lint-staged: "npm:^13.1.2"
     node-talisman: "npm:^1.29.11"
+    pg: "npm:^8.11.5"
+    pg-query-stream: "npm:^4.5.5"
     prettier: "npm:^3.2.5"
     ts-node: "npm:^10.9.2"
     type-fest: "npm:^3.5.0"

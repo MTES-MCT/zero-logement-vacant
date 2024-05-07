@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.540.0",
+    "@getbrevo/brevo": "^1.0.1",
     "@godaddy/terminus": "^4.12.1",
     "@sendinblue/client": "^3.3.1",
     "@sentry/integrations": "^7.109.0",

@@ -24,7 +24,7 @@
   },
   "overrides": [
     {
-      "files": ["frontend-new/src/**/*.ts?(x)"],
+      "files": ["frontend/src/**/*.ts?(x)"],
       "extends": [
         "plugin:react/recommended",
         "plugin:react/jsx-runtime",
@@ -40,7 +40,7 @@
       },
       "overrides": [
         {
-          "files": ["frontend-new/src/**/*.test.ts?(x)"],
+          "files": ["frontend/src/**/*.test.ts?(x)"],
           "extends": [
             "plugin:jest/recommended",
             "plugin:testing-library/react"

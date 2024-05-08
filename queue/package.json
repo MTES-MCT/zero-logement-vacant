@@ -8,8 +8,7 @@
     "clean": "rimraf dist '*.tsbuildinfo'",
     "build": "tsc -b tsconfig.build.json",
     "dev": "nodemon -w src src/bin/index.ts",
-    "start": "node ./dist/bin/index.js",
-    "test": "jest"
+    "start": "node ./dist/bin/index.js"
   },
   "engines": {
     "node": "20",

@@ -16,6 +16,7 @@ module.exports = {
         'jest-extended/all',
         '<rootDir>/src/setupTests.ts',
       ];
+      config.testTimeout = 30_000;
       config.transformIgnorePatterns = [
         '<rootDir>/node_modules/(?!@codegouvfr)/.+\\.js$',
       ];

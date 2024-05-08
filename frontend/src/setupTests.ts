@@ -12,6 +12,9 @@ jest.mock('./components/RichEditor/RichEditor.tsx');
 
 global.URL.createObjectURL = jest.fn();
 
+global.TextEncoder = require('node:util').TextEncoder;
+global.TextDecoder = require('node:util').TextDecoder;
+
 beforeEach(() => {
   fetchMock.resetMocks();
 });

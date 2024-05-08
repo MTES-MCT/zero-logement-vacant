@@ -68,7 +68,7 @@ jobs:
           LOG_LEVEL: fatal
 
       - name: Test database migrations
-        run: yarn workspace @zerologementvacant/server run test:migrations
+        run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band
 
       - name: Migrate database
         run: yarn workspace @zerologementvacant/server run migrate

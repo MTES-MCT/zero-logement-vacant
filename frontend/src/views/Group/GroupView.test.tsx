@@ -4,8 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import fetchMock from 'jest-fetch-mock';
 import { genCampaign, genGroup } from '../../../test/fixtures.test';
-import { Route, MemoryRouter as Router } from 'react-router-dom';
-import { createMemoryHistory } from 'history';
+import { MemoryRouter as Router, Route } from 'react-router-dom';
 import GroupView from './GroupView';
 import configureTestStore from '../../utils/test/storeUtils';
 

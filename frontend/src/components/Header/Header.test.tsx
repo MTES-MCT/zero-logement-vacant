@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Header from './Header';
-import { Router } from 'react-router-dom';
-import { createMemoryHistory } from 'history';
+import { MemoryRouter as Router } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { applicationMiddlewares, applicationReducer } from '../../store/store';
 import { configureStore } from '@reduxjs/toolkit';
@@ -21,20 +20,20 @@ describe('AppHeader', () => {
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <Header />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const housingNavItem = screen.queryByTestId(
-      'fr-header-nav-item-parc-de-logements'
+      'fr-header-nav-item-parc-de-logements',
     );
     const campaignNavItem = screen.queryByTestId(
-      'fr-header-nav-item-campagnes'
+      'fr-header-nav-item-campagnes',
     );
     const infosNavItem = screen.queryByTestId(
-      'fr-header-nav-item-informations-publiques'
+      'fr-header-nav-item-informations-publiques',
     );
     expect(housingNavItem).not.toBeInTheDocument();
     expect(campaignNavItem).not.toBeInTheDocument();
@@ -53,20 +52,20 @@ describe('AppHeader', () => {
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <Header />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const housingNavItem = screen.queryByTestId(
-      'fr-header-nav-item-parc-de-logements'
+      'fr-header-nav-item-parc-de-logements',
     );
     const campaignNavItem = screen.queryByTestId(
-      'fr-header-nav-item-campagnes'
+      'fr-header-nav-item-campagnes',
     );
     const resourcesNavItem = screen.queryByTestId(
-      'fr-header-nav-item-ressources'
+      'fr-header-nav-item-ressources',
     );
     expect(housingNavItem).toBeInTheDocument();
     expect(campaignNavItem).toBeInTheDocument();

@@ -4,8 +4,7 @@ import fetchMock from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
 import config from '../../utils/config';
 import OwnerView from './OwnerView';
-import { createMemoryHistory } from 'history';
-import { Route, Router } from 'react-router-dom';
+import { Route, MemoryRouter as Router } from 'react-router-dom';
 import {
   genCampaign,
   genHousing,
@@ -57,26 +56,22 @@ describe('Owner view', () => {
               init: { status: 200 },
             };
           } else return { body: '', init: { status: 404 } };
-        })()
+        })(),
       );
-    });
-
-    const history = createMemoryHistory({
-      initialEntries: [`/proprietaires/${owner.id}`],
     });
 
     render(
       <Provider store={store}>
-        <Router history={history}>
+        <Router initialEntries={[`/proprietaires/${owner.id}`]}>
           <Route exact path="/proprietaires/:ownerId" component={OwnerView} />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     await screen.findByText(capitalize(owner.fullName));
     if (owner.birthDate) {
       await screen.findByText(
-        `né(e) le ${format(owner.birthDate, 'dd/MM/yyyy')}`
+        `né(e) le ${format(owner.birthDate, 'dd/MM/yyyy')}`,
       );
     }
     if (owner.email) {

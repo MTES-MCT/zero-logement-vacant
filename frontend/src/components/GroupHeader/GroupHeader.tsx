@@ -27,7 +27,7 @@ function GroupHeader(props: Props) {
   const unarchivedGroups = groups?.filter((group) => !group.archivedAt);
   const filteredGroups = unarchivedGroups?.slice(
     0,
-    showAll ? unarchivedGroups.length : DISPLAY_GROUPS
+    showAll ? unarchivedGroups.length : DISPLAY_GROUPS,
   );
   const more = unarchivedGroups ? unarchivedGroups.length - DISPLAY_GROUPS : 0;
 

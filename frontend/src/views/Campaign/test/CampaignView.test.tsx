@@ -1,8 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryHistory, History } from 'history';
 import { Provider } from 'react-redux';
-import { Link, Route, Router } from 'react-router-dom';
+import { Link, Route, MemoryRouter as Router } from 'react-router-dom';
 
 import {
   genAddress,
@@ -32,24 +31,20 @@ describe('Campaign view', () => {
   const houses = Array.from({ length: 1 }, () => genHousing());
 
   let store: AppStore;
-  let router: History;
 
   beforeEach(() => {
     store = configureTestStore();
-    router = createMemoryHistory({
-      initialEntries: [`/campagnes/${campaign.id}`],
-    });
   });
 
   function renderComponent(): void {
     render(
       <Provider store={store}>
         <Notification />
-        <Router history={router}>
+        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
           <Link to="/campagnes">Campagnes</Link>
           <Route path="/campagnes/:id" component={CampaignView} />
         </Router>
-      </Provider>
+      </Provider>,
     );
   }
 
@@ -251,7 +246,7 @@ describe('Campaign view', () => {
 
     const form = await screen.findByRole('form');
     const name = await within(form).findByLabelText(
-      'Nom de la collectivité ou de l’administration*'
+      'Nom de la collectivité ou de l’administration*',
     );
     if (sender.name) {
       await user.type(name, sender.name);
@@ -326,7 +321,7 @@ describe('Campaign view', () => {
     const form = await screen.findByRole('form');
     if (sender.name) {
       const name = await within(form).findByLabelText(
-        'Nom de la collectivité ou de l’administration*'
+        'Nom de la collectivité ou de l’administration*',
       );
       await user.clear(name);
       await user.type(name, sender.name);
@@ -537,6 +532,6 @@ describe('Campaign view', () => {
 
   // Hard to mock window.confirm because it's a browser-level function
   it.todo(
-    'should warn the user before leaving the page if they have unsaved changes'
+    'should warn the user before leaving the page if they have unsaved changes',
   );
 });

@@ -1,7 +1,6 @@
 import userEvent from '@testing-library/user-event';
-import { createMemoryHistory } from 'history';
 import { render, screen, waitFor } from '@testing-library/react';
-import { Router } from 'react-router-dom';
+import { MemoryRouter as Router, Route } from 'react-router-dom';
 import {
   genAuthUser,
   genProspect,
@@ -13,10 +12,11 @@ import prospectService from '../../../../services/prospect.service';
 import { Prospect } from '../../../../models/Prospect';
 import { configureStore } from '@reduxjs/toolkit';
 import { applicationReducer } from '../../../../store/store';
+import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
+import React from 'react';
 
 describe('AccountPasswordCreationView', () => {
   const user = userEvent.setup();
-  const history = createMemoryHistory();
   const store = configureStore({
     reducer: applicationReducer,
     preloadedState: { authentication: { authUser: genAuthUser() } },
@@ -31,16 +31,29 @@ describe('AccountPasswordCreationView', () => {
   };
 
   function setup() {
-    history.push({
-      pathname: '/inscription/mot-de-passe',
-      hash: `#${link.id}`,
-    });
     render(
       <Provider store={store}>
-        <Router history={history}>
-          <AccountPasswordCreationView />
+        <Router
+          initialEntries={[
+            {
+              pathname: '/inscription/mot-de-passe',
+              hash: `#${link.id}`,
+            },
+          ]}
+        >
+          <Route path="/inscription/en-attente">En attente</Route>
+          <Route path="/inscription/impossible">Impossible</Route>
+          <Route path="/inscription/email">Email</Route>
+          <Route
+            path="/inscription/mot-de-passe"
+            component={AccountPasswordCreationView}
+          />
+          <Route
+            path="/inscription/campagne"
+            component={AccountCampaignIntentCreationView}
+          />
         </Router>
-      </Provider>
+      </Provider>,
     );
   }
 
@@ -73,9 +86,8 @@ describe('AccountPasswordCreationView', () => {
     });
     setup();
 
-    await waitFor(() => {
-      expect(history.location.pathname).toBe('/inscription/impossible');
-    });
+    const title = await screen.findByText('Impossible');
+    expect(title).toBeVisible();
   });
 
   it('should be forbidden if one has no account', async () => {
@@ -86,9 +98,8 @@ describe('AccountPasswordCreationView', () => {
     });
     setup();
 
-    await waitFor(() => {
-      expect(history.location.pathname).toBe('/inscription/en-attente');
-    });
+    const title = await screen.findByText('En attente');
+    expect(title).toBeVisible();
   });
 
   it("should be forbidden if one's account is waiting for approval", async () => {
@@ -99,9 +110,8 @@ describe('AccountPasswordCreationView', () => {
     });
     setup();
 
-    await waitFor(() => {
-      expect(history.location.pathname).toBe('/inscription/impossible');
-    });
+    const title = await screen.findByText('Impossible');
+    expect(title).toBeVisible();
   });
 
   it('should go back to the previous step', async () => {
@@ -111,7 +121,8 @@ describe('AccountPasswordCreationView', () => {
     const previous = await screen.findByText('Revenir à l’étape précédente');
     await user.click(previous);
 
-    expect(history.location.pathname).toBe('/inscription/email');
+    const title = await screen.findByText('Email');
+    expect(title).toBeVisible();
   });
 
   it('should choose a password', async () => {
@@ -120,19 +131,16 @@ describe('AccountPasswordCreationView', () => {
     const password = '123QWEasd';
 
     const passwordInput = await screen.findByLabelText(
-      /Créer votre mot de passe/
+      /Créer votre mot de passe/,
     );
     await user.type(passwordInput, password);
     const confirmationInput = await screen.findByLabelText(
-      /Confirmer votre mot de passe/
+      /Confirmer votre mot de passe/,
     );
     await user.type(confirmationInput, password);
     await user.keyboard('{Enter}');
 
-    expect(history.location.pathname).toBe('/inscription/campagne');
-    expect(history.location.state).toStrictEqual({
-      prospect,
-      password,
-    });
+    const title = await screen.findByText(/^Vos intentions de campagne/);
+    expect(title).toBeVisible();
   });
 });

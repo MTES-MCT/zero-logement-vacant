@@ -1,3 +1,4 @@
+import { HousingFiltersDTO } from '@zerologementvacant/models';
 import { OptionTreeElement, SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import {
@@ -10,7 +11,6 @@ import {
 } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
-import { HousingFiltersDTO } from '../../../shared/models/HousingFiltersDTO';
 
 export interface HousingFilters extends HousingFiltersDTO {}
 
@@ -58,10 +58,10 @@ export const campaignsCountOptions: SelectOption[] = [
 ];
 
 export const statusOptions = (
-  statusExcluded?: HousingStatus[]
+  statusExcluded?: HousingStatus[],
 ): SelectOption[] => [
   ...HousingStates.filter(
-    (_) => !(statusExcluded ?? []).includes(_.status)
+    (_) => !(statusExcluded ?? []).includes(_.status),
   ).map((status) => ({
     value: String(status.status),
     label: status.title,
@@ -370,7 +370,7 @@ export const OptionTreeSeparator = ' > ';
 
 export const filterCount = (housingFilters: HousingFilters) => {
   return Object.entries(housingFilters).filter(
-    ([_, v]) => v !== undefined && v !== null && (v as any[]).length > 0
+    ([_, v]) => v !== undefined && v !== null && (v as any[]).length > 0,
   ).length;
 };
 export const hasFilters = (housingFilters: HousingFilters) => {
@@ -379,10 +379,10 @@ export const hasFilters = (housingFilters: HousingFilters) => {
 
 export const unselectedOptions = (
   options: SelectOption[],
-  selectedValues?: string[]
+  selectedValues?: string[],
 ) =>
   options.filter(
-    (option: { value: any }) => !selectedValues?.includes(option.value)
+    (option: { value: any }) => !selectedValues?.includes(option.value),
   );
 
 export function hasPerimetersFilter(filters: HousingFilters): boolean {

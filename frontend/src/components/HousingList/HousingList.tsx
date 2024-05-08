@@ -34,7 +34,7 @@ import AppLink from '../_app/AppLink/AppLink';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import { useHousingList } from '../../hooks/useHousingList';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
-import { Pagination } from '../../../../shared/models/Pagination';
+import { Pagination } from '@zerologementvacant/models';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import {

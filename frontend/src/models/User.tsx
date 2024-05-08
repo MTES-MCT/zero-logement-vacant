@@ -1,5 +1,5 @@
 import { Establishment } from './Establishment';
-import { UserDTO } from '../../../shared/models/UserDTO';
+import { UserDTO } from '@zerologementvacant/models';
 
 export interface AuthUser {
   user: User;

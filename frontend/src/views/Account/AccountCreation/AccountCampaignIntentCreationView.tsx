@@ -73,13 +73,11 @@ function AccountCampaignIntentCreationView() {
     });
   }
 
-  const back: Location = {
+  const back: Partial<Location> = {
     pathname: '/inscription/mot-de-passe',
     state: {
       prospect,
     },
-    hash: '',
-    search: '',
   };
 
   if (!location.state || !prospect || !password) {
@@ -112,7 +110,6 @@ function AccountCampaignIntentCreationView() {
           onChange={setCampaignIntent}
         />
         <Row alignItems="middle" className="justify-space-between">
-          {/*@ts-ignore*/}
           <AppLink
             isSimple
             to={back}

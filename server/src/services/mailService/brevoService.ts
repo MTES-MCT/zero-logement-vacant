@@ -21,11 +21,16 @@ class BrevoService implements MailService {
   private events: EventsApi;
 
   constructor() {
+    if (!config.mailer.apiKey) {
+      throw new Error('Provide an API key for Sendinblue');
+    }
+
     const client = Brevo.ApiClient.instance;
     client.authentications['api-key'].apiKey = config.mailer.apiKey;
 
     this.emails = new Brevo.TransactionalEmailsApi();
     this.contacts = new Brevo.ContactsApi();
+
     // FIXME
     this.events = new EventsApi(config.mailer.eventApiKey as string);
   }
@@ -94,13 +99,11 @@ class BrevoService implements MailService {
       .trackEvent(email, 'housing:exported', {
         priority: data.priority,
       })
-      .catch(console.error);
+      .catch(logger.error);
   }
 
   private ownerProspectCreated(email: string) {
-    this.events
-      .trackEvent(email, 'owner-prospect:created')
-      .catch(console.error);
+    this.events.trackEvent(email, 'owner-prospect:created').catch(logger.error);
   }
 
   private prospectInitialized(
@@ -134,13 +137,10 @@ class BrevoService implements MailService {
         },
       })
       .then(() => this.events.trackEvent(email, 'user:created'))
-      .catch(console.error);
+      .catch(logger.error);
   }
 }
 
 export default function createSendinblueService(): MailService {
-  if (!config.mailer.apiKey) {
-    throw new Error('Provide an API key for Sendinblue');
-  }
   return new BrevoService();
 }

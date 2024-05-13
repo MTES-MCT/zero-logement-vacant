@@ -18,7 +18,7 @@
   "scripts": {
     "prepare": "husky",
     "clean": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Ap run clean",
-    "build": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -pt --since=origin/main run build",
+    "build": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apt run build",
     "lint": "eslint .",
     "test": "yarn workspaces foreach --exclude=. -Ap run test"
   },

@@ -1,10 +1,5 @@
 {
   "name": "@zerologementvacant/schemas",
-  "engines": {
-    "node": "^20",
-    "yarn": "^4"
-  },
-  "packageManager": "yarn@4.2.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

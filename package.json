@@ -4,8 +4,7 @@
   "description": "Zéro Logement Vacant",
   "main": "server/index.ts",
   "engines": {
-    "node": "^20",
-    "yarn": "^4"
+    "node": "^20"
   },
   "packageManager": "yarn@4.2.1",
   "workspaces": [

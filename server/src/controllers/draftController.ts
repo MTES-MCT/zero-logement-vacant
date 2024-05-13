@@ -6,25 +6,24 @@ import { constants } from 'http2';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 
-import { DraftApi, toDraftDTO } from '~/models/DraftApi';
-import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
+import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
 } from '@zerologementvacant/models';
+import { replaceVariables } from '@zerologementvacant/shared';
+import { createS3, toBase64 } from '@zerologementvacant/utils';
+import { DraftApi, toDraftDTO } from '~/models/DraftApi';
+import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
 import campaignDraftRepository from '~/repositories/campaignDraftRepository';
 import campaignRepository from '~/repositories/campaignRepository';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import DraftMissingError from '~/errors/draftMissingError';
 import { isUUIDParam } from '~/utils/validators';
 import { logger } from '~/infra/logger';
-import pdf from '../utils/pdf';
-import DRAFT_TEMPLATE_FILE, { DraftData } from '~/templates/draft';
 import { SenderApi } from '~/models/SenderApi';
-import senderRepository from '../repositories/senderRepository';
-import { replaceVariables } from '@zerologementvacant/shared';
-import { createS3, toBase64 } from '@zerologementvacant/utils';
+import senderRepository from '~/repositories/senderRepository';
 import config from '~/infra/config';
 
 interface DraftQuery {

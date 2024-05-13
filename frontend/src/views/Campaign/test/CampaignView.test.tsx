@@ -9,6 +9,7 @@ import {
   genDraft,
   genHousing,
   genOwner,
+  genPaginatedResult,
   genSender,
 } from '../../../../test/fixtures.test';
 import configureTestStore from '../../../utils/test/storeUtils';
@@ -35,18 +36,6 @@ describe('Campaign view', () => {
   beforeEach(() => {
     store = configureTestStore();
   });
-
-  function renderComponent(): void {
-    render(
-      <Provider store={store}>
-        <Notification />
-        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
-          <Link to="/campagnes">Campagnes</Link>
-          <Route path="/campagnes/:id" component={CampaignView} />
-        </Router>
-      </Provider>,
-    );
-  }
 
   it('should display "Page non trouvée" if the campaign does not exist', async () => {
     mockRequests([
@@ -78,10 +67,35 @@ describe('Campaign view', () => {
       },
     ]);
 
-    renderComponent();
+    render(
+      <Provider store={store}>
+        <Notification />
+        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
+          <Link to="/campagnes">Campagnes</Link>
+          <Route path="/campagnes/:id" component={CampaignView} />
+        </Router>
+      </Provider>,
+    );
 
     await screen.findByText('Page non trouvée');
   });
+
+  async function renderComponent(): Promise<void> {
+    render(
+      <Provider store={store}>
+        <Notification />
+        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
+          <Link to="/campagnes">Campagnes</Link>
+          <Route path="/campagnes/:id" component={CampaignView} />
+        </Router>
+      </Provider>,
+    );
+
+    const button = await screen.findByRole('button', {
+      name: /^Visualiser mon courrier/,
+    });
+    expect(button).toBeDisabled();
+  }
 
   it('should render', async () => {
     mockRequests([
@@ -94,7 +108,15 @@ describe('Campaign view', () => {
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([draft]),
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        persist: true,
+        response: {
+          body: JSON.stringify(genPaginatedResult([])),
         },
       },
       {
@@ -109,7 +131,7 @@ describe('Campaign view', () => {
       },
     ]);
 
-    renderComponent();
+    await renderComponent();
 
     const title = await screen.findByRole('heading', { name: campaign.title });
     expect(title).toBeVisible();
@@ -172,7 +194,7 @@ describe('Campaign view', () => {
       },
     ]);
 
-    renderComponent();
+    await renderComponent();
 
     const rename = await screen.findByRole('button', { name: /^Renommer/ });
     await user.click(rename);
@@ -489,11 +511,8 @@ describe('Campaign view', () => {
       {
         pathname: `/api/owners/${housing.owner.id}`,
         method: 'PUT',
-        response: async (request) => {
-          const payload = await request.json();
-          return {
-            body: JSON.stringify(updated),
-          };
+        response: {
+          body: JSON.stringify(updated),
         },
       },
       {

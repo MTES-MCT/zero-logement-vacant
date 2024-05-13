@@ -1,6 +1,6 @@
 import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
 
@@ -40,11 +40,11 @@ function Header() {
     linkProps: {
       to: getUserNavItem(navItem).url,
       'data-testid': `fr-header-nav-item-${getUserNavItem(
-        navItem,
-      ).url.substring(1)}`,
+        navItem
+      ).url.substring(1)}`
     },
     text: getUserNavItem(navItem).label,
-    isActive: location.pathname.startsWith(getUserNavItem(navItem).url),
+    isActive: location.pathname.startsWith(getUserNavItem(navItem).url)
   });
 
   return (
@@ -61,7 +61,7 @@ function Header() {
         }
         homeLinkProps={{
           to: '/',
-          title: 'Accueil - Zéro Logement Vacant',
+          title: 'Accueil - Zéro Logement Vacant'
         }}
         serviceTitle="Zéro Logement Vacant"
         serviceTagline={
@@ -72,7 +72,7 @@ function Header() {
                   authUser
                     ? {
                         value: authUser.establishment.id,
-                        label: authUser.establishment.name,
+                        label: authUser.establishment.name
                       }
                     : undefined
                 }
@@ -104,16 +104,16 @@ function Header() {
                       <AccountSideMenu />
                     </Container>
                   }
-                />,
+                />
               ]
             : [
                 {
                   iconId: 'fr-icon-user-fill',
                   linkProps: {
-                    to: '/connexion',
+                    to: '/connexion'
                   },
-                  text: 'Connexion',
-                },
+                  text: 'Connexion'
+                }
               ]
         }
         navigation={
@@ -121,7 +121,7 @@ function Header() {
             ? [
                 getMainNavigationItem(UserNavItems.HousingList),
                 getMainNavigationItem(UserNavItems.Campaign),
-                getMainNavigationItem(UserNavItems.Resources),
+                getMainNavigationItem(UserNavItems.Resources)
               ]
             : withNavItems && []
         }

@@ -7,7 +7,7 @@ import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { Col, Container, Row } from '../_dsfr';
 import FileUpload from '../FileUpload/FileUpload';
-import { FileUploadDTO } from '../../../../shared/models/FileUploadDTO';
+import { FileUploadDTO } from '@zerologementvacant/models';
 
 export const signatureSchema = object({
   signatoryFirstName: string().optional().nullable(),

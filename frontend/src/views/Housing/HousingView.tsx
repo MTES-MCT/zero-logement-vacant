@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Col, Row } from '../../components/_dsfr';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import { useHousing } from '../../hooks/useHousing';
@@ -27,12 +27,12 @@ const HousingView = () => {
 
   const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
     housing?.id ?? '',
-    { skip: !housing }
+    { skip: !housing },
   );
   const [updateHousingOwners] = useUpdateHousingOwnersMutation();
 
   const [housingOwnersModalKey, setHousingOwnersModalKey] = useState(
-    new Date().getTime()
+    new Date().getTime(),
   );
 
   if (!housing) {
@@ -40,7 +40,7 @@ const HousingView = () => {
   }
 
   const submitHousingOwnersUpdate = async (
-    housingOwnersUpdated: HousingOwner[]
+    housingOwnersUpdated: HousingOwner[],
   ) => {
     await updateHousingOwners({
       housingId: housing.id,

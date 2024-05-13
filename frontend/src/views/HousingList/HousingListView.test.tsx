@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import fetchMock from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
@@ -13,7 +12,6 @@ import {
   genPaginatedResult,
 } from '../../../test/fixtures.test';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
-import { ownerKindOptions } from '../../models/HousingFilters';
 import userEvent from '@testing-library/user-event';
 import {
   getRequestCalls,
@@ -37,27 +35,6 @@ describe('Housing list view', () => {
   const user = userEvent.setup();
   let store: AppStore;
 
-  const defaultFetchMock = (request: Request) => {
-    return Promise.resolve(
-      request.url === `${config.apiEndpoint}/api/housing`
-        ? {
-            body: JSON.stringify(genPaginatedResult([])),
-            init: { status: 200 },
-          }
-        : request.url === `${config.apiEndpoint}/api/campaigns`
-          ? { body: JSON.stringify([]), init: { status: 200 } }
-          : request.url === `${config.apiEndpoint}/api/geo/perimeters`
-            ? { body: JSON.stringify([]), init: { status: 200 } }
-            : request.url.startsWith(`${config.apiEndpoint}/api/localities`)
-              ? { body: JSON.stringify([]), init: { status: 200 } }
-              : request.url === `${config.apiEndpoint}/api/housing/count`
-                ? {
-                    body: JSON.stringify({ housing: 1, owners: 1 }),
-                    init: { status: 200 },
-                  }
-                : { body: '', init: { status: 404 } },
-    );
-  };
   const defaultMatches: RequestMatch[] = [
     {
       pathname: '/api/housing',
@@ -104,11 +81,11 @@ describe('Housing list view', () => {
       { ...genHousing(), housingKind: 'APPART' },
     ];
     const apartments = housings.filter(
-      (housing) => housing.housingKind === 'APPART'
+      (housing) => housing.housingKind === 'APPART',
     );
     const uniqueOwners = fp.pipe(
       fp.map<Housing, Owner>((housing) => housing.owner),
-      fp.uniqBy<Owner>('id')
+      fp.uniqBy<Owner>('id'),
     );
     mockRequests([
       {
@@ -126,7 +103,7 @@ describe('Housing list view', () => {
           const filtered = housings
             .filter((housing) => (status ? status === housing.status : true))
             .filter((housing) =>
-              housingKinds ? housingKinds.includes(housing.housingKind) : true
+              housingKinds ? housingKinds.includes(housing.housingKind) : true,
             );
           return {
             body: JSON.stringify(genPaginatedResult(filtered)),
@@ -143,7 +120,7 @@ describe('Housing list view', () => {
           const filtered = housings
             .filter((housing) => (status ? status === housing.status : true))
             .filter((housing) =>
-              housingKinds ? housingKinds.includes(housing.housingKind) : true
+              housingKinds ? housingKinds.includes(housing.housingKind) : true,
             );
           return {
             body: JSON.stringify({
@@ -551,7 +528,7 @@ describe('Housing list view', () => {
       },
       {
         pathname: `/api/groups/${group.id}`,
-        response: async (request) => {
+        response: async () => {
           return {
             body: JSON.stringify(groupDTO),
           };
@@ -631,7 +608,7 @@ describe('Housing list view', () => {
       },
       {
         pathname: `/api/groups/${group.id}`,
-        response: async (request) => {
+        response: async () => {
           return {
             body: JSON.stringify(group),
           };

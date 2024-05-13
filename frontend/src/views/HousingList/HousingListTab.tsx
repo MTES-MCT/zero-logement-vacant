@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HousingStatus } from '../../models/HousingState';
 import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';

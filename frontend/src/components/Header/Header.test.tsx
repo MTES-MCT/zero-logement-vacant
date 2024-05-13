@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Header from './Header';
 import { MemoryRouter as Router } from 'react-router-dom';
@@ -13,9 +12,9 @@ describe('AppHeader', () => {
       reducer: applicationReducer,
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-          serializableCheck: false,
+          serializableCheck: false
         }).concat(applicationMiddlewares),
-      preloadedState: { authentication: { authUser: undefined } },
+      preloadedState: { authentication: { authUser: undefined } }
     });
 
     render(
@@ -23,17 +22,17 @@ describe('AppHeader', () => {
         <Router>
           <Header />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
     const housingNavItem = screen.queryByTestId(
-      'fr-header-nav-item-parc-de-logements',
+      'fr-header-nav-item-parc-de-logements'
     );
     const campaignNavItem = screen.queryByTestId(
-      'fr-header-nav-item-campagnes',
+      'fr-header-nav-item-campagnes'
     );
     const infosNavItem = screen.queryByTestId(
-      'fr-header-nav-item-informations-publiques',
+      'fr-header-nav-item-informations-publiques'
     );
     expect(housingNavItem).not.toBeInTheDocument();
     expect(campaignNavItem).not.toBeInTheDocument();
@@ -45,9 +44,9 @@ describe('AppHeader', () => {
       reducer: applicationReducer,
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-          serializableCheck: false,
+          serializableCheck: false
         }).concat(applicationMiddlewares),
-      preloadedState: { authentication: { authUser: genAuthUser() } },
+      preloadedState: { authentication: { authUser: genAuthUser() } }
     });
 
     render(
@@ -55,17 +54,17 @@ describe('AppHeader', () => {
         <Router>
           <Header />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
     const housingNavItem = screen.queryByTestId(
-      'fr-header-nav-item-parc-de-logements',
+      'fr-header-nav-item-parc-de-logements'
     );
     const campaignNavItem = screen.queryByTestId(
-      'fr-header-nav-item-campagnes',
+      'fr-header-nav-item-campagnes'
     );
     const resourcesNavItem = screen.queryByTestId(
-      'fr-header-nav-item-ressources',
+      'fr-header-nav-item-ressources'
     );
     expect(housingNavItem).toBeInTheDocument();
     expect(campaignNavItem).toBeInTheDocument();

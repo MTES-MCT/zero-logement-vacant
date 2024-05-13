@@ -8373,7 +8373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:^9":
+"@types/uuid@npm:^9, @types/uuid@npm:^9.0.8":
   version: 9.0.8
   resolution: "@types/uuid@npm:9.0.8"
   checksum: 10c0/b411b93054cb1d4361919579ef3508a1f12bf15b5fdd97337d3d351bece6c921b52b6daeef89b62340fd73fd60da407878432a1af777f40648cbe53a01723489
@@ -8990,6 +8990,7 @@ __metadata:
     "@craco/craco": "npm:^7.1.0"
     "@emotion/react": "npm:^11.11.4"
     "@emotion/styled": "npm:^11.11.5"
+    "@faker-js/faker": "npm:^8.4.1"
     "@jonkoops/matomo-tracker-react": "npm:^0.7.0"
     "@lexical/html": "npm:^0.14.5"
     "@lexical/list": "npm:^0.14.5"
@@ -9014,6 +9015,7 @@ __metadata:
     "@types/react": "npm:^18.2.74"
     "@types/react-dom": "npm:^18.2.23"
     "@types/react-router-dom": "npm:^5.3.3"
+    "@types/uuid": "npm:^9.0.8"
     "@zerologementvacant/models": "workspace:*"
     classnames: "npm:^2.3.2"
     date-fns: "npm:^2.30.0"

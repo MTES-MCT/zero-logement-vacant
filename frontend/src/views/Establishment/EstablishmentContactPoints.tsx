@@ -1,9 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Col, Row, Title } from '../../components/_dsfr';
-import {
-  ContactPoint,
-  DraftContactPoint,
-} from '../../../../shared/models/ContactPoint';
+import { ContactPoint, DraftContactPoint } from '@zerologementvacant/models';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import ContactPointEditionModal from '../../components/modals/ContactPointEditionModal/ContactPointEditionModal';
 import {

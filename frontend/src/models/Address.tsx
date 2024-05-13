@@ -1,6 +1,6 @@
 import { reduceStringArray } from '../utils/stringUtils';
 import config from '../utils/config';
-import { AddressDTO } from '../../../shared/models/AdresseDTO';
+import { AddressDTO } from '@zerologementvacant/models';
 
 export type Address = Omit<AddressDTO, 'refId' | 'addressKind'>;
 
@@ -18,7 +18,7 @@ export const addressToString = (address?: Address, breakLine = true) => {
           : [address.houseNumber, address.street].join(' '),
         [address.postalCode, address.city].join(' '),
       ],
-      breakLine
+      breakLine,
     );
   }
 };

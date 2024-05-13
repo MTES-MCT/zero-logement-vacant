@@ -3,7 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Table from '@codegouvfr/react-dsfr/Table';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 import { Campaign } from '../../models/Campaign';
 import { useHousingList } from '../../hooks/useHousingList';
@@ -20,8 +20,8 @@ interface Props {
 function CampaignRecipients(props: Props) {
   const { housingList } = useHousingList({
     filters: {
-      campaignIds: [props.campaign.id],
-    },
+      campaignIds: [props.campaign.id]
+    }
   });
 
   const [removeCampaignHousing] = useRemoveCampaignHousingMutation();
@@ -30,7 +30,7 @@ function CampaignRecipients(props: Props) {
       campaignId: props.campaign.id,
       all: false,
       ids: [housing.id],
-      filters: {},
+      filters: {}
     });
   }
 
@@ -46,7 +46,7 @@ function CampaignRecipients(props: Props) {
     'Propriétaire principal',
     'Adresse BAN du propriétaire',
     'Complément d’adresse',
-    null,
+    null
   ];
   const data: ReactNode[][] = (housingList ?? []).map((housing, i) => [
     `# ${i}`,
@@ -81,7 +81,7 @@ function CampaignRecipients(props: Props) {
         title="Supprimer le propriétaire"
         onClick={() => removeHousing(housing)}
       />
-    </Grid>,
+    </Grid>
   ]);
 
   return (

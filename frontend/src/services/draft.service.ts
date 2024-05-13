@@ -3,7 +3,7 @@ import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
-} from '../../../shared/models/DraftDTO';
+} from '@zerologementvacant/models';
 import {
   Draft,
   DraftCreationPayload,
@@ -74,7 +74,7 @@ function fromDraftDTO(draft: DraftDTO): Draft {
 }
 
 function toDraftCreationPayloadDTO(
-  draft: DraftCreationPayload
+  draft: DraftCreationPayload,
 ): DraftCreationPayloadDTO {
   return {
     ...emptyToNull({
@@ -90,7 +90,7 @@ function toDraftCreationPayloadDTO(
 }
 
 function toDraftUpdatePayloadDTO(
-  draft: DraftUpdatePayload
+  draft: DraftUpdatePayload,
 ): DraftUpdatePayloadDTO {
   return {
     ...emptyToNull({

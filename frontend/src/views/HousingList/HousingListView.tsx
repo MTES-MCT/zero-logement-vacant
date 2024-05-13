@@ -1,7 +1,7 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';

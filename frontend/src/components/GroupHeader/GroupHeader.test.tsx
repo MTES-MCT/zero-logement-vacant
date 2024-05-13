@@ -5,11 +5,9 @@ import fetchMock from 'jest-fetch-mock';
 import { Store } from '@reduxjs/toolkit';
 import { genGroup } from '../../../test/fixtures.test';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
-import { getRequestCalls, mockRequests } from '../../utils/test/requestUtils';
-import config from '../../utils/config';
+import { MemoryRouter as Router } from 'react-router-dom';
+import { mockRequests } from '../../utils/test/requestUtils';
 import configureTestStore from '../../utils/test/storeUtils';
-import GroupView from '../../views/Group/GroupView';
 
 describe('GroupHeader', () => {
   const user = userEvent.setup();
@@ -27,9 +25,9 @@ describe('GroupHeader', () => {
       async () => ({
         status: 200,
         body: JSON.stringify(
-          new Array(DISPLAY_GROUPS + 1).fill('0').map(genGroup),
-        ),
-      }),
+          new Array(DISPLAY_GROUPS + 1).fill('0').map(genGroup)
+        )
+      })
     );
 
     render(
@@ -37,7 +35,7 @@ describe('GroupHeader', () => {
         <Router>
           <GroupHeader />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
     const displayMore = await screen.findByText(/^Afficher plus/);
@@ -52,9 +50,9 @@ describe('GroupHeader', () => {
         pathname: '/api/groups',
         response: {
           status: 200,
-          body: JSON.stringify(groups),
-        },
-      },
+          body: JSON.stringify(groups)
+        }
+      }
     ]);
 
     render(
@@ -62,12 +60,12 @@ describe('GroupHeader', () => {
         <Router>
           <GroupHeader />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
     const cards = await screen.findAllByRole('group-card');
     expect(cards).toBeArrayOfSize(
-      groups.filter((group) => !group.archivedAt).length,
+      groups.filter((group) => !group.archivedAt).length
     );
   });
 
@@ -78,10 +76,10 @@ describe('GroupHeader', () => {
         response: {
           status: 200,
           body: JSON.stringify(
-            new Array(DISPLAY_GROUPS).fill('0').map(genGroup),
-          ),
-        },
-      },
+            new Array(DISPLAY_GROUPS).fill('0').map(genGroup)
+          )
+        }
+      }
     ]);
 
     render(
@@ -89,7 +87,7 @@ describe('GroupHeader', () => {
         <Router>
           <GroupHeader />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
     await expect(screen.findByText(/^Afficher plus/)).toReject();
@@ -102,9 +100,9 @@ describe('GroupHeader', () => {
         pathname: '/api/groups',
         response: {
           status: 200,
-          body: JSON.stringify(groups),
-        },
-      },
+          body: JSON.stringify(groups)
+        }
+      }
     ]);
 
     render(
@@ -112,13 +110,13 @@ describe('GroupHeader', () => {
         <Router>
           <GroupHeader />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
     const displayMore = await screen.findByText(/^Afficher plus/);
     await user.click(displayMore);
     const titles = await Promise.all(
-      groups.map((group) => screen.findByText(group.title)),
+      groups.map((group) => screen.findByText(group.title))
     );
     titles.forEach((title) => {
       expect(title).toBeVisible();

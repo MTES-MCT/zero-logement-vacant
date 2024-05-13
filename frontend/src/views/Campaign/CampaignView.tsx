@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Col, Icon, Row, Text } from '../../components/_dsfr';
 import { isBuilding } from '../../models/Campaign';
 import CampaignInProgress from './CampaignInProgress';
@@ -49,7 +47,7 @@ function CampaignView() {
                 >
                   Créée à partir du groupe
                 </Text>
-                {!!group.archivedAt ? (
+                {group.archivedAt ? (
                   <>
                     <Icon name="ri-hotel-fill" iconPosition="left" size="1x" />
                     <Text as="span" spacing="mb-0">

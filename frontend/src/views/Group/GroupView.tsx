@@ -1,7 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
-import React from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 
 import {

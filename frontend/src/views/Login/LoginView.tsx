@@ -1,4 +1,4 @@
-import React, { FormEvent, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
 import hands_mail from '../../assets/images/hands-mail.svg';
@@ -314,7 +313,7 @@ const EstablishmentHomeView = () => {
             <Text size="lead" bold>
               Découvrez chaque mois les nouvelles 
               <span className="color-bf525">fonctionnalités</span>, des 
-              <span className="color-bf525">retours d'expériences</span>  de
+              <span className="color-bf525">retours d’expériences</span>  de
               collectivités, 
               <span className="color-bf525">les actualités</span> de la lutte
               contre la vacance.
@@ -332,7 +331,7 @@ const EstablishmentHomeView = () => {
                 );
               }}
             >
-              S'inscrire
+              S’inscrire
             </Button>
           </Col>
         </Row>

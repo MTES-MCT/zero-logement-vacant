@@ -8,9 +8,9 @@
   "scripts": {
     "clean": "rimraf build",
     "icons": "only-include-used-icons",
-    "build": "yarn clean && yarn icons && craco build",
-    "dev": "yarn icons && craco start",
-    "test": "craco test",
+    "build": "yarn clean && yarn icons && DISABLE_ESLINT_PLUGIN=true craco build",
+    "dev": "yarn icons && DISABLE_ESLINT_PLUGIN=true craco start",
+    "test": "DISABLE_ESLINT_PLUGIN=true craco test",
     "postinstall": "copy-dsfr-to-public"
   },
   "browserslist": {

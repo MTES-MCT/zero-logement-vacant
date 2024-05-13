@@ -14,6 +14,9 @@
       "generator": "url",
       "template": "%URL%"
     },
+    "DISABLE_ESLINT_PLUGIN": {
+      "value": "true"
+    },
     "IS_REVIEW_APP": {
       "value": "true"
     },

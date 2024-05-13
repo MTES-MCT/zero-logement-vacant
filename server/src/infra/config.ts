@@ -29,10 +29,12 @@ convict.addFormat({
   },
 });
 
+type Env = 'development' | 'test' | 'production';
+
 interface Config {
   app: {
     batchSize: number;
-    env: 'development' | 'test' | 'production';
+    env: Env;
     isReviewApp: boolean;
     host: string;
     port: number;
@@ -62,6 +64,7 @@ interface Config {
     token: string | null;
   };
   db: {
+    env: Env;
     url: string;
     pool: {
       max: number;
@@ -213,6 +216,11 @@ const config = convict<Config>({
     },
   },
   db: {
+    env: {
+      env: 'DATABASE_ENV',
+      format: ['development', 'test', 'production'],
+      default: (process.env.NODE_ENV as Env | null) ?? 'development',
+    },
     url: {
       env: 'DATABASE_URL',
       format: String,

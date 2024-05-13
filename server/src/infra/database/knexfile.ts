@@ -10,21 +10,21 @@ const knexConfig: Knex.Config = {
   acquireConnectionTimeout: 10_000,
   pool: {
     min: 0,
-    max: config.db.pool.max,
+    max: config.db.pool.max
   },
   log: {
     debug: (message) => logger.debug(message),
     warn: (message) => logger.warn(message),
-    error: (message) => logger.error(message),
+    error: (message) => logger.error(message)
   },
   migrations: {
     tableName: 'knex_migrations',
-    directory: path.join(__dirname, 'migrations'),
+    directory: path.join(__dirname, 'migrations')
   },
   seeds: {
-    directory: path.join(__dirname, 'seeds', config.app.env),
-    timestampFilenamePrefix: true,
-  },
+    directory: path.join(__dirname, 'seeds', config.db.env),
+    timestampFilenamePrefix: true
+  }
 };
 
 export default knexConfig;

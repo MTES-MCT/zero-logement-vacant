@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import HousingEditionForm from './HousingEditionForm';
 import { genHousing } from '../../../test/fixtures.test';

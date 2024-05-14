@@ -1,4 +1,3 @@
-import React from 'react';
 import classNames from 'classnames';
 import Badge, { BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 

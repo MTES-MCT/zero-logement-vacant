@@ -102,6 +102,7 @@ const CampaignsListView = () => {
               `#${index + 1}`,
               <AppLink
                 isSimple
+                key={`${campaign.id}-link`}
                 to={`${
                   campaign.status === 'draft' || campaign.status === 'sending'
                     ? ''
@@ -110,12 +111,18 @@ const CampaignsListView = () => {
               >
                 {campaign.title}
               </AppLink>,
-              <CampaignStatusBadge status={campaign.status} />,
+              <CampaignStatusBadge
+                key={`${campaign.id}-status`}
+                status={campaign.status}
+              />,
               format(new Date(campaign.createdAt), 'dd/MM/yyyy'),
               campaign.sentAt
                 ? format(new Date(campaign.sentAt), 'dd/MM/yyyy')
                 : '',
-              <div className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w">
+              <div
+                className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w"
+                key={`${campaign.id}-actions`}
+              >
                 <Button
                   priority="tertiary"
                   linkProps={{

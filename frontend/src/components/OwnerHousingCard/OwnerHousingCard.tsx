@@ -1,5 +1,4 @@
 import { Icon, Text, Title } from '../_dsfr';
-import React from 'react';
 
 import { getBuildingLocation, Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
@@ -57,7 +56,7 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
           {additionalInfo && (
             <div>
               <Text size="sm" className="zlv-label">
-                Complément d'adresse
+                Complément d’adresse
               </Text>
               <Text className="fr-mb-0">{additionalInfo}</Text>
             </div>

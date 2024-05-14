@@ -2,6 +2,7 @@ build/
 dist/
 database/
 frontend/
+frontend/src/components/_dsfr/
 node_modules/
 public/
 scripts/
@@ -9,7 +10,6 @@ server/
 tools/
 
 README.md
-tools
 bin
 Procfile
 jest.config.js
@@ -20,8 +20,3 @@ scalingo.json
 
 *.css
 *.hbs
-
-frontend-new/src/components/_dsfr/
-
-# templates
-server/templates

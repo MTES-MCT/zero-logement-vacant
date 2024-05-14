@@ -1,4 +1,3 @@
-import React from 'react';
 import { Col, Pagination, Row, Table, Text } from '../../_dsfr';
 import { format } from 'date-fns';
 import { displayCount } from '../../../utils/stringUtils';
@@ -20,7 +19,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
     additionalOwnersQuery!,
     {
       skip: !additionalOwnersQuery,
-    }
+    },
   );
 
   const { pageCount, rowNumber, hasPagination } = usePagination({
@@ -75,7 +74,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
                   <b>
                     {displayCount(
                       additionalOwners.filteredCount,
-                      'propriétaire trouvé'
+                      'propriétaire trouvé',
                     )}
                   </b>
                 </Col>
@@ -103,7 +102,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
                             housingSlice.actions.fetchingAdditionalOwners({
                               ...additionalOwnersQuery,
                               page,
-                            })
+                            }),
                           )
                         }
                         currentPage={additionalOwners.page}

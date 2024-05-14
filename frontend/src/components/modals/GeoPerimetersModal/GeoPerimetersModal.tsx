@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   Col,
@@ -156,7 +156,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             particulier, selon vos besoins.
           </Text>
           <Text spacing="mb-0" className="italic">
-            *fichier géographique (SIG) au format .zip comprenant l'ensemble des
+            *fichier géographique (SIG) au format .zip comprenant l’ensemble des
             extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”.
           </Text>
         </AppHelp>

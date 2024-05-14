@@ -5,7 +5,6 @@ import { OwnerProspect, OwnerProspectSort } from '../../models/OwnerProspect';
 import styles from './inbox-message-list.module.scss';
 import { dateShortFormatWithMinutes } from '../../utils/dateUtils';
 import { useSort } from '../../hooks/useSort';
-import React from 'react';
 import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
 import AppLinkAsButton from '../_app/AppLinkAsButton/AppLinkAsButton';
 import { pluralize } from '../../utils/stringUtils';
@@ -63,7 +62,9 @@ function InboxMessageList(props: Props) {
           {!owner.read && <span className={styles.chip} />}
           <div className={styles.addressLines}>
             {splitAddress(owner.address).map((address) => (
-              <Text bold={!owner.read}>{address}</Text>
+              <Text bold={!owner.read} key={owner.id}>
+                {address}
+              </Text>
             ))}
           </div>
         </div>

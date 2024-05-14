@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { HousingOwner, Owner } from '../../../models/Owner';
 import { SelectOption } from '../../../models/SelectOption';
 import styles from './housing-owner-modal.module.scss';

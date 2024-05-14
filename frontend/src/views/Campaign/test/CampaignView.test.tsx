@@ -205,6 +205,7 @@ describe('Campaign view', () => {
     });
     await user.click(save);
     expect(modal).not.toBeVisible();
+    await screen.findByRole('heading', { name: title });
   });
 
   it('should save the draft if at least one field is filled', async () => {

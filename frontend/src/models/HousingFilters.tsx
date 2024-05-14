@@ -122,7 +122,6 @@ export const vacancyRateOptions: SelectOption[] = [
 ];
 
 const energyConsumptionGrades = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-// @ts-ignore: label is defined as a string but passed as a component
 export const energyConsumptionOptions: SelectOption[] =
   energyConsumptionGrades.map((grade) => ({
     value: grade,
@@ -370,7 +369,7 @@ export const OptionTreeSeparator = ' > ';
 
 export const filterCount = (housingFilters: HousingFilters) => {
   return Object.entries(housingFilters).filter(
-    ([_, v]) => v !== undefined && v !== null && (v as any[]).length > 0,
+    ([, v]) => v !== undefined && v !== null && (v as any[]).length > 0,
   ).length;
 };
 export const hasFilters = (housingFilters: HousingFilters) => {

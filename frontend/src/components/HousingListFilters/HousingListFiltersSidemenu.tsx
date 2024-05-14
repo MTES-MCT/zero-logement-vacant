@@ -35,7 +35,6 @@ import {
   vacancyRateOptions,
 } from '../../models/HousingFilters';
 import styles from './housing-list-filters.module.scss';
-import React from 'react';
 import { OwnershipKinds } from '../../models/Housing';
 import {
   getSubStatusList,
@@ -77,7 +76,7 @@ interface Props {
 
 function HousingListFiltersSidemenu(props: Props) {
   const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment
+    (state) => state.authentication.authUser?.establishment,
   );
 
   const toggle = useToggle(true);
@@ -98,10 +97,10 @@ function HousingListFiltersSidemenu(props: Props) {
       {
         statusList,
         subStatus: filters.subStatus?.filter((_) =>
-          getSubStatusList(statusList).includes(_)
+          getSubStatusList(statusList).includes(_),
         ),
       },
-      'Statut'
+      'Statut',
     );
   };
 
@@ -122,7 +121,6 @@ function HousingListFiltersSidemenu(props: Props) {
       variant="permanent"
     >
       <Button
-        children={toggle.active ? 'Réduire' : undefined}
         className="fr-mb-2w"
         iconId={
           toggle.active
@@ -136,7 +134,9 @@ function HousingListFiltersSidemenu(props: Props) {
         }}
         title={toggle.active ? 'Fermer' : 'Ouvrir'}
         onClick={() => toggle.toggle()}
-      />
+      >
+        {toggle.active ? 'Réduire' : undefined}
+      </Button>
 
       <GroupHeader
         className={classNames('fr-mb-4w', styles.drawerContent, {
@@ -257,7 +257,7 @@ function HousingListFiltersSidemenu(props: Props) {
                 if (value) {
                   onChangeFilters(
                     { localities: concat(filters.localities, value) },
-                    'Commune'
+                    'Commune',
                   );
                 }
               }}
@@ -277,7 +277,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <SearchableSelect
               options={unselectedOptions(
                 geoPerimeterOptions(geoPerimeters),
-                filters.geoPerimetersIncluded
+                filters.geoPerimetersIncluded,
               )}
               label="Périmètre inclus"
               placeholder="Rechercher un périmètre"
@@ -287,10 +287,10 @@ function HousingListFiltersSidemenu(props: Props) {
                     {
                       geoPerimetersIncluded: concat(
                         filters.geoPerimetersIncluded,
-                        value
+                        value,
                       ),
                     },
-                    'Périmètre inclus'
+                    'Périmètre inclus',
                   );
                 }
               }}
@@ -300,7 +300,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <SearchableSelect
               options={unselectedOptions(
                 geoPerimeterOptions(geoPerimeters),
-                filters.geoPerimetersExcluded
+                filters.geoPerimetersExcluded,
               )}
               label="Périmètre exclu"
               placeholder="Rechercher un périmètre"
@@ -310,10 +310,10 @@ function HousingListFiltersSidemenu(props: Props) {
                     {
                       geoPerimetersExcluded: concat(
                         filters.geoPerimetersExcluded,
-                        value
+                        value,
                       ),
                     },
-                    'Périmètre exclu'
+                    'Périmètre exclu',
                   );
                 }
               }}
@@ -336,7 +336,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters(
                   { housingCounts: values },
-                  'Nombre de logements'
+                  'Nombre de logements',
                 )
               }
             />
@@ -359,7 +359,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters(
                   { energyConsumption: values },
-                  'Étiquette DPE représentatif (CSTB)'
+                  'Étiquette DPE représentatif (CSTB)',
                 )
               }
             />
@@ -386,7 +386,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters(
                   { buildingPeriods: values },
-                  'Date de construction'
+                  'Date de construction',
                 )
               }
             />
@@ -409,7 +409,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters(
                   { vacancyDurations: values },
-                  'Durée de vacance'
+                  'Durée de vacance',
                 )
               }
             />
@@ -432,7 +432,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters(
                   { isTaxedValues: values as OwnershipKinds[] },
-                  'Taxé'
+                  'Taxé',
                 )
               }
             />
@@ -445,7 +445,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters(
                   { cadastralClassifications: values },
-                  'Classement cadastral'
+                  'Classement cadastral',
                 )
               }
             />
@@ -519,12 +519,12 @@ function HousingListFiltersSidemenu(props: Props) {
               label="Millésime inclus"
               options={dataYearsIncludedOptions}
               initialValues={(filters.dataYearsIncluded ?? []).map((_) =>
-                String(_)
+                String(_),
               )}
               onChange={(values) =>
                 onChangeFilters(
                   { dataYearsIncluded: values.map(Number) },
-                  'Millésime inclus'
+                  'Millésime inclus',
                 )
               }
             />
@@ -535,12 +535,12 @@ function HousingListFiltersSidemenu(props: Props) {
               defaultOption="Aucun"
               options={dataYearsExcludedOptions}
               initialValues={(filters.dataYearsExcluded ?? []).map((_) =>
-                String(_)
+                String(_),
               )}
               onChange={(values) =>
                 onChangeFilters(
                   { dataYearsExcluded: values.map(Number) },
-                  'Millésime exclu'
+                  'Millésime exclu',
                 )
               }
             />

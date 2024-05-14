@@ -7,7 +7,7 @@ const config = {
         ? process.env.REACT_APP_MATOMO_ENABLED === 'true'
         : process.env.NODE_ENV === 'production',
     urlBase: process.env.REACT_APP_MATOMO_URL_BASE ?? '',
-    siteId: Number(process.env.REACT_APP_MATOMO_SITE_ID) ?? 0,
+    siteId: Number(process.env.REACT_APP_MATOMO_SITE_ID) ?? 1,
     srcUrl: process.env.REACT_APP_MATOMO_SRC_URL,
     linkTracking: true,
   },

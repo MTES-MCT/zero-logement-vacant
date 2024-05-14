@@ -1,4 +1,4 @@
-import React, { ComponentPropsWithoutRef, InputHTMLAttributes } from 'react';
+import { ComponentPropsWithoutRef, InputHTMLAttributes } from 'react';
 import { ObjectShape } from 'yup/lib/object';
 import { useForm } from '../../../hooks/useForm';
 import Select from '@codegouvfr/react-dsfr/Select';

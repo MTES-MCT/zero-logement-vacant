@@ -3,7 +3,7 @@ import Card from '@codegouvfr/react-dsfr/Card';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Col, Icon, Row, Title } from '../_dsfr';
 import styles from './housing-details-card.module.scss';

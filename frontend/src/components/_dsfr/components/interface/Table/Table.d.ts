@@ -2,12 +2,12 @@ import * as React from 'react';
 
 export type TableCaptionPosition = 'top' | 'bottom' | 'none';
 
-export type TableRowKey = string | ((...args: any[])=>any);
+export type TableRowKey = string | ((...args: any[]) => any);
 
 export type TablePaginationPosition = 'left' | 'center' | 'right';
 
 export interface TableProps {
-  columns: Object[];
+  columns: object[];
   data: any[];
   fixedLayout?: boolean;
   fixedHeader?: boolean;
@@ -25,7 +25,7 @@ export interface TableProps {
   surrendingPages?: number;
   perPage?: number;
   page?: number;
-  setPage?: (...args: any[])=>any;
+  setPage?: (...args: any[]) => any;
 }
 
 declare const Table: React.FC<TableProps>;

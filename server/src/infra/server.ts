@@ -117,7 +117,7 @@ export function createServer(): Server {
 
   // Serve the frontend in production
   if (config.app.env === 'production') {
-    const build = path.join(__dirname, '..', '..', 'frontend', 'build');
+    const build = path.join(__dirname, '..', '..', '..', 'frontend', 'build');
     app.use(express.static(build));
     app.get('*', (request: Request, response: Response) => {
       const index = path.join(build, 'index.html');

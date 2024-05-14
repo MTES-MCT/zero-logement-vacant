@@ -131,8 +131,6 @@ export function createServer(): Server {
   sentry.errorHandler(app);
   app.use(errorHandler());
 
-  gracefulShutdown(app);
-
   async function connectToRedis() {
     try {
       const client = createClient({
@@ -147,13 +145,15 @@ export function createServer(): Server {
   }
 
   async function start(): Promise<void> {
-    const listen = util.promisify((port: number, cb: () => void) =>
-      app.listen(port, cb),
-    );
+    const listen = util.promisify((port: number, cb: () => void) => {
+      const listener = app.listen(port, cb);
+      gracefulShutdown(listener);
+      return listener;
+    });
 
     try {
       await connectToRedis();
-      await listen(config.app.port);
+      const listener = await listen(config.app.port);
       logger.info(`Server listening on ${config.app.port}`);
     } catch (error) {
       logger.error('Unable to start the server', error);

@@ -1,5 +1,5 @@
 import userEvent from '@testing-library/user-event';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 import {
   genAuthUser,
@@ -13,7 +13,6 @@ import { Prospect } from '../../../../models/Prospect';
 import { configureStore } from '@reduxjs/toolkit';
 import { applicationReducer } from '../../../../store/store';
 import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
-import React from 'react';
 
 describe('AccountPasswordCreationView', () => {
   const user = userEvent.setup();

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import { Col, Container, Row } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';

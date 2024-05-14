@@ -1,5 +1,5 @@
 import fp from 'lodash/fp';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as yup from 'yup';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';

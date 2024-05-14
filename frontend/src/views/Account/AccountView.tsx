@@ -1,5 +1,4 @@
 import { Col, Row, Text, Title } from '../../components/_dsfr';
-import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUser } from '../../hooks/useUser';
 import { useGetUserAccountQuery } from '../../services/user-account.service';

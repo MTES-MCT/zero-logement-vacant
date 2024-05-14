@@ -12,7 +12,7 @@ import styles from './campaign.module.scss';
 import { campaignTitleValidator, useForm } from '../../hooks/useForm';
 import {
   TrackEventActions,
-  TrackEventCategories
+  TrackEventCategories,
 } from '../../models/TrackEvent';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 
@@ -20,11 +20,11 @@ type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
 const modal = createModal({
   id: 'campaign-title-modal',
-  isOpenedByDefault: false
+  isOpenedByDefault: false,
 });
 
 const schema = object().shape({
-  title: campaignTitleValidator
+  title: campaignTitleValidator,
 });
 type FormShape = InferType<typeof schema>;
 
@@ -40,9 +40,9 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
 
   const [updateCampaign] = useUpdateCampaignMutation();
 
-  const [title, setTitle] = useState(campaign.title ?? '');
+  const [title, setTitle] = useState(campaign.title);
   const form = useForm(schema, {
-    title
+    title,
   });
 
   function submit(event: FormEvent) {
@@ -50,11 +50,11 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
     form.validate(async () => {
       await updateCampaign({
         ...campaign,
-        title
-      });
+        title,
+      }).unwrap();
       trackEvent({
         category: TrackEventCategories.Campaigns,
-        action: TrackEventActions.Campaigns.Rename
+        action: TrackEventActions.Campaigns.Rename,
       });
       modal.close();
     });
@@ -90,13 +90,13 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
           {
             children: 'Annuler',
             className: 'fr-mr-2w',
-            priority: 'secondary'
+            priority: 'secondary',
           },
           {
             onClick: submit,
             children: 'Confirmer',
-            doClosesModal: false
-          }
+            doClosesModal: false,
+          },
         ]}
       >
         <form id="campaign-title-edition-form" onSubmit={submit}>

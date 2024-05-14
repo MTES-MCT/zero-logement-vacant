@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/locale/fr';
+import { faker } from '@faker-js/faker';
 import { addHours } from 'date-fns';
 import randomstring from 'randomstring';
 

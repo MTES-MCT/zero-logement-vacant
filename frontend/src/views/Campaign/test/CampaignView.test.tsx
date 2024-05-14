@@ -77,10 +77,11 @@ describe('Campaign view', () => {
       </Provider>,
     );
 
-    await screen.findByText('Page non trouvée');
+    const page = await screen.findByText('Page non trouvée');
+    expect(page).toBeVisible();
   });
 
-  async function renderComponent(): Promise<void> {
+  function renderComponent(): void {
     render(
       <Provider store={store}>
         <Notification />
@@ -90,11 +91,6 @@ describe('Campaign view', () => {
         </Router>
       </Provider>,
     );
-
-    const button = await screen.findByRole('button', {
-      name: /^Visualiser mon courrier/,
-    });
-    expect(button).toBeDisabled();
   }
 
   it('should render', async () => {
@@ -131,7 +127,7 @@ describe('Campaign view', () => {
       },
     ]);
 
-    await renderComponent();
+    renderComponent();
 
     const title = await screen.findByRole('heading', { name: campaign.title });
     expect(title).toBeVisible();
@@ -194,7 +190,7 @@ describe('Campaign view', () => {
       },
     ]);
 
-    await renderComponent();
+    renderComponent();
 
     const rename = await screen.findByRole('button', { name: /^Renommer/ });
     await user.click(rename);

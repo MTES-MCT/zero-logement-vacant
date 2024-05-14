@@ -128,12 +128,12 @@ const config = convict<Config>({
       default: false,
     },
     host: {
-      env: 'APP_HOST',
+      env: 'HOST',
       format: String,
       default: 'http://localhost:3001',
     },
     port: {
-      env: 'APP_PORT',
+      env: 'PORT',
       format: 'port',
       default: 3001,
     },

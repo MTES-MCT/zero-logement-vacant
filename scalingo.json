@@ -10,7 +10,7 @@
     }
   },
   "env": {
-    "APPLICATION_HOST": {
+    "HOST": {
       "generator": "url",
       "template": "%URL%"
     },

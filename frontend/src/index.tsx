@@ -23,7 +23,10 @@ declare module '@codegouvfr/react-dsfr/spa' {
   }
 }
 
-const matomo = createInstance(config.matomo);
+const matomo = createInstance({
+  ...config.matomo,
+  disabled: !config.matomo.enabled,
+});
 
 const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container!);

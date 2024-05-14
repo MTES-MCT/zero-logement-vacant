@@ -153,7 +153,7 @@ export function createServer(): Server {
 
     try {
       await connectToRedis();
-      const listener = await listen(config.app.port);
+      await listen(config.app.port);
       logger.info(`Server listening on ${config.app.port}`);
     } catch (error) {
       logger.error('Unable to start the server', error);

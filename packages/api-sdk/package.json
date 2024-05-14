@@ -28,6 +28,7 @@
     "@zerologementvacant/utils": "workspace:^",
     "axios": "^1.6.8",
     "convict": "^6.2.4",
+    "dotenv": "^16.4.5",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
     "pg": "^8.11.5"

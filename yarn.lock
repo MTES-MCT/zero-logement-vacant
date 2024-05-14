@@ -8949,6 +8949,7 @@ __metadata:
     "@zerologementvacant/utils": "workspace:^"
     axios: "npm:^1.6.8"
     convict: "npm:^6.2.4"
+    dotenv: "npm:^16.4.5"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     jsonwebtoken: "npm:^9.0.2"

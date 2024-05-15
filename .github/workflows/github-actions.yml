@@ -53,7 +53,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Build
-        run: yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -pt --since=origin/main run build
+        run: yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apt run build
         env:
           CEREMA_TOKEN: token
           DISABLE_ESLINT_PLUGIN: true

@@ -3,7 +3,9 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import 'jest-extended';
 import { enableFetchMocks } from 'jest-fetch-mock';
+import util from 'node:util';
 
 enableFetchMocks();
 
@@ -11,6 +13,9 @@ jest.mock('./components/Aside/Aside.tsx');
 jest.mock('./components/RichEditor/RichEditor.tsx');
 
 global.URL.createObjectURL = jest.fn();
+
+global.TextEncoder = util.TextEncoder;
+global.TextDecoder = util.TextDecoder as typeof TextDecoder;
 
 beforeEach(() => {
   fetchMock.resetMocks();

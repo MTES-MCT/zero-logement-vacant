@@ -1,4 +1,4 @@
-import React from 'react';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 import { Col, Icon, Row, Text } from '../../components/_dsfr';
 import { isBuilding } from '../../models/Campaign';
@@ -14,9 +14,7 @@ import NotFoundView from '../NotFoundView';
 
 function CampaignView() {
   const { campaign, isLoadingCampaign } = useCampaign();
-  const { data: group } = useGetGroupQuery(campaign?.groupId!, {
-    skip: !campaign?.groupId,
-  });
+  const { data: group } = useGetGroupQuery(campaign?.groupId ?? skipToken);
 
   if (isLoadingCampaign) {
     return <Loading />;
@@ -49,7 +47,7 @@ function CampaignView() {
                 >
                   Créée à partir du groupe
                 </Text>
-                {!!group.archivedAt ? (
+                {group.archivedAt ? (
                   <>
                     <Icon name="ri-hotel-fill" iconPosition="left" size="1x" />
                     <Text as="span" spacing="mb-0">

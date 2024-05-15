@@ -1,4 +1,4 @@
-import { EstablishmentKind } from '../../../shared/types/EstablishmentKind';
+import { EstablishmentKind } from '@zerologementvacant/models';
 import { normalizeUrlSegment } from '../utils/fetchUtils';
 
 export interface Establishment {

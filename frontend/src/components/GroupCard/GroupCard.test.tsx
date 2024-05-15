@@ -1,17 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import GroupCard from './GroupCard';
 import { genGroup } from '../../../test/fixtures.test';
-import { Router } from 'react-router-dom';
-import { createMemoryHistory } from 'history';
+import { MemoryRouter as Router } from 'react-router-dom';
 
 describe('GroupCard', () => {
   const group = genGroup();
 
   it('should render', () => {
     render(
-      <Router history={createMemoryHistory()}>
+      <Router>
         <GroupCard group={group} />
-      </Router>
+      </Router>,
     );
 
     const title = screen.queryByText(group.title);
@@ -20,9 +19,9 @@ describe('GroupCard', () => {
 
   it('should show the number of housing', () => {
     render(
-      <Router history={createMemoryHistory()}>
+      <Router>
         <GroupCard group={group} />
-      </Router>
+      </Router>,
     );
 
     const housingCount = screen.queryByText(group.housingCount);
@@ -31,9 +30,9 @@ describe('GroupCard', () => {
 
   it('should show the number of owners', () => {
     render(
-      <Router history={createMemoryHistory()}>
+      <Router>
         <GroupCard group={group} />
-      </Router>
+      </Router>,
     );
 
     const ownerCount = screen.queryByText(group.ownerCount);
@@ -42,9 +41,9 @@ describe('GroupCard', () => {
 
   it('should have a link that redirects to the group view', () => {
     render(
-      <Router history={createMemoryHistory()}>
+      <Router>
         <GroupCard group={group} />
-      </Router>
+      </Router>,
     );
 
     const link = screen.getByRole('link');

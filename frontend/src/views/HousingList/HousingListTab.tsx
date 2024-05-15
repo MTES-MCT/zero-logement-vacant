@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HousingStatus } from '../../models/HousingState';
 import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
@@ -16,7 +16,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount, HousingCount } from '../../models/HousingCount';
 import GroupAddHousingModal from '../../components/modals/GroupAddHousingModal/GroupAddHousingModal';
@@ -70,7 +70,7 @@ const HousingListTab = ({
   const [error, setError] = useState<string>();
 
   const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters)
+    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters),
   );
   const totalCount = housingCount?.housing;
 
@@ -78,7 +78,7 @@ const HousingListTab = ({
   const filteredCount = count;
 
   const { selectedCount, selected, setSelected } = useSelection(
-    filteredCount?.housing
+    filteredCount?.housing,
   );
   const filteredHousingCount = filteredCount?.housing;
   const filteredOwnerCount = filteredCount?.owners;
@@ -127,7 +127,7 @@ const HousingListTab = ({
     } catch (error: any) {
       if (error.data.name === 'HousingUpdateForbiddenError') {
         setError(
-          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".'
+          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".',
         );
       }
     }
@@ -155,7 +155,7 @@ const HousingListTab = ({
 
   const [createGroup] = useCreateGroupMutation();
   async function doCreateGroup(
-    group: Pick<Group, 'title' | 'description'>
+    group: Pick<Group, 'title' | 'description'>,
   ): Promise<void> {
     try {
       const response = await createGroup({

@@ -1,6 +1,6 @@
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import * as yup from 'yup';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import resetLinkService from '../../services/reset-link.service';
@@ -50,7 +50,7 @@ function ForgottenPasswordView() {
       <>
         <Text>Un email vous a été envoyé avec les instructions à suivre.</Text>
         <Text className="subtitle">
-          Vous ne trouvez pas le mail ? Vérifiez qu'il ne s'est pas glissé dans
+          Vous ne trouvez pas le mail ? Vérifiez qu’il ne s’est pas glissé dans
           vos spams ou 
           <AppLinkAsButton isSimple onClick={submit}>
             renvoyer le mail

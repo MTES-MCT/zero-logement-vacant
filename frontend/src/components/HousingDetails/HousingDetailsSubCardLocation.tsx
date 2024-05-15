@@ -1,5 +1,4 @@
 import { Text } from '../_dsfr';
-import React from 'react';
 import { getBuildingLocation, Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import { LocalityKindLabels } from '../../models/Locality';
@@ -21,7 +20,7 @@ function HousingDetailsCardLocation({ housing }: Props) {
       {getBuildingLocation(housing) && (
         <div>
           <Text size="sm" className="zlv-label">
-            Complément d'adresse
+            Complément d’adresse
           </Text>
           <Text>
             {[

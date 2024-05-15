@@ -5,10 +5,10 @@ import { toast } from 'react-toastify';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
 import { Draft } from '../../models/Draft';
-import { useHousingList } from '../../hooks/useHousingList';
 import { useCampaign } from '../../hooks/useCampaign';
 import { useNotification } from '../../hooks/useNotification';
 import { getAddress } from '../../models/Owner';
+import { useLazyFindHousingQuery } from '../../services/housing.service';
 
 interface Props {
   className?: string;
@@ -20,20 +20,9 @@ function PreviewButton(props: Readonly<Props>) {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const { campaign, isLoadingCampaign } = useCampaign();
-  const { housingList: houses } = useHousingList(
-    {
-      filters: {
-        campaignIds: [campaign!.id],
-      },
-      pagination: {
-        paginate: true,
-        page: 1,
-        perPage: 1,
-      },
-    },
-    { skip: isLoadingCampaign || !campaign }
-  );
+  const { campaign } = useCampaign();
+
+  const [findHousings] = useLazyFindHousingQuery();
 
   useNotification({
     isError,
@@ -43,9 +32,9 @@ function PreviewButton(props: Readonly<Props>) {
       error: 'Une erreur est survenue lors de la génération du courrier.',
       loading:
         'Votre courrier est en cours de génération, veuillez patienter quelques secondes...',
-      success: 'Courrier généré !',
+      success: 'Courrier généré !'
     },
-    toastId: 'preview-draft',
+    toastId: 'preview-draft'
   });
 
   async function preview(): Promise<void> {
@@ -54,14 +43,26 @@ function PreviewButton(props: Readonly<Props>) {
       setIsLoading(true);
       setIsSuccess(false);
 
-      if (!houses?.length) {
+      const { data } = await findHousings({
+        filters: {
+          campaignIds: [campaign!.id]
+        },
+        pagination: {
+          paginate: true,
+          page: 1,
+          perPage: 1
+        }
+      });
+      const housings = data?.entities;
+
+      if (!housings?.length) {
         toast.error('Aucun logement trouvé pour cette campagne');
         return;
       }
 
       if (props.draft) {
         setIsLoading(true);
-        const [housing] = houses;
+        const [housing] = housings;
         const { owner } = housing;
         const response = await fetch(
           `${config.apiEndpoint}/api/drafts/${props.draft.id}/preview`,
@@ -69,16 +70,16 @@ function PreviewButton(props: Readonly<Props>) {
             method: 'POST',
             headers: {
               ...authService.authHeader(),
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               housing: housing,
               owner: {
                 fullName: owner.fullName,
                 address: getAddress(owner),
-                additionalAddress: owner.additionalAddress,
-              },
-            }),
+                additionalAddress: owner.additionalAddress
+              }
+            })
           }
         );
         const blob = await response.blob();

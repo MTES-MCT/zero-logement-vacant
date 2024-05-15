@@ -13,7 +13,7 @@ import { zlvApi } from './api.service';
 import {
   CampaignCreationPayloadDTO,
   CampaignUpdatePayloadDTO,
-} from '../../../shared/models/CampaignDTO';
+} from '@zerologementvacant/models';
 
 export interface FindOptions extends SortOptions<CampaignSort> {
   filters?: CampaignFilters;
@@ -27,7 +27,7 @@ const parseCampaign = (c: any): Campaign =>
     sentAt: c.sentAt ? parseISO(c.sentAt) : undefined,
     archivedAt: c.archivedAt ? parseISO(c.archivedAt) : undefined,
     exportURL: getExportURL(c.id),
-  } as Campaign);
+  }) as Campaign;
 
 export const campaignApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -115,7 +115,7 @@ export const campaignApi = zlvApi.injectEndpoints({
             'Housing',
             'HousingByStatus',
             'HousingCountByStatus',
-          ])
+          ]),
         );
       },
     }),

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import styles from './resources.module.scss';
 import MainContainer from '../../components/MainContainer/MainContainer';

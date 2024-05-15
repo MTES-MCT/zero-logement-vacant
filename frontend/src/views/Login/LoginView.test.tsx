@@ -1,10 +1,8 @@
-import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor } from '@testing-library/react';
 import LoginView from './LoginView';
 import fetchMock from 'jest-fetch-mock';
-import { Router } from 'react-router-dom';
-import { createMemoryHistory } from 'history';
+import { MemoryRouter as Router, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from '../../store/store';
 
@@ -18,10 +16,10 @@ describe('login view', () => {
   test('should render login form', () => {
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <LoginView />
         </Router>
-      </Provider>
+      </Provider>,
     );
     expect(screen.getAllByTestId('email-input')[0]).toBeInTheDocument();
     expect(screen.getAllByTestId('password-input')[0]).toBeInTheDocument();
@@ -33,10 +31,10 @@ describe('login view', () => {
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <LoginView />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const passwordInput = screen
@@ -62,20 +60,20 @@ describe('login view', () => {
   });
 
   test('should redirect when "forgotten password" is clicked', async () => {
-    const history = createMemoryHistory();
-
     render(
       <Provider store={store}>
-        <Router history={history}>
-          <LoginView />
+        <Router initialEntries={['/connexion']}>
+          <Route path="/connexion" component={LoginView} />
+          <Route path="/mot-de-passe/oublie">Mot de passe oublié</Route>
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const forgottenPassword = screen.getByText('Mot de passe perdu ?');
     await user.click(forgottenPassword);
 
-    expect(history.location.pathname).toBe('/mot-de-passe/oublie');
+    const page = await screen.findByText('Mot de passe oublié');
+    expect(page).toBeVisible();
   });
 
   test('should route to dashboard view when login succeeded', async () => {
@@ -85,16 +83,15 @@ describe('login view', () => {
         establishment: { id: 123 },
         accessToken: 'accessToken',
       }),
-      { status: 200 }
+      { status: 200 },
     );
 
-    const history = createMemoryHistory();
     render(
       <Provider store={store}>
-        <Router history={history}>
+        <Router>
           <LoginView />
         </Router>
-      </Provider>
+      </Provider>,
     );
 
     const passwordInput = screen

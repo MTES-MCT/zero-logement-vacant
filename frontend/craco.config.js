@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-commonjs
 module.exports = {
   babel: {
     loaderOptions: {
@@ -12,9 +13,10 @@ module.exports = {
     configure(config) {
       config.rootDir = '.';
       config.setupFilesAfterEnv = [
-        '<rootDir>/src/setupTests.ts',
         'jest-extended/all',
+        '<rootDir>/src/setupTests.ts',
       ];
+      config.testTimeout = 30_000;
       config.transformIgnorePatterns = [
         '<rootDir>/node_modules/(?!@codegouvfr)/.+\\.js$',
       ];

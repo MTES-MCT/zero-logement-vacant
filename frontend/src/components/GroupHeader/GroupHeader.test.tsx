@@ -5,10 +5,8 @@ import fetchMock from 'jest-fetch-mock';
 import { Store } from '@reduxjs/toolkit';
 import { genGroup } from '../../../test/fixtures.test';
 import { Provider } from 'react-redux';
-import { createMemoryHistory } from 'history';
-import { Router } from 'react-router-dom';
-import { getRequestCalls, mockRequests } from '../../utils/test/requestUtils';
-import config from '../../utils/config';
+import { MemoryRouter as Router } from 'react-router-dom';
+import { mockRequests } from '../../utils/test/requestUtils';
 import configureTestStore from '../../utils/test/storeUtils';
 
 describe('GroupHeader', () => {
@@ -28,13 +26,13 @@ describe('GroupHeader', () => {
         status: 200,
         body: JSON.stringify(
           new Array(DISPLAY_GROUPS + 1).fill('0').map(genGroup)
-        ),
+        )
       })
     );
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <GroupHeader />
         </Router>
       </Provider>
@@ -52,14 +50,14 @@ describe('GroupHeader', () => {
         pathname: '/api/groups',
         response: {
           status: 200,
-          body: JSON.stringify(groups),
-        },
-      },
+          body: JSON.stringify(groups)
+        }
+      }
     ]);
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <GroupHeader />
         </Router>
       </Provider>
@@ -79,14 +77,14 @@ describe('GroupHeader', () => {
           status: 200,
           body: JSON.stringify(
             new Array(DISPLAY_GROUPS).fill('0').map(genGroup)
-          ),
-        },
-      },
+          )
+        }
+      }
     ]);
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <GroupHeader />
         </Router>
       </Provider>
@@ -102,14 +100,14 @@ describe('GroupHeader', () => {
         pathname: '/api/groups',
         response: {
           status: 200,
-          body: JSON.stringify(groups),
-        },
-      },
+          body: JSON.stringify(groups)
+        }
+      }
     ]);
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <GroupHeader />
         </Router>
       </Provider>

@@ -1,4 +1,4 @@
-import React, { ComponentPropsWithoutRef, InputHTMLAttributes } from 'react';
+import { ComponentPropsWithoutRef, InputHTMLAttributes } from 'react';
 import { ObjectShape } from 'yup/lib/object';
 import { useForm } from '../../../hooks/useForm';
 import Select from '@codegouvfr/react-dsfr/Select';
@@ -29,9 +29,10 @@ function AppSelect<T extends ObjectShape>(props: AppSelectProps<T>) {
     >
       {options.map((option) => (
         <option
-          label={option.label}
-          value={option.value}
           disabled={option.disabled}
+          label={option.label}
+          key={option.value}
+          value={option.value}
         ></option>
       ))}
     </Select>

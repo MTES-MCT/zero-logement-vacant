@@ -1,5 +1,4 @@
 import { Col, Row, Text, Title } from '../_dsfr';
-import React from 'react';
 import {
   getOccupancy,
   getSource,
@@ -23,12 +22,11 @@ interface Props {
 }
 
 function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
-
   const lastOccupancyChange = lastOccupancyEvent
     ? getYear(lastOccupancyEvent.createdAt)
     : housing.occupancy === 'V'
-    ? housing.vacancyStartYear
-    : undefined;
+      ? housing.vacancyStartYear
+      : undefined;
 
   return (
     <HousingDetailsSubCard
@@ -80,9 +78,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
           </Text>
           {housing.energyConsumption ? (
             <Tag className="d-block">
-              {['F', 'G'].includes(housing.energyConsumption)
-                ? 'Oui'
-                : 'Non'}
+              {['F', 'G'].includes(housing.energyConsumption) ? 'Oui' : 'Non'}
             </Tag>
           ) : (
             <Text spacing="mb-1w">Non renseigné</Text>

@@ -1,5 +1,5 @@
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
-import React, { FormEvent, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import building from '../../assets/images/building.svg';
 import * as yup from 'yup';
 import {
@@ -63,7 +63,7 @@ function ResetPasswordView() {
             <Text>Recommencez la procédure ou contactez le support.</Text>
             <Row justifyContent="right">
               <Button onClick={() => router.replace('/')}>
-                Revenir à l'accueil
+                Revenir à l’accueil
               </Button>
             </Row>
           </Col>

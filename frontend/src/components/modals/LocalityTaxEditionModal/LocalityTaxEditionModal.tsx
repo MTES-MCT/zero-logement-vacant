@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useMemo, useState } from 'react';
+import { ChangeEvent, useMemo, useState } from 'react';
 import { Col, Container, Row } from '../../_dsfr';
 
 import * as yup from 'yup';
@@ -23,7 +23,7 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
         id: `locality-tax-edition-modal-${locality?.geoCode}`,
         isOpenedByDefault: false,
       }),
-    [locality]
+    [locality],
   );
 
   const [hasTHLV, setHasTHLV] = useState(locality.taxKind === TaxKinds.THLV);

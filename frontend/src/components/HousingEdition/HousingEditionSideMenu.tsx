@@ -1,5 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 
 import { Container, Text, Title } from '../_dsfr';
 import { Housing, HousingUpdate } from '../../models/Housing';

@@ -1,6 +1,6 @@
 import { Text, Title } from '../../../components/_dsfr';
 import { Redirect, useHistory } from 'react-router-dom';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import classNames from 'classnames';
 import styles from '../forgotten-password-view.module.scss';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
@@ -49,7 +49,7 @@ function AccountEmailActivationView() {
           className={classNames(
             'fr-link',
             styles.buttonLink,
-            styles.buttonLinkSm
+            styles.buttonLinkSm,
           )}
         >
           renvoyer le mail

@@ -1,8 +1,8 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import classNames from 'classnames';
-import React, { FormEvent, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { InferType, object } from 'yup';
 
 import { Col, Container, Row, Title } from '../_dsfr';
@@ -40,7 +40,7 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
 
   const [updateCampaign] = useUpdateCampaignMutation();
 
-  const [title, setTitle] = useState(campaign.title ?? '');
+  const [title, setTitle] = useState(campaign.title);
   const form = useForm(schema, {
     title,
   });
@@ -51,7 +51,7 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
       await updateCampaign({
         ...campaign,
         title,
-      });
+      }).unwrap();
       trackEvent({
         category: TrackEventCategories.Campaigns,
         action: TrackEventActions.Campaigns.Rename,

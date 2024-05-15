@@ -1,5 +1,5 @@
 import { Col, Container, Icon, Row, Text } from '../_dsfr';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Popup, PopupProps } from 'react-map-gl';
 
 import { HousingWithCoordinates, toLink } from '../../models/Housing';
@@ -33,22 +33,22 @@ function HousingPopup(props: HousingPopupProps) {
 
   const housing = useMemo<HousingWithCoordinates>(
     () => building.housingList[currentHousing],
-    [building, currentHousing]
+    [building, currentHousing],
   );
 
   const housingState = useMemo(
     () => (housing.status ? getHousingState(housing.status) : undefined),
-    [housing.status]
+    [housing.status],
   );
 
   const housingSubState = useMemo(
     () => (housing.subStatus ? getHousingSubStatus(housing) : undefined),
-    [housing]
+    [housing],
   );
 
   function address(rawAddress: string[]) {
     return rawAddress.map((raw) => (
-      <Text bold spacing="mb-0" size="md">
+      <Text bold key={raw} spacing="mb-0" size="md">
         {raw}
       </Text>
     ));

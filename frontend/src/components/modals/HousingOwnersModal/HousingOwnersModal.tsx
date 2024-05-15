@@ -216,9 +216,9 @@ const HousingOwnersModal = ({
     );
   }, [ownerInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // @ts-ignore
+  // @ts-expect-error: dynamic key
   const message = (key: string) => form.message(key);
-  // @ts-ignore
+  // @ts-expect-error: dynamic key
   const hasError = (key: string) => form.hasError(key);
 
   function iconName(kind: string = '') {
@@ -358,7 +358,7 @@ const HousingOwnersModal = ({
                         required
                         label="Nom prénom"
                         inputForm={form}
-                        // @ts-ignore
+                        // @ts-expect-error: dynamic key
                         inputKey={`fullName${index}`}
                       />
                     </Col>
@@ -374,7 +374,7 @@ const HousingOwnersModal = ({
                         }
                         label="Date de naissance"
                         inputForm={form}
-                        // @ts-ignore
+                        // @ts-expect-error: dynamic key
                         inputKey={`birthDate$${index}`}
                       />
                     </Col>
@@ -397,7 +397,7 @@ const HousingOwnersModal = ({
                         }
                         label="Complément d'adresse"
                         inputForm={form}
-                        // @ts-ignore
+                        // @ts-expect-error: dynamic key
                         inputKey={`additionalAddress$${index}`}
                       />
                     </Col>
@@ -413,7 +413,7 @@ const HousingOwnersModal = ({
                         }
                         label="Adresse mail"
                         inputForm={form}
-                        // @ts-ignore
+                        // @ts-expect-error: dynamic key
                         inputKey={`email$${index}`}
                       />
                     </Col>
@@ -428,7 +428,7 @@ const HousingOwnersModal = ({
                         }
                         label="Numéro de téléphone"
                         inputForm={form}
-                        // @ts-expect-error
+                        // @ts-expect-error: dynamic key
                         inputKey={`phone$${index}`}
                       />
                     </Col>

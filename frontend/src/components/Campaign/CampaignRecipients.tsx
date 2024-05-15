@@ -20,8 +20,8 @@ interface Props {
 function CampaignRecipients(props: Props) {
   const { housingList } = useHousingList({
     filters: {
-      campaignIds: [props.campaign.id]
-    }
+      campaignIds: [props.campaign.id],
+    },
   });
 
   const [removeCampaignHousing] = useRemoveCampaignHousingMutation();
@@ -30,14 +30,14 @@ function CampaignRecipients(props: Props) {
       campaignId: props.campaign.id,
       all: false,
       ids: [housing.id],
-      filters: {}
+      filters: {},
     });
   }
 
   function formatAddress(address: Address): ReactNode[] {
     return (addressToString(address) as string)
       .split('\n')
-      .map((line) => <Typography>{line}</Typography>);
+      .map((line) => <Typography key={line}>{line}</Typography>);
   }
 
   const headers: ReactNode[] = [
@@ -46,11 +46,15 @@ function CampaignRecipients(props: Props) {
     'Propriétaire principal',
     'Adresse BAN du propriétaire',
     'Complément d’adresse',
-    null
+    null,
   ];
   const data: ReactNode[][] = (housingList ?? []).map((housing, i) => [
     `# ${i}`,
-    <AppLink isSimple to={`/logements/${housing.id}`}>
+    <AppLink
+      isSimple
+      key={`${housing.id}-address`}
+      to={`/logements/${housing.id}`}
+    >
       {housing.rawAddress.map((line) => (
         <>
           {line}
@@ -58,7 +62,11 @@ function CampaignRecipients(props: Props) {
         </>
       ))}
     </AppLink>,
-    <AppLink isSimple to={`/proprietaires/${housing.owner.id}`}>
+    <AppLink
+      isSimple
+      key={`${housing.id}-name`}
+      to={`/proprietaires/${housing.owner.id}`}
+    >
       {housing.owner.fullName}
     </AppLink>,
     <>
@@ -72,7 +80,7 @@ function CampaignRecipients(props: Props) {
       )}
     </>,
     housing.owner.additionalAddress,
-    <Grid container>
+    <Grid container key={`${housing.id}-actions`}>
       <OwnerEditionSideMenu className="fr-mr-1w" owner={housing.owner} />
       <Button
         iconId="fr-icon-close-line"
@@ -81,7 +89,7 @@ function CampaignRecipients(props: Props) {
         title="Supprimer le propriétaire"
         onClick={() => removeHousing(housing)}
       />
-    </Grid>
+    </Grid>,
   ]);
 
   return (

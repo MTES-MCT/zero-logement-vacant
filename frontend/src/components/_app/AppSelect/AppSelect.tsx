@@ -29,9 +29,10 @@ function AppSelect<T extends ObjectShape>(props: AppSelectProps<T>) {
     >
       {options.map((option) => (
         <option
-          label={option.label}
-          value={option.value}
           disabled={option.disabled}
+          label={option.label}
+          key={option.value}
+          value={option.value}
         ></option>
       ))}
     </Select>

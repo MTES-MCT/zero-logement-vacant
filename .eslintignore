@@ -1,7 +1,6 @@
 build/
 dist/
 database/
-frontend/
 frontend/src/components/_dsfr/
 node_modules/
 public/

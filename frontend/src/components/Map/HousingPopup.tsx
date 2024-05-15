@@ -48,7 +48,7 @@ function HousingPopup(props: HousingPopupProps) {
 
   function address(rawAddress: string[]) {
     return rawAddress.map((raw) => (
-      <Text bold spacing="mb-0" size="md">
+      <Text bold key={raw} spacing="mb-0" size="md">
         {raw}
       </Text>
     ));

@@ -1,3 +1,5 @@
+import { skipToken } from '@reduxjs/toolkit/query';
+
 import { Col, Icon, Row, Text } from '../../components/_dsfr';
 import { isBuilding } from '../../models/Campaign';
 import CampaignInProgress from './CampaignInProgress';
@@ -12,9 +14,7 @@ import NotFoundView from '../NotFoundView';
 
 function CampaignView() {
   const { campaign, isLoadingCampaign } = useCampaign();
-  const { data: group } = useGetGroupQuery(campaign?.groupId!, {
-    skip: !campaign?.groupId,
-  });
+  const { data: group } = useGetGroupQuery(campaign?.groupId ?? skipToken);
 
   if (isLoadingCampaign) {
     return <Loading />;

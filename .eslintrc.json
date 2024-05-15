@@ -46,7 +46,8 @@
             "plugin:testing-library/react"
           ],
           "rules": {
-            "jest/expect-expect": "off"
+            "jest/expect-expect": "off",
+            "react/display-name": "off"
           }
         }
       ]

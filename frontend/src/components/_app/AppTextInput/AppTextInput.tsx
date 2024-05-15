@@ -28,7 +28,6 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
     inputForm,
     whenValid,
     placeholder,
-    dataTestId,
     state,
     stateRelatedMessage,
     ...textInputProps

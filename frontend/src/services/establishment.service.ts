@@ -1,6 +1,5 @@
 import config from '../utils/config';
 import { Establishment } from '../models/Establishment';
-import { EstablishmentFilterApi } from '../../../server/models/EstablishmentFilterApi';
 import {
   createHttpService,
   getURLQuery,
@@ -16,7 +15,8 @@ const http = createHttpService('establishment', {
 
 export const establishmentApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
-    findOneEstablishment: builder.query<Establishment, EstablishmentFilterApi>({
+    // TODO: `any` should be `EstablishmentFiltersDTO`
+    findOneEstablishment: builder.query<Establishment, any>({
       query: (filters) =>
         `establishments/${getURLQuery({
           ...filters,
@@ -33,7 +33,8 @@ export const establishmentApi = zlvApi.injectEndpoints({
             ]
           : [],
     }),
-    findEstablishments: builder.query<Establishment[], EstablishmentFilterApi>({
+    // TODO: `any` should be `EstablishmentFiltersDTO`
+    findEstablishments: builder.query<Establishment[], any>({
       query: (filters) =>
         `establishments/${getURLQuery({
           ...filters,

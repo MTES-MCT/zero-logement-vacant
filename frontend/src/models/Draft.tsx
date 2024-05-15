@@ -2,7 +2,7 @@ import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
-} from '../../../shared/models/DraftDTO';
+} from '@zerologementvacant/models';
 import { SenderPayload } from './Sender';
 import { DeepNonNullable } from 'ts-essentials';
 

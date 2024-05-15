@@ -1,4 +1,3 @@
-import React from 'react';
 import { SelectOption } from '../../models/SelectOption';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 
@@ -13,7 +12,7 @@ const FilterBadge = ({
   option,
   filters = [],
   onChange,
-  small,
+  small
 }: FilterBadgeProps) => {
   function onClose() {
     onChange?.(filters.filter((v) => v !== option.value));
@@ -22,7 +21,7 @@ const FilterBadge = ({
   return (
     <Tag
       nativeButtonProps={{
-        onClick: onClose,
+        onClick: onClose
       }}
       small={small}
       dismissible={onChange !== undefined}
@@ -43,7 +42,7 @@ interface FilterBadgesProps {
 const FilterBadges = (props: FilterBadgesProps) => {
   const { filters, onChange, options, small }: FilterBadgesProps = {
     ...props,
-    filters: props.filters ?? [],
+    filters: props.filters ?? []
   };
   return (
     <>

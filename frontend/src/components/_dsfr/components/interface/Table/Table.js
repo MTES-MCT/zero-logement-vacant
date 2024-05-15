@@ -14,7 +14,6 @@ import Pagination from '../Pagination/Pagination';
  * @visibleName Table
  */
 const Table = ({
-  children,
   noScroll,
   caption,
   captionPosition,
@@ -46,7 +45,7 @@ const Table = ({
       'fr-table--header-fixed': fixedHeader,
       [`fr-react-table--pagination-${paginationPosition}`]: pagination,
     },
-    className
+    className,
   );
 
   const [internalPage, setInternalPage] = useState(1);
@@ -101,7 +100,7 @@ const Table = ({
   if (pagination) {
     sortedData = sortedData.slice(
       (currentPage - 1) * perPage,
-      currentPage * perPage
+      currentPage * perPage,
     );
   }
 

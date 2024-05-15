@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useOutsideClick } from '../../../hooks/useOutsideClick';
 import { SelectOption } from '../../../models/SelectOption';
@@ -104,7 +104,7 @@ const AppMultiSelect = ({
                       onChangeValue={onChangeValue}
                       small={small}
                     />
-                  )
+                  ),
               )}
             </div>
           </div>

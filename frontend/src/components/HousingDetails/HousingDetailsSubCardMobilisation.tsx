@@ -1,5 +1,4 @@
 import { Col, Row, Text, Title } from '../_dsfr';
-import React from 'react';
 import { Housing, lastUpdate } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
@@ -22,7 +21,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
   }
 
   const campaignInProgress = campaigns.filter(
-    (campaign) => campaign?.status !== 'archived'
+    (campaign) => campaign?.status !== 'archived',
   );
 
   return (

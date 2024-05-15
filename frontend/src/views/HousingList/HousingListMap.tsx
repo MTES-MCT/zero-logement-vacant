@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Text } from '../../components/_dsfr';
 import Map, { MapProps } from '../../components/Map/Map';
 import { ViewState } from 'react-map-gl';
@@ -34,7 +34,7 @@ const HousingListMap = ({ filters }: Props) => {
   });
 
   const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters)
+    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters),
   );
   const totalCount = housingCount?.housing;
 
@@ -50,20 +50,20 @@ const HousingListMap = ({ filters }: Props) => {
     ? includeExcludeWith<GeoPerimeter, 'kind'>(
         filters.geoPerimetersIncluded,
         filters.geoPerimetersExcluded ?? [],
-        (perimeter) => perimeter.kind
+        (perimeter) => perimeter.kind,
       )(perimeters ?? [])
     : [];
 
   const perimetersExcluded = filters.geoPerimetersExcluded?.length
     ? includeWith<GeoPerimeter, 'kind'>(
         filters.geoPerimetersExcluded ?? [],
-        (perimeter) => perimeter.kind
+        (perimeter) => perimeter.kind,
       )(perimeters ?? [])
     : [];
 
   const remainingPerimeters = excludeWith<GeoPerimeter, 'kind'>(
     [...perimetersIncluded, ...perimetersExcluded].map((p) => p.kind),
-    (perimeter) => perimeter.kind
+    (perimeter) => perimeter.kind,
   )(perimeters ?? []);
 
   if (!housingList) {

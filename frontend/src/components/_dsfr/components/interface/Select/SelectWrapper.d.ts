@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export type SelectWrapperHint = string | Object | any[];
+export type SelectWrapperHint = string | object | any[];
 
 export type SelectWrapperMessageType = 'error' | 'valid';
 
@@ -11,7 +11,7 @@ export interface SelectWrapperProps {
   label?: string;
   message?: string;
   messageType?: SelectWrapperMessageType;
-  onChange?: (...args: any[])=>any;
+  onChange?: (...args: any[]) => any;
   required?: boolean;
   selectId: string;
 }

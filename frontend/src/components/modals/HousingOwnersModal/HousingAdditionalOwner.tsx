@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { HousingOwner, Owner } from '../../../models/Owner';
 import { SelectOption } from '../../../models/SelectOption';
 import styles from './housing-owner-modal.module.scss';
@@ -40,7 +40,8 @@ const HousingAdditionalOwner = ({
     <>
       <Select
         nativeSelectProps={{
-          onChange: (e) => setAdditionalOwnerRank(e.target.value),
+          onChange: (e: ChangeEvent<HTMLSelectElement>) =>
+            setAdditionalOwnerRank(e.target.value),
           value: additionalOwnerRank,
         }}
         label="Sélectionner les droits de propriétés"

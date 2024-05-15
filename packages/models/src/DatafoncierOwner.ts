@@ -1,0 +1,68 @@
+/**
+ * @see http://doc-datafoncier.cerema.fr/ff/doc_fftp/table/proprietaire_droit/last/
+ */
+export interface DatafoncierOwner {
+  idprodroit: string;
+  idprocpte: string;
+  idpersonne: string;
+  idvoie: string;
+  idcom: string;
+  idcomtxt: string;
+  ccodep: string;
+  ccodir: string;
+  ccocom: string;
+  dnupro: string;
+  dnulp: string;
+  ccocif: string;
+  dnuper: string;
+  ccodro: string;
+  ccodrotxt: string;
+  typedroit: string;
+  ccodem: string;
+  ccodemtxt: string;
+  gdesip: string;
+  gtoper: string;
+  ccoqua: string;
+  dnatpr: string | null;
+  dnatprtxt: string | null;
+  ccogrm: string | null;
+  ccogrmtxt: string | null;
+  dsglpm: string | null;
+  dforme: string | null;
+  ddenom: string;
+  gtyp3: string;
+  gtyp4: string;
+  gtyp5: string;
+  gtyp6: string;
+  dlign3: string | null;
+  dlign4: string | null;
+  dlign5: string | null;
+  dlign6: string | null;
+  ccopay: string | null;
+  ccodep1a2: string;
+  ccodira: string;
+  ccocomadr: string;
+  ccovoi: string;
+  ccoriv: string;
+  dnvoiri: string;
+  dindic: string | null;
+  ccopos: string;
+  dqualp: string;
+  dnomlp: string;
+  dprnlp: string;
+  jdatnss: string | null;
+  dldnss: string;
+  dsiren: string | null;
+  topja: string | null;
+  datja: string | null;
+  dformjur: string | null;
+  dnomus: string;
+  dprnus: string;
+  locprop: string;
+  locproptxt: string;
+  catpro2: string;
+  catpro2txt: string;
+  catpro3: string;
+  catpro3txt: string;
+  idpk: number;
+}

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   allOccupancyOptions,
   beneficiaryCountOptions,
@@ -45,7 +44,7 @@ interface HousingFiltersBadgesProps {
 function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   const { filters, onChange, small } = props;
   const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment
+    (state) => state.authentication.authUser?.establishment,
   );
   const campaignList = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
@@ -219,7 +218,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
             onChange({
               statusList: values.map(Number),
               subStatus: filters.subStatus?.filter(
-                (_) => getSubStatusList(values).indexOf(_) !== -1
+                (_) => getSubStatusList(values).indexOf(_) !== -1,
               ),
             }))
         }

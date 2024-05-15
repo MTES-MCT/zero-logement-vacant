@@ -1,4 +1,4 @@
-import { Pagination } from '../../../shared/models/Pagination';
+import { Pagination } from '@zerologementvacant/models';
 import config from '../utils/config';
 
 interface PaginationOptions extends Partial<Pagination> {

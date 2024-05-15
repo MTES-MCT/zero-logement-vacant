@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Row, Table, Text } from '../../_dsfr';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import { useSelection } from '../../../hooks/useSelection';
@@ -124,7 +122,7 @@ const GeoPerimetersTable = ({
   const selectedGeoPerimeters = geoPerimeters.filter((geoPerimeter) =>
     selection.selected.all
       ? !selection.selected.ids.includes(geoPerimeter.id)
-      : selection.selected.ids.includes(geoPerimeter.id)
+      : selection.selected.ids.includes(geoPerimeter.id),
   );
 
   return (

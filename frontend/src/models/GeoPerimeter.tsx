@@ -1,4 +1,4 @@
-import { Geometry } from 'geojson';
+import { Geometry } from '@turf/turf';
 
 export interface GeoPerimeter {
   id: string;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Col, Row, Title } from '../../components/_dsfr';
 import styles from './owner.module.scss';
 import { useOwner } from '../../hooks/useOwner';
@@ -16,7 +16,7 @@ const OwnerView = () => {
   const housingCount = count?.housing ?? 0;
 
   const [ownerEditionModalKey, setOwnerEditionModalKey] = useState(
-    new Date().getTime()
+    new Date().getTime(),
   );
 
   if (!owner || !paginatedHousing) {

@@ -1,13 +1,13 @@
 {
   "jobs": [
     {
-      "command": "*/10 19-23,0-6 * * * node dist/server/services/addressService.js"
+      "command": "*/10 19-23,0-6 * * * node server/dist/services/addressService.js"
     },
     {
-      "command": "0 23 * * * scripts/duplicate-database/start.sh"
+      "command": "0 23 * * * server/src/scripts/duplicate-database/start.sh"
     },
     {
-      "command": "0 0 1 * * 'npm install --production=false && npm run seed -- --specific 003-buildings.ts'"
+      "command": "0 0 1 * * 'yarn install --immutable && yarn workspace @zerologementvacant/server seed --specific 003-buildings.ts'"
     }
   ]
 }

@@ -4,7 +4,7 @@ import housingSlice, {
 } from '../store/reducers/housingReducer';
 import { HousingFilters } from '../models/HousingFilters';
 import { TrackEventActions, TrackEventCategories } from '../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import { useAppDispatch, useAppSelector } from './useStore';
 
 interface FiltersOptions {
@@ -32,7 +32,7 @@ export function useFilters(opts?: FiltersOptions) {
     storage === 'store' ? [store.filters, changeFilters] : state;
 
   const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment
+    (state) => state.authentication.authUser?.establishment,
   );
 
   const { filtersExpanded: expand } = useAppSelector((state) => state.housing);
@@ -64,7 +64,7 @@ export function useFilters(opts?: FiltersOptions) {
   function trackNewFilter(changedFilters: HousingFilters, filterLabel: string) {
     const filterEntry = Object.entries(changedFilters)[0];
     const prevFilterEntry = Object.entries(filters).find(
-      (_) => _[0] === filterEntry[0]
+      (_) => _[0] === filterEntry[0],
     );
     const filterValues = filterEntry[1] as Array<string>;
     const prevFilterValues = prevFilterEntry

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Title } from '../_dsfr';
 import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './establisment-link-list.module.scss';

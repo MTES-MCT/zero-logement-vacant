@@ -1,11 +1,8 @@
-import React, { ChangeEvent, useMemo, useState } from 'react';
+import { ChangeEvent, useMemo, useState } from 'react';
 import { Col, Container, Row, SearchableSelect } from '../../_dsfr';
 
 import * as yup from 'yup';
-import {
-  ContactPoint,
-  DraftContactPoint,
-} from '../../../../../shared/models/ContactPoint';
+import { ContactPoint, DraftContactPoint } from '@zerologementvacant/models';
 import { emailValidator, useForm } from '../../../hooks/useForm';
 import { useLocalityList } from '../../../hooks/useLocalityList';
 import _ from 'lodash';
@@ -32,7 +29,7 @@ const ContactPointEditionModal = ({
         id: `contact-point-edition-modal-${contactPoint?.id}`,
         isOpenedByDefault: false,
       }),
-    [contactPoint]
+    [contactPoint],
   );
 
   const { localitiesOptions, localities, localitiesGeoCodes } =
@@ -41,14 +38,14 @@ const ContactPointEditionModal = ({
   const [opening, setOpening] = useState(contactPoint?.opening ?? undefined);
   const [address, setAddress] = useState(contactPoint?.address ?? undefined);
   const [geoCodes, setGeoCodes] = useState(
-    contactPoint?.geoCodes ?? localitiesGeoCodes
+    contactPoint?.geoCodes ?? localitiesGeoCodes,
   );
   const [email, setEmail] = useState(contactPoint?.email ?? undefined);
   const [phone, setPhone] = useState(contactPoint?.phone ?? undefined);
   const [notes, setNotes] = useState(contactPoint?.notes ?? undefined);
 
   const filteredLocalityOptions = localitiesOptions.filter(
-    (option) => !geoCodes.includes(option.value)
+    (option) => !geoCodes.includes(option.value),
   );
 
   const shape = {

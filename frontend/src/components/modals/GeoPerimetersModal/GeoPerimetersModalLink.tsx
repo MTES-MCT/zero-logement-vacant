@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import GeoPerimetersModal from './GeoPerimetersModal';
 import AppLinkAsButton from '../../_app/AppLinkAsButton/AppLinkAsButton';
 

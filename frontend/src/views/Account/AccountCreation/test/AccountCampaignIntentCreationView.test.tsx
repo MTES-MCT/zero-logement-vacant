@@ -1,5 +1,4 @@
 import userEvent from '@testing-library/user-event';
-import { createMemoryHistory } from 'history';
 import {
   genAuthUser,
   genProspect,
@@ -8,7 +7,7 @@ import {
 } from '../../../../../test/fixtures.test';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { Router } from 'react-router-dom';
+import { MemoryRouter as Router, Route } from 'react-router-dom';
 import * as randomstring from 'randomstring';
 import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
 import { Prospect } from '../../../../models/Prospect';
@@ -21,7 +20,6 @@ import {
 
 describe('AccountCampaignIntentCreationView', () => {
   const user = userEvent.setup();
-  const history = createMemoryHistory();
   const store = configureStore({
     reducer: applicationReducer,
     middleware: (getDefaultMiddleware) =>
@@ -33,19 +31,28 @@ describe('AccountCampaignIntentCreationView', () => {
   const password = randomstring.generate();
 
   function setup(prospect: Prospect = genProspect()) {
-    history.push({
-      pathname: '/inscription/campagne',
-      state: {
-        prospect,
-        password,
-      },
-    });
     render(
       <Provider store={store}>
-        <Router history={history}>
-          <AccountCampaignIntentCreationView />
+        <Router
+          initialEntries={[
+            {
+              pathname: '/inscription/campagne',
+              state: {
+                prospect,
+                password,
+              },
+            },
+          ]}
+        >
+          <Route path="/inscription/mot-de-passe">
+            Créer votre mot de passe
+          </Route>
+          <Route
+            path="/inscription/campagne"
+            component={AccountCampaignIntentCreationView}
+          />
         </Router>
-      </Provider>
+      </Provider>,
     );
   }
 
@@ -61,7 +68,7 @@ describe('AccountCampaignIntentCreationView', () => {
     setup();
 
     await screen.findAllByText(
-      'Quand prévoyez-vous de contacter des propriétaires de logements vacants ?'
+      'Quand prévoyez-vous de contacter des propriétaires de logements vacants ?',
     );
   });
 
@@ -71,7 +78,8 @@ describe('AccountCampaignIntentCreationView', () => {
     const previous = await screen.findByText('Revenir à l’étape précédente');
     await user.click(previous);
 
-    expect(history.location.pathname).toBe('/inscription/mot-de-passe');
+    const title = await screen.findByText(/^Créer votre mot de passe/);
+    expect(title).toBeVisible();
   });
 
   it('should disable campaign intent selection if one already exists', () => {

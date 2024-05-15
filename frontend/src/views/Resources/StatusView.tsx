@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Col, Row } from '../../components/_dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { HousingStates } from '../../models/HousingState';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Text } from '../_dsfr';
 import { Address, addressToString, isBanEligible } from '../../models/Address';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -38,7 +38,6 @@ function OwnerAddressEdition({
               </Text>
               <div className="align-right">
                 <Button
-                  children="Appliquer"
                   priority="secondary"
                   onClick={() => {
                     setSearchAddressFromLovac(false);
@@ -47,7 +46,9 @@ function OwnerAddressEdition({
                       label: addressToString(banAddress, false)!,
                     });
                   }}
-                />
+                >
+                  Appliquer
+                </Button>
               </div>
             </div>
           )}
@@ -81,7 +82,7 @@ function OwnerAddressEdition({
                 Amélioration possible
               </Text>
               <Text size="md" className="fr-mb-2w">
-                L'adresse issue de la <u>Base Adresse Nationale</u>, indiquée
+                L’adresse issue de la <u>Base Adresse Nationale</u>, indiquée
                 dans le champ Adresse ci-dessus, semble différente de l’adresse
                 issue de la <u>DGFIP</u> : <b>{rawAddress.join(' ')}</b>
               </Text>

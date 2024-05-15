@@ -4,7 +4,6 @@ import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './contact-point-public-page.module.scss';
 import { useClipboard } from '../../hooks/useClipboard';
 import homepage_thumbnail from '../../assets/images/homepage_thumbnail.png';
-import React from 'react';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppLink from '../_app/AppLink/AppLink';
 

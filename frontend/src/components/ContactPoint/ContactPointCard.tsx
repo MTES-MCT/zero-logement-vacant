@@ -1,9 +1,5 @@
 import { Col, Icon, Row, Text, Title } from '../_dsfr';
-import {
-  ContactPoint,
-  DraftContactPoint,
-} from '../../../../shared/models/ContactPoint';
-import React from 'react';
+import { ContactPoint, DraftContactPoint } from '@zerologementvacant/models';
 import { mailto, pluralize } from '../../utils/stringUtils';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import _ from 'lodash';
@@ -24,7 +20,7 @@ function ContactPointCard({
   contactPoint,
   onEdit,
   onRemove,
-  isPublicDisplay,
+  isPublicDisplay
 }: Props) {
   const { localities, localitiesGeoCodes } = useLocalityList(
     contactPoint.establishmentId
@@ -64,7 +60,7 @@ function ContactPointCard({
                       iconId: 'fr-icon-delete-bin-fill',
                       priority: 'tertiary no outline',
                       title: 'Supprimer',
-                      className: 'd-inline-block',
+                      className: 'd-inline-block'
                     }}
                   >
                     <Text size="md">
@@ -94,7 +90,7 @@ function ContactPointCard({
           {contactPoint.opening && (
             <div className="fr-p-1w fr-mb-1w bg-975">
               <Text size="sm" className="zlv-label">
-                Horaires et jours d'ouverture
+                Horaires et jours d’ouverture
               </Text>
               <Text spacing="mb-0" className="pre-wrap">
                 {contactPoint.opening}

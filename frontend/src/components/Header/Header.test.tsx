@@ -1,8 +1,6 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Header from './Header';
-import { Router } from 'react-router-dom';
-import { createMemoryHistory } from 'history';
+import { MemoryRouter as Router } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { applicationMiddlewares, applicationReducer } from '../../store/store';
 import { configureStore } from '@reduxjs/toolkit';
@@ -14,14 +12,14 @@ describe('AppHeader', () => {
       reducer: applicationReducer,
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-          serializableCheck: false,
+          serializableCheck: false
         }).concat(applicationMiddlewares),
-      preloadedState: { authentication: { authUser: undefined } },
+      preloadedState: { authentication: { authUser: undefined } }
     });
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <Header />
         </Router>
       </Provider>
@@ -46,14 +44,14 @@ describe('AppHeader', () => {
       reducer: applicationReducer,
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-          serializableCheck: false,
+          serializableCheck: false
         }).concat(applicationMiddlewares),
-      preloadedState: { authentication: { authUser: genAuthUser() } },
+      preloadedState: { authentication: { authUser: genAuthUser() } }
     });
 
     render(
       <Provider store={store}>
-        <Router history={createMemoryHistory()}>
+        <Router>
           <Header />
         </Router>
       </Provider>

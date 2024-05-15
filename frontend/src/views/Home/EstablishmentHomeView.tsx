@@ -1,4 +1,3 @@
-import React from 'react';
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
 import hands_mail from '../../assets/images/hands-mail.svg';
@@ -18,7 +17,7 @@ import logo_strasbourg from '../../assets/images/logo_strasbourg.png';
 import logo_vire_normandie from '../../assets/images/logo_vire_normandie.jpg';
 import collaboration from '../../assets/images/collaboration.svg';
 import styles from './home.module.scss';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import {
   TrackEventActions,
   TrackEventCategories,
@@ -119,7 +118,7 @@ const EstablishmentHomeView = () => {
                 window.open(
                   'https://calendly.com/julie_guittard/webinaire-de-presentation-zlv',
                   '_blank',
-                  'noopener'
+                  'noopener',
                 );
               }}
             >
@@ -314,7 +313,7 @@ const EstablishmentHomeView = () => {
             <Text size="lead" bold>
               Découvrez chaque mois les nouvelles 
               <span className="color-bf525">fonctionnalités</span>, des 
-              <span className="color-bf525">retours d'expériences</span>  de
+              <span className="color-bf525">retours d’expériences</span>  de
               collectivités, 
               <span className="color-bf525">les actualités</span> de la lutte
               contre la vacance.
@@ -328,11 +327,11 @@ const EstablishmentHomeView = () => {
                 window.open(
                   'https://890e031e.sibforms.com/serve/MUIEAOyQXgbbxeoLBFC_8fPLahr5i4-KkyF8EICd8AXv5i6NZwxkoUr19wL6NiGJmx7oxh3RxaIpLw4JA0ZDBsgjS1hABUiZm1m9hgKzFVCwmc6yxEO9yV3y2XlZ-esfbxBWPX7nKMTjfORZ7UQMNcM5bSK4gfnNYzC4hYTKBMItk6YhL0sCci7EVICIrpJw1Xli7zM1VGcry_0L',
                   '_blank',
-                  'noopener'
+                  'noopener',
                 );
               }}
             >
-              S'inscrire
+              S’inscrire
             </Button>
           </Col>
         </Row>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -16,7 +16,7 @@ import CampaignStatusBadge from '../../components/Campaign/CampaignStatusBadge';
 import { displayCount } from '../../utils/stringUtils';
 import { Text } from '../../components/_dsfr';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import {
   TrackEventActions,
   TrackEventCategories,
@@ -102,6 +102,7 @@ const CampaignsListView = () => {
               `#${index + 1}`,
               <AppLink
                 isSimple
+                key={`${campaign.id}-link`}
                 to={`${
                   campaign.status === 'draft' || campaign.status === 'sending'
                     ? ''
@@ -110,12 +111,18 @@ const CampaignsListView = () => {
               >
                 {campaign.title}
               </AppLink>,
-              <CampaignStatusBadge status={campaign.status} />,
+              <CampaignStatusBadge
+                key={`${campaign.id}-status`}
+                status={campaign.status}
+              />,
               format(new Date(campaign.createdAt), 'dd/MM/yyyy'),
               campaign.sentAt
                 ? format(new Date(campaign.sentAt), 'dd/MM/yyyy')
                 : '',
-              <div className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w">
+              <div
+                className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w"
+                key={`${campaign.id}-actions`}
+              >
                 <Button
                   priority="tertiary"
                   linkProps={{

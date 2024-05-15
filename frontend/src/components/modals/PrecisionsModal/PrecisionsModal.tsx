@@ -1,5 +1,5 @@
 import { Col, Container, Row, Text, Title } from '../../_dsfr';
-import React, { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import {
   BlockingPointOptions,
   OptionTreeSeparator,
@@ -29,7 +29,7 @@ const PrecisionsModal = ({
 }: Props) => {
   const [precisions, setPrecisions] = useState<string[]>(currentPrecisions);
   const [vacancyReasons, setVacancyReasons] = useState<string[]>(
-    currentVacancyReasons
+    currentVacancyReasons,
   );
 
   return (
@@ -137,8 +137,8 @@ const OptionsTreeCheckboxes = ({
                         getValue(
                           option,
                           element1 as OptionTreeElement,
-                          element2
-                        )
+                          element2,
+                        ),
                       )}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         onCheckOption(
@@ -146,12 +146,12 @@ const OptionsTreeCheckboxes = ({
                           getValue(
                             option,
                             element1 as OptionTreeElement,
-                            element2
-                          )
+                            element2,
+                          ),
                         )
                       }
                     />
-                  )
+                  ),
                 )}
               </Col>
             ))}

@@ -1,6 +1,8 @@
-import { EventKind } from '../../../shared/types/EventKind';
-import { EventCategory } from '../../../shared/types/EventCategory';
-import { EventSection } from '../../../shared/types/EventSection';
+import {
+  EventCategory,
+  EventKind,
+  EventSection,
+} from '@zerologementvacant/models';
 
 export interface Event<T = any> {
   id: string;

@@ -1,4 +1,4 @@
-import { Feature } from '../../../shared/models/Feature';
+import { Feature } from '@zerologementvacant/models';
 import { Establishment } from '../models/Establishment';
 import { useEffect, useState } from 'react';
 import config from '../utils/config';

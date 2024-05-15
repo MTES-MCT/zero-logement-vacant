@@ -1,5 +1,4 @@
 import { Link, LinkProps } from 'react-router-dom';
-import React from 'react';
 import classNames from 'classnames';
 import {
   FrIconClassName,
@@ -40,7 +39,7 @@ function AppLink({
             ? iconPosition ?? 'left'
             : undefined,
         },
-        iconId
+        iconId,
       )}
     />
   );

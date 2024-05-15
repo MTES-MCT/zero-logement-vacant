@@ -5,7 +5,7 @@ import { OwnerProspect } from '../../models/OwnerProspect';
 import Aside from '../Aside/Aside';
 import ExtendedToggle from '../ExtendedToggle/ExtendedToggle';
 import styles from './inbox-sidemenu.module.scss';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useClipboard } from '../../hooks/useClipboard';
 import Label from '../Label/Label';
 import { initials } from '../../utils/stringUtils';
@@ -64,7 +64,7 @@ function InboxSidemenu(props: Props) {
                 <div className={styles.initials}>
                   {initials(
                     props.ownerProspect.firstName,
-                    props.ownerProspect.lastName
+                    props.ownerProspect.lastName,
                   )}
                 </div>
               )}

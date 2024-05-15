@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Col, Icon, Row, Text } from '../../_dsfr';
 import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 
@@ -60,7 +60,7 @@ const HousingOwnersModal = ({
         id: `housing-owners-modal-${housingId}`,
         isOpenedByDefault: false,
       }),
-    [housingId]
+    [housingId],
   );
 
   const isOpen = useIsModalOpen(modal);
@@ -85,7 +85,7 @@ const HousingOwnersModal = ({
   });
 
   const [ownerInputs, setOwnerInputs] = useState<OwnerInput[]>(
-    housingOwners.map(getOwnerInput)
+    housingOwners.map(getOwnerInput),
   );
 
   const ranks =
@@ -105,7 +105,7 @@ const HousingOwnersModal = ({
         [`banAddress${index}`]: banAddressValidator,
         [`additionalAddress${index}`]: yup.string().nullable().notRequired(),
       }),
-      {}
+      {},
     ),
     ownerRanks: yup.array().test({
       test(array, ctx) {
@@ -139,7 +139,7 @@ const HousingOwnersModal = ({
     newInputs.splice(
       ownerInputs.findIndex((_) => _.id === ownerInput.id),
       1,
-      ownerInput
+      ownerInput,
     );
     setOwnerInputs(newInputs);
   };
@@ -165,11 +165,11 @@ const HousingOwnersModal = ({
           [`banAddress${index}`]: ownerInput.banAddress,
           [`additionalAddress${index}`]: ownerInput.additionalAddress,
         }),
-        {}
+        {},
       ),
       ownerRanks: ownerInputs,
     },
-    ['ownerRanks']
+    ['ownerRanks'],
   );
 
   const onAddOwner = (housingOwner: HousingOwner) => {
@@ -194,7 +194,7 @@ const HousingOwnersModal = ({
                   : undefined,
             }))
             .find((_) => _.id === ho.id) ?? {}),
-        }))
+        })),
       );
       modal.close();
     });
@@ -202,7 +202,7 @@ const HousingOwnersModal = ({
 
   const onSelectAddress = (
     ownerInput: OwnerInput,
-    addressSearchResult?: AddressSearchResult
+    addressSearchResult?: AddressSearchResult,
   ) => {
     changeOwnerInputs({
       ...ownerInput,
@@ -212,13 +212,13 @@ const HousingOwnersModal = ({
 
   useEffect(() => {
     ownerInputs.forEach((_, index) =>
-      form.validateAt(`banAddress${index}` as keyof FormShape)
+      form.validateAt(`banAddress${index}` as keyof FormShape),
     );
   }, [ownerInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // @ts-ignore
+  // @ts-expect-error: dynamic key
   const message = (key: string) => form.message(key);
-  // @ts-ignore
+  // @ts-expect-error: dynamic key
   const hasError = (key: string) => form.hasError(key);
 
   function iconName(kind: string = '') {
@@ -358,7 +358,7 @@ const HousingOwnersModal = ({
                         required
                         label="Nom prénom"
                         inputForm={form}
-                        // @ts-ignore
+                        // @ts-expect-error: dynamic key
                         inputKey={`fullName${index}`}
                       />
                     </Col>
@@ -374,7 +374,7 @@ const HousingOwnersModal = ({
                         }
                         label="Date de naissance"
                         inputForm={form}
-                        // @ts-ignore
+                        // @ts-expect-error: dynamic key
                         inputKey={`birthDate$${index}`}
                       />
                     </Col>
@@ -397,7 +397,7 @@ const HousingOwnersModal = ({
                         }
                         label="Complément d'adresse"
                         inputForm={form}
-                        // @ts-ignore
+                        // @ts-expect-error: dynamic key
                         inputKey={`additionalAddress$${index}`}
                       />
                     </Col>
@@ -413,7 +413,7 @@ const HousingOwnersModal = ({
                         }
                         label="Adresse mail"
                         inputForm={form}
-                        // @ts-ignore
+                        // @ts-expect-error: dynamic key
                         inputKey={`email$${index}`}
                       />
                     </Col>
@@ -428,7 +428,7 @@ const HousingOwnersModal = ({
                         }
                         label="Numéro de téléphone"
                         inputForm={form}
-                        // @ts-ignore
+                        // @ts-expect-error: dynamic key
                         inputKey={`phone$${index}`}
                       />
                     </Col>

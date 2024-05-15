@@ -1,9 +1,7 @@
-import React from 'react';
-
 import { Container, Row } from '../_dsfr';
 import FileUpload from '../FileUpload/FileUpload';
 import styles from './draft.module.scss';
-import { FileUploadDTO } from '../../../../shared/models/FileUploadDTO';
+import { FileUploadDTO } from '@zerologementvacant/models';
 import classNames from 'classnames';
 
 interface Props {

@@ -1,6 +1,5 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import fp from 'lodash/fp';
-import React from 'react';
 
 import { getHousingState, HOUSING_STATUSES } from '../../models/HousingState';
 import HousingListTab from './HousingListTab';
@@ -52,7 +51,7 @@ const HousingListTabs = ({
       onTabChange={(tab: string) => setActiveTab(tab)}
       tabs={tabs}
     >
-      {statuses.map((status, i) => (
+      {statuses.map((status) => (
         <HousingListTab
           filters={{ ...filters, status: status.value }}
           isActive={isActive(status)}

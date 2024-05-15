@@ -10,7 +10,7 @@ export interface SimpleTableProps {
   captionPosition?: SimpleTableCaptionPosition;
   caption: string;
   className?: string;
-  data: Object[];
+  data: object[];
 }
 
 declare const SimpleTable: React.FC<SimpleTableProps>;

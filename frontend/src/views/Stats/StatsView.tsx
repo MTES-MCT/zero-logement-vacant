@@ -1,4 +1,3 @@
-import React from 'react';
 import config from '../../utils/config';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import MainContainer from '../../components/MainContainer/MainContainer';

@@ -1,4 +1,3 @@
-import React from 'react';
 import addressService, {
   AddressSearchResult,
 } from '../../../services/address.service';

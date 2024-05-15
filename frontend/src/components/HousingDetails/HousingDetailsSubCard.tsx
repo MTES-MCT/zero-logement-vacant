@@ -1,5 +1,5 @@
 import { Title } from '../_dsfr';
-import React, { ReactElement } from 'react';
+import { ReactElement } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
 import Card from '@codegouvfr/react-dsfr/Card';

@@ -2,7 +2,6 @@ import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishmen
 import { useGetUserQuery } from '../../services/user.service';
 import classNames from 'classnames';
 import styles from './events-history.module.scss';
-import React from 'react';
 
 interface Props {
   userId: string;

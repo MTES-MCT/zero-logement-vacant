@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import * as yup from 'yup';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
@@ -34,7 +34,7 @@ function GroupEditionModal(props: Props) {
   };
   const [title, setTitle] = useState(props.group?.title ?? '');
   const [description, setDescription] = useState(
-    props.group?.description ?? ''
+    props.group?.description ?? '',
   );
 
   const shape = {

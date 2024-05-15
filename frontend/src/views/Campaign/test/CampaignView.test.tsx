@@ -1,8 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryHistory, History } from 'history';
 import { Provider } from 'react-redux';
-import { Link, Route, Router } from 'react-router-dom';
+import { Link, Route, MemoryRouter as Router } from 'react-router-dom';
 
 import {
   genAddress,
@@ -10,6 +9,7 @@ import {
   genDraft,
   genHousing,
   genOwner,
+  genPaginatedResult,
   genSender,
 } from '../../../../test/fixtures.test';
 import configureTestStore from '../../../utils/test/storeUtils';
@@ -32,26 +32,10 @@ describe('Campaign view', () => {
   const houses = Array.from({ length: 1 }, () => genHousing());
 
   let store: AppStore;
-  let router: History;
 
   beforeEach(() => {
     store = configureTestStore();
-    router = createMemoryHistory({
-      initialEntries: [`/campagnes/${campaign.id}`],
-    });
   });
-
-  function renderComponent(): void {
-    render(
-      <Provider store={store}>
-        <Notification />
-        <Router history={router}>
-          <Link to="/campagnes">Campagnes</Link>
-          <Route path="/campagnes/:id" component={CampaignView} />
-        </Router>
-      </Provider>
-    );
-  }
 
   it('should display "Page non trouvée" if the campaign does not exist', async () => {
     mockRequests([
@@ -83,10 +67,31 @@ describe('Campaign view', () => {
       },
     ]);
 
-    renderComponent();
+    render(
+      <Provider store={store}>
+        <Notification />
+        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
+          <Link to="/campagnes">Campagnes</Link>
+          <Route path="/campagnes/:id" component={CampaignView} />
+        </Router>
+      </Provider>,
+    );
 
-    await screen.findByText('Page non trouvée');
+    const page = await screen.findByText('Page non trouvée');
+    expect(page).toBeVisible();
   });
+
+  function renderComponent(): void {
+    render(
+      <Provider store={store}>
+        <Notification />
+        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
+          <Link to="/campagnes">Campagnes</Link>
+          <Route path="/campagnes/:id" component={CampaignView} />
+        </Router>
+      </Provider>,
+    );
+  }
 
   it('should render', async () => {
     mockRequests([
@@ -99,7 +104,15 @@ describe('Campaign view', () => {
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([draft]),
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        persist: true,
+        response: {
+          body: JSON.stringify(genPaginatedResult([])),
         },
       },
       {
@@ -192,6 +205,7 @@ describe('Campaign view', () => {
     });
     await user.click(save);
     expect(modal).not.toBeVisible();
+    await screen.findByRole('heading', { name: title });
   });
 
   it('should save the draft if at least one field is filled', async () => {
@@ -251,7 +265,7 @@ describe('Campaign view', () => {
 
     const form = await screen.findByRole('form');
     const name = await within(form).findByLabelText(
-      'Nom de la collectivité ou de l’administration*'
+      'Nom de la collectivité ou de l’administration*',
     );
     if (sender.name) {
       await user.type(name, sender.name);
@@ -326,7 +340,7 @@ describe('Campaign view', () => {
     const form = await screen.findByRole('form');
     if (sender.name) {
       const name = await within(form).findByLabelText(
-        'Nom de la collectivité ou de l’administration*'
+        'Nom de la collectivité ou de l’administration*',
       );
       await user.clear(name);
       await user.type(name, sender.name);
@@ -494,11 +508,8 @@ describe('Campaign view', () => {
       {
         pathname: `/api/owners/${housing.owner.id}`,
         method: 'PUT',
-        response: async (request) => {
-          const payload = await request.json();
-          return {
-            body: JSON.stringify(updated),
-          };
+        response: {
+          body: JSON.stringify(updated),
         },
       },
       {
@@ -537,6 +548,6 @@ describe('Campaign view', () => {
 
   // Hard to mock window.confirm because it's a browser-level function
   it.todo(
-    'should warn the user before leaving the page if they have unsaved changes'
+    'should warn the user before leaving the page if they have unsaved changes',
   );
 });

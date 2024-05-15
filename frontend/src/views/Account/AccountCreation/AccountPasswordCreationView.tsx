@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
@@ -17,7 +17,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 interface RouterState {
   prospect?: Prospect | undefined;
@@ -30,7 +30,7 @@ function AccountPasswordCreationView() {
   const { trackEvent } = useMatomo();
 
   const { linkExists, loading, prospect } = useProspect(
-    location.state?.prospect
+    location.state?.prospect,
   );
 
   const [password, setPassword] = useState('');
@@ -38,7 +38,7 @@ function AccountPasswordCreationView() {
 
   useEffect(() => {
     form.validate();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [password]);
 
   const shape = {
@@ -94,7 +94,7 @@ function AccountPasswordCreationView() {
   async function next(e: FormEvent) {
     e.preventDefault();
     await form.validate(() => {
-      if (!!prospect) {
+      if (prospect) {
         trackEvent({
           category: TrackEventCategories.AccountCreation,
           action: TrackEventActions.AccountCreation.SubmitPassword,

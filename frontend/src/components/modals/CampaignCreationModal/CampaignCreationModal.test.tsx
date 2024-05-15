@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import CampaignCreationModal from './CampaignCreationModal';
 import { Provider } from 'react-redux';
@@ -18,8 +17,8 @@ describe('Campagne creation modal', () => {
       request.url === `${config.apiEndpoint}/api/campaigns`
         ? { body: JSON.stringify([]), init: { status: 200 } }
         : request.url === `${config.apiEndpoint}/api/geo/perimeters`
-        ? { body: JSON.stringify([]), init: { status: 200 } }
-        : { body: '', init: { status: 404 } }
+          ? { body: JSON.stringify([]), init: { status: 200 } }
+          : { body: '', init: { status: 404 } },
     );
   };
 
@@ -41,17 +40,17 @@ describe('Campagne creation modal', () => {
           filters={{}}
           onSubmit={() => Promise.resolve()}
         />
-      </Provider>
+      </Provider>,
     );
 
     const housingInfosTextElement = screen.getByTestId('housing-infos');
     const campaignTitleInputElement = screen.getAllByTestId(
-      'campaign-title-input'
+      'campaign-title-input',
     )[0];
     const createButton = screen.getByText('Enregistrer');
     expect(housingInfosTextElement).toBeInTheDocument();
     expect(housingInfosTextElement).toContainHTML(
-      'Vous êtes sur le point de créer une campagne comportant <b>2 logements.</b>'
+      'Vous êtes sur le point de créer une campagne comportant <b>2 logements.</b>',
     );
     expect(campaignTitleInputElement).toBeInTheDocument();
     expect(createButton).toBeInTheDocument();
@@ -67,7 +66,7 @@ describe('Campagne creation modal', () => {
           filters={{}}
           onSubmit={() => Promise.resolve()}
         />
-      </Provider>
+      </Provider>,
     );
 
     const createButton = screen.getByText('Créer une campagne');
@@ -79,7 +78,7 @@ describe('Campagne creation modal', () => {
     await user.click(save);
 
     const error = await screen.findByText(
-      'Veuillez renseigner le titre de la campagne.'
+      'Veuillez renseigner le titre de la campagne.',
     );
     expect(error).toBeVisible();
   });

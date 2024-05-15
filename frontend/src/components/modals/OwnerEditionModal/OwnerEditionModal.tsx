@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Col, Row } from '../../_dsfr';
 import { Owner } from '../../../models/Owner';
 
@@ -31,13 +31,13 @@ interface Props {
 const OwnerEditionModal = ({ owner, onCancel }: Props) => {
   const [fullName, setFullName] = useState(owner?.fullName ?? '');
   const [birthDate, setBirthDate] = useState(
-    owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : ''
+    owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : '',
   );
   const [banAddress, setBanAddress] = useState(owner?.banAddress);
   const [email, setEmail] = useState(owner?.email);
   const [phone, setPhone] = useState(owner?.phone);
   const [additionalAddress, setAdditionalAddress] = useState(
-    owner?.additionalAddress
+    owner?.additionalAddress,
   );
 
   const [updateOwner, { isError: isUpdateError }] = useUpdateOwnerMutation();

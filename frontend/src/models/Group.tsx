@@ -1,5 +1,5 @@
 import { fromUserDTO, User } from './User';
-import { GroupDTO } from '../../../shared/models/GroupDTO';
+import { GroupDTO } from '@zerologementvacant/models';
 
 export interface Group {
   id: string;

@@ -1,5 +1,5 @@
 import { zlvApi } from './api.service';
-import { FileUploadDTO } from '../../../shared/models/FileUploadDTO';
+import { FileUploadDTO } from '@zerologementvacant/models';
 
 export const fileApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({

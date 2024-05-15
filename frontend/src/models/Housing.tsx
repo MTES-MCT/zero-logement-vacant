@@ -71,8 +71,8 @@ export const getBuildingLocation = (housing: Housing) => {
     housing.buildingLocation?.length === 11
       ? 1
       : housing.buildingLocation?.length === 10
-      ? 0
-      : undefined;
+        ? 0
+        : undefined;
   if (
     idx !== undefined &&
     housing.buildingLocation &&
@@ -88,8 +88,8 @@ export const getBuildingLocation = (housing: Housing) => {
         level === '00'
           ? 'Rez-de-chaussée'
           : level === '01'
-          ? '1er étage'
-          : level.replace(/^0+/g, '') + 'ème étage',
+            ? '1er étage'
+            : level.replace(/^0+/g, '') + 'ème étage',
       local:
         'Local ' +
         housing.buildingLocation.substr(5 + idx, 5).replace(/^0+/g, ''),
@@ -160,7 +160,7 @@ export interface HousingWithCoordinates extends Housing {
   latitude: number;
 }
 export function hasCoordinates(
-  housing: Housing
+  housing: Housing,
 ): housing is HousingWithCoordinates {
   return (
     !!housing.longitude &&
@@ -172,11 +172,11 @@ export function hasCoordinates(
   );
 }
 
-export const lastUpdate = (housing: Housing): String =>
+export const lastUpdate = (housing: Housing): string =>
   housing.lastContact
     ? `${format(housing.lastContact, 'dd/MM/yyyy')} (${differenceInDays(
         new Date(),
-        housing.lastContact
+        housing.lastContact,
       )} jours)`
     : 'Aucune mise à jour';
 
@@ -215,7 +215,7 @@ export const OccupancyKindBadgeLabels = {
 };
 
 export const getOccupancy = (
-  occupancy?: OccupancyKind | OccupancyKindUnknown
+  occupancy?: OccupancyKind | OccupancyKindUnknown,
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {

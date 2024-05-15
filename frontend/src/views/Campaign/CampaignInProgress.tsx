@@ -1,6 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
-import React from 'react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 import { Col, Row } from '../../components/_dsfr';
 import { filterCount } from '../../models/HousingFilters';

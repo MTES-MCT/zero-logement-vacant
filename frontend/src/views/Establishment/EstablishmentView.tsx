@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Container, Text, Title } from '../../components/_dsfr';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -12,7 +10,7 @@ import Tabs from '@codegouvfr/react-dsfr/Tabs';
 const EstablishmentView = () => {
   useDocumentTitle('Informations publiques');
   const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment
+    (state) => state.authentication.authUser?.establishment,
   );
 
   if (!establishment) {
@@ -27,7 +25,7 @@ const EstablishmentView = () => {
           public. Cela aidera à diriger les propriétaires vers vos contacts
           locaux et à partager des informations sur la vacance. Les informations
           fournies ici seront publiées sur votre page publique, alors
-          assurez-vous qu'elles soient précises et claires.
+          assurez-vous qu’elles soient précises et claires.
         </Text>
         <Tabs
           tabs={[

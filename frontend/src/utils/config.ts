@@ -6,7 +6,7 @@ const config = {
       process.env.REACT_APP_MATOMO_ENABLED !== undefined
         ? process.env.REACT_APP_MATOMO_ENABLED === 'true'
         : process.env.NODE_ENV === 'production',
-    urlBase: process.env.REACT_APP_MATOMO_URL_BASE ?? 'localhost',
+    urlBase: process.env.REACT_APP_MATOMO_URL_BASE ?? 'http://localhost',
     siteId: process.env.REACT_APP_MATOMO_SITE_ID
       ? Number(process.env.REACT_APP_MATOMO_SITE_ID)
       : 1,

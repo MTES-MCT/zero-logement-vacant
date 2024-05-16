@@ -6,7 +6,6 @@ import {
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
-import React from 'react';
 import LoadingBar from 'react-redux-loading-bar';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -27,7 +26,7 @@ function SmallHeader() {
   const { displayName, establishment, isAdmin, isAuthenticated } = useUser();
 
   function getMainNavigationItem(
-    navItem: UserNavItems
+    navItem: UserNavItems,
   ): MainNavigationProps.Item {
     const link = getUserNavItem(navItem);
     return {

@@ -1,17 +1,8 @@
-import MuiDsfrThemeProvider from '@codegouvfr/react-dsfr/mui';
-import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
-import {
-  createInstance,
-  MatomoProvider,
-  useMatomo,
-} from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import React, { useEffect } from 'react';
-import { MapProvider } from 'react-map-gl';
-import { Provider } from 'react-redux';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
   BrowserRouter,
-  Link,
   Redirect,
   Route,
   RouteProps,
@@ -37,8 +28,6 @@ import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
 import { useUser } from './hooks/useUser';
 import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
-import config from './utils/config';
-import { store } from './store/store';
 import { useAppDispatch, useAppSelector } from './hooks/useStore';
 import StatusView from './views/Resources/StatusView';
 import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
@@ -46,41 +35,8 @@ import AccountView from './views/Account/AccountView';
 import GroupView from './views/Group/GroupView';
 import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
-import Notification from './components/Notification/Notification';
 import SmallHeader from './components/Header/SmallHeader';
 import Header from './components/Header/Header';
-
-declare module '@codegouvfr/react-dsfr/spa' {
-  interface RegisterLink {
-    Link: typeof Link;
-  }
-}
-
-function AppWrapper() {
-  startReactDsfr({ defaultColorScheme: 'light', Link });
-
-  const AppMapProvider = () => (
-    <MuiDsfrThemeProvider>
-      <MapProvider>
-        <Provider store={store}>
-          <Notification />
-          <App />
-        </Provider>
-      </MapProvider>
-    </MuiDsfrThemeProvider>
-  );
-
-  if (config.matomo.urlBase && config.matomo.siteId) {
-    return (
-      // @ts-ignore
-      <MatomoProvider value={createInstance(config.matomo)}>
-        <AppMapProvider />
-      </MatomoProvider>
-    );
-  } else {
-    return <AppMapProvider />;
-  }
-}
 
 const publicRoutes: RouteProps[] = [
   { path: '/stats', component: StatsView },
@@ -137,8 +93,8 @@ function App() {
   const dispatch = useAppDispatch();
   const isSomeQueryPending = useAppSelector((state) =>
     Object.values(state.api.queries).some(
-      (query) => query?.status === 'pending'
-    )
+      (query) => query?.status === 'pending',
+    ),
   );
 
   FetchInterceptor();
@@ -169,8 +125,8 @@ function App() {
   const redirection = isAuthenticated
     ? '/parc-de-logements'
     : isLoggedOut
-    ? '/connexion'
-    : '/';
+      ? '/connexion'
+      : '/';
 
   return (
     <React.Suspense fallback={<></>}>
@@ -193,4 +149,4 @@ function App() {
   );
 }
 
-export default AppWrapper;
+export default App;

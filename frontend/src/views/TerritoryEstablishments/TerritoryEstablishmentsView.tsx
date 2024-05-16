@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import { useFindOneDashboardQuery } from '../../services/dashboard.service';

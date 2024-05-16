@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react';
 
 import { useUploadFileMutation } from '../../services/file.service';
 import { useNotification } from '../../hooks/useNotification';
-import { FileUploadDTO } from '../../../../shared/models/FileUploadDTO';
+import { FileUploadDTO } from '@zerologementvacant/models';
 
 const DEFAULT_TYPES = ['pdf', 'jpg', 'png'];
 const MAX_SIZE = 5; // Mo

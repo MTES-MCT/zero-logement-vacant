@@ -1,5 +1,4 @@
 import { Text } from '../_dsfr';
-import React from 'react';
 import { Housing, OwnershipKindLabels } from '../../models/Housing';
 import { cadastralClassificationOptions } from '../../models/HousingFilters';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
@@ -50,7 +49,7 @@ function HousingDetailsSubCardProperties({ housing }: Props) {
         <Text spacing="mb-1w">
           {
             cadastralClassificationOptions.find(
-              (_) => _.value === String(housing.cadastralClassification)
+              (_) => _.value === String(housing.cadastralClassification),
             )?.label
           }
         </Text>

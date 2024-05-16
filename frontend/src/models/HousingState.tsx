@@ -25,7 +25,7 @@ export enum HousingStatus {
 }
 
 export const HOUSING_STATUSES: HousingStatus[] = Object.values(
-  HousingStatus
+  HousingStatus,
 ).filter((_) => typeof _ === 'number') as HousingStatus[];
 
 export const FirstContactToContactedSubStatus =
@@ -60,7 +60,7 @@ export const HousingStates: HousingState[] = [
     title: 'En attente de retour',
     hint: (
       <Text spacing="mb-0" as="span">
-        Le propriétaire<b> n'a pas répondu au courrier.</b>
+        Le propriétaire<b> n’a pas répondu au courrier.</b>
       </Text>
     ),
     colorFamily: 'yellow-tournesol',
@@ -70,8 +70,8 @@ export const HousingStates: HousingState[] = [
     title: 'Premier contact',
     hint: (
       <Text spacing="mb-0" as="span">
-        Phase de qualification de la situation et d'engagement du propriétaire
-        pour l'évolution de sa situation.
+        Phase de qualification de la situation et d’engagement du propriétaire
+        pour l’évolution de sa situation.
       </Text>
     ),
     colorFamily: 'blue-cumulus',
@@ -92,7 +92,7 @@ export const HousingStates: HousingState[] = [
     title: 'Suivi en cours',
     hint: (
       <Text spacing="mb-0" as="span">
-        La situation du logement est en cours d'évolution (vers une sortie de la
+        La situation du logement est en cours d’évolution (vers une sortie de la
         vacance ou de passoire énergétique).
       </Text>
     ),
@@ -118,7 +118,7 @@ export const HousingStates: HousingState[] = [
     hint: (
       <Text spacing="mb-0" as="span">
         Le dossier ne nécessite plus de suivi car la situation du logement a
-        évolué ou la base de données d'origine comportait une erreur.
+        évolué ou la base de données d’origine comportait une erreur.
       </Text>
     ),
     colorFamily: 'green-bourgeon',
@@ -172,15 +172,15 @@ export const getHousingState = (status: HousingStatus) => {
 
 export const getSubStatus = (
   status: HousingStatus,
-  subStatusTitle: string
+  subStatusTitle: string,
 ): HousingSubStatus | undefined => {
   return getHousingState(status).subStatusList?.filter(
-    (s) => s.title === subStatusTitle
+    (s) => s.title === subStatusTitle,
   )[0];
 };
 
 export const getHousingSubStatus = (
-  housing: Housing
+  housing: Housing,
 ): HousingSubStatus | undefined => {
   if (housing.status && housing.subStatus) {
     return getSubStatus(housing.status, housing.subStatus);
@@ -204,18 +204,18 @@ export const getSubStatusOptions = (status: HousingStatus) => {
 };
 
 export const getSubStatusList = (
-  statusList: string[] | HousingStatus[] | undefined
+  statusList: string[] | HousingStatus[] | undefined,
 ) =>
   (statusList ?? [])
     .map((_) => getHousingState(_ as HousingStatus))
     .map((housingState) =>
-      (housingState.subStatusList ?? []).map((subStatus) => subStatus.title)
+      (housingState.subStatusList ?? []).map((subStatus) => subStatus.title),
     )
     .flat()
     .filter((_) => _ !== undefined);
 
 export const getSubStatusListOptions = (
-  statusList: string[] | HousingStatus[] | undefined
+  statusList: string[] | HousingStatus[] | undefined,
 ) =>
   (statusList ?? [])
     .map((_) => getHousingState(_ as HousingStatus))

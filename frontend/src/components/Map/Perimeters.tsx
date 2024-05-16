@@ -1,7 +1,6 @@
 import { Layer, MapRef, Source } from 'react-map-gl';
 import * as turf from '@turf/turf';
 
-import { Geometry } from 'geojson';
 import {
   GeoPerimeter,
   GeoPerimeterProperties,
@@ -22,15 +21,18 @@ function Perimeters(props: Props) {
     props.perimeters
       .map((perimeter) =>
         perimeter.geoJson
-          ? turf.feature<Geometry, GeoPerimeterProperties>(perimeter.geoJson, {
-              id: perimeter.id,
-              name: perimeter.name,
-              kind: perimeter.kind,
-              establishmentId: perimeter.establishmentId,
-            })
-          : null
+          ? turf.feature<turf.Geometry, GeoPerimeterProperties>(
+              perimeter.geoJson,
+              {
+                id: perimeter.id,
+                name: perimeter.name,
+                kind: perimeter.kind,
+                establishmentId: perimeter.establishmentId,
+              },
+            )
+          : null,
       )
-      .filter(isNotNull)
+      .filter(isNotNull),
   );
 
   const isVisible = props.isVisible ?? true;

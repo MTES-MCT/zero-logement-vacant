@@ -4,8 +4,6 @@ import {
   DOMConversionMap,
   DOMConversionOutput,
   DOMExportOutput,
-  EditorConfig,
-  LexicalEditor,
   LexicalNode,
   NodeKey,
   SerializedLexicalNode,
@@ -73,7 +71,10 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
     return $createVariableNode(serializedNode.variable);
   }
 
-  constructor(private variable: Variable, key?: NodeKey) {
+  constructor(
+    private variable: Variable,
+    key?: NodeKey,
+  ) {
     super(key);
   }
 
@@ -85,11 +86,11 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
     return false;
   }
 
-  decorate(editor: LexicalEditor, config: EditorConfig): JSX.Element {
+  decorate(): JSX.Element {
     return <VariableComponent>{this.variable.label}</VariableComponent>;
   }
 
-  exportDOM(editor: LexicalEditor): DOMExportOutput {
+  exportDOM(): DOMExportOutput {
     const element = document.createElement('span');
     element.textContent = this.variable.value;
     element.setAttribute('data-variable-label', this.variable.label);
@@ -114,7 +115,7 @@ export function $createVariableNode(variable: Variable): VariableNode {
 }
 
 export function $isVariableNode(
-  node: LexicalNode | null | undefined
+  node: LexicalNode | null | undefined,
 ): node is VariableNode {
   return node instanceof VariableNode;
 }

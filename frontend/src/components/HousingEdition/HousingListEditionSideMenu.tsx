@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { Container, Title } from '../_dsfr';
 import { HousingUpdate } from '../../models/Housing';
 import { displayCount } from '../../utils/stringUtils';

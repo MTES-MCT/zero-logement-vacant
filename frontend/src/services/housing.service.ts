@@ -27,7 +27,7 @@ export function parseHousing(h: any): Housing {
     lastContact: h.lastContact ? parseISO(h.lastContact) : undefined,
     energyConsumptionAt: h.energyConsumptionAt
       ? parseISO(h.energyConsumptionAt)
-      : undefined,
+      : undefined
   };
 }
 
@@ -41,59 +41,59 @@ export const housingApi = zlvApi.injectEndpoints({
           ? [
               {
                 type: 'Housing' as const,
-                id: result.id,
-              },
+                id: result.id
+              }
             ]
-          : [],
+          : []
     }),
     findHousing: builder.query<HousingPaginatedResult, FindOptions>({
       query: (opts) => ({
         url: `housing${getURLQuery({
-          sort: toQuery(opts?.sort),
+          sort: toQuery(opts?.sort)
         })}`,
         method: 'POST',
         body: {
           filters: opts?.filters,
-          ...opts?.pagination,
-        },
+          ...opts?.pagination
+        }
       }),
       providesTags: (result, errors, args) => [
         {
           type: 'HousingByStatus' as const,
-          id: args.filters.status,
+          id: args.filters.status
         },
         ...(result?.entities.map(({ id }) => ({
           type: 'Housing' as const,
-          id,
-        })) ?? []),
+          id
+        })) ?? [])
       ],
       transformResponse: (response: any) => {
         return {
           ...response,
-          entities: response.entities.map(parseHousing),
+          entities: response.entities.map(parseHousing)
         };
-      },
+      }
     }),
     countHousing: builder.query<HousingCount, HousingFilters>({
       query: (filters) => ({
         url: 'housing/count',
         method: 'POST',
-        body: { filters },
+        body: { filters }
       }),
       providesTags: (result, errors, args) => [
         {
           type: 'HousingCountByStatus' as const,
-          id: args.status,
-        },
-      ],
+          id: args.status
+        }
+      ]
     }),
     createHousing: builder.mutation<Housing, HousingPayloadDTO>({
       query: (payload) => ({
         url: 'housing/creation',
         method: 'POST',
-        body: payload,
+        body: payload
       }),
-      invalidatesTags: ['Housing', 'HousingByStatus', 'HousingCountByStatus'],
+      invalidatesTags: ['Housing', 'HousingByStatus', 'HousingCountByStatus']
     }),
     updateHousing: builder.mutation<
       void,
@@ -107,8 +107,8 @@ export const housingApi = zlvApi.injectEndpoints({
         method: 'POST',
         body: {
           housingId: housing.id,
-          housingUpdate,
-        },
+          housingUpdate
+        }
       }),
       invalidatesTags: (result, error, { housing, housingUpdate }) => [
         { type: 'Housing', id: housing.id },
@@ -116,13 +116,13 @@ export const housingApi = zlvApi.injectEndpoints({
         { type: 'HousingByStatus', id: housing.status },
         {
           type: 'HousingCountByStatus',
-          id: housingUpdate.statusUpdate?.status,
+          id: housingUpdate.statusUpdate?.status
         },
         {
           type: 'HousingCountByStatus',
-          id: housing.status,
-        },
-      ],
+          id: housing.status
+        }
+      ]
     }),
     updateHousingList: builder.mutation<
       number,
@@ -140,8 +140,8 @@ export const housingApi = zlvApi.injectEndpoints({
           housingUpdate,
           allHousing,
           housingIds,
-          filters,
-        },
+          filters
+        }
       }),
       transformResponse: (response: any) => {
         return response.length;
@@ -155,28 +155,29 @@ export const housingApi = zlvApi.injectEndpoints({
           ? ['Housing' as const]
           : housingIds.map((housingId) => ({
               type: 'Housing' as const,
-              id: housingId,
+              id: housingId
             }))),
         { type: 'HousingByStatus', id: housingUpdate.statusUpdate?.status },
         { type: 'HousingByStatus', id: filters.status },
         {
           type: 'HousingCountByStatus',
-          id: housingUpdate.statusUpdate?.status,
+          id: housingUpdate.statusUpdate?.status
         },
         {
           type: 'HousingCountByStatus',
-          id: filters.status,
-        },
-      ],
-    }),
-  }),
+          id: filters.status
+        }
+      ]
+    })
+  })
 });
 
 export const {
   useGetHousingQuery,
   useFindHousingQuery,
+  useLazyFindHousingQuery,
   useCountHousingQuery,
   useCreateHousingMutation,
   useUpdateHousingMutation,
-  useUpdateHousingListMutation,
+  useUpdateHousingListMutation
 } = housingApi;

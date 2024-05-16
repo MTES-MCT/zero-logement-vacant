@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, useRef, useState } from 'react';
 import classNames from 'classnames';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
@@ -46,7 +46,7 @@ const HousingStatusMultiSelect = ({
         >
           {selectedStatus !== undefined && selectedStatus.length > 0 ? (
             selectedStatus.map((status) => (
-              <HousingStatusBadge status={status} />
+              <HousingStatusBadge status={status} key={status} />
             ))
           ) : (
             <div>Tous</div>
@@ -74,7 +74,7 @@ const HousingStatusMultiSelect = ({
               styles.checkboxLabel,
               'bordered-b',
               'fr-mx-0',
-              'fr-pb-1w'
+              'fr-pb-1w',
             )}
             hintText={option.hint}
             key={option.label}

@@ -1,9 +1,7 @@
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import HousingEditionForm from './HousingEditionForm';
 import { genHousing } from '../../../test/fixtures.test';
-import { createMemoryHistory } from 'history';
-import { Router } from 'react-router-dom';
+import { MemoryRouter as Router } from 'react-router-dom';
 import { getHousingState, HousingStatus } from '../../models/HousingState';
 import { Housing } from '../../models/Housing';
 
@@ -13,15 +11,15 @@ describe('HousingEditionForm', () => {
       const housing = genHousing();
 
       render(
-        <Router history={createMemoryHistory()}>
+        <Router>
           <HousingEditionForm housing={housing} onSubmit={() => {}} />
-        </Router>
+        </Router>,
       );
 
       const statusOptions = screen.getByTestId('housing-status-options');
       expect(statusOptions).toBeInTheDocument();
       const neverContactedOption = within(statusOptions).queryByText(
-        getHousingState(HousingStatus.NeverContacted).title
+        getHousingState(HousingStatus.NeverContacted).title,
       );
       expect(neverContactedOption).toBeInTheDocument();
     });
@@ -33,15 +31,15 @@ describe('HousingEditionForm', () => {
       };
 
       render(
-        <Router history={createMemoryHistory()}>
+        <Router>
           <HousingEditionForm housing={housing} onSubmit={() => {}} />
-        </Router>
+        </Router>,
       );
 
       const statusOptions = screen.getByTestId('housing-status-options');
       expect(statusOptions).toBeInTheDocument();
       const neverContactedOption = within(statusOptions).queryByText(
-        getHousingState(HousingStatus.NeverContacted).title
+        getHousingState(HousingStatus.NeverContacted).title,
       );
       expect(neverContactedOption).not.toBeInTheDocument();
     });

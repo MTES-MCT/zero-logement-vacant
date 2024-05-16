@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { Col, Row } from '../../components/_dsfr';
 import * as yup from 'yup';
 import { emailValidator, useForm } from '../../hooks/useForm';
@@ -71,7 +71,7 @@ const OwnerProspectForm = ({
         notes,
         callBack: true,
         read: false,
-      })
+      }),
     );
   };
 

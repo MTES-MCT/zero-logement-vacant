@@ -2,7 +2,7 @@ import { OccupancyKind } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
 import config from '../../utils/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Pagination } from '../../../../shared/models/Pagination';
+import { Pagination } from '@zerologementvacant/models';
 import { DatafoncierHousing } from '../../../../shared';
 
 export type ViewMode = 'list' | 'map';
@@ -54,7 +54,7 @@ const housingSlice = createSlice({
     },
     changeFilters: (
       state: HousingState,
-      action: PayloadAction<HousingFilters>
+      action: PayloadAction<HousingFilters>,
     ) => {
       state.filters = action.payload;
     },
@@ -67,7 +67,7 @@ const housingSlice = createSlice({
         q: string;
         page: number;
         perPage: number;
-      }>
+      }>,
     ) => {
       state.additionalOwnersQuery = {
         page: action.payload.page,
@@ -77,7 +77,7 @@ const housingSlice = createSlice({
     },
     changeCreator: (
       state: HousingState,
-      action: PayloadAction<CreatorPayload>
+      action: PayloadAction<CreatorPayload>,
     ) => {
       state.creator = {
         ...state.creator,

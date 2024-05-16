@@ -1,4 +1,3 @@
-import React from 'react';
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 
 import handsPoints from '../../assets/images/hands-point.svg';
@@ -17,12 +16,12 @@ const OwnerGenericHomeView = () => {
   const { selectAddress } = ownerProspectSlice.actions;
 
   const { addressSearchResult } = useAppSelector(
-    (state) => state.ownerProspect
+    (state) => state.ownerProspect,
   );
 
   const { establishment, nearbyEstablishments } = useEstablishment(
     addressSearchResult?.city,
-    addressSearchResult ? [addressSearchResult.postalCode] : undefined
+    addressSearchResult ? [addressSearchResult.postalCode] : undefined,
   );
 
   const onSelectAddress = (addressSearchResult: AddressSearchResult) => {

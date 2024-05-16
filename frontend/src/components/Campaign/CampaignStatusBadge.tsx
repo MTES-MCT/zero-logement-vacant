@@ -1,5 +1,3 @@
-import React from 'react';
-
 import AppBadge from '../_app/AppBadge/AppBadge';
 import { CampaignStatus } from '../../../../shared';
 
@@ -12,13 +10,13 @@ function CampaignStatusBadge(props: Readonly<Props>) {
     draft: 'yellow-tournesol',
     sending: 'green-menthe',
     'in-progress': 'green-bourgeon',
-    archived: 'blue-cumulus',
+    archived: 'blue-cumulus'
   };
   const texts = {
     draft: 'Envoi en attente',
     sending: 'En cours d’envoi',
     'in-progress': 'Envoyée',
-    archived: 'Archivée',
+    archived: 'Archivée'
   };
 
   const color = colors[props.status];

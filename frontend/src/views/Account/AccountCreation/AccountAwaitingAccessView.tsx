@@ -1,5 +1,4 @@
 import { Container, Text, Title } from '../../../components/_dsfr';
-import React from 'react';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 
 function AccountAwaitingAccessView() {
@@ -35,7 +34,7 @@ function AccountAwaitingAccessView() {
         iconId="fr-icon-arrow-left-line"
         iconPosition="left"
       >
-        Revenir à l'écran d'accueil
+        Revenir à l’écran d’accueil
       </AppLink>
     </>
   );

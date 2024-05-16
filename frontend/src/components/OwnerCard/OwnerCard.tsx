@@ -1,5 +1,5 @@
 import { Icon, Text, Title } from '../_dsfr';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 import {
   getHousingOwnerRankLabel,
@@ -80,16 +80,18 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                 <br />
                 {owner.banAddress?.postalCode} {owner.banAddress?.city}
                 {[owner, ...(coOwners ?? [])].find(
-                  (owner) => !isBanEligible(owner.banAddress)
+                  (owner) => !isBanEligible(owner.banAddress),
                 ) && (
                   <Notice
                     className={classNames(styles.addressNotice, 'fr-mt-2w')}
                     title={
                       <>
                         <div className="fr-mb-2w">ADRESSE À VÉRIFIER</div>
-                        Cette adresse issue de la BAN est différente de l’adresse fiscale.
+                        Cette adresse issue de la BAN est différente de
+                        l’adresse fiscale.
                         <br />
-                        Cliquez sur “Modifier” pour valider l’adresse que vous souhaitez utiliser.
+                        Cliquez sur “Modifier” pour valider l’adresse que vous
+                        souhaitez utiliser.
                       </>
                     }
                   ></Notice>
@@ -99,7 +101,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
             {owner.additionalAddress && (
               <div>
                 <Text size="sm" className="zlv-label">
-                  Complément d'adresse
+                  Complément d’adresse
                 </Text>
                 <Text className="fr-mb-0">{owner.additionalAddress}</Text>
               </div>
@@ -139,7 +141,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                   className={classNames(
                     'fr-mb-1w',
                     styles.coOwnerCard,
-                    'app-card-xs'
+                    'app-card-xs',
                   )}
                   title={
                     <>

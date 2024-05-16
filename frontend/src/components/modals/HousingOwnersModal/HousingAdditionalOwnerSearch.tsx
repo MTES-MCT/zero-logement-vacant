@@ -1,4 +1,3 @@
-import React from 'react';
 import { Owner } from '../../../models/Owner';
 import AppSearchBar from '../../_app/AppSearchBar/AppSearchBar';
 import HousingAdditionalOwnerSearchResults from './HousingAdditionalOwnerSearchResults';
@@ -19,7 +18,7 @@ const HousingAdditionalOwnerSearch = ({ onSelect }: Props) => {
       housingSlice.actions.fetchingAdditionalOwners({
         ...(additionalOwnersQuery ?? { page: 1, perPage: 5 }),
         q,
-      })
+      }),
     );
   };
 

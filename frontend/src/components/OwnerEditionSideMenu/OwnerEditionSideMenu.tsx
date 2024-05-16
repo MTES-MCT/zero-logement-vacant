@@ -1,5 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import React, { FormEvent, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { object, string } from 'yup';
 
 import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
@@ -30,7 +30,7 @@ function OwnerEditionSideMenu(props: Props) {
   const [fullName, setFullName] = useState(props.owner.fullName);
   const [address, setAddress] = useState(props.owner.banAddress);
   const [additionalAddress, setAdditionalAddress] = useState(
-    props.owner.additionalAddress ?? ''
+    props.owner.additionalAddress ?? '',
   );
   const formId = 'owner-edition-form';
   const form = useForm(schema, {

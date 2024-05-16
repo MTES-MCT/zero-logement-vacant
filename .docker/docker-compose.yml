@@ -12,7 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - data:/var/lib/postgresql/data
-      - ../database:/database:ro
+      - ../server/src/infra/database:/database:ro
   adminer:
     image: adminer
     restart: always

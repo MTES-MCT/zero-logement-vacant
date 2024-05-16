@@ -1,6 +1,6 @@
 import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
-import React, { useEffect } from 'react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
 
@@ -40,7 +40,7 @@ function Header() {
     linkProps: {
       to: getUserNavItem(navItem).url,
       'data-testid': `fr-header-nav-item-${getUserNavItem(
-        navItem
+        navItem,
       ).url.substring(1)}`,
     },
     text: getUserNavItem(navItem).label,
@@ -93,6 +93,7 @@ function Header() {
                 <Collapse
                   icon="fr-icon-user-fill"
                   dropdown
+                  key="collapse"
                   title={displayName()}
                   content={
                     <Container

@@ -7,6 +7,10 @@ tools
 bin
 Procfile
 jest.config.js
+.eslintrc.json
+package.json
+package-lock.json
+scalingo.json
 
 *.css
 *.hbs

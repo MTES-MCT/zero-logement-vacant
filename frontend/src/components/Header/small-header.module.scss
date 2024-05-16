@@ -1,0 +1,21 @@
+.root {
+  display: flex;
+  height: 100%;
+}
+
+.linkList {
+  margin: 0 !important;
+  max-width: none !important;
+}
+
+.link {
+  align-content: center;
+}
+
+.loading {
+  position: fixed;
+  top: 0;
+  background-color: var(--blue-france-113);
+  height: 2px;
+  z-index: 1000;
+}

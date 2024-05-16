@@ -16,6 +16,8 @@ fileignoreconfig:
   checksum: 2eb831d9d9e6b816a1401fee277dfa058468ce7d9b917ad44702679233295e8e
 - filename: frontend/src/components/Dropdown/DropdownMenu.tsx
   checksum: ac1a0b11973d197701473c203fb2eb777001413b9b602cbe5fdba2fc8d825e8c
+- filename: frontend/src/components/HousingFiltersBadges/HousingFiltersBadges.tsx
+  checksum: bbf0f51b5624396489a49b287d4146f81ba4b5ed217965afc1c7131ca8e5b93b
 - filename: frontend/src/components/RichEditor/nodes/VariableNode.tsx
   checksum: 63b9536c3bb7c0ff7ca65f4f42eebe3031ad516497639be668392026be2f85f8
 - filename: frontend/src/views/Campaign/CampaignListView.tsx
@@ -38,6 +40,8 @@ fileignoreconfig:
   checksum: 3627d5cc7172a79998517e1982424462c61116e248e5b6bd29aced81470113e6
 - filename: server/repositories/campaignRepository.ts
   checksum: ab0dcf6bbf41a911aef0755c619c92d18bd04dc651c6ecaf8b1c53ffd5a82309
+- filename: server/services/mailService/brevoService.ts
+  checksum: ce84d57e61bfdf4168938e114113005b0961659ea299a3871415ade48ba7b310
 scopeconfig:
 - scope: node
 allowed_patterns:

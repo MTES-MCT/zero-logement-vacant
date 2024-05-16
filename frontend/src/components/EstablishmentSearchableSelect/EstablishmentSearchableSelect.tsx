@@ -52,9 +52,9 @@ const EstablishmentSearchableSelect = ({
 
   return (
     <SearchableSelect
+      className="fr-my-0 fr-mr-2w"
       selected={selected}
       options={establishmentOptions}
-      label="Etablissement : "
       onChange={(value: any) => {
         setSelected(value);
         if (value.length) {

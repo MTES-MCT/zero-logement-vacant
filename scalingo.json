@@ -1,4 +1,14 @@
 {
+  "formation": {
+    "web": {
+      "amount": 1,
+      "size": "L"
+    },
+    "queue": {
+      "amount": 1,
+      "size": "L"
+    }
+  },
   "env": {
     "APPLICATION_HOST": {
       "generator": "url",
@@ -16,6 +26,9 @@
     },
     "TZ": {
       "value": "Etc/UTC"
+    },
+    "NODE_OPTIONS": {
+      "value": "--max-old-space-size=8192"
     }
   },
   "scripts": {

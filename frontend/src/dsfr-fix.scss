@@ -38,7 +38,7 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
   margin: 0 !important;
 }
 
-.fr-collapse--expanded {
+.fr-collapse--expanded:not(.fr-collapsing) {
   overflow: inherit !important;
 }
 
@@ -73,4 +73,18 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
   margin-left: auto !important;
   margin-right: -1rem !important;
   margin-bottom: 0 ! important;
+}
+
+.fr-footer__partners .fr-footer__logo {
+  box-shadow: none !important;
+}
+
+.table-column-header {
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+
+  & > .fr-btn {
+    font-weight: 500 !important;
+    font-size: 0.75rem !important;
+  }
 }

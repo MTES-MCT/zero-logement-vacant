@@ -13,8 +13,9 @@ import GroupCampaignCreationModal from '../modals/GroupCampaignCreationModal/Gro
 import { fr } from '@codegouvfr/react-dsfr';
 
 interface GroupProps {
-  group: GroupModel;
   campaigns?: Campaign[];
+  className?: string;
+  group: GroupModel;
   onCampaignCreate?: (campaign: Pick<Campaign, 'title'>) => void;
   onExport?: () => void;
   onUpdate?: (group: GroupPayload) => void;
@@ -38,7 +39,7 @@ function Group(props: GroupProps) {
   }
 
   return (
-    <Container as="article" fluid>
+    <Container as="article" className={props.className} fluid>
       <Row className="justify-space-between">
         <Col n="9" spacing="pr-2w">
           <Container as="header" fluid spacing="mb-1w">

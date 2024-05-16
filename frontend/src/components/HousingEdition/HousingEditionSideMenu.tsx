@@ -1,34 +1,22 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import React, { useRef } from 'react';
+
 import { Container, Text, Title } from '../_dsfr';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import Aside from '../Aside/Aside';
 import HousingEditionForm from './HousingEditionForm';
-import EventsHistory from '../EventsHistory/EventsHistory';
-import { Event } from '../../models/Event';
-import { Note } from '../../models/Note';
 import styles from './housing-edition.module.scss';
-import Button from '@codegouvfr/react-dsfr/Button';
-import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import AppLink from '../_app/AppLink/AppLink';
 import Label from '../Label/Label';
 
 interface Props {
   housing?: Housing;
-  housingEvents?: Event[];
-  housingNotes?: Note[];
   expand: boolean;
   onSubmit: (housing: Housing, housingUpdate: HousingUpdate) => void;
   onClose: () => void;
 }
 
-const HousingEditionSideMenu = ({
-  housing,
-  housingEvents,
-  housingNotes,
-  expand,
-  onSubmit,
-  onClose,
-}: Props) => {
+function HousingEditionSideMenu({ housing, expand, onSubmit, onClose }: Props) {
   const statusFormRef = useRef<{ submit: () => void }>();
 
   const submit = (housingUpdate: HousingUpdate) => {
@@ -77,30 +65,11 @@ const HousingEditionSideMenu = ({
         content={
           housing && (
             <Container as="section" spacing="p-0">
-              <Tabs
-                className="no-border first-tab-grey"
-                tabs={[
-                  {
-                    label: '+ Nouvelle mise à jour / note',
-                    content: (
-                      <HousingEditionForm
-                        housing={housing}
-                        onSubmit={submit}
-                        ref={statusFormRef}
-                      />
-                    ),
-                  },
-                  {
-                    label: 'Historique de suivi',
-                    content: (
-                      <EventsHistory
-                        events={housingEvents ?? []}
-                        notes={housingNotes ?? []}
-                      />
-                    ),
-                  },
-                ]}
-              ></Tabs>
+              <HousingEditionForm
+                housing={housing}
+                onSubmit={submit}
+                ref={statusFormRef}
+              />
             </Container>
           )
         }
@@ -123,6 +92,6 @@ const HousingEditionSideMenu = ({
       />
     </div>
   );
-};
+}
 
 export default HousingEditionSideMenu;

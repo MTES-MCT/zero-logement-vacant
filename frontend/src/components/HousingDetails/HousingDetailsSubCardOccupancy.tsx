@@ -115,7 +115,6 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
               <DPE
                 value={housing.energyConsumption}
                 madeAt={housing.energyConsumptionAt}
-                bnbId={housing.buildingGroupId}
               />
             ) : (
               <Text spacing="mb-1w">Non renseigné</Text>

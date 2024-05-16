@@ -237,12 +237,13 @@ const HousingListTab = ({
         <SelectableListHeader entity="logement" default={<></>}>
           <SelectableListHeaderActions>
             {filteredHousingCount !== undefined && filteredHousingCount > 0 && (
-              <Row justifyContent="right">
+              <Row alignItems="middle" justifyContent="right">
                 {selectedCount > 1 && (
                   <Button
-                    onClick={() => setUpdatingSelectedHousing(selected)}
-                    priority="secondary"
                     className="fr-mr-1w"
+                    priority="secondary"
+                    size="small"
+                    onClick={() => setUpdatingSelectedHousing(selected)}
                   >
                     Mise à jour groupée
                   </Button>

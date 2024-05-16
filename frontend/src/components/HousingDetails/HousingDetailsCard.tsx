@@ -1,7 +1,12 @@
-import { Col, Icon, Row, Title } from '../_dsfr';
-import React, { useState } from 'react';
-import styles from './housing-details-card.module.scss';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Card from '@codegouvfr/react-dsfr/Card';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
 import classNames from 'classnames';
+import React, { useState } from 'react';
+
+import { Col, Icon, Row, Title } from '../_dsfr';
+import styles from './housing-details-card.module.scss';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
 import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
@@ -16,11 +21,8 @@ import HousingDetailsCardOccupancy from './HousingDetailsSubCardOccupancy';
 import HousingDetailsCardMobilisation from './HousingDetailsSubCardMobilisation';
 import { Campaign } from '../../models/Campaign';
 import { useUpdateHousingMutation } from '../../services/housing.service';
-import Button from '@codegouvfr/react-dsfr/Button';
-import Card from '@codegouvfr/react-dsfr/Card';
-import Tabs from '@codegouvfr/react-dsfr/Tabs';
+
 import AppLink from '../_app/AppLink/AppLink';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
 import {
   TrackEventActions,
   TrackEventCategories,
@@ -87,8 +89,6 @@ function HousingDetailsCard({
           </Button>
           <HousingEditionSideMenu
             housing={housing}
-            housingEvents={housingEvents}
-            housingNotes={housingNotes}
             expand={isHousingListEditionExpand}
             onSubmit={submitHousingUpdate}
             onClose={() => setIsHousingListEditionExpand(false)}

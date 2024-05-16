@@ -1,8 +1,10 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { useMatomo } from '@datapunt/matomo-tracker-react';
+import Grid from '@mui/material/Unstable_Grid2';
 import React, { useState } from 'react';
-import { Col, Row, Title } from '../../components/_dsfr';
+import { useHistory } from 'react-router-dom';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
 
 import {
   TrackEventActions,
@@ -13,15 +15,9 @@ import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppSelector } from '../../hooks/useStore';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import { filterCount } from '../../models/HousingFilters';
 import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
-import MainContainer from '../../components/MainContainer/MainContainer';
-import Button from '@codegouvfr/react-dsfr/Button';
-import GroupHeader from '../../components/GroupHeader/GroupHeader';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
-import { useHistory } from 'react-router-dom';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
 
 const HousingListView = () => {
@@ -61,7 +57,7 @@ const HousingListView = () => {
   }
 
   return (
-    <MainContainer>
+    <Grid container position="relative">
       <HousingListFiltersSidemenu
         filters={filters}
         expand={expand}
@@ -69,66 +65,50 @@ const HousingListView = () => {
         onReset={onResetFilters}
         onClose={() => setExpand(false)}
       />
-      <Row spacing="mb-5w">
-        <GroupHeader />
-      </Row>
-      <Row spacing="mb-2w">
-        <Title as="h1" look="h3" className="fr-mr-2w fr-mb-0">
-          Votre parc de logements
-        </Title>
-        <HousingCreationModal onFinish={onFinish} />
-      </Row>
+      <Grid container flexDirection="column" px={3} py={4} xs>
+        {alert && (
+          <Grid xs>
+            <Alert
+              severity="success"
+              description={alert}
+              closable
+              small
+              className="fr-mb-2w"
+            />
+          </Grid>
+        )}
 
-      {alert && (
-        <Alert
-          severity="success"
-          description={alert}
-          closable
-          small
-          className="fr-mb-2w"
-        />
-      )}
-
-      <Row spacing="mb-1w">
-        <Col n="6">
-          <div className="d-flex">
+        <Grid container mb={1} spacing={2} xs={12}>
+          <Grid xs>
             <AppSearchBar
               onSearch={searchWithQuery}
               initialQuery={filters.query}
               placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
             />
-            <Button
-              title="Filtrer"
-              iconId="ri-filter-fill"
-              priority="secondary"
-              className="fr-ml-1w"
-              onClick={() => setExpand(true)}
-              data-testid="filter-button"
-            >
-              Filtrer ({filterCount(filters)})
-            </Button>
-          </div>
-        </Col>
+          </Grid>
+          <Grid xs="auto">
+            <HousingDisplaySwitch />
+          </Grid>
+          <Grid xs="auto">
+            <HousingCreationModal onFinish={onFinish} />
+          </Grid>
+        </Grid>
 
-        <Col>
-          <HousingDisplaySwitch />
-        </Col>
-      </Row>
+        <Grid mb={3} xs={12}>
+          <HousingFiltersBadges filters={filters} onChange={removeFilter} />
+        </Grid>
 
-      <Row>
-        <HousingFiltersBadges
-          filters={filters}
-          onChange={removeFilter}
-          onReset={onResetFilters}
-        />
-      </Row>
-
-      {view === 'map' ? (
-        <HousingListMap filters={filters} />
-      ) : (
-        <HousingListTabs filters={filters} showCreateCampaign showCreateGroup />
-      )}
-    </MainContainer>
+        {view === 'map' ? (
+          <HousingListMap filters={filters} />
+        ) : (
+          <HousingListTabs
+            filters={filters}
+            showCreateCampaign
+            showCreateGroup
+          />
+        )}
+      </Grid>
+    </Grid>
   );
 };
 

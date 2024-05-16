@@ -19,7 +19,7 @@ const processRow = async (dfHousing: any) => {
 
     const dfOwner = await db.raw(`SELECT * FROM df_owners_nat_${YEAR} WHERE idlocal='${housing.localId}'`);
 
-    if(dfOwner.rows.length == 0) {
+    if(dfOwner.rows.length === 0) {
       return;
     }
 
@@ -39,7 +39,7 @@ const processRow = async (dfHousing: any) => {
       }
     }
 
-    if(owner == null) {
+    if(owner === null) {
       return;
     } else {
       try {
@@ -56,9 +56,9 @@ const processRow = async (dfHousing: any) => {
         return;
       }
     }
-  }
+  };
   return doProcess();
-}
+};
 
 const main = async () => {
 
@@ -94,8 +94,7 @@ const main = async () => {
     queryStream.resume();
   });
 
-
-}
+};
 
 main();
 

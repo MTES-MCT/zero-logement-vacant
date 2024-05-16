@@ -24,7 +24,7 @@ const processRow = async (dfHousing: any) => {
       `SELECT * FROM df_owners_nat_${YEAR} WHERE idlocal='${housing.localId}'`,
     );
 
-    if (dfOwner.rows.length == 0) {
+    if (dfOwner.rows.length === 0) {
       return;
     }
 
@@ -44,7 +44,7 @@ const processRow = async (dfHousing: any) => {
       }
     }
 
-    if (owner == null) {
+    if (owner === null) {
       return;
     } else {
       try {

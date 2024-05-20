@@ -90,6 +90,7 @@ scopeconfig:
 - scope: node
 allowed_patterns:
 - key=\{.+\}
+- keyof
 version: "1.0"
 9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 scopeconfig:

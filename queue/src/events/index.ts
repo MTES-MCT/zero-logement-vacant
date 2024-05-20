@@ -1,8 +1,9 @@
 import { QueueEvents, QueueEventsOptions } from 'bullmq';
+import { parseRedisUrl } from 'parse-redis-url-simple';
+
 import { createLogger } from '../logger';
 import { Jobs } from '../jobs';
 import config from '../config';
-import { parseRedisUrl } from 'parse-redis-url-simple';
 
 export default function registerEvents() {
   const logger = createLogger('queue');
@@ -16,8 +17,8 @@ export default function registerEvents() {
 
     const queueEvents = new QueueEvents(queue, queueEventsConfig);
 
-    queueEvents.on('completed', ({ jobId }) => {
-      logger.info('Job completed', { job: jobId });
+    queueEvents.on('completed', ({ jobId, returnvalue }) => {
+      logger.info('Job completed', { job: jobId, value: returnvalue });
     });
 
     queueEvents.on('error', (error) => {

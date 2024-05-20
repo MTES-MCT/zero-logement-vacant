@@ -17,7 +17,8 @@ import { createLogger } from '../logger';
 import { storage } from '../storage';
 
 type Name = 'campaign:generate';
-type Args = Jobs[Name];
+type Args = Parameters<Jobs[Name]>[0];
+type Returned = ReturnType<Jobs[Name]>;
 
 export default function createWorker() {
   const logger = createLogger('workers:generate-mails');
@@ -54,24 +55,24 @@ export default function createWorker() {
   });
   logger.info('SDK created.');
 
-  return new Worker<Args, void, Name>(
+  return new Worker<Args, Returned, Name>(
     'campaign:generate',
     async (job) => {
       await storage.run(
         { establishment: job.data.establishmentId },
         async () => {
-          const { campaignId } = job.data;
+          const payload = job.data;
           logger.info('Generating mail for campaign', job.data);
 
-          const campaign = await api.campaign.get(campaignId);
+          const campaign = await api.campaign.get(payload.campaignId);
           if (!campaign) {
-            throw new Error(`Campaign ${campaignId} missing`);
+            throw new Error(`Campaign ${payload.campaignId} missing`);
           }
 
           const [housings, drafts] = await Promise.all([
             api.housing.find({
               filters: {
-                campaignIds: [campaignId],
+                campaignIds: [payload.campaignId],
               },
               pagination: {
                 paginate: false,
@@ -186,6 +187,8 @@ export default function createWorker() {
             ...campaign,
             file: signedUrl,
           });
+
+          return { id: campaign.id };
         },
       );
     },

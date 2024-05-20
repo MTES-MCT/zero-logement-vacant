@@ -1,22 +1,60 @@
-import { Queue as BullQueue, QueueOptions } from 'bullmq';
+import {
+  Queue as BullQueue,
+  QueueEvents as BullQueueEvents,
+  QueueOptions,
+} from 'bullmq';
 
 import { JOBS, Jobs } from './jobs';
 
+// TODO: use EventEmitter<T>
 export interface Queue {
-  add<K extends keyof Jobs>(job: K, data: Jobs[K]): Promise<void>;
+  add<K extends keyof Jobs>(
+    job: K,
+    data: Parameters<Jobs[K]>[0],
+  ): Promise<void>;
+  on<K extends keyof Jobs>(
+    job: K,
+    callback: (returned: ReturnType<Jobs[K]>) => void,
+  ): void;
 }
 
 export type Options = Pick<QueueOptions, 'connection'>;
 
 export function createQueue(opts?: Options): Queue {
-  return {
-    async add<K extends keyof Jobs>(job: K, data: Jobs[K]): Promise<void> {
-      if (!JOBS.includes(job)) {
-        throw new Error(`Job ${job} not found`);
-      }
+  const queues = new Map<keyof Jobs, BullQueue>(
+    JOBS.map((job) => [
+      job,
+      new BullQueue(job, opts?.connection ? opts : undefined),
+    ]),
+  );
+  const eventQueues = new Map<keyof Jobs, BullQueueEvents>(
+    JOBS.map((job) => [
+      job,
+      new BullQueueEvents(job, opts?.connection ? opts : undefined),
+    ]),
+  );
 
-      const queue = new BullQueue(job, opts?.connection ? opts : undefined);
-      await queue.add(job, data);
+  return {
+    async add<K extends keyof Jobs>(
+      job: K,
+      data: Parameters<Jobs[K]>[0],
+    ): Promise<void> {
+      await queues.get(job)?.add(job, data);
+    },
+    on<K extends keyof Jobs>(
+      event: K,
+      callback: (returned: ReturnType<Jobs[K]>) => void,
+    ) {
+      eventQueues.get(event)?.on('completed', async ({ jobId }) => {
+        // TODO
+        const job = await queues.get(event)?.getJob(jobId);
+        if (!job) {
+          throw new Error(`Job not found: ${jobId}`);
+        }
+
+        callback(job.returnvalue);
+      });
     },
   };
+  // TODO: clean up
 }

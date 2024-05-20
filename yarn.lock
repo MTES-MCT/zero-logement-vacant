@@ -8623,6 +8623,7 @@ __metadata:
     "@types/react-router-dom": "npm:^5.3.3"
     "@types/uuid": "npm:^9.0.8"
     "@zerologementvacant/models": "workspace:*"
+    "@zerologementvacant/queue": "workspace:*"
     classnames: "npm:^2.5.1"
     date-fns: "npm:^2.30.0"
     fetch-intercept: "npm:^2.4.0"

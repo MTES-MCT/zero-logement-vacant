@@ -36,6 +36,7 @@
     "@turf/turf": "^6.5.0",
     "@typeform/embed-react": "^2.31.0",
     "@zerologementvacant/models": "workspace:*",
+    "@zerologementvacant/queue": "workspace:*",
     "classnames": "^2.5.1",
     "date-fns": "^2.30.0",
     "fetch-intercept": "^2.4.0",

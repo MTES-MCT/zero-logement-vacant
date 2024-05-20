@@ -1,5 +1,7 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Box from '@mui/material/Box';
+import LinearProgress from '@mui/material/LinearProgress';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FormEvent, useEffect, useState } from 'react';
 
@@ -106,13 +108,16 @@ function CampaignSending(props: Readonly<Props>) {
       <Grid component="section" container mb={5} xs={12}>
         {!hasFile ? (
           <Grid xs={12}>
-            <Alert
-              className="fr-mb-5w"
-              closable
-              description="Vous pouvez quitter cette page et revenir télécharger vos courriers ici dès que le fichier sera prêt. Si vous n'avez toujours pas accès au téléchargement après 24 heures, contactez-nous via le chat en bas à droite de la page."
-              severity="info"
-              title="Chargement de vos courriers en cours"
-            />
+            <Box sx={{ width: '100%' }}>
+              <LinearProgress color="info" />
+              <Alert
+                className="fr-mb-5w"
+                closable
+                description="Vous pouvez quitter cette page et revenir télécharger vos courriers ici dès que le fichier sera prêt. Si vous n'avez toujours pas accès au téléchargement après 24 heures, contactez-nous via le chat en bas à droite de la page."
+                severity="info"
+                title="Chargement de vos courriers en cours"
+              />
+            </Box>
           </Grid>
         ) : (
           <Grid mb={5} xs={4}>

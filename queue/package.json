@@ -17,7 +17,7 @@
     "@sentry/integrations": "^7.108.0",
     "@sentry/node": "^7.108.0",
     "@zerologementvacant/api-sdk": "workspace:*",
-    "@zerologementvacant/draft": "workspace:^",
+    "@zerologementvacant/draft": "workspace:*",
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
     "archiver": "^7.0.1",

@@ -24,8 +24,8 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
-    "@zerologementvacant/models": "workspace:^",
-    "@zerologementvacant/utils": "workspace:^",
+    "@zerologementvacant/models": "workspace:*",
+    "@zerologementvacant/utils": "workspace:*",
     "axios": "^1.6.8",
     "convict": "^6.2.4",
     "dotenv": "^16.4.5",

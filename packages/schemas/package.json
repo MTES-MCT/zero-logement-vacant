@@ -7,11 +7,11 @@
     "build": "tsc -b tsconfig.build.json"
   },
   "dependencies": {
-    "yup": "^1"
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
-    "rimraf": "^5.0.5",
-    "typescript": "^5.4.3"
+    "rimraf": "^5.0.7",
+    "typescript": "^5.4.5"
   }
 }

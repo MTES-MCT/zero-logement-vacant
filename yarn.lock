@@ -8564,7 +8564,7 @@ __metadata:
     pg: "npm:^8.11.5"
     rimraf: "npm:^5.0.7"
     ts-jest: "npm:^29.1.3"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
   languageName: unknown
   linkType: soft
 
@@ -8584,7 +8584,7 @@ __metadata:
     puppeteer: "npm:^22.9.0"
     rimraf: "npm:^5.0.7"
     ts-jest: "npm:^29.1.3"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
   languageName: unknown
   linkType: soft
 
@@ -8652,7 +8652,7 @@ __metadata:
     rimraf: "npm:^5.0.7"
     sass: "npm:^1.77.2"
     ts-essentials: "npm:^10.0.0"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
     uuid: "npm:^9.0.1"
     web-vitals: "npm:^1.1.2"
     whatwg-fetch: "npm:^3.6.20"
@@ -8674,7 +8674,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     rimraf: "npm:^5.0.7"
     ts-jest: "npm:^29.1.3"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
   languageName: unknown
   linkType: soft
 
@@ -8711,7 +8711,7 @@ __metadata:
     rimraf: "npm:^5.0.7"
     ts-jest: "npm:^29.1.3"
     ts-node: "npm:^10.9.2"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
     uuid: "npm:^9.0.1"
   languageName: unknown
   linkType: soft
@@ -8722,7 +8722,7 @@ __metadata:
   dependencies:
     "@tsconfig/node20": "npm:^20.1.4"
     rimraf: "npm:^5.0.7"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
     yup: "npm:^1.4.0"
   languageName: unknown
   linkType: soft
@@ -8829,7 +8829,7 @@ __metadata:
     ts-node: "npm:^10.9.2"
     tsc-alias: "npm:^1.8.10"
     tsconfig-paths: "npm:^4.2.0"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
     unzip-stream: "npm:^0.3.4"
     uuid: "npm:^9.0.1"
     validator: "npm:^13.12.0"
@@ -8855,7 +8855,7 @@ __metadata:
     rimraf: "npm:^5.0.7"
     ts-jest: "npm:^29.1.3"
     ts-node: "npm:^10.9.2"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
   languageName: unknown
   linkType: soft
 
@@ -8865,7 +8865,7 @@ __metadata:
   dependencies:
     "@tsconfig/node20": "npm:^20.1.4"
     rimraf: "npm:^5.0.7"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
   languageName: unknown
   linkType: soft
 
@@ -8885,7 +8885,7 @@ __metadata:
     pino-pretty: "npm:^11.0.0"
     rimraf: "npm:^5.0.7"
     ts-jest: "npm:^29.1.3"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
   languageName: unknown
   linkType: soft
 
@@ -24435,23 +24435,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.8.4":
-  version: 4.8.4
-  resolution: "typescript@npm:4.8.4"
+"typescript@npm:4.9.4":
+  version: 4.9.4
+  resolution: "typescript@npm:4.9.4"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/663bf455b21ac024e719bb8c6a07bcaaa027a9943abfb58a694b59789e7d08578badb5556170267ad480e31786b8b4c8ab3c9c0e597d3b8df39af800e43c6ed5
+  checksum: 10c0/5008b97a2a3afdbe57ea70e504ebc8ec98f18d888059dfb7932a41f566a1360a28afc8de2a440fd6143b4014cc6d2616079931dc690c7513c2d21fa53957e0ec
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A4.8.4#optional!builtin<compat/typescript>":
-  version: 4.8.4
-  resolution: "typescript@patch:typescript@npm%3A4.8.4#optional!builtin<compat/typescript>::version=4.8.4&hash=1a91c8"
+"typescript@patch:typescript@npm%3A4.9.4#optional!builtin<compat/typescript>":
+  version: 4.9.4
+  resolution: "typescript@patch:typescript@npm%3A4.9.4#optional!builtin<compat/typescript>::version=4.9.4&hash=289587"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/eecab597a5a8c6e7f14804f1447cfce02e214e32c02efcfe5219c94290e3d572490e8a0d8033fd075ac429d35babf85182541a50c50bfb0c21df33c59fb9bf82
+  checksum: 10c0/d2949ccbf74e52ec8a153e5b2996439854e40937334b97374d4985c47465de1b63a611f15dc9bab9a8ae735fbedfabdf30f55e968778d890600f8472c286a08a
   languageName: node
   linkType: hard
 
@@ -25769,7 +25769,7 @@ __metadata:
     prettier: "npm:^3.2.5"
     ts-node: "npm:^10.9.2"
     type-fest: "npm:^3.13.1"
-    typescript: "npm:4.8.4"
+    typescript: "npm:4.9.4"
   languageName: unknown
   linkType: soft
 

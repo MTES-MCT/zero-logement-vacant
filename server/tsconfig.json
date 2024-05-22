@@ -14,13 +14,6 @@
     "rootDir": "src",
     "typeRoots": ["node_modules/@types", "src/types"]
   },
-  "references": [
-    { "path": "../packages/draft" },
-    { "path": "../packages/models" },
-    { "path": "../packages/utils" },
-    { "path": "../queue" },
-    { "path": "../shared" }
-  ],
   "ts-node": {
     "require": ["tsconfig-paths/register"]
   },

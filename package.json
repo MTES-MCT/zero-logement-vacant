@@ -2,7 +2,6 @@
   "name": "zero-logement-vacant",
   "version": "1.0.0",
   "description": "Zéro Logement Vacant",
-  "main": "server/index.ts",
   "engines": {
     "node": "^20"
   },
@@ -44,7 +43,7 @@
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
     "type-fest": "^3.13.1",
-    "typescript": "4.9.4"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "pg": "^8.11.5",

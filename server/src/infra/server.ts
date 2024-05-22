@@ -1,8 +1,7 @@
 import cors from 'cors';
-import express, { Application, Request, Response } from 'express';
+import express, { Application } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import path from 'node:path';
 import util from 'node:util';
 import { createClient } from 'redis';
 
@@ -84,7 +83,7 @@ export function createServer(): Server {
           workerSrc: ["'self'", 'blob:'],
         },
       },
-    }),
+    })
   );
 
   app.use(
@@ -94,7 +93,7 @@ export function createServer(): Server {
         'https://stats.beta.gouv.fr',
         'http://localhost:3000',
       ],
-    }),
+    })
   );
 
   // Mock services like Datafoncier API on specific environments
@@ -109,21 +108,11 @@ export function createServer(): Server {
       message: 'Too many request from this address, try again later please.',
       standardHeaders: true,
       legacyHeaders: false,
-    }),
+    })
   );
 
   app.use('/api', unprotectedRouter);
   app.use('/api', protectedRouter);
-
-  // Serve the frontend in production
-  if (config.app.env === 'production') {
-    const build = path.join(__dirname, '..', '..', '..', 'frontend', 'build');
-    app.use(express.static(build));
-    app.get('*', (request: Request, response: Response) => {
-      const index = path.join(build, 'index.html');
-      response.sendFile(index);
-    });
-  }
 
   app.all('*', () => {
     throw new RouteNotFoundError();

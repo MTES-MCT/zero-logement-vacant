@@ -2,6 +2,7 @@
   "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -13,6 +14,13 @@
     "rootDir": "src",
     "typeRoots": ["node_modules/@types", "src/types"]
   },
+  "references": [
+    { "path": "../packages/draft" },
+    { "path": "../packages/models" },
+    { "path": "../packages/utils" },
+    { "path": "../queue" },
+    { "path": "../shared" }
+  ],
   "ts-node": {
     "require": ["tsconfig-paths/register"]
   },

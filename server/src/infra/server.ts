@@ -83,7 +83,7 @@ export function createServer(): Server {
           workerSrc: ["'self'", 'blob:'],
         },
       },
-    })
+    }),
   );
 
   app.use(
@@ -93,7 +93,7 @@ export function createServer(): Server {
         'https://stats.beta.gouv.fr',
         'http://localhost:3000',
       ],
-    })
+    }),
   );
 
   // Mock services like Datafoncier API on specific environments
@@ -108,14 +108,14 @@ export function createServer(): Server {
       message: 'Too many request from this address, try again later please.',
       standardHeaders: true,
       legacyHeaders: false,
-    })
+    }),
   );
 
   app.use('/api', unprotectedRouter);
   app.use('/api', protectedRouter);
 
-  app.all('*', () => {
-    throw new RouteNotFoundError();
+  app.all('*', (request) => {
+    throw new RouteNotFoundError(request);
   });
   sentry.errorHandler(app);
   app.use(errorHandler());

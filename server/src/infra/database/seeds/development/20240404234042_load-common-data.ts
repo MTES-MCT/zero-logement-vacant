@@ -4,28 +4,37 @@ import { exec } from 'node:child_process';
 import path from 'node:path';
 
 import config from '~/infra/config';
-import { Establishments } from '~/repositories/establishmentRepository';
-import { Housing } from '~/repositories/housingRepository';
-import { Localities } from '~/repositories/localityRepository';
-import { Owners } from '~/repositories/ownerRepository';
-import { EstablishmentLocalities } from '~/repositories/establishmentLocalityRepository';
-import { HousingOwners } from '~/repositories/housingOwnerRepository';
+import {
+  Establishments,
+  establishmentsTable,
+} from '~/repositories/establishmentRepository';
+import { Housing, housingTable } from '~/repositories/housingRepository';
+import { Localities, localitiesTable } from '~/repositories/localityRepository';
+import { Owners, ownerTable } from '~/repositories/ownerRepository';
+import {
+  EstablishmentLocalities,
+  establishmentsLocalitiesTable,
+} from '~/repositories/establishmentLocalityRepository';
+import {
+  HousingOwners,
+  housingOwnersTable,
+} from '~/repositories/housingOwnerRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
-  await HousingOwners(knex).delete();
-  await Housing(knex).delete();
+  await knex(housingOwnersTable).delete();
+  await knex(housingTable).delete();
   if (await knex.schema.hasTable('_extract_zlv_')) {
     await knex.schema.dropTable('_extract_zlv_');
   }
   console.info('Removed houses.');
-  await Owners(knex).delete();
+  await knex(ownerTable).delete();
   console.info('Removed owners.');
 
-  await EstablishmentLocalities(knex).delete();
-  await Establishments(knex).delete();
+  await knex(establishmentsLocalitiesTable).delete();
+  await knex(establishmentsTable).delete();
   console.info('Removed establishments.');
-  await Localities(knex).delete();
+  await knex(localitiesTable).delete();
   console.info('Removed localities.');
 
   const files = [

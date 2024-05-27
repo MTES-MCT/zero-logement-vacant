@@ -95,23 +95,25 @@ function HousingDetailsCard({
             onSubmit={submitHousingUpdate}
             onClose={() => setIsHousingListEditionExpand(false)}
           />
-          <Title as="h1" look="h4" spacing="mb-1w">
-            {housing.rawAddress.join(' - ')}
-            <AppLink
-              title="Voir sur la carte - nouvelle fenêtre"
-              to={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
-              target="_blank"
-              iconPosition="left"
-              className={classNames(
-                styles.link,
-                'fr-link',
-                'fr-ml-3w',
-                'float-right',
-              )}
-            >
-              Voir sur la carte
-            </AppLink>
-          </Title>
+          { !isVisitor && (
+            <Title as="h1" look="h4" spacing="mb-1w">
+              {housing.rawAddress.join(' - ')}
+              <AppLink
+                title="Voir sur la carte - nouvelle fenêtre"
+                to={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
+                target="_blank"
+                iconPosition="left"
+                className={classNames(
+                  styles.link,
+                  'fr-link',
+                  'fr-ml-3w',
+                  'float-right',
+                )}
+              >
+                Voir sur la carte
+              </AppLink>
+            </Title>
+          )}
         </>
       }
       desc={

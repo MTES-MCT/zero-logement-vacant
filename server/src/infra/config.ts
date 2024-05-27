@@ -179,15 +179,15 @@ const config = convict<Config>({
     },
   },
   cerema: {
-    api: {
-      env: 'CEREMA_API',
-      format: 'url',
-      default: 'https://getdf.cerema.fr',
-    },
     enabled: {
       env: 'CEREMA_ENABLED',
       format: 'strict-boolean',
       default: isProduction,
+    },
+    api: {
+      env: 'CEREMA_API',
+      format: 'url',
+      default: 'https://getdf.cerema.fr',
     },
     token: {
       env: 'CEREMA_TOKEN',

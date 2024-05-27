@@ -4,41 +4,29 @@ import { exec } from 'node:child_process';
 import path from 'node:path';
 
 import config from '~/infra/config';
-import {
-  Establishments,
-  establishmentsTable,
-} from '~/repositories/establishmentRepository';
+import { Establishments } from '~/repositories/establishmentRepository';
 import { Housing } from '~/repositories/housingRepository';
-import { Localities, localitiesTable } from '~/repositories/localityRepository';
+import { Localities } from '~/repositories/localityRepository';
 import { Owners } from '~/repositories/ownerRepository';
-import {
-  EstablishmentLocalities,
-  establishmentsLocalitiesTable,
-} from '~/repositories/establishmentLocalityRepository';
+import { EstablishmentLocalities } from '~/repositories/establishmentLocalityRepository';
 import { HousingOwners } from '~/repositories/housingOwnerRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
-  await HousingOwners().delete();
-  await Housing().delete();
+  await HousingOwners(knex).delete();
+  await Housing(knex).delete();
   if (await knex.schema.hasTable('_extract_zlv_')) {
     await knex.schema.dropTable('_extract_zlv_');
   }
   console.info('Removed houses.');
-  await Owners().delete();
+  await Owners(knex).delete();
   console.info('Removed owners.');
 
-  await temporaryDisableTriggers(
-    knex,
-    [establishmentsLocalitiesTable, establishmentsTable, localitiesTable],
-    async () => {
-      await EstablishmentLocalities().delete();
-      await Establishments(knex).delete();
-      console.info('Removed establishments.');
-      await Localities(knex).delete();
-      console.info('Removed localities.');
-    },
-  );
+  await EstablishmentLocalities(knex).delete();
+  await Establishments(knex).delete();
+  console.info('Removed establishments.');
+  await Localities(knex).delete();
+  console.info('Removed localities.');
 
   const files = [
     {
@@ -99,22 +87,5 @@ async function load(script: string, data: string): Promise<void> {
         return resolve();
       },
     );
-  });
-}
-
-async function temporaryDisableTriggers(
-  knex: Knex,
-  tables: string[],
-  callback: () => Promise<void>,
-): Promise<void> {
-  await async.forEach(tables, async (table) => {
-    console.log(`Disabling triggers ${table}.`);
-    await knex.schema.raw(`ALTER TABLE ${table} DISABLE TRIGGER ALL`);
-    console.log(`Disabled triggers ${table}.`);
-  });
-  await callback();
-  await async.forEach(tables, async (table) => {
-    console.log(`Enabled triggers ${table}.`);
-    await knex.schema.raw(`ALTER TABLE ${table} ENABLE TRIGGER ALL`);
   });
 }

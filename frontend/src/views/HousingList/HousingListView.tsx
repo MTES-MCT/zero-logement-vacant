@@ -19,6 +19,7 @@ import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
+import { useUser } from '../../hooks/useUser';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -56,6 +57,8 @@ const HousingListView = () => {
     );
   }
 
+  const { isVisitor } = useUser();
+
   return (
     <Grid container position="relative">
       <HousingListFiltersSidemenu
@@ -90,7 +93,7 @@ const HousingListView = () => {
             <HousingDisplaySwitch />
           </Grid>
           <Grid xs="auto">
-            <HousingCreationModal onFinish={onFinish} />
+            { !isVisitor && <HousingCreationModal onFinish={onFinish} /> }
           </Grid>
         </Grid>
 

@@ -27,6 +27,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
+import { useUser } from '../../hooks/useUser';
 
 interface Props {
   housing: Housing;
@@ -41,6 +42,7 @@ function HousingDetailsCard({
   housingNotes,
   housingCampaigns,
 }: Props) {
+  const { isVisitor } = useUser();
   const { trackEvent } = useMatomo();
   const [updateHousing] = useUpdateHousingMutation();
 
@@ -81,12 +83,12 @@ function HousingDetailsCard({
           <span className="card-title-icon">
             <Icon name="fr-icon-home-4-fill" iconPosition="center" size="1x" />
           </span>
-          <Button
+          { !isVisitor && <Button
             onClick={() => setIsHousingListEditionExpand(true)}
             className="fr-ml-1w float-right"
           >
             Mettre à jour / Ajouter une note
-          </Button>
+          </Button> }
           <HousingEditionSideMenu
             housing={housing}
             expand={isHousingListEditionExpand}

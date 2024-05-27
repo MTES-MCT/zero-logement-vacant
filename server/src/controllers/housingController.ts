@@ -89,7 +89,7 @@ async function list(
   const filters: HousingFiltersApi = {
     ...body.filters,
     establishmentIds:
-      role === UserRoles.Admin && body.filters.establishmentIds?.length
+      role === (UserRoles.Admin || UserRoles.Visitor) && body.filters.establishmentIds?.length
         ? body.filters.establishmentIds
         : [auth.establishmentId],
   };
@@ -138,7 +138,7 @@ async function count(request: Request, response: Response): Promise<void> {
   const count = await housingRepository.count({
     ...filters,
     establishmentIds:
-      role === UserRoles.Admin && filters.establishmentIds?.length
+      role === (UserRoles.Admin || UserRoles.Visitor) && filters.establishmentIds?.length
         ? filters.establishmentIds
         : [establishmentId],
   });
@@ -341,7 +341,7 @@ async function updateList(request: Request, response: Response) {
   const filters: HousingFiltersApi = {
     ...body.filters,
     establishmentIds:
-      role === UserRoles.Admin && body.filters.establishmentIds?.length
+      role === (UserRoles.Admin || UserRoles.Visitor) && body.filters.establishmentIds?.length
         ? body.filters.establishmentIds
         : [auth.establishmentId],
   };

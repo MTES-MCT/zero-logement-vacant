@@ -19,6 +19,11 @@ export const useUser = () => {
     [authUser, isAuthenticated]
   );
 
+  const isVisitor = useMemo<boolean>(
+    () => isAuthenticated && authUser?.user.role === UserRoles.Visitor,
+    [authUser, isAuthenticated]
+  );
+
   const user = authUser?.user;
   const establishment = authUser?.establishment;
 
@@ -38,6 +43,7 @@ export const useUser = () => {
     displayName,
     establishment,
     isAdmin,
+    isVisitor,
     isAuthenticated,
     user,
   };

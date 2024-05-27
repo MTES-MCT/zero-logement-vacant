@@ -47,6 +47,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
 import { useLocation } from 'react-router-dom';
 import { campaignSort } from '../../models/Campaign';
+import { useUser } from '../../hooks/useUser';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -66,6 +67,7 @@ const HousingList = ({
   const location = useLocation();
   const campaignList = useCampaignList();
   const { trackEvent } = useMatomo();
+  const { isVisitor } = useUser();
 
   const [updateHousing] = useUpdateHousingMutation();
 
@@ -275,16 +277,19 @@ const HousingList = ({
       ),
   };
 
-  const columns = [
-    selectColumn,
+  let columns = [
     rowNumberColumn,
     addressColumn,
     ownerColumn,
     occupancyColumn,
     campaignColumn,
-    statusColumn,
-    actionColumn,
+    statusColumn
   ];
+
+  if(!isVisitor) {
+    columns = [ selectColumn, ...columns, actionColumn ];
+  }
+
   const submitHousingUpdate = async (
     housing: Housing,
     housingUpdate: HousingUpdate,
@@ -334,7 +339,7 @@ const HousingList = ({
               'zlv-table',
               'with-modify-last',
               'with-row-number',
-              { 'with-select': onSelectHousing },
+              !isVisitor ?? { 'with-select': onSelectHousing },
             )}
             data-testid="housing-table"
           />

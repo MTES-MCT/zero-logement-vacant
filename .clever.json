@@ -1,0 +1,20 @@
+{
+  "apps": [
+    {
+      "app_id": "app_f23c92c7-a52d-445a-97e2-af2aeb653b81",
+      "org_id": "orga_31f13631-abb3-48d2-a58b-24b736f02a9d",
+      "deploy_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
+      "git_ssh_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
+      "name": "API staging",
+      "alias": "API-staging"
+    },
+    {
+      "app_id": "app_84ed9d27-936c-49ac-b6da-47c2c55ac816",
+      "org_id": "orga_31f13631-abb3-48d2-a58b-24b736f02a9d",
+      "deploy_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
+      "git_ssh_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
+      "name": "Front staging",
+      "alias": "Front-staging"
+    }
+  ]
+}

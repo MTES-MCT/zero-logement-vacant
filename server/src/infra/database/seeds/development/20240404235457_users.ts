@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { SirenSaintLo, SirenStrasbourg } from './20240404235442_establishments';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import { establishmentsTable } from '~/repositories/establishmentRepository';
-import { formatUserApi, usersTable } from '~/repositories/userRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   const [strasbourg, saintLo] = await Promise.all([
@@ -44,8 +44,8 @@ export async function seed(knex: Knex): Promise<void> {
       role: UserRoles.Admin,
     },
   ];
-  await knex(usersTable)
+  await Users()
     .insert(users.map(formatUserApi))
     .onConflict('email')
-    .ignore();
+    .merge(['establishment_id']);
 }

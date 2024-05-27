@@ -57,6 +57,7 @@ interface Config {
     api: string;
     enabled: boolean;
     token: string;
+    inviteLimit: number;
   };
   datafoncier: {
     api: string;
@@ -195,6 +196,11 @@ const config = convict<Config>({
       default: null,
       nullable: !isProduction,
     },
+    inviteLimit: {
+      env: 'CEREMA_INVITE_LIMIT',
+      format: 'int',
+      default: 10,
+    }
   },
   datafoncier: {
     api: {

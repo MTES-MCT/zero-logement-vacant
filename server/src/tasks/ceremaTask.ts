@@ -1,17 +1,17 @@
 import { SIGNUP_LINK_EXPIRATION, SIGNUP_LINK_LENGTH, SignupLinkApi, getAccountActivationLink } from '../models/SignupLinkApi';
-import db from '../repositories/db';
+import db from '../infra/database';
 import signupLinkRepository from '../repositories/signupLinkRepository';
 import { addHours } from 'date-fns';
 import randomstring from 'randomstring';
 import userRepository from '../repositories/userRepository';
 import ceremaService from '../services/ceremaService';
 import mailService from '../services/mailService';
-import config from '../utils/config';
-import { logger } from '../utils/logger';
+import config from '../infra/config';
+import { logger } from '../infra/logger';
 import async from 'async';
 
 const run = async (): Promise<void> => {
-  if (config.application.isReviewApp) {
+  if (config.app.isReviewApp) {
     logger.info('This is a review app. Skipping...');
     return;
   }

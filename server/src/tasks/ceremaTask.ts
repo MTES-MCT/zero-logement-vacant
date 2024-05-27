@@ -41,7 +41,7 @@ const run = async (): Promise<void> => {
 
         await signupLinkRepository.insert(link);
 
-        await mailService.sendAccountActivationEmail(link.id, {
+        await mailService.sendAccountActivationEmailFromLovac(link.id, {
           recipients: [email],
         });
 

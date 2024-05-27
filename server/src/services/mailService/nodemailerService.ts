@@ -60,6 +60,17 @@ class NodemailerService implements MailService {
     });
   }
 
+  async sendAccountActivationEmailFromLovac(
+    key: string,
+    options: SendOptions,
+  ): Promise<void> {
+    return this.send({
+      ...options,
+      subject: 'Activation du compte',
+      content: `Suite à la validation de votre accès aux données LOVAC. Cliquez sur le lien ${config.app.host}/inscription/mot-de-passe#${key}`,
+    });
+  }
+
   async sendOwnerProspectCreatedEmail(users: UserApi[]): Promise<void> {
     return this.send({
       subject: 'Nouveau message - Boite de réception',

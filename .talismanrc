@@ -72,6 +72,8 @@ fileignoreconfig:
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
 - filename: server/src/services/addressService.ts
   checksum: 43528a6717c0accb31e216947f29db94179051ec42e1a19a7a96ffc85ad5184e
+- filename: server/src/services/mailService/mailService.ts
+  checksum: 469cb5c66e031e6511108335013d18df9e35c73aabb8966769f0e93f96273bc6
 - filename: server/src/test/testUtils.ts
   checksum: 7b398fd3f591cac34d94c9c81b1e3fd128ce09d48b849d530b4d883795b628d0
 - filename: shared/src/utils/merger.ts

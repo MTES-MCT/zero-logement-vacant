@@ -21,6 +21,7 @@ import {
 } from '~/repositories/housingOwnerRepository';
 import { settingsTable } from '~/repositories/settingsRepository';
 import { usersTable } from '~/repositories/userRepository';
+import { groupsTable } from '~/repositories/groupRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
@@ -33,7 +34,10 @@ export async function seed(knex: Knex): Promise<void> {
   await knex(ownerTable).delete();
   console.info('Removed owners.');
 
+  await knex(groupsTable).delete();
+  console.info('Removed groups.');
   await knex(usersTable).delete();
+  console.info('Removed users.');
   await knex(settingsTable).delete();
   console.info('Removed settings.');
   await knex(establishmentsLocalitiesTable).delete();

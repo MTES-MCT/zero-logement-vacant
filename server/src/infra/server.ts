@@ -32,6 +32,8 @@ export function createServer(): Server {
 
   sentry.init(app);
 
+  app.set('trust proxy', 1);
+
   app.use(
     helmet({
       crossOriginEmbedderPolicy: false,

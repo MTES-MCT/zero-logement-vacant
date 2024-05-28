@@ -14,6 +14,8 @@ function createServer() {
   const app = express();
 
   const logger = createLogger('queue');
+  app.set('trust proxy', 1);
+
   app.get(
     '/',
     healthcheck({

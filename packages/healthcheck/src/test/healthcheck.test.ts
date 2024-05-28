@@ -7,9 +7,8 @@ import { redisCheck } from '../checks/redis';
 import { postgresCheck } from '../checks/postgres';
 
 describe('Healthcheck API', () => {
-  const app = express();
-
-  it('should return 200 OK', async () => {
+  it('should return HTTP 200 OK', async () => {
+    const app = express();
     app.get(
       '/',
       healthcheck({
@@ -28,7 +27,8 @@ describe('Healthcheck API', () => {
     });
   });
 
-  it('should show that a service is down', async () => {
+  it('should return HTTP 503 if a service is down', async () => {
+    const app = express();
     app.get(
       '/',
       healthcheck({
@@ -41,7 +41,7 @@ describe('Healthcheck API', () => {
 
     const { body, status } = await request(app).get('/');
 
-    expect(status).toBe(constants.HTTP_STATUS_OK);
+    expect(status).toBe(constants.HTTP_STATUS_SERVICE_UNAVAILABLE);
     expect(body.checks).toIncludeSameMembers<CheckStatus>([
       { name: 'redis', status: 'down' },
       { name: 'postgres', status: 'down' },

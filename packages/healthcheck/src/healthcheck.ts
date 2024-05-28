@@ -39,7 +39,10 @@ export function healthcheck(opts?: Options) {
       },
     );
 
-    response.status(constants.HTTP_STATUS_OK).json({
+    const code = statuses.every(({ status }) => status === 'up')
+      ? constants.HTTP_STATUS_OK
+      : constants.HTTP_STATUS_SERVICE_UNAVAILABLE;
+    response.status(code).json({
       uptime: process.uptime(),
       checks: statuses,
     });

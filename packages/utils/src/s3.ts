@@ -1,6 +1,6 @@
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
-interface S3Options {
+export interface S3Options {
   endpoint: string;
   region: string;
   accessKeyId: string;
@@ -26,7 +26,7 @@ interface ToBase64Options {
 
 export async function toBase64(
   logo: string,
-  opts: ToBase64Options
+  opts: ToBase64Options,
 ): Promise<string> {
   const command = new GetObjectCommand({
     Bucket: opts.bucket,

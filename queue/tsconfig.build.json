@@ -3,6 +3,7 @@
   "references": [
     { "path": "../packages/api-sdk/tsconfig.build.json" },
     { "path": "../packages/draft/tsconfig.build.json" },
+    { "path": "../packages/healthcheck/tsconfig.build.json" },
     { "path": "../packages/models/tsconfig.build.json" },
     { "path": "../packages/utils/tsconfig.build.json" }
   ],

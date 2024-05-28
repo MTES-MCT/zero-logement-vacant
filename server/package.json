@@ -23,6 +23,7 @@
     "@sentry/node": "^7.116.0",
     "@wecre8websites/sendinblue-tracker": "^1.0.6",
     "@zerologementvacant/draft": "workspace:*",
+    "@zerologementvacant/healthcheck": "workspace:^",
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/queue": "workspace:*",
     "@zerologementvacant/shared": "workspace:*",

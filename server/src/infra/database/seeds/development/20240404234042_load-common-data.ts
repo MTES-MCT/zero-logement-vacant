@@ -22,6 +22,7 @@ import {
 import { settingsTable } from '~/repositories/settingsRepository';
 import { usersTable } from '~/repositories/userRepository';
 import { groupsTable } from '~/repositories/groupRepository';
+import { eventsTable } from '~/repositories/eventRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
@@ -34,6 +35,8 @@ export async function seed(knex: Knex): Promise<void> {
   await knex(ownerTable).delete();
   console.info('Removed owners.');
 
+  await knex(eventsTable).delete();
+  console.info('Removed events.');
   await knex(groupsTable).delete();
   console.info('Removed groups.');
   await knex(usersTable).delete();

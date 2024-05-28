@@ -23,6 +23,7 @@ import { settingsTable } from '~/repositories/settingsRepository';
 import { usersTable } from '~/repositories/userRepository';
 import { groupsTable } from '~/repositories/groupRepository';
 import { eventsTable } from '~/repositories/eventRepository';
+import { campaignsTable } from '~/repositories/campaignRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
@@ -34,7 +35,8 @@ export async function seed(knex: Knex): Promise<void> {
   console.info('Removed houses.');
   await knex(ownerTable).delete();
   console.info('Removed owners.');
-
+  await knex(campaignsTable).delete();
+  console.info('Removed campaigns.');
   await knex(eventsTable).delete();
   console.info('Removed events.');
   await knex(groupsTable).delete();

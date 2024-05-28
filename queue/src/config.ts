@@ -10,6 +10,9 @@ interface Config {
   api: {
     host: string;
   };
+  app: {
+    port: number;
+  };
   auth: {
     secret: string;
     serviceAccount: string;
@@ -42,6 +45,13 @@ const config = convict<Config>({
       env: 'API_HOST',
       format: String,
       default: isProduction ? null : 'http://localhost:3001',
+    },
+  },
+  app: {
+    port: {
+      env: 'PORT',
+      format: 'port',
+      default: 8080,
     },
   },
   auth: {

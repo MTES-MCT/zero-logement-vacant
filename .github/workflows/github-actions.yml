@@ -67,44 +67,57 @@ jobs:
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band
 
-  deploy-staging:
+  deploy-test:
+    uses: ./.github/workflows/deploy.yml
     needs: [build]
-    if: github.ref_name == 'main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    with:
+      app: test
+      branch: ci-deploy-on-clever-cloud
 
-      - name: Install clever-tools
-        run: npm install -g clever-tools
-
-      - name: Deploy
-        env:
-          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-          ORGA_ID: ${{ secrets.CLEVER_ORG }}
-        run: |
-          clever deploy --alias front-staging
-          clever deploy --alias api-staging
-          clever deploy --alias queue-staging
-
-  deploy-prod:
+  deploy-front-staging:
+    uses: ./.github/workflows/deploy.yml
     needs: [build]
-    if: github.ref_name == 'prod'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    with:
+      app: front-staging
+      branch: main
+    secrets: inherit
 
-      - name: Install clever-tools
-        run: npm install -g clever-tools
+  deploy-api-staging:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: api-staging
+      branch: main
+    secrets: inherit
 
-      - name: Deploy
-        env:
-          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-          ORGA_ID: ${{ secrets.CLEVER_ORG }}
-        run: |
-          clever deploy --alias front-production
-          clever deploy --alias api-production
-          clever deploy --alias queue-production
+  deploy-queue-staging:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: queue-staging
+      branch: main
+    secrets: inherit
+
+  deploy-front-production:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: front-production
+      branch: prod
+    secrets: inherit
+
+  deploy-api-production:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: api-production
+      branch: prod
+    secrets: inherit
+
+  deploy-queue-production:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: queue-production
+      branch: prod
+    secrets: inherit

@@ -1,6 +1,14 @@
 {
   "apps": [
     {
+      "app_id": "app_84ed9d27-936c-49ac-b6da-47c2c55ac816",
+      "org_id": "orga_31f13631-abb3-48d2-a58b-24b736f02a9d",
+      "deploy_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
+      "git_ssh_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
+      "name": "Front staging",
+      "alias": "front-staging"
+    },
+    {
       "app_id": "app_f23c92c7-a52d-445a-97e2-af2aeb653b81",
       "org_id": "orga_31f13631-abb3-48d2-a58b-24b736f02a9d",
       "deploy_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
@@ -9,20 +17,12 @@
       "alias": "api-staging"
     },
     {
-      "app_id": "app_84ed9d27-936c-49ac-b6da-47c2c55ac816",
-      "org_id": "orga_31f13631-abb3-48d2-a58b-24b736f02a9d",
-      "deploy_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
-      "git_ssh_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
-      "name": "Front staging",
-      "alias": "api-staging"
-    },
-    {
       "app_id": "app_30f77c45-4126-4d79-9e51-3ac5ccbe6637",
       "org_id": "orga_31f13631-abb3-48d2-a58b-24b736f02a9d",
       "deploy_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
       "git_ssh_url": "https://github.com/MTES-MCT/zero-logement-vacant.git",
       "name": "Queue staging",
-      "alias": "Queue-staging"
+      "alias": "queue-staging"
     },
     {
       "app_id": "app_0a171081-de65-4ed9-8b3c-608f9de2d900",
@@ -30,7 +30,7 @@
       "deploy_url": "https://push-n3-par-clevercloud-customers.services.clever-cloud.com/app_0a171081-de65-4ed9-8b3c-608f9de2d900.git",
       "git_ssh_url": "git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_0a171081-de65-4ed9-8b3c-608f9de2d900.git",
       "name": "API production",
-      "alias": "API-production"
+      "alias": "api-production"
     }
   ]
 }

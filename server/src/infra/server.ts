@@ -1,10 +1,8 @@
-import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import http from 'node:http';
 import util from 'node:util';
-import { createClient } from 'redis';
 
 import {
   healthcheck,
@@ -92,12 +90,6 @@ export function createServer(): Server {
           workerSrc: ["'self'", 'blob:'],
         },
       },
-    }),
-  );
-
-  app.use(
-    cors({
-      credentials: false,
     }),
   );
 

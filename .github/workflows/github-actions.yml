@@ -48,6 +48,8 @@ jobs:
 
       - name: Install
         run: yarn install --immutable
+        env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
       - name: Build
         run: yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apt run build
@@ -73,6 +75,7 @@ jobs:
     with:
       app: test
       branch: ci-deploy-on-clever-cloud
+    secrets: inherit
 
   deploy-front-staging:
     uses: ./.github/workflows/deploy.yml

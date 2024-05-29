@@ -97,11 +97,7 @@ export function createServer(): Server {
 
   app.use(
     cors({
-      origin: [
-        config.app.host,
-        'https://stats.beta.gouv.fr',
-        'http://localhost:3000',
-      ],
+      credentials: false,
     }),
   );
 

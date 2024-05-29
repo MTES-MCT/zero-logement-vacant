@@ -69,14 +69,6 @@ jobs:
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band
 
-  deploy-test:
-    uses: ./.github/workflows/deploy.yml
-    needs: [build]
-    with:
-      app: test
-      branch: ci-deploy-on-clever-cloud
-    secrets: inherit
-
   deploy-front-staging:
     uses: ./.github/workflows/deploy.yml
     needs: [build]

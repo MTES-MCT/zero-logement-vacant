@@ -8,6 +8,39 @@ jobs:
     strategy:
       matrix:
         node-version: [20.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+
+      - name: Install
+        run: yarn install --immutable
+
+      - name: Build
+        run: yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apt run build
+        env:
+          CEREMA_TOKEN: token
+          DISABLE_ESLINT_PLUGIN: true
+          METABASE_TOKEN: token
+
+      - name: Lint
+        run: yarn lint
+
+
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
     services:
       postgres:
         image: postgis/postgis
@@ -33,12 +66,9 @@ jobs:
           - 9090:9090
         env:
           initialBuckets: "zerologementvacant"
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Enable Corepack
         run: corepack enable
@@ -52,16 +82,6 @@ jobs:
       - name: Install
         run: yarn install --immutable
 
-      - name: Build
-        run: yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apt run build
-        env:
-          CEREMA_TOKEN: token
-          DISABLE_ESLINT_PLUGIN: true
-          METABASE_TOKEN: token
-
-      - name: Lint
-        run: yarn lint
-
       - name: Test
         run: yarn test
         env:
@@ -70,5 +90,37 @@ jobs:
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band
 
-      - name: Migrate database
-        run: yarn workspace @zerologementvacant/server run migrate
+  deploy:
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+
+      - name: Install
+        run: yarn install --immutable
+
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Deploy
+        env:
+          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+          ORGA_ID: ${{ secrets.CLEVER_ORG }}
+        run: |
+          clever deploy --alias front-staging
+          clever deploy --alias api-staging
+          clever deploy --alias queue-staging

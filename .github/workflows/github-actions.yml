@@ -94,7 +94,4 @@ jobs:
           ORGA_ID: ${{ secrets.ORGA_ID }}
         if: github.ref_name == 'ci-deploy-on-clever-cloud'
         run: |
-          clever link --org "$ORGA_ID" --alias "Front staging"
-          clever link --org "$ORGA_ID" --alias "API staging"
-          clever link --org "$ORGA_ID" --alias "Queue staging"
           clever deploy

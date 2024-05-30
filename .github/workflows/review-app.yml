@@ -45,7 +45,7 @@ jobs:
           CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
           ORGA_ID: ${{ secrets.CLEVER_ORG }}
           PR_NAME: pr${{ github.event.number }}
-          APP_ALIAS: $PR_NAME-queue
+          APP_ALIAS: pr${{ github.event.number }}-queue
         run: |
           echo "List the app’s environment variables and export them"
           clever env -a $APP_ALIAS --add-export >> ~/.bashrc
@@ -70,7 +70,7 @@ jobs:
           clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
           clever env set WORKSPACE "@zerologementvacant/queue" -a $APP_ALIAS
 
-          clever domain add $PR_NAME-queue.cleverapps.io -a $APP_ALIAS
+          clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
           clever deploy -a $APP_ALIAS
 
       - name: Comment PR
@@ -78,7 +78,7 @@ jobs:
         with:
           script: |
             const issue_number = context.payload.pull_request.number;
-            const message = `Deployment has finished 👁️👄👁️ Your app is available [here](https://pr${{ github.event.number }}.cleverapps.io)`;
+            const message = `Deployment has finished 👁️👄👁️ Your app is available [here](https://$APP_ALIAS.cleverapps.io)`;
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -104,7 +104,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: install clever-tools
+      - name: Install clever-tools
         run: npm install -g clever-tools
 
       - name: Link and update app
@@ -113,6 +113,7 @@ jobs:
           CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
           ORGA_ID: ${{ secrets.CLEVER_ORG }}
           PR_NAME: pr${{ github.event.number }}
+          APP_ALIAS: pr${{ github.event.number }}-queue
         run: |
           clever link -o $ORGA_ID $PR_NAME
           clever deploy --force
@@ -122,7 +123,7 @@ jobs:
         with:
           script: |
             const issue_number = context.payload.pull_request.number;
-            const message = `🚀 Your app has been updated and is available [here](https://doc-review-PR-${{ github.event.number }}.cleverapps.io)`;
+            const message = `🚀 Your app has been updated and is available [here](https://$APP_ALIAS.cleverapps.io)`;
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

@@ -30,6 +30,7 @@ jobs:
 
   deploy-api:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
+    needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
       name: PR review apps
@@ -101,6 +102,7 @@ jobs:
 
   deploy-queue:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
+    needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
       name: PR review apps
@@ -160,6 +162,7 @@ jobs:
 
   deploy-front:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
+    needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
       name: PR review apps

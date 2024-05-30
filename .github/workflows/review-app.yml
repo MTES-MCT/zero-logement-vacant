@@ -72,7 +72,7 @@ jobs:
           clever env set METABASE_TOKEN "unused" -a $APP_ALIAS
           clever env set PORT "8080" -a $APP_ALIAS
           clever env set S3_ACCESS_KEY_ID $CELLAR_ADDON_KEY_ID -a $APP_ALIAS
-          clever env set S3_BUCKET $PR_NAME -a $APP_ALIAS
+          clever env set S3_BUCKET zerologementvacant -a $APP_ALIAS
           clever env set S3_ENDPOINT "https://$CELLAR_ADDON_HOST" -a $APP_ALIAS
           clever env set S3_REGION "cellar-c2" -a $APP_ALIAS
           clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
@@ -134,7 +134,7 @@ jobs:
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
           clever env set S3_ACCESS_KEY_ID $CELLAR_ADDON_KEY_ID -a $APP_ALIAS
-          clever env set S3_BUCKET $PR_NAME -a $APP_ALIAS
+          clever env set S3_BUCKET zerologementvacant -a $APP_ALIAS
           clever env set S3_ENDPOINT "https://$CELLAR_ADDON_HOST" -a $APP_ALIAS
           clever env set S3_REGION "cellar-c2" -a $APP_ALIAS
           clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
@@ -192,7 +192,7 @@ jobs:
           clever env set REACT_APP_MATOMO_ENABLED "false" -a $APP_ALIAS
           clever env set REACT_APP_MATOMO_SITE_ID "42" -a $APP_ALIAS
           clever env set REACT_APP_MATOMO_URL_BASE "unused" -a $APP_ALIAS
-          clever env set WORKSPACE "@zerologementvacant/front"
+          clever env set WORKSPACE "@zerologementvacant/front" -a $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor M -a $APP_ALIAS

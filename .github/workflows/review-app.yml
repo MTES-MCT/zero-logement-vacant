@@ -1,10 +1,11 @@
 name: Review app on pull request
 
+# Note that workflows must be updated on the main branch
+
 on:
   pull_request_target:
     types: [opened, closed, synchronize, reopened]
     branches: [main]
-
 
 jobs:
   deploy-addons:
@@ -66,7 +67,7 @@ jobs:
         run: |
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
-          clever env set CC_PRE_RUN_HOOK "corepack yarn workspace $WORKSPACE migrate && corepack yarn workspace $WORKSPACE seed" -a $APP_ALIAS
+          clever env set CC_PRE_RUN_HOOK 'corepack yarn workspace $WORKSPACE migrate && corepack yarn workspace $WORKSPACE seed' -a $APP_ALIAS
           clever env set CEREMA_API "https://api.cerema.fr" -a $APP_ALIAS
           clever env set CEREMA_ENABLED "false" -a $APP_ALIAS
           clever env set CEREMA_TOKEN "unused" -a $APP_ALIAS
@@ -197,7 +198,7 @@ jobs:
         run: |
           clever env set CC_OVERRIDE_BUILDCACHE "frontend/build/" -a $APP_ALIAS
           clever env set CC_POST_BUILD_HOOK "ls -al $CC_OVERRIDE_BUILDCACHE" -a $APP_ALIAS
-          clever env set CC_PRE_BUILD_HOOK "corepack enable && corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build" -a $APP_ALIAS
+          clever env set CC_PRE_BUILD_HOOK 'corepack enable && corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build' -a $APP_ALIAS
           clever env set CC_WEBROOT "/frontend/build" -a $APP_ALIAS
           clever env set REACT_APP_MATOMO_ENABLED "false" -a $APP_ALIAS
           clever env set REACT_APP_MATOMO_SITE_ID "42" -a $APP_ALIAS

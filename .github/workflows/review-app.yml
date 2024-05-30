@@ -201,10 +201,11 @@ jobs:
       - name: Scale down for the run
         run: clever scale --flavor XS -a $APP_ALIAS
 
-
-  update:
+  update-api:
     if: github.event.action == 'synchronize'
     runs-on: ubuntu-latest
+    env:
+      APP_ALIAS: pr${{ github.event.number }}-api
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -217,26 +218,75 @@ jobs:
       - name: Install clever-tools
         run: npm install -g clever-tools
 
-      - name: Link and update API
-        env:
-          APP_ALIAS: pr${{ github.event.number }}-api
-        run: |
-          clever link -o $ORGA_ID $APP_ALIAS
-          clever deploy --force -a $APP_ALIAS
+      - name: Link app
+        run: clever link -o $ORGA_ID $APP_ALIAS
 
-      - name: Link and update front
-        env:
-          APP_ALIAS: pr${{ github.event.number }}-front
-        run: |
-          clever link -o $ORGA_ID $APP_ALIAS
-          clever deploy --force -a $APP_ALIAS
+      - name: Scale up for deployment
+        run: clever scale --flavor M -a $APP_ALIAS
 
-      - name: Link and update queue
-        env:
-          APP_ALIAS: pr${{ github.event.number }}-queue
-        run: |
-          clever link -o $ORGA_ID $APP_ALIAS
-          clever deploy --force -a $APP_ALIAS
+      - name: Update the app
+        run: clever deploy --force -a $APP_ALIAS
+
+      - name: Scale down for the run
+        run: clever scale --flavor XS -a $APP_ALIAS
+
+  update-front:
+    if: github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    env:
+      APP_ALIAS: pr${{ github.event.number }}-front
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Link app
+        run: clever link -o $ORGA_ID $APP_ALIAS
+
+      - name: Scale up for deployment
+        run: clever scale --flavor M -a $APP_ALIAS
+
+      - name: Update the app
+        run: clever deploy --force -a $APP_ALIAS
+
+      - name: Scale down for the run
+        run: clever scale --flavor XS -a $APP_ALIAS
+
+  update-queue:
+    if: github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    env:
+      APP_ALIAS: pr${{ github.event.number }}-queue
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Link app
+        run: clever link -o $ORGA_ID $APP_ALIAS
+
+      - name: Scale up for deployment
+        run: clever scale --flavor M -a $APP_ALIAS
+
+      - name: Update the app
+        run: clever deploy --force -a $APP_ALIAS
+
+      - name: Scale down for the run
+        run: clever scale --flavor XS -a $APP_ALIAS
 
   delete-queue:
     runs-on: ubuntu-latest

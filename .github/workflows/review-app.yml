@@ -85,11 +85,6 @@ jobs:
           clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
           clever deploy -a $APP_ALIAS
 
-      - name: Publish configuration
-        run: |
-          clever published-config set API_HOST https://$APP_ALIAS.cleverapps.io -a $APP_ALIAS
-          clever published-config set REACT_APP_API_URL https://$APP_ALIAS.cleverapps.io -a $APP_ALIAS
-
       - name: Scale down for the run
         run: clever scale --flavor XS -a $APP_ALIAS
 
@@ -128,6 +123,7 @@ jobs:
 
       - name: Set environment variables
         run: |
+          clever env set API_HOST https://$PR_NAME-api.cleverapps.io -a $APP_ALIAS
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
@@ -177,13 +173,13 @@ jobs:
           echo "List the app’s environment variables and export them"
           clever env -a $APP_ALIAS | grep -v '^#' | tr -d '"' >> "$GITHUB_ENV"
 
-
       - name: Set environment variables
         run: |
           clever env set CC_OVERRIDE_BUILDCACHE "frontend/build/" -a $APP_ALIAS
           clever env set CC_POST_BUILD_HOOK "ls -al $CC_OVERRIDE_BUILDCACHE" -a $APP_ALIAS
           clever env set CC_PRE_BUILD_HOOK 'corepack enable && corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build' -a $APP_ALIAS
           clever env set CC_WEBROOT "/frontend/build" -a $APP_ALIAS
+          clever env set REACT_APP_API_URL https://$PR_NAME-api.cleverapps.io -a $APP_ALIAS
           clever env set REACT_APP_MATOMO_ENABLED "false" -a $APP_ALIAS
           clever env set REACT_APP_MATOMO_SITE_ID "42" -a $APP_ALIAS
           clever env set REACT_APP_MATOMO_URL_BASE "unused" -a $APP_ALIAS

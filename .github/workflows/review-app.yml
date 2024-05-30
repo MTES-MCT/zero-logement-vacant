@@ -119,8 +119,6 @@ jobs:
           clever service link-addon "Redis staging" -a $APP_ALIAS
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
 
-          clever service link-app $PR_NAME-api -a $APP_ALIAS
-
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
           echo "List the app’s environment variables and export them"
@@ -174,8 +172,6 @@ jobs:
       - name: Create the app
         run: |
           clever create $APP_ALIAS --type static-apache --alias $APP_ALIAS --region par --org $ORGA_ID
-
-          clever service link-app $PR_NAME-api -a $APP_ALIAS
 
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 

@@ -205,10 +205,6 @@ jobs:
   update:
     if: github.event.action == 'synchronize'
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      contents: read
-      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -226,21 +222,21 @@ jobs:
           APP_ALIAS: pr${{ github.event.number }}-api
         run: |
           clever link -o $ORGA_ID $APP_ALIAS
-          clever deploy --force
+          clever deploy --force -a $APP_ALIAS
 
       - name: Link and update front
         env:
           APP_ALIAS: pr${{ github.event.number }}-front
         run: |
           clever link -o $ORGA_ID $APP_ALIAS
-          clever deploy --force
+          clever deploy --force -a $APP_ALIAS
 
       - name: Link and update queue
         env:
           APP_ALIAS: pr${{ github.event.number }}-queue
         run: |
           clever link -o $ORGA_ID $APP_ALIAS
-          clever deploy --force
+          clever deploy --force -a $APP_ALIAS
 
   delete-queue:
     runs-on: ubuntu-latest

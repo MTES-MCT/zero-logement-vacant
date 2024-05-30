@@ -201,28 +201,6 @@ jobs:
       - name: Scale down for the run
         run: clever scale --flavor XS -a $APP_ALIAS
 
-  comment:
-    needs: [deploy-api, deploy-queue, deploy-front]
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      contents: read
-      pull-requests: write
-    steps:
-      - name: Comment PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const issue_number = context.payload.pull_request.number;
-            const message = `Deployment has finished 👁️👄👁️ Your app is available [here](https://$APP_ALIAS.cleverapps.io)`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue_number,
-              body: message
-            });
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   update:
     if: github.event.action == 'synchronize'
@@ -243,27 +221,26 @@ jobs:
       - name: Install clever-tools
         run: npm install -g clever-tools
 
-      - name: Link and update app
+      - name: Link and update API
+        env:
+          APP_ALIAS: pr${{ github.event.number }}-api
+        run: |
+          clever link -o $ORGA_ID $APP_ALIAS
+          clever deploy --force
+
+      - name: Link and update front
+        env:
+          APP_ALIAS: pr${{ github.event.number }}-front
+        run: |
+          clever link -o $ORGA_ID $APP_ALIAS
+          clever deploy --force
+
+      - name: Link and update queue
         env:
           APP_ALIAS: pr${{ github.event.number }}-queue
         run: |
-          clever link -o $ORGA_ID $PR_NAME
+          clever link -o $ORGA_ID $APP_ALIAS
           clever deploy --force
-
-      - name: Comment PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const issue_number = context.payload.pull_request.number;
-            const message = `🚀 Your app has been updated and is available [here](https://$APP_ALIAS.cleverapps.io)`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue_number,
-              body: message
-            });
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   delete-queue:
     runs-on: ubuntu-latest
@@ -317,25 +294,3 @@ jobs:
       - name: Delete the app
         run: |
           clever addon delete $PR_NAME-postgres -o $ORGA_ID --yes
-
-  comment-deletion:
-    runs-on: ubuntu-latest
-    needs: [delete-api, delete-queue, delete-front, delete-addons]
-    permissions:
-      issues: write
-      pull-requests: write
-    steps:
-      - name: Comment PR
-        uses: actions/github-script@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          script: |
-            const issue_number = context.payload.pull_request.number;
-            const message = `Your review apps have been deleted 👋`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue_number,
-              body: message
-            });

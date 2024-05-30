@@ -7,6 +7,12 @@ on:
     types: [opened, closed, synchronize, reopened]
     branches: [main]
 
+env:
+  CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+  CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+  ORGA_ID: ${{ secrets.CLEVER_ORG }}
+  PR_NAME: pr${{ github.event.number }}
+
 jobs:
   deploy-addons:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
@@ -36,10 +42,6 @@ jobs:
     environment:
       name: PR review apps
     env:
-      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-      ORGA_ID: ${{ secrets.CLEVER_ORG }}
-      PR_NAME: pr${{ github.event.number }}
       APP_ALIAS: pr${{ github.event.number }}-api
     steps:
       - name: Checkout code
@@ -61,7 +63,7 @@ jobs:
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
           echo "List the app’s environment variables and export them"
-          clever env -a $APP_ALIAS | grep -v '^#' >> "$GITHUB_ENV"
+          clever env -a $APP_ALIAS | grep -v '^#' | tr -d '"' >> "$GITHUB_ENV"
 
       - name: Set environment variables
         run: |
@@ -108,10 +110,6 @@ jobs:
     environment:
       name: PR review apps
     env:
-      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-      ORGA_ID: ${{ secrets.CLEVER_ORG }}
-      PR_NAME: pr${{ github.event.number }}
       APP_ALIAS: pr${{ github.event.number }}-queue
     steps:
       - name: Checkout code
@@ -135,7 +133,7 @@ jobs:
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
           echo "List the app’s environment variables and export them"
-          clever env -a $APP_ALIAS | grep -v '^#' >> "$GITHUB_ENV"
+          clever env -a $APP_ALIAS | grep -v '^#' | tr -d '"' >> "$GITHUB_ENV"
 
 
       - name: Set environment variables
@@ -168,10 +166,6 @@ jobs:
     environment:
       name: PR review apps
     env:
-      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-      ORGA_ID: ${{ secrets.CLEVER_ORG }}
-      PR_NAME: pr${{ github.event.number }}
       APP_ALIAS: pr${{ github.event.number }}-front
     steps:
       - name: Checkout code
@@ -191,7 +185,7 @@ jobs:
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
           echo "List the app’s environment variables and export them"
-          clever env -a $APP_ALIAS | grep -v '^#' >> "$GITHUB_ENV"
+          clever env -a $APP_ALIAS | grep -v '^#' | tr -d '"' >> "$GITHUB_ENV"
 
 
       - name: Set environment variables
@@ -260,10 +254,6 @@ jobs:
 
       - name: Link and update app
         env:
-          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-          ORGA_ID: ${{ secrets.CLEVER_ORG }}
-          PR_NAME: pr${{ github.event.number }}
           APP_ALIAS: pr${{ github.event.number }}-queue
         run: |
           clever link -o $ORGA_ID $PR_NAME
@@ -284,27 +274,58 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  delete:
+  delete-queue:
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    env:
+      APP_ALIAS: pr${{ github.event.number }}-queue
+    steps:
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Delete the app
+        run: |
+          clever link -o $ORGA_ID $APP_ALIAS
+          clever delete -a $APP_ALIAS --yes
+
+  delete-api:
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    env:
+      APP_ALIAS: pr${{ github.event.number }}-api
+    steps:
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Delete the app
+        run: |
+          clever link -o $ORGA_ID $APP_ALIAS
+          clever delete -a $APP_ALIAS --yes
+
+  delete-front:
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    env:
+      APP_ALIAS: pr${{ github.event.number }}-front
+    steps:
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Delete the app
+        run: |
+          clever link -o $ORGA_ID $APP_ALIAS
+          clever delete -a $APP_ALIAS --yes
+
+  comment-deletion:
     runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write
-    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
     steps:
-      - name: install clever-tools
-        run: npm install -g clever-tools
-      - name: Delete app
-        env:
-          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-          ORGA_ID: ${{ secrets.ORGA_ID }}
-          PR_NAME: pr${{ github.event.number }}
-        run: |
-          clever link -o $ORGA_ID $PR_NAME
-          clever delete --alias $PR_NAME --yes
-
       - name: Comment PR
         uses: actions/github-script@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const issue_number = context.payload.pull_request.number;
@@ -315,5 +336,3 @@ jobs:
               issue_number: issue_number,
               body: message
             });
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

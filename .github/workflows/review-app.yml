@@ -47,10 +47,6 @@ jobs:
           PR_NAME: pr${{ github.event.number }}
           APP_ALIAS: pr${{ github.event.number }}-queue
         run: |
-          echo "List the app’s environment variables and export them"
-          clever env -a $APP_ALIAS --add-export >> ~/.bashrc
-          source ~/.bashrc
-
           clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
           clever service link-addon "Cellar staging" -a $APP_ALIAS
           clever service link-addon "Configuration provider" -a $APP_ALIAS
@@ -59,6 +55,10 @@ jobs:
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
 
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
+
+          echo "List the app’s environment variables and export them"
+          clever env -a $APP_ALIAS --add-export >> ~/.bashrc
+          source ~/.bashrc
 
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS

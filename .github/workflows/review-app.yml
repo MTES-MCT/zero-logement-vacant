@@ -1,0 +1,167 @@
+name: Review app on pull request
+
+on:
+  pull_request_target:
+    types: [opened, closed, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  deploy:
+    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+    environment:
+      name: PR review apps
+    steps:
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+
+      - name: install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Create and deploy the queue
+        env:
+          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+          ORGA_ID: ${{ secrets.CLEVER_ORG }}
+          PR_NAME: pr${{ github.event.number }}
+          APP_ALIAS: $PR_NAME-queue
+        run: |
+          echo "List the app’s environment variables and export them"
+          clever env -a $APP_ALIAS --add-export >> ~/.bashrc
+          source ~/.bashrc
+
+          clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
+          clever service link-addon "Cellar staging" -a $APP_ALIAS
+          clever service link-addon "Configuration provider" -a $APP_ALIAS
+          clever service link-addon "Redis staging" -a $APP_ALIAS
+          clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan dev --region par
+          clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
+
+          clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
+
+          clever env set AUTH_SECRET "secret" -a $APP_ALIAS
+          clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
+          clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
+          clever env set S3_ACCESS_KEY_ID $CELLAR_ADDON_KEY_ID -a $APP_ALIAS
+          clever env set S3_BUCKET $PR_NAME -a $APP_ALIAS
+          clever env set S3_ENDPOINT "https://$CELLAR_ADDON_HOST" -a $APP_ALIAS
+          clever env set S3_REGION "cellar-c2" -a $APP_ALIAS
+          clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
+          clever env set WORKSPACE "@zerologementvacant/queue" -a $APP_ALIAS
+
+          clever domain add $PR_NAME-queue.cleverapps.io -a $APP_ALIAS
+          clever deploy -a $APP_ALIAS
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.payload.pull_request.number;
+            const message = `Deployment has finished 👁️👄👁️ Your app is available [here](https://pr${{ github.event.number }}.cleverapps.io)`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: message
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update:
+    if: github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Link and update app
+        env:
+          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+          ORGA_ID: ${{ secrets.CLEVER_ORG }}
+          PR_NAME: pr${{ github.event.number }}
+        run: |
+          clever link -o $ORGA_ID $PR_NAME
+          clever deploy --force
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.payload.pull_request.number;
+            const message = `🚀 Your app has been updated and is available [here](https://doc-review-PR-${{ github.event.number }}.cleverapps.io)`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: message
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  delete:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    steps:
+      - name: install clever-tools
+        run: npm install -g clever-tools
+      - name: Delete app
+        env:
+          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+          ORGA_ID: ${{ secrets.ORGA_ID }}
+          PR_NAME: pr${{ github.event.number }}
+        run: |
+          clever link -o $ORGA_ID $PR_NAME
+          clever delete --alias $PR_NAME --yes
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.payload.pull_request.number;
+            const message = `Your review app has been deleted 👋`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: message
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

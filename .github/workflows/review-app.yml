@@ -57,8 +57,7 @@ jobs:
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
           echo "List the app’s environment variables and export them"
-          clever env -a $APP_ALIAS --add-export >> ~/.bashrc
-          source ~/.bashrc
+          clever env -a $APP_ALIAS --add-export >> "$GITHUB_ENV"
 
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS

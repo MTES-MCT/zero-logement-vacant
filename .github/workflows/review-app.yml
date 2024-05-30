@@ -7,6 +7,98 @@ on:
 
 
 jobs:
+  deploy-addons:
+    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    runs-on: ubuntu-latest
+    env:
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      ORGA_ID: ${{ secrets.CLEVER_ORG }}
+      PR_NAME: pr${{ github.event.number }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      # TODO: do not create it if exists
+      - name: Create postgres addon
+        run: clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan dev --region par
+
+  deploy-api:
+    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    runs-on: ubuntu-latest
+    environment:
+      name: PR review apps
+    env:
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      ORGA_ID: ${{ secrets.CLEVER_ORG }}
+      PR_NAME: pr${{ github.event.number }}
+      APP_ALIAS: pr${{ github.event.number }}-api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Create the app
+        run: |
+          clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
+          clever service link-addon "Cellar staging" -a $APP_ALIAS
+          clever service link-addon "Configuration provider" -a $APP_ALIAS
+          clever service link-addon "Redis staging" -a $APP_ALIAS
+          clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
+
+          clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
+
+          echo "List the app’s environment variables and export them"
+          clever env -a $APP_ALIAS | grep -v '^#' >> "$GITHUB_ENV"
+
+      - name: Set environment variables
+        run: |
+          clever env set AUTH_SECRET "secret" -a $APP_ALIAS
+          clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
+          clever env set CC_PRE_RUN_HOOK "corepack yarn workspace $WORKSPACE migrate && corepack yarn workspace $WORKSPACE seed" -a $APP_ALIAS
+          clever env set CEREMA_API "https://api.cerema.fr" -a $APP_ALIAS
+          clever env set CEREMA_ENABLED "false" -a $APP_ALIAS
+          clever env set CEREMA_TOKEN "unused" -a $APP_ALIAS
+          clever env set DATABASE_ENV "development" -a $APP_ALIAS
+          clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
+          clever env set HOST "https://$APP_ALIAS.cleverapps.io" -a $APP_ALIAS
+          clever env set METABASE_TOKEN "unused" -a $APP_ALIAS
+          clever env set PORT "8080" -a $APP_ALIAS
+          clever env set S3_ACCESS_KEY_ID $CELLAR_ADDON_KEY_ID -a $APP_ALIAS
+          clever env set S3_BUCKET $PR_NAME -a $APP_ALIAS
+          clever env set S3_ENDPOINT "https://$CELLAR_ADDON_HOST" -a $APP_ALIAS
+          clever env set S3_REGION "cellar-c2" -a $APP_ALIAS
+          clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
+          clever env set SENTRY_ENABLED "false" -a $APP_ALIAS
+          clever env set TZ "Etc/UTC" -a $APP_ALIAS
+          clever env set WORKSPACE "@zerologementvacant/server" -a $APP_ALIAS
+
+      - name: Scale up for deployment
+        run: clever scale --flavor M -a $APP_ALIAS
+
+      - name: Deploy the app
+        run: |
+          clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
+          clever deploy -a $APP_ALIAS
+
+      - name: Publish configuration
+        run: |
+          clever published-config set API_HOST https://$APP_ALIAS.cleverapps.io -a $APP_ALIAS
+          clever published-config set REACT_APP_API_URL https://$APP_ALIAS.cleverapps.io -a $APP_ALIAS
+
+      - name: Scale down for the run
+        run: clever scale --flavor XS -a $APP_ALIAS
+
   deploy-queue:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
     runs-on: ubuntu-latest
@@ -24,7 +116,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: install clever-tools
+      - name: Install clever-tools
         run: npm install -g clever-tools
 
       - name: Create the app
@@ -33,8 +125,9 @@ jobs:
           clever service link-addon "Cellar staging" -a $APP_ALIAS
           clever service link-addon "Configuration provider" -a $APP_ALIAS
           clever service link-addon "Redis staging" -a $APP_ALIAS
-          clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan dev --region par
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
+
+          clever service link-app $PR_NAME-api -a $APP_ALIAS
 
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
@@ -54,11 +147,79 @@ jobs:
           clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
           clever env set WORKSPACE "@zerologementvacant/queue" -a $APP_ALIAS
 
+      - name: Scale up for deployment
+        run: clever scale --flavor M -a $APP_ALIAS
+
       - name: Deploy the app
         run: |
           clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
           clever deploy -a $APP_ALIAS
 
+      - name: Scale down for the run
+        run: clever scale --flavor XS -a $APP_ALIAS
+
+  deploy-front:
+    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    runs-on: ubuntu-latest
+    environment:
+      name: PR review apps
+    env:
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      ORGA_ID: ${{ secrets.CLEVER_ORG }}
+      PR_NAME: pr${{ github.event.number }}
+      APP_ALIAS: pr${{ github.event.number }}-front
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Create the app
+        run: |
+          clever create $APP_ALIAS --type static-apache --alias $APP_ALIAS --region par --org $ORGA_ID
+
+          clever service link-app $PR_NAME-api -a $APP_ALIAS
+
+          clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
+
+          echo "List the app’s environment variables and export them"
+          clever env -a $APP_ALIAS | grep -v '^#' >> "$GITHUB_ENV"
+
+
+      - name: Set environment variables
+        run: |
+          clever env set CC_OVERRIDE_BUILDCACHE "frontend/build/" -a $APP_ALIAS
+          clever env set CC_POST_BUILD_HOOK "ls -al $CC_OVERRIDE_BUILDCACHE" -a $APP_ALIAS
+          clever env set CC_PRE_BUILD_HOOK "corepack enable && corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build" -a $APP_ALIAS
+          clever env set CC_WEBROOT "/frontend/build" -a $APP_ALIAS
+          clever env set REACT_APP_MATOMO_ENABLED "false" -a $APP_ALIAS
+          clever env set REACT_APP_MATOMO_SITE_ID "42" -a $APP_ALIAS
+          clever env set REACT_APP_MATOMO_URL_BASE "unused" -a $APP_ALIAS
+          clever env set WORKSPACE "@zerologementvacant/front"
+
+      - name: Scale up for deployment
+        run: clever scale --flavor M -a $APP_ALIAS
+
+      - name: Deploy the app
+        run: |
+          clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
+          clever deploy -a $APP_ALIAS
+
+      - name: Scale down for the run
+        run: clever scale --flavor XS -a $APP_ALIAS
+
+  comment:
+    needs: [deploy-api, deploy-queue, deploy-front]
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      pull-requests: write
+    steps:
       - name: Comment PR
         uses: actions/github-script@v7
         with:

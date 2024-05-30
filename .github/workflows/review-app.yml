@@ -30,7 +30,7 @@ jobs:
     needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: PR review apps
+      name: pr${{ github.event.number }}-api
       url: https://pr${{ github.event.number }}-api.cleverapps.io
     env:
       APP_ALIAS: pr${{ github.event.number }}-api
@@ -97,7 +97,7 @@ jobs:
     needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: PR review apps
+      name: pr${{ github.event.number }}-queue
       url: https://pr${{ github.event.number }}-queue.cleverapps.io
     env:
       APP_ALIAS: pr${{ github.event.number }}-queue
@@ -156,7 +156,7 @@ jobs:
     needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: PR review apps
+      name: pr${{ github.event.number }}-front
       url: https://pr${{ github.event.number }}-front.cleverapps.io
     env:
       APP_ALIAS: pr${{ github.event.number }}-front
@@ -208,7 +208,7 @@ jobs:
     if: github.event.action == 'synchronize'
     runs-on: ubuntu-latest
     environment:
-      name: PR review apps
+      name: pr${{ github.event.number }}-api
       url: https://pr${{ github.event.number }}-api.cleverapps.io
     env:
       APP_ALIAS: pr${{ github.event.number }}-api
@@ -240,7 +240,7 @@ jobs:
     if: github.event.action == 'synchronize'
     runs-on: ubuntu-latest
     environment:
-      name: PR review apps
+      name: pr${{ github.event.number }}-front
       url: https://pr${{ github.event.number }}-front.cleverapps.io
     env:
       APP_ALIAS: pr${{ github.event.number }}-front
@@ -272,7 +272,7 @@ jobs:
     if: github.event.action == 'synchronize'
     runs-on: ubuntu-latest
     environment:
-      name: PR review apps
+      name: pr${{ github.event.number }}-queue
       url: https://pr${{ github.event.number }}-queue.cleverapps.io
     env:
       APP_ALIAS: pr${{ github.event.number }}-queue

@@ -5,47 +5,29 @@ on:
     types: [opened, closed, synchronize, reopened]
     branches: [main]
 
+
 jobs:
-  deploy:
+  deploy-queue:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
-      contents: read
     environment:
       name: PR review apps
+    env:
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      ORGA_ID: ${{ secrets.CLEVER_ORG }}
+      PR_NAME: pr${{ github.event.number }}
+      APP_ALIAS: pr${{ github.event.number }}-queue
     steps:
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-
-      - name: List files in the repository
-        run: |
-          ls ${{ github.workspace }}
-
-      - run: echo "🍏 This job's status is ${{ job.status }}."
 
       - name: install clever-tools
         run: npm install -g clever-tools
 
-      - name: Create and deploy the queue
-        env:
-          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-          ORGA_ID: ${{ secrets.CLEVER_ORG }}
-          PR_NAME: pr${{ github.event.number }}
-          APP_ALIAS: pr${{ github.event.number }}-queue
+      - name: Create the app
         run: |
           clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
           clever service link-addon "Cellar staging" -a $APP_ALIAS
@@ -57,8 +39,10 @@ jobs:
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
           echo "List the app’s environment variables and export them"
-          clever env -a $APP_ALIAS --add-export >> "$GITHUB_ENV"
+          clever env -a $APP_ALIAS >> "$GITHUB_ENV"
 
+      - name: Set environment variables
+        run: |
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
@@ -69,6 +53,8 @@ jobs:
           clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
           clever env set WORKSPACE "@zerologementvacant/queue" -a $APP_ALIAS
 
+      - name: Deploy the app
+        run: |
           clever domain add $APP_ALIAS.cleverapps.io -a $APP_ALIAS
           clever deploy -a $APP_ALIAS
 

@@ -17,17 +17,7 @@ jobs:
   deploy-addons:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
     runs-on: ubuntu-latest
-    env:
-      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-      ORGA_ID: ${{ secrets.CLEVER_ORG }}
-      PR_NAME: pr${{ github.event.number }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Install clever-tools
         run: npm install -g clever-tools
 
@@ -316,8 +306,20 @@ jobs:
           clever link -o $ORGA_ID $APP_ALIAS
           clever delete -a $APP_ALIAS --yes
 
+  delete-addons:
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    steps:
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Delete the app
+        run: |
+          clever addon delete $PR_NAME-postgres -o $ORGA_ID --yes
+
   comment-deletion:
     runs-on: ubuntu-latest
+    needs: [delete-api, delete-queue, delete-front, delete-addons]
     permissions:
       issues: write
       pull-requests: write
@@ -329,7 +331,7 @@ jobs:
         with:
           script: |
             const issue_number = context.payload.pull_request.number;
-            const message = `Your review app has been deleted 👋`;
+            const message = `Your review apps have been deleted 👋`;
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

@@ -137,6 +137,7 @@ export const genEstablishmentApi = (
     available: true,
     priority: hasPriority({ campaignIntent }) ? 'high' : 'standard',
     kind: oneOf<EstablishmentKind>(ESTABLISHMENT_KINDS),
+    source: 'seed'
   };
 };
 

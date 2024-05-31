@@ -1,13 +1,24 @@
-import { CeremaUser, ConsultDossiersLovacService, ConsultUserService } from './consultUserService';
+import { CeremaUser, ConsultUserService } from './consultUserService';
+import { CeremaDossier, ConsultDossiersLovacService } from './consultDossiersLovacService';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
+import { ConsultStructureService, Structure } from './consultStructureService';
 
-export class CeremaService implements ConsultDossiersLovacService, ConsultUserService {
-  async consultDossiersLovac(): Promise<string[]> {
+export class CeremaService implements ConsultDossiersLovacService, ConsultStructureService, ConsultUserService {
+  async consultDossiersLovac(date: Date): Promise<CeremaDossier[]> {
     try {
+
+      let uri = '/api/consult/dossiers/lovac';
+
+      if(date != null) {
+        uri += `?date_min=${date}`;
+      }
+
+      console.log(`${config.cerema.api}${uri}`)
+
       const response = await fetch(
-        `${config.cerema.api}/api/consult/dossiers/lovac`,
+        `${config.cerema.api}${uri}`,
         {
           method: 'GET',
           headers: {
@@ -23,14 +34,52 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultUserSe
       }
 
       if (content) {
-        return content.filter((user: any) => user.lovac_ok).map(
-          (user: any) => (user.mail)
+        return content.filter((dossier: any) => dossier.lovac).map(
+          (dossier: any) => ({
+            email: dossier.mail,
+            establishmentId: dossier.id_structure,
+          })
         );
       }
       return [];
     } catch (error) {
       logger.error(error);
       return [];
+    }
+  }
+
+  async consultStructure(id: number): Promise<Structure> {
+    try {
+      const response = await fetch(
+        `${config.cerema.api}/api/consult/structures/${id}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Token ${config.cerema.token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const content: any = await response.json();
+
+      if (response.status != 200) {
+        throw content.detail;
+      }
+
+      if (content) {
+        const structure = content;
+        return {
+          establishmentId: structure.id_structure,
+          siret: structure.siret,
+          name: structure.raison_sociale,
+          perimeter: structure.perimetre,
+          kind: structure.formjur,
+        }
+      }
+      throw new Error(`structure ${id} not found`);
+    } catch (error) {
+      logger.error(error);
+      throw new Error(`structure ${id} not found`);
     }
   }
 

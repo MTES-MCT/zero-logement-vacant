@@ -1,16 +1,22 @@
 import {
   CeremaUser,
-  ConsultDossiersLovacService,
   ConsultUserService,
   getTestAccount,
-  getTestEmails,
 } from './consultUserService';
+
+import { CeremaDossier, ConsultDossiersLovacService, getTestDossiers } from './consultDossiersLovacService';
+
 import { SirenStrasbourg } from '~/infra/database/seeds/development/20240404235442_establishments';
+import { ConsultStructureService, getTestStructure, Structure } from './consultStructureService';
 
-export class MockCeremaService implements ConsultDossiersLovacService, ConsultUserService {
+export class MockCeremaService implements ConsultDossiersLovacService, ConsultStructureService, ConsultUserService {
 
-  async consultDossiersLovac(): Promise<string[]> {
-    return getTestEmails();
+  consultStructure(id: number): Promise<Structure> {
+    return new Promise((resolve) => { resolve(getTestStructure(id)) });
+  }
+
+  async consultDossiersLovac(): Promise<CeremaDossier[]> {
+    return getTestDossiers();
   }
 
   async consultUsers(email: string): Promise<CeremaUser[]> {

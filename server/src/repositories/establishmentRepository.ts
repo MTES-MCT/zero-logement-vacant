@@ -106,6 +106,20 @@ const stream = (options?: StreamOptions) => {
   return highland<EstablishmentDbo>(stream).map(parseEstablishmentApi);
 };
 
+const save = async (
+  establishment: EstablishmentDbo,
+): Promise<void> => {
+  logger.debug('Saving establishment...', {
+    establishment,
+  });
+
+  await db.transaction(async (transaction) => {
+    await Establishments(transaction)
+      .insert(establishment);
+  });
+  logger.info('Saved establishment', { establishment: establishment.id });
+};
+
 export interface EstablishmentDbo {
   id: string;
   name: string;
@@ -114,7 +128,8 @@ export interface EstablishmentDbo {
   localities_geo_code: string[];
   campaign_intent?: string;
   priority?: string;
-  kind: string;
+  kind?: string;
+  source: string;
   updated_at: Date;
 }
 
@@ -129,6 +144,7 @@ export const formatEstablishmentApi = (
   campaign_intent: establishmentApi.campaignIntent,
   priority: establishmentApi.priority,
   kind: establishmentApi.kind,
+  source: establishmentApi.source,
   updated_at: new Date(),
 });
 
@@ -158,4 +174,5 @@ export default {
   setAvailable,
   stream,
   formatEstablishmentApi,
+  save,
 };

@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/shared';
+import { bool } from 'joi';
 
 dotenv.config({
   path: path.join(__dirname, '..', '..', '.env'),
@@ -29,7 +30,7 @@ convict.addFormat({
   },
 });
 
-type Env = 'development' | 'test' | 'production';
+export type Env = 'development' | 'test' | 'production';
 
 interface Config {
   app: {
@@ -58,6 +59,7 @@ interface Config {
     enabled: boolean;
     token: string;
     inviteLimit: number;
+    forceInvite: boolean;
   };
   datafoncier: {
     api: string;
@@ -70,6 +72,14 @@ interface Config {
     pool: {
       max: number;
     };
+  };
+  elastic: {
+    env: Env;
+    node: string;
+    auth: {
+      username: string;
+      password: string;
+    }
   };
   log: {
     level: LogLevel;
@@ -200,6 +210,11 @@ const config = convict<Config>({
       env: 'CEREMA_INVITE_LIMIT',
       format: 'int',
       default: 10,
+    },
+    forceInvite: {
+      env: 'CEREMA_FORCE_INVITE',
+      format: Boolean,
+      default: false
     }
   },
   datafoncier: {
@@ -242,6 +257,30 @@ const config = convict<Config>({
         default: 10,
       },
     },
+  },
+  elastic: {
+    env: {
+      env: 'ELASTIC_ENV',
+      format: ['development', 'test', 'production'],
+      default: (process.env.NODE_ENV as Env | null) ?? 'development',
+    },
+    node: {
+      env: 'ELASTIC_NODE',
+      format: String,
+      default: null
+    },
+    auth: {
+      username: {
+        env: 'ELASTIC_USERNAME',
+        format: String,
+        default: null
+      },
+      password: {
+        env: 'ELASTIC_PASSWORD',
+        format: String,
+        default: null
+      },
+    }
   },
   log: {
     level: {

@@ -13,6 +13,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
     establishmentSiren: Establishment1.siren,
     hasAccount: true,
     hasCommitment: true,
+
   },
   {
     email: 'lovac_ko@beta.gouv.fr',
@@ -40,10 +41,6 @@ export const getTestAccount = (email: string): CeremaUser | null => {
 export const isTestAccount = (email: string): boolean => {
   return getTestAccount(email) !== null;
 };
-
-export interface ConsultDossiersLovacService {
-  consultDossiersLovac(): Promise<string[]>;
-}
 
 export interface ConsultUserService {
   consultUsers(email: string): Promise<CeremaUser[]>;

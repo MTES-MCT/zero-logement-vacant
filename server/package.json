@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.569.0",
+    "@elastic/elasticsearch": "^8.13.1",
     "@faker-js/faker": "^8.4.1",
     "@getbrevo/brevo": "^1.0.1",
     "@godaddy/terminus": "^4.12.1",

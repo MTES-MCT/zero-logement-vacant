@@ -8,24 +8,24 @@ export const SignupLinks = (transaction = db) =>
 
 async function insert(link: SignupLinkApi): Promise<void> {
   logger.info('Insert signupLinkApi');
-  await db(signupLinkTable).insert(formatSignupLinkApi(link));
+  await SignupLinks().insert(formatSignupLinkApi(link));
 }
 
 async function get(id: string): Promise<SignupLinkApi | null> {
   logger.info('Get resetLinkApi with id', id);
-  const link = await db(signupLinkTable).select().where('id', id).first();
+  const link = await SignupLinks().select().where('id', id).first();
   return link ? parseSignupLinkApi(link) : null;
 }
 
 async function used(id: string): Promise<void> {
   logger.info(`Remove used signup link ${id}`);
-  await db(signupLinkTable).where('id', id).delete();
+  await SignupLinks().where('id', id).delete();
 }
 
 async function getByEmail(email: string): Promise<SignupLinkApi | null> {
   logger.debug('Get signupLinkApi by prospect_email', email);
 
-  const link = await db(signupLinkTable).select().where('prospect_email', email).first();
+  const link = await SignupLinks().select().where('prospect_email', email).first();
   return link ? parseSignupLinkApi(link) : null;
 }
 

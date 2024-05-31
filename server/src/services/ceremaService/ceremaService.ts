@@ -15,8 +15,6 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultStruct
         uri += `?date_min=${date}`;
       }
 
-      console.log(`${config.cerema.api}${uri}`)
-
       const response = await fetch(
         `${config.cerema.api}${uri}`,
         {

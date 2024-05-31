@@ -82,5 +82,8 @@ const run = async (): Promise<void> => {
 }
 
 run()
-  .catch(logger.error)
+  .catch((e) => {
+    logger.error(e);
+    logScriptExecution("ceremaTask", "ERROR", e);
+  })
   .finally(() => db.destroy());

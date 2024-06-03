@@ -36,7 +36,7 @@ fetchMock.mockResponse((request: Request) => {
 });
 ```
 
-Pour parer à cela, la fonction `mockRequests` dans [frontend/src/utils/test/requestUtils.ts](frontend/src/utils/test/requestUtils.ts)
+Pour parer à cela, la fonction `mockRequests` dans [frontend/src/utils/test/requestUtils.ts](../../frontend/src/utils/test/requestUtils.ts)
 a été créée.
 Elle étend `jest-fetch-mock` pour permettre de mocker les requêtes en fonction
 de _matchers_ basés sur l’URL, la méthode HTTP et le corps de la requête.

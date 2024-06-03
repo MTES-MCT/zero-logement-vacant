@@ -91,8 +91,8 @@ const CampaignCreationModal = ({
               <AppTextInput<FormShape>
                 value={campaignTitle}
                 onChange={(e) => setCampaignTitle(e.target.value)}
-                label="Titre de la campagne"
-                placeholder="Titre de la campagne (obligatoire)"
+                label="Titre de la campagne (obligatoire)"
+                placeholder="Votre titre de campagne"
                 inputForm={form}
                 inputKey="campaignTitle"
                 required

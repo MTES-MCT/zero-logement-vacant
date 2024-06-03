@@ -163,7 +163,7 @@ function GroupAddHousingModal(props: Props) {
                     <AppTextInput<FormShape>
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      label="Nom du groupe"
+                      label="Nom du groupe (obligatoire)"
                       inputForm={form}
                       inputKey="title"
                       required
@@ -172,7 +172,7 @@ function GroupAddHousingModal(props: Props) {
                       value={description}
                       textArea
                       onChange={(e) => setDescription(e.target.value)}
-                      label="Description"
+                      label="Description (obligatoire)"
                       inputForm={form}
                       inputKey="description"
                       required

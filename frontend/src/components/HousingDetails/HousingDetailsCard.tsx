@@ -78,9 +78,6 @@ function HousingDetailsCard({
       size="small"
       title={
         <>
-          <span className="card-title-icon">
-            <Icon name="fr-icon-home-4-fill" iconPosition="center" size="1x" />
-          </span>
           <Button
             onClick={() => setIsHousingListEditionExpand(true)}
             className="fr-ml-1w float-right"

@@ -1,11 +1,17 @@
 import cors from 'cors';
-import express, { Application, Request, Response } from 'express';
+import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import path from 'node:path';
+import http from 'node:http';
 import util from 'node:util';
 import { createClient } from 'redis';
 
+import {
+  healthcheck,
+  postgresCheck,
+  redisCheck,
+  s3Check,
+} from '@zerologementvacant/healthcheck';
 import RouteNotFoundError from '~/errors/routeNotFoundError';
 import config from '~/infra/config';
 import gracefulShutdown from '~/infra/graceful-shutdown';
@@ -17,7 +23,7 @@ import protectedRouter from '~/routers/protected';
 import errorHandler from '~/middlewares/error-handler';
 
 export interface Server {
-  app: Application;
+  app: http.Server;
   start(): Promise<void>;
 }
 
@@ -25,6 +31,8 @@ export function createServer(): Server {
   const app = express();
 
   sentry.init(app);
+
+  app.set('trust proxy', 1);
 
   app.use(
     helmet({
@@ -89,11 +97,7 @@ export function createServer(): Server {
 
   app.use(
     cors({
-      origin: [
-        config.app.host,
-        'https://stats.beta.gouv.fr',
-        'http://localhost:3000',
-      ],
+      credentials: false,
     }),
   );
 
@@ -112,47 +116,36 @@ export function createServer(): Server {
     }),
   );
 
+  app.get(
+    '/',
+    healthcheck({
+      checks: [
+        redisCheck(config.redis.url),
+        postgresCheck(config.db.url),
+        s3Check(config.s3),
+      ],
+      logger,
+    }),
+  );
+
   app.use('/api', unprotectedRouter);
   app.use('/api', protectedRouter);
 
-  // Serve the frontend in production
-  if (config.app.env === 'production') {
-    const build = path.join(__dirname, '..', '..', '..', 'frontend', 'build');
-    app.use(express.static(build));
-    app.get('*', (request: Request, response: Response) => {
-      const index = path.join(build, 'index.html');
-      response.sendFile(index);
-    });
-  }
-
-  app.all('*', () => {
-    throw new RouteNotFoundError();
+  app.all('*', (request) => {
+    throw new RouteNotFoundError(request);
   });
   sentry.errorHandler(app);
   app.use(errorHandler());
 
-  async function connectToRedis() {
-    try {
-      const client = createClient({
-        url: config.redis.url,
-      });
-      await client.connect();
-      await client.disconnect();
-    } catch (error) {
-      logger.error('Failed to connect to Redis', error);
-      throw error;
-    }
-  }
+  const server = http.createServer(app);
+  gracefulShutdown(server);
 
   async function start(): Promise<void> {
     const listen = util.promisify((port: number, cb: () => void) => {
-      const listener = app.listen(port, cb);
-      gracefulShutdown(listener);
-      return listener;
+      return server.listen(port, cb);
     });
 
     try {
-      await connectToRedis();
       await listen(config.app.port);
       logger.info(`Server listening on ${config.app.port}`);
     } catch (error) {
@@ -162,7 +155,7 @@ export function createServer(): Server {
   }
 
   return {
-    app,
+    app: server,
     start,
   };
 }

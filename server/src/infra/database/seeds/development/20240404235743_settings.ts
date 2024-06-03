@@ -22,7 +22,7 @@ export async function seed(knex: Knex): Promise<void> {
   );
 
   const chunks = fp.chunk(1000, settings);
-  await async.forEach(chunks, async (chunk) => {
+  await async.forEachSeries(chunks, async (chunk) => {
     await knex(settingsTable).insert(chunk).onConflict().ignore();
   });
 }

@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import axios from 'axios';
+import { knex } from 'knex';
 import nock from 'nock';
 import { constants } from 'node:http2';
 
@@ -22,7 +23,19 @@ describe('Token provider', () => {
       expect(config.headers).toHaveProperty('Authorization');
       return config;
     });
-    http.interceptors.request.use(createTokenProvider(faker.string.uuid()));
+    http.interceptors.request.use(
+      createTokenProvider(faker.string.uuid(), {
+        auth: {
+          secret: faker.string.uuid(),
+        },
+        db: knex({
+          client: 'pg',
+          connection: 'postgres://postgres:postgres@localhost:5432/zlv',
+        }),
+        logger: console,
+        serviceAccount: faker.internet.email(),
+      }),
+    );
 
     await http.get('/');
   });

@@ -43,10 +43,16 @@ export default function createWorker() {
     async (job) => {
       const { campaignId, establishmentId } = job.data;
       const api = createSDK({
-        establishment: establishmentId,
+        api: {
+          host: config.api.host,
+        },
+        auth: {
+          secret: config.auth.secret,
+        },
         db: {
           url: config.db.url,
         },
+        establishment: establishmentId,
         serviceAccount: config.auth.serviceAccount,
       });
 

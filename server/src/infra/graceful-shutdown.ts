@@ -1,20 +1,23 @@
 import { createTerminus } from '@godaddy/terminus';
 import http from 'node:http';
 
-import config from './config';
-import { logger } from './logger';
+import { logger } from '~/infra/logger';
 
 export default function gracefulShutdown(server: http.Server) {
-  if (config.app.env === 'production') {
-    createTerminus(server, {
-      logger: (message, error) => {
-        logger.error(message, error);
-      },
+  createTerminus(server, {
+    logger: (message, error) => {
+      logger.error(message, error);
+    },
 
-      async onSignal(): Promise<void> {
-        logger.info('Cleaning up before shutdown...');
-        // TODO: close database connection
-      },
-    });
-  }
+    async onSignal(): Promise<void> {
+      logger.info('Cleaning up before shutdown...');
+      // TODO: close database connection
+    },
+  });
+}
+
+function isRejected(
+  promise: PromiseSettledResult<any>,
+): promise is PromiseRejectedResult {
+  return promise.status === 'rejected';
 }

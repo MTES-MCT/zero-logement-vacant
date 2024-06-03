@@ -20,6 +20,16 @@ fileignoreconfig:
   checksum: 63b9536c3bb7c0ff7ca65f4f42eebe3031ad516497639be668392026be2f85f8
 - filename: frontend/src/views/Campaign/CampaignListView.tsx
   checksum: a9dcff1f35295ed617ba50e44cc95c57c63130e80a43e9303c20f160c3b3165d
+- filename: packages/api-sdk/src/infra/test/token-provider.test.ts
+  checksum: c3ea87f28ca17a354e1dadf58e2832088503f258327f4620e0a23a24bb79241a
+- filename: packages/api-sdk/src/infra/token-provider.ts
+  checksum: 0fab9fb960e9b2710b58c4a26737a52f052d36134746f23118e396e22d74dbf1
+- filename: packages/api-sdk/src/sdk.ts
+  checksum: ea407d9dcd6543c66ee0a1c16b794fe5155724f572f8243a26e52b0695bc1fa2
+- filename: packages/api-sdk/src/test/campaign-api.test.ts
+  checksum: e2cabb9dd76c168622f38b4d446907fedcb6f690c86d1c9d1eccbf17a6fe0044
+- filename: packages/api-sdk/src/test/housing-api.test.ts
+  checksum: fb256466ac0b962dee535b787282de895f60fb04274b994bf9f821a9851deecb
 - filename: queue/.env.example
   checksum: 30e4ee5808230342b969d42d9315fc7744900410a5797d7f7b2e984c678be2e7
 - filename: queue/README.md
@@ -33,7 +43,7 @@ fileignoreconfig:
 - filename: queue/src/queue.ts
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
-  checksum: efec0d5555c4e91c18449585e0632915879be62ba54acc8357adbcc42c5771ea
+  checksum: f5c738fda12aca999cde14076a46490086404fcd4b1f371cdf214c2b53bfea3e
 - filename: server/controllers/draftController.ts
   checksum: 3627d5cc7172a79998517e1982424462c61116e248e5b6bd29aced81470113e6
 - filename: server/repositories/campaignRepository.ts

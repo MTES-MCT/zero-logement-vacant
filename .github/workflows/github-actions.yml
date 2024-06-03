@@ -33,12 +33,9 @@ jobs:
           - 9090:9090
         env:
           initialBuckets: "zerologementvacant"
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Enable Corepack
         run: corepack enable
@@ -51,6 +48,8 @@ jobs:
 
       - name: Install
         run: yarn install --immutable
+        env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
       - name: Build
         run: yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apt run build
@@ -70,5 +69,50 @@ jobs:
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band
 
-      - name: Migrate database
-        run: yarn workspace @zerologementvacant/server run migrate
+  deploy-front-staging:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: front-staging
+      branch: main
+    secrets: inherit
+
+  deploy-api-staging:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: api-staging
+      branch: main
+    secrets: inherit
+
+  deploy-queue-staging:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: queue-staging
+      branch: main
+    secrets: inherit
+
+  deploy-front-production:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: front-production
+      branch: prod
+    secrets: inherit
+
+  deploy-api-production:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: api-production
+      branch: prod
+    secrets: inherit
+
+  deploy-queue-production:
+    uses: ./.github/workflows/deploy.yml
+    needs: [build]
+    with:
+      app: queue-production
+      branch: prod
+    secrets: inherit

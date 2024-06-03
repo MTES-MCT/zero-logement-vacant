@@ -2,7 +2,7 @@
 # Ce sont des éléments optionnels. N'hésitez pas à en supprimer certains.
 statut: proposé
 date: 2024-06-03
-décideurs: @Falinor @loicguillois
+décideurs: Andrea GUEUGNAUT, Loïc GUILLOIS
 ---
 
 # Mocker l’API pour tester le front

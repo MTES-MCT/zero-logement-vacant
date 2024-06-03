@@ -63,7 +63,7 @@ function GroupCampaignCreationModal(props: Props) {
         <AppTextInput<FormShape>
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          label="Titre de la campagne"
+          label="Titre de la campagne (obligatoire)"
           inputForm={form}
           inputKey="title"
           required

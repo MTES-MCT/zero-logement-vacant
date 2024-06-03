@@ -48,17 +48,9 @@ const GeoPerimeterUploadingModal = ({ onSubmit, onClose }: Props) => {
         Fermer
       </ModalClose>
       <ModalTitle>
-        <span className="ri-1x icon-left ri-arrow-right-line ds-fr--v-middle" />
         Déposer un périmètre
       </ModalTitle>
       <ModalContent>
-        <AppHelp className={styles.help}>
-          Pour utiliser le filtre “Périmètre” dans la base de données, vous
-          pouvez déposer le ou les périmètres géographiques* qui vous
-          intéressent : il peut s’agir d’un périmètre correspondant à un
-          dispositif de type OPAH ou ORT, mais également d’un quartier en
-          particulier, selon vos besoins.
-        </AppHelp>
         <Row spacing="my-2w">
           <Col n="8">
             <Upload

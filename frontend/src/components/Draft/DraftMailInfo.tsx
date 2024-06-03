@@ -44,7 +44,7 @@ function DraftMailInfo(props: Readonly<Props>) {
       <AppTextInput
         inputForm={props.form}
         inputKey="writtenAt"
-        label="En date du ...*"
+        label="En date du ... (obligatoire)"
         type="date"
         value={props.writtenAt}
         onChange={onChange('at')}
@@ -52,7 +52,7 @@ function DraftMailInfo(props: Readonly<Props>) {
       <AppTextInput
         inputForm={props.form}
         inputKey="writtenFrom"
-        label="Écrit à ...*"
+        label="Écrit à ... (obligatoire)"
         value={props.writtenFrom}
         onChange={onChange('from')}
       />

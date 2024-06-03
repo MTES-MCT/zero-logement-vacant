@@ -54,14 +54,14 @@ function DraftSender(props: Readonly<Props>) {
       <AppTextInput
         inputForm={props.form}
         inputKey="sender.name"
-        label="Nom de la collectivité ou de l’administration*"
+        label="Nom de la collectivité ou de l’administration (obligatoire)"
         value={props.value.name}
         onChange={onChange('name')}
       />
       <AppTextInput
         inputForm={props.form}
         inputKey="sender.service"
-        label="Service*"
+        label="Service (obligatoire)"
         value={props.value.service}
         onChange={onChange('service')}
       />
@@ -70,7 +70,7 @@ function DraftSender(props: Readonly<Props>) {
           <AppTextInput
             inputForm={props.form}
             inputKey="sender.lastName"
-            label="Nom*"
+            label="Nom (obligatoire)"
             value={props.value.lastName}
             onChange={onChange('lastName')}
           />
@@ -79,7 +79,7 @@ function DraftSender(props: Readonly<Props>) {
           <AppTextInput
             inputForm={props.form}
             inputKey="sender.firstName"
-            label="Prénom*"
+            label="Prénom (obligatoire)"
             value={props.value.firstName}
             onChange={onChange('firstName')}
           />
@@ -88,7 +88,7 @@ function DraftSender(props: Readonly<Props>) {
       <AppTextInput
         inputForm={props.form}
         inputKey="sender.address"
-        label="Adresse*"
+        label="Adresse (obligatoire)"
         value={props.value.address}
         onChange={onChange('address')}
       />

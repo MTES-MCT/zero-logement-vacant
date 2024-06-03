@@ -1,3 +1,4 @@
+export * from './test/fixtures';
 export * from './AddressDTO';
 export * from './CampaignDTO';
 export * from './ContactPoint';

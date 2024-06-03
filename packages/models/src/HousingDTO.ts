@@ -8,6 +8,11 @@ export interface HousingDTO {
   // TODO: complete this type
 }
 
+export interface HousingCountDTO {
+  housing: number;
+  owners: number;
+}
+
 export interface HousingPayloadDTO {
   localId: string;
 }

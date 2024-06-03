@@ -10,7 +10,7 @@ import {
   genHousing,
   genOwner,
   genPaginatedResult,
-  genSender,
+  genSender
 } from '../../../../test/fixtures.test';
 import configureTestStore from '../../../utils/test/storeUtils';
 import { AppStore } from '../../../store/store';
@@ -22,6 +22,11 @@ import { Campaign } from '../../../models/Campaign';
 import { Housing } from '../../../models/Housing';
 import { HousingPaginatedResult } from '../../../models/PaginatedResult';
 import { Owner } from '../../../models/Owner';
+import { CampaignDTO, genCampaignDTO } from '@zerologementvacant/models';
+import data from '../../../mocks/handlers/data';
+import { sources } from '../../../../test/event-source-mock';
+import config from '../../../utils/config';
+import { faker } from '@faker-js/faker';
 import fp from 'lodash/fp';
 
 describe('Campaign view', () => {
@@ -39,43 +44,14 @@ describe('Campaign view', () => {
   });
 
   it('should display "Page non trouvée" if the campaign does not exist', async () => {
-    mockRequests([
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          status: 404,
-          body: JSON.stringify({
-            name: 'CampaignMissingError',
-            message: `Campaign ${campaign.id} missing`,
-          }),
-        },
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([]),
-        },
-      },
-      {
-        pathname: '/api/housing/count',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            housing: 1,
-            owners: 1,
-          }),
-        },
-      },
-    ]);
-
     render(
       <Provider store={store}>
         <Notification />
-        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
+        <Router initialEntries={[`/campagnes/missing`]}>
           <Link to="/campagnes">Campagnes</Link>
           <Route path="/campagnes/:id" component={CampaignView} />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
     const page = await screen.findByText('Page non trouvée');
@@ -90,7 +66,7 @@ describe('Campaign view', () => {
           <Link to="/campagnes">Campagnes</Link>
           <Route path="/campagnes/:id" component={CampaignView} />
         </Router>
-      </Provider>,
+      </Provider>
     );
   }
 
@@ -99,22 +75,22 @@ describe('Campaign view', () => {
       {
         pathname: `/api/campaigns/${campaign.id}`,
         response: {
-          body: JSON.stringify(campaign),
-        },
+          body: JSON.stringify(campaign)
+        }
       },
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([]),
-        },
+          body: JSON.stringify([])
+        }
       },
       {
         pathname: '/api/housing',
         method: 'POST',
         persist: true,
         response: {
-          body: JSON.stringify(genPaginatedResult([])),
-        },
+          body: JSON.stringify(genPaginatedResult([]))
+        }
       },
       {
         pathname: '/api/housing/count',
@@ -122,10 +98,10 @@ describe('Campaign view', () => {
         response: {
           body: JSON.stringify({
             housing: 1,
-            owners: 1,
-          }),
-        },
-      },
+            owners: 1
+          })
+        }
+      }
     ]);
 
     renderComponent();
@@ -141,14 +117,14 @@ describe('Campaign view', () => {
         pathname: `/api/campaigns/${campaign.id}`,
         method: 'GET',
         response: {
-          body: JSON.stringify(campaign),
-        },
+          body: JSON.stringify(campaign)
+        }
       },
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([]),
-        },
+          body: JSON.stringify([])
+        }
       },
       {
         pathname: '/api/housing',
@@ -158,10 +134,10 @@ describe('Campaign view', () => {
             entities: houses,
             loading: false,
             page: 1,
-            perPage: 50,
-          } as HousingPaginatedResult),
+            perPage: 50
+          } as HousingPaginatedResult)
         },
-        persist: true,
+        persist: true
       },
       {
         pathname: '/api/housing/count',
@@ -169,9 +145,9 @@ describe('Campaign view', () => {
         response: {
           body: JSON.stringify({
             housing: 1,
-            owners: 1,
-          }),
-        },
+            owners: 1
+          })
+        }
       },
       {
         pathname: `/api/campaigns/${campaign.id}`,
@@ -179,16 +155,16 @@ describe('Campaign view', () => {
         response: async (request) => {
           const payload = await request.json();
           return {
-            body: JSON.stringify({ ...campaign, title: payload.title }),
+            body: JSON.stringify({ ...campaign, title: payload.title })
           };
-        },
+        }
       },
       {
         pathname: `/api/campaigns/${campaign.id}`,
         response: {
-          body: JSON.stringify({ ...campaign, title }),
-        },
-      },
+          body: JSON.stringify({ ...campaign, title })
+        }
+      }
     ]);
 
     renderComponent();
@@ -197,12 +173,12 @@ describe('Campaign view', () => {
     await user.click(rename);
     const modal = await screen.findByRole('dialog');
     const input = within(modal).getByRole('textbox', {
-      name: /^Nom de la campagne/,
+      name: /^Nom de la campagne/
     });
     await user.clear(input);
     await user.type(input, title);
     const save = await within(modal).findByRole('button', {
-      name: /^Confirmer/,
+      name: /^Confirmer/
     });
     await user.click(save);
     expect(modal).not.toBeVisible();
@@ -214,14 +190,14 @@ describe('Campaign view', () => {
       {
         pathname: `/api/campaigns/${campaign.id}`,
         response: {
-          body: JSON.stringify(campaign),
-        },
+          body: JSON.stringify(campaign)
+        }
       },
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([]),
-        },
+          body: JSON.stringify([])
+        }
       },
       {
         pathname: '/api/housing/count',
@@ -229,9 +205,9 @@ describe('Campaign view', () => {
         response: {
           body: JSON.stringify({
             housing: 1,
-            owners: 1,
-          }),
-        },
+            owners: 1
+          })
+        }
       },
       {
         pathname: '/api/housing',
@@ -241,32 +217,32 @@ describe('Campaign view', () => {
             entities: houses,
             loading: false,
             page: 1,
-            perPage: 50,
-          } as HousingPaginatedResult),
+            perPage: 50
+          } as HousingPaginatedResult)
         },
-        persist: true,
+        persist: true
       },
       {
         pathname: `/api/drafts`,
         method: 'POST',
         response: {
           body: JSON.stringify(draft),
-          status: 201,
-        },
+          status: 201
+        }
       },
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([draft]),
-        },
-      },
+          body: JSON.stringify([draft])
+        }
+      }
     ]);
 
     renderComponent();
 
     const form = await screen.findByRole('form');
     const name = await within(form).findByLabelText(
-      'Nom de la collectivité ou de l’administration*',
+      'Nom de la collectivité ou de l’administration*'
     );
     if (sender.name) {
       await user.type(name, sender.name);
@@ -282,20 +258,20 @@ describe('Campaign view', () => {
       ...draft,
       subject: 'New subject',
       body: 'New body',
-      sender,
+      sender
     };
     mockRequests([
       {
         pathname: `/api/campaigns/${campaign.id}`,
         response: {
-          body: JSON.stringify(campaign),
-        },
+          body: JSON.stringify(campaign)
+        }
       },
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([draft]),
-        },
+          body: JSON.stringify([draft])
+        }
       },
       {
         pathname: '/api/housing/count',
@@ -303,9 +279,9 @@ describe('Campaign view', () => {
         response: {
           body: JSON.stringify({
             housing: 1,
-            owners: 1,
-          }),
-        },
+            owners: 1
+          })
+        }
       },
       {
         pathname: '/api/housing',
@@ -315,24 +291,24 @@ describe('Campaign view', () => {
             entities: houses,
             loading: false,
             page: 1,
-            perPage: 50,
-          } as HousingPaginatedResult),
+            perPage: 50
+          } as HousingPaginatedResult)
         },
-        persist: true,
+        persist: true
       },
       {
         pathname: `/api/drafts/${draft.id}`,
         method: 'PUT',
         response: {
-          body: JSON.stringify(updated),
-        },
+          body: JSON.stringify(updated)
+        }
       },
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([updated]),
-        },
-      },
+          body: JSON.stringify([updated])
+        }
+      }
     ]);
 
     renderComponent();
@@ -341,7 +317,7 @@ describe('Campaign view', () => {
     const form = await screen.findByRole('form');
     if (sender.name) {
       const name = await within(form).findByLabelText(
-        'Nom de la collectivité ou de l’administration*',
+        'Nom de la collectivité ou de l’administration*'
       );
       await user.clear(name);
       await user.type(name, sender.name);
@@ -388,14 +364,14 @@ describe('Campaign view', () => {
     }
     if (draft.subject) {
       const subject = await within(form).findByRole('textbox', {
-        name: /^Objet/,
+        name: /^Objet/
       });
       await user.clear(subject);
       await user.type(subject, draft.subject);
     }
     if (draft.body) {
       const body = await within(form).findByRole('textbox', {
-        name: /^Contenu/,
+        name: /^Contenu/
       });
       await user.clear(body);
       await user.type(body, draft.body);
@@ -414,14 +390,14 @@ describe('Campaign view', () => {
       {
         pathname: `/api/campaigns/${campaign.id}`,
         response: {
-          body: JSON.stringify(campaign),
-        },
+          body: JSON.stringify(campaign)
+        }
       },
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([{ ...draft, sender }]),
-        },
+          body: JSON.stringify([{ ...draft, sender }])
+        }
       },
       {
         pathname: '/api/housing/count',
@@ -429,34 +405,34 @@ describe('Campaign view', () => {
         response: {
           body: JSON.stringify({
             housing: 1,
-            owners: 1,
-          }),
-        },
+            owners: 1
+          })
+        }
       },
       {
         pathname: `/api/campaigns/${campaign.id}`,
         method: 'PUT',
         response: {
-          body: JSON.stringify(sending),
-        },
+          body: JSON.stringify(sending)
+        }
       },
       {
         pathname: `/api/campaigns/${campaign.id}`,
         response: {
-          body: JSON.stringify([sending]),
-        },
-      },
+          body: JSON.stringify([sending])
+        }
+      }
     ]);
 
     renderComponent();
 
     const send = await screen.findByRole('button', {
-      name: /^Débuter l’envoi/,
+      name: /^Débuter l’envoi/
     });
     await user.click(send);
     const dialog = await screen.findByRole('dialog');
     const confirm = await within(dialog).findByRole('button', {
-      name: /^Confirmer/,
+      name: /^Confirmer/
     });
     await user.click(confirm);
     expect(dialog).not.toBeVisible();
@@ -468,21 +444,21 @@ describe('Campaign view', () => {
       ...housing.owner,
       fullName: 'John Doe',
       banAddress: genAddress(),
-      additionalAddress: genAddress().city,
+      additionalAddress: genAddress().city
     };
 
     mockRequests([
       {
         pathname: `/api/campaigns/${campaign.id}`,
         response: {
-          body: JSON.stringify(campaign),
-        },
+          body: JSON.stringify(campaign)
+        }
       },
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([{ ...draft, sender }]),
-        },
+          body: JSON.stringify([{ ...draft, sender }])
+        }
       },
       {
         pathname: '/api/housing/count',
@@ -490,9 +466,9 @@ describe('Campaign view', () => {
         response: {
           body: JSON.stringify({
             housing: 1,
-            owners: 1,
-          }),
-        },
+            owners: 1
+          })
+        }
       },
       {
         pathname: '/api/housing',
@@ -502,16 +478,16 @@ describe('Campaign view', () => {
             entities: [housing],
             loading: false,
             page: 1,
-            perPage: 50,
-          } as HousingPaginatedResult),
-        },
+            perPage: 50
+          } as HousingPaginatedResult)
+        }
       },
       {
         pathname: `/api/owners/${housing.owner.id}`,
         method: 'PUT',
         response: {
-          body: JSON.stringify(updated),
-        },
+          body: JSON.stringify(updated)
+        }
       },
       {
         pathname: '/api/housing',
@@ -521,10 +497,10 @@ describe('Campaign view', () => {
             entities: [{ ...housing, owner: updated }],
             loading: false,
             page: 1,
-            perPage: 50,
-          } as HousingPaginatedResult),
-        },
-      },
+            perPage: 50
+          } as HousingPaginatedResult)
+        }
+      }
     ]);
 
     renderComponent();
@@ -532,7 +508,7 @@ describe('Campaign view', () => {
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
     const [edit] = await screen.findAllByRole('button', {
-      name: /^Éditer l’adresse/,
+      name: /^Éditer l’adresse/
     });
     await user.click(edit);
     const aside = await screen.findByRole('complementary');
@@ -540,11 +516,38 @@ describe('Campaign view', () => {
     await user.clear(fullName);
     await user.type(fullName, 'John Doe');
     const save = await within(aside).findByRole('button', {
-      name: /^Enregistrer/,
+      name: /^Enregistrer/
     });
     await user.click(save);
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/^Sauvegardé !/);
+  });
+
+  it('should update the page when the campaign has been generated', async () => {
+    const campaign: CampaignDTO = { ...genCampaignDTO(), status: 'sending' };
+    data.campaigns.push(campaign);
+
+    render(
+      <Provider store={store}>
+        <Notification />
+        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
+          <Route path="/campagnes/:id" component={CampaignView} />
+        </Router>
+      </Provider>
+    );
+
+    await screen.findByRole('heading', {
+      name: /^Chargement de vos courriers en cours/
+    });
+    campaign.file = faker.image.url();
+    const event = new MessageEvent('campaign:generate', {
+      data: JSON.stringify({ id: campaign.id })
+    });
+    sources.get(`${config.apiEndpoint}/api/sse`)?.emit(event.type, event);
+    const title = await screen.findByRole('heading', {
+      name: /^Télécharger les courriers et les destinataires/
+    });
+    expect(title).toBeVisible();
   });
 
   it('should confirm a recipient removal', async () => {

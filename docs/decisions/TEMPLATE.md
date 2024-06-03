@@ -1,79 +1,86 @@
 ---
-# These are optional elements. Feel free to remove any of them.
-status: {proposed | rejected | accepted | deprecated | … | superseded by [ADR-0005](0005-example.md)}
-date: {YYYY-MM-DD when the decision was last updated}
-deciders: {list everyone involved in the decision}
-consulted: {list everyone whose opinions are sought (typically subject-matter experts); and with whom there is a two-way communication}
-informed: {list everyone who is kept up-to-date on progress; and with whom there is a one-way communication}
+# Ce sont des éléments optionnels. N'hésitez pas à en supprimer certains.
+statut: {proposé | rejeté | accepté | obsolète | … | remplacé par [ADR-0005](0005-example.md)}
+date: {AAAA-MM-JJ de la dernière mise à jour de la décision}
+décideurs: {liste de toutes les personnes impliquées dans la décision}
+consultés: {liste de toutes les personnes dont les opinions sont sollicitées (généralement des experts en la matière) ; et avec qui il y a une communication bilatérale}
+informés: {liste de toutes les personnes qui sont tenues informées de l'avancement ; et avec qui il y a une communication unilatérale}
 ---
-# {short title of solved problem and solution}
 
-## Context and Problem Statement
+# {titre court du problème résolu et de la solution}
 
-{Describe the context and problem statement, e.g., in free form using two to three sentences or in the form of an illustrative story.
- You may want to articulate the problem in form of a question and add links to collaboration boards or issue management systems.}
+## Contexte et problématique
 
-<!-- This is an optional element. Feel free to remove. -->
-## Decision Drivers
+{Décrivez le contexte et l'énoncé du problème, par exemple, sous forme libre en utilisant deux ou trois phrases ou sous forme d'histoire illustrative.
+Vous pouvez formuler le problème sous forme de question et ajouter des liens vers des tableaux de collaboration ou des systèmes de gestion des problèmes.}
 
-* {decision driver 1, e.g., a force, facing concern, …}
-* {decision driver 2, e.g., a force, facing concern, …}
-* … <!-- numbers of drivers can vary -->
+<!-- Cet élément est optionnel. N'hésitez pas à le supprimer. -->
 
-## Considered Options
+## Critères de décision
 
-* {title of option 1}
-* {title of option 2}
-* {title of option 3}
-* … <!-- numbers of options can vary -->
+- {facteur de décision 1, par exemple, une force, une préoccupation face à…}
+- {facteur de décision 2, par exemple, une force, une préoccupation face à…}
+- … <!-- le nombre de facteurs peut varier -->
 
-## Decision Outcome
+## Options envisagées
 
-Chosen option: "{title of option 1}", because
-{justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force {force} | … | comes out best (see below)}.
+- {titre de l'option 1}
+- {titre de l'option 2}
+- {titre de l'option 3}
+- … <!-- le nombre d'options peut varier -->
 
-<!-- This is an optional element. Feel free to remove. -->
-### Consequences
+## Décision
 
-* Good, because {positive consequence, e.g., improvement of one or more desired qualities, …}
-* Bad, because {negative consequence, e.g., compromising one or more desired qualities, …}
-* … <!-- numbers of consequences can vary -->
+Option choisie : "{titre de l'option 1}", parce que
+{justification, par exemple, seule option qui répond au critère de décision k.o. | qui résout la force {force} | … | se démarque le mieux (voir ci-dessous)}.
 
-<!-- This is an optional element. Feel free to remove. -->
+<!-- Cet élément est optionnel. N'hésitez pas à le supprimer. -->
+
+### Conséquences
+
+- Bon, parce que {conséquence positive, par exemple, amélioration d'une ou plusieurs qualités souhaitées, …}
+- Mauvais, parce que {conséquence négative, par exemple, compromission d'une ou plusieurs qualités souhaitées, …}
+- … <!-- le nombre de conséquences peut varier -->
+
+<!-- Cet élément est optionnel. N'hésitez pas à le supprimer. -->
+
 ## Validation
 
-{describe how the implementation of/compliance with the ADR is validated. E.g., by a review or an ArchUnit test}
+{décrivez comment la mise en œuvre/le respect de l'ADR est validé. Par exemple, par une révision ou un test ArchUnit}
 
-<!-- This is an optional element. Feel free to remove. -->
-## Pros and Cons of the Options
+<!-- Cet élément est optionnel. N'hésitez pas à le supprimer. -->
 
-### {title of option 1}
+## Avantages et inconvénients des options
 
-<!-- This is an optional element. Feel free to remove. -->
-{example | description | pointer to more information | …}
+### {titre de l'option 1}
 
-* Good, because {argument a}
-* Good, because {argument b}
-<!-- use "neutral" if the given argument weights neither for good nor bad -->
-* Neutral, because {argument c}
-* Bad, because {argument d}
-* … <!-- numbers of pros and cons can vary -->
+<!-- Cet élément est optionnel. N'hésitez pas à le supprimer. -->
 
-### {title of other option}
+{exemple | description | lien vers plus d'informations | …}
 
-{example | description | pointer to more information | …}
+- Bon, parce que {argument a}
+- Bon, parce que {argument b}
+<!-- utilisez "neutre" si l'argument donné ne pèse ni en bien ni en mal -->
+- Neutre, parce que {argument c}
+- Mauvais, parce que {argument d}
+- … <!-- le nombre de pour et contre peut varier -->
 
-* Good, because {argument a}
-* Good, because {argument b}
-* Neutral, because {argument c}
-* Bad, because {argument d}
-* …
+### {titre de l'autre option}
 
-<!-- This is an optional element. Feel free to remove. -->
-## More Information
+{exemple | description | lien vers plus d'informations | …}
 
-{You might want to provide additional evidence/confidence for the decision outcome here and/or
- document the team agreement on the decision and/or
- define when this decision when and how the decision should be realized and if/when it should be re-visited and/or
- how the decision is validated.
- Links to other decisions and resources might here appear as well.}
+- Bon, parce que {argument a}
+- Bon, parce que {argument b}
+- Neutre, parce que {argument c}
+- Mauvais, parce que {argument d}
+- …
+
+<!-- Cet élément est optionnel. N'hésitez pas à le supprimer. -->
+
+## Plus d’information
+
+{Vous pouvez fournir ici des preuves/confiances supplémentaires pour le résultat de la décision et/ou
+documenter l'accord de l'équipe sur la décision et/ou
+définir quand cette décision quand et comment la décision devrait être réalisée et si/quand elle devrait être revisitée et/ou
+comment la décision est validée.
+Des liens vers d'autres décisions et ressources peuvent également apparaître ici.}

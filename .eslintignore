@@ -1,11 +1,8 @@
 build/
 dist/
-database/
 frontend/src/components/_dsfr/
 node_modules/
 public/
-scripts/
-server/
 tools/
 
 README.md

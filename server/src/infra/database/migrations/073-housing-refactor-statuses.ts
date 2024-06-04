@@ -146,7 +146,6 @@ export async function down(knex: Knex): Promise<void> {
         )
         .map((h) => ({
           ...h,
-          // @ts-ignore
           mutation_date: isValid(h.mutation_date) ? h.mutation_date : null,
         }))
         .map(normalizeStatus);
@@ -572,9 +571,13 @@ export interface Housing {
   precisions?: string[];
   vacancy_reasons?: string[];
   occupancy: string;
+  mutation_date: Date | null;
 }
 
-type HousingSerialized = Omit<Housing, 'status'> & { status: string };
+type HousingSerialized = Omit<Housing, 'status'> & {
+  status: string;
+  mutation_date: Date | null;
+};
 
 export enum HousingStatus {
   NeverContacted,

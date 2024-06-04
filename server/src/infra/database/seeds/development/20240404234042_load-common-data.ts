@@ -18,6 +18,8 @@ import { campaignsTable } from '~/repositories/campaignRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
+  await knex(eventsTable).delete();
+  console.info('Removed events.');
   await knex(housingOwnersTable).delete();
   await knex(housingTable).delete();
   if (await knex.schema.hasTable('_extract_zlv_')) {
@@ -28,8 +30,6 @@ export async function seed(knex: Knex): Promise<void> {
   console.info('Removed owners.');
   await knex(campaignsTable).delete();
   console.info('Removed campaigns.');
-  await knex(eventsTable).delete();
-  console.info('Removed events.');
   await knex(groupsTable).delete();
   console.info('Removed groups.');
   await knex(usersTable).delete();
@@ -46,29 +46,29 @@ export async function seed(knex: Knex): Promise<void> {
     {
       script: path.join(
         'scripts',
-        '001-load-establishments_com_epci_reg_dep.sql',
+        '001-load-establishments_com_epci_reg_dep.sql'
       ),
-      data: path.join('data', 'common', 'com_epci_dep_reg.csv'),
+      data: path.join('data', 'common', 'com_epci_dep_reg.csv')
     },
     {
       script: path.join(
         'scripts',
-        '002-load-establishments_direction_territoriale.sql',
+        '002-load-establishments_direction_territoriale.sql'
       ),
-      data: path.join('data', 'common', 'direction_territoriale.csv'),
+      data: path.join('data', 'common', 'direction_territoriale.csv')
     },
     {
       script: path.join('scripts', '003-load-establishment_kinds.sql'),
-      data: path.join('data', 'common', 'nature_juridique.csv'),
+      data: path.join('data', 'common', 'nature_juridique.csv')
     },
     {
       script: path.join('scripts', '004-load-data.sql'),
-      data: path.join('data', 'dummy', 'dummy_data.csv'),
+      data: path.join('data', 'dummy', 'dummy_data.csv')
     },
     {
       script: path.join('scripts', '006-load-locality-taxes.sql'),
-      data: path.join('data', 'common', 'taxe.csv'),
-    },
+      data: path.join('data', 'common', 'taxe.csv')
+    }
   ];
   await async.forEachSeries(files, async (file) => {
     await load(file.script, file.data);
@@ -99,7 +99,7 @@ async function load(script: string, data: string): Promise<void> {
 
         console.log(stdout);
         return resolve();
-      },
+      }
     );
   });
 }

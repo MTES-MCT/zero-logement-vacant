@@ -15,9 +15,3 @@ export default function gracefulShutdown(server: http.Server) {
     },
   });
 }
-
-function isRejected(
-  promise: PromiseSettledResult<any>,
-): promise is PromiseRejectedResult {
-  return promise.status === 'rejected';
-}

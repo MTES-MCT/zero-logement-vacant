@@ -4,21 +4,12 @@ import { exec } from 'node:child_process';
 import path from 'node:path';
 
 import config from '~/infra/config';
-import {
-  Establishments,
-  establishmentsTable,
-} from '~/repositories/establishmentRepository';
-import { Housing, housingTable } from '~/repositories/housingRepository';
-import { Localities, localitiesTable } from '~/repositories/localityRepository';
-import { Owners, ownerTable } from '~/repositories/ownerRepository';
-import {
-  EstablishmentLocalities,
-  establishmentsLocalitiesTable,
-} from '~/repositories/establishmentLocalityRepository';
-import {
-  HousingOwners,
-  housingOwnersTable,
-} from '~/repositories/housingOwnerRepository';
+import { establishmentsTable } from '~/repositories/establishmentRepository';
+import { housingTable } from '~/repositories/housingRepository';
+import { localitiesTable } from '~/repositories/localityRepository';
+import { ownerTable } from '~/repositories/ownerRepository';
+import { establishmentsLocalitiesTable } from '~/repositories/establishmentLocalityRepository';
+import { housingOwnersTable } from '~/repositories/housingOwnerRepository';
 import { settingsTable } from '~/repositories/settingsRepository';
 import { usersTable } from '~/repositories/userRepository';
 import { groupsTable } from '~/repositories/groupRepository';

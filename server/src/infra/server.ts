@@ -4,7 +4,6 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import http from 'node:http';
 import util from 'node:util';
-import { createClient } from 'redis';
 
 import {
   healthcheck,

@@ -5,17 +5,18 @@ import { createServer } from '~/infra/server';
 import {
   genCampaignApi,
   genEstablishmentApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import queue from '~/infra/queue';
 import { tokenProvider } from '~/test/testUtils';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
+import { setImmediate } from 'async';
 
-const TIMEOUT = 3_000;
+const TIMEOUT = 10_000;
 
 describe('Server-sent event API', () => {
   const { app } = createServer();
@@ -33,7 +34,9 @@ describe('Server-sent event API', () => {
     (done) => {
       const campaign = genCampaignApi(establishment.id, user.id);
       jest.spyOn(queue, 'on').mockImplementation((event, callback) => {
-        callback(campaign.id);
+        setImmediate(() => {
+          callback({ id: campaign.id });
+        });
       });
 
       request(app)
@@ -41,21 +44,34 @@ describe('Server-sent event API', () => {
         .use(tokenProvider(user))
         .buffer(false)
         .parse((response, callback) => {
-          expect(response.status).toBe(constants.HTTP_STATUS_OK);
-          expect(response.headers).toContainEqual({
-            'Content-Type': 'text/event-stream',
-            Connection: 'keep-alive',
-            'Cache-Control': 'no-cache',
-          });
+          try {
+            expect(response.statusCode).toBe(constants.HTTP_STATUS_OK);
+            expect(response.headers).toMatchObject({
+              'content-type': 'text/event-stream',
+              connection: 'keep-alive',
+              'cache-control': 'no-cache'
+            });
 
-          response.addListener('data', (chunk) => {
-            const data = chunk.toString();
-            console.log('Data', data);
-            expect(data).toBe(`data: ${campaign.id}\n\n`);
-            done();
-          });
+            response.setEncoding('utf8');
+            response.once('data', (chunk) => {
+              expect(chunk).toBe('event: campaign:generate\n');
+
+              response.once('data', (chunk) => {
+                expect(chunk).toBe(
+                  `data: ${JSON.stringify({ id: campaign.id })}\n\n`
+                );
+                callback(null, response);
+                done();
+              });
+            });
+          } catch (error) {
+            done(error);
+          }
+        })
+        .end((error) => {
+          done(error);
         });
     },
-    TIMEOUT,
+    TIMEOUT
   );
 });

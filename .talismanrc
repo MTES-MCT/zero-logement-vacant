@@ -2,6 +2,8 @@ fileignoreconfig:
 - filename: .github/workflows/github-actions.yml
   checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
 - filename: database/*
+- filename: frontend/.env.example
+  checksum: 9d59fa5d5a2dd989c2aa9a06cf3ccab007df6a002cb963d63406a12ffbcfca8b
 - filename: frontend/src/components/Draft/DraftBody.tsx
   checksum: 6d329f083da80593e177c47abf416c37544d9255c3c4c4be226db80d7e32a690
 - filename: frontend/src/components/Draft/DraftMailInfo.tsx

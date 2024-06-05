@@ -25,6 +25,9 @@ jobs:
       - name: Create postgres addon
         run: clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan dev --region par
 
+      - name: Create redis addon
+        run: clever addon create redis-addon $PR_NAME-redis --org $ORGA_ID --plan S --region par
+
   deploy-api:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
     needs: [deploy-addons]
@@ -51,8 +54,8 @@ jobs:
           clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
           clever service link-addon "Cellar staging" -a $APP_ALIAS
           clever service link-addon "Configuration provider" -a $APP_ALIAS
-          clever service link-addon "Redis staging" -a $APP_ALIAS
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
+          clever service link-addon $PR_NAME-redis -a $APP_ALIAS
 
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
@@ -118,8 +121,8 @@ jobs:
           clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
           clever service link-addon "Cellar staging" -a $APP_ALIAS
           clever service link-addon "Configuration provider" -a $APP_ALIAS
-          clever service link-addon "Redis staging" -a $APP_ALIAS
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
+          clever service link-addon $PR_NAME-redis -a $APP_ALIAS
 
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
@@ -352,3 +355,4 @@ jobs:
       - name: Delete the app
         run: |
           clever addon delete $PR_NAME-postgres -o $ORGA_ID --yes
+          clever addon delete $PR_NAME-redis -o $ORGA_ID --yes

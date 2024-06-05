@@ -43,6 +43,16 @@ export async function seed(knex: Knex): Promise<void> {
       activatedAt: new Date(),
       role: UserRoles.Admin,
     },
+    {
+      id: uuidv4(),
+      email: 'admin@zerologementvacant.beta.gouv.fr',
+      password: '',
+      firstName: 'Zéro',
+      lastName: 'Logement Vacant',
+      role: UserRoles.Usual,
+      activatedAt: new Date(),
+      updatedAt: new Date(),
+    },
   ];
   await Users()
     .insert(users.map(formatUserApi))

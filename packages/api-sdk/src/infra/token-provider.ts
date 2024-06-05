@@ -40,12 +40,15 @@ export default function createTokenProvider(
     });
   }
 
-  let user;
+  let user: { id: string } | null;
 
   return async (
     config: InternalAxiosRequestConfig,
   ): Promise<InternalAxiosRequestConfig> => {
     user = await db('users').where({ email: opts.serviceAccount }).first();
+    if (!user) {
+      throw new Error(`User ${opts.serviceAccount} not found.`);
+    }
     const token =
       cache.get(establishment) ?? (await fetchToken(establishment, user.id));
 

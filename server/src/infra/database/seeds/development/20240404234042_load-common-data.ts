@@ -13,13 +13,18 @@ import { housingOwnersTable } from '~/repositories/housingOwnerRepository';
 import { settingsTable } from '~/repositories/settingsRepository';
 import { usersTable } from '~/repositories/userRepository';
 import { groupsTable } from '~/repositories/groupRepository';
-import { eventsTable, ownerEventsTable } from '~/repositories/eventRepository';
+import {
+  campaignEventsTable,
+  eventsTable,
+  ownerEventsTable,
+} from '~/repositories/eventRepository';
 import { campaignsTable } from '~/repositories/campaignRepository';
 import { resetLinkTable } from '~/repositories/resetLinkRepository';
 import { signupLinkTable } from '~/repositories/signupLinkRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
+  await knex(campaignEventsTable).delete();
   await knex(ownerEventsTable).delete();
   await knex(eventsTable).delete();
   console.info('Removed events.');

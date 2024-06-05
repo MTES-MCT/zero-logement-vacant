@@ -44,7 +44,7 @@ const config = convict<Config>({
     host: {
       env: 'API_HOST',
       format: String,
-      default: isProduction ? null : 'http://localhost:3001',
+      default: isProduction ? null : 'http://localhost:3001/api',
     },
   },
   app: {

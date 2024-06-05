@@ -129,7 +129,7 @@ jobs:
 
       - name: Set environment variables
         run: |
-          clever env set API_HOST https://$PR_NAME-api.cleverapps.io -a $APP_ALIAS
+          clever env set API_HOST https://$PR_NAME-api.cleverapps.io/api -a $APP_ALIAS
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS

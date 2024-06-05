@@ -45,7 +45,7 @@ fileignoreconfig:
 - filename: queue/src/queue.ts
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
-  checksum: f5c738fda12aca999cde14076a46490086404fcd4b1f371cdf214c2b53bfea3e
+  checksum: 41da3e10d379e478b7083d1588b78219ed02fcdde1fe913afeecbd37981bc268
 - filename: server/controllers/draftController.ts
   checksum: 3627d5cc7172a79998517e1982424462c61116e248e5b6bd29aced81470113e6
 - filename: server/repositories/campaignRepository.ts

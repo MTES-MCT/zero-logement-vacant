@@ -26,7 +26,7 @@ jobs:
         run: clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan dev --region par
 
       - name: Create redis addon
-        run: clever addon create redis-addon $PR_NAME-redis --org $ORGA_ID --plan S --region par
+        run: clever addon create redis-addon $PR_NAME-redis --org $ORGA_ID --plan s_mono --region par
 
   deploy-api:
     if: github.event.action == 'opened' || github.event.action == 'reopened'

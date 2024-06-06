@@ -4,6 +4,11 @@ import { exec } from 'node:child_process';
 import path from 'node:path';
 
 import config from '~/infra/config';
+import {
+  housingNotesTable,
+  notesTable,
+  ownerNotesTable,
+} from '~/repositories/noteRepository';
 import { establishmentsTable } from '~/repositories/establishmentRepository';
 import { housingTable } from '~/repositories/housingRepository';
 import { localitiesTable } from '~/repositories/localityRepository';
@@ -24,6 +29,10 @@ import { signupLinkTable } from '~/repositories/signupLinkRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
+  await knex(housingNotesTable).delete();
+  await knex(ownerNotesTable).delete();
+  await knex(notesTable).delete();
+  console.info('Removed notes.');
   await knex(campaignEventsTable).delete();
   await knex(ownerEventsTable).delete();
   await knex(eventsTable).delete();

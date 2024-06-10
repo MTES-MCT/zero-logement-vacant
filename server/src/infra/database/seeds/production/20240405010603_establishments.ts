@@ -87,7 +87,7 @@ export async function seed(knex: Knex): Promise<void> {
     .table(localitiesTable)
     .count()
     .first()
-    // @ts-ignore
+    // @ts-expect-error: knex types are bad
     .then((result: { count: number }) => {
       return Number(result.count) === 0
         ? Promise.resolve()

@@ -1,13 +1,14 @@
 import axios from 'axios';
+import { knex } from 'knex';
 
-import config from './infra/config';
+import { Logger } from '@zerologementvacant/utils';
 import createErrorHandler from './infra/error-handler';
 import createTokenProvider from './infra/token-provider';
 import { CampaignAPI, createCampaignAPI } from './campaign-api';
 import { createDraftAPI, DraftAPI } from './draft-api';
 import { createHousingAPI, HousingAPI } from './housing-api';
-import { knex } from 'knex';
 import { createOwnerAPI, OwnerAPI } from './owner-api';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 interface SDK {
   campaign: CampaignAPI;
@@ -17,28 +18,48 @@ interface SDK {
 }
 
 interface Options {
-  db: {
+  api: {
+    host: string;
+  };
+  auth: {
+    secret: string;
+  };
+  db?: {
     url: string;
   };
-  establishment: string;
-  serviceAccount: string;
+  logger: Logger;
+  serviceAccount?: string;
+  storage: AsyncLocalStorage<{ establishment: string }>;
 }
 
 export function createSDK(opts: Options): SDK {
   const db = knex({
     client: 'pg',
-    connection: opts.db.url,
+    acquireConnectionTimeout: 10_000,
+    pool: {
+      min: 0,
+      max: 10,
+    },
+    connection:
+      opts.db?.url ?? 'postgres://postgres:postgres@localhost:5432/zlv',
   });
+  console.log('EXECUTE FFS');
   const http = axios.create({
-    baseURL: config.api.host,
+    baseURL: opts.api.host,
     headers: {
       'Content-Type': 'application/json',
     },
   });
   http.interceptors.request.use(
-    createTokenProvider(opts.establishment, {
+    createTokenProvider({
+      auth: {
+        secret: opts.auth.secret,
+      },
       db,
-      serviceAccount: opts.serviceAccount,
+      logger: opts.logger,
+      serviceAccount:
+        opts.serviceAccount ?? 'admin@zerologementvacant.beta.gouv.fr',
+      storage: opts.storage,
     }),
   );
   http.interceptors.response.use(undefined, createErrorHandler());

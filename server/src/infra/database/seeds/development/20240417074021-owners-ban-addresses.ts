@@ -2,12 +2,12 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { Knex } from 'knex';
 
 import { banAddressesTable } from '~/repositories/banAddressesRepository';
-import { OwnerDBO, ownerTable } from '~/repositories/ownerRepository';
+import { Owners } from '~/repositories/ownerRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   await knex(banAddressesTable).delete();
 
-  const owners = await knex<OwnerDBO>(ownerTable).select('id');
+  const owners = await Owners().select('id');
   const addresses = owners
     .map((owner) => owner.id)
     .map((id) => ({

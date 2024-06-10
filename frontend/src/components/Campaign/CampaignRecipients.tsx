@@ -1,5 +1,4 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
-import Button from '@codegouvfr/react-dsfr/Button';
 import Table from '@codegouvfr/react-dsfr/Table';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -12,6 +11,7 @@ import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
 import AppLink from '../_app/AppLink/AppLink';
 import { Housing } from '../../models/Housing';
 import { useRemoveCampaignHousingMutation } from '../../services/campaign.service';
+import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 
 interface Props {
   campaign: Campaign;
@@ -82,13 +82,21 @@ function CampaignRecipients(props: Props) {
     housing.owner.additionalAddress,
     <Grid container key={`${housing.id}-actions`}>
       <OwnerEditionSideMenu className="fr-mr-1w" owner={housing.owner} />
-      <Button
-        iconId="fr-icon-close-line"
-        priority="tertiary"
-        size="small"
-        title="Supprimer le propriétaire"
-        onClick={() => removeHousing(housing)}
-      />
+      <ConfirmationModal
+        modalId="campaign-recipient-removal"
+        openingButtonProps={{
+          iconId: 'fr-icon-close-line',
+          priority: 'tertiary',
+          size: 'small',
+          title: 'Supprimer le propriétaire',
+        }}
+        title="Suppression d’un propriétaire"
+        onSubmit={() => removeHousing(housing)}
+      >
+        <Typography>
+          Vous êtes sur le point de supprimer ce destinataire de la campagne.
+        </Typography>
+      </ConfirmationModal>
     </Grid>,
   ]);
 

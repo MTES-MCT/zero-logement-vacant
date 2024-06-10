@@ -89,7 +89,7 @@ async function list(
   const filters: HousingFiltersApi = {
     ...body.filters,
     establishmentIds:
-      role === [UserRoles.Admin, UserRoles.Visitor].includes(role) && body.filters.establishmentIds?.length
+      role === [UserRoles.Admin, UserRoles.Visitor].includes(role) && body.filters.establishmentIds?.length > 0
         ? body.filters.establishmentIds
         : [auth.establishmentId],
   };
@@ -341,7 +341,7 @@ async function updateList(request: Request, response: Response) {
   const filters: HousingFiltersApi = {
     ...body.filters,
     establishmentIds:
-      role === [UserRoles.Admin, UserRoles.Visitor].includes(role) && body.filters.establishmentIds?.length
+      role === [UserRoles.Admin, UserRoles.Visitor].includes(role) && body.filters.establishmentIds?.length > 0
         ? body.filters.establishmentIds
         : [auth.establishmentId],
   };

@@ -10,9 +10,9 @@
     }
   },
   "env": {
-    "HOST": {
+    "API_HOST": {
       "generator": "url",
-      "template": "%URL%"
+      "template": "%URL%/api"
     },
     "DISABLE_ESLINT_PLUGIN": {
       "value": "true"

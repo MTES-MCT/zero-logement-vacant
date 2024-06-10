@@ -12,6 +12,8 @@ node_modules
 
 # Env
 .env
+.env.*
+!.env.example
 
 # Build
 build
@@ -30,3 +32,4 @@ yarn-error.log*
 .idea/
 
 /talisman_report
+.clever.json

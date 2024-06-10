@@ -5,7 +5,8 @@ export type EstablishmentKind =
   | 'DDTM'
   | 'DREAL'
   | 'DRIHL'
-  | 'DRIEAT';
+  | 'DRIEAT'
+  | 'DTAM';
 
 export const ESTABLISHMENT_KINDS: EstablishmentKind[] = [
   'Commune',
@@ -15,4 +16,5 @@ export const ESTABLISHMENT_KINDS: EstablishmentKind[] = [
   'DREAL',
   'DRIHL',
   'DRIEAT',
+  'DTAM',
 ];

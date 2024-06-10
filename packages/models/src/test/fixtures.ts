@@ -6,10 +6,14 @@ import { CampaignDTO } from '../CampaignDTO';
 import { HousingDTO } from '../HousingDTO';
 import { DraftDTO } from '../DraftDTO';
 import { SenderDTO } from '../SenderDTO';
+import { GroupDTO } from '../GroupDTO';
+import { UserDTO } from '../UserDTO';
+import fp from 'lodash/fp';
+import { RolesDTO } from '../RolesDTO';
 
 export function genAddressDTO(
   refId: string,
-  addressKind: AddressKinds,
+  addressKind: AddressKinds
 ): AddressDTO {
   return {
     refId,
@@ -23,18 +27,19 @@ export function genAddressDTO(
     score: faker.number.float({
       fractionDigits: 2,
       min: 0,
-      max: 1,
-    }),
+      max: 1
+    })
   };
 }
 
-export function genCampaignDTO(): CampaignDTO {
+export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
   return {
     id: faker.string.uuid(),
     title: faker.commerce.product(),
     filters: {},
     status: 'draft',
     createdAt: new Date().toJSON(),
+    groupId: group?.id
   };
 }
 
@@ -44,13 +49,30 @@ export function genDraftDTO(sender: SenderDTO): DraftDTO {
     subject: faker.lorem.sentence(),
     body: faker.lorem.paragraphs(),
     logo: faker.helpers.multiple(() => faker.image.url(), {
-      count: { min: 1, max: 2 },
+      count: { min: 1, max: 2 }
     }),
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     sender,
     writtenAt: faker.date.recent().toJSON().substring(0, 'yyyy-mm-dd'.length),
-    writtenFrom: faker.location.city(),
+    writtenFrom: faker.location.city()
+  };
+}
+
+export function genGroupDTO(
+  creator: UserDTO,
+  housings?: HousingDTO[]
+): GroupDTO {
+  const owners = housings?.map((housing) => housing.owner);
+  return {
+    id: faker.string.uuid(),
+    title: faker.commerce.productName(),
+    description: faker.lorem.sentence(),
+    housingCount: housings?.length ?? 0,
+    ownerCount: fp.uniqBy('id', owners).length ?? 0,
+    createdAt: new Date().toJSON(),
+    createdBy: creator,
+    archivedAt: null
   };
 }
 
@@ -63,7 +85,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     id: faker.string.uuid(),
     geoCode,
     localId: genLocalId(department, invariant),
-    owner,
+    owner
   };
 }
 
@@ -84,7 +106,7 @@ export function genOwnerDTO(): OwnerDTO {
     id,
     rawAddress: [
       `${address.houseNumber} ${address.street}`,
-      `${address.postalCode} ${address.city}`,
+      `${address.postalCode} ${address.city}`
     ],
     banAddress: genAddressDTO(id, AddressKinds.Owner),
     additionalAddress: faker.helpers.maybe(() => faker.location.county()),
@@ -92,10 +114,10 @@ export function genOwnerDTO(): OwnerDTO {
     fullName: `${firstName} ${lastName}`,
     email: faker.internet.email({
       firstName,
-      lastName,
+      lastName
     }),
     phone: faker.phone.number(),
-    kind: 'PERSONNE PHYSIQUE',
+    kind: 'PERSONNE PHYSIQUE'
   };
 }
 
@@ -116,6 +138,17 @@ export function genSenderDTO(): SenderDTO {
     signatoryFirstName: faker.person.firstName(),
     signatoryLastName: faker.person.lastName(),
     createdAt: faker.date.past().toJSON(),
-    updatedAt: faker.date.recent().toJSON(),
+    updatedAt: faker.date.recent().toJSON()
+  };
+}
+
+export function genUserDTO(role = RolesDTO.Usual): UserDTO {
+  return {
+    id: faker.string.uuid(),
+    email: faker.internet.email(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    activatedAt: faker.date.recent().toJSON(),
+    role
   };
 }

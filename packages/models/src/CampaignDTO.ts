@@ -16,6 +16,7 @@ export interface CampaignDTO {
    */
   sendingDate?: string;
   confirmedAt?: string;
+  groupId?: string;
 }
 
 export type CampaignStatus = 'draft' | 'sending' | 'in-progress' | 'archived';
@@ -23,7 +24,7 @@ export const CAMPAIGN_STATUSES: CampaignStatus[] = [
   'draft',
   'sending',
   'in-progress',
-  'archived',
+  'archived'
 ];
 export function nextStatus(current: CampaignStatus): CampaignStatus | null {
   if (current === 'archived') {

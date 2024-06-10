@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import { Link, Route, MemoryRouter as Router } from 'react-router-dom';
+import { Link, MemoryRouter as Router, Route } from 'react-router-dom';
 
 import {
   genAddress,
@@ -22,6 +22,7 @@ import { Campaign } from '../../../models/Campaign';
 import { Housing } from '../../../models/Housing';
 import { HousingPaginatedResult } from '../../../models/PaginatedResult';
 import { Owner } from '../../../models/Owner';
+import fp from 'lodash/fp';
 
 describe('Campaign view', () => {
   const user = userEvent.setup();
@@ -29,7 +30,7 @@ describe('Campaign view', () => {
   const campaign = genCampaign();
   const sender = genSender();
   const draft = genDraft(sender);
-  const houses = Array.from({ length: 1 }, () => genHousing());
+  const houses = Array.from({ length: 3 }, () => genHousing());
 
   let store: AppStore;
 
@@ -544,6 +545,86 @@ describe('Campaign view', () => {
     await user.click(save);
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/^Sauvegardé !/);
+  });
+
+  it('should confirm a recipient removal', async () => {
+    let housings = Array.from({ length: 3 }, () => genHousing());
+
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify(campaign),
+        },
+      },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([draft]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        persist: true,
+        response: async () => {
+          return {
+            body: JSON.stringify({
+              housing: housings.length,
+              owners: fp.uniqBy(
+                'id',
+                housings.map((housing) => housing.owner),
+              ),
+            }),
+          };
+        },
+      },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        persist: true,
+        response: async () => {
+          return {
+            body: JSON.stringify({
+              entities: housings,
+              loading: false,
+              page: 1,
+              perPage: 50,
+            } as HousingPaginatedResult),
+          };
+        },
+      },
+      {
+        pathname: `/api/campaigns/${campaign.id}/housing`,
+        method: 'DELETE',
+        response: async (request) => {
+          const payload = await request.json();
+          housings = housings.filter(
+            (housing) => !payload.ids.includes(housing.id),
+          );
+          return {
+            status: 204,
+          };
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
+    await user.click(tab);
+    const rowsBefore = screen.getAllByRole('row').slice(1); // Remove headers
+    expect(rowsBefore).toHaveLength(housings.length);
+    const row = rowsBefore[rowsBefore.length - 1];
+    const remove = within(row).getByTitle(/^Supprimer le propriétaire/);
+    await user.click(remove);
+    const dialog = await screen.findByRole('dialog');
+    const confirm = within(dialog).getByRole('button', {
+      name: /^Confirmer/,
+    });
+    await user.click(confirm);
+    const rowsAfter = screen.getAllByRole('row').slice(1);
+    expect(rowsAfter).toHaveLength(rowsBefore.length - 1);
   });
 
   // Hard to mock window.confirm because it's a browser-level function

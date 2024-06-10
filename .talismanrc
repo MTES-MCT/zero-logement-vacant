@@ -23,6 +23,8 @@ fileignoreconfig:
   checksum: 41da3e10d379e478b7083d1588b78219ed02fcdde1fe913afeecbd37981bc268
 - filename: server/.env.example
   checksum: e5adb7336c8d86989c224c8438eeb2bd83a4cf4b7adba3261e3f912bc23aeff3
+- filename: server/src/infra/config.ts
+  checksum: 9bae8c9e9834c34694d419159da5edc1317bc0ea0e55dc5d4c478a531b07d6ea
 - filename: yarn.lock
   checksum: 1528f94423d56548029bd75df19a7f43ba7de33a082a11e0f82d091970f0c54a
 version: "1.0"

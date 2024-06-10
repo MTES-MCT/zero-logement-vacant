@@ -21,6 +21,18 @@ type ExecutionStatus = | 'SUCCESS'
 | 'QUEUED'
 | 'SKIPPED';
 
+interface ExecutionLog {
+  _source: {
+    timestamp: string;
+  };
+}
+
+interface ApiResponse {
+  hits: {
+    hits: ExecutionLog[];
+  };
+}
+
 export async function logScriptExecution(scriptName: string, status: ExecutionStatus, message: string) {
   try {
     await client.index({
@@ -58,10 +70,10 @@ export async function getLastScriptExecutionDate(script_name: string) {
           ]
         }
       }
-    });
+    }) as ApiResponse;
 
     if (response.hits.hits.length > 0) {
-      const lastExecutionLog = response.hits.hits[0];
+      const lastExecutionLog = response.hits.hits[0] as ExecutionLog;
       const lastExecutionDate = lastExecutionLog._source.timestamp;
       return lastExecutionDate;
     } else {

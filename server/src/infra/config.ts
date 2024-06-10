@@ -266,13 +266,13 @@ const config = convict<Config>({
     node: {
       env: 'ELASTIC_NODE',
       format: String,
-      default: null
+      default: ''
     },
     auth: {
       username: {
         env: 'ELASTIC_USERNAME',
         format: String,
-        default: null
+        default: ''
       },
       password: {
         env: 'ELASTIC_PASSWORD',

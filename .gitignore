@@ -32,3 +32,4 @@ yarn-error.log*
 .idea/
 
 /talisman_report
+.clever.json

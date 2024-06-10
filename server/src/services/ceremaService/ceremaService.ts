@@ -6,7 +6,7 @@ import { logger } from '~/infra/logger';
 import { ConsultStructureService, Structure } from './consultStructureService';
 
 export class CeremaService implements ConsultDossiersLovacService, ConsultStructureService, ConsultUserService {
-  async consultDossiersLovac(date: Date): Promise<CeremaDossier[]> {
+  async consultDossiersLovac(date: string | null): Promise<CeremaDossier[]> {
     try {
 
       let uri = '/api/consult/dossiers/lovac';

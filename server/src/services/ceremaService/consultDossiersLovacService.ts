@@ -4,7 +4,7 @@ export interface CeremaDossier {
 }
 
 export interface ConsultDossiersLovacService {
-  consultDossiersLovac(date: Date): Promise<CeremaDossier[]>;
+  consultDossiersLovac(date: string | null): Promise<CeremaDossier[]>;
 }
 
 export const TEST_DOSSIERS: ReadonlyArray<CeremaDossier> = [

@@ -16,12 +16,34 @@ fileignoreconfig:
   checksum: 2eb831d9d9e6b816a1401fee277dfa058468ce7d9b917ad44702679233295e8e
 - filename: frontend/src/components/Dropdown/DropdownMenu.tsx
   checksum: ac1a0b11973d197701473c203fb2eb777001413b9b602cbe5fdba2fc8d825e8c
+- filename: frontend/src/components/Footer/Footer.tsx
+  checksum: 0ea2d532d32e8e33c1470f3e0b86b82698bf993cee83df5e8b59c67e2a7b3a7b
+- filename: frontend/src/components/Header/Header.tsx
+  checksum: d9f6881dde9c3f94ad2ed37d8551bb7a725ac1254a9b4bbd46e96a8010cd192c
 - filename: frontend/src/components/HousingFiltersBadges/HousingFiltersBadges.tsx
   checksum: bbf0f51b5624396489a49b287d4146f81ba4b5ed217965afc1c7131ca8e5b93b
 - filename: frontend/src/components/RichEditor/nodes/VariableNode.tsx
-  checksum: 63b9536c3bb7c0ff7ca65f4f42eebe3031ad516497639be668392026be2f85f8
+  checksum: 1f86b91a9b3e8bf3211a829a6ddf8a03e81d03310fe619a10ed658ccd9bfd1f8
+- filename: frontend/src/components/_dsfr/components/interface/Select/SearchableSelect.d.ts
+  checksum: f75cbab8ac667df9984c16ff59033ee91afe902d26ce1513d7d6ebeab95e4998
+- filename: frontend/src/components/_dsfr/components/interface/Table/Table.d.ts
+  checksum: 73472734fdf4bd6ee7a585fb159a58cba3622f17d16b65fcebd4d38f8ec56b1e
+- filename: frontend/src/components/modals/HousingCreationModal/FillLocalId.tsx
+  checksum: 215449d00a43a291e8efd8b28aeb0240b11ee8226efaf87dadc7709f4fa17325
+- filename: frontend/src/hooks/useForm.tsx
+  checksum: 6d16b338e7203dc37f64b3e00e4da0365dc35461e5c776853b55243509e3d9b9
+- filename: frontend/src/hooks/useSort.tsx
+  checksum: ab84c274637d24aa7f18456c2bb32f39802d5e3afe700a052ece484a1eec46a6
 - filename: frontend/src/views/Campaign/CampaignListView.tsx
   checksum: a9dcff1f35295ed617ba50e44cc95c57c63130e80a43e9303c20f160c3b3165d
+- filename: frontend/src/views/Login/LoginView.test.tsx
+  checksum: a1fab3ca0b731331cc1e0945e238f60ba319da577710ebeae502813623985a39
+- filename: packages/api-sdk/src/infra/token-provider.ts
+  checksum: 941d4fabe1280d748cb22341e8a4a9a5a405673ab1f2ff84bac942f38f5664aa
+- filename: packages/schemas/src/index.ts
+  checksum: 45473f39f4b07b3a33b6138a7e6fc3268690b59439d9f539eb1ce2c1abd430dc
+- filename: packages/schemas/src/password.ts
+  checksum: 716d8d646fd8a00af8d4225e15190810f9e8ab082fbb14e7430be109fa676611
 - filename: packages/api-sdk/src/infra/test/token-provider.test.ts
   checksum: c3ea87f28ca17a354e1dadf58e2832088503f258327f4620e0a23a24bb79241a
 - filename: packages/api-sdk/src/infra/token-provider.ts
@@ -52,6 +74,18 @@ fileignoreconfig:
   checksum: ab0dcf6bbf41a911aef0755c619c92d18bd04dc651c6ecaf8b1c53ffd5a82309
 - filename: server/services/mailService/brevoService.ts
   checksum: ce84d57e61bfdf4168938e114113005b0961659ea299a3871415ade48ba7b310
+- filename: server/src/index.ts
+  checksum: 88aec4113a92083b1401a101a673a2cf4457345c258bb8572dccbc713d22a94c
+- filename: server/src/infra/database/seeds/development/20240404235457_users.ts
+  checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
+- filename: server/src/routers/unprotected.ts
+  checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
+- filename: server/src/test/testUtils.ts
+  checksum: 7b398fd3f591cac34d94c9c81b1e3fd128ce09d48b849d530b4d883795b628d0
+- filename: shared/src/utils/merger.ts
+  checksum: 74df8468c996e2c659a1d697976ea7cf514c4c98b77b6bfca27bd06962e3eed6
+- filename: shared/src/utils/s3.ts
+  checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 scopeconfig:
 - scope: node
 allowed_patterns:

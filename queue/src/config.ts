@@ -7,7 +7,14 @@ import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 export const isProduction = process.env.NODE_ENV === 'production';
 
 interface Config {
+  api: {
+    host: string;
+  };
+  app: {
+    port: number;
+  };
   auth: {
+    secret: string;
     serviceAccount: string;
   };
   db: {
@@ -33,7 +40,27 @@ dotenv.config({
 });
 
 const config = convict<Config>({
+  api: {
+    host: {
+      env: 'API_HOST',
+      format: String,
+      default: isProduction ? null : 'http://localhost:3001/api',
+    },
+  },
+  app: {
+    port: {
+      env: 'PORT',
+      format: 'port',
+      default: 8080,
+    },
+  },
   auth: {
+    secret: {
+      env: 'AUTH_SECRET',
+      format: String,
+      default: isProduction ? null : 'secret',
+      sensitive: true,
+    },
     serviceAccount: {
       env: 'SERVICE_ACCOUNT',
       format: String,

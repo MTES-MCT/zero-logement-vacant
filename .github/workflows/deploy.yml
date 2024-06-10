@@ -1,0 +1,45 @@
+name: Deploy to Clever Cloud
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        type: string
+        required: true
+        description: The app alias registered on Clever Cloud
+      branch:
+        type: string
+        required: true
+        description: The branch to deploy
+    secrets:
+      CLEVER_SECRET:
+        required: true
+        description: The Clever Cloud secret
+      CLEVER_TOKEN:
+        required: true
+        description: The Clever Cloud token
+      CLEVER_ORG:
+        required: true
+        description: The Clever Cloud organization ID
+
+jobs:
+  deploy:
+    if: ${{ github.ref_name == inputs.branch }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Deploy
+        env:
+          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+          ORGA_ID: ${{ secrets.CLEVER_ORG }}
+        run: |
+          clever deploy --alias ${{ inputs.app }}

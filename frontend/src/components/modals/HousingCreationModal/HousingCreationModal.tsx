@@ -28,7 +28,7 @@ function HousingCreationModal(props: Props) {
       openingButtonProps={openingButtonProps}
       size="large"
       steps={steps}
-      title="Ajouter un logement"
+      title="Ajouter un logement (obligatoire)"
       onFinish={props.onFinish}
     />
   );

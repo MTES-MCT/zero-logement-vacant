@@ -11,8 +11,8 @@ import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
+  replaceVariables,
 } from '@zerologementvacant/models';
-import { replaceVariables } from '@zerologementvacant/shared';
 import { createS3, toBase64 } from '@zerologementvacant/utils';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import draftRepository, { DraftFilters } from '~/repositories/draftRepository';

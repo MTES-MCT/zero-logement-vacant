@@ -1,5 +1,6 @@
 import { JestConfigWithTsJest, pathsToModuleNameMapper } from 'ts-jest';
 
+// eslint-disable-next-line import/no-commonjs
 const tsconfig = require('./tsconfig.json');
 
 const config: JestConfigWithTsJest = {

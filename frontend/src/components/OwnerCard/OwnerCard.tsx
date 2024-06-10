@@ -31,9 +31,6 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
       size="small"
       title={
         <>
-          <span className="card-title-icon">
-            <Icon name="fr-icon-user-fill" iconPosition="center" size="1x" />
-          </span>
           {modify}
           <Title as="h1" look="h4" spacing="mb-0" data-testid="fullName">
             {owner.fullName}

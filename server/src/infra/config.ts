@@ -76,8 +76,8 @@ interface Config {
     env: Env;
     node: string;
     auth: {
-      username: string;
-      password: string;
+      username: string | null;
+      password: string | null;
     }
   };
   log: {

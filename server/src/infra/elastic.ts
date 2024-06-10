@@ -1,4 +1,4 @@
-const { Client } = require('@elastic/elasticsearch');
+import { Client } from '@elastic/elasticsearch';
 import { logger } from '~/infra/logger';
 import config from '~/infra/config';
 

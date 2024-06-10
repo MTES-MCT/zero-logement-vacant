@@ -26,7 +26,7 @@ interface KindMapType {
 export const KindMap: KindMapType = {
   'Commune et commune nouvelle': 'Commune',
   'Établissement public national à caractère industriel ou commercial non doté d\'un comptable public': 'EPCI'
-}
+};
 
 export const getZLVKind = (kind: string): EstablishmentKind => {
   return KindMap[kind];
@@ -50,7 +50,7 @@ export const getLocalitiesGeocode = async (perimeter: PerimeterType): Promise<st
   }
 
   return flattenedArray;
-}
+};
 
 export const structureToEstablishment = async (structure: Structure): Promise<EstablishmentDbo> => {
   return {
@@ -62,8 +62,8 @@ export const structureToEstablishment = async (structure: Structure): Promise<Es
     kind: getZLVKind(structure.kind),
     source: 'cerema',
     updated_at: new Date()
-  }
-}
+  };
+};
 
 export interface ConsultStructureService {
   consultStructure(id: number): Promise<Structure>;
@@ -99,10 +99,10 @@ export const TEST_STRUCTURES: ReadonlyArray<Structure> = [
 ];
 
 export const getTestStructure = (id: number): Structure => {
-  const structure =  TEST_STRUCTURES.find(structure => structure.establishmentId == id);
-  if(structure == undefined) {
+  const structure =  TEST_STRUCTURES.find(structure => structure.establishmentId === id);
+  if(structure === undefined) {
     throw new Error(`structure ${id} not found`);
   } else {
     return structure;
   }
-}
+};

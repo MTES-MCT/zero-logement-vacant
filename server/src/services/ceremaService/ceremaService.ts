@@ -11,7 +11,7 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultStruct
 
       let uri = '/api/consult/dossiers/lovac';
 
-      if(date != null) {
+      if(date !== null) {
         uri += `?date_min=${date}`;
       }
 
@@ -27,7 +27,7 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultStruct
       );
       const content: any = await response.json();
 
-      if (response.status != 200) {
+      if (response.status !== 200) {
         throw content.detail;
       }
 
@@ -60,7 +60,7 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultStruct
       );
       const content: any = await response.json();
 
-      if (response.status != 200) {
+      if (response.status !== 200) {
         throw content.detail;
       }
 
@@ -72,7 +72,7 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultStruct
           name: structure.raison_sociale,
           perimeter: structure.perimetre,
           kind: structure.formjur,
-        }
+        };
       }
       throw new Error(`structure ${id} not found`);
     } catch (error) {
@@ -95,7 +95,7 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultStruct
       );
       const content: any = await response.json();
 
-      if (response.status != 200) {
+      if (response.status !== 200) {
         throw content.detail;
       }
 

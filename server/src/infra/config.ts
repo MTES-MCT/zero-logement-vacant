@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/shared';
-import { bool } from 'joi';
 
 dotenv.config({
   path: path.join(__dirname, '..', '..', '.env'),

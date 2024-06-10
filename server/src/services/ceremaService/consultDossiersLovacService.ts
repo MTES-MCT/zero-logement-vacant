@@ -20,4 +20,4 @@ export const TEST_DOSSIERS: ReadonlyArray<CeremaDossier> = [
 
 export const getTestDossiers = (): CeremaDossier[] => {
   return TEST_DOSSIERS.map(dossier => dossier);
-}
+};

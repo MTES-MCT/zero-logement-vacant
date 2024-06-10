@@ -36,10 +36,10 @@ const run = async (): Promise<void> => {
     const user = await userRepository.getByEmail(dossier.email);
     if (user === null) {
       const structure = await ceremaService.consultStructure(dossier.establishmentId);
-      const establishment = await db.raw(`select * from establishments where siren=${Number(structure.siret.substring(0, 9))}`)
-      if(establishment.rows.length == 0) {
+      const establishment = await db.raw(`select * from establishments where siren=${Number(structure.siret.substring(0, 9))}`);
+      if(establishment.rows.length === 0) {
         const establishment = await structureToEstablishment(structure);
-        if(establishment.kind == null) {
+        if(establishment.kind === null) {
           logger.warn({
             message: "Establishment has no 'kind'",
             establishmentId: establishment.id,
@@ -79,7 +79,7 @@ const run = async (): Promise<void> => {
   const message = `${count} users invited from Cerema API (LOVAC users)`;
   logger.info(message);
   logScriptExecution("ceremaTask", "SUCCESS", message);
-}
+};
 
 run()
   .catch((e) => {

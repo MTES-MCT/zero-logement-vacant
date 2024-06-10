@@ -12,7 +12,7 @@ import { ConsultStructureService, getTestStructure, Structure } from './consultS
 export class MockCeremaService implements ConsultDossiersLovacService, ConsultStructureService, ConsultUserService {
 
   consultStructure(id: number): Promise<Structure> {
-    return new Promise((resolve) => { resolve(getTestStructure(id)) });
+    return new Promise((resolve) => resolve(getTestStructure(id)));
   }
 
   async consultDossiersLovac(): Promise<CeremaDossier[]> {

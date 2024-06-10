@@ -5,7 +5,8 @@ import { http, HttpResponse, RequestHandler } from 'msw';
 import {
   HousingCountDTO,
   HousingDTO,
-  HousingFiltersDTO
+  HousingFiltersDTO,
+  Paginated
 } from '@zerologementvacant/models';
 import data from './data';
 import config from '../../utils/config';
@@ -19,10 +20,18 @@ type HousingPayload = {
 };
 
 export const housingHandlers: RequestHandler[] = [
-  http.post<Record<string, never>, HousingPayload, HousingDTO[]>(
+  http.post<Record<string, never>, HousingPayload, Paginated<HousingDTO>>(
     `${config.apiEndpoint}/api/housing`,
     async () => {
-      return HttpResponse.json(data.housings);
+      // TODO: use the request payload to filter results
+
+      return HttpResponse.json({
+        page: 1,
+        perPage: 50,
+        filteredCount: data.housings.length,
+        totalCount: data.housings.length,
+        entities: data.housings
+      });
     }
   ),
   http.post<Record<string, never>, HousingPayload, HousingCountDTO>(

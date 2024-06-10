@@ -125,22 +125,26 @@ const CampaignsListView = () => {
                 className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w"
                 key={`${campaign.id}-actions`}
               >
-                { (!isVisitor || isVisitor && !(campaign.status === 'draft' || campaign.status === 'sending')) && (
+                { !(campaign.status === 'draft' || campaign.status === 'sending') && (
                   <Button
                     priority="tertiary"
                     linkProps={{
-                      to: `${
-                        campaign.status === 'draft' ||
-                        campaign.status === 'sending'
-                          ? ''
-                          : '/parc-de-logements'
-                      }/campagnes/${campaign.id}`,
+                      to: `/parc-de-logements/campagnes/${campaign.id}`,
                     }}
                     className={styles.buttonInGroup}
                   >
-                    {campaign.status === 'draft' || campaign.status === 'sending'
-                      ? 'Accéder'
-                      : 'Suivre'}
+                    Suivre
+                  </Button>
+                )}
+                { (!isVisitor && (campaign.status === 'draft' || campaign.status === 'sending')) && (
+                  <Button
+                    priority="tertiary"
+                    linkProps={{
+                      to: `/campagnes/${campaign.id}`,
+                    }}
+                    className={styles.buttonInGroup}
+                  >
+                    Accéder
                   </Button>
                 )}
                 { !isVisitor && campaign.status === 'in-progress' && (

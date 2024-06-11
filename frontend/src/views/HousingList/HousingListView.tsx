@@ -1,7 +1,7 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
@@ -19,6 +19,7 @@ import HousingListTabs from './HousingListTabs';
 import HousingListMap from './HousingListMap';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
+import { useUser } from '../../hooks/useUser';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -52,9 +53,11 @@ const HousingListView = () => {
   const [alert, setAlert] = useState(router.location.state?.alert ?? '');
   function onFinish() {
     setAlert(
-      'Le logement sélectionné a bien été ajouté à votre parc de logements.'
+      'Le logement sélectionné a bien été ajouté à votre parc de logements.',
     );
   }
+
+  const { isVisitor } = useUser();
 
   return (
     <Grid container position="relative">
@@ -90,7 +93,7 @@ const HousingListView = () => {
             <HousingDisplaySwitch />
           </Grid>
           <Grid xs="auto">
-            <HousingCreationModal onFinish={onFinish} />
+            { !isVisitor && <HousingCreationModal onFinish={onFinish} /> }
           </Grid>
         </Grid>
 

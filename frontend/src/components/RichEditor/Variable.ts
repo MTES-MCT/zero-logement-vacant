@@ -1,4 +1,4 @@
-import { VariableOption } from '../../../../shared/models/variable-options';
+import { VariableOption } from '@zerologementvacant/models';
 
 export interface Variable {
   label: string;

@@ -1,11 +1,23 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { Col, Modal, ModalClose, ModalContent, ModalFooter, ModalTitle, Row, Text } from '../../_dsfr';
+import {
+  Col,
+  Modal,
+  ModalClose,
+  ModalContent,
+  ModalFooter,
+  ModalTitle,
+  Row,
+  Text,
+} from '../../_dsfr';
 import { displayCount } from '../../../utils/stringUtils';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import GeoPerimeterEditionModal from '../GeoPerimeterEditionModal/GeoPerimeterEditionModal';
-import { TrackEventActions, TrackEventCategories } from '../../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import {
+  TrackEventActions,
+  TrackEventCategories,
+} from '../../../models/TrackEvent';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import GeoPerimeterUploadingModal from '../GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';
 import AppHelp from '../../_app/AppHelp/AppHelp';
@@ -102,15 +114,15 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
         ? geoPerimeters?.filter(
             (perimeter) =>
               perimeter.name.toLowerCase().search(query.toLowerCase()) !== -1 ||
-              perimeter.kind.toLowerCase().search(query.toLowerCase()) !== -1
+              perimeter.kind.toLowerCase().search(query.toLowerCase()) !== -1,
           )
         : geoPerimeters,
-    [query, geoPerimeters]
+    [query, geoPerimeters],
   );
 
   const invalidGeoPerimeters = useMemo<GeoPerimeter[] | undefined>(
     () => perimeters?.filter((_) => !_.kind?.length),
-    [perimeters]
+    [perimeters],
   );
 
   return (
@@ -144,7 +156,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             particulier, selon vos besoins.
           </Text>
           <Text spacing="mb-0" className="italic">
-            *fichier géographique (SIG) au format .zip comprenant l'ensemble des
+            *fichier géographique (SIG) au format .zip comprenant l’ensemble des
             extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”.
           </Text>
         </AppHelp>
@@ -228,7 +240,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             description={`Il y a ${displayCount(
               invalidGeoPerimeters.length,
               'périmètre',
-              { capitalize: false }
+              { capitalize: false },
             )} qui ${
               invalidGeoPerimeters.length === 1
                 ? "n'est pas valide"

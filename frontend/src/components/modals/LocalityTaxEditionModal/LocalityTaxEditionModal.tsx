@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useMemo, useState } from 'react';
+import { ChangeEvent, useMemo, useState } from 'react';
 import { Col, Container, Row } from '../../_dsfr';
 
 import * as yup from 'yup';
@@ -23,8 +23,10 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
         id: `locality-tax-edition-modal-${locality?.geoCode}`,
         isOpenedByDefault: false,
       }),
-    [locality]
+    [locality],
   );
+
+  const { isVisitor } = useUser();
 
   const [hasTHLV, setHasTHLV] = useState(locality.taxKind === TaxKinds.THLV);
   const [taxRate, setTaxRate] = useState(String(locality.taxRate ?? ''));
@@ -53,13 +55,13 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
 
   return (
     <>
-      <Button
+      { !isVisitor && <Button
         iconId="fr-icon-edit-fill"
         onClick={modal.open}
         title="Modifier"
         priority="tertiary no outline"
         className="d-inline-block"
-      />
+      /> }
       <modal.Component
         title={
           <>

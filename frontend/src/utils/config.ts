@@ -2,8 +2,14 @@ const config = {
   apiEndpoint: process.env.REACT_APP_API_URL,
   banEndpoint: 'https://api-adresse.data.gouv.fr',
   matomo: {
-    urlBase: process.env.REACT_APP_MATOMO_URL_BASE,
-    siteId: process.env.REACT_APP_MATOMO_SITE_ID,
+    enabled:
+      process.env.REACT_APP_MATOMO_ENABLED !== undefined
+        ? process.env.REACT_APP_MATOMO_ENABLED === 'true'
+        : process.env.NODE_ENV === 'production',
+    urlBase: process.env.REACT_APP_MATOMO_URL_BASE ?? 'http://localhost',
+    siteId: process.env.REACT_APP_MATOMO_SITE_ID
+      ? Number(process.env.REACT_APP_MATOMO_SITE_ID)
+      : 1,
     srcUrl: process.env.REACT_APP_MATOMO_SRC_URL,
     linkTracking: true,
   },

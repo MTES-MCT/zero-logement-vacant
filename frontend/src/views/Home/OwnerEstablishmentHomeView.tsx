@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
 
 import { useLocation, useParams } from 'react-router-dom';
@@ -28,7 +28,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 import { useEstablishment } from '../../hooks/useEstablishment';
 import { useCreateOwnerProspectMutation } from '../../services/owner-prospect.service';
@@ -43,12 +43,12 @@ const OwnerEstablishmentHomeView = () => {
     useCreateOwnerProspectMutation();
 
   const { addressSearchResult } = useAppSelector(
-    (state) => state.ownerProspect
+    (state) => state.ownerProspect,
   );
 
   const isLocality = useMemo(
     () => pathname.startsWith('/communes'),
-    [pathname]
+    [pathname],
   );
 
   const { refName, geoCode } = useMemo(
@@ -60,7 +60,7 @@ const OwnerEstablishmentHomeView = () => {
         ? establishmentRef.slice(establishmentRef.lastIndexOf('-') + 1)
         : undefined,
     }),
-    [establishmentRef, isLocality]
+    [establishmentRef, isLocality],
   );
 
   const { establishment, nearbyEstablishments, epciEstablishment } =
@@ -79,7 +79,7 @@ const OwnerEstablishmentHomeView = () => {
       skip: !(establishment?.available
         ? establishment?.id
         : epciEstablishment?.id),
-    }
+    },
   );
 
   useDocumentTitle(establishment?.name);
@@ -276,7 +276,7 @@ const OwnerEstablishmentHomeView = () => {
             </Title>
             <Text>
               En mettant votre bien en location ou en le vendant pour qu’il soit
-              réoccupé, vous aiderez les personnes en quête d'un logement. Vous
+              réoccupé, vous aiderez les personnes en quête d’un logement. Vous
               contribuerez aussi à la vitalité ou à la revitalisation de votre
               territoire.
             </Text>
@@ -309,7 +309,7 @@ const OwnerEstablishmentHomeView = () => {
                   className={classNames(
                     styles.ownerFormContainer,
                     'fr-col-12',
-                    'fr-col-sm-7'
+                    'fr-col-sm-7',
                   )}
                 >
                   <Text className="color-bf525" spacing="mb-1w">

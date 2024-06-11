@@ -1,3 +1,7 @@
+import { faker } from '@faker-js/faker';
+import { addHours } from 'date-fns';
+import randomstring from 'randomstring';
+
 import { Owner } from '../src/models/Owner';
 import { Address } from '../src/models/Address';
 import { Housing, OccupancyKind, OwnershipKinds } from '../src/models/Housing';
@@ -6,7 +10,6 @@ import { Campaign } from '../src/models/Campaign';
 import { initialHousingFilters } from '../src/store/reducers/housingReducer';
 import { PaginatedResult } from '../src/models/PaginatedResult';
 import { SignupLink } from '../src/models/SignupLink';
-import { addHours } from 'date-fns';
 import { Prospect } from '../src/models/Prospect';
 import { LocalityKinds } from '../src/models/Locality';
 import { HousingStatus } from '../src/models/HousingState';
@@ -14,8 +17,6 @@ import { Group } from '../src/models/Group';
 import { DatafoncierHousing } from '../../shared';
 import { Draft } from '../src/models/Draft';
 import { Sender } from '../src/models/Sender';
-
-const randomstring = require('randomstring');
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -35,11 +36,13 @@ export function genEmail() {
   return `${name}@${domain}.com`;
 }
 
-export function genNumber(length = 10) {
-  return randomstring.generate({
-    length,
-    charset: 'numeric',
-  });
+export function genNumber(length = 10): number {
+  return Number(
+    randomstring.generate({
+      length,
+      charset: 'numeric',
+    }),
+  );
 }
 
 export function genAuthUser(): AuthUser {
@@ -47,13 +50,13 @@ export function genAuthUser(): AuthUser {
     accessToken: randomstring.generate(),
     user: genUser(),
     establishment: {
-      id: genNumber(10),
+      id: faker.string.uuid(),
       name: randomstring.generate(),
       siren: genNumber(10),
       kind: 'Commune',
       available: genBoolean(),
       shortName: randomstring.generate(),
-      geoCodes: [genNumber(5)],
+      geoCodes: [faker.location.zipCode()],
       campaignIntent: randomstring.generate(),
     },
   };
@@ -184,7 +187,7 @@ export function genProspect(): Prospect {
     email: genEmail(),
     establishment: {
       id: randomstring.generate(),
-      siren: randomstring.generate(),
+      siren: genSiren(),
       campaignIntent: '0-2',
     },
     hasAccount: genBoolean(),

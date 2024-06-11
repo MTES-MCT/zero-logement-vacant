@@ -1,9 +1,8 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
-import Button from '@codegouvfr/react-dsfr/Button';
 import Table from '@codegouvfr/react-dsfr/Table';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 import { Campaign } from '../../models/Campaign';
 import { useHousingList } from '../../hooks/useHousingList';
@@ -12,6 +11,7 @@ import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
 import AppLink from '../_app/AppLink/AppLink';
 import { Housing } from '../../models/Housing';
 import { useRemoveCampaignHousingMutation } from '../../services/campaign.service';
+import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 
 interface Props {
   campaign: Campaign;
@@ -37,7 +37,7 @@ function CampaignRecipients(props: Props) {
   function formatAddress(address: Address): ReactNode[] {
     return (addressToString(address) as string)
       .split('\n')
-      .map((line) => <Typography>{line}</Typography>);
+      .map((line) => <Typography key={line}>{line}</Typography>);
   }
 
   const headers: ReactNode[] = [
@@ -50,7 +50,11 @@ function CampaignRecipients(props: Props) {
   ];
   const data: ReactNode[][] = (housingList ?? []).map((housing, i) => [
     `# ${i}`,
-    <AppLink isSimple to={`/logements/${housing.id}`}>
+    <AppLink
+      isSimple
+      key={`${housing.id}-address`}
+      to={`/logements/${housing.id}`}
+    >
       {housing.rawAddress.map((line) => (
         <>
           {line}
@@ -58,7 +62,11 @@ function CampaignRecipients(props: Props) {
         </>
       ))}
     </AppLink>,
-    <AppLink isSimple to={`/proprietaires/${housing.owner.id}`}>
+    <AppLink
+      isSimple
+      key={`${housing.id}-name`}
+      to={`/proprietaires/${housing.owner.id}`}
+    >
       {housing.owner.fullName}
     </AppLink>,
     <>
@@ -72,15 +80,23 @@ function CampaignRecipients(props: Props) {
       )}
     </>,
     housing.owner.additionalAddress,
-    <Grid container>
+    <Grid container key={`${housing.id}-actions`}>
       <OwnerEditionSideMenu className="fr-mr-1w" owner={housing.owner} />
-      <Button
-        iconId="fr-icon-close-line"
-        priority="tertiary"
-        size="small"
-        title="Supprimer le propriétaire"
-        onClick={() => removeHousing(housing)}
-      />
+      <ConfirmationModal
+        modalId="campaign-recipient-removal"
+        openingButtonProps={{
+          iconId: 'fr-icon-close-line',
+          priority: 'tertiary',
+          size: 'small',
+          title: 'Supprimer le propriétaire',
+        }}
+        title="Suppression d’un propriétaire"
+        onSubmit={() => removeHousing(housing)}
+      >
+        <Typography>
+          Vous êtes sur le point de supprimer ce destinataire de la campagne.
+        </Typography>
+      </ConfirmationModal>
     </Grid>,
   ]);
 

@@ -1,8 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryHistory, History } from 'history';
 import { Provider } from 'react-redux';
-import { Link, Route, Router } from 'react-router-dom';
+import { Link, MemoryRouter as Router, Route } from 'react-router-dom';
 
 import {
   genAddress,
@@ -10,6 +9,7 @@ import {
   genDraft,
   genHousing,
   genOwner,
+  genPaginatedResult,
   genSender,
 } from '../../../../test/fixtures.test';
 import configureTestStore from '../../../utils/test/storeUtils';
@@ -22,6 +22,7 @@ import { Campaign } from '../../../models/Campaign';
 import { Housing } from '../../../models/Housing';
 import { HousingPaginatedResult } from '../../../models/PaginatedResult';
 import { Owner } from '../../../models/Owner';
+import fp from 'lodash/fp';
 
 describe('Campaign view', () => {
   const user = userEvent.setup();
@@ -29,29 +30,13 @@ describe('Campaign view', () => {
   const campaign = genCampaign();
   const sender = genSender();
   const draft = genDraft(sender);
-  const houses = Array.from({ length: 1 }, () => genHousing());
+  const houses = Array.from({ length: 3 }, () => genHousing());
 
   let store: AppStore;
-  let router: History;
 
   beforeEach(() => {
     store = configureTestStore();
-    router = createMemoryHistory({
-      initialEntries: [`/campagnes/${campaign.id}`],
-    });
   });
-
-  function renderComponent(): void {
-    render(
-      <Provider store={store}>
-        <Notification />
-        <Router history={router}>
-          <Link to="/campagnes">Campagnes</Link>
-          <Route path="/campagnes/:id" component={CampaignView} />
-        </Router>
-      </Provider>
-    );
-  }
 
   it('should display "Page non trouvée" if the campaign does not exist', async () => {
     mockRequests([
@@ -83,10 +68,31 @@ describe('Campaign view', () => {
       },
     ]);
 
-    renderComponent();
+    render(
+      <Provider store={store}>
+        <Notification />
+        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
+          <Link to="/campagnes">Campagnes</Link>
+          <Route path="/campagnes/:id" component={CampaignView} />
+        </Router>
+      </Provider>,
+    );
 
-    await screen.findByText('Page non trouvée');
+    const page = await screen.findByText('Page non trouvée');
+    expect(page).toBeVisible();
   });
+
+  function renderComponent(): void {
+    render(
+      <Provider store={store}>
+        <Notification />
+        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
+          <Link to="/campagnes">Campagnes</Link>
+          <Route path="/campagnes/:id" component={CampaignView} />
+        </Router>
+      </Provider>,
+    );
+  }
 
   it('should render', async () => {
     mockRequests([
@@ -99,7 +105,15 @@ describe('Campaign view', () => {
       {
         pathname: `/api/drafts?campaign=${campaign.id}`,
         response: {
-          body: JSON.stringify([draft]),
+          body: JSON.stringify([]),
+        },
+      },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        persist: true,
+        response: {
+          body: JSON.stringify(genPaginatedResult([])),
         },
       },
       {
@@ -192,6 +206,7 @@ describe('Campaign view', () => {
     });
     await user.click(save);
     expect(modal).not.toBeVisible();
+    await screen.findByRole('heading', { name: title });
   });
 
   it('should save the draft if at least one field is filled', async () => {
@@ -251,7 +266,7 @@ describe('Campaign view', () => {
 
     const form = await screen.findByRole('form');
     const name = await within(form).findByLabelText(
-      'Nom de la collectivité ou de l’administration*'
+      'Nom de la collectivité ou de l’administration*',
     );
     if (sender.name) {
       await user.type(name, sender.name);
@@ -326,7 +341,7 @@ describe('Campaign view', () => {
     const form = await screen.findByRole('form');
     if (sender.name) {
       const name = await within(form).findByLabelText(
-        'Nom de la collectivité ou de l’administration*'
+        'Nom de la collectivité ou de l’administration*',
       );
       await user.clear(name);
       await user.type(name, sender.name);
@@ -494,11 +509,8 @@ describe('Campaign view', () => {
       {
         pathname: `/api/owners/${housing.owner.id}`,
         method: 'PUT',
-        response: async (request) => {
-          const payload = await request.json();
-          return {
-            body: JSON.stringify(updated),
-          };
+        response: {
+          body: JSON.stringify(updated),
         },
       },
       {
@@ -535,8 +547,88 @@ describe('Campaign view', () => {
     expect(alert).toHaveTextContent(/^Sauvegardé !/);
   });
 
+  it('should confirm a recipient removal', async () => {
+    let housings = Array.from({ length: 3 }, () => genHousing());
+
+    mockRequests([
+      {
+        pathname: `/api/campaigns/${campaign.id}`,
+        response: {
+          body: JSON.stringify(campaign),
+        },
+      },
+      {
+        pathname: `/api/drafts?campaign=${campaign.id}`,
+        response: {
+          body: JSON.stringify([draft]),
+        },
+      },
+      {
+        pathname: '/api/housing/count',
+        method: 'POST',
+        persist: true,
+        response: async () => {
+          return {
+            body: JSON.stringify({
+              housing: housings.length,
+              owners: fp.uniqBy(
+                'id',
+                housings.map((housing) => housing.owner),
+              ),
+            }),
+          };
+        },
+      },
+      {
+        pathname: '/api/housing',
+        method: 'POST',
+        persist: true,
+        response: async () => {
+          return {
+            body: JSON.stringify({
+              entities: housings,
+              loading: false,
+              page: 1,
+              perPage: 50,
+            } as HousingPaginatedResult),
+          };
+        },
+      },
+      {
+        pathname: `/api/campaigns/${campaign.id}/housing`,
+        method: 'DELETE',
+        response: async (request) => {
+          const payload = await request.json();
+          housings = housings.filter(
+            (housing) => !payload.ids.includes(housing.id),
+          );
+          return {
+            status: 204,
+          };
+        },
+      },
+    ]);
+
+    renderComponent();
+
+    const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
+    await user.click(tab);
+    const rowsBefore = screen.getAllByRole('row').slice(1); // Remove headers
+    expect(rowsBefore).toHaveLength(housings.length);
+    const row = rowsBefore[rowsBefore.length - 1];
+    const remove = within(row).getByTitle(/^Supprimer le propriétaire/);
+    await user.click(remove);
+    const dialog = await screen.findByRole('dialog');
+    const confirm = within(dialog).getByRole('button', {
+      name: /^Confirmer/,
+    });
+    await user.click(confirm);
+    const rowsAfter = screen.getAllByRole('row').slice(1);
+    expect(rowsAfter).toHaveLength(rowsBefore.length - 1);
+  });
+
   // Hard to mock window.confirm because it's a browser-level function
   it.todo(
-    'should warn the user before leaving the page if they have unsaved changes'
+    'should warn the user before leaving the page if they have unsaved changes',
   );
 });

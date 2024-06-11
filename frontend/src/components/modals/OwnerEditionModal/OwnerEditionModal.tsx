@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Col, Row } from '../../_dsfr';
 import { Owner } from '../../../models/Owner';
 
@@ -17,6 +17,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
+import { useUser } from '../../../hooks/useUser';
 
 const modal = createModal({
   id: 'owner-edition-modal',
@@ -29,15 +30,16 @@ interface Props {
 }
 
 const OwnerEditionModal = ({ owner, onCancel }: Props) => {
+  const { isVisitor } = useUser();
   const [fullName, setFullName] = useState(owner?.fullName ?? '');
   const [birthDate, setBirthDate] = useState(
-    owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : ''
+    owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : '',
   );
   const [banAddress, setBanAddress] = useState(owner?.banAddress);
   const [email, setEmail] = useState(owner?.email);
   const [phone, setPhone] = useState(owner?.phone);
   const [additionalAddress, setAdditionalAddress] = useState(
-    owner?.additionalAddress
+    owner?.additionalAddress,
   );
 
   const [updateOwner, { isError: isUpdateError }] = useUpdateOwnerMutation();
@@ -79,7 +81,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
 
   return (
     <>
-      <Button
+      { !isVisitor && <Button
         className="float-right fr-pr-0"
         iconId="fr-icon-edit-fill"
         priority="tertiary no outline"
@@ -87,7 +89,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
         onClick={modal.open}
       >
         Modifier
-      </Button>
+      </Button> }
       <modal.Component
         size="large"
         buttons={[

@@ -1,5 +1,4 @@
 import { Container, Text, Title } from '../../../components/_dsfr';
-import React from 'react';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import { fr } from '@codegouvfr/react-dsfr';
 import classNames from 'classnames';
@@ -20,7 +19,7 @@ function AccountAccessForbiddenView() {
         <Accordion label="Votre structure n’est pas autorisée à accéder aux données LOVAC">
           <Text className="color-grey-50" size="sm">
             Pour pouvoir accéder à Zéro Logement Vacant, vous devez signer et
-            transmettre l'acte d'engagement permettant d'accéder aux données
+            transmettre l’acte d’engagement permettant d’accéder aux données
             LOVAC en suivant la procédure indiquée sur 
             <AppLink
               isSimple
@@ -41,7 +40,7 @@ function AccountAccessForbiddenView() {
           <Text className="color-grey-50 fr-mb-0" size="sm">
             Dans ce cas, 
             <AppLink isSimple to="/inscription/email" size="sm">
-              réessayez avec l'adresse mail utilisée sur Démarches Simplifiées
+              réessayez avec l’adresse mail utilisée sur Démarches Simplifiées
             </AppLink>
             . Si vous ne savez pas quelle adresse a été utilisée, veuillez vous
             rendre sur 
@@ -63,11 +62,11 @@ function AccountAccessForbiddenView() {
               to="https://consultdf.cerema.fr/consultdf/parcours-utilisateur/structure/"
               size="sm"
             >
-              gestionnaire de droits d'accès du Cerema
+              gestionnaire de droits d’accès du Cerema
             </AppLink>
-             pour soumettre votre demande d'accès aux données foncières avec
-            votre mail, puis demandez à l'administrateur de votre structure
-            d'accepter votre demande d'accès.
+             pour soumettre votre demande d’accès aux données foncières avec
+            votre mail, puis demandez à l’administrateur de votre structure
+            d’accepter votre demande d’accès.
           </Text>
         </Accordion>
       </div>
@@ -88,7 +87,7 @@ function AccountAccessForbiddenView() {
         iconId="fr-icon-arrow-left-line"
         iconPosition="left"
       >
-        Revenir à l'écran d'accueil
+        Revenir à l’écran d’accueil
       </AppLink>
     </>
   );

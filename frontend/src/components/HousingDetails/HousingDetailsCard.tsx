@@ -1,9 +1,9 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import { useMatomo } from '@datapunt/matomo-tracker-react';
+import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Col, Icon, Row, Title } from '../_dsfr';
 import styles from './housing-details-card.module.scss';
@@ -27,6 +27,7 @@ import {
   TrackEventActions,
   TrackEventCategories,
 } from '../../models/TrackEvent';
+import { useUser } from '../../hooks/useUser';
 
 interface Props {
   housing: Housing;
@@ -41,6 +42,7 @@ function HousingDetailsCard({
   housingNotes,
   housingCampaigns,
 }: Props) {
+  const { isVisitor } = useUser();
   const { trackEvent } = useMatomo();
   const [updateHousing] = useUpdateHousingMutation();
 
@@ -48,15 +50,15 @@ function HousingDetailsCard({
     useState(false);
 
   const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
-    housing.id
+    housing.id,
   );
   const { refetch: refetchHousingNotes } = useFindNotesByHousingQuery(
-    housing.id
+    housing.id,
   );
 
   const submitHousingUpdate = async (
     housing: Housing,
-    housingUpdate: HousingUpdate
+    housingUpdate: HousingUpdate,
   ) => {
     trackEvent({
       category: TrackEventCategories.Housing,
@@ -81,35 +83,37 @@ function HousingDetailsCard({
           <span className="card-title-icon">
             <Icon name="fr-icon-home-4-fill" iconPosition="center" size="1x" />
           </span>
-          <Button
+          { !isVisitor && <Button
             onClick={() => setIsHousingListEditionExpand(true)}
             className="fr-ml-1w float-right"
           >
             Mettre à jour / Ajouter une note
-          </Button>
+          </Button> }
           <HousingEditionSideMenu
             housing={housing}
             expand={isHousingListEditionExpand}
             onSubmit={submitHousingUpdate}
             onClose={() => setIsHousingListEditionExpand(false)}
           />
-          <Title as="h1" look="h4" spacing="mb-1w">
-            {housing.rawAddress.join(' - ')}
-            <AppLink
-              title="Voir sur la carte - nouvelle fenêtre"
-              to={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
-              target="_blank"
-              iconPosition="left"
-              className={classNames(
-                styles.link,
-                'fr-link',
-                'fr-ml-3w',
-                'float-right'
-              )}
-            >
-              Voir sur la carte
-            </AppLink>
-          </Title>
+          { !isVisitor && (
+            <Title as="h1" look="h4" spacing="mb-1w">
+              {housing.rawAddress.join(' - ')}
+              <AppLink
+                title="Voir sur la carte - nouvelle fenêtre"
+                to={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
+                target="_blank"
+                iconPosition="left"
+                className={classNames(
+                  styles.link,
+                  'fr-link',
+                  'fr-ml-3w',
+                  'float-right',
+                )}
+              >
+                Voir sur la carte
+              </AppLink>
+            </Title>
+          )}
         </>
       }
       desc={
@@ -122,7 +126,7 @@ function HousingDetailsCard({
                 event.kind === 'Update' &&
                 event.section === 'Situation' &&
                 event.name === "Modification du statut d'occupation" &&
-                event.old.occupancy !== event.new.occupancy
+                event.old.occupancy !== event.new.occupancy,
             )}
           />
           <HousingDetailsCardMobilisation

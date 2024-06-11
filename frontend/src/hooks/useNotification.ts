@@ -36,6 +36,7 @@ export function useNotification(props: NotificationProps) {
         type: 'error',
         toastId,
       });
+      return;
     }
 
     if (props.isSuccess) {

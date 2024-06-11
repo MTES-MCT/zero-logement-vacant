@@ -1,2 +1,2 @@
-web: npm run start
-queue: npm run queue:start
+web: yarn workspace @zerologementvacant/server start
+queue: yarn workspace @zerologementvacant/queue run start

@@ -76,7 +76,6 @@ function ModalStepper(props: Props) {
 
   return (
     <>
-      {/* @ts-ignore */}
       <Button {...props.openingButtonProps} onClick={open} />
       <modal.Component {...props} buttons={buttons} title={currentStep?.title}>
         <currentStep.Component ref={ref} />

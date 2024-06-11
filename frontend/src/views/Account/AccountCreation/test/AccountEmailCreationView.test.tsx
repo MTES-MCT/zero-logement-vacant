@@ -1,27 +1,33 @@
 import { render, screen } from '@testing-library/react';
-import { Router } from 'react-router-dom';
+import { MemoryRouter as Router, Route } from 'react-router-dom';
 import AccountEmailCreationView from '../AccountEmailCreationView';
 import userEvent from '@testing-library/user-event';
-import { createMemoryHistory } from 'history';
 import { store } from '../../../../store/store';
 import { Provider } from 'react-redux';
 
 describe('AccountEmailCreationView', () => {
   const user = userEvent.setup();
-  const history = createMemoryHistory();
 
   function setup() {
     render(
       <Provider store={store}>
-        <Router history={history}>
-          <AccountEmailCreationView />
+        <Router initialEntries={['/inscription/email']}>
+          <Route
+            path="/inscription/email"
+            component={AccountEmailCreationView}
+          />
+          <Route path="/inscription/activation">Activation</Route>
+          <Route exact path="/">
+            Accueil
+          </Route>
         </Router>
-      </Provider>
+      </Provider>,
     );
   }
 
   it('should render', () => {
     setup();
+
     const title = screen.getByText('Créer votre compte');
     expect(title).toBeVisible();
   });
@@ -34,7 +40,7 @@ describe('AccountEmailCreationView', () => {
     await user.keyboard('{Enter}');
 
     const error = await screen.findByText(
-      "L'adresse doit être un email valide"
+      "L'adresse doit être un email valide",
     );
     expect(error).toBeVisible();
   });
@@ -47,7 +53,7 @@ describe('AccountEmailCreationView', () => {
     await user.type(input, email);
     await user.keyboard('{Enter}');
 
-    expect(history.location.pathname).toBe('/inscription/activation');
-    expect(history.location.state).toStrictEqual({ email });
+    const title = await screen.findByText('Activation');
+    expect(title).toBeVisible();
   });
 });

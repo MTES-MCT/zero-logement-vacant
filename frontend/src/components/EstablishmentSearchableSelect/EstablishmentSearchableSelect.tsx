@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SearchableSelect } from '../_dsfr';
 import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
 import _ from 'lodash';
@@ -12,7 +12,7 @@ interface Props {
 
 const EstablishmentSearchableSelect = ({
   onChange,
-  initialEstablishmentOption,
+  initialEstablishmentOption
 }: Props) => {
   const { availableEstablishmentOptions } = useAvailableEstablishments();
   const [establishmentOptions, setEstablishmentOptions] = useState<
@@ -37,7 +37,7 @@ const EstablishmentSearchableSelect = ({
           setEstablishmentOptions(
             _.map((establishment) => ({
               value: establishment.id,
-              label: establishment.name,
+              label: establishment.name
             }))
           )
         )

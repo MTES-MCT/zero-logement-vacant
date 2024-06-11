@@ -1,7 +1,7 @@
-import React from 'react';
 import styles from './map-controls.module.scss';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
+import { useUser } from '../../hooks/useUser';
 
 interface Props {
   clusterize: boolean;
@@ -11,6 +11,9 @@ interface Props {
 }
 
 function MapControls(props: Props) {
+
+  const { isVisitor } = useUser();
+
   return (
     <section className={styles.controls}>
       <ToggleSwitch
@@ -19,7 +22,7 @@ function MapControls(props: Props) {
         onChange={props.onPerimetersChange}
       />
 
-      <GeoPerimetersModalLink />
+      { !isVisitor && <GeoPerimetersModalLink /> }
 
       <hr />
 

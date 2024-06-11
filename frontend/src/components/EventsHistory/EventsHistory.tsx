@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Text } from '../_dsfr';
 import styles from './events-history.module.scss';
 import { differenceInMilliseconds, format } from 'date-fns';
@@ -49,7 +49,7 @@ const EventsHistory = ({ events, notes }: Props) => {
             <div className={styles.eventData}>
               <span className={styles.eventDate}>
                 {format(eventOrNote.createdAt, 'dd MMMM yyyy, HH:mm', {
-                  locale: fr,
+                  locale: fr
                 })}
               </span>
               <span className="fr-mx-1w">par</span>
@@ -99,7 +99,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                                   'd-inline-block'
                                 )}
                               >
-                                Ce logement <b>n'est plus présent</b> dans Lovac
+                                Ce logement <b>n’est plus présent</b> dans Lovac
                               </div>
                             )}
                           </>
@@ -116,7 +116,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                               </>
                             ) : (
                               <>
-                                Ce logement <b>n'est plus présent</b> dans Lovac
+                                Ce logement <b>n’est plus présent</b> dans Lovac
                               </>
                             )}
                           </div>
@@ -165,7 +165,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                                     'd-inline-block'
                                   )}
                                 >
-                                  Ce logement <b>n'est plus présent</b> dans
+                                  Ce logement <b>n’est plus présent</b> dans
                                   Lovac
                                 </div>
                               )}
@@ -229,7 +229,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                       __html: eventOrNote.content.replaceAll(
                         /(\n|\\n)/g,
                         '<br />'
-                      ),
+                      )
                     }}
                     className={styles.eventContent}
                   />

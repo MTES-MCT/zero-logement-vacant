@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "references": [
+    { "path": "../packages/draft/tsconfig.build.json" },
+    { "path": "../packages/models/tsconfig.build.json" },
+    { "path": "../packages/utils/tsconfig.build.json" },
+    { "path": "../queue/tsconfig.build.json" },
+    { "path": "../shared/tsconfig.build.json" }
+  ],
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
+}

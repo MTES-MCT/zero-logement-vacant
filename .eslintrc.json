@@ -1,4 +1,5 @@
 {
+  "root": true,
   "env": {
     "es2021": true,
     "node": true
@@ -10,7 +11,7 @@
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 13,
+    "ecmaVersion": 2023,
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint", "import"],
@@ -20,5 +21,36 @@
     "import/no-commonjs": "error",
     "eqeqeq": ["error", "always"],
     "semi": ["error", "always"]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["frontend/src/**/*.ts?(x)"],
+      "extends": [
+        "plugin:react/recommended",
+        "plugin:react/jsx-runtime",
+        "plugin:react-hooks/recommended"
+      ],
+      "settings": {
+        "react": {
+          "version": "detect"
+        }
+      },
+      "rules": {
+        "no-irregular-whitespace": ["error", { "skipJSXText": true }]
+      },
+      "overrides": [
+        {
+          "files": ["frontend/src/**/*.test.ts?(x)"],
+          "extends": [
+            "plugin:jest/recommended",
+            "plugin:testing-library/react"
+          ],
+          "rules": {
+            "jest/expect-expect": "off",
+            "react/display-name": "off"
+          }
+        }
+      ]
+    }
+  ]
 }

@@ -6,7 +6,6 @@ import {
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
-import React from 'react';
 import LoadingBar from 'react-redux-loading-bar';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -24,10 +23,10 @@ import logo from '../../assets/images/zlv.svg';
 function SmallHeader() {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { displayName, establishment, isAdmin, isAuthenticated } = useUser();
+  const { displayName, establishment, isAdmin, isVisitor, isAuthenticated } = useUser();
 
   function getMainNavigationItem(
-    navItem: UserNavItems
+    navItem: UserNavItems,
   ): MainNavigationProps.Item {
     const link = getUserNavItem(navItem);
     return {
@@ -84,7 +83,7 @@ function SmallHeader() {
           />
           <Grid alignItems="center" display="flex" ml="auto">
             {isAuthenticated ? (
-              isAdmin ? (
+              (isAdmin || isVisitor) ? (
                 <EstablishmentSearchableSelect
                   initialEstablishmentOption={
                     establishment

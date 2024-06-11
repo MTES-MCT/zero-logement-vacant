@@ -114,8 +114,8 @@ function CampaignSending(props: Readonly<Props>) {
                   Une fois la date d’envoi confirmée, vous ne pourrez plus
                   télécharger vos courriers et vos destinataires. Si vous avez
                   bien effectué le téléchargement, vous pouvez cliquer sur
-                  "Confirmer" et commencer le suivi de votre campagne. Sinon,
-                  cliquez sur "Annuler" pour revenir en arrière et télécharger
+                  “Confirmer” et commencer le suivi de votre campagne. Sinon,
+                  cliquez sur “Annuler” pour revenir en arrière et télécharger
                   les courriers et destinataires avant de confirmer.
                 </p>
               </div>

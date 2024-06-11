@@ -2,6 +2,7 @@ import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
 import {
   ForwardRefExoticComponent,
+  PropsWithoutRef,
   RefAttributes,
   useRef,
   useState,
@@ -83,7 +84,6 @@ function ModalGraphStepper(props: Props) {
 
   return (
     <>
-      {/* @ts-ignore */}
       <Button {...props.openingButtonProps} onClick={open} />
       <modal.Component {...props} buttons={buttons} title={props.title}>
         <stepper.currentStep.Component ref={ref} />
@@ -93,7 +93,9 @@ function ModalGraphStepper(props: Props) {
 }
 
 export interface Step extends Identifiable {
-  Component: ForwardRefExoticComponent<RefAttributes<StepProps>>;
+  Component: ForwardRefExoticComponent<
+    PropsWithoutRef<StepProps> & RefAttributes<unknown>
+  >;
 }
 
 export interface StepProps {

@@ -3,12 +3,15 @@ import { getBuildingLocation, Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import { LocalityKindLabels } from '../../models/Locality';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
+import { useUser } from '../../hooks/useUser';
 
 interface Props {
   housing: Housing;
 }
 
 function HousingDetailsCardLocation({ housing }: Props) {
+  const { isVisitor } = useUser();
+
   return (
     <HousingDetailsSubCard title="Localisation" isGrey>
       <div>
@@ -55,7 +58,8 @@ function HousingDetailsCardLocation({ housing }: Props) {
           Périmètres associés
         </Text>
         <Text spacing="mb-1w">{housing.geoPerimeters?.join(', ')}</Text>
-        <GeoPerimetersModalLink />
+
+        {!isVisitor && <GeoPerimetersModalLink /> }
       </div>
     </HousingDetailsSubCard>
   );

@@ -26,6 +26,8 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
     [locality],
   );
 
+  const { isVisitor } = useUser();
+
   const [hasTHLV, setHasTHLV] = useState(locality.taxKind === TaxKinds.THLV);
   const [taxRate, setTaxRate] = useState(String(locality.taxRate ?? ''));
 
@@ -53,13 +55,13 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
 
   return (
     <>
-      <Button
+      { !isVisitor && <Button
         iconId="fr-icon-edit-fill"
         onClick={modal.open}
         title="Modifier"
         priority="tertiary no outline"
         className="d-inline-block"
-      />
+      /> }
       <modal.Component
         title={
           <>

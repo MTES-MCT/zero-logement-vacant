@@ -81,4 +81,5 @@ export interface TokenPayload {
 export enum UserRoles {
   Usual,
   Admin,
+  Visitor,
 }

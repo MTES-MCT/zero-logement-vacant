@@ -47,4 +47,5 @@ export interface DraftUser {
 export enum UserRoles {
   Usual,
   Admin,
+  Visitor,
 }

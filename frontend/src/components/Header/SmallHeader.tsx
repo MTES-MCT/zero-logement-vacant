@@ -23,7 +23,7 @@ import logo from '../../assets/images/zlv.svg';
 function SmallHeader() {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { displayName, establishment, isAdmin, isAuthenticated } = useUser();
+  const { displayName, establishment, isAdmin, isVisitor, isAuthenticated } = useUser();
 
   function getMainNavigationItem(
     navItem: UserNavItems,
@@ -83,7 +83,7 @@ function SmallHeader() {
           />
           <Grid alignItems="center" display="flex" ml="auto">
             {isAuthenticated ? (
-              isAdmin ? (
+              (isAdmin || isVisitor) ? (
                 <EstablishmentSearchableSelect
                   initialEstablishmentOption={
                     establishment

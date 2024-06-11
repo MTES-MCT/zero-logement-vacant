@@ -18,7 +18,7 @@ function Header() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { trackPageView } = useMatomo();
-  const { isAdmin, isAuthenticated } = useUser();
+  const { isAdmin, isVisitor, isAuthenticated } = useUser();
 
   const { authUser } = useAppSelector((state) => state.authentication);
 
@@ -66,7 +66,7 @@ function Header() {
         serviceTitle="Zéro Logement Vacant"
         serviceTagline={
           isAuthenticated ? (
-            isAdmin ? (
+            (isAdmin || isVisitor) ? (
               <EstablishmentSearchableSelect
                 initialEstablishmentOption={
                   authUser

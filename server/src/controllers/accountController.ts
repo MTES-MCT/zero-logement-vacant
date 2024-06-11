@@ -93,7 +93,7 @@ async function signInToEstablishment(
 async function changeEstablishment(request: Request, response: Response) {
   const { user } = request as AuthenticatedRequest;
 
-  if (user.role !== UserRoles.Admin) {
+  if (user.role !== UserRoles.Admin && user.role !== UserRoles.Visitor) {
     throw new AuthenticationFailedError();
   }
 

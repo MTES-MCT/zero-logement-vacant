@@ -19,7 +19,7 @@ COPY analytics/dagster/src $DAGSTER_HOME/src
 
 WORKDIR $DAGSTER_HOME
 
-RUN htpasswd -cB /etc/nginx/.htpasswd ${DAGSTER_USERNAME} ${DAGSTER_PASSWORD}
+RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
 
 RUN rm /etc/nginx/sites-enabled/default
 ADD ./docker/dagster/nginx/nginx.conf /etc/nginx/sites-available/dagster

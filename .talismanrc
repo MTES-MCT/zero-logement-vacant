@@ -65,7 +65,7 @@ fileignoreconfig:
 - filename: queue/src/queue.ts
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
-  checksum: 41da3e10d379e478b7083d1588b78219ed02fcdde1fe913afeecbd37981bc268
+  checksum: c781e5dd605469840a3bc8ed26fb7ca72610ae4feea1dabbf36be841412a02a6
 - filename: server/controllers/draftController.ts
   checksum: 3627d5cc7172a79998517e1982424462c61116e248e5b6bd29aced81470113e6
 - filename: server/repositories/campaignRepository.ts
@@ -91,10 +91,4 @@ scopeconfig:
 allowed_patterns:
 - key=\{.+\}
 - keyof
-version: "1.0"
-9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
 version: "1.0"

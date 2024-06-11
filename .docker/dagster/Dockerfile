@@ -1,5 +1,11 @@
 FROM python:3.10-slim
 
+# ARG DAGSTER_PASSWORD=zlv
+# ARG DAGSTER_USERNAME=zlv
+
+# ENV DAGSTER_PASSWORD=$DAGSTER_PASSWORD
+# ENV DAGSTER_USERNAME=$DAGSTER_USERNAME
+
 RUN apt-get update && apt-get install -y nginx apache2-utils
 
 RUN pip install dagster-webserver dagster-postgres dagster-aws
@@ -22,7 +28,7 @@ WORKDIR $DAGSTER_HOME
 RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
 
 RUN rm /etc/nginx/sites-enabled/default
-ADD ./docker/dagster/nginx/nginx.conf /etc/nginx/sites-available/dagster
+ADD .docker/dagster/nginx/nginx.conf /etc/nginx/sites-available/dagster
 RUN ln -s /etc/nginx/sites-available/dagster /etc/nginx/sites-enabled/dagster
 
 COPY ./docker/dagster/nginx/nginx.conf /etc/nginx/nginx.conf

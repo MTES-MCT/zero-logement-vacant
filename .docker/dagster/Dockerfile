@@ -25,14 +25,9 @@ COPY analytics/dagster/src $DAGSTER_HOME/src
 
 WORKDIR $DAGSTER_HOME
 
+# Setup Nginx configuration
 RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
-
-RUN rm /etc/nginx/sites-enabled/default
-ADD analytics/dagster/docker/nginx/nginx.conf /etc/nginx/sites-available/dagster
-RUN ln -s /etc/nginx/sites-available/dagster /etc/nginx/sites-enabled/dagster
-
-COPY analytics/dagster/docker/nginx/nginx.conf /etc/nginx/nginx.conf
-
+COPY docker/nginx/nginx.conf /etc/nginx/sites-available/default
 
 EXPOSE 8080 3000
 

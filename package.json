@@ -18,7 +18,7 @@
     "clean": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Api run clean",
     "build": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apit run build",
     "lint": "eslint .",
-    "test": "yarn workspaces foreach --exclude=. -Ap run test"
+    "test": "yarn workspaces foreach --exclude=. -Api run test"
   },
   "keywords": [],
   "author": "",

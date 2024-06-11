@@ -224,7 +224,6 @@ describe('Campaign view', () => {
       name: /^Enregistrer/
     });
     await user.click(save);
-    screen.logTestingPlaygroundURL();
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/^Sauvegardé !/);
   });

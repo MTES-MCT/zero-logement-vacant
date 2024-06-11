@@ -1,13 +1,15 @@
-import GroupHeader, { DISPLAY_GROUPS } from './GroupHeader';
+import { Store } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import fetchMock from 'jest-fetch-mock';
-import { Store } from '@reduxjs/toolkit';
-import { genGroup } from '../../../test/fixtures.test';
+import { http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
-import { mockRequests } from '../../utils/test/requestUtils';
+
+import { genGroupDTO, genUserDTO, GroupDTO } from '@zerologementvacant/models';
+import GroupHeader, { DISPLAY_GROUPS } from './GroupHeader';
 import configureTestStore from '../../utils/test/storeUtils';
+import { mockAPI } from '../../mocks/mock-api';
+import config from '../../utils/config';
 
 describe('GroupHeader', () => {
   const user = userEvent.setup();
@@ -15,18 +17,17 @@ describe('GroupHeader', () => {
   let store: Store;
 
   beforeEach(() => {
-    fetchMock.resetMocks();
     store = configureTestStore();
   });
 
   it('should render', async () => {
-    fetchMock.mockIf(
-      (request) => request.url.endsWith('/api/groups'),
-      async () => ({
-        status: 200,
-        body: JSON.stringify(
-          new Array(DISPLAY_GROUPS + 1).fill('0').map(genGroup)
-        )
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/api/groups`, () => {
+        const groups = Array.from({ length: DISPLAY_GROUPS + 1 }, () => {
+          const creator = genUserDTO();
+          return genGroupDTO(creator);
+        });
+        return HttpResponse.json(groups);
       })
     );
 
@@ -43,17 +44,19 @@ describe('GroupHeader', () => {
   });
 
   it('should hide groups that have been archived', async () => {
-    const archived = { ...genGroup(), archivedAt: new Date().toJSON() };
-    const groups = [genGroup(), genGroup(), archived];
-    mockRequests([
-      {
-        pathname: '/api/groups',
-        response: {
-          status: 200,
-          body: JSON.stringify(groups)
-        }
-      }
-    ]);
+    const creator = genUserDTO();
+    const archived: GroupDTO = {
+      ...genGroupDTO(creator),
+      archivedAt: new Date().toJSON()
+    };
+    const groups: GroupDTO[] = Array.from({ length: 2 }, () =>
+      genGroupDTO(creator)
+    ).concat(archived);
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/api/groups`, () => {
+        return HttpResponse.json(groups);
+      })
+    );
 
     render(
       <Provider store={store}>
@@ -70,17 +73,15 @@ describe('GroupHeader', () => {
   });
 
   it('should hide the "Display more" button if there is no more group', async () => {
-    mockRequests([
-      {
-        pathname: '/api/groups',
-        response: {
-          status: 200,
-          body: JSON.stringify(
-            new Array(DISPLAY_GROUPS).fill('0').map(genGroup)
-          )
-        }
-      }
-    ]);
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/api/groups`, () => {
+        const groups = Array.from({ length: DISPLAY_GROUPS }, () => {
+          const creator = genUserDTO();
+          return genGroupDTO(creator);
+        });
+        return HttpResponse.json(groups);
+      })
+    );
 
     render(
       <Provider store={store}>
@@ -94,16 +95,15 @@ describe('GroupHeader', () => {
   });
 
   it('should display all groups when the "Display more" button is clicked', async () => {
-    const groups = new Array(DISPLAY_GROUPS + 1).fill('0').map(genGroup);
-    mockRequests([
-      {
-        pathname: '/api/groups',
-        response: {
-          status: 200,
-          body: JSON.stringify(groups)
-        }
-      }
-    ]);
+    const creator = genUserDTO();
+    const groups: GroupDTO[] = Array.from({ length: DISPLAY_GROUPS + 1 }, () =>
+      genGroupDTO(creator)
+    );
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/api/groups`, () => {
+        return HttpResponse.json(groups);
+      })
+    );
 
     render(
       <Provider store={store}>

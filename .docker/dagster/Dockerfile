@@ -13,7 +13,7 @@ RUN mkdir -p $DAGSTER_HOME
 
 COPY analytics/dagster/dagster.yaml analytics/dagster/workspace.yaml $DAGSTER_HOME
 
-COPY analytics/dagster/src/ $DAGSTER_HOME
+COPY analytics/dagster/src/* $DAGSTER_HOME/*
 
 WORKDIR $DAGSTER_HOME
 

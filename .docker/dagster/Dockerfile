@@ -33,6 +33,7 @@ RUN ln -s /etc/nginx/sites-available/dagster /etc/nginx/sites-enabled/dagster
 
 COPY analytics/dagster/docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 8080
+
+EXPOSE 8080 3000
 
 CMD service nginx start && dagster-webserver -h 0.0.0.0 -p 3000

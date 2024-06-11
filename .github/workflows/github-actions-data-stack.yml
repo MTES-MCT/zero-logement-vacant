@@ -1,6 +1,8 @@
 name: Data Stack CI
 
 on: [push]
+  paths:
+      - analytics/**
 
 jobs:
   deploy-dagster:

@@ -1,0 +1,27 @@
+services:
+  dagster:
+    build:
+      context: dagster/
+      dockerfile: Dockerfile
+    volumes:
+      - ./dagster:/opt/dagster/dagster_home
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+ 
+  postgres:
+    image: postgres:latest
+    ports:
+      - 54322:5432
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_PASSWORD=${DAGSTER_PG_PASSWORD}
+      - POSTGRES_USER=${DAGSTER_PG_USERNAME}
+      - POSTGRES_DB=${DAGSTER_PG_DB}
+    volumes:
+      - dagster-postgres:/var/lib/postgresql/data
+volumes:
+  dagster-postgres:
+    driver: local

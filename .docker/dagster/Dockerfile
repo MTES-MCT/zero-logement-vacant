@@ -28,10 +28,10 @@ WORKDIR $DAGSTER_HOME
 RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
 
 RUN rm /etc/nginx/sites-enabled/default
-ADD .docker/dagster/nginx/nginx.conf /etc/nginx/sites-available/dagster
+ADD analytics/dagster/docker/nginx/nginx.conf /etc/nginx/sites-available/dagster
 RUN ln -s /etc/nginx/sites-available/dagster /etc/nginx/sites-enabled/dagster
 
-COPY ./docker/dagster/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY analytics/dagster/docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 8080
 

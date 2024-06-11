@@ -28,10 +28,12 @@ import {
   useUpdateCampaignMutation,
 } from '../../services/campaign.service';
 import { useSort } from '../../hooks/useSort';
+import { useUser } from '../../hooks/useUser';
 
 const CampaignsListView = () => {
   useDocumentTitle('Campagnes');
   const { trackEvent } = useMatomo();
+  const { isVisitor } = useUser();
 
   const [sort, setSort] = useState<CampaignSort>({ createdAt: 'desc' });
   const campaigns = useCampaignList({ sort });
@@ -123,23 +125,29 @@ const CampaignsListView = () => {
                 className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w"
                 key={`${campaign.id}-actions`}
               >
-                <Button
-                  priority="tertiary"
-                  linkProps={{
-                    to: `${
-                      campaign.status === 'draft' ||
-                      campaign.status === 'sending'
-                        ? ''
-                        : '/parc-de-logements'
-                    }/campagnes/${campaign.id}`,
-                  }}
-                  className={styles.buttonInGroup}
-                >
-                  {campaign.status === 'draft' || campaign.status === 'sending'
-                    ? 'Accéder'
-                    : 'Suivre'}
-                </Button>
-                {campaign.status === 'in-progress' && (
+                { !(campaign.status === 'draft' || campaign.status === 'sending') && (
+                  <Button
+                    priority="tertiary"
+                    linkProps={{
+                      to: `/parc-de-logements/campagnes/${campaign.id}`,
+                    }}
+                    className={styles.buttonInGroup}
+                  >
+                    Suivre
+                  </Button>
+                )}
+                { (!isVisitor && (campaign.status === 'draft' || campaign.status === 'sending')) && (
+                  <Button
+                    priority="tertiary"
+                    linkProps={{
+                      to: `/campagnes/${campaign.id}`,
+                    }}
+                    className={styles.buttonInGroup}
+                  >
+                    Accéder
+                  </Button>
+                )}
+                { !isVisitor && campaign.status === 'in-progress' && (
                   <ConfirmationModal
                     onSubmit={() => onArchiveCampaign(campaign)}
                     modalId={`archive-${campaign.id}`}
@@ -154,7 +162,7 @@ const CampaignsListView = () => {
                     </Text>
                   </ConfirmationModal>
                 )}
-                {isCampaignDeletable(campaign) && (
+                { !isVisitor && isCampaignDeletable(campaign) && (
                   <ConfirmationModal
                     onSubmit={() => onDeleteCampaign(campaign.id)}
                     modalId={`delete-${campaign.id}`}

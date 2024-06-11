@@ -5,7 +5,7 @@ import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import classNames from 'classnames';
 import { useState } from 'react';
 
-import { Col, Icon, Row, Title } from '../_dsfr';
+import { Col, Row, Title } from '../_dsfr';
 import styles from './housing-details-card.module.scss';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
@@ -80,9 +80,6 @@ function HousingDetailsCard({
       size="small"
       title={
         <>
-          <span className="card-title-icon">
-            <Icon name="fr-icon-home-4-fill" iconPosition="center" size="1x" />
-          </span>
           { !isVisitor && <Button
             onClick={() => setIsHousingListEditionExpand(true)}
             className="fr-ml-1w float-right"

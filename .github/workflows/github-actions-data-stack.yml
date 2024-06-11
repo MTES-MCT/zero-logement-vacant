@@ -1,7 +1,8 @@
 name: Data Stack CI
 
-on: [push]
-  paths:
+on:
+  push:
+    paths:
       - analytics/**
 
 jobs:

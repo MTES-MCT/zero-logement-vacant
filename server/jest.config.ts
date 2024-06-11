@@ -7,6 +7,8 @@ const config: JestConfigWithTsJest = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   testTimeout: 30_000,
+  forceExit: true,
+  detectOpenHandles: true,
   rootDir: '.',
   roots: ['<rootDir>'],
   moduleDirectories: ['node_modules', '<rootDir>'],

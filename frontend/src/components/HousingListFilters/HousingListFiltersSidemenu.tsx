@@ -51,6 +51,7 @@ import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { useToggle } from '../../hooks/useToggle';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import GroupHeader from '../GroupHeader/GroupHeader';
+import { useUser } from '../../hooks/useUser';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -103,6 +104,8 @@ function HousingListFiltersSidemenu(props: Props) {
       'Statut',
     );
   };
+
+  const { isVisitor } = useUser();
 
   return (
     <Drawer
@@ -319,7 +322,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
 
-            <GeoPerimetersModalLink />
+            { !isVisitor && <GeoPerimetersModalLink /> }
           </Grid>
         </Accordion>
 

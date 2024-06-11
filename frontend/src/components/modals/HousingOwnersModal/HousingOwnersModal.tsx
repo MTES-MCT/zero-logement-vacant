@@ -25,6 +25,7 @@ import { AddressSearchResult } from '../../../services/address.service';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
 import { isBanEligible } from '../../../models/Address';
+import { useUser } from '../../../hooks/useUser';
 
 interface Props {
   housingId: string;
@@ -53,6 +54,8 @@ const HousingOwnersModal = ({
     rank: string;
     birthDate: string;
   };
+
+  const { isVisitor } = useUser();
 
   const modal = useMemo(
     () =>
@@ -241,7 +244,7 @@ const HousingOwnersModal = ({
 
   return (
     <>
-      <Button
+      { !isVisitor && <Button
         className="float-right"
         iconId="fr-icon-edit-fill"
         priority="tertiary no outline"
@@ -249,7 +252,7 @@ const HousingOwnersModal = ({
         onClick={modal.open}
       >
         Modifier
-      </Button>
+      </Button> }
       <modal.Component
         size="large"
         title={

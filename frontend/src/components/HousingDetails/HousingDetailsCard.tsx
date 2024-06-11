@@ -5,7 +5,7 @@ import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import classNames from 'classnames';
 import { useState } from 'react';
 
-import { Col, Icon, Row, Title } from '../_dsfr';
+import { Col, Row, Title } from '../_dsfr';
 import styles from './housing-details-card.module.scss';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';

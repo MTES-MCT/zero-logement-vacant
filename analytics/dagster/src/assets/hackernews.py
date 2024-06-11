@@ -34,7 +34,9 @@ def topstories(context: AssetExecutionContext) -> MaterializeResult:
 
     results = []
     for item_id in topstory_ids:
-        item = requests.get(f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json").json()
+        item = requests.get(
+            f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
+        ).json()
         results.append(item)
 
         if len(results) % 20 == 0:

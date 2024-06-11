@@ -9,7 +9,8 @@ storage:
         env: DAGSTER_PG_HOST
       db_name:
         env: DAGSTER_PG_DB
-      port: 5432
+      port: 
+        env: DAGSTER_PG_PORT
 
 telemetry:
   enabled: false

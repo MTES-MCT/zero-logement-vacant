@@ -9,6 +9,6 @@ jobs:
   deploy-dagster:
     uses: ./.github/workflows/deploy.yml
     with:
-      app: dagster
+      app: dagster-production
       branch: main
     secrets: inherit

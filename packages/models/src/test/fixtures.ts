@@ -1,15 +1,16 @@
-import { faker } from '@faker-js/faker';
+import { fakerFR as faker } from '@faker-js/faker';
+import fp from 'lodash/fp';
 
-import { OwnerDTO } from '../OwnerDTO';
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CampaignDTO } from '../CampaignDTO';
-import { HousingDTO } from '../HousingDTO';
 import { DraftDTO } from '../DraftDTO';
-import { SenderDTO } from '../SenderDTO';
 import { GroupDTO } from '../GroupDTO';
-import { UserDTO } from '../UserDTO';
-import fp from 'lodash/fp';
+import { HousingDTO } from '../HousingDTO';
+import { OwnerDTO } from '../OwnerDTO';
 import { RolesDTO } from '../RolesDTO';
+import { SenderDTO } from '../SenderDTO';
+import { UserDTO } from '../UserDTO';
+import { OCCUPANCIES } from '../Occupancy';
 
 export function genAddressDTO(
   refId: string,
@@ -85,6 +86,10 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     id: faker.string.uuid(),
     geoCode,
     localId: genLocalId(department, invariant),
+    rawAddress: faker.location
+      .streetAddress({ useFullAddress: true })
+      .split(' '),
+    occupancy: faker.helpers.arrayElement(OCCUPANCIES),
     owner
   };
 }
@@ -132,7 +137,7 @@ export function genSenderDTO(): SenderDTO {
     lastName,
     address: faker.location.streetAddress({ useFullAddress: true }),
     email: faker.internet.email({ firstName, lastName }),
-    phone: faker.phone.number(),
+    phone: faker.helpers.fromRegExp(/0[1-9]\d{2}\d{2}\d{2}\d{2}/),
     signatoryFile: faker.image.urlPicsumPhotos(),
     signatoryRole: faker.person.jobTitle(),
     signatoryFirstName: faker.person.firstName(),

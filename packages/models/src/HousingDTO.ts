@@ -1,10 +1,13 @@
 import { OwnerDTO } from './OwnerDTO';
+import { Occupancy } from './Occupancy';
 
 export interface HousingDTO {
   id: string;
   geoCode: string;
   localId: string;
   owner: OwnerDTO;
+  rawAddress: string[];
+  occupancy: Occupancy;
   // TODO: complete this type
 }
 
@@ -25,5 +28,5 @@ export type HousingSource =
 export const HOUSING_SOURCES: HousingSource[] = [
   'lovac',
   'datafoncier-manual',
-  'datafoncier-import',
+  'datafoncier-import'
 ];

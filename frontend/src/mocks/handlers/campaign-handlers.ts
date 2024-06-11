@@ -5,7 +5,8 @@ import { http, HttpResponse, RequestHandler } from 'msw';
 
 import {
   CampaignCreationPayloadDTO,
-  CampaignDTO
+  CampaignDTO,
+  CampaignUpdatePayloadDTO
 } from '@zerologementvacant/models';
 import data from './data';
 import config from '../../utils/config';
@@ -39,11 +40,13 @@ export const campaignHandlers: RequestHandler[] = [
       };
       data.campaigns.push(campaign);
       // For now, add random housings to the campaign
-      faker.helpers.arrayElements(data.housings).forEach((housing) => {
-        data.campaignHousings.add({
-          campaignId: campaign.id,
-          housingId: housing.id
-        });
+      const housings = faker.helpers.arrayElements(data.housings);
+      data.campaignHousings.set(campaign.id, housings);
+      housings.forEach((housing) => {
+        data.housingCampaigns.set(
+          housing.id,
+          data.housingCampaigns.get(housing.id)?.concat(campaign) ?? []
+        );
       });
 
       return HttpResponse.json(campaign, {
@@ -74,11 +77,13 @@ export const campaignHandlers: RequestHandler[] = [
         groupId: group.id
       };
       data.campaigns.push(campaign);
-      faker.helpers.arrayElements(data.housings).forEach((housing) => {
-        data.campaignHousings.add({
-          campaignId: campaign.id,
-          housingId: housing.id
-        });
+      const housings = faker.helpers.arrayElements(data.housings);
+      data.campaignHousings.set(campaign.id, housings);
+      housings.forEach((housing) => {
+        data.housingCampaigns.set(
+          housing.id,
+          data.housingCampaigns.get(housing.id)?.concat(campaign) ?? []
+        );
       });
 
       return HttpResponse.json(campaign, {
@@ -99,6 +104,30 @@ export const campaignHandlers: RequestHandler[] = [
       }
 
       return HttpResponse.json(campaign);
+    }
+  ),
+  http.put<CampaignParams, CampaignUpdatePayloadDTO, CampaignDTO>(
+    `${config.apiEndpoint}/api/campaigns/:id`,
+    async ({ params, request }) => {
+      const campaign = data.campaigns.find(
+        (campaign) => campaign.id === params.id
+      );
+      if (!campaign) {
+        return HttpResponse.json(null, {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        });
+      }
+
+      const payload = await request.json();
+      const updated: CampaignDTO = {
+        ...campaign,
+        // TODO
+        title: payload.title,
+        status: payload.status,
+        file: payload.file
+      };
+      data.campaigns.splice(data.campaigns.indexOf(campaign), 1, updated);
+      return HttpResponse.json(updated);
     }
   ),
   http.delete<CampaignParams, never, null>(

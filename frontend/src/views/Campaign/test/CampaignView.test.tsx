@@ -1,43 +1,47 @@
+import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { Link, MemoryRouter as Router, Route } from 'react-router-dom';
 
-import {
-  genAddress,
-  genCampaign,
-  genDraft,
-  genHousing,
-  genOwner,
-  genPaginatedResult,
-  genSender
-} from '../../../../test/fixtures.test';
 import configureTestStore from '../../../utils/test/storeUtils';
 import { AppStore } from '../../../store/store';
-import { mockRequests } from '../../../utils/test/requestUtils';
 import CampaignView from '../CampaignView';
-import { Draft } from '../../../models/Draft';
 import Notification from '../../../components/Notification/Notification';
-import { Campaign } from '../../../models/Campaign';
-import { Housing } from '../../../models/Housing';
-import { HousingPaginatedResult } from '../../../models/PaginatedResult';
-import { Owner } from '../../../models/Owner';
-import { CampaignDTO, genCampaignDTO } from '@zerologementvacant/models';
+import {
+  CampaignDTO,
+  genCampaignDTO,
+  genDraftDTO,
+  genHousingDTO,
+  genOwnerDTO,
+  genSenderDTO
+} from '@zerologementvacant/models';
 import data from '../../../mocks/handlers/data';
 import { sources } from '../../../../test/event-source-mock';
 import config from '../../../utils/config';
-import { faker } from '@faker-js/faker';
-import fp from 'lodash/fp';
 
 describe('Campaign view', () => {
   const user = userEvent.setup();
 
-  const campaign = genCampaign();
-  const sender = genSender();
-  const draft = genDraft(sender);
-  const houses = Array.from({ length: 3 }, () => genHousing());
+  const campaign = genCampaignDTO();
+  const sender = genSenderDTO();
+  const draft = genDraftDTO(sender);
+  const owner = genOwnerDTO();
+  const housings = Array.from({ length: 3 }, () => genHousingDTO(owner));
 
   let store: AppStore;
+
+  beforeAll(() => {
+    data.housings.push(...housings);
+    data.campaigns.push(campaign);
+    housings.forEach((housing) => {
+      data.campaignHousings.set(campaign.id, housings);
+      data.housingCampaigns.set(housing.id, [campaign]);
+    });
+    data.drafts.push(draft);
+    data.campaignDrafts.set(campaign.id, [draft]);
+    data.draftCampaigns.set(draft.id, campaign);
+  });
 
   beforeEach(() => {
     store = configureTestStore();
@@ -47,7 +51,7 @@ describe('Campaign view', () => {
     render(
       <Provider store={store}>
         <Notification />
-        <Router initialEntries={[`/campagnes/missing`]}>
+        <Router initialEntries={[`/campagnes/${faker.string.uuid()}`]}>
           <Link to="/campagnes">Campagnes</Link>
           <Route path="/campagnes/:id" component={CampaignView} />
         </Router>
@@ -71,39 +75,6 @@ describe('Campaign view', () => {
   }
 
   it('should render', async () => {
-    mockRequests([
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          body: JSON.stringify(campaign)
-        }
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([])
-        }
-      },
-      {
-        pathname: '/api/housing',
-        method: 'POST',
-        persist: true,
-        response: {
-          body: JSON.stringify(genPaginatedResult([]))
-        }
-      },
-      {
-        pathname: '/api/housing/count',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            housing: 1,
-            owners: 1
-          })
-        }
-      }
-    ]);
-
     renderComponent();
 
     const title = await screen.findByRole('heading', { name: campaign.title });
@@ -112,60 +83,6 @@ describe('Campaign view', () => {
 
   it('should rename the campaign', async () => {
     const title = 'New title';
-    mockRequests([
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        method: 'GET',
-        response: {
-          body: JSON.stringify(campaign)
-        }
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([])
-        }
-      },
-      {
-        pathname: '/api/housing',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            entities: houses,
-            loading: false,
-            page: 1,
-            perPage: 50
-          } as HousingPaginatedResult)
-        },
-        persist: true
-      },
-      {
-        pathname: '/api/housing/count',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            housing: 1,
-            owners: 1
-          })
-        }
-      },
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        method: 'PUT',
-        response: async (request) => {
-          const payload = await request.json();
-          return {
-            body: JSON.stringify({ ...campaign, title: payload.title })
-          };
-        }
-      },
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          body: JSON.stringify({ ...campaign, title })
-        }
-      }
-    ]);
 
     renderComponent();
 
@@ -186,58 +103,6 @@ describe('Campaign view', () => {
   });
 
   it('should save the draft if at least one field is filled', async () => {
-    mockRequests([
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          body: JSON.stringify(campaign)
-        }
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([])
-        }
-      },
-      {
-        pathname: '/api/housing/count',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            housing: 1,
-            owners: 1
-          })
-        }
-      },
-      {
-        pathname: '/api/housing',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            entities: houses,
-            loading: false,
-            page: 1,
-            perPage: 50
-          } as HousingPaginatedResult)
-        },
-        persist: true
-      },
-      {
-        pathname: `/api/drafts`,
-        method: 'POST',
-        response: {
-          body: JSON.stringify(draft),
-          status: 201
-        }
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([draft])
-        }
-      }
-    ]);
-
     renderComponent();
 
     const form = await screen.findByRole('form');
@@ -254,63 +119,6 @@ describe('Campaign view', () => {
   });
 
   it('should update the draft on button click', async () => {
-    const updated: Draft = {
-      ...draft,
-      subject: 'New subject',
-      body: 'New body',
-      sender
-    };
-    mockRequests([
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          body: JSON.stringify(campaign)
-        }
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([draft])
-        }
-      },
-      {
-        pathname: '/api/housing/count',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            housing: 1,
-            owners: 1
-          })
-        }
-      },
-      {
-        pathname: '/api/housing',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            entities: houses,
-            loading: false,
-            page: 1,
-            perPage: 50
-          } as HousingPaginatedResult)
-        },
-        persist: true
-      },
-      {
-        pathname: `/api/drafts/${draft.id}`,
-        method: 'PUT',
-        response: {
-          body: JSON.stringify(updated)
-        }
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([updated])
-        }
-      }
-    ]);
-
     renderComponent();
 
     // Fill the form
@@ -385,45 +193,6 @@ describe('Campaign view', () => {
   });
 
   it('should validate the campaign', async () => {
-    const sending: Campaign = { ...campaign, status: 'sending' };
-    mockRequests([
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          body: JSON.stringify(campaign)
-        }
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([{ ...draft, sender }])
-        }
-      },
-      {
-        pathname: '/api/housing/count',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            housing: 1,
-            owners: 1
-          })
-        }
-      },
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        method: 'PUT',
-        response: {
-          body: JSON.stringify(sending)
-        }
-      },
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          body: JSON.stringify([sending])
-        }
-      }
-    ]);
-
     renderComponent();
 
     const send = await screen.findByRole('button', {
@@ -439,70 +208,6 @@ describe('Campaign view', () => {
   });
 
   it('should edit a recipient’s address', async () => {
-    const housing: Housing = { ...genHousing(), owner: genOwner() };
-    const updated: Owner = {
-      ...housing.owner,
-      fullName: 'John Doe',
-      banAddress: genAddress(),
-      additionalAddress: genAddress().city
-    };
-
-    mockRequests([
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          body: JSON.stringify(campaign)
-        }
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([{ ...draft, sender }])
-        }
-      },
-      {
-        pathname: '/api/housing/count',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            housing: 1,
-            owners: 1
-          })
-        }
-      },
-      {
-        pathname: '/api/housing',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            entities: [housing],
-            loading: false,
-            page: 1,
-            perPage: 50
-          } as HousingPaginatedResult)
-        }
-      },
-      {
-        pathname: `/api/owners/${housing.owner.id}`,
-        method: 'PUT',
-        response: {
-          body: JSON.stringify(updated)
-        }
-      },
-      {
-        pathname: '/api/housing',
-        method: 'POST',
-        response: {
-          body: JSON.stringify({
-            entities: [{ ...housing, owner: updated }],
-            loading: false,
-            page: 1,
-            perPage: 50
-          } as HousingPaginatedResult)
-        }
-      }
-    ]);
-
     renderComponent();
 
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
@@ -511,7 +216,7 @@ describe('Campaign view', () => {
       name: /^Éditer l’adresse/
     });
     await user.click(edit);
-    const aside = await screen.findByRole('complementary');
+    const [aside] = await screen.findAllByRole('complementary');
     const fullName = await within(aside).findByLabelText('Nom prénom');
     await user.clear(fullName);
     await user.type(fullName, 'John Doe');
@@ -519,6 +224,7 @@ describe('Campaign view', () => {
       name: /^Enregistrer/
     });
     await user.click(save);
+    screen.logTestingPlaygroundURL();
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/^Sauvegardé !/);
   });
@@ -551,67 +257,6 @@ describe('Campaign view', () => {
   });
 
   it('should confirm a recipient removal', async () => {
-    let housings = Array.from({ length: 3 }, () => genHousing());
-
-    mockRequests([
-      {
-        pathname: `/api/campaigns/${campaign.id}`,
-        response: {
-          body: JSON.stringify(campaign),
-        },
-      },
-      {
-        pathname: `/api/drafts?campaign=${campaign.id}`,
-        response: {
-          body: JSON.stringify([draft]),
-        },
-      },
-      {
-        pathname: '/api/housing/count',
-        method: 'POST',
-        persist: true,
-        response: async () => {
-          return {
-            body: JSON.stringify({
-              housing: housings.length,
-              owners: fp.uniqBy(
-                'id',
-                housings.map((housing) => housing.owner),
-              ),
-            }),
-          };
-        },
-      },
-      {
-        pathname: '/api/housing',
-        method: 'POST',
-        persist: true,
-        response: async () => {
-          return {
-            body: JSON.stringify({
-              entities: housings,
-              loading: false,
-              page: 1,
-              perPage: 50,
-            } as HousingPaginatedResult),
-          };
-        },
-      },
-      {
-        pathname: `/api/campaigns/${campaign.id}/housing`,
-        method: 'DELETE',
-        response: async (request) => {
-          const payload = await request.json();
-          housings = housings.filter(
-            (housing) => !payload.ids.includes(housing.id),
-          );
-          return {
-            status: 204,
-          };
-        },
-      },
-    ]);
-
     renderComponent();
 
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
@@ -623,7 +268,7 @@ describe('Campaign view', () => {
     await user.click(remove);
     const dialog = await screen.findByRole('dialog');
     const confirm = within(dialog).getByRole('button', {
-      name: /^Confirmer/,
+      name: /^Confirmer/
     });
     await user.click(confirm);
     const rowsAfter = screen.getAllByRole('row').slice(1);
@@ -632,6 +277,6 @@ describe('Campaign view', () => {
 
   // Hard to mock window.confirm because it's a browser-level function
   it.todo(
-    'should warn the user before leaving the page if they have unsaved changes',
+    'should warn the user before leaving the page if they have unsaved changes'
   );
 });

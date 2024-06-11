@@ -34,33 +34,36 @@ const housings: HousingDTO[] = Array.from({ length: 20 }).map(() =>
   genHousingDTO(faker.helpers.arrayElement(owners))
 );
 
-interface CampaignDraft {
-  campaignId: string;
-  draftId: string;
-}
-const campaignDrafts = new Set<CampaignDraft>(
+const campaignDrafts = new Map<CampaignDTO['id'], DraftDTO[]>(
   campaigns.map((campaign, i) => {
     const draft = drafts[i];
-    return {
-      campaignId: campaign.id,
-      draftId: draft.id
-    };
+    return [campaign.id, [draft]];
+  })
+);
+const draftCampaigns = new Map<DraftDTO['id'], CampaignDTO>(
+  drafts.map((draft, i) => {
+    const campaign = campaigns[i];
+    return [draft.id, campaign];
   })
 );
 
-interface CampaignHousing {
-  campaignId: string;
-  housingId: string;
-}
-const campaignHousings = new Set<CampaignHousing>(
-  campaigns.flatMap((campaign) => {
+const campaignHousings = new Map<CampaignDTO['id'], HousingDTO[]>(
+  campaigns.map((campaign) => {
     const elements = faker.helpers.arrayElements(housings);
-    return elements.map((element) => ({
-      campaignId: campaign.id,
-      housingId: element.id
-    }));
+    return [campaign.id, elements];
   })
 );
+const housingCampaigns = new Map<HousingDTO['id'], CampaignDTO[]>();
+Array.from(campaignHousings.entries()).forEach(([campaignId, housings]) => {
+  const campaign = campaigns.find((campaign) => campaign.id === campaignId);
+  if (campaign) {
+    housings.forEach((housing) => {
+      const campaigns = housingCampaigns.get(housing.id) || [];
+      campaigns.push(campaign);
+      housingCampaigns.set(housing.id, campaigns);
+    });
+  }
+});
 
 interface GroupHousing {
   groupId: string;
@@ -81,9 +84,11 @@ const data = {
   campaignDrafts,
   campaignHousings,
   drafts,
+  draftCampaigns,
   groups,
   groupHousings,
   housings,
+  housingCampaigns,
   owners,
   users
 };

@@ -22,15 +22,20 @@ type HousingPayload = {
 export const housingHandlers: RequestHandler[] = [
   http.post<Record<string, never>, HousingPayload, Paginated<HousingDTO>>(
     `${config.apiEndpoint}/api/housing`,
-    async () => {
+    async ({ request }) => {
       // TODO: use the request payload to filter results
+      const payload = await request.json();
+
+      const subset = fp.pipe(filterByCampaign(payload.filters?.campaignIds))(
+        data.housings
+      );
 
       return HttpResponse.json({
         page: 1,
         perPage: 50,
-        filteredCount: data.housings.length,
+        filteredCount: subset.length,
         totalCount: data.housings.length,
-        entities: data.housings
+        entities: subset
       });
     }
   ),
@@ -63,3 +68,17 @@ export const housingHandlers: RequestHandler[] = [
     }
   )
 ];
+
+function filterByCampaign(campaigns?: string[]) {
+  return (housings: HousingDTO[]): HousingDTO[] => {
+    if (!campaigns || campaigns.length === 0) {
+      return housings;
+    }
+
+    return housings.filter((housing) => {
+      return data.housingCampaigns
+        .get(housing.id)
+        ?.some((campaign) => campaigns.includes(campaign.id));
+    });
+  };
+}

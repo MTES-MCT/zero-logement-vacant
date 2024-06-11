@@ -33,3 +33,6 @@ yarn-error.log*
 
 /talisman_report
 .clever.json
+
+# Data Stack
+analytics/dagster/storage/

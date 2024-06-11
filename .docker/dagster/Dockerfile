@@ -27,11 +27,8 @@ COPY analytics/dagster/src $DAGSTER_HOME/src
 
 WORKDIR $DAGSTER_HOME
 
-RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
-
-
 # Configure Nginx using a custom nginx.conf file
-RUN htpasswd -cb /etc/nginx/.htpasswd $DAGSTER_USERNAME $DAGHER_PASSWORD \
+RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv \
     && rm /etc/nginx/sites-enabled/default \
     && cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup  # Backup the original config
 COPY analytics/dagster/docker/nginx/nginx.conf /etc/nginx/nginx.conf

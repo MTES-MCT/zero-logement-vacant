@@ -2,8 +2,11 @@ FROM python:3.10-slim
 
 RUN pip install dagster-webserver dagster-postgres dagster-aws
 
+RUN ls 
 # Install dependencies
 COPY requirements.txt .
+
+
 RUN pip install -r requirements.txt
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/

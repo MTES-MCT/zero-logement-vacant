@@ -61,7 +61,6 @@ describe('Server-sent event API', () => {
                   `data: ${JSON.stringify({ id: campaign.id })}\n\n`
                 );
                 callback(null, response);
-                done();
               });
             });
           } catch (error) {

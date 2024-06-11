@@ -9,7 +9,7 @@ function handle(request: Request, response: Response): void {
   const headers = {
     'Content-Type': 'text/event-stream',
     Connection: 'keep-alive',
-    'Cache-Control': 'no-cache',
+    'Cache-Control': 'no-cache'
   };
   response.writeHead(constants.HTTP_STATUS_OK, headers);
 
@@ -18,6 +18,7 @@ function handle(request: Request, response: Response): void {
       logger.info('Queue event received', data);
       response.write(`event: ${job}\n`);
       response.write(`data: ${JSON.stringify(data)}\n\n`);
+      response.end();
     });
   });
 
@@ -27,5 +28,5 @@ function handle(request: Request, response: Response): void {
 }
 
 export default {
-  handle,
+  handle
 };

@@ -277,7 +277,7 @@ const config = convict<Config>({
       password: {
         env: 'ELASTIC_PASSWORD',
         format: String,
-        default: null
+        default: ''
       },
     }
   },

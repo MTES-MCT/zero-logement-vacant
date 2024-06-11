@@ -1,0 +1,14 @@
+name: Data Stack CI
+
+on:
+  push:
+    paths:
+      - analytics/**
+
+jobs:
+  deploy-dagster:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      app: dagster
+      branch: main
+    secrets: inherit

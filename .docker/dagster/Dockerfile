@@ -31,7 +31,7 @@ RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
 
 
 # Configure Nginx using a custom nginx.conf file
-RUN htpasswd -cb /etc/nginx/.htpasswd $DAGSTER_USERNAME $DAGHER_PASSWORD \
+RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv \
     && rm /etc/nginx/sites-enabled/default
 COPY analytics/dagster/docker/nginx/nginx.conf /etc/nginx/nginx.conf
 

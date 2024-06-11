@@ -144,8 +144,8 @@ export const formatEstablishmentApi = (
   campaign_intent: establishmentApi.campaignIntent,
   priority: establishmentApi.priority,
   kind: establishmentApi.kind,
-  source: establishmentApi.source,
   updated_at: new Date(),
+  source: establishmentApi.source,
 });
 
 export const parseEstablishmentApi = (
@@ -164,6 +164,7 @@ export const parseEstablishmentApi = (
     campaignIntent: establishmentDbo.campaign_intent,
     priority: establishmentDbo.priority ?? 'standard',
     kind: establishmentDbo.kind,
+    source: establishmentDbo.source,
   };
 
 export default {

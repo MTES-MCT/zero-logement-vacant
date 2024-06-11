@@ -4,8 +4,6 @@ import path from 'node:path';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 
-console.log("============",config.db.url);
-
 const knexConfig: Knex.Config = {
   client: 'pg',
   connection: config.db.url,

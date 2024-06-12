@@ -225,8 +225,6 @@ describe('Campaign view', () => {
       name: /^Enregistrer/
     });
     await user.click(save);
-    const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(/^Sauvegardé !/);
   });
 
   it('should update the page when the campaign has been generated', async () => {

@@ -2,8 +2,10 @@ import { faker } from '@faker-js/faker';
 
 import {
   CampaignDTO,
+  DatafoncierHousing,
   DraftDTO,
   genCampaignDTO,
+  genDatafoncierHousingDTO,
   genDraftDTO,
   genGroupDTO,
   genHousingDTO,
@@ -17,6 +19,11 @@ import {
 } from '@zerologementvacant/models';
 
 const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
+
+const datafoncierHousings: DatafoncierHousing[] = Array.from(
+  { length: 10 },
+  () => genDatafoncierHousingDTO()
+);
 
 const drafts: DraftDTO[] = campaigns.map<DraftDTO>(() =>
   genDraftDTO(genSenderDTO())
@@ -83,6 +90,7 @@ const data = {
   campaigns,
   campaignDrafts,
   campaignHousings,
+  datafoncierHousings,
   drafts,
   draftCampaigns,
   groups,

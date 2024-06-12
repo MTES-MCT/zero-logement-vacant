@@ -1,5 +1,7 @@
 import { OwnerDTO } from './OwnerDTO';
 import { Occupancy } from './Occupancy';
+import { HousingKind } from './HousingKind';
+import { HousingStatus } from './HousingStatus';
 
 export interface HousingDTO {
   id: string;
@@ -8,6 +10,8 @@ export interface HousingDTO {
   owner: OwnerDTO;
   rawAddress: string[];
   occupancy: Occupancy;
+  kind: HousingKind;
+  status: HousingStatus;
   // TODO: complete this type
 }
 

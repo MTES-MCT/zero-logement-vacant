@@ -26,9 +26,11 @@ export const housingHandlers: RequestHandler[] = [
       // TODO: use the request payload to filter results
       const payload = await request.json();
 
-      const subset = fp.pipe(filterByCampaign(payload.filters?.campaignIds))(
-        data.housings
-      );
+      const subset = fp.pipe(
+        filterByCampaign(payload.filters?.campaignIds),
+        filterByHousingKind(payload.filters?.housingKinds),
+        filterByStatus(payload.filters?.status)
+      )(data.housings);
 
       return HttpResponse.json({
         page: 1,
@@ -41,15 +43,22 @@ export const housingHandlers: RequestHandler[] = [
   ),
   http.post<Record<string, never>, HousingPayload, HousingCountDTO>(
     `${config.apiEndpoint}/api/housing/count`,
-    async () => {
-      const housings: number = data.housings.length;
+    async ({ request }) => {
+      const payload = await request.json();
+
+      const subset: HousingDTO[] = fp.pipe(
+        filterByCampaign(payload.filters?.campaignIds),
+        filterByHousingKind(payload.filters?.housingKinds),
+        filterByStatus(payload.filters?.statusList ?? payload.filters?.status)
+      )(data.housings);
+
       const owners: number = fp.uniqBy(
         'id',
-        data.housings.map((housing) => housing.owner)
+        subset.map((housing) => housing.owner)
       ).length;
 
       return HttpResponse.json({
-        housing: housings,
+        housing: subset.length,
         owners: owners
       });
     }
@@ -79,6 +88,30 @@ function filterByCampaign(campaigns?: string[]) {
       return data.housingCampaigns
         .get(housing.id)
         ?.some((campaign) => campaigns.includes(campaign.id));
+    });
+  };
+}
+
+function filterByHousingKind(kinds?: string[]) {
+  return (housings: HousingDTO[]): HousingDTO[] => {
+    if (!kinds || kinds.length === 0) {
+      return housings;
+    }
+
+    return housings.filter((housing) => {
+      return kinds.includes(housing.kind);
+    });
+  };
+}
+
+function filterByStatus(statuses?: string[]) {
+  return (housings: HousingDTO[]): HousingDTO[] => {
+    if (!statuses || statuses.length === 0) {
+      return housings;
+    }
+
+    return housings.filter((housing) => {
+      return statuses.includes(housing.status);
     });
   };
 }

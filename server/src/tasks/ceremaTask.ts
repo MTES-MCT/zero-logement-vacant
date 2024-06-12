@@ -1,7 +1,7 @@
 import { SIGNUP_LINK_EXPIRATION, SIGNUP_LINK_LENGTH, SignupLinkApi, getAccountActivationLink } from '../models/SignupLinkApi';
 import db from '../infra/database';
 import signupLinkRepository from '../repositories/signupLinkRepository';
-import { addHours, format } from 'date-fns';
+import { addHours } from 'date-fns';
 import randomstring from 'randomstring';
 import userRepository from '../repositories/userRepository';
 import ceremaService from '../services/ceremaService';
@@ -20,10 +20,7 @@ const run = async (): Promise<void> => {
     return;
   }
 
-  let date = await getLastScriptExecutionDate("ceremaTask");
-  if(date) {
-    date = format(date, 'yyyy-MM-dd');
-  }
+  const date = await getLastScriptExecutionDate("ceremaTask");
 
   let dossiers: CeremaDossier[] = await ceremaService.consultDossiersLovac(config.cerema.forceInvite ? null :  date);
 

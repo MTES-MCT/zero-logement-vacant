@@ -50,7 +50,7 @@ export async function logScriptExecution(scriptName: string, status: ExecutionSt
   }
 }
 
-export async function getLastScriptExecutionDate(script_name: string) {
+export async function getLastScriptExecutionDate(script_name: string): Promise<string | null> {
   try {
     const response = await client.search({
       index: `script_executions_${config.elastic.env}`,

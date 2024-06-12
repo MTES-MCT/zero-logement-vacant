@@ -4,6 +4,7 @@ import { CeremaDossier, ConsultDossiersLovacService } from './consultDossiersLov
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import { ConsultStructureService, Structure } from './consultStructureService';
+import { format } from 'date-fns';
 
 export class CeremaService implements ConsultDossiersLovacService, ConsultStructureService, ConsultUserService {
   async consultDossiersLovac(date: string | null): Promise<CeremaDossier[]> {
@@ -12,7 +13,7 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultStruct
       let uri = '/api/consult/dossiers/lovac';
 
       if(date !== null) {
-        uri += `?date_min=${date}`;
+        uri += `?date_min=${format(date, 'yyyy-MM-dd')}`;
       }
 
       const response = await fetch(

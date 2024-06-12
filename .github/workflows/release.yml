@@ -3,7 +3,12 @@ on:
   push:
     branches:
       - prod
-
+    paths:
+      - 'frontend/**'
+      - 'queue/**'
+      - 'server/**'
+      - 'shared/**'
+      - 'packages/**'
 jobs:
   release:
     runs-on: ubuntu-latest

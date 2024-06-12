@@ -1,0 +1,14 @@
+name: PostHog CI
+
+on:
+  push:
+    paths:
+      - posthog/**
+
+jobs:
+  deploy-posthog:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      app: posthog
+      branch: main
+    secrets: inherit

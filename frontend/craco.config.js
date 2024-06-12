@@ -19,6 +19,7 @@ module.exports = {
       config.testTimeout = 30_000;
       config.transformIgnorePatterns = [
         '<rootDir>/node_modules/(?!@codegouvfr)/.+\\.js$',
+        '<rootDir>/node_modules/.store/(?!@codegouvfr)/.+\\.js$',
       ];
       return config;
     },

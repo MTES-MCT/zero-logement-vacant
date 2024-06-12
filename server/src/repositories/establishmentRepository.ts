@@ -113,10 +113,10 @@ const save = async (
     establishment,
   });
 
-  await db.transaction(async (transaction) => {
+  await db.transaction(async (transaction) =>
     await Establishments(transaction)
-      .insert(establishment);
-  });
+      .insert(establishment)
+  );
   logger.info('Saved establishment', { establishment: establishment.id });
 };
 

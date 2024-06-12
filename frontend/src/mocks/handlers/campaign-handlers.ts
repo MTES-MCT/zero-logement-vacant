@@ -6,7 +6,8 @@ import { http, HttpResponse, RequestHandler } from 'msw';
 import {
   CampaignCreationPayloadDTO,
   CampaignDTO,
-  CampaignUpdatePayloadDTO
+  CampaignUpdatePayloadDTO,
+  HousingDTO
 } from '@zerologementvacant/models';
 import data from './data';
 import config from '../../utils/config';
@@ -141,6 +142,40 @@ export const campaignHandlers: RequestHandler[] = [
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
+
+      return HttpResponse.json(null, {
+        status: constants.HTTP_STATUS_NO_CONTENT
+      });
+    }
+  ),
+  http.delete<CampaignParams, CampaignCreationPayloadDTO['housing'], null>(
+    `${config.apiEndpoint}/api/campaigns/:id/housing`,
+    async ({ params, request }) => {
+      const campaign = data.campaigns.find(
+        (campaign) => campaign.id === params.id
+      );
+      if (!campaign) {
+        return HttpResponse.json(null, {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        });
+      }
+
+      const payload = await request.json();
+      const housings = data.campaignHousings.get(campaign.id) ?? [];
+      const updated: HousingDTO[] = payload.all
+        ? housings.filter((housing) => payload.ids.includes(housing.id))
+        : housings.filter((housing) => !payload.ids.includes(housing.id));
+      const rest = housings.filter((housing) =>
+        updated.every((upd) => upd.id !== housing.id)
+      );
+      data.campaignHousings.set(campaign.id, updated);
+      // Remove the housings from the campaign
+      rest.forEach((housing) => {
+        const campaigns = data.housingCampaigns
+          .get(housing.id)
+          ?.filter((campaign) => campaign.id !== params.id);
+        data.housingCampaigns.set(housing.id, campaigns ?? []);
+      });
 
       return HttpResponse.json(null, {
         status: constants.HTTP_STATUS_NO_CONTENT

@@ -281,7 +281,7 @@ export function genSenderDTO(): SenderDTO {
     lastName,
     address: faker.location.streetAddress({ useFullAddress: true }),
     email: faker.internet.email({ firstName, lastName }),
-    phone: faker.helpers.fromRegExp(/0[1-9]\d{2}\d{2}\d{2}\d{2}/),
+    phone: faker.helpers.fromRegExp(/0[1-9][0-9]{8}/),
     signatoryFile: faker.image.urlPicsumPhotos(),
     signatoryRole: faker.person.jobTitle(),
     signatoryFirstName: faker.person.firstName(),

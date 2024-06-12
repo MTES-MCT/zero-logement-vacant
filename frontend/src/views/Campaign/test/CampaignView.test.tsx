@@ -199,6 +199,7 @@ describe('Campaign view', () => {
       name: /^Débuter l’envoi/
     });
     await user.click(send);
+
     const dialog = await screen.findByRole('dialog');
     const confirm = await within(dialog).findByRole('button', {
       name: /^Confirmer/

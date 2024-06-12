@@ -2,9 +2,17 @@ import { faker } from '@faker-js/faker';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 
-import { DraftCreationPayloadDTO, DraftDTO } from '@zerologementvacant/models';
+import {
+  DraftCreationPayloadDTO,
+  DraftDTO,
+  DraftUpdatePayloadDTO
+} from '@zerologementvacant/models';
 import data from './data';
 import config from '../../utils/config';
+
+interface DraftParams {
+  id: string;
+}
 
 export const draftHandlers: RequestHandler[] = [
   http.get<Record<string, never>, never, DraftDTO[]>(
@@ -58,6 +66,33 @@ export const draftHandlers: RequestHandler[] = [
       return HttpResponse.json(draft, {
         status: constants.HTTP_STATUS_CREATED
       });
+    }
+  ),
+  http.put<DraftParams, DraftUpdatePayloadDTO, DraftDTO>(
+    `${config.apiEndpoint}/api/drafts/:id`,
+    async ({ params, request }) => {
+      const draft = data.drafts.find((draft) => draft.id === params.id);
+      if (!draft) {
+        return HttpResponse.json(null, {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        });
+      }
+
+      const payload = await request.json();
+      draft.subject = payload.subject;
+      draft.body = payload.body;
+      draft.sender = {
+        ...payload.sender,
+        id: draft.sender.id,
+        createdAt: draft.sender.createdAt,
+        updatedAt: new Date().toJSON()
+      };
+      draft.logo = payload.logo;
+      draft.writtenAt = payload.writtenAt;
+      draft.writtenFrom = payload.writtenFrom;
+      draft.updatedAt = new Date().toJSON();
+
+      return HttpResponse.json(draft);
     }
   )
 ];

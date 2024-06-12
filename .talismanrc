@@ -26,5 +26,5 @@ fileignoreconfig:
 - filename: server/src/infra/config.ts
   checksum: 9bae8c9e9834c34694d419159da5edc1317bc0ea0e55dc5d4c478a531b07d6ea
 - filename: yarn.lock
-  checksum: 1528f94423d56548029bd75df19a7f43ba7de33a082a11e0f82d091970f0c54a
+  checksum: 59d37f8e1ecf81439bce81f285ac09fdcf3978c64ff996c2d0e8731431ecb2c0
 version: "1.0"

@@ -4,14 +4,14 @@ name: Review app on pull request
 
 on:
   pull_request_target:
-    types: [opened, closed, synchronize, reopened]
-    branches: [main]
     paths:
       - 'frontend/**'
       - 'queue/**'
       - 'server/**'
       - 'shared/**'
       - 'packages/**'
+    types: [opened, closed, synchronize, reopened]
+    branches: [main]
 env:
   CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
   CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}

@@ -4,21 +4,32 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 import 'jest-extended';
-import { enableFetchMocks } from 'jest-fetch-mock';
-import util from 'node:util';
 
-enableFetchMocks();
+import { mockAPI } from './mocks/mock-api';
+import EventSourceMock from '../test/event-source-mock';
 
 jest.mock('./components/Aside/Aside.tsx');
 jest.mock('./components/RichEditor/RichEditor.tsx');
 
 global.URL.createObjectURL = jest.fn();
+// @ts-expect-error: global.EventSource is hard to mock
+global.EventSource = EventSourceMock as unknown as EventSource;
 
-global.TextEncoder = util.TextEncoder;
-global.TextDecoder = util.TextDecoder as typeof TextDecoder;
+beforeAll(() => {
+  mockAPI.listen({
+    // This tells MSW to throw an error whenever it
+    // encounters a request that doesn't have a
+    // matching request handler.
+    onUnhandledRequest: 'error'
+  });
+});
 
-beforeEach(() => {
-  fetchMock.resetMocks();
+afterEach(() => {
+  mockAPI.resetHandlers();
+});
+
+afterAll(() => {
+  mockAPI.close();
 });
 
 // @ts-expect-error: Property 'dsfr' does not exist on type 'Window & typeof globalThis'.ts(2339)
@@ -31,6 +42,6 @@ window.dsfr = (element: HTMLElement) => ({
     conceal() {
       element.removeAttribute('aria-modal');
       element.removeAttribute('open');
-    },
-  },
+    }
+  }
 });

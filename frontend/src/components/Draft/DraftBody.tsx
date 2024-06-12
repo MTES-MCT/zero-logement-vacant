@@ -22,7 +22,7 @@ function DraftBody(props: Readonly<Props>) {
     <Container as="article" className={styles.article} fluid>
       <Row className="fr-mb-2w justify-space-between">
         <h6 id="draft-body-label" className="fr-mb-0">
-          Contenu de votre courrier
+          Contenu de votre courrier (obligatoire)
         </h6>
         <AppLink
           isSimple

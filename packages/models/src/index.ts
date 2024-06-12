@@ -1,3 +1,4 @@
+export * from './test/fixtures';
 export * from './AddressDTO';
 export * from './CampaignDTO';
 export * from './ContactPoint';
@@ -10,9 +11,12 @@ export * from './EventKind';
 export * from './EventSection';
 export * from './Feature';
 export * from './FileUploadDTO';
+export * from './GeoPerimeterDTO';
 export * from './GroupDTO';
 export * from './HousingDTO';
 export * from './HousingFiltersDTO';
+export * from './HousingKind';
+export * from './HousingStatus';
 export * from './LocalityDTO';
 export * from './NoteDTO';
 export * from './OwnerDTO';

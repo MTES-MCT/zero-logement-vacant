@@ -4,7 +4,6 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver';
 import async from 'async';
 import { Worker, WorkerOptions } from 'bullmq';
-import exceljs from 'exceljs';
 import { parseRedisUrl } from 'parse-redis-url-simple';
 import { Readable } from 'node:stream';
 
@@ -18,7 +17,8 @@ import { createLogger } from '../logger';
 import { storage } from '../storage';
 
 type Name = 'campaign:generate';
-type Args = Jobs[Name];
+type Args = Parameters<Jobs[Name]>[0];
+type Returned = ReturnType<Jobs[Name]>;
 
 export default function createWorker() {
   const logger = createLogger('workers:generate-mails');
@@ -27,62 +27,62 @@ export default function createWorker() {
     endpoint: config.s3.endpoint,
     region: config.s3.region,
     accessKeyId: config.s3.accessKeyId,
-    secretAccessKey: config.s3.secretAccessKey,
+    secretAccessKey: config.s3.secretAccessKey
   });
 
   const [redis] = parseRedisUrl(config.redis.url);
   const workerConfig: WorkerOptions = {
-    connection: redis,
+    connection: redis
   };
 
   logger.info('Worker created.', {
-    name: 'workers:generate-mails',
+    name: 'workers:generate-mails'
   });
 
   const api = createSDK({
     api: {
-      host: config.api.host,
+      host: config.api.host
     },
     auth: {
-      secret: config.auth.secret,
+      secret: config.auth.secret
     },
     db: {
-      url: config.db.url,
+      url: config.db.url
     },
     logger: createLogger('api-sdk'),
     serviceAccount: config.auth.serviceAccount,
-    storage,
+    storage
   });
   logger.info('SDK created.');
 
-  return new Worker<Args, void, Name>(
+  return new Worker<Args, Returned, Name>(
     'campaign:generate',
     async (job) => {
-      await storage.run(
+      return storage.run(
         { establishment: job.data.establishmentId },
         async () => {
-          const { campaignId } = job.data;
+          const payload = job.data;
           logger.info('Generating mail for campaign', job.data);
 
-          const campaign = await api.campaign.get(campaignId);
+          const campaign = await api.campaign.get(payload.campaignId);
           if (!campaign) {
-            throw new Error(`Campaign ${campaignId} missing`);
+            throw new Error(`Campaign ${payload.campaignId} missing`);
           }
 
           const [housings, drafts] = await Promise.all([
             api.housing.find({
               filters: {
-                campaignIds: [campaignId],
+                campaignIds: [payload.campaignId]
               },
               pagination: {
-                paginate: false,
-              },
+                paginate: false
+              }
             }),
             api.draft.find({
               filters: {
-                campaign: campaign.id,
-              },
-            }),
+                campaign: campaign.id
+              }
+            })
           ]);
 
           const [draft] = drafts;
@@ -91,32 +91,23 @@ export default function createWorker() {
           }
 
           const html: string[] = [];
-          const workbook = new exceljs.Workbook();
-          const worksheet = workbook.addWorksheet('Liste des destinataires');
-          worksheet.addRow(['Nom', 'Adresse', 'Complément d’addresse']);
 
           // Download logos
           const logos = await async.map(
             draft.logo ?? [],
             async (logo: string) =>
-              toBase64(logo, { s3, bucket: config.s3.bucket }),
+              toBase64(logo, { s3, bucket: config.s3.bucket })
           );
           const signature = draft.sender.signatoryFile
             ? await toBase64(draft.sender.signatoryFile, {
                 s3,
-                bucket: config.s3.bucket,
+                bucket: config.s3.bucket
               })
             : null;
 
           await async.forEach(housings, async (housing) => {
             const owners = await api.owner.findByHousing(housing.id);
             const address = getAddress(owners[0]);
-
-            worksheet.addRow([
-              owners[0].fullName,
-              address.join('\n'),
-              owners[0].additionalAddress,
-            ]);
 
             html.push(
               await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
@@ -126,7 +117,7 @@ export default function createWorker() {
                 body: draft.body
                   ? replaceVariables(draft.body, {
                       housing,
-                      owner: owners[0],
+                      owner: owners[0]
                     })
                   : '',
                 sender: {
@@ -139,16 +130,16 @@ export default function createWorker() {
                   signatoryLastName: draft.sender.signatoryLastName ?? '',
                   signatoryFirstName: draft.sender.signatoryFirstName ?? '',
                   signatoryRole: draft.sender.signatoryRole ?? '',
-                  signatoryFile: signature,
+                  signatoryFile: signature
                 },
                 writtenAt: draft.writtenAt ?? '',
                 writtenFrom: draft.writtenFrom ?? '',
                 owner: {
                   fullName: owners[0].fullName,
                   address: address,
-                  additionalAddress: owners[0].additionalAddress ?? '',
-                },
-              }),
+                  additionalAddress: owners[0].additionalAddress ?? ''
+                }
+              })
             );
           });
 
@@ -160,10 +151,9 @@ export default function createWorker() {
             .replace(/[-T:]/g, '')
             .concat('-', slugify(campaign.title));
 
-          const xlsxBuffer = Buffer.from(await workbook.xlsx.writeBuffer());
-
           const archive = archiver('zip');
-          archive.append(xlsxBuffer, { name: `${name}-destinataires.xlsx` });
+          const buffer: ArrayBuffer = await api.campaign.exportCampaign(campaign.id);
+          archive.append(Buffer.from(buffer), { name: `${name}-destinataires.xlsx` });
           archive.append(finalPDF, { name: `${name}.pdf` });
           const upload = new Upload({
             client: s3,
@@ -173,33 +163,35 @@ export default function createWorker() {
               Body: Readable.from(archive),
               ContentLanguage: 'fr',
               ContentType: 'application/x-zip',
-              ACL: 'authenticated-read',
-            },
+              ACL: 'authenticated-read'
+            }
           });
           const results = await Promise.all([
             archive.finalize(),
-            upload.done(),
+            upload.done()
           ]);
           const objectKey = results[1].Key;
 
           const command = new GetObjectCommand({
             Bucket: config.s3.bucket,
-            Key: objectKey,
+            Key: objectKey
           });
 
           const signedUrl = await getSignedUrl(s3, command, {
-            expiresIn: 60 * 60 * 24 * 7, // TTL: 7 days
+            expiresIn: 60 * 60 * 24 * 7 // TTL: 7 days
           });
 
           logger.info(`Generated signed URL: ${signedUrl}`);
 
           await api.campaign.update(campaign.id, {
             ...campaign,
-            file: signedUrl,
+            file: signedUrl
           });
-        },
+
+          return { id: campaign.id };
+        }
       );
     },
-    workerConfig,
+    workerConfig
   );
 }

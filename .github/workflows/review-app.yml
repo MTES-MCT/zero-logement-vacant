@@ -6,7 +6,12 @@ on:
   pull_request_target:
     types: [opened, closed, synchronize, reopened]
     branches: [main]
-
+    paths:
+        - frontend/**
+        - queue/**
+        - server/**
+        - shared/**
+        - packages/**
 env:
   CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
   CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
@@ -29,7 +34,7 @@ jobs:
         run: clever addon create redis-addon $PR_NAME-redis --org $ORGA_ID --plan s_mono --region par
 
   deploy-api:
-    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    if: (github.event.action == 'opened' || github.event.action == 'reopened') && !github.event.pull_request.draft
     needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
@@ -66,6 +71,7 @@ jobs:
         run: |
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
+          clever env set CC_OVERRIDE_BUILDCACHE '.:../.cache/puppeteer' -a $APP_ALIAS
           clever env set CC_PRE_RUN_HOOK 'corepack yarn workspace $WORKSPACE migrate && corepack yarn workspace $WORKSPACE seed' -a $APP_ALIAS
           clever env set CEREMA_API "https://api.cerema.fr" -a $APP_ALIAS
           clever env set CEREMA_ENABLED "false" -a $APP_ALIAS
@@ -135,6 +141,7 @@ jobs:
           clever env set API_HOST https://$PR_NAME-api.cleverapps.io/api -a $APP_ALIAS
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
+          clever env set CC_OVERRIDE_BUILDCACHE '.:../.cache/puppeteer' -a $APP_ALIAS
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
           clever env set S3_ACCESS_KEY_ID $CELLAR_ADDON_KEY_ID -a $APP_ALIAS
           clever env set S3_BUCKET zerologementvacant -a $APP_ALIAS

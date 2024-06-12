@@ -1,8 +1,5 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
-
-import { Col, Row } from '../../components/_dsfr';
-import { filterCount } from '../../models/HousingFilters';
+import Grid from '@mui/material/Unstable_Grid2';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
@@ -56,48 +53,39 @@ function CampaignInProgress(props: Readonly<Props>) {
   }
 
   return (
-    <section>
-      <Row spacing="mb-1w" alignItems="top">
-        <HousingListFiltersSidemenu
-          filters={filters}
-          expand={expand}
-          onChange={onChangeFilters}
-          onReset={onResetFilters}
-          onClose={() => setExpand(false)}
-        />
-        <Col n="6" className="d-flex">
-          <AppSearchBar
-            onSearch={searchWithQuery}
-            initialQuery={filters.query}
-            placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
-          />
-          <Button
-            title="Filtrer"
-            iconId="ri-filter-fill"
-            priority="secondary"
-            className="fr-ml-1w"
-            onClick={() => setExpand(true)}
-            data-testid="filter-button"
-          >
-            Filtrer ({filterCount(filters)})
-          </Button>
-        </Col>
+    <>
+      <HousingListFiltersSidemenu
+        filters={filters}
+        expand={expand}
+        onChange={onChangeFilters}
+        onReset={onResetFilters}
+        onClose={() => setExpand(false)}
+      />
+      <Grid container flexDirection="column" px={3} py={4} xs>
+        <Grid container mb={1} spacing={2} alignItems="flex-start" xs={12}>
+          <Grid xs>
+            <AppSearchBar
+              onSearch={searchWithQuery}
+              initialQuery={filters.query}
+              placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
+            />
+          </Grid>
+          <Grid xs="auto">
+            <HousingDisplaySwitch />
+          </Grid>
+        </Grid>
 
-        <Col>
-          <HousingDisplaySwitch />
-        </Col>
-      </Row>
+        <Grid mb={3} xs={12}>
+          <HousingFiltersBadges filters={filters} onChange={removeFilter} />
+        </Grid>
 
-      <Row>
-        <HousingFiltersBadges filters={filters} onChange={removeFilter} />
-      </Row>
-
-      {view === 'map' ? (
-        <HousingListMap filters={filters} />
-      ) : (
-        <HousingListTabs filters={filters} showCount={false} />
-      )}
-    </section>
+        {view === 'map' ? (
+          <HousingListMap filters={filters} />
+        ) : (
+          <HousingListTabs filters={filters} showCount={false} />
+        )}
+      </Grid>
+    </>
   );
 }
 

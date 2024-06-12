@@ -1,6 +1,7 @@
 build/
 dist/
 frontend/src/components/_dsfr/
+frontend/jest.polyfills.js
 node_modules/
 public/
 tools/

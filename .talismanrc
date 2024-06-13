@@ -74,6 +74,8 @@ fileignoreconfig:
   checksum: ce84d57e61bfdf4168938e114113005b0961659ea299a3871415ade48ba7b310
 - filename: server/src/index.ts
   checksum: 88aec4113a92083b1401a101a673a2cf4457345c258bb8572dccbc713d22a94c
+- filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
+  checksum: 903121a16f807c0fab17d31704a33717de117507498cc07f6c697910819c5e49
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
 - filename: server/src/routers/unprotected.ts

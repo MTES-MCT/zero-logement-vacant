@@ -1,4 +1,4 @@
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, AxiosResponse } from 'axios';
 
 import {
   CampaignDTO,
@@ -11,6 +11,7 @@ export interface CampaignAPI {
     id: CampaignDTO['id'],
     campaign: CampaignUpdatePayloadDTO,
   ): Promise<CampaignDTO>;
+  exportCampaign(id: string): Promise<ArrayBuffer>;
 }
 
 export function createCampaignAPI(http: AxiosInstance): CampaignAPI {
@@ -27,6 +28,10 @@ export function createCampaignAPI(http: AxiosInstance): CampaignAPI {
         `/campaigns/${id}`,
         campaign,
       );
+      return response.data;
+    },
+    async exportCampaign(id: string): Promise<ArrayBuffer> {
+      const response: AxiosResponse<ArrayBuffer> = await http.get<ArrayBuffer>(`/campaigns/${id}/export`, { responseType: 'arraybuffer' });
       return response.data;
     },
   };

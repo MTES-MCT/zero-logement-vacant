@@ -1,9 +1,9 @@
+import Grid from '@mui/material/Unstable_Grid2';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import { Col, Icon, Row, Text } from '../../components/_dsfr';
 import { isBuilding } from '../../models/Campaign';
 import CampaignInProgress from './CampaignInProgress';
-import MainContainer from '../../components/MainContainer/MainContainer';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import { useGetGroupQuery } from '../../services/group.service';
 import { useCampaign } from '../../hooks/useCampaign';
@@ -33,7 +33,7 @@ function CampaignView() {
   const CampaignComponent = steps[campaign.status] || <NotFoundView />;
 
   return (
-    <MainContainer>
+    <Grid container position="relative">
       {isBuilding(campaign) && (
         <>
           {group && (
@@ -70,7 +70,7 @@ function CampaignView() {
         </>
       )}
       {CampaignComponent}
-    </MainContainer>
+    </Grid>
   );
 }
 

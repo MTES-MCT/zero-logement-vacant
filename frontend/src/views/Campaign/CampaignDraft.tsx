@@ -1,3 +1,5 @@
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import Grid from '@mui/material/Unstable_Grid2';
 import fp from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import * as yup from 'yup';
@@ -28,7 +30,6 @@ import DraftMailInfo, {
 import { DraftCreationPayload } from '../../models/Draft';
 import DraftSenderLogo from '../../components/Draft/DraftSenderLogo';
 import DraftSignature from '../../components/Draft/DraftSignature';
-import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
 
 const schema = yup
@@ -160,31 +161,29 @@ function CampaignDraft(props: Readonly<Props>) {
   }
 
   return (
-    <Container as="article" fluid>
-      <Container as="header" className="fr-mb-5w" fluid>
-        <Row>
-          <Col n="6">
-            <CampaignTitle
-              as="h2"
-              campaign={props.campaign}
-              className="fr-mb-1w"
-            />
-            <CampaignCounts
-              display="row"
-              housing={count?.housing}
-              owners={count?.owners}
-            />
-          </Col>
-          <Col n="6" className={styles.right}>
-            <PreviewButton
-              className="fr-mr-2w"
-              disabled={!exists}
-              draft={draft}
-            />
-            <SendButton campaign={props.campaign} form={form} />
-          </Col>
-        </Row>
-      </Container>
+    <Grid component="article" container py={4} xs={10} xsOffset={1}>
+      <Grid alignItems="center" container component="header" mb={5} xs>
+        <Grid xs={6}>
+          <CampaignTitle
+            as="h2"
+            campaign={props.campaign}
+            className="fr-mb-1w"
+          />
+          <CampaignCounts
+            display="row"
+            housing={count?.housing}
+            owners={count?.owners}
+          />
+        </Grid>
+        <Grid display="flex" justifyContent="flex-end" xs={6}>
+          <PreviewButton
+            className="fr-mr-2w"
+            disabled={!exists}
+            draft={draft}
+          />
+          <SendButton campaign={props.campaign} form={form} />
+        </Grid>
+      </Grid>
       <Tabs
         className={styles.tabs}
         classes={{
@@ -260,7 +259,7 @@ function CampaignDraft(props: Readonly<Props>) {
           },
         ]}
       />
-    </Container>
+    </Grid>
   );
 }
 

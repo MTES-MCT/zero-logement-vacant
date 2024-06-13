@@ -1,9 +1,9 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Grid from '@mui/material/Unstable_Grid2';
 import { FormEvent, useState } from 'react';
 
 import { Campaign } from '../../models/Campaign';
-import { Col, Container, Row } from '../../components/_dsfr';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import { useCampaign } from '../../hooks/useCampaign';
@@ -67,16 +67,16 @@ function CampaignSending(props: Readonly<Props>) {
   }
 
   return (
-    <Container as="article" fluid>
-      <Container as="header" fluid spacing="mb-5w">
+    <Grid component="article" container py={4} xs={10} xsOffset={1}>
+      <Grid component="header" mb={5} xs>
         <CampaignTitle as="h2" campaign={props.campaign} className="fr-mb-1w" />
         <CampaignCounts
           display="row"
           housing={count?.housing}
           owners={count?.owners}
         />
-      </Container>
-      <Container as="section" fluid spacing="mb-5w">
+      </Grid>
+      <Grid component="section" container mb={5}>
         {!hasFile ? (
           <Alert
             className="fr-mb-5w"
@@ -86,55 +86,51 @@ function CampaignSending(props: Readonly<Props>) {
             title="Chargement de vos courriers en cours"
           />
         ) : (
-          <Row spacing="mb-5w">
-            <Col n="4">
-              <DraftDownloader campaign={props.campaign} />
-            </Col>
-          </Row>
+          <Grid mb={5} xs={4}>
+            <DraftDownloader campaign={props.campaign} />
+          </Grid>
         )}
-        <Row>
-          <Col n="3">
-            <modal.Component
-              title="Confirmation de la date d’envoi"
-              buttons={[
-                {
-                  children: 'Annuler',
-                  className: 'fr-mr-2w',
-                  priority: 'secondary',
-                },
-                {
-                  onClick: submit,
-                  children: 'Confirmer',
-                  doClosesModal: false,
-                },
-              ]}
-            >
-              <div className="fr-alert fr-alert--warning fr-alert--sm">
-                <p>
-                  Une fois la date d’envoi confirmée, vous ne pourrez plus
-                  télécharger vos courriers et vos destinataires. Si vous avez
-                  bien effectué le téléchargement, vous pouvez cliquer sur
-                  “Confirmer” et commencer le suivi de votre campagne. Sinon,
-                  cliquez sur “Annuler” pour revenir en arrière et télécharger
-                  les courriers et destinataires avant de confirmer.
-                </p>
-              </div>
-            </modal.Component>
-            <form onSubmit={handleFormSubmit}>
-              <DraftSendingDate
-                className="fr-mb-5w"
-                form={form}
-                value={sentAt}
-                onChange={setSentAt}
-              />
-              <Button priority="primary" disabled={disabled}>
-                Confirmer et passer au suivi
-              </Button>
-            </form>
-          </Col>
-        </Row>
-      </Container>
-    </Container>
+        <Grid xs={3}>
+          <modal.Component
+            title="Confirmation de la date d’envoi"
+            buttons={[
+              {
+                children: 'Annuler',
+                className: 'fr-mr-2w',
+                priority: 'secondary',
+              },
+              {
+                onClick: submit,
+                children: 'Confirmer',
+                doClosesModal: false,
+              },
+            ]}
+          >
+            <div className="fr-alert fr-alert--warning fr-alert--sm">
+              <p>
+                Une fois la date d’envoi confirmée, vous ne pourrez plus
+                télécharger vos courriers et vos destinataires. Si vous avez
+                bien effectué le téléchargement, vous pouvez cliquer sur
+                “Confirmer” et commencer le suivi de votre campagne. Sinon,
+                cliquez sur “Annuler” pour revenir en arrière et télécharger les
+                courriers et destinataires avant de confirmer.
+              </p>
+            </div>
+          </modal.Component>
+          <form onSubmit={handleFormSubmit}>
+            <DraftSendingDate
+              className="fr-mb-5w"
+              form={form}
+              value={sentAt}
+              onChange={setSentAt}
+            />
+            <Button priority="primary" disabled={disabled}>
+              Confirmer et passer au suivi
+            </Button>
+          </form>
+        </Grid>
+      </Grid>
+    </Grid>
   );
 }
 

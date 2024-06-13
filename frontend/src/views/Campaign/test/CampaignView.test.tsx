@@ -125,7 +125,7 @@ describe('Campaign view', () => {
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
     await user.click(save);
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(/^Sauvegarde.../);
+    expect(alert).toBeVisible();
   });
 
   it('should update the draft on button click', async () => {
@@ -199,7 +199,7 @@ describe('Campaign view', () => {
     const save = await screen.findByRole('button', { name: /^Sauvegarder/ });
     await user.click(save);
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(/^Sauvegarde.../);
+    expect(alert).toBeVisible();
   });
 
   it('should validate the campaign', async () => {

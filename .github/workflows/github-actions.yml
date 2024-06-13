@@ -65,6 +65,7 @@ jobs:
         run: yarn test
         env:
           LOG_LEVEL: fatal
+          REACT_APP_API_URL: http://localhost:3001
 
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band

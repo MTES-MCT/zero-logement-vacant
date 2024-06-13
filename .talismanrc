@@ -38,12 +38,6 @@ fileignoreconfig:
   checksum: a9dcff1f35295ed617ba50e44cc95c57c63130e80a43e9303c20f160c3b3165d
 - filename: frontend/src/views/Login/LoginView.test.tsx
   checksum: a1fab3ca0b731331cc1e0945e238f60ba319da577710ebeae502813623985a39
-- filename: packages/api-sdk/src/infra/token-provider.ts
-  checksum: 941d4fabe1280d748cb22341e8a4a9a5a405673ab1f2ff84bac942f38f5664aa
-- filename: packages/schemas/src/index.ts
-  checksum: 45473f39f4b07b3a33b6138a7e6fc3268690b59439d9f539eb1ce2c1abd430dc
-- filename: packages/schemas/src/password.ts
-  checksum: 716d8d646fd8a00af8d4225e15190810f9e8ab082fbb14e7430be109fa676611
 - filename: packages/api-sdk/src/infra/test/token-provider.test.ts
   checksum: c3ea87f28ca17a354e1dadf58e2832088503f258327f4620e0a23a24bb79241a
 - filename: packages/api-sdk/src/infra/token-provider.ts
@@ -54,6 +48,10 @@ fileignoreconfig:
   checksum: e2cabb9dd76c168622f38b4d446907fedcb6f690c86d1c9d1eccbf17a6fe0044
 - filename: packages/api-sdk/src/test/housing-api.test.ts
   checksum: fb256466ac0b962dee535b787282de895f60fb04274b994bf9f821a9851deecb
+- filename: packages/schemas/src/index.ts
+  checksum: 45473f39f4b07b3a33b6138a7e6fc3268690b59439d9f539eb1ce2c1abd430dc
+- filename: packages/schemas/src/password.ts
+  checksum: 716d8d646fd8a00af8d4225e15190810f9e8ab082fbb14e7430be109fa676611
 - filename: queue/.env.example
   checksum: 30e4ee5808230342b969d42d9315fc7744900410a5797d7f7b2e984c678be2e7
 - filename: queue/README.md
@@ -76,6 +74,8 @@ fileignoreconfig:
   checksum: ce84d57e61bfdf4168938e114113005b0961659ea299a3871415ade48ba7b310
 - filename: server/src/index.ts
   checksum: 88aec4113a92083b1401a101a673a2cf4457345c258bb8572dccbc713d22a94c
+- filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
+  checksum: 903121a16f807c0fab17d31704a33717de117507498cc07f6c697910819c5e49
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
 - filename: server/src/routers/unprotected.ts

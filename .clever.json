@@ -47,6 +47,14 @@
       "git_ssh_url": "git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_7abbd260-6a91-4262-9c2f-3107f1194821.git",
       "name": "Queue staging",
       "alias": "queue-staging"
+    },
+    {
+      "app_id": "app_0a820d50-269c-4d96-9b5e-81b112b0c608",
+      "org_id": "orga_31f13631-abb3-48d2-a58b-24b736f02a9d",
+      "deploy_url": "https://push-n3-par-clevercloud-customers.services.clever-cloud.com/app_0a820d50-269c-4d96-9b5e-81b112b0c608.git",
+      "git_ssh_url": "git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_0a820d50-269c-4d96-9b5e-81b112b0c608.git",
+      "name": "Dagster (Production)",
+      "alias": "dagster-production"
     }
   ]
 }

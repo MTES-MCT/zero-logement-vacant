@@ -19,7 +19,6 @@
     "@sentry/node": "^7.116.0",
     "@zerologementvacant/api-sdk": "workspace:*",
     "@zerologementvacant/draft": "workspace:*",
-    "@zerologementvacant/exporters": "workspace:*",
     "@zerologementvacant/healthcheck": "workspace:*",
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",

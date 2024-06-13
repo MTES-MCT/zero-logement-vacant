@@ -10,11 +10,15 @@ import CampaignView from '../CampaignView';
 import Notification from '../../../components/Notification/Notification';
 import {
   CampaignDTO,
+  DraftDTO,
   genCampaignDTO,
   genDraftDTO,
   genHousingDTO,
   genOwnerDTO,
-  genSenderDTO
+  genSenderDTO,
+  HousingDTO,
+  OwnerDTO,
+  SenderDTO
 } from '@zerologementvacant/models';
 import data from '../../../mocks/handlers/data';
 import { sources } from '../../../../test/event-source-mock';
@@ -23,15 +27,21 @@ import config from '../../../utils/config';
 describe('Campaign view', () => {
   const user = userEvent.setup();
 
-  const campaign = genCampaignDTO();
-  const sender = genSenderDTO();
-  const draft = genDraftDTO(sender);
-  const owner = genOwnerDTO();
-  const housings = Array.from({ length: 3 }, () => genHousingDTO(owner));
+  let campaign: CampaignDTO;
+  let sender: SenderDTO;
+  let draft: DraftDTO;
+  let owner: OwnerDTO;
+  let housings: HousingDTO[];
 
   let store: AppStore;
 
-  beforeAll(() => {
+  beforeEach(() => {
+    campaign = genCampaignDTO();
+    sender = genSenderDTO();
+    draft = genDraftDTO(sender);
+    owner = genOwnerDTO();
+    housings = Array.from({ length: 3 }, () => genHousingDTO(owner));
+
     data.housings.push(...housings);
     data.campaigns.push(campaign);
     housings.forEach((housing) => {

@@ -29,12 +29,7 @@ export const groupHandlers: RequestHandler[] = [
       const housings = faker.helpers.arrayElements(data.housings);
       const group = genGroupDTO(creator, housings);
       data.groups.push(group);
-      housings.forEach((housing) => {
-        data.groupHousings.add({
-          groupId: group.id,
-          housingId: housing.id
-        });
-      });
+      data.groupHousings.set(group.id, housings);
 
       return HttpResponse.json(group, {
         status: constants.HTTP_STATUS_CREATED
@@ -75,17 +70,27 @@ export const groupHandlers: RequestHandler[] = [
       return HttpResponse.json(updated);
     }
   ),
-  http.delete<GroupParams, never, null>(
+  http.delete<GroupParams, never, never>(
     `${config.apiEndpoint}/api/groups/:id`,
     ({ params }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
-        return HttpResponse.json(null, {
+        throw new HttpResponse(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
 
-      return HttpResponse.json(null, {
+      const hasCampaign = data.campaigns.some(
+        (campaign) => campaign.groupId === group.id
+      );
+      if (hasCampaign) {
+        group.archivedAt = new Date().toJSON();
+      } else {
+        data.groups = data.groups.filter((group) => group.id !== params.id);
+        data.groupHousings.delete(params.id);
+      }
+
+      return new HttpResponse(null, {
         status: constants.HTTP_STATUS_NO_CONTENT
       });
     }

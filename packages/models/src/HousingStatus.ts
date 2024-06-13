@@ -10,3 +10,7 @@ export enum HousingStatus {
 export const HOUSING_STATUSES: HousingStatus[] = Object.values(
   HousingStatus
 ).filter((status): status is HousingStatus => typeof status !== 'string');
+
+export function isHousingStatus(value: number): value is HousingStatus {
+  return HOUSING_STATUSES.includes(value);
+}

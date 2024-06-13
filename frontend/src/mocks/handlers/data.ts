@@ -72,19 +72,7 @@ Array.from(campaignHousings.entries()).forEach(([campaignId, housings]) => {
   }
 });
 
-interface GroupHousing {
-  groupId: string;
-  housingId: string;
-}
-const groupHousings = new Set<GroupHousing>(
-  groups.flatMap((group) => {
-    const elements = faker.helpers.arrayElements(housings);
-    return elements.map((element) => ({
-      groupId: group.id,
-      housingId: element.id
-    }));
-  })
-);
+const groupHousings = new Map<GroupDTO['id'], HousingDTO[]>();
 
 const data = {
   campaigns,

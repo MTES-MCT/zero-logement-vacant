@@ -4,13 +4,9 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 import 'jest-extended';
-import { enableFetchMocks } from 'jest-fetch-mock';
 
 import { mockAPI } from './mocks/mock-api';
 import EventSourceMock from '../test/event-source-mock';
-
-// @deprecated
-enableFetchMocks();
 
 jest.mock('./components/Aside/Aside.tsx');
 jest.mock('./components/RichEditor/RichEditor.tsx');
@@ -26,11 +22,6 @@ beforeAll(() => {
     // matching request handler.
     onUnhandledRequest: 'error'
   });
-});
-
-// @deprecated
-beforeEach(() => {
-  fetchMock.resetMocks();
 });
 
 afterEach(() => {

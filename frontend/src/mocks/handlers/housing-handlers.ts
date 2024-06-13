@@ -29,7 +29,11 @@ export const housingHandlers: RequestHandler[] = [
       const subset = fp.pipe(
         filterByCampaign(payload.filters?.campaignIds),
         filterByHousingKind(payload.filters?.housingKinds),
-        filterByStatus(payload.filters?.status)
+        filterByStatus(
+          payload.filters?.status
+            ? [payload.filters.status]
+            : payload.filters?.statusList
+        )
       )(data.housings);
 
       return HttpResponse.json({
@@ -49,7 +53,11 @@ export const housingHandlers: RequestHandler[] = [
       const subset: HousingDTO[] = fp.pipe(
         filterByCampaign(payload.filters?.campaignIds),
         filterByHousingKind(payload.filters?.housingKinds),
-        filterByStatus(payload.filters?.statusList ?? payload.filters?.status)
+        filterByStatus(
+          payload.filters?.status
+            ? [payload.filters.status]
+            : payload.filters?.statusList
+        )
       )(data.housings);
 
       const owners: number = fp.uniqBy(
@@ -104,7 +112,7 @@ function filterByHousingKind(kinds?: string[]) {
   };
 }
 
-function filterByStatus(statuses?: string[]) {
+function filterByStatus(statuses?: number[]) {
   return (housings: HousingDTO[]): HousingDTO[] => {
     if (!statuses || statuses.length === 0) {
       return housings;

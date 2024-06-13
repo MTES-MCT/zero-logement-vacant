@@ -143,7 +143,7 @@ export const campaignHandlers: RequestHandler[] = [
         });
       }
 
-      return HttpResponse.json(null, {
+      return new HttpResponse(null, {
         status: constants.HTTP_STATUS_NO_CONTENT
       });
     }
@@ -176,8 +176,11 @@ export const campaignHandlers: RequestHandler[] = [
           ?.filter((campaign) => campaign.id !== params.id);
         data.housingCampaigns.set(housing.id, campaigns ?? []);
       });
+      data.campaigns = data.campaigns.filter(
+        (campaign) => campaign.id !== params.id
+      );
 
-      return HttpResponse.json(null, {
+      return new HttpResponse(null, {
         status: constants.HTTP_STATUS_NO_CONTENT
       });
     }

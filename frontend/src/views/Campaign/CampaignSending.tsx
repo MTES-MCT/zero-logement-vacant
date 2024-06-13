@@ -16,6 +16,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import { useNotification } from '../../hooks/useNotification';
 import DraftDownloader from '../../components/Draft/DraftDownloader';
+import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
 
 const modal = createModal({
   id: 'campaign-sending-modal',
@@ -69,12 +70,21 @@ function CampaignSending(props: Readonly<Props>) {
   return (
     <Grid component="article" container py={4} xs={10} xsOffset={1}>
       <Grid component="header" mb={5} xs={12}>
-        <CampaignTitle as="h2" campaign={props.campaign} className="fr-mb-1w" />
-        <CampaignCounts
-          display="row"
-          housing={count?.housing}
-          owners={count?.owners}
-        />
+        <Grid component="section" mb={2} xs={12}>
+          <CampaignCreatedFromGroup campaign={props.campaign} />
+        </Grid>
+        <Grid component="section" xs={12}>
+          <CampaignTitle
+            as="h2"
+            campaign={props.campaign}
+            className="fr-mb-1w"
+          />
+          <CampaignCounts
+            display="row"
+            housing={count?.housing}
+            owners={count?.owners}
+          />
+        </Grid>
       </Grid>
       <Grid component="section" container mb={5} xs={12}>
         {!hasFile ? (

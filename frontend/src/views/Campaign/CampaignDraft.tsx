@@ -31,6 +31,7 @@ import { DraftCreationPayload } from '../../models/Draft';
 import DraftSenderLogo from '../../components/Draft/DraftSenderLogo';
 import DraftSignature from '../../components/Draft/DraftSignature';
 import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
+import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
 
 const schema = yup
   .object({
@@ -163,6 +164,9 @@ function CampaignDraft(props: Readonly<Props>) {
   return (
     <Grid component="article" container py={4} xs={10} xsOffset={1}>
       <Grid alignItems="center" container component="header" mb={5} xs>
+        <Grid mb={2} xs={12}>
+          <CampaignCreatedFromGroup campaign={props.campaign} />
+        </Grid>
         <Grid xs={6}>
           <CampaignTitle
             as="h2"

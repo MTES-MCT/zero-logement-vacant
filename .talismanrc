@@ -1,6 +1,4 @@
 fileignoreconfig:
-- filename: frontend/src/views/Login/LoginView.test.tsx
-  checksum: 65b9254449dc12db9579f2e83d8b4607cdd865ff65612e98d032edf18e006ec5
 - filename: .github/workflows/github-actions.yml
   checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
 - filename: database/*
@@ -77,7 +75,7 @@ fileignoreconfig:
 - filename: server/src/index.ts
   checksum: 88aec4113a92083b1401a101a673a2cf4457345c258bb8572dccbc713d22a94c
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
-  checksum: 875d4c93a998a6ed9c35a905816b599d086da095406c0e282474e8239a7efc94
+  checksum: 58d7a51800df5447205a0b9c137478c5bb9d456a76cbc96f0407b9eacc676999
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
 - filename: server/src/routers/unprotected.ts

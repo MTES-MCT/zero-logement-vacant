@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import campaignRepository from '~/repositories/campaignRepository';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
-import { CampaignApi, CampaignSortableApi } from '~/models/CampaignApi';
+import {
+  CampaignApi,
+  CampaignSortableApi,
+  toCampaignDTO,
+} from '~/models/CampaignApi';
 import housingRepository from '~/repositories/housingRepository';
 import eventRepository from '~/repositories/eventRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
@@ -28,6 +32,7 @@ import { HousingEventApi } from '~/models/EventApi';
 import {
   CAMPAIGN_STATUSES,
   CampaignCreationPayloadDTO,
+  CampaignDTO,
   CampaignUpdatePayloadDTO,
   HousingFiltersDTO,
   nextStatus,
@@ -131,7 +136,7 @@ const createValidators: ValidationChain[] = [
     .withMessage('Must be an array of UUID'),
   ...housingFiltersApi.validators('housing.filters'),
 ];
-async function create(request: Request, response: Response) {
+async function create(request: Request, response: Response<CampaignDTO>) {
   logger.info('Create campaign');
 
   const { auth } = request as AuthenticatedRequest;
@@ -147,7 +152,6 @@ async function create(request: Request, response: Response) {
     status: 'draft',
     filters,
     createdAt: new Date().toJSON(),
-    validatedAt: new Date().toJSON(),
     userId: auth.userId,
     establishmentId: auth.establishmentId,
   };
@@ -172,7 +176,7 @@ async function create(request: Request, response: Response) {
   await campaignRepository.save(campaign);
   await campaignHousingRepository.insertHousingList(campaign.id, houses);
 
-  response.status(constants.HTTP_STATUS_CREATED).json(campaign);
+  response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
 
   // TODO: transform this into CampaignHousingEventApi[]
   // extends EventApi<CampaignApi>
@@ -222,7 +226,6 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     groupId,
     userId: auth.userId,
     establishmentId: auth.establishmentId,
-    validatedAt: new Date().toJSON(),
   };
   await campaignRepository.save(campaign);
 

@@ -7,12 +7,11 @@ import { useForm } from '../../hooks/useForm';
 import { DATE_REGEXP } from '../../utils/dateUtils';
 
 export const writtenSchema = object({
-  writtenAt: string()
-    .required('Veuillez indiquer une date pour débuter l’envoi')
-    .matches(DATE_REGEXP, 'Veuillez renseigner une date au format yyyy-mm-dd'),
-  writtenFrom: string().required(
-    'Veuillez indiquer un lieu pour débuter l’envoi'
+  writtenAt: string().matches(
+    DATE_REGEXP,
+    'Veuillez renseigner une date au format yyyy-mm-dd',
   ),
+  writtenFrom: string(),
 });
 
 export interface Written {
@@ -44,7 +43,7 @@ function DraftMailInfo(props: Readonly<Props>) {
       <AppTextInput
         inputForm={props.form}
         inputKey="writtenAt"
-        label="En date du ...*"
+        label="En date du ..."
         type="date"
         value={props.writtenAt}
         onChange={onChange('at')}
@@ -52,7 +51,7 @@ function DraftMailInfo(props: Readonly<Props>) {
       <AppTextInput
         inputForm={props.form}
         inputKey="writtenFrom"
-        label="Écrit à ...*"
+        label="Écrit à ..."
         value={props.writtenFrom}
         onChange={onChange('from')}
       />

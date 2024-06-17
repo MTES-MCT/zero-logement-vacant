@@ -37,7 +37,7 @@ function DraftBody(props: Readonly<Props>) {
           <AppTextInput
             inputForm={props.form}
             inputKey="subject"
-            label="Objet*"
+            label="Objet"
             value={props.subject}
             onChange={(event) =>
               props.onChange({

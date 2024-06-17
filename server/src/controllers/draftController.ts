@@ -278,7 +278,7 @@ async function preview(
       })
     : null;
   const html = await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
-    subject: draft.subject ?? '',
+    subject: draft.subject,
     logo: logos,
     watermark: true,
     body: draft.body
@@ -286,21 +286,21 @@ async function preview(
           housing: body.housing,
           owner: body.owner
         })
-      : '',
+      : null,
     sender: {
-      name: draft.sender.name ?? '',
-      service: draft.sender.service ?? '',
-      firstName: draft.sender.firstName ?? '',
-      lastName: draft.sender.lastName ?? '',
-      address: draft.sender.address ?? '',
-      phone: draft.sender.phone ?? '',
-      signatoryLastName: draft.sender.signatoryLastName ?? '',
-      signatoryFirstName: draft.sender.signatoryFirstName ?? '',
-      signatoryRole: draft.sender.signatoryRole ?? '',
+      name: draft.sender.name,
+      service: draft.sender.service,
+      firstName: draft.sender.firstName,
+      lastName: draft.sender.lastName,
+      address: draft.sender.address,
+      phone: draft.sender.phone,
+      signatoryLastName: draft.sender.signatoryLastName,
+      signatoryFirstName: draft.sender.signatoryFirstName,
+      signatoryRole: draft.sender.signatoryRole,
       signatoryFile: signature
     },
-    writtenAt: draft.writtenAt ?? '',
-    writtenFrom: draft.writtenFrom ?? '',
+    writtenAt: draft.writtenAt,
+    writtenFrom: draft.writtenFrom,
     owner: {
       fullName: body.owner.fullName,
       address: getAddress(body.owner),

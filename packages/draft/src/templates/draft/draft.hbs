@@ -19,12 +19,26 @@
       </section>
       <section class="header--right">
         <section class="header__sender">
-          <p>{{sender.name}}</p>
-          <p>{{sender.service}}</p>
-          <p>{{sender.firstName}} {{sender.lastName}}</p>
-          <p>{{sender.address}}</p>
-          <p>{{sender.email}}</p>
-          <p>{{sender.phone}}</p>
+          {{#if sender.name}}
+            <p>{{sender.name}}</p>
+          {{/if}}
+          {{#if sender.service}}
+            <p>{{sender.service}}</p>
+          {{/if}}
+          {{#if sender.firstName}}
+            {{#if sender.lastName}}
+              <p>{{sender.firstName}} {{sender.lastName}}</p>
+            {{/if}}
+          {{/if}}
+          {{#if sender.address}}
+            <p>{{sender.address}}</p>
+          {{/if}}
+          {{#if sender.email}}
+            <p>{{sender.email}}</p>
+          {{/if}}
+          {{#if sender.phone}}
+            <p>{{sender.phone}}</p>
+          {{/if}}
         </section>
         <section class="header__recipient">
           <strong>À l’attention de</strong>
@@ -37,7 +51,11 @@
     </header>
     <main>
       <header class="main__header">
-        <p>À {{writtenFrom}}, le {{localdate writtenAt}}</p>
+        {{#if writtenFrom}}
+          {{#if writtenAt}}
+            <p>À {{writtenFrom}}, le {{localdate writtenAt}}</p>
+          {{/if}}
+        {{/if}}
         <p><strong>Objet : </strong>{{subject}}</p>
       </header>
       <section class="main__body">
@@ -46,9 +64,17 @@
     </main>
     <footer>
       <section class="footer__signature">
-        <p><img src="{{sender.signatoryFile}}" alt="Signature" /></p>
-        <p>{{sender.signatoryFirstName}} {{sender.signatoryLastName}}</p>
-        <p>{{sender.signatoryRole}}</p>
+        {{#if sender.signatoryFile}}
+          <p><img src="{{sender.signatoryFile}}" alt="Signature" /></p>
+        {{/if}}
+        {{#if sender.signatoryFirstName}}
+          {{#if sender.signatoryLastName}}
+            <p>{{sender.signatoryFirstName}} {{sender.signatoryLastName}}</p>
+          {{/if}}
+        {{/if}}
+        {{#if sender.signatoryRole}}
+          <p>{{sender.signatoryRole}}</p>
+        {{/if}}
       </section>
     </footer>
   </body>

@@ -196,12 +196,13 @@ export function genProspect(): Prospect {
 }
 
 export function genGroup(): Group {
+  const count = genNumber(2);
   return {
     id: randomstring.generate(),
     title: randomstring.generate(),
     description: randomstring.generate(),
-    housingCount: genNumber(2),
-    ownerCount: genNumber(2),
+    housingCount: count + 1,
+    ownerCount: count,
     createdAt: new Date(),
     createdBy: genUser(),
     archivedAt: null,

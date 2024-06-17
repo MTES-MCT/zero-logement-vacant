@@ -8749,6 +8749,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/draft@workspace:packages/draft"
   dependencies:
+    "@codegouvfr/react-dsfr": "npm:^1.9.11"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/jest": "npm:^29.5.12"
     "@types/node": "npm:^20.12.12"

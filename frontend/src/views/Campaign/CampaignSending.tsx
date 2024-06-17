@@ -1,9 +1,9 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Grid from '@mui/material/Unstable_Grid2';
 import { FormEvent, useState } from 'react';
 
 import { Campaign } from '../../models/Campaign';
-import { Col, Container, Row } from '../../components/_dsfr';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import { useCampaign } from '../../hooks/useCampaign';
@@ -16,6 +16,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import { useNotification } from '../../hooks/useNotification';
 import DraftDownloader from '../../components/Draft/DraftDownloader';
+import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
 
 const modal = createModal({
   id: 'campaign-sending-modal',
@@ -67,33 +68,42 @@ function CampaignSending(props: Readonly<Props>) {
   }
 
   return (
-    <Container as="article" fluid>
-      <Container as="header" fluid spacing="mb-5w">
-        <CampaignTitle as="h2" campaign={props.campaign} className="fr-mb-1w" />
-        <CampaignCounts
-          display="row"
-          housing={count?.housing}
-          owners={count?.owners}
-        />
-      </Container>
-      <Container as="section" fluid spacing="mb-5w">
-        {!hasFile ? (
-          <Alert
-            className="fr-mb-5w"
-            closable
-            description="Vous pouvez quitter cette page et revenir télécharger vos courriers ici dès que le fichier sera prêt. Si vous n'avez toujours pas accès au téléchargement après 24 heures, contactez-nous via le chat en bas à droite de la page."
-            severity="info"
-            title="Chargement de vos courriers en cours"
+    <Grid component="article" container py={4} xs={10} xsOffset={1}>
+      <Grid component="header" mb={5} xs={12}>
+        <Grid component="section" mb={2} xs={12}>
+          <CampaignCreatedFromGroup campaign={props.campaign} />
+        </Grid>
+        <Grid component="section" xs={12}>
+          <CampaignTitle
+            as="h2"
+            campaign={props.campaign}
+            className="fr-mb-1w"
           />
+          <CampaignCounts
+            display="row"
+            housing={count?.housing}
+            owners={count?.owners}
+          />
+        </Grid>
+      </Grid>
+      <Grid component="section" container mb={5} xs={12}>
+        {!hasFile ? (
+          <Grid xs={12}>
+            <Alert
+              className="fr-mb-5w"
+              closable
+              description="Vous pouvez quitter cette page et revenir télécharger vos courriers ici dès que le fichier sera prêt. Si vous n'avez toujours pas accès au téléchargement après 24 heures, contactez-nous via le chat en bas à droite de la page."
+              severity="info"
+              title="Chargement de vos courriers en cours"
+            />
+          </Grid>
         ) : (
-          <Row spacing="mb-5w">
-            <Col n="4">
-              <DraftDownloader campaign={props.campaign} />
-            </Col>
-          </Row>
+          <Grid mb={5} xs={4}>
+            <DraftDownloader campaign={props.campaign} />
+          </Grid>
         )}
-        <Row>
-          <Col n="3">
+        <Grid container xs={12}>
+          <Grid xs="auto">
             <modal.Component
               title="Confirmation de la date d’envoi"
               buttons={[
@@ -131,10 +141,10 @@ function CampaignSending(props: Readonly<Props>) {
                 Confirmer et passer au suivi
               </Button>
             </form>
-          </Col>
-        </Row>
-      </Container>
-    </Container>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
   );
 }
 

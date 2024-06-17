@@ -4,7 +4,6 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver';
 import async from 'async';
 import { Worker, WorkerOptions } from 'bullmq';
-import exceljs from 'exceljs';
 import { parseRedisUrl } from 'parse-redis-url-simple';
 import { Readable } from 'node:stream';
 
@@ -91,9 +90,6 @@ export default function createWorker() {
           }
 
           const html: string[] = [];
-          const workbook = new exceljs.Workbook();
-          const worksheet = workbook.addWorksheet('Liste des destinataires');
-          worksheet.addRow(['Nom', 'Adresse', 'Complément d’addresse']);
 
           // Download logos
           const logos = await async.map(
@@ -111,12 +107,6 @@ export default function createWorker() {
           await async.forEach(housings, async (housing) => {
             const owners = await api.owner.findByHousing(housing.id);
             const address = getAddress(owners[0]);
-
-            worksheet.addRow([
-              owners[0].fullName,
-              address.join('\n'),
-              owners[0].additionalAddress,
-            ]);
 
             html.push(
               await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
@@ -160,10 +150,9 @@ export default function createWorker() {
             .replace(/[-T:]/g, '')
             .concat('-', slugify(campaign.title));
 
-          const xlsxBuffer = Buffer.from(await workbook.xlsx.writeBuffer());
-
           const archive = archiver('zip');
-          archive.append(xlsxBuffer, { name: `${name}-destinataires.xlsx` });
+          const buffer: ArrayBuffer = await api.campaign.exportCampaign(campaign.id);
+          archive.append(Buffer.from(buffer), { name: `${name}-destinataires.xlsx` });
           archive.append(finalPDF, { name: `${name}.pdf` });
           const upload = new Upload({
             client: s3,

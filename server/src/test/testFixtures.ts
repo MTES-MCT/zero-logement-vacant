@@ -137,6 +137,7 @@ export const genEstablishmentApi = (
     available: true,
     priority: hasPriority({ campaignIntent }) ? 'high' : 'standard',
     kind: oneOf<EstablishmentKind>(ESTABLISHMENT_KINDS),
+    source: 'seed'
   };
 };
 
@@ -231,8 +232,8 @@ export const genAddressApi = (
     street: faker.location.street(),
     postalCode: faker.location.zipCode(),
     city: faker.location.city(),
-    latitude: faker.address.latitude(),
-    longitude: faker.address.longitude(),
+    latitude: faker.location.latitude(),
+    longitude: faker.location.longitude(),
     score: Math.random(),
   };
 };

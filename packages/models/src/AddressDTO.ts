@@ -17,9 +17,9 @@ export enum AddressKinds {
   Owner = 'Owner',
 }
 
-// TODO: improve this function
 export function formatAddress(
-  address: Pick<AddressDTO, 'houseNumber' | 'street' | 'postalCode' | 'city'>
+  address: Pick<AddressDTO, 'houseNumber' | 'street' | 'postalCode' | 'city'>,
+  additionalAddress?: string,
 ): string[] {
   const reduce = fp.pipe(fp.compact);
 
@@ -27,6 +27,7 @@ export function formatAddress(
     address.street?.startsWith(address.houseNumber ?? '')
       ? address.street
       : `${address.houseNumber} ${address.street}`,
+    additionalAddress,
     `${address.postalCode} ${address.city}`,
   ]);
 }

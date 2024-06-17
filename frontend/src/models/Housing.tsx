@@ -1,16 +1,26 @@
-import { Owner } from './Owner';
-import { HousingStatus } from './HousingState';
+import { differenceInDays, format } from 'date-fns';
+
+import {
+  EnergyConsumption,
+  HousingDTO,
+  HousingStatus,
+  Occupancy,
+  OwnershipKind,
+} from '@zerologementvacant/models';
+import { Owner, toOwnerDTO } from './Owner';
+import { HousingStatus as DeprecatedHousingStatus } from './HousingState';
 import { stringSort } from '../utils/stringUtils';
 import { Sort } from './Sort';
 import { LocalityKinds } from './Locality';
 import { Note } from './Note';
-import { differenceInDays, format } from 'date-fns';
 import { Compare } from '../utils/compareUtils';
 import { HousingSource } from '../../../shared';
 
 export interface Housing {
   id: string;
   invariant: string;
+  localId: string;
+  geoCode: string;
   cadastralReference: string;
   buildingLocation?: string;
   buildingGroupId?: string;
@@ -34,7 +44,7 @@ export interface Housing {
   buildingVacancyRate: number;
   dataYears: number[];
   campaignIds: string[];
-  status: HousingStatus;
+  status: DeprecatedHousingStatus;
   subStatus?: string;
   precisions?: string[];
   lastContact?: Date;
@@ -226,4 +236,40 @@ export function getSource(housing: Housing): string {
     'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`,
   };
   return housing.source ? map[housing.source] : 'Inconnue';
+}
+
+export function toHousingDTO(housing: Housing): HousingDTO {
+  return {
+    id: housing.id,
+    invariant: housing.invariant,
+    localId: housing.localId,
+    rawAddress: housing.rawAddress,
+    geoCode: housing.geoCode,
+    longitude: housing.longitude,
+    latitude: housing.latitude,
+    cadastralClassification: housing.cadastralClassification,
+    uncomfortable: housing.uncomfortable,
+    vacancyStartYear: housing.vacancyStartYear,
+    housingKind: housing.housingKind,
+    roomsCount: housing.roomsCount,
+    livingArea: housing.livingArea,
+    cadastralReference: housing.cadastralReference,
+    buildingYear: housing.buildingYear,
+    taxed: housing.taxed,
+    vacancyReasons: housing.vacancyReasons,
+    dataYears: housing.dataYears,
+    buildingLocation: housing.buildingLocation,
+    // TODO: fix this by making Housing extend HousingDTO
+    ownershipKind: housing.ownershipKind as unknown as OwnershipKind,
+    status: housing.status as unknown as HousingStatus,
+    subStatus: housing.subStatus,
+    precisions: housing.precisions,
+    energyConsumption:
+      housing.energyConsumption as unknown as EnergyConsumption,
+    energyConsumptionAt: housing.energyConsumptionAt,
+    occupancy: housing.occupancy as unknown as Occupancy,
+    occupancyIntended: housing.occupancyIntended as unknown as Occupancy,
+    source: housing.source,
+    owner: toOwnerDTO(housing.owner),
+  };
 }

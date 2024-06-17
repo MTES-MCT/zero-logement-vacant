@@ -8877,6 +8877,7 @@ __metadata:
     "@types/jest": "npm:^29.5.12"
     "@types/lodash": "npm:^4.17.4"
     "@types/node": "npm:^20.12.12"
+    "@zerologementvacant/draft": "workspace:*"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     lodash: "npm:^4.17.21"

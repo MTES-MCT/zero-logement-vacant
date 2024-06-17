@@ -5,7 +5,7 @@ import { constants } from 'http2';
 function validate(
   request: Request,
   response: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
   const errors = validationResult(request);
   if (errors.isEmpty()) {

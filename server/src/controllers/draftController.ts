@@ -10,9 +10,11 @@ import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
+  DraftPreviewPayloadDTO,
   DraftUpdatePayloadDTO,
   FileUploadDTO,
   SenderDTO,
+  getAddress,
   replaceVariables,
 } from '@zerologementvacant/models';
 import { createS3, toBase64, getContent, getBase64Content } from '@zerologementvacant/utils';
@@ -27,6 +29,10 @@ import { logger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
 import senderRepository from '~/repositories/senderRepository';
 import config from '~/infra/config';
+
+export interface DraftParams extends Record<string, string> {
+  id: string;
+}
 
 interface DraftQuery {
   campaign?: string;
@@ -236,8 +242,15 @@ const createValidators: ValidationChain[] = [
   ...senderValidators
 ];
 
-async function preview(request: Request, response: Response) {
-  const { auth, body, params } = request as AuthenticatedRequest;
+async function preview(
+  request: Request<DraftParams, Buffer, DraftPreviewPayloadDTO>,
+  response: Response<Buffer>,
+): Promise<void> {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    DraftParams,
+    Buffer,
+    DraftPreviewPayloadDTO
+  >;
 
   const draft = await draftRepository.findOne({
     id: params.id,
@@ -290,9 +303,8 @@ async function preview(request: Request, response: Response) {
     writtenFrom: draft.writtenFrom ?? '',
     owner: {
       fullName: body.owner.fullName,
-      address: body.owner.address,
-      additionalAddress: body.owner.additionalAddress
-    }
+      address: getAddress(body.owner),
+    },
   });
   const finalPDF = await pdf.fromHTML([html]);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
@@ -323,16 +335,11 @@ const previewValidators: ValidationChain[] = [
     .isString()
     .notEmpty()
     .withMessage('fullName is required'),
-  body('owner.address').isArray().isLength({ min: 1 }),
-  body('owner.address[*]')
+  body('owner.rawAddress').isArray().isLength({ min: 1 }),
+  body('owner.rawAddress[*]')
     .isString()
     .notEmpty()
     .withMessage('address is required'),
-  body('owner.additionalAddress')
-    .optional({
-      nullable: true
-    })
-    .isString()
 ];
 
 async function update(request: Request, response: Response<DraftDTO>) {

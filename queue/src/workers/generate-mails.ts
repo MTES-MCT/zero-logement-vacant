@@ -137,9 +137,8 @@ export default function createWorker() {
                 owner: {
                   fullName: owners[0].fullName,
                   address: address,
-                  additionalAddress: owners[0].additionalAddress ?? ''
-                }
-              })
+                },
+              }),
             );
           });
 
@@ -152,8 +151,12 @@ export default function createWorker() {
             .concat('-', slugify(campaign.title));
 
           const archive = archiver('zip');
-          const buffer: ArrayBuffer = await api.campaign.exportCampaign(campaign.id);
-          archive.append(Buffer.from(buffer), { name: `${name}-destinataires.xlsx` });
+          const buffer: ArrayBuffer = await api.campaign.exportCampaign(
+            campaign.id,
+          );
+          archive.append(Buffer.from(buffer), {
+            name: `${name}-destinataires.xlsx`,
+          });
           archive.append(finalPDF, { name: `${name}.pdf` });
           const upload = new Upload({
             client: s3,

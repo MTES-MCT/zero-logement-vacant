@@ -29,8 +29,13 @@ export interface OwnerDTO extends Omit<OwnerPayloadDTO, 'birthDate'> {
 
 export function getAddress(owner: OwnerDTO): string[] {
   if (owner.banAddress) {
-    return formatAddress(owner.banAddress);
+    return formatAddress(owner.banAddress, owner.additionalAddress);
   }
 
-  return owner.rawAddress;
+  return !owner.additionalAddress
+    ? owner.rawAddress
+    : owner.rawAddress
+        .slice(0, owner.rawAddress.length - 1)
+        .concat(owner.additionalAddress)
+        .concat(owner.rawAddress.slice(-1));
 }

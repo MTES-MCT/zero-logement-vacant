@@ -1,6 +1,7 @@
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
+  DraftPreviewPayloadDTO,
   DraftUpdatePayloadDTO,
 } from '@zerologementvacant/models';
 import { SenderPayload } from './Sender';
@@ -14,3 +15,5 @@ export interface DraftCreationPayload
 }
 
 export type DraftUpdatePayload = DeepNonNullable<DraftUpdatePayloadDTO>;
+
+export type DraftPreviewPayload = DraftPreviewPayloadDTO;

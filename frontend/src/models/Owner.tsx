@@ -1,5 +1,4 @@
-import fp from 'lodash/fp';
-
+import { OwnerDTO } from '@zerologementvacant/models';
 import { Address } from './Address';
 
 export interface DraftOwner {
@@ -23,6 +22,21 @@ export interface Owner {
   additionalAddress?: string;
 }
 
+export function toOwnerDTO(owner: Owner): OwnerDTO {
+  return {
+    id: owner.id,
+    rawAddress: owner.rawAddress,
+    fullName: owner.fullName,
+    administrator: owner.administrator,
+    birthDate: owner.birthDate,
+    email: owner.email,
+    phone: owner.phone,
+    kind: owner.kind,
+    banAddress: owner.banAddress,
+    additionalAddress: owner.additionalAddress,
+  };
+}
+
 export interface HousingOwner extends Owner {
   housingId: string;
   rank: number;
@@ -39,18 +53,5 @@ export const getHousingOwnerRankLabel = (rank: number) =>
   !rank
     ? 'Ancien propriétaire'
     : rank === 1
-    ? 'Propriétaire principal'
-    : `${rank}ème ayant droit`;
-
-export function getAddress(owner: Owner): string[] {
-  if (owner.banAddress) {
-    return fp.compact([
-      owner.banAddress.street?.startsWith(owner.banAddress.houseNumber ?? '')
-        ? owner.banAddress.street
-        : `${owner.banAddress.houseNumber} ${owner.banAddress.street}`,
-      `${owner.banAddress.postalCode} ${owner.banAddress.city}`,
-    ]);
-  }
-
-  return owner.rawAddress;
-}
+      ? 'Propriétaire principal'
+      : `${rank}ème ayant droit`;

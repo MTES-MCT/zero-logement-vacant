@@ -4,7 +4,7 @@ export enum HousingStatus {
   FIRST_CONTACT,
   IN_PROGRESS,
   COMPLETED,
-  BLOCKED
+  BLOCKED,
 }
 
 export const HOUSING_STATUSES: HousingStatus[] = Object.values(

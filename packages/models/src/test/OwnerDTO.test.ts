@@ -34,5 +34,22 @@ describe('OwnerDTO', () => {
 
       expect(actual).toIncludeAllMembers([address]);
     });
+
+    it('should add the additional address just before the zip code', () => {
+      const owner: OwnerDTO = {
+        ...genOwnerDTO(),
+        banAddress: undefined,
+        rawAddress: ['123 rue Bidon', '01234 Ville'],
+        additionalAddress: 'Appart. 1',
+      };
+
+      const actual = getAddress(owner);
+
+      expect(actual).toIncludeAllMembers([
+        '123 rue Bidon',
+        'Appart. 1',
+        '01234 Ville',
+      ]);
+    });
   });
 });

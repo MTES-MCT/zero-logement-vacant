@@ -13,6 +13,8 @@ jest.config.js
 package.json
 package-lock.json
 scalingo.json
+yarn.lock
+cron.json
 
 *.css
 *.hbs

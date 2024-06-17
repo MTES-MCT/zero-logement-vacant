@@ -11,7 +11,7 @@ import { Readable } from 'node:stream';
 import { createSDK } from '@zerologementvacant/api-sdk';
 import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
 import { getAddress, replaceVariables } from '@zerologementvacant/models';
-import { createS3, slugify, toBase64 } from '@zerologementvacant/utils';
+import { createS3, slugify, getBase64Content } from '@zerologementvacant/utils';
 import { Jobs } from '../jobs';
 import config from '../config';
 import { createLogger } from '../logger';
@@ -99,10 +99,10 @@ export default function createWorker() {
           const logos = await async.map(
             draft.logo ?? [],
             async (logo: string) =>
-              toBase64(logo, { s3, bucket: config.s3.bucket }),
+              getBase64Content(logo, { s3, bucket: config.s3.bucket }),
           );
           const signature = draft.sender.signatoryFile
-            ? await toBase64(draft.sender.signatoryFile, {
+            ? await getBase64Content(draft.sender.signatoryFile, {
                 s3,
                 bucket: config.s3.bucket,
               })

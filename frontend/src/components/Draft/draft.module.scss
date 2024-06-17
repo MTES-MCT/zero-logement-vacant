@@ -6,3 +6,12 @@
 .row {
   margin-bottom: 0.75rem;
 }
+
+.imageView {
+  padding: 0;
+
+  img {
+    max-width: 120px;
+    max-height: 260px;
+  }
+}

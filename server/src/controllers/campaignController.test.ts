@@ -199,8 +199,15 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      expect(body).toMatchObject({
-        title,
+      expect(body).toStrictEqual<CampaignDTO>({
+        id: expect.any(String),
+        title: payload.title,
+        status: 'draft',
+        filters: {
+          ...payload.housing.filters,
+          establishmentIds: [establishment.id],
+        },
+        createdAt: expect.any(String),
       });
 
       const actualCampaign = await Campaigns()
@@ -301,7 +308,6 @@ describe('Campaign API', () => {
         },
         createdAt: expect.toBeDateString(),
         userId: user.id,
-        validatedAt: expect.toBeDateString(),
       });
     });
 

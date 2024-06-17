@@ -34,9 +34,6 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
       title={
         <>
           {' '}
-          <span className="card-title-icon">
-            <Icon name="fr-icon-home-4-fill" iconPosition="center" size="1x" />
-          </span>
           <Title as="h4" look="h6" spacing="mb-0">
             {capitalize(housing.rawAddress[0])}
           </Title>

@@ -352,7 +352,7 @@ describe('Housing list view', () => {
       await user.click(button);
       const modal = await screen.findByRole('dialog');
       const input = await within(modal).findByLabelText(
-        'Identifiant du logement',
+        /^Identifiant du logement/,
       );
       await user.type(input, datafoncierHousing.idlocal);
       await user.click(within(modal).getByText('Confirmer'));
@@ -409,7 +409,7 @@ describe('Housing list view', () => {
       await user.click(button);
       const modal = await screen.findByRole('dialog');
       const input = await within(modal).findByLabelText(
-        'Identifiant du logement',
+        /^Identifiant du logement/,
       );
       await user.type(input, localId);
       await user.click(within(modal).getByText('Confirmer'));
@@ -455,7 +455,7 @@ describe('Housing list view', () => {
       await user.click(button);
       const modal = await screen.findByRole('dialog');
       const input = await within(modal).findByLabelText(
-        'Identifiant du logement',
+        /^Identifiant du logement/,
       );
       await user.type(input, datafoncierHousing.idlocal);
       await user.click(within(modal).getByText('Confirmer'));

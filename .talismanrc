@@ -66,7 +66,7 @@ fileignoreconfig:
 - filename: packages/schemas/src/password.ts
   checksum: 716d8d646fd8a00af8d4225e15190810f9e8ab082fbb14e7430be109fa676611
 - filename: queue/.env.example
-  checksum: 30e4ee5808230342b969d42d9315fc7744900410a5797d7f7b2e984c678be2e7
+  checksum: df71affe33700cb0a36ee0b4824ef60e7d8e5a08f3d4d16ca53c31e9085b45ae
 - filename: queue/README.md
   checksum: fe2ac5277a42e6bf8dfc1e0fe53cc3308bba9019d9091f4b8c291e4a2e4a4eb8
 - filename: queue/src/config.ts
@@ -99,6 +99,12 @@ fileignoreconfig:
   checksum: 74df8468c996e2c659a1d697976ea7cf514c4c98b77b6bfca27bd06962e3eed6
 - filename: shared/src/utils/s3.ts
   checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
+scopeconfig:
+- scope: node
+allowed_patterns:
+- key=\{.+\}
+version: "1.0"
+9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 scopeconfig:
 - scope: node
 allowed_patterns:

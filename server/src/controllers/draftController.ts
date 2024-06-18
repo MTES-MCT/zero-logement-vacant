@@ -203,7 +203,8 @@ async function preview(request: Request, response: Response) {
     writtenFrom: draft.writtenFrom ?? '',
     owner: {
       fullName: body.owner.fullName,
-      address: body.owner.address
+      address: body.owner.address,
+      additionalAddress: body.owner.additionalAddress
     }
   });
   const finalPDF = await pdf.fromHTML([html]);

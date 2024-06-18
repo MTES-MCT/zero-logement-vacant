@@ -11,9 +11,9 @@ import { RolesDTO } from '../RolesDTO';
 import { SenderDTO } from '../SenderDTO';
 import { UserDTO } from '../UserDTO';
 import { OCCUPANCIES } from '../Occupancy';
-import { HOUSING_KINDS } from '../HousingKind';
+import { HOUSING_KIND_VALUES } from '../HousingKind';
 import { DatafoncierHousing } from '../DatafoncierHousing';
-import { HOUSING_STATUSES } from '../HousingStatus';
+import { HOUSING_STATUS_VALUES } from '../HousingStatus';
 
 export function genAddressDTO(
   refId: string,
@@ -232,8 +232,8 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
       .streetAddress({ useFullAddress: true })
       .split(' '),
     occupancy: faker.helpers.arrayElement(OCCUPANCIES),
-    kind: faker.helpers.arrayElement(HOUSING_KINDS),
-    status: faker.helpers.arrayElement(HOUSING_STATUSES),
+    kind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
+    status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
     owner
   };
 }

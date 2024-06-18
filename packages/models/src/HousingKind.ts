@@ -3,4 +3,4 @@ export enum HousingKind {
   HOUSE = 'MAISON'
 }
 
-export const HOUSING_KINDS: HousingKind[] = Object.values(HousingKind);
+export const HOUSING_KIND_VALUES: HousingKind[] = Object.values(HousingKind);

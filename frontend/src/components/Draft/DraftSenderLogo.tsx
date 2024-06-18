@@ -22,10 +22,19 @@ function DraftSenderLogo(props: Readonly<Props>) {
     };
   }
 
-  function deleteLogo(id: string) {
+  const fileFieldId: string[] = ['fr-upload-:rv:-input', 'fr-upload-:r11:-input'];
+
+  function deleteLogo(id: string, index: number) {
     return (): void => {
       const newFiles = [...files].filter(file => file?.id !== id);
       props.onChange(newFiles);
+      const elemId = fileFieldId[index];
+      if(elemId !== null) {
+        const elem = document.getElementById(elemId) as HTMLInputElement;
+        if(elem !== null) {
+          elem.value = '';
+        }
+      }
     };
   }
 
@@ -40,11 +49,11 @@ function DraftSenderLogo(props: Readonly<Props>) {
           label={<h6 className="fr-mb-2w">Logos de l’expéditeur</h6>}
           onUpload={onUpload(0)}
         />
-        <LogoViewer index={0} logo={props.value[0]} onDelete={deleteLogo(props.value[0]?.id)} />
+        <LogoViewer index={0} logo={props.value[0]} onDelete={deleteLogo(props.value[0]?.id, 0)} />
       </Row>
       <Row spacing="mb-2w">
         <FileUpload hint="" label={null} onUpload={onUpload(1)} />
-        <LogoViewer index={1} logo={props.value[1]} onDelete={deleteLogo(props.value[1]?.id)} />
+        <LogoViewer index={1} logo={props.value[1]} onDelete={deleteLogo(props.value[1]?.id, 1)} />
       </Row>
     </Container>
   );

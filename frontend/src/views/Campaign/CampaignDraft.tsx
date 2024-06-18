@@ -32,6 +32,7 @@ import DraftSenderLogo from '../../components/Draft/DraftSenderLogo';
 import DraftSignature from '../../components/Draft/DraftSignature';
 import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
 import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
+import { FileUploadDTO } from '@zerologementvacant/models';
 
 const schema = yup
   .object({
@@ -137,7 +138,7 @@ function CampaignDraft(props: Readonly<Props>) {
     setValues({ ...values, ...body });
   }
 
-  function setLogo(logo: string[]): void {
+  function setLogo(logo: FileUploadDTO[]): void {
     setValues({ ...values, logo });
   }
 

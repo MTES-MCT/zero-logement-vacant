@@ -21,6 +21,7 @@ export interface FindOptions
 export function parseHousing(h: any): Housing {
   return {
     ...h,
+    housingKind: h.kind,
     rawAddress: h.rawAddress
       .filter((_: string) => _)
       .map((_: string) => toTitleCase(_)),

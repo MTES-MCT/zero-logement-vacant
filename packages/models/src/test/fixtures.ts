@@ -247,7 +247,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
       .streetAddress({ useFullAddress: true })
       .split(' '),
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
-    housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
+    kind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
     owner
   };

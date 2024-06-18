@@ -17,7 +17,7 @@ export interface HousingDTO {
   cadastralClassification?: number;
   uncomfortable: boolean;
   vacancyStartYear?: number;
-  housingKind: HousingKind;
+  kind: HousingKind;
   roomsCount: number;
   livingArea: number;
   cadastralReference?: string;

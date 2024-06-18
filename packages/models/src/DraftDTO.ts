@@ -5,8 +5,8 @@ import { OwnerDTO } from './OwnerDTO';
 
 export interface DraftDTO {
   id: string;
-  subject: string;
-  body: string;
+  subject: string | null;
+  body: string | null;
   logo: string[] | null;
   sender: SenderDTO;
   writtenAt: string | null;

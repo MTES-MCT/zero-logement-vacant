@@ -169,7 +169,7 @@ describe('Draft API', () => {
         subject: draft.subject,
         body: draft.body,
         logo: draft.logo?.map(logo => {
-          return {id: uuidv4(),  type:'image/jpeg', url: logo, content: '' };
+          return {id: faker.string.uuid(),  type:'image/jpeg', url: logo, content: '' };
         }) as FileUploadDTO[],
         campaign: missingCampaign.id,
         sender: senderPayload,
@@ -190,7 +190,7 @@ describe('Draft API', () => {
         subject: draft.subject,
         body: draft.body,
         logo: draft.logo?.map(logo => {
-          return {id: uuidv4(),  type:'image/jpeg', url: logo, content: '' };
+          return {id: faker.string.uuid(),  type:'image/jpeg', url: logo, content: '' };
         }) as FileUploadDTO[],
         campaign: campaign.id,
         sender: senderPayload,
@@ -246,7 +246,7 @@ describe('Draft API', () => {
         subject: draft.subject,
         body: draft.body,
         logo: draft.logo?.map(logo => {
-          return {id: uuidv4(),  type:'image/jpeg', url: logo, content: '' };
+          return {id: faker.string.uuid(),  type:'image/jpeg', url: logo, content: '' };
         }) as FileUploadDTO[],
         campaign: campaign.id,
         sender: senderPayload,
@@ -282,7 +282,7 @@ describe('Draft API', () => {
         id: draft.id,
         subject: faker.lorem.sentence(),
         body: faker.lorem.paragraph(),
-        logo: [ {id: uuidv4(),  type:'image/jpeg', url: 'https://example.com/logo.png', content: '' }],
+        logo: [ {id: faker.string.uuid(),  type:'image/jpeg', url: 'https://example.com/logo.png', content: '' }],
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
         writtenFrom: faker.location.city(),
@@ -432,7 +432,3 @@ describe('Draft API', () => {
     });
   });
 });
-function uuidv4(): any {
-  throw new Error('Function not implemented.');
-}
-

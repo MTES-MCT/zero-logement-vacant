@@ -89,7 +89,7 @@ const HousingEditionForm = (
     noteKind: yup.string().nullable(),
     hasChange: yup
       .boolean()
-      .oneOf([true], 'Veuillez saisir au moins une donnée pour enregistrer.'),
+      .oneOf([true], 'Pour enregister, veuillez saisir au moins une donnée. Sinon, cliquez sur "Annuler" ou sur "Fermer" pour quitter la mise à jour groupée.'),
   };
   type FormShape = typeof shape;
 

@@ -1,14 +1,12 @@
 import { Knex } from 'knex';
-import { parseRedisUrl } from 'parse-redis-url-simple';
 
 import { CampaignStatus, HousingFiltersDTO } from '@zerologementvacant/models';
-import { createQueue } from '@zerologementvacant/queue';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import db from '~/infra/database';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
 import { logger } from '~/infra/logger';
 import { sortQuery } from '~/models/SortApi';
-import config from '~/infra/config';
+import queue from '~/infra/queue';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = () => db<CampaignDBO>(campaignsTable);
@@ -103,11 +101,6 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
 const remove = async (campaignId: string): Promise<void> => {
   await db(campaignsTable).delete().where('id', campaignId);
 };
-
-const [redis] = parseRedisUrl(config.redis.url);
-const queue = createQueue({
-  connection: redis,
-});
 
 async function generateMails(campaign: CampaignApi): Promise<void> {
   await queue.add('campaign:generate', {

@@ -1,56 +1,51 @@
+import { faker } from '@faker-js/faker';
 import { Store } from '@reduxjs/toolkit';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import fetchMock from 'jest-fetch-mock';
-import { genCampaign, genGroup } from '../../../test/fixtures.test';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
-import GroupView from './GroupView';
-import configureTestStore from '../../utils/test/storeUtils';
 
-import { mockRequests } from '../../utils/test/requestUtils';
+import {
+  genCampaignDTO,
+  genGroupDTO,
+  genUserDTO,
+  GroupDTO
+} from '@zerologementvacant/models';
+import data from '../../mocks/handlers/data';
+import configureTestStore from '../../utils/test/storeUtils';
+import GroupView from './GroupView';
 
 describe('Group view', () => {
   const user = userEvent.setup();
-  const group = genGroup();
 
   let store: Store;
 
   beforeEach(() => {
-    fetchMock.resetMocks();
     store = configureTestStore();
   });
 
+  it('should show NotFoundView if the group does not exist', async () => {
+    render(
+      <Provider store={store}>
+        <Router initialEntries={[`/groupes/${faker.string.uuid()}`]}>
+          <Route path="/parc-de-logements">Parc de logements</Route>
+          <Route path="/groupes/:id" component={GroupView} />
+        </Router>
+      </Provider>
+    );
+
+    const text = await screen.findByText('Page non trouvée');
+    expect(text).toBeVisible();
+  });
+
   it('should show NotFoundView if the group has been archived', async () => {
-    const campaign = genCampaign();
-    const campaigns = [campaign];
-    mockRequests([
-      {
-        pathname: `/api/groups/${group.id}`,
-        response: {
-          status: 200,
-          body: JSON.stringify({
-            ...group,
-            archivedAt: new Date().toJSON(),
-          }),
-        },
-      },
-      {
-        pathname: `/api/campaigns?groups=${group.id}`,
-        response: {
-          status: 200,
-          body: JSON.stringify(campaigns),
-        },
-      },
-      {
-        pathname: `/api/groups/${group.id}/campaigns`,
-        method: 'POST',
-        response: {
-          status: 201,
-          body: JSON.stringify(campaign),
-        },
-      },
-    ]);
+    const creator = faker.helpers.arrayElement(data.users);
+    const housings = faker.helpers.arrayElements(data.housings);
+    const group: GroupDTO = {
+      ...genGroupDTO(creator, housings),
+      archivedAt: new Date().toJSON()
+    };
+    // Not pushed into the data.groups array
 
     render(
       <Provider store={store}>
@@ -58,7 +53,7 @@ describe('Group view', () => {
           <Route path="/parc-de-logements">Parc de logements</Route>
           <Route path="/groupes/:id" component={GroupView} />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
     const text = await screen.findByText('Page non trouvée');
@@ -67,32 +62,10 @@ describe('Group view', () => {
 
   describe('Create a campaign from the group', () => {
     it('should display a modal to create a campaign', async () => {
-      const campaign = genCampaign();
-      const campaigns = [campaign];
-      mockRequests([
-        {
-          pathname: `/api/groups/${group.id}`,
-          response: {
-            status: 200,
-            body: JSON.stringify(group),
-          },
-        },
-        {
-          pathname: `/api/campaigns?groups=${group.id}`,
-          response: {
-            status: 200,
-            body: JSON.stringify(campaigns),
-          },
-        },
-        {
-          pathname: `/api/campaigns/${group.id}/groups`,
-          method: 'POST',
-          response: {
-            status: 201,
-            body: JSON.stringify(campaign),
-          },
-        },
-      ]);
+      const creator = genUserDTO();
+      const housings = data.housings;
+      const group = genGroupDTO(creator, housings);
+      data.groups.push(group);
 
       render(
         <Provider store={store}>
@@ -100,14 +73,15 @@ describe('Group view', () => {
             <Route path="/campagnes/:id">Campagne</Route>
             <Route path="/groupes/:id" component={GroupView} />
           </Router>
-        </Provider>,
+        </Provider>
       );
 
       const createCampaign = await screen.findByText(/^Créer une campagne/);
+      expect(createCampaign).toBeEnabled();
       await user.click(createCampaign);
       const modal = await screen.findByRole('dialog');
       const title = await within(modal).findByLabelText(
-        /^Titre de la campagne/,
+        /^Titre de la campagne/
       );
       await user.type(title, 'Logements prioritaires');
       const confirm = await within(modal).findByText('Confirmer');
@@ -120,30 +94,12 @@ describe('Group view', () => {
 
   describe('Remove the group', () => {
     it('should display a modal to archive the group', async () => {
-      const campaign = genCampaign();
-      const campaigns = [campaign];
-      mockRequests([
-        {
-          pathname: `/api/groups/${group.id}`,
-          response: {
-            status: 200,
-            body: JSON.stringify(group),
-          },
-        },
-        {
-          pathname: `/api/campaigns?groups=${group.id}`,
-          response: {
-            status: 200,
-            body: JSON.stringify(campaigns),
-          },
-        },
-        {
-          pathname: `/api/groups/${group.id}`,
-          response: {
-            status: 204,
-          },
-        },
-      ]);
+      const creator = genUserDTO();
+      const group = genGroupDTO(creator);
+      const campaign = genCampaignDTO(group);
+      data.campaigns.push(campaign);
+      data.users.push(creator);
+      data.groups.push(group);
 
       render(
         <Provider store={store}>
@@ -151,7 +107,7 @@ describe('Group view', () => {
             <Route path="/parc-de-logements">Parc de logements</Route>
             <Route path="/groupes/:id" component={GroupView} />
           </Router>
-        </Provider>,
+        </Provider>
       );
 
       const archiveGroup = await screen.findByText(/^Archiver le groupe/);
@@ -165,35 +121,17 @@ describe('Group view', () => {
     });
 
     it('should display a "Remove" button if no campaign was created from the group', async () => {
-      mockRequests([
-        {
-          pathname: `/api/groups/${group.id}`,
-          response: {
-            status: 200,
-            body: JSON.stringify(group),
-          },
-        },
-        {
-          pathname: `/api/campaigns?groups=${group.id}`,
-          response: {
-            status: 200,
-            body: JSON.stringify([]),
-          },
-        },
-        {
-          pathname: `/api/groups/${group.id}`,
-          response: {
-            status: 204,
-          },
-        },
-      ]);
+      const creator = genUserDTO();
+      const group = genGroupDTO(creator);
+      data.users.push(creator);
+      data.groups.push(group);
 
       render(
         <Provider store={store}>
           <Router initialEntries={[`/groupes/${group.id}`]}>
             <Route path="/groupes/:id" component={GroupView} />
           </Router>
-        </Provider>,
+        </Provider>
       );
 
       const removeGroup = await screen.findByText(/^Supprimer le groupe/);

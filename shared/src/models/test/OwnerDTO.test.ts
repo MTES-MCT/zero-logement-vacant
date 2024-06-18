@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/locale/fr';
+import { faker } from '@faker-js/faker';
 
 import { genAddressDTO, genOwnerDTO } from '../../utils/fixtures';
 import { getAddress, OwnerDTO } from '../OwnerDTO';

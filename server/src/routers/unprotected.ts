@@ -14,6 +14,7 @@ import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import { noop } from '~/middlewares/noop';
 import validator from '~/middlewares/validator';
+import serverSentEventController from '~/controllers/serverSentEventController';
 
 const router = Router();
 
@@ -29,6 +30,8 @@ function rateLimiter() {
       })
     : noop();
 }
+
+router.get('/sse', serverSentEventController.handle);
 
 router.get(
   '/prospects/:email',

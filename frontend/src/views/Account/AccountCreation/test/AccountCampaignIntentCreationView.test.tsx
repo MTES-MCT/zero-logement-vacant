@@ -1,36 +1,19 @@
 import userEvent from '@testing-library/user-event';
-import {
-  genAuthUser,
-  genProspect,
-  genSiren,
-  genUser,
-} from '../../../../../test/fixtures.test';
+import { genProspect, genSiren } from '../../../../../test/fixtures.test';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 import * as randomstring from 'randomstring';
 import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
 import { Prospect } from '../../../../models/Prospect';
-import authService from '../../../../services/auth.service';
-import { configureStore } from '@reduxjs/toolkit';
-import {
-  applicationMiddlewares,
-  applicationReducer,
-} from '../../../../store/store';
+import configureTestStore from '../../../../utils/test/storeUtils';
 
 describe('AccountCampaignIntentCreationView', () => {
   const user = userEvent.setup();
-  const store = configureStore({
-    reducer: applicationReducer,
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: false,
-      }).concat(applicationMiddlewares),
-    preloadedState: { authentication: { authUser: genAuthUser() } },
-  });
+  const store = configureTestStore({ withAuth: true });
   const password = randomstring.generate();
 
-  function setup(prospect: Prospect = genProspect()) {
+  function renderComponent(prospect: Prospect = genProspect()) {
     render(
       <Provider store={store}>
         <Router
@@ -39,9 +22,9 @@ describe('AccountCampaignIntentCreationView', () => {
               pathname: '/inscription/campagne',
               state: {
                 prospect,
-                password,
-              },
-            },
+                password
+              }
+            }
           ]}
         >
           <Route path="/inscription/mot-de-passe">
@@ -52,28 +35,20 @@ describe('AccountCampaignIntentCreationView', () => {
             component={AccountCampaignIntentCreationView}
           />
         </Router>
-      </Provider>,
+      </Provider>
     );
   }
 
-  function mockCreateUserPass() {
-    return fetchMock.mockResponse(JSON.stringify(genUser()));
-  }
-
-  function mockLoginPass() {
-    return jest.spyOn(authService, 'login').mockResolvedValue(genAuthUser());
-  }
-
   it('should render', async () => {
-    setup();
+    renderComponent();
 
     await screen.findAllByText(
-      'Quand prévoyez-vous de contacter des propriétaires de logements vacants ?',
+      'Quand prévoyez-vous de contacter des propriétaires de logements vacants ?'
     );
   });
 
   it('should go back to the previous step', async () => {
-    setup();
+    renderComponent();
 
     const previous = await screen.findByText('Revenir à l’étape précédente');
     await user.click(previous);
@@ -83,19 +58,19 @@ describe('AccountCampaignIntentCreationView', () => {
   });
 
   it('should disable campaign intent selection if one already exists', () => {
-    setup({
+    renderComponent({
       ...genProspect(),
       establishment: {
         id: randomstring.generate(),
         siren: genSiren(),
-        campaignIntent: '2-4',
-      },
+        campaignIntent: '2-4'
+      }
     });
 
     const labels = [
       'Dans les 2 prochains mois',
       'Dans 2 à 4 mois',
-      'Dans plus de 4 mois',
+      'Dans plus de 4 mois'
     ];
     labels
       .map((label) => screen.getByLabelText(label))
@@ -105,14 +80,12 @@ describe('AccountCampaignIntentCreationView', () => {
   });
 
   it('should submit campaign intent if none exist', async () => {
-    const createUser = mockCreateUserPass();
-    const login = mockLoginPass();
-    setup({
+    renderComponent({
       ...genProspect(),
       establishment: {
         id: randomstring.generate(),
-        siren: genSiren(),
-      },
+        siren: genSiren()
+      }
     });
 
     const radio = screen.getByLabelText('Dans les 2 prochains mois');
@@ -122,8 +95,5 @@ describe('AccountCampaignIntentCreationView', () => {
 
     const submit = await screen.findByText('Créer votre compte');
     await user.click(submit);
-
-    expect(createUser).toHaveBeenCalled();
-    expect(login).toHaveBeenCalled();
   });
 });

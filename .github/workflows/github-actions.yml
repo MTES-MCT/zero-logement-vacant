@@ -65,6 +65,7 @@ jobs:
         run: yarn test
         env:
           LOG_LEVEL: fatal
+          REACT_APP_API_URL: http://localhost:3001
 
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band
@@ -73,7 +74,8 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: front-staging
+      app: Front staging
+      alias: front-staging
       branch: main
     secrets: inherit
 
@@ -81,7 +83,8 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: api-staging
+      app: API staging
+      alias: api-staging
       branch: main
     secrets: inherit
 
@@ -89,7 +92,8 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: queue-staging
+      app: Queue staging
+      alias: queue-staging
       branch: main
     secrets: inherit
 
@@ -97,7 +101,8 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: front-production
+      app: Front production
+      alias: front-production
       branch: prod
     secrets: inherit
 
@@ -105,7 +110,8 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: api-production
+      app: API production
+      alias: api-production
       branch: prod
     secrets: inherit
 
@@ -113,6 +119,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: queue-production
+      app: Queue production
+      alias: queue-production
       branch: prod
     secrets: inherit

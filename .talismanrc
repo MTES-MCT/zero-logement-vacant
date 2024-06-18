@@ -77,7 +77,7 @@ fileignoreconfig:
 - filename: server/services/mailService/brevoService.ts
   checksum: ce84d57e61bfdf4168938e114113005b0961659ea299a3871415ade48ba7b310
 - filename: server/src/controllers/draftController.ts
-  checksum: 56e282dbfb7963ba2a947fbd53a4879ea496a3cc661994aa88097c1f0cc260eb
+  checksum: b20a3159d29f2a0964c58d2befc040ef4f553ece130067316e651730c6c97d5b
 - filename: server/src/controllers/fileController.ts
   checksum: 72d31c3e49e4dbee18222e61e0a5bb48da755cefa2a8d7fa2d9f1a153290279e
 - filename: server/src/index.ts

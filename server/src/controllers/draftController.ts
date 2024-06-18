@@ -15,7 +15,8 @@ import {
   FileUploadDTO,
   SenderDTO,
   getAddress,
-  replaceVariables,
+  HOUSING_KIND_VALUES,
+  replaceVariables
 } from '@zerologementvacant/models';
 import { createS3, toBase64, getContent, getBase64Content } from '@zerologementvacant/utils';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
@@ -142,7 +143,7 @@ const partialDraftValidators: ValidationChain[] = [
   body('logo').optional({ nullable: true }).isArray({ min: 0, max: 2 }),
   body('logo.*.*').optional().isString(),
   body('sender.signatoryFile').optional({ nullable: true }).isObject(),
-  body('sender.signatoryFile.*').optional().isString(),
+  body('sender.signatoryFile.*').optional().isString()
 ];
 const senderValidators: ValidationChain[] = [
   ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
@@ -244,7 +245,7 @@ const createValidators: ValidationChain[] = [
 
 async function preview(
   request: Request<DraftParams, Buffer, DraftPreviewPayloadDTO>,
-  response: Response<Buffer>,
+  response: Response<Buffer>
 ): Promise<void> {
   const { auth, body, params } = request as AuthenticatedRequest<
     DraftParams,
@@ -268,7 +269,7 @@ async function preview(
     secretAccessKey: config.s3.secretAccessKey
   });
   const logos = await async.map(draft.logo ?? [], async (logo: string) =>
-    getBase64Content(logo, { s3, bucket: config.s3.bucket }),
+    getBase64Content(logo, { s3, bucket: config.s3.bucket })
   );
 
   const signature = draft.sender.signatoryFile
@@ -303,8 +304,8 @@ async function preview(
     writtenFrom: draft.writtenFrom,
     owner: {
       fullName: body.owner.fullName,
-      address: getAddress(body.owner),
-    },
+      address: getAddress(body.owner)
+    }
   });
   const finalPDF = await pdf.fromHTML([html]);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
@@ -322,7 +323,13 @@ const previewValidators: ValidationChain[] = [
   body('housing.localId').isInt().isLength({ min: 12, max: 12 }),
   body('housing.rawAddress').isArray().isLength({ min: 1 }),
   body('housing.cadastralReference').isString().notEmpty(),
-  body('housing.housingKind').isString().isIn(['MAISON', 'APPART']).notEmpty(),
+  body('housing.housingKind')
+    .isString()
+    .withMessage('Must be a string')
+    .isIn(HOUSING_KIND_VALUES)
+    .withMessage(`Must be one of ${HOUSING_KIND_VALUES.join(', ')}`)
+    .notEmpty()
+    .withMessage('kind is required'),
   body('housing.livingArea').isInt().notEmpty(),
   body('housing.buildingYear').isInt().notEmpty(),
   body('housing.energyConsumption')
@@ -339,7 +346,7 @@ const previewValidators: ValidationChain[] = [
   body('owner.rawAddress[*]')
     .isString()
     .notEmpty()
-    .withMessage('address is required'),
+    .withMessage('address is required')
 ];
 
 async function update(request: Request, response: Response<DraftDTO>) {

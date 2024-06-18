@@ -33,9 +33,9 @@ function PreviewButton(props: Readonly<Props>) {
       error: 'Une erreur est survenue lors de la génération du courrier.',
       loading:
         'Votre courrier est en cours de génération, veuillez patienter quelques secondes...',
-      success: 'Courrier généré !',
+      success: 'Courrier généré !'
     },
-    toastId: 'preview-draft',
+    toastId: 'preview-draft'
   });
 
   async function preview(): Promise<void> {
@@ -46,13 +46,13 @@ function PreviewButton(props: Readonly<Props>) {
 
       const { data } = await findHousings({
         filters: {
-          campaignIds: [campaign!.id],
+          campaignIds: [campaign!.id]
         },
         pagination: {
           paginate: true,
           page: 1,
-          perPage: 1,
-        },
+          perPage: 1
+        }
       });
       const housings = data?.entities;
 
@@ -67,7 +67,7 @@ function PreviewButton(props: Readonly<Props>) {
         const { owner } = housing;
         const payload: DraftPreviewPayload = {
           housing: toHousingDTO(housing),
-          owner: toOwnerDTO(owner),
+          owner: toOwnerDTO(owner)
         };
         const response = await fetch(
           `${config.apiEndpoint}/api/drafts/${props.draft.id}/preview`,
@@ -75,10 +75,10 @@ function PreviewButton(props: Readonly<Props>) {
             method: 'POST',
             headers: {
               ...authService.authHeader(),
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload),
-          },
+            body: JSON.stringify(payload)
+          }
         );
         const blob = await response.blob();
         if (response.ok) {

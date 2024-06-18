@@ -3,6 +3,7 @@ import { differenceInDays, format } from 'date-fns';
 import {
   EnergyConsumption,
   HousingDTO,
+  HousingKind,
   HousingStatus,
   Occupancy,
   OwnershipKind
@@ -250,7 +251,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     cadastralClassification: housing.cadastralClassification,
     uncomfortable: housing.uncomfortable,
     vacancyStartYear: housing.vacancyStartYear,
-    housingKind: housing.housingKind,
+    housingKind: housing.housingKind as HousingKind,
     roomsCount: housing.roomsCount,
     livingArea: housing.livingArea,
     cadastralReference: housing.cadastralReference,

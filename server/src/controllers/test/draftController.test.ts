@@ -27,6 +27,7 @@ import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
+  FileUploadDTO,
   SenderPayloadDTO,
 } from '@zerologementvacant/models';
 import {
@@ -167,7 +168,9 @@ describe('Draft API', () => {
       const payload: DraftCreationPayloadDTO = {
         subject: draft.subject,
         body: draft.body,
-        logo: draft.logo,
+        logo: draft.logo?.map(logo => {
+          return {id: uuidv4(),  type:'image/jpeg', url: logo, content: '' };
+        }) as FileUploadDTO[],
         campaign: missingCampaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
@@ -186,7 +189,9 @@ describe('Draft API', () => {
       const payload: DraftCreationPayloadDTO = {
         subject: draft.subject,
         body: draft.body,
-        logo: draft.logo,
+        logo: draft.logo?.map(logo => {
+          return {id: uuidv4(),  type:'image/jpeg', url: logo, content: '' };
+        }) as FileUploadDTO[],
         campaign: campaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
@@ -226,7 +231,7 @@ describe('Draft API', () => {
         id: body.id,
         subject: payload.subject,
         body: payload.body,
-        logo: payload.logo,
+        logo: payload.logo.map(logo => logo.url),
         sender_id: expect.any(String),
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
@@ -240,7 +245,9 @@ describe('Draft API', () => {
       const payload: DraftCreationPayloadDTO = {
         subject: draft.subject,
         body: draft.body,
-        logo: draft.logo,
+        logo: draft.logo?.map(logo => {
+          return {id: uuidv4(),  type:'image/jpeg', url: logo, content: '' };
+        }) as FileUploadDTO[],
         campaign: campaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
@@ -275,7 +282,7 @@ describe('Draft API', () => {
         id: draft.id,
         subject: faker.lorem.sentence(),
         body: faker.lorem.paragraph(),
-        logo: ['https://example.com/logo.png'],
+        logo: [ {id: uuidv4(),  type:'image/jpeg', url: 'https://example.com/logo.png', content: '' }],
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
         writtenFrom: faker.location.city(),
@@ -337,7 +344,7 @@ describe('Draft API', () => {
         id: draft.id,
         subject: payload.subject,
         body: payload.body,
-        logo: payload.logo,
+        logo: payload.logo.map(logo => logo.url),
         sender: {
           id: expect.any(String),
           name: sender.name,
@@ -365,7 +372,7 @@ describe('Draft API', () => {
         id: draft.id,
         subject: payload.subject,
         body: payload.body,
-        logo: payload.logo,
+        logo: payload.logo.map(logo => logo.url),
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
         created_at: expect.any(Date),
@@ -425,3 +432,7 @@ describe('Draft API', () => {
     });
   });
 });
+function uuidv4(): any {
+  throw new Error('Function not implemented.');
+}
+

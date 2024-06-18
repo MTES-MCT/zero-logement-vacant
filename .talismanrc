@@ -65,7 +65,7 @@ fileignoreconfig:
 - filename: queue/src/queue.ts
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
-  checksum: 41da3e10d379e478b7083d1588b78219ed02fcdde1fe913afeecbd37981bc268
+  checksum: c781e5dd605469840a3bc8ed26fb7ca72610ae4feea1dabbf36be841412a02a6
 - filename: server/controllers/draftController.ts
   checksum: 3627d5cc7172a79998517e1982424462c61116e248e5b6bd29aced81470113e6
 - filename: server/repositories/campaignRepository.ts
@@ -79,7 +79,7 @@ fileignoreconfig:
 - filename: server/src/index.ts
   checksum: 88aec4113a92083b1401a101a673a2cf4457345c258bb8572dccbc713d22a94c
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
-  checksum: 875d4c93a998a6ed9c35a905816b599d086da095406c0e282474e8239a7efc94
+  checksum: 58d7a51800df5447205a0b9c137478c5bb9d456a76cbc96f0407b9eacc676999
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
 - filename: server/src/routers/unprotected.ts
@@ -94,10 +94,5 @@ scopeconfig:
 - scope: node
 allowed_patterns:
 - key=\{.+\}
-version: "1.0"
-9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
+- keyof
 version: "1.0"

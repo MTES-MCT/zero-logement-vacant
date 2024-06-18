@@ -1,72 +1,65 @@
+import { faker } from '@faker-js/faker';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render, screen, waitFor } from '@testing-library/react';
-import LoginView from './LoginView';
-import fetchMock from 'jest-fetch-mock';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { MemoryRouter as Router, Route } from 'react-router-dom';
+
+import { genUserDTO } from '@zerologementvacant/models';
 import { store } from '../../store/store';
+import LoginView from './LoginView';
+import data from '../../mocks/handlers/data';
 
 describe('login view', () => {
   const user = userEvent.setup();
 
-  beforeEach(() => {
-    fetchMock.resetMocks();
-  });
-
-  test('should render login form', () => {
+  it('should render login form', () => {
     render(
       <Provider store={store}>
         <Router>
           <LoginView />
         </Router>
-      </Provider>,
+      </Provider>
     );
-    expect(screen.getAllByTestId('email-input')[0]).toBeInTheDocument();
-    expect(screen.getAllByTestId('password-input')[0]).toBeInTheDocument();
-    expect(screen.getByTestId('login-button')).toBeInTheDocument();
+
+    const email = screen.queryByLabelText(/^Adresse email/);
+    expect(email).toBeVisible();
+    const password = screen.queryByLabelText(/^Mot de passe/);
+    expect(password).toBeVisible();
+    const logIn = screen.queryByRole('button', { name: /^Se connecter/ });
+    expect(logIn).toBeVisible();
   });
 
-  test('should display error message when login failed', async () => {
-    fetchMock.mockResponseOnce('[]', { status: 401 });
+  it('should display error message when login failed', async () => {
+    const currentUser = genUserDTO();
+    expect(data.users).toSatisfyAll((user) => user.email !== currentUser.email);
 
     render(
       <Provider store={store}>
         <Router>
           <LoginView />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
-    const passwordInput = screen
-      .getAllByTestId('password-input')[0]
-      .querySelector('input'); //eslint-disable-line testing-library/no-node-access
-    if (passwordInput) {
-      await user.type(passwordInput, 'password');
-    }
-    const emailInput = screen
-      .getAllByTestId('email-input')[0]
-      .querySelector('input'); //eslint-disable-line testing-library/no-node-access
-    if (emailInput) {
-      await user.type(emailInput, 'email@test.com');
-    }
+    const email = screen.getByLabelText(/^Adresse email/);
+    await user.type(email, 'test@test.test');
+    const password = screen.getByLabelText(/^Mot de passe/);
+    await user.type(password, faker.string.alphanumeric(16));
+    const logIn = screen.getByRole('button', { name: /^Se connecter/ });
+    await user.click(logIn);
 
-    await user.click(screen.getByTestId('login-button'));
-
-    await screen.findByTestId('alert-error');
-
-    expect(fetchMock).toHaveBeenCalled();
-    const errorElement = screen.getByTestId('alert-error');
-    expect(errorElement).toBeInTheDocument();
+    const alert = await screen.findByText(/^Échec de l'authentification/);
+    expect(alert).toBeVisible();
   });
 
-  test('should redirect when "forgotten password" is clicked', async () => {
+  it('should redirect when "forgotten password" is clicked', async () => {
     render(
       <Provider store={store}>
         <Router initialEntries={['/connexion']}>
           <Route path="/connexion" component={LoginView} />
           <Route path="/mot-de-passe/oublie">Mot de passe oublié</Route>
         </Router>
-      </Provider>,
+      </Provider>
     );
 
     const forgottenPassword = screen.getByText('Mot de passe perdu ?');
@@ -76,41 +69,27 @@ describe('login view', () => {
     expect(page).toBeVisible();
   });
 
-  test('should route to dashboard view when login succeeded', async () => {
-    fetchMock.mockResponseOnce(
-      JSON.stringify({
-        user: { email: 'email@test.com' },
-        establishment: { id: 123 },
-        accessToken: 'accessToken',
-      }),
-      { status: 200 },
-    );
+  it('should succeed to log in', async () => {
+    const currentUser = genUserDTO();
+    data.users.push(currentUser);
 
     render(
       <Provider store={store}>
-        <Router>
+        <Router initialEntries={['/connexion']}>
           <LoginView />
         </Router>
-      </Provider>,
+      </Provider>
     );
 
-    const passwordInput = screen
-      .getAllByTestId('password-input')[0]
-      .querySelector('input'); //eslint-disable-line testing-library/no-node-access
-    if (passwordInput) {
-      await user.type(passwordInput, 'password');
-    }
-    const emailInput = screen
-      .getAllByTestId('email-input')[0]
-      .querySelector('input'); //eslint-disable-line testing-library/no-node-access
-    if (emailInput) {
-      await user.type(emailInput, 'email@test.com');
-    }
+    const email = screen.getByLabelText(/^Adresse email/);
+    await user.type(email, currentUser.email);
+    const password = screen.getByLabelText(/^Mot de passe/);
+    await user.type(password, 'password'); // Whatever you want
 
-    await user.click(screen.getByTestId('login-button'));
+    const logIn = screen.getByRole('button', { name: /^Se connecter/ });
+    await user.click(logIn);
 
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalled();
-    });
+    const alert = screen.queryByText(/^Échec de l'authentification/);
+    expect(alert).not.toBeInTheDocument();
   });
 });

@@ -9,5 +9,6 @@ export default async function teardown() {
     console.log('Rolled back.');
   } finally {
     await db.destroy();
+    console.log('Cleaned up.');
   }
 }

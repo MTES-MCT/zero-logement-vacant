@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 function AccountAccessForbiddenView() {
   return (
     <>
-      <Typography component="h2">
+      <Typography variant="h2" mb={3}>
         Ce mail n’est pas autorisé à accéder à Zéro Logement Vacant.
       </Typography>
       <Text className="color-grey-50">

@@ -34,7 +34,7 @@ const OwnerGenericHomeView = () => {
       <Container as="main" spacing="py-7w mb-4w">
         <Row gutters>
           <Col>
-            <Typography component="h1" variant="h2">
+            <Typography component="h1" variant="h2" mb={3}>
               Rechercher toutes les informations concernant la vacance sur votre
               territoire
             </Typography>

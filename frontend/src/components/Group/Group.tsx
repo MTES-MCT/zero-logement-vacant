@@ -45,7 +45,7 @@ function Group(props: GroupProps) {
         <Col n="9" spacing="pr-2w">
           <Container as="header" fluid spacing="mb-1w">
             <Row alignItems="bottom" spacing="mb-1w">
-              <Typography component="h2" mr={1} mb={0}>
+              <Typography variant="h2" mr={1} mb={0}>
                 {props.group.title}
               </Typography>
               <GroupEditionModal

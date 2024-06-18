@@ -58,7 +58,7 @@ function ResetPasswordView() {
       <Container as="main" className="grow-container" spacing="py-4w">
         <Row gutters alignItems="middle">
           <Col>
-            <Typography component="h1" variant="h4">
+            <Typography component="h1" variant="h4" mb={3}>
               Ce lien n’existe pas ou est expiré !
             </Typography>
             <Text>Recommencez la procédure ou contactez le support.</Text>
@@ -85,7 +85,7 @@ function ResetPasswordView() {
       <Container as="main" className="grow-container" spacing="py-4w">
         <Row gutters alignItems="middle">
           <Col>
-            <Typography component="h1" variant="h4">
+            <Typography component="h1" variant="h4" mb={3}>
               Votre mot de passe a été réinitialisé !
             </Typography>
             <Text>
@@ -122,7 +122,7 @@ function ResetPasswordView() {
               severity="error"
             />
           )}
-          <Typography component="h1" variant="h2">
+          <Typography component="h1" variant="h2" mb={3}>
             Réinitialisation de votre mot de passe
           </Typography>
           <form onSubmit={submit}>

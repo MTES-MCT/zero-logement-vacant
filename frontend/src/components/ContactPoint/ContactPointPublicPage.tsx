@@ -30,7 +30,7 @@ function ContactPointPublicPage({ establishment }: Props) {
           <img src={homepage_thumbnail} alt="" />
         </Col>
         <Col n="9" spacing="pl-4w">
-          <Typography component="h5">
+          <Typography variant="h5" mb={3}>
             Page publique de {establishment.name}
           </Typography>
           <Text>

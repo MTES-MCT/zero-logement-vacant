@@ -92,7 +92,7 @@ function AccountCampaignIntentCreationView() {
         currentStep={3}
         title="Vos intentions de campagne"
       />
-      <Typography component="h5">
+      <Typography variant="h5" mb={3}>
         Quand prévoyez-vous de contacter des propriétaires de logements vacants
         ?
       </Typography>

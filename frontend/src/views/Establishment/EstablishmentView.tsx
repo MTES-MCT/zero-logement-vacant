@@ -50,7 +50,9 @@ const EstablishmentView = () => {
         ></Tabs>
       </Container>
       <Container as="article" spacing="px-0">
-        <Typography component="h3">Votre page publique</Typography>
+        <Typography variant="h3" mb={3}>
+          Votre page publique
+        </Typography>
         <ContactPointPublicPage establishment={establishment} />
       </Container>
     </MainContainer>

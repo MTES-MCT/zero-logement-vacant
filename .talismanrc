@@ -76,6 +76,8 @@ fileignoreconfig:
   checksum: ab0dcf6bbf41a911aef0755c619c92d18bd04dc651c6ecaf8b1c53ffd5a82309
 - filename: server/services/mailService/brevoService.ts
   checksum: ce84d57e61bfdf4168938e114113005b0961659ea299a3871415ade48ba7b310
+- filename: server/src/controllers/draftController.ts
+  checksum: a169cc6b556976ede5f7ec4933d94cb4dd7d60bf702765443d75cd6736570def
 - filename: server/src/index.ts
   checksum: 88aec4113a92083b1401a101a673a2cf4457345c258bb8572dccbc713d22a94c
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql

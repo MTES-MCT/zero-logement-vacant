@@ -98,7 +98,7 @@ const LoginView = () => {
               </div>
             </Col>
           )}
-          <Typography component="h1" variant="h2">
+          <Typography component="h1" variant="h2" mb={3}>
             Connexion
           </Typography>
           <form onSubmit={submitLoginForm} id="login_form">

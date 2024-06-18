@@ -113,7 +113,7 @@ const ResourcesView = () => {
         </Row>
       </Container>
       <Container as="article" spacing="py-4w px-0">
-        <Typography component="h2" variant="h5">
+        <Typography component="h2" variant="h5" mb={3}>
           Trois étapes clés pour prendre en main ZLV
         </Typography>
         <Row gutters>

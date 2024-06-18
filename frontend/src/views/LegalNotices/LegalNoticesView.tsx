@@ -32,7 +32,7 @@ function LegalNoticesView() {
         <Text spacing="mb-0">67100 Strasbourg</Text>
       </Container>
       <Container as="article" spacing="mb-7w px-0">
-        <Typography component="h2">
+        <Typography variant="h2" mb={3}>
           Conditions générales d’utilisation
         </Typography>
         <Text>
@@ -357,7 +357,7 @@ function LegalNoticesView() {
         </Text>
       </Container>
       <Container as="article" spacing="px-0">
-        <Typography component="h2">
+        <Typography variant="h2" mb={3}>
           Vie privée et politique de confidentialité
         </Typography>
         <Typography component="h3" mt={4}>

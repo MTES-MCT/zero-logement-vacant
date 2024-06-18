@@ -62,7 +62,7 @@ function AccountPasswordCreationView() {
   if (!linkExists) {
     return (
       <>
-        <Typography component="h1" variant="h4">
+        <Typography component="h1" variant="h4" mb={3}>
           Ce lien n’existe pas ou est expiré !
         </Typography>
         <Text>Recommencez la procédure ou contactez le support.</Text>

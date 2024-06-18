@@ -18,7 +18,7 @@ function MainContainer(props: Props) {
     >
       <Container as="section">
         {props.title && (
-          <Typography component="h1" variant="h3">
+          <Typography component="h1" variant="h3" mb={3}>
             {props.title}
           </Typography>
         )}

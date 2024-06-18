@@ -112,7 +112,7 @@ const OptionsTreeCheckboxes = ({
     <>
       {options.map((option, index) => (
         <div key={`option_${index}`} className="fr-pb-4w">
-          <Typography component="h2" variant="h4">
+          <Typography component="h2" variant="h4" mb={3}>
             <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
             {option.title}
             <span className="fr-text--md">

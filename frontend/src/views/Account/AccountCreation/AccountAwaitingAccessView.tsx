@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 function AccountAwaitingAccessView() {
   return (
     <>
-      <Typography component="h2">
+      <Typography variant="h2" mb={3}>
         Votre demande d’accès aux données LOVAC n’a pas encore été validée.
       </Typography>
       <Text>

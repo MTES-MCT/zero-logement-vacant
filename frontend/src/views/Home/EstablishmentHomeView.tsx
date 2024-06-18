@@ -35,10 +35,10 @@ const EstablishmentHomeView = () => {
       <Container as="main" spacing="py-7w mb-4w">
         <Row gutters>
           <Col>
-            <Typography component="h1" variant="h4">
+            <Typography component="h1" variant="h4" mb={3}>
               Vous êtes une collectivité ?
             </Typography>
-            <Typography component="h2" variant="h1">
+            <Typography component="h2" variant="h1" mb={3}>
               Diminuez la vacance de logements sur votre territoire
             </Typography>
             <Text size="lead" className="fr-py-4w">
@@ -75,7 +75,7 @@ const EstablishmentHomeView = () => {
         <Container as="section" spacing="py-7w mb-4w">
           <Row>
             <Col>
-              <Typography component="h2" variant="h4">
+              <Typography component="h2" variant="h4" mb={3}>
                 Concrètement, comment ça fonctionne ?
               </Typography>
             </Col>
@@ -131,7 +131,7 @@ const EstablishmentHomeView = () => {
       <Container as="section" spacing="py-7w mb-4w">
         <Row>
           <Col>
-            <Typography component="h2" variant="h4">
+            <Typography component="h2" variant="h4" mb={3}>
               Les avantages de Zéro Logement Vacant
             </Typography>
           </Col>
@@ -141,7 +141,7 @@ const EstablishmentHomeView = () => {
             <div>
               <img src={statistic_chart} height="100%" alt="" />
             </div>
-            <Typography component="h3" variant="h6">
+            <Typography component="h3" variant="h6" mb={3}>
               Une vision globale de votre territoire
             </Typography>
             <Text size="lg">
@@ -153,7 +153,7 @@ const EstablishmentHomeView = () => {
             <div>
               <img src={location_review} height="100%" alt="" />
             </div>
-            <Typography component="h3" variant="h6">
+            <Typography component="h3" variant="h6" mb={3}>
               Un historique du logement exhaustif
             </Typography>
             <Text size="lg">
@@ -165,7 +165,7 @@ const EstablishmentHomeView = () => {
             <div>
               <img src={collaboration} height="100%" alt="" />
             </div>
-            <Typography component="h3" variant="h6">
+            <Typography component="h3" variant="h6" mb={3}>
               Un suivi centralisé des dossiers
             </Typography>
             <Text size="lg">
@@ -177,7 +177,7 @@ const EstablishmentHomeView = () => {
             <div>
               <img src={real_time_collaboration} height="100%" alt="" />
             </div>
-            <Typography component="h3" variant="h6">
+            <Typography component="h3" variant="h6" mb={3}>
               Un accès à une large communauté de partage
             </Typography>
             <Text size="lg">
@@ -191,7 +191,7 @@ const EstablishmentHomeView = () => {
         <Container as="section" spacing="py-7w mb-4w">
           <Row>
             <Col>
-              <Typography component="h2" variant="h4">
+              <Typography component="h2" variant="h4" mb={3}>
                 Ce que notre communauté en dit
               </Typography>
             </Col>

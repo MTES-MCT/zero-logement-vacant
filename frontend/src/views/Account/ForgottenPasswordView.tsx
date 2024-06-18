@@ -78,7 +78,7 @@ function ForgottenPasswordView() {
               severity="error"
             />
           )}
-          <Typography component="h1" variant="h4">
+          <Typography component="h1" variant="h4" mb={3}>
             Réinitialisation de votre mot de passe
           </Typography>
           {emailSent ? (

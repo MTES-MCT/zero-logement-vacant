@@ -45,7 +45,9 @@ function AccountEmailCreationView() {
 
   return (
     <form onSubmit={submit}>
-      <Typography component="h2">Créer votre compte</Typography>
+      <Typography variant="h2" mb={3}>
+        Créer votre compte
+      </Typography>
       <Text size="lead">
         Pour créer votre compte sur Zéro Logement Vacant, vous devez
         impérativement avoir déjà signé l’acte d’engagement permettant d’accéder

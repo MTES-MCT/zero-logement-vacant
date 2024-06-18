@@ -108,7 +108,7 @@ const OwnerEstablishmentHomeView = () => {
               >
                 {establishment.shortName.toUpperCase()}
               </Typography>
-              <Typography component="h2" variant="h1">
+              <Typography component="h2" variant="h1" mb={3}>
                 Bienvenue sur le site d’information pour les propriétaires de
                 logements vacants
               </Typography>
@@ -170,7 +170,7 @@ const OwnerEstablishmentHomeView = () => {
       )}
       {localities && localities.length > 0 && (
         <Container as="section" spacing="py-6w" className="py-xs-3w">
-          <Typography component="h2" variant="h3">
+          <Typography component="h2" variant="h3" mb={3}>
             Les taxes sur la vacance
           </Typography>
           {isLocality ? (
@@ -241,7 +241,7 @@ const OwnerEstablishmentHomeView = () => {
         </Container>
       )}
       <Container as="section" spacing="py-6w" className="py-xs-3w">
-        <Typography component="h2" variant="h3">
+        <Typography component="h2" variant="h3" mb={3}>
           Pourquoi sortir de la vacance ?
         </Typography>
         <Row gutters>
@@ -291,7 +291,7 @@ const OwnerEstablishmentHomeView = () => {
       </Container>
       {contactPoints && contactPoints.length > 0 && (
         <Container as="section" spacing="py-6w" className="py-xs-3w">
-          <Typography component="h2" variant="h3">
+          <Typography component="h2" variant="h3" mb={3}>
             Les guichets contacts
           </Typography>
           <Row gutters>

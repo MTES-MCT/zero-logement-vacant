@@ -33,7 +33,7 @@ function AccountEmailActivationView() {
 
   return (
     <>
-      <Typography component="h2" variant="h4">
+      <Typography component="h2" variant="h4" mb={3}>
         Vous devez confirmer votre adresse mail.
       </Typography>
       <Text>

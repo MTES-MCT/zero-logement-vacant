@@ -6,7 +6,9 @@ const AccessibilityView = () => {
   useDocumentTitle('Accessibilité');
   return (
     <Container as="section" spacing="py-4w mb-4w">
-      <Typography component="h1">Déclaration d’accessibilité</Typography>
+      <Typography variant="h1" mb={3}>
+        Déclaration d’accessibilité
+      </Typography>
       <p>
         Établie le <span>27 juin 2022</span>.
       </p>
@@ -23,7 +25,9 @@ const AccessibilityView = () => {
         </span>
         .
       </p>
-      <Typography component="h2">État de conformité</Typography>
+      <Typography variant="h2" mb={3}>
+        État de conformité
+      </Typography>
       <p>
         <strong>Zéro Logement Vacant</strong> est{' '}
         <strong>
@@ -36,7 +40,7 @@ const AccessibilityView = () => {
         </abbr>
         .<span>Le site n’a encore pas été audité.</span>
       </p>
-      <Typography component="h2">
+      <Typography variant="h2" mb={3}>
         Contenus de l’application Zéro Logement Vacant
       </Typography>
       <p>
@@ -49,7 +53,9 @@ const AccessibilityView = () => {
         nécessaires à la réalisation de votre tâche de lutte contre la vacance
         sur votre territoire.
       </p>
-      <Typography component="h2">Amélioration et contact</Typography>
+      <Typography variant="h2" mb={3}>
+        Amélioration et contact
+      </Typography>
       <p>
         Si vous n’arrivez pas à accéder à un contenu ou à un service, vous
         pouvez contacter le responsable de
@@ -65,7 +71,9 @@ const AccessibilityView = () => {
           </a>
         </li>
       </ul>
-      <Typography component="h2">Voie de recours</Typography>
+      <Typography variant="h2" mb={3}>
+        Voie de recours
+      </Typography>
       <p>
         Cette procédure est à utiliser dans le cas suivant&nbsp;: vous avez
         signalé au responsable du site internet un défaut d’accessibilité qui

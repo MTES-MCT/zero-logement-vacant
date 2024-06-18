@@ -42,4 +42,5 @@ jobs:
           CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
           ORGA_ID: ${{ secrets.CLEVER_ORG }}
         run: |
+          clever link --org $ORGA_ID --alias ${{ inputs.app }}
           clever deploy --alias ${{ inputs.app }}

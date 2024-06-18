@@ -27,6 +27,7 @@ import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
+  FileUploadDTO,
   SenderPayloadDTO,
 } from '@zerologementvacant/models';
 import {
@@ -186,7 +187,9 @@ describe('Draft API', () => {
       const payload: DraftCreationPayloadDTO = {
         subject: draft.subject,
         body: draft.body,
-        logo: draft.logo,
+        logo: draft.logo?.map(logo => {
+          return {id: uuidv4(),  type:'image/jpeg', url: logo, content: '' };
+        }) as FileUploadDTO[],
         campaign: campaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
@@ -275,7 +278,7 @@ describe('Draft API', () => {
         id: draft.id,
         subject: faker.lorem.sentence(),
         body: faker.lorem.paragraph(),
-        logo: ['https://example.com/logo.png'],
+        logo: [ {id: 'https://example.com/logo.png' }],
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
         writtenFrom: faker.location.city(),
@@ -425,3 +428,7 @@ describe('Draft API', () => {
     });
   });
 });
+function uuidv4(): any {
+  throw new Error('Function not implemented.');
+}
+

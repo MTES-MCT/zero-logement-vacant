@@ -111,8 +111,6 @@ const senderValidators: ValidationChain[] = [
 async function create(request: Request, response: Response) {
   const { auth } = request as AuthenticatedRequest;
   const body = request.body as DraftCreationPayloadDTO;
-  const logos = request.body.logo as FileUploadDTO[];
-  request.body.logo = logos.map(logo => logo.id);
 
   const campaign = await campaignRepository.findOne({
     id: body.campaign,
@@ -143,7 +141,7 @@ async function create(request: Request, response: Response) {
     id: uuidv4(),
     subject: body.subject,
     body: body.body,
-    logo: body.logo,
+    logo: body.logo.map((logo: FileUploadDTO) => logo.id) as string[],
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,
@@ -286,9 +284,6 @@ const previewValidators: ValidationChain[] = [
 
 async function update(request: Request, response: Response<DraftDTO>) {
   const { auth, params } = request as AuthenticatedRequest;
-  const logos = request.body.logo as FileUploadDTO[];
-  request.body.logo = logos.map(logo => logo.id);
-
   const body = request.body as DraftUpdatePayloadDTO;
 
   const draft = await draftRepository.findOne({
@@ -320,7 +315,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
     ...draft,
     subject: body.subject,
     body: body.body,
-    logo: body.logo,
+    logo: body.logo?.map((logo: FileUploadDTO) => logo.id) as string[],
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,

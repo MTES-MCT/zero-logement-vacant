@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import campaignRepository from '~/repositories/campaignRepository';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
-import { CampaignApi, CampaignSortableApi } from '~/models/CampaignApi';
+import {
+  CampaignApi,
+  CampaignSortableApi,
+  toCampaignDTO,
+} from '~/models/CampaignApi';
 import housingRepository from '~/repositories/housingRepository';
 import eventRepository from '~/repositories/eventRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
@@ -12,14 +16,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { HousingApi } from '~/models/HousingApi';
 import async from 'async';
 import housingFiltersApi, {
-  HousingFiltersApi,
+  HousingFiltersApi
 } from '~/models/HousingFiltersApi';
 import { logger } from '~/infra/logger';
 import groupRepository from '~/repositories/groupRepository';
 import GroupMissingError from '~/errors/groupMissingError';
 import {
   campaignFiltersValidators,
-  CampaignQuery,
+  CampaignQuery
 } from '~/models/CampaignFiltersApi';
 import { isArrayOf, isString, isUUID, isUUIDParam } from '~/utils/validators';
 import sortApi from '~/models/SortApi';
@@ -28,9 +32,10 @@ import { HousingEventApi } from '~/models/EventApi';
 import {
   CAMPAIGN_STATUSES,
   CampaignCreationPayloadDTO,
+  CampaignDTO,
   CampaignUpdatePayloadDTO,
   HousingFiltersDTO,
-  nextStatus,
+  nextStatus
 } from '@zerologementvacant/models';
 import CampaignStatusError from '~/errors/campaignStatusError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
@@ -45,7 +50,7 @@ async function getCampaign(request: Request, response: Response) {
 
   const campaign = await campaignRepository.findOne({
     id: campaignId,
-    establishmentId,
+    establishmentId
   });
   if (!campaign) {
     throw new CampaignMissingError(campaignId);
@@ -62,7 +67,7 @@ async function downloadCampaign(request: Request, response: Response) {
 
   const campaign = await campaignRepository.findOne({
     id: campaignId,
-    establishmentId,
+    establishmentId
   });
   if (!campaign) {
     throw new CampaignMissingError(campaignId);
@@ -80,35 +85,25 @@ async function downloadCampaign(request: Request, response: Response) {
 
 const listValidators: ValidationChain[] = [
   ...campaignFiltersValidators,
-  ...sortApi.queryValidators,
+  ...sortApi.queryValidators
 ];
 
 async function list(request: Request, response: Response) {
   const { auth } = request as AuthenticatedRequest;
   const query = request.query as CampaignQuery;
   const sort = sortApi.parse<CampaignSortableApi>(
-    request.query.sort as string[] | undefined,
+    request.query.sort as string[] | undefined
   );
   logger.info('List campaigns', query);
 
   const campaigns = await campaignRepository.find({
     filters: {
       establishmentId: auth.establishmentId,
-      groupIds:
-        typeof query.groups === 'string' ? [query.groups] : query.groups,
+      groupIds: typeof query.groups === 'string' ? [query.groups] : query.groups
     },
-    sort,
+    sort
   });
   response.status(constants.HTTP_STATUS_OK).json(campaigns);
-}
-
-export interface CreateCampaignBody {
-  draftCampaign: {
-    filters: HousingFiltersApi;
-    title: string;
-  };
-  allHousing: boolean;
-  housingIds: string[];
 }
 
 const createValidators: ValidationChain[] = [
@@ -129,9 +124,9 @@ const createValidators: ValidationChain[] = [
     .if(body('housing').notEmpty())
     .custom(isArrayOf(isUUID))
     .withMessage('Must be an array of UUID'),
-  ...housingFiltersApi.validators('housing.filters'),
+  ...housingFiltersApi.validators('housing.filters')
 ];
-async function create(request: Request, response: Response) {
+async function create(request: Request, response: Response<CampaignDTO>) {
   logger.info('Create campaign');
 
   const { auth } = request as AuthenticatedRequest;
@@ -139,7 +134,7 @@ async function create(request: Request, response: Response) {
 
   const filters: HousingFiltersDTO = {
     ...body.housing.filters,
-    establishmentIds: [auth.establishmentId],
+    establishmentIds: [auth.establishmentId]
   };
   const campaign: CampaignApi = {
     id: uuidv4(),
@@ -147,9 +142,8 @@ async function create(request: Request, response: Response) {
     status: 'draft',
     filters,
     createdAt: new Date().toJSON(),
-    validatedAt: new Date().toJSON(),
     userId: auth.userId,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   };
 
   const houses =
@@ -159,12 +153,12 @@ async function create(request: Request, response: Response) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             filters,
-            pagination: { paginate: false },
+            pagination: { paginate: false }
           })
           .then((houses) => {
             const ids = new Set(body.housing.ids);
             return houses.filter((housing) =>
-              body.housing.all ? !ids.has(housing.id) : ids.has(housing.id),
+              body.housing.all ? !ids.has(housing.id) : ids.has(housing.id)
             );
           })
       : [];
@@ -172,7 +166,7 @@ async function create(request: Request, response: Response) {
   await campaignRepository.save(campaign);
   await campaignHousingRepository.insertHousingList(campaign.id, houses);
 
-  response.status(constants.HTTP_STATUS_CREATED).json(campaign);
+  response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
 
   // TODO: transform this into CampaignHousingEventApi[]
   // extends EventApi<CampaignApi>
@@ -189,12 +183,12 @@ async function create(request: Request, response: Response) {
     createdBy: auth.userId,
     createdAt: new Date(),
     housingId: housing.id,
-    housingGeoCode: housing.geoCode,
+    housingGeoCode: housing.geoCode
   }));
   eventRepository
     .insertManyHousingEvents(events)
     .catch((error) =>
-      logger.error('Error while inserting housing events', error),
+      logger.error('Error while inserting housing events', error)
     );
 }
 
@@ -205,7 +199,7 @@ async function createCampaignFromGroup(request: Request, response: Response) {
 
   const group = await groupRepository.findOne({
     id: groupId,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   });
   if (!group || !!group.archivedAt) {
     throw new GroupMissingError(groupId);
@@ -216,22 +210,21 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     title: body.title,
     status: 'draft',
     filters: {
-      groupIds: [group.id],
+      groupIds: [group.id]
     },
     createdAt: new Date().toJSON(),
     groupId,
     userId: auth.userId,
     establishmentId: auth.establishmentId,
-    validatedAt: new Date().toJSON(),
   };
   await campaignRepository.save(campaign);
 
   const housingList = await housingRepository.find({
     filters: {
       establishmentIds: [auth.establishmentId],
-      groupIds: [group.id],
+      groupIds: [group.id]
     },
-    pagination: { paginate: false },
+    pagination: { paginate: false }
   });
   await campaignHousingRepository.insertHousingList(campaign.id, housingList);
 
@@ -246,22 +239,22 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     old: housing,
     new: {
       ...housing,
-      campaignIds: [...housing.campaignIds, campaign.id],
+      campaignIds: [...housing.campaignIds, campaign.id]
     },
     createdBy: auth.userId,
     createdAt: new Date(),
     housingId: housing.id,
-    housingGeoCode: housing.geoCode,
+    housingGeoCode: housing.geoCode
   }));
   eventRepository
     .insertManyHousingEvents(events)
     .catch((error) =>
-      logger.error('Error while inserting housing events', error),
+      logger.error('Error while inserting housing events', error)
     );
 }
 const createCampaignFromGroupValidators: ValidationChain[] = [
   param('id').isUUID().notEmpty(),
-  body('title').isString().notEmpty(),
+  body('title').isString().notEmpty()
 ];
 
 const updateValidators: ValidationChain[] = [
@@ -272,7 +265,7 @@ const updateValidators: ValidationChain[] = [
     .if(body('status').equals('in-progress'))
     .isISO8601()
     .notEmpty(),
-  body('file').optional({ nullable: true }).isString(),
+  body('file').optional({ nullable: true }).isString()
 ];
 async function update(request: Request, response: Response) {
   const { auth, params } = request as AuthenticatedRequest;
@@ -280,7 +273,7 @@ async function update(request: Request, response: Response) {
 
   const campaign = await campaignRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   });
   if (!campaign) {
     throw new CampaignMissingError(params.id);
@@ -292,7 +285,7 @@ async function update(request: Request, response: Response) {
   ) {
     throw new CampaignStatusError({
       campaign,
-      target: body.status,
+      target: body.status
     });
   }
 
@@ -316,7 +309,7 @@ async function update(request: Request, response: Response) {
     archivedAt:
       campaign.status !== body.status && body.status === 'archived'
         ? new Date().toJSON()
-        : campaign.archivedAt,
+        : campaign.archivedAt
   };
 
   await campaignRepository.save(updated);
@@ -340,7 +333,7 @@ async function update(request: Request, response: Response) {
         createdBy: auth.userId,
         createdAt: new Date(),
         campaignId: campaign.id,
-        conflict: false,
+        conflict: false
       });
 
       if (updated.status === 'in-progress') {
@@ -348,16 +341,16 @@ async function update(request: Request, response: Response) {
           filters: {
             establishmentIds: [updated.establishmentId],
             campaignIds: [updated.id],
-            status: HousingStatusApi.NeverContacted,
-          },
+            status: HousingStatusApi.NeverContacted
+          }
         });
         const updatedHouses = houses.map((housing) => ({
           ...housing,
-          status: HousingStatusApi.Waiting,
+          status: HousingStatusApi.Waiting
         }));
         await housingRepository.saveMany(updatedHouses, {
           onConflict: 'merge',
-          merge: ['status'],
+          merge: ['status']
         });
         await eventRepository.insertManyHousingEvents(
           houses.map((housing) => ({
@@ -369,13 +362,13 @@ async function update(request: Request, response: Response) {
             old: housing,
             new: {
               ...housing,
-              status: HousingStatusApi.Waiting,
+              status: HousingStatusApi.Waiting
             },
             createdBy: auth.userId,
             createdAt: new Date(),
             housingId: housing.id,
-            housingGeoCode: housing.geoCode,
-          })),
+            housingGeoCode: housing.geoCode
+          }))
         );
       }
     } catch (error) {
@@ -386,7 +379,7 @@ async function update(request: Request, response: Response) {
 
 async function removeCampaign(
   request: Request,
-  response: Response,
+  response: Response
 ): Promise<Response> {
   const campaignId = request.params.id;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
@@ -395,7 +388,7 @@ async function removeCampaign(
 
   const campaignApi = await campaignRepository.findOne({
     id: campaignId,
-    establishmentId,
+    establishmentId
   });
 
   if (!campaignApi) {
@@ -404,7 +397,7 @@ async function removeCampaign(
 
   await Promise.all([
     campaignHousingRepository.deleteHousingFromCampaigns([campaignId]),
-    eventRepository.removeCampaignEvents(campaignId),
+    eventRepository.removeCampaignEvents(campaignId)
   ]);
 
   await campaignRepository.remove(campaignId);
@@ -420,18 +413,18 @@ async function resetHousingWithoutCampaigns(establishmentId: string) {
       filters: {
         establishmentIds: [establishmentId],
         campaignsCounts: ['0'],
-        statusList: [HousingStatusApi.Waiting],
+        statusList: [HousingStatusApi.Waiting]
       },
-      pagination: { paginate: false },
+      pagination: { paginate: false }
     })
     .then((housingList) =>
       async.map(housingList, async (housing: HousingApi) =>
         housingRepository.update({
           ...housing,
           status: HousingStatusApi.NeverContacted,
-          subStatus: undefined,
-        }),
-      ),
+          subStatus: undefined
+        })
+      )
     );
 }
 
@@ -439,11 +432,11 @@ const removeHousingValidators: ValidationChain[] = [
   isUUIDParam('id'),
   body('all').isBoolean().notEmpty(),
   body('ids').custom(isArrayOf(isString)),
-  ...housingFiltersApi.validators('filters'),
+  ...housingFiltersApi.validators('filters')
 ];
 async function removeHousing(
   request: Request,
-  response: Response,
+  response: Response
 ): Promise<Response> {
   logger.info('Remove campaign housing list');
 
@@ -457,14 +450,14 @@ async function removeHousing(
       filters: {
         ...filters,
         establishmentIds: [establishmentId],
-        campaignIds: [campaignId],
+        campaignIds: [campaignId]
       },
-      pagination: { paginate: false },
+      pagination: { paginate: false }
     })
     .then((_) =>
       _.map((_) => _.id).filter((id) =>
-        all ? !request.body.ids.includes(id) : request.body.ids.includes(id),
-      ),
+        all ? !request.body.ids.includes(id) : request.body.ids.includes(id)
+      )
     );
 
   return campaignHousingRepository
@@ -486,7 +479,7 @@ const campaignController = {
   updateValidators,
   removeCampaign,
   removeHousingValidators,
-  removeHousing,
+  removeHousing
 };
 
 export default campaignController;

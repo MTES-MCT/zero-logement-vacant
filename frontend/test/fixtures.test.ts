@@ -26,12 +26,12 @@ export function genEmail() {
   const name = randomstring.generate({
     length: 4,
     charset: 'alphabetic',
-    readable: true,
+    readable: true
   });
   const domain = randomstring.generate({
     length: 4,
     charset: 'alphabetic',
-    readable: true,
+    readable: true
   });
   return `${name}@${domain}.com`;
 }
@@ -40,8 +40,8 @@ export function genNumber(length = 10): number {
   return Number(
     randomstring.generate({
       length,
-      charset: 'numeric',
-    }),
+      charset: 'numeric'
+    })
   );
 }
 
@@ -57,8 +57,8 @@ export function genAuthUser(): AuthUser {
       available: genBoolean(),
       shortName: randomstring.generate(),
       geoCodes: [faker.location.zipCode()],
-      campaignIntent: randomstring.generate(),
-    },
+      campaignIntent: randomstring.generate()
+    }
   };
 }
 
@@ -66,7 +66,7 @@ export function genUser() {
   return {
     email: genEmail(),
     firstName: randomstring.generate(),
-    lastName: randomstring.generate(),
+    lastName: randomstring.generate()
   } as User;
 }
 
@@ -78,7 +78,7 @@ export function genOwner(): Owner {
     birthDate: new Date(),
     email: genEmail(),
     phone: randomstring.generate(),
-    banAddress: genAddress(),
+    banAddress: genAddress()
   };
 }
 
@@ -105,7 +105,7 @@ export function genHousing(): Housing {
     buildingVacancyRate: genNumber(2),
     status: HousingStatus.NeverContacted,
     source: null,
-    occupancy: OccupancyKind.Vacant,
+    occupancy: OccupancyKind.Vacant
   };
 }
 
@@ -113,7 +113,7 @@ export const genAddress = (): Address => ({
   street: randomstring.generate(),
   houseNumber: randomstring.generate(),
   postalCode: randomstring.generate(),
-  city: randomstring.generate(),
+  city: randomstring.generate()
 });
 
 export const genCampaign = (): Campaign => ({
@@ -123,7 +123,7 @@ export const genCampaign = (): Campaign => ({
   status: 'draft',
   createdAt: new Date().toJSON(),
   validatedAt: new Date().toJSON(),
-  exportURL: randomstring.generate(),
+  exportURL: randomstring.generate()
 });
 
 export function genDraft(sender: Sender): Draft {
@@ -136,7 +136,7 @@ export function genDraft(sender: Sender): Draft {
     writtenAt: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
     writtenFrom: randomstring.generate(),
     createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
   };
 }
 
@@ -151,14 +151,14 @@ export function genSender(): Sender {
     email: genEmail(),
     phone: randomstring.generate({
       length: 10,
-      charset: 'numeric',
+      charset: 'numeric'
     }),
     signatoryFile: null,
     signatoryRole: null,
     signatoryFirstName: randomstring.generate(),
     signatoryLastName: randomstring.generate(),
     createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
   };
 }
 
@@ -167,7 +167,7 @@ export function genPaginatedResult<T>(results: Array<T>) {
     filteredCount: genNumber(2),
     entities: results,
     page: 1,
-    perPage: 50,
+    perPage: 50
   } as PaginatedResult<T>;
 }
 
@@ -175,10 +175,10 @@ export function genSignupLink(email: string): SignupLink {
   return {
     id: randomstring.generate({
       length: 100,
-      charset: 'alphanumeric',
+      charset: 'alphanumeric'
     }),
     prospectEmail: email,
-    expiresAt: addHours(new Date(), 24 * 7),
+    expiresAt: addHours(new Date(), 24 * 7)
   };
 }
 
@@ -188,23 +188,25 @@ export function genProspect(): Prospect {
     establishment: {
       id: randomstring.generate(),
       siren: genSiren(),
-      campaignIntent: '0-2',
+      campaignIntent: '0-2'
     },
     hasAccount: genBoolean(),
-    hasCommitment: genBoolean(),
+    hasCommitment: genBoolean()
   };
 }
 
 export function genGroup(): Group {
+  const ownerCount = faker.number.int(10);
+  const housingCount = ownerCount + faker.number.int(10);
   return {
     id: randomstring.generate(),
     title: randomstring.generate(),
     description: randomstring.generate(),
-    housingCount: genNumber(2),
-    ownerCount: genNumber(2),
+    housingCount,
+    ownerCount,
     createdAt: new Date(),
     createdBy: genUser(),
-    archivedAt: null,
+    archivedAt: null
   };
 }
 
@@ -219,7 +221,7 @@ export function genDatafoncierHousing(): DatafoncierHousing {
     idprocpte: randomstring.generate(11),
     idcom: randomstring.generate({
       length: 5,
-      charset: 'numeric',
+      charset: 'numeric'
     }),
     idcomtxt: randomstring.generate(45),
     ccodep: randomstring.generate(2),
@@ -338,6 +340,6 @@ export function genDatafoncierHousing(): DatafoncierHousing {
     dis_ban_ff: genNumber(1),
     lib_epci: randomstring.generate(),
     code_epci: randomstring.generate(),
-    idpk: null,
+    idpk: null
   };
 }

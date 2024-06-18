@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS _areas_;
+
 CREATE TABLE _areas_
 (
     siren    integer,

@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/locale/fr';
+import { faker } from '@faker-js/faker';
 
 import { OwnerDTO } from '../models';
 import { AddressDTO, AddressKinds } from '../models/AdresseDTO';
@@ -19,8 +19,8 @@ export function genAddressDTO(
     score: faker.number.float({
       fractionDigits: 2,
       min: 0,
-      max: 1,
-    }),
+      max: 1
+    })
   };
 }
 
@@ -33,7 +33,7 @@ export function genOwnerDTO(): OwnerDTO {
     id,
     rawAddress: [
       `${address.houseNumber} ${address.street}`,
-      `${address.postalCode} ${address.city}`,
+      `${address.postalCode} ${address.city}`
     ],
     banAddress: genAddressDTO(id, AddressKinds.Owner),
     additionalAddress: faker.helpers.maybe(() => faker.location.county()),
@@ -41,9 +41,9 @@ export function genOwnerDTO(): OwnerDTO {
     fullName: `${firstName} ${lastName}`,
     email: faker.internet.email({
       firstName,
-      lastName,
+      lastName
     }),
     phone: faker.phone.number(),
-    kind: 'PERSONNE PHYSIQUE',
+    kind: 'PERSONNE PHYSIQUE'
   };
 }

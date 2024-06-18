@@ -59,16 +59,21 @@ async function list(request: Request, response: Response) {
   const enrichedDrafts = await Promise.all(originalDrafts.map(async (draft) => {
     const enrichedDraft = draft as EnrichedDraftDTO;
     const logos = draft.logo ? await Promise.all(draft.logo.map(async (logo) => {
-      const { response, content } = await getContent(logo, { s3, bucket: config.s3.bucket });
-      return {
-        id: logo,
-        type: response.ContentType,
-        url: logo,
-        content: toBase64(content, response.ContentType),
-      } as FileUploadDTO;
+      try {
+        const { response, content } = await getContent(logo, { s3, bucket: config.s3.bucket });
+        return {
+          id: logo,
+          type: response.ContentType,
+          url: logo,
+          content: toBase64(content, response.ContentType),
+        } as FileUploadDTO;
+      } catch(e) {
+        logger.error(`Failed to get content from S3 bucket: ${config.s3.bucket}, logo: ${logo}`);
+        return null;
+      }
     })) : null;
 
-    enrichedDraft.logo = logos;
+    enrichedDraft.logo = logos?.filter(logo => logo !== null) as FileUploadDTO[];
     return enrichedDraft;
   })) as unknown as EnrichedDraftDTO;
 

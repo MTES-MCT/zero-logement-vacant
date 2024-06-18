@@ -36,8 +36,12 @@ import { FileUploadDTO } from '@zerologementvacant/models';
 
 const schema = yup
   .object({
-    subject: yup.string(),
-    body: yup.string(),
+    subject: yup
+      .string()
+      .required('Veuillez renseigner l’objet de votre courrier'),
+    body: yup
+      .string()
+      .required('Veuillez renseigner le contenu de votre courrier'),
     sender: senderSchema,
   })
   // Must do like that because the useForm hook has a validation bug

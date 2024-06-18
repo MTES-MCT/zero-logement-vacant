@@ -81,7 +81,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: 'Front staging'
+      app: Front staging
       alias: front-staging
       branch: main
     secrets: inherit
@@ -90,7 +90,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: 'API staging'
+      app: API staging
       alias: api-staging
       branch: main
     secrets: inherit
@@ -99,7 +99,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: 'Queue staging'
+      app: Queue staging
       alias: queue-staging
       branch: main
     secrets: inherit
@@ -108,7 +108,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: 'Front production'
+      app: Front production
       alias: front-production
       branch: prod
     secrets: inherit
@@ -117,7 +117,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: 'API production'
+      app: API production
       alias: api-production
       branch: prod
     secrets: inherit
@@ -126,7 +126,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: [build]
     with:
-      app: 'Queue production'
+      app: Queue production
       alias: queue-production
       branch: prod
     secrets: inherit

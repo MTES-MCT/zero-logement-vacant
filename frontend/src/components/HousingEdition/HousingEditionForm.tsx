@@ -183,6 +183,13 @@ const HousingEditionForm = (
 
   return (
     <>
+      {form.messageType('hasChange') === 'error' && (
+        <Alert
+          severity="error"
+          small
+          description={form.message('hasChange')!}
+        />
+      )}
       <div className="bg-975 fr-py-2w fr-px-3w">
         <Text size="lg" bold spacing="mb-2w">
           <Icon
@@ -319,13 +326,6 @@ const HousingEditionForm = (
           options={notesOptions}
         />
       </div>
-      {form.messageType('hasChange') === 'error' && (
-        <Alert
-          severity="error"
-          small
-          description={form.message('hasChange')!}
-        />
-      )}
       <modal.Component
         title={`Vous êtes sur le point de mettre à jour ${housingCount} logements`}
         buttons={[

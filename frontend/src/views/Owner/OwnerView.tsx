@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Col, Row, Title } from '../../components/_dsfr';
+import { Col, Row } from '../../components/_dsfr';
 import styles from './owner.module.scss';
 import { useOwner } from '../../hooks/useOwner';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
@@ -8,6 +8,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Tag from '@codegouvfr/react-dsfr/Tag';
+import Typography from '@mui/material/Typography';
 
 const OwnerView = () => {
   useDocumentTitle('Fiche propriétaire');
@@ -16,7 +17,7 @@ const OwnerView = () => {
   const housingCount = count?.housing ?? 0;
 
   const [ownerEditionModalKey, setOwnerEditionModalKey] = useState(
-    new Date().getTime(),
+    new Date().getTime()
   );
 
   if (!owner || !paginatedHousing) {
@@ -41,10 +42,10 @@ const OwnerView = () => {
         </Col>
         <Col n="8">
           <header className={styles.header}>
-            <Title as="h3" look="h6" spacing="mb-0">
+            <Typography component="h3" variant="h6" mb={0}>
               <span className="fr-mr-1w">Tous les logements</span>
               <Tag className={styles.tag}>{housingCount}</Tag>
-            </Title>
+            </Typography>
           </header>
           <Row gutters>
             {paginatedHousing.entities.map((housing) => (

@@ -3,10 +3,10 @@ import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,
-  useForm,
+  useForm
 } from '../../../hooks/useForm';
 import { Redirect, useHistory } from 'react-router-dom';
-import { Row, Text, Title } from '../../../components/_dsfr';
+import { Row, Text } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
 import { Prospect } from '../../../models/Prospect';
@@ -15,9 +15,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
+import Typography from '@mui/material/Typography';
 
 interface RouterState {
   prospect?: Prospect | undefined;
@@ -30,7 +31,7 @@ function AccountPasswordCreationView() {
   const { trackEvent } = useMatomo();
 
   const { linkExists, loading, prospect } = useProspect(
-    location.state?.prospect,
+    location.state?.prospect
   );
 
   const [password, setPassword] = useState('');
@@ -44,14 +45,14 @@ function AccountPasswordCreationView() {
   const shape = {
     password: yup.string().required('Veuillez renseigner votre mot de passe.'),
     passwordFormat: passwordFormatValidator,
-    confirmation: passwordConfirmationValidator,
+    confirmation: passwordConfirmationValidator
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
     password,
     passwordFormat: password,
-    confirmation,
+    confirmation
   });
 
   if (loading) {
@@ -61,9 +62,9 @@ function AccountPasswordCreationView() {
   if (!linkExists) {
     return (
       <>
-        <Title as="h1" look="h4">
+        <Typography component="h1" variant="h4">
           Ce lien n’existe pas ou est expiré !
-        </Title>
+        </Typography>
         <Text>Recommencez la procédure ou contactez le support.</Text>
         <Row>
           <AppLink
@@ -97,14 +98,14 @@ function AccountPasswordCreationView() {
       if (prospect) {
         trackEvent({
           category: TrackEventCategories.AccountCreation,
-          action: TrackEventActions.AccountCreation.SubmitPassword,
+          action: TrackEventActions.AccountCreation.SubmitPassword
         });
         router.push({
           pathname: '/inscription/campagne',
           state: {
             prospect,
-            password,
-          },
+            password
+          }
         });
       }
     });

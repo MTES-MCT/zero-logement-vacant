@@ -1,19 +1,20 @@
-import { Col, Container, Row, Text, Title } from '../../_dsfr';
+import { Col, Container, Row, Text } from '../../_dsfr';
 import { ChangeEvent, useState } from 'react';
 import {
   BlockingPointOptions,
   OptionTreeSeparator,
-  SupportOptions,
+  SupportOptions
 } from '../../../models/HousingFilters';
 import { OptionTreeElement } from '../../../models/SelectOption';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import AppLinkAsButton from '../../_app/AppLinkAsButton/AppLinkAsButton';
+import Typography from '@mui/material/Typography';
 
 const modal = createModal({
   id: 'precisions-modal',
-  isOpenedByDefault: true,
+  isOpenedByDefault: true
 });
 
 interface Props {
@@ -25,11 +26,11 @@ interface Props {
 const PrecisionsModal = ({
   currentPrecisions,
   currentVacancyReasons,
-  onSubmit,
+  onSubmit
 }: Props) => {
   const [precisions, setPrecisions] = useState<string[]>(currentPrecisions);
   const [vacancyReasons, setVacancyReasons] = useState<string[]>(
-    currentVacancyReasons,
+    currentVacancyReasons
   );
 
   return (
@@ -43,12 +44,12 @@ const PrecisionsModal = ({
           {
             children: 'Annuler',
             priority: 'secondary',
-            className: 'fr-mr-2w',
+            className: 'fr-mr-2w'
           },
           {
             children: 'Enregistrer',
-            onClick: () => onSubmit(precisions, vacancyReasons),
-          },
+            onClick: () => onSubmit(precisions, vacancyReasons)
+          }
         ]}
         title=""
       >
@@ -64,7 +65,7 @@ const PrecisionsModal = ({
                     values={precisions}
                     onChange={setPrecisions}
                   />
-                ),
+                )
               },
               {
                 label: `Points de blocage (${vacancyReasons.length})`,
@@ -74,8 +75,8 @@ const PrecisionsModal = ({
                     values={vacancyReasons}
                     onChange={setVacancyReasons}
                   />
-                ),
-              },
+                )
+              }
             ]}
           />
         </Container>
@@ -93,7 +94,7 @@ interface OptionsTreeCheckboxesProp {
 const OptionsTreeCheckboxes = ({
   options,
   values,
-  onChange,
+  onChange
 }: OptionsTreeCheckboxesProp) => {
   const getValue = (...elements: (OptionTreeElement | string)[]) =>
     elements
@@ -103,7 +104,7 @@ const OptionsTreeCheckboxes = ({
   const onCheckOption = (e: ChangeEvent<HTMLInputElement>, value: string) => {
     onChange([
       ...values.filter((_) => _ !== value),
-      ...(e.target.checked ? [value] : []),
+      ...(e.target.checked ? [value] : [])
     ]);
   };
 
@@ -111,13 +112,13 @@ const OptionsTreeCheckboxes = ({
     <>
       {options.map((option, index) => (
         <div key={`option_${index}`} className="fr-pb-4w">
-          <Title as="h2" look="h4">
+          <Typography component="h2" variant="h4">
             <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
             {option.title}
             <span className="fr-text--md">
                (Cochez une ou plusieurs précisions)
             </span>
-          </Title>
+          </Typography>
           <Row gutters>
             {option.elements.map((element1, index1) => (
               <Col
@@ -137,8 +138,8 @@ const OptionsTreeCheckboxes = ({
                         getValue(
                           option,
                           element1 as OptionTreeElement,
-                          element2,
-                        ),
+                          element2
+                        )
                       )}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         onCheckOption(
@@ -146,12 +147,12 @@ const OptionsTreeCheckboxes = ({
                           getValue(
                             option,
                             element1 as OptionTreeElement,
-                            element2,
-                          ),
+                            element2
+                          )
                         )
                       }
                     />
-                  ),
+                  )
                 )}
               </Col>
             ))}

@@ -1,4 +1,4 @@
-import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
+import { Col, Container, Row, Text } from '../../components/_dsfr';
 
 import handsPoints from '../../assets/images/hands-point.svg';
 import { AddressSearchResult } from '../../services/address.service';
@@ -8,6 +8,7 @@ import AddressSearchableSelect from '../../components/AddressSearchableSelect/Ad
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { useEstablishment } from '../../hooks/useEstablishment';
 import ownerProspectSlice from '../../store/reducers/ownerProspectReducer';
+import Typography from '@mui/material/Typography';
 
 const OwnerGenericHomeView = () => {
   const dispatch = useAppDispatch();
@@ -16,12 +17,12 @@ const OwnerGenericHomeView = () => {
   const { selectAddress } = ownerProspectSlice.actions;
 
   const { addressSearchResult } = useAppSelector(
-    (state) => state.ownerProspect,
+    (state) => state.ownerProspect
   );
 
   const { establishment, nearbyEstablishments } = useEstablishment(
     addressSearchResult?.city,
-    addressSearchResult ? [addressSearchResult.postalCode] : undefined,
+    addressSearchResult ? [addressSearchResult.postalCode] : undefined
   );
 
   const onSelectAddress = (addressSearchResult: AddressSearchResult) => {
@@ -33,10 +34,10 @@ const OwnerGenericHomeView = () => {
       <Container as="main" spacing="py-7w mb-4w">
         <Row gutters>
           <Col>
-            <Title as="h1" look="h2">
+            <Typography component="h1" variant="h2">
               Rechercher toutes les informations concernant la vacance sur votre
               territoire
-            </Title>
+            </Typography>
             <Text size="lead">
               Zéro Logement Vacant est un outil de lutte contre la vacance.
             </Text>

@@ -1,5 +1,5 @@
 import { Group as GroupModel } from '../../models/Group';
-import { Col, Container, Row, Text, Title } from '../_dsfr';
+import { Col, Container, Row, Text } from '../_dsfr';
 import styles from './group.module.scss';
 import { pluralize } from '../../utils/stringUtils';
 import { dateShortFormat } from '../../utils/dateUtils';
@@ -11,6 +11,7 @@ import AppLink from '../_app/AppLink/AppLink';
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import GroupCampaignCreationModal from '../modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
 import { fr } from '@codegouvfr/react-dsfr';
+import Typography from '@mui/material/Typography';
 
 interface GroupProps {
   campaigns?: Campaign[];
@@ -44,9 +45,9 @@ function Group(props: GroupProps) {
         <Col n="9" spacing="pr-2w">
           <Container as="header" fluid spacing="mb-1w">
             <Row alignItems="bottom" spacing="mb-1w">
-              <Title as="h2" spacing="mr-1w mb-0">
+              <Typography component="h2" mr={1} mb={0}>
                 {props.group.title}
-              </Title>
+              </Typography>
               <GroupEditionModal
                 title="Modifier les informations du groupe"
                 openingButtonProps={{
@@ -54,7 +55,7 @@ function Group(props: GroupProps) {
                   priority: 'tertiary no outline',
                   iconId: 'ri-edit-line',
                   iconPosition: 'right',
-                  size: 'small',
+                  size: 'small'
                 }}
                 group={props.group}
                 onSubmit={updateGroup}
@@ -91,9 +92,9 @@ function Group(props: GroupProps) {
           <Container as="main" fluid>
             <Row>
               <Col n="12">
-                <Title as="h6" spacing="mb-1w">
+                <Typography component="h6" mb={1}>
                   Description
-                </Title>
+                </Typography>
               </Col>
               <Col n="12">
                 <Text>{props.group.description}</Text>
@@ -129,7 +130,7 @@ function Group(props: GroupProps) {
               group={props.group}
               housingCount={props.group.housingCount}
               openingButtonProps={{
-                className: styles.action,
+                className: styles.action
               }}
               onSubmit={createCampaign}
             />
@@ -144,7 +145,7 @@ function Group(props: GroupProps) {
             <GroupRemovalModal
               campaigns={props.campaigns}
               openingButtonProps={{
-                className: styles.action,
+                className: styles.action
               }}
               onSubmit={removeGroup}
             />

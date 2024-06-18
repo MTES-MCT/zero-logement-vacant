@@ -1,14 +1,15 @@
-import { Container, Text, Title } from '../../components/_dsfr';
+import { Container, Text } from '../../components/_dsfr';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import AppLink from '../../components/_app/AppLink/AppLink';
+import Typography from '@mui/material/Typography';
 
 function LegalNoticesView() {
   return (
     <MainContainer title="Mentions Légales">
       <Container as="article" spacing="mb-7w px-0">
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           Éditeur du site
-        </Title>
+        </Typography>
         <Text spacing="mb-0">Ministère de la Transition écologique (MTE)</Text>
         <Text spacing="mb-0">
           Direction générale de l’Aménagement, du Logement et de la Nature
@@ -23,23 +24,25 @@ function LegalNoticesView() {
           Directeur de publication : Damien Botteghi, directeur de l’Habitat, de
           l’Urbanisme et des Paysages
         </Text>
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           Prestataire d’hébergement
-        </Title>
+        </Typography>
         <Text spacing="mb-0">SCALINGO SAS</Text>
         <Text spacing="mb-0">15 avenue du Rhin </Text>
         <Text spacing="mb-0">67100 Strasbourg</Text>
       </Container>
       <Container as="article" spacing="mb-7w px-0">
-        <Title as="h2">Conditions générales d’utilisation</Title>
+        <Typography component="h2">
+          Conditions générales d’utilisation
+        </Typography>
         <Text>
           Zéro Logement Vacant est un service numérique du Ministère de la
           Transition écologique.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           1. Présentation du service
-        </Title>
+        </Typography>
         <Text>
           Zéro Logement Vacant est un service numérique de l’administration
           permettant à l’Utilisateur d’identifier les propriétaires de logement
@@ -74,9 +77,9 @@ function LegalNoticesView() {
           et au respect intégral des présentes Conditions générales
           d’utilisation (CGU) par l’utilisateur.
         </Text>
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           2. Définitions
-        </Title>
+        </Typography>
         <Text>
           L’Éditeur : La personne, physique ou morale, qui édite les services de
           communication au public en ligne.
@@ -90,9 +93,9 @@ function LegalNoticesView() {
           L’Utilisateur : La personne utilisant le Site et les services.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           3. Objet
-        </Title>
+        </Typography>
         <Text>
           Le service est composé d’une application web qui permet à
           l’Utilisateur :
@@ -142,9 +145,9 @@ function LegalNoticesView() {
           téléphone, et son poste dans la collectivité.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           4. Obligations de l&#x27;Utilisateur
-        </Title>
+        </Typography>
         <Text>
           De manière générale, et sans que cette liste puisse être considérée
           comme exhaustive, l’Utilisateur s’interdit de :
@@ -183,9 +186,9 @@ function LegalNoticesView() {
           </li>
         </ul>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           5. Qualité des données publiées
-        </Title>
+        </Typography>
         <Text>
           Nous donnons accès sur Zéro Logement Vacant à des données publiques à
           titre informatif. Seules les publications légales font foi, notamment
@@ -207,9 +210,9 @@ function LegalNoticesView() {
           <AppLink to="mailto:zlv@beta.gouv.fr">zlv@beta.gouv.fr</AppLink>.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           6. Propriété intellectuelle
-        </Title>
+        </Typography>
         <Text>
           Ce site est la propriété exclusive du Ministère de la Transition
           écologique. Toute reproduction ou représentation totale ou partielle
@@ -265,9 +268,9 @@ function LegalNoticesView() {
           </li>
         </ul>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           7. Limitation de la responsabilité
-        </Title>
+        </Typography>
         <Text>
           Zéro Logement Vacant ne saurait être tenu responsable des éventuelles
           difficultés de fonctionnement du service, ni être engagé directement
@@ -280,9 +283,9 @@ function LegalNoticesView() {
           responsabilité en cas d’incident relatif à une faille de sécurité.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           8. Suppression du compte en cas de violation des CGU
-        </Title>
+        </Typography>
         <Text>
           En cas de violation d&#x27;une ou de plusieurs dispositions des CGU ou
           de tout autre document incorporé aux présentes par référence,
@@ -291,9 +294,9 @@ function LegalNoticesView() {
           aux services, à votre compte et à tous les Sites.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           9. Disponibilité du service
-        </Title>
+        </Typography>
         <Text>
           L&#x27;Éditeur peut suspendre l’accès à Zéro Logement Vacant sans
           information préalable ni préavis, notamment pour des raisons de
@@ -314,9 +317,9 @@ function LegalNoticesView() {
           permet d’anticiper d’éventuelles attaques par déni de service.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           10. Modification des CGU et de la politique de confidentialité
-        </Title>
+        </Typography>
         <Text>
           Nous nous engageons à vous informer en cas de modification
           substantielle des présentes CGU, et à ne pas baisser le niveau de
@@ -324,9 +327,9 @@ function LegalNoticesView() {
           informer et obtenir votre consentement.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           11. Droit applicable et modalités de recours
-        </Title>
+        </Typography>
         <Text>
           Application du droit français (législation CNIL) et compétence des
           tribunaux
@@ -354,10 +357,12 @@ function LegalNoticesView() {
         </Text>
       </Container>
       <Container as="article" spacing="px-0">
-        <Title as="h2">Vie privée et politique de confidentialité</Title>
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h2">
+          Vie privée et politique de confidentialité
+        </Typography>
+        <Typography component="h3" mt={4}>
           1. Données à caractère personnel
-        </Title>
+        </Typography>
         <Text>
           Nous nous engageons à ce que la collecte et le traitement de vos
           données, effectués à partir du site soient conformes au règlement
@@ -371,9 +376,9 @@ function LegalNoticesView() {
           traitement des données à caractère personnel de leurs utilisateurs, et
           ce afin de protéger la vie privée de ceux-ci.
         </Text>
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           2. Responsable du traitement
-        </Title>
+        </Typography>
         <Text>
           Le responsable du traitement de vos données à caractère personnel est
           :
@@ -387,9 +392,9 @@ function LegalNoticesView() {
         </Text>
         <Text>1 place Carpeaux, 92800 Puteaux</Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           3. Traitement des données et utilisation
-        </Title>
+        </Typography>
         <Text>
           L’Editeur ne peut utiliser les données à caractère personnel des
           Utilisateurs qu’à des fins à la fois légitimes et nécessaires, afin de
@@ -417,9 +422,9 @@ function LegalNoticesView() {
           ces données.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           4. Données personnelles collectées
-        </Title>
+        </Typography>
         <Text>
           Dans le cadre de l&#x27;utilisation du Site, l&#x27;Éditeur est
           susceptible de collecter les catégories de données (texte, copies
@@ -428,9 +433,9 @@ function LegalNoticesView() {
           d&#x27;identification, et de contact
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           5. Délai de conservation des données personnelles
-        </Title>
+        </Typography>
         <Text>
           Nous conservons les données personnelles. En cas de non connexion
           pendant 12 mois, les données personnelles associées à un compte sont
@@ -440,9 +445,9 @@ function LegalNoticesView() {
           politiques du logement.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           6. Destinataires et communication des données personnelles à des tiers
-        </Title>
+        </Typography>
         <Text>
           Vos données personnelles ne sont utilisées que par l’équipe Zéro
           Logement Vacant, et ne font l&#x27;objet d&#x27;aucune communication
@@ -451,9 +456,9 @@ function LegalNoticesView() {
           dans les présentes CGU.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           7. Cookies
-        </Title>
+        </Typography>
         <Text bold>Finalité des cookies</Text>
         <Text>
           Vous êtes informé que l&#x27;Éditeur dépose des cookies sur votre
@@ -488,9 +493,9 @@ function LegalNoticesView() {
           réglage.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           8. Données techniques
-        </Title>
+        </Typography>
         <Text bold>Collecte des données techniques</Text>
         <Text>
           Afin d’assurer la sécurité informatique du Site et à des fins
@@ -504,9 +509,9 @@ function LegalNoticesView() {
           durée.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           9. Droits des utilisateurs
-        </Title>
+        </Typography>
         <Text>
           Nous nous engageons à prendre les mesures techniques et
           organisationnelles appropriées afin de garantir la sécurité du
@@ -575,9 +580,9 @@ function LegalNoticesView() {
           <AppLink to="mailto:zlv@betagouv.fr">zlv@beta.gouv.fr</AppLink>.
         </Text>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           10. Procédure en cas de violations de données à caractère personnel
-        </Title>
+        </Typography>
         <Text>
           Nous nous engageons à mettre en œuvre toutes les mesures techniques et
           organisationnelles appropriées afin de garantir un niveau de sécurité
@@ -614,9 +619,9 @@ function LegalNoticesView() {
           </li>
         </ul>
 
-        <Title as="h3" spacing="mt-4w">
+        <Typography component="h3" mt={4}>
           11. Stockage des données personnelles à l&#x27;étranger
-        </Title>
+        </Typography>
         <Text>
           Nous nous engageons à ne pas stocker les données personnelles de nos
           Utilisateurs en dehors de l’Union européenne, y compris pour nos

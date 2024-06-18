@@ -1,4 +1,4 @@
-import { Col, Container, Icon, Row, Text, Title } from '../_dsfr';
+import { Col, Container, Icon, Row, Text } from '../_dsfr';
 
 import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './contact-point-public-page.module.scss';
@@ -6,6 +6,7 @@ import { useClipboard } from '../../hooks/useClipboard';
 import homepage_thumbnail from '../../assets/images/homepage_thumbnail.png';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppLink from '../_app/AppLink/AppLink';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   establishment: Establishment;
@@ -29,7 +30,9 @@ function ContactPointPublicPage({ establishment }: Props) {
           <img src={homepage_thumbnail} alt="" />
         </Col>
         <Col n="9" spacing="pl-4w">
-          <Title as="h5">Page publique de {establishment.name}</Title>
+          <Typography component="h5">
+            Page publique de {establishment.name}
+          </Typography>
           <Text>
             Cette page publique sert à communiquer auprès des propriétaires les
             informations relatives à la lutte contre la vacance sur votre

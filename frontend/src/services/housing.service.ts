@@ -17,6 +17,7 @@ export interface FindOptions
   filters: HousingFilters;
 }
 
+// TODO: add input type
 export function parseHousing(h: any): Housing {
   return {
     ...h,

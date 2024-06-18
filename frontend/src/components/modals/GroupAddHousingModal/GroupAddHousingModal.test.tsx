@@ -5,9 +5,9 @@ import userEvent from '@testing-library/user-event';
 import GroupAddHousingModal from './GroupAddHousingModal';
 import {
   applicationMiddlewares,
-  applicationReducer,
+  applicationReducer
 } from '../../../store/store';
-import { genAuthUser, genGroup } from '../../../../test/fixtures.test';
+import { genAuthUser } from '../../../../test/fixtures.test';
 import { Provider } from 'react-redux';
 
 describe('GroupHousingModal', () => {
@@ -16,16 +16,15 @@ describe('GroupHousingModal', () => {
   let store: Store;
 
   beforeEach(() => {
-    fetchMock.resetMocks();
     store = configureStore({
       reducer: applicationReducer,
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-          serializableCheck: false,
+          serializableCheck: false
         }).concat(applicationMiddlewares),
       preloadedState: {
-        authentication: { authUser: genAuthUser() },
-      },
+        authentication: { authUser: genAuthUser() }
+      }
     });
   });
 
@@ -33,14 +32,6 @@ describe('GroupHousingModal', () => {
   const onGroupCreate = jest.fn();
 
   it('should render', async () => {
-    fetchMock.mockIf(
-      (request) => request.url.endsWith('/api/groups'),
-      async () => ({
-        status: 200,
-        body: JSON.stringify(new Array(3).fill('0').map(genGroup)),
-      })
-    );
-
     render(
       <Provider store={store}>
         <GroupAddHousingModal

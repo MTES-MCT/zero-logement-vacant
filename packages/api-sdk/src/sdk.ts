@@ -43,7 +43,6 @@ export function createSDK(opts: Options): SDK {
     connection:
       opts.db?.url ?? 'postgres://postgres:postgres@localhost:5432/zlv',
   });
-  console.log('EXECUTE FFS');
   const http = axios.create({
     baseURL: opts.api.host,
     headers: {

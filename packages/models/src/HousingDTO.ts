@@ -3,6 +3,7 @@ import { OwnershipKind } from './OwnershipKind';
 import { HousingStatus } from './HousingStatus';
 import { EnergyConsumption } from './EnergyConsumption';
 import { Occupancy } from './Occupancy';
+import { HousingKind } from './HousingKind';
 
 // TODO: complete this type
 export interface HousingDTO {
@@ -16,7 +17,7 @@ export interface HousingDTO {
   cadastralClassification?: number;
   uncomfortable: boolean;
   vacancyStartYear?: number;
-  housingKind: string;
+  housingKind: HousingKind;
   roomsCount: number;
   livingArea: number;
   cadastralReference?: string;

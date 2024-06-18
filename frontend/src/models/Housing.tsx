@@ -5,7 +5,7 @@ import {
   HousingDTO,
   HousingStatus,
   Occupancy,
-  OwnershipKind,
+  OwnershipKind
 } from '@zerologementvacant/models';
 import { Owner, toOwnerDTO } from './Owner';
 import { HousingStatus as DeprecatedHousingStatus } from './HousingState';
@@ -102,7 +102,7 @@ export const getBuildingLocation = (housing: Housing) => {
             : level.replace(/^0+/g, '') + 'ème étage',
       local:
         'Local ' +
-        housing.buildingLocation.substr(5 + idx, 5).replace(/^0+/g, ''),
+        housing.buildingLocation.substr(5 + idx, 5).replace(/^0+/g, '')
     } as BuildingLocation;
   }
 };
@@ -141,13 +141,13 @@ export const hasGeoPerimeters = (housing: Housing) =>
 export enum OwnershipKinds {
   Single = 'single',
   CoOwnership = 'co',
-  Other = 'other',
+  Other = 'other'
 }
 
 export const OwnershipKindLabels = {
   [OwnershipKinds.Single]: 'Monopropriété',
   [OwnershipKinds.CoOwnership]: 'Copropriété',
-  [OwnershipKinds.Other]: 'Autre',
+  [OwnershipKinds.Other]: 'Autre'
 };
 
 export type HousingSortable = Pick<
@@ -170,7 +170,7 @@ export interface HousingWithCoordinates extends Housing {
   latitude: number;
 }
 export function hasCoordinates(
-  housing: Housing,
+  housing: Housing
 ): housing is HousingWithCoordinates {
   return (
     !!housing.longitude &&
@@ -186,7 +186,7 @@ export const lastUpdate = (housing: Housing): string =>
   housing.lastContact
     ? `${format(housing.lastContact, 'dd/MM/yyyy')} (${differenceInDays(
         new Date(),
-        housing.lastContact,
+        housing.lastContact
       )} jours)`
     : 'Aucune mise à jour';
 
@@ -199,7 +199,7 @@ export enum OccupancyKind {
   CommercialOrOffice = 'T',
   Dependency = 'N',
   DemolishedOrDivided = 'D',
-  Others = 'A',
+  Others = 'A'
 }
 
 export const OccupancyUnknown = 'inconnu';
@@ -216,16 +216,16 @@ export const OccupancyKindLabels = {
   [OccupancyKind.Dependency]: 'Dépendance',
   [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
   [OccupancyKind.Others]: 'Autres',
-  [OccupancyUnknown]: 'Pas d’information',
+  [OccupancyUnknown]: 'Pas d’information'
 };
 
 export const OccupancyKindBadgeLabels = {
   ...OccupancyKindLabels,
-  [OccupancyKind.Others]: 'Occupation : Autres',
+  [OccupancyKind.Others]: 'Occupation : Autres'
 };
 
 export const getOccupancy = (
-  occupancy?: OccupancyKind | OccupancyKindUnknown,
+  occupancy?: OccupancyKind | OccupancyKindUnknown
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
@@ -233,7 +233,7 @@ export function getSource(housing: Housing): string {
   const map: Record<HousingSource, string> = {
     lovac: `LOVAC ${year}`,
     'datafoncier-manual': `Fichiers Fonciers - import manuel (${year})`,
-    'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`,
+    'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`
   };
   return housing.source ? map[housing.source] : 'Inconnue';
 }
@@ -270,6 +270,6 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     occupancy: housing.occupancy as unknown as Occupancy,
     occupancyIntended: housing.occupancyIntended as unknown as Occupancy,
     source: housing.source,
-    owner: toOwnerDTO(housing.owner),
+    owner: toOwnerDTO(housing.owner)
   };
 }

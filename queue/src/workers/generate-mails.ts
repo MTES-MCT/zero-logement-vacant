@@ -136,9 +136,9 @@ export default function createWorker() {
                 writtenFrom: draft.writtenFrom,
                 owner: {
                   fullName: owners[0].fullName,
-                  address: address,
-                },
-              }),
+                  address: address
+                }
+              })
             );
           });
 
@@ -152,12 +152,29 @@ export default function createWorker() {
 
           const archive = archiver('zip');
           const buffer: ArrayBuffer = await api.campaign.exportCampaign(
-            campaign.id,
+            campaign.id
           );
           archive.append(Buffer.from(buffer), {
-            name: `${name}-destinataires.xlsx`,
+            name: `${name}-destinataires.xlsx`
           });
           archive.append(finalPDF, { name: `${name}.pdf` });
+
+          archive.on('warning', (error) => {
+            if (error.code === 'ENOENT') {
+              logger.warn(error.message, { error });
+            } else {
+              throw error;
+            }
+          });
+
+          archive.on('error', (error) => {
+            logger.error('Archiver error', { error });
+            throw error;
+          });
+
+          logger.debug('Generated archive', {
+            file: `${name}.zip`
+          });
           const upload = new Upload({
             client: s3,
             params: {
@@ -169,15 +186,27 @@ export default function createWorker() {
               ACL: 'authenticated-read'
             }
           });
-          const results = await Promise.all([
-            archive.finalize(),
-            upload.done()
-          ]);
-          const objectKey = results[1].Key;
+
+          upload.on('httpUploadProgress', (progress) => {
+            if (progress.loaded && progress.total) {
+              logger.debug('Upload in progress...', {
+                key: progress.Key,
+                bucket: progress.Bucket,
+                loaded: progress.loaded,
+                total: progress.total,
+                percent: `${(progress.loaded / progress.total) * 100} %`
+              });
+            }
+          });
+
+          await archive.finalize();
+          const { Key } = await upload.done();
+
+          logger.info('Uploaded file to S3');
 
           const command = new GetObjectCommand({
             Bucket: config.s3.bucket,
-            Key: objectKey
+            Key: Key
           });
 
           const signedUrl = await getSignedUrl(s3, command, {

@@ -1,11 +1,13 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Typography from '@mui/material/Typography';
 import { useRef } from 'react';
-import { Container, Title } from '../_dsfr';
+
+import { Container } from '../_dsfr';
 import { HousingUpdate } from '../../models/Housing';
 import { displayCount } from '../../utils/stringUtils';
 import Aside from '../Aside/Aside';
 import HousingEditionForm from './HousingEditionForm';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import Button from '@codegouvfr/react-dsfr/Button';
 
 interface Props {
   housingCount: number;
@@ -18,7 +20,7 @@ const HousingListEditionSideMenu = ({
   housingCount,
   open,
   onSubmit,
-  onClose,
+  onClose
 }: Props) => {
   const statusFormRef = useRef<{
     submit: () => void;
@@ -30,9 +32,9 @@ const HousingListEditionSideMenu = ({
       onClose={onClose}
       title={
         <Container as="header" className="d-flex" fluid>
-          <Title as="h6" className="d-inline-block" spacing="mb-0 pt-1w">
+          <Typography component="h6" className="d-inline-block" mb={0} pt={1}>
             {displayCount(housingCount, 'logement sélectionné')}
-          </Title>
+          </Typography>
           <div className="align-right">
             <Button
               priority="tertiary no outline"

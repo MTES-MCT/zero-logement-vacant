@@ -1,7 +1,7 @@
-import { Title } from '../_dsfr';
 import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './establisment-link-list.module.scss';
 import { Link } from 'react-router-dom';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   establishments: Establishment[];
@@ -12,9 +12,9 @@ interface Props {
 const EstablishmentLinkList = ({ establishments, title, address }: Props) => {
   return (
     <section className="fr-mt-6w">
-      <Title as="h2" look="h4" spacing="mb-0">
+      <Typography component="h2" variant="h4" mb={0}>
         {title}
-      </Title>
+      </Typography>
       <div>
         {establishments.map((establishment) => (
           <Link

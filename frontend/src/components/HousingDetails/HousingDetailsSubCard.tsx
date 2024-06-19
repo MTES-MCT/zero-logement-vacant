@@ -1,8 +1,9 @@
-import { Title } from '../_dsfr';
+import Card from '@codegouvfr/react-dsfr/Card';
+import Typography from '@mui/material/Typography';
+
 import { ReactElement } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
-import Card from '@codegouvfr/react-dsfr/Card';
 
 interface Props {
   title: string | ReactElement;
@@ -17,19 +18,19 @@ function HousingDetailsSubCard({ title, isGrey, hasBorder, children }: Props) {
       border={!!hasBorder}
       size="small"
       className={classNames(styles.subCard, 'app-card-xs', {
-        'bg-975': isGrey,
+        'bg-975': isGrey
       })}
       title={
         <>
           {typeof title === 'string' ? (
-            <Title
-              as="h2"
-              look="h6"
-              spacing="mb-1w"
+            <Typography
+              component="h2"
+              variant="h6"
+              mb={1}
               className={classNames(styles.title, styles.titleInline)}
             >
               {title}
-            </Title>
+            </Typography>
           ) : (
             title
           )}

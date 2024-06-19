@@ -1,4 +1,4 @@
-import { Container, Row, Text, Title } from '../../../components/_dsfr';
+import { Container, Row, Text } from '../../../components/_dsfr';
 import { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import * as yup from 'yup';
@@ -12,8 +12,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../../models/TrackEvent';
+import Typography from '@mui/material/Typography';
 
 function AccountEmailCreationView() {
   const [email, setEmail] = useState('');
@@ -31,20 +32,22 @@ function AccountEmailCreationView() {
       await sendActivationEmail(email);
       trackEvent({
         category: TrackEventCategories.AccountCreation,
-        action: TrackEventActions.AccountCreation.SendEmail,
+        action: TrackEventActions.AccountCreation.SendEmail
       });
       return router.push({
         pathname: '/inscription/activation',
         state: {
-          email,
-        },
+          email
+        }
       });
     });
   }
 
   return (
     <form onSubmit={submit}>
-      <Title as="h2">Créer votre compte</Title>
+      <Typography variant="h2" mb={3}>
+        Créer votre compte
+      </Typography>
       <Text size="lead">
         Pour créer votre compte sur Zéro Logement Vacant, vous devez
         impérativement avoir déjà signé l’acte d’engagement permettant d’accéder

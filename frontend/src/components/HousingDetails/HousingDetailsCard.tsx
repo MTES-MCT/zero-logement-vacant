@@ -5,7 +5,7 @@ import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import classNames from 'classnames';
 import { useState } from 'react';
 
-import { Col, Row, Title } from '../_dsfr';
+import { Col, Row } from '../_dsfr';
 import styles from './housing-details-card.module.scss';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
@@ -25,9 +25,10 @@ import { useUpdateHousingMutation } from '../../services/housing.service';
 import AppLink from '../_app/AppLink/AppLink';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { useUser } from '../../hooks/useUser';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   housing: Housing;
@@ -40,7 +41,7 @@ function HousingDetailsCard({
   housing,
   housingEvents,
   housingNotes,
-  housingCampaigns,
+  housingCampaigns
 }: Props) {
   const { isVisitor } = useUser();
   const { trackEvent } = useMatomo();
@@ -50,23 +51,23 @@ function HousingDetailsCard({
     useState(false);
 
   const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
-    housing.id,
+    housing.id
   );
   const { refetch: refetchHousingNotes } = useFindNotesByHousingQuery(
-    housing.id,
+    housing.id
   );
 
   const submitHousingUpdate = async (
     housing: Housing,
-    housingUpdate: HousingUpdate,
+    housingUpdate: HousingUpdate
   ) => {
     trackEvent({
       category: TrackEventCategories.Housing,
-      action: TrackEventActions.Housing.Update,
+      action: TrackEventActions.Housing.Update
     });
     await updateHousing({
       housing,
-      housingUpdate,
+      housingUpdate
     });
     await refetchHousingEvents();
     await refetchHousingNotes();
@@ -80,20 +81,22 @@ function HousingDetailsCard({
       size="small"
       title={
         <>
-          { !isVisitor && <Button
-            onClick={() => setIsHousingListEditionExpand(true)}
-            className="fr-ml-1w float-right"
-          >
-            Mettre à jour / Ajouter une note
-          </Button> }
+          {!isVisitor && (
+            <Button
+              onClick={() => setIsHousingListEditionExpand(true)}
+              className="fr-ml-1w float-right"
+            >
+              Mettre à jour / Ajouter une note
+            </Button>
+          )}
           <HousingEditionSideMenu
             housing={housing}
             expand={isHousingListEditionExpand}
             onSubmit={submitHousingUpdate}
             onClose={() => setIsHousingListEditionExpand(false)}
           />
-          { !isVisitor && (
-            <Title as="h1" look="h4" spacing="mb-1w">
+          {!isVisitor && (
+            <Typography component="h1" variant="h4" mb={1}>
               {housing.rawAddress.join(' - ')}
               <AppLink
                 title="Voir sur la carte - nouvelle fenêtre"
@@ -104,12 +107,12 @@ function HousingDetailsCard({
                   styles.link,
                   'fr-link',
                   'fr-ml-3w',
-                  'float-right',
+                  'float-right'
                 )}
               >
                 Voir sur la carte
               </AppLink>
-            </Title>
+            </Typography>
           )}
         </>
       }
@@ -123,7 +126,7 @@ function HousingDetailsCard({
                 event.kind === 'Update' &&
                 event.section === 'Situation' &&
                 event.name === "Modification du statut d'occupation" &&
-                event.old.occupancy !== event.new.occupancy,
+                event.old.occupancy !== event.new.occupancy
             )}
           />
           <HousingDetailsCardMobilisation
@@ -147,14 +150,14 @@ function HousingDetailsCard({
                       </Col>
                     </Row>
                   </div>
-                ),
+                )
               },
               {
                 label: 'Historique de suivi',
                 content: (
                   <EventsHistory events={housingEvents} notes={housingNotes} />
-                ),
-              },
+                )
+              }
             ]}
           ></Tabs>
         </>

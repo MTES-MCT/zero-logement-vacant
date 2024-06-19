@@ -1,9 +1,10 @@
-import { Container, Title } from '../_dsfr';
+import { Container } from '../_dsfr';
 import { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import classNames from 'classnames';
 import styles from './aside.module.scss';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Typography from '@mui/material/Typography';
 
 export interface AsideProps {
   title: ReactNode;
@@ -20,15 +21,15 @@ function Aside(props: AsideProps) {
   const component = (
     <aside
       className={classNames(styles.aside, {
-        [styles.collapsed]: !expand,
+        [styles.collapsed]: !expand
       })}
     >
       <article className={classNames(styles.article, props.className)}>
         {props.title && typeof props.title === 'string' ? (
           <Container as="header" className="d-flex" fluid>
-            <Title as="h6" className="d-inline-block" spacing="mb-0 pt-1w">
+            <Typography variant="h6" className="d-inline-block" mb={0} pt={1}>
               {props.title}
-            </Title>
+            </Typography>
 
             <Button
               priority="tertiary no outline"

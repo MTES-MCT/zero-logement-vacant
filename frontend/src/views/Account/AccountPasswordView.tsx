@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Col, Container, Row, Title } from '../../components/_dsfr';
+import { Col, Container, Row } from '../../components/_dsfr';
 
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,
-  useForm,
+  useForm
 } from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import AccountSideMenu from './AccountSideMenu';
@@ -15,6 +15,7 @@ import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
+import Typography from '@mui/material/Typography';
 
 const AccountPasswordView = () => {
   useDocumentTitle('Votre mot de passe');
@@ -23,7 +24,7 @@ const AccountPasswordView = () => {
 
   const [
     updateUserPassword,
-    { isSuccess: isUpdateSuccess, error: updateError },
+    { isSuccess: isUpdateSuccess, error: updateError }
   ] = useUpdatePasswordMutation();
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -38,7 +39,7 @@ const AccountPasswordView = () => {
       .string()
       .required('Veuillez renseigner votre nouveau mot de passe.'),
     passwordFormat: passwordFormatValidator,
-    passwordConfirmation: passwordConfirmationValidator,
+    passwordConfirmation: passwordConfirmationValidator
   };
   type FormShape = typeof shape;
 
@@ -48,9 +49,9 @@ const AccountPasswordView = () => {
       currentPassword,
       password,
       passwordFormat: password,
-      passwordConfirmation,
+      passwordConfirmation
     },
-    ['passwordFormat'],
+    ['passwordFormat']
   );
 
   const submit = async () => {
@@ -72,9 +73,9 @@ const AccountPasswordView = () => {
               size="small"
               className="fr-px-3w fr-py-2w"
               title={
-                <Title as="h1" look="h4" spacing="mb-0">
+                <Typography component="h1" variant="h4" mb={0}>
                   Réinitialisation de votre mot de passe
-                </Title>
+                </Typography>
               }
               desc={
                 <>

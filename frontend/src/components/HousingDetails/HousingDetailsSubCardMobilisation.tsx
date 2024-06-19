@@ -1,4 +1,7 @@
-import { Col, Row, Text, Title } from '../_dsfr';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import Typography from '@mui/material/Typography';
+
+import { Col, Row, Text } from '../_dsfr';
 import { Housing, lastUpdate } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
@@ -8,7 +11,6 @@ import { Campaign } from '../../models/Campaign';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { OptionTreeSeparator } from '../../models/HousingFilters';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 
 interface Props {
   housing: Housing;
@@ -21,21 +23,21 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
   }
 
   const campaignInProgress = campaigns.filter(
-    (campaign) => campaign?.status !== 'archived',
+    (campaign) => campaign?.status !== 'archived'
   );
 
   return (
     <HousingDetailsSubCard
       title={
         <>
-          <Title
-            as="h2"
-            look="h6"
-            spacing="mb-1w"
+          <Typography
+            component="h2"
+            variant="h6"
+            mb={1}
             className={classNames(styles.title, 'd-inline-block')}
           >
             Mobilisation :
-          </Title>
+          </Typography>
           <div className="fr-ml-1w d-inline-block">
             <HousingStatusBadge status={housing.status} inline />
             <HousingSubStatusBadge

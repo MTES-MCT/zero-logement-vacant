@@ -34,6 +34,10 @@ fileignoreconfig:
   checksum: 6d16b338e7203dc37f64b3e00e4da0365dc35461e5c776853b55243509e3d9b9
 - filename: frontend/src/hooks/useSort.tsx
   checksum: ab84c274637d24aa7f18456c2bb32f39802d5e3afe700a052ece484a1eec46a6
+- filename: frontend/src/views/Account/AccountPasswordView.tsx
+  checksum: 0376180bebb491936522b58a6b371356c9f5ee28eb24cbdf6b2fe5029c8e4474
+- filename: frontend/src/views/Account/ResetPasswordView.tsx
+  checksum: 262081940e8203058817da7fe4b7c302cd0296afeebf6938a5b805528506226a
 - filename: frontend/src/views/Campaign/CampaignListView.tsx
   checksum: a9dcff1f35295ed617ba50e44cc95c57c63130e80a43e9303c20f160c3b3165d
 - filename: frontend/src/views/Login/LoginView.test.tsx
@@ -72,6 +76,8 @@ fileignoreconfig:
   checksum: ab0dcf6bbf41a911aef0755c619c92d18bd04dc651c6ecaf8b1c53ffd5a82309
 - filename: server/services/mailService/brevoService.ts
   checksum: ce84d57e61bfdf4168938e114113005b0961659ea299a3871415ade48ba7b310
+- filename: server/src/controllers/draftController.ts
+  checksum: a169cc6b556976ede5f7ec4933d94cb4dd7d60bf702765443d75cd6736570def
 - filename: server/src/index.ts
   checksum: 88aec4113a92083b1401a101a673a2cf4457345c258bb8572dccbc713d22a94c
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql

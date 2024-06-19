@@ -3,7 +3,8 @@ import styles from './resources.module.scss';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Tile from '@codegouvfr/react-dsfr/Tile';
 import classNames from 'classnames';
-import { Col, Container, Icon, Row, Text, Title } from '../../components/_dsfr';
+import { Col, Container, Icon, Row, Text } from '../../components/_dsfr';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   title: string;
@@ -20,7 +21,7 @@ const ResourceTile = ({
   linkHrefTarget = '_blank',
   children,
   icon,
-  iconStyle,
+  iconStyle
 }: Props) => {
   return (
     <Tile
@@ -38,7 +39,7 @@ const ResourceTile = ({
       }
       linkProps={{
         to: linkHref,
-        target: linkHrefTarget,
+        target: linkHrefTarget
       }}
     />
   );
@@ -112,9 +113,9 @@ const ResourcesView = () => {
         </Row>
       </Container>
       <Container as="article" spacing="py-4w px-0">
-        <Title as="h2" look="h5">
+        <Typography component="h2" variant="h5" mb={3}>
           Trois étapes clés pour prendre en main ZLV
-        </Title>
+        </Typography>
         <Row gutters>
           <Col n="4">
             <ResourceTile

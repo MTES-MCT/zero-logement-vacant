@@ -1,15 +1,16 @@
-import { Container, Text, Title } from '../../../components/_dsfr';
+import { Container, Text } from '../../../components/_dsfr';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import { fr } from '@codegouvfr/react-dsfr';
 import classNames from 'classnames';
 import AppLink from '../../../components/_app/AppLink/AppLink';
+import Typography from '@mui/material/Typography';
 
 function AccountAccessForbiddenView() {
   return (
     <>
-      <Title as="h2">
+      <Typography variant="h2" mb={3}>
         Ce mail n’est pas autorisé à accéder à Zéro Logement Vacant.
-      </Title>
+      </Typography>
       <Text className="color-grey-50">
         Seuls les utilisateurs autorisés à accéder aux données LOVAC peuvent
         créer un compte Zéro Logement Vacant. Vous êtes sans doute dans l’un des

@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
+import { Col, Container, Row, Text } from '../../components/_dsfr';
 import { login } from '../../store/actions/authenticationAction';
 
 import * as yup from 'yup';
@@ -16,9 +16,10 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
+import Typography from '@mui/material/Typography';
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
@@ -31,7 +32,7 @@ const LoginView = () => {
   const [establishmentId, setEstablishmentId] = useState<string>('');
 
   const { loginError, isLoggedOut } = useAppSelector(
-    (state) => state.authentication,
+    (state) => state.authentication
   );
 
   const shape = {
@@ -40,8 +41,8 @@ const LoginView = () => {
     password: yup.string().required('Veuillez renseigner un mot de passe.'),
     establishmentId: yup.string().when('isAdmin', {
       is: true,
-      then: yup.string().min(1, 'Veuillez sélectionner un établissement.'),
-    }),
+      then: yup.string().min(1, 'Veuillez sélectionner un établissement.')
+    })
   };
   type FormShape = typeof shape;
 
@@ -49,7 +50,7 @@ const LoginView = () => {
     isAdmin: pathname === '/admin',
     email,
     password,
-    establishmentId,
+    establishmentId
   });
 
   async function submitLoginForm(e: FormEvent<HTMLFormElement>): Promise<void> {
@@ -57,14 +58,14 @@ const LoginView = () => {
     await form.validate(() => {
       trackEvent({
         category: TrackEventCategories.Home,
-        action: TrackEventActions.Home.Connection,
+        action: TrackEventActions.Home.Connection
       });
       dispatch(
         login(
           email,
           password,
-          establishmentId.length ? establishmentId : undefined,
-        ),
+          establishmentId.length ? establishmentId : undefined
+        )
       );
     });
   }
@@ -97,9 +98,9 @@ const LoginView = () => {
               </div>
             </Col>
           )}
-          <Title as="h1" look="h2">
+          <Typography component="h1" variant="h2" mb={3}>
             Connexion
-          </Title>
+          </Typography>
           <form onSubmit={submitLoginForm} id="login_form">
             <AppTextInput<FormShape>
               type="email"

@@ -12,6 +12,12 @@ on:
         - server/**
         - shared/**
         - packages/**
+    paths:
+        - frontend/**
+        - queue/**
+        - server/**
+        - shared/**
+        - packages/**
 env:
   CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
   CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
@@ -34,7 +40,7 @@ jobs:
         run: clever addon create redis-addon $PR_NAME-redis --org $ORGA_ID --plan s_mono --region par
 
   deploy-api:
-    if: (github.event.action == 'opened' || github.event.action == 'reopened')
+    if: github.event.action == 'opened' || github.event.action == 'reopened'
     needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:

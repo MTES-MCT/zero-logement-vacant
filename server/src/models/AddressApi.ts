@@ -10,13 +10,15 @@ export interface AddressToNormalize {
   geoCode?: string;
 }
 
-export const formatAddressApi = (addressApi?: AddressApi) => {
+export const formatAddressApi = (
+  addressApi?: AddressApi | null | undefined
+) => {
   if (addressApi) {
     return reduceStringArray([
       addressApi.street?.startsWith(addressApi.houseNumber ?? '')
         ? addressApi.street
         : [addressApi.houseNumber, addressApi.street].join(' '),
-      [addressApi.postalCode, addressApi.city].join(' '),
+      [addressApi.postalCode, addressApi.city].join(' ')
     ]);
   }
 };

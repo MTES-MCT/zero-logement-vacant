@@ -14,7 +14,7 @@ import banAddressesRepository from '~/repositories/banAddressesRepository';
 import { capitalize, reduceStringArray } from '~/utils/stringUtils';
 import highland from 'highland';
 import { CampaignApi } from '~/models/CampaignApi';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
 import excelUtils from '~/utils/excelUtils';
 import exceljs from 'exceljs';
 import groupRepository from '~/repositories/groupRepository';
@@ -24,13 +24,11 @@ import CampaignMissingError from '~/errors/campaignMissingError';
 import { OwnerApi } from '~/models/OwnerApi';
 import ownerRepository from '~/repositories/ownerRepository';
 import { AddressKinds } from '@zerologementvacant/shared';
+import fp from 'lodash/fp';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 
-interface HousingWithAddresses extends HousingApi {
-  housingAddress?: AddressApi;
-  ownerAddress?: AddressApi;
-}
+const logger = createLogger('housingExportController');
 
 export type OwnerExportStreamApi = OwnerApi & { housingList: HousingApi[] };
 
@@ -54,6 +52,7 @@ const exportCampaign = async (request: Request, response: Response) => {
     throw new CampaignMissingError(params.id);
   }
 
+  logger.debug('Found campaign', { campaign: campaign.title });
   const fileName = `${campaign.title}.xlsx`;
   const workbook = excelUtils.initWorkbook(fileName, response);
   const housingStream = housingRepository.stream({
@@ -77,7 +76,8 @@ const exportCampaign = async (request: Request, response: Response) => {
     .merge()
     .done(async () => {
       await workbook.commit();
-      logger.info('Exported campaign', { campaign: campaign.id });
+      logger.info('Workbook committed');
+      logger.info('Campaign exported', { campaign: campaign.id });
     });
 };
 
@@ -126,7 +126,7 @@ const exportGroup = async (request: Request, response: Response) => {
   ])
     .merge()
     .done(async () => {
-      workbook.commit();
+      await workbook.commit();
       await groupRepository.save({
         ...group,
         exportedAt: group.exportedAt ?? new Date()
@@ -139,152 +139,139 @@ const exportGroupValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID')
 ];
 
-const writeHousingWorksheet = (
+function writeHousingWorksheet(
   stream: Stream<HousingApi>,
-  campaignList: CampaignApi[],
+  campaigns: CampaignApi[],
   workbook: WorkbookWriter
-) => {
+): Stream<void> {
   const housingWorksheet = addHousingtWorksheet(workbook);
 
   return stream
-    .flatMap((housingApi) => {
-      assertOwner(housingApi);
-      return highland(
+    .flatMap((housing) => {
+      assertOwner(housing);
+      return highland<void>(
         Promise.all([
+          banAddressesRepository.getByRefId(housing.id, AddressKinds.Housing),
           banAddressesRepository.getByRefId(
-            housingApi.id,
-            AddressKinds.Housing
-          ),
-          banAddressesRepository.getByRefId(
-            housingApi.owner.id,
+            housing.owner.id,
             AddressKinds.Owner
           )
-        ]).then(
-          ([housingAddress, ownerAddress]): HousingWithAddresses => ({
-            ...housingApi,
-            housingAddress: housingAddress ?? undefined,
-            ownerAddress: ownerAddress ?? undefined
-          })
-        )
+        ]).then(([housingAddress, ownerAddress]) => {
+          const building = getBuildingLocation(housing);
+
+          logger.debug('Writing housing row...', {
+            housing: fp.pick(['id', 'geoCode', 'localId'], housing)
+          });
+          const row = {
+            invariant: housing.invariant,
+            cadastralReference: housing.cadastralReference,
+            geoCode: housing.geoCode,
+            housingRawAddress: reduceStringArray(housing.rawAddress),
+            housingAddress: reduceAddressApi(housingAddress),
+            housingAddressScore: housingAddress?.score,
+            latitude: housing.latitude,
+            longitude: housing.longitude,
+            buildingLocation: building
+              ? [
+                  building.building,
+                  building.entrance,
+                  building.level,
+                  building.local
+                ].join(', ')
+              : null,
+            housingKind:
+              housing.housingKind === 'APPART'
+                ? 'Appartement'
+                : capitalize(housing.housingKind),
+            energyConsumption: housing.energyConsumption,
+            energyConsumptionAt: housing.energyConsumptionAt,
+            livingArea: housing.livingArea,
+            roomsCount: housing.roomsCount,
+            buildingYear: housing.buildingYear,
+            occupancy: OccupancyKindApiLabels[housing.occupancy],
+            vacancyStartYear: housing.vacancyStartYear,
+            status: getHousingStatusApiLabel(housing.status),
+            subStatus: housing.subStatus,
+            vacancyReasons: reduceStringArray(housing.vacancyReasons),
+            precisions: reduceStringArray(housing.precisions),
+            campaigns: reduceStringArray(
+              housing.campaignIds.map(
+                (campaignId) =>
+                  campaigns.find((c) => c.id === campaignId)?.title
+              )
+            ),
+            contactCount: housing.contactCount,
+            lastContact: housing.lastContact,
+            ...ownerRowData(housing.owner, ownerAddress)
+          };
+
+          housingWorksheet.addRow(row).commit();
+          logger.info('Wrote housing row', {
+            housing: fp.pick(['id', 'geoCode', 'localId'], housing)
+          });
+        })
       );
     })
-    .tap((housingWithAddresses) => {
-      assertOwner(housingWithAddresses);
-
-      const housingAddress = housingWithAddresses.housingAddress ?? undefined;
-      const building = getBuildingLocation(housingWithAddresses);
-
-      const row = {
-        invariant: housingWithAddresses.invariant,
-        cadastralReference: housingWithAddresses.cadastralReference,
-        geoCode: housingWithAddresses.geoCode,
-        housingRawAddress: reduceStringArray(housingWithAddresses.rawAddress),
-        housingAddress: reduceAddressApi(housingAddress),
-        housingAddressScore: housingAddress?.score,
-        latitude: housingWithAddresses.latitude,
-        longitude: housingWithAddresses.longitude,
-        buildingLocation: building
-          ? [
-              building.building,
-              building.entrance,
-              building.level,
-              building.local
-            ].join(', ')
-          : null,
-        housingKind:
-          housingWithAddresses.housingKind === 'APPART'
-            ? 'Appartement'
-            : capitalize(housingWithAddresses.housingKind),
-        energyConsumption: housingWithAddresses.energyConsumption,
-        energyConsumptionAt: housingWithAddresses.energyConsumptionAt,
-        livingArea: housingWithAddresses.livingArea,
-        roomsCount: housingWithAddresses.roomsCount,
-        buildingYear: housingWithAddresses.buildingYear,
-        occupancy: OccupancyKindApiLabels[housingWithAddresses.occupancy],
-        vacancyStartYear: housingWithAddresses.vacancyStartYear,
-        status: getHousingStatusApiLabel(housingWithAddresses.status),
-        subStatus: housingWithAddresses.subStatus,
-        vacancyReasons: reduceStringArray(housingWithAddresses.vacancyReasons),
-        precisions: reduceStringArray(housingWithAddresses.precisions),
-        campaigns: reduceStringArray(
-          housingWithAddresses.campaignIds.map(
-            (campaignId) => campaignList.find((c) => c.id === campaignId)?.title
-          )
-        ),
-        contactCount: housingWithAddresses.contactCount,
-        lastContact: housingWithAddresses.lastContact,
-        ...ownerRowData(
-          housingWithAddresses.owner,
-          housingWithAddresses.ownerAddress
-        )
-      };
-      housingWorksheet.addRow(row).commit();
-    })
-    .collect()
-    .tap(() => {
+    .on('end', () => {
       housingWorksheet.commit();
-    })
-    .map(() => {
-      logger.debug('Housing worksheet written');
+      logger.info('Wrote housing worksheet');
     });
-};
-const writeOwnerWorksheet = (
+}
+function writeOwnerWorksheet(
   stream: Stream<OwnerExportStreamApi>,
   workbook: WorkbookWriter
-) => {
+): Stream<void> {
   return stream
-    .flatMap((ownerStreamApi) => {
+    .flatMap((owner) => {
       return highland(
         Promise.all([
-          banAddressesRepository.getByRefId(
-            ownerStreamApi.id,
-            AddressKinds.Owner
-          ),
-          ...ownerStreamApi.housingList.map((housingApi) =>
+          banAddressesRepository.getByRefId(owner.id, AddressKinds.Owner),
+          ...owner.housingList.map((housingApi) =>
             banAddressesRepository
               .getByRefId(housingApi.id, AddressKinds.Housing)
               .then((housingAddress) => ({ housingApi, housingAddress }))
           )
-        ]).then(([ownerAddress, ...housingList]) => ({
-          ownerStreamApi,
-          housingList,
-          ownerAddress
-        }))
-      );
-    })
-    .tap(({ ownerStreamApi, housingList, ownerAddress }) => {
-      if (!workbook.getWorksheet('Propriétaires')) {
-        addOwnerWorksheet(
-          workbook,
-          housingList.map(({ housingApi }) => housingApi)
-        );
-      }
+        ]).then(([ownerAddress, ...housings]) => {
+          if (!workbook.getWorksheet('Propriétaires')) {
+            addOwnerWorksheet(
+              workbook,
+              housings.map(({ housingApi }) => housingApi)
+            );
+          }
 
-      const ownerWorksheet = workbook.getWorksheet('Propriétaires');
-      const row = housingList.reduce(
-        (prev, { housingApi, housingAddress }, index) => ({
-          ...prev,
-          [`housingRawAddress${index + 1}`]: reduceStringArray(
-            housingApi.rawAddress
-          ),
-          [`housingAddress${index + 1}`]: reduceAddressApi(
-            housingAddress ?? undefined
-          )
-        }),
-        ownerRowData(ownerStreamApi, ownerAddress ?? undefined)
+          const ownerWorksheet = workbook.getWorksheet('Propriétaires');
+          logger.debug('Writing owner row...', {
+            owner: fp.pick(['id', 'fullName'], owner)
+          });
+          const row = housings.reduce(
+            (prev, { housingApi, housingAddress }, index) => ({
+              ...prev,
+              [`housingRawAddress${index + 1}`]: reduceStringArray(
+                housingApi.rawAddress
+              ),
+              [`housingAddress${index + 1}`]: reduceAddressApi(
+                housingAddress ?? undefined
+              )
+            }),
+            ownerRowData(owner, ownerAddress ?? undefined)
+          );
+          ownerWorksheet?.addRow(row).commit();
+          logger.info('Wrote owner row', {
+            owner: fp.pick(['id', 'fullName'], owner)
+          });
+        })
       );
-      ownerWorksheet?.addRow(row).commit();
     })
-    .collect()
-    .tap(() => {
-      workbook?.getWorksheet?.('Propriétaires')?.commit();
-    })
-    .map(() => {
-      logger.debug('Owner worksheet written');
+    .on('end', () => {
+      workbook.getWorksheet('Propriétaires')?.commit();
+      logger.info('Owner worksheet written');
     });
-};
+}
 
-const ownerRowData = (owner: OwnerApi, ownerAddress?: AddressApi) => {
+function ownerRowData(
+  owner: OwnerApi,
+  ownerAddress?: AddressApi | null | undefined
+) {
   const rawAddress = owner.rawAddress;
   return {
     owner: owner.fullName,
@@ -300,7 +287,7 @@ const ownerRowData = (owner: OwnerApi, ownerAddress?: AddressApi) => {
     ownerAddressCity: ownerAddress?.city,
     ownerAddressScore: ownerAddress?.score
   };
-};
+}
 
 const ownerWorksheetColumns = [
   { header: 'Propriétaire', key: 'owner' },
@@ -400,7 +387,7 @@ const addHousingtWorksheet = (workbook: WorkbookWriter) => {
   return housingWorksheet;
 };
 
-const reduceAddressApi = (addressApi?: AddressApi) => {
+const reduceAddressApi = (addressApi?: AddressApi | null | undefined) => {
   return addressApi
     ? [
         addressApi.houseNumber,

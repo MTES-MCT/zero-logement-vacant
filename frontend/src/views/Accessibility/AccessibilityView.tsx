@@ -1,11 +1,14 @@
-import { Container, Title } from '../../components/_dsfr';
+import { Container } from '../../components/_dsfr';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import Typography from '@mui/material/Typography';
 
 const AccessibilityView = () => {
   useDocumentTitle('Accessibilité');
   return (
     <Container as="section" spacing="py-4w mb-4w">
-      <Title as="h1">Déclaration d’accessibilité</Title>
+      <Typography variant="h1" mb={3}>
+        Déclaration d’accessibilité
+      </Typography>
       <p>
         Établie le <span>27 juin 2022</span>.
       </p>
@@ -22,7 +25,9 @@ const AccessibilityView = () => {
         </span>
         .
       </p>
-      <Title as="h2">État de conformité</Title>
+      <Typography variant="h2" mb={3}>
+        État de conformité
+      </Typography>
       <p>
         <strong>Zéro Logement Vacant</strong> est{' '}
         <strong>
@@ -35,7 +40,9 @@ const AccessibilityView = () => {
         </abbr>
         .<span>Le site n’a encore pas été audité.</span>
       </p>
-      <Title as="h2">Contenus de l’application Zéro Logement Vacant</Title>
+      <Typography variant="h2" mb={3}>
+        Contenus de l’application Zéro Logement Vacant
+      </Typography>
       <p>
         Zéro Logement Vacant n’a pas encore été audité. Nous ne pouvons donc pas
         garantir le respect des normes d’accessibilité sur notre outil. Nous
@@ -46,7 +53,9 @@ const AccessibilityView = () => {
         nécessaires à la réalisation de votre tâche de lutte contre la vacance
         sur votre territoire.
       </p>
-      <Title as="h2">Amélioration et contact</Title>
+      <Typography variant="h2" mb={3}>
+        Amélioration et contact
+      </Typography>
       <p>
         Si vous n’arrivez pas à accéder à un contenu ou à un service, vous
         pouvez contacter le responsable de
@@ -62,7 +71,9 @@ const AccessibilityView = () => {
           </a>
         </li>
       </ul>
-      <Title as="h2">Voie de recours</Title>
+      <Typography variant="h2" mb={3}>
+        Voie de recours
+      </Typography>
       <p>
         Cette procédure est à utiliser dans le cas suivant&nbsp;: vous avez
         signalé au responsable du site internet un défaut d’accessibilité qui

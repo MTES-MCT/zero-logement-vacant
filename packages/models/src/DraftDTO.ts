@@ -1,3 +1,4 @@
+import { FileUploadDTO } from './FileUploadDTO';
 import { SenderDTO, SenderPayloadDTO } from './SenderDTO';
 
 export interface DraftDTO {
@@ -15,18 +16,20 @@ export interface DraftDTO {
 export interface DraftCreationPayloadDTO
   extends Pick<
     DraftDTO,
-    'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
+    'subject' | 'body' | 'writtenAt' | 'writtenFrom'
   > {
   campaign: string;
   sender: SenderPayloadDTO | null;
+  logo: FileUploadDTO[]
 }
 
 export interface DraftUpdatePayloadDTO
   extends Pick<
     DraftDTO,
-    'id' | 'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
+    'id' | 'subject' | 'body' | 'writtenAt' | 'writtenFrom'
   > {
   sender: SenderPayloadDTO;
+  logo: FileUploadDTO[]
 }
 
 export interface DraftFiltersDTO {

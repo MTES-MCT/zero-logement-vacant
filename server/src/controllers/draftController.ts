@@ -11,9 +11,11 @@ import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
+  FileUploadDTO,
+  SenderDTO,
   replaceVariables,
 } from '@zerologementvacant/models';
-import { createS3, toBase64 } from '@zerologementvacant/utils';
+import { createS3, toBase64, getContent, getBase64Content } from '@zerologementvacant/utils';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
 import campaignDraftRepository from '~/repositories/campaignDraftRepository';
@@ -35,20 +37,106 @@ async function list(request: Request, response: Response) {
 
   const filters: DraftFilters = {
     ...(fp.pick(['campaign'], query) as DraftQuery),
-    establishment: auth.establishmentId,
+    establishment: auth.establishmentId
   };
 
   const drafts: DraftApi[] = await draftRepository.find({
-    filters,
+    filters
   });
-  response.status(constants.HTTP_STATUS_OK).json(drafts.map(toDraftDTO));
+
+  // Download logos from S3
+  const s3 = createS3({
+    endpoint: config.s3.endpoint,
+    region: config.s3.region,
+    accessKeyId: config.s3.accessKeyId,
+    secretAccessKey: config.s3.secretAccessKey,
+  });
+
+  interface EnrichedSenderDTO extends Omit<SenderDTO, 'signatoryFile'> {
+    signatoryFile: FileUploadDTO | null;
+  }
+
+  interface EnrichedDraftDTO extends Omit<DraftDTO, 'logo' | 'sender'> {
+    logo: FileUploadDTO[] | null;
+    sender: EnrichedSenderDTO;
+  }
+
+  function toEnrichedDraftDTO(draft: DraftDTO): EnrichedDraftDTO {
+    return {
+      id: draft.id,
+      subject: draft.subject,
+      body: draft.body,
+      logo: null,
+      sender: {
+        id: draft.sender.id,
+        name: draft.sender.name,
+        service: draft.sender.service,
+        firstName: draft.sender.firstName,
+        lastName: draft.sender.lastName,
+        address: draft.sender.address,
+        email: draft.sender.email,
+        phone: draft.sender.phone,
+        signatoryLastName: draft.sender.signatoryLastName,
+        signatoryFirstName: draft.sender.signatoryFirstName,
+        signatoryRole: draft.sender.signatoryRole,
+        signatoryFile: null,
+        createdAt: draft.sender.createdAt,
+        updatedAt: draft.sender.updatedAt,
+      },
+      writtenAt: draft.writtenAt,
+      writtenFrom: draft.writtenFrom,
+      createdAt: draft.createdAt,
+      updatedAt: draft.createdAt,
+    };
+  }
+
+  const originalDrafts = await drafts.map(toDraftDTO);
+  const enrichedDrafts = await Promise.all(originalDrafts.map(async (draft) => {
+    const enrichedDraft = toEnrichedDraftDTO(draft);
+    const logos = draft.logo ? await Promise.all(draft.logo.map(async (logo) => {
+      try {
+        const { response, content } = await getContent(logo, { s3, bucket: config.s3.bucket });
+        return {
+          id: logo,
+          type: response.ContentType,
+          url: logo,
+          content: toBase64(content, response.ContentType),
+        } as FileUploadDTO;
+      } catch(e) {
+        logger.error(`Failed to get content from S3 bucket: ${config.s3.bucket}, logo: ${logo}`);
+        return null;
+      }
+    })) : null;
+    enrichedDraft.logo = logos?.filter(logo => logo !== null) as FileUploadDTO[];
+
+    if(draft.sender.signatoryFile !== null) {
+      try {
+        const { response, content } = await getContent(draft.sender.signatoryFile, { s3, bucket: config.s3.bucket });
+        const signatoryFile = {
+          id: draft.sender.signatoryFile,
+          type: response.ContentType,
+          url: draft.sender.signatoryFile,
+          content: toBase64(content, response.ContentType),
+        } as FileUploadDTO;
+        enrichedDraft.sender.signatoryFile = signatoryFile;
+      } catch(e) {
+        logger.error(`Failed to get content from S3 bucket: ${config.s3.bucket}, logo: ${draft.sender.signatoryFile}`);
+      }
+    }
+
+    return enrichedDraft;
+  })) as unknown as EnrichedDraftDTO;
+
+  response.status(constants.HTTP_STATUS_OK).json(enrichedDrafts);
 }
 
 const partialDraftValidators: ValidationChain[] = [
   body('body').optional({ nullable: true }).isString(),
   body('sender').optional({ nullable: true }).isObject(),
   body('logo').optional({ nullable: true }).isArray({ min: 0, max: 2 }),
-  body('logo.*').isString(),
+  body('logo.*.*').optional().isString(),
+  body('sender.signatoryFile').optional({ nullable: true }).isObject(),
+  body('sender.signatoryFile.*').optional().isString(),
 ];
 const senderValidators: ValidationChain[] = [
   ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
@@ -56,7 +144,7 @@ const senderValidators: ValidationChain[] = [
       .optional({ nullable: true })
       .isString()
       .withMessage(`${prop} must be a string`)
-      .trim(),
+      .trim()
   ),
   ...[
     'email',
@@ -64,14 +152,13 @@ const senderValidators: ValidationChain[] = [
     'signatoryLastName',
     'signatoryFirstName',
     'signatoryRole',
-    'signatoryFile',
   ].map((prop) =>
     body(`sender.${prop}`)
       .optional({ nullable: true })
       .isString()
       .withMessage(`${prop} must be a string`)
-      .trim(),
-  ),
+      .trim()
+  )
 ];
 
 async function create(request: Request, response: Response) {
@@ -80,7 +167,7 @@ async function create(request: Request, response: Response) {
 
   const campaign = await campaignRepository.findOne({
     id: body.campaign,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   });
   if (!campaign) {
     throw new CampaignMissingError(body.campaign);
@@ -101,20 +188,20 @@ async function create(request: Request, response: Response) {
     signatoryFile: body.sender?.signatoryFile ?? null,
     establishmentId: auth.establishmentId,
     createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
   };
   const draft: DraftApi = {
     id: uuidv4(),
     subject: body.subject,
     body: body.body,
-    logo: body.logo,
+    logo: body.logo ? body.logo.map((logo: FileUploadDTO) => logo.id) as string[] : null,
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,
     writtenFrom: body.writtenFrom,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   };
   await senderRepository.save(sender);
   await draftRepository.save(draft);
@@ -146,7 +233,7 @@ const createValidators: ValidationChain[] = [
     .isObject()
     .withMessage('Sender must be an object'),
   ...partialDraftValidators,
-  ...senderValidators,
+  ...senderValidators
 ];
 
 async function preview(request: Request, response: Response) {
@@ -154,7 +241,7 @@ async function preview(request: Request, response: Response) {
 
   const draft = await draftRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   });
   if (!draft) {
     throw new DraftMissingError(params.id);
@@ -165,16 +252,16 @@ async function preview(request: Request, response: Response) {
     endpoint: config.s3.endpoint,
     region: config.s3.region,
     accessKeyId: config.s3.accessKeyId,
-    secretAccessKey: config.s3.secretAccessKey,
+    secretAccessKey: config.s3.secretAccessKey
   });
   const logos = await async.map(draft.logo ?? [], async (logo: string) =>
-    toBase64(logo, { s3, bucket: config.s3.bucket }),
+    getBase64Content(logo, { s3, bucket: config.s3.bucket }),
   );
 
   const signature = draft.sender.signatoryFile
-    ? await toBase64(draft.sender.signatoryFile, {
+    ? await getBase64Content(draft.sender.signatoryFile.id, {
         s3,
-        bucket: config.s3.bucket,
+        bucket: config.s3.bucket
       })
     : null;
   const html = await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
@@ -184,7 +271,7 @@ async function preview(request: Request, response: Response) {
     body: draft.body
       ? replaceVariables(draft.body, {
           housing: body.housing,
-          owner: body.owner,
+          owner: body.owner
         })
       : '',
     sender: {
@@ -197,15 +284,15 @@ async function preview(request: Request, response: Response) {
       signatoryLastName: draft.sender.signatoryLastName ?? '',
       signatoryFirstName: draft.sender.signatoryFirstName ?? '',
       signatoryRole: draft.sender.signatoryRole ?? '',
-      signatoryFile: signature,
+      signatoryFile: signature
     },
     writtenAt: draft.writtenAt ?? '',
     writtenFrom: draft.writtenFrom ?? '',
     owner: {
       fullName: body.owner.fullName,
       address: body.owner.address,
-      additionalAddress: body.owner.additionalAddress,
-    },
+      additionalAddress: body.owner.additionalAddress
+    }
   });
   const finalPDF = await pdf.fromHTML([html]);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
@@ -228,7 +315,7 @@ const previewValidators: ValidationChain[] = [
   body('housing.buildingYear').isInt().notEmpty(),
   body('housing.energyConsumption')
     .optional({
-      nullable: true,
+      nullable: true
     })
     .isIn(['A', 'B', 'C', 'D', 'E', 'F', 'G']),
   body('owner').isObject().withMessage('owner must be an object'),
@@ -243,9 +330,9 @@ const previewValidators: ValidationChain[] = [
     .withMessage('address is required'),
   body('owner.additionalAddress')
     .optional({
-      nullable: true,
+      nullable: true
     })
-    .isString(),
+    .isString()
 ];
 
 async function update(request: Request, response: Response<DraftDTO>) {
@@ -254,7 +341,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
 
   const draft = await draftRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   });
   if (!draft) {
     throw new DraftMissingError(params.id);
@@ -272,21 +359,21 @@ async function update(request: Request, response: Response<DraftDTO>) {
     signatoryLastName: body.sender.signatoryLastName,
     signatoryFirstName: body.sender.signatoryFirstName,
     signatoryRole: body.sender.signatoryRole,
-    signatoryFile: body.sender.signatoryFile,
+    signatoryFile: body.sender.signatoryFile ? body.sender.signatoryFile : null,
     createdAt: draft.sender.createdAt,
     updatedAt: new Date().toJSON(),
-    establishmentId: draft.sender.establishmentId,
+    establishmentId: draft.sender.establishmentId
   };
   const updated: DraftApi = {
     ...draft,
     subject: body.subject,
     body: body.body,
-    logo: body.logo,
+    logo: body.logo?.map((logo: FileUploadDTO) => logo.id) as string[],
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,
     writtenFrom: body.writtenFrom,
-    updatedAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
   };
   await senderRepository.save(sender);
   await draftRepository.save(updated);
@@ -319,7 +406,7 @@ const updateValidators: ValidationChain[] = [
     .withMessage('writtenFrom is required'),
   body('sender').isObject().withMessage('Sender must be an object'),
   ...partialDraftValidators,
-  ...senderValidators,
+  ...senderValidators
 ];
 
 const draftController = {
@@ -329,7 +416,7 @@ const draftController = {
   preview,
   previewValidators,
   update,
-  updateValidators,
+  updateValidators
 };
 
 export default draftController;

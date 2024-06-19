@@ -1,4 +1,4 @@
-import { Container, Text, Title } from '../../components/_dsfr';
+import { Container, Text } from '../../components/_dsfr';
 import EstablishmentContactPoints from './EstablishmentContactPoints';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import EstablishmentLocalityTaxes from './EstablishmentLocalityTaxes';
@@ -6,11 +6,12 @@ import { useAppSelector } from '../../hooks/useStore';
 import ContactPointPublicPage from '../../components/ContactPoint/ContactPointPublicPage';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import Typography from '@mui/material/Typography';
 
 const EstablishmentView = () => {
   useDocumentTitle('Informations publiques');
   const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment,
+    (state) => state.authentication.authUser?.establishment
   );
 
   if (!establishment) {
@@ -35,7 +36,7 @@ const EstablishmentView = () => {
                 <EstablishmentContactPoints
                   establishmentId={establishment.id}
                 />
-              ),
+              )
             },
             {
               label: 'Taxes sur les logements vacants',
@@ -43,13 +44,15 @@ const EstablishmentView = () => {
                 <EstablishmentLocalityTaxes
                   establishmentId={establishment.id}
                 />
-              ),
-            },
+              )
+            }
           ]}
         ></Tabs>
       </Container>
       <Container as="article" spacing="px-0">
-        <Title as="h3">Votre page publique</Title>
+        <Typography variant="h3" mb={3}>
+          Votre page publique
+        </Typography>
         <ContactPointPublicPage establishment={establishment} />
       </Container>
     </MainContainer>

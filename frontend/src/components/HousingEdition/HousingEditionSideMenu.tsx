@@ -1,13 +1,14 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useRef } from 'react';
 
-import { Container, Text, Title } from '../_dsfr';
+import { Container, Text } from '../_dsfr';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import Aside from '../Aside/Aside';
 import HousingEditionForm from './HousingEditionForm';
 import styles from './housing-edition.module.scss';
 import AppLink from '../_app/AppLink/AppLink';
 import Label from '../Label/Label';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   housing?: Housing;
@@ -34,9 +35,9 @@ function HousingEditionSideMenu({ housing, expand, onSubmit, onClose }: Props) {
           housing && (
             <>
               <Container as="header" className="d-flex" fluid spacing="pb-0">
-                <Title as="h6" className="fr-mb-0 fr-pt-1w">
+                <Typography component="h6" className="fr-mb-0 fr-pt-1w">
                   {housing.rawAddress.join(' - ')}
-                </Title>
+                </Typography>
                 <Button
                   priority="tertiary no outline"
                   iconId="ri-close-line"

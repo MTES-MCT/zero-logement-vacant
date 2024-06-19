@@ -43,9 +43,23 @@ describe('Draft repository', () => {
     });
 
     it('should list drafts', async () => {
-      const actual = await draftRepository.find();
+      let actual = await draftRepository.find();
 
-      expect(actual).toIncludeAllMembers(drafts);
+      actual = actual.map(actual => {
+        if(actual !== null && actual.sender?.signatoryFile !== null) {
+          actual.sender.signatoryFile.url = '';
+        }
+        return actual;
+      });
+
+      const draftsToCheck = drafts.map(draft => {
+        if(draft !== null && draft.sender?.signatoryFile !== null) {
+          draft.sender.signatoryFile.url = '';
+        }
+        return draft;
+      });
+
+      expect(actual).toIncludeAllMembers(draftsToCheck);
     });
 
     it('should find drafts by campaign', async () => {
@@ -57,11 +71,23 @@ describe('Draft repository', () => {
         draft_id: firstDraft.id,
       });
 
-      const actual = await draftRepository.find({
+      let actual = await draftRepository.find({
         filters: {
           campaign: campaign.id,
         },
       });
+
+
+      actual = actual.map(actual => {
+        if(actual !== null && actual.sender?.signatoryFile !== null) {
+          actual.sender.signatoryFile.url = '';
+        }
+        return actual;
+      });
+
+      if(firstDraft?.sender.signatoryFile !== null) {
+        firstDraft.sender.signatoryFile.url = '';
+      }
 
       expect(actual).toBeArrayOfSize(1);
       expect(actual).toContainEqual(firstDraft);
@@ -100,6 +126,14 @@ describe('Draft repository', () => {
         id: draft.id,
         establishmentId: draft.establishmentId,
       });
+
+      if(actual !== null && actual?.sender.signatoryFile !== null) {
+        actual.sender.signatoryFile.url = '';
+      }
+
+      if(draft?.sender.signatoryFile !== null) {
+        draft.sender.signatoryFile.url = '';
+      }
 
       expect(actual).toStrictEqual<DraftApi>(draft);
     });

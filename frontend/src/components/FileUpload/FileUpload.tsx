@@ -10,6 +10,7 @@ const DEFAULT_TYPES = ['pdf', 'jpg', 'png'];
 const MAX_SIZE = 5; // Mo
 
 interface Props {
+  id: string,
   accept?: string[];
   hint?: string;
   label?: ReactNode;
@@ -48,6 +49,7 @@ function FileUpload(props: Readonly<Props>) {
 
   return (
     <Upload
+      id={props.id}
       label={props.label}
       multiple={false}
       hint={hint}

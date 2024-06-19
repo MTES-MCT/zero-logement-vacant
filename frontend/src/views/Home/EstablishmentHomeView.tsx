@@ -1,4 +1,4 @@
-import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
+import { Col, Container, Row, Text } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
 import hands_mail from '../../assets/images/hands-mail.svg';
 import new_message from '../../assets/images/new_message.svg';
@@ -20,10 +20,11 @@ import styles from './home.module.scss';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Typography from '@mui/material/Typography';
 
 const EstablishmentHomeView = () => {
   useDocumentTitle();
@@ -34,12 +35,12 @@ const EstablishmentHomeView = () => {
       <Container as="main" spacing="py-7w mb-4w">
         <Row gutters>
           <Col>
-            <Title as="h1" look="h4">
+            <Typography component="h1" variant="h4" mb={3}>
               Vous êtes une collectivité ?
-            </Title>
-            <Title as="h2" look="h1">
+            </Typography>
+            <Typography component="h2" variant="h1" mb={3}>
               Diminuez la vacance de logements sur votre territoire
-            </Title>
+            </Typography>
             <Text size="lead" className="fr-py-4w">
               Zéro Logement Vacant aide les collectivités à mobiliser les
               propriétaires de logements vacants et à mieux les accompagner dans
@@ -49,7 +50,7 @@ const EstablishmentHomeView = () => {
               onClick={() =>
                 trackEvent({
                   category: TrackEventCategories.Home,
-                  action: TrackEventActions.Home.Connection,
+                  action: TrackEventActions.Home.Connection
                 })
               }
             >
@@ -74,9 +75,9 @@ const EstablishmentHomeView = () => {
         <Container as="section" spacing="py-7w mb-4w">
           <Row>
             <Col>
-              <Title as="h2" look="h4">
+              <Typography component="h2" variant="h4" mb={3}>
                 Concrètement, comment ça fonctionne ?
-              </Title>
+              </Typography>
             </Col>
           </Row>
           <Row gutters>
@@ -113,12 +114,12 @@ const EstablishmentHomeView = () => {
               onClick={() => {
                 trackEvent({
                   category: TrackEventCategories.Home,
-                  action: TrackEventActions.Home.Webinar,
+                  action: TrackEventActions.Home.Webinar
                 });
                 window.open(
                   'https://calendly.com/julie_guittard/webinaire-de-presentation-zlv',
                   '_blank',
-                  'noopener',
+                  'noopener'
                 );
               }}
             >
@@ -130,9 +131,9 @@ const EstablishmentHomeView = () => {
       <Container as="section" spacing="py-7w mb-4w">
         <Row>
           <Col>
-            <Title as="h2" look="h4">
+            <Typography component="h2" variant="h4" mb={3}>
               Les avantages de Zéro Logement Vacant
-            </Title>
+            </Typography>
           </Col>
         </Row>
         <Row gutters>
@@ -140,9 +141,9 @@ const EstablishmentHomeView = () => {
             <div>
               <img src={statistic_chart} height="100%" alt="" />
             </div>
-            <Title as="h3" look="h6">
+            <Typography component="h3" variant="h6" mb={3}>
               Une vision globale de votre territoire
-            </Title>
+            </Typography>
             <Text size="lg">
               Accédez à la base de tous les logements vacants ainsi qu’à des
               statistiques agrégées sur votre activité
@@ -152,9 +153,9 @@ const EstablishmentHomeView = () => {
             <div>
               <img src={location_review} height="100%" alt="" />
             </div>
-            <Title as="h3" look="h6">
+            <Typography component="h3" variant="h6" mb={3}>
               Un historique du logement exhaustif
-            </Title>
+            </Typography>
             <Text size="lg">
               Ne perdez plus aucune information sur les logements, vos échanges
               avec les propriétaires
@@ -164,9 +165,9 @@ const EstablishmentHomeView = () => {
             <div>
               <img src={collaboration} height="100%" alt="" />
             </div>
-            <Title as="h3" look="h6">
+            <Typography component="h3" variant="h6" mb={3}>
               Un suivi centralisé des dossiers
-            </Title>
+            </Typography>
             <Text size="lg">
               Grâce au travail collaboratif et aux accès partenaires, suivez
               tous les dossiers au même endroit
@@ -176,9 +177,9 @@ const EstablishmentHomeView = () => {
             <div>
               <img src={real_time_collaboration} height="100%" alt="" />
             </div>
-            <Title as="h3" look="h6">
+            <Typography component="h3" variant="h6" mb={3}>
               Un accès à une large communauté de partage
-            </Title>
+            </Typography>
             <Text size="lg">
               Profitez de l’expérience de toute une communauté : bonnes
               pratiques, courriers envoyés...
@@ -190,9 +191,9 @@ const EstablishmentHomeView = () => {
         <Container as="section" spacing="py-7w mb-4w">
           <Row>
             <Col>
-              <Title as="h2" look="h4">
+              <Typography component="h2" variant="h4" mb={3}>
                 Ce que notre communauté en dit
-              </Title>
+              </Typography>
             </Col>
           </Row>
           <Row gutters>
@@ -322,12 +323,12 @@ const EstablishmentHomeView = () => {
               onClick={() => {
                 trackEvent({
                   category: TrackEventCategories.Home,
-                  action: TrackEventActions.Home.Newsletter,
+                  action: TrackEventActions.Home.Newsletter
                 });
                 window.open(
                   'https://890e031e.sibforms.com/serve/MUIEAOyQXgbbxeoLBFC_8fPLahr5i4-KkyF8EICd8AXv5i6NZwxkoUr19wL6NiGJmx7oxh3RxaIpLw4JA0ZDBsgjS1hABUiZm1m9hgKzFVCwmc6yxEO9yV3y2XlZ-esfbxBWPX7nKMTjfORZ7UQMNcM5bSK4gfnNYzC4hYTKBMItk6YhL0sCci7EVICIrpJw1Xli7zM1VGcry_0L',
                   '_blank',
-                  'noopener',
+                  'noopener'
                 );
               }}
             >

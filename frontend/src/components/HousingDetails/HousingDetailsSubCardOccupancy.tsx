@@ -1,10 +1,14 @@
-import { Col, Row, Text, Title } from '../_dsfr';
+import Badge from '@codegouvfr/react-dsfr/Badge';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import Typography from '@mui/material/Typography';
+
+import { Col, Row, Text } from '../_dsfr';
 import {
   getOccupancy,
   getSource,
   Housing,
   OccupancyKind,
-  OccupancyKindLabels,
+  OccupancyKindLabels
 } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import DPE from '../DPE/DPE';
@@ -12,8 +16,6 @@ import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { Event } from '../../models/Event';
 import { getYear } from 'date-fns';
-import Tag from '@codegouvfr/react-dsfr/Tag';
-import Badge from '@codegouvfr/react-dsfr/Badge';
 import Label from '../Label/Label';
 
 interface Props {
@@ -32,14 +34,14 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
     <HousingDetailsSubCard
       title={
         <>
-          <Title
-            as="h2"
-            look="h6"
-            spacing="mb-1w"
+          <Typography
+            component="h2"
+            variant="h6"
+            mb={1}
             className={classNames(styles.title, 'd-inline-block')}
           >
             Occupation :
-          </Title>
+          </Typography>
           <div className="fr-ml-1w d-inline-block">
             <Badge className="bg-975">
               {OccupancyKindLabels[getOccupancy(housing.occupancy)]}

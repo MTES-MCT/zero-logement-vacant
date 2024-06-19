@@ -134,8 +134,8 @@ const partialDraftValidators: ValidationChain[] = [
   body('body').optional({ nullable: true }).isString(),
   body('sender').optional({ nullable: true }).isObject(),
   body('logo').optional({ nullable: true }).isArray({ min: 0, max: 2 }),
-  body('logo.*').isString()
-  body('sender.signatoryFile.*').isString()
+  body('logo.*').isString(),
+  body('sender.signatoryFile.*').isString(),
 ];
 const senderValidators: ValidationChain[] = [
   ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>

@@ -154,6 +154,7 @@ export default function createWorker() {
           const buffer: ArrayBuffer = await api.campaign.exportCampaign(
             campaign.id
           );
+          logger.debug('Campaign exported');
           archive.append(Buffer.from(buffer), {
             name: `${name}-destinataires.xlsx`
           });

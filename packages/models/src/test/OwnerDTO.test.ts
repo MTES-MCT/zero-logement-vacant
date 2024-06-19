@@ -27,6 +27,7 @@ describe('OwnerDTO', () => {
       const address = faker.location.streetAddress(true);
       const owner: OwnerDTO = {
         ...genOwnerDTO(),
+        additionalAddress: undefined,
         banAddress: undefined,
         rawAddress: [address]
       };

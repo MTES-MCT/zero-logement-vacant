@@ -120,7 +120,7 @@ function Footer() {
       partnersLogos={{
         sub: [
           {
-            alt: 'Logo de l'Agence nationale de l’habitat',
+            alt: 'Logo de l\'Agence nationale de l’habitat',
             imgUrl: anah,
             linkProps: {
               to: 'https://www.anah.gouv.fr/',

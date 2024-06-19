@@ -1,9 +1,10 @@
-import { Text, Title } from '../../../components/_dsfr';
+import { Text } from '../../../components/_dsfr';
 import { Redirect, useHistory } from 'react-router-dom';
 import { useMemo } from 'react';
 import classNames from 'classnames';
 import styles from '../forgotten-password-view.module.scss';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
+import Typography from '@mui/material/Typography';
 
 interface State {
   email?: string;
@@ -27,14 +28,14 @@ function AccountEmailActivationView() {
   }
 
   const confirmationClasses = classNames(`fr-${status}-text`, {
-    [styles.hidden]: hidden,
+    [styles.hidden]: hidden
   });
 
   return (
     <>
-      <Title as="h2" look="h4">
+      <Typography component="h2" variant="h4" mb={3}>
         Vous devez confirmer votre adresse mail.
-      </Title>
+      </Typography>
       <Text>
         Pour cela rendez vous sur votre boite mail, vous avez dû recevoir 
         <b>un mail de vérification</b> pour vérifier votre identité.
@@ -49,7 +50,7 @@ function AccountEmailActivationView() {
           className={classNames(
             'fr-link',
             styles.buttonLink,
-            styles.buttonLinkSm,
+            styles.buttonLinkSm
           )}
         >
           renvoyer le mail

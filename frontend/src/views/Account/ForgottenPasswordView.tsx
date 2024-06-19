@@ -1,4 +1,4 @@
-import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
+import { Col, Container, Row, Text } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
 import { useState } from 'react';
 import * as yup from 'yup';
@@ -12,6 +12,7 @@ import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppLinkAsButton from '../../components/_app/AppLinkAsButton/AppLinkAsButton';
+import Typography from '@mui/material/Typography';
 
 function ForgottenPasswordView() {
   useDocumentTitle('Mot de passe oublié');
@@ -19,12 +20,12 @@ function ForgottenPasswordView() {
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
   const shape = {
-    email: emailValidator,
+    email: emailValidator
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
-    email,
+    email
   });
   const { hidden, setHidden } = useHide();
 
@@ -43,7 +44,7 @@ function ForgottenPasswordView() {
 
   function EmailSent() {
     const confirmationClasses = classNames('fr-valid-text', {
-      [styles.hidden]: hidden,
+      [styles.hidden]: hidden
     });
 
     return (
@@ -77,9 +78,9 @@ function ForgottenPasswordView() {
               severity="error"
             />
           )}
-          <Title as="h1" look="h4">
+          <Typography component="h1" variant="h4" mb={3}>
             Réinitialisation de votre mot de passe
-          </Title>
+          </Typography>
           {emailSent ? (
             <EmailSent />
           ) : (

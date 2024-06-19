@@ -1,5 +1,6 @@
-import { Container, Title } from '../_dsfr';
+import { Container } from '../_dsfr';
 import { ReactNode } from 'react';
+import Typography from '@mui/material/Typography';
 
 export interface Props {
   title?: ReactNode | ReactNode[];
@@ -17,9 +18,9 @@ function MainContainer(props: Props) {
     >
       <Container as="section">
         {props.title && (
-          <Title as="h1" look="h3">
+          <Typography component="h1" variant="h3" mb={3}>
             {props.title}
-          </Title>
+          </Typography>
         )}
         {props.children}
       </Container>

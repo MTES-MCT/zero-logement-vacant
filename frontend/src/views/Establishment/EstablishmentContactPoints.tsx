@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Col, Row, Title } from '../../components/_dsfr';
+import { Col, Row } from '../../components/_dsfr';
 import { ContactPoint, DraftContactPoint } from '@zerologementvacant/models';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import ContactPointEditionModal from '../../components/modals/ContactPointEditionModal/ContactPointEditionModal';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import ContactPointCard from '../../components/ContactPoint/ContactPointCard';
 import AppHelp from '../../components/_app/AppHelp/AppHelp';
@@ -15,10 +15,11 @@ import {
   useCreateContactPointMutation,
   useFindContactPointsQuery,
   useRemoveContactPointMutation,
-  useUpdateContactPointMutation,
+  useUpdateContactPointMutation
 } from '../../services/contact-point.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   establishmentId: string;
@@ -29,7 +30,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
 
   const { data: contactPoints } = useFindContactPointsQuery({
     establishmentId,
-    publicOnly: false,
+    publicOnly: false
   });
 
   const [
@@ -37,16 +38,16 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
     {
       isSuccess: isUpdateSuccess,
       originalArgs: updateArgs,
-      isError: isUpdateError,
-    },
+      isError: isUpdateError
+    }
   ] = useUpdateContactPointMutation();
   const [
     createContactPoint,
-    { isSuccess: isCreateSuccess, isError: isCreateError },
+    { isSuccess: isCreateSuccess, isError: isCreateError }
   ] = useCreateContactPointMutation();
   const [
     deleteContactPoint,
-    { isSuccess: isDeleteSuccess, isError: isDeleteError },
+    { isSuccess: isDeleteSuccess, isError: isDeleteError }
   ] = useRemoveContactPointMutation();
 
   const { settings, togglePublishContactPoints } = useSettings(establishmentId);
@@ -66,18 +67,18 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
       query
         ? contactPoints?.filter((cp) => cp.title.search(query) !== -1)
         : contactPoints,
-    [query, contactPoints],
+    [query, contactPoints]
   );
 
   const onSubmitEditingContactPoint = async (
-    contactPoint: DraftContactPoint | ContactPoint,
+    contactPoint: DraftContactPoint | ContactPoint
   ) => {
     const isDraft = !('id' in contactPoint);
     trackEvent({
       category: TrackEventCategories.ContactPoints,
       action: isDraft
         ? TrackEventActions.ContactPoints.Create
-        : TrackEventActions.ContactPoints.Update,
+        : TrackEventActions.ContactPoints.Update
     });
     if (isDraft) {
       await createContactPoint(contactPoint);
@@ -89,7 +90,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
   const onSubmitRemovingContactPoint = async (contactPointId: string) => {
     trackEvent({
       category: TrackEventCategories.ContactPoints,
-      action: TrackEventActions.ContactPoints.Delete,
+      action: TrackEventActions.ContactPoints.Delete
     });
     await deleteContactPoint(contactPointId);
   };
@@ -98,9 +99,9 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
     <>
       <Row>
         <Col className="flex-left flex-align-center">
-          <Title look="h5" as="h2" spacing="mr-2w">
+          <Typography variant="h5" component="h2" mr={2}>
             Vos guichets contacts ({contactPoints?.length})
-          </Title>
+          </Typography>
           {settings && (
             <ToggleSwitch
               checked={settings.contactPoints?.public}

@@ -1,4 +1,4 @@
-import { Col, Icon, Row, Text, Title } from '../_dsfr';
+import { Col, Icon, Row, Text } from '../_dsfr';
 import { ContactPoint, DraftContactPoint } from '@zerologementvacant/models';
 import { mailto, pluralize } from '../../utils/stringUtils';
 import { useLocalityList } from '../../hooks/useLocalityList';
@@ -8,6 +8,7 @@ import Card from '@codegouvfr/react-dsfr/Card';
 import AppLink from '../_app/AppLink/AppLink';
 import ContactPointEditionModal from '../modals/ContactPointEditionModal/ContactPointEditionModal';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   contactPoint: ContactPoint;
@@ -71,9 +72,9 @@ function ContactPointCard({
               </Col>
             </Row>
           )}
-          <Title as="h2" look="h6" spacing="mb-1w">
+          <Typography component="h2" variant="h6" mb={1}>
             {contactPoint.title}
-          </Title>
+          </Typography>
         </>
       }
       desc={

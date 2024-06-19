@@ -1,12 +1,13 @@
-import { Container, Text, Title } from '../../../components/_dsfr';
+import { Container, Text } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
+import Typography from '@mui/material/Typography';
 
 function AccountAwaitingAccessView() {
   return (
     <>
-      <Title as="h2">
+      <Typography variant="h2" mb={3}>
         Votre demande d’accès aux données LOVAC n’a pas encore été validée.
-      </Title>
+      </Typography>
       <Text>
         Vous avez déjà signé et transmis l’acte d’engagement permettant
         d’accéder aux données LOVAC via la plateforme Démarches Simplifiées.

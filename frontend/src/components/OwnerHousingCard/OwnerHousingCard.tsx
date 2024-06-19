@@ -1,10 +1,11 @@
-import { Icon, Text, Title } from '../_dsfr';
+import { Icon, Text } from '../_dsfr';
 
 import { getBuildingLocation, Housing } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import styles from './owner-housing-card.module.scss';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import Card from '@codegouvfr/react-dsfr/Card';
+import Typography from '@mui/material/Typography';
 
 interface OwnerHousingCardProps {
   housing: Housing;
@@ -17,7 +18,7 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
         buildingLocation.building,
         buildingLocation.entrance,
         buildingLocation.level,
-        buildingLocation.local,
+        buildingLocation.local
       ].join(', ')
     : undefined;
 
@@ -28,15 +29,15 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
       enlargeLink
       className="fr-card--no-icon"
       linkProps={{
-        to,
+        to
       }}
       size="small"
       title={
         <>
           {' '}
-          <Title as="h4" look="h6" spacing="mb-0">
+          <Typography component="h4" variant="h6" mb={0}>
             {capitalize(housing.rawAddress[0])}
-          </Title>
+          </Typography>
           {housing.status !== undefined && (
             <HousingStatusBadge status={housing.status} />
           )}

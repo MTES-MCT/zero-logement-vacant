@@ -1,10 +1,11 @@
-import { Col, Icon, Row, Text, Title } from '../_dsfr';
+import { Col, Icon, Row, Text } from '../_dsfr';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';
 import AppLink from '../_app/AppLink/AppLink';
 import Button from '@codegouvfr/react-dsfr/Button';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   geoPerimeter: GeoPerimeter;
@@ -52,9 +53,9 @@ function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
               </ConfirmationModal>
             </Col>
           </Row>
-          <Title as="h2" look="h6" spacing="mb-0">
+          <Typography component="h2" variant="h6" mb={0}>
             {geoPerimeter.name}
-          </Title>
+          </Typography>
         </>
       }
       desc={

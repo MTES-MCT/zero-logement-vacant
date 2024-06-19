@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
+import { Col, Container, Row, Text } from '../../components/_dsfr';
 
 import { useLocation, useParams } from 'react-router-dom';
 import OwnerProspectForm from './OwnerProspectForm';
@@ -26,12 +26,13 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 import { useEstablishment } from '../../hooks/useEstablishment';
 import { useCreateOwnerProspectMutation } from '../../services/owner-prospect.service';
+import Typography from '@mui/material/Typography';
 
 const OwnerEstablishmentHomeView = () => {
   const { pathname } = useLocation();
@@ -43,12 +44,12 @@ const OwnerEstablishmentHomeView = () => {
     useCreateOwnerProspectMutation();
 
   const { addressSearchResult } = useAppSelector(
-    (state) => state.ownerProspect,
+    (state) => state.ownerProspect
   );
 
   const isLocality = useMemo(
     () => pathname.startsWith('/communes'),
-    [pathname],
+    [pathname]
   );
 
   const { refName, geoCode } = useMemo(
@@ -58,9 +59,9 @@ const OwnerEstablishmentHomeView = () => {
         : establishmentRef,
       geoCode: isLocality
         ? establishmentRef.slice(establishmentRef.lastIndexOf('-') + 1)
-        : undefined,
+        : undefined
     }),
-    [establishmentRef, isLocality],
+    [establishmentRef, isLocality]
   );
 
   const { establishment, nearbyEstablishments, epciEstablishment } =
@@ -73,13 +74,13 @@ const OwnerEstablishmentHomeView = () => {
       establishmentId: (establishment?.available
         ? establishment?.id
         : epciEstablishment?.id)!,
-      publicOnly: true,
+      publicOnly: true
     },
     {
       skip: !(establishment?.available
         ? establishment?.id
-        : epciEstablishment?.id),
-    },
+        : epciEstablishment?.id)
+    }
   );
 
   useDocumentTitle(establishment?.name);
@@ -88,7 +89,7 @@ const OwnerEstablishmentHomeView = () => {
   const onCreateOwnerProspect = (ownerProspect: OwnerProspect) => {
     trackEvent({
       category: TrackEventCategories.OwnerProspect,
-      action: TrackEventActions.OwnerProspect.SubmitContact,
+      action: TrackEventActions.OwnerProspect.SubmitContact
     });
     createOwnerProspect(ownerProspect);
   };
@@ -99,13 +100,18 @@ const OwnerEstablishmentHomeView = () => {
         <Container as="section" spacing="py-7w" className="py-xs-3w">
           <Row gutters>
             <Col>
-              <Title as="h1" look="h2" className="color-bf525" spacing="mb-1w">
+              <Typography
+                component="h1"
+                variant="h2"
+                className="color-bf525"
+                spacing="mb-1w"
+              >
                 {establishment.shortName.toUpperCase()}
-              </Title>
-              <Title as="h2" look="h1">
+              </Typography>
+              <Typography component="h2" variant="h1" mb={3}>
                 Bienvenue sur le site d’information pour les propriétaires de
                 logements vacants
-              </Title>
+              </Typography>
               {establishment.available ? (
                 <Tag className="fr-mb-2w bg-bf925">
                   {isLocality ? 'Commune' : 'Collectivité'} engagée contre la
@@ -164,16 +170,16 @@ const OwnerEstablishmentHomeView = () => {
       )}
       {localities && localities.length > 0 && (
         <Container as="section" spacing="py-6w" className="py-xs-3w">
-          <Title as="h2" look="h3">
+          <Typography component="h2" variant="h3" mb={3}>
             Les taxes sur la vacance
-          </Title>
+          </Typography>
           {isLocality ? (
             <div className="bg-bf950 fr-p-3w">
               {localities[0].taxKind === TaxKinds.None ? (
                 <>
-                  <Title as="h3" look="h5" spacing="mb-1w">
+                  <Typography component="h3" variant="h5" mb={1}>
                     Votre logement vacant n’est pas soumis à une taxe.
-                  </Title>
+                  </Typography>
                   <Text spacing="mb-0">
                     La commune de {localities[0].name} n’applique pas de taxe
                     spécifique sur les logements vacants.
@@ -181,9 +187,9 @@ const OwnerEstablishmentHomeView = () => {
                 </>
               ) : (
                 <>
-                  <Title as="h3" look="h5" spacing="mb-1w">
+                  <Typography component="h3" variant="h5" mb={1}>
                     Votre logement vacant est soumis à une taxe.
-                  </Title>
+                  </Typography>
                   {localities[0].taxKind === TaxKinds.TLV && (
                     <>
                       <Text spacing="mb-1w">
@@ -235,17 +241,17 @@ const OwnerEstablishmentHomeView = () => {
         </Container>
       )}
       <Container as="section" spacing="py-6w" className="py-xs-3w">
-        <Title as="h2" look="h3">
+        <Typography component="h2" variant="h3" mb={3}>
           Pourquoi sortir de la vacance ?
-        </Title>
+        </Typography>
         <Row gutters>
           <Col className={classNames(styles.cardCol, 'fr-col-12 fr-col-sm-4')}>
             <div>
               <img src={handsGrip} alt="" />
             </div>
-            <Title as="h4" look="h6" spacing="my-1w">
+            <Typography component="h4" variant="h6" spacing="my-1w">
               Ne plus être assujetti à la taxe
-            </Title>
+            </Typography>
             <Text>
               En remettant votre logement sur le marché, par la réoccupation, la
               location ou la vente, vous ne serez plus soumis à la taxation sur
@@ -257,9 +263,9 @@ const OwnerEstablishmentHomeView = () => {
             <div>
               <img src={handsShow} style={{ maxWidth: '100%' }} alt="" />
             </div>
-            <Title as="h4" look="h6" spacing="my-1w">
+            <Typography component="h4" variant="h6" spacing="my-1w">
               Protéger votre patrimoine
-            </Title>
+            </Typography>
             <Text>
               L’inoccupation à long terme accroit les risques de dégradations et
               de squats. Louer ou vendre vous protégera de ces dommages tout en
@@ -271,9 +277,9 @@ const OwnerEstablishmentHomeView = () => {
             <div>
               <img src={handsPinch} alt="" />
             </div>
-            <Title as="h4" look="h6" spacing="my-1w">
+            <Typography component="h4" variant="h6" spacing="my-1w">
               Contribuez à réduire la crise du logement
-            </Title>
+            </Typography>
             <Text>
               En mettant votre bien en location ou en le vendant pour qu’il soit
               réoccupé, vous aiderez les personnes en quête d’un logement. Vous
@@ -285,9 +291,9 @@ const OwnerEstablishmentHomeView = () => {
       </Container>
       {contactPoints && contactPoints.length > 0 && (
         <Container as="section" spacing="py-6w" className="py-xs-3w">
-          <Title as="h2" look="h3">
+          <Typography component="h2" variant="h3" mb={3}>
             Les guichets contacts
-          </Title>
+          </Typography>
           <Row gutters>
             {contactPoints?.map((contactPoint) => (
               <Col className="fr-col-12 fr-col-sm-4" key={contactPoint.id}>
@@ -309,15 +315,15 @@ const OwnerEstablishmentHomeView = () => {
                   className={classNames(
                     styles.ownerFormContainer,
                     'fr-col-12',
-                    'fr-col-sm-7',
+                    'fr-col-sm-7'
                   )}
                 >
                   <Text className="color-bf525" spacing="mb-1w">
                     PROPRIÉTAIRE DE LOGEMENT VACANT
                   </Text>
-                  <Title as="h2" look="h2" spacing="mb-1w">
+                  <Typography component="h2" variant="h2" mb={1}>
                     Vous souhaitez sortir votre logement de la vacance ?
-                  </Title>
+                  </Typography>
                   <Text size="md" className="subtitle">
                     Votre collectivité peut vous aider. Laissez vos coordonnées
                     pour être recontacté par votre collectivité.
@@ -339,9 +345,9 @@ const OwnerEstablishmentHomeView = () => {
             <Col
               className={classNames(styles.ownerFormContainer, 'h-fit-content')}
             >
-              <Title as="h2" look="h2" spacing="mb-1w">
+              <Typography component="h2" variant="h2" mb={1}>
                 Votre logement n’est pas vacant ?
-              </Title>
+              </Typography>
               <Text size="md" className="subtitle">
                 Rendez-vous sur le site Gérer mes biens immobiliers, le service
                 pour les usagers propriétaires.
@@ -349,7 +355,7 @@ const OwnerEstablishmentHomeView = () => {
               <Button
                 linkProps={{
                   to: 'https://www.impots.gouv.fr/actualite/gerer-mes-biens-immobiliers-un-nouveau-service-en-ligne-pour-les-usagers-proprietaires-1',
-                  target: '_blank',
+                  target: '_blank'
                 }}
               >
                 Se rendre sur le site de GMBI

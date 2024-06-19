@@ -758,7 +758,7 @@ export function genSenderApi(establishment: EstablishmentApi): SenderApi {
     address: faker.location.streetAddress({ useFullAddress: true }),
     email: faker.internet.email({ firstName, lastName }),
     phone: faker.phone.number(),
-    signatoryFile: { id: uuidv4(), type: 'image/jpeg', url: faker.image.urlPicsumPhotos(), content:'' },
+    signatoryFile: { id: uuidv4(), type: '', url: uuidv4(), content:'' },
     signatoryRole: faker.person.jobTitle(),
     signatoryFirstName: faker.person.firstName(),
     signatoryLastName: faker.person.lastName(),

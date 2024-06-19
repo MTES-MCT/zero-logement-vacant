@@ -46,10 +46,9 @@ function DraftSignature(props: Readonly<Props>) {
   }
 
   function deleteFile() {
-    console.log("delete");
     props.value.signatoryFile = null;
     props.onChange(props.value);
-    const elem = document.getElementById('fr-upload-:r2h:-input') as HTMLInputElement;
+    const elem = document.getElementById(`fileUploadSignature-input`) as HTMLInputElement;
     if(elem !== null) {
       elem.value = '';
     }
@@ -85,7 +84,7 @@ function DraftSignature(props: Readonly<Props>) {
         value={signatoryRole}
         onChange={onChange('signatoryRole')}
       />
-      <FileUpload onUpload={onFileUpload} />
+      <FileUpload id="fileUploadSignature" onUpload={onFileUpload} />
 
       <LogoViewer index={0} logo={props.value.signatoryFile as FileUploadDTO} onDelete={deleteFile} />
     </Container>

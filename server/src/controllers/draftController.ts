@@ -12,6 +12,7 @@ import {
   DraftDTO,
   DraftUpdatePayloadDTO,
   FileUploadDTO,
+  SenderDTO,
   replaceVariables,
 } from '@zerologementvacant/models';
 import { createS3, toBase64, getContent, getBase64Content } from '@zerologementvacant/utils';
@@ -51,13 +52,47 @@ async function list(request: Request, response: Response) {
     secretAccessKey: config.s3.secretAccessKey,
   });
 
-  interface EnrichedDraftDTO extends Omit<DraftDTO, 'logo'> {
-    logo: FileUploadDTO[] | null
+  interface EnrichedSenderDTO extends Omit<SenderDTO, 'signatoryFile'> {
+    signatoryFile: FileUploadDTO | null;
+  }
+
+  interface EnrichedDraftDTO extends Omit<DraftDTO, 'logo' | 'sender'> {
+    logo: FileUploadDTO[] | null;
+    sender: EnrichedSenderDTO;
+  }
+
+  function toEnrichedDraftDTO(draft: DraftDTO): EnrichedDraftDTO {
+    return {
+      id: draft.id,
+      subject: draft.subject,
+      body: draft.body,
+      logo: null,
+      sender: {
+        id: draft.sender.id,
+        name: draft.sender.name,
+        service: draft.sender.service,
+        firstName: draft.sender.firstName,
+        lastName: draft.sender.lastName,
+        address: draft.sender.address,
+        email: draft.sender.email,
+        phone: draft.sender.phone,
+        signatoryLastName: draft.sender.signatoryLastName,
+        signatoryFirstName: draft.sender.signatoryFirstName,
+        signatoryRole: draft.sender.signatoryRole,
+        signatoryFile: null,
+        createdAt: draft.sender.createdAt,
+        updatedAt: draft.sender.updatedAt,
+      },
+      writtenAt: draft.writtenAt,
+      writtenFrom: draft.writtenFrom,
+      createdAt: draft.createdAt,
+      updatedAt: draft.createdAt,
+    };
   }
 
   const originalDrafts = await drafts.map(toDraftDTO);
   const enrichedDrafts = await Promise.all(originalDrafts.map(async (draft) => {
-    const enrichedDraft = draft as EnrichedDraftDTO;
+    const enrichedDraft = toEnrichedDraftDTO(draft);
     const logos = draft.logo ? await Promise.all(draft.logo.map(async (logo) => {
       try {
         const { response, content } = await getContent(logo, { s3, bucket: config.s3.bucket });
@@ -72,8 +107,23 @@ async function list(request: Request, response: Response) {
         return null;
       }
     })) : null;
-
     enrichedDraft.logo = logos?.filter(logo => logo !== null) as FileUploadDTO[];
+
+    if(draft.sender.signatoryFile !== null) {
+      try {
+        const { response, content } = await getContent(draft.sender.signatoryFile, { s3, bucket: config.s3.bucket });
+        const signatoryFile = {
+          id: draft.sender.signatoryFile,
+          type: response.ContentType,
+          url: draft.sender.signatoryFile,
+          content: toBase64(content, response.ContentType),
+        } as FileUploadDTO;
+        enrichedDraft.sender.signatoryFile = signatoryFile;
+      } catch(e) {
+        logger.error(`Failed to get content from S3 bucket: ${config.s3.bucket}, logo: ${draft.sender.signatoryFile}`);
+      }
+    }
+
     return enrichedDraft;
   })) as unknown as EnrichedDraftDTO;
 
@@ -88,6 +138,11 @@ const partialDraftValidators: ValidationChain[] = [
   body('logo.*.type').optional().isString().withMessage('type must be a string'),
   body('logo.*.content').optional().isString().withMessage('content must be a string'),
   body('logo.*.url').optional().isString().withMessage('url must be a string'),
+  body('sender.signatoryFile').optional({ nullable: true }).isObject(),
+  body('sender.signatoryFile.id').optional().isString().withMessage('id must be a string'),
+  body('sender.signatoryFile.type').optional().isString().withMessage('type must be a string'),
+  body('sender.signatoryFile.content').optional().isString().withMessage('content must be a string'),
+  body('sender.signatoryFile.url').optional().isString().withMessage('url must be a string'),
 ];
 const senderValidators: ValidationChain[] = [
   ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
@@ -103,7 +158,6 @@ const senderValidators: ValidationChain[] = [
     'signatoryLastName',
     'signatoryFirstName',
     'signatoryRole',
-    'signatoryFile',
   ].map((prop) =>
     body(`sender.${prop}`)
       .optional({ nullable: true })
@@ -146,7 +200,7 @@ async function create(request: Request, response: Response) {
     id: uuidv4(),
     subject: body.subject,
     body: body.body,
-    logo: body.logo.map((logo: FileUploadDTO) => logo.id) as string[],
+    logo: body.logo ? body.logo.map((logo: FileUploadDTO) => logo.id) as string[] : null,
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,
@@ -211,7 +265,7 @@ async function preview(request: Request, response: Response) {
   );
 
   const signature = draft.sender.signatoryFile
-    ? await getBase64Content(draft.sender.signatoryFile, {
+    ? await getBase64Content(draft.sender.signatoryFile.id, {
         s3,
         bucket: config.s3.bucket,
       })
@@ -311,7 +365,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
     signatoryLastName: body.sender.signatoryLastName,
     signatoryFirstName: body.sender.signatoryFirstName,
     signatoryRole: body.sender.signatoryRole,
-    signatoryFile: body.sender.signatoryFile,
+    signatoryFile: body.sender.signatoryFile ? body.sender.signatoryFile : null,
     createdAt: draft.sender.createdAt,
     updatedAt: new Date().toJSON(),
     establishmentId: draft.sender.establishmentId,

@@ -30,7 +30,7 @@ function DraftSenderLogo(props: Readonly<Props>) {
       props.onChange(newFiles);
       const elemId = fileFieldId[index];
       if(elemId !== null) {
-        const elem = document.getElementById(elemId) as HTMLInputElement;
+        const elem = document.getElementById('fr-upload-:r2h:-input') as HTMLInputElement;
         if(elem !== null) {
           elem.value = '';
         }

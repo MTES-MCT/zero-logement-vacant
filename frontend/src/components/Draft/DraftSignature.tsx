@@ -8,6 +8,7 @@ import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { Col, Container, Row } from '../_dsfr';
 import FileUpload from '../FileUpload/FileUpload';
 import { FileUploadDTO } from '@zerologementvacant/models';
+import LogoViewer from './LogoViewer';
 
 export const signatureSchema = object({
   signatoryFirstName: string().optional().nullable(),
@@ -40,8 +41,18 @@ function DraftSignature(props: Readonly<Props>) {
   function onFileUpload(file: FileUploadDTO) {
     props.onChange({
       ...props.value,
-      signatoryFile: file.url,
+      signatoryFile: file,
     });
+  }
+
+  function deleteFile() {
+    console.log("delete");
+    props.value.signatoryFile = null;
+    props.onChange(props.value);
+    const elem = document.getElementById('fr-upload-:r2h:-input') as HTMLInputElement;
+    if(elem !== null) {
+      elem.value = '';
+    }
   }
 
   return (
@@ -75,6 +86,8 @@ function DraftSignature(props: Readonly<Props>) {
         onChange={onChange('signatoryRole')}
       />
       <FileUpload onUpload={onFileUpload} />
+
+      <LogoViewer index={0} logo={props.value.signatoryFile as FileUploadDTO} onDelete={deleteFile} />
     </Container>
   );
 }

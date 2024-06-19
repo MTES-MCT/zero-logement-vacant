@@ -116,6 +116,7 @@ describe('Draft API', () => {
       const draftDTO = toDraftDTO(firstDraft);
       // Overwriting because S3 is not mocked, causing it to fail, and there is no logo available
       draftDTO.logo = [];
+      draftDTO.sender.signatoryFile = null;
 
       expect(body).toContainEqual(draftDTO);
     });
@@ -220,7 +221,7 @@ describe('Draft API', () => {
           address: payload.sender?.address ?? null,
           email: payload.sender?.email ?? null,
           phone: payload.sender?.phone ?? null,
-          signatoryFile: payload.sender?.signatoryFile ?? null,
+          signatoryFile: payload.sender?.signatoryFile ? payload.sender.signatoryFile.id : null,
           signatoryFirstName: payload.sender?.signatoryFirstName ?? null,
           signatoryLastName: payload.sender?.signatoryLastName ?? null,
           signatoryRole: payload.sender?.signatoryRole ?? null,
@@ -360,7 +361,7 @@ describe('Draft API', () => {
           address: sender.address,
           email: sender.email,
           phone: sender.phone,
-          signatoryFile: sender.signatoryFile,
+          signatoryFile: sender.signatoryFile?.id ?? null,
           signatoryFirstName: sender.signatoryFirstName,
           signatoryLastName: sender.signatoryLastName,
           signatoryRole: sender.signatoryRole,
@@ -419,7 +420,7 @@ describe('Draft API', () => {
         address: sender.address,
         email: sender.email,
         phone: sender.phone,
-        signatory_file: sender.signatoryFile,
+        signatory_file: sender.signatoryFile?.id ?? null,
         signatory_role: sender.signatoryRole,
         signatory_first_name: sender.signatoryFirstName,
         signatory_last_name: sender.signatoryLastName,

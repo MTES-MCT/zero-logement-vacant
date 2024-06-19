@@ -4,7 +4,7 @@ import styles from './draft.module.scss';
 
 interface Props {
   index: number;
-  logo: FileUploadDTO;
+  logo: FileUploadDTO | null;
   onDelete(): void;
 }
 

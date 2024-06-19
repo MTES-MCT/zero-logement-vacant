@@ -1,7 +1,7 @@
 import { DraftDTO } from '@zerologementvacant/models';
 import { SenderApi, toSenderDTO } from './SenderApi';
 
-export interface DraftApi extends DraftDTO {
+export interface DraftApi extends Omit<DraftDTO, 'sender'> {
   establishmentId: string;
   senderId: string;
   sender: SenderApi;

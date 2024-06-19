@@ -107,3 +107,7 @@ footer {
 .footer__signature {
   max-width: 160px;
 }
+
+.footer__signature > p {
+  font-size: 0.75rem;
+}

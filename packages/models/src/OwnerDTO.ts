@@ -34,8 +34,5 @@ export function getAddress(owner: OwnerDTO): string[] {
 
   return !owner.additionalAddress
     ? owner.rawAddress
-    : owner.rawAddress
-        .slice(0, owner.rawAddress.length - 1)
-        .concat(owner.additionalAddress)
-        .concat(owner.rawAddress.slice(-1));
+    : [owner.additionalAddress, ...owner.rawAddress];
 }

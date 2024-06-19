@@ -7,12 +7,12 @@ describe('AddressDTO', () => {
         refId: 'owner.id',
         addressKind: AddressKinds.Owner,
         postalCode: '01000',
-        city: 'Bourg-en-Bresse',
+        city: 'Bourg-en-Bresse'
       };
 
       const actual = formatAddress(address);
 
-      expect(actual).toIncludeAllMembers(['01000 Bourg-en-Bresse']);
+      expect(actual).toStrictEqual(['01000 Bourg-en-Bresse']);
     });
 
     it('should return the address formatted', () => {
@@ -22,16 +22,16 @@ describe('AddressDTO', () => {
         houseNumber: '1',
         street: 'rue de la paix',
         postalCode: '01000',
-        city: 'Bourg-en-Bresse',
+        city: 'Bourg-en-Bresse'
       };
       const additionalAddress = 'Appart. 1';
 
       const actual = formatAddress(address, additionalAddress);
 
-      expect(actual).toIncludeAllMembers([
-        '1 rue de la paix',
+      expect(actual).toStrictEqual([
         'Appart. 1',
-        '01000 Bourg-en-Bresse',
+        '1 rue de la paix',
+        '01000 Bourg-en-Bresse'
       ]);
     });
   });

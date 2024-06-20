@@ -74,6 +74,10 @@ const exportCampaign = async (request: Request, response: Response) => {
     writeOwnerWorksheet(ownerStream, workbook)
   ])
     .merge()
+    .stopOnError((error) => {
+      logger.error('Stream error', { error });
+      throw error;
+    })
     .done(async () => {
       await workbook.commit();
       logger.info('Workbook committed');
@@ -120,6 +124,7 @@ const exportGroup = async (request: Request, response: Response) => {
     }
   });
 
+  logger.info('Writing worksheets...');
   highland([
     writeHousingWorksheet(housingStream, campaigns, workbook),
     writeOwnerWorksheet(ownerStream, workbook)

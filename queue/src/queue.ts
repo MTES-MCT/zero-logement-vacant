@@ -20,7 +20,7 @@ export interface Queue {
   close(): Promise<void>;
 }
 
-export type Options = Pick<QueueOptions, 'connection'>;
+export type Options = QueueOptions;
 
 export function createQueue(opts?: Options): Queue {
   const queues = new Map<keyof Jobs, BullQueue>(

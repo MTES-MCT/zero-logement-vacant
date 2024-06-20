@@ -7,6 +7,13 @@ const [redis] = parseRedisUrl(config.redis.url);
 
 const queue = createQueue({
   connection: redis,
+  defaultJobOptions: {
+    attempts: Number.POSITIVE_INFINITY,
+    backoff: {
+      type: 'exponential',
+      delay: 1_000
+    }
+  }
 });
 
 export default queue;

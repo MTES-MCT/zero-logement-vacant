@@ -19722,7 +19722,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-query-stream@npm:^4.5.5":
+"pg-query-stream@npm:*, pg-query-stream@npm:^4.5.5":
   version: 4.6.0
   resolution: "pg-query-stream@npm:4.6.0"
   dependencies:
@@ -26227,8 +26227,6 @@ __metadata:
     lint-staged: "npm:^13.3.0"
     madr: "npm:^3.0.0"
     node-talisman: "npm:^1.29.11"
-    pg: "npm:^8.11.5"
-    pg-query-stream: "npm:^4.5.5"
     prettier: "npm:^3.2.5"
     ts-node: "npm:^10.9.2"
     type-fest: "npm:^3.13.1"

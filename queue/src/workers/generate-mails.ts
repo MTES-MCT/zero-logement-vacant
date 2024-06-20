@@ -200,8 +200,11 @@ export default function createWorker() {
             }
           });
 
-          await archive.finalize();
-          const { Key } = await upload.done();
+          const [, result] = await Promise.all([
+            archive.finalize(),
+            upload.done()
+          ]);
+          const { Key } = result;
 
           logger.info('Uploaded file to S3');
 

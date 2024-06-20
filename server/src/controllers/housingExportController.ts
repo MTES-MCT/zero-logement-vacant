@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import housingRepository from '~/repositories/housingRepository';
 import {
   assertOwner,
@@ -35,7 +35,11 @@ export type OwnerExportStreamApi = OwnerApi & { housingList: HousingApi[] };
 const exportCampaignValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID')
 ];
-const exportCampaign = async (request: Request, response: Response) => {
+const exportCampaign = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   const { auth, params } = request as AuthenticatedRequest;
 
   logger.info('Export campaign', {
@@ -76,6 +80,7 @@ const exportCampaign = async (request: Request, response: Response) => {
     .merge()
     .stopOnError((error) => {
       logger.error('Stream error', { error });
+      next(error);
       throw error;
     })
     .done(async () => {
@@ -217,6 +222,10 @@ function writeHousingWorksheet(
         })
       );
     })
+    .stopOnError((error) => {
+      logger.error('Housing stream error', { error });
+      throw error;
+    })
     .on('end', () => {
       housingWorksheet.commit();
       logger.info('Wrote housing worksheet');
@@ -266,6 +275,10 @@ function writeOwnerWorksheet(
           });
         })
       );
+    })
+    .stopOnError((error) => {
+      logger.error('Housing stream error', { error });
+      throw error;
     })
     .on('end', () => {
       workbook.getWorksheet('Propriétaires')?.commit();

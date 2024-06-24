@@ -92,7 +92,7 @@ export default function createWorker() {
 
           const html: string[] = [];
 
-          logger.debug('Génération du PDF...');
+          logger.debug('Generating PDF...');
           await async.forEach(housings, async (housing) => {
             const owners = await api.owner.findByHousing(housing.id);
             const address = getAddress(owners[0]);

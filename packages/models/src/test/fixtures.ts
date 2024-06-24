@@ -14,6 +14,7 @@ import { OCCUPANCY_VALUES } from '../Occupancy';
 import { HOUSING_KIND_VALUES } from '../HousingKind';
 import { DatafoncierHousing } from '../DatafoncierHousing';
 import { HOUSING_STATUS_VALUES } from '../HousingStatus';
+import { FileUploadDTO } from '../FileUploadDTO';
 
 export function genAddressDTO(
   refId: string,
@@ -186,14 +187,15 @@ export function genDatafoncierHousingDTO(
   };
 }
 
-export function genDraftDTO(sender: SenderDTO): DraftDTO {
+export function genDraftDTO(
+  sender: SenderDTO,
+  logo?: FileUploadDTO[]
+): DraftDTO {
   return {
     id: faker.string.uuid(),
     subject: faker.lorem.sentence(),
     body: faker.lorem.paragraphs(),
-    logo: faker.helpers.multiple(() => faker.image.url(), {
-      count: { min: 1, max: 2 }
-    }),
+    logo: logo ?? null,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     sender,
@@ -285,7 +287,7 @@ export function genOwnerDTO(): OwnerDTO {
   };
 }
 
-export function genSenderDTO(): SenderDTO {
+export function genSenderDTO(signature?: FileUploadDTO): SenderDTO {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
   return {
@@ -297,7 +299,7 @@ export function genSenderDTO(): SenderDTO {
     address: faker.location.streetAddress({ useFullAddress: true }),
     email: faker.internet.email({ firstName, lastName }),
     phone: faker.helpers.fromRegExp(/0[1-9][0-9]{8}/),
-    signatoryFile: faker.image.urlPicsumPhotos(),
+    signatoryFile: signature ?? null,
     signatoryRole: faker.person.jobTitle(),
     signatoryFirstName: faker.person.firstName(),
     signatoryLastName: faker.person.lastName(),

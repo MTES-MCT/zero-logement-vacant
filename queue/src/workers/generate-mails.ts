@@ -10,7 +10,7 @@ import { Readable } from 'node:stream';
 import { createSDK } from '@zerologementvacant/api-sdk';
 import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
 import { getAddress, replaceVariables } from '@zerologementvacant/models';
-import { createS3, slugify, getBase64Content } from '@zerologementvacant/utils';
+import { createS3, slugify } from '@zerologementvacant/utils';
 import { Jobs } from '../jobs';
 import config from '../config';
 import { createLogger } from '../logger';
@@ -92,19 +92,7 @@ export default function createWorker() {
 
           const html: string[] = [];
 
-          // Download logos
-          const logos = await async.map(
-            draft.logo ?? [],
-            async (logo: string) =>
-              getBase64Content(logo, { s3, bucket: config.s3.bucket }),
-          );
-          const signature = draft.sender.signatoryFile
-            ? await getBase64Content(draft.sender.signatoryFile, {
-                s3,
-                bucket: config.s3.bucket
-              })
-            : null;
-
+          logger.debug('Génération du PDF...');
           await async.forEach(housings, async (housing) => {
             const owners = await api.owner.findByHousing(housing.id);
             const address = getAddress(owners[0]);
@@ -112,7 +100,7 @@ export default function createWorker() {
             html.push(
               await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
                 subject: draft.subject ?? '',
-                logo: logos,
+                logo: draft.logo?.map((logo) => logo.content) ?? null,
                 watermark: false,
                 body: draft.body
                   ? replaceVariables(draft.body, {
@@ -130,7 +118,7 @@ export default function createWorker() {
                   signatoryLastName: draft.sender.signatoryLastName,
                   signatoryFirstName: draft.sender.signatoryFirstName,
                   signatoryRole: draft.sender.signatoryRole,
-                  signatoryFile: signature
+                  signatoryFile: draft.sender.signatoryFile?.content ?? null
                 },
                 writtenAt: draft.writtenAt,
                 writtenFrom: draft.writtenFrom,

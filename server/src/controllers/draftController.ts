@@ -1,4 +1,3 @@
-import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
@@ -12,13 +11,10 @@ import {
   DraftDTO,
   DraftPreviewPayloadDTO,
   DraftUpdatePayloadDTO,
-  FileUploadDTO,
-  SenderDTO,
   getAddress,
   HOUSING_KIND_VALUES,
   replaceVariables
 } from '@zerologementvacant/models';
-import { createS3, toBase64, getContent, getBase64Content } from '@zerologementvacant/utils';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
 import campaignDraftRepository from '~/repositories/campaignDraftRepository';
@@ -29,7 +25,6 @@ import { isUUIDParam } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
 import senderRepository from '~/repositories/senderRepository';
-import config from '~/infra/config';
 
 export interface DraftParams extends Record<string, string> {
   id: string;
@@ -39,102 +34,26 @@ interface DraftQuery {
   campaign?: string;
 }
 
-async function list(request: Request, response: Response) {
-  const { auth, query } = request as AuthenticatedRequest;
+async function list(
+  request: Request<never, DraftDTO[], never, DraftQuery>,
+  response: Response<DraftDTO[]>
+) {
+  const { auth, query } = request as AuthenticatedRequest<
+    never,
+    DraftDTO[],
+    never,
+    DraftQuery
+  >;
 
   const filters: DraftFilters = {
     ...(fp.pick(['campaign'], query) as DraftQuery),
     establishment: auth.establishmentId
   };
-
   const drafts: DraftApi[] = await draftRepository.find({
     filters
   });
 
-  // Download logos from S3
-  const s3 = createS3({
-    endpoint: config.s3.endpoint,
-    region: config.s3.region,
-    accessKeyId: config.s3.accessKeyId,
-    secretAccessKey: config.s3.secretAccessKey,
-  });
-
-  interface EnrichedSenderDTO extends Omit<SenderDTO, 'signatoryFile'> {
-    signatoryFile: FileUploadDTO | null;
-  }
-
-  interface EnrichedDraftDTO extends Omit<DraftDTO, 'logo' | 'sender'> {
-    logo: FileUploadDTO[] | null;
-    sender: EnrichedSenderDTO;
-  }
-
-  function toEnrichedDraftDTO(draft: DraftDTO): EnrichedDraftDTO {
-    return {
-      id: draft.id,
-      subject: draft.subject,
-      body: draft.body,
-      logo: null,
-      sender: {
-        id: draft.sender.id,
-        name: draft.sender.name,
-        service: draft.sender.service,
-        firstName: draft.sender.firstName,
-        lastName: draft.sender.lastName,
-        address: draft.sender.address,
-        email: draft.sender.email,
-        phone: draft.sender.phone,
-        signatoryLastName: draft.sender.signatoryLastName,
-        signatoryFirstName: draft.sender.signatoryFirstName,
-        signatoryRole: draft.sender.signatoryRole,
-        signatoryFile: null,
-        createdAt: draft.sender.createdAt,
-        updatedAt: draft.sender.updatedAt,
-      },
-      writtenAt: draft.writtenAt,
-      writtenFrom: draft.writtenFrom,
-      createdAt: draft.createdAt,
-      updatedAt: draft.createdAt,
-    };
-  }
-
-  const originalDrafts = await drafts.map(toDraftDTO);
-  const enrichedDrafts = await Promise.all(originalDrafts.map(async (draft) => {
-    const enrichedDraft = toEnrichedDraftDTO(draft);
-    const logos = draft.logo ? await Promise.all(draft.logo.map(async (logo) => {
-      try {
-        const { response, content } = await getContent(logo, { s3, bucket: config.s3.bucket });
-        return {
-          id: logo,
-          type: response.ContentType,
-          url: logo,
-          content: toBase64(content, response.ContentType),
-        } as FileUploadDTO;
-      } catch(e) {
-        logger.error(`Failed to get content from S3 bucket: ${config.s3.bucket}, logo: ${logo}`);
-        return null;
-      }
-    })) : null;
-    enrichedDraft.logo = logos?.filter(logo => logo !== null) as FileUploadDTO[];
-
-    if(draft.sender.signatoryFile !== null) {
-      try {
-        const { response, content } = await getContent(draft.sender.signatoryFile, { s3, bucket: config.s3.bucket });
-        const signatoryFile = {
-          id: draft.sender.signatoryFile,
-          type: response.ContentType,
-          url: draft.sender.signatoryFile,
-          content: toBase64(content, response.ContentType),
-        } as FileUploadDTO;
-        enrichedDraft.sender.signatoryFile = signatoryFile;
-      } catch(e) {
-        logger.error(`Failed to get content from S3 bucket: ${config.s3.bucket}, logo: ${draft.sender.signatoryFile}`);
-      }
-    }
-
-    return enrichedDraft;
-  })) as unknown as EnrichedDraftDTO;
-
-  response.status(constants.HTTP_STATUS_OK).json(enrichedDrafts);
+  response.status(constants.HTTP_STATUS_OK).json(drafts.map(toDraftDTO));
 }
 
 const partialDraftValidators: ValidationChain[] = [
@@ -158,7 +77,7 @@ const senderValidators: ValidationChain[] = [
     'phone',
     'signatoryLastName',
     'signatoryFirstName',
-    'signatoryRole',
+    'signatoryRole'
   ].map((prop) =>
     body(`sender.${prop}`)
       .optional({ nullable: true })
@@ -168,9 +87,16 @@ const senderValidators: ValidationChain[] = [
   )
 ];
 
-async function create(request: Request, response: Response) {
-  const { auth } = request as AuthenticatedRequest;
-  const body = request.body as DraftCreationPayloadDTO;
+async function create(
+  request: Request<never, DraftDTO, DraftCreationPayloadDTO, never>,
+  response: Response<DraftDTO>
+) {
+  const { auth, body } = request as AuthenticatedRequest<
+    never,
+    DraftDTO,
+    DraftCreationPayloadDTO,
+    never
+  >;
 
   const campaign = await campaignRepository.findOne({
     id: body.campaign,
@@ -201,7 +127,7 @@ async function create(request: Request, response: Response) {
     id: uuidv4(),
     subject: body.subject,
     body: body.body,
-    logo: body.logo ? body.logo.map((logo: FileUploadDTO) => logo.id) as string[] : null,
+    logo: body.logo,
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,
@@ -261,26 +187,9 @@ async function preview(
     throw new DraftMissingError(params.id);
   }
 
-  // Download logos from S3
-  const s3 = createS3({
-    endpoint: config.s3.endpoint,
-    region: config.s3.region,
-    accessKeyId: config.s3.accessKeyId,
-    secretAccessKey: config.s3.secretAccessKey
-  });
-  const logos = await async.map(draft.logo ?? [], async (logo: string) =>
-    getBase64Content(logo, { s3, bucket: config.s3.bucket })
-  );
-
-  const signature = draft.sender.signatoryFile
-    ? await getBase64Content(draft.sender.signatoryFile.id, {
-        s3,
-        bucket: config.s3.bucket
-      })
-    : null;
   const html = await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
     subject: draft.subject,
-    logo: logos,
+    logo: draft.logo?.map((logo) => logo.content) ?? null,
     watermark: true,
     body: draft.body
       ? replaceVariables(draft.body, {
@@ -298,7 +207,7 @@ async function preview(
       signatoryLastName: draft.sender.signatoryLastName,
       signatoryFirstName: draft.sender.signatoryFirstName,
       signatoryRole: draft.sender.signatoryRole,
-      signatoryFile: signature
+      signatoryFile: draft.sender.signatoryFile?.content ?? null
     },
     writtenAt: draft.writtenAt,
     writtenFrom: draft.writtenFrom,
@@ -382,7 +291,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
     ...draft,
     subject: body.subject,
     body: body.body,
-    logo: body.logo?.map((logo: FileUploadDTO) => logo.id) as string[],
+    logo: body.logo,
     sender,
     senderId: sender.id,
     writtenAt: body.writtenAt,

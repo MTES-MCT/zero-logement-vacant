@@ -7,11 +7,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { isDefined, wait } from '@zerologementvacant/utils';
 import {
   CampaignHousingDBO,
-  CampaignsHousing,
+  CampaignsHousing
 } from '~/repositories/campaignHousingRepository';
 import {
   Campaigns,
-  formatCampaignApi,
+  formatCampaignApi
 } from '~/repositories/campaignRepository';
 import { tokenProvider } from '~/test/testUtils';
 import { Campaign1 } from '~/infra/database/seeds/test/20240405012855_campaigns';
@@ -20,40 +20,46 @@ import { CampaignApi } from '~/models/CampaignApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import { createServer } from '~/infra/server';
 import {
   formatGroupApi,
   formatGroupHousingApi,
   Groups,
-  GroupsHousing,
+  GroupsHousing
 } from '~/repositories/groupRepository';
 import {
   genCampaignApi,
+  genDraftApi,
   genEstablishmentApi,
   genGroupApi,
   genHousingApi,
+  genSenderApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import {
   formatOwnerHousingApi,
-  HousingOwners,
+  HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import {
   CampaignCreationPayloadDTO,
   CampaignDTO,
-  CampaignUpdatePayloadDTO,
+  CampaignUpdatePayloadDTO
 } from '@zerologementvacant/models';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { HousingApi } from '~/models/HousingApi';
 import { GroupApi } from '~/models/GroupApi';
+import { DraftApi } from '~/models/DraftApi';
+import { Drafts, formatDraftApi } from '~/repositories/draftRepository';
+import { CampaignsDrafts } from '~/repositories/campaignDraftRepository';
+import { formatSenderApi, Senders } from '~/repositories/senderRepository';
 
 describe('Campaign API', () => {
   const { app } = createServer();
@@ -104,7 +110,7 @@ describe('Campaign API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
         id: campaign.id,
-        filters: expect.objectContaining(campaign.filters),
+        filters: expect.objectContaining(campaign.filters)
       });
     });
   });
@@ -113,7 +119,7 @@ describe('Campaign API', () => {
     const testRoute = '/api/campaigns';
 
     const campaigns: CampaignApi[] = Array.from({ length: 3 }).map(() =>
-      genCampaignApi(establishment.id, user.id),
+      genCampaignApi(establishment.id, user.id)
     );
 
     beforeAll(async () => {
@@ -135,15 +141,15 @@ describe('Campaign API', () => {
       expect(body).toIncludeAllPartialMembers(
         campaigns.map((campaign) => {
           return {
-            id: campaign.id,
+            id: campaign.id
           };
-        }),
+        })
       );
     });
 
     it('should filter by group', async () => {
       const groups = Array.from({ length: 2 }).map(() =>
-        genGroupApi(user, establishment),
+        genGroupApi(user, establishment)
       );
       await Groups().insert(groups.map(formatGroupApi));
       const campaigns = groups.map((group) => {
@@ -162,9 +168,9 @@ describe('Campaign API', () => {
         campaigns.map((campaign) => {
           return {
             id: campaign.id,
-            groupId: campaign.groupId,
+            groupId: campaign.groupId
           };
-        }),
+        })
       );
     });
   });
@@ -181,7 +187,7 @@ describe('Campaign API', () => {
     it('should create a new campaign', async () => {
       const title = randomstring.generate();
       const houses: HousingApi[] = Array.from({ length: 2 }).map(() =>
-        genHousingApi(oneOf(establishment.geoCodes)),
+        genHousingApi(oneOf(establishment.geoCodes))
       );
       await Housing().insert(houses.map(formatHousingRecordApi));
       const payload: CampaignCreationPayloadDTO = {
@@ -189,8 +195,8 @@ describe('Campaign API', () => {
         housing: {
           filters: {},
           all: false,
-          ids: houses.map((housing) => housing.id),
-        },
+          ids: houses.map((housing) => housing.id)
+        }
       };
 
       const { body, status } = await request(app)
@@ -205,24 +211,24 @@ describe('Campaign API', () => {
         status: 'draft',
         filters: {
           ...payload.housing.filters,
-          establishmentIds: [establishment.id],
+          establishmentIds: [establishment.id]
         },
-        createdAt: expect.any(String),
+        createdAt: expect.any(String)
       });
 
       const actualCampaign = await Campaigns()
         .where({
           title,
-          establishment_id: establishment.id,
+          establishment_id: establishment.id
         })
         .first();
       expect(actualCampaign).toMatchObject({
-        title,
+        title
       });
 
       const actualCampaignHouses = await CampaignsHousing().whereIn(
         'housing_id',
-        houses.map((housing) => housing.id),
+        houses.map((housing) => housing.id)
       );
       expect(actualCampaignHouses).toBeArrayOfSize(houses.length);
       expect(actualCampaignHouses).toSatisfyAll((actual) => {
@@ -239,7 +245,7 @@ describe('Campaign API', () => {
     const groupHousing = [
       genHousingApi(geoCode),
       genHousingApi(geoCode),
-      genHousingApi(geoCode),
+      genHousingApi(geoCode)
     ];
     const owners = groupHousing
       .map((housing) => housing.owner)
@@ -257,10 +263,10 @@ describe('Campaign API', () => {
       const { status } = await request(app)
         .post(testRoute(uuidv4()))
         .send({
-          title: 'Campagne prioritaire',
+          title: 'Campagne prioritaire'
         })
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -270,17 +276,17 @@ describe('Campaign API', () => {
     it('should throw if the group has been archived', async () => {
       const group: GroupApi = {
         ...genGroupApi(user, establishment),
-        archivedAt: new Date(),
+        archivedAt: new Date()
       };
       await Groups().insert(formatGroupApi(group));
 
       const { status } = await request(app)
         .post(testRoute(group.id))
         .send({
-          title: 'Campagne prioritaire',
+          title: 'Campagne prioritaire'
         })
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -292,7 +298,7 @@ describe('Campaign API', () => {
         .post(testRoute(group.id))
         .send({
           title: 'Logements prioritaires',
-          groupId: group.id,
+          groupId: group.id
         })
         .use(tokenProvider(user));
 
@@ -304,10 +310,10 @@ describe('Campaign API', () => {
         status: 'draft',
         establishmentId: establishment.id,
         filters: {
-          groupIds: [group.id],
+          groupIds: [group.id]
         },
         createdAt: expect.toBeDateString(),
-        userId: user.id,
+        userId: user.id
       });
     });
 
@@ -315,17 +321,17 @@ describe('Campaign API', () => {
       const { body, status } = await request(app)
         .post(testRoute(group.id))
         .send({
-          title: 'Logements prioritaires',
+          title: 'Logements prioritaires'
         })
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       const campaignHousing = await CampaignsHousing().where(
         'campaign_id',
-        body.id,
+        body.id
       );
       expect(campaignHousing).toIncludeAllPartialMembers(
-        groupHousing.map((housing) => ({ housing_id: housing.id })),
+        groupHousing.map((housing) => ({ housing_id: housing.id }))
       );
     });
 
@@ -333,7 +339,7 @@ describe('Campaign API', () => {
       const { status } = await request(app)
         .post(testRoute(group.id))
         .send({
-          title: 'Logements prioritaires',
+          title: 'Logements prioritaires'
         })
         .use(tokenProvider(user));
 
@@ -343,7 +349,7 @@ describe('Campaign API', () => {
       const housingIds = groupHousing.map((housing) => housing.id);
       const housingEvents = await HousingEvents().whereIn(
         'housing_id',
-        housingIds,
+        housingIds
       );
       expect(housingEvents.length).toBeGreaterThanOrEqual(groupHousing.length);
     });
@@ -353,14 +359,23 @@ describe('Campaign API', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
     const payload: CampaignUpdatePayloadDTO = {
       title: 'New title',
-      status: 'sending',
+      status: 'sending'
     };
 
     let campaign: CampaignApi;
+    let draft: DraftApi;
 
     beforeEach(async () => {
       campaign = genCampaignApi(establishment.id, user.id);
       await Campaigns().insert(formatCampaignApi(campaign));
+      const sender = genSenderApi(establishment);
+      await Senders().insert(formatSenderApi(sender));
+      draft = genDraftApi(establishment, sender);
+      await Drafts().insert(formatDraftApi(draft));
+      await CampaignsDrafts().insert({
+        campaign_id: campaign.id,
+        draft_id: draft.id
+      });
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -406,7 +421,7 @@ describe('Campaign API', () => {
     it('should update the campaign title', async () => {
       const payload: CampaignUpdatePayloadDTO = {
         status: campaign.status,
-        title: 'New title',
+        title: 'New title'
       };
 
       const { body, status } = await request(app)
@@ -418,14 +433,14 @@ describe('Campaign API', () => {
       expect(body).toMatchObject({
         id: campaign.id,
         status: campaign.status,
-        title: payload.title,
+        title: payload.title
       });
 
       const actual = await Campaigns().where({ id: campaign.id }).first();
       expect(actual).toMatchObject({
         id: campaign.id,
         status: campaign.status,
-        title: payload.title,
+        title: payload.title
       });
     });
 
@@ -435,7 +450,7 @@ describe('Campaign API', () => {
       it('should set the status from "draft" to "sending"', async () => {
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
-          status: 'sending',
+          status: 'sending'
         };
 
         const { body, status } = await request(app)
@@ -448,8 +463,23 @@ describe('Campaign API', () => {
           id: campaign.id,
           title: campaign.title,
           status: 'sending',
-          validatedAt: expect.any(String),
+          validatedAt: expect.any(String)
         });
+      });
+
+      it('should fail if the draft is missing', async () => {
+        const campaignWithoutDraft = genCampaignApi(establishment.id, user.id);
+        const payload: CampaignUpdatePayloadDTO = {
+          title: campaignWithoutDraft.title,
+          status: 'sending'
+        };
+
+        const { status } = await request(app)
+          .put(testRoute(campaignWithoutDraft.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
       });
     });
 
@@ -457,12 +487,12 @@ describe('Campaign API', () => {
       it('should set the status from "sending" to "in-progress"', async () => {
         campaign = { ...campaign, status: 'sending' };
         await Campaigns().where({ id: campaign.id }).update({
-          status: campaign.status,
+          status: campaign.status
         });
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
           status: 'in-progress',
-          sentAt: faker.date.recent().toJSON(),
+          sentAt: faker.date.recent().toJSON()
         };
 
         const { body, status } = await request(app)
@@ -476,7 +506,7 @@ describe('Campaign API', () => {
           title: campaign.title,
           status: payload.status,
           sentAt: payload.sentAt,
-          confirmedAt: expect.any(String),
+          confirmedAt: expect.any(String)
         });
       });
 
@@ -487,11 +517,11 @@ describe('Campaign API', () => {
       it('should set the status from "in-progress" to "archived"', async () => {
         campaign = { ...campaign, status: 'in-progress' };
         await Campaigns().where({ id: campaign.id }).update({
-          status: campaign.status,
+          status: campaign.status
         });
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
-          status: 'archived',
+          status: 'archived'
         };
 
         const { body, status } = await request(app)
@@ -504,7 +534,7 @@ describe('Campaign API', () => {
           id: campaign.id,
           title: campaign.title,
           status: payload.status,
-          archivedAt: expect.any(String),
+          archivedAt: expect.any(String)
         });
       });
 
@@ -545,20 +575,20 @@ describe('Campaign API', () => {
 
       const actualCampaign = await Campaigns().where({
         establishment_id: establishment.id,
-        id: campaign.id,
+        id: campaign.id
       });
       expect(actualCampaign).toStrictEqual([]);
     });
 
     it('should delete linked events and campaign housing', async () => {
       const houses: HousingApi[] = Array.from({ length: 2 }).map(() =>
-        genHousingApi(oneOf(establishment.geoCodes)),
+        genHousingApi(oneOf(establishment.geoCodes))
       );
       await Housing().insert(houses.map(formatHousingRecordApi));
       const campaignHouses: CampaignHousingDBO[] = houses.map((housing) => ({
         campaign_id: campaign.id,
         housing_geo_code: housing.geoCode,
-        housing_id: housing.id,
+        housing_id: housing.id
       }));
       await CampaignsHousing().insert(campaignHouses);
 
@@ -567,12 +597,12 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       const actualCampaignHouses = await CampaignsHousing().where({
-        campaign_id: campaign.id,
+        campaign_id: campaign.id
       });
       expect(actualCampaignHouses).toBeArrayOfSize(0);
 
       const actualCampaignEvents = await CampaignEvents().where({
-        campaign_id: campaign.id,
+        campaign_id: campaign.id
       });
       expect(actualCampaignEvents).toBeArrayOfSize(0);
     });
@@ -580,13 +610,13 @@ describe('Campaign API', () => {
     it('should set status never contacted for waiting housing without anymore campaigns', async () => {
       const housing: HousingApi = {
         ...genHousingApi(oneOf(establishment.geoCodes)),
-        status: HousingStatusApi.Waiting,
+        status: HousingStatusApi.Waiting
       };
       await Housing().insert(formatHousingRecordApi(housing));
       await CampaignsHousing().insert({
         campaign_id: campaign.id,
         housing_geo_code: housing.geoCode,
-        housing_id: housing.id,
+        housing_id: housing.id
       });
 
       await request(app)
@@ -596,14 +626,14 @@ describe('Campaign API', () => {
       const actualHousing = await Housing()
         .where({
           geo_code: housing.geoCode,
-          id: housing.id,
+          id: housing.id
         })
         .first();
       expect(actualHousing).toMatchObject({
         geo_code: housing.geoCode,
         id: housing.id,
         status: HousingStatusApi.NeverContacted,
-        sub_status: null,
+        sub_status: null
       });
     });
   });

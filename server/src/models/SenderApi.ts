@@ -1,7 +1,6 @@
-import { FileUploadDTO, SenderDTO } from '@zerologementvacant/models';
+import { SenderDTO } from '@zerologementvacant/models';
 
-export interface SenderApi extends Omit<SenderDTO, 'signatoryFile'> {
-  signatoryFile: FileUploadDTO | null;
+export interface SenderApi extends SenderDTO {
   establishmentId: string;
 }
 
@@ -18,8 +17,8 @@ export function toSenderDTO(sender: SenderApi): SenderDTO {
     signatoryLastName: sender.signatoryLastName,
     signatoryFirstName: sender.signatoryFirstName,
     signatoryRole: sender.signatoryRole,
-    signatoryFile: sender.signatoryFile ? sender.signatoryFile.id : null,
+    signatoryFile: sender.signatoryFile,
     createdAt: sender.createdAt,
-    updatedAt: sender.updatedAt,
+    updatedAt: sender.updatedAt
   };
 }

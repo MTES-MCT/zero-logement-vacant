@@ -7,7 +7,7 @@ export interface DraftDTO {
   id: string;
   subject: string | null;
   body: string | null;
-  logo: string[] | null;
+  logo: FileUploadDTO[] | null;
   sender: SenderDTO;
   writtenAt: string | null;
   writtenFrom: string | null;
@@ -18,20 +18,18 @@ export interface DraftDTO {
 export interface DraftCreationPayloadDTO
   extends Pick<
     DraftDTO,
-    'subject' | 'body' | 'writtenAt' | 'writtenFrom'
+    'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
   > {
   campaign: string;
   sender: SenderPayloadDTO | null;
-  logo: FileUploadDTO[]
 }
 
 export interface DraftUpdatePayloadDTO
   extends Pick<
     DraftDTO,
-    'id' | 'subject' | 'body' | 'writtenAt' | 'writtenFrom'
+    'id' | 'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
   > {
   sender: SenderPayloadDTO;
-  logo: FileUploadDTO[]
 }
 
 export interface DraftPreviewPayloadDTO {

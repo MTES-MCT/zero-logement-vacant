@@ -2392,6 +2392,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bull-board/api@npm:5.20.2":
+  version: 5.20.2
+  resolution: "@bull-board/api@npm:5.20.2"
+  dependencies:
+    redis-info: "npm:^3.0.8"
+  peerDependencies:
+    "@bull-board/ui": 5.20.2
+  checksum: 10c0/7bd8be3f776ac7d3adf47ba4a4b19aeb3eb32ab951f9e8212f793b3f2d3d0498c521fdf4a538851f596402c3b399ea982c2b8e6bcb01262952e9c976d5f13a96
+  languageName: node
+  linkType: hard
+
+"@bull-board/express@npm:5.20.2":
+  version: 5.20.2
+  resolution: "@bull-board/express@npm:5.20.2"
+  dependencies:
+    "@bull-board/api": "npm:5.20.2"
+    "@bull-board/ui": "npm:5.20.2"
+    ejs: "npm:^3.1.10"
+    express: "npm:^4.19.2"
+  checksum: 10c0/3e797f2f17ed091a58e7ed9d3d2cdb7d9fd0a9a55926535cf13eabb7b907d612301406e87e333145a3161d86882e3afbeb243c467ac20f3a738f44d8249d7924
+  languageName: node
+  linkType: hard
+
+"@bull-board/ui@npm:5.20.2":
+  version: 5.20.2
+  resolution: "@bull-board/ui@npm:5.20.2"
+  dependencies:
+    "@bull-board/api": "npm:5.20.2"
+  checksum: 10c0/9d1ec87d3de306737b5dff66bbfd8920e0d20fba0985466905ae4f3c30ed714de95cbb4757119846ba6cd46edd3147968163ea936805e855116aaded2ad98aa3
+  languageName: node
+  linkType: hard
+
 "@bundled-es-modules/cookie@npm:^2.0.0":
   version: 2.0.0
   resolution: "@bundled-es-modules/cookie@npm:2.0.0"
@@ -9151,6 +9183,9 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.577.0"
     "@aws-sdk/lib-storage": "npm:^3.578.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.577.0"
+    "@bull-board/api": "npm:5.20.2"
+    "@bull-board/express": "npm:5.20.2"
+    "@bull-board/ui": "npm:5.20.2"
     "@faker-js/faker": "npm:^8.4.1"
     "@godaddy/terminus": "npm:^4.12.1"
     "@sentry/integrations": "npm:^7.116.0"
@@ -13096,7 +13131,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ejs@npm:^3.1.6":
+"ejs@npm:^3.1.10, ejs@npm:^3.1.6":
   version: 3.1.10
   resolution: "ejs@npm:3.1.10"
   dependencies:
@@ -18715,7 +18750,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.17.15, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.7.0":
+"lodash@npm:^4.17.11, lodash@npm:^4.17.15, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.7.0":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 10c0/d8cbea072bb08655bb4c989da418994b073a608dffa608b09ac04b43a791b12aeae7cd7ad919aa4c925f33b48490b5cfe6c1f71d827956071dae2e7bb3a6b74c
@@ -22968,6 +23003,15 @@ __metadata:
   version: 1.2.0
   resolution: "redis-errors@npm:1.2.0"
   checksum: 10c0/5b316736e9f532d91a35bff631335137a4f974927bb2fb42bf8c2f18879173a211787db8ac4c3fde8f75ed6233eb0888e55d52510b5620e30d69d7d719c8b8a7
+  languageName: node
+  linkType: hard
+
+"redis-info@npm:^3.0.8":
+  version: 3.1.0
+  resolution: "redis-info@npm:3.1.0"
+  dependencies:
+    lodash: "npm:^4.17.11"
+  checksum: 10c0/ec0f31d97893c5828cec7166486d74198c92160c60073b6f2fe805cdf575a10ddcccc7641737d44b8f451355f0ab5b6c7b0d79e8fc24742b75dd625f91ffee38
   languageName: node
   linkType: hard
 

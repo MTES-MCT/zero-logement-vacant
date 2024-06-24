@@ -2410,6 +2410,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@codegouvfr/react-dsfr@npm:1.9.17":
+  version: 1.9.17
+  resolution: "@codegouvfr/react-dsfr@npm:1.9.17"
+  dependencies:
+    tsafe: "npm:^1.6.3"
+    yargs-parser: "npm:^21.1.1"
+  bin:
+    copy-dsfr-to-public: bin/copy-dsfr-to-public.js
+    only-include-used-icons: bin/only-include-used-icons.js
+  checksum: 10c0/a3b5a56e2e17d69e4de635ddf8df4c0efebb854ac3524171743681064bdb8fa73522d5cd77ade5de58728871f53864c5d74478914f81c53ed012babbe0036e45
+  languageName: node
+  linkType: hard
+
 "@codegouvfr/react-dsfr@npm:^1.9.11":
   version: 1.9.20
   resolution: "@codegouvfr/react-dsfr@npm:1.9.20"
@@ -8779,7 +8792,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/front@workspace:frontend"
   dependencies:
-    "@codegouvfr/react-dsfr": "npm:^1.9.11"
+    "@codegouvfr/react-dsfr": "npm:1.9.17"
     "@craco/craco": "npm:^7.1.0"
     "@emotion/react": "npm:^11.11.4"
     "@emotion/styled": "npm:^11.11.5"

@@ -93,9 +93,8 @@ export default function createWorker() {
           const html: string[] = [];
 
           logger.debug('Generating PDF...');
-          await async.forEach(housings, async (housing) => {
-            const owners = await api.owner.findByHousing(housing.id);
-            const address = getAddress(owners[0]);
+          await async.forEachSeries(housings, async (housing) => {
+            const address = getAddress(housing.owner);
 
             html.push(
               await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
@@ -105,7 +104,7 @@ export default function createWorker() {
                 body: draft.body
                   ? replaceVariables(draft.body, {
                       housing,
-                      owner: owners[0]
+                      owner: housing.owner
                     })
                   : '',
                 sender: {
@@ -123,7 +122,7 @@ export default function createWorker() {
                 writtenAt: draft.writtenAt,
                 writtenFrom: draft.writtenFrom,
                 owner: {
-                  fullName: owners[0].fullName,
+                  fullName: housing.owner.fullName,
                   address: address
                 }
               })

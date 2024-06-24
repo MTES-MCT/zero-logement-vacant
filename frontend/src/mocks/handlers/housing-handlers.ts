@@ -107,7 +107,7 @@ function filterByHousingKind(kinds?: string[]) {
     }
 
     return housings.filter((housing) => {
-      return kinds.includes(housing.kind);
+      return kinds.includes(housing.housingKind);
     });
   };
 }

@@ -1,16 +1,27 @@
-import { Owner } from './Owner';
-import { HousingStatus } from './HousingState';
+import { differenceInDays, format } from 'date-fns';
+
+import {
+  EnergyConsumption,
+  HousingDTO,
+  HousingKind,
+  HousingStatus,
+  Occupancy,
+  OwnershipKind
+} from '@zerologementvacant/models';
+import { Owner, toOwnerDTO } from './Owner';
+import { HousingStatus as DeprecatedHousingStatus } from './HousingState';
 import { stringSort } from '../utils/stringUtils';
 import { Sort } from './Sort';
 import { LocalityKinds } from './Locality';
 import { Note } from './Note';
-import { differenceInDays, format } from 'date-fns';
 import { Compare } from '../utils/compareUtils';
 import { HousingSource } from '../../../shared';
 
 export interface Housing {
   id: string;
   invariant: string;
+  localId: string;
+  geoCode: string;
   cadastralReference: string;
   buildingLocation?: string;
   buildingGroupId?: string;
@@ -34,7 +45,7 @@ export interface Housing {
   buildingVacancyRate: number;
   dataYears: number[];
   campaignIds: string[];
-  status: HousingStatus;
+  status: DeprecatedHousingStatus;
   subStatus?: string;
   precisions?: string[];
   lastContact?: Date;
@@ -92,7 +103,7 @@ export const getBuildingLocation = (housing: Housing) => {
             : level.replace(/^0+/g, '') + 'ème étage',
       local:
         'Local ' +
-        housing.buildingLocation.substr(5 + idx, 5).replace(/^0+/g, ''),
+        housing.buildingLocation.substr(5 + idx, 5).replace(/^0+/g, '')
     } as BuildingLocation;
   }
 };
@@ -131,13 +142,13 @@ export const hasGeoPerimeters = (housing: Housing) =>
 export enum OwnershipKinds {
   Single = 'single',
   CoOwnership = 'co',
-  Other = 'other',
+  Other = 'other'
 }
 
 export const OwnershipKindLabels = {
   [OwnershipKinds.Single]: 'Monopropriété',
   [OwnershipKinds.CoOwnership]: 'Copropriété',
-  [OwnershipKinds.Other]: 'Autre',
+  [OwnershipKinds.Other]: 'Autre'
 };
 
 export type HousingSortable = Pick<
@@ -160,7 +171,7 @@ export interface HousingWithCoordinates extends Housing {
   latitude: number;
 }
 export function hasCoordinates(
-  housing: Housing,
+  housing: Housing
 ): housing is HousingWithCoordinates {
   return (
     !!housing.longitude &&
@@ -176,7 +187,7 @@ export const lastUpdate = (housing: Housing): string =>
   housing.lastContact
     ? `${format(housing.lastContact, 'dd/MM/yyyy')} (${differenceInDays(
         new Date(),
-        housing.lastContact,
+        housing.lastContact
       )} jours)`
     : 'Aucune mise à jour';
 
@@ -189,7 +200,7 @@ export enum OccupancyKind {
   CommercialOrOffice = 'T',
   Dependency = 'N',
   DemolishedOrDivided = 'D',
-  Others = 'A',
+  Others = 'A'
 }
 
 export const OccupancyUnknown = 'inconnu';
@@ -206,16 +217,16 @@ export const OccupancyKindLabels = {
   [OccupancyKind.Dependency]: 'Dépendance',
   [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
   [OccupancyKind.Others]: 'Autres',
-  [OccupancyUnknown]: 'Pas d’information',
+  [OccupancyUnknown]: 'Pas d’information'
 };
 
 export const OccupancyKindBadgeLabels = {
   ...OccupancyKindLabels,
-  [OccupancyKind.Others]: 'Occupation : Autres',
+  [OccupancyKind.Others]: 'Occupation : Autres'
 };
 
 export const getOccupancy = (
-  occupancy?: OccupancyKind | OccupancyKindUnknown,
+  occupancy?: OccupancyKind | OccupancyKindUnknown
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
@@ -223,7 +234,43 @@ export function getSource(housing: Housing): string {
   const map: Record<HousingSource, string> = {
     lovac: `LOVAC ${year}`,
     'datafoncier-manual': `Fichiers Fonciers - import manuel (${year})`,
-    'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`,
+    'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`
   };
   return housing.source ? map[housing.source] : 'Inconnue';
+}
+
+export function toHousingDTO(housing: Housing): HousingDTO {
+  return {
+    id: housing.id,
+    invariant: housing.invariant,
+    localId: housing.localId,
+    rawAddress: housing.rawAddress,
+    geoCode: housing.geoCode,
+    longitude: housing.longitude,
+    latitude: housing.latitude,
+    cadastralClassification: housing.cadastralClassification,
+    uncomfortable: housing.uncomfortable,
+    vacancyStartYear: housing.vacancyStartYear,
+    housingKind: housing.housingKind as HousingKind,
+    roomsCount: housing.roomsCount,
+    livingArea: housing.livingArea,
+    cadastralReference: housing.cadastralReference,
+    buildingYear: housing.buildingYear,
+    taxed: housing.taxed,
+    vacancyReasons: housing.vacancyReasons,
+    dataYears: housing.dataYears,
+    buildingLocation: housing.buildingLocation,
+    // TODO: fix this by making Housing extend HousingDTO
+    ownershipKind: housing.ownershipKind as unknown as OwnershipKind,
+    status: housing.status as unknown as HousingStatus,
+    subStatus: housing.subStatus,
+    precisions: housing.precisions,
+    energyConsumption:
+      housing.energyConsumption as unknown as EnergyConsumption,
+    energyConsumptionAt: housing.energyConsumptionAt,
+    occupancy: housing.occupancy as unknown as Occupancy,
+    occupancyIntended: housing.occupancyIntended as unknown as Occupancy,
+    source: housing.source,
+    owner: toOwnerDTO(housing.owner)
+  };
 }

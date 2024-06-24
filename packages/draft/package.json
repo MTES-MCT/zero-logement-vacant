@@ -21,6 +21,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@codegouvfr/react-dsfr": "^1.9.11",
     "handlebars": "^4.7.8",
     "pdf-lib": "^1.17.1",
     "puppeteer": "^22.9.0"

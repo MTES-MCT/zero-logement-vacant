@@ -8,15 +8,11 @@ import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { Col, Container, Row } from '../_dsfr';
 
 export const senderSchema = object({
-  name: string()
-    .required(
-      'Veuillez renseigner le nom de la collectivité ou de l’administration'
-    )
-    .trim(),
-  service: string().required('Veuillez renseigner le nom du service').trim(),
-  firstName: string().required('Veuillez renseigner un prénom').trim(),
-  lastName: string().required('Veuillez renseigner un nom').trim(),
-  address: string().required('Veuillez renseigner une adresse').trim(),
+  name: string().trim(),
+  service: string().trim(),
+  firstName: string().trim(),
+  lastName: string().trim(),
+  address: string().trim(),
   email: string().nullable().email('Veuillez renseigner un courriel valide'),
   phone: string()
     .optional()
@@ -54,14 +50,14 @@ function DraftSender(props: Readonly<Props>) {
       <AppTextInput
         inputForm={props.form}
         inputKey="sender.name"
-        label="Nom de la collectivité ou de l’administration*"
+        label="Nom de la collectivité ou de l’administration"
         value={props.value.name}
         onChange={onChange('name')}
       />
       <AppTextInput
         inputForm={props.form}
         inputKey="sender.service"
-        label="Service*"
+        label="Service"
         value={props.value.service}
         onChange={onChange('service')}
       />
@@ -70,7 +66,7 @@ function DraftSender(props: Readonly<Props>) {
           <AppTextInput
             inputForm={props.form}
             inputKey="sender.lastName"
-            label="Nom*"
+            label="Nom"
             value={props.value.lastName}
             onChange={onChange('lastName')}
           />
@@ -79,7 +75,7 @@ function DraftSender(props: Readonly<Props>) {
           <AppTextInput
             inputForm={props.form}
             inputKey="sender.firstName"
-            label="Prénom*"
+            label="Prénom"
             value={props.value.firstName}
             onChange={onChange('firstName')}
           />
@@ -88,7 +84,7 @@ function DraftSender(props: Readonly<Props>) {
       <AppTextInput
         inputForm={props.form}
         inputKey="sender.address"
-        label="Adresse*"
+        label="Adresse"
         value={props.value.address}
         onChange={onChange('address')}
       />

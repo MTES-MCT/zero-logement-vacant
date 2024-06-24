@@ -33,7 +33,7 @@ describe('Housing list view', () => {
 
   it('should filter by housing kind', async () => {
     const apartments = data.housings.filter(
-      (housing) => housing.kind === HousingKind.APARTMENT
+      (housing) => housing.housingKind === HousingKind.APARTMENT
     );
     const owners = fp.uniqBy(
       'id',
@@ -54,6 +54,7 @@ describe('Housing list view', () => {
     });
     await user.click(checkbox);
     const text = `${apartments.length} logements (${owners.length} propriétaires) filtrés sur un total de ${data.housings.length} logements`;
+    screen.logTestingPlaygroundURL();
     const label = await screen.findByText(text);
     expect(label).toBeVisible();
   });

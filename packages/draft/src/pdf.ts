@@ -1,11 +1,11 @@
 import { ReadableStream } from 'node:stream/web';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-global.ReadableStream = ReadableStream;
 import * as handlebars from 'handlebars';
 import path from 'node:path';
 import { PDFDocument } from 'pdf-lib';
 import puppeteer from 'puppeteer';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+global.ReadableStream = ReadableStream;
 
 handlebars.registerHelper('localdate', (date: string) => {
   return new Date(date).toLocaleDateString('fr-FR', {
@@ -34,7 +34,15 @@ async function fromHTML(htmlArray: string[]): Promise<Buffer> {
       waitUntil: 'networkidle0',
     });
     await page.addStyleTag({
-      path: path.join(__dirname, 'templates', 'dsfr.min.css'),
+      path: path.join(
+        __dirname,
+        '..',
+        'node_modules',
+        '@codegouvfr',
+        'react-dsfr',
+        'dsfr',
+        'dsfr.min.css',
+      ),
     });
     await page.addStyleTag({
       path: path.join(__dirname, 'templates', 'draft', 'draft.css'),

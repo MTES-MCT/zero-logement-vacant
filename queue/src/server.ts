@@ -5,10 +5,11 @@ import {
   healthcheck,
   postgresCheck,
   redisCheck,
-  s3Check,
+  s3Check
 } from '@zerologementvacant/healthcheck';
 import config from './config';
 import { createLogger } from './logger';
+import { expressAdapter } from './dashboard';
 
 function createServer() {
   const app = express();
@@ -22,11 +23,13 @@ function createServer() {
       checks: [
         redisCheck(config.redis.url),
         postgresCheck(config.db.url),
-        s3Check(config.s3),
+        s3Check(config.s3)
       ],
-      logger,
-    }),
+      logger
+    })
   );
+
+  app.use('/admin/queues', expressAdapter.getRouter());
 
   async function start(): Promise<void> {
     const listen = util.promisify((port: number, cb: () => void) => {
@@ -39,7 +42,7 @@ function createServer() {
 
   return {
     app,
-    start,
+    start
   };
 }
 

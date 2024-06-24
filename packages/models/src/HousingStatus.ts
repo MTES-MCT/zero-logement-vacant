@@ -7,10 +7,10 @@ export enum HousingStatus {
   BLOCKED
 }
 
-export const HOUSING_STATUSES: HousingStatus[] = Object.values(
+export const HOUSING_STATUS_VALUES: HousingStatus[] = Object.values(
   HousingStatus
 ).filter((status): status is HousingStatus => typeof status !== 'string');
 
 export function isHousingStatus(value: number): value is HousingStatus {
-  return HOUSING_STATUSES.includes(value);
+  return HOUSING_STATUS_VALUES.includes(value);
 }

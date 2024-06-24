@@ -47,7 +47,7 @@ fileignoreconfig:
 - filename: packages/api-sdk/src/infra/token-provider.ts
   checksum: 0fab9fb960e9b2710b58c4a26737a52f052d36134746f23118e396e22d74dbf1
 - filename: packages/api-sdk/src/sdk.ts
-  checksum: ea407d9dcd6543c66ee0a1c16b794fe5155724f572f8243a26e52b0695bc1fa2
+  checksum: a5fff203358271b7c18a480f175632a6cee9c023b4ff8df1aabe146b9a069b37
 - filename: packages/api-sdk/src/test/campaign-api.test.ts
   checksum: e2cabb9dd76c168622f38b4d446907fedcb6f690c86d1c9d1eccbf17a6fe0044
 - filename: packages/api-sdk/src/test/housing-api.test.ts
@@ -69,7 +69,7 @@ fileignoreconfig:
 - filename: queue/src/queue.ts
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
-  checksum: c781e5dd605469840a3bc8ed26fb7ca72610ae4feea1dabbf36be841412a02a6
+  checksum: 43ae28ea84ab99eab1324356419de4ade2c83b0a70ae999f3d79fea8303a6a3c
 - filename: server/controllers/draftController.ts
   checksum: 3627d5cc7172a79998517e1982424462c61116e248e5b6bd29aced81470113e6
 - filename: server/repositories/campaignRepository.ts
@@ -77,9 +77,11 @@ fileignoreconfig:
 - filename: server/services/mailService/brevoService.ts
   checksum: ce84d57e61bfdf4168938e114113005b0961659ea299a3871415ade48ba7b310
 - filename: server/src/controllers/draftController.ts
-  checksum: 56e282dbfb7963ba2a947fbd53a4879ea496a3cc661994aa88097c1f0cc260eb
+  checksum: b20a3159d29f2a0964c58d2befc040ef4f553ece130067316e651730c6c97d5b
 - filename: server/src/controllers/fileController.ts
   checksum: 72d31c3e49e4dbee18222e61e0a5bb48da755cefa2a8d7fa2d9f1a153290279e
+- filename: server/src/controllers/housingExportController.ts
+  checksum: 41b6d72c503240edea923accce36af8548aa859d3494560eec003bac2c5ab4d5
 - filename: server/src/index.ts
   checksum: 88aec4113a92083b1401a101a673a2cf4457345c258bb8572dccbc713d22a94c
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql

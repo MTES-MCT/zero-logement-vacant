@@ -10,10 +10,13 @@ import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
+  DraftPreviewPayloadDTO,
   DraftUpdatePayloadDTO,
   FileUploadDTO,
   SenderDTO,
-  replaceVariables,
+  getAddress,
+  HOUSING_KIND_VALUES,
+  replaceVariables
 } from '@zerologementvacant/models';
 import { createS3, toBase64, getContent, getBase64Content } from '@zerologementvacant/utils';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
@@ -27,6 +30,10 @@ import { logger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
 import senderRepository from '~/repositories/senderRepository';
 import config from '~/infra/config';
+
+export interface DraftParams extends Record<string, string> {
+  id: string;
+}
 
 interface DraftQuery {
   campaign?: string;
@@ -136,7 +143,7 @@ const partialDraftValidators: ValidationChain[] = [
   body('logo').optional({ nullable: true }).isArray({ min: 0, max: 2 }),
   body('logo.*.*').optional().isString(),
   body('sender.signatoryFile').optional({ nullable: true }).isObject(),
-  body('sender.signatoryFile.*').optional().isString(),
+  body('sender.signatoryFile.*').optional().isString()
 ];
 const senderValidators: ValidationChain[] = [
   ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
@@ -236,8 +243,15 @@ const createValidators: ValidationChain[] = [
   ...senderValidators
 ];
 
-async function preview(request: Request, response: Response) {
-  const { auth, body, params } = request as AuthenticatedRequest;
+async function preview(
+  request: Request<DraftParams, Buffer, DraftPreviewPayloadDTO>,
+  response: Response<Buffer>
+): Promise<void> {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    DraftParams,
+    Buffer,
+    DraftPreviewPayloadDTO
+  >;
 
   const draft = await draftRepository.findOne({
     id: params.id,
@@ -255,7 +269,7 @@ async function preview(request: Request, response: Response) {
     secretAccessKey: config.s3.secretAccessKey
   });
   const logos = await async.map(draft.logo ?? [], async (logo: string) =>
-    getBase64Content(logo, { s3, bucket: config.s3.bucket }),
+    getBase64Content(logo, { s3, bucket: config.s3.bucket })
   );
 
   const signature = draft.sender.signatoryFile
@@ -265,7 +279,7 @@ async function preview(request: Request, response: Response) {
       })
     : null;
   const html = await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
-    subject: draft.subject ?? '',
+    subject: draft.subject,
     logo: logos,
     watermark: true,
     body: draft.body
@@ -273,25 +287,24 @@ async function preview(request: Request, response: Response) {
           housing: body.housing,
           owner: body.owner
         })
-      : '',
+      : null,
     sender: {
-      name: draft.sender.name ?? '',
-      service: draft.sender.service ?? '',
-      firstName: draft.sender.firstName ?? '',
-      lastName: draft.sender.lastName ?? '',
-      address: draft.sender.address ?? '',
-      phone: draft.sender.phone ?? '',
-      signatoryLastName: draft.sender.signatoryLastName ?? '',
-      signatoryFirstName: draft.sender.signatoryFirstName ?? '',
-      signatoryRole: draft.sender.signatoryRole ?? '',
+      name: draft.sender.name,
+      service: draft.sender.service,
+      firstName: draft.sender.firstName,
+      lastName: draft.sender.lastName,
+      address: draft.sender.address,
+      phone: draft.sender.phone,
+      signatoryLastName: draft.sender.signatoryLastName,
+      signatoryFirstName: draft.sender.signatoryFirstName,
+      signatoryRole: draft.sender.signatoryRole,
       signatoryFile: signature
     },
-    writtenAt: draft.writtenAt ?? '',
-    writtenFrom: draft.writtenFrom ?? '',
+    writtenAt: draft.writtenAt,
+    writtenFrom: draft.writtenFrom,
     owner: {
       fullName: body.owner.fullName,
-      address: body.owner.address,
-      additionalAddress: body.owner.additionalAddress
+      address: getAddress(body.owner)
     }
   });
   const finalPDF = await pdf.fromHTML([html]);
@@ -310,7 +323,13 @@ const previewValidators: ValidationChain[] = [
   body('housing.localId').isInt().isLength({ min: 12, max: 12 }),
   body('housing.rawAddress').isArray().isLength({ min: 1 }),
   body('housing.cadastralReference').isString().notEmpty(),
-  body('housing.housingKind').isString().isIn(['MAISON', 'APPART']).notEmpty(),
+  body('housing.housingKind')
+    .isString()
+    .withMessage('Must be a string')
+    .isIn(HOUSING_KIND_VALUES)
+    .withMessage(`Must be one of ${HOUSING_KIND_VALUES.join(', ')}`)
+    .notEmpty()
+    .withMessage('kind is required'),
   body('housing.livingArea').isInt().notEmpty(),
   body('housing.buildingYear').isInt().notEmpty(),
   body('housing.energyConsumption')
@@ -323,16 +342,11 @@ const previewValidators: ValidationChain[] = [
     .isString()
     .notEmpty()
     .withMessage('fullName is required'),
-  body('owner.address').isArray().isLength({ min: 1 }),
-  body('owner.address[*]')
+  body('owner.rawAddress').isArray().isLength({ min: 1 }),
+  body('owner.rawAddress[*]')
     .isString()
     .notEmpty()
-    .withMessage('address is required'),
-  body('owner.additionalAddress')
-    .optional({
-      nullable: true
-    })
-    .isString()
+    .withMessage('address is required')
 ];
 
 async function update(request: Request, response: Response<DraftDTO>) {

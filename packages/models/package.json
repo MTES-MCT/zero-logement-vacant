@@ -8,6 +8,11 @@
     "test": "jest",
     "dev": "nodemon --watch src -e ts --exec 'yarn build'"
   },
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@zerologementvacant/draft": "workspace:*",
+    "lodash": "^4.17.21"
+  },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
     "@types/jest": "^29.5.12",
@@ -19,9 +24,5 @@
     "rimraf": "^5.0.7",
     "ts-jest": "^29.1.3",
     "typescript": "^5.4.5"
-  },
-  "dependencies": {
-    "@faker-js/faker": "^8.4.1",
-    "lodash": "^4.17.21"
   }
 }

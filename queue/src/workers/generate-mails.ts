@@ -121,23 +121,22 @@ export default function createWorker() {
                     })
                   : '',
                 sender: {
-                  name: draft.sender.name ?? '',
-                  service: draft.sender.service ?? '',
-                  firstName: draft.sender.firstName ?? '',
-                  lastName: draft.sender.lastName ?? '',
-                  address: draft.sender.address ?? '',
-                  phone: draft.sender.phone ?? '',
-                  signatoryLastName: draft.sender.signatoryLastName ?? '',
-                  signatoryFirstName: draft.sender.signatoryFirstName ?? '',
-                  signatoryRole: draft.sender.signatoryRole ?? '',
+                  name: draft.sender.name,
+                  service: draft.sender.service,
+                  firstName: draft.sender.firstName,
+                  lastName: draft.sender.lastName,
+                  address: draft.sender.address,
+                  phone: draft.sender.phone,
+                  signatoryLastName: draft.sender.signatoryLastName,
+                  signatoryFirstName: draft.sender.signatoryFirstName,
+                  signatoryRole: draft.sender.signatoryRole,
                   signatoryFile: signature
                 },
-                writtenAt: draft.writtenAt ?? '',
-                writtenFrom: draft.writtenFrom ?? '',
+                writtenAt: draft.writtenAt,
+                writtenFrom: draft.writtenFrom,
                 owner: {
                   fullName: owners[0].fullName,
-                  address: address,
-                  additionalAddress: owners[0].additionalAddress ?? ''
+                  address: address
                 }
               })
             );
@@ -152,9 +151,31 @@ export default function createWorker() {
             .concat('-', slugify(campaign.title));
 
           const archive = archiver('zip');
-          const buffer: ArrayBuffer = await api.campaign.exportCampaign(campaign.id);
-          archive.append(Buffer.from(buffer), { name: `${name}-destinataires.xlsx` });
+          const buffer: ArrayBuffer = await api.campaign.exportCampaign(
+            campaign.id
+          );
+          logger.debug('Campaign exported');
+          archive.append(Buffer.from(buffer), {
+            name: `${name}-destinataires.xlsx`
+          });
           archive.append(finalPDF, { name: `${name}.pdf` });
+
+          archive.on('warning', (error) => {
+            if (error.code === 'ENOENT') {
+              logger.warn(error.message, { error });
+            } else {
+              throw error;
+            }
+          });
+
+          archive.on('error', (error) => {
+            logger.error('Archiver error', { error });
+            throw error;
+          });
+
+          logger.debug('Generated archive', {
+            file: `${name}.zip`
+          });
           const upload = new Upload({
             client: s3,
             params: {
@@ -166,15 +187,30 @@ export default function createWorker() {
               ACL: 'authenticated-read'
             }
           });
-          const results = await Promise.all([
+
+          upload.on('httpUploadProgress', (progress) => {
+            if (progress.loaded && progress.total) {
+              logger.debug('Upload in progress...', {
+                key: progress.Key,
+                bucket: progress.Bucket,
+                loaded: progress.loaded,
+                total: progress.total,
+                percent: `${(progress.loaded / progress.total) * 100} %`
+              });
+            }
+          });
+
+          const [, result] = await Promise.all([
             archive.finalize(),
             upload.done()
           ]);
-          const objectKey = results[1].Key;
+          const { Key } = result;
+
+          logger.info('Uploaded file to S3');
 
           const command = new GetObjectCommand({
             Bucket: config.s3.bucket,
-            Key: objectKey
+            Key: Key
           });
 
           const signedUrl = await getSignedUrl(s3, command, {

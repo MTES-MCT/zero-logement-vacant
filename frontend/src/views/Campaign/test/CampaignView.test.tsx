@@ -117,7 +117,7 @@ describe('Campaign view', () => {
 
     const form = await screen.findByRole('form');
     const name = await within(form).findByLabelText(
-      'Nom de la collectivité ou de l’administration*'
+      /^Nom de la collectivité ou de l’administration/,
     );
     if (sender.name) {
       await user.type(name, sender.name);
@@ -135,28 +135,28 @@ describe('Campaign view', () => {
     const form = await screen.findByRole('form');
     if (sender.name) {
       const name = await within(form).findByLabelText(
-        'Nom de la collectivité ou de l’administration*'
+        /^Nom de la collectivité ou de l’administration/,
       );
       await user.clear(name);
       await user.type(name, sender.name);
     }
     if (sender.service) {
-      const service = await within(form).findByLabelText('Service*');
+      const service = await within(form).findByLabelText('Service');
       await user.clear(service);
       await user.type(service, sender.service);
     }
     if (sender.lastName) {
-      const lastName = await within(form).findByLabelText('Nom*');
+      const lastName = await within(form).findByLabelText('Nom');
       await user.clear(lastName);
       await user.type(lastName, sender.lastName);
     }
     if (sender.firstName) {
-      const firstName = await within(form).findByLabelText('Prénom*');
+      const firstName = await within(form).findByLabelText('Prénom');
       await user.clear(firstName);
       await user.type(firstName, sender.firstName);
     }
     if (sender.address) {
-      const address = await within(form).findByLabelText('Adresse*');
+      const address = await within(form).findByLabelText('Adresse');
       await user.clear(address);
       await user.type(address, sender.address);
     }

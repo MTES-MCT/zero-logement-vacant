@@ -34,6 +34,8 @@ interface DraftQuery {
   campaign?: string;
 }
 
+const transformer = pdf.createTransformer({ logger });
+
 async function list(
   request: Request<never, DraftDTO[], never, DraftQuery>,
   response: Response<DraftDTO[]>
@@ -187,7 +189,7 @@ async function preview(
     throw new DraftMissingError(params.id);
   }
 
-  const html = await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
+  const html = transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
     subject: draft.subject,
     logo: draft.logo?.map((logo) => logo.content) ?? null,
     watermark: true,
@@ -216,7 +218,7 @@ async function preview(
       address: getAddress(body.owner)
     }
   });
-  const finalPDF = await pdf.fromHTML([html]);
+  const finalPDF = await transformer.fromHTML([html]);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
 const previewValidators: ValidationChain[] = [

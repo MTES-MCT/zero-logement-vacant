@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { constants } from 'http2';
+import path from 'node:path';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
@@ -27,6 +28,7 @@ import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
+  FileUploadDTO,
   SenderPayloadDTO
 } from '@zerologementvacant/models';
 import {
@@ -50,11 +52,20 @@ describe('Draft API', () => {
   const anotherEstablishment = genEstablishmentApi();
   const anotherUser = genUserApi(anotherEstablishment.id);
 
+  let logo: FileUploadDTO;
+
   beforeAll(async () => {
     await Establishments().insert(
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert([user, anotherUser].map(formatUserApi));
+
+    const response = await request(app)
+      .post('/api/files')
+      .attach('file', path.join(__dirname, 'test.jpeg'))
+      .use(tokenProvider(user))
+      .expect(constants.HTTP_STATUS_CREATED);
+    logo = response.body;
   });
 
   describe('GET /drafts', () => {
@@ -62,7 +73,12 @@ describe('Draft API', () => {
 
     const sender = genSenderApi(establishment);
     const drafts: DraftApi[] = [
-      ...Array.from({ length: 4 }, () => genDraftApi(establishment, sender)),
+      ...Array.from({ length: 4 }, () => {
+        return {
+          ...genDraftApi(establishment, sender),
+          logo: [logo]
+        };
+      }),
       ...Array.from({ length: 2 }, () =>
         genDraftApi(anotherEstablishment, sender)
       )

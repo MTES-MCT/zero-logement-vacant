@@ -2,7 +2,6 @@ import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import archiver from 'archiver';
-import async from 'async';
 import { Worker, WorkerOptions } from 'bullmq';
 import { parseRedisUrl } from 'parse-redis-url-simple';
 import { Readable } from 'node:stream';
@@ -54,6 +53,7 @@ export default function createWorker() {
     storage
   });
   logger.info('SDK created.');
+  const transformer = pdf.createTransformer({ logger });
 
   return new Worker<Args, Returned, Name>(
     'campaign:generate',
@@ -74,9 +74,7 @@ export default function createWorker() {
               filters: {
                 campaignIds: [payload.campaignId]
               },
-              pagination: {
-                paginate: false
-              }
+              paginate: false
             }),
             api.draft.find({
               filters: {
@@ -90,46 +88,42 @@ export default function createWorker() {
             throw new Error('Draft missing');
           }
 
-          const html: string[] = [];
-
           logger.debug('Generating PDF...');
-          await async.forEachSeries(housings, async (housing) => {
+          const htmls = housings.map((housing) => {
             const address = getAddress(housing.owner);
 
-            html.push(
-              await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
-                subject: draft.subject ?? '',
-                logo: draft.logo?.map((logo) => logo.content) ?? null,
-                watermark: false,
-                body: draft.body
-                  ? replaceVariables(draft.body, {
-                      housing,
-                      owner: housing.owner
-                    })
-                  : '',
-                sender: {
-                  name: draft.sender.name,
-                  service: draft.sender.service,
-                  firstName: draft.sender.firstName,
-                  lastName: draft.sender.lastName,
-                  address: draft.sender.address,
-                  phone: draft.sender.phone,
-                  signatoryLastName: draft.sender.signatoryLastName,
-                  signatoryFirstName: draft.sender.signatoryFirstName,
-                  signatoryRole: draft.sender.signatoryRole,
-                  signatoryFile: draft.sender.signatoryFile?.content ?? null
-                },
-                writtenAt: draft.writtenAt,
-                writtenFrom: draft.writtenFrom,
-                owner: {
-                  fullName: housing.owner.fullName,
-                  address: address
-                }
-              })
-            );
+            return transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
+              subject: draft.subject ?? '',
+              logo: draft.logo?.map((logo) => logo.content) ?? null,
+              watermark: false,
+              body: draft.body
+                ? replaceVariables(draft.body, {
+                    housing,
+                    owner: housing.owner
+                  })
+                : '',
+              sender: {
+                name: draft.sender.name,
+                service: draft.sender.service,
+                firstName: draft.sender.firstName,
+                lastName: draft.sender.lastName,
+                address: draft.sender.address,
+                phone: draft.sender.phone,
+                signatoryLastName: draft.sender.signatoryLastName,
+                signatoryFirstName: draft.sender.signatoryFirstName,
+                signatoryRole: draft.sender.signatoryRole,
+                signatoryFile: draft.sender.signatoryFile?.content ?? null
+              },
+              writtenAt: draft.writtenAt,
+              writtenFrom: draft.writtenFrom,
+              owner: {
+                fullName: housing.owner.fullName,
+                address: address
+              }
+            });
           });
 
-          const finalPDF = await pdf.fromHTML(html);
+          const finalPDF = await transformer.fromHTML(htmls);
           logger.debug('Done writing PDF');
           const name = new Date()
             .toISOString()

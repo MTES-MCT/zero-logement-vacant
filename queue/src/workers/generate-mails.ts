@@ -58,9 +58,8 @@ export default function createWorker() {
   return new Worker<Args, Returned, Name>(
     'campaign:generate',
     async (job) => {
-      return storage.run(
-        { establishment: job.data.establishmentId },
-        async () => {
+      return storage
+        .run({ establishment: job.data.establishmentId }, async () => {
           const payload = job.data;
           logger.info('Generating mail for campaign', job.data);
 
@@ -206,8 +205,15 @@ export default function createWorker() {
           });
 
           return { id: campaign.id };
-        }
-      );
+        })
+        .catch((error) => {
+          logger.error('Campaign archive generation failed', {
+            error: {
+              message: error.message
+            }
+          });
+          throw error;
+        });
     },
     workerConfig
   );

@@ -23,11 +23,15 @@ interface TransformerOptions {
 
 function createTransformer(opts: TransformerOptions) {
   const { logger } = opts;
+  const cache = new Map<string, (data: unknown) => string>();
 
   return {
     compile<T>(template: string, data?: T): string {
-      const compiled = handlebars.compile(template);
-      return compiled(data);
+      const render = cache.get(template) ?? handlebars.compile(template);
+      if (!cache.has(template)) {
+        cache.set(template, render);
+      }
+      return render(data);
     },
     async fromHTML(htmls: string[]): Promise<Buffer> {
       // Launch the browser and open a new blank page

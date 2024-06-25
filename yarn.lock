@@ -7912,13 +7912,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mustache@npm:^4":
-  version: 4.2.5
-  resolution: "@types/mustache@npm:4.2.5"
-  checksum: 10c0/624975c39068d47407eadb89628aaff5ef60f3b7a71eef92a254310896a4e90518a01dcf71d95779ab2c986034a6ca5403d22fea237c67ff87f2e2b3fb794ea6
-  languageName: node
-  linkType: hard
-
 "@types/mute-stream@npm:^0.0.4":
   version: 0.0.4
   resolution: "@types/mute-stream@npm:0.0.4"
@@ -8782,7 +8775,6 @@ __metadata:
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/async": "npm:^3.2.24"
     "@types/jest": "npm:^29.5.12"
-    "@types/mustache": "npm:^4"
     "@types/node": "npm:^20.12.12"
     "@zerologementvacant/utils": "workspace:^"
     async: "npm:^3.2.5"
@@ -8790,7 +8782,6 @@ __metadata:
     handlebars: "npm:^4.7.8"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
-    mustache: "npm:^4.2.0"
     nodemon: "npm:^3.1.0"
     pdf-lib: "npm:^1.17.1"
     puppeteer: "npm:^22.9.0"
@@ -18766,15 +18757,6 @@ __metadata:
   version: 1.0.0
   resolution: "murmurhash-js@npm:1.0.0"
   checksum: 10c0/f8569e16db0ba6f953bf88286e97cf737f1efe97b224e537c9308566ab963a067c7eca5b636fb473d6413c4cc3b79690b78ff7ab0f290e75db91c6fde0df92b4
-  languageName: node
-  linkType: hard
-
-"mustache@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "mustache@npm:4.2.0"
-  bin:
-    mustache: bin/mustache
-  checksum: 10c0/1f8197e8a19e63645a786581d58c41df7853da26702dbc005193e2437c98ca49b255345c173d50c08fe4b4dbb363e53cb655ecc570791f8deb09887248dd34a2
   languageName: node
   linkType: hard
 

@@ -23,7 +23,7 @@ jobs:
 
       # TODO: do not create it if exists
       - name: Create postgres addon
-        run: clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan dev --region par
+        run: clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan xxs_sml --region par
 
       - name: Create redis addon
         run: clever addon create redis-addon $PR_NAME-redis --org $ORGA_ID --plan s_mono --region par

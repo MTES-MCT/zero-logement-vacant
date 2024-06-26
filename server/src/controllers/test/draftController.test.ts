@@ -282,14 +282,7 @@ describe('Draft API', () => {
         id: draft.id,
         subject: faker.lorem.sentence(),
         body: faker.lorem.paragraph(),
-        logo: [
-          {
-            id: faker.string.uuid(),
-            type: 'image/jpeg',
-            url: 'https://example.com/logo.png',
-            content: ''
-          }
-        ],
+        logo: [],
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
         writtenFrom: faker.location.city()

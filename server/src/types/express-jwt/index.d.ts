@@ -20,8 +20,9 @@ declare module 'express-jwt' {
     PathParams extends Record<string, string> = Record<string, string>,
     ResponseBody = any,
     RequestBody = any,
+    RequestQuery = any
   > = MarkRequired<
-    express.Request<PathParams, ResponseBody, RequestBody>,
+    express.Request<PathParams, ResponseBody, RequestBody, RequestQuery>,
     'auth' | 'establishment' | 'user'
   >;
 }

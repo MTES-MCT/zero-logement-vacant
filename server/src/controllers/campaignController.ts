@@ -4,7 +4,7 @@ import campaignHousingRepository from '~/repositories/campaignHousingRepository'
 import {
   CampaignApi,
   CampaignSortableApi,
-  toCampaignDTO,
+  toCampaignDTO
 } from '~/models/CampaignApi';
 import housingRepository from '~/repositories/housingRepository';
 import eventRepository from '~/repositories/eventRepository';
@@ -39,6 +39,8 @@ import {
 } from '@zerologementvacant/models';
 import CampaignStatusError from '~/errors/campaignStatusError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
+import draftRepository from '~/repositories/draftRepository';
+import DraftMissingError from '~/errors/draftMissingError';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -215,7 +217,7 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     createdAt: new Date().toJSON(),
     groupId,
     userId: auth.userId,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   };
   await campaignRepository.save(campaign);
 
@@ -271,12 +273,24 @@ async function update(request: Request, response: Response) {
   const { auth, params } = request as AuthenticatedRequest;
   const body = request.body as CampaignUpdatePayloadDTO;
 
-  const campaign = await campaignRepository.findOne({
-    id: params.id,
-    establishmentId: auth.establishmentId
-  });
+  const [campaign, drafts] = await Promise.all([
+    campaignRepository.findOne({
+      id: params.id,
+      establishmentId: auth.establishmentId
+    }),
+    draftRepository.find({
+      filters: {
+        campaign: params.id,
+        establishment: auth.establishmentId
+      }
+    })
+  ]);
   if (!campaign) {
     throw new CampaignMissingError(params.id);
+  }
+
+  if (drafts.length === 0) {
+    throw new DraftMissingError(params.id);
   }
 
   if (

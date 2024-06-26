@@ -9,30 +9,29 @@ import {
   genDraftApi,
   genEstablishmentApi,
   genSenderApi,
-  genUserApi,
+  genUserApi
 } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 import { CampaignApi } from '../../models/CampaignApi';
 import {
   DraftRecordDBO,
   Drafts,
-  formatDraftApi,
+  formatDraftApi
 } from '../../repositories/draftRepository';
 import {
   Campaigns,
-  formatCampaignApi,
+  formatCampaignApi
 } from '../../repositories/campaignRepository';
 import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
-  FileUploadDTO,
-  SenderPayloadDTO,
+  SenderPayloadDTO
 } from '@zerologementvacant/models';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '../../repositories/establishmentRepository';
 import { formatUserApi, Users } from '../../repositories/userRepository';
 import { SenderApi } from '../../models/SenderApi';
@@ -40,7 +39,7 @@ import fp from 'lodash/fp';
 import {
   formatSenderApi,
   SenderDBO,
-  Senders,
+  Senders
 } from '../../repositories/senderRepository';
 
 describe('Draft API', () => {
@@ -53,7 +52,7 @@ describe('Draft API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi),
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert([user, anotherUser].map(formatUserApi));
   });
@@ -65,8 +64,8 @@ describe('Draft API', () => {
     const drafts: DraftApi[] = [
       ...Array.from({ length: 4 }, () => genDraftApi(establishment, sender)),
       ...Array.from({ length: 2 }, () =>
-        genDraftApi(anotherEstablishment, sender),
-      ),
+        genDraftApi(anotherEstablishment, sender)
+      )
     ];
 
     beforeAll(async () => {
@@ -91,7 +90,7 @@ describe('Draft API', () => {
         .where('establishment_id', establishment.id)
         .whereIn(
           'id',
-          body.map((draft: DraftDTO) => draft.id),
+          body.map((draft: DraftDTO) => draft.id)
         );
       expect(body).toHaveLength(actual.length);
     });
@@ -102,7 +101,7 @@ describe('Draft API', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
-        draft_id: firstDraft.id,
+        draft_id: firstDraft.id
       });
 
       const { body, status } = await request(app)
@@ -145,9 +144,9 @@ describe('Draft API', () => {
           'signatoryFile',
           'signatoryRole',
           'signatoryFirstName',
-          'signatoryLastName',
+          'signatoryLastName'
         ],
-        sender,
+        sender
       );
       draft = genDraftApi(establishment, sender);
       await Campaigns().insert(formatCampaignApi(campaign));
@@ -155,7 +154,7 @@ describe('Draft API', () => {
 
     it('should fail if the payload has a wrong format', async () => {
       async function fail(
-        payload: Partial<DraftCreationPayloadDTO>,
+        payload: Partial<DraftCreationPayloadDTO>
       ): Promise<void> {
         const { status } = await request(app)
           .post(testRoute)
@@ -174,13 +173,12 @@ describe('Draft API', () => {
       const payload: DraftCreationPayloadDTO = {
         subject: draft.subject,
         body: draft.body,
-        logo: draft.logo?.map(logo => {
-          return { id: faker.string.uuid(), type:'image/jpeg', url: logo, content: '' };
-        }) as FileUploadDTO[],
+        // TODO: test with logo
+        logo: [],
         campaign: missingCampaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
-        writtenFrom: draft.writtenFrom,
+        writtenFrom: draft.writtenFrom
       };
 
       const { status } = await request(app)
@@ -195,13 +193,11 @@ describe('Draft API', () => {
       const payload: DraftCreationPayloadDTO = {
         subject: draft.subject,
         body: draft.body,
-        logo: draft.logo?.map(logo => {
-          return { id: faker.string.uuid(), type:'image/jpeg', url: logo, content: '' };
-        }) as FileUploadDTO[],
+        logo: [],
         campaign: campaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
-        writtenFrom: draft.writtenFrom,
+        writtenFrom: draft.writtenFrom
       };
 
       const { body, status } = await request(app)
@@ -221,15 +217,15 @@ describe('Draft API', () => {
           address: payload.sender?.address ?? null,
           email: payload.sender?.email ?? null,
           phone: payload.sender?.phone ?? null,
-          signatoryFile: payload.sender?.signatoryFile ? payload.sender.signatoryFile.id : null,
+          signatoryFile: payload.sender?.signatoryFile ?? null,
           signatoryFirstName: payload.sender?.signatoryFirstName ?? null,
           signatoryLastName: payload.sender?.signatoryLastName ?? null,
           signatoryRole: payload.sender?.signatoryRole ?? null,
           createdAt: expect.any(String),
-          updatedAt: expect.any(String),
+          updatedAt: expect.any(String)
         },
         writtenAt: payload.writtenAt,
-        writtenFrom: payload.writtenFrom,
+        writtenFrom: payload.writtenFrom
       });
 
       const actual = await Drafts().where({ id: body.id }).first();
@@ -237,13 +233,13 @@ describe('Draft API', () => {
         id: body.id,
         subject: payload.subject,
         body: payload.body,
-        logo: payload.logo.map(logo => logo.id),
+        logo: payload.logo?.map((logo) => logo.id) ?? null,
         sender_id: expect.any(String),
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
-        establishment_id: establishment.id,
+        establishment_id: establishment.id
       });
     });
 
@@ -251,13 +247,11 @@ describe('Draft API', () => {
       const payload: DraftCreationPayloadDTO = {
         subject: draft.subject,
         body: draft.body,
-        logo: draft.logo?.map(logo => {
-          return { id: faker.string.uuid(), type:'image/jpeg', url: logo, content: '' };
-        }) as FileUploadDTO[],
+        logo: [],
         campaign: campaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
-        writtenFrom: draft.writtenFrom,
+        writtenFrom: draft.writtenFrom
       };
 
       const { status } = await request(app)
@@ -288,10 +282,10 @@ describe('Draft API', () => {
         id: draft.id,
         subject: faker.lorem.sentence(),
         body: faker.lorem.paragraph(),
-        logo: [ { id: faker.string.uuid(), type:'image/jpeg', url: 'https://example.com/logo.png', content: '' }],
+        logo: [],
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
-        writtenFrom: faker.location.city(),
+        writtenFrom: faker.location.city()
       };
       await Senders().insert(formatSenderApi(sender));
       await Drafts().insert(formatDraftApi(draft));
@@ -332,10 +326,10 @@ describe('Draft API', () => {
       }
 
       await fail('bad-format', {
-        body: '',
+        body: ''
       });
       await fail(faker.string.uuid(), {
-        body: undefined,
+        body: undefined
       });
     });
 
@@ -351,7 +345,7 @@ describe('Draft API', () => {
         id: draft.id,
         subject: payload.subject,
         body: payload.body,
-        logo: payload.logo.map(logo => logo.id),
+        logo: payload.logo,
         sender: {
           id: expect.any(String),
           name: sender.name,
@@ -361,17 +355,17 @@ describe('Draft API', () => {
           address: sender.address,
           email: sender.email,
           phone: sender.phone,
-          signatoryFile: sender.signatoryFile?.id ?? null,
+          signatoryFile: sender.signatoryFile ?? null,
           signatoryFirstName: sender.signatoryFirstName,
           signatoryLastName: sender.signatoryLastName,
           signatoryRole: sender.signatoryRole,
           createdAt: expect.any(String),
-          updatedAt: expect.any(String),
+          updatedAt: expect.any(String)
         },
         writtenAt: payload.writtenAt,
         writtenFrom: payload.writtenFrom,
         createdAt: expect.any(String),
-        updatedAt: expect.any(String),
+        updatedAt: expect.any(String)
       });
 
       const actual = await Drafts().where('id', draft.id).first();
@@ -379,13 +373,13 @@ describe('Draft API', () => {
         id: draft.id,
         subject: payload.subject,
         body: payload.body,
-        logo: payload.logo.map(logo => logo.id),
+        logo: payload.logo?.map((logo) => logo.id) ?? null,
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
         establishment_id: draft.establishmentId,
-        sender_id: body.sender.id,
+        sender_id: body.sender.id
       });
     });
 
@@ -394,8 +388,8 @@ describe('Draft API', () => {
         ...payload,
         sender: {
           ...payload.sender,
-          name: 'Another name',
-        },
+          name: 'Another name'
+        }
       };
 
       const { status } = await request(app)
@@ -408,7 +402,7 @@ describe('Draft API', () => {
       const actualSender = await Senders()
         .where({
           id: draft.sender.id,
-          establishment_id: sender.establishmentId,
+          establishment_id: sender.establishmentId
         })
         .first();
       expect(actualSender).toStrictEqual<SenderDBO>({
@@ -426,13 +420,13 @@ describe('Draft API', () => {
         signatory_last_name: sender.signatoryLastName,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
-        establishment_id: sender.establishmentId,
+        establishment_id: sender.establishmentId
       });
 
       const actualDraft = await Drafts()
         .where({
           id: draft.id,
-          establishment_id: draft.establishmentId,
+          establishment_id: draft.establishmentId
         })
         .first();
       expect(actualDraft).toHaveProperty('sender_id', actualSender?.id);

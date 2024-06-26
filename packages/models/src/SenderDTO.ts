@@ -1,4 +1,4 @@
-import { FileUploadDTO } from "./FileUploadDTO";
+import { FileUploadDTO } from './FileUploadDTO';
 
 export interface SenderDTO {
   id: string;
@@ -12,12 +12,12 @@ export interface SenderDTO {
   signatoryLastName: string | null;
   signatoryFirstName: string | null;
   signatoryRole: string | null;
-  signatoryFile: string | null;
+  signatoryFile: FileUploadDTO | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export type SenderPayloadDTO = Omit<Pick<
+export type SenderPayloadDTO = Pick<
   SenderDTO,
   | 'name'
   | 'service'
@@ -30,4 +30,4 @@ export type SenderPayloadDTO = Omit<Pick<
   | 'signatoryFirstName'
   | 'signatoryRole'
   | 'signatoryFile'
->, 'signatoryFile'> & { signatoryFile: FileUploadDTO | null };
+>;

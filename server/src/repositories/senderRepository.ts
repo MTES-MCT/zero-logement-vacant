@@ -1,7 +1,7 @@
-import { FileUploadDTO } from '@zerologementvacant/models';
 import db, { where } from '~/infra/database';
 import { logger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
+import { download } from '~/controllers/fileRepository';
 
 export const sendersTable = 'senders';
 export const Senders = (transaction = db) =>
@@ -15,7 +15,7 @@ async function findOne(opts: FindOneOptions): Promise<SenderApi | null> {
   logger.debug('Finding sender...', opts);
   const whereOptions = where<FindOneOptions>(
     ['id', 'name', 'establishmentId'],
-    { table: sendersTable },
+    { table: sendersTable }
   );
 
   const sender = await Senders().where(whereOptions(opts)).first();
@@ -44,7 +44,7 @@ async function save(sender: SenderApi): Promise<void> {
       'signatory_first_name',
       'signatory_role',
       'signatory_file',
-      'updated_at',
+      'updated_at'
     ]);
   logger.debug('Saved sender', sender);
 }
@@ -82,10 +82,12 @@ export const formatSenderApi = (sender: SenderApi): SenderDBO => ({
   signatory_file: sender.signatoryFile ? sender.signatoryFile.id : null,
   created_at: new Date(sender.createdAt),
   updated_at: new Date(sender.updatedAt),
-  establishment_id: sender.establishmentId,
+  establishment_id: sender.establishmentId
 });
 
-export const parseSenderApi = (sender: SenderDBO): SenderApi => ({
+export const parseSenderApi = async (
+  sender: SenderDBO
+): Promise<SenderApi> => ({
   id: sender.id,
   name: sender.name,
   service: sender.service,
@@ -97,13 +99,15 @@ export const parseSenderApi = (sender: SenderDBO): SenderApi => ({
   signatoryLastName: sender.signatory_last_name,
   signatoryFirstName: sender.signatory_first_name,
   signatoryRole: sender.signatory_role,
-  signatoryFile: sender.signatory_file ? { id: sender.signatory_file, type: '', url: sender.signatory_file, content: '' } as FileUploadDTO: null,
+  signatoryFile: sender.signatory_file
+    ? await download(sender.signatory_file)
+    : null,
   createdAt: new Date(sender.created_at).toJSON(),
   updatedAt: new Date(sender.updated_at).toJSON(),
-  establishmentId: sender.establishment_id,
+  establishmentId: sender.establishment_id
 });
 
 export default {
   findOne,
-  save,
+  save
 };

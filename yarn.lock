@@ -8773,8 +8773,11 @@ __metadata:
   dependencies:
     "@codegouvfr/react-dsfr": "npm:^1.9.11"
     "@tsconfig/node20": "npm:^20.1.4"
+    "@types/async": "npm:^3.2.24"
     "@types/jest": "npm:^29.5.12"
     "@types/node": "npm:^20.12.12"
+    "@zerologementvacant/utils": "workspace:^"
+    async: "npm:^3.2.5"
     copyfiles: "npm:^2.4.1"
     handlebars: "npm:^4.7.8"
     jest: "npm:^29.7.0"
@@ -9109,7 +9112,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zerologementvacant/utils@workspace:*, @zerologementvacant/utils@workspace:packages/utils":
+"@zerologementvacant/utils@workspace:*, @zerologementvacant/utils@workspace:^, @zerologementvacant/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/utils@workspace:packages/utils"
   dependencies:

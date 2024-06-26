@@ -8,8 +8,8 @@ import { parseRedisUrl } from 'parse-redis-url-simple';
 import { JOBS } from './jobs';
 import config from './config';
 
-export const expressAdapter = new ExpressAdapter();
-expressAdapter.setBasePath('/admin/queues');
+const expressAdapter = new ExpressAdapter();
+expressAdapter.setBasePath('/queues');
 
 const [redis] = parseRedisUrl(config.redis.url);
 
@@ -24,3 +24,5 @@ createBullBoard({
   queues,
   serverAdapter: expressAdapter
 });
+
+export const createDashboard = () => expressAdapter.getRouter();

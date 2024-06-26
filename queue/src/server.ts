@@ -9,7 +9,7 @@ import {
 } from '@zerologementvacant/healthcheck';
 import config from './config';
 import { createLogger } from './logger';
-import { expressAdapter } from './dashboard';
+import { createDashboard } from './dashboard';
 
 function createServer() {
   const app = express();
@@ -29,7 +29,7 @@ function createServer() {
     })
   );
 
-  app.use('/admin/queues', expressAdapter.getRouter());
+  app.use('/queues', createDashboard());
 
   async function start(): Promise<void> {
     const listen = util.promisify((port: number, cb: () => void) => {

@@ -2,6 +2,10 @@ fileignoreconfig:
 - filename: .github/workflows/github-actions.yml
   checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
 - filename: database/*
+- filename: e2e/.env.example
+  checksum: ba8430af256cbcc30675741a00fdba6c682b370db39095eacab6ed04c91b84fa
+- filename: e2e/cypress/support/commands.ts
+  checksum: 3bb7cab7d26c40e046724505a5f6dce90a9528f4f626067282ec1c6e3aa9b263
 - filename: frontend/.env.example
   checksum: 9d59fa5d5a2dd989c2aa9a06cf3ccab007df6a002cb963d63406a12ffbcfca8b
 - filename: frontend/src/components/Draft/DraftBody.tsx

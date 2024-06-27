@@ -98,6 +98,8 @@ fileignoreconfig:
   checksum: 58d7a51800df5447205a0b9c137478c5bb9d456a76cbc96f0407b9eacc676999
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
+- filename: server/src/infra/database/seeds/development/20240627141242_e2e.ts
+  checksum: 3c71e7392f4abecde20f0bd64de6c5e4c0939393524077a93aa61950af28bb9a
 - filename: server/src/routers/unprotected.ts
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
 - filename: server/src/test/testUtils.ts

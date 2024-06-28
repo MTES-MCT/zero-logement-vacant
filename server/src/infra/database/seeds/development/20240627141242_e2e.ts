@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
 
 import {
@@ -22,7 +23,8 @@ import {
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
-import { UserApi, UserRoles } from '~/models/UserApi';
+import { SALT_LENGTH, UserApi, UserRoles } from '~/models/UserApi';
+import config from '~/infra/config';
 
 export async function seed(knex: Knex): Promise<void> {
   const GEO_CODE = '13055';
@@ -38,8 +40,8 @@ export async function seed(knex: Knex): Promise<void> {
   };
   await Establishments(knex).insert(formatEstablishmentApi(establishment));
 
-  const email = 'e2e@beta.gouv.fr';
-  const password = '123QWEasd!';
+  const email = config.e2e.email;
+  const password = await bcrypt.hash(config.e2e.password, SALT_LENGTH);
   await Users(knex).where({ email }).delete();
   const user: UserApi = {
     ...genUserApi(establishment.id),

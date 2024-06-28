@@ -3,17 +3,18 @@ import fp from 'lodash/fp';
 
 import config from '~/infra/database/knexfile';
 import { compact } from '~/utils/object';
+import { Closable } from '~/infra/graceful-shutdown';
 
-const db = knex(config);
+const client = knex(config);
 
 export function notDeleted(builder: Knex.QueryBuilder<{ deleted_at: Date }>) {
   builder.whereNull('deleted_at');
 }
 
 export function likeUnaccent(column: string, query: string) {
-  return db.raw(
+  return client.raw(
     `upper(unaccent(${column})) like '%' || upper(unaccent(?)) || '%'`,
-    query,
+    query
   );
 }
 
@@ -35,9 +36,9 @@ export function where<T>(props: Array<keyof T>, opts?: WhereOptions) {
     compact,
     fp.mapKeys(
       fp.pipe(fp.snakeCase, (key) =>
-        opts?.table ? `${opts?.table}.${key}` : key,
-      ),
-    ),
+        opts?.table ? `${opts?.table}.${key}` : key
+      )
+    )
   );
 }
 
@@ -48,5 +49,12 @@ export function groupBy<T>(props?: Array<keyof T>) {
     }
   };
 }
+
+const db: Closable & typeof client = {
+  ...client,
+  async close(): Promise<void> {
+    await client.destroy();
+  }
+};
 
 export default db;

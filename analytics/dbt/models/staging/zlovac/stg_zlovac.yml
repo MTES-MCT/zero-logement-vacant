@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: stg_zlovac
+    alias: zlovac
+    +schema: stg
+    +enabled: true

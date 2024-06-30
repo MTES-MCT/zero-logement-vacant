@@ -1,0 +1,24 @@
+version: 2
+
+seeds:
+  - name: com_epci_dep_reg
+    config:
+      delimiter: ";"
+  - name: taxe
+    config:
+      delimiter: ";"
+      +quote: '"'
+      +header: true
+      enabled: false
+  - name: nature_juridique
+    config:
+      delimiter: ";"
+      +quote: '"'
+      +header: true
+      enabled: false
+  - name: direction_territoriale
+    config:
+      delimiter: ";"
+  - name: prenom
+    config:
+      delimiter: ","

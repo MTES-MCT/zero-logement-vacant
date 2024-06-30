@@ -1,0 +1,96 @@
+version: 2
+
+sources:
+  - name: airbyte_raw
+    database: AIRBYTE_DATABASE
+    schema: AIRBYTE_SCHEMA
+    tables:
+      - name: FF
+        description: "Table containing data related to airbyte synchronization processes."
+        columns:
+          - name: _AIRBYTE_RAW_ID
+            description: "Unique identifier for the record in raw format."
+          - name: _AIRBYTE_EXTRACTED_AT
+            description: "Timestamp when the data was extracted."
+          - name: _AIRBYTE_META
+            description: "Metadata associated with the data extraction."
+          - name: FF_X
+            description: "Description of what FF_X represents."
+          - name: FF_Y
+            description: "Description of what FF_Y represents."
+          - name: FF_CCTHP
+            description: "Description of what FF_CCTHP represents."
+          - name: FF_CTPDL
+            description: "Description of what FF_CTPDL represents."
+          - name: FF_DNBWC
+            description: "Description of what FF_DNBWC represents."
+          - name: FF_IDBAT
+            description: "Description of what FF_IDBAT represents."
+          - name: FF_IDCOM
+            you_description: "Description of what FF_IDCOM represents."
+          - name: FF_IDPAR
+            description: "Description of what FF_IDPAR represents."
+          - name: FF_IDSEC
+            description: "Description of what FF_IDSEC represents."
+          - name: FF_STOTH
+            description: "Description of what FF_STOTH represents."
+          - name: FF_CCODEP
+            description: "Description of what FF_CCODEP represents."
+          - name: FF_CCOGRM
+            description: "Description of what FF_CCOGRM represents."
+          - name: FF_CCORIV
+            description: "Description of what FF_CCORIV represents."
+          - name: FF_DDENOM
+            description: "Description of what FF_DDENOM represents."
+          - name: FF_DINDIC
+            description: "Description of what FF_DINDIC represents."
+          - name: FF_DNBBAI
+            description: "Description of what FF_DNBBAI represents."
+          - name: FF_DNBDOU
+            description: "Description of what FF_DNBDOU represents."
+          - name: FF_DTELOC
+            description: "Description of what FF_DTELOC represents."
+          - name: FF_DVLTRT
+            description: "Description of what FF_DVLTRT represents."
+          - name: FF_JDATAT
+            description: "Description of what FF_JDATAT represents."
+          - name: FF_NDROIT
+            description: "Description of what FF_NDROIT represents."
+          - name: FF_SLOCAL
+            description: "Description of what FF_SLOCAL represents."
+          - name: FFH_CCTHP
+            description: "Description of what FFH_CCTHP represents."
+          - name: FF_CATPRO2
+            description: "Description of what FF_CATPRO2 represents."
+          - name: FF_CATPRO3
+            description: "Description of what FF_CATPRO3 represents."
+          - name: FF_DCAPEC2
+            description: "Description of what FF_DCAPEC2 represents."
+          - name: FF_DNVOIRI
+            description: "Description of what FF_DNVOIRI represents."
+          - name: FF_DVOILIB
+            description: "Description of what FF_DVOILIB represents."
+          - name: FF_GEOMLOC
+            description: "Description of what FF_GEOMLOC represents."
+          - name: FF_IDLOCAL
+            description: "Description of what FF_IDLOCAL represents."
+          - name: FF_JANNATH
+            description: "Description of what FF_JANNATH represents."
+          - name: FF_JDATNSS
+            description: "Description of what FF_JDATNSS represents."
+          - name: FF_LOCPROP
+            description: "Description of what FF_LOCPROP represents."
+          - name: FFH_JDATAT
+            description: "Description of what FFH_JDATAT represents."
+          - name: FF_MILLESIME
+            description: "Description of what FF_MILLESIME represents."
+          - name: FF_NPIECE_P2
+            description: "Description of what FF_NPIECE_P2 represents."
+          - name: FF_CATPRO2TXT
+            description: "Description of what FF_CATPRO2TXT represents."
+          - name: FF_PROBA_RPRS
+            description: "Description of what FF_PROBA_RPRS represents."
+          - name: _AB_SOURCE_FILE_URL
+            description: "URL of the source file for the record."
+          - name: _AB_SOURCE_FILE_LAST_MODIFIED
+            description: "Timestamp when the source file was last modified."

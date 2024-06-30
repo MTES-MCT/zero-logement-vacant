@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: stg_production_events
+    +enabled: false

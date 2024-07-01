@@ -6,6 +6,8 @@ fileignoreconfig:
 - filename: database/*
 - filename: e2e/.env.example
   checksum: 7afa05e3b64d40c9351b2a60f4ae70887b9c44d66b152c67f7d53b3d4956c93c
+- filename: e2e/README.md
+  checksum: 5f1410c6dd14683c4cb1185cfa8ef4a6018f587abc11b95ea23febcd203d3dee
 - filename: e2e/cypress/e2e/log-in.cy.ts
   checksum: 5bae716e922600e1360d1b732cd4f0983b2deb3d012ca3bfbf450a4dac02f583
 - filename: e2e/cypress/support/commands.ts

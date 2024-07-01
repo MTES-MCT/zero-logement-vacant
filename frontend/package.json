@@ -21,7 +21,7 @@
     ]
   },
   "dependencies": {
-    "@codegouvfr/react-dsfr": "1.9.17",
+    "@codegouvfr/react-dsfr": "^1.9.20",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@faker-js/faker": "^8.4.1",

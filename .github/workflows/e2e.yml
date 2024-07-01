@@ -20,14 +20,21 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Cypress run
-        uses: cypress-io/github-action@v6
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+
+      - run: yarn --version
+
+      - name: Install
+        run: yarn --immutable
+
+      - name: Run cypress tests
+        run: yarn workspace @zerologementvacant/e2e start
         env:
-          CYPRESS_API: ${{ secrets.API_HOST }}
-          CYPRESS_BASE_URL: ${{ secrets.HOST }}
+          CYPRESS_API: ${{ vars.API_HOST }}
+          CYPRESS_BASE_URL: ${{ vars.HOST }}
           CYPRESS_EMAIL: ${{ secrets.CYPRESS_EMAIL }}
           CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
-        with:
-          working-directory: e2e
-          build: false
-          start: yarn cypress run

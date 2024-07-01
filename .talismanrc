@@ -1,7 +1,17 @@
 fileignoreconfig:
+- filename: .github/workflows/e2e.yml
+  checksum: 1994a562d1d57521c10078640cd49fdccf7b3baecbaf46f3ed383ada996b5c90
 - filename: .github/workflows/github-actions.yml
   checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
 - filename: database/*
+- filename: e2e/.env.example
+  checksum: 7afa05e3b64d40c9351b2a60f4ae70887b9c44d66b152c67f7d53b3d4956c93c
+- filename: e2e/README.md
+  checksum: 5f1410c6dd14683c4cb1185cfa8ef4a6018f587abc11b95ea23febcd203d3dee
+- filename: e2e/cypress/e2e/log-in.cy.ts
+  checksum: 5bae716e922600e1360d1b732cd4f0983b2deb3d012ca3bfbf450a4dac02f583
+- filename: e2e/cypress/support/commands.ts
+  checksum: 3bb7cab7d26c40e046724505a5f6dce90a9528f4f626067282ec1c6e3aa9b263
 - filename: frontend/.env.example
   checksum: 9d59fa5d5a2dd989c2aa9a06cf3ccab007df6a002cb963d63406a12ffbcfca8b
 - filename: frontend/src/components/Draft/DraftBody.tsx
@@ -72,6 +82,8 @@ fileignoreconfig:
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
   checksum: 43ae28ea84ab99eab1324356419de4ade2c83b0a70ae999f3d79fea8303a6a3c
+- filename: server/.env.example
+  checksum: 6fc854a30e8083849e3dadea2bed87d1c67a5bf70e702e2e0fa0b93ecf3c98cf
 - filename: server/controllers/draftController.ts
   checksum: 3627d5cc7172a79998517e1982424462c61116e248e5b6bd29aced81470113e6
 - filename: server/repositories/campaignRepository.ts
@@ -92,6 +104,8 @@ fileignoreconfig:
   checksum: 58d7a51800df5447205a0b9c137478c5bb9d456a76cbc96f0407b9eacc676999
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
+- filename: server/src/infra/database/seeds/development/20240627141242_e2e.ts
+  checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
 - filename: server/src/routers/unprotected.ts
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
 - filename: server/src/test/testUtils.ts

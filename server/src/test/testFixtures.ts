@@ -288,7 +288,7 @@ export const genHousingApi = (
     buildingYear: faker.date.past().getUTCFullYear(),
     taxed: false,
     vacancyReasons: [],
-    dataYears: [2022],
+    dataYears: [new Date().getUTCFullYear() - 1],
     buildingLocation: randomstring.generate(),
     ownershipKind: OwnershipKindsApi.Single,
     status: HousingStatusApi.NeverContacted,

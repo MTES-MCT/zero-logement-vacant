@@ -1,4 +1,4 @@
-# zero-logement-vacant
+# zero-logement-vacant IGEDD
 
 [Fiche produit](https://beta.gouv.fr/startups/zero-logement-vacant.html)
 
@@ -7,7 +7,7 @@
 ### Prérequis
 
 * node
-* npm 
+* npm
 * serveur Postgres (sur macOS, possible d'utiliser [postgresapp](https://postgresapp.com>))
 * commande psql dans le PATH (pour le chargement des données)
 * serveur mail (par exemple [mailDev](https://github.com/maildev/maildev))
@@ -16,7 +16,7 @@
 
 Créer une base de données vide pour l'application (par exemple `zlv`) et une autre pour les tests (par exemple `test_zlv`).
 
-La création des tables et autres structures SQL se fera automatiquement lors du lancement de l'application via les migrations [KnexJS](http://knexjs.org/#Migrations) contenues dans le répertoire `/database/migrations` 
+La création des tables et autres structures SQL se fera automatiquement lors du lancement de l'application via les migrations [KnexJS](http://knexjs.org/#Migrations) contenues dans le répertoire `/database/migrations`
 
 ### Installation de Postgres avec Docker
 

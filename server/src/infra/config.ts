@@ -71,8 +71,8 @@ interface Config {
     };
   };
   e2e: {
-    email: string;
-    password: string;
+    email: string | null;
+    password: string | null;
   };
   log: {
     level: LogLevel;
@@ -247,14 +247,14 @@ const config = convict<Config>({
       format: 'email',
       sensitive: true,
       default: null,
-      nullable: false
+      nullable: true
     },
     password: {
       env: 'E2E_PASSWORD',
       format: String,
       sensitive: true,
       default: null,
-      nullable: false
+      nullable: true
     }
   },
   log: {

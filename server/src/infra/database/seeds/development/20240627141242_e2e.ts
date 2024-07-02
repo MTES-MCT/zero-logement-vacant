@@ -27,6 +27,10 @@ import { SALT_LENGTH, UserApi, UserRoles } from '~/models/UserApi';
 import config from '~/infra/config';
 
 export async function seed(knex: Knex): Promise<void> {
+  if (!config.e2e.email || !config.e2e.password) {
+    throw new Error('You must provide E2E_EMAIL and E2E_PASSWORD');
+  }
+
   const GEO_CODE = '13055';
 
   await Establishments()

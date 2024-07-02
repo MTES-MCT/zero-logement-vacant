@@ -52,7 +52,7 @@ jobs:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
       - name: Build
-        run: yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apt run build
+        run: yarn build
         env:
           CEREMA_TOKEN: token
           DISABLE_ESLINT_PLUGIN: true

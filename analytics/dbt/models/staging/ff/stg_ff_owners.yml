@@ -1,0 +1,7 @@
+version: 2
+
+
+models:
+  - name: stg_ff_owners
+    +enabled: false
+    

@@ -1,8 +1,9 @@
-import { Col, Icon, Row, Text, Title } from '../_dsfr';
+import { Col, Icon, Row, Text } from '../_dsfr';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';
 import LocalityTaxEditionModal from '../modals/LocalityTaxEditionModal/LocalityTaxEditionModal';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   locality: Locality;
@@ -40,9 +41,9 @@ function LocalityTaxesCard({ locality, onEdit, isPublicDisplay }: Props) {
               </Col>
             </Row>
           )}
-          <Title as="h2" look="h6" spacing="mb-0">
+          <Typography component="h2" variant="h6" mb={0}>
             {locality.name}
-          </Title>
+          </Typography>
         </>
       }
       desc={

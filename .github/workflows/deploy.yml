@@ -6,11 +6,20 @@ on:
       app:
         type: string
         required: true
+        description: The app name registered on Clever Cloud
+      alias:
+        type: string
+        required: true
         description: The app alias registered on Clever Cloud
       branch:
         type: string
         required: true
         description: The branch to deploy
+      environment:
+        type: string
+        required: false
+        description: The environment to deploy
+
     secrets:
       CLEVER_SECRET:
         required: true
@@ -25,6 +34,9 @@ on:
 jobs:
   deploy:
     if: ${{ github.ref_name == inputs.branch }}
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ vars.HOST }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -42,4 +54,5 @@ jobs:
           CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
           ORGA_ID: ${{ secrets.CLEVER_ORG }}
         run: |
-          clever deploy --alias ${{ inputs.app }}
+          clever link --org $ORGA_ID --alias ${{ inputs.alias }} '${{ inputs.app }}'
+          clever deploy --alias ${{ inputs.alias }}

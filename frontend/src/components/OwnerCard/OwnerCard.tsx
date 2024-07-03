@@ -1,11 +1,11 @@
-import { Icon, Text, Title } from '../_dsfr';
+import { Icon, Text } from '../_dsfr';
 import { ReactNode } from 'react';
 
 import {
   getHousingOwnerRankLabel,
   HousingOwner,
   isHousingOwner,
-  Owner,
+  Owner
 } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
@@ -16,6 +16,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import classNames from 'classnames';
 import Notice from '@codegouvfr/react-dsfr/Notice';
 import { isBanEligible } from '../../models/Address';
+import Typography from '@mui/material/Typography';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -32,9 +33,9 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
       title={
         <>
           {modify}
-          <Title as="h1" look="h4" spacing="mb-0" data-testid="fullName">
+          <Typography component="h1" variant="h4" mb={0} data-testid="fullName">
             {owner.fullName}
-          </Title>
+          </Typography>
         </>
       }
       desc={
@@ -50,7 +51,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               title="Voir tous ses logements"
               priority="secondary"
               linkProps={{
-                to: `/proprietaires/${owner.id}`,
+                to: `/proprietaires/${owner.id}`
               }}
               className={styles.housingBouton}
             >
@@ -59,14 +60,14 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
           )}
 
           <div className="bg-975 fr-my-3w fr-px-2w fr-py-2w">
-            <Title
-              as="h2"
-              look="h6"
-              spacing="mb-1w"
+            <Typography
+              component="h2"
+              variant="h6"
+              mb={1}
               className={styles.titleInline}
             >
               Coordonnées du propriétaire
-            </Title>
+            </Typography>
             <hr />
             <div>
               <Text size="sm" className="zlv-label">
@@ -77,7 +78,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                 <br />
                 {owner.banAddress?.postalCode} {owner.banAddress?.city}
                 {[owner, ...(coOwners ?? [])].find(
-                  (owner) => !isBanEligible(owner.banAddress),
+                  (owner) => !isBanEligible(owner.banAddress)
                 ) && (
                   <Notice
                     className={classNames(styles.addressNotice, 'fr-mt-2w')}
@@ -124,21 +125,21 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
           </div>
           {coOwners && coOwners.length > 0 && (
             <>
-              <Title as="h2" look="h6" spacing="mb-1w">
+              <Typography component="h2" variant="h6" mb={1}>
                 Autres propriétaires ({coOwners.length})
-              </Title>
+              </Typography>
               <hr />
               {coOwners.map((housingOwner) => (
                 <Card
                   enlargeLink
                   key={'owner_' + housingOwner.rank}
                   linkProps={{
-                    to: '/proprietaires/' + housingOwner.id,
+                    to: '/proprietaires/' + housingOwner.id
                   }}
                   className={classNames(
                     'fr-mb-1w',
                     styles.coOwnerCard,
-                    'app-card-xs',
+                    'app-card-xs'
                   )}
                   title={
                     <>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { Col, Row, Text, Title } from '../../components/_dsfr';
+import { Col, Row, Text } from '../../components/_dsfr';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import LocalityTaxCard from '../../components/LocalityTaxesCard/LocalityTaxesCard';
 import { useLocalityList } from '../../hooks/useLocalityList';
@@ -9,12 +9,13 @@ import { Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
 
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import AppHelp from '../../components/_app/AppHelp/AppHelp';
 import { useUpdateLocalityTaxMutation } from '../../services/locality.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Tag from '@codegouvfr/react-dsfr/Tag';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   establishmentId: string;
@@ -25,7 +26,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
 
   const [
     updateLocalityTax,
-    { isSuccess: isUpdateSuccess, isError: isUpdateError },
+    { isSuccess: isUpdateSuccess, isError: isUpdateError }
   ] = useUpdateLocalityTaxMutation();
 
   const { localities, filterCount } = useLocalityList(establishmentId);
@@ -44,35 +45,39 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
           (locality) =>
             (hasTLVFilter && locality.taxKind === TaxKinds.TLV) ||
             (hasTHLVFilter && locality.taxKind === TaxKinds.THLV) ||
-            (hasNoTaxFilter && locality.taxKind === TaxKinds.None),
-        ),
+            (hasNoTaxFilter && locality.taxKind === TaxKinds.None)
+        )
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxFilter],
+    [localities, hasTLVFilter, hasTHLVFilter, hasNoTaxFilter]
   );
 
   const onSubmitEditingLocalityTax = (
     geoCode: string,
     taxKind: TaxKinds,
-    taxRate?: number,
+    taxRate?: number
   ) => {
     trackEvent({
       category: TrackEventCategories.LocalityTaxes,
-      action: TrackEventActions.LocalityTaxes.Update,
+      action: TrackEventActions.LocalityTaxes.Update
     });
     updateLocalityTax({
       geoCode,
       taxKind,
-      taxRate,
+      taxRate
     });
   };
 
   return (
     <>
-      <Title look="h5" as="h2" className="d-inline-block fr-mr-2w">
+      <Typography
+        variant="h5"
+        component="h2"
+        className="d-inline-block fr-mr-2w"
+      >
         Taxes sur les logements vacants
-      </Title>
+      </Typography>
       <AppHelp className="d-inline-block bg-white">
         Informations publiées par défaut
       </AppHelp>
@@ -99,7 +104,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
           small
           pressed={hasTLVFilter}
           nativeButtonProps={{
-            onClick: () => setHasTLVFilter(!hasTLVFilter),
+            onClick: () => setHasTLVFilter(!hasTLVFilter)
           }}
         >
           {TaxKindsLabels[TaxKinds.TLV]} (
@@ -109,7 +114,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
           small
           pressed={hasTHLVFilter}
           nativeButtonProps={{
-            onClick: () => setHasTHLVFilter(!hasTHLVFilter),
+            onClick: () => setHasTHLVFilter(!hasTHLVFilter)
           }}
         >
           {TaxKindsLabels[TaxKinds.THLV]} (
@@ -119,7 +124,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
           small
           pressed={hasNoTaxFilter}
           nativeButtonProps={{
-            onClick: () => setHasNoTaxFilter(!hasNoTaxFilter),
+            onClick: () => setHasNoTaxFilter(!hasNoTaxFilter)
           }}
         >
           {TaxKindsLabels[TaxKinds.None]} (

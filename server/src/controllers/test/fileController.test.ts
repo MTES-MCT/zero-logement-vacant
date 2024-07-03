@@ -33,6 +33,7 @@ describe('File API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toStrictEqual({
+        content: expect.stringMatching(/^data:([^;]+);/),
         id: expect.any(String),
         type: 'image/jpeg',
         url: expect.any(String),

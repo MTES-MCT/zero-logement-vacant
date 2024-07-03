@@ -1,4 +1,4 @@
-import pino from 'pino';
+import pino, { LoggerOptions as PinoLoggerOptions } from 'pino';
 import { LogLevel } from './log-level';
 
 interface LoggerOptions {
@@ -22,12 +22,15 @@ export interface Logger {
 
 export function createLogger(name: string, opts: LoggerOptions): Logger {
   const level = opts.level ?? LogLevel.DEBUG;
-  const logger = pino({
+  const developmentOptions: PinoLoggerOptions = {
     transport: {
-      target: 'pino-pretty',
-    },
+      target: 'pino-pretty'
+    }
+  };
+  const logger = pino({
+    ...(opts.isProduction ? {} : developmentOptions),
     name,
-    level,
+    level
   });
 
   return {
@@ -35,7 +38,7 @@ export function createLogger(name: string, opts: LoggerOptions): Logger {
     debug: toPinoLogFn(logger.debug.bind(logger)),
     info: toPinoLogFn(logger.info.bind(logger)),
     warn: toPinoLogFn(logger.warn.bind(logger)),
-    error: toPinoLogFn(logger.error.bind(logger)),
+    error: toPinoLogFn(logger.error.bind(logger))
   };
 }
 

@@ -16,8 +16,13 @@ declare global {
 }
 
 declare module 'express-jwt' {
-  type AuthenticatedRequest = MarkRequired<
-    express.Request,
+  type AuthenticatedRequest<
+    PathParams extends Record<string, string> = Record<string, string>,
+    ResponseBody = any,
+    RequestBody = any,
+    RequestQuery = any
+  > = MarkRequired<
+    express.Request<PathParams, ResponseBody, RequestBody, RequestQuery>,
     'auth' | 'establishment' | 'user'
   >;
 }

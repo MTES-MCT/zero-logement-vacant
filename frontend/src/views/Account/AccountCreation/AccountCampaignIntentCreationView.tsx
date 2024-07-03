@@ -2,7 +2,7 @@ import { FormEvent, useMemo, useState } from 'react';
 import { Location } from 'history';
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
-import { Row, Title } from '../../../components/_dsfr';
+import { Row } from '../../../components/_dsfr';
 import AppHelp from '../../../components/_app/AppHelp/AppHelp';
 import CampaignIntent from '../../../components/CampaignIntent/CampaignIntent';
 import { Redirect, useHistory } from 'react-router-dom';
@@ -16,8 +16,9 @@ import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../../models/TrackEvent';
+import Typography from '@mui/material/Typography';
 
 interface State {
   prospect: Prospect;
@@ -33,7 +34,7 @@ function AccountCampaignIntentCreationView() {
   const password = location.state?.password;
 
   const [campaignIntent, setCampaignIntent] = useState<string | undefined>(
-    prospect?.establishment?.campaignIntent,
+    prospect?.establishment?.campaignIntent
   );
 
   const [createUser] = useCreateUserMutation();
@@ -42,15 +43,15 @@ function AccountCampaignIntentCreationView() {
     campaignIntent: yup
       .string()
       .required('Veuillez sélectionner une valeur')
-      .oneOf(['0-2', '2-4', '4+']),
+      .oneOf(['0-2', '2-4', '4+'])
   });
   const { validate, message, messageType } = useForm(schema, {
-    campaignIntent,
+    campaignIntent
   });
 
   const disabled = useMemo<boolean>(
     () => !!prospect?.establishment?.campaignIntent,
-    [prospect?.establishment?.campaignIntent],
+    [prospect?.establishment?.campaignIntent]
   );
 
   async function createAccount(e: FormEvent) {
@@ -62,11 +63,11 @@ function AccountCampaignIntentCreationView() {
           email: prospect.email,
           password,
           establishmentId: prospect.establishment.id,
-          campaignIntent,
+          campaignIntent
         });
         trackEvent({
           category: TrackEventCategories.AccountCreation,
-          action: TrackEventActions.AccountCreation.SubmitCampaignIntent,
+          action: TrackEventActions.AccountCreation.SubmitCampaignIntent
         });
         dispatch(login(prospect.email, password, prospect.establishment.id));
       }
@@ -76,8 +77,8 @@ function AccountCampaignIntentCreationView() {
   const back: Partial<Location> = {
     pathname: '/inscription/mot-de-passe',
     state: {
-      prospect,
-    },
+      prospect
+    }
   };
 
   if (!location.state || !prospect || !password) {
@@ -91,10 +92,10 @@ function AccountCampaignIntentCreationView() {
         currentStep={3}
         title="Vos intentions de campagne"
       />
-      <Title as="h5">
+      <Typography variant="h5" mb={3}>
         Quand prévoyez-vous de contacter des propriétaires de logements vacants
         ?
-      </Title>
+      </Typography>
       {disabled && (
         <AppHelp className="fr-mb-2w">
           Un agent de votre collectivité a déjà indiqué les intentions de

@@ -7,6 +7,7 @@
   },
   "packageManager": "yarn@4.2.2+sha256.1aa43a5304405be7a7cb9cb5de7b97de9c4e8ddd3273e4dad00d6ae3eb39f0ef",
   "workspaces": [
+    "e2e",
     "frontend",
     "queue",
     "server",
@@ -15,8 +16,8 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "clean": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Ap run clean",
-    "build": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apt run build",
+    "clean": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Api run clean",
+    "build": "yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apit run build",
     "lint": "eslint .",
     "test": "yarn workspaces foreach --exclude=. -Ap run test"
   },
@@ -45,9 +46,5 @@
     "ts-node": "^10.9.2",
     "type-fest": "^3.13.1",
     "typescript": "^5.4.5"
-  },
-  "dependencies": {
-    "pg": "^8.11.5",
-    "pg-query-stream": "^4.5.5"
   }
 }

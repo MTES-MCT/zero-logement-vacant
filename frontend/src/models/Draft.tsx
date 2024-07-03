@@ -1,7 +1,8 @@
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
-  DraftUpdatePayloadDTO,
+  DraftPreviewPayloadDTO,
+  DraftUpdatePayloadDTO
 } from '@zerologementvacant/models';
 import { SenderPayload } from './Sender';
 import { DeepNonNullable } from 'ts-essentials';
@@ -9,8 +10,12 @@ import { DeepNonNullable } from 'ts-essentials';
 export interface Draft extends DraftDTO {}
 
 export interface DraftCreationPayload
-  extends DeepNonNullable<DraftCreationPayloadDTO> {
-  sender: DeepNonNullable<SenderPayload>;
+  extends DeepNonNullable<Omit<DraftCreationPayloadDTO, 'logo' | 'sender'>>,
+    Pick<DraftCreationPayloadDTO, 'logo'> {
+  sender: DeepNonNullable<Omit<SenderPayload, 'signatoryFile'>> &
+    Pick<SenderPayload, 'signatoryFile'>;
 }
 
 export type DraftUpdatePayload = DeepNonNullable<DraftUpdatePayloadDTO>;
+
+export type DraftPreviewPayload = DraftPreviewPayloadDTO;

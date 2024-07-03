@@ -1,4 +1,4 @@
-import { Col, Row, Text, Title } from '../../components/_dsfr';
+import { Col, Row, Text } from '../../components/_dsfr';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUser } from '../../hooks/useUser';
 import { useGetUserAccountQuery } from '../../services/user-account.service';
@@ -6,6 +6,7 @@ import AccountSideMenu from './AccountSideMenu';
 import AccountForm from './AccountForm';
 import Card from '@codegouvfr/react-dsfr/Card';
 import MainContainer from '../../components/MainContainer/MainContainer';
+import Typography from '@mui/material/Typography';
 
 const AccountView = () => {
   useDocumentTitle('Votre profil');
@@ -30,9 +31,9 @@ const AccountView = () => {
             size="small"
             className="fr-px-3w fr-py-2w"
             title={
-              <Title as="h1" look="h4" spacing="mb-0">
+              <Typography component="h1" variant="h4" mb={0}>
                 Gérer votre profil
-              </Title>
+              </Typography>
             }
             desc={
               <div>

@@ -5,6 +5,19 @@ fileignoreconfig:
   checksum: 6c96f42e9b3e385937bcdf103bcc02b97cc2002ff3f6086ad208c1b16e754647
 - filename: .github/workflows/review-app.yml
   checksum: 632dba1dc6c13a8f3dd1d8a31fa7be20ceceae67af009c3c7d1f28a64ac05d3f
+- filename: .github/workflows/e2e.yml
+  checksum: 1994a562d1d57521c10078640cd49fdccf7b3baecbaf46f3ed383ada996b5c90
+- filename: .github/workflows/github-actions.yml
+  checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
+- filename: database/*
+- filename: e2e/.env.example
+  checksum: 7afa05e3b64d40c9351b2a60f4ae70887b9c44d66b152c67f7d53b3d4956c93c
+- filename: e2e/README.md
+  checksum: 5f1410c6dd14683c4cb1185cfa8ef4a6018f587abc11b95ea23febcd203d3dee
+- filename: e2e/cypress/e2e/log-in.cy.ts
+  checksum: 5bae716e922600e1360d1b732cd4f0983b2deb3d012ca3bfbf450a4dac02f583
+- filename: e2e/cypress/support/commands.ts
+  checksum: 3bb7cab7d26c40e046724505a5f6dce90a9528f4f626067282ec1c6e3aa9b263
 - filename: frontend/.env.example
   checksum: 9d59fa5d5a2dd989c2aa9a06cf3ccab007df6a002cb963d63406a12ffbcfca8b
 - filename: package.json
@@ -39,6 +52,10 @@ fileignoreconfig:
   checksum: 6d16b338e7203dc37f64b3e00e4da0365dc35461e5c776853b55243509e3d9b9
 - filename: frontend/src/hooks/useSort.tsx
   checksum: ab84c274637d24aa7f18456c2bb32f39802d5e3afe700a052ece484a1eec46a6
+- filename: frontend/src/views/Account/AccountPasswordView.tsx
+  checksum: 0376180bebb491936522b58a6b371356c9f5ee28eb24cbdf6b2fe5029c8e4474
+- filename: frontend/src/views/Account/ResetPasswordView.tsx
+  checksum: 262081940e8203058817da7fe4b7c302cd0296afeebf6938a5b805528506226a
 - filename: frontend/src/views/Campaign/CampaignListView.tsx
   checksum: a9dcff1f35295ed617ba50e44cc95c57c63130e80a43e9303c20f160c3b3165d
 - filename: frontend/src/views/Login/LoginView.test.tsx
@@ -65,6 +82,8 @@ fileignoreconfig:
   checksum: 45473f39f4b07b3a33b6138a7e6fc3268690b59439d9f539eb1ce2c1abd430dc
 - filename: packages/schemas/src/password.ts
   checksum: 716d8d646fd8a00af8d4225e15190810f9e8ab082fbb14e7430be109fa676611
+- filename: packages/utils/src/s3.ts
+  checksum: 3270d7c99620a1dd53f1e1a90c24ba12b2b0b090969c498fbe739776f832029a
 - filename: queue/.env.example
   checksum: df71affe33700cb0a36ee0b4824ef60e7d8e5a08f3d4d16ca53c31e9085b45ae
 - filename: queue/README.md
@@ -78,19 +97,33 @@ fileignoreconfig:
 - filename: queue/src/queue.ts
   checksum: 17c890af8ba6ba90687468438e4615958c5604157ed86904c8c49d6bdaf98ee9
 - filename: queue/src/workers/generate-mails.ts
-  checksum: 41da3e10d379e478b7083d1588b78219ed02fcdde1fe913afeecbd37981bc268
+  checksum: 43ae28ea84ab99eab1324356419de4ade2c83b0a70ae999f3d79fea8303a6a3c
+- filename: server/.env.example
+  checksum: 6fc854a30e8083849e3dadea2bed87d1c67a5bf70e702e2e0fa0b93ecf3c98cf
 - filename: server/controllers/draftController.ts
   checksum: 3627d5cc7172a79998517e1982424462c61116e248e5b6bd29aced81470113e6
 - filename: server/repositories/campaignRepository.ts
   checksum: ab0dcf6bbf41a911aef0755c619c92d18bd04dc651c6ecaf8b1c53ffd5a82309
 - filename: server/services/mailService/brevoService.ts
   checksum: ce84d57e61bfdf4168938e114113005b0961659ea299a3871415ade48ba7b310
+- filename: server/src/controllers/draftController.ts
+  checksum: b20a3159d29f2a0964c58d2befc040ef4f553ece130067316e651730c6c97d5b
+- filename: server/src/controllers/fileController.ts
+  checksum: 72d31c3e49e4dbee18222e61e0a5bb48da755cefa2a8d7fa2d9f1a153290279e
+- filename: server/src/controllers/fileRepository.ts
+  checksum: 4387143e5ef9cfb0a7168f63e361fcad10dfef5309e933d9b37c0ce89099d35a
+- filename: server/src/controllers/housingExportController.ts
+  checksum: 41b6d72c503240edea923accce36af8548aa859d3494560eec003bac2c5ab4d5
 - filename: server/src/index.ts
   checksum: 88aec4113a92083b1401a101a673a2cf4457345c258bb8572dccbc713d22a94c
+- filename: server/src/infra/config.ts
+  checksum: 19f56261b2c4fee3c9968934ab851df11ec7c002293a4d1886d7707a373e5e33
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
-  checksum: 875d4c93a998a6ed9c35a905816b599d086da095406c0e282474e8239a7efc94
+  checksum: 58d7a51800df5447205a0b9c137478c5bb9d456a76cbc96f0407b9eacc676999
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
+- filename: server/src/infra/database/seeds/development/20240627141242_e2e.ts
+  checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
 - filename: server/src/routers/unprotected.ts
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
 - filename: server/src/test/testUtils.ts
@@ -103,10 +136,5 @@ scopeconfig:
 - scope: node
 allowed_patterns:
 - key=\{.+\}
-version: "1.0"
-9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
+- keyof
 version: "1.0"

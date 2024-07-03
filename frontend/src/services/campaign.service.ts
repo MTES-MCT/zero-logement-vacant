@@ -148,6 +148,7 @@ const getExportURL = (campaignId: string) => {
 export const {
   useFindCampaignsQuery,
   useGetCampaignQuery,
+  useLazyGetCampaignQuery,
   useUpdateCampaignMutation,
   useRemoveCampaignHousingMutation,
   useRemoveCampaignMutation,

@@ -1,3 +1,5 @@
+import { FileUploadDTO } from './FileUploadDTO';
+
 export interface SenderDTO {
   id: string;
   name: string | null;
@@ -10,7 +12,7 @@ export interface SenderDTO {
   signatoryLastName: string | null;
   signatoryFirstName: string | null;
   signatoryRole: string | null;
-  signatoryFile: string | null;
+  signatoryFile: FileUploadDTO | null;
   createdAt: string;
   updatedAt: string;
 }

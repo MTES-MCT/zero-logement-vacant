@@ -1,3 +1,6 @@
+dagster-dbt
+dbt-duckdb
+
 matplotlib
 pandas
 requests

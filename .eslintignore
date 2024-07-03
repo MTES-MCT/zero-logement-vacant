@@ -1,6 +1,7 @@
 build/
 dist/
 frontend/src/components/_dsfr/
+frontend/jest.polyfills.js
 node_modules/
 public/
 tools/
@@ -13,6 +14,8 @@ jest.config.js
 package.json
 package-lock.json
 scalingo.json
+yarn.lock
+cron.json
 
 *.css
 *.hbs

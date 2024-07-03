@@ -1,11 +1,11 @@
-import { Col, Container, Row, Text, Title } from '../../components/_dsfr';
+import { Col, Container, Row, Text } from '../../components/_dsfr';
 import { FormEvent, useState } from 'react';
 import building from '../../assets/images/building.svg';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,
-  useForm,
+  useForm
 } from '../../hooks/useForm';
 import { useHistory } from 'react-router-dom';
 import authService from '../../services/auth.service';
@@ -15,6 +15,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Typography from '@mui/material/Typography';
 
 function ResetPasswordView() {
   useDocumentTitle('Nouveau mot de passe');
@@ -24,20 +25,20 @@ function ResetPasswordView() {
   const [error, setError] = useState('');
   const router = useHistory();
   const resetLink = useEmailLink({
-    service: resetLinkService,
+    service: resetLinkService
   });
 
   const shape = {
     password: yup.string().required('Veuillez renseigner votre mot de passe.'),
     passwordFormat: passwordFormatValidator,
-    passwordConfirmation: passwordConfirmationValidator,
+    passwordConfirmation: passwordConfirmationValidator
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
     password,
     passwordFormat: password,
-    passwordConfirmation,
+    passwordConfirmation
   });
 
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -57,9 +58,9 @@ function ResetPasswordView() {
       <Container as="main" className="grow-container" spacing="py-4w">
         <Row gutters alignItems="middle">
           <Col>
-            <Title as="h1" look="h4">
+            <Typography component="h1" variant="h4" mb={3}>
               Ce lien n’existe pas ou est expiré !
-            </Title>
+            </Typography>
             <Text>Recommencez la procédure ou contactez le support.</Text>
             <Row justifyContent="right">
               <Button onClick={() => router.replace('/')}>
@@ -84,9 +85,9 @@ function ResetPasswordView() {
       <Container as="main" className="grow-container" spacing="py-4w">
         <Row gutters alignItems="middle">
           <Col>
-            <Title as="h1" look="h4">
+            <Typography component="h1" variant="h4" mb={3}>
               Votre mot de passe a été réinitialisé !
-            </Title>
+            </Typography>
             <Text>
               Essayez de vous connecter en utilisant votre nouveau mot de passe.
             </Text>
@@ -121,9 +122,9 @@ function ResetPasswordView() {
               severity="error"
             />
           )}
-          <Title as="h1" look="h2">
+          <Typography component="h1" variant="h2" mb={3}>
             Réinitialisation de votre mot de passe
-          </Title>
+          </Typography>
           <form onSubmit={submit}>
             <AppTextInput<FormShape>
               value={password}

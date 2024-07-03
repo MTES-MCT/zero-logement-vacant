@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
+    "@types/async": "^3.2.24",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.12",
     "copyfiles": "^2.4.1",
@@ -21,6 +22,9 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@codegouvfr/react-dsfr": "^1.9.11",
+    "@zerologementvacant/utils": "workspace:^",
+    "async": "^3.2.5",
     "handlebars": "^4.7.8",
     "pdf-lib": "^1.17.1",
     "puppeteer": "^22.9.0"

@@ -6,3 +6,19 @@
 .row {
   margin-bottom: 0.75rem;
 }
+
+.logoViewer {
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+
+  img {
+    max-width: 120px;
+    max-height: 260px;
+    display: block;
+  }
+
+  button {
+    margin-left: 12px;
+  }
+}

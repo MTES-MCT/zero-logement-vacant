@@ -12,6 +12,7 @@ module.exports = {
   jest: {
     configure(config) {
       config.rootDir = '.';
+      config.setupFiles = ['<rootDir>/jest.polyfills.js'];
       config.setupFilesAfterEnv = [
         'jest-extended/all',
         '<rootDir>/src/setupTests.ts',

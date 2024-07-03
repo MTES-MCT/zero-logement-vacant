@@ -1,10 +1,13 @@
+import { FileUploadDTO } from './FileUploadDTO';
 import { SenderDTO, SenderPayloadDTO } from './SenderDTO';
+import { HousingDTO } from './HousingDTO';
+import { OwnerDTO } from './OwnerDTO';
 
 export interface DraftDTO {
   id: string;
   subject: string | null;
   body: string | null;
-  logo: string[] | null;
+  logo: FileUploadDTO[] | null;
   sender: SenderDTO;
   writtenAt: string | null;
   writtenFrom: string | null;
@@ -27,6 +30,11 @@ export interface DraftUpdatePayloadDTO
     'id' | 'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
   > {
   sender: SenderPayloadDTO;
+}
+
+export interface DraftPreviewPayloadDTO {
+  housing: HousingDTO;
+  owner: OwnerDTO;
 }
 
 export interface DraftFiltersDTO {

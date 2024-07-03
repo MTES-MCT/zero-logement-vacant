@@ -11,14 +11,15 @@ describe('OwnerDTO', () => {
       const owner: OwnerDTO = {
         ...genOwnerDTO(),
         id,
-        banAddress: genAddressDTO(id, AddressKinds.Owner),
+        additionalAddress: undefined,
+        banAddress: genAddressDTO(id, AddressKinds.Owner)
       };
 
       const actual = getAddress(owner);
 
-      expect(actual).toIncludeAllMembers([
+      expect(actual).toStrictEqual([
         `${owner.banAddress?.houseNumber} ${owner.banAddress?.street}`,
-        `${owner.banAddress?.postalCode} ${owner.banAddress?.city}`,
+        `${owner.banAddress?.postalCode} ${owner.banAddress?.city}`
       ]);
     });
 
@@ -26,13 +27,31 @@ describe('OwnerDTO', () => {
       const address = faker.location.streetAddress(true);
       const owner: OwnerDTO = {
         ...genOwnerDTO(),
+        additionalAddress: undefined,
         banAddress: undefined,
-        rawAddress: [address],
+        rawAddress: [address]
       };
 
       const actual = getAddress(owner);
 
-      expect(actual).toIncludeAllMembers([address]);
+      expect(actual).toStrictEqual([address]);
+    });
+
+    it('should add the additional address just before the zip code', () => {
+      const owner: OwnerDTO = {
+        ...genOwnerDTO(),
+        banAddress: undefined,
+        rawAddress: ['123 rue Bidon', '01234 Ville'],
+        additionalAddress: 'Appart. 1'
+      };
+
+      const actual = getAddress(owner);
+
+      expect(actual).toStrictEqual([
+        'Appart. 1',
+        '123 rue Bidon',
+        '01234 Ville'
+      ]);
     });
   });
 });

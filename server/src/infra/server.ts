@@ -103,7 +103,7 @@ export function createServer(): Server {
   // Mock services like Datafoncier API on specific environments
   mockServices();
 
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
 
   app.use(
     rateLimit({

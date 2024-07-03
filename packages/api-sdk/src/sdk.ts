@@ -38,36 +38,38 @@ export function createSDK(opts: Options): SDK {
     acquireConnectionTimeout: 10_000,
     pool: {
       min: 0,
-      max: 10,
+      max: 10
     },
     connection:
-      opts.db?.url ?? 'postgres://postgres:postgres@localhost:5432/zlv',
+      opts.db?.url ?? 'postgres://postgres:postgres@localhost:5432/zlv'
   });
-  console.log('EXECUTE FFS');
   const http = axios.create({
     baseURL: opts.api.host,
     headers: {
-      'Content-Type': 'application/json',
-    },
+      'Content-Type': 'application/json'
+    }
   });
   http.interceptors.request.use(
     createTokenProvider({
       auth: {
-        secret: opts.auth.secret,
+        secret: opts.auth.secret
       },
       db,
       logger: opts.logger,
       serviceAccount:
         opts.serviceAccount ?? 'admin@zerologementvacant.beta.gouv.fr',
-      storage: opts.storage,
-    }),
+      storage: opts.storage
+    })
   );
-  http.interceptors.response.use(undefined, createErrorHandler());
+  http.interceptors.response.use(
+    undefined,
+    createErrorHandler({ logger: opts.logger })
+  );
 
   return {
     campaign: createCampaignAPI(http),
     draft: createDraftAPI(http),
     housing: createHousingAPI(http),
-    owner: createOwnerAPI(http),
+    owner: createOwnerAPI(http)
   };
 }

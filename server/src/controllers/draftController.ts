@@ -1,4 +1,3 @@
-import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
@@ -10,10 +9,12 @@ import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
+  DraftPreviewPayloadDTO,
   DraftUpdatePayloadDTO,
-  replaceVariables,
+  getAddress,
+  HOUSING_KIND_VALUES,
+  replaceVariables
 } from '@zerologementvacant/models';
-import { createS3, toBase64 } from '@zerologementvacant/utils';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
 import campaignDraftRepository from '~/repositories/campaignDraftRepository';
@@ -24,23 +25,36 @@ import { isUUIDParam } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
 import senderRepository from '~/repositories/senderRepository';
-import config from '~/infra/config';
+
+export interface DraftParams extends Record<string, string> {
+  id: string;
+}
 
 interface DraftQuery {
   campaign?: string;
 }
 
-async function list(request: Request, response: Response) {
-  const { auth, query } = request as AuthenticatedRequest;
+const transformer = pdf.createTransformer({ logger });
+
+async function list(
+  request: Request<never, DraftDTO[], never, DraftQuery>,
+  response: Response<DraftDTO[]>
+) {
+  const { auth, query } = request as AuthenticatedRequest<
+    never,
+    DraftDTO[],
+    never,
+    DraftQuery
+  >;
 
   const filters: DraftFilters = {
     ...(fp.pick(['campaign'], query) as DraftQuery),
-    establishment: auth.establishmentId,
+    establishment: auth.establishmentId
   };
-
   const drafts: DraftApi[] = await draftRepository.find({
-    filters,
+    filters
   });
+
   response.status(constants.HTTP_STATUS_OK).json(drafts.map(toDraftDTO));
 }
 
@@ -48,7 +62,9 @@ const partialDraftValidators: ValidationChain[] = [
   body('body').optional({ nullable: true }).isString(),
   body('sender').optional({ nullable: true }).isObject(),
   body('logo').optional({ nullable: true }).isArray({ min: 0, max: 2 }),
-  body('logo.*').isString(),
+  body('logo.*.*').optional().isString(),
+  body('sender.signatoryFile').optional({ nullable: true }).isObject(),
+  body('sender.signatoryFile.*').optional().isString()
 ];
 const senderValidators: ValidationChain[] = [
   ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
@@ -56,31 +72,37 @@ const senderValidators: ValidationChain[] = [
       .optional({ nullable: true })
       .isString()
       .withMessage(`${prop} must be a string`)
-      .trim(),
+      .trim()
   ),
   ...[
     'email',
     'phone',
     'signatoryLastName',
     'signatoryFirstName',
-    'signatoryRole',
-    'signatoryFile',
+    'signatoryRole'
   ].map((prop) =>
     body(`sender.${prop}`)
       .optional({ nullable: true })
       .isString()
       .withMessage(`${prop} must be a string`)
-      .trim(),
-  ),
+      .trim()
+  )
 ];
 
-async function create(request: Request, response: Response) {
-  const { auth } = request as AuthenticatedRequest;
-  const body = request.body as DraftCreationPayloadDTO;
+async function create(
+  request: Request<never, DraftDTO, DraftCreationPayloadDTO, never>,
+  response: Response<DraftDTO>
+) {
+  const { auth, body } = request as AuthenticatedRequest<
+    never,
+    DraftDTO,
+    DraftCreationPayloadDTO,
+    never
+  >;
 
   const campaign = await campaignRepository.findOne({
     id: body.campaign,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   });
   if (!campaign) {
     throw new CampaignMissingError(body.campaign);
@@ -101,7 +123,7 @@ async function create(request: Request, response: Response) {
     signatoryFile: body.sender?.signatoryFile ?? null,
     establishmentId: auth.establishmentId,
     createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
   };
   const draft: DraftApi = {
     id: uuidv4(),
@@ -114,7 +136,7 @@ async function create(request: Request, response: Response) {
     writtenFrom: body.writtenFrom,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   };
   await senderRepository.save(sender);
   await draftRepository.save(draft);
@@ -146,68 +168,57 @@ const createValidators: ValidationChain[] = [
     .isObject()
     .withMessage('Sender must be an object'),
   ...partialDraftValidators,
-  ...senderValidators,
+  ...senderValidators
 ];
 
-async function preview(request: Request, response: Response) {
-  const { auth, body, params } = request as AuthenticatedRequest;
+async function preview(
+  request: Request<DraftParams, Buffer, DraftPreviewPayloadDTO>,
+  response: Response<Buffer>
+): Promise<void> {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    DraftParams,
+    Buffer,
+    DraftPreviewPayloadDTO
+  >;
 
   const draft = await draftRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   });
   if (!draft) {
     throw new DraftMissingError(params.id);
   }
 
-  // Download logos from S3
-  const s3 = createS3({
-    endpoint: config.s3.endpoint,
-    region: config.s3.region,
-    accessKeyId: config.s3.accessKeyId,
-    secretAccessKey: config.s3.secretAccessKey,
-  });
-  const logos = await async.map(draft.logo ?? [], async (logo: string) =>
-    toBase64(logo, { s3, bucket: config.s3.bucket }),
-  );
-
-  const signature = draft.sender.signatoryFile
-    ? await toBase64(draft.sender.signatoryFile, {
-        s3,
-        bucket: config.s3.bucket,
-      })
-    : null;
-  const html = await pdf.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
-    subject: draft.subject ?? '',
-    logo: logos,
+  const html = transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
+    subject: draft.subject,
+    logo: draft.logo?.map((logo) => logo.content) ?? null,
     watermark: true,
     body: draft.body
       ? replaceVariables(draft.body, {
           housing: body.housing,
-          owner: body.owner,
+          owner: body.owner
         })
-      : '',
+      : null,
     sender: {
-      name: draft.sender.name ?? '',
-      service: draft.sender.service ?? '',
-      firstName: draft.sender.firstName ?? '',
-      lastName: draft.sender.lastName ?? '',
-      address: draft.sender.address ?? '',
-      phone: draft.sender.phone ?? '',
-      signatoryLastName: draft.sender.signatoryLastName ?? '',
-      signatoryFirstName: draft.sender.signatoryFirstName ?? '',
-      signatoryRole: draft.sender.signatoryRole ?? '',
-      signatoryFile: signature,
+      name: draft.sender.name,
+      service: draft.sender.service,
+      firstName: draft.sender.firstName,
+      lastName: draft.sender.lastName,
+      address: draft.sender.address,
+      phone: draft.sender.phone,
+      signatoryLastName: draft.sender.signatoryLastName,
+      signatoryFirstName: draft.sender.signatoryFirstName,
+      signatoryRole: draft.sender.signatoryRole,
+      signatoryFile: draft.sender.signatoryFile?.content ?? null
     },
-    writtenAt: draft.writtenAt ?? '',
-    writtenFrom: draft.writtenFrom ?? '',
+    writtenAt: draft.writtenAt,
+    writtenFrom: draft.writtenFrom,
     owner: {
       fullName: body.owner.fullName,
-      address: body.owner.address,
-      additionalAddress: body.owner.additionalAddress,
-    },
+      address: getAddress(body.owner)
+    }
   });
-  const finalPDF = await pdf.fromHTML([html]);
+  const finalPDF = await transformer.fromHTML([html]);
   response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
 }
 const previewValidators: ValidationChain[] = [
@@ -223,12 +234,18 @@ const previewValidators: ValidationChain[] = [
   body('housing.localId').isInt().isLength({ min: 12, max: 12 }),
   body('housing.rawAddress').isArray().isLength({ min: 1 }),
   body('housing.cadastralReference').isString().notEmpty(),
-  body('housing.housingKind').isString().isIn(['MAISON', 'APPART']).notEmpty(),
+  body('housing.housingKind')
+    .isString()
+    .withMessage('Must be a string')
+    .isIn(HOUSING_KIND_VALUES)
+    .withMessage(`Must be one of ${HOUSING_KIND_VALUES.join(', ')}`)
+    .notEmpty()
+    .withMessage('kind is required'),
   body('housing.livingArea').isInt().notEmpty(),
   body('housing.buildingYear').isInt().notEmpty(),
   body('housing.energyConsumption')
     .optional({
-      nullable: true,
+      nullable: true
     })
     .isIn(['A', 'B', 'C', 'D', 'E', 'F', 'G']),
   body('owner').isObject().withMessage('owner must be an object'),
@@ -236,16 +253,11 @@ const previewValidators: ValidationChain[] = [
     .isString()
     .notEmpty()
     .withMessage('fullName is required'),
-  body('owner.address').isArray().isLength({ min: 1 }),
-  body('owner.address[*]')
+  body('owner.rawAddress').isArray().isLength({ min: 1 }),
+  body('owner.rawAddress[*]')
     .isString()
     .notEmpty()
-    .withMessage('address is required'),
-  body('owner.additionalAddress')
-    .optional({
-      nullable: true,
-    })
-    .isString(),
+    .withMessage('address is required')
 ];
 
 async function update(request: Request, response: Response<DraftDTO>) {
@@ -254,7 +266,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
 
   const draft = await draftRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   });
   if (!draft) {
     throw new DraftMissingError(params.id);
@@ -272,10 +284,10 @@ async function update(request: Request, response: Response<DraftDTO>) {
     signatoryLastName: body.sender.signatoryLastName,
     signatoryFirstName: body.sender.signatoryFirstName,
     signatoryRole: body.sender.signatoryRole,
-    signatoryFile: body.sender.signatoryFile,
+    signatoryFile: body.sender.signatoryFile ? body.sender.signatoryFile : null,
     createdAt: draft.sender.createdAt,
     updatedAt: new Date().toJSON(),
-    establishmentId: draft.sender.establishmentId,
+    establishmentId: draft.sender.establishmentId
   };
   const updated: DraftApi = {
     ...draft,
@@ -286,7 +298,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
     senderId: sender.id,
     writtenAt: body.writtenAt,
     writtenFrom: body.writtenFrom,
-    updatedAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
   };
   await senderRepository.save(sender);
   await draftRepository.save(updated);
@@ -319,7 +331,7 @@ const updateValidators: ValidationChain[] = [
     .withMessage('writtenFrom is required'),
   body('sender').isObject().withMessage('Sender must be an object'),
   ...partialDraftValidators,
-  ...senderValidators,
+  ...senderValidators
 ];
 
 const draftController = {
@@ -329,7 +341,7 @@ const draftController = {
   preview,
   previewValidators,
   update,
-  updateValidators,
+  updateValidators
 };
 
 export default draftController;

@@ -79,6 +79,7 @@ interface Config {
       username: string;
       password: string;
     }
+  },
   e2e: {
     email: string | null;
     password: string | null;
@@ -281,7 +282,7 @@ const config = convict<Config>({
     env: {
       env: 'ELASTIC_ENV',
       format: ['development', 'test', 'production'],
-      default: (process.env.NODE_ENV as Env | null) ?? 'development',
+      default: (process.env.NODE_ENV as Env | null) ?? 'development'
     },
     node: {
       env: 'ELASTIC_NODE',

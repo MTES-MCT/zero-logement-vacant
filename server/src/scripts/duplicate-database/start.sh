@@ -15,7 +15,7 @@ scalingo login --api-token ${DUPLICATE_API_TOKEN}
 
 # Run the script on a detached one-off container:
 echo "=> Download the latest backup available"
-scalingo --app "${APP}" run --detached --size XL bash scripts/duplicate-database/script.sh
+scalingo --app "${APP}" run --detached --size 2XL bash scripts/duplicate-database/script.sh
 
 # Stop the container:
 echo "=> Stop the container:"

@@ -1,4 +1,3 @@
-import { EstablishmentKind } from "@zerologementvacant/shared";
 import db from "~/infra/database";
 import { EstablishmentDbo } from "~/repositories/establishmentRepository";
 import { v4 as uuidv4 } from 'uuid';
@@ -18,19 +17,6 @@ export interface Structure {
   perimeter: PerimeterType;
   kind: string;
 }
-
-interface KindMapType {
-  [key: string]: EstablishmentKind;
-}
-
-export const KindMap: KindMapType = {
-  'Commune et commune nouvelle': 'Commune',
-  'Établissement public national à caractère industriel ou commercial non doté d\'un comptable public': 'EPCI'
-};
-
-export const getZLVKind = (kind: string): EstablishmentKind => {
-  return KindMap[kind];
-};
 
 export const getLocalitiesGeocode = async (perimeter: PerimeterType): Promise<string[]> => {
   let flattenedArray: string[] = [];
@@ -59,7 +45,7 @@ export const structureToEstablishment = async (structure: Structure): Promise<Es
     siren:  Number(structure.siret.substring(0, 9)),
     available: true,
     localities_geo_code: await getLocalitiesGeocode(structure.perimeter),
-    kind: getZLVKind(structure.kind),
+    kind: structure.kind,
     source: 'cerema',
     updated_at: new Date()
   };

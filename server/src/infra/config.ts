@@ -56,6 +56,7 @@ interface Config {
   cerema: {
     api: string;
     enabled: boolean;
+    dryMode: boolean;
     token: string;
     inviteLimit: number;
     forceInvite: boolean;
@@ -196,6 +197,11 @@ const config = convict<Config>({
       env: 'CEREMA_ENABLED',
       format: 'strict-boolean',
       default: isProduction
+    },
+    dryMode: {
+      env: 'CEREMA_DRY_MODE',
+      format: 'strict-boolean',
+      default: !isProduction
     },
     api: {
       env: 'CEREMA_API',

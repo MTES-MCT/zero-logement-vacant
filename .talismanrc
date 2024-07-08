@@ -53,7 +53,7 @@ fileignoreconfig:
 - filename: frontend/src/views/Login/LoginView.test.tsx
   checksum: a1fab3ca0b731331cc1e0945e238f60ba319da577710ebeae502813623985a39
 - filename: package.json
-  checksum: bc3388c55b927b286f6e7ec0bf25c060b479eb136dd7a377443c8e99acdf7bd1
+  checksum: 89aa8f8ca7ee61039ba951b65dc090f492736a4d53b8c7132d3319a26d30cda9
 - filename: packages/api-sdk/src/infra/test/token-provider.test.ts
   checksum: c3ea87f28ca17a354e1dadf58e2832088503f258327f4620e0a23a24bb79241a
 - filename: packages/api-sdk/src/infra/token-provider.ts
@@ -124,13 +124,6 @@ fileignoreconfig:
   checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 - filename: yarn.lock
   checksum: 59d37f8e1ecf81439bce81f285ac09fdcf3978c64ff996c2d0e8731431ecb2c0
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
-- keyof
-version: "1.0"
-85ac09fdcf3978c64ff996c2d0e8731431ecb2c0
 scopeconfig:
 - scope: node
 allowed_patterns:

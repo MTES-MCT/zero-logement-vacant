@@ -1,6 +1,8 @@
+import async from 'async';
 import { Knex } from 'knex';
 
 import { genDatafoncierHousing } from '~/test/testFixtures';
+import { Establishments } from '~/repositories/establishmentRepository';
 
 const DF_HOUSING_NAT_2023 = 'df_housing_nat_2023';
 
@@ -141,6 +143,16 @@ export async function seed(knex: Knex): Promise<void> {
   await knex(DF_HOUSING_NAT_2023).delete();
 
   // Inserts seed entries
-  const houses = Array.from({ length: 100 }, () => genDatafoncierHousing());
-  await knex(DF_HOUSING_NAT_2023).insert(houses);
+  const availableEstablishments = await Establishments(knex).where({
+    available: true
+  });
+  const geoCodes = availableEstablishments.map(
+    (establishment) => establishment.localities_geo_code[0]
+  );
+  await async.forEachSeries(geoCodes, async (geoCode) => {
+    const houses = Array.from({ length: 10 }, () =>
+      genDatafoncierHousing(geoCode)
+    );
+    await knex(DF_HOUSING_NAT_2023).insert(houses);
+  });
 }

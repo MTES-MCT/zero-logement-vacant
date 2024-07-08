@@ -1,15 +1,18 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { addHours } from 'date-fns';
+import fp from 'lodash/fp';
 import randomstring from 'randomstring';
+import { MarkRequired } from 'ts-essentials';
+import { v4 as uuidv4 } from 'uuid';
+
 import { UserApi, UserRoles } from '~/models/UserApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import { v4 as uuidv4 } from 'uuid';
 import {
   CampaignIntent,
   EstablishmentApi,
   hasPriority,
   INTENTS
 } from '~/models/EstablishmentApi';
-import { addHours } from 'date-fns';
 import {
   ENERGY_CONSUMPTION_GRADES,
   HousingApi,
@@ -55,7 +58,6 @@ import {
 import { GroupApi } from '~/models/GroupApi';
 import { DatafoncierOwner } from '~/scripts/shared';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { MarkRequired } from 'ts-essentials';
 import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
 import {
   ConflictApi,
@@ -457,11 +459,12 @@ export const genGroupApi = (
 };
 
 export const genDatafoncierOwner = (
-  idprocpte = randomstring.generate(11)
+  idprocpte = randomstring.generate(11),
+  rank = 1
 ): DatafoncierOwner => {
   const idcom = genGeoCode();
   return {
-    idprodroit: `01${idprocpte}`,
+    idprodroit: `${fp.padCharsStart('0', 1, rank.toString(10))}${idprocpte}`,
     idprocpte,
     idpersonne: randomstring.generate(8),
     idvoie: randomstring.generate(9),

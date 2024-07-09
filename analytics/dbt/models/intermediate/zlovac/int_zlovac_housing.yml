@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: int_zlovac_housing
+    +enabled: true
+    config:
+      materialized: table

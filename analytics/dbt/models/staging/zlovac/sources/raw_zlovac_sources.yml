@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: duckdb_raw
+    database: database_name
+    schema: main
+    tables:
+      - name: raw_lovac

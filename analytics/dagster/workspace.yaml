@@ -1,2 +1,3 @@
 load_from:
   - python_module: src
+  - python_module: src.zlv_dbt.zlv_dbt

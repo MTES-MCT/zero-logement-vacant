@@ -38,3 +38,5 @@ yarn-error.log*
 .pyc
 __pycache__
 analytics/dagster/storage/
+.duckdb
+.jsonl

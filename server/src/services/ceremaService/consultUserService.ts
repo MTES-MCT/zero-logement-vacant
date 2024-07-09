@@ -13,6 +13,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
     establishmentSiren: Establishment1.siren,
     hasAccount: true,
     hasCommitment: true,
+
   },
   {
     email: 'lovac_ko@beta.gouv.fr',
@@ -27,6 +28,10 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
     hasCommitment: false,
   },
 ];
+
+export const getTestEmails = (): string[] => {
+  return TEST_ACCOUNTS.map(user => user.email);
+};
 
 export const getTestAccount = (email: string): CeremaUser | null => {
   const testAccount = TEST_ACCOUNTS.find((account) => account.email === email);

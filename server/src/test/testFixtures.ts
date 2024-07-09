@@ -208,6 +208,9 @@ export const genOwnerApi = (): OwnerApi => {
   const id = uuidv4();
   return {
     id,
+    idpersonne:
+      faker.string.numeric(2) +
+      faker.string.alphanumeric({ length: 6, casing: 'upper' }),
     rawAddress: [
       faker.location.streetAddress(),
       `${faker.location.zipCode()}, ${faker.location.city()}`

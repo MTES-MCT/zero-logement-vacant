@@ -13,6 +13,7 @@ import { logger } from '~/infra/logger';
 
 const PASSWORD_RESET_TEMPLATE_ID = 8;
 const ACCOUNT_ACTIVATION_TEMPLATE_ID = 5;
+const LOVAC_ACCOUNT_ACTIVATION_TEMPLATE_ID = 54;
 const OWNER_PROSPECT_CREATED_TEMPLATE_ID = 13;
 
 class BrevoService implements MailService {
@@ -81,6 +82,19 @@ class BrevoService implements MailService {
     await this.send({
       ...options,
       templateId: ACCOUNT_ACTIVATION_TEMPLATE_ID,
+      params: {
+        link: getAccountActivationLink(key),
+      },
+    });
+  }
+
+  async sendAccountActivationEmailFromLovac(
+    key: string,
+    options: SendOptions,
+  ): Promise<void> {
+    await this.send({
+      ...options,
+      templateId: LOVAC_ACCOUNT_ACTIVATION_TEMPLATE_ID,
       params: {
         link: getAccountActivationLink(key),
       },

@@ -3180,6 +3180,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@elastic/elasticsearch@npm:^8.13.1":
+  version: 8.14.0
+  resolution: "@elastic/elasticsearch@npm:8.14.0"
+  dependencies:
+    "@elastic/transport": "npm:^8.6.0"
+    tslib: "npm:^2.4.0"
+  checksum: 10c0/9e13bd76fa31a711e659dc5b8569b869d8308cb14176491e04047ab1c9e80c86f9a64d0df8a6c21b67f357887b7568d671e89cfadd71694a66f3f0a87d5e7bcd
+  languageName: node
+  linkType: hard
+
+"@elastic/transport@npm:^8.6.0":
+  version: 8.7.0
+  resolution: "@elastic/transport@npm:8.7.0"
+  dependencies:
+    "@opentelemetry/api": "npm:1.x"
+    debug: "npm:^4.3.4"
+    hpagent: "npm:^1.0.0"
+    ms: "npm:^2.1.3"
+    secure-json-parse: "npm:^2.4.0"
+    tslib: "npm:^2.4.0"
+    undici: "npm:^6.12.0"
+  checksum: 10c0/3dc8761883acb1bfc242ec8ad6388d6fffa96257d47aef84bd37188f3e07c57c95cf86320e0177478f644f27297c872c6d2083aba44f4bccdd96c6810a6eeaf5
+  languageName: node
+  linkType: hard
+
 "@emotion/babel-plugin@npm:^11.11.0":
   version: 11.11.0
   resolution: "@emotion/babel-plugin@npm:11.11.0"
@@ -4866,6 +4891,13 @@ __metadata:
   version: 2.1.0
   resolution: "@open-draft/until@npm:2.1.0"
   checksum: 10c0/61d3f99718dd86bb393fee2d7a785f961dcaf12f2055f0c693b27f4d0cd5f7a03d498a6d9289773b117590d794a43cd129366fd8e99222e4832f67b1653d54cf
+  languageName: node
+  linkType: hard
+
+"@opentelemetry/api@npm:1.x":
+  version: 1.9.0
+  resolution: "@opentelemetry/api@npm:1.9.0"
+  checksum: 10c0/9aae2fe6e8a3a3eeb6c1fdef78e1939cf05a0f37f8a4fae4d6bf2e09eb1e06f966ece85805626e01ba5fab48072b94f19b835449e58b6d26720ee19a58298add
   languageName: node
   linkType: hard
 
@@ -9172,6 +9204,7 @@ __metadata:
   resolution: "@zerologementvacant/server@workspace:server"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.577.0"
+    "@elastic/elasticsearch": "npm:^8.13.1"
     "@faker-js/faker": "npm:^8.4.1"
     "@getbrevo/brevo": "npm:^1.0.1"
     "@godaddy/terminus": "npm:^4.12.1"
@@ -15574,6 +15607,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hpagent@npm:^1.0.0":
+  version: 1.2.0
+  resolution: "hpagent@npm:1.2.0"
+  checksum: 10c0/505ef42e5e067dba701ea21e7df9fa73f6f5080e59d53680829827d34cd7040f1ecf7c3c8391abe9df4eb4682ef4a4321608836b5b70a61b88c1b3a03d77510b
+  languageName: node
+  linkType: hard
+
 "html-comment-regex@npm:^1.1.2":
   version: 1.1.2
   resolution: "html-comment-regex@npm:1.1.2"
@@ -19342,7 +19382,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ms@npm:2.1.3, ms@npm:^2.1.1":
+"ms@npm:2.1.3, ms@npm:^2.1.1, ms@npm:^2.1.3":
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: 10c0/d924b57e7312b3b63ad21fc5b3dc0af5e78d61a1fc7cfb5457edaf26326bf62be5307cc87ffb6862ef1c2b33b0233cdb5d4f01c4c958cc0d660948b65a287a48
@@ -25530,7 +25570,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.6.2":
+"tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.4.0, tslib@npm:^2.6.2":
   version: 2.6.3
   resolution: "tslib@npm:2.6.3"
   checksum: 10c0/2598aef53d9dbe711af75522464b2104724d6467b26a60f2bdac8297d2b5f1f6b86a71f61717384aa8fd897240467aaa7bcc36a0700a0faf751293d1331db39a
@@ -25854,7 +25894,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:^6.18.0":
+"undici@npm:^6.12.0, undici@npm:^6.18.0":
   version: 6.19.2
   resolution: "undici@npm:6.19.2"
   checksum: 10c0/3b7b9238c0c84fd90742422fb12844a29e33e922d2c5f722f626090ca1f1ec93596ccec9be1814bb0e923e28682d2080a17d17a4afe373897b9770ef25a64d97

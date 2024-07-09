@@ -29,7 +29,7 @@ convict.addFormat({
   }
 });
 
-type Env = 'development' | 'test' | 'production';
+export type Env = 'development' | 'test' | 'production';
 
 interface Config {
   app: {
@@ -56,7 +56,10 @@ interface Config {
   cerema: {
     api: string;
     enabled: boolean;
+    dryMode: boolean;
     token: string;
+    inviteLimit: number;
+    forceInvite: boolean;
   };
   datafoncier: {
     api: string;
@@ -70,6 +73,14 @@ interface Config {
       max: number;
     };
   };
+  elastic: {
+    env: Env;
+    node: string;
+    auth: {
+      username: string;
+      password: string;
+    }
+  },
   e2e: {
     email: string | null;
     password: string | null;
@@ -182,21 +193,37 @@ const config = convict<Config>({
     }
   },
   cerema: {
-    api: {
-      env: 'CEREMA_API',
-      format: 'url',
-      default: 'https://getdf.cerema.fr'
-    },
     enabled: {
       env: 'CEREMA_ENABLED',
       format: 'strict-boolean',
       default: isProduction
+    },
+    dryMode: {
+      env: 'CEREMA_DRY_MODE',
+      format: 'strict-boolean',
+      default: !isProduction
+    },
+    api: {
+      env: 'CEREMA_API',
+      format: 'url',
+      default: 'https://getdf.cerema.fr'
     },
     token: {
       env: 'CEREMA_TOKEN',
       format: String,
       sensitive: true,
       default: null,
+      nullable: !isProduction
+    },
+    inviteLimit: {
+      env: 'CEREMA_INVITE_LIMIT',
+      format: 'int',
+      default: 10
+    },
+    forceInvite: {
+      env: 'CEREMA_FORCE_INVITE',
+      format: Boolean,
+      default: false,
       nullable: !isProduction
     }
   },
@@ -255,6 +282,30 @@ const config = convict<Config>({
       sensitive: true,
       default: null,
       nullable: true
+    }
+  },
+  elastic: {
+    env: {
+      env: 'ELASTIC_ENV',
+      format: ['development', 'test', 'production'],
+      default: (process.env.NODE_ENV as Env | null) ?? 'development'
+    },
+    node: {
+      env: 'ELASTIC_NODE',
+      format: String,
+      default: ''
+    },
+    auth: {
+      username: {
+        env: 'ELASTIC_USERNAME',
+        format: String,
+        default: ''
+      },
+      password: {
+        env: 'ELASTIC_PASSWORD',
+        format: String,
+        default: ''
+      },
     }
   },
   log: {

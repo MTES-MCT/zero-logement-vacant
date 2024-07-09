@@ -124,13 +124,6 @@ fileignoreconfig:
   checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 - filename: yarn.lock
   checksum: 59d37f8e1ecf81439bce81f285ac09fdcf3978c64ff996c2d0e8731431ecb2c0
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
-- keyof
-version: "1.0"
-522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
 - filename: server/src/test/testUtils.ts
   checksum: 7b398fd3f591cac34d94c9c81b1e3fd128ce09d48b849d530b4d883795b628d0
 - filename: shared/src/utils/merger.ts

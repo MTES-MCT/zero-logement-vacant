@@ -12,9 +12,11 @@ import { CeremaDossier } from '../services/ceremaService/consultDossiersLovacSer
 import establishmentRepository from '~/repositories/establishmentRepository';
 import { Structure, structureToEstablishment } from '../services/ceremaService/consultStructureService';
 import { getLastScriptExecutionDate, logScriptExecution } from '~/infra/elastic';
+import { wait } from '@zerologementvacant/utils';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 
-const createEstablishment = async (establishment: { rows: string | any[]; } | undefined, structure: Structure) => {
-  if(establishment?.rows.length === 0) {
+const createEstablishment = async (establishment: EstablishmentApi[] | undefined, structure: Structure) => {
+  if(establishment?.length === 0) {
     const establishment = await structureToEstablishment(structure);
     if(establishment.kind === null) {
       logger.warn({
@@ -48,10 +50,6 @@ const sendLink = async(dossier: CeremaDossier) => {
     link: getAccountActivationLink(link.id),
   });
 };
-
-function wait(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 const run = async (): Promise<void> => {
   if (config.app.isReviewApp) {
@@ -92,8 +90,11 @@ const run = async (): Promise<void> => {
           // average response time is 100ms
           await wait(300);
 
-          const establishment = await db.raw(`select * from establishments where siren=${Number(structure.siret.substring(0, 9))}`);
-            await createEstablishment(establishment, structure);
+          const establishment = await establishmentRepository.find({
+            sirens: [ Number(structure.siret.substring(0, 9)) ]
+          });
+
+          await createEstablishment(establishment, structure);
 
           if(!config.cerema.dryMode) {
             await sendLink(dossier);

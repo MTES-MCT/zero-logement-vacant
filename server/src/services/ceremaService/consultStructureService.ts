@@ -22,8 +22,8 @@ export const getLocalitiesGeocode = async (perimeter: PerimeterType): Promise<st
   let flattenedArray: string[] = [];
 
   for (const key in perimeter.reg_complet) {
-    const geoCodes = await db.raw(`select codgeo from _localities where reg='${perimeter.reg_complet[key]}'`);
-    flattenedArray = [...flattenedArray, ...geoCodes.rows.map((localities: { codgeo: string; }) => localities.codgeo)];
+    const geoCodes = await db.table('_localities').select('codgeo').where('reg', perimeter.reg_complet[key]);
+    flattenedArray = [...flattenedArray, ...geoCodes.map((localities: { codgeo: string; }) => localities.codgeo)];
   }
 
   for (const key in perimeter.dep_complet) {
@@ -38,13 +38,13 @@ export const getLocalitiesGeocode = async (perimeter: PerimeterType): Promise<st
   return flattenedArray;
 };
 
-export const structureToEstablishment = async (structure: Structure): Promise<EstablishmentDbo> => {
+export async function structureToEstablishment(structure: Structure): Promise<EstablishmentDbo> {
   return {
     id: uuidv4(),
     name: structure.name,
     siren:  Number(structure.siret.substring(0, 9)),
     available: true,
-    localities_geo_code: await getLocalitiesGeocode(structure.perimeter),
+    localities_geo_code: structure.perimeter ? await getLocalitiesGeocode(structure.perimeter) : [],
     kind: structure.kind,
     source: 'cerema',
     updated_at: new Date()

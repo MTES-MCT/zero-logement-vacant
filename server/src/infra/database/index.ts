@@ -13,7 +13,7 @@ export function notDeleted(builder: Knex.QueryBuilder<{ deleted_at: Date }>) {
 export function likeUnaccent(column: string, query: string) {
   return db.raw(
     `upper(unaccent(${column})) like '%' || upper(unaccent(?)) || '%'`,
-    query,
+    query
   );
 }
 
@@ -35,9 +35,9 @@ export function where<T>(props: Array<keyof T>, opts?: WhereOptions) {
     compact,
     fp.mapKeys(
       fp.pipe(fp.snakeCase, (key) =>
-        opts?.table ? `${opts?.table}.${key}` : key,
-      ),
-    ),
+        opts?.table ? `${opts?.table}.${key}` : key
+      )
+    )
   );
 }
 
@@ -45,6 +45,19 @@ export function groupBy<T>(props?: Array<keyof T>) {
   return (query: Knex.QueryBuilder) => {
     if (props?.length) {
       return query.distinctOn(...props);
+    }
+  };
+}
+
+export interface ConflictOptions<T> {
+  onConflict?: ReadonlyArray<keyof T>;
+  merge?: ReadonlyArray<keyof T>;
+}
+
+export function onConflict<T extends object>(opts?: ConflictOptions<T>) {
+  return (query: Knex.QueryBuilder): void => {
+    if (opts?.onConflict && opts.onConflict.length > 0) {
+      query.onConflict(opts.onConflict as any).merge(opts?.merge);
     }
   };
 }

@@ -63,6 +63,9 @@ jobs:
           clever env -a $APP_ALIAS | grep -v '^#' | tr -d '"' >> "$GITHUB_ENV"
 
       - name: Set environment variables
+        env:
+          E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
         run: |
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
@@ -73,6 +76,8 @@ jobs:
           clever env set CEREMA_TOKEN "unused" -a $APP_ALIAS
           clever env set DATABASE_ENV "development" -a $APP_ALIAS
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
+          clever env set E2E_EMAIL $E2E_EMAIL -a $APP_ALIAS
+          clever env set E2E_PASSWORD: $E2E_PASSWORD -a $APP_ALIAS
           clever env set HOST "https://$APP_ALIAS.cleverapps.io" -a $APP_ALIAS
           clever env set METABASE_TOKEN "unused" -a $APP_ALIAS
           clever env set PORT "8080" -a $APP_ALIAS

@@ -39,3 +39,10 @@ jobs:
           CYPRESS_BASE_URL: ${{ vars.HOST }}
           CYPRESS_EMAIL: ${{ secrets.CYPRESS_EMAIL }}
           CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots

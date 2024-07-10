@@ -10,6 +10,7 @@ import {
 import config from './config';
 import { createLogger } from './logger';
 import { createDashboard } from './dashboard';
+import { createBasicAuth } from './basic-auth';
 
 function createServer() {
   const app = express();
@@ -29,7 +30,7 @@ function createServer() {
     })
   );
 
-  app.use('/queues', createDashboard());
+  app.use('/queues', createBasicAuth().check(createDashboard()));
 
   async function start(): Promise<void> {
     const listen = util.promisify((port: number, cb: () => void) => {

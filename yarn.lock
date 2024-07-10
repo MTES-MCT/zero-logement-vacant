@@ -7955,6 +7955,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/http-auth@npm:^4":
+  version: 4.1.4
+  resolution: "@types/http-auth@npm:4.1.4"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/24a9497ef835c87b3df2d74fb6fd28960ce2921c944a20dbc5ba93e46561626d7381c8272659af930925f5149fe95f7515f892f5a9966ff89c91ffd6bdc8db02
+  languageName: node
+  linkType: hard
+
 "@types/http-errors@npm:*":
   version: 2.0.4
   resolution: "@types/http-errors@npm:2.0.4"
@@ -9195,6 +9204,7 @@ __metadata:
     "@types/async": "npm:^3.2.24"
     "@types/convict": "npm:^6.1.6"
     "@types/express": "npm:^4.17.21"
+    "@types/http-auth": "npm:^4"
     "@types/jest": "npm:^29.5.12"
     "@types/node": "npm:^20.12.12"
     "@types/supertest": "npm:^6.0.2"
@@ -9210,6 +9220,7 @@ __metadata:
     dotenv: "npm:^16.4.5"
     exceljs: "npm:^4.4.0"
     express: "npm:^4.19.2"
+    http-auth: "npm:^4.2.0"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     nodemon: "npm:^3.1.0"
@@ -9706,6 +9717,22 @@ __metadata:
     normalize-path: "npm:^3.0.0"
     picomatch: "npm:^2.0.4"
   checksum: 10c0/57b06ae984bc32a0d22592c87384cd88fe4511b1dd7581497831c56d41939c8a001b28e7b853e1450f2bf61992dfcaa8ae2d0d161a0a90c4fb631ef07098fbac
+  languageName: node
+  linkType: hard
+
+"apache-crypt@npm:^1.1.2":
+  version: 1.2.6
+  resolution: "apache-crypt@npm:1.2.6"
+  dependencies:
+    unix-crypt-td-js: "npm:^1.1.4"
+  checksum: 10c0/00ce45e671f256f3bbdcd47da57b9d9007af3e70102316304bfb1fb4f28610ea9b733e616a90079ee7c2bf1adebdda3fd99cafe2ac668ad55b0323c79df64f67
+  languageName: node
+  linkType: hard
+
+"apache-md5@npm:^1.0.6":
+  version: 1.1.8
+  resolution: "apache-md5@npm:1.1.8"
+  checksum: 10c0/423aa1baddcedc42e2fdf52efcf7fae2e7de9535e6ca7dd4a049f49fb5ec9b6a4469f327e02268088ed3dacdbec6f1ea4132941e2d75899c4e412421e6ffcbfc
   languageName: node
   linkType: hard
 
@@ -15726,6 +15753,18 @@ __metadata:
     domutils: "npm:^2.5.2"
     entities: "npm:^2.0.0"
   checksum: 10c0/3058499c95634f04dc66be8c2e0927cd86799413b2d6989d8ae542ca4dbf5fa948695d02c27d573acf44843af977aec6d9a7bdd0f6faa6b2d99e2a729b2a31b6
+  languageName: node
+  linkType: hard
+
+"http-auth@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "http-auth@npm:4.2.0"
+  dependencies:
+    apache-crypt: "npm:^1.1.2"
+    apache-md5: "npm:^1.0.6"
+    bcryptjs: "npm:^2.4.3"
+    uuid: "npm:^8.3.2"
+  checksum: 10c0/9bd935ec6819e05c5b689db2f97fd81a9a1a0957074b0cbecc94251a47dc0b654e89ff8da9d091bd9ef16351e13a1fb8dda0a2e9352fb31bf137f3dbf5b3b28b
   languageName: node
   linkType: hard
 
@@ -26026,6 +26065,13 @@ __metadata:
   version: 2.0.1
   resolution: "universalify@npm:2.0.1"
   checksum: 10c0/73e8ee3809041ca8b818efb141801a1004e3fc0002727f1531f4de613ea281b494a40909596dae4a042a4fb6cd385af5d4db2e137b1362e0e91384b828effd3a
+  languageName: node
+  linkType: hard
+
+"unix-crypt-td-js@npm:^1.1.4":
+  version: 1.1.4
+  resolution: "unix-crypt-td-js@npm:1.1.4"
+  checksum: 10c0/c4e3abd0d7ebcf39df7faff8be2cd137f477add743a2793c551682e04ec4e4f466e806a67e391d5a097229e4465b7cae4cb459990b9eb61dfe0b37d2388c6266
   languageName: node
   linkType: hard
 

@@ -12,6 +12,9 @@ import { Owners } from '~/repositories/ownerRepository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import validator from '~/scripts/import-lovac/validator';
 import { sourceOwnerSchema } from '~/scripts/import-lovac/source-owners/source-owner';
+import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
+import { sourceHousingProcessor } from '~/scripts/import-lovac/source-housings/source-housing-processor';
+import { Housing } from '~/repositories/housingRepository';
 
 const logger = createLogger('cli');
 const reporter = createLoggerReporter();
@@ -66,6 +69,49 @@ program
                     'administrator',
                     'siren'
                   ]);
+              }
+        })
+      )
+      .catch((error) => {
+        logger.error(error);
+      })
+      .finally(() => {
+        reporter.report();
+        process.exit();
+      });
+  });
+
+program
+  .command('housings')
+  .description('Import housings from a file to an existing database')
+  .argument('<file>', 'The file to import in .csv or .jsonl')
+  .option('-d, --dry-run', 'Run the script without saving to the database')
+  .action(async (file, options) => {
+    if (options.dryRun) {
+      logger.info('Dry run enabled');
+    }
+
+    logger.info('Computing total...');
+    const total = await countLines(Readable.toWeb(fs.createReadStream(file)));
+
+    logger.info('Starting import...', { file });
+    await createSourceHousingFileRepository(file)
+      .stream()
+      .pipeThrough(
+        progress({
+          initial: 0,
+          total: total
+        })
+      )
+      .pipeTo(
+        sourceHousingProcessor({
+          reporter,
+          saveHousing: options.dryRun
+            ? async () => noop()
+            : async (housing) => {
+                await Housing().insert(housing).onConflict(['local_id']).merge([
+                  // TODO
+                ]);
               }
         })
       )

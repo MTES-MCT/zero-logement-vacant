@@ -82,6 +82,8 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@fast-check/jest": "^1.8.2",
+    "@jest/globals": "^29.7.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/async": "^3.2.24",
     "@types/bcryptjs": "^2.4.6",

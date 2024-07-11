@@ -8,7 +8,7 @@ import createSourceOwnerFileRepository from '~/scripts/import-lovac/source-owner
 import sourceOwnerProcessor from '~/scripts/import-lovac/source-owners/source-owner-processor';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra/reporters/logger-reporter';
 import { createLogger } from '~/infra/logger';
-import ownerRepository from '~/repositories/ownerRepository';
+import { Owners } from '~/repositories/ownerRepository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import validator from '~/scripts/import-lovac/validator';
 import { sourceOwnerSchema } from '~/scripts/import-lovac/source-owners/source-owner';
@@ -50,12 +50,23 @@ program
       )
       .pipeTo(
         sourceOwnerProcessor({
-          ownerRepository: {
-            save: options.dryRun
-              ? async (...args) => noop(...args)
-              : ownerRepository.betterSave
-          },
-          reporter
+          reporter,
+          saveOwner: options.dryRun
+            ? async () => noop()
+            : async (owner) => {
+                await Owners()
+                  .insert(owner)
+                  .onConflict(['idpersonne'])
+                  .merge([
+                    'full_name',
+                    'dgfip_address',
+                    'data_source',
+                    'kind_class',
+                    'birth_date',
+                    'administrator',
+                    'siren'
+                  ]);
+              }
         })
       )
       .catch((error) => {

@@ -4,8 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 import { ReporterOptions } from '~/scripts/import-lovac/infra/reporters';
 import { createLogger } from '~/infra/logger';
-import { OwnerApi } from '~/models/OwnerApi';
-import { ConflictOptions } from '~/infra/database';
 import { OwnerDBO } from '~/repositories/ownerRepository';
 
 export async function process(record: SourceOwner): Promise<SourceOwner> {
@@ -13,35 +11,35 @@ export async function process(record: SourceOwner): Promise<SourceOwner> {
 }
 
 interface ProcessorOptions extends ReporterOptions<SourceOwner> {
-  ownerRepository: {
-    save(owner: OwnerApi, opts?: ConflictOptions<OwnerDBO>): Promise<void>;
-  };
+  saveOwner(owner: OwnerDBO): Promise<void>;
 }
 
 const logger = createLogger('sourceOwnerProcessor');
 
 export function sourceOwnerProcessor(opts: ProcessorOptions) {
-  const { ownerRepository, reporter } = opts;
+  const { saveOwner, reporter } = opts;
 
   return new WritableStream<SourceOwner>({
     async write(chunk, controller) {
       try {
         logger.debug('Processing source owner...', { chunk });
 
-        const owner: OwnerApi = {
+        await saveOwner({
           id: uuidv4(),
           idpersonne: chunk.idpersonne,
-          rawAddress: [chunk.raw_address],
-          fullName: chunk.full_name,
-          birthDate: chunk.birth_date ? new Date(chunk.birth_date) : undefined,
-          email: undefined,
-          phone: undefined,
-          banAddress: undefined,
-          additionalAddress: undefined
-        };
-        await ownerRepository.save(owner, {
-          onConflict: ['idpersonne'],
-          merge: ['raw_address', 'full_name', 'birth_date']
+          full_name: chunk.full_name,
+          birth_date: chunk.birth_date,
+          administrator: chunk.administrator,
+          siren: chunk.siren,
+          dgfip_address: [chunk.dgfip_address],
+          additional_address: null,
+          email: null,
+          phone: null,
+          data_source: chunk.data_source,
+          kind_class: chunk.kind_class,
+          owner_kind_detail: null,
+          created_at: new Date(),
+          updated_at: new Date()
         });
         reporter.passed(chunk);
       } catch (error) {

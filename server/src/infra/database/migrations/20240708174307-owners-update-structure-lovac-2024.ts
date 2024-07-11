@@ -7,11 +7,12 @@ export async function up(knex: Knex): Promise<void> {
       .nullable()
       .unique()
       .comment('L’identifiant communal provenant de LOVAC');
+    table.string('siren').nullable();
     table.renameColumn('raw_address', 'dgfip_address');
     table.renameColumn('owner_kind', 'kind_class');
-    table.string('data_source').notNullable();
-    table.timestamp('created_at');
-    table.timestamp('updated_at');
+    table.string('data_source').nullable();
+    table.timestamp('created_at').nullable();
+    table.timestamp('updated_at').nullable();
   });
 }
 

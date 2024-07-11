@@ -28,7 +28,7 @@ export function useHousing() {
   const campaignList = useCampaignList();
 
   const mainHousingOwner = housingOwners?.find((_) => _.rank === 1);
-  const coOwners = housingOwners?.filter((_) => _.rank !== 1);
+  const coOwners = housingOwners;
 
   const { data: count } = useCountHousingQuery(
     {

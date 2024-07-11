@@ -1,13 +1,4 @@
 fileignoreconfig:
-- filename: .github/workflows/review-app.yml
-  checksum: 78d9abc578bda1e6622a67acfd199ffba381ad98cfeeb5b31bb1fe74c95fc3c1
-version: ""
-hub/workflows/e2e.yml
-  checksum: 1994a562d1d57521c10078640cd49fdccf7b3baecbaf46f3ed383ada996b5c90
-- filename: .github/workflows/github-actions.yml
-  checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
-- filename: .github/workflows/review-app.yml
-  checksum: 632dba1dc6c13a8f3dd1d8a31fa7be20ceceae67af009c3c7d1f28a64ac05d3f
 - filename: database/*
 - filename: e2e/.env.example
   checksum: 7afa05e3b64d40c9351b2a60f4ae70887b9c44d66b152c67f7d53b3d4956c93c
@@ -37,6 +28,10 @@ hub/workflows/e2e.yml
   checksum: d9f6881dde9c3f94ad2ed37d8551bb7a725ac1254a9b4bbd46e96a8010cd192c
 - filename: frontend/src/components/HousingFiltersBadges/HousingFiltersBadges.tsx
   checksum: bbf0f51b5624396489a49b287d4146f81ba4b5ed217965afc1c7131ca8e5b93b
+- filename: frontend/src/components/OwnerCard/OtherOwnerCard.tsx
+  checksum: 7e074d80f484efab059b7055a45cebf46d40cadc4018189ab1535f2a563071d0
+- filename: frontend/src/components/OwnerCard/OwnerCard.tsx
+  checksum: 632dba1dc6c13a8f3dd1d8a31fa7be20ceceae67af009c3c7d1f28a64ac05d3f
 - filename: frontend/src/components/RichEditor/nodes/VariableNode.tsx
   checksum: 1f86b91a9b3e8bf3211a829a6ddf8a03e81d03310fe619a10ed658ccd9bfd1f8
 - filename: frontend/src/components/_dsfr/components/interface/Select/SearchableSelect.d.ts
@@ -45,6 +40,8 @@ hub/workflows/e2e.yml
   checksum: 73472734fdf4bd6ee7a585fb159a58cba3622f17d16b65fcebd4d38f8ec56b1e
 - filename: frontend/src/components/modals/HousingCreationModal/FillLocalId.tsx
   checksum: 215449d00a43a291e8efd8b28aeb0240b11ee8226efaf87dadc7709f4fa17325
+- filename: frontend/src/components/modals/HousingOwnersModal/HousingOwnersModal.tsx
+  checksum: 16e0c8861d5060b05344d5b69908d18c8980908d049a12f44416718a958ef9b6
 - filename: frontend/src/hooks/useForm.tsx
   checksum: 6d16b338e7203dc37f64b3e00e4da0365dc35461e5c776853b55243509e3d9b9
 - filename: frontend/src/hooks/useSort.tsx
@@ -129,14 +126,6 @@ hub/workflows/e2e.yml
   checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 - filename: yarn.lock
   checksum: 59d37f8e1ecf81439bce81f285ac09fdcf3978c64ff996c2d0e8731431ecb2c0
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
-- keyof
-version: "1.0"
-red/src/utils/s3.ts
-  checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 scopeconfig:
 - scope: node
 allowed_patterns:

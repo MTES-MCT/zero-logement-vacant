@@ -7,7 +7,11 @@ export interface OwnerPayloadApi extends Omit<OwnerPayloadDTO, 'birthDate'> {
 }
 
 export interface OwnerApi extends OwnerDTO {
-  idpersonne: string | null;
+  idpersonne?: string;
+  siren?: string;
+  dataSource?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {

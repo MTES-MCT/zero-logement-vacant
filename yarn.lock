@@ -3428,6 +3428,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fast-check/jest@npm:^1.8.2":
+  version: 1.8.2
+  resolution: "@fast-check/jest@npm:1.8.2"
+  dependencies:
+    fast-check: "npm:^3.0.0"
+  peerDependencies:
+    "@fast-check/worker": ">=0.0.7 <0.5.0"
+    "@jest/expect": ">=28.0.0"
+    "@jest/globals": ">=25.5.2"
+  peerDependenciesMeta:
+    "@fast-check/worker":
+      optional: true
+    "@jest/expect":
+      optional: true
+  checksum: 10c0/7874498fc59e36b75a6fd3bafc6a66c7b824f60ab388e0131030af7b62f3142f6bb13a7b8c645f6ac255dce2cf5217ea02e8f7c081b2ea799564c479e8083730
+  languageName: node
+  linkType: hard
+
 "@fast-csv/format@npm:4.3.5":
   version: 4.3.5
   resolution: "@fast-csv/format@npm:4.3.5"
@@ -9258,8 +9276,10 @@ __metadata:
     "@commander-js/extra-typings": "npm:^12.1.0"
     "@elastic/elasticsearch": "npm:^8.13.1"
     "@faker-js/faker": "npm:^8.4.1"
+    "@fast-check/jest": "npm:^1.8.2"
     "@getbrevo/brevo": "npm:^1.0.1"
     "@godaddy/terminus": "npm:^4.12.1"
+    "@jest/globals": "npm:^29.7.0"
     "@jsonlines/core": "npm:^1.0.2"
     "@sendinblue/client": "npm:^3.3.1"
     "@sentry/integrations": "npm:^7.116.0"
@@ -14410,6 +14430,15 @@ __metadata:
   version: 1.4.1
   resolution: "extsprintf@npm:1.4.1"
   checksum: 10c0/e10e2769985d0e9b6c7199b053a9957589d02e84de42832c295798cb422a025e6d4a92e0259c1fb4d07090f5bfde6b55fd9f880ac5855bd61d775f8ab75a7ab0
+  languageName: node
+  linkType: hard
+
+"fast-check@npm:^3.0.0":
+  version: 3.19.0
+  resolution: "fast-check@npm:3.19.0"
+  dependencies:
+    pure-rand: "npm:^6.1.0"
+  checksum: 10c0/5a15484d380fb5a3e94ec951c97e59b940ac4f2e1f3f7a05578d67851e5cb5283121bcf08c57e3238bc85899ce691b47ab477a6dd481a6f520e2e7ab4952d1ee
   languageName: node
   linkType: hard
 
@@ -22436,7 +22465,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pure-rand@npm:^6.0.0":
+"pure-rand@npm:^6.0.0, pure-rand@npm:^6.1.0":
   version: 6.1.0
   resolution: "pure-rand@npm:6.1.0"
   checksum: 10c0/1abe217897bf74dcb3a0c9aba3555fe975023147b48db540aa2faf507aee91c03bf54f6aef0eb2bf59cc259a16d06b28eca37f0dc426d94f4692aeff02fb0e65

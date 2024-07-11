@@ -3,6 +3,9 @@ name: Manage review apps
 # Important : Branch specified as branch selection is overridden by PR branch
 
 on:
+  pull_request_target:
+    types: [closed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       pull_request_number:
@@ -430,7 +433,7 @@ jobs:
 
   delete-queue:
     runs-on: ubuntu-latest
-    if: github.event.inputs.action_type == 'Supprimer'
+    if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
     steps:
@@ -444,7 +447,7 @@ jobs:
 
   delete-api:
     runs-on: ubuntu-latest
-    if: github.event.inputs.action_type == 'Supprimer'
+    if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
     steps:
@@ -458,7 +461,7 @@ jobs:
 
   delete-front:
     runs-on: ubuntu-latest
-    if: github.event.inputs.action_type == 'Supprimer'
+    if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
     steps:
@@ -472,7 +475,7 @@ jobs:
 
   delete-addons:
     runs-on: ubuntu-latest
-    if: github.event.inputs.action_type == 'Supprimer'
+    if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools

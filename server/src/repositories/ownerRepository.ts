@@ -188,11 +188,11 @@ interface FindOneOptions {
   birthDate?: Date;
 }
 
-const findOne = async (opts: FindOneOptions): Promise<OwnerApi | null> => {
-  const owner = await db<OwnerDBO>(ownerTable)
+async function findOne(opts: FindOneOptions): Promise<OwnerApi | null> {
+  const owner = await Owners()
     .where({
       full_name: opts.fullName,
-      raw_address: opts.rawAddress
+      dgfip_address: opts.rawAddress
     })
     .modify((builder) => {
       return opts.birthDate === undefined
@@ -201,7 +201,7 @@ const findOne = async (opts: FindOneOptions): Promise<OwnerApi | null> => {
     })
     .first();
   return owner ? parseOwnerApi(owner) : null;
-};
+}
 
 const searchOwners = async (
   q: string,
@@ -345,7 +345,7 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
             if (onConflict === 'merge') {
               return builder
                 .onConflict(['full_name', 'raw_address', 'birth_date'])
-                .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
+                .merge(['administrator', 'kind_class', 'owner_kind_detail']);
             }
             return builder
               .onConflict(['full_name', 'raw_address', 'birth_date'])
@@ -366,7 +366,7 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
                     '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
                   )
                 )
-                .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
+                .merge(['administrator', 'kind_class', 'owner_kind_detail']);
             }
             return builder
               .onConflict(
@@ -478,52 +478,60 @@ const escapeValue = (value?: string) => {
   return value ? value.replace(/'/g, "''") : '';
 };
 
-export interface OwnerDBO {
+export interface OwnerRecordDBO {
   id: string;
   idpersonne: string | null;
   full_name: string;
-  birth_date?: Date | string;
-  administrator?: string;
-  raw_address: string[];
-  owner_kind?: string;
-  owner_kind_detail?: string;
-  email?: string;
-  phone?: string;
+  birth_date: Date | string | null;
+  administrator: string | null;
+  siren: string | null;
+  dgfip_address: string[];
+  // ban_address: string | null;
+  additional_address: string | null;
+  email: string | null;
+  phone: string | null;
+  data_source: string | null;
+  kind_class: string | null;
+  owner_kind_detail: string | null;
+  created_at: Date | string | null;
+  updated_at: Date | string | null;
+}
+
+export interface OwnerDBO extends OwnerRecordDBO {
   postal_code?: string;
   house_number?: string;
   street?: string;
   city?: string;
   score?: number;
-  additional_address?: string;
 }
 
-export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
-  id: result.id,
-  idpersonne: result.idpersonne,
-  rawAddress: result.raw_address.filter((_: string) => _ && _.length),
-  fullName: result.full_name,
-  administrator: result.administrator,
-  birthDate: result.birth_date ? new Date(result.birth_date) : undefined,
-  email: result.email,
-  phone: result.phone,
-  kind: result.owner_kind,
-  kindDetail: result.owner_kind_detail,
+export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => ({
+  id: owner.id,
+  idpersonne: owner.idpersonne ?? undefined,
+  rawAddress: owner.dgfip_address,
+  fullName: owner.full_name,
+  administrator: owner.administrator ?? undefined,
+  birthDate: owner.birth_date ? new Date(owner.birth_date) : undefined,
+  email: owner.email ?? undefined,
+  phone: owner.phone ?? undefined,
+  kind: owner.kind_class ?? undefined,
+  kindDetail: owner.owner_kind_detail ?? undefined,
   banAddress: [
-    result.postal_code,
-    result.house_number,
-    result.street,
-    result.city,
-    result.score
+    owner.postal_code,
+    owner.house_number,
+    owner.street,
+    owner.city,
+    owner.score
   ].some((_) => isDefined(_) && isNotNull(_))
     ? {
-        postalCode: result.postal_code ?? '',
-        houseNumber: result.house_number,
-        street: result.street,
-        city: result.city ?? '',
-        score: result.score
+        postalCode: owner.postal_code ?? '',
+        houseNumber: owner.house_number,
+        street: owner.street,
+        city: owner.city ?? '',
+        score: owner.score
       }
     : undefined,
-  additionalAddress: result.additional_address
+  additionalAddress: owner.additional_address ?? undefined
 });
 
 export const parseHousingOwnerApi = (
@@ -538,18 +546,22 @@ export const parseHousingOwnerApi = (
   origin: housingOwner.origin
 });
 
-export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
-  id: ownerApi.id,
-  idpersonne: ownerApi.idpersonne,
-  raw_address: ownerApi.rawAddress.filter((_: string) => _ && _.length),
-  full_name: ownerApi.fullName,
-  administrator: ownerApi.administrator,
-  birth_date: ownerApi.birthDate,
-  email: ownerApi.email,
-  phone: ownerApi.phone,
-  owner_kind: ownerApi.kind,
-  owner_kind_detail: ownerApi.kindDetail,
-  additional_address: ownerApi.additionalAddress
+export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
+  id: owner.id,
+  idpersonne: owner.idpersonne ?? null,
+  full_name: owner.fullName,
+  birth_date: owner.birthDate ?? null,
+  administrator: owner.administrator ?? null,
+  siren: owner.siren ?? null,
+  dgfip_address: owner.rawAddress.filter((_: string) => _ && _.length),
+  additional_address: owner.additionalAddress ?? null,
+  email: owner.email ?? null,
+  phone: owner.phone ?? null,
+  data_source: owner.dataSource ?? null,
+  kind_class: owner.kind ?? null,
+  owner_kind_detail: owner.kindDetail ?? null,
+  created_at: owner.createdAt ? new Date(owner.createdAt) : null,
+  updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null
 });
 
 export default {

@@ -76,6 +76,8 @@ fileignoreconfig:
   checksum: df71affe33700cb0a36ee0b4824ef60e7d8e5a08f3d4d16ca53c31e9085b45ae
 - filename: queue/README.md
   checksum: fe2ac5277a42e6bf8dfc1e0fe53cc3308bba9019d9091f4b8c291e4a2e4a4eb8
+- filename: queue/src/.htpasswd
+  checksum: 7670652d46bed42247610009a41eadea1d18ff839db9fa831288cb6ab19792e1
 - filename: queue/src/config.ts
   checksum: 8ca4d9a0b6118457fb7dcea24e43645eb63bea92d9e0f1d0c4ae763ea55491a5
 - filename: queue/src/events/index.ts

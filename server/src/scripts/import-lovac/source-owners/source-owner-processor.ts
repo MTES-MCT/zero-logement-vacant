@@ -6,15 +6,11 @@ import { ReporterOptions } from '~/scripts/import-lovac/infra/reporters';
 import { createLogger } from '~/infra/logger';
 import { OwnerDBO } from '~/repositories/ownerRepository';
 
-export async function process(record: SourceOwner): Promise<SourceOwner> {
-  return record;
-}
+const logger = createLogger('sourceOwnerProcessor');
 
 interface ProcessorOptions extends ReporterOptions<SourceOwner> {
   saveOwner(owner: OwnerDBO): Promise<void>;
 }
-
-const logger = createLogger('sourceOwnerProcessor');
 
 export function sourceOwnerProcessor(opts: ProcessorOptions) {
   const { saveOwner, reporter } = opts;

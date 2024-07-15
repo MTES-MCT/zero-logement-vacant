@@ -60,6 +60,7 @@ export const getHousingOwnerRankLabel = (rank: number) => {
     { rank: 0, label: 'Ancien propriétaire'},
     { rank: -1, label: 'Propriétaire incorrect'},
     { rank: -2, label: 'Propriétaire en attente de traitement'},
+    { rank: -3, label: 'Propriétaire décédé'},
   ];
 
   const label = labels.find(label => label.rank === rank)?.label;

@@ -2,7 +2,7 @@ import { logger } from '~/infra/logger';
 import { toHousingRecordApi, toOwnerApi } from '../shared';
 import db from '~/infra/database/';
 
-import { SingleBar, Presets } from 'cli-progress';
+import { Presets, SingleBar } from 'cli-progress';
 import ownerMatchRepository from '~/repositories/ownerMatchRepository';
 import ownerRepository from '~/repositories/ownerRepository';
 import { HousingOwners } from '~/repositories/housingOwnerRepository';
@@ -10,18 +10,16 @@ import housingRepository from '~/repositories/housingRepository';
 
 const progressBar = new SingleBar({}, Presets.shades_classic);
 
-const YEAR = '2023';
-
 const processRow = async (dfHousing: any) => {
   progressBar.increment();
   const doProcess = async () => {
     const housing = toHousingRecordApi(
       { source: 'datafoncier-import' },
-      dfHousing,
+      dfHousing
     );
 
     const dfOwner = await db.raw(
-      `SELECT * FROM df_owners_nat_${YEAR} WHERE idlocal='${housing.localId}'`,
+      `SELECT * FROM df_owners_nat WHERE idlocal='${housing.localId}'`
     );
 
     if (dfOwner.rows.length === 0) {
@@ -29,7 +27,7 @@ const processRow = async (dfHousing: any) => {
     }
 
     const ownerMatch = await ownerMatchRepository.findOne({
-      idpersonne: dfOwner.rows[0].idpersonne,
+      idpersonne: dfOwner.rows[0].idpersonne
     });
 
     let owner;
@@ -53,7 +51,7 @@ const processRow = async (dfHousing: any) => {
           owner_id: owner.id,
           housing_id: housing.id,
           housing_geo_code: housing.geoCode,
-          rank: 1,
+          rank: 1
         });
       } catch (e: any) {
         return;
@@ -67,7 +65,7 @@ const main = async () => {
   logger.info('Importing datafoncier raw data to ZLV tables...');
 
   const count = await db.raw(`SELECT count(df.*)
-  FROM df_housing_nat_${YEAR} df
+  FROM df_housing_nat df
   WHERE NOT EXISTS (
       SELECT 1
       FROM fast_housing fh
@@ -80,13 +78,13 @@ const main = async () => {
     .raw(
       `
     SELECT df.*
-    FROM df_housing_nat_${YEAR} df
+    FROM df_housing_nat df
     WHERE NOT EXISTS (
         SELECT 1
         FROM fast_housing fh
         WHERE df.idlocal = fh.local_id
     )
-  `,
+  `
     )
     .stream();
 

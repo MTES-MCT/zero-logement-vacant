@@ -1,5 +1,3 @@
-import { Icon, Text } from '../_dsfr';
-
 import {
   getHousingOwnerRankLabel,
   HousingOwner
@@ -8,6 +6,8 @@ import {
 import styles from './owner-card.module.scss';
 import classNames from 'classnames';
 import Card from '@codegouvfr/react-dsfr/Card';
+import { fr } from '@codegouvfr/react-dsfr';
+import { Typography } from '@mui/material';
 
 interface OtherOwnerCardProps {
   owner: HousingOwner;
@@ -29,34 +29,22 @@ function OtherOwnerCard({ owner }: OtherOwnerCardProps) {
   title={
     <>
       <span className="icon-xs">
-        <Icon
-          name="fr-icon-user-fill"
-          iconPosition="center"
-        />
+        <span className={fr.cx("fr-icon-user-fill")} aria-hidden={true} />
       </span>
-      <Text as="span" className="color-black-50">
-        <b>{owner.fullName}</b>
-      </Text>
+      <Typography component="span" fontWeight="700" color="black">
+        {owner.fullName}
+      </Typography>
     </>
   }
   desc={
     <>
-      <Text size="sm" className="zlv-label" as="span">
+      <Typography component="span" fontSize={'0.875rem'} fontWeight={500} color={'var(--grey-425)'}>
         {getHousingOwnerRankLabel(owner.rank)}
-      </Text>
-      <Text
-        as="span"
-        spacing="mb-0 mr-1w"
-        className="float-right fr-link"
-      >
+      </Typography>
+      <Typography component="p" mb={0} mr={1} className='float-right fr-link'>
         Voir la fiche
-        <Icon
-          name="fr-icon-arrow-right-line"
-          size="lg"
-          verticalAlign="middle"
-          iconPosition="center"
-        />
-      </Text>
+        <span className={fr.cx("fr-icon-arrow-right-line")} aria-hidden={true} />
+      </Typography>
     </>
   }
   classes={{ end: 'd-none' }}

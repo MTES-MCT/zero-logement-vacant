@@ -1,4 +1,3 @@
-import { Icon, Text } from '../_dsfr';
 import { ReactNode } from 'react';
 
 import { HousingOwner, isHousingOwner, Owner } from '../../models/Owner';
@@ -13,6 +12,7 @@ import { isBanEligible } from '../../models/Address';
 import Typography from '@mui/material/Typography';
 import OtherOwnerCard from './OtherOwnerCard';
 import Alert from '@codegouvfr/react-dsfr/Alert';
+import { fr } from '@codegouvfr/react-dsfr';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -43,99 +43,77 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
       desc={
         <>
           {owner.birthDate && (
-            <Text size="lg" className="fr-mb-0">
-              <Text size="sm" className="zlv-label-icon">
-                <Icon
-                  name="fr-icon-calendar-2-line"
-                  iconPosition="center"
-                  size="xs"
-                />
-                <span>Date de naissance</span>
-              </Text>
-              <Text spacing="mb-1w">{birthdate(owner.birthDate)} </Text>
-            </Text>
+            <Typography component="p" mb={1}>
+              <span className={fr.cx("fr-icon-calendar-2-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Date de naissance</Typography>
+              <Typography component="p">
+                {birthdate(owner.birthDate)}
+              </Typography>
+            </Typography>
           )}
 
-          <Text size="lg" className="fr-mb-0">
-            <Text size="sm" className="zlv-label-icon">
-              <Icon
-                name="fr-icon-home-4-line"
-                iconPosition="center"
-                size="xs"
-              />
-              <span>Adresse postale</span>
-            </Text>
-            <Text className="fr-mb-0">
-                {owner.banAddress?.houseNumber} {owner.banAddress?.street}
-                <br />
-                {owner.banAddress?.postalCode} {owner.banAddress?.city}
-                {[owner, ...(coOwners ?? [])].find(
-                  (owner) => !isBanEligible(owner.banAddress)
-                ) && (
-                  <Alert
-                    severity="info"
-                    className={classNames(styles.addressNotice, 'fr-mt-2w')}
-                    title={
-                      <>
-                        <div className="fr-mb-2w">Adresse à vérifier</div>
-                      </>
-                    }
-                    description={
-                      <>
-                        Cette adresse issue de la BAN est différente de
-                        l’adresse fiscale.
-                        <br />
-                        Cliquez sur “Modifier” pour valider l’adresse que vous
-                        souhaitez utiliser.
-                      </>
-                    }
-                  ></Alert>
-                )}
-              </Text>
-          </Text>
+          <Typography component="p" mb={1}>
+            <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+            <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Adresse postale</Typography>
+            <Typography component="p">
+              {owner.banAddress?.houseNumber} {owner.banAddress?.street}
+              <br />
+              {owner.banAddress?.postalCode} {owner.banAddress?.city}
+              {[owner, ...(coOwners ?? [])].find(
+                (owner) => !isBanEligible(owner.banAddress)
+              ) && (
+                <Alert
+                  severity="info"
+                  className={classNames(styles.addressNotice, 'fr-mt-2w')}
+                  title={
+                    <>
+                      <div className="fr-mb-2w">Adresse à vérifier</div>
+                    </>
+                  }
+                  description={
+                    <>
+                      Cette adresse issue de la BAN est différente de
+                      l’adresse fiscale.
+                      <br />
+                      Cliquez sur “Modifier” pour valider l’adresse que vous
+                      souhaitez utiliser.
+                    </>
+                  }
+                ></Alert>
+              )}
+            </Typography>
+          </Typography>
 
           {owner.additionalAddress && (
-            <Text size="lg" className="fr-mb-0">
-              <Text size="sm" className="zlv-label-icon">
-                <Icon
-                  name="fr-icon-home-4-line"
-                  iconPosition="center"
-                  size="xs"
-                />
-                <span>Complément d’adresse</span>
-              </Text>
-              <Text spacing="mb-1w">{owner.additionalAddress} </Text>
-            </Text>
+            <Typography component="p" mb={1}>
+              <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Complément d’adresse</Typography>
+              <Typography component="p">
+                {owner.additionalAddress}
+              </Typography>
+            </Typography>
           )}
 
           {owner.email && (
-            <Text size="lg" className="fr-mb-0">
-              <Text size="sm" className="zlv-label-icon">
-                <Icon
-                  name="fr-icon-mail-line"
-                  iconPosition="center"
-                  size="xs"
-                />
-                <span>Adresse mail</span>
-              </Text>
-              <AppLink className="mailto" isSimple to={mailto(owner.email)}>
-                  {owner.email}
-              </AppLink>
-            </Text>
+            <Typography component="p" mb={1}>
+              <span className={fr.cx("fr-icon-mail-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Adresse mail</Typography>
+              <Typography component="p">
+                <AppLink className="mailto" isSimple to={mailto(owner.email)}>
+                    {owner.email}
+                </AppLink>
+              </Typography>
+            </Typography>
           )}
 
           {owner.phone && (
-            <Text size="lg" className="fr-mb-0">
-              <Text size="sm" className="zlv-label-icon">
-                <Icon
-                  name="fr-icon-phone-line"
-                  iconPosition="center"
-                  size="xs"
-                />
-                <span>Téléphone</span>
-              </Text>
-              <Text spacing="mb-1w">{owner.phone} </Text>
-            </Text>
+            <Typography component="p" mb={1}>
+              <span className={fr.cx("fr-icon-phone-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Téléphone</Typography>
+              <Typography component="p">
+                {owner.phone}
+              </Typography>
+            </Typography>
           )}
 
           {isHousingOwner(owner) && (

@@ -1,20 +1,19 @@
 import highland from 'highland';
-import Stream = Highland.Stream;
 
 import { logger } from '~/infra/logger';
 import db from '~/infra/database';
 import { DatafoncierHousing } from '@zerologementvacant/shared';
-import { getYear } from 'date-fns';
+import Stream = Highland.Stream;
 
 const FIELDS = ['*'];
 
-export const datafoncierHousingTable = `df_housing_nat_${getYear(new Date()) - 1}`;
+export const datafoncierHousingTable = 'df_housing_nat';
 export const DatafoncierHouses = (transaction = db) =>
   transaction<DatafoncierHousing>(datafoncierHousingTable);
 
 class DatafoncierHousingRepository {
   async find(
-    where: Partial<DatafoncierHousing>,
+    where: Partial<DatafoncierHousing>
   ): Promise<DatafoncierHousing[]> {
     const housingList = await DatafoncierHouses()
       .where(where)
@@ -23,7 +22,7 @@ class DatafoncierHousingRepository {
   }
 
   async findOne(
-    where: Partial<DatafoncierHousing>,
+    where: Partial<DatafoncierHousing>
   ): Promise<DatafoncierHousing | null> {
     const housing = await DatafoncierHouses()
       .where(where)
@@ -38,7 +37,7 @@ class DatafoncierHousingRepository {
     const query = DatafoncierHouses()
       .select(FIELDS)
       .where({
-        ccthp: 'L',
+        ccthp: 'L'
       })
       .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON'])
       .stream();

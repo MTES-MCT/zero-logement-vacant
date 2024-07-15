@@ -4,6 +4,7 @@ describe('Campaign', () => {
     cy.intercept('POST', Cypress.env('API') + '/housing/count').as(
       'countHousings'
     );
+    cy.intercept('POST', Cypress.env('API') + '/files').as('upload');
 
     cy.logIn();
     cy.wait(['@findHousings', '@countHousings']);
@@ -26,6 +27,7 @@ describe('Campaign', () => {
       cy.get('input[type="file"]')
         .first()
         .selectFile('cypress/fixtures/logo.png');
+      cy.wait('@upload');
 
       cy.get('label')
         .contains(/^En date du/)

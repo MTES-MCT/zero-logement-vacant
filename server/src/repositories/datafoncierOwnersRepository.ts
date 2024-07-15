@@ -4,7 +4,7 @@ import {
   DatafoncierOwner,
   DatafoncierOwnerSortApi,
   ownerDatafoncierSchema,
-  validator,
+  validator
 } from '~/scripts/shared';
 import { Knex } from 'knex';
 import { ownerMatchTable } from './ownerMatchRepository';
@@ -12,7 +12,6 @@ import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
 import { OwnerApi } from '~/models/OwnerApi';
 import fp from 'lodash/fp';
 import { sortQuery } from '~/models/SortApi';
-import { getYear } from 'date-fns';
 
 const FIELDS = [
   'idprodroit',
@@ -24,10 +23,10 @@ const FIELDS = [
   'ddenom',
   'jdatnss',
   'catpro2txt',
-  'catpro3txt',
+  'catpro3txt'
 ];
 
-export const datafoncierOwnersTable = `df_owners_nat_${getYear(new Date()) - 1}`;
+export const datafoncierOwnersTable = 'df_owners_nat';
 export const DatafoncierOwners = (transaction = db) =>
   transaction<DatafoncierOwner>(datafoncierOwnersTable);
 
@@ -44,7 +43,7 @@ class DatafoncierOwnersRepository {
     const subquery = DatafoncierOwners()
       .distinctOn('idpersonne')
       .where((whereBuilder) =>
-        whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8']),
+        whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8'])
       )
       .select('idpersonne'); // Sélectionnez uniquement 'idpersonne' pour le décompte distinct
 
@@ -63,7 +62,7 @@ class DatafoncierOwnersRepository {
       .join(
         ownerMatchTable,
         `${ownerMatchTable}.idpersonne`,
-        `${datafoncierOwnersTable}.idpersonne`,
+        `${datafoncierOwnersTable}.idpersonne`
       )
       .join(ownerTable, `${ownerTable}.id`, `${ownerMatchTable}.owner_id`)
       .orderBy(`${datafoncierOwnersTable}.dnulp`);
@@ -84,7 +83,7 @@ class DatafoncierOwnersRepository {
       .select(FIELDS)
       .distinctOn('idpersonne')
       .where((whereBuilder) =>
-        whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8']),
+        whereBuilder.whereNull('ccogrm').orWhereIn('ccogrm', ['0', '7', '8'])
       )
       // Avoid importing owners that have no address at all
       .modify(hasAddress())
@@ -93,15 +92,15 @@ class DatafoncierOwnersRepository {
         sortQuery(opts?.sort, {
           keys: {
             idprocpte: (query) =>
-              query.orderBy('idprocpte', opts?.sort?.idprocpte),
+              query.orderBy('idprocpte', opts?.sort?.idprocpte)
           },
-          default: (query) => query.orderBy('idpersonne'),
-        }),
+          default: (query) => query.orderBy('idpersonne')
+        })
       )
       .stream();
 
     return highland<DatafoncierOwner>(query).map(
-      validator.validate(ownerDatafoncierSchema),
+      validator.validate(ownerDatafoncierSchema)
     );
   }
 }

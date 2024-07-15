@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import Card from '@codegouvfr/react-dsfr/Card';
 import { fr } from '@codegouvfr/react-dsfr';
 import { Typography } from '@mui/material';
+import Label from '../Label/Label';
 
 interface OtherOwnerCardProps {
   owner: HousingOwner;
@@ -38,9 +39,9 @@ function OtherOwnerCard({ owner }: OtherOwnerCardProps) {
   }
   desc={
     <>
-      <Typography component="span" fontSize={'0.875rem'} fontWeight={500} color={'var(--grey-425)'}>
+       <Label as="span">
         {getHousingOwnerRankLabel(owner.rank)}
-      </Typography>
+      </Label>
       <Typography component="p" mb={0} mr={1} className='float-right fr-link'>
         Voir la fiche
         <span className={fr.cx("fr-icon-arrow-right-line")} aria-hidden={true} />

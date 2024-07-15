@@ -266,7 +266,7 @@ const HousingOwnersModal = ({
             <Text as="span">
               <b>{ownerInput.fullName}</b>
             </Text>
-            <Text size="sm" className="zlv-label fr-ml-1w" as="span">
+            <Text size="sm" className="zlv-label fr-ml-1w" as="span" aria-label="Rang du propriétaire">
               {getHousingOwnerRankLabel(Number(ownerInput.rank))}
             </Text>
             {!isBanEligible(ownerInput.banAddress) && (

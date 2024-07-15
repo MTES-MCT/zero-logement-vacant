@@ -39,7 +39,7 @@ function OtherOwnerCard({ owner }: OtherOwnerCardProps) {
   }
   desc={
     <>
-       <Label as="span">
+      <Label as="span" aria-label="Rang du propriétaire">
         {getHousingOwnerRankLabel(owner.rank)}
       </Label>
       <Typography component="p" mb={0} mr={1} className='float-right fr-link'>

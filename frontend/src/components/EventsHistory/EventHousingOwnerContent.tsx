@@ -18,7 +18,7 @@ const EventHousingOwnerContent = ({ housingOwners }: Props) => {
         .map((_) => parseHousingOwner(_))
         .map((housingOwner) => (
           <div className={styles.eventContent} key={housingOwner.id}>
-            <span className="color-grey-625">
+            <span className="color-grey-625" aria-label="Rang du propriétaire">
               {getHousingOwnerRankLabel(housingOwner.rank)}
             </span>
             <span>{housingOwner.fullName}</span>

@@ -284,7 +284,6 @@ const ownerValidators: ValidationChain[] = [
   body('banAddress.longitude').isNumeric().optional(),
   body('banAddress.score').isNumeric().optional(),
   body('additionalAddress').isString().optional(),
-  body('rank').isNumeric(),
 ];
 
 const ownerController = {

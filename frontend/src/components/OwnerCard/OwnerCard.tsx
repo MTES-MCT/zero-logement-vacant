@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import OtherOwnerCard from './OtherOwnerCard';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { fr } from '@codegouvfr/react-dsfr';
+import Label from '../Label/Label';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -45,7 +46,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
           {owner.birthDate && (
             <Typography component="p" mb={1}>
               <span className={fr.cx("fr-icon-calendar-2-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
-              <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Date de naissance</Typography>
+              <Label as="span">Date de naissance</Label>
               <Typography component="p">
                 {birthdate(owner.birthDate)}
               </Typography>
@@ -54,7 +55,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
 
           <Typography component="p" mb={1}>
             <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
-            <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Adresse postale</Typography>
+            <Label as="span">Adresse postale</Label>
             <Typography component="p">
               {owner.banAddress?.houseNumber} {owner.banAddress?.street}
               <br />
@@ -87,7 +88,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
           {owner.additionalAddress && (
             <Typography component="p" mb={1}>
               <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
-              <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Complément d’adresse</Typography>
+              <Label as="span">Complément d’adresse</Label>
               <Typography component="p">
                 {owner.additionalAddress}
               </Typography>
@@ -97,7 +98,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
           {owner.email && (
             <Typography component="p" mb={1}>
               <span className={fr.cx("fr-icon-mail-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
-              <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Adresse mail</Typography>
+              <Label as="span">Adresse mail</Label>
               <Typography component="p">
                 <AppLink className="mailto" isSimple to={mailto(owner.email)}>
                     {owner.email}
@@ -109,7 +110,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
           {owner.phone && (
             <Typography component="p" mb={1}>
               <span className={fr.cx("fr-icon-phone-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
-              <Typography component="span" fontSize={'0.875rem'} fontWeight={700} color={'var(--grey-425)'}>Téléphone</Typography>
+              <Label as="span">Téléphone</Label>
               <Typography component="p">
                 {owner.phone}
               </Typography>

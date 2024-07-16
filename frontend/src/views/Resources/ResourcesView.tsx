@@ -51,12 +51,6 @@ const ResourcesView = () => {
   return (
     <MainContainer title="Ressources">
       <Container as="article" spacing="pb-4w px-0">
-        <Text size="lg">
-          Parcourez les différentes rubriques pour trouver les informations et
-          documents utiles dans votre stratégie de lutte contre la vacance.
-          Retrouvez également en bas de cette page les trois étapes clés pour
-          prendre en main ZLV !
-        </Text>
         <Row gutters>
           <Col n="6">
             <ResourceTile
@@ -65,10 +59,7 @@ const ResourcesView = () => {
               icon="fr-icon-folder-2-fill"
               iconStyle={styles.iconResource}
             >
-              Zéro Logement Vacant vous propose une sélection de ressources pour
-              comprendre les données LOVAC, connaître le profil des
-              propriétaires et échanger avec eux, mais aussi s’informer sur les
-              dispositifs d’aides ou proposer des missions de service civique.
+              Découvrez une sélection de ressources autour de la lutte contre la vacance.
             </ResourceTile>
           </Col>
           <Col n="6">
@@ -78,10 +69,7 @@ const ResourcesView = () => {
               icon="fr-icon-group-fill"
               iconStyle={styles.iconCommunity}
             >
-              Utiliser Zéro Logement Vacant, c’est aussi faire partie d’une
-              communauté de collectivités utilisatrices de la solution... Pour
-              échanger sur la plateforme Rencontre des Territoires et participer
-              au club des collectivités utilisatrices de ZLV, c’est par ici !
+              La plateforme d’échanges Rencontre des Territoires et les Clubs ZLV, c’est par ici !
             </ResourceTile>
           </Col>
           <Col n="6">
@@ -91,10 +79,7 @@ const ResourcesView = () => {
               icon="fr-icon-question-mark"
               iconStyle={styles.iconHelp}
             >
-              Vous avez une question sur la solution ZLV ou sur les données
-              utilisées ? Vous ne savez pas comment créer une campagne ou mettre
-              à jour des dossiers ? Vous trouverez dans ce centre d’aide toutes
-              les réponses à vos questions les plus fréquentes !
+              Une question sur ZLV ? La réponse est sûrement dans le centre d’aide.
             </ResourceTile>
           </Col>
           <Col n="6">
@@ -104,10 +89,7 @@ const ResourcesView = () => {
               icon="fr-icon-calendar-fill"
               iconStyle={styles.iconAgenda}
             >
-              Vous souhaitez être accompagné dans la création d’une campagne ou
-              la mise à jour des dossiers ? Vous souhaitez échanger avec nous
-              autour de votre stratégie de lutte contre la vacance ou nous faire
-              un retour d’expérience ? Prenez rendez-vous avec nous !
+              Besoin d’échanger avec nous ? Prenez rendez-vous en visio !
             </ResourceTile>
           </Col>
         </Row>
@@ -123,10 +105,7 @@ const ResourcesView = () => {
               linkHref="https://zlv.notion.site/Int-grer-un-p-rim-tre-5c7cf0d51f20448bb1316405adbb4a37"
               icon="fr-icon-road-map-fill"
             >
-              Vous souhaitez cibler les logements sur un périmètre en
-              particulier, comme un dispositif opérationnel ou un quartier ?
-              Nous vous expliquons ici comment intégrer vos périmètres dans la
-              solution !
+              Découvrez comment cibler les logements au sein d’un périmètre géographique.
             </ResourceTile>
           </Col>
           <Col n="4">
@@ -135,11 +114,7 @@ const ResourcesView = () => {
               linkHref="https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5"
               icon="fr-icon-mail-fill"
             >
-              Vous voulez rédiger un courrier mais ne savez pas par où commencer
-              ? Vous souhaitez mobiliser les propriétaires et cherchez les
-              arguments à mettre en avant dans le courrier ? Vous avez besoin
-              d’un modèle adapté à un contexte particulier ? Laissez-vous guider
-              !
+              Accédez à des conseils pour écrire vos courriers et à des modèles déjà rédigés.
             </ResourceTile>
           </Col>
           <Col n="4">
@@ -149,10 +124,7 @@ const ResourcesView = () => {
               linkHrefTarget="_self"
               icon="fr-icon-git-merge-line"
             >
-              Statut “Premier contact” ou “Suivi en cours” ? Il peut être
-              compliqué de s’y retrouver dans les statuts des dossiers sur ZLV…
-              Découvrez ici l’ensemble des statuts et sous-statuts que vous
-              pouvez appliquer aux dossiers.
+              Consultez l’ensemble des statuts que vous pouvez appliquer aux logements.
             </ResourceTile>
           </Col>
         </Row>

@@ -259,7 +259,6 @@ const findByHousing = async (
       `${housingOwnersTable}.owner_id`,
     )
     .modify(include(['banAddress']))
-    .whereRaw(`${housingOwnersTable}.rank >= 1`)
     .where(`${housingOwnersTable}.housing_id`, housing.id)
     .where(`${housingOwnersTable}.housing_geo_code`, housing.geoCode)
     .orderBy('end_date', 'desc')

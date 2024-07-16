@@ -49,9 +49,20 @@ export const isHousingOwner = (o: Owner | HousingOwner): o is HousingOwner => {
   return (o as HousingOwner).housingId !== undefined;
 };
 
-export const getHousingOwnerRankLabel = (rank: number) =>
-  !rank
-    ? 'Ancien propriétaire'
-    : rank === 1
-      ? 'Propriétaire principal'
-      : `${rank}ème ayant droit`;
+export const getHousingOwnerRankLabel = (rank: number) => {
+
+  if (!rank) {
+    rank = 0;
+  }
+
+  const labels = [
+    { rank: 1, label: 'Propriétaire principal'},
+    { rank: 0, label: 'Ancien propriétaire'},
+    { rank: -1, label: 'Propriétaire incorrect'},
+    { rank: -2, label: 'Propriétaire en attente de traitement'},
+    { rank: -3, label: 'Propriétaire décédé'},
+  ];
+
+  const label = labels.find(label => label.rank === rank)?.label;
+  return label ? label : `${rank}ème ayant droit`;
+};

@@ -5,6 +5,7 @@ import styles from './housing-owner-modal.module.scss';
 import HousingAdditionalOwnerSearch from './HousingAdditionalOwnerSearch';
 import HousingAdditionalOwnerCreation from './HousingAdditionalOwnerCreation';
 import Select from '@codegouvfr/react-dsfr/Select';
+import Alert from '@codegouvfr/react-dsfr/Alert';
 
 interface Props {
   housingId: string;
@@ -17,7 +18,7 @@ const HousingAdditionalOwner = ({
   activeOwnersCount,
   onAddOwner,
 }: Props) => {
-  const [additionalOwnerRank, setAdditionalOwnerRank] = useState<string>('1');
+  const [additionalOwnerRank, setAdditionalOwnerRank] = useState<string>('invalid');
 
   const submitAddingHousingOwner = (owner: Owner) => {
     onAddOwner?.({
@@ -34,6 +35,9 @@ const HousingAdditionalOwner = ({
       label: _ + 2 + 'ème ayant droit',
     })),
     { value: '0', label: `Ancien propriétaire` },
+    { value: '-1', label: 'Propriétaire incorrect'},
+    { value: '-2', label: 'Propriétaire en attente de traitement'},
+    { value: '-3', label: 'Propriétaire décédé'},
   ];
 
   return (
@@ -47,6 +51,7 @@ const HousingAdditionalOwner = ({
         label="Sélectionner les droits de propriétés"
         className="fr-pt-2w"
       >
+        <option value="invalid" disabled></option>
         {ownerRankOptions.map((option) => (
           <option
             key={option.value}
@@ -56,6 +61,13 @@ const HousingAdditionalOwner = ({
           ></option>
         ))}
       </Select>
+      { additionalOwnerRank === 'invalid' &&
+        <Alert
+          severity="warning"
+          description="Veuillez sélectionner un rang"
+          small
+        ></Alert>
+      }
       <hr />
       <div className="fr-py-2w fr-px-6w">
         <HousingAdditionalOwnerSearch onSelect={submitAddingHousingOwner} />
@@ -66,6 +78,7 @@ const HousingAdditionalOwner = ({
         <HousingAdditionalOwnerCreation
           onAdd={submitAddingHousingOwner}
           onCancel={() => {}}
+          rank={parseInt(additionalOwnerRank)}
         />
       </div>
     </>

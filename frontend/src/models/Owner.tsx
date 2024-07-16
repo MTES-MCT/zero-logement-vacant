@@ -7,6 +7,7 @@ export interface DraftOwner {
   birthDate?: Date;
   email?: string;
   phone?: string;
+  rank: number;
 }
 
 export interface Owner {

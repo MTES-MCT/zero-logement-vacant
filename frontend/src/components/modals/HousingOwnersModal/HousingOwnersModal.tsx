@@ -148,6 +148,7 @@ const HousingOwnersModal = ({
 
   const changeOwnerInputs = (ownerInput: OwnerInput) => {
     const newInputs = [...ownerInputs];
+    console.log(ownerInputs);
     newInputs.splice(
       ownerInputs.findIndex((_) => _.id === ownerInput.id),
       1,

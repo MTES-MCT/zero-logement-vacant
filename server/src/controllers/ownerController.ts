@@ -78,6 +78,7 @@ async function create(request: Request, response: Response) {
     phone: body.phone,
     email: body.email,
   };
+  console.log(owner.id);
 
   await ownerRepository.save(owner);
   await banAddressesRepository.markAddressToBeNormalized(

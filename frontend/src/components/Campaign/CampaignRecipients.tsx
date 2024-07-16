@@ -1,8 +1,9 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Table from '@codegouvfr/react-dsfr/Table';
+import { Pagination as DSFRPagination } from '../_dsfr';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 
 import { Campaign } from '../../models/Campaign';
 import { useHousingList } from '../../hooks/useHousingList';
@@ -12,17 +13,49 @@ import AppLink from '../_app/AppLink/AppLink';
 import { Housing } from '../../models/Housing';
 import { useRemoveCampaignHousingMutation } from '../../services/campaign.service';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
+import { Pagination } from '@zerologementvacant/models';
+import { DefaultPagination } from '../../store/reducers/housingReducer';
+import { usePagination } from '../../hooks/usePagination';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { useCountHousingQuery } from '../../services/housing.service';
 
 interface Props {
   campaign: Campaign;
 }
 
 function CampaignRecipients(props: Props) {
+  const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
+  const filters = {
+    campaignIds: [props.campaign.id]
+  };
   const { housingList } = useHousingList({
-    filters: {
-      campaignIds: [props.campaign.id],
-    },
+    filters,
+    pagination
   });
+
+  const { data: count } = useCountHousingQuery(filters);
+  const filteredCount = count?.housing ?? 0;
+
+  const { pageCount, hasPagination } = usePagination({
+    ...pagination,
+    count: filteredCount
+  });
+
+  const changePerPage = (perPage: number) => {
+    setPagination({
+      ...pagination,
+      page: 1,
+      perPage
+    });
+  };
+
+  const changePage = (page: number) => {
+    console.log(page);
+    setPagination({
+      ...pagination,
+      page
+    });
+  };
 
   const [removeCampaignHousing] = useRemoveCampaignHousingMutation();
   function removeHousing(housing: Housing): void {
@@ -30,7 +63,7 @@ function CampaignRecipients(props: Props) {
       campaignId: props.campaign.id,
       all: false,
       ids: [housing.id],
-      filters: {},
+      filters: {}
     });
   }
 
@@ -46,10 +79,10 @@ function CampaignRecipients(props: Props) {
     'Propriétaire principal',
     'Adresse BAN du propriétaire',
     'Complément d’adresse',
-    null,
+    null
   ];
   const data: ReactNode[][] = (housingList ?? []).map((housing, i) => [
-    `# ${i}`,
+    `# ${i + 1 + (pagination.page - 1) * pagination.perPage}`,
     <AppLink
       isSimple
       key={`${housing.id}-address`}
@@ -88,7 +121,7 @@ function CampaignRecipients(props: Props) {
           iconId: 'fr-icon-close-line',
           priority: 'tertiary',
           size: 'small',
-          title: 'Supprimer le propriétaire',
+          title: 'Supprimer le propriétaire'
         }}
         title="Suppression d’un propriétaire"
         onSubmit={() => removeHousing(housing)}
@@ -97,12 +130,50 @@ function CampaignRecipients(props: Props) {
           Vous êtes sur le point de supprimer ce destinataire de la campagne.
         </Typography>
       </ConfirmationModal>
-    </Grid>,
+    </Grid>
   ]);
 
   return (
     <Grid container>
       <Table data={data} headers={headers} />
+      {hasPagination && (
+        <>
+          <div className="fr-react-table--pagination-center nav">
+            <DSFRPagination
+              onClick={changePage}
+              currentPage={pagination.page}
+              pageCount={pageCount}
+            />
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <Button
+              onClick={() => changePerPage(50)}
+              priority="secondary"
+              disabled={pagination.perPage === 50}
+              title="Afficher 50 résultats par page"
+            >
+              50 résultats par page
+            </Button>
+            <Button
+              onClick={() => changePerPage(200)}
+              className="fr-mx-3w"
+              priority="secondary"
+              disabled={pagination.perPage === 200}
+              title="Afficher 200 résultats par page"
+            >
+              200 résultats par page
+            </Button>
+            <Button
+              onClick={() => changePerPage(500)}
+              priority="secondary"
+              disabled={pagination.perPage === 500}
+              title="Afficher 500 résultats par page"
+            >
+              500 résultats par page
+            </Button>
+          </div>
+        </>
+      )}
     </Grid>
   );
 }

@@ -26,11 +26,11 @@ interface Props {
 function CampaignRecipients(props: Props) {
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const filters = {
-    campaignIds: [props.campaign.id]
+    campaignIds: [props.campaign.id],
   };
   const { housingList } = useHousingList({
     filters,
-    pagination
+    pagination,
   });
 
   const { data: count } = useCountHousingQuery(filters);
@@ -38,14 +38,14 @@ function CampaignRecipients(props: Props) {
 
   const { pageCount, hasPagination } = usePagination({
     ...pagination,
-    count: filteredCount
+    count: filteredCount,
   });
 
   const changePerPage = (perPage: number) => {
     setPagination({
       ...pagination,
       page: 1,
-      perPage
+      perPage,
     });
   };
 
@@ -53,7 +53,7 @@ function CampaignRecipients(props: Props) {
     console.log(page);
     setPagination({
       ...pagination,
-      page
+      page,
     });
   };
 
@@ -79,7 +79,7 @@ function CampaignRecipients(props: Props) {
     'Propriétaire principal',
     'Adresse BAN du propriétaire',
     'Complément d’adresse',
-    null
+    null,
   ];
   const data: ReactNode[][] = (housingList ?? []).map((housing, i) => [
     `# ${i + 1 + (pagination.page - 1) * pagination.perPage}`,
@@ -121,7 +121,7 @@ function CampaignRecipients(props: Props) {
           iconId: 'fr-icon-close-line',
           priority: 'tertiary',
           size: 'small',
-          title: 'Supprimer le propriétaire'
+          title: 'Supprimer le propriétaire',
         }}
         title="Suppression d’un propriétaire"
         onSubmit={() => removeHousing(housing)}
@@ -130,7 +130,7 @@ function CampaignRecipients(props: Props) {
           Vous êtes sur le point de supprimer ce destinataire de la campagne.
         </Typography>
       </ConfirmationModal>
-    </Grid>
+    </Grid>,
   ]);
 
   return (

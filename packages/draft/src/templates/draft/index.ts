@@ -6,26 +6,25 @@ export const DRAFT_TEMPLATE_FILE = fs.readFileSync(file, 'utf8');
 
 export interface DraftData {
   watermark?: boolean;
-  subject: string;
-  body: string;
-  logo: string[];
+  subject: string | null;
+  body: string | null;
+  logo: string[] | null;
   sender: {
-    name: string;
-    service: string;
-    firstName: string;
-    lastName: string;
+    name: string | null;
+    service: string | null;
+    firstName: string | null;
+    lastName: string | null;
     address: string | null;
     phone: string | null;
     signatoryFile: string | null;
     signatoryFirstName: string | null;
     signatoryLastName: string | null;
     signatoryRole: string | null;
-  };
-  writtenFrom: string;
-  writtenAt: string;
+  } | null;
+  writtenFrom: string | null;
+  writtenAt: string | null;
   owner: {
     fullName: string;
     address: string[];
-    additionalAddress: string | null;
   };
 }

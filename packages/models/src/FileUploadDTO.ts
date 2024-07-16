@@ -5,4 +5,5 @@ export interface FileUploadDTO {
   id: string;
   type: string;
   url: string;
+  content: string;
 }

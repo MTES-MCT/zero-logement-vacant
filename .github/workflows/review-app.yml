@@ -34,7 +34,7 @@ jobs:
 
       # TODO: do not create it if exists
       - name: Create postgres addon
-        run: clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan dev --region par
+        run: clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan xxs_sml --region par
 
       - name: Create redis addon
         run: clever addon create redis-addon $PR_NAME-redis --org $ORGA_ID --plan s_mono --region par
@@ -84,6 +84,8 @@ jobs:
           clever env set CEREMA_TOKEN "unused" -a $APP_ALIAS
           clever env set DATABASE_ENV "development" -a $APP_ALIAS
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
+          clever env set E2E_EMAIL $E2E_EMAIL -a $APP_ALIAS
+          clever env set E2E_PASSWORD $E2E_PASSWORD -a $APP_ALIAS
           clever env set HOST "https://$APP_ALIAS.cleverapps.io" -a $APP_ALIAS
           clever env set METABASE_TOKEN "unused" -a $APP_ALIAS
           clever env set PORT "8080" -a $APP_ALIAS
@@ -105,7 +107,7 @@ jobs:
           clever deploy -a $APP_ALIAS
 
       - name: Scale down for the run
-        run: clever scale --flavor XS -a $APP_ALIAS
+        run: clever scale --flavor S -a $APP_ALIAS
 
   deploy-queue:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
@@ -165,7 +167,7 @@ jobs:
           clever deploy -a $APP_ALIAS
 
       - name: Scale down for the run
-        run: clever scale --flavor XS -a $APP_ALIAS
+        run: clever scale --flavor M -a $APP_ALIAS
 
   deploy-front:
     if: github.event.action == 'opened' || github.event.action == 'reopened'
@@ -250,7 +252,7 @@ jobs:
         run: clever deploy --force -a $APP_ALIAS
 
       - name: Scale down for the run
-        run: clever scale --flavor XS -a $APP_ALIAS
+        run: clever scale --flavor S -a $APP_ALIAS
 
   update-front:
     if: github.event.action == 'synchronize'
@@ -314,7 +316,7 @@ jobs:
         run: clever deploy --force -a $APP_ALIAS
 
       - name: Scale down for the run
-        run: clever scale --flavor XS -a $APP_ALIAS
+        run: clever scale --flavor M -a $APP_ALIAS
 
   delete-queue:
     runs-on: ubuntu-latest

@@ -59,7 +59,7 @@ jobs:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
       - name: Build
-        run: yarn workspaces foreach --exclude=. --exclude=@zerologementvacant/template -Apt run build
+        run: yarn build
         env:
           CEREMA_TOKEN: token
           DISABLE_ESLINT_PLUGIN: true
@@ -84,6 +84,7 @@ jobs:
       app: Front staging
       alias: front-staging
       branch: main
+      environment: Staging
     secrets: inherit
 
   deploy-api-staging:
@@ -111,6 +112,7 @@ jobs:
       app: Front production
       alias: front-production
       branch: prod
+      environment: Production
     secrets: inherit
 
   deploy-api-production:

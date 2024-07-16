@@ -33,7 +33,7 @@ describe('Housing list view', () => {
 
   it('should filter by housing kind', async () => {
     const apartments = data.housings.filter(
-      (housing) => housing.kind === HousingKind.APARTMENT
+      (housing) => housing.housingKind === HousingKind.APARTMENT
     );
     const owners = fp.uniqBy(
       'id',

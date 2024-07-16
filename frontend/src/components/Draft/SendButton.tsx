@@ -1,19 +1,15 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
-import { useUpdateCampaignMutation } from '../../services/campaign.service';
-import { Campaign } from '../../models/Campaign';
 import { useForm } from '../../hooks/useForm';
 
 interface Props {
   className?: string;
-  campaign: Campaign;
   form: ReturnType<typeof useForm>;
+  onSend(): void;
 }
 
 function SendButton(props: Readonly<Props>) {
-  const [updateCampaign] = useUpdateCampaignMutation();
-
   function open(openModal: () => void): void {
     props.form.validate(() => {
       openModal();
@@ -21,12 +17,7 @@ function SendButton(props: Readonly<Props>) {
   }
 
   function submit(): void {
-    props.form.validate(() => {
-      updateCampaign({
-        ...props.campaign,
-        status: 'sending',
-      });
-    });
+    props.onSend();
   }
 
   return (
@@ -35,7 +26,7 @@ function SendButton(props: Readonly<Props>) {
       openingButtonProps={{
         children: 'Débuter l’envoi',
         iconId: 'fr-icon-send-plane-fill',
-        priority: 'primary',
+        priority: 'primary'
       }}
       size="large"
       title="Envoi de la campagne"

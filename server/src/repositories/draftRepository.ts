@@ -7,8 +7,10 @@ import { campaignsDraftsTable } from '~/repositories/campaignDraftRepository';
 import {
   parseSenderApi,
   SenderDBO,
-  sendersTable,
+  sendersTable
 } from '~/repositories/senderRepository';
+import { download } from '~/controllers/fileRepository';
+import async from 'async';
 
 export const draftsTable = 'drafts';
 export const Drafts = (transaction: Knex<DraftRecordDBO> = db) =>
@@ -31,7 +33,7 @@ async function find(opts?: FindOptions): Promise<DraftApi[]> {
     .modify(filterQuery(opts?.filters))
     .orderBy('created_at', 'desc');
   logger.debug('Found drafts', drafts);
-  return drafts.map(parseDraftApi);
+  return async.map(drafts, parseDraftApi);
 }
 
 type FindOneOptions = Pick<DraftApi, 'id' | 'establishmentId'>;
@@ -42,8 +44,8 @@ async function findOne(opts: FindOneOptions): Promise<DraftApi | null> {
     .where(
       filterQuery({
         id: opts.id,
-        establishment: opts.establishmentId,
-      }),
+        establishment: opts.establishmentId
+      })
     )
     .first();
   if (!draft) {
@@ -65,7 +67,7 @@ async function save(draft: DraftApi): Promise<void> {
       'written_at',
       'written_from',
       'updated_at',
-      'sender_id',
+      'sender_id'
     ]);
 }
 
@@ -75,7 +77,7 @@ function listQuery(query: Knex.QueryBuilder): void {
     .leftJoin<SenderDBO>(
       sendersTable,
       `${draftsTable}.sender_id`,
-      `${sendersTable}.id`,
+      `${sendersTable}.id`
     )
     .select(db.raw(`to_json(${sendersTable}.*) AS sender`));
 }
@@ -95,7 +97,7 @@ function filterQuery(filters?: DraftFilters) {
         .join(
           campaignsDraftsTable,
           `${campaignsDraftsTable}.draft_id`,
-          `${draftsTable}.id`,
+          `${draftsTable}.id`
         )
         .where(`${campaignsDraftsTable}.campaign_id`, filters.campaign);
     }
@@ -123,31 +125,31 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   id: draft.id,
   subject: draft.subject,
   body: draft.body,
-  logo: draft.logo,
+  logo: draft.logo?.map((logo) => logo.id) ?? null,
   written_at: draft.writtenAt,
   written_from: draft.writtenFrom,
   establishment_id: draft.establishmentId,
   sender_id: draft.senderId,
   created_at: new Date(draft.createdAt),
-  updated_at: new Date(draft.updatedAt),
+  updated_at: new Date(draft.updatedAt)
 });
 
-export const parseDraftApi = (draft: DraftDBO): DraftApi => ({
+export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => ({
   id: draft.id,
   subject: draft.subject,
   body: draft.body,
-  logo: draft.logo,
+  logo: await async.map(draft.logo ?? [], download),
   writtenAt: draft.written_at,
   writtenFrom: draft.written_from,
   establishmentId: draft.establishment_id,
   senderId: draft.sender_id,
-  sender: parseSenderApi(draft.sender),
+  sender: await parseSenderApi(draft.sender),
   createdAt: draft.created_at.toJSON(),
-  updatedAt: draft.updated_at.toJSON(),
+  updatedAt: draft.updated_at.toJSON()
 });
 
 export default {
   find,
   findOne,
-  save,
+  save
 };

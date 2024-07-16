@@ -79,7 +79,7 @@ async function createUser(request: Request, response: Response) {
     // TODO: should be optional in database
     firstName: body.firstName ?? '',
     lastName: body.lastName ?? '',
-    role: UserRoles.Usual,
+    role: userEstablishment.geoCodes.length === 0 ? UserRoles.Visitor : UserRoles.Usual,
     establishmentId: body.establishmentId,
   };
 

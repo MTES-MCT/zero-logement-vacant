@@ -1,0 +1,126 @@
+version: 2
+
+sources:
+  - name: airbyte_raw
+    database: AIRBYTE_DATABASE
+    schema: AIRBYTE_SCHEMA
+    tables:
+      - name: URSAAF
+        description: "Table containing employment and establishment data from URSAAF, synchronized via Airbyte."
+        columns:
+          - name: _AIRBYTE_RAW_ID
+            description: "Unique identifier for the record in raw format."
+          - name: _AIRBYTE_EXTRACTED_AT
+            description: "Timestamp when the data was extracted."
+          - name: _AIRBYTE_META
+            description: "Metadata associated with the data extraction."
+          - name: APE
+            description: "Description of APE."
+          - name: EPCI
+            description: "EPCI code."
+          - name: COMMUNE
+            description: "Commune name."
+          - name: CODE APE
+            description: "Code for the APE classification."
+          - name: CODE EPCI
+            description: "Code for the EPCI classification."
+          - name: RÉGION
+            description: "Region name."
+          - name: NOM COMMUNE
+            description: "Official name of the commune."
+          - name: CODE COMMUNE
+            description: "Code identifying the commune."
+          - name: CODE RÉGION
+            description: "Code identifying the region."
+          - name: DÉPARTEMENT
+            description: "Department name."
+          - name: SECTEUR NA17
+            description: "Sector classified under NA17."
+          - name: SECTEUR NA38
+            description: "Sector classified under NA38."
+          - name: SECTEUR NA88
+            description: "Sector classified under NA88."
+          - name: ZONE D'EMPLOI
+            description: "Employment zone."
+          - name: ANCIENNE RÉGION
+            description: "Name of the former region."
+          - name: CODE DÉPARTEMENT
+            description: "Code for the department."
+          - name: CODE ZONE D'EMPLOI
+            description: "Code for the employment zone."
+          - name: CODE ANCIENNE RÉGION
+            description: "Code for the former region."
+          - name: EFFECTIFS SALARIÉS 2006
+            description: "Number of employees in 2006."
+          - name: EFFECTIFS SALARIÉS 2007
+            description: "Number of employees in 2007."
+          - name: EFFECTIFS SALARIÉS 2008
+            description: "Number of employees in 2008."
+          - name: EFFECTIFS SALARIÉS 2009
+            description: "Number of employees in 2009."
+          - name: EFFECTIFS SALARIÉS 2010
+            description: "Number of employees in 2010."
+          - name: EFFECTIFS SALARIÉS 2011
+            description: "Number of employees in 2011."
+          - name: EFFECTIFS SALARIÉS 2012
+            description: "Number of employees in 2012."
+          - name: EFFECTIFS SALARIÉS 2013
+            description: "Number of employees in 2013."
+          - name: EFFECTIFS SALARIÉS 2014
+            description: "Number of employees in 2014."
+          - name: EFFECTIFS SALARIÉS 2015
+            description: "Number of employees in 2015."
+          - name: EFFECTIFS SALARIÉS 2016
+            description: "Number of employees in 2016."
+          - name: EFFECTIFS SALARIÉS 2017
+            description: "Number of employees in 2017."
+          - name: EFFECTIFS SALARIÉS 2018
+            description: "Number of employees in 2018."
+          - name: EFFECTIFS SALARIÉS 2019
+            description: "Number of employees in 2019."
+          - name: EFFECTIFS SALARIÉS 2020
+            description: "Number of employees in 2020."
+          - name: EFFECTIFS SALARIÉS 2021
+            description: "Number of employees in 2021."
+          - name: EFFECTIFS SALARIÉS 2022
+            description: "Number of employees in 2022."
+          - name: GRAND SECTEUR D'ACTIVITÉ
+            description: "Major sector of activity."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2006
+            description: "Number of establishments in 2006."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2007
+            description: "Number of establishments in 2007."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2008
+            description: "Number of establishments in 2008."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2009
+            description: "Number of establishments in 2009."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2010
+            description: "Number of establishments in 2010."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2011
+            description: "Number of establishments in 2011."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2012
+            description: "Number of establishments in 2012."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2013
+            description: "Number of establishments in 2013."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2014
+            description: "Number of establishments in 2014."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2015
+            description: "Number of establishments in 2015."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2016
+            description: "Number of establishments in 2016."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2017
+            description: "Number of establishments in 2017."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2018
+            description: "Number of establishments in 2018."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2019
+            description: "Number of establishments in 2019."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2020
+            description: "Number of establishments in 2020."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2021
+            description: "Number of establishments in 2021."
+          - name: NOMBRE D'ÉTABLISSEMENTS 2022
+            description: "Number of establishments in 2022."
+          - name: _AB_SOURCE_FILE_URL
+            description: "URL of the source file for the record."
+          - name: _AB_SOURCE_FILE_LAST_MODIFIED
+            description: "Timestamp when the source file was last modified."

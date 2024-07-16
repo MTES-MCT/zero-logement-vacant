@@ -5,8 +5,9 @@
   "engines": {
     "node": "^20"
   },
-  "packageManager": "yarn@4.2.2+sha256.1aa43a5304405be7a7cb9cb5de7b97de9c4e8ddd3273e4dad00d6ae3eb39f0ef",
+  "packageManager": "yarn@4.3.1",
   "workspaces": [
+    "e2e",
     "frontend",
     "queue",
     "server",
@@ -45,9 +46,5 @@
     "ts-node": "^10.9.2",
     "type-fest": "^3.13.1",
     "typescript": "^5.4.5"
-  },
-  "dependencies": {
-    "pg": "^8.11.5",
-    "pg-query-stream": "^4.5.5"
   }
 }

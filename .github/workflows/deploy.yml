@@ -15,6 +15,11 @@ on:
         type: string
         required: true
         description: The branch to deploy
+      environment:
+        type: string
+        required: false
+        description: The environment to deploy
+
     secrets:
       CLEVER_SECRET:
         required: true
@@ -29,6 +34,9 @@ on:
 jobs:
   deploy:
     if: ${{ github.ref_name == inputs.branch }}
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ vars.HOST }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

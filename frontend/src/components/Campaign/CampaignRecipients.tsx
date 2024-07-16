@@ -63,7 +63,7 @@ function CampaignRecipients(props: Props) {
       campaignId: props.campaign.id,
       all: false,
       ids: [housing.id],
-      filters: {},
+      filters: {}
     });
   }
 

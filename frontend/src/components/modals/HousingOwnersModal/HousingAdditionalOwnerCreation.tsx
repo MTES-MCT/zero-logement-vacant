@@ -16,9 +16,10 @@ import Button from '@codegouvfr/react-dsfr/Button';
 interface Props {
   onAdd: (owner: Owner) => void;
   onCancel: () => void;
+  rank: number;
 }
 
-const HousingAdditionalOwnerCreation = ({ onAdd }: Props) => {
+const HousingAdditionalOwnerCreation = ({ onAdd, rank }: Props) => {
   const [fullName, setFullName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [rawAddress, setRawAddress] = useState<string[] | undefined>(undefined);
@@ -31,6 +32,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd }: Props) => {
     rawAddress: yup.array().nullable(),
     email: emailValidator.nullable().notRequired(),
     phone: yup.string().nullable().notRequired(),
+    rank: yup.number(),
   };
   type FormShape = typeof shape;
 
@@ -40,6 +42,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd }: Props) => {
     rawAddress,
     email,
     phone,
+    rank,
   });
 
   const [createOwner, { data: owner, isError: isCreateError }] =
@@ -52,6 +55,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd }: Props) => {
         rawAddress: rawAddress ?? [],
         email,
         phone,
+        rank
       });
     });
   };

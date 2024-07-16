@@ -25,7 +25,7 @@ interface OwnerCardProps {
 function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
   const secondaryOwners = coOwners?.filter((_) => _.rank > 1);
   const archivedOwners = coOwners?.filter(
-    (_) => _.rank === 0 || _.rank === -1 || _.rank === -2
+    (_) => _.rank === 0 || _.rank === -1 || _.rank === -2 || _.rank === -3
   );
 
   return (

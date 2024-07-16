@@ -96,7 +96,7 @@ const HousingOwnersModal = ({
   const primaryOwner = ownerInputs?.filter((_) => _.rank === '1');
   const secondaryOwners = ownerInputs?.filter((_) => parseInt(_.rank) > 1);
   const archivedOwners = ownerInputs?.filter(
-    (_) => _.rank === '0' || _.rank === '-1' || _.rank === '-2'
+    (_) => _.rank === '0' || _.rank === '-1' || _.rank === '-2' || _.rank === '-3'
   );
 
   const ranks =
@@ -157,12 +157,15 @@ const HousingOwnersModal = ({
   };
 
   const ownerRankOptions: SelectOption[] = [
-    { value: '1', label: `Propriétaire principal` },
+    { value: '1', label: 'Propriétaire principal' },
     ...ranks.map((_) => ({
       value: String(_ + 1),
       label: _ + 1 + 'ème ayant droit'
     })),
-    { value: '0', label: `Ancien propriétaire` }
+    { value: '0', label: 'Ancien propriétaire' },
+    { value: '-1', label: 'Propriétaire incorrect'},
+    { value: '-2', label: 'Propriétaire en attente de traitement'},
+    { value: '-3', label: 'Propriétaire décédé'},
   ];
 
   const form = useForm(
@@ -319,7 +322,7 @@ const HousingOwnersModal = ({
           <Col n="6">
             <AppTextInput<FormShape>
               type={'date'}
-              value={ownerInput.birthDate}
+              value={ownerInput.birthDate ?? ''}
               onChange={(e) =>
                 changeOwnerInputs({
                   ...ownerInput,
@@ -342,7 +345,7 @@ const HousingOwnersModal = ({
           </Col>
           <Col n="12">
             <AppTextInput<FormShape>
-              value={ownerInput.additionalAddress}
+              value={ownerInput.additionalAddress ?? ''}
               onChange={(e) =>
                 changeOwnerInputs({
                   ...ownerInput,
@@ -358,7 +361,7 @@ const HousingOwnersModal = ({
           <Col n="6">
             <AppTextInput<FormShape>
               type={'email'}
-              value={ownerInput.email}
+              value={ownerInput.email ?? ''}
               onChange={(e) =>
                 changeOwnerInputs({
                   ...ownerInput,

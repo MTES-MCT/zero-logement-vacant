@@ -1,0 +1,106 @@
+version: 2
+
+sources:
+  - name: airbyte_raw
+    database: AIRBYTE_DATABASE
+    schema: AIRBYTE_SCHEMA
+    tables:
+      - name: lovac
+        description: "Table LOVAC contient les informations détaillées sur les locaux, leur valeur locative, ainsi que des informations sur les propriétaires et gestionnaires."
+        columns:
+          - name: insee
+            description: "Code INSEE de la commune."
+          - name: ccodep
+            description: "Code du département."
+          - name: annee
+            description: "Millésime de l’année de production N."
+          - name: dir
+            description: "Code DSF."
+          - name: sip
+            description: "Code SIP."
+          - name: commune
+            description: "Code commune de situation du local."
+          - name: intercommunalite
+            description: "Code intercommunalité."
+          - name: gestre_ppre
+            description: "Désignation du gestionnaire s’il existe, sinon du propriétaire du local."
+          - name: proprietaire
+            description: "Désignation du propriétaire du local."
+          - name: adresse1
+            description: "Adresse du gestionnaire ou du propriétaire sur 4 lignes de 36 caractères."
+          - name: groupe
+            description: "Code groupe propriétaire (personnes morales et physiques)."
+          - name: nature
+            description: "Nature du local en clair."
+          - name: loc_voie
+            description: "Code de la voie du local."
+          - name: loc_num
+            description: "Numéro de l'adresse du local."
+          - name: invariant
+            description: "Numéro invariant du local."
+          - name: refcad
+            description: "Références cadastrales du local : Numéro de section, Numéro de plan."
+          - name: vlcad
+            description: "Valeur locative en base 1970 (métropole) ou 1975 (DOM) ou 2012 (Mayotte)."
+          - name: vl_revpro
+            description: "Valeur Locative Révisée N (local ayant un code Affectation = A ou S)."
+          - name: libvoie
+            description: "2ème ligne adresse du local (n° d’immeuble, indice de répétition et libellé voie)."
+          - name: libcom
+            description: "Libellé de la commune de situation du local."
+          - name: txtlv
+            description: "Taux d’imposition TLV ou nombre d'années de taxation à la THLV en N-1."
+          - name: vl_2020
+            description: "VL actualisée et revalorisée de l'année N."
+          - name: vlb_pro
+            description: "Valeur Locative Révisée N."
+          - name: potentiel_tlv_thlv
+            description: "Susceptible-TLV/THLV en N (au sens large)."
+          - name: ffh_ccthp
+            description: "Code occupation à la Th ou à la TP."
+          - name: ffh_jdatat
+            description: "Date de mutation (date de l'acte)."
+          - name: ffh_ccthp
+            description: "Code occupation à la Th ou à la TP."
+          - name: ffh_jdatat
+            description: "Date de mutation (date de l'acte)."
+          - name: gestre_ppre
+            description: "Désignation du gestionnaire s’il existe, sinon du propriétaire du local."
+          - name: groupe
+            description: "Code groupe propriétaire (personnes morales et physiques)."
+          - name: insee
+            description: "Code INSEE de la commune."
+          - name: intercommunalite
+            description: "Code intercommunalité."
+          - name: invariant
+            description: "Numéro invariant du local."
+          - name: libcom
+            description: "Libellé de la commune de situation du local."
+          - name: libvoie
+            description: "2ème ligne adresse du local (n° d’immeuble, indice de répétition et libellé voie)."
+          - name: loc_num
+            description: "Numéro de l'adresse du local."
+          - name: loc_voie
+            description: "Code de la voie du local."
+          - name: nature
+            description: "Nature du local en clair."
+          - name: potentiel_tlv_thlv
+            description: "Susceptible-TLV/THLV en N (au sens large)."
+          - name: proprietaire
+            description: "Désignation du propriétaire du local."
+          - name: refcad
+            description: "Références cadastrales du local: Numéro de section et Numéro de plan."
+          - name: sip
+            description: "Code SIP."
+          - name: txtlv
+            description: "Taux d’imposition TLV ou nombre d'années de taxation à la THLV en N-1."
+          - name: vl_2019
+            description: "Valeur locative de l'année 2019."
+          - name: vl_2020
+            description: "Valeur locative actualisée et revalorisée de l'année 2020."
+          - name: vl_revpro
+            description: "Valeur Locative Révisée pour les locaux ayant un code Affectation = A ou S."
+          - name: vlb_pro
+            description: "Valeur Locative Révisée de l'année courante pour les locaux à usage professionnel."
+          - name: vlcad
+            description: "Valeur locative en base 1970 (métropole) ou 1975 (DOM) ou 2012 (Mayotte)."

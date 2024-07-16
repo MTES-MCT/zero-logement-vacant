@@ -1,13 +1,15 @@
+import async from 'async';
 import { Knex } from 'knex';
 
 import { genDatafoncierHousing } from '~/test/testFixtures';
+import { Establishments } from '~/repositories/establishmentRepository';
 
-const DF_HOUSING_NAT_2023 = 'df_housing_nat_2023';
+const DF_HOUSING_NAT = 'df_housing_nat';
 
 export async function seed(knex: Knex): Promise<void> {
-  const exists = await knex.schema.hasTable(DF_HOUSING_NAT_2023);
+  const exists = await knex.schema.hasTable(DF_HOUSING_NAT);
   if (!exists) {
-    await knex.schema.createTable(DF_HOUSING_NAT_2023, (table) => {
+    await knex.schema.createTable(DF_HOUSING_NAT, (table) => {
       table.string('idlocal').notNullable();
       table.string('idbat').notNullable();
       table.string('idpar').notNullable();
@@ -138,9 +140,19 @@ export async function seed(knex: Knex): Promise<void> {
   }
 
   // Deletes ALL existing entries
-  await knex(DF_HOUSING_NAT_2023).delete();
+  await knex(DF_HOUSING_NAT).delete();
 
   // Inserts seed entries
-  const houses = Array.from({ length: 100 }, () => genDatafoncierHousing());
-  await knex(DF_HOUSING_NAT_2023).insert(houses);
+  const availableEstablishments = await Establishments(knex).where({
+    available: true
+  });
+  const geoCodes = availableEstablishments.map(
+    (establishment) => establishment.localities_geo_code[0]
+  );
+  await async.forEachSeries(geoCodes, async (geoCode) => {
+    const houses = Array.from({ length: 10 }, () =>
+      genDatafoncierHousing(geoCode)
+    );
+    await knex(DF_HOUSING_NAT).insert(houses);
+  });
 }

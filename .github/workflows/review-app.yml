@@ -73,6 +73,8 @@ jobs:
           clever env set CEREMA_TOKEN "unused" -a $APP_ALIAS
           clever env set DATABASE_ENV "development" -a $APP_ALIAS
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
+          clever env set E2E_EMAIL $E2E_EMAIL -a $APP_ALIAS
+          clever env set E2E_PASSWORD $E2E_PASSWORD -a $APP_ALIAS
           clever env set HOST "https://$APP_ALIAS.cleverapps.io" -a $APP_ALIAS
           clever env set METABASE_TOKEN "unused" -a $APP_ALIAS
           clever env set PORT "8080" -a $APP_ALIAS

@@ -5,8 +5,9 @@
   "engines": {
     "node": "^20"
   },
-  "packageManager": "yarn@4.2.2+sha256.1aa43a5304405be7a7cb9cb5de7b97de9c4e8ddd3273e4dad00d6ae3eb39f0ef",
+  "packageManager": "yarn@4.3.1",
   "workspaces": [
+    "e2e",
     "frontend",
     "queue",
     "server",

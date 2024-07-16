@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: int_zlovac_owner_housing_scored
+    +enabled: true
+    config:
+      materialized: table
+      tags: ['python']

@@ -1,4 +1,4 @@
-import { EstablishmentKind } from '@zerologementvacant/shared';
+import { EstablishmentKind, EstablishmentSource } from '@zerologementvacant/shared';
 
 export interface EstablishmentApi {
   id: string;
@@ -10,6 +10,7 @@ export interface EstablishmentApi {
   campaignIntent?: CampaignIntent;
   priority: EstablishmentPriority;
   kind: EstablishmentKind;
+  source: EstablishmentSource;
 }
 
 export type EstablishmentPriority = 'standard' | 'high';

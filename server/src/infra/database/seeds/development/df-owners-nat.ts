@@ -1,13 +1,16 @@
+import { faker } from '@faker-js/faker/locale/fr';
+import async from 'async';
 import { Knex } from 'knex';
 
 import { genDatafoncierOwner } from '~/test/testFixtures';
+import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 
-const DF_OWNERS_NAT_2023 = 'df_owners_nat_2023';
+const DF_OWNERS_NAT = 'df_owners_nat';
 
 export async function seed(knex: Knex): Promise<void> {
-  const exists = await knex.schema.hasTable(DF_OWNERS_NAT_2023);
+  const exists = await knex.schema.hasTable(DF_OWNERS_NAT);
   if (!exists) {
-    await knex.schema.createTable(DF_OWNERS_NAT_2023, (table) => {
+    await knex.schema.createTable(DF_OWNERS_NAT, (table) => {
       table.string('idprodroit').notNullable();
       table.string('idprocpte').notNullable();
       table.string('idpersonne').notNullable();
@@ -75,9 +78,21 @@ export async function seed(knex: Knex): Promise<void> {
   }
 
   // Deletes ALL existing entries
-  await knex(DF_OWNERS_NAT_2023).delete();
+  await knex(DF_OWNERS_NAT).delete();
 
   // Inserts seed entries
-  const owners = Array.from({ length: 100 }, () => genDatafoncierOwner());
-  await knex(DF_OWNERS_NAT_2023).insert(owners);
+  const housings = await DatafoncierHouses(knex).select('idprocpte');
+  const idprocptes = housings.map((housing) => housing.idprocpte);
+  await async.forEachSeries(idprocptes, async (idprocpte) => {
+    const owners = faker.helpers.multiple(
+      () => genDatafoncierOwner(idprocpte),
+      {
+        count: {
+          min: 1,
+          max: 6
+        }
+      }
+    );
+    await knex(DF_OWNERS_NAT).insert(owners);
+  });
 }

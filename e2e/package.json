@@ -1,0 +1,14 @@
+{
+  "name": "@zerologementvacant/e2e",
+  "scripts": {
+    "dev": "dotenvx run -- cypress open",
+    "start": "dotenvx run -- cypress run"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^1.0.0",
+    "@types/convict": "^6.1.6",
+    "convict": "^6.2.4",
+    "cypress": "^13.12.0",
+    "typescript": "^4.9.5"
+  }
+}

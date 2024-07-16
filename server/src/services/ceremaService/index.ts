@@ -1,9 +1,8 @@
 import config from '~/infra/config';
-import { ConsultUserService } from './consultUserService';
 import createMockCeremaService from './mockCeremaService';
-import createCeremaService from './ceremaService';
+import createCeremaService, { CeremaService } from './ceremaService';
 
-const ceremaService: ConsultUserService = config.cerema.enabled
+const ceremaService: CeremaService = config.cerema.enabled
   ? createCeremaService()
   : createMockCeremaService();
 

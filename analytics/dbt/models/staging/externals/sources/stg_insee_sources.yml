@@ -1,0 +1,98 @@
+version: 2
+
+sources:
+  - name: airbyte_raw
+    database: AIRBYTE_DATABASE
+    schema: AIRBYTE_SCHEMA
+    tables:
+      - name: INSEE
+        description: "Table containing historical and recent population metrics from INSEE data, synchronized via Airbyte."
+        columns:
+          - name: _AIRBYTE_RAW_ID
+            description: "Unique identifier for the record in raw format."
+          - name: _AIRBYTE_EXTRACTED_AT
+            description: "Timestamp when the data was extracted."
+          - name: _AIRBYTE_META
+            description: "Metadata associated with the data extraction."
+          - name: DEP
+            description: "Department code."
+          - name: REG
+            description: "Region code."
+          - name: LIBGEO
+            description: "Geographic area description."
+          - name: PMUN2006
+            description: "Municipal population in 2006."
+          - name: PMUN2007
+            description: "Municipal population in 2007."
+          - name: PMUN2008
+            description: "Municipal population in 2008."
+          - name: PMUN2009
+            description: "Municipal population in 2009."
+          - name: PMUN2010
+            description: "Municipal population in 2010."
+          - name: PMUN2011
+            description: "Municipal population in 2011."
+          - name: PMUN2012
+            description: "Municipal population in 2012."
+          - name: PMUN2013
+            description: "Municipal population in 2013."
+          - name: PMUN2014
+            description: "Municipal population in 2014."
+          - name: PMUN2015
+            description: "Municipal population in 2015."
+          - name: PMUN2016
+            description: "Municipal population in 2016."
+          - name: PMUN2017
+            description: "Municipal population in 2017."
+          - name: PMUN2018
+            description: "Municipal population in 2018."
+          - name: PMUN2019
+            description: "Municipal population in 2019."
+          - name: PMUN2020
+            description: "Municipal population in 2020."
+          - name: PMUN2021
+            description: "Municipal population in 2021."
+          - name: PSDC1962
+            description: "Population without double counting in 1962."
+          - name: PSDC1968
+            description: "Population without double counting in 1968."
+          - name: PSDC1975
+            description: "Population without double counting in 1975."
+          - name: PSDC1982
+            description: "Population without double counting in 1982."
+          - name: PSDC1990
+            description: "Population without double counting in 1990."
+          - name: PSDC1999
+            description: "Population without double counting in 1999."
+          - name: PTOT1876
+            description: "Total population in 1876."
+          - name: PTOT1881
+            description: "Total population in 1881."
+          - name: PTOT1886
+            description: "Total population in 1886."
+          - name: PTOT1891
+            description: "Total population in 1891."
+          - name: PTOT1896
+            description: "Total population in 1896."
+          - name: PTOT1901
+            description: "Total population in 1901."
+          - name: PTOT1906
+            description: "Total population in 1906."
+          - name: PTOT1911
+            description: "Total population in 1911."
+          - name: PTOT1921
+            description: "Total population in 1921."
+          - name: PTOT1926
+            description: "Total population in 1926."
+          - name: PTOT1931
+            description: "Total population in 1931."
+          - name: PTOT1936
+            description: "Total population in 1936."
+          - name: PTOT1954
+            description: "Total population in 1954."
+          - name: CODGEO
+            description: "Geographic code (identifier)."
+          - name: _AB_SOURCE_FILE_URL
+            description: "URL of the source file for the record."
+          - name: _AB_SOURCE_FILE_LAST_MODIFIED
+            description: "Timestamp when the source file was last modified."

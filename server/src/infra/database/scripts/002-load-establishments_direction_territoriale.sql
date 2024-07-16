@@ -11,8 +11,8 @@ CREATE TABLE _areas_
 \set copy '\\COPY _areas_ FROM ' :filePath ' DELIMITER '';'' CSV HEADER;'
 :copy
 
-INSERT INTO establishments (siren, name, localities_geo_code, kind) (
-    SELECT DISTINCT ON (siren) siren, name, (select array_agg(geo_code) from localities where geo_code ~  ('^' || replace(geo_codes, ',', '|^'))), type
+INSERT INTO establishments (siren, name, localities_geo_code, kind, source) (
+    SELECT DISTINCT ON (siren) siren, name, (select array_agg(geo_code) from localities where geo_code ~  ('^' || replace(geo_codes, ',', '|^'))), type, 'seed'
     FROM _areas_
 ) ON CONFLICT (siren) DO UPDATE SET name = EXCLUDED.name, localities_geo_code = EXCLUDED.localities_geo_code, kind = EXCLUDED.kind;
 

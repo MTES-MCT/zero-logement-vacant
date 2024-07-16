@@ -1,4 +1,4 @@
-import { SingleBar, Presets } from 'cli-progress';
+import { Presets, SingleBar } from 'cli-progress';
 import { parse } from 'csv-parse';
 import { Map } from 'immutable';
 import { execSync } from 'node:child_process';
@@ -10,11 +10,10 @@ import { logger } from '~/infra/logger';
 const progressBarBAN = new SingleBar({}, Presets.shades_classic);
 const progressBarUpdate = new SingleBar({}, Presets.shades_classic);
 
-const YEAR = '2023';
 const BAN_FILE_LOCATION =
   '/Volumes/Zéro_Logement_Vacant/BAN/adresses-france-BAL.csv';
 const result = execSync(`wc -l < "${BAN_FILE_LOCATION}"`, {
-  encoding: 'utf-8',
+  encoding: 'utf-8'
 });
 const TOTAL_BAN_DATA_LINES = parseInt(result.trim(), 10);
 
@@ -29,7 +28,7 @@ const processRow = async (housing: any) => {
         const banItem = banData.get(ban_id);
         if (banItem?.long && banItem?.lat) {
           await db.raw(
-            `update fast_housing set longitude='${banItem?.long}', latitude='${banItem?.lat}' where local_id='${housing.local_id}'`,
+            `update fast_housing set longitude='${banItem?.long}', latitude='${banItem?.lat}' where local_id='${housing.local_id}'`
           );
         }
       }
@@ -49,14 +48,14 @@ function transform(transformFunction: {
     transform: function (
       row: any,
       encoding: any,
-      callback: (arg0: null, arg1: any) => any,
+      callback: (arg0: null, arg1: any) => any
     ) {
       if (isFirstCol) {
         isFirstCol = false;
         return callback(null, row);
       }
       transformFunction(row, callback);
-    },
+    }
   });
 }
 
@@ -70,12 +69,12 @@ const main = async () => {
     .pipe(
       transform(function (
         row: { [s: string]: unknown } | ArrayLike<unknown>,
-        callback: (arg0: null, arg1: unknown[]) => void,
+        callback: (arg0: null, arg1: unknown[]) => void
       ) {
         // Ignorer le premier élément de chaque ligne
         const values = Object.values(row);
         callback(null, values.slice(1));
-      }),
+      })
     )
     .on('data', (data: string[]) => {
       progressBarBAN.increment();
@@ -86,14 +85,14 @@ const main = async () => {
 
       banData = banData.set(uid_adresse, {
         long: parseFloat(long),
-        lat: parseFloat(lat),
+        lat: parseFloat(lat)
       });
     })
     .on('end', async () => {
       logger.info('Update data...');
 
       const count = await db.raw(
-        `select count(*) from fast_housing where latitude is null`,
+        `select count(*) from fast_housing where latitude is null`
       );
 
       progressBarUpdate.start(parseInt(count.rows[0].count), 0);
@@ -102,8 +101,8 @@ const main = async () => {
         .raw(
           `SELECT local_id, ban_id, idpar
     FROM fast_housing fh
-    JOIN df_housing_nat_${YEAR} df ON fh.local_id = df.idLocal
-    WHERE fh.latitude IS NULL`,
+    JOIN df_housing_nat df ON fh.local_id = df.idLocal
+    WHERE fh.latitude IS NULL`
         )
         .stream();
 

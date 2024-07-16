@@ -3,7 +3,7 @@ import styles from './resources.module.scss';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import Tile from '@codegouvfr/react-dsfr/Tile';
 import classNames from 'classnames';
-import { Col, Container, Icon, Row, Text } from '../../components/_dsfr';
+import { Col, Container, Icon, Row } from '../../components/_dsfr';
 import Typography from '@mui/material/Typography';
 
 interface Props {

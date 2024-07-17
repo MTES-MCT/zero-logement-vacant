@@ -9,7 +9,7 @@ interface Props {
 function FollowupEventContent(props: Props) {
   if (
     props.event.section === 'Situation' &&
-    props.event.name === 'Création du logement'
+    props.event.name === 'Ajout du logement dans la base'
   ) {
     return (
       <Container as="main" fluid>

@@ -203,7 +203,7 @@ async function create(request: Request, response: Response) {
 
   const event: HousingEventApi = {
     id: uuidv4(),
-    name: 'Création du logement',
+    name: 'Ajout du logement dans la base',
     section: 'Situation',
     category: 'Followup',
     kind: 'Create',

@@ -250,7 +250,7 @@ describe('Housing API', () => {
         .join(eventsTable, 'id', 'event_id')
         .first();
       expect(event).toMatchObject({
-        name: 'Création du logement',
+        name: 'Ajout du logement dans la base',
         kind: 'Create',
         section: 'Situation',
         category: 'Followup',

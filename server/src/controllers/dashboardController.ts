@@ -32,6 +32,7 @@ const findOneValidators: ValidationChain[] = [
 ];
 
 function sign(payload: any): Promise<string> {
+  console.log(config.metabase);
   return new Promise((resolve, reject) => {
     jwt.sign(
       payload,

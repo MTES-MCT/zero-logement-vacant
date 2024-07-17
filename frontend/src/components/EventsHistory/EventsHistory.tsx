@@ -66,7 +66,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                   )}
                   {(eventOrNote.section === 'Situation' ||
                     eventOrNote.name === 'Changement de statut de suivi') &&
-                    eventOrNote.name !== 'Création du logement' && (
+                    eventOrNote.name !== 'Ajout du logement dans la base' && (
                       <div className={styles.eventContentRowContainer}>
                         {eventOrNote.old ? (
                           <>

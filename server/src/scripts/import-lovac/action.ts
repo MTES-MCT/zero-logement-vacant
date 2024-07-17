@@ -10,6 +10,7 @@ import userRepository from '~/repositories/userRepository';
 import { UserApi } from '~/models/UserApi';
 import config from '~/infra/config';
 import UserMissingError from '~/errors/userMissingError';
+import { getYear } from 'date-fns';
 
 export function compare({ before, now, modifications }: Comparison): Action {
   if (before && now === null) {
@@ -24,7 +25,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
       ) {
         const missingEvent: HousingEventApi = {
           id: uuidv4(),
-          name: 'Absent du nouveau millésime LOVAC',
+          name: `Absent du LOVAC ${getYear(new Date())}`,
           kind: 'Delete',
           category: 'Followup',
           section: 'Situation',

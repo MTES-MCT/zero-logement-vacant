@@ -118,6 +118,8 @@ fileignoreconfig:
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
 - filename: server/src/scripts/import-lovac/infra/reporters/logger-reporter.ts
   checksum: d61083d7e944f8ffa847fa782e6328c671ac50ab28fd21622fcb417e8b7a5392
+- filename: server/src/scripts/import-lovac/infra/reporters/noop-reporter.ts
+  checksum: 8b585aa52733864ebc084a4530e00754543a8946eeb931dff55c4ae3b9c34895
 - filename: server/src/scripts/import-lovac/infra/reporters/reporter.ts
   checksum: b1f14b25a0a589b6cf749b55fdb1fb75febeb56beeb3926fb1e4a121af8f6bdf
 - filename: server/src/test/testUtils.ts

@@ -7,10 +7,15 @@ import {
 class LoggerReporter<T> implements Reporter<T> {
   private readonly logger = createLogger('reporter');
   private pass = 0;
+  private skip = 0;
   private fail = 0;
 
   passed(): void {
     this.pass++;
+  }
+
+  skipped(): void {
+    this.skip++;
   }
 
   failed(data: T, error: ReporterError): void {
@@ -21,6 +26,7 @@ class LoggerReporter<T> implements Reporter<T> {
   report(): void | Promise<void> {
     this.logger.info('Report', {
       passed: this.pass,
+      skipped: this.skip,
       failed: this.fail
     });
   }

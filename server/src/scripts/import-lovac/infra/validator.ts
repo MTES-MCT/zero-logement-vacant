@@ -2,7 +2,10 @@ import { TransformStream } from 'node:stream/web';
 import { Schema, ValidationError } from 'yup';
 
 import { createLogger } from '~/infra/logger';
-import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
+import {
+  ReporterError,
+  ReporterOptions
+} from '~/scripts/import-lovac/infra/index';
 
 const logger = createLogger('validator');
 

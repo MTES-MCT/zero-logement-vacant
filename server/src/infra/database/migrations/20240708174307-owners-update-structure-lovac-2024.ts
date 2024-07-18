@@ -18,6 +18,12 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
   await knex.schema.alterTable('owners', (table) => {
+    table.dropColumn('updated_at');
+    table.dropColumn('created_at');
+    table.dropColumn('data_source');
+    table.renameColumn('kind_class', 'owner_kind');
+    table.renameColumn('dgfip_address', 'raw_address');
+    table.dropColumn('siren');
     table.dropColumn('idpersonne');
   });
 }

@@ -1,13 +1,16 @@
+import { assert } from 'ts-essentials';
+
 import {
   EventCategory,
   EventKind,
-  EventSection,
+  EventSection
 } from '@zerologementvacant/shared';
 import { HousingApi } from './HousingApi';
 import { OwnerApi } from './OwnerApi';
 import { CampaignApi } from './CampaignApi';
 import { GroupApi } from './GroupApi';
 import { HousingOwnerApi } from './HousingOwnerApi';
+import { UserApi } from '~/models/UserApi';
 
 export interface EventApi<T> {
   id: string;
@@ -20,6 +23,7 @@ export interface EventApi<T> {
   new?: T;
   createdAt: Date;
   createdBy: string;
+  creator?: UserApi;
 }
 
 export interface HousingEventApi
@@ -42,8 +46,8 @@ export interface GroupHousingEventApi extends EventApi<GroupApi> {
   groupId: string | null;
 }
 
-export function isHousingEvent(
-  event: EventApi<unknown>,
-): event is HousingEventApi {
-  return 'housingId' in event;
+export function isUserModified<T>(event: EventApi<T>): boolean {
+  assert(event.creator, 'Event creator is missing');
+  const isBeta = /@(zerologementvacant\.)?beta\.gouv\.fr$/;
+  return !isBeta.test(event.creator.email);
 }

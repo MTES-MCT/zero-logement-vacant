@@ -36,26 +36,11 @@ function CampaignRecipients(props: Props) {
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, hasPagination } = usePagination({
-    ...pagination,
+  const { pageCount, hasPagination, changePerPage, changePage} = usePagination({
+    pagination,
+    setPagination,
     count: filteredCount,
   });
-
-  const changePerPage = (perPage: number) => {
-    setPagination({
-      ...pagination,
-      page: 1,
-      perPage,
-    });
-  };
-
-  const changePage = (page: number) => {
-    console.log(page);
-    setPagination({
-      ...pagination,
-      page,
-    });
-  };
 
   const [removeCampaignHousing] = useRemoveCampaignHousingMutation();
   function removeHousing(housing: Housing): void {

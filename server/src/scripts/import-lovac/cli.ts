@@ -1,7 +1,6 @@
 import commander from '@commander-js/extra-typings';
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
-import { noop } from 'ts-essentials';
 
 import { countLines } from '@zerologementvacant/utils';
 import createSourceOwnerFileRepository from '~/scripts/import-lovac/source-owners/source-owner-file-repository';
@@ -10,11 +9,9 @@ import { createLoggerReporter } from '~/scripts/import-lovac/infra/reporters/log
 import { createLogger } from '~/infra/logger';
 import { Owners } from '~/repositories/ownerRepository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
-import validator from '~/scripts/import-lovac/validator';
+import validator from '~/scripts/import-lovac/infra/validator';
 import { sourceOwnerSchema } from '~/scripts/import-lovac/source-owners/source-owner';
-import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
-import { sourceHousingProcessor } from '~/scripts/import-lovac/source-housings/source-housing-processor';
-import { Housing } from '~/repositories/housingRepository';
+import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/command';
 
 const logger = createLogger('cli');
 const reporter = createLoggerReporter();
@@ -54,22 +51,22 @@ program
       .pipeTo(
         sourceOwnerProcessor({
           reporter,
-          saveOwner: options.dryRun
-            ? async () => noop()
-            : async (owner) => {
-                await Owners()
-                  .insert(owner)
-                  .onConflict(['idpersonne'])
-                  .merge([
-                    'full_name',
-                    'dgfip_address',
-                    'data_source',
-                    'kind_class',
-                    'birth_date',
-                    'administrator',
-                    'siren'
-                  ]);
-              }
+          async saveOwner(owner): Promise<void> {
+            if (!options.dryRun) {
+              await Owners()
+                .insert(owner)
+                .onConflict(['idpersonne'])
+                .merge([
+                  'full_name',
+                  'dgfip_address',
+                  'data_source',
+                  'kind_class',
+                  'birth_date',
+                  'administrator',
+                  'siren'
+                ]);
+            }
+          }
         })
       )
       .catch((error) => {
@@ -85,43 +82,14 @@ program
   .command('housings')
   .description('Import housings from a file to an existing database')
   .argument('<file>', 'The file to import in .csv or .jsonl')
+  .option('-a, --abort-early', 'Abort the script on the first error')
   .option('-d, --dry-run', 'Run the script without saving to the database')
   .action(async (file, options) => {
-    if (options.dryRun) {
-      logger.info('Dry run enabled');
-    }
-
-    logger.info('Computing total...');
-    const total = await countLines(Readable.toWeb(fs.createReadStream(file)));
-
-    logger.info('Starting import...', { file });
-    await createSourceHousingFileRepository(file)
-      .stream()
-      .pipeThrough(
-        progress({
-          initial: 0,
-          total: total
-        })
-      )
-      .pipeTo(
-        sourceHousingProcessor({
-          reporter,
-          saveHousing: options.dryRun
-            ? async () => noop()
-            : async (housing) => {
-                await Housing().insert(housing).onConflict(['local_id']).merge([
-                  // TODO
-                ]);
-              }
-        })
-      )
-      .catch((error) => {
-        logger.error(error);
-      })
-      .finally(() => {
-        reporter.report();
-        process.exit();
-      });
+    const command = createSourceHousingCommand();
+    await command(file, options).finally(() => {
+      reporter.report();
+      process.exit();
+    });
   });
 
 function onSignal(): void {
@@ -133,4 +101,4 @@ function onSignal(): void {
 process.on('SIGINT', onSignal);
 process.on('SIGTERM', onSignal);
 
-program.parseAsync(process.argv).catch(console.error);
+export default program;

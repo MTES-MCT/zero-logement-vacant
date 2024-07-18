@@ -4,14 +4,14 @@ import {
   eventsTable,
   formatEventApi,
   housingEventsTable,
-  ownerEventsTable,
+  ownerEventsTable
 } from '~/repositories/eventRepository';
 import { genHousingEventApi, genOwnerEventApi } from '~/test/testFixtures';
 import { Housing1 } from './20240405012750_housing';
 import { Owner1 } from './20240405012710_owner';
 import { User1 } from './20240405012221_users';
 
-export const OwnerEvent1 = genOwnerEventApi(Owner1.id, User1.id);
+export const OwnerEvent1 = genOwnerEventApi(Owner1, User1);
 export const HousingEvent1 = genHousingEventApi(Housing1, User1);
 
 export async function seed(knex: Knex): Promise<void> {
@@ -22,7 +22,7 @@ export async function seed(knex: Knex): Promise<void> {
       .then(() =>
         knex
           .table(ownerEventsTable)
-          .insert({ event_id: OwnerEvent1.id, owner_id: Owner1.id }),
+          .insert({ event_id: OwnerEvent1.id, owner_id: Owner1.id })
       ),
     knex
       .table(eventsTable)
@@ -31,8 +31,8 @@ export async function seed(knex: Knex): Promise<void> {
         knex.table(housingEventsTable).insert({
           event_id: HousingEvent1.id,
           housing_id: Housing1.id,
-          housing_geo_code: Housing1.geoCode,
-        }),
-      ),
+          housing_geo_code: Housing1.geoCode
+        })
+      )
   ]);
 }

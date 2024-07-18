@@ -2,13 +2,10 @@ export interface HousingPayloadDTO {
   localId: string;
 }
 
-export type HousingSource =
-  | 'lovac'
-  | 'datafoncier-manual'
-  | 'datafoncier-import';
-
-export const HOUSING_SOURCES: HousingSource[] = [
+export const HOUSING_SOURCES = [
   'lovac',
   'datafoncier-manual',
-  'datafoncier-import',
-];
+  'datafoncier-import'
+] as const;
+
+export type HousingSource = (typeof HOUSING_SOURCES)[number];

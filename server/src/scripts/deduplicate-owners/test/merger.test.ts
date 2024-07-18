@@ -5,26 +5,26 @@ import {
   genHousingApi,
   genOwnerApi,
   genOwnerEventApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import db from '~/infra/database/';
 import { formatOwnerApi, ownerTable } from '~/repositories/ownerRepository';
 import {
   eventsTable,
   formatEventApi,
-  ownerEventsTable,
+  ownerEventsTable
 } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
-  housingTable,
+  housingTable
 } from '~/repositories/housingRepository';
 import {
   HousingOwnerDBO,
-  housingOwnersTable,
+  housingOwnersTable
 } from '~/repositories/housingOwnerRepository';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 
@@ -40,12 +40,10 @@ describe('Merger', () => {
   describe('merge', () => {
     const source = genOwnerApi();
     const duplicates = Array.from({ length: 2 }, () => genOwnerApi()).map(
-      (owner) => ({ ...owner, birthDate: undefined }),
+      (owner) => ({ ...owner, birthDate: undefined })
     );
     const suggestion = source;
-    const events = duplicates.map((owner) =>
-      genOwnerEventApi(owner.id, user.id),
-    );
+    const events = duplicates.map((owner) => genOwnerEventApi(owner, user));
     const housingList = duplicates.map(() => genHousingApi());
 
     beforeAll(async () => {
@@ -57,8 +55,8 @@ describe('Merger', () => {
       await db(ownerEventsTable).insert(
         events.map((event) => ({
           owner_id: event.old?.id,
-          event_id: event.id,
-        })),
+          event_id: event.id
+        }))
       );
 
       // Attach housing to the duplicates
@@ -69,9 +67,9 @@ describe('Merger', () => {
             housing_id: housing.id,
             housing_geo_code: housing.geoCode,
             owner_id: duplicates[i].id,
-            rank: i + 1,
+            rank: i + 1
           };
-        }),
+        })
       );
     });
 
@@ -82,20 +80,20 @@ describe('Merger', () => {
         duplicates: [
           {
             score: 0.8,
-            value: duplicates[0],
-          },
+            value: duplicates[0]
+          }
         ],
-        needsReview: true,
+        needsReview: true
       };
 
       await merge(comparison);
 
       const ownerEvents = await db(ownerEventsTable).whereIn(
         'event_id',
-        events.map((event) => event.id),
+        events.map((event) => event.id)
       );
       expect(ownerEvents).toSatisfyAll(
-        (event) => event.owner_id !== suggestion.id,
+        (event) => event.owner_id !== suggestion.id
       );
     });
 
@@ -105,25 +103,25 @@ describe('Merger', () => {
         source,
         duplicates: duplicates.map((duplicate) => ({
           score: 1,
-          value: duplicate,
+          value: duplicate
         })),
-        needsReview: false,
+        needsReview: false
       };
 
       await merge(comparison);
 
       const ownerHousing = await db(housingOwnersTable).whereIn(
         'housing_id',
-        housingList.map((housing) => housing.id),
+        housingList.map((housing) => housing.id)
       );
       expect(ownerHousing).toSatisfyAll((oh) => oh.owner_id === suggestion.id);
 
       const ownerEvents = await db(ownerEventsTable).whereIn(
         'event_id',
-        events.map((event) => event.id),
+        events.map((event) => event.id)
       );
       expect(ownerEvents).toSatisfyAll(
-        (event) => event.owner_id === suggestion.id,
+        (event) => event.owner_id === suggestion.id
       );
     });
 
@@ -133,16 +131,16 @@ describe('Merger', () => {
         source,
         duplicates: duplicates.map((duplicate) => ({
           score: 1,
-          value: duplicate,
+          value: duplicate
         })),
-        needsReview: false,
+        needsReview: false
       };
 
       await merge(comparison);
 
       const dups = await db(ownerTable).whereIn(
         'id',
-        duplicates.map((duplicate) => duplicate.id),
+        duplicates.map((duplicate) => duplicate.id)
       );
       expect(dups).toBeArrayOfSize(0);
     });

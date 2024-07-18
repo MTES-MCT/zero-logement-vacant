@@ -13,13 +13,13 @@ describe('HousingEditionForm', () => {
       render(
         <Router>
           <HousingEditionForm housing={housing} onSubmit={() => {}} />
-        </Router>,
+        </Router>
       );
 
       const statusOptions = screen.getByTestId('housing-status-options');
       expect(statusOptions).toBeInTheDocument();
       const neverContactedOption = within(statusOptions).queryByText(
-        getHousingState(HousingStatus.NeverContacted).title,
+        getHousingState(HousingStatus.NeverContacted).title
       );
       expect(neverContactedOption).toBeInTheDocument();
     });
@@ -33,13 +33,13 @@ describe('HousingEditionForm', () => {
       render(
         <Router>
           <HousingEditionForm housing={housing} onSubmit={() => {}} />
-        </Router>,
+        </Router>
       );
 
       const statusOptions = screen.getByTestId('housing-status-options');
       expect(statusOptions).toBeInTheDocument();
       const neverContactedOption = within(statusOptions).queryByText(
-        getHousingState(HousingStatus.NeverContacted).title,
+        getHousingState(HousingStatus.NeverContacted).title
       );
       expect(neverContactedOption).not.toBeInTheDocument();
     });

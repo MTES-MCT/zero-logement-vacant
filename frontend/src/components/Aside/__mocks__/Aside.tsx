@@ -1,6 +1,6 @@
 import { ComponentPropsWithoutRef } from 'react';
 
-const { default: Aside } =
+const { default: Aside, } =
   jest.requireActual<typeof import('../Aside')>('../Aside');
 
 type AsideProps = ComponentPropsWithoutRef<typeof Aside>;

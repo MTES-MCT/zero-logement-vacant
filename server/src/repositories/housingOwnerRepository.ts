@@ -43,7 +43,7 @@ export const formatOwnerHousingApi = (housing: HousingApi): HousingOwnerDBO => {
 };
 
 export const formatHousingOwnerApi = (
-  housingOwnerApi: HousingOwnerApi,
+  housingOwnerApi: HousingOwnerApi
 ): HousingOwnerDBO => ({
   owner_id: housingOwnerApi.id,
   housing_id: housingOwnerApi.housingId,
@@ -57,7 +57,7 @@ export const formatHousingOwnerApi = (
 export const formatHousingOwnersApi = (
   housing: HousingRecordApi,
   owners: OwnerApi[],
-  origin?: string,
+  origin?: string
 ): HousingOwnerDBO[] =>
   owners.map((owner, i) => ({
     owner_id: owner.id,

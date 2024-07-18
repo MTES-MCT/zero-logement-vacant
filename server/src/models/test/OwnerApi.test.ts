@@ -21,7 +21,7 @@ describe('OwnerApi', () => {
         'birthDate',
         'rawAddress',
         'email',
-        'phone',
+        'phone'
       ]);
     });
 

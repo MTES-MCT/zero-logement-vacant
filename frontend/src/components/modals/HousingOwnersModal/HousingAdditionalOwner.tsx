@@ -28,12 +28,12 @@ const HousingAdditionalOwner = ({
   };
 
   const ownerRankOptions: SelectOption[] = [
-    { value: '1', label: `Propriétaire principal` },
+    { value: '1', label: `Propriétaire principal`, },
     ...Array.from(Array(activeOwnersCount).keys()).map((_) => ({
       value: String(_ + 2),
       label: _ + 2 + 'ème ayant droit',
     })),
-    { value: '0', label: `Ancien propriétaire` },
+    { value: '0', label: `Ancien propriétaire`, }
   ];
 
   return (

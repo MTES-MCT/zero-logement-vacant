@@ -67,7 +67,7 @@ export const getHousingDiff = (
       'precisions',
       'vacancyReasons',
       'occupancy',
-      'occupancyIntended',
+      'occupancyIntended'
     ]
   );
 
@@ -79,5 +79,5 @@ export const getOwnerDiff = (oldOwner: Owner, newOwner: Owner): Diff<Owner> =>
     'email',
     'phone',
     'banAddress',
-    'additionalAddress',
+    'additionalAddress'
   ]);

@@ -6,7 +6,7 @@ export function redisCheck(url: string): Check {
   return {
     name: 'redis',
     async test() {
-      const client = createClient({ url });
+      const client = createClient({ url, });
       await client.connect();
       await client.disconnect();
     },

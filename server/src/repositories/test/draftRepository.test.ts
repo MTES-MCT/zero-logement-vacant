@@ -5,7 +5,7 @@ import {
   genDraftApi,
   genEstablishmentApi,
   genSenderApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
 import { Campaigns, formatCampaignApi } from '../campaignRepository';
@@ -13,7 +13,7 @@ import { CampaignsDrafts } from '../campaignDraftRepository';
 import { DraftApi } from '~/models/DraftApi';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '../establishmentRepository';
 import { formatUserApi, Users } from '../userRepository';
 import { SenderApi } from '~/models/SenderApi';
@@ -26,15 +26,15 @@ describe('Draft repository', () => {
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi),
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert(formatUserApi(user));
   });
 
   describe('find', () => {
     const sender: SenderApi = genSenderApi(establishment);
-    const drafts: DraftApi[] = Array.from({ length: 5 }, () =>
-      genDraftApi(establishment, sender),
+    const drafts: DraftApi[] = Array.from({ length: 5, }, () =>
+      genDraftApi(establishment, sender)
     );
 
     beforeAll(async () => {
@@ -147,7 +147,7 @@ describe('Draft repository', () => {
 
       await draftRepository.save(draft);
 
-      const actual = await Drafts().where({ id: draft.id }).first();
+      const actual = await Drafts().where({ id: draft.id, }).first();
       expect(actual).toStrictEqual(formatDraftApi(draft));
     });
 
@@ -168,7 +168,7 @@ describe('Draft repository', () => {
 
       await draftRepository.save(updated);
 
-      const actual = await Drafts().where({ id: draft.id }).first();
+      const actual = await Drafts().where({ id: draft.id, }).first();
       expect(actual).toStrictEqual(formatDraftApi(updated));
     });
   });

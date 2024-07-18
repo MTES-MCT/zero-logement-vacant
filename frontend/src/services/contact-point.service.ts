@@ -10,18 +10,18 @@ export const contactPointsApi = zlvApi.injectEndpoints({
         publicOnly: boolean;
       }
     >({
-      query: ({ establishmentId, publicOnly }) =>
+      query: ({ establishmentId, publicOnly, }) =>
         `contact-points/${
           publicOnly ? '/public' : ''
         }?establishmentId=${establishmentId}`,
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({
+              ...result.map(({ id, }) => ({
                 type: 'ContactPoint' as const,
                 id,
               })),
-              'ContactPoint',
+              'ContactPoint'
             ]
           : ['ContactPoint'],
     }),
@@ -39,8 +39,8 @@ export const contactPointsApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'ContactPoint', id },
+      invalidatesTags: (result, error, { id, }) => [
+        { type: 'ContactPoint', id, }
       ],
     }),
     removeContactPoint: builder.mutation<void, string>({
@@ -49,7 +49,7 @@ export const contactPointsApi = zlvApi.injectEndpoints({
         method: 'DELETE',
       }),
       invalidatesTags: (result, error, contactPointId) => [
-        { type: 'ContactPoint', contactPointId },
+        { type: 'ContactPoint', contactPointId, }
       ],
     }),
   }),

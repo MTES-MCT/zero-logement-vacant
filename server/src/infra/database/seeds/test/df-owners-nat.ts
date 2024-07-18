@@ -78,6 +78,6 @@ export async function seed(knex: Knex): Promise<void> {
   await knex(DF_OWNERS_NAT).delete();
 
   // Inserts seed entries
-  const owners = Array.from({ length: 100 }, () => genDatafoncierOwner());
+  const owners = Array.from({ length: 100, }, () => genDatafoncierOwner());
   await knex(DF_OWNERS_NAT).insert(owners);
 }

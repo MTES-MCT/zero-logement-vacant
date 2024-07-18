@@ -11,11 +11,11 @@ import { useAppSelector } from '../../../hooks/useStore';
 import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
 const ReviewHousing = forwardRef((props: StepProps, ref) => {
-  const { creator } = useAppSelector((state) => state.housing);
-  const { localId } = creator;
-  const { data: datafoncierHousing } = datafoncierApi.useFindOneHousingQuery(
+  const { creator, } = useAppSelector((state) => state.housing);
+  const { localId, } = creator;
+  const { data: datafoncierHousing, } = datafoncierApi.useFindOneHousingQuery(
     localId as string,
-    { skip: !localId },
+    { skip: !localId, }
   );
 
   const address = datafoncierHousing
@@ -28,7 +28,7 @@ const ReviewHousing = forwardRef((props: StepProps, ref) => {
     onNext: async () => {
       try {
         if (localId) {
-          await doCreateHousing({ localId }).unwrap();
+          await doCreateHousing({ localId, }).unwrap();
           return '';
         }
         return null;

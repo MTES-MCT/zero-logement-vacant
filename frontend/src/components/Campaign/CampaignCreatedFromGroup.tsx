@@ -11,8 +11,8 @@ interface Props {
 }
 
 function CampaignCreatedFromGroup(props: Props) {
-  const { data: group } = useGetGroupQuery(
-    props.campaign?.groupId ?? skipToken,
+  const { data: group, } = useGetGroupQuery(
+    props.campaign?.groupId ?? skipToken
   );
 
   if (!group) {

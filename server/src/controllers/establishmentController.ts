@@ -10,22 +10,22 @@ import {
   hasKeys,
   isCommaDelimitedString,
   isGeoCode,
-  split,
+  split
 } from '~/utils/validators';
 
 const listValidators: ValidationChain[] = [
-  query('available').optional({ nullable: true }).isBoolean().toBoolean(true),
-  query('query').optional({ nullable: true }).isString(),
-  query('kind').optional({ nullable: true }).isString(),
-  query('name').optional({ nullable: true }).isString(),
+  query('available').optional({ nullable: true, }).isBoolean().toBoolean(true),
+  query('query').optional({ nullable: true, }).isString(),
+  query('kind').optional({ nullable: true, }).isString(),
+  query('name').optional({ nullable: true, }).isString(),
   query('geoCodes')
-    .optional({ nullable: true })
+    .optional({ nullable: true, })
     .isString()
     .custom(isCommaDelimitedString)
     .bail()
     .customSanitizer(split(','))
     .custom(every(isGeoCode)),
-  query().isObject({ strict: true }).custom(hasKeys),
+  query().isObject({ strict: true, }).custom(hasKeys)
 ];
 
 async function list(request: Request, response: Response) {

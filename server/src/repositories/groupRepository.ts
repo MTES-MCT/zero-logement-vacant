@@ -41,7 +41,7 @@ const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
   logger.debug('Finding group...', opts);
   const group: GroupDBO | undefined = await Groups()
     .modify(listQuery)
-    .modify(filterQuery({ establishmentId: opts.establishmentId }))
+    .modify(filterQuery({ establishmentId: opts.establishmentId, }))
     .where(`${groupsTable}.id`, opts.id)
     .first();
   if (!group) {
@@ -73,7 +73,7 @@ const listQuery = (query: Knex.QueryBuilder): void => {
           AND ${housingOwnersTable}.rank = 1
         WHERE ${groupsTable}.id = ${groupsHousingTable}.group_id
       ) counts ON true
-    `,
+    `
     )
     .select(`counts.*`);
 };
@@ -92,7 +92,7 @@ const filterQuery = (opts?: FilterOptions) => {
 
 const save = async (
   group: GroupApi,
-  housingList?: HousingApi[],
+  housingList?: HousingApi[]
 ): Promise<void> => {
   logger.debug('Saving group...', {
     group,
@@ -106,20 +106,20 @@ const save = async (
       .merge(['title', 'description', 'exported_at']);
 
     if (housingList) {
-      await GroupsHousing(transaction).where({ group_id: group.id }).delete();
+      await GroupsHousing(transaction).where({ group_id: group.id, }).delete();
       if (housingList.length > 0) {
         await GroupsHousing(transaction).insert(
-          formatGroupHousingApi(group, housingList),
+          formatGroupHousingApi(group, housingList)
         );
       }
     }
   });
-  logger.info('Saved group', { group: group.id });
+  logger.info('Saved group', { group: group.id, });
 };
 
 const addHousing = async (
   group: GroupApi,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): Promise<void> => {
   if (!housingList.length) {
     logger.debug('No housing to add. Skipping...', {
@@ -142,7 +142,7 @@ const addHousing = async (
 
 const removeHousing = async (
   group: GroupApi,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): Promise<void> => {
   logger.debug('Removing housing from a group...', {
     group,
@@ -153,11 +153,11 @@ const removeHousing = async (
     .where('group_id', group.id)
     .whereIn(
       'housing_id',
-      housingList.map((housing) => housing.id),
+      housingList.map((housing) => housing.id)
     )
     .whereIn(
       'housing_geo_code',
-      housingList.map((housing) => housing.geoCode),
+      housingList.map((housing) => housing.geoCode)
     )
     .delete();
 };
@@ -168,7 +168,7 @@ const archive = async (group: GroupApi): Promise<GroupApi> => {
     ...group,
     archivedAt: new Date(),
   };
-  await Groups().where({ id: group.id }).update({
+  await Groups().where({ id: group.id, }).update({
     archived_at: archived.archivedAt,
   });
   return archived;
@@ -176,7 +176,7 @@ const archive = async (group: GroupApi): Promise<GroupApi> => {
 
 const remove = async (group: GroupApi): Promise<void> => {
   logger.debug('Removing group...', group);
-  await Groups().where({ id: group.id }).delete();
+  await Groups().where({ id: group.id, }).delete();
   logger.debug('Removed group', group.id);
 };
 
@@ -232,7 +232,7 @@ export interface GroupHousingDBO {
 
 export const formatGroupHousingApi = (
   group: GroupApi,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): GroupHousingDBO[] => {
   return housingList.map((housing) => ({
     group_id: group.id,

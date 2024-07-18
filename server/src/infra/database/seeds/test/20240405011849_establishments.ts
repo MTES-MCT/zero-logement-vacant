@@ -2,11 +2,11 @@ import { Knex } from 'knex';
 
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import establishmentRepository, {
-  establishmentsTable,
+  establishmentsTable
 } from '~/repositories/establishmentRepository';
 import { establishmentsLocalitiesTable } from '~/repositories/establishmentLocalityRepository';
 import localityRepository, {
-  localitiesTable,
+  localitiesTable
 } from '~/repositories/localityRepository';
 import { genEstablishmentApi, genLocalityApi } from '~/test/testFixtures';
 
@@ -34,7 +34,7 @@ export async function seed(knex: Knex): Promise<void> {
     knex.table(establishmentsTable).insert({
       ...establishmentRepository.formatEstablishmentApi(Establishment2),
       available: true,
-    }),
+    })
   ]);
   const establishmentLocalities = [
     {
@@ -44,7 +44,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       establishment_id: Establishment2.id,
       locality_id: Locality2.id,
-    },
+    }
   ];
   await knex
     .table(establishmentsLocalitiesTable)

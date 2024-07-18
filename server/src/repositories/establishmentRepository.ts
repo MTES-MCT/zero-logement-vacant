@@ -14,7 +14,7 @@ type FindOptions = Partial<EstablishmentFilterApi>;
 
 const find = async (opts?: FindOptions): Promise<EstablishmentApi[]> => {
   const establishments: EstablishmentDbo[] = await db<EstablishmentDbo>(
-    establishmentsTable,
+    establishmentsTable
   )
     .modify(filter(opts))
     .orderBy('name');
@@ -42,7 +42,7 @@ function filter(filters?: EstablishmentFilterApi) {
     if (filters?.name) {
       builder.whereRaw(
         `lower(unaccent(regexp_replace(regexp_replace(name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ?`,
-        filters?.name,
+        filters?.name
       );
     }
     if (filters?.sirens) {
@@ -66,7 +66,7 @@ interface FindOneOptions {
 }
 
 const findOne = async (
-  options: FindOneOptions,
+  options: FindOneOptions
 ): Promise<EstablishmentApi | null> => {
   logger.info('Find establishment by', options);
 
@@ -86,8 +86,8 @@ async function update(establishmentApi: EstablishmentApi): Promise<void> {
 
 async function setAvailable(establishment: EstablishmentApi): Promise<void> {
   await Establishments()
-    .where({ id: establishment.id })
-    .update({ available: true });
+    .where({ id: establishment.id, })
+    .update({ available: true, });
 }
 
 interface StreamOptions {
@@ -107,7 +107,7 @@ const stream = (options?: StreamOptions) => {
 };
 
 const save = async (
-  establishment: EstablishmentDbo,
+  establishment: EstablishmentDbo
 ): Promise<void> => {
   logger.debug('Saving establishment...', {
     establishment,
@@ -117,7 +117,7 @@ const save = async (
     await Establishments(transaction)
       .insert(establishment)
   );
-  logger.info('Saved establishment', { establishment: establishment.id });
+  logger.info('Saved establishment', { establishment: establishment.id, });
 };
 
 export interface EstablishmentDbo {
@@ -134,7 +134,7 @@ export interface EstablishmentDbo {
 }
 
 export const formatEstablishmentApi = (
-  establishmentApi: EstablishmentApi,
+  establishmentApi: EstablishmentApi
 ): EstablishmentDbo => ({
   id: establishmentApi.id,
   name: establishmentApi.name,
@@ -149,7 +149,7 @@ export const formatEstablishmentApi = (
 });
 
 export const parseEstablishmentApi = (
-  establishmentDbo: EstablishmentDbo,
+  establishmentDbo: EstablishmentDbo
 ): EstablishmentApi =>
   <EstablishmentApi>{
     id: establishmentDbo.id,

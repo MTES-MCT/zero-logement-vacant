@@ -1,5 +1,5 @@
 import addressService, {
-  AddressSearchResult,
+  AddressSearchResult
 } from '../../../services/address.service';
 import AppSearchBar, { SearchResult } from './AppSearchBar';
 import AppLink from '../AppLink/AppLink';

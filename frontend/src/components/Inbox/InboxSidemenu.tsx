@@ -40,7 +40,7 @@ function InboxSidemenu(props: Props) {
   const sentAt = useMemo<string | undefined>(() => {
     const createdAt = props.ownerProspect?.createdAt;
     if (createdAt) {
-      return format(new Date(createdAt), 'dd MMMM yyyy, k:mm', { locale: fr });
+      return format(new Date(createdAt), 'dd MMMM yyyy, k:mm', { locale: fr, });
     }
   }, [props.ownerProspect?.createdAt]);
 
@@ -64,7 +64,7 @@ function InboxSidemenu(props: Props) {
                 <div className={styles.initials}>
                   {initials(
                     props.ownerProspect.firstName,
-                    props.ownerProspect.lastName,
+                    props.ownerProspect.lastName
                   )}
                 </div>
               )}

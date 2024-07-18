@@ -1,7 +1,7 @@
 import db, { countQuery } from '~/infra/database';
 import {
   OwnerProspectApi,
-  OwnerProspectSortApi,
+  OwnerProspectSortApi
 } from '~/models/OwnerProspectApi';
 import { PaginatedResultApi } from '~/models/PaginatedResultApi';
 import { establishmentsTable } from './establishmentRepository';
@@ -15,7 +15,7 @@ export const OwnerProspects = (transaction = db) =>
   transaction<OwnerProspectDBO>(ownerProspectsTable);
 
 async function insert(
-  ownerProspectApi: OwnerProspectApi,
+  ownerProspectApi: OwnerProspectApi
 ): Promise<OwnerProspectApi> {
   logger.info('Insert ownerProspect with email', ownerProspectApi.email);
 
@@ -32,14 +32,14 @@ interface FindOptions {
 }
 
 async function find(
-  options: FindOptions,
+  options: FindOptions
 ): Promise<PaginatedResultApi<OwnerProspectApi>> {
-  const { establishmentId, pagination, sort } = options;
+  const { establishmentId, pagination, sort, } = options;
 
   const query = OwnerProspects()
     .joinRaw(
       `JOIN ${establishmentsTable} e ON geo_code = ANY(e.localities_geo_code) AND e.id = ?`,
-      establishmentId,
+      establishmentId
     )
     .modify(paginationQuery(pagination));
 
@@ -55,7 +55,7 @@ async function find(
             builder.orderBy('created_at', sort?.createdAt),
         },
         default: (builder) => builder.orderBy('created_at', 'desc'),
-      }),
+      })
     );
 
   return {
@@ -75,15 +75,15 @@ interface FindOneOptions {
 }
 
 async function findOne(
-  options: FindOneOptions,
+  options: FindOneOptions
 ): Promise<OwnerProspectApi | null> {
-  const { establishmentId, id } = options;
+  const { establishmentId, id, } = options;
 
   const ownerProspect = await OwnerProspects()
     .select(`${ownerProspectsTable}.*`)
     .joinRaw(
       `JOIN ${establishmentsTable} e ON geo_code = ANY(e.localities_geo_code) AND e.id = ?`,
-      establishmentId,
+      establishmentId
     )
     .where(`${ownerProspectsTable}.id`, id)
     .first();
@@ -91,7 +91,7 @@ async function findOne(
 }
 
 async function update(ownerProspect: OwnerProspectApi): Promise<void> {
-  await OwnerProspects().where({ id: ownerProspect.id }).update({
+  await OwnerProspects().where({ id: ownerProspect.id, }).update({
     call_back: ownerProspect.callBack,
     read: ownerProspect.read,
   });
@@ -113,7 +113,7 @@ interface OwnerProspectDBO {
 }
 
 export const parseOwnerProspectApi = (
-  ownerProspectDbo: OwnerProspectDBO,
+  ownerProspectDbo: OwnerProspectDBO
 ): OwnerProspectApi => ({
   id: ownerProspectDbo.id,
   address: ownerProspectDbo.address,
@@ -130,7 +130,7 @@ export const parseOwnerProspectApi = (
 });
 
 export const formatOwnerProspectApi = (
-  ownerProspectApi: OwnerProspectApi,
+  ownerProspectApi: OwnerProspectApi
 ): OwnerProspectDBO => ({
   id: ownerProspectApi.id,
   address: ownerProspectApi.address,

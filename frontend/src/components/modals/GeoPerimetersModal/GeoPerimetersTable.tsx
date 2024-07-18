@@ -38,7 +38,7 @@ const GeoPerimetersTable = ({
         onChange={() => selection.toggleSelectAll()}
       />
     ),
-    render: ({ id }: { id: string }) => (
+    render: ({ id, }: { id: string }) => (
       <AppCheckbox
         checked={selection.isSelected(id)}
         label=""
@@ -50,7 +50,7 @@ const GeoPerimetersTable = ({
   const kindColumn = {
     name: 'kind',
     label: 'Filtre',
-    render: ({ kind }: GeoPerimeter) => (
+    render: ({ kind, }: GeoPerimeter) => (
       <Tag className="bg-900">{kind ? kind : 'Non renseigné'}</Tag>
     ),
     sortable: true,
@@ -94,7 +94,7 @@ const GeoPerimetersTable = ({
   const viewColumn = {
     name: 'view',
     headerRender: () => '',
-    render: ({ geoJson }: GeoPerimeter) => (
+    render: ({ geoJson, }: GeoPerimeter) => (
       <AppLink
         title="Afficher (.json)"
         target="_blank"
@@ -116,13 +116,13 @@ const GeoPerimetersTable = ({
     nameColumn,
     kindColumn,
     viewColumn,
-    actionsColumn,
+    actionsColumn
   ];
 
   const selectedGeoPerimeters = geoPerimeters.filter((geoPerimeter) =>
     selection.selected.all
       ? !selection.selected.ids.includes(geoPerimeter.id)
-      : selection.selected.ids.includes(geoPerimeter.id),
+      : selection.selected.ids.includes(geoPerimeter.id)
   );
 
   return (
@@ -140,7 +140,7 @@ const GeoPerimetersTable = ({
                 <ConfirmationModal
                   modalId={selectedGeoPerimeters.map((_) => _.id).join('-')}
                   onSubmit={() => onRemove(selectedGeoPerimeters)}
-                  openingButtonProps={{ children: 'Supprimer' }}
+                  openingButtonProps={{ children: 'Supprimer', }}
                 >
                   <Text size="md">
                     Êtes-vous sûr de vouloir supprimer{' '}

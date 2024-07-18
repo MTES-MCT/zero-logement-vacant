@@ -1,12 +1,12 @@
 import {
   useFindSettingsQuery,
-  useUpsertSettingsMutation,
+  useUpsertSettingsMutation
 } from '../services/settings.service';
 
 export function useSettings(establishmentId?: string) {
-  const { data: settings } = useFindSettingsQuery(
-    { establishmentId: establishmentId! },
-    { skip: !establishmentId }
+  const { data: settings, } = useFindSettingsQuery(
+    { establishmentId: establishmentId!, },
+    { skip: !establishmentId, }
   );
 
   const [upsertSettings] = useUpsertSettingsMutation();

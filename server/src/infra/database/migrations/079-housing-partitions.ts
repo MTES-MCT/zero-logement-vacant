@@ -13,7 +13,7 @@ export async function up(knex: Knex): Promise<void> {
   }
 
   await knex.schema.raw(
-    'CREATE TABLE fast_housing (LIKE housing) PARTITION BY RANGE (geo_code)',
+    'CREATE TABLE fast_housing (LIKE housing) PARTITION BY RANGE (geo_code)'
   );
   await knex.schema.alterTable('fast_housing', (table) => {
     table.integer('status').notNullable().alter();
@@ -69,7 +69,7 @@ export async function up(knex: Knex): Promise<void> {
     table.dropForeign('owner_id');
     table.dropIndex(
       ['housing_id', 'rank', 'owner_id'],
-      'owners_housing_housing_id_rank_owner_id_idx',
+      'owners_housing_housing_id_rank_owner_id_idx'
     );
     table.dropIndex(['housing_id', 'rank'], 'owners_housing_housing_rank_idx');
   });
@@ -135,18 +135,18 @@ export async function down(knex: Knex): Promise<void> {
     table.dropPrimary();
     table.dropIndex(
       ['housing_id, rank'],
-      'owners_housing_housing_rank_owner_idx',
+      'owners_housing_housing_rank_owner_idx'
     );
     table.dropIndex(
       ['housing_id, rank'],
-      'owners_housing_housing_rank_coowners_idx',
+      'owners_housing_housing_rank_coowners_idx'
     );
     table.dropColumn('housing_geo_code');
     addForeignKey(table);
     table.primary(['owner_id', 'housing_id']);
     table.index(
       ['housing_id', 'rank', 'owner_id'],
-      'owners_housing_housing_id_rank_owner_id_idx',
+      'owners_housing_housing_id_rank_owner_id_idx'
     );
   });
   await knex.schema.raw(`

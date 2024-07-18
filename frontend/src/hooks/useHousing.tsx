@@ -7,34 +7,34 @@ import _ from 'lodash';
 import { useCampaignList } from './useCampaignList';
 import {
   useCountHousingQuery,
-  useGetHousingQuery,
+  useGetHousingQuery
 } from '../services/housing.service';
 import { campaignSort } from '../models/Campaign';
 import { isDefined } from '../utils/compareUtils';
 
 export function useHousing() {
-  const { housingId } = useParams<{ housingId: string }>();
+  const { housingId, } = useParams<{ housingId: string }>();
 
-  const { data: housing } = useGetHousingQuery(housingId);
+  const { data: housing, } = useGetHousingQuery(housingId);
 
-  const { data: events, refetch: refetchHousingEvents } =
+  const { data: events, refetch: refetchHousingEvents, } =
     useFindEventsByHousingQuery(housingId);
 
-  const { data: notes, refetch: refetchHousingNotes } =
+  const { data: notes, refetch: refetchHousingNotes, } =
     useFindNotesByHousingQuery(housingId);
 
-  const { data: housingOwners } = useFindOwnersByHousingQuery(housingId);
+  const { data: housingOwners, } = useFindOwnersByHousingQuery(housingId);
 
   const campaignList = useCampaignList();
 
   const mainHousingOwner = housingOwners?.find((_) => _.rank === 1);
   const coOwners = housingOwners?.filter((_) => _.rank !== 1);
 
-  const { data: count } = useCountHousingQuery(
+  const { data: count, } = useCountHousingQuery(
     {
       ownerIds: [mainHousingOwner?.id ?? ''],
     },
-    { skip: !mainHousingOwner }
+    { skip: !mainHousingOwner, }
   );
 
   const campaigns = useMemo(

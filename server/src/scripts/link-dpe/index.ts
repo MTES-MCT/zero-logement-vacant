@@ -4,13 +4,13 @@ import loader from './loader';
 
 const allDepartments = [
   ...Array.from(Array(19).keys()).map((key) =>
-    String(key + 1).padStart(2, '0'),
+    String(key + 1).padStart(2, '0')
   ),
   '2a',
   '2b',
   ...Array.from(Array(75).keys()).map((key) =>
-    String(key + 21).padStart(2, '0'),
-  ),
+    String(key + 21).padStart(2, '0')
+  )
 ];
 const departments: string =
   process.argv[2]?.toLowerCase() ?? allDepartments.join(',');

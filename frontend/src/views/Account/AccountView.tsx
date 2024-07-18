@@ -11,9 +11,9 @@ import Typography from '@mui/material/Typography';
 const AccountView = () => {
   useDocumentTitle('Votre profil');
 
-  const { user } = useUser();
+  const { user, } = useUser();
 
-  const { data: userAccount } = useGetUserAccountQuery();
+  const { data: userAccount, } = useGetUserAccountQuery();
 
   if (!user || !userAccount) {
     return <></>;

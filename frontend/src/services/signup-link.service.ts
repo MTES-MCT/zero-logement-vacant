@@ -6,7 +6,7 @@ export const signupLinkApi = zlvApi.injectEndpoints({
       query: (email) => ({
         url: 'signup-links',
         method: 'POST',
-        body: { email },
+        body: { email, },
       }),
       transformErrorResponse: (response) => {
         if (typeof response.status === 'number' && response.status >= 500) {
@@ -18,4 +18,4 @@ export const signupLinkApi = zlvApi.injectEndpoints({
   }),
 });
 
-export const { useSendActivationEmailMutation } = signupLinkApi;
+export const { useSendActivationEmailMutation, } = signupLinkApi;

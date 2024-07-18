@@ -33,7 +33,7 @@ export const settingsApi = zlvApi.injectEndpoints({
         settings: DeepPartial<SettingsDTO>;
       }
     >({
-      query: ({ establishmentId, settings }) => ({
+      query: ({ establishmentId, settings, }) => ({
         url: `establishments/${establishmentId}/settings`,
         method: 'PUT',
         body: settings,
@@ -43,4 +43,4 @@ export const settingsApi = zlvApi.injectEndpoints({
   }),
 });
 
-export const { useFindSettingsQuery, useUpsertSettingsMutation } = settingsApi;
+export const { useFindSettingsQuery, useUpsertSettingsMutation, } = settingsApi;

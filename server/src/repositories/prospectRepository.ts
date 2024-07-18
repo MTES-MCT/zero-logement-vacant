@@ -16,15 +16,15 @@ async function get(email: string): Promise<ProspectApi | null> {
       `${prospectsTable}.*`,
       'e.id as establishment_id',
       'e.siren as establishment_siren',
-      'e.campaign_intent as campaign_intent',
+      'e.campaign_intent as campaign_intent'
     )
     .where('email', email)
     // Unoptimized because siren is not a foreign key
     // but still more performant than listing all the establishments
     .leftJoin(
-      { e: establishmentsTable },
+      { e: establishmentsTable, },
       'e.siren',
-      `${prospectsTable}.establishment_siren`,
+      `${prospectsTable}.establishment_siren`
     )
     .first();
 
@@ -84,7 +84,7 @@ export const parseProspectApi = (prospect: ProspectDBO): ProspectApi => ({
 });
 
 export const formatProspectApi = (
-  prospect: ProspectApi,
+  prospect: ProspectApi
 ): ProspectRecordDBO => ({
   email: prospect.email,
   has_account: prospect.hasAccount,

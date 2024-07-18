@@ -36,7 +36,7 @@ const EstablishmentView = () => {
                 <EstablishmentContactPoints
                   establishmentId={establishment.id}
                 />
-              )
+              ),
             },
             {
               label: 'Taxes sur les logements vacants',
@@ -44,7 +44,7 @@ const EstablishmentView = () => {
                 <EstablishmentLocalityTaxes
                   establishmentId={establishment.id}
                 />
-              )
+              ),
             }
           ]}
         ></Tabs>

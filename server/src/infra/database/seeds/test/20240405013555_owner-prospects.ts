@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 
 import {
   formatOwnerProspectApi,
-  ownerProspectsTable,
+  ownerProspectsTable
 } from '~/repositories/ownerProspectRepository';
 import { genOwnerProspectApi } from '~/test/testFixtures';
 import { Locality1, Locality2 } from './20240405011849_establishments';

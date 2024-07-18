@@ -26,7 +26,7 @@ function SendButton(props: Readonly<Props>) {
       openingButtonProps={{
         children: 'Débuter l’envoi',
         iconId: 'fr-icon-send-plane-fill',
-        priority: 'primary'
+        priority: 'primary',
       }}
       size="large"
       title="Envoi de la campagne"

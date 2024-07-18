@@ -28,7 +28,7 @@ describe('Campaign API', () => {
 
     it('should return the campaign if it exists', async () => {
       const id = faker.string.uuid();
-      const campaign = { id };
+      const campaign = { id, };
       nock(host)
         .get(`/campaigns/${id}`)
         .reply(constants.HTTP_STATUS_OK, campaign);

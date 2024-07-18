@@ -24,13 +24,13 @@ export function createLogger(name: string, opts: LoggerOptions): Logger {
   const level = opts.level ?? LogLevel.DEBUG;
   const developmentOptions: PinoLoggerOptions = {
     transport: {
-      target: 'pino-pretty'
-    }
+      target: 'pino-pretty',
+    },
   };
   const logger = pino({
     ...(opts.isProduction ? {} : developmentOptions),
     name,
-    level
+    level,
   });
 
   return {
@@ -38,7 +38,7 @@ export function createLogger(name: string, opts: LoggerOptions): Logger {
     debug: toPinoLogFn(logger.debug.bind(logger)),
     info: toPinoLogFn(logger.info.bind(logger)),
     warn: toPinoLogFn(logger.warn.bind(logger)),
-    error: toPinoLogFn(logger.error.bind(logger))
+    error: toPinoLogFn(logger.error.bind(logger)),
   };
 }
 

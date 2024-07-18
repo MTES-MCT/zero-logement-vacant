@@ -22,7 +22,7 @@ interface Props {
   notes: Note[];
 }
 
-const EventsHistory = ({ events, notes }: Props) => {
+const EventsHistory = ({ events, notes, }: Props) => {
   const [expandEvents, setExpandEvents] = useState(false);
 
   const eventAndNotes = [...events, ...notes].sort((e1, e2) =>
@@ -49,7 +49,7 @@ const EventsHistory = ({ events, notes }: Props) => {
             <div className={styles.eventData}>
               <span className={styles.eventDate}>
                 {format(eventOrNote.createdAt, 'dd MMMM yyyy, HH:mm', {
-                  locale: fr
+                  locale: fr,
                 })}
               </span>
               <span className="fr-mx-1w">par</span>
@@ -229,7 +229,7 @@ const EventsHistory = ({ events, notes }: Props) => {
                       __html: eventOrNote.content.replaceAll(
                         /(\n|\\n)/g,
                         '<br />'
-                      )
+                      ),
                     }}
                     className={styles.eventContent}
                   />

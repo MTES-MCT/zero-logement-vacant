@@ -22,5 +22,5 @@ const parseEvent = (e: any): Event => ({
   createdAt: e.createdAt ? parseISO(e.createdAt) : undefined,
 });
 
-export const { useFindEventsByHousingQuery, useFindEventsByOwnerQuery } =
+export const { useFindEventsByHousingQuery, useFindEventsByOwnerQuery, } =
   eventApi;

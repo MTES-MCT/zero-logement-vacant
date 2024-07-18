@@ -9,13 +9,13 @@ import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { logger } from '~/infra/logger';
 
 const getLocalityValidators = [
-  param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
+  param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5, })
 ];
 
 async function getLocality(request: Request, response: Response) {
   const geoCode = request.params.geoCode;
 
-  logger.info('Get locality', { geoCode });
+  logger.info('Get locality', { geoCode, });
 
   const locality = await localityRepository.get(geoCode);
   if (!locality) {
@@ -38,13 +38,13 @@ async function listLocalities(request: Request, response: Response) {
 }
 
 const updateLocalityTaxValidators = [
-  param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
+  param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5, }),
   body('taxKind').isIn([TaxKindsApi.THLV, TaxKindsApi.None]),
   body('taxRate')
     .if(body('taxKind').equals(TaxKindsApi.THLV))
     .isNumeric()
     .notEmpty(),
-  body('taxRate').if(body('taxKind').equals(TaxKindsApi.None)).not().exists(),
+  body('taxRate').if(body('taxKind').equals(TaxKindsApi.None)).not().exists()
 ];
 
 async function updateLocalityTax(request: Request, response: Response) {

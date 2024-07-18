@@ -7,9 +7,9 @@ import { capitalize } from '../../utils/stringUtils';
 interface Props {
   housingOwners?: HousingOwner[];
 }
-const EventHousingOwnerContent = ({ housingOwners }: Props) => {
+const EventHousingOwnerContent = ({ housingOwners, }: Props) => {
   const sortedHousingOwners = [...(housingOwners ?? [])]
-    .map((_) => ({ ..._, rank: _.rank ?? 1 }))
+    .map((_) => ({ ..._, rank: _.rank ?? 1, }))
     .sort((o1, o2) => o1.rank - o2.rank);
 
   return (

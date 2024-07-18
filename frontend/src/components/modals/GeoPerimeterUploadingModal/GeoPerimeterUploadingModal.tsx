@@ -6,7 +6,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalTitle,
-  Row,
+  Row
 } from '../../_dsfr';
 import * as yup from 'yup';
 import { fileValidator, useForm } from '../../../hooks/useForm';
@@ -20,13 +20,13 @@ interface Props {
   onClose: () => void;
 }
 
-const GeoPerimeterUploadingModal = ({ onSubmit, onClose }: Props) => {
+const GeoPerimeterUploadingModal = ({ onSubmit, onClose, }: Props) => {
   const FileTypes = ['application/zip', 'application/x-zip-compressed'];
   const [file, setFile] = useState<File | undefined>();
 
-  const schema = yup.object().shape({ file: fileValidator(FileTypes) });
+  const schema = yup.object().shape({ file: fileValidator(FileTypes), });
 
-  const { isValid, message, validate } = useForm(schema, {
+  const { isValid, message, validate, } = useForm(schema, {
     file,
   });
 
@@ -62,7 +62,7 @@ const GeoPerimeterUploadingModal = ({ onSubmit, onClose }: Props) => {
         <Row spacing="my-2w">
           <Col n="8">
             <Upload
-              nativeInputProps={{ onChange: (event: any) => selectFile(event) }}
+              nativeInputProps={{ onChange: (event: any) => selectFile(event), }}
               multiple={false}
               label="Ajouter un fichier"
               hint="*fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”. "

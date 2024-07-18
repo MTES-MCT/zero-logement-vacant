@@ -17,7 +17,7 @@ interface Props {
   onClose: () => void;
 }
 
-function HousingEditionSideMenu({ housing, expand, onSubmit, onClose }: Props) {
+function HousingEditionSideMenu({ housing, expand, onSubmit, onClose, }: Props) {
   const statusFormRef = useRef<{ submit: () => void }>();
 
   const submit = (housingUpdate: HousingUpdate) => {

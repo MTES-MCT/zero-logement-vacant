@@ -20,7 +20,7 @@ export type Sort<Sortable extends object = object> = Partial<
  * // { owner: 'asc', rawAddress: 'desc' }
  */
 function parse<Sortable extends object = object>(
-  query?: string[] | string,
+  query?: string[] | string
 ): Sort<Sortable> | undefined {
   if (!query) {
     return;
@@ -30,15 +30,15 @@ function parse<Sortable extends object = object>(
     .map((key) => {
       if (key.startsWith('-')) {
         const keyWithoutMinus = key.slice(1) as keyof Sortable;
-        return { [keyWithoutMinus]: 'desc' } as Record<
+        return { [keyWithoutMinus]: 'desc', } as Record<
           keyof Sortable,
           Direction
         >;
       }
-      return { [key]: 'asc' } as Record<keyof Sortable, Direction>;
+      return { [key]: 'asc', } as Record<keyof Sortable, Direction>;
     })
     .reduce((sort, entry) => {
-      return { ...sort, ...entry };
+      return { ...sort, ...entry, };
     }, {});
 }
 
@@ -49,7 +49,7 @@ interface FormatOptions<Sortable> {
 
 export function sortQuery<Sortable extends object>(
   sort?: Sort<Sortable>,
-  options?: FormatOptions<Sortable>,
+  options?: FormatOptions<Sortable>
 ) {
   return (query: Knex.QueryBuilder): void => {
     if (sort) {
@@ -65,7 +65,7 @@ export function sortQuery<Sortable extends object>(
 export const queryValidators: ValidationChain[] = [
   query('sort')
     .optional()
-    .custom((value) => isSortValue(value) || isArrayOf(isSortValue)(value)),
+    .custom((value) => isSortValue(value) || isArrayOf(isSortValue)(value))
 ];
 
 const isSortValue = (value: unknown): value is string =>

@@ -6,7 +6,7 @@ import createServer from '../server';
 import registerHealthcheck from '../healthcheck';
 
 describe('Healthcheck API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
   let listener: http.Server;
 
   beforeAll(async () => {
@@ -30,7 +30,7 @@ describe('Healthcheck API', () => {
   it('should return 200 OK if healthy', async () => {
     registerHealthcheck(listener);
 
-    const { status } = await request(listener).get('/');
+    const { status, } = await request(listener).get('/');
 
     expect(status).toBe(constants.HTTP_STATUS_OK);
   });

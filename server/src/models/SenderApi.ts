@@ -19,6 +19,6 @@ export function toSenderDTO(sender: SenderApi): SenderDTO {
     signatoryRole: sender.signatoryRole,
     signatoryFile: sender.signatoryFile,
     createdAt: sender.createdAt,
-    updatedAt: sender.updatedAt
+    updatedAt: sender.updatedAt,
   };
 }

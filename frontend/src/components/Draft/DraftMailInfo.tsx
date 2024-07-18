@@ -9,7 +9,7 @@ import { DATE_REGEXP } from '../../utils/dateUtils';
 export const writtenSchema = object({
   writtenAt: string().matches(
     DATE_REGEXP,
-    'Veuillez renseigner une date au format yyyy-mm-dd',
+    'Veuillez renseigner une date au format yyyy-mm-dd'
   ),
   writtenFrom: string(),
 });

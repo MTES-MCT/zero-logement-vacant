@@ -5,7 +5,7 @@ import { useFindOneDashboardQuery } from '../../services/dashboard.service';
 const UsersView = () => {
   useDocumentTitle('Autres structures');
 
-  const { data: dashboard, isSuccess } = useFindOneDashboardQuery({
+  const { data: dashboard, isSuccess, } = useFindOneDashboardQuery({
     id: 'etablissements',
   });
 

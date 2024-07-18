@@ -17,14 +17,14 @@ describe('Error handler', () => {
       async (request: Request, response: Response, next: NextFunction) => {
         const error = new TestAccountError(email);
         next(error);
-      },
+      }
     );
     app.get(
       unexpectedErrorRoute,
       async (request: Request, response: Response, next: NextFunction) => {
         const error = new Error('Unexpected error');
         next(error);
-      },
+      }
     );
     app.use(errorHandler());
 

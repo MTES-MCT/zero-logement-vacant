@@ -32,17 +32,17 @@ export const groupHandlers: RequestHandler[] = [
       data.groupHousings.set(group.id, housings);
 
       return HttpResponse.json(group, {
-        status: constants.HTTP_STATUS_CREATED
+        status: constants.HTTP_STATUS_CREATED,
       });
     }
   ),
   http.get<GroupParams, never, GroupDTO | null>(
     `${config.apiEndpoint}/api/groups/:id`,
-    ({ params }) => {
+    ({ params, }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
@@ -51,11 +51,11 @@ export const groupHandlers: RequestHandler[] = [
   ),
   http.put<GroupParams, GroupPayloadDTO, GroupDTO>(
     `${config.apiEndpoint}/api/groups/:id`,
-    async ({ params, request }) => {
+    async ({ params, request, }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
@@ -63,7 +63,7 @@ export const groupHandlers: RequestHandler[] = [
       const updated: GroupDTO = {
         ...group,
         title: payload.title,
-        description: payload.description
+        description: payload.description,
       };
       data.groups.splice(data.groups.indexOf(group), 1, updated);
 
@@ -72,11 +72,11 @@ export const groupHandlers: RequestHandler[] = [
   ),
   http.delete<GroupParams, never, never>(
     `${config.apiEndpoint}/api/groups/:id`,
-    ({ params }) => {
+    ({ params, }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
         throw new HttpResponse(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
@@ -91,7 +91,7 @@ export const groupHandlers: RequestHandler[] = [
       }
 
       return new HttpResponse(null, {
-        status: constants.HTTP_STATUS_NO_CONTENT
+        status: constants.HTTP_STATUS_NO_CONTENT,
       });
     }
   )

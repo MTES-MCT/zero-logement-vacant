@@ -4,7 +4,7 @@ import { Prospect } from '../models/Prospect';
 async function upsert(signupLink: string): Promise<Prospect> {
   const response = await fetch(
     `${config.apiEndpoint}/api/signup-links/${signupLink}/prospect`,
-    { method: 'PUT' }
+    { method: 'PUT', }
   );
   if (!response.ok) {
     throw new Error('Une erreur s’est produite.');

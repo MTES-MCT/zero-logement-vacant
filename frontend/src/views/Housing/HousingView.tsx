@@ -25,14 +25,14 @@ const HousingView = () => {
   } = useHousing();
   const housingCount = count?.housing ?? 0;
 
-  const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
+  const { refetch: refetchHousingEvents, } = useFindEventsByHousingQuery(
     housing?.id ?? '',
-    { skip: !housing },
+    { skip: !housing, }
   );
   const [updateHousingOwners] = useUpdateHousingOwnersMutation();
 
   const [housingOwnersModalKey, setHousingOwnersModalKey] = useState(
-    new Date().getTime(),
+    new Date().getTime()
   );
 
   if (!housing) {
@@ -40,7 +40,7 @@ const HousingView = () => {
   }
 
   const submitHousingOwnersUpdate = async (
-    housingOwnersUpdated: HousingOwner[],
+    housingOwnersUpdated: HousingOwner[]
   ) => {
     await updateHousingOwners({
       housingId: housing.id,

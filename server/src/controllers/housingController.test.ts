@@ -6,7 +6,7 @@ import db from '~/infra/database';
 import { tokenProvider } from '~/test/testUtils';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import {
   genCampaignApi,
@@ -16,7 +16,7 @@ import {
   genHousingApi,
   genOwnerApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
@@ -24,7 +24,7 @@ import {
   Events,
   eventsTable,
   HousingEvents,
-  housingEventsTable,
+  housingEventsTable
 } from '~/repositories/eventRepository';
 import { createServer } from '~/infra/server';
 import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
@@ -32,26 +32,26 @@ import { HousingUpdateBody } from './housingController';
 import { housingNotesTable, Notes } from '~/repositories/noteRepository';
 import {
   formatHousingOwnersApi,
-  HousingOwners,
+  HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import {
   Campaigns,
-  formatCampaignApi,
+  formatCampaignApi
 } from '~/repositories/campaignRepository';
 import {
   CampaignsHousing,
-  formatCampaignHousingApi,
+  formatCampaignHousingApi
 } from '~/repositories/campaignHousingRepository';
 
 describe('Housing API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -60,7 +60,7 @@ describe('Housing API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi),
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert([user, anotherUser].map(formatUserApi));
   });
@@ -75,7 +75,7 @@ describe('Housing API', () => {
     });
 
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .get(testRoute(housing.id))
         .use(tokenProvider(anotherUser));
 
@@ -87,13 +87,13 @@ describe('Housing API', () => {
     const testRoute = '/api/housing';
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status, } = await request(app).post(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send({
           filters: {},
@@ -115,15 +115,15 @@ describe('Housing API', () => {
       const owner = genOwnerApi();
       await Owners().insert(formatOwnerApi(owner));
       await HousingOwners().insert(
-        formatHousingOwnersApi(queriedHousing, [owner]),
+        formatHousingOwnersApi(queriedHousing, [owner])
       );
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send({
           page: 1,
           perPage: 10,
-          filters: { query: 'line1   with many spaces' },
+          filters: { query: 'line1   with many spaces', },
         })
         .use(tokenProvider(user));
 
@@ -132,7 +132,7 @@ describe('Housing API', () => {
         entities: expect.arrayContaining([
           expect.objectContaining({
             id: queriedHousing.id,
-          }),
+          })
         ]),
         page: 1,
         perPage: 10,
@@ -146,7 +146,7 @@ describe('Housing API', () => {
     const testRoute = '/api/housing/creation';
 
     it('should be forbidden a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status, } = await request(app).post(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -158,7 +158,7 @@ describe('Housing API', () => {
         localId: housing.localId,
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -171,7 +171,7 @@ describe('Housing API', () => {
         localId: randomstring.generate(12),
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -181,8 +181,8 @@ describe('Housing API', () => {
 
     it('should create a housing', async () => {
       const datafoncierHousing = genDatafoncierHousing();
-      const datafoncierOwners = Array.from({ length: 3 }, () =>
-        genDatafoncierOwner(datafoncierHousing.idprocpte),
+      const datafoncierOwners = Array.from({ length: 3, }, () =>
+        genDatafoncierOwner(datafoncierHousing.idprocpte)
       );
       await DatafoncierHouses().insert(datafoncierHousing);
       await DatafoncierOwners().insert(datafoncierOwners);
@@ -190,7 +190,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal,
       };
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -203,8 +203,8 @@ describe('Housing API', () => {
 
     it('should assign its owners', async () => {
       const datafoncierHousing = genDatafoncierHousing();
-      const datafoncierOwners = Array.from({ length: 6 }, () =>
-        genDatafoncierOwner(datafoncierHousing.idprocpte),
+      const datafoncierOwners = Array.from({ length: 6, }, () =>
+        genDatafoncierOwner(datafoncierHousing.idprocpte)
       );
       await DatafoncierHouses().insert(datafoncierHousing);
       await DatafoncierOwners().insert(datafoncierOwners);
@@ -212,7 +212,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal,
       };
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -228,7 +228,7 @@ describe('Housing API', () => {
     it('should create an event', async () => {
       const datafoncierHousing = genDatafoncierHousing();
       const datafoncierOwners = [
-        genDatafoncierOwner(datafoncierHousing.idprocpte),
+        genDatafoncierOwner(datafoncierHousing.idprocpte)
       ];
       await DatafoncierHouses().insert(datafoncierHousing);
       await DatafoncierOwners().insert(datafoncierOwners);
@@ -236,7 +236,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal,
       };
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -286,13 +286,13 @@ describe('Housing API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute(housing.id));
+      const { status, } = await request(app).post(testRoute(housing.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid housingId', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute(randomstring.generate()))
         .send(validBody)
         .use(tokenProvider(user));
@@ -337,19 +337,19 @@ describe('Housing API', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
       await Housing().insert(formatHousingRecordApi(housing));
       await CampaignsHousing().insert(
-        formatCampaignHousingApi(campaign, [housing]),
+        formatCampaignHousingApi(campaign, [housing])
       );
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status, } = await request(app).post(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid request', async () => {
       const badRequestTest = async (payload?: Record<string, unknown>) => {
-        const { status } = await request(app)
+        const { status, } = await request(app)
           .post(testRoute)
           .send(payload)
           .use(tokenProvider(user));
@@ -358,7 +358,7 @@ describe('Housing API', () => {
       };
 
       await badRequestTest();
-      await badRequestTest({ ...payload, housingIds: undefined });
+      await badRequestTest({ ...payload, housingIds: undefined, });
       await badRequestTest({
         ...payload,
         housingIds: [randomstring.generate()],
@@ -370,7 +370,7 @@ describe('Housing API', () => {
           campaignIds: [randomstring.generate()],
         },
       });
-      await badRequestTest({ ...payload, housingUpdate: undefined });
+      await badRequestTest({ ...payload, housingUpdate: undefined, });
       await badRequestTest({
         ...payload,
         housingUpdate: {
@@ -434,7 +434,7 @@ describe('Housing API', () => {
     });
 
     it('should be forbidden to set status "NeverContacted" for a list of housing which one has already been contacted', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send({
           ...payload,
@@ -453,7 +453,7 @@ describe('Housing API', () => {
     });
 
     it('should update the housing list and return the updated result', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -467,7 +467,7 @@ describe('Housing API', () => {
           occupancy: payload.housingUpdate.occupancyUpdate.occupancy,
           occupancyIntended:
             payload.housingUpdate.occupancyUpdate.occupancyIntended,
-        },
+        }
       ]);
 
       const actual = await Housing().where('id', housing.id).first();
@@ -481,7 +481,7 @@ describe('Housing API', () => {
     });
 
     it('should create and event related to the status change only when there are some changes', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -502,9 +502,9 @@ describe('Housing API', () => {
                 category: 'Followup',
                 section: 'Situation',
                 created_by: user.id,
-              }),
-            ]),
-          ),
+              })
+            ])
+          )
         );
 
       await request(app)
@@ -526,7 +526,7 @@ describe('Housing API', () => {
     });
 
     it('should create an event related to the occupancy change', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -548,12 +548,12 @@ describe('Housing API', () => {
           category: 'Followup',
           section: 'Situation',
           created_by: user.id,
-        },
+        }
       ]);
     });
 
     it('should create a note', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));

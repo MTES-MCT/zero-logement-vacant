@@ -12,7 +12,7 @@ interface Props {
 }
 
 function DraftSenderLogo(props: Readonly<Props>) {
-  const { value: files } = props;
+  const { value: files, } = props;
 
   function onUpload(index: number) {
     return (file: FileUploadDTO): void => {

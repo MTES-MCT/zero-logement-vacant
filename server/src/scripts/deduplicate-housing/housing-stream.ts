@@ -4,7 +4,7 @@ import highland from 'highland';
 import housingRepository, {
   Housing,
   HousingDBO,
-  parseHousingApi,
+  parseHousingApi
 } from '~/repositories/housingRepository';
 import { prependAsync } from '../shared';
 
@@ -25,20 +25,20 @@ export function parseLocalId(badLocalId: string): string {
 type HousingByLocalId = Record<string, HousingApi[]>;
 
 export function prependOriginalHousing(
-  stream: Stream<HousingByLocalId>,
+  stream: Stream<HousingByLocalId>
 ): Stream<HousingApi[]> {
   return stream
     .map((group) => Object.values(group))
     .sequence()
     .through(
       prependAsync(async (housingList) => {
-        const { geoCode, localId } = housingList[0];
+        const { geoCode, localId, } = housingList[0];
         const originalHousing = await housingRepository.findOne({
           geoCode,
           localId: parseLocalId(localId),
         });
         return originalHousing ? [originalHousing] : [];
-      }),
+      })
     );
 }
 

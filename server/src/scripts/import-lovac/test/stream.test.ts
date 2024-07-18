@@ -4,12 +4,12 @@ import { appendAll } from '~/utils/stream';
 describe('Import Lovac', () => {
   describe('appendAll', () => {
     it('should resolve an object of promises', (done) => {
-      const stream = highland(['Commune de Paris']).map((name) => ({ name }));
+      const stream = highland(['Commune de Paris']).map((name) => ({ name, }));
 
       const actual = stream.through(
         appendAll({
           zipcode: async () => 75016,
-        }),
+        })
       );
 
       actual

@@ -5,7 +5,7 @@ import { logger } from '~/infra/logger';
 import ownerRepository from '~/repositories/ownerRepository';
 import {
   isMatch,
-  needsManualReview,
+  needsManualReview
 } from '../shared/owner-processor/duplicates';
 import db from '~/infra/database/';
 import { createReporter } from './reporter';
@@ -40,23 +40,23 @@ function run(): void {
     .map((comparison) =>
       comparison.duplicates
         .filter((duplicate) =>
-          needsManualReview(comparison.source, [duplicate]),
+          needsManualReview(comparison.source, [duplicate])
         )
         .map<OwnerDuplicate>((duplicate) => ({
           ...duplicate.value,
           sourceId: comparison.source.id,
-        })),
+        }))
     )
     .flatten()
     .tap((duplicate) =>
       logger.trace('Found duplicate', {
         id: duplicate.id,
         fullName: duplicate.fullName,
-      }),
+      })
     )
     .batch(1000)
     .flatMap((duplicates) =>
-      highland(ownersDuplicatesRepository.save(...duplicates)),
+      highland(ownersDuplicatesRepository.save(...duplicates))
     );
 
   const ownerMerger = comparisons

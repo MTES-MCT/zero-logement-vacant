@@ -13,7 +13,7 @@ handlebars.registerHelper('localdate', (date: string) => {
   return new Date(date).toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
   });
 });
 
@@ -22,7 +22,7 @@ interface TransformerOptions {
 }
 
 function createTransformer(opts: TransformerOptions) {
-  const { logger } = opts;
+  const { logger, } = opts;
   const cache = new Map<string, (data: unknown) => string>();
 
   return {
@@ -36,7 +36,7 @@ function createTransformer(opts: TransformerOptions) {
     async fromHTML(htmls: string[]): Promise<Buffer> {
       // Launch the browser and open a new blank page
       const browser = await puppeteer.launch({
-        args: ['--no-sandbox']
+        args: ['--no-sandbox'],
       });
 
       let index = 1;
@@ -46,7 +46,7 @@ function createTransformer(opts: TransformerOptions) {
         index++;
         const tab = await browser.newPage();
         await tab.setContent(html, {
-          waitUntil: 'networkidle0'
+          waitUntil: 'networkidle0',
         });
         await tab.addStyleTag({
           path: path.join(
@@ -57,12 +57,12 @@ function createTransformer(opts: TransformerOptions) {
             'react-dsfr',
             'dsfr',
             'dsfr.min.css'
-          )
+          ),
         });
         await tab.addStyleTag({
-          path: path.join(__dirname, 'templates', 'draft', 'draft.css')
+          path: path.join(__dirname, 'templates', 'draft', 'draft.css'),
         });
-        const buffer = await tab.pdf({ format: 'A4' });
+        const buffer = await tab.pdf({ format: 'A4', });
         await tab.close();
         const chunk = await PDFDocument.load(buffer);
         const pages = await document.copyPages(chunk, chunk.getPageIndices());
@@ -74,10 +74,10 @@ function createTransformer(opts: TransformerOptions) {
       const mergedPDF = await document.save();
       logger.info('Saved generated PDF');
       return Buffer.from(mergedPDF);
-    }
+    },
   };
 }
 
 export default {
-  createTransformer
+  createTransformer,
 };

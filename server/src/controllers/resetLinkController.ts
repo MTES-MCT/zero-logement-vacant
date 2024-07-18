@@ -10,14 +10,14 @@ import {
   hasExpired,
   RESET_LINK_EXPIRATION,
   RESET_LINK_LENGTH,
-  ResetLinkApi,
+  ResetLinkApi
 } from '~/models/ResetLinkApi';
 import userRepository from '~/repositories/userRepository';
 import ResetLinkMissingError from '~/errors/resetLinkMissingError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
 
 async function create(request: Request, response: Response) {
-  const { email } = request.body;
+  const { email, } = request.body;
   const user = await userRepository.getByEmail(email);
 
   if (user) {
@@ -43,7 +43,7 @@ async function create(request: Request, response: Response) {
 const createValidators: ValidationChain[] = [body('email').isEmail()];
 
 async function show(request: Request, response: Response) {
-  const { id } = request.params;
+  const { id, } = request.params;
   const link = await resetLinkRepository.get(id);
   if (!link) {
     throw new ResetLinkMissingError();
@@ -56,7 +56,7 @@ async function show(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(link);
 }
 const showValidators: ValidationChain[] = [
-  param('id').isString().notEmpty().isAlphanumeric(),
+  param('id').isString().notEmpty().isAlphanumeric()
 ];
 
 export default {

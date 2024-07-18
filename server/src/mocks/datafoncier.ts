@@ -9,7 +9,7 @@ import { DatafoncierResultDTO } from '~/models/DatafoncierResultDTO';
 import { DatafoncierOwner } from '~/scripts/shared';
 import {
   genDatafoncierHousing,
-  genDatafoncierOwner,
+  genDatafoncierOwner
 } from '~/test/testFixtures';
 
 function mock() {

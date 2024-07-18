@@ -21,15 +21,15 @@ interface Props {
   establishmentId: string;
 }
 
-const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
-  const { trackEvent } = useMatomo();
+const EstablishmentLocalityTaxes = ({ establishmentId, }: Props) => {
+  const { trackEvent, } = useMatomo();
 
   const [
     updateLocalityTax,
-    { isSuccess: isUpdateSuccess, isError: isUpdateError }
+    { isSuccess: isUpdateSuccess, isError: isUpdateError, }
   ] = useUpdateLocalityTaxMutation();
 
-  const { localities, filterCount } = useLocalityList(establishmentId);
+  const { localities, filterCount, } = useLocalityList(establishmentId);
 
   const [hasTLVFilter, setHasTLVFilter] = useState<boolean>(true);
   const [hasTHLVFilter, setHasTHLVFilter] = useState<boolean>(true);
@@ -60,12 +60,12 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
   ) => {
     trackEvent({
       category: TrackEventCategories.LocalityTaxes,
-      action: TrackEventActions.LocalityTaxes.Update
+      action: TrackEventActions.LocalityTaxes.Update,
     });
     updateLocalityTax({
       geoCode,
       taxKind,
-      taxRate
+      taxRate,
     });
   };
 
@@ -104,7 +104,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
           small
           pressed={hasTLVFilter}
           nativeButtonProps={{
-            onClick: () => setHasTLVFilter(!hasTLVFilter)
+            onClick: () => setHasTLVFilter(!hasTLVFilter),
           }}
         >
           {TaxKindsLabels[TaxKinds.TLV]} (
@@ -114,7 +114,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
           small
           pressed={hasTHLVFilter}
           nativeButtonProps={{
-            onClick: () => setHasTHLVFilter(!hasTHLVFilter)
+            onClick: () => setHasTHLVFilter(!hasTHLVFilter),
           }}
         >
           {TaxKindsLabels[TaxKinds.THLV]} (
@@ -124,7 +124,7 @@ const EstablishmentLocalityTaxes = ({ establishmentId }: Props) => {
           small
           pressed={hasNoTaxFilter}
           nativeButtonProps={{
-            onClick: () => setHasNoTaxFilter(!hasNoTaxFilter)
+            onClick: () => setHasNoTaxFilter(!hasNoTaxFilter),
           }}
         >
           {TaxKindsLabels[TaxKinds.None]} (

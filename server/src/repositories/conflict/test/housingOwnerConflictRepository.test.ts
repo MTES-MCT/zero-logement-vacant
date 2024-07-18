@@ -2,23 +2,23 @@ import {
   genHousingApi,
   genHousingOwnerApi,
   genHousingOwnerConflictApi,
-  genOwnerApi,
+  genOwnerApi
 } from '../../../test/testFixtures';
 import housingOwnerConflictRepository, {
   formatHousingOwnerConflictApi,
   HousingOwnerConflictRecordDBO,
-  HousingOwnerConflicts,
+  HousingOwnerConflicts
 } from '../housingOwnerConflictRepository';
 import {
   ConflictDBO,
   Conflicts,
-  formatConflictApi,
+  formatConflictApi
 } from '../conflictRepository';
 import { formatOwnerApi, Owners } from '../../ownerRepository';
 import { formatHousingRecordApi, Housing } from '../../housingRepository';
 import {
   formatHousingOwnersApi,
-  HousingOwners,
+  HousingOwners
 } from '../../housingOwnerRepository';
 import { HousingOwnerConflictApi } from '~/models/ConflictApi';
 import { OwnerApi } from '~/models/OwnerApi';
@@ -34,8 +34,8 @@ describe('Housing owner conflict repository', () => {
         genHousingOwnerConflictApi(
           housing,
           genHousingOwnerApi(housing, owner),
-          genHousingOwnerApi(housing, owner),
-        ),
+          genHousingOwnerApi(housing, owner)
+        )
       );
 
     beforeEach(async () => {
@@ -44,7 +44,7 @@ describe('Housing owner conflict repository', () => {
       await HousingOwners().insert(formatHousingOwnersApi(housing, [owner]));
       await Conflicts().insert(conflicts.map(formatConflictApi));
       await HousingOwnerConflicts().insert(
-        conflicts.map(formatHousingOwnerConflictApi),
+        conflicts.map(formatHousingOwnerConflictApi)
       );
     });
 
@@ -63,11 +63,11 @@ describe('Housing owner conflict repository', () => {
 
     beforeEach(async () => {
       housing = genHousingApi();
-      owners = Array.from({ length: 2 }, () => genOwnerApi());
+      owners = Array.from({ length: 2, }, () => genOwnerApi());
       conflict = genHousingOwnerConflictApi(
         housing,
         genHousingOwnerApi(housing, owners[0]),
-        genHousingOwnerApi(housing, owners[1]),
+        genHousingOwnerApi(housing, owners[1])
       );
       await Housing().insert(formatHousingRecordApi(housing));
       await Owners().insert(owners.map(formatOwnerApi));
@@ -86,7 +86,7 @@ describe('Housing owner conflict repository', () => {
         .where('conflict_id', conflict.id)
         .first();
       expect(
-        actualHousingOwnerConflict,
+        actualHousingOwnerConflict
       ).toStrictEqual<HousingOwnerConflictRecordDBO>({
         conflict_id: conflict.id,
         housing_geo_code: housing.geoCode,

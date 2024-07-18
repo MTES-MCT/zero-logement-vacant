@@ -11,7 +11,7 @@ interface OwnerHousingCardProps {
   housing: Housing;
 }
 
-function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
+function OwnerHousingCard({ housing, }: OwnerHousingCardProps) {
   const buildingLocation = getBuildingLocation(housing);
   const additionalInfo = buildingLocation
     ? [
@@ -29,7 +29,7 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
       enlargeLink
       className="fr-card--no-icon"
       linkProps={{
-        to
+        to,
       }}
       size="small"
       title={

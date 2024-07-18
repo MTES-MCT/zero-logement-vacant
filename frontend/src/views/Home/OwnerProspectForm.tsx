@@ -71,7 +71,7 @@ const OwnerProspectForm = ({
         notes,
         callBack: true,
         read: false,
-      }),
+      })
     );
   };
 
@@ -87,7 +87,7 @@ const OwnerProspectForm = ({
           {addressSearchResult && !editAddress ? (
             <>
               <Input
-                nativeInputProps={{ value: addressSearchResult.label }}
+                nativeInputProps={{ value: addressSearchResult.label, }}
                 label="Adresse de votre logement vacant"
                 disabled
                 className={styles.editableInput}

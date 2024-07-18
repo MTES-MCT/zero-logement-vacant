@@ -14,7 +14,7 @@ const http = createHttpService('address', {
 });
 
 const quickSearch = async (query: string): Promise<AddressSearchResult[]> => {
-  const params = new URLSearchParams({ q: query });
+  const params = new URLSearchParams({ q: query, });
   const response = await http.get(`/search?${params}`, {
     abortId: 'search-address',
   });

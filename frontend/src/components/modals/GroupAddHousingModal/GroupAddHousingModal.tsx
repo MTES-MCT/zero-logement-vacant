@@ -26,7 +26,7 @@ const modal = createModal({
 });
 
 function GroupAddHousingModal(props: Props) {
-  const { data } = useFindGroupsQuery();
+  const { data, } = useFindGroupsQuery();
   const groups = (data ?? []).filter((group) => !group.archivedAt);
 
   const [mode, setMode] = useState<Mode>('default');
@@ -41,7 +41,7 @@ function GroupAddHousingModal(props: Props) {
     ...groups.map((group) => ({
       label: group.title,
       value: group.id,
-    })),
+    }))
   ];
   const defaultContent: Content = {
     title: 'Ajouter dans un groupe existant',
@@ -60,7 +60,7 @@ function GroupAddHousingModal(props: Props) {
             props.onGroupSelect?.(group);
           }
         },
-      },
+      }
     ],
   };
 
@@ -105,7 +105,7 @@ function GroupAddHousingModal(props: Props) {
           });
         },
         disabled: buttonsDisabled,
-      },
+      }
     ],
   };
 
@@ -128,7 +128,7 @@ function GroupAddHousingModal(props: Props) {
         size="large"
         title={content.title}
         buttons={content.buttons}
-        style={{ textAlign: 'initial' }}
+        style={{ textAlign: 'initial', }}
       >
         <Container as="section" fluid>
           {mode === 'default' ? (

@@ -8,7 +8,7 @@ interface Options {
 }
 
 export default function createErrorHandler(opts: Options) {
-  const { logger } = opts;
+  const { logger, } = opts;
 
   return (error: Error): AxiosResponse => {
     if (isAxiosError(error)) {
@@ -16,7 +16,7 @@ export default function createErrorHandler(opts: Options) {
         return {
           ...error.response,
           data: null,
-          statusText: 'NOT_FOUND'
+          statusText: 'NOT_FOUND',
         };
       }
     }

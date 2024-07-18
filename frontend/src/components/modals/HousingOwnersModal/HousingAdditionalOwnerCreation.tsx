@@ -5,7 +5,7 @@ import * as yup from 'yup';
 import {
   birthDateValidator,
   emailValidator,
-  useForm,
+  useForm
 } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
@@ -18,7 +18,7 @@ interface Props {
   onCancel: () => void;
 }
 
-const HousingAdditionalOwnerCreation = ({ onAdd }: Props) => {
+const HousingAdditionalOwnerCreation = ({ onAdd, }: Props) => {
   const [fullName, setFullName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [rawAddress, setRawAddress] = useState<string[] | undefined>(undefined);
@@ -42,7 +42,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd }: Props) => {
     phone,
   });
 
-  const [createOwner, { data: owner, isError: isCreateError }] =
+  const [createOwner, { data: owner, isError: isCreateError, }] =
     useCreateOwnerMutation();
   const submit = async () => {
     await form.validate(() => {

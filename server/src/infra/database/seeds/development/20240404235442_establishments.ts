@@ -9,6 +9,6 @@ export async function seed(knex: Knex): Promise<void> {
   // Mise à disposition
   await knex
     .table(establishmentsTable)
-    .update({ available: true })
+    .update({ available: true, })
     .whereIn('siren', [SirenStrasbourg, SirenSaintLo]);
 }

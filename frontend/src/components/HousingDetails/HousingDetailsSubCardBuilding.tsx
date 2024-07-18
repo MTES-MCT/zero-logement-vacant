@@ -7,7 +7,7 @@ interface Props {
   housing: Housing;
 }
 
-function HousingDetailsSubCardBuilding({ housing }: Props) {
+function HousingDetailsSubCardBuilding({ housing, }: Props) {
   return (
     <HousingDetailsSubCard title="Immeuble" isGrey>
       <div>

@@ -1,7 +1,7 @@
 import {
   CeremaUser,
   ConsultUserService,
-  getTestAccount,
+  getTestAccount
 } from './consultUserService';
 
 import { CeremaDossier, ConsultDossiersLovacService, getTestDossiers } from './consultDossiersLovacService';

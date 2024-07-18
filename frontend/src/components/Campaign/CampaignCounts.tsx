@@ -15,7 +15,7 @@ const CampaignCounts = (props: CampaignCountsProps) => {
   const classes = classNames(
     styles.count,
     {
-      [styles.inline]: display === 'row'
+      [styles.inline]: display === 'row',
     },
     props.className
   );
@@ -24,7 +24,7 @@ const CampaignCounts = (props: CampaignCountsProps) => {
     <section className={classes}>
       <span
         className={classNames('fr-icon--sm fr-icon-home-4-fill', {
-          'fr-mr-1w': display === 'row'
+          'fr-mr-1w': display === 'row',
         })}
         aria-hidden
       >

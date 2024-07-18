@@ -2,27 +2,27 @@ import {
   genDatafoncierHousing,
   genDatafoncierOwner,
   genHousingApi,
-  genOwnerApi,
+  genOwnerApi
 } from '~/test/testFixtures';
 import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import {
   formatHousingOwnersApi,
-  HousingOwners,
+  HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import { processHousing } from '../existingHousingOwnersImporter';
 import {
   OwnerMatchDBO,
-  OwnerMatches,
+  OwnerMatches
 } from '~/repositories/ownerMatchRepository';
 import {
   HousingOwnerConflictRecordDBO,
-  HousingOwnerConflicts,
+  HousingOwnerConflicts
 } from '~/repositories/conflict/housingOwnerConflictRepository';
 import { DatafoncierHousing } from '@zerologementvacant/shared';
 import { HousingApi } from '~/models/HousingApi';
@@ -44,14 +44,14 @@ describe('Import housing owners from existing housing', () => {
         ccthp: 'L',
         dteloctxt: 'APPARTEMENT',
       };
-      datafoncierOwners = Array.from({ length: 6 }, () =>
-        genDatafoncierOwner(),
+      datafoncierOwners = Array.from({ length: 6, }, () =>
+        genDatafoncierOwner()
       ).map((owner, i) => ({
         ...owner,
         idprocpte: datafoncierHousing.idprocpte,
         dnulp: (i + 1).toString(),
       }));
-      owners = Array.from({ length: 6 }, () => genOwnerApi());
+      owners = Array.from({ length: 6, }, () => genOwnerApi());
 
       await DatafoncierHouses().insert(datafoncierHousing);
       await DatafoncierOwners().insert(datafoncierOwners);

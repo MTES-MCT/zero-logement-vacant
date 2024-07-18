@@ -11,23 +11,23 @@ describe('Validator middleware', () => {
     const testRoute = `/validate/${uuidv4()}`;
     const app = express();
     app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
+    app.use(express.urlencoded({ extended: true, }));
     app.post(
       '/validate/:id',
-      body('name').isString().isLength({ min: 5 }),
+      body('name').isString().isLength({ min: 5, }),
       header('Custom-Header').isString().isLowercase().optional(),
       param('id').isUUID(),
       query('establishmentId').isString().optional(),
       validator.validate,
       (request: Request, response: Response) => {
         response.status(201).json(request.body);
-      },
+      }
     );
 
     it('should validate body', () => {
       return request(app)
         .post(testRoute)
-        .send({ name: '1234' })
+        .send({ name: '1234', })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
@@ -61,7 +61,7 @@ describe('Validator middleware', () => {
           should: 'be removed',
         })
         .expect(constants.HTTP_STATUS_CREATED)
-        .expect({ name: '12345' });
+        .expect({ name: '12345', });
     });
   });
 });

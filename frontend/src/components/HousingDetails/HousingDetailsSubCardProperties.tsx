@@ -7,7 +7,7 @@ interface Props {
   housing: Housing;
 }
 
-function HousingDetailsSubCardProperties({ housing }: Props) {
+function HousingDetailsSubCardProperties({ housing, }: Props) {
   return (
     <HousingDetailsSubCard title="Logement" isGrey>
       <div>
@@ -49,7 +49,7 @@ function HousingDetailsSubCardProperties({ housing }: Props) {
         <Text spacing="mb-1w">
           {
             cadastralClassificationOptions.find(
-              (_) => _.value === String(housing.cadastralClassification),
+              (_) => _.value === String(housing.cadastralClassification)
             )?.label
           }
         </Text>

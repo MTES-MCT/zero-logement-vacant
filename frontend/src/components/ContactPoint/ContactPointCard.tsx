@@ -21,15 +21,15 @@ function ContactPointCard({
   contactPoint,
   onEdit,
   onRemove,
-  isPublicDisplay
+  isPublicDisplay,
 }: Props) {
-  const { localities, localitiesGeoCodes } = useLocalityList(
+  const { localities, localitiesGeoCodes, } = useLocalityList(
     contactPoint.establishmentId
   );
   return (
     <Card
       className="h-fit-content"
-      classes={{ end: 'd-none' }}
+      classes={{ end: 'd-none', }}
       size="small"
       titleAs="h2"
       title={
@@ -61,7 +61,7 @@ function ContactPointCard({
                       iconId: 'fr-icon-delete-bin-fill',
                       priority: 'tertiary no outline',
                       title: 'Supprimer',
-                      className: 'd-inline-block'
+                      className: 'd-inline-block',
                     }}
                   >
                     <Text size="md">

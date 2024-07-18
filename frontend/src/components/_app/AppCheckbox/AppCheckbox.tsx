@@ -29,7 +29,7 @@ const AppCheckbox: React.FC<CheckboxProps> = ({
             value,
           },
           hintText,
-        },
+        }
       ]}
     />
   );

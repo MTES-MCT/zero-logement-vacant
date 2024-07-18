@@ -141,6 +141,6 @@ export async function seed(knex: Knex): Promise<void> {
   await knex(DF_HOUSING_NAT).delete();
 
   // Inserts seed entries
-  const houses = Array.from({ length: 100 }, () => genDatafoncierHousing());
+  const houses = Array.from({ length: 100, }, () => genDatafoncierHousing());
   await knex(DF_HOUSING_NAT).insert(houses);
 }

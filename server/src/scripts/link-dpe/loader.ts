@@ -20,7 +20,7 @@ const loadSchema = async (department: string): Promise<void> => {
 
   const cmd = `psql $DATABASE_URL -f ${path.join(
     downloader.getArchiveDir(department),
-    'bdnb.sql',
+    'bdnb.sql'
   )}`;
   const exec = require('child_process').exec;
 
@@ -37,10 +37,10 @@ const loadSchema = async (department: string): Promise<void> => {
 
       logger.info(`Creating indexes...`);
       await db.raw(
-        `CREATE INDEX idx_batenergy_batiment_groupe_id ON ${schema(department)}.batiment_groupe_dpe_representatif_logement(batiment_groupe_id);`,
+        `CREATE INDEX idx_batenergy_batiment_groupe_id ON ${schema(department)}.batiment_groupe_dpe_representatif_logement(batiment_groupe_id);`
       );
       await db.raw(
-        `CREATE INDEX idx_batenergy_arrete_2021 ON ${schema(department)}.batiment_groupe_dpe_representatif_logement(arrete_2021);`,
+        `CREATE INDEX idx_batenergy_arrete_2021 ON ${schema(department)}.batiment_groupe_dpe_representatif_logement(arrete_2021);`
       );
       logger.info(`Indexes created`);
 
@@ -62,7 +62,7 @@ const updateHousingEnergyConsumption = async (department: string) => {
     UPDATE ${housingTable}
     SET energy_consumption = ${batEnergyTable(department)}.classe_bilan_dpe,
         energy_consumption_at = ${batEnergyTable(
-          department,
+          department
         )}.date_etablissement_dpe,
         building_group_id = ${batEnergyTable(department)}.batiment_groupe_id
     FROM ${batPlotTable(department)}, ${batEnergyTable(department)}

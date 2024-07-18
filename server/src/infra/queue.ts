@@ -11,9 +11,9 @@ const queue = createQueue({
     attempts: 1_000,
     backoff: {
       type: 'exponential',
-      delay: 1_000
-    }
-  }
+      delay: 1_000,
+    },
+  },
 });
 
 export default queue;

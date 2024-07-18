@@ -1,9 +1,9 @@
 import createDatafoncierOwnersRepository, {
-  DatafoncierOwners,
+  DatafoncierOwners
 } from '../datafoncierOwnersRepository';
 import {
   genDatafoncierHousing,
-  genDatafoncierOwner,
+  genDatafoncierOwner
 } from '~/test/testFixtures';
 import { DatafoncierOwner, toOwnerApi } from '~/scripts/shared';
 import { OwnerMatchDBO, OwnerMatches } from '../ownerMatchRepository';

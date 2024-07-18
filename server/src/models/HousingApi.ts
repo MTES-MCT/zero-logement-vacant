@@ -60,7 +60,7 @@ export interface HousingApi extends HousingRecordApi {
 }
 
 export function assertOwner<T extends HousingApi>(
-  housing: T,
+  housing: T
 ): asserts housing is T & MarkRequired<T, 'owner'> {
   assert(housing.owner !== undefined, 'Housing owner is undefined');
 }
@@ -129,7 +129,7 @@ export enum EnergyConsumptionGradesApi {
 }
 
 export const ENERGY_CONSUMPTION_GRADES = Object.values(
-  EnergyConsumptionGradesApi,
+  EnergyConsumptionGradesApi
 );
 
 const trimStartingZeros = (str: string): string => str.replace(/^0+/, '');
@@ -148,7 +148,7 @@ export function getBuildingLocation(housing: HousingApi) {
     housing.buildingLocation !== 'A010001001'
   ) {
     const BUILDING_REGEXP = new RegExp(
-      `([A-Z0-9]{1,${buildingCharLength}})([0-9]{2})([0-9]{2})([0-9]{5})`,
+      `([A-Z0-9]{1,${buildingCharLength}})([0-9]{2})([0-9]{2})([0-9]{5})`
     );
     const match = housing.buildingLocation.match(BUILDING_REGEXP);
     if (match) {

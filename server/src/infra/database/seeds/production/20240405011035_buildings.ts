@@ -4,7 +4,7 @@ import { OccupancyKindApi } from '~/models/HousingApi';
 import {
   buildingTable,
   housingTable,
-  ReferenceDataYear,
+  ReferenceDataYear
 } from '~/repositories/housingRepository';
 
 export async function seed(knex: Knex): Promise<void> {
@@ -26,7 +26,7 @@ export async function seed(knex: Knex): Promise<void> {
       buildingTable,
       OccupancyKindApi.Vacant,
       ReferenceDataYear - 2,
-      housingTable,
-    ],
+      housingTable
+    ]
   );
 }

@@ -89,8 +89,8 @@ export async function seed(knex: Knex): Promise<void> {
       {
         count: {
           min: 1,
-          max: 6
-        }
+          max: 6,
+        },
       }
     );
     await knex(DF_OWNERS_NAT).insert(owners);

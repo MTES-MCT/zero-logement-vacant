@@ -17,7 +17,7 @@ export default class CampaignStatusError
     super({
       name: 'CampaignStatusError',
       message: `This campaign’s next status should be ${nextStatus(
-        data.campaign.status,
+        data.campaign.status
       )}`,
       status: constants.HTTP_STATUS_UNPROCESSABLE_ENTITY,
       data,

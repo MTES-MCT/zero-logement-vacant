@@ -43,7 +43,7 @@ const schema = yup
     body: yup
       .string()
       .required('Veuillez renseigner le contenu de votre courrier'),
-    sender: senderSchema
+    sender: senderSchema,
   })
   // Must do like that because the useForm hook has a validation bug
   // where it creates an infinite render loop if passed a `written` object
@@ -54,7 +54,7 @@ interface Props {
 }
 
 function CampaignDraft(props: Readonly<Props>) {
-  const { count, draft, isLoadingDraft } = useCampaign();
+  const { count, draft, isLoadingDraft, } = useCampaign();
 
   useDocumentTitle(props.campaign.title);
 
@@ -74,10 +74,10 @@ function CampaignDraft(props: Readonly<Props>) {
       signatoryFirstName: '',
       signatoryLastName: '',
       signatoryRole: '',
-      signatoryFile: null
+      signatoryFile: null,
     },
     writtenAt: '',
-    writtenFrom: ''
+    writtenFrom: '',
   });
 
   useEffect(() => {
@@ -98,10 +98,10 @@ function CampaignDraft(props: Readonly<Props>) {
           signatoryFirstName: draft.sender?.signatoryFirstName ?? '',
           signatoryLastName: draft.sender?.signatoryLastName ?? '',
           signatoryRole: draft.sender?.signatoryRole ?? '',
-          signatoryFile: draft.sender?.signatoryFile
+          signatoryFile: draft.sender?.signatoryFile,
         },
         writtenAt: draft.writtenAt ?? '',
-        writtenFrom: draft.writtenFrom ?? ''
+        writtenFrom: draft.writtenFrom ?? '',
       });
     }
   }, [draft, props.campaign.id]);
@@ -111,7 +111,7 @@ function CampaignDraft(props: Readonly<Props>) {
     body: values.body,
     sender: values.sender,
     writtenAt: values.writtenAt,
-    writtenFrom: values.writtenFrom
+    writtenFrom: values.writtenFrom,
   });
 
   const hasChanges = form.isDirty && !fp.equals(draft, values);
@@ -119,14 +119,14 @@ function CampaignDraft(props: Readonly<Props>) {
   const [createDraft, createDraftMutation] = useCreateDraftMutation();
   async function create(): Promise<void> {
     if (!draft) {
-      await createDraft({ ...values, campaign: props.campaign.id }).unwrap();
+      await createDraft({ ...values, campaign: props.campaign.id, }).unwrap();
     }
   }
 
   const [updateDraft, updateDraftMutation] = useUpdateDraftMutation();
   async function update(): Promise<void> {
     if (draft) {
-      await updateDraft({ ...values, id: draft.id }).unwrap();
+      await updateDraft({ ...values, id: draft.id, }).unwrap();
     }
   }
 
@@ -138,19 +138,19 @@ function CampaignDraft(props: Readonly<Props>) {
   const [updateCampaign] = useUpdateCampaignMutation();
   async function send(): Promise<void> {
     await save();
-    await updateCampaign({ ...props.campaign, status: 'sending' });
+    await updateCampaign({ ...props.campaign, status: 'sending', });
   }
 
   function setBody(body: Body): void {
-    setValues({ ...values, ...body });
+    setValues({ ...values, ...body, });
   }
 
   function setLogo(logo: FileUploadDTO[]): void {
-    setValues({ ...values, logo });
+    setValues({ ...values, logo, });
   }
 
   function setSender(sender: SenderPayload): void {
-    setValues({ ...values, sender });
+    setValues({ ...values, sender, });
   }
 
   function setSignature(sender: SenderPayload): void {
@@ -161,7 +161,7 @@ function CampaignDraft(props: Readonly<Props>) {
     setValues({
       ...values,
       writtenAt: written.at,
-      writtenFrom: written.from
+      writtenFrom: written.from,
     });
   }
 
@@ -199,7 +199,7 @@ function CampaignDraft(props: Readonly<Props>) {
       <Tabs
         className={styles.tabs}
         classes={{
-          panel: styles.panel
+          panel: styles.panel,
         }}
         tabs={[
           {
@@ -215,7 +215,7 @@ function CampaignDraft(props: Readonly<Props>) {
                       isLoading={mutation.isLoading}
                       isSuccess={mutation.isSuccess}
                       message={{
-                        success: 'Votre campagne a été sauvegardée avec succès'
+                        success: 'Votre campagne a été sauvegardée avec succès',
                       }}
                       onSave={save}
                     />
@@ -263,11 +263,11 @@ function CampaignDraft(props: Readonly<Props>) {
                   </Row>
                 </Container>
               </form>
-            )
+            ),
           },
           {
             label: 'Destinataires',
-            content: <CampaignRecipients campaign={props.campaign} />
+            content: <CampaignRecipients campaign={props.campaign} />,
           }
         ]}
       />

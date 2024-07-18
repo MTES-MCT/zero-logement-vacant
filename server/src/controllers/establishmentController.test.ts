@@ -7,17 +7,17 @@ import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { genEstablishmentApi, oneOf } from '~/test/testFixtures';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 
 describe('Establishment API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   describe('GET /establishments', () => {
     const testRoute = (query = '') => `/api/establishments${query}`;
 
-    const establishments: EstablishmentApi[] = Array.from({ length: 3 }).map(
-      () => genEstablishmentApi(),
+    const establishments: EstablishmentApi[] = Array.from({ length: 3, }).map(
+      () => genEstablishmentApi()
     );
 
     beforeAll(async () => {
@@ -25,7 +25,7 @@ describe('Establishment API', () => {
     });
 
     it('should receive at least a query param', async () => {
-      const { status } = await request(app).get(testRoute());
+      const { status, } = await request(app).get(testRoute());
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
@@ -41,8 +41,8 @@ describe('Establishment API', () => {
     });
 
     it('should return an empty array where no establishment is found', async () => {
-      const { body, status } = await request(app).get(
-        testRoute(`?query=${randomstring.generate()}`),
+      const { body, status, } = await request(app).get(
+        testRoute(`?query=${randomstring.generate()}`)
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -50,8 +50,8 @@ describe('Establishment API', () => {
     });
 
     it('should list available establishments', async () => {
-      const { body, status } = await request(app).get(
-        testRoute('?available=true'),
+      const { body, status, } = await request(app).get(
+        testRoute('?available=true')
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -64,13 +64,13 @@ describe('Establishment API', () => {
     it('should search by query', async () => {
       const [firstEstablishment] = establishments;
 
-      const { body, status } = await request(app).get(
+      const { body, status, } = await request(app).get(
         testRoute(
           `?query=${firstEstablishment.name.substring(
             1,
-            firstEstablishment.name.length - 1,
-          )}`,
-        ),
+            firstEstablishment.name.length - 1
+          )}`
+        )
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -83,8 +83,8 @@ describe('Establishment API', () => {
     it('should list by geo code', async () => {
       const [firstEstablishment] = establishments;
 
-      const { body, status } = await request(app).get(
-        testRoute(`?geoCodes=${oneOf(firstEstablishment.geoCodes)}`),
+      const { body, status, } = await request(app).get(
+        testRoute(`?geoCodes=${oneOf(firstEstablishment.geoCodes)}`)
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);

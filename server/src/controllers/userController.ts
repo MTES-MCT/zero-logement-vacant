@@ -5,7 +5,7 @@ import { constants } from 'http2';
 import {
   CampaignIntent,
   hasPriority,
-  INTENTS,
+  INTENTS
 } from '~/models/EstablishmentApi';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '~/repositories/establishmentRepository';
@@ -33,12 +33,12 @@ const createUserValidators = [
       minLowercase: 1,
     })
     .withMessage(
-      'Must be at least 8 characters long, have 1 number, 1 uppercase, 1 lowercase',
+      'Must be at least 8 characters long, have 1 number, 1 uppercase, 1 lowercase'
     ),
   body('campaignIntent').isString().isIn(INTENTS).optional(),
   body('establishmentId').isUUID(),
   body('firstName').isString().optional(),
-  body('lastName').isString().optional(),
+  body('lastName').isString().optional()
 ];
 
 interface CreateUserBody {
@@ -66,7 +66,7 @@ async function createUser(request: Request, response: Response) {
   }
 
   const userEstablishment = await establishmentRepository.get(
-    body.establishmentId,
+    body.establishmentId
   );
   if (!userEstablishment) {
     throw new EstablishmentMissingError(body.establishmentId);

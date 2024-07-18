@@ -5,7 +5,7 @@ import {
   ConflictDBO,
   Conflicts,
   conflictsTable,
-  formatConflictApi,
+  formatConflictApi
 } from './conflictRepository';
 import { OwnerDBO, ownerTable, parseHousingOwnerApi } from '../ownerRepository';
 import { logger } from '~/infra/logger';
@@ -28,7 +28,7 @@ const find = async (opts?: FindOptions): Promise<HousingOwnerConflictApi[]> => {
   const whereOptions = where<HousingOwnerConflictFilters>([
     'housingGeoCode',
     'housingId',
-    'ownerId',
+    'ownerId'
   ]);
   const conflicts = await HousingOwnerConflicts()
     .select(`${housingOwnersConflictsTable}.*`)
@@ -36,19 +36,19 @@ const find = async (opts?: FindOptions): Promise<HousingOwnerConflictApi[]> => {
     .join(
       conflictsTable,
       `${conflictsTable}.id`,
-      `${housingOwnersConflictsTable}.conflict_id`,
+      `${housingOwnersConflictsTable}.conflict_id`
     )
     .select(`${conflictsTable}.*`)
     .leftJoin(
-      { old: ownerTable },
+      { old: ownerTable, },
       'old.id',
-      `${housingOwnersConflictsTable}.existing_owner_id`,
+      `${housingOwnersConflictsTable}.existing_owner_id`
     )
     .select(db.raw(`to_json(old.*) AS existing`))
     .leftJoin(
-      { new: ownerTable },
+      { new: ownerTable, },
       'new.id',
-      `${housingOwnersConflictsTable}.replacement_owner_id`,
+      `${housingOwnersConflictsTable}.replacement_owner_id`
     )
     .select(db.raw(`to_json(new.*) AS replacement`))
     .orderBy('created_at');
@@ -60,13 +60,13 @@ const save = async (conflict: HousingOwnerConflictApi): Promise<void> => {
   await db.transaction(async (transaction) => {
     await Conflicts(transaction).insert(formatConflictApi(conflict));
     await HousingOwnerConflicts(transaction).insert(
-      formatHousingOwnerConflictApi(conflict),
+      formatHousingOwnerConflictApi(conflict)
     );
   });
 };
 
 const saveMany = async (
-  conflicts: HousingOwnerConflictApi[],
+  conflicts: HousingOwnerConflictApi[]
 ): Promise<void> => {
   if (!conflicts.length) {
     logger.info('The conflicts array is empty. Skipping save...');
@@ -76,7 +76,7 @@ const saveMany = async (
   await db.transaction(async (transaction) => {
     await Conflicts(transaction).insert(conflicts.map(formatConflictApi));
     await HousingOwnerConflicts(transaction).insert(
-      conflicts.map(formatHousingOwnerConflictApi),
+      conflicts.map(formatHousingOwnerConflictApi)
     );
   });
 };
@@ -97,7 +97,7 @@ export interface HousingOwnerConflictDBO extends ConflictDBO {
 }
 
 export const formatHousingOwnerConflictApi = (
-  conflict: HousingOwnerConflictApi,
+  conflict: HousingOwnerConflictApi
 ): HousingOwnerConflictRecordDBO => ({
   conflict_id: conflict.id,
   housing_geo_code: conflict.housingGeoCode,
@@ -107,7 +107,7 @@ export const formatHousingOwnerConflictApi = (
 });
 
 export const parseHousingOwnerConflictApi = (
-  conflict: HousingOwnerConflictDBO,
+  conflict: HousingOwnerConflictDBO
 ): HousingOwnerConflictApi => ({
   id: conflict.id,
   createdAt: conflict.created_at,

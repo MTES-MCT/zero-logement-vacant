@@ -40,37 +40,37 @@ const exportCampaign = async (
   response: Response,
   next: NextFunction
 ) => {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, } = request as AuthenticatedRequest;
 
   logger.info('Export campaign', {
-    id: params.id
+    id: params.id,
   });
 
   const campaigns = await campaignRepository.find({
     filters: {
-      establishmentId: auth.establishmentId
-    }
+      establishmentId: auth.establishmentId,
+    },
   });
   const campaign = campaigns.find((campaign) => campaign.id === params.id);
   if (!campaign) {
     throw new CampaignMissingError(params.id);
   }
 
-  logger.debug('Found campaign', { campaign: campaign.title });
+  logger.debug('Found campaign', { campaign: campaign.title, });
   const fileName = `${campaign.title}.xlsx`;
   const workbook = excelUtils.initWorkbook(fileName, response);
   const housingStream = housingRepository.stream({
     filters: {
       campaignIds: [campaign.id],
-      establishmentIds: [auth.establishmentId]
+      establishmentIds: [auth.establishmentId],
     },
-    includes: ['owner', 'events']
+    includes: ['owner', 'events'],
   });
 
   const ownerStream = ownerRepository.exportStream({
     filters: {
-      campaignId: campaign.id
-    }
+      campaignId: campaign.id,
+    },
   });
 
   highland([
@@ -79,33 +79,33 @@ const exportCampaign = async (
   ])
     .merge()
     .stopOnError((error) => {
-      logger.error('Stream error', { error });
+      logger.error('Stream error', { error, });
       next(error);
       throw error;
     })
     .done(async () => {
       await workbook.commit();
       logger.info('Workbook committed');
-      logger.info('Campaign exported', { campaign: campaign.id });
+      logger.info('Campaign exported', { campaign: campaign.id, });
     });
 };
 
 const exportGroup = async (request: Request, response: Response) => {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, } = request as AuthenticatedRequest;
 
   logger.info('Export group', {
-    id: params.id
+    id: params.id,
   });
 
   const [group, campaigns] = await Promise.all([
     groupRepository.findOne({
       id: params.id,
-      establishmentId: auth.establishmentId
+      establishmentId: auth.establishmentId,
     }),
     campaignRepository.find({
       filters: {
-        establishmentId: auth.establishmentId
-      }
+        establishmentId: auth.establishmentId,
+      },
     })
   ]);
 
@@ -118,15 +118,15 @@ const exportGroup = async (request: Request, response: Response) => {
   const housingStream = housingRepository.stream({
     filters: {
       groupIds: [params.id],
-      establishmentIds: [auth.establishmentId]
+      establishmentIds: [auth.establishmentId],
     },
-    includes: ['owner', 'events']
+    includes: ['owner', 'events'],
   });
 
   const ownerStream = ownerRepository.exportStream({
     filters: {
-      groupId: group.id
-    }
+      groupId: group.id,
+    },
   });
 
   logger.info('Writing worksheets...');
@@ -139,9 +139,9 @@ const exportGroup = async (request: Request, response: Response) => {
       await workbook.commit();
       await groupRepository.save({
         ...group,
-        exportedAt: group.exportedAt ?? new Date()
+        exportedAt: group.exportedAt ?? new Date(),
       });
-      logger.info('Exported group', { group: group.id });
+      logger.info('Exported group', { group: group.id, });
     });
 };
 
@@ -170,7 +170,7 @@ function writeHousingWorksheet(
           const building = getBuildingLocation(housing);
 
           logger.debug('Writing housing row...', {
-            housing: fp.pick(['id', 'geoCode', 'localId'], housing)
+            housing: fp.pick(['id', 'geoCode', 'localId'], housing),
           });
           const row = {
             invariant: housing.invariant,
@@ -212,18 +212,18 @@ function writeHousingWorksheet(
             ),
             contactCount: housing.contactCount,
             lastContact: housing.lastContact,
-            ...ownerRowData(housing.owner, ownerAddress)
+            ...ownerRowData(housing.owner, ownerAddress),
           };
 
           housingWorksheet.addRow(row).commit();
           logger.info('Wrote housing row', {
-            housing: fp.pick(['id', 'geoCode', 'localId'], housing)
+            housing: fp.pick(['id', 'geoCode', 'localId'], housing),
           });
         })
       );
     })
     .stopOnError((error) => {
-      logger.error('Housing stream error', { error });
+      logger.error('Housing stream error', { error, });
       throw error;
     })
     .on('end', () => {
@@ -243,41 +243,41 @@ function writeOwnerWorksheet(
           ...owner.housingList.map((housingApi) =>
             banAddressesRepository
               .getByRefId(housingApi.id, AddressKinds.Housing)
-              .then((housingAddress) => ({ housingApi, housingAddress }))
+              .then((housingAddress) => ({ housingApi, housingAddress, }))
           )
         ]).then(([ownerAddress, ...housings]) => {
           if (!workbook.getWorksheet('Propriétaires')) {
             addOwnerWorksheet(
               workbook,
-              housings.map(({ housingApi }) => housingApi)
+              housings.map(({ housingApi, }) => housingApi)
             );
           }
 
           const ownerWorksheet = workbook.getWorksheet('Propriétaires');
           logger.debug('Writing owner row...', {
-            owner: fp.pick(['id', 'fullName'], owner)
+            owner: fp.pick(['id', 'fullName'], owner),
           });
           const row = housings.reduce(
-            (prev, { housingApi, housingAddress }, index) => ({
+            (prev, { housingApi, housingAddress, }, index) => ({
               ...prev,
               [`housingRawAddress${index + 1}`]: reduceStringArray(
                 housingApi.rawAddress
               ),
               [`housingAddress${index + 1}`]: reduceAddressApi(
                 housingAddress ?? undefined
-              )
+              ),
             }),
             ownerRowData(owner, ownerAddress ?? undefined)
           );
           ownerWorksheet?.addRow(row).commit();
           logger.info('Wrote owner row', {
-            owner: fp.pick(['id', 'fullName'], owner)
+            owner: fp.pick(['id', 'fullName'], owner),
           });
         })
       );
     })
     .stopOnError((error) => {
-      logger.error('Housing stream error', { error });
+      logger.error('Housing stream error', { error, });
       throw error;
     })
     .on('end', () => {
@@ -303,43 +303,43 @@ function ownerRowData(
     ownerAddressStreet: ownerAddress?.street,
     ownerAddressPostalCode: ownerAddress?.postalCode,
     ownerAddressCity: ownerAddress?.city,
-    ownerAddressScore: ownerAddress?.score
+    ownerAddressScore: ownerAddress?.score,
   };
 }
 
 const ownerWorksheetColumns = [
-  { header: 'Propriétaire', key: 'owner' },
-  { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress' },
+  { header: 'Propriétaire', key: 'owner', },
+  { header: 'Adresse LOVAC du propriétaire', key: 'ownerRawAddress', },
   {
     header: 'Adresse LOVAC du propriétaire - Ligne 1',
-    key: 'ownerRawAddress1'
+    key: 'ownerRawAddress1',
   },
   {
     header: 'Adresse LOVAC du propriétaire - Ligne 2',
-    key: 'ownerRawAddress2'
+    key: 'ownerRawAddress2',
   },
   {
     header: 'Adresse LOVAC du propriétaire - Ligne 3',
-    key: 'ownerRawAddress3'
+    key: 'ownerRawAddress3',
   },
   {
     header: 'Adresse LOVAC du propriétaire - Ligne 4',
-    key: 'ownerRawAddress4'
+    key: 'ownerRawAddress4',
   },
-  { header: 'Adresse BAN du propriétaire', key: 'ownerAddress' },
+  { header: 'Adresse BAN du propriétaire', key: 'ownerAddress', },
   {
     header: 'Adresse BAN du propriétaire - Numéro',
-    key: 'ownerAddressHouseNumber'
+    key: 'ownerAddressHouseNumber',
   },
-  { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet' },
+  { header: 'Adresse BAN du propriétaire - Rue', key: 'ownerAddressStreet', },
   {
     header: 'Adresse BAN du propriétaire - Code postal',
-    key: 'ownerAddressPostalCode'
+    key: 'ownerAddressPostalCode',
   },
-  { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity' },
+  { header: 'Adresse BAN du propriétaire - Ville', key: 'ownerAddressCity', },
   {
     header: 'Adresse BAN du propriétaire - Fiabilité',
-    key: 'ownerAddressScore'
+    key: 'ownerAddressScore',
   }
 ];
 
@@ -354,11 +354,11 @@ const addOwnerWorksheet = (
       .map((_, index) => [
         {
           header: `Adresse LOVAC du logement ${index + 1}`,
-          key: `housingRawAddress${index + 1}`
+          key: `housingRawAddress${index + 1}`,
         },
         {
           header: `Adresse BAN du logement ${index + 1}`,
-          key: `housingAddress${index + 1}`
+          key: `housingAddress${index + 1}`,
         }
       ])
       .flat()
@@ -368,33 +368,33 @@ const addOwnerWorksheet = (
 };
 
 const housingWorksheetColumns = [
-  { header: 'Invariant', key: 'invariant' },
-  { header: 'Référence cadastrale', key: 'cadastralReference' },
-  { header: 'Code INSEE commune du logement', key: 'geoCode' },
-  { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },
-  { header: 'Adresse BAN du logement', key: 'housingAddress' },
+  { header: 'Invariant', key: 'invariant', },
+  { header: 'Référence cadastrale', key: 'cadastralReference', },
+  { header: 'Code INSEE commune du logement', key: 'geoCode', },
+  { header: 'Adresse LOVAC du logement', key: 'housingRawAddress', },
+  { header: 'Adresse BAN du logement', key: 'housingAddress', },
   {
     header: 'Adresse BAN du logement - Fiabilité',
-    key: 'housingAddressScore'
+    key: 'housingAddressScore',
   },
-  { header: 'Latitude', key: 'latitude' },
-  { header: 'Longitude', key: 'longitude' },
-  { header: 'Localisation', key: 'buildingLocation' },
-  { header: 'Type de logement', key: 'housingKind' },
-  { header: 'DPE représentatif', key: 'energyConsumption' },
-  { header: 'Date DPE', key: 'energyConsumptionAt' },
-  { header: 'Surface', key: 'livingArea' },
-  { header: 'Nombre de pièces', key: 'roomsCount' },
-  { header: 'Date de construction', key: 'buildingYear' },
-  { header: 'Occupation', key: 'occupancy' },
-  { header: 'Date de début de vacance', key: 'vacancyStartYear' },
-  { header: 'Statut', key: 'status' },
-  { header: 'Sous-statut', key: 'subStatus' },
-  { header: 'Point(s) de blocage', key: 'vacancyReasons' },
-  { header: 'Dispositif(s)', key: 'precisions' },
-  { header: 'Campagne(s)', key: 'campaigns' },
-  { header: "Nombre d'événements", key: 'contactCount' },
-  { header: 'Date de dernière mise à jour', key: 'lastContact' },
+  { header: 'Latitude', key: 'latitude', },
+  { header: 'Longitude', key: 'longitude', },
+  { header: 'Localisation', key: 'buildingLocation', },
+  { header: 'Type de logement', key: 'housingKind', },
+  { header: 'DPE représentatif', key: 'energyConsumption', },
+  { header: 'Date DPE', key: 'energyConsumptionAt', },
+  { header: 'Surface', key: 'livingArea', },
+  { header: 'Nombre de pièces', key: 'roomsCount', },
+  { header: 'Date de construction', key: 'buildingYear', },
+  { header: 'Occupation', key: 'occupancy', },
+  { header: 'Date de début de vacance', key: 'vacancyStartYear', },
+  { header: 'Statut', key: 'status', },
+  { header: 'Sous-statut', key: 'subStatus', },
+  { header: 'Point(s) de blocage', key: 'vacancyReasons', },
+  { header: 'Dispositif(s)', key: 'precisions', },
+  { header: 'Campagne(s)', key: 'campaigns', },
+  { header: "Nombre d'événements", key: 'contactCount', },
+  { header: 'Date de dernière mise à jour', key: 'lastContact', },
   ...ownerWorksheetColumns
 ];
 
@@ -422,7 +422,7 @@ const housingExportController = {
   exportCampaign,
   exportCampaignValidators,
   exportGroup,
-  exportGroupValidators
+  exportGroupValidators,
 };
 
 export default housingExportController;

@@ -11,11 +11,11 @@ export async function up(knex: Knex): Promise<void> {
       table.renameColumn('type', 'kind');
     }),
     knex.raw(
-      "update campaigns set filters = jsonb_set(filters::jsonb, '{geoPerimetersIncluded}', filters::jsonb#>'{housingScopesIncluded}') - 'housingScopesIncluded'",
+      "update campaigns set filters = jsonb_set(filters::jsonb, '{geoPerimetersIncluded}', filters::jsonb#>'{housingScopesIncluded}') - 'housingScopesIncluded'"
     ),
     knex.raw(
-      "update campaigns set filters = jsonb_set(filters::jsonb, '{geoPerimetersExcluded}', filters::jsonb#>'{housingScopesExcluded}') - 'housingScopesExcluded'",
-    ),
+      "update campaigns set filters = jsonb_set(filters::jsonb, '{geoPerimetersExcluded}', filters::jsonb#>'{housingScopesExcluded}') - 'housingScopesExcluded'"
+    )
   ]);
 }
 
@@ -30,10 +30,10 @@ export async function down(knex: Knex): Promise<void> {
       table.renameColumn('kind', 'type');
     }),
     knex.raw(
-      "update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesIncluded}', filters::jsonb#>'{geoPerimetersIncluded}') - 'geoPerimetersIncluded'",
+      "update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesIncluded}', filters::jsonb#>'{geoPerimetersIncluded}') - 'geoPerimetersIncluded'"
     ),
     knex.raw(
-      "update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesExcluded}', filters::jsonb#>'{geoPerimetersExcluded}') - 'geoPerimetersExcluded'",
-    ),
+      "update campaigns set filters = jsonb_set(filters::jsonb, '{housingScopesExcluded}', filters::jsonb#>'{geoPerimetersExcluded}') - 'geoPerimetersExcluded'"
+    )
   ]);
 }

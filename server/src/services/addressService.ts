@@ -21,10 +21,10 @@ const run = async (): Promise<void> => {
   const worksheet = workbook.addWorksheet();
 
   worksheet.columns = [
-    { header: 'addressId', key: 'addressId' },
-    { header: 'addressKind', key: 'addressKind' },
-    { header: 'rawAddress', key: 'rawAddress' },
-    { header: 'geoCode', key: 'geoCode' },
+    { header: 'addressId', key: 'addressId', },
+    { header: 'addressKind', key: 'addressKind', },
+    { header: 'rawAddress', key: 'rawAddress', },
+    { header: 'geoCode', key: 'geoCode', }
   ];
 
   worksheet.addRows(
@@ -35,7 +35,7 @@ const run = async (): Promise<void> => {
         addressKind: address.addressKind,
         rawAddress: address.rawAddress.join(' '),
         geoCode: address.geoCode ?? '',
-      })),
+      }))
   );
 
   const tmpCsvFileName = `${new Date().getTime()}.csv`;
@@ -91,7 +91,7 @@ const run = async (): Promise<void> => {
             : undefined,
         };
       })
-      .filter((_: AddressApi) => _.refId),
+      .filter((_: AddressApi) => _.refId)
   );
 };
 

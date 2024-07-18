@@ -24,7 +24,7 @@ function VariableSelect(props: Readonly<Props>) {
 
   const options = props.options.map((option, i) => (
     <MenuItem
-      classes={{ root: 'fr-py-1w' }}
+      classes={{ root: 'fr-py-1w', }}
       divider={i < props.options.length - 1}
       key={option.value}
       onClick={() => props.onSelect?.(option)}

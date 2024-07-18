@@ -37,7 +37,7 @@ class DatafoncierHousingRepository {
     const query = DatafoncierHouses()
       .select(FIELDS)
       .where({
-        ccthp: 'L'
+        ccthp: 'L',
       })
       .whereIn('dteloctxt', ['APPARTEMENT', 'MAISON'])
       .stream();

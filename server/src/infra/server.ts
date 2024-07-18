@@ -9,7 +9,7 @@ import {
   healthcheck,
   postgresCheck,
   redisCheck,
-  s3Check,
+  s3Check
 } from '@zerologementvacant/healthcheck';
 import RouteNotFoundError from '~/errors/routeNotFoundError';
 import config from '~/infra/config';
@@ -46,18 +46,18 @@ export function createServer(): Server {
             'https://stats.beta.gouv.fr',
             'https://client.crisp.chat',
             'https://www.googletagmanager.com',
-            'https://googleads.g.doubleclick.net',
+            'https://googleads.g.doubleclick.net'
           ],
           frameSrc: [
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',
-            'https://zerologementvacant.crisp.help',
+            'https://zerologementvacant.crisp.help'
           ],
           styleSrc: [
             "'self'",
             "'unsafe-inline'",
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css',
             'https://client.crisp.chat/static/stylesheets/client_default.css',
-            'https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css',
+            'https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css'
           ],
           imgSrc: [
             "'self'",
@@ -66,7 +66,7 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://www.google.fr',
             'https://www.google.com',
-            'data:',
+            'data:'
           ],
           fontSrc: [
             "'self'",
@@ -74,7 +74,7 @@ export function createServer(): Server {
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf',
             'https://client.crisp.chat',
-            'data:',
+            'data:'
           ],
           objectSrc: ["'self'"],
           mediaSrc: ["'self'"],
@@ -86,24 +86,24 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://openmaptiles.geo.data.gouv.fr',
             'https://openmaptiles.github.io',
-            'https://unpkg.com',
+            'https://unpkg.com'
           ],
           workerSrc: ["'self'", 'blob:'],
         },
       },
-    }),
+    })
   );
 
   app.use(
     cors({
       credentials: false,
-    }),
+    })
   );
 
   // Mock services like Datafoncier API on specific environments
   mockServices();
 
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({ limit: '10mb', }));
 
   app.use(
     rateLimit({
@@ -112,7 +112,7 @@ export function createServer(): Server {
       message: 'Too many request from this address, try again later please.',
       standardHeaders: true,
       legacyHeaders: false,
-    }),
+    })
   );
 
   app.get(
@@ -121,10 +121,10 @@ export function createServer(): Server {
       checks: [
         redisCheck(config.redis.url),
         postgresCheck(config.db.url),
-        s3Check(config.s3),
+        s3Check(config.s3)
       ],
       logger,
-    }),
+    })
   );
 
   app.use('/api', unprotectedRouter);

@@ -24,7 +24,7 @@ const VARIABLES_OPTIONS: VariableOption[] = [
   '{{housing.livingArea}}',
   '{{housing.roomsCount}}',
   '{{housing.buildingYear}}',
-  '{{housing.energyConsumption}}',
+  '{{housing.energyConsumption}}'
 ];
 
 export function isVariableOption(value: string): value is VariableOption {

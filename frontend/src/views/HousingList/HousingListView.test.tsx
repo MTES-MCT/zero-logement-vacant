@@ -47,10 +47,10 @@ describe('Housing list view', () => {
       </Provider>
     );
 
-    const accordion = await screen.findByRole('button', { name: /^Logement/ });
+    const accordion = await screen.findByRole('button', { name: /^Logement/, });
     await user.click(accordion);
     const checkbox = await screen.findByRole('checkbox', {
-      name: /^Appartement/
+      name: /^Appartement/,
     });
     await user.click(checkbox);
     const text = `${apartments.length} logements (${owners.length} propriétaires) filtrés sur un total de ${data.housings.length} logements`;
@@ -68,7 +68,7 @@ describe('Housing list view', () => {
     );
 
     const createCampaign = screen.queryByRole('button', {
-      name: /^Créer une campagne/
+      name: /^Créer une campagne/,
     });
     expect(createCampaign).not.toBeInTheDocument();
   });
@@ -87,7 +87,7 @@ describe('Housing list view', () => {
     await user.click(checkbox);
 
     const createCampaign = await screen.findByRole('button', {
-      name: /^Créer une campagne/
+      name: /^Créer une campagne/,
     });
     expect(createCampaign).toBeVisible();
   });
@@ -107,7 +107,7 @@ describe('Housing list view', () => {
       );
 
       const button = await screen.findByRole('button', {
-        name: /^Ajouter un logement/
+        name: /^Ajouter un logement/,
       });
       await user.click(button);
       const modal = await screen.findByRole('dialog');
@@ -116,13 +116,13 @@ describe('Housing list view', () => {
       );
       await user.type(input, datafoncierHousing.idlocal);
       await user.click(
-        within(modal).getByRole('button', { name: /^Confirmer/ })
+        within(modal).getByRole('button', { name: /^Confirmer/, })
       );
       await within(modal).findByText(
         'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
       );
       await user.click(
-        within(modal).getByRole('button', { name: /^Confirmer/ })
+        within(modal).getByRole('button', { name: /^Confirmer/, })
       );
 
       expect(modal).not.toBeVisible();
@@ -144,7 +144,7 @@ describe('Housing list view', () => {
       );
 
       const button = screen.getByText('Ajouter un logement', {
-        selector: 'button'
+        selector: 'button',
       });
       await user.click(button);
       const modal = await screen.findByRole('dialog');
@@ -153,7 +153,7 @@ describe('Housing list view', () => {
       );
       await user.type(input, localId);
       await user.click(
-        within(modal).getByRole('button', { name: /^Confirmer/ })
+        within(modal).getByRole('button', { name: /^Confirmer/, })
       );
       const alert = await within(modal).findByText(
         'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies.'
@@ -174,7 +174,7 @@ describe('Housing list view', () => {
       );
 
       const button = screen.getByText('Ajouter un logement', {
-        selector: 'button'
+        selector: 'button',
       });
       await user.click(button);
       const modal = await screen.findByRole('dialog');
@@ -217,7 +217,7 @@ describe('Housing list view', () => {
     const groupDescription = await within(modal).findByLabelText('Description');
     await user.type(groupDescription, 'My group description');
     const confirm = await within(modal).findByRole('button', {
-      name: /^Confirmer/
+      name: /^Confirmer/,
     });
     await user.click(confirm);
 
@@ -234,7 +234,7 @@ describe('Housing list view', () => {
       http.post(`${config.apiEndpoint}/api/groups`, () => {
         data.groups.push(group);
         return HttpResponse.json(group, {
-          status: constants.HTTP_STATUS_ACCEPTED
+          status: constants.HTTP_STATUS_ACCEPTED,
         });
       })
     );
@@ -283,7 +283,7 @@ describe('Housing list view', () => {
         </Provider>
       );
 
-      const tab = await screen.findByRole('tab', { selected: true });
+      const tab = await screen.findByRole('tab', { selected: true, });
       expect(tab).toHaveTextContent(/^Tous/);
     });
 
@@ -298,7 +298,7 @@ describe('Housing list view', () => {
 
       const tab = await screen.findByRole('tab', {
         selected: false,
-        name: /^En attente de retour/
+        name: /^En attente de retour/,
       });
       await user.click(tab);
       expect(tab).toHaveAttribute('aria-selected', 'true');

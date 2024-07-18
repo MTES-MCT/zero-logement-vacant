@@ -9,13 +9,13 @@ describe('Downloader', () => {
       const file = path.join(__dirname, 'dpe-01', 'bdnb.sql');
       await fs.writeFile(file, '', 'utf8');
 
-      const actual = await downloader.exists('01', { cwd: __dirname });
+      const actual = await downloader.exists('01', { cwd: __dirname, });
 
       expect(actual).toBeTrue();
 
-      await downloader.cleanup('01', { cwd: __dirname });
+      await downloader.cleanup('01', { cwd: __dirname, });
 
-      const actual2 = await downloader.exists('01', { cwd: __dirname });
+      const actual2 = await downloader.exists('01', { cwd: __dirname, });
 
       expect(actual2).toBeFalse();
     });

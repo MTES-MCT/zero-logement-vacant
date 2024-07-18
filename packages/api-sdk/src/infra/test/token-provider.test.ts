@@ -34,7 +34,7 @@ describe('Token provider', () => {
         }),
         logger: console,
         serviceAccount: faker.internet.email(),
-      }),
+      })
     );
 
     await http.get('/');

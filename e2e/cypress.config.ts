@@ -7,9 +7,9 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       // implement node event listeners here
 
-      return { ...config, env: configuration };
-    }
+      return { ...config, env: configuration, };
+    },
   },
   viewportWidth: 1920,
-  viewportHeight: 1080
+  viewportHeight: 1080,
 });

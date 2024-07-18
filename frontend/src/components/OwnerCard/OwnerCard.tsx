@@ -25,7 +25,7 @@ interface OwnerCardProps {
   modify?: ReactNode;
 }
 
-function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
+function OwnerCard({ owner, coOwners, housingCount, modify, }: OwnerCardProps) {
   return (
     <Card
       border={false}
@@ -51,7 +51,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
               title="Voir tous ses logements"
               priority="secondary"
               linkProps={{
-                to: `/proprietaires/${owner.id}`
+                to: `/proprietaires/${owner.id}`,
               }}
               className={styles.housingBouton}
             >
@@ -134,7 +134,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                   enlargeLink
                   key={'owner_' + housingOwner.rank}
                   linkProps={{
-                    to: '/proprietaires/' + housingOwner.id
+                    to: '/proprietaires/' + housingOwner.id,
                   }}
                   className={classNames(
                     'fr-mb-1w',
@@ -175,7 +175,7 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                       </Text>
                     </>
                   }
-                  classes={{ end: 'd-none' }}
+                  classes={{ end: 'd-none', }}
                 ></Card>
               ))}
             </>

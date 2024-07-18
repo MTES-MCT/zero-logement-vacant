@@ -26,40 +26,40 @@ export default function createWorker() {
     endpoint: config.s3.endpoint,
     region: config.s3.region,
     accessKeyId: config.s3.accessKeyId,
-    secretAccessKey: config.s3.secretAccessKey
+    secretAccessKey: config.s3.secretAccessKey,
   });
 
   const [redis] = parseRedisUrl(config.redis.url);
   const workerConfig: WorkerOptions = {
-    connection: redis
+    connection: redis,
   };
 
   logger.info('Worker created.', {
-    name: 'workers:generate-mails'
+    name: 'workers:generate-mails',
   });
 
   const api = createSDK({
     api: {
-      host: config.api.host
+      host: config.api.host,
     },
     auth: {
-      secret: config.auth.secret
+      secret: config.auth.secret,
     },
     db: {
-      url: config.db.url
+      url: config.db.url,
     },
     logger: createLogger('api-sdk'),
     serviceAccount: config.auth.serviceAccount,
-    storage
+    storage,
   });
   logger.info('SDK created.');
-  const transformer = pdf.createTransformer({ logger });
+  const transformer = pdf.createTransformer({ logger, });
 
   return new Worker<Args, Returned, Name>(
     'campaign:generate',
     async (job) => {
       return storage
-        .run({ establishment: job.data.establishmentId }, async () => {
+        .run({ establishment: job.data.establishmentId, }, async () => {
           const payload = job.data;
           logger.info('Generating mail for campaign', job.data);
 
@@ -71,14 +71,14 @@ export default function createWorker() {
           const [housings, drafts] = await Promise.all([
             api.housing.find({
               filters: {
-                campaignIds: [payload.campaignId]
+                campaignIds: [payload.campaignId],
               },
-              paginate: false
+              paginate: false,
             }),
             api.draft.find({
               filters: {
-                campaign: campaign.id
-              }
+                campaign: campaign.id,
+              },
             })
           ]);
 
@@ -98,7 +98,7 @@ export default function createWorker() {
               body: draft.body
                 ? replaceVariables(draft.body, {
                     housing,
-                    owner: housing.owner
+                    owner: housing.owner,
                   })
                 : '',
               sender: {
@@ -111,14 +111,14 @@ export default function createWorker() {
                 signatoryLastName: draft.sender.signatoryLastName,
                 signatoryFirstName: draft.sender.signatoryFirstName,
                 signatoryRole: draft.sender.signatoryRole,
-                signatoryFile: draft.sender.signatoryFile?.content ?? null
+                signatoryFile: draft.sender.signatoryFile?.content ?? null,
               },
               writtenAt: draft.writtenAt,
               writtenFrom: draft.writtenFrom,
               owner: {
                 fullName: housing.owner.fullName,
-                address: address
-              }
+                address: address,
+              },
             });
           });
 
@@ -136,25 +136,25 @@ export default function createWorker() {
           );
           logger.debug('Campaign exported');
           archive.append(Buffer.from(buffer), {
-            name: `${name}-destinataires.xlsx`
+            name: `${name}-destinataires.xlsx`,
           });
-          archive.append(finalPDF, { name: `${name}.pdf` });
+          archive.append(finalPDF, { name: `${name}.pdf`, });
 
           archive.on('warning', (error) => {
             if (error.code === 'ENOENT') {
-              logger.warn(error.message, { error });
+              logger.warn(error.message, { error, });
             } else {
               throw error;
             }
           });
 
           archive.on('error', (error) => {
-            logger.error('Archiver error', { error });
+            logger.error('Archiver error', { error, });
             throw error;
           });
 
           logger.debug('Generated archive', {
-            file: `${name}.zip`
+            file: `${name}.zip`,
           });
           const upload = new Upload({
             client: s3,
@@ -164,8 +164,8 @@ export default function createWorker() {
               Body: Readable.from(archive),
               ContentLanguage: 'fr',
               ContentType: 'application/x-zip',
-              ACL: 'authenticated-read'
-            }
+              ACL: 'authenticated-read',
+            },
           });
 
           upload.on('httpUploadProgress', (progress) => {
@@ -175,7 +175,7 @@ export default function createWorker() {
                 bucket: progress.Bucket,
                 loaded: progress.loaded,
                 total: progress.total,
-                percent: `${(progress.loaded / progress.total) * 100} %`
+                percent: `${(progress.loaded / progress.total) * 100} %`,
               });
             }
           });
@@ -184,33 +184,33 @@ export default function createWorker() {
             archive.finalize(),
             upload.done()
           ]);
-          const { Key } = result;
+          const { Key, } = result;
 
           logger.info('Uploaded file to S3');
 
           const command = new GetObjectCommand({
             Bucket: config.s3.bucket,
-            Key: Key
+            Key: Key,
           });
 
           const signedUrl = await getSignedUrl(s3, command, {
-            expiresIn: 60 * 60 * 24 * 7 // TTL: 7 days
+            expiresIn: 60 * 60 * 24 * 7, // TTL: 7 days
           });
 
           logger.info(`Generated signed URL: ${signedUrl}`);
 
           await api.campaign.update(campaign.id, {
             ...campaign,
-            file: signedUrl
+            file: signedUrl,
           });
 
-          return { id: campaign.id };
+          return { id: campaign.id, };
         })
         .catch((error) => {
           logger.error('Campaign archive generation failed', {
             error: {
-              message: error.message
-            }
+              message: error.message,
+            },
           });
           throw error;
         });

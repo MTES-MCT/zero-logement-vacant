@@ -24,14 +24,14 @@ import Typography from '@mui/material/Typography';
 const LoginView = () => {
   useDocumentTitle('Connexion');
   const dispatch = useAppDispatch();
-  const { pathname } = useLocation();
-  const { trackEvent } = useMatomo();
+  const { pathname, } = useLocation();
+  const { trackEvent, } = useMatomo();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [establishmentId, setEstablishmentId] = useState<string>('');
 
-  const { loginError, isLoggedOut } = useAppSelector(
+  const { loginError, isLoggedOut, } = useAppSelector(
     (state) => state.authentication
   );
 
@@ -41,8 +41,8 @@ const LoginView = () => {
     password: yup.string().required('Veuillez renseigner un mot de passe.'),
     establishmentId: yup.string().when('isAdmin', {
       is: true,
-      then: yup.string().min(1, 'Veuillez sélectionner un établissement.')
-    })
+      then: yup.string().min(1, 'Veuillez sélectionner un établissement.'),
+    }),
   };
   type FormShape = typeof shape;
 
@@ -50,7 +50,7 @@ const LoginView = () => {
     isAdmin: pathname === '/admin',
     email,
     password,
-    establishmentId
+    establishmentId,
   });
 
   async function submitLoginForm(e: FormEvent<HTMLFormElement>): Promise<void> {
@@ -58,7 +58,7 @@ const LoginView = () => {
     await form.validate(() => {
       trackEvent({
         category: TrackEventCategories.Home,
-        action: TrackEventActions.Home.Connection
+        action: TrackEventActions.Home.Connection,
       });
       dispatch(
         login(
@@ -162,7 +162,7 @@ const LoginView = () => {
         <Col n="5" offset="1" className="align-right">
           <img
             src={building}
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: '100%', height: '100%', }}
             alt=""
           />
         </Col>

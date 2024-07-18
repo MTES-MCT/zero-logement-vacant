@@ -21,7 +21,7 @@ function HousingPoints(props: Props) {
           // depending on the housing status
           ...statusColors.backgroundColors.flat(),
           // Default
-          statusColors.defaultBackgroundColor,
+          statusColors.defaultBackgroundColor
         ],
         'circle-radius': 8,
         'circle-stroke-width': 1,
@@ -31,7 +31,7 @@ function HousingPoints(props: Props) {
           // Apply a stroke color to the circle
           // depending on the housing status
           ...statusColors.textColors.flat(),
-          statusColors.defaultTextColor,
+          statusColors.defaultTextColor
         ],
       }}
       source={props.source}

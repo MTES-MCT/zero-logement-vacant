@@ -32,7 +32,7 @@ describe('Address', () => {
   describe('isBanEligible', () => {
     const address = genAddress();
     it('should return false when the score is undefined', () => {
-      const actual = isBanEligible({ ...address, score: undefined });
+      const actual = isBanEligible({ ...address, score: undefined, });
       expect(actual).toBe(false);
     });
 

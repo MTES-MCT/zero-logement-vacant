@@ -4,7 +4,7 @@ import {
   hasExpired,
   SIGNUP_LINK_EXPIRATION,
   SIGNUP_LINK_LENGTH,
-  SignupLinkApi,
+  SignupLinkApi
 } from '~/models/SignupLinkApi';
 import randomstring from 'randomstring';
 import { addHours } from 'date-fns';
@@ -17,7 +17,7 @@ import SignupLinkExpiredError from '~/errors/signupLinkExpiredError';
 import userRepository from '~/repositories/userRepository';
 
 async function create(request: Request, response: Response) {
-  const { email } = request.body;
+  const { email, } = request.body;
 
   const user = await userRepository.getByEmail(email);
   if (user) {
@@ -48,7 +48,7 @@ async function create(request: Request, response: Response) {
 const createValidators: ValidationChain[] = [body('email').isEmail()];
 
 async function show(request: Request, response: Response) {
-  const { id } = request.params;
+  const { id, } = request.params;
   const link = await signupLinkRepository.get(id);
   if (!link) {
     throw new SignupLinkMissingError(id);

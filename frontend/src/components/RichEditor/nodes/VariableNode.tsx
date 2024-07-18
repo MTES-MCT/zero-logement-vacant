@@ -7,7 +7,7 @@ import {
   LexicalNode,
   NodeKey,
   SerializedLexicalNode,
-  Spread,
+  Spread
 } from 'lexical';
 
 import { Variable } from '../Variable';
@@ -73,7 +73,7 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
 
   constructor(
     private variable: Variable,
-    key?: NodeKey,
+    key?: NodeKey
   ) {
     super(key);
   }
@@ -115,7 +115,7 @@ export function $createVariableNode(variable: Variable): VariableNode {
 }
 
 export function $isVariableNode(
-  node: LexicalNode | null | undefined,
+  node: LexicalNode | null | undefined
 ): node is VariableNode {
   return node instanceof VariableNode;
 }

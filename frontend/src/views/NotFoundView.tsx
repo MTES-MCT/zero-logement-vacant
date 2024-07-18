@@ -5,7 +5,7 @@ import MainContainer from '../components/MainContainer/MainContainer';
 function NotFoundView() {
   return (
     <MainContainer title="Page non trouvée">
-      <Button linkProps={{ to: '/' }} priority="primary">
+      <Button linkProps={{ to: '/', }} priority="primary">
         Revenir à l’accueil
       </Button>
     </MainContainer>

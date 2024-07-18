@@ -23,7 +23,7 @@ class NodemailerService implements MailService {
   emit<E extends keyof MailEvent>(
     event: E,
     email: string,
-    data?: Partial<MailEvent[E]>,
+    data?: Partial<MailEvent[E]>
   ) {
     logger.info('Emit mail event', {
       event,
@@ -51,7 +51,7 @@ class NodemailerService implements MailService {
 
   async sendAccountActivationEmail(
     key: string,
-    options: SendOptions,
+    options: SendOptions
   ): Promise<void> {
     return this.send({
       ...options,
@@ -62,7 +62,7 @@ class NodemailerService implements MailService {
 
   async sendAccountActivationEmailFromLovac(
     key: string,
-    options: SendOptions,
+    options: SendOptions
   ): Promise<void> {
     return this.send({
       ...options,

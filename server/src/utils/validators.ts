@@ -55,7 +55,7 @@ export function isUUID(value: unknown): boolean {
 export function isGeoCode(value: string): boolean {
   return (
     validator.isAlphanumeric(value) &&
-    validator.isLength(value, { min: 5, max: 5 })
+    validator.isLength(value, { min: 5, max: 5, })
   );
 }
 
@@ -69,7 +69,7 @@ export const emailValidator = () =>
 export const PASSWORD_MIN_LENGTH = 8;
 
 export const passwordCreationValidator = (
-  field = 'password',
+  field = 'password'
 ): ValidationChain =>
   body(field)
     .isStrongPassword({
@@ -80,7 +80,7 @@ export const passwordCreationValidator = (
       minLowercase: 1,
     })
     .withMessage(
-      `Must be at least ${PASSWORD_MIN_LENGTH} characters long, have 1 number, 1 uppercase, 1 lowercase`,
+      `Must be at least ${PASSWORD_MIN_LENGTH} characters long, have 1 number, 1 uppercase, 1 lowercase`
     );
 
 export const isUUIDParam = (paramField: string): ValidationChain =>

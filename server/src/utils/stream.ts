@@ -9,18 +9,18 @@ type AwaitedFinders<In, Out, T extends Record<string, Finder<In, Out>>> = {
 };
 
 export function appendAll<In, Out, U extends Record<string, Finder<In, Out>>>(
-  finders: U,
+  finders: U
 ) {
   return (
-    stream: Highland.Stream<In>,
+    stream: Highland.Stream<In>
   ): Highland.Stream<In & AwaitedFinders<In, Out, U>> => {
     return stream.flatMap((data) => {
       return highland(
         Promise.all(
           _.toPairs(finders).map(async ([key, finder]) => [
             key,
-            await finder(data),
-          ]),
+            await finder(data)
+          ])
         )
           .then(_.fromPairs)
           .then(
@@ -28,8 +28,8 @@ export function appendAll<In, Out, U extends Record<string, Finder<In, Out>>>(
               ({
                 ...data,
                 ...additionalData,
-              }) as In & AwaitedFinders<In, unknown, U>,
-          ),
+              }) as In & AwaitedFinders<In, unknown, U>
+          )
       );
     });
   };

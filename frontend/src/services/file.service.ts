@@ -18,4 +18,4 @@ export const fileApi = zlvApi.injectEndpoints({
   }),
 });
 
-export const { useUploadFileMutation } = fileApi;
+export const { useUploadFileMutation, } = fileApi;

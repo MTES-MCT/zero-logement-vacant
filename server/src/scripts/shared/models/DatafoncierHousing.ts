@@ -2,7 +2,7 @@ import fp from 'lodash/fp';
 import {
   HousingRecordApi,
   OccupancyKindApi,
-  OwnershipKindsApi,
+  OwnershipKindsApi
 } from '~/models/HousingApi';
 import { v4 as uuidv4 } from 'uuid';
 import { ReferenceDataYear } from '~/repositories/housingRepository';
@@ -13,7 +13,7 @@ import { parse } from 'date-fns';
 export const toHousingRecordApi = fp.curry(
   (
     additionalData: AdditionalData,
-    housing: DatafoncierHousing,
+    housing: DatafoncierHousing
   ): HousingRecordApi => {
     // Should be erased later in the chain
     // by the original housing id if it exists
@@ -41,7 +41,7 @@ export const toHousingRecordApi = fp.curry(
       mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
       plotId: housing.idpar,
     };
-  },
+  }
 );
 
 interface AdditionalData {

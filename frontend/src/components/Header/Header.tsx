@@ -17,10 +17,10 @@ import { Container } from '../_dsfr';
 function Header() {
   const location = useLocation();
   const dispatch = useAppDispatch();
-  const { trackPageView } = useMatomo();
-  const { isAdmin, isVisitor, isAuthenticated } = useUser();
+  const { trackPageView, } = useMatomo();
+  const { isAdmin, isVisitor, isAuthenticated, } = useUser();
 
-  const { authUser } = useAppSelector((state) => state.authentication);
+  const { authUser, } = useAppSelector((state) => state.authentication);
 
   useEffect(() => {
     trackPageView({});
@@ -40,7 +40,7 @@ function Header() {
     linkProps: {
       to: getUserNavItem(navItem).url,
       'data-testid': `fr-header-nav-item-${getUserNavItem(
-        navItem,
+        navItem
       ).url.substring(1)}`,
     },
     text: getUserNavItem(navItem).label,
@@ -105,7 +105,7 @@ function Header() {
                       <AccountSideMenu />
                     </Container>
                   }
-                />,
+                />
               ]
             : [
                 {
@@ -114,7 +114,7 @@ function Header() {
                     to: '/connexion',
                   },
                   text: 'Connexion',
-                },
+                }
               ]
         }
         navigation={
@@ -122,7 +122,7 @@ function Header() {
             ? [
                 getMainNavigationItem(UserNavItems.HousingList),
                 getMainNavigationItem(UserNavItems.Campaign),
-                getMainNavigationItem(UserNavItems.Resources),
+                getMainNavigationItem(UserNavItems.Resources)
               ]
             : withNavItems && []
         }

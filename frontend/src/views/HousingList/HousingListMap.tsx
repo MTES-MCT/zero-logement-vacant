@@ -4,13 +4,13 @@ import Map, { MapProps } from '../../components/Map/Map';
 import { ViewState } from 'react-map-gl';
 import {
   hasPerimetersFilter,
-  HousingFilters,
+  HousingFilters
 } from '../../models/HousingFilters';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import {
   excludeWith,
   includeExcludeWith,
-  includeWith,
+  includeWith
 } from '../../utils/arrayUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Label from '../../components/Label/Label';
@@ -22,23 +22,23 @@ import fp from 'lodash/fp';
 interface Props {
   filters: HousingFilters;
 }
-const HousingListMap = ({ filters }: Props) => {
+const HousingListMap = ({ filters, }: Props) => {
   const [mapViewState, setMapViewState] = useState<MapProps['viewState']>();
 
-  const { data: perimeters } = useListGeoPerimetersQuery();
-  const { housingList } = useHousingList({
+  const { data: perimeters, } = useListGeoPerimetersQuery();
+  const { housingList, } = useHousingList({
     filters,
     pagination: {
       paginate: false,
     },
   });
 
-  const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters),
+  const { data: housingCount, } = useCountHousingQuery(
+    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters)
   );
   const totalCount = housingCount?.housing;
 
-  const { data: count } = useCountHousingQuery(filters);
+  const { data: count, } = useCountHousingQuery(filters);
   const filteredHousingCount = count?.housing ?? 0;
   const filteredOwnerCount = count?.owners ?? 0;
 
@@ -50,20 +50,20 @@ const HousingListMap = ({ filters }: Props) => {
     ? includeExcludeWith<GeoPerimeter, 'kind'>(
         filters.geoPerimetersIncluded,
         filters.geoPerimetersExcluded ?? [],
-        (perimeter) => perimeter.kind,
+        (perimeter) => perimeter.kind
       )(perimeters ?? [])
     : [];
 
   const perimetersExcluded = filters.geoPerimetersExcluded?.length
     ? includeWith<GeoPerimeter, 'kind'>(
         filters.geoPerimetersExcluded ?? [],
-        (perimeter) => perimeter.kind,
+        (perimeter) => perimeter.kind
       )(perimeters ?? [])
     : [];
 
   const remainingPerimeters = excludeWith<GeoPerimeter, 'kind'>(
     [...perimetersIncluded, ...perimetersExcluded].map((p) => p.kind),
-    (perimeter) => perimeter.kind,
+    (perimeter) => perimeter.kind
   )(perimeters ?? []);
 
   if (!housingList) {

@@ -14,16 +14,16 @@ interface UserPayload {
 export const userHandlers: RequestHandler[] = [
   http.post<Record<string, never>, UserPayload, never>(
     `${config.apiEndpoint}/api/users/creation`,
-    async ({ request }) => {
+    async ({ request, }) => {
       const payload = await request.json();
 
       const user: UserDTO = {
         id: faker.string.uuid(),
         email: payload.email,
-        role: UserRoles.Usual
+        role: UserRoles.Usual,
       };
       return HttpResponse.json(user, {
-        status: constants.HTTP_STATUS_CREATED
+        status: constants.HTTP_STATUS_CREATED,
       });
     }
   )

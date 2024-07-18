@@ -12,7 +12,7 @@ const FilterBadge = ({
   option,
   filters = [],
   onChange,
-  small
+  small,
 }: FilterBadgeProps) => {
   function onClose() {
     onChange?.(filters.filter((v) => v !== option.value));
@@ -21,7 +21,7 @@ const FilterBadge = ({
   return (
     <Tag
       nativeButtonProps={{
-        onClick: onClose
+        onClick: onClose,
       }}
       small={small}
       dismissible={onChange !== undefined}
@@ -40,9 +40,9 @@ interface FilterBadgesProps {
 }
 
 const FilterBadges = (props: FilterBadgesProps) => {
-  const { filters, onChange, options, small }: FilterBadgesProps = {
+  const { filters, onChange, options, small, }: FilterBadgesProps = {
     ...props,
-    filters: props.filters ?? []
+    filters: props.filters ?? [],
   };
   return (
     <>
@@ -66,7 +66,7 @@ const FilterBadges = (props: FilterBadgesProps) => {
         .filter((f) => !options.map((_) => _.value).includes(f))
         .map((filter, index) => (
           <FilterBadge
-            option={{ value: filter, label: filter }}
+            option={{ value: filter, label: filter, }}
             filters={filters}
             onChange={onChange}
             key={filter + '-' + index}

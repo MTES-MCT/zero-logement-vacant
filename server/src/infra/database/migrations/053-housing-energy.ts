@@ -18,11 +18,11 @@ export async function up(knex: Knex): Promise<void> {
           .readFileSync(
             path.join(
               __dirname,
-              '../procedures/002-load-non-vacant-housing.sql',
-            ),
+              '../procedures/002-load-non-vacant-housing.sql'
+            )
           )
-          .toString(),
-      ),
+          .toString()
+      )
     );
 }
 
@@ -33,8 +33,8 @@ export async function down(knex: Knex): Promise<void> {
       table.dropColumns(
         'energy_consumption',
         'energy_consumption_worst',
-        'occupancy',
+        'occupancy'
       );
-    }),
+    })
   ]);
 }

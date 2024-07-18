@@ -8,17 +8,17 @@ interface Props {
   onSelect: (owner: Owner) => void;
 }
 
-const HousingAdditionalOwnerSearch = ({ onSelect }: Props) => {
+const HousingAdditionalOwnerSearch = ({ onSelect, }: Props) => {
   const dispatch = useAppDispatch();
 
-  const { additionalOwnersQuery } = useAppSelector((state) => state.housing);
+  const { additionalOwnersQuery, } = useAppSelector((state) => state.housing);
 
   const searchAdditionalOwners = (q: string) => {
     dispatch(
       housingSlice.actions.fetchingAdditionalOwners({
-        ...(additionalOwnersQuery ?? { page: 1, perPage: 5 }),
+        ...(additionalOwnersQuery ?? { page: 1, perPage: 5, }),
         q,
-      }),
+      })
     );
   };
 

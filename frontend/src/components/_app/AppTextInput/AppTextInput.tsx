@@ -1,7 +1,7 @@
 import {
   ComponentPropsWithoutRef,
   InputHTMLAttributes,
-  TextareaHTMLAttributes,
+  TextareaHTMLAttributes
 } from 'react';
 import { ObjectShape } from 'yup/lib/object';
 import { useForm } from '../../../hooks/useForm';

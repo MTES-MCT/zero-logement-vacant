@@ -43,7 +43,7 @@ import {
 } from '../../repositories/senderRepository';
 
 describe('Draft API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -62,8 +62,8 @@ describe('Draft API', () => {
 
     const sender = genSenderApi(establishment);
     const drafts: DraftApi[] = [
-      ...Array.from({ length: 4 }, () => genDraftApi(establishment, sender)),
-      ...Array.from({ length: 2 }, () =>
+      ...Array.from({ length: 4, }, () => genDraftApi(establishment, sender)),
+      ...Array.from({ length: 2, }, () =>
         genDraftApi(anotherEstablishment, sender)
       )
     ];
@@ -74,13 +74,13 @@ describe('Draft API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status, } = await request(app).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should list drafts of the authenticated user’s establishment', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -101,10 +101,10 @@ describe('Draft API', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
-        draft_id: firstDraft.id
+        draft_id: firstDraft.id,
       });
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute)
         .query(`campaign=${campaign.id}`)
         .use(tokenProvider(user));
@@ -156,7 +156,7 @@ describe('Draft API', () => {
       async function fail(
         payload: Partial<DraftCreationPayloadDTO>
       ): Promise<void> {
-        const { status } = await request(app)
+        const { status, } = await request(app)
           .post(testRoute)
           .send(payload)
           .use(tokenProvider(user));
@@ -165,7 +165,7 @@ describe('Draft API', () => {
       }
 
       await fail({});
-      await fail({ body: 'body' });
+      await fail({ body: 'body', });
     });
 
     it('should fail if the campaign to attach is missing', async () => {
@@ -178,10 +178,10 @@ describe('Draft API', () => {
         campaign: missingCampaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
-        writtenFrom: draft.writtenFrom
+        writtenFrom: draft.writtenFrom,
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -197,10 +197,10 @@ describe('Draft API', () => {
         campaign: campaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
-        writtenFrom: draft.writtenFrom
+        writtenFrom: draft.writtenFrom,
       };
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -222,13 +222,13 @@ describe('Draft API', () => {
           signatoryLastName: payload.sender?.signatoryLastName ?? null,
           signatoryRole: payload.sender?.signatoryRole ?? null,
           createdAt: expect.any(String),
-          updatedAt: expect.any(String)
+          updatedAt: expect.any(String),
         },
         writtenAt: payload.writtenAt,
-        writtenFrom: payload.writtenFrom
+        writtenFrom: payload.writtenFrom,
       });
 
-      const actual = await Drafts().where({ id: body.id }).first();
+      const actual = await Drafts().where({ id: body.id, }).first();
       expect(actual).toStrictEqual<DraftRecordDBO>({
         id: body.id,
         subject: payload.subject,
@@ -239,7 +239,7 @@ describe('Draft API', () => {
         written_from: payload.writtenFrom,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
-        establishment_id: establishment.id
+        establishment_id: establishment.id,
       });
     });
 
@@ -251,10 +251,10 @@ describe('Draft API', () => {
         campaign: campaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
-        writtenFrom: draft.writtenFrom
+        writtenFrom: draft.writtenFrom,
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -262,7 +262,7 @@ describe('Draft API', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
       const actualCampaignDraft = await CampaignsDrafts()
-        .where({ campaign_id: campaign.id })
+        .where({ campaign_id: campaign.id, })
         .first();
       expect(actualCampaignDraft).toBeDefined();
     });
@@ -285,20 +285,20 @@ describe('Draft API', () => {
         logo: [],
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
-        writtenFrom: faker.location.city()
+        writtenFrom: faker.location.city(),
       };
       await Senders().insert(formatSenderApi(sender));
       await Drafts().insert(formatDraftApi(draft));
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).put(testRoute(draft.id));
+      const { status, } = await request(app).put(testRoute(draft.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should fail if the draft does not exist', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(faker.string.uuid()))
         .send(payload)
         .use(tokenProvider(user));
@@ -307,7 +307,7 @@ describe('Draft API', () => {
     });
 
     it('should fail if the draft belongs to another establishment', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(draft.id))
         .send(payload)
         .use(tokenProvider(anotherUser));
@@ -317,7 +317,7 @@ describe('Draft API', () => {
 
     it('should fail to validate input', async () => {
       async function fail(id: string, payload: object): Promise<void> {
-        const { status } = await request(app)
+        const { status, } = await request(app)
           .put(testRoute(id))
           .send(payload)
           .use(tokenProvider(user));
@@ -326,15 +326,15 @@ describe('Draft API', () => {
       }
 
       await fail('bad-format', {
-        body: ''
+        body: '',
       });
       await fail(faker.string.uuid(), {
-        body: undefined
+        body: undefined,
       });
     });
 
     it('should update a draft', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .put(testRoute(draft.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -360,12 +360,12 @@ describe('Draft API', () => {
           signatoryLastName: sender.signatoryLastName,
           signatoryRole: sender.signatoryRole,
           createdAt: expect.any(String),
-          updatedAt: expect.any(String)
+          updatedAt: expect.any(String),
         },
         writtenAt: payload.writtenAt,
         writtenFrom: payload.writtenFrom,
         createdAt: expect.any(String),
-        updatedAt: expect.any(String)
+        updatedAt: expect.any(String),
       });
 
       const actual = await Drafts().where('id', draft.id).first();
@@ -379,7 +379,7 @@ describe('Draft API', () => {
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
         establishment_id: draft.establishmentId,
-        sender_id: body.sender.id
+        sender_id: body.sender.id,
       });
     });
 
@@ -388,11 +388,11 @@ describe('Draft API', () => {
         ...payload,
         sender: {
           ...payload.sender,
-          name: 'Another name'
-        }
+          name: 'Another name',
+        },
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(draft.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -402,7 +402,7 @@ describe('Draft API', () => {
       const actualSender = await Senders()
         .where({
           id: draft.sender.id,
-          establishment_id: sender.establishmentId
+          establishment_id: sender.establishmentId,
         })
         .first();
       expect(actualSender).toStrictEqual<SenderDBO>({
@@ -420,13 +420,13 @@ describe('Draft API', () => {
         signatory_last_name: sender.signatoryLastName,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
-        establishment_id: sender.establishmentId
+        establishment_id: sender.establishmentId,
       });
 
       const actualDraft = await Drafts()
         .where({
           id: draft.id,
-          establishment_id: draft.establishmentId
+          establishment_id: draft.establishmentId,
         })
         .first();
       expect(actualDraft).toHaveProperty('sender_id', actualSender?.id);

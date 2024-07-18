@@ -4,7 +4,7 @@ import {
   MATCH_THRESHOLD,
   needsManualReview,
   preprocessAddress,
-  REVIEW_THRESHOLD,
+  REVIEW_THRESHOLD
 } from '../duplicates';
 import { genOwnerApi } from '~/test/testFixtures';
 import { OwnerApi } from '~/models/OwnerApi';
@@ -34,7 +34,7 @@ describe('Duplicates', () => {
       ${genOwner(['0006 PL  JEANNINE MICHEAU', '31200 TOULOUSE'])}                               | ${genOwner(['PAR M NON', '6 PL JEANNINE MICHEAU', '31200 TOULOUSE'])}
       ${genOwner(['PAR M DUPONT JEAN', '4 RUE LOUIS DEBRONS', '15000 AURILLAC'])}                | ${genOwner(['CHEZ DUPONT JEAN', '4T RUE LOUIS DEBRONS', '15000 AURILLAC'])}
       ${genOwner(['1 RUE BERTHE', '93400 ST OUEN SUR SEINE'])}                                   | ${genOwner(['1 RUE BERTHE', 'SAINT OUEN SUR SEINE', '93400 ST OUEN SUR SEINE'])}
-    `('should match $a.rawAddress with $b.rawAddress', async ({ a, b }) => {
+    `('should match $a.rawAddress with $b.rawAddress', async ({ a, b, }) => {
       const actual = compare(a, b);
       expect(actual).toBeGreaterThanOrEqual(MATCH_THRESHOLD);
     });
@@ -49,7 +49,7 @@ describe('Duplicates', () => {
       ${genOwner(['PAR M CLAUDE', '0125 RUE SAINT CHARLES', '75015 PARIS'])}       | ${genOwner(['0005 RUE DU COLONEL TIFFOINET', '51200 EPERNAY'])}
       ${genOwner(['PAR MR JEAN', 'RUE DES LANDES', '72110 BEAUFAY'])}              | ${genOwner(['0602 RTE DES LANDES', '72110 BEAUFAY'])}
       ${genOwner(['4 RUE ADRIEN SIMONNOT', '21700 COMBLANCHIEN'])}                 | ${genOwner(['PAR M INCONNU', 'LES COMBES', '71170 SAINT-IGNY-DE-ROCHE'])}
-    `('should not match $a.rawAddress with $b.rawAddress', async ({ a, b }) => {
+    `('should not match $a.rawAddress with $b.rawAddress', async ({ a, b, }) => {
       const actual = compare(a, b);
       expect(actual).toBeLessThan(MATCH_THRESHOLD);
     });
@@ -60,7 +60,7 @@ describe('Duplicates', () => {
       address                      | expected
       ${'0017 RUE DE LA GABARRE'}  | ${true}
       ${'64500 SAINT-JEAN-DE-LUZ'} | ${false}
-    `(`should be $expected for $address`, ({ address, expected }) => {
+    `(`should be $expected for $address`, ({ address, expected, }) => {
       const actual = isStreetNumber(address);
       expect(actual).toBe(expected);
     });
@@ -71,7 +71,7 @@ describe('Duplicates', () => {
       address                                                                      | expected
       ${['CHEZ M. LE MAIRE', '0017 RUE DE LA GABARRE', '64500 SAINT-JEAN-DE-LUZ']} | ${'CHEZ M. LE MAIRE 17 RUE DE LA GABARRE 64500 SAINT-JEAN-DE-LUZ'}
       ${['0017 RUE DE LA GABARRE', '64500 SAINT-JEAN-DE-LUZ']}                     | ${'17 RUE DE LA GABARRE 64500 SAINT-JEAN-DE-LUZ'}
-    `('should preprocess $address', ({ address, expected }) => {
+    `('should preprocess $address', ({ address, expected, }) => {
       const actual = preprocessAddress(address);
       expect(actual).toBe(expected);
     });
@@ -94,7 +94,7 @@ describe('Duplicates', () => {
             ...genOwnerApi(),
             birthDate: undefined,
           },
-        },
+        }
       ];
 
       const actual = needsManualReview(source, duplicates);
@@ -110,12 +110,12 @@ describe('Duplicates', () => {
       const duplicates: ScoredOwner[] = [
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: new Date('1999-02-03') },
+          value: { ...genOwnerApi(), birthDate: new Date('1999-02-03'), },
         },
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: undefined },
-        },
+          value: { ...genOwnerApi(), birthDate: undefined, },
+        }
       ];
 
       const actual = needsManualReview(source, duplicates);
@@ -131,8 +131,8 @@ describe('Duplicates', () => {
       const duplicates: ScoredOwner[] = [
         {
           score: 1,
-          value: { ...genOwnerApi(), birthDate: new Date('1999-01-01') },
-        },
+          value: { ...genOwnerApi(), birthDate: new Date('1999-01-01'), },
+        }
       ];
 
       const actual = needsManualReview(source, duplicates);
@@ -141,16 +141,16 @@ describe('Duplicates', () => {
     });
 
     it('should not need review if at most one birth date is filled', () => {
-      const source: OwnerApi = { ...genOwnerApi(), birthDate: undefined };
+      const source: OwnerApi = { ...genOwnerApi(), birthDate: undefined, };
       const duplicates: ScoredOwner[] = [
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: new Date('2000-01-01') },
+          value: { ...genOwnerApi(), birthDate: new Date('2000-01-01'), },
         },
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: undefined },
-        },
+          value: { ...genOwnerApi(), birthDate: undefined, },
+        }
       ];
 
       const actual = needsManualReview(source, duplicates);

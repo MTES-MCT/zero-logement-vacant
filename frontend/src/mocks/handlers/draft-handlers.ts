@@ -17,12 +17,12 @@ interface DraftParams {
 export const draftHandlers: RequestHandler[] = [
   http.get<Record<string, never>, never, DraftDTO[]>(
     `${config.apiEndpoint}/api/drafts`,
-    ({ request }) => {
+    ({ request, }) => {
       const url = new URL(request.url);
       const campaignId = url.searchParams.get('campaign');
       if (!campaignId) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_BAD_REQUEST
+          status: constants.HTTP_STATUS_BAD_REQUEST,
         });
       }
 
@@ -32,7 +32,7 @@ export const draftHandlers: RequestHandler[] = [
   ),
   http.post<Record<string, never>, DraftCreationPayloadDTO, DraftDTO>(
     `${config.apiEndpoint}/api/drafts`,
-    async ({ request }) => {
+    async ({ request, }) => {
       const payload = await request.json();
 
       const draft: DraftDTO = {
@@ -53,28 +53,28 @@ export const draftHandlers: RequestHandler[] = [
           signatoryLastName: payload.sender?.signatoryLastName ?? null,
           signatoryRole: payload.sender?.signatoryRole ?? null,
           createdAt: new Date().toJSON(),
-          updatedAt: new Date().toJSON()
+          updatedAt: new Date().toJSON(),
         },
         logo: payload.logo,
         writtenAt: payload.writtenAt,
         writtenFrom: payload.writtenFrom,
         createdAt: new Date().toJSON(),
-        updatedAt: new Date().toJSON()
+        updatedAt: new Date().toJSON(),
       };
       data.drafts.push(draft);
 
       return HttpResponse.json(draft, {
-        status: constants.HTTP_STATUS_CREATED
+        status: constants.HTTP_STATUS_CREATED,
       });
     }
   ),
   http.put<DraftParams, DraftUpdatePayloadDTO, DraftDTO>(
     `${config.apiEndpoint}/api/drafts/:id`,
-    async ({ params, request }) => {
+    async ({ params, request, }) => {
       const draft = data.drafts.find((draft) => draft.id === params.id);
       if (!draft) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
@@ -85,7 +85,7 @@ export const draftHandlers: RequestHandler[] = [
         ...payload.sender,
         id: draft.sender.id,
         createdAt: draft.sender.createdAt,
-        updatedAt: new Date().toJSON()
+        updatedAt: new Date().toJSON(),
       };
       draft.logo = payload.logo;
       draft.writtenAt = payload.writtenAt;

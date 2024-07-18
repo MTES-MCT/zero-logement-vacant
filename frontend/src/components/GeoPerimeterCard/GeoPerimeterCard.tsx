@@ -13,7 +13,7 @@ interface Props {
   onRemove: (geoPerimeter: GeoPerimeter) => void;
 }
 
-function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
+function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove, }: Props) {
   return (
     <Card
       className="h-fit-content"
@@ -44,7 +44,7 @@ function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
                   iconId: 'fr-icon-delete-bin-fill',
                   priority: 'tertiary no outline',
                   title: 'Supprimer',
-                  className: 'd-inline-block'
+                  className: 'd-inline-block',
                 }}
               >
                 <Text size="md">

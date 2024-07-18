@@ -12,7 +12,7 @@ import styles from './housing-popup.module.scss';
 import classNames from 'classnames';
 import {
   getHousingState,
-  getHousingSubStatus,
+  getHousingSubStatus
 } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
@@ -24,7 +24,7 @@ interface HousingPopupProps {
 }
 
 function HousingPopup(props: HousingPopupProps) {
-  const { building } = props;
+  const { building, } = props;
   const [currentHousing, setCurrentHousing] = useState(0);
 
   const popupClasses = classNames({
@@ -33,17 +33,17 @@ function HousingPopup(props: HousingPopupProps) {
 
   const housing = useMemo<HousingWithCoordinates>(
     () => building.housingList[currentHousing],
-    [building, currentHousing],
+    [building, currentHousing]
   );
 
   const housingState = useMemo(
     () => (housing.status ? getHousingState(housing.status) : undefined),
-    [housing.status],
+    [housing.status]
   );
 
   const housingSubState = useMemo(
     () => (housing.subStatus ? getHousingSubStatus(housing) : undefined),
-    [housing],
+    [housing]
   );
 
   function address(rawAddress: string[]) {

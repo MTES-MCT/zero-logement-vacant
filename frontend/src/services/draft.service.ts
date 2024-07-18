@@ -2,12 +2,12 @@ import { zlvApi } from './api.service';
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
-  DraftUpdatePayloadDTO,
+  DraftUpdatePayloadDTO
 } from '@zerologementvacant/models';
 import {
   Draft,
   DraftCreationPayload,
-  DraftUpdatePayload,
+  DraftUpdatePayload
 } from '../models/Draft';
 import { getURLQuery } from '../utils/fetchUtils';
 import { SenderPayload } from '../models/Sender';
@@ -34,7 +34,7 @@ export const draftApi = zlvApi.injectEndpoints({
             type: 'Draft' as const,
             id: draft.id,
           })),
-          { type: 'Draft', id: 'LIST' },
+          { type: 'Draft', id: 'LIST', }
         ];
       },
     }),
@@ -44,7 +44,7 @@ export const draftApi = zlvApi.injectEndpoints({
         method: 'POST',
         body: toDraftCreationPayloadDTO(draft),
       }),
-      invalidatesTags: [{ type: 'Draft', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Draft', id: 'LIST', }],
     }),
     updateDraft: builder.mutation<void, DraftUpdatePayload>({
       query: (draft) => ({
@@ -53,7 +53,7 @@ export const draftApi = zlvApi.injectEndpoints({
         body: toDraftUpdatePayloadDTO(draft),
       }),
       invalidatesTags: (result, error, draft) => [
-        { type: 'Draft', id: draft.id },
+        { type: 'Draft', id: draft.id, }
       ],
     }),
   }),
@@ -74,7 +74,7 @@ function fromDraftDTO(draft: DraftDTO): Draft {
 }
 
 function toDraftCreationPayloadDTO(
-  draft: DraftCreationPayload,
+  draft: DraftCreationPayload
 ): DraftCreationPayloadDTO {
   return {
     ...emptyToNull({
@@ -90,7 +90,7 @@ function toDraftCreationPayloadDTO(
 }
 
 function toDraftUpdatePayloadDTO(
-  draft: DraftUpdatePayload,
+  draft: DraftUpdatePayload
 ): DraftUpdatePayloadDTO {
   return {
     ...emptyToNull({

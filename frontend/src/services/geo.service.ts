@@ -8,11 +8,11 @@ export const geoPerimetersApi = zlvApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({
+              ...result.map(({ id, }) => ({
                 type: 'GeoPerimeter' as const,
                 id,
               })),
-              'GeoPerimeter',
+              'GeoPerimeter'
             ]
           : ['GeoPerimeter'],
     }),
@@ -20,23 +20,23 @@ export const geoPerimetersApi = zlvApi.injectEndpoints({
       void,
       { geoPerimeterId: string; kind: string; name?: string }
     >({
-      query: ({ geoPerimeterId, kind, name }) => ({
+      query: ({ geoPerimeterId, kind, name, }) => ({
         url: `geo/perimeters/${geoPerimeterId}`,
         method: 'PUT',
-        body: { kind, name },
+        body: { kind, name, },
       }),
-      invalidatesTags: (result, error, { geoPerimeterId }) => [
-        { type: 'GeoPerimeter', id: geoPerimeterId },
+      invalidatesTags: (result, error, { geoPerimeterId, }) => [
+        { type: 'GeoPerimeter', id: geoPerimeterId, }
       ],
     }),
     deleteGeoPerimeters: builder.mutation<void, string[]>({
       query: (geoPerimeterIds) => ({
         url: 'geo/perimeters',
         method: 'DELETE',
-        body: { geoPerimeterIds },
+        body: { geoPerimeterIds, },
       }),
       invalidatesTags: (result, error, geoPerimeterId) => [
-        { type: 'GeoPerimeter', geoPerimeterId },
+        { type: 'GeoPerimeter', geoPerimeterId, }
       ],
     }),
     uploadGeoPerimeterFile: builder.mutation<void, File>({

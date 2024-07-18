@@ -2,7 +2,7 @@ import { OwnerDuplicate } from './OwnerDuplicate';
 import {
   formatOwnerApi,
   OwnerDBO,
-  ownerTable,
+  ownerTable
 } from '~/repositories/ownerRepository';
 import db from '~/infra/database/';
 import { logger } from '~/infra/logger';
@@ -22,7 +22,7 @@ async function removeOrphans(): Promise<void> {
       builder
         .select('id')
         .from(ownerTable)
-        .where('id', db.column(`${ownerDuplicatesTable}.source_id`)),
+        .where('id', db.column(`${ownerDuplicatesTable}.source_id`))
     )
     .delete();
   logger.debug(`Removed ${deleted} orphan duplicates.`);
@@ -33,7 +33,7 @@ export interface OwnerDuplicateDBO extends OwnerDBO {
 }
 
 export function formatOwnerDuplicate(
-  duplicate: OwnerDuplicate,
+  duplicate: OwnerDuplicate
 ): OwnerDuplicateDBO {
   return {
     ...formatOwnerApi(duplicate),

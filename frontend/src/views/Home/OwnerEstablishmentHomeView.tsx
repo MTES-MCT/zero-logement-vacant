@@ -35,15 +35,15 @@ import { useCreateOwnerProspectMutation } from '../../services/owner-prospect.se
 import Typography from '@mui/material/Typography';
 
 const OwnerEstablishmentHomeView = () => {
-  const { pathname } = useLocation();
-  const { trackEvent } = useMatomo();
+  const { pathname, } = useLocation();
+  const { trackEvent, } = useMatomo();
 
-  const { establishmentRef } = useParams<{ establishmentRef: string }>();
+  const { establishmentRef, } = useParams<{ establishmentRef: string }>();
 
-  const [createOwnerProspect, { isSuccess: isCreateSuccess }] =
+  const [createOwnerProspect, { isSuccess: isCreateSuccess, }] =
     useCreateOwnerProspectMutation();
 
-  const { addressSearchResult } = useAppSelector(
+  const { addressSearchResult, } = useAppSelector(
     (state) => state.ownerProspect
   );
 
@@ -52,44 +52,44 @@ const OwnerEstablishmentHomeView = () => {
     [pathname]
   );
 
-  const { refName, geoCode } = useMemo(
+  const { refName, geoCode, } = useMemo(
     () => ({
       refName: isLocality
         ? establishmentRef.slice(0, establishmentRef.lastIndexOf('-'))
         : establishmentRef,
       geoCode: isLocality
         ? establishmentRef.slice(establishmentRef.lastIndexOf('-') + 1)
-        : undefined
+        : undefined,
     }),
     [establishmentRef, isLocality]
   );
 
-  const { establishment, nearbyEstablishments, epciEstablishment } =
+  const { establishment, nearbyEstablishments, epciEstablishment, } =
     useEstablishment(refName, geoCode ? [geoCode] : undefined);
 
-  const { settings } = useSettings(establishment?.id ?? epciEstablishment?.id);
+  const { settings, } = useSettings(establishment?.id ?? epciEstablishment?.id);
 
-  const { data: contactPoints } = useFindContactPointsQuery(
+  const { data: contactPoints, } = useFindContactPointsQuery(
     {
       establishmentId: (establishment?.available
         ? establishment?.id
         : epciEstablishment?.id)!,
-      publicOnly: true
+      publicOnly: true,
     },
     {
       skip: !(establishment?.available
         ? establishment?.id
-        : epciEstablishment?.id)
+        : epciEstablishment?.id),
     }
   );
 
   useDocumentTitle(establishment?.name);
-  const { localities } = useLocalityList(establishment?.id);
+  const { localities, } = useLocalityList(establishment?.id);
 
   const onCreateOwnerProspect = (ownerProspect: OwnerProspect) => {
     trackEvent({
       category: TrackEventCategories.OwnerProspect,
-      action: TrackEventActions.OwnerProspect.SubmitContact
+      action: TrackEventActions.OwnerProspect.SubmitContact,
     });
     createOwnerProspect(ownerProspect);
   };
@@ -161,7 +161,7 @@ const OwnerEstablishmentHomeView = () => {
             <Col className="align-right d-none d-sm-block">
               <img
                 src={handsPoints}
-                style={{ maxWidth: '100%', height: '100%' }}
+                style={{ maxWidth: '100%', height: '100%', }}
                 alt=""
               />
             </Col>
@@ -261,7 +261,7 @@ const OwnerEstablishmentHomeView = () => {
           </Col>
           <Col className={classNames(styles.cardCol, 'fr-col-12 fr-col-sm-4')}>
             <div>
-              <img src={handsShow} style={{ maxWidth: '100%' }} alt="" />
+              <img src={handsShow} style={{ maxWidth: '100%', }} alt="" />
             </div>
             <Typography component="h4" variant="h6" spacing="my-1w">
               Protéger votre patrimoine
@@ -355,7 +355,7 @@ const OwnerEstablishmentHomeView = () => {
               <Button
                 linkProps={{
                   to: 'https://www.impots.gouv.fr/actualite/gerer-mes-biens-immobiliers-un-nouveau-service-en-ligne-pour-les-usagers-proprietaires-1',
-                  target: '_blank'
+                  target: '_blank',
                 }}
               >
                 Se rendre sur le site de GMBI

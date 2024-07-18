@@ -15,7 +15,7 @@ import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 const FillLocalId = forwardRef((props: StepProps, ref) => {
   const [localId, setLocalId] = useState('');
   const dispatch = useAppDispatch();
-  const { changeCreator } = housingSlice.actions;
+  const { changeCreator, } = housingSlice.actions;
 
   const shape = {
     localId: yup
@@ -28,7 +28,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
   });
 
   const [getHousing, getHousingQuery] = housingApi.useLazyGetHousingQuery();
-  const { data: housing } = getHousingQuery;
+  const { data: housing, } = getHousingQuery;
   const [getDatafoncierHousing, getDatafoncierHousingQuery] =
     datafoncierApi.useLazyFindOneHousingQuery();
 
@@ -52,9 +52,9 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
               if (housing) {
                 throw new Error('HousingExistsError');
               }
-            }),
+            })
         ]);
-        dispatch(changeCreator({ localId }));
+        dispatch(changeCreator({ localId, }));
         return 'review-housing';
       } catch (error) {
         return null;

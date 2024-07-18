@@ -25,7 +25,7 @@ export enum HousingStatus {
 }
 
 export const HOUSING_STATUSES: HousingStatus[] = Object.values(
-  HousingStatus,
+  HousingStatus
 ).filter((_) => typeof _ === 'number') as HousingStatus[];
 
 export const FirstContactToContactedSubStatus =
@@ -84,7 +84,7 @@ export const HousingStates: HousingState[] = [
       },
       {
         title: FirstContactNpai,
-      },
+      }
     ],
   },
   {
@@ -109,7 +109,7 @@ export const HousingStates: HousingState[] = [
       },
       {
         title: MutationInProgress,
-      },
+      }
     ],
   },
   {
@@ -137,7 +137,7 @@ export const HousingStates: HousingState[] = [
       },
       {
         title: OtherObjectiveAchieved,
-      },
+      }
     ],
   },
   {
@@ -161,9 +161,9 @@ export const HousingStates: HousingState[] = [
       },
       {
         title: ThirdPartiesInvolved,
-      },
+      }
     ],
-  },
+  }
 ];
 
 export const getHousingState = (status: HousingStatus) => {
@@ -172,15 +172,15 @@ export const getHousingState = (status: HousingStatus) => {
 
 export const getSubStatus = (
   status: HousingStatus,
-  subStatusTitle: string,
+  subStatusTitle: string
 ): HousingSubStatus | undefined => {
   return getHousingState(status).subStatusList?.filter(
-    (s) => s.title === subStatusTitle,
+    (s) => s.title === subStatusTitle
   )[0];
 };
 
 export const getHousingSubStatus = (
-  housing: Housing,
+  housing: Housing
 ): HousingSubStatus | undefined => {
   if (housing.status && housing.subStatus) {
     return getSubStatus(housing.status, housing.subStatus);
@@ -198,34 +198,34 @@ export const getSubStatusOptions = (status: HousingStatus) => {
         ...housingState.subStatusList.map((subStatus) => ({
           value: subStatus.title,
           label: subStatus.title,
-        })),
+        }))
       ]
     : undefined;
 };
 
 export const getSubStatusList = (
-  statusList: string[] | HousingStatus[] | undefined,
+  statusList: string[] | HousingStatus[] | undefined
 ) =>
   (statusList ?? [])
     .map((_) => getHousingState(_ as HousingStatus))
     .map((housingState) =>
-      (housingState.subStatusList ?? []).map((subStatus) => subStatus.title),
+      (housingState.subStatusList ?? []).map((subStatus) => subStatus.title)
     )
     .flat()
     .filter((_) => _ !== undefined);
 
 export const getSubStatusListOptions = (
-  statusList: string[] | HousingStatus[] | undefined,
+  statusList: string[] | HousingStatus[] | undefined
 ) =>
   (statusList ?? [])
     .map((_) => getHousingState(_ as HousingStatus))
     .filter((_) => _.subStatusList)
     .map((housingState) => [
-      { value: housingState.title, label: housingState.title, disabled: true },
+      { value: housingState.title, label: housingState.title, disabled: true, },
       ...(housingState.subStatusList ?? []).map((subStatus) => ({
         value: subStatus.title,
         label: subStatus.title,
-      })),
+      }))
     ])
     .flat()
     .filter((_) => _ !== undefined) as SelectOption[];

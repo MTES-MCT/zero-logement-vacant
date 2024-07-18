@@ -12,7 +12,7 @@ import { SortOptions, toQuery } from '../models/Sort';
 import { zlvApi } from './api.service';
 import {
   CampaignCreationPayloadDTO,
-  CampaignUpdatePayloadDTO,
+  CampaignUpdatePayloadDTO
 } from '@zerologementvacant/models';
 
 export interface FindOptions extends SortOptions<CampaignSort> {
@@ -34,7 +34,7 @@ export const campaignApi = zlvApi.injectEndpoints({
     getCampaign: builder.query<Campaign, string>({
       query: (campaignId) => `campaigns/${campaignId}`,
       transformResponse: (c) => parseCampaign(c),
-      providesTags: (result, error, id) => [{ type: 'Campaign', id }],
+      providesTags: (result, error, id) => [{ type: 'Campaign', id, }],
     }),
     findCampaigns: builder.query<Campaign[], FindOptions | void>({
       query: (opts) => ({
@@ -46,13 +46,13 @@ export const campaignApi = zlvApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({
+              ...result.map(({ id, }) => ({
                 type: 'Campaign' as const,
                 id,
               })),
-              { type: 'Campaign', id: 'LIST' },
+              { type: 'Campaign', id: 'LIST', }
             ]
-          : [{ type: 'Campaign', id: 'LIST' }],
+          : [{ type: 'Campaign', id: 'LIST', }],
       transformResponse: (response: any[]) => response.map(parseCampaign),
     }),
     createCampaign: builder.mutation<Campaign, CampaignCreationPayloadDTO>({
@@ -61,7 +61,7 @@ export const campaignApi = zlvApi.injectEndpoints({
         method: 'POST',
         body: payload,
       }),
-      invalidatesTags: [{ type: 'Campaign', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Campaign', id: 'LIST', }],
       transformResponse: parseCampaign,
     }),
     createCampaignFromGroup: builder.mutation<
@@ -78,7 +78,7 @@ export const campaignApi = zlvApi.injectEndpoints({
           title: payload.campaign.title,
         },
       }),
-      invalidatesTags: [{ type: 'Campaign', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Campaign', id: 'LIST', }],
       transformResponse: parseCampaign,
     }),
     updateCampaign: builder.mutation<void, Campaign>({
@@ -88,7 +88,7 @@ export const campaignApi = zlvApi.injectEndpoints({
         body: toCampaignPayloadDTO(payload),
       }),
       invalidatesTags: (result, error, args) => [
-        { type: 'Campaign', id: args.id },
+        { type: 'Campaign', id: args.id, }
       ],
     }),
     removeCampaignHousing: builder.mutation<
@@ -105,17 +105,17 @@ export const campaignApi = zlvApi.injectEndpoints({
         method: 'DELETE',
         body: payload,
       }),
-      invalidatesTags: (result, error, { campaignId }) => [
-        { type: 'Campaign', id: campaignId },
+      invalidatesTags: (result, error, { campaignId, }) => [
+        { type: 'Campaign', id: campaignId, }
       ],
-      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+      onQueryStarted: async (args, { dispatch, queryFulfilled, }) => {
         await queryFulfilled;
         dispatch(
           housingApi.util.invalidateTags([
             'Housing',
             'HousingByStatus',
-            'HousingCountByStatus',
-          ]),
+            'HousingCountByStatus'
+          ])
         );
       },
     }),
@@ -124,7 +124,7 @@ export const campaignApi = zlvApi.injectEndpoints({
         url: `campaigns/${campaignId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: () => [{ type: 'Campaign', id: 'LIST' }],
+      invalidatesTags: () => [{ type: 'Campaign', id: 'LIST', }],
     }),
   }),
 });

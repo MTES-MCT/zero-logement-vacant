@@ -13,7 +13,7 @@ interface Props {
 const EventPartialOwnerContent = ({
   partialOwner,
   ownerName,
-  eventName
+  eventName,
 }: Props) => {
   return partialOwner && hasValues(partialOwner) ? (
     <div className={styles.eventContent}>

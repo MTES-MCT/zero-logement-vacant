@@ -12,15 +12,15 @@ import Typography from '@mui/material/Typography';
 
 const OwnerGenericHomeView = () => {
   const dispatch = useAppDispatch();
-  const { availableEstablishmentWithKinds } = useAvailableEstablishments();
+  const { availableEstablishmentWithKinds, } = useAvailableEstablishments();
 
-  const { selectAddress } = ownerProspectSlice.actions;
+  const { selectAddress, } = ownerProspectSlice.actions;
 
-  const { addressSearchResult } = useAppSelector(
+  const { addressSearchResult, } = useAppSelector(
     (state) => state.ownerProspect
   );
 
-  const { establishment, nearbyEstablishments } = useEstablishment(
+  const { establishment, nearbyEstablishments, } = useEstablishment(
     addressSearchResult?.city,
     addressSearchResult ? [addressSearchResult.postalCode] : undefined
   );
@@ -46,7 +46,7 @@ const OwnerGenericHomeView = () => {
           <Col className="align-right d-none d-sm-block">
             <img
               src={handsPoints}
-              style={{ maxWidth: '100%', height: '100%' }}
+              style={{ maxWidth: '100%', height: '100%', }}
               alt=""
             />
           </Col>

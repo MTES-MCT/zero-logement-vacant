@@ -42,5 +42,5 @@ root.render(
         </MatomoProvider>
       </MapProvider>
     </MuiDsfrThemeProvider>
-  </StrictMode>,
+  </StrictMode>
 );

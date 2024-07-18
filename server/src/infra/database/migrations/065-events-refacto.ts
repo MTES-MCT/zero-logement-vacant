@@ -62,30 +62,30 @@ export async function up(knex: Knex): Promise<void> {
     }),
     knex.schema.raw(
       `insert into notes(id, title, content, contact_kind, created_at, created_by)
-        (select id, content, null, contact_kind, created_at, created_by from old_events where kind in ('0', '4'))`,
+        (select id, content, null, contact_kind, created_at, created_by from old_events where kind in ('0', '4'))`
     ),
     knex.schema.raw(
       `insert into notes(id, title, content, contact_kind, created_at, created_by)
-        (select e.id, 'Ajout dans une campagne', c.title, contact_kind, e.created_at, e.created_by from old_events e, campaigns c where e.campaign_id = c.id and e.kind = '1')`,
+        (select e.id, 'Ajout dans une campagne', c.title, contact_kind, e.created_at, e.created_by from old_events e, campaigns c where e.campaign_id = c.id and e.kind = '1')`
     ),
     knex.schema.raw(
       `insert into notes(id, title, content, contact_kind, created_at, created_by)
-         (select id, 'Changement de statut', content, contact_kind, created_at, created_by from old_events where kind = '2')`,
+         (select id, 'Changement de statut', content, contact_kind, created_at, created_by from old_events where kind = '2')`
     ),
     knex.schema.raw(
       `insert into notes(id, title, content, contact_kind, created_at, created_by)
-         (select id, 'Changement de propriétaire', content, contact_kind, created_at, created_by from old_events where kind in ('3', '5'))`,
+         (select id, 'Changement de propriétaire', content, contact_kind, created_at, created_by from old_events where kind in ('3', '5'))`
     ),
     knex.schema.raw(
       `insert into notes(id, title, content, contact_kind, created_at, created_by)
-         (select id, title, content, contact_kind, created_at, created_by from old_events where kind = '6')`,
+         (select id, title, content, contact_kind, created_at, created_by from old_events where kind = '6')`
     ),
     knex.schema.raw(
-      `insert into owner_notes (select id, owner_id from old_events where kind in ('0', '4', '6') and owner_id is not null)`,
+      `insert into owner_notes (select id, owner_id from old_events where kind in ('0', '4', '6') and owner_id is not null)`
     ),
     knex.schema.raw(
-      `insert into housing_notes (select id, housing_id from old_events where kind not in ('0', '4', '6') or owner_id is null)`,
-    ),
+      `insert into housing_notes (select id, housing_id from old_events where kind not in ('0', '4', '6') or owner_id is null)`
+    )
   ]);
 }
 
@@ -102,6 +102,6 @@ export async function down(knex: Knex): Promise<void> {
     }),
     knex.schema.dropTable('owner_notes'),
     knex.schema.dropTable('housing_notes'),
-    knex.schema.dropTable('notes'),
+    knex.schema.dropTable('notes')
   ]);
 }

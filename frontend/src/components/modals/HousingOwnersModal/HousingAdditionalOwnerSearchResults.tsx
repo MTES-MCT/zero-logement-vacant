@@ -11,18 +11,18 @@ interface Props {
   onSelect: (owner: Owner) => void;
 }
 
-const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
+const HousingAdditionalOwnerSearchResults = ({ onSelect, }: Props) => {
   const dispatch = useAppDispatch();
-  const { additionalOwnersQuery } = useAppSelector((state) => state.housing);
+  const { additionalOwnersQuery, } = useAppSelector((state) => state.housing);
 
-  const { data: additionalOwners, isLoading } = useFindOwnersQuery(
+  const { data: additionalOwners, isLoading, } = useFindOwnersQuery(
     additionalOwnersQuery!,
     {
       skip: !additionalOwnersQuery,
-    },
+    }
   );
 
-  const { pageCount, rowNumber, hasPagination } = usePagination({
+  const { pageCount, rowNumber, hasPagination, } = usePagination({
     count: additionalOwners?.filteredCount,
     perPage: additionalOwners?.perPage,
     page: additionalOwners?.page,
@@ -56,7 +56,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
           {owner.rawAddress.join(' - ')}
         </>
       ),
-    },
+    }
   ];
 
   return (
@@ -74,7 +74,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
                   <b>
                     {displayCount(
                       additionalOwners.filteredCount,
-                      'propriétaire trouvé',
+                      'propriétaire trouvé'
                     )}
                   </b>
                 </Col>
@@ -102,7 +102,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
                             housingSlice.actions.fetchingAdditionalOwners({
                               ...additionalOwnersQuery,
                               page,
-                            }),
+                            })
                           )
                         }
                         currentPage={additionalOwners.page}

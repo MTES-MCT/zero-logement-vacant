@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 const OwnerView = () => {
   useDocumentTitle('Fiche propriétaire');
 
-  const { count, owner, paginatedHousing } = useOwner();
+  const { count, owner, paginatedHousing, } = useOwner();
   const housingCount = count?.housing ?? 0;
 
   const [ownerEditionModalKey, setOwnerEditionModalKey] = useState(

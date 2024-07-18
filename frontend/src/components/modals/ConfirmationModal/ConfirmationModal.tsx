@@ -3,7 +3,7 @@ import { Container } from '../../_dsfr';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import AppLinkAsButton, {
-  AppLinkAsButtonProps,
+  AppLinkAsButtonProps
 } from '../../_app/AppLinkAsButton/AppLinkAsButton';
 
 interface Props {
@@ -33,7 +33,7 @@ function ConfirmationModal({
         id: `confirmation-modal-${modalId}`,
         isOpenedByDefault: false,
       }),
-    [modalId],
+    [modalId]
   );
 
   function open() {
@@ -70,9 +70,9 @@ function ConfirmationModal({
             children: 'Confirmer',
             onClick: onSubmit,
             doClosesModal: false,
-          },
+          }
         ]}
-        style={{ textAlign: 'initial' }}
+        style={{ textAlign: 'initial', }}
       >
         <Container as="section" fluid>
           {children}

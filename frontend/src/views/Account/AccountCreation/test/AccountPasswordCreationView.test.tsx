@@ -4,7 +4,7 @@ import { MemoryRouter as Router, Route } from 'react-router-dom';
 import {
   genAuthUser,
   genProspect,
-  genSignupLink,
+  genSignupLink
 } from '../../../../../test/fixtures.test';
 import AccountPasswordCreationView from '../AccountPasswordCreationView';
 import { Provider } from 'react-redux';
@@ -18,7 +18,7 @@ describe('AccountPasswordCreationView', () => {
   const user = userEvent.setup();
   const store = configureStore({
     reducer: applicationReducer,
-    preloadedState: { authentication: { authUser: genAuthUser() } },
+    preloadedState: { authentication: { authUser: genAuthUser(), }, },
   });
   const email = 'ok@beta.gouv.fr';
   const link = genSignupLink(email);
@@ -37,7 +37,7 @@ describe('AccountPasswordCreationView', () => {
             {
               pathname: '/inscription/mot-de-passe',
               hash: `#${link.id}`,
-            },
+            }
           ]}
         >
           <Route path="/inscription/en-attente">En attente</Route>
@@ -52,7 +52,7 @@ describe('AccountPasswordCreationView', () => {
             component={AccountCampaignIntentCreationView}
           />
         </Router>
-      </Provider>,
+      </Provider>
     );
   }
 
@@ -130,11 +130,11 @@ describe('AccountPasswordCreationView', () => {
     const password = '123QWEasd';
 
     const passwordInput = await screen.findByLabelText(
-      /Créer votre mot de passe/,
+      /Créer votre mot de passe/
     );
     await user.type(passwordInput, password);
     const confirmationInput = await screen.findByLabelText(
-      /Confirmer votre mot de passe/,
+      /Confirmer votre mot de passe/
     );
     await user.type(confirmationInput, password);
     await user.keyboard('{Enter}');

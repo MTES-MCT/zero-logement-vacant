@@ -28,7 +28,7 @@ import Typography from '@mui/material/Typography';
 
 const EstablishmentHomeView = () => {
   useDocumentTitle();
-  const { trackEvent } = useMatomo();
+  const { trackEvent, } = useMatomo();
 
   return (
     <>
@@ -50,12 +50,12 @@ const EstablishmentHomeView = () => {
               onClick={() =>
                 trackEvent({
                   category: TrackEventCategories.Home,
-                  action: TrackEventActions.Home.Connection
+                  action: TrackEventActions.Home.Connection,
                 })
               }
             >
               <Button
-                linkProps={{ to: '/inscription/email' }}
+                linkProps={{ to: '/inscription/email', }}
                 className="internal-link--btn"
               >
                 Créer un compte
@@ -65,7 +65,7 @@ const EstablishmentHomeView = () => {
           <Col className="align-right d-none d-sm-block">
             <img
               src={building}
-              style={{ maxWidth: '100%', height: '100%' }}
+              style={{ maxWidth: '100%', height: '100%', }}
               alt=""
             />
           </Col>
@@ -114,7 +114,7 @@ const EstablishmentHomeView = () => {
               onClick={() => {
                 trackEvent({
                   category: TrackEventCategories.Home,
-                  action: TrackEventActions.Home.Webinar
+                  action: TrackEventActions.Home.Webinar,
                 });
                 window.open(
                   'https://calendly.com/julie_guittard/webinaire-de-presentation-zlv',
@@ -298,7 +298,7 @@ const EstablishmentHomeView = () => {
           <Col n="3" className="align-center">
             <img
               src={hands_mail}
-              style={{ maxWidth: '100%', height: '100%' }}
+              style={{ maxWidth: '100%', height: '100%', }}
               alt=""
             />
           </Col>
@@ -323,7 +323,7 @@ const EstablishmentHomeView = () => {
               onClick={() => {
                 trackEvent({
                   category: TrackEventCategories.Home,
-                  action: TrackEventActions.Home.Newsletter
+                  action: TrackEventActions.Home.Newsletter,
                 });
                 window.open(
                   'https://890e031e.sibforms.com/serve/MUIEAOyQXgbbxeoLBFC_8fPLahr5i4-KkyF8EICd8AXv5i6NZwxkoUr19wL6NiGJmx7oxh3RxaIpLw4JA0ZDBsgjS1hABUiZm1m9hgKzFVCwmc6yxEO9yV3y2XlZ-esfbxBWPX7nKMTjfORZ7UQMNcM5bSK4gfnNYzC4hYTKBMItk6YhL0sCci7EVICIrpJw1Xli7zM1VGcry_0L',

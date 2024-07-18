@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import housingSlice, {
-  initialHousingFilters,
+  initialHousingFilters
 } from '../store/reducers/housingReducer';
 import { HousingFilters } from '../models/HousingFilters';
 import { TrackEventActions, TrackEventCategories } from '../models/TrackEvent';
@@ -17,7 +17,7 @@ interface FiltersOptions {
 
 export function useFilters(opts?: FiltersOptions) {
   const dispatch = useAppDispatch();
-  const { trackEvent } = useMatomo();
+  const { trackEvent, } = useMatomo();
   const initialState = opts?.initialState ?? initialHousingFilters;
 
   const storage = opts?.storage ?? 'store';
@@ -32,11 +32,11 @@ export function useFilters(opts?: FiltersOptions) {
     storage === 'store' ? [store.filters, changeFilters] : state;
 
   const establishment = useAppSelector(
-    (state) => state.authentication.authUser?.establishment,
+    (state) => state.authentication.authUser?.establishment
   );
 
-  const { filtersExpanded: expand } = useAppSelector((state) => state.housing);
-  const { expandFilters } = housingSlice.actions;
+  const { filtersExpanded: expand, } = useAppSelector((state) => state.housing);
+  const { expandFilters, } = housingSlice.actions;
 
   function setExpand(value: boolean): void {
     dispatch(expandFilters(value));
@@ -64,7 +64,7 @@ export function useFilters(opts?: FiltersOptions) {
   function trackNewFilter(changedFilters: HousingFilters, filterLabel: string) {
     const filterEntry = Object.entries(changedFilters)[0];
     const prevFilterEntry = Object.entries(filters).find(
-      (_) => _[0] === filterEntry[0],
+      (_) => _[0] === filterEntry[0]
     );
     const filterValues = filterEntry[1] as Array<string>;
     const prevFilterValues = prevFilterEntry

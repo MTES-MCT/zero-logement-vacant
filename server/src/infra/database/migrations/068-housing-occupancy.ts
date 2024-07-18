@@ -12,7 +12,7 @@ export async function up(knex: Knex): Promise<void> {
 
   await knex
     .table('housing')
-    .update({ occupancy: knex.ref('occupancy_registered') });
+    .update({ occupancy: knex.ref('occupancy_registered'), });
 
   await knex.schema.alterTable('housing', (table) => {
     table.string('occupancy').notNullable().alter();
@@ -24,6 +24,6 @@ export async function down(knex: Knex): Promise<void> {
     knex.schema.alterTable('housing', (table) => {
       table.dropColumns('occupancy_intended', 'occupancy');
       table.renameColumn('occupancy_registered', 'occupancy');
-    }),
+    })
   ]);
 }

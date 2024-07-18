@@ -100,7 +100,7 @@ export const genNumber = (length = 10) => {
   return Number(
     randomstring.generate({
       length,
-      charset: 'numeric'
+      charset: 'numeric',
     })
   );
 };
@@ -120,7 +120,7 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
     id: uuidv4(),
     geoCode,
     name: faker.location.city(),
-    taxKind: TaxKindsApi.None
+    taxKind: TaxKindsApi.None,
   };
 };
 
@@ -137,9 +137,9 @@ export const genEstablishmentApi = (
     geoCodes: geoCodes.length > 0 ? geoCodes : [genGeoCode()],
     campaignIntent,
     available: true,
-    priority: hasPriority({ campaignIntent }) ? 'high' : 'standard',
+    priority: hasPriority({ campaignIntent, }) ? 'high' : 'standard',
     kind: oneOf<EstablishmentKind>(ESTABLISHMENT_KINDS),
-    source: 'seed'
+    source: 'seed',
   };
 };
 
@@ -159,7 +159,7 @@ export const genUserApi = (establishmentId: string): UserApi => {
     lastAuthenticatedAt: new Date(),
     updatedAt: new Date(),
     deletedAt: undefined,
-    ...genUserAccountDTO
+    ...genUserAccountDTO,
   };
 };
 
@@ -168,7 +168,7 @@ export const genUserAccountDTO: UserAccountDTO = {
   lastName: faker.person.lastName(),
   phone: faker.phone.number(),
   position: faker.person.jobType(),
-  timePerWeek: randomstring.generate()
+  timePerWeek: randomstring.generate(),
 };
 
 export const genProspectApi = (
@@ -179,11 +179,11 @@ export const genProspectApi = (
     establishment: {
       id: establishment.id,
       siren: establishment.siren,
-      campaignIntent: establishment.campaignIntent
+      campaignIntent: establishment.campaignIntent,
     },
     hasAccount: true,
     hasCommitment: true,
-    lastAccountRequestAt: new Date()
+    lastAccountRequestAt: new Date(),
   };
 };
 
@@ -200,7 +200,7 @@ export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
     invariant: randomstring.generate(),
     callBack: true,
     read: false,
-    createdAt: new Date()
+    createdAt: new Date(),
   };
 };
 
@@ -219,7 +219,7 @@ export const genOwnerApi = (): OwnerApi => {
     phone: faker.phone.number(),
     kind: randomstring.generate(),
     kindDetail: randomstring.generate(),
-    additionalAddress: randomstring.generate()
+    additionalAddress: randomstring.generate(),
   };
 };
 
@@ -247,7 +247,7 @@ export const genHousingOwnerApi = (
   ...owner,
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
-  rank: genNumber(1)
+  rank: genNumber(1),
 });
 
 export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
@@ -258,7 +258,7 @@ export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
     housingCount: housingList.length,
     vacantHousingCount: housingList.filter(
       (housing) => housing.occupancy === OccupancyKindApi.Vacant
-    ).length
+    ).length,
   };
 };
 
@@ -302,7 +302,7 @@ export const genHousingApi = (
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCES),
-    mutationDate: faker.date.past()
+    mutationDate: faker.date.past(),
   };
 };
 
@@ -318,11 +318,11 @@ export const genCampaignApi = (
     status: 'draft',
     filters: {
       geoPerimetersIncluded: [randomstring.generate()],
-      geoPerimetersExcluded: [randomstring.generate()]
+      geoPerimetersExcluded: [randomstring.generate()],
     },
     createdAt: new Date().toJSON(),
     userId: createdBy,
-    groupId: group?.id
+    groupId: group?.id,
   };
 };
 
@@ -333,7 +333,7 @@ export const genGeoPerimeterApi = (
     id: uuidv4(),
     establishmentId,
     name: randomstring.generate(),
-    kind: randomstring.generate()
+    kind: randomstring.generate(),
   };
 };
 
@@ -341,22 +341,22 @@ export const genResetLinkApi = (userId: string): ResetLinkApi => {
   return {
     id: randomstring.generate({
       length: RESET_LINK_LENGTH,
-      charset: 'alphanumeric'
+      charset: 'alphanumeric',
     }),
     userId,
     createdAt: new Date(),
     expiresAt: addHours(new Date(), RESET_LINK_EXPIRATION),
-    usedAt: null
+    usedAt: null,
   };
 };
 
 export const genSignupLinkApi = (prospectEmail: string): SignupLinkApi => ({
   id: randomstring.generate({
     length: SIGNUP_LINK_LENGTH,
-    charset: 'alphanumeric'
+    charset: 'alphanumeric',
   }),
   prospectEmail,
-  expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION)
+  expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
 });
 
 export const genContactPointApi = (
@@ -369,7 +369,7 @@ export const genContactPointApi = (
     opening: randomstring.generate(),
     address: `${faker.location.streetAddress()}, ${faker.location.zipCode()} ${faker.location.city()}`,
     email: genEmail(),
-    geoCodes: [genGeoCode()]
+    geoCodes: [genGeoCode()],
   };
 };
 
@@ -378,11 +378,11 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
     id: uuidv4(),
     establishmentId,
     contactPoints: {
-      public: genBoolean()
+      public: genBoolean(),
     },
     inbox: {
-      enabled: true
-    }
+      enabled: true,
+    },
   };
 };
 
@@ -395,7 +395,7 @@ function genEventApi<T>(createdBy: string): EventApi<T> {
     section: oneOf(EventSections),
     conflict: genBoolean(),
     createdAt: new Date(),
-    createdBy
+    createdBy,
   };
 }
 
@@ -405,9 +405,9 @@ export const genOwnerEventApi = (
 ): OwnerEventApi => {
   return {
     ...genEventApi<OwnerApi>(createdBy),
-    old: { ...genOwnerApi(), id: ownerId },
-    new: { ...genOwnerApi(), id: ownerId },
-    ownerId
+    old: { ...genOwnerApi(), id: ownerId, },
+    new: { ...genOwnerApi(), id: ownerId, },
+    ownerId,
   };
 };
 
@@ -418,9 +418,9 @@ export const genHousingEventApi = (
   return {
     ...genEventApi<HousingApi>(createdBy.id),
     old: housing,
-    new: { ...genHousingApi(housing.geoCode), id: housing.id },
+    new: { ...genHousingApi(housing.geoCode), id: housing.id, },
     housingId: housing.id,
-    housingGeoCode: housing.geoCode
+    housingGeoCode: housing.geoCode,
   };
 };
 
@@ -435,7 +435,7 @@ export const genGroupHousingEventApi = (
     new: group,
     groupId: group.id,
     housingId: housing.id,
-    housingGeoCode: housing.geoCode
+    housingGeoCode: housing.geoCode,
   };
 };
 
@@ -454,7 +454,7 @@ export const genGroupApi = (
     createdBy: creator,
     establishmentId: establishment.id,
     exportedAt: null,
-    archivedAt: null
+    archivedAt: null,
   };
 };
 
@@ -476,7 +476,7 @@ export const genDatafoncierOwner = (
     dnupro: randomstring.generate(6),
     dnulp: randomstring.generate({
       length: 1,
-      charset: 'numeric'
+      charset: 'numeric',
     }),
     ccocif: randomstring.generate(4),
     dnuper: randomstring.generate(6),
@@ -540,7 +540,7 @@ export const genDatafoncierOwner = (
     catpro2txt: randomstring.generate(100),
     catpro3: randomstring.generate(3),
     catpro3txt: randomstring.generate(105),
-    idpk: genNumber(5)
+    idpk: genNumber(5),
   };
 };
 
@@ -677,7 +677,7 @@ export const genDatafoncierHousing = (
     code_epci: null,
     lib_epci: null,
     ban_cp: randomstring.generate(5),
-    dis_ban_ff: genNumber(1)
+    dis_ban_ff: genNumber(1),
   };
 };
 
@@ -686,7 +686,7 @@ export const genOwnerMatch = (
   owner: OwnerApi
 ): OwnerMatchDBO => ({
   owner_id: owner.id,
-  idpersonne: datafoncierOwner.idpersonne
+  idpersonne: datafoncierOwner.idpersonne,
 });
 
 export const genConflictApi = <T>(
@@ -696,7 +696,7 @@ export const genConflictApi = <T>(
   id: uuidv4(),
   createdAt: new Date(),
   existing,
-  replacement
+  replacement,
 });
 
 export const genOwnerConflictApi = (): OwnerConflictApi =>
@@ -709,7 +709,7 @@ export const genHousingOwnerConflictApi = (
 ): HousingOwnerConflictApi => ({
   ...genConflictApi(existing, replacement),
   housingGeoCode: housing.geoCode,
-  housingId: housing.id
+  housingId: housing.id,
 });
 
 const genNoteApi = (creator: UserApi): NoteApi => ({
@@ -717,7 +717,7 @@ const genNoteApi = (creator: UserApi): NoteApi => ({
   noteKind: faker.word.noun(),
   content: faker.lorem.paragraph(),
   createdBy: creator.id,
-  createdAt: faker.date.past()
+  createdAt: faker.date.past(),
 });
 
 export const genHousingNoteApi = (
@@ -726,7 +726,7 @@ export const genHousingNoteApi = (
 ): HousingNoteApi => ({
   ...genNoteApi(creator),
   housingGeoCode: housing.geoCode,
-  housingId: housing.id
+  housingId: housing.id,
 });
 
 export function genDraftApi(
@@ -743,8 +743,8 @@ export function genDraftApi(
     sender,
     senderId: sender.id,
     writtenAt: faker.date.recent().toJSON().substring(0, 'yyyy-mm-dd'.length),
-    writtenFrom: faker.location.streetAddress({ useFullAddress: true }),
-    establishmentId: establishment.id
+    writtenFrom: faker.location.streetAddress({ useFullAddress: true, }),
+    establishmentId: establishment.id,
   };
 }
 
@@ -757,8 +757,8 @@ export function genSenderApi(establishment: EstablishmentApi): SenderApi {
     service: faker.company.name(),
     firstName,
     lastName,
-    address: faker.location.streetAddress({ useFullAddress: true }),
-    email: faker.internet.email({ firstName, lastName }),
+    address: faker.location.streetAddress({ useFullAddress: true, }),
+    email: faker.internet.email({ firstName, lastName, }),
     phone: faker.phone.number(),
     signatoryFile: null,
     signatoryRole: faker.person.jobTitle(),
@@ -766,6 +766,6 @@ export function genSenderApi(establishment: EstablishmentApi): SenderApi {
     signatoryLastName: faker.person.lastName(),
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON(),
-    establishmentId: establishment.id
+    establishmentId: establishment.id,
   };
 }

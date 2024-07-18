@@ -44,11 +44,11 @@ import createDatafoncierHousingRepository from '~/repositories/datafoncierHousin
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 
 const getValidators = oneOf([
-  param('id').isString().isLength({ min: 12, max: 12 }), // localId
+  param('id').isString().isLength({ min: 12, max: 12, }), // localId
   param('id').isUUID() // id
 ]);
 async function get(request: Request, response: Response) {
-  const { params, establishment } = request as AuthenticatedRequest;
+  const { params, establishment, } = request as AuthenticatedRequest;
 
   logger.info('Get housing', params.id);
 
@@ -59,7 +59,7 @@ async function get(request: Request, response: Response) {
     geoCode: establishment.geoCodes,
     id,
     localId,
-    includes: ['events', 'owner', 'perimeters', 'campaigns']
+    includes: ['events', 'owner', 'perimeters', 'campaigns'],
   });
   if (!housing) {
     throw new HousingMissingError(params.id);
@@ -78,7 +78,7 @@ async function list(
   request: Request,
   response: Response<HousingPaginatedResultApi>
 ) {
-  const { auth, body, user } = request as AuthenticatedRequest;
+  const { auth, body, user, } = request as AuthenticatedRequest;
   // TODO: type the whole body
   const pagination: Pagination = fp.pick(['paginate', 'perPage', 'page'], body);
 
@@ -92,13 +92,13 @@ async function list(
       [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
       body.filters.establishmentIds?.length > 0
         ? body.filters.establishmentIds
-        : [auth.establishmentId]
+        : [auth.establishmentId],
   };
 
   logger.debug('List housing', {
     pagination,
     filters,
-    sort
+    sort,
   });
 
   const [housing, count] = await Promise.all([
@@ -106,11 +106,11 @@ async function list(
       filters,
       pagination,
       sort,
-      includes: ['owner', 'campaigns']
+      includes: ['owner', 'campaigns'],
     }),
     // Kept for backward-compatibility
     // TODO: remove this
-    Promise.resolve({ housing: 1, owners: 1 })
+    Promise.resolve({ housing: 1, owners: 1, })
   ]);
 
   const offset = (pagination.page - 1) * pagination.perPage;
@@ -126,14 +126,14 @@ async function list(
       filteredOwnerCount: count.owners,
       page: pagination.page,
       perPage: pagination.perPage,
-      totalCount: 0
+      totalCount: 0,
     });
 }
 
 async function count(request: Request, response: Response): Promise<void> {
   logger.trace('Count housing');
 
-  const { establishmentId, role } = (request as AuthenticatedRequest).auth;
+  const { establishmentId, role, } = (request as AuthenticatedRequest).auth;
   const filters = <HousingFiltersApi>request.body.filters ?? {};
 
   const count = await housingRepository.count({
@@ -142,7 +142,7 @@ async function count(request: Request, response: Response): Promise<void> {
       [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
       filters.establishmentIds?.length
         ? filters.establishmentIds
-        : [establishmentId]
+        : [establishmentId],
   });
   response.status(constants.HTTP_STATUS_OK).json(count);
 }
@@ -151,22 +151,22 @@ const datafoncierHousingRepository = createDatafoncierHousingRepository();
 const datafoncierOwnerRepository = createDatafoncierOwnersRepository();
 
 const createValidators: ValidationChain[] = [
-  body('localId').isString().isLength({ min: 12, max: 12 })
+  body('localId').isString().isLength({ min: 12, max: 12, })
 ];
 async function create(request: Request, response: Response) {
-  const { auth, body } = request as AuthenticatedRequest;
+  const { auth, body, } = request as AuthenticatedRequest;
   const geoCode = body.localId.substring(0, 5);
 
   const existing = await housingRepository.findOne({
     geoCode,
-    localId: body.localId
+    localId: body.localId,
   });
   if (existing) {
     throw new HousingExistsError(body.localId);
   }
 
   const datafoncierHousing = await datafoncierHousingRepository.findOne({
-    idlocal: body.localId
+    idlocal: body.localId,
   });
   if (!datafoncierHousing) {
     throw new HousingMissingError(body.localId);
@@ -175,12 +175,12 @@ async function create(request: Request, response: Response) {
   const datafoncierOwners =
     await datafoncierOwnerRepository.findDatafoncierOwners({
       filters: {
-        idprocpte: datafoncierHousing.idprocpte
-      }
+        idprocpte: datafoncierHousing.idprocpte,
+      },
     });
   // Create the missing datafoncier owners if needed
   await async.forEach(datafoncierOwners, async (datafoncierOwner) => {
-    const { match, owner } = await processOwner(datafoncierOwner);
+    const { match, owner, } = await processOwner(datafoncierOwner);
     if (owner) {
       await ownerRepository.save(owner);
     }
@@ -190,12 +190,12 @@ async function create(request: Request, response: Response) {
   });
   const owners = await ownerRepository.find({
     filters: {
-      idpersonne: datafoncierOwners.map((owner) => owner.idpersonne)
-    }
+      idpersonne: datafoncierOwners.map((owner) => owner.idpersonne),
+    },
   });
 
   const housing: HousingRecordApi = toHousingRecordApi(
-    { source: 'datafoncier-manual' },
+    { source: 'datafoncier-manual', },
     datafoncierHousing
   );
   await housingRepository.save(housing);
@@ -212,13 +212,13 @@ async function create(request: Request, response: Response) {
       (await housingRepository.findOne({
         geoCode: housing.geoCode,
         id: housing.id,
-        includes: ['owner']
+        includes: ['owner'],
       })) ?? undefined,
     housingGeoCode: housing.geoCode,
     housingId: housing.id,
     conflict: false,
     createdAt: new Date(),
-    createdBy: auth.userId
+    createdBy: auth.userId,
   };
   await eventRepository.insertHousingEvent(event);
 
@@ -279,14 +279,14 @@ const updateHousing = async (
 ): Promise<HousingApi> => {
   logger.trace('Update housing', {
     id: housingId,
-    update: housingUpdate
+    update: housingUpdate,
   });
 
-  const { establishment, user } = authUser;
+  const { establishment, user, } = authUser;
 
   const housing = await housingRepository.findOne({
     id: housingId,
-    geoCode: establishment.geoCodes
+    geoCode: establishment.geoCodes,
   });
   if (!housing) {
     throw new HousingMissingError(housingId);
@@ -297,7 +297,7 @@ const updateHousing = async (
     ...(housingUpdate.occupancyUpdate
       ? {
           occupancy: housingUpdate.occupancyUpdate.occupancy,
-          occupancyIntended: housingUpdate.occupancyUpdate.occupancyIntended
+          occupancyIntended: housingUpdate.occupancyUpdate.occupancyIntended,
         }
       : {}),
     ...(housingUpdate.statusUpdate
@@ -305,9 +305,9 @@ const updateHousing = async (
           status: housingUpdate.statusUpdate.status,
           subStatus: housingUpdate.statusUpdate.subStatus,
           vacancyReasons: housingUpdate.statusUpdate.vacancyReasons,
-          precisions: housingUpdate.statusUpdate.precisions
+          precisions: housingUpdate.statusUpdate.precisions,
         }
-      : {})
+      : {}),
   };
 
   await housingRepository.update(updatedHousing);
@@ -334,7 +334,7 @@ const updateListValidators = [
 async function updateList(request: Request, response: Response) {
   logger.info('Update housing list');
 
-  const { auth, body, user } = request as AuthenticatedRequest;
+  const { auth, body, user, } = request as AuthenticatedRequest;
   const role = user.role;
   const housingUpdateApi = <HousingUpdateBody>body.housingUpdate;
   const allHousing = <boolean>body.allHousing;
@@ -346,11 +346,11 @@ async function updateList(request: Request, response: Response) {
       [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
       body.filters.establishmentIds?.length > 0
         ? body.filters.establishmentIds
-        : [auth.establishmentId]
+        : [auth.establishmentId],
   };
 
   const housingList = await housingRepository
-    .find({ filters, pagination: { paginate: false }, includes: ['campaigns'] })
+    .find({ filters, pagination: { paginate: false, }, includes: ['campaigns'], })
     .then((_) =>
       _.filter((housing) =>
         allHousing
@@ -408,12 +408,12 @@ async function createHousingUpdateEvents(
       old: housingApi,
       new: {
         ...housingApi,
-        ...housingUpdate.statusUpdate
+        ...housingUpdate.statusUpdate,
       },
       createdBy: userId,
       createdAt: new Date(),
       housingId: housingApi.id,
-      housingGeoCode: housingApi.geoCode
+      housingGeoCode: housingApi.geoCode,
     });
   }
 
@@ -433,12 +433,12 @@ async function createHousingUpdateEvents(
       old: housingApi,
       new: {
         ...housingApi,
-        ...housingUpdate.occupancyUpdate
+        ...housingUpdate.occupancyUpdate,
       },
       createdBy: userId,
       createdAt: new Date(),
       housingId: housingApi.id,
-      housingGeoCode: housingApi.geoCode
+      housingGeoCode: housingApi.geoCode,
     });
   }
 }
@@ -455,7 +455,7 @@ async function createHousingUpdateNote(
       createdBy: userId,
       createdAt: new Date(),
       housingId,
-      housingGeoCode: geoCode
+      housingGeoCode: geoCode,
     });
   }
 }
@@ -471,7 +471,7 @@ const housingController = {
   updateValidators,
   update,
   updateListValidators,
-  updateList
+  updateList,
 };
 
 export default housingController;

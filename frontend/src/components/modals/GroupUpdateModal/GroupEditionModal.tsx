@@ -34,7 +34,7 @@ function GroupEditionModal(props: Props) {
   };
   const [title, setTitle] = useState(props.group?.title ?? '');
   const [description, setDescription] = useState(
-    props.group?.description ?? '',
+    props.group?.description ?? ''
   );
 
   const shape = {

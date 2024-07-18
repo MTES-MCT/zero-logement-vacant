@@ -19,18 +19,18 @@ interface Auth {
 export const authHandlers: RequestHandler[] = [
   http.post<Record<string, never>, AuthPayload, Auth>(
     `${config.apiEndpoint}/api/authenticate`,
-    async ({ request }) => {
+    async ({ request, }) => {
       const payload = await request.json();
       const user = data.users.find((user) => user.email === payload.email);
       if (!user) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_UNAUTHORIZED
+          status: constants.HTTP_STATUS_UNAUTHORIZED,
         });
       }
 
       return HttpResponse.json({
         user,
-        accessToken: 'fake-access-token'
+        accessToken: 'fake-access-token',
       });
     }
   )

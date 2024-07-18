@@ -11,7 +11,7 @@ export const REVIEW_THRESHOLD = 0.7;
 export const MATCH_THRESHOLD = 0.85;
 
 export async function findDuplicatesByName(
-  owner: OwnerApi,
+  owner: OwnerApi
 ): Promise<OwnerApi[]> {
   const dups = await ownerRepository.find({
     filters: {
@@ -31,7 +31,7 @@ export function compare(source: OwnerApi, duplicate: OwnerApi): number {
     source.rawAddress.length && duplicate.rawAddress.length
       ? jaccard(
           preprocessAddress(source.rawAddress),
-          preprocessAddress(duplicate.rawAddress),
+          preprocessAddress(duplicate.rawAddress)
         )
       : null;
 
@@ -43,10 +43,10 @@ export const isStreetNumber = (address: string) => /^\d{4}\s/.test(address);
 
 export const preprocessAddress = fp.pipe(
   fp.map((address: string) =>
-    isStreetNumber(address) ? fp.trimCharsStart('0', address) : address,
+    isStreetNumber(address) ? fp.trimCharsStart('0', address) : address
   ),
   fp.join(' '),
-  fp.replace(/\s+/g, ' '),
+  fp.replace(/\s+/g, ' ')
 );
 
 export function findBest(scores: ScoredOwner[]): ScoredOwner | null {
@@ -68,17 +68,17 @@ export function isPerfectMatch(score: number): boolean {
 
 export function needsManualReview(
   source: OwnerApi,
-  duplicates: ScoredOwner[],
+  duplicates: ScoredOwner[]
 ): boolean {
   const matches = duplicates.filter(
-    (_) => isReviewMatch(_.score) || isMatch(_.score),
+    (_) => isReviewMatch(_.score) || isMatch(_.score)
   );
 
   return (
     duplicates.every((match) => isReviewMatch(match.score)) ||
     dateConflict(
       source,
-      matches.map((_) => _.value),
+      matches.map((_) => _.value)
     )
   );
 }

@@ -8,7 +8,7 @@ import {
   createCommand,
   LexicalCommand,
   LexicalEditor,
-  LexicalNode,
+  LexicalNode
 } from 'lexical';
 import { useEffect } from 'react';
 
@@ -23,7 +23,7 @@ export const INSERT_VARIABLE_COMMAND: LexicalCommand<Variable> =
   createCommand();
 
 export function useVariablePlugin(props: Props) {
-  const { editor } = props;
+  const { editor, } = props;
 
   useEffect(() => {
     return editor.registerCommand(

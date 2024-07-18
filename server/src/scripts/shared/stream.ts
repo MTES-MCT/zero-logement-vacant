@@ -7,7 +7,7 @@ export function tapAsync<T>(f: (data: T) => Promise<void>) {
     error: Error | null,
     data: T | Highland.Nil,
     push: (err: Error | null, value?: T | Highland.Nil) => void,
-    next: () => void,
+    next: () => void
   ): void => {
     if (error) {
       push(error);
@@ -34,7 +34,7 @@ export function tapAsync<T>(f: (data: T) => Promise<void>) {
 export function prependAsync<T>(f: (data: T[]) => Promise<T[]>) {
   return (stream: Stream<T[]>): Stream<T[]> => {
     return stream.flatMap((array) =>
-      highland(f(array).then((items) => [...items, ...array])),
+      highland(f(array).then((items) => [...items, ...array]))
     );
   };
 }

@@ -18,9 +18,9 @@ export async function seed(knex: Knex): Promise<void> {
       postal_code: faker.location.zipCode(),
       city: faker.location.city(),
       // Metropolitan France coordinates
-      latitude: faker.location.latitude({ min: 42, max: 51 }),
-      longitude: faker.location.longitude({ min: -4, max: 7 }),
-      score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
+      latitude: faker.location.latitude({ min: 42, max: 51, }),
+      longitude: faker.location.longitude({ min: -4, max: 7, }),
+      score: faker.number.float({ min: 0, max: 1, fractionDigits: 2, }),
     }));
 
   await knex(banAddressesTable).insert(addresses);

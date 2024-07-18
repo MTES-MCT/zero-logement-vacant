@@ -8,7 +8,7 @@ import {
   OwnerProspectApi,
   OwnerProspectCreateApi,
   OwnerProspectSortableApi,
-  OwnerProspectUpdateApi,
+  OwnerProspectUpdateApi
 } from '~/models/OwnerProspectApi';
 import ownerProspectRepository from '~/repositories/ownerProspectRepository';
 import pagination, { createPagination } from '~/models/PaginationApi';
@@ -29,9 +29,9 @@ const createOwnerProspectValidators: ValidationChain[] = [
   body('lastName').isString().notEmpty(),
   body('address').isString().notEmpty(),
   body('invariant').isString().optional(),
-  body('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
+  body('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5, }),
   body('phone').isString().notEmpty(),
-  body('notes').isString().optional(),
+  body('notes').isString().optional()
 ];
 
 async function create(request: Request, response: Response) {
@@ -68,9 +68,9 @@ async function create(request: Request, response: Response) {
         fp.groupBy('establishmentId'),
         fp.mapValues(
           (users: UserApi[]): Promise<void> =>
-            mailService.sendOwnerProspectCreatedEmail(users),
+            mailService.sendOwnerProspectCreatedEmail(users)
         ),
-        Object.values,
+        Object.values
       );
       await Promise.all(sendEmails(users));
     }
@@ -81,13 +81,13 @@ async function create(request: Request, response: Response) {
 
 export const findOwnerProspectsValidators: ValidationChain[] = [
   ...sortApi.queryValidators,
-  ...pagination.queryValidators,
+  ...pagination.queryValidators
 ];
 
 async function find(request: Request, response: Response) {
-  const { auth, query } = request as AuthenticatedRequest;
+  const { auth, query, } = request as AuthenticatedRequest;
   const sort = SortApi.parse<OwnerProspectSortableApi>(
-    query.sort as string[] | undefined,
+    query.sort as string[] | undefined
   );
 
   const ownerProspects = await ownerProspectRepository.find({
@@ -105,11 +105,11 @@ async function find(request: Request, response: Response) {
 const updateOwnerProspectValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID'),
   body('callBack').isBoolean().withMessage('Must be a boolean'),
-  body('read').isBoolean().withMessage('Must be a boolean'),
+  body('read').isBoolean().withMessage('Must be a boolean')
 ];
 
 async function update(request: Request, response: Response) {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, } = request as AuthenticatedRequest;
   const body = request.body as OwnerProspectUpdateApi;
 
   const ownerProspect = await ownerProspectRepository.findOne({

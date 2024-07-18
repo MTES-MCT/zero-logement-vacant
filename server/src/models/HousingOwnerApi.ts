@@ -17,7 +17,7 @@ export interface HousingOwnerApi extends OwnerApi {
 
 export function toHousingOwnersApi(
   housing: HousingRecordApi,
-  owners: OwnerApi[],
+  owners: OwnerApi[]
 ): HousingOwnerApi[] {
   return owners.map((owner, i) => ({
     ...owner,
@@ -30,7 +30,7 @@ export function toHousingOwnersApi(
 
 export function compareHousingOwners(
   a: HousingOwnerApi,
-  b: HousingOwnerApi,
+  b: HousingOwnerApi
 ): Partial<HousingOwnerApi> {
   return compare(a, b, ['id', 'housingId', 'housingGeoCode', 'rank']);
 }

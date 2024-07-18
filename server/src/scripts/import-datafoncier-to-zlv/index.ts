@@ -14,7 +14,7 @@ const processRow = async (dfHousing: any) => {
   progressBar.increment();
   const doProcess = async () => {
     const housing = toHousingRecordApi(
-      { source: 'datafoncier-import' },
+      { source: 'datafoncier-import', },
       dfHousing
     );
 
@@ -27,7 +27,7 @@ const processRow = async (dfHousing: any) => {
     }
 
     const ownerMatch = await ownerMatchRepository.findOne({
-      idpersonne: dfOwner.rows[0].idpersonne
+      idpersonne: dfOwner.rows[0].idpersonne,
     });
 
     let owner;
@@ -51,7 +51,7 @@ const processRow = async (dfHousing: any) => {
           owner_id: owner.id,
           housing_id: housing.id,
           housing_geo_code: housing.geoCode,
-          rank: 1
+          rank: 1,
         });
       } catch (e: any) {
         return;

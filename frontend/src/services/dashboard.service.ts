@@ -14,9 +14,9 @@ export const dashboardApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findOneDashboard: builder.query<Dashboard, FindOneOptions>({
       query: (opts) => `dashboards/${opts.id}`,
-      providesTags: (result, error, arg) => [{ type: 'Stats', id: arg.id }],
+      providesTags: (result, error, arg) => [{ type: 'Stats', id: arg.id, }],
     }),
   }),
 });
 
-export const { useFindOneDashboardQuery } = dashboardApi;
+export const { useFindOneDashboardQuery, } = dashboardApi;

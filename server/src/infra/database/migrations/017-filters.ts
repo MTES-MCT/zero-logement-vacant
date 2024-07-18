@@ -12,7 +12,7 @@ export async function up(knex: Knex): Promise<void> {
       table.string('id').primary();
       table.integer('housing_count').notNullable();
       table.integer('vacant_housing_count').notNullable();
-    }),
+    })
   ]);
 }
 
@@ -24,6 +24,6 @@ export async function down(knex: Knex): Promise<void> {
     knex.schema.table('campaigns_housing', function (table) {
       table.dropIndex(['housing_id'], 'campaigns_housing_housing_id_idx');
     }),
-    knex.schema.dropTable('buildings'),
+    knex.schema.dropTable('buildings')
   ]);
 }

@@ -13,7 +13,7 @@ const progressBarUpdate = new SingleBar({}, Presets.shades_classic);
 const BAN_FILE_LOCATION =
   '/Volumes/Zéro_Logement_Vacant/BAN/adresses-france-BAL.csv';
 const result = execSync(`wc -l < "${BAN_FILE_LOCATION}"`, {
-  encoding: 'utf-8'
+  encoding: 'utf-8',
 });
 const TOTAL_BAN_DATA_LINES = parseInt(result.trim(), 10);
 
@@ -55,7 +55,7 @@ function transform(transformFunction: {
         return callback(null, row);
       }
       transformFunction(row, callback);
-    }
+    },
   });
 }
 
@@ -65,7 +65,7 @@ const main = async () => {
   logger.info('Load BAN data...');
   progressBarBAN.start(TOTAL_BAN_DATA_LINES, 0);
   fs.createReadStream(BAN_FILE_LOCATION)
-    .pipe(parse({ columns: true, delimiter: ';' }))
+    .pipe(parse({ columns: true, delimiter: ';', }))
     .pipe(
       transform(function (
         row: { [s: string]: unknown } | ArrayLike<unknown>,
@@ -85,7 +85,7 @@ const main = async () => {
 
       banData = banData.set(uid_adresse, {
         long: parseFloat(long),
-        lat: parseFloat(lat)
+        lat: parseFloat(lat),
       });
     })
     .on('end', async () => {

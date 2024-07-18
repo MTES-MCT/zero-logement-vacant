@@ -7,7 +7,7 @@ import { SelectOption } from '../../models/SelectOption';
 import * as yup from 'yup';
 import {
   allOccupancyOptions,
-  statusOptions,
+  statusOptions
 } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
 import { useForm } from '../../hooks/useForm';
@@ -33,7 +33,7 @@ interface Props {
 const MultiHousingOccupancyDefaultValue = '-1';
 
 const HousingEditionForm = (
-  { housing, housingCount, onSubmit }: Props,
+  { housing, housingCount, onSubmit, }: Props,
   ref: any
 ) => {
   const [occupancy, setOccupancy] = useState(
@@ -175,7 +175,7 @@ const HousingEditionForm = (
     'Échanges avec le(s) propriétaire(s)',
     'Échanges avec une partie prenante',
     'Diagnostic/Qualification',
-    'Avis de situation',
+    'Avis de situation'
   ].map((note) => ({
     label: note,
     value: note,
@@ -199,7 +199,7 @@ const HousingEditionForm = (
             className="color-bf113"
           />
           Mobilisation 
-          {pluralize(housingCount ?? 1, [{ old: 'du', new: 'des' }])(
+          {pluralize(housingCount ?? 1, [{ old: 'du', new: 'des', }])(
             'du logement'
           )}
         </Text>
@@ -255,7 +255,7 @@ const HousingEditionForm = (
             className="color-bf113"
           />
           Occupation 
-          {pluralize(housingCount ?? 1, [{ old: 'du', new: 'des' }])(
+          {pluralize(housingCount ?? 1, [{ old: 'du', new: 'des', }])(
             'du logement'
           )}
         </Text>
@@ -276,9 +276,9 @@ const HousingEditionForm = (
                         label: 'Sélectionnez une occupation actuelle',
                         value: MultiHousingOccupancyDefaultValue,
                         disabled: true,
-                      },
+                      }
                     ]),
-                ...allOccupancyOptions,
+                ...allOccupancyOptions
               ]}
             />
             <AppSelect<FormShape>
@@ -297,9 +297,9 @@ const HousingEditionForm = (
                         label: 'Sélectionnez une occupation prévisionnelle',
                         value: MultiHousingOccupancyDefaultValue,
                         disabled: true,
-                      },
+                      }
                     ]),
-                ...allOccupancyOptions,
+                ...allOccupancyOptions
               ]}
             />
           </Col>
@@ -338,9 +338,9 @@ const HousingEditionForm = (
             children: 'Confirmer',
             onClick: submitForm,
             doClosesModal: false,
-          },
+          }
         ]}
-        style={{ textAlign: 'initial' }}
+        style={{ textAlign: 'initial', }}
       >
         <Container as="section" fluid>
           En confirmant, vous écraserez et remplacerez les données actuelles sur

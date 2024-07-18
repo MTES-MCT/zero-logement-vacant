@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   INSERT_ORDERED_LIST_COMMAND,
-  INSERT_UNORDERED_LIST_COMMAND,
+  INSERT_UNORDERED_LIST_COMMAND
 } from '@lexical/list';
 import classNames from 'classnames';
 import { FORMAT_ELEMENT_COMMAND, FORMAT_TEXT_COMMAND } from 'lexical';
@@ -25,7 +25,7 @@ function ToolbarPlugin(props: Readonly<Props>) {
   const toolbar = useToolbarPlugin({
     editor,
   });
-  const { insertVariable } = useVariablePlugin({
+  const { insertVariable, } = useVariablePlugin({
     editor,
   });
 

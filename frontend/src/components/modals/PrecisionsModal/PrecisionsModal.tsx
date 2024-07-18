@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 
 const modal = createModal({
   id: 'precisions-modal',
-  isOpenedByDefault: true
+  isOpenedByDefault: true,
 });
 
 interface Props {
@@ -26,7 +26,7 @@ interface Props {
 const PrecisionsModal = ({
   currentPrecisions,
   currentVacancyReasons,
-  onSubmit
+  onSubmit,
 }: Props) => {
   const [precisions, setPrecisions] = useState<string[]>(currentPrecisions);
   const [vacancyReasons, setVacancyReasons] = useState<string[]>(
@@ -44,11 +44,11 @@ const PrecisionsModal = ({
           {
             children: 'Annuler',
             priority: 'secondary',
-            className: 'fr-mr-2w'
+            className: 'fr-mr-2w',
           },
           {
             children: 'Enregistrer',
-            onClick: () => onSubmit(precisions, vacancyReasons)
+            onClick: () => onSubmit(precisions, vacancyReasons),
           }
         ]}
         title=""
@@ -65,7 +65,7 @@ const PrecisionsModal = ({
                     values={precisions}
                     onChange={setPrecisions}
                   />
-                )
+                ),
               },
               {
                 label: `Points de blocage (${vacancyReasons.length})`,
@@ -75,7 +75,7 @@ const PrecisionsModal = ({
                     values={vacancyReasons}
                     onChange={setVacancyReasons}
                   />
-                )
+                ),
               }
             ]}
           />
@@ -94,7 +94,7 @@ interface OptionsTreeCheckboxesProp {
 const OptionsTreeCheckboxes = ({
   options,
   values,
-  onChange
+  onChange,
 }: OptionsTreeCheckboxesProp) => {
   const getValue = (...elements: (OptionTreeElement | string)[]) =>
     elements

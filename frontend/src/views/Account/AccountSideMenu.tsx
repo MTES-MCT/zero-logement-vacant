@@ -10,7 +10,7 @@ const AccountSideMenu = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
 
-  const { establishment } = useUser();
+  const { establishment, } = useUser();
 
   const isCurrentLocation = location.pathname === '/compte';
 
@@ -21,7 +21,7 @@ const AccountSideMenu = () => {
       </Text>
       <div className="fr-py-2w">
         <AppLink
-          className={classNames('fr-ml-0', { 'weight-700': isCurrentLocation })}
+          className={classNames('fr-ml-0', { 'weight-700': isCurrentLocation, })}
           isSimple={isCurrentLocation}
           to="/compte"
           iconId="fr-icon-user-fill"
@@ -36,7 +36,7 @@ const AccountSideMenu = () => {
       </Text>
       <div className="fr-py-2w">
         <AppLink
-          to={{ pathname: 'https://consultdf.cerema.fr/consultdf/' }}
+          to={{ pathname: 'https://consultdf.cerema.fr/consultdf/', }}
           target="_blank"
           iconId="fr-icon-group-fill"
           iconPosition="left"

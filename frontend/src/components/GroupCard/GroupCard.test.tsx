@@ -10,7 +10,7 @@ describe('GroupCard', () => {
     render(
       <Router>
         <GroupCard group={group} />
-      </Router>,
+      </Router>
     );
 
     const title = screen.queryByText(group.title);
@@ -21,7 +21,7 @@ describe('GroupCard', () => {
     render(
       <Router>
         <GroupCard group={group} />
-      </Router>,
+      </Router>
     );
 
     const housingCount = screen.queryByText(group.housingCount);
@@ -32,7 +32,7 @@ describe('GroupCard', () => {
     render(
       <Router>
         <GroupCard group={group} />
-      </Router>,
+      </Router>
     );
 
     const ownerCount = screen.queryByText(group.ownerCount);
@@ -43,7 +43,7 @@ describe('GroupCard', () => {
     render(
       <Router>
         <GroupCard group={group} />
-      </Router>,
+      </Router>
     );
 
     const link = screen.getByRole('link');

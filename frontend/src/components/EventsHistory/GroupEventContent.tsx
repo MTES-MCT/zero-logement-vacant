@@ -46,7 +46,7 @@ function GroupEventContent(props: Props) {
 }
 
 function GroupHousingAddedEvent(props: Props) {
-  const { data: group } = useGetGroupQuery(props.event.new?.id ?? '', {
+  const { data: group, } = useGetGroupQuery(props.event.new?.id ?? '', {
     skip: !props.event.new?.id,
   });
 
@@ -69,7 +69,7 @@ function GroupHousingAddedEvent(props: Props) {
 }
 
 function GroupHousingRemovedEvent(props: Props) {
-  const { data: group } = useGetGroupQuery(props.event.old?.id ?? '', {
+  const { data: group, } = useGetGroupQuery(props.event.old?.id ?? '', {
     skip: !props.event.old?.id,
   });
 

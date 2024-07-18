@@ -15,7 +15,7 @@ async function findOne(opts: FindOneOptions): Promise<SenderApi | null> {
   logger.debug('Finding sender...', opts);
   const whereOptions = where<FindOneOptions>(
     ['id', 'name', 'establishmentId'],
-    { table: sendersTable }
+    { table: sendersTable, }
   );
 
   const sender = await Senders().where(whereOptions(opts)).first();
@@ -82,7 +82,7 @@ export const formatSenderApi = (sender: SenderApi): SenderDBO => ({
   signatory_file: sender.signatoryFile ? sender.signatoryFile.id : null,
   created_at: new Date(sender.createdAt),
   updated_at: new Date(sender.updatedAt),
-  establishment_id: sender.establishmentId
+  establishment_id: sender.establishmentId,
 });
 
 export const parseSenderApi = async (
@@ -104,10 +104,10 @@ export const parseSenderApi = async (
     : null,
   createdAt: new Date(sender.created_at).toJSON(),
   updatedAt: new Date(sender.updated_at).toJSON(),
-  establishmentId: sender.establishment_id
+  establishmentId: sender.establishment_id,
 });
 
 export default {
   findOne,
-  save
+  save,
 };

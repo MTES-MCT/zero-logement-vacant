@@ -25,12 +25,12 @@ interface Props {
   establishmentId: string;
 }
 
-const EstablishmentContactPoints = ({ establishmentId }: Props) => {
-  const { trackEvent } = useMatomo();
+const EstablishmentContactPoints = ({ establishmentId, }: Props) => {
+  const { trackEvent, } = useMatomo();
 
-  const { data: contactPoints } = useFindContactPointsQuery({
+  const { data: contactPoints, } = useFindContactPointsQuery({
     establishmentId,
-    publicOnly: false
+    publicOnly: false,
   });
 
   const [
@@ -38,19 +38,19 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
     {
       isSuccess: isUpdateSuccess,
       originalArgs: updateArgs,
-      isError: isUpdateError
+      isError: isUpdateError,
     }
   ] = useUpdateContactPointMutation();
   const [
     createContactPoint,
-    { isSuccess: isCreateSuccess, isError: isCreateError }
+    { isSuccess: isCreateSuccess, isError: isCreateError, }
   ] = useCreateContactPointMutation();
   const [
     deleteContactPoint,
-    { isSuccess: isDeleteSuccess, isError: isDeleteError }
+    { isSuccess: isDeleteSuccess, isError: isDeleteError, }
   ] = useRemoveContactPointMutation();
 
-  const { settings, togglePublishContactPoints } = useSettings(establishmentId);
+  const { settings, togglePublishContactPoints, } = useSettings(establishmentId);
 
   const [query, setQuery] = useState<string>();
 
@@ -78,7 +78,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
       category: TrackEventCategories.ContactPoints,
       action: isDraft
         ? TrackEventActions.ContactPoints.Create
-        : TrackEventActions.ContactPoints.Update
+        : TrackEventActions.ContactPoints.Update,
     });
     if (isDraft) {
       await createContactPoint(contactPoint);
@@ -90,7 +90,7 @@ const EstablishmentContactPoints = ({ establishmentId }: Props) => {
   const onSubmitRemovingContactPoint = async (contactPointId: string) => {
     trackEvent({
       category: TrackEventCategories.ContactPoints,
-      action: TrackEventActions.ContactPoints.Delete
+      action: TrackEventActions.ContactPoints.Delete,
     });
     await deleteContactPoint(contactPointId);
   };

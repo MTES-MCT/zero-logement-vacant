@@ -9,22 +9,22 @@ export async function up(knex: Knex): Promise<void> {
       Promise.all([
         knex
           .table('establishments')
-          .update({ kind: 'Commune' })
+          .update({ kind: 'Commune', })
           .whereNull('kind')
           .andWhereRaw('array_length(localities_geo_code, 1) = 1'),
         knex
           .table('establishments')
-          .update({ kind: 'EPCI' })
+          .update({ kind: 'EPCI', })
           .whereNull('kind')
           .andWhereRaw('array_length(localities_geo_code, 1) > 1')
           .andWhereRaw("name not like 'DDT%'"),
         knex
           .table('establishments')
-          .update({ kind: knex.raw("split_part(name, ' ', 1)") })
+          .update({ kind: knex.raw("split_part(name, ' ', 1)"), })
           .whereNull('kind')
           .andWhereRaw('array_length(localities_geo_code, 1) > 1')
-          .andWhereRaw("name like 'DDT%'"),
-      ]),
+          .andWhereRaw("name like 'DDT%'")
+      ])
     );
 }
 

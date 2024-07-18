@@ -5,7 +5,7 @@ import { genNumber } from '../../../test/fixtures.test';
 describe('useSelection', () => {
   const itemCount = Number(genNumber(3));
   it('should have a default state', () => {
-    const { result } = renderHook(() => useSelection(itemCount));
+    const { result, } = renderHook(() => useSelection(itemCount));
 
     expect(result.current.selected.ids).toHaveLength(0);
     expect(result.current.selected.all).toBe(false);
@@ -13,7 +13,7 @@ describe('useSelection', () => {
   });
 
   it('should select and unselect one item', () => {
-    const { result } = renderHook(() => useSelection(genNumber(3)));
+    const { result, } = renderHook(() => useSelection(genNumber(3)));
 
     act(() => {
       result.current.toggleSelect('123');
@@ -41,7 +41,7 @@ describe('useSelection', () => {
   });
 
   it('should select and unselect all items', () => {
-    const { result } = renderHook(() => useSelection(itemCount));
+    const { result, } = renderHook(() => useSelection(itemCount));
 
     act(() => {
       result.current.toggleSelectAll();
@@ -67,7 +67,7 @@ describe('useSelection', () => {
   });
 
   it('should unselect all items only if all items are selected', () => {
-    const { result } = renderHook(() => useSelection(itemCount));
+    const { result, } = renderHook(() => useSelection(itemCount));
 
     act(() => {
       result.current.toggleSelect('123');
@@ -94,7 +94,7 @@ describe('useSelection', () => {
   });
 
   it('should select all items and unselect one item', () => {
-    const { result } = renderHook(() => useSelection(itemCount));
+    const { result, } = renderHook(() => useSelection(itemCount));
 
     act(() => {
       result.current.toggleSelectAll();

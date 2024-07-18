@@ -17,9 +17,9 @@ export async function up(knex: Knex): Promise<void> {
         .join(
           'establishments',
           knex.raw(
-            'localities.geo_code = ANY(establishments.localities_geo_code)',
-          ),
-        ),
+            'localities.geo_code = ANY(establishments.localities_geo_code)'
+          )
+        )
     );
 
   // Add foreign keys and indexes

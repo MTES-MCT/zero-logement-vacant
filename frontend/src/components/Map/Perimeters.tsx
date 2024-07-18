@@ -3,7 +3,7 @@ import * as turf from '@turf/turf';
 
 import {
   GeoPerimeter,
-  GeoPerimeterProperties,
+  GeoPerimeterProperties
 } from '../../models/GeoPerimeter';
 import { isNotNull } from '../../utils/compareUtils';
 
@@ -28,11 +28,11 @@ function Perimeters(props: Props) {
                 name: perimeter.name,
                 kind: perimeter.kind,
                 establishmentId: perimeter.establishmentId,
-              },
+              }
             )
-          : null,
+          : null
       )
-      .filter(isNotNull),
+      .filter(isNotNull)
   );
 
   const isVisible = props.isVisible ?? true;

@@ -21,7 +21,7 @@ export const toTitleCase = (string: string) => {
 export const displayCount = (
   totalCount: number,
   label: string,
-  { capitalize, feminine }: { capitalize?: boolean; feminine?: boolean } = {
+  { capitalize, feminine, }: { capitalize?: boolean; feminine?: boolean } = {
     capitalize: true,
     feminine: false,
   },

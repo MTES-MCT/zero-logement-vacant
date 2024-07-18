@@ -11,7 +11,7 @@ import {
   genHousingApi,
   genOwnerApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { OwnerPayloadDTO } from '@zerologementvacant/shared';
@@ -20,31 +20,31 @@ import {
   Events,
   eventsTable,
   OwnerEventDBO,
-  ownerEventsTable,
+  ownerEventsTable
 } from '~/repositories/eventRepository';
 import { OwnerApi } from '~/models/OwnerApi';
 import db from '~/infra/database';
 import {
   banAddressesTable,
-  formatAddressApi,
+  formatAddressApi
 } from '~/repositories/banAddressesRepository';
 import { AddressKinds } from '@zerologementvacant/shared';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import {
   formatHousingOwnersApi,
-  HousingOwners,
+  HousingOwners
 } from '~/repositories/housingOwnerRepository';
 
 describe('Owner API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -58,7 +58,7 @@ describe('Owner API', () => {
     const testRoute = (housingId: string) => `/api/owners/housing/${housingId}`;
 
     const housing = genHousingApi(oneOf(establishment.geoCodes));
-    const owners: OwnerApi[] = Array.from({ length: 3 }, () => genOwnerApi());
+    const owners: OwnerApi[] = Array.from({ length: 3, }, () => genOwnerApi());
 
     beforeAll(async () => {
       await Housing().insert(formatHousingRecordApi(housing));
@@ -67,13 +67,13 @@ describe('Owner API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(housing.id));
+      const { status, } = await request(app).get(testRoute(housing.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should return the owner list for a housing', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 
@@ -101,7 +101,7 @@ describe('Owner API', () => {
         phone: '+33 6 12 34 56 78',
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(uuidv4()))
         .send(payload)
         .set('Content-Type', 'application/json')
@@ -120,7 +120,7 @@ describe('Owner API', () => {
         phone: '+33 6 12 34 56 78',
       };
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .put(testRoute(original.id))
         .send(payload)
         .set('Content-Type', 'application/json')
@@ -143,7 +143,7 @@ describe('Owner API', () => {
           .substring(0, 10),
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(original.id))
         .send(payload)
         .set('Content-Type', 'application/json')
@@ -154,9 +154,9 @@ describe('Owner API', () => {
         .join(
           ownerEventsTable,
           `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
-        .where({ owner_id: original.id });
+        .where({ owner_id: original.id, });
       expect(events).toBeArrayOfSize(1);
       expect(events[0]).toMatchObject<
         Partial<EventDBO<OwnerApi> & OwnerEventDBO>
@@ -178,7 +178,7 @@ describe('Owner API', () => {
         phone: '+33 6 12 34 56 78',
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(original.id))
         .send(payload)
         .set('Content-Type', 'application/json')
@@ -189,9 +189,9 @@ describe('Owner API', () => {
         .join(
           ownerEventsTable,
           `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
-        .where({ owner_id: original.id });
+        .where({ owner_id: original.id, });
       expect(events).toPartiallyContain<
         Partial<EventDBO<OwnerApi> & OwnerEventDBO>
       >({
@@ -214,7 +214,7 @@ describe('Owner API', () => {
         banAddress: genAddressApi(original.id, AddressKinds.Owner),
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(original.id))
         .send(payload)
         .set('Content-Type', 'application/json')
@@ -225,9 +225,9 @@ describe('Owner API', () => {
         .join(
           ownerEventsTable,
           `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
-        .where({ owner_id: original.id });
+        .where({ owner_id: original.id, });
       expect(events).toPartiallyContain<
         Partial<EventDBO<OwnerApi> & OwnerEventDBO>
       >({
@@ -248,7 +248,7 @@ describe('Owner API', () => {
         // TODO
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(uuidv4()))
         .send(payload)
         .use(tokenProvider(user));

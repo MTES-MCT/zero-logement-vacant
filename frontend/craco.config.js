@@ -15,12 +15,12 @@ module.exports = {
       config.setupFiles = ['<rootDir>/jest.polyfills.js'];
       config.setupFilesAfterEnv = [
         'jest-extended/all',
-        '<rootDir>/src/setupTests.ts',
+        '<rootDir>/src/setupTests.ts'
       ];
       config.testTimeout = 30_000;
       config.transformIgnorePatterns = [
         '<rootDir>/node_modules/(?!@codegouvfr)/.+\\.js$',
-        '<rootDir>/node_modules/.store/(?!@codegouvfr)/.+\\.js$',
+        '<rootDir>/node_modules/.store/(?!@codegouvfr)/.+\\.js$'
       ];
       return config;
     },

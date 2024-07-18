@@ -47,7 +47,7 @@ async function upsert(request: Request, response: Response) {
 
   const ceremaUser =
     ceremaUsers.find(
-      (_) => _.establishmentSiren === knowEstablishmentWithCommitment?.siren,
+      (_) => _.establishmentSiren === knowEstablishmentWithCommitment?.siren
     ) ?? ceremaUsers[0];
 
   const exists = await prospectRepository.exists(email);
@@ -71,7 +71,7 @@ const createProspectValidator: ValidationChain[] = [
   param('id').isString().notEmpty().isAlphanumeric().isLength({
     min: SIGNUP_LINK_LENGTH,
     max: SIGNUP_LINK_LENGTH,
-  }),
+  })
 ];
 
 async function show(request: Request, response: Response) {
@@ -86,7 +86,7 @@ async function show(request: Request, response: Response) {
 }
 
 const showProspectValidator: ValidationChain[] = [
-  param('email').notEmpty().isEmail(),
+  param('email').notEmpty().isEmail()
 ];
 
 export default {

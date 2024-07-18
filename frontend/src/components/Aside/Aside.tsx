@@ -21,7 +21,7 @@ function Aside(props: AsideProps) {
   const component = (
     <aside
       className={classNames(styles.aside, {
-        [styles.collapsed]: !expand
+        [styles.collapsed]: !expand,
       })}
     >
       <article className={classNames(styles.article, props.className)}>

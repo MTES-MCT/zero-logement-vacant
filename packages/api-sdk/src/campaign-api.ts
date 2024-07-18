@@ -2,7 +2,7 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 
 import {
   CampaignDTO,
-  CampaignUpdatePayloadDTO,
+  CampaignUpdatePayloadDTO
 } from '@zerologementvacant/models';
 
 export interface CampaignAPI {
@@ -22,16 +22,16 @@ export function createCampaignAPI(http: AxiosInstance): CampaignAPI {
     },
     async update(
       id: string,
-      campaign: CampaignUpdatePayloadDTO,
+      campaign: CampaignUpdatePayloadDTO
     ): Promise<CampaignDTO> {
       const response = await http.put<CampaignDTO>(
         `/campaigns/${id}`,
-        campaign,
+        campaign
       );
       return response.data;
     },
     async exportCampaign(id: string): Promise<ArrayBuffer> {
-      const response: AxiosResponse<ArrayBuffer> = await http.get<ArrayBuffer>(`/campaigns/${id}/export`, { responseType: 'arraybuffer' });
+      const response: AxiosResponse<ArrayBuffer> = await http.get<ArrayBuffer>(`/campaigns/${id}/export`, { responseType: 'arraybuffer', });
       return response.data;
     },
   };

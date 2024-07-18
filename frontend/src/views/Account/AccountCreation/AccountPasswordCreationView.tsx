@@ -27,10 +27,10 @@ interface RouterState {
 
 function AccountPasswordCreationView() {
   const router = useHistory<RouterState | undefined>();
-  const { location } = router;
-  const { trackEvent } = useMatomo();
+  const { location, } = router;
+  const { trackEvent, } = useMatomo();
 
-  const { linkExists, loading, prospect } = useProspect(
+  const { linkExists, loading, prospect, } = useProspect(
     location.state?.prospect
   );
 
@@ -45,14 +45,14 @@ function AccountPasswordCreationView() {
   const shape = {
     password: yup.string().required('Veuillez renseigner votre mot de passe.'),
     passwordFormat: passwordFormatValidator,
-    confirmation: passwordConfirmationValidator
+    confirmation: passwordConfirmationValidator,
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
     password,
     passwordFormat: password,
-    confirmation
+    confirmation,
   });
 
   if (loading) {
@@ -98,14 +98,14 @@ function AccountPasswordCreationView() {
       if (prospect) {
         trackEvent({
           category: TrackEventCategories.AccountCreation,
-          action: TrackEventActions.AccountCreation.SubmitPassword
+          action: TrackEventActions.AccountCreation.SubmitPassword,
         });
         router.push({
           pathname: '/inscription/campagne',
           state: {
             prospect,
-            password
-          }
+            password,
+          },
         });
       }
     });

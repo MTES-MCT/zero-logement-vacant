@@ -5,12 +5,12 @@ import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersR
 import { DatafoncierOwner, evaluate, toOwnerApi } from '../shared';
 import OwnerMatchRepository from '~/repositories/ownerMatchRepository';
 import ownerMatchRepository, {
-  OwnerMatchDBO,
+  OwnerMatchDBO
 } from '~/repositories/ownerMatchRepository';
 import {
   findDuplicatesByName,
   isMatch,
-  isPerfectMatch,
+  isPerfectMatch
 } from '../shared/owner-processor/duplicates';
 import { logger } from '~/infra/logger';
 import OwnerRepository from '~/repositories/ownerRepository';
@@ -21,7 +21,7 @@ let totalOwnersCount = 0;
 
 export function ownerImporter(
   progressBarOwner: SingleBar,
-  stream: Stream<DatafoncierOwner> = createDatafoncierOwnersRepository().stream(),
+  stream: Stream<DatafoncierOwner> = createDatafoncierOwnersRepository().stream()
 ): Stream<void> {
   progressBar = progressBarOwner;
 

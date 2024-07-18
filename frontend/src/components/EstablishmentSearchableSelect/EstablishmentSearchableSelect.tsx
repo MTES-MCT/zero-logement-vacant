@@ -12,9 +12,9 @@ interface Props {
 
 const EstablishmentSearchableSelect = ({
   onChange,
-  initialEstablishmentOption
+  initialEstablishmentOption,
 }: Props) => {
-  const { availableEstablishmentOptions } = useAvailableEstablishments();
+  const { availableEstablishmentOptions, } = useAvailableEstablishments();
   const [establishmentOptions, setEstablishmentOptions] = useState<
     SelectOption[]
   >([]);
@@ -37,7 +37,7 @@ const EstablishmentSearchableSelect = ({
           setEstablishmentOptions(
             _.map((establishment) => ({
               value: establishment.id,
-              label: establishment.name
+              label: establishment.name,
             }))
           )
         )

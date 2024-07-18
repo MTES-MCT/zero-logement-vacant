@@ -19,8 +19,8 @@ import housingFiltersApi from '~/models/HousingFiltersApi';
 import config from '~/infra/config';
 
 const list = async (request: Request, response: Response): Promise<void> => {
-  const { auth } = request as AuthenticatedRequest;
-  const { establishmentId, userId } = auth;
+  const { auth, } = request as AuthenticatedRequest;
+  const { establishmentId, userId, } = auth;
 
   logger.info('Find groups', {
     user: userId,
@@ -36,7 +36,7 @@ const list = async (request: Request, response: Response): Promise<void> => {
 };
 
 const create = async (request: Request, response: Response): Promise<void> => {
-  const { body, establishment, user } = request as AuthenticatedRequest;
+  const { body, establishment, user, } = request as AuthenticatedRequest;
 
   // Keep the housing list that are in the same establishment as the group
   const housingList =
@@ -48,12 +48,12 @@ const create = async (request: Request, response: Response): Promise<void> => {
               establishmentIds: [establishment.id],
             },
             includes: ['owner'],
-            pagination: { paginate: false },
+            pagination: { paginate: false, },
           })
           .then((housingList) => {
             const ids = new Set(body.housing.ids);
             return housingList.filter((housing) =>
-              body.housing.all ? !ids.has(housing.id) : ids.has(housing.id),
+              body.housing.all ? !ids.has(housing.id) : ids.has(housing.id)
             );
           })
       : [];
@@ -103,7 +103,7 @@ const create = async (request: Request, response: Response): Promise<void> => {
       groupId: group.id,
       housingId: housing.id,
       housingGeoCode: housing.geoCode,
-    }),
+    })
   );
   eventRepository.insertManyGroupHousingEvents(events).catch((error) => {
     logger.error(error);
@@ -113,16 +113,16 @@ const create = async (request: Request, response: Response): Promise<void> => {
 const createValidators: ValidationChain[] = [
   body('title').isString().notEmpty(),
   body('description').isString().notEmpty(),
-  body('housing').isObject({ strict: true }).optional(),
+  body('housing').isObject({ strict: true, }).optional(),
   body('housing.all').if(body('housing').notEmpty()).isBoolean().notEmpty(),
   body('housing.ids')
     .if(body('housing').notEmpty())
     .custom(isArrayOf(isString)),
-  ...housingFiltersApi.validators('housing.filters'),
+  ...housingFiltersApi.validators('housing.filters')
 ];
 
 const show = async (request: Request, response: Response): Promise<void> => {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, } = request as AuthenticatedRequest;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -137,7 +137,7 @@ const show = async (request: Request, response: Response): Promise<void> => {
 const showValidators: ValidationChain[] = [param('id').isString().notEmpty()];
 
 const update = async (request: Request, response: Response): Promise<void> => {
-  const { auth, body, params } = request as AuthenticatedRequest;
+  const { auth, body, params, } = request as AuthenticatedRequest;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -167,14 +167,14 @@ const update = async (request: Request, response: Response): Promise<void> => {
 };
 const updateValidators: ValidationChain[] = [
   ...createValidators,
-  isUUIDParam('id'),
+  isUUIDParam('id')
 ];
 
 const addHousing = async (
   request: Request,
-  response: Response,
+  response: Response
 ): Promise<void> => {
-  const { auth, body, params } = request as AuthenticatedRequest;
+  const { auth, body, params, } = request as AuthenticatedRequest;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -193,12 +193,12 @@ const addHousing = async (
           establishmentIds: [auth.establishmentId],
         },
         includes: ['owner'],
-        pagination: { paginate: false },
+        pagination: { paginate: false, },
       })
       .then((housingList) => {
         const ids = new Set(body.ids);
         return housingList.filter((housing) =>
-          body.all ? !ids.has(housing.id) : ids.has(housing.id),
+          body.all ? !ids.has(housing.id) : ids.has(housing.id)
         );
       }),
     housingRepository.find({
@@ -207,18 +207,18 @@ const addHousing = async (
         establishmentIds: [auth.establishmentId],
       },
       includes: ['owner'],
-      pagination: { paginate: false },
-    }),
+      pagination: { paginate: false, },
+    })
   ]);
 
   const diff = fp.differenceBy('id', addingHousingList, existingHousingList);
   const uniqueHousingList = fp.uniqBy(
     'id',
-    addingHousingList.concat(existingHousingList),
+    addingHousingList.concat(existingHousingList)
   );
   const uniqueOwners = fp.uniqBy(
     'id',
-    uniqueHousingList.map((housing) => housing.owner),
+    uniqueHousingList.map((housing) => housing.owner)
   );
 
   await groupRepository.addHousing(group, diff);
@@ -253,11 +253,11 @@ const addHousingValidators: ValidationChain[] = [
   isUUIDParam('id'),
   body('all').isBoolean().notEmpty(),
   body('ids').custom(isArrayOf(isString)),
-  ...housingFiltersApi.validators('filters'),
+  ...housingFiltersApi.validators('filters')
 ];
 
 const removeHousing = async (request: Request, response: Response) => {
-  const { auth, body, params } = request as AuthenticatedRequest;
+  const { auth, body, params, } = request as AuthenticatedRequest;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -276,12 +276,12 @@ const removeHousing = async (request: Request, response: Response) => {
           establishmentIds: [auth.establishmentId],
         },
         includes: ['owner'],
-        pagination: { paginate: false },
+        pagination: { paginate: false, },
       })
       .then((housingList) => {
         const ids = new Set(body.ids);
         return housingList.filter((housing) =>
-          body.all ? !ids.has(housing.id) : ids.has(housing.id),
+          body.all ? !ids.has(housing.id) : ids.has(housing.id)
         );
       }),
     housingRepository.find({
@@ -290,14 +290,14 @@ const removeHousing = async (request: Request, response: Response) => {
         establishmentIds: [auth.establishmentId],
       },
       includes: ['owner'],
-      pagination: { paginate: false },
-    }),
+      pagination: { paginate: false, },
+    })
   ]);
 
   const housingList = fp.differenceBy(
     'id',
     existingHousingList,
-    removingHousingList,
+    removingHousingList
   );
   const owners = housingList.map((housing) => housing.owner);
 
@@ -332,7 +332,7 @@ const removeHousing = async (request: Request, response: Response) => {
 const removeHousingValidators: ValidationChain[] = addHousingValidators;
 
 const remove = async (request: Request, response: Response): Promise<void> => {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, } = request as AuthenticatedRequest;
 
   const group = await groupRepository.findOne({
     id: params.id,
@@ -354,8 +354,8 @@ const remove = async (request: Request, response: Response): Promise<void> => {
         establishmentIds: [auth.establishmentId],
         groupIds: [group.id],
       },
-      pagination: { paginate: false },
-    }),
+      pagination: { paginate: false, },
+    })
   ]);
 
   if (campaigns.length > 0) {

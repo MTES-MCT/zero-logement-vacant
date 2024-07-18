@@ -5,19 +5,19 @@ import ReactiveMap, {
   NavigationControl,
   useMap,
   ViewState,
-  ViewStateChangeEvent,
+  ViewStateChangeEvent
 } from 'react-map-gl';
 import {
   hasCoordinates,
   Housing,
-  HousingWithCoordinates,
+  HousingWithCoordinates
 } from '../../models/Housing';
 import HousingPopup from './HousingPopup';
 import Clusters from './Clusters';
 import {
   Building,
   groupByBuilding,
-  HousingByBuilding,
+  HousingByBuilding
 } from '../../models/Building';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Perimeters from './Perimeters';
@@ -62,7 +62,7 @@ function Map(props: MapProps) {
     props.onMove?.(event.viewState);
   }
 
-  const { housingMap: map } = useMap();
+  const { housingMap: map, } = useMap();
   const [openPopups, setOpenPopups] = useState<Record<string, boolean>>({});
 
   const housingList = useMemo<HousingWithCoordinates[]>(

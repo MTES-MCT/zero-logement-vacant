@@ -12,16 +12,16 @@ import ownerRepository from '~/repositories/ownerRepository';
 import { logger } from '~/infra/logger';
 
 async function listByOwnerId(request: Request, response: Response) {
-  const { id } = request.params;
-  logger.info('List owner events', { id });
+  const { id, } = request.params;
+  logger.info('List owner events', { id, });
 
   const events = await eventRepository.findOwnerEvents(id);
   response.status(constants.HTTP_STATUS_OK).json(events);
 }
 
 async function listByHousingId(request: Request, response: Response) {
-  const { establishment, params } = request as AuthenticatedRequest;
-  logger.info('List housing events', { id: params.id });
+  const { establishment, params, } = request as AuthenticatedRequest;
+  logger.info('List housing events', { id: params.id, });
 
   const housing = await housingRepository.findOne({
     id: params.id,
@@ -34,12 +34,12 @@ async function listByHousingId(request: Request, response: Response) {
   const [housingEvents, owners, groupHousingEvents] = await Promise.all([
     eventRepository.findHousingEvents(housing.id),
     ownerRepository.findByHousing(housing),
-    eventRepository.findGroupHousingEvents(housing),
+    eventRepository.findGroupHousingEvents(housing)
   ]);
 
   const ownerEvents: EventApi<OwnerApi>[] = await async.flatMap(
     owners.map((_) => _.id),
-    async (id: string) => eventRepository.findOwnerEvents(id),
+    async (id: string) => eventRepository.findOwnerEvents(id)
   );
 
   response

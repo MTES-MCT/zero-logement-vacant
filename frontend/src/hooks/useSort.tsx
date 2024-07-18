@@ -28,8 +28,8 @@ export function useSort<Sortable extends object>(
         iconPosition="right"
         priority="tertiary no outline"
         size="small"
-        className={classNames('fr-pl-0', { 'no-sort': !direction })}
-        style={{ color: 'var(--text-title-grey)' }}
+        className={classNames('fr-pl-0', { 'no-sort': !direction, })}
+        style={{ color: 'var(--text-title-grey)', }}
         onClick={() => cycleSort(key)}
       >
         {title}
@@ -55,13 +55,13 @@ export function useSort<Sortable extends object>(
           .reduce<Sort<Sortable>>((acc, k) => {
             return {
               ...acc,
-              [k]: sort ? sort[k as keyof Sortable] : undefined
+              [k]: sort ? sort[k as keyof Sortable] : undefined,
             };
           }, {})
       );
       return;
     }
-    setSort({ ...sort, [key]: next });
+    setSort({ ...sort, [key]: next, });
   }
 
   useEffect(() => {
@@ -75,6 +75,6 @@ export function useSort<Sortable extends object>(
     cycleSort,
     getSortButton,
     sort,
-    setSort
+    setSort,
   };
 }

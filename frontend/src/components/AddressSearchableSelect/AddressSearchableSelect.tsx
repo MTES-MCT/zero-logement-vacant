@@ -13,11 +13,11 @@ interface Props {
   onSelectAddress(addressSearchResult?: AddressSearchResult): void;
 }
 
-const AddressSearchableSelect = ({ onSelectAddress }: Props) => {
+const AddressSearchableSelect = ({ onSelectAddress, }: Props) => {
   const [addressOptions, setAddressOptions] = useState<
     { value: string; label: string }[]
   >([]);
-  const { trackEvent } = useMatomo();
+  const { trackEvent, } = useMatomo();
 
   const onChange = (value?: string) => {
     if (value) {
@@ -25,7 +25,7 @@ const AddressSearchableSelect = ({ onSelectAddress }: Props) => {
       trackEvent({
         category: TrackEventCategories.Home,
         action: TrackEventActions.Home.SelectAddress,
-        name: addressSearchResult.label
+        name: addressSearchResult.label,
       });
       onSelectAddress(addressSearchResult);
     }
@@ -39,7 +39,7 @@ const AddressSearchableSelect = ({ onSelectAddress }: Props) => {
           setAddressOptions(
             _.map((address) => ({
               value: JSON.stringify(address),
-              label: address.label
+              label: address.label,
             }))
           );
         })

@@ -6,7 +6,7 @@ interface Props {
   partialHousing: Partial<Housing>;
 }
 
-const EventPartialHousingContent = ({ partialHousing }: Props) => {
+const EventPartialHousingContent = ({ partialHousing, }: Props) => {
   return partialHousing && hasValues(partialHousing) ? (
     <div className={styles.eventContent}>
       {partialHousing.status !== undefined && (

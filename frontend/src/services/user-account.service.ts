@@ -19,10 +19,10 @@ export const userAccountApi = zlvApi.injectEndpoints({
       void,
       { currentPassword: string; newPassword: string }
     >({
-      query: ({ currentPassword, newPassword }) => ({
+      query: ({ currentPassword, newPassword, }) => ({
         url: 'account/password',
         method: 'PUT',
-        body: { currentPassword, newPassword },
+        body: { currentPassword, newPassword, },
       }),
     }),
   }),

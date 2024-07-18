@@ -8,7 +8,7 @@ export const CampaignsHousing = (transaction = db) =>
 
 const insertHousingList = async (
   campaignId: string,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): Promise<void> => {
   await CampaignsHousing()
     .insert(
@@ -16,7 +16,7 @@ const insertHousingList = async (
         campaign_id: campaignId,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-      })),
+      }))
     )
     .onConflict(['campaign_id', 'housing_id', 'housing_geo_code'])
     .ignore()
@@ -25,7 +25,7 @@ const insertHousingList = async (
 
 const deleteHousingFromCampaigns = async (
   campaignIds: string[],
-  housingIds?: string[],
+  housingIds?: string[]
 ): Promise<number> => {
   try {
     return db(campaignsHousingTable)
@@ -41,7 +41,7 @@ const deleteHousingFromCampaigns = async (
       'Removing housing from campaign failed',
       err,
       campaignIds,
-      housingIds,
+      housingIds
     );
     throw new Error('Removing housing from campaign failed');
   }
@@ -56,7 +56,7 @@ export interface CampaignHousingDBO {
 
 export const formatCampaignHousingApi = (
   campaign: CampaignApi,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): CampaignHousingDBO[] => {
   return housingList.map((housing) => ({
     campaign_id: campaign.id,

@@ -3,21 +3,21 @@ import { useFindEventsByOwnerQuery } from '../services/event.service';
 import { useGetOwnerQuery } from '../services/owner.service';
 import {
   useCountHousingQuery,
-  useFindHousingQuery,
+  useFindHousingQuery
 } from '../services/housing.service';
 
 export function useOwner() {
-  const { ownerId } = useParams<{ ownerId: string }>();
+  const { ownerId, } = useParams<{ ownerId: string }>();
 
-  const { data: owner } = useGetOwnerQuery(ownerId);
+  const { data: owner, } = useGetOwnerQuery(ownerId);
 
-  const { data: events } = useFindEventsByOwnerQuery(ownerId);
+  const { data: events, } = useFindEventsByOwnerQuery(ownerId);
 
-  const { data: paginatedHousing } = useFindHousingQuery({
-    filters: { ownerIds: [ownerId] },
+  const { data: paginatedHousing, } = useFindHousingQuery({
+    filters: { ownerIds: [ownerId], },
   });
 
-  const { data: count } = useCountHousingQuery({
+  const { data: count, } = useCountHousingQuery({
     ownerIds: [ownerId],
   });
 

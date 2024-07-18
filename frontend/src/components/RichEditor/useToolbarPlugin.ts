@@ -3,7 +3,7 @@ import {
   $getSelection,
   $isElementNode,
   $isRangeSelection,
-  LexicalEditor,
+  LexicalEditor
 } from 'lexical';
 import fp from 'lodash/fp';
 import { useCallback, useEffect, useState } from 'react';
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function useToolbarPlugin(props: Props) {
-  const { editor } = props;
+  const { editor, } = props;
   const [state, setState] = useState<ToolbarState>({
     bold: false,
     italic: false,
@@ -56,7 +56,7 @@ export function useToolbarPlugin(props: Props) {
 
   useEffect(() => {
     return editor.registerUpdateListener((update) => {
-      const { editorState } = update;
+      const { editorState, } = update;
 
       editorState.read(() => {
         onSelectionChange();

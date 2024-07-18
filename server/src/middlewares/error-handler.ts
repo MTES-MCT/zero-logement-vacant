@@ -9,7 +9,7 @@ function log(
   error: Error,
   request: Request,
   response: Response,
-  next: Next,
+  next: Next
 ): void {
   // Should later be enhanced with relevant info like Request ID, user ID, etc.
   logger.error(error);
@@ -22,7 +22,7 @@ function respond(
   response: Response,
   // Needed because express bases itself on the number of arguments
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  next: Next,
+  next: Next
 ): void {
   if (response.headersSent) {
     next(error);

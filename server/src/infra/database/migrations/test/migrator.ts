@@ -41,7 +41,7 @@ const createMigrator = (db: Knex): Migrator => ({
 
     const migrations = pending.slice(0, index);
     await async.forEachSeries(migrations, async (migration) => {
-      await db.migrate.up({ name: migration.file });
+      await db.migrate.up({ name: migration.file, });
       logger.info(`Migrated ${migration.file}.`);
     });
   },

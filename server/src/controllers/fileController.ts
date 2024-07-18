@@ -25,7 +25,7 @@ async function create(request: Request, response: Response<FileUploadDTO>): Prom
     id: file.key,
     type: file.contentType,
     url: file.key,
-    content: await getBase64Content(file.key, { s3, bucket: config.s3.bucket }),
+    content: await getBase64Content(file.key, { s3, bucket: config.s3.bucket, }),
   };
   response.status(constants.HTTP_STATUS_CREATED).json(upload);
 }

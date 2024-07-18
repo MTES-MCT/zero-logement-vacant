@@ -1,7 +1,7 @@
 import {
   EnergyConsumptionGradesApi,
   OccupancyKindApi,
-  OwnershipKindsApi,
+  OwnershipKindsApi
 } from './HousingApi';
 import { body, ValidationChain } from 'express-validator';
 import { isArrayOf, isInteger, isString, isUUID } from '~/utils/validators';
@@ -43,7 +43,7 @@ export interface HousingFiltersApi {
 }
 
 const validators = (property = 'filters'): ValidationChain[] => [
-  body(property).isObject({ strict: true }).optional(),
+  body(property).isObject({ strict: true, }).optional(),
   body(`${property}.establishmentIds`)
     .custom(isArrayOf(isUUID))
     .withMessage('Must be an array of UUIDs')
@@ -82,7 +82,7 @@ const validators = (property = 'filters'): ValidationChain[] => [
   body(`${property}.subStatus`).custom(isArrayOf(isString)).optional(),
   body(`${property}.query`).default('').isString().optional(),
   body(`${property}.energyConsumption`).custom(isArrayOf(isString)).optional(),
-  body(`${property}.occupancies`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.occupancies`).custom(isArrayOf(isString)).optional()
 ];
 
 export default {

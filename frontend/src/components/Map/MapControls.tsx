@@ -12,7 +12,7 @@ interface Props {
 
 function MapControls(props: Props) {
 
-  const { isVisitor } = useUser();
+  const { isVisitor, } = useUser();
 
   return (
     <section className={styles.controls}>

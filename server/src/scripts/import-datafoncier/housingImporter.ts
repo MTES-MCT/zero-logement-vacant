@@ -11,18 +11,18 @@ export function housingImporter(): Stream<HousingRecordApi> {
   return createDatafoncierHousingRepository()
     .stream()
     .consume(tapAsync(processHousing))
-    .map(toHousingRecordApi({ source: 'datafoncier-import' }))
+    .map(toHousingRecordApi({ source: 'datafoncier-import', }))
     .errors((error) => {
       logger.error(error);
     });
 }
 
 export async function processHousing(
-  datafoncierHousing: DatafoncierHousing,
+  datafoncierHousing: DatafoncierHousing
 ): Promise<void> {
   await housingRepository.save(
-    toHousingRecordApi({ source: 'datafoncier-import' }, datafoncierHousing),
-    { onConflict: 'ignore' },
+    toHousingRecordApi({ source: 'datafoncier-import', }, datafoncierHousing),
+    { onConflict: 'ignore', }
   );
 }
 

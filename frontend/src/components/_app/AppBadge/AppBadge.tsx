@@ -9,7 +9,7 @@ function AppBadge({ colorFamily, ...badgeProps }: AppBadgeProps) {
   return (
     <Badge
       {...badgeProps}
-      className={classNames({ [`fr-badge--${colorFamily}`]: colorFamily })}
+      className={classNames({ [`fr-badge--${colorFamily}`]: colorFamily, })}
     />
   );
 }

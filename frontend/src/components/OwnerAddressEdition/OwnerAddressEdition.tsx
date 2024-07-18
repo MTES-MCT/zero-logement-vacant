@@ -109,7 +109,7 @@ function OwnerAddressEdition({
                         label: addressToString(banAddress, false)!,
                         score: 1,
                       }),
-                  },
+                  }
                 ]}
                 alignment="left"
                 inlineLayoutWhen="sm and up"

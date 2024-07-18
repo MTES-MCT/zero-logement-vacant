@@ -12,7 +12,7 @@ interface Props {
   establishment: Establishment;
 }
 
-function ContactPointPublicPage({ establishment }: Props) {
+function ContactPointPublicPage({ establishment, }: Props) {
   const link = `${window.location.protocol}//${
     window.location.hostname
   }${getEstablishmentUrl(establishment)}`;

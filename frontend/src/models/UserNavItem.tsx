@@ -12,12 +12,12 @@ export interface UserNavItem {
 export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
   switch (userNavItem) {
     case UserNavItems.Campaign:
-      return { url: '/campagnes', label: 'Campagnes' };
+      return { url: '/campagnes', label: 'Campagnes', };
     case UserNavItems.HousingList:
-      return { url: '/parc-de-logements', label: 'Parc de logements' };
+      return { url: '/parc-de-logements', label: 'Parc de logements', };
     case UserNavItems.Resources:
-      return { url: '/ressources', label: 'Ressources' };
+      return { url: '/ressources', label: 'Ressources', };
     default:
-      return { url: '/', label: 'Accueil' };
+      return { url: '/', label: 'Accueil', };
   }
 };

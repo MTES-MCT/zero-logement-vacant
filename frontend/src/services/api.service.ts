@@ -28,7 +28,7 @@ export const zlvApi = createApi({
     'Settings',
     'Stats',
     'SignupLink',
-    'User',
+    'User'
   ],
   endpoints: () => ({}),
 });

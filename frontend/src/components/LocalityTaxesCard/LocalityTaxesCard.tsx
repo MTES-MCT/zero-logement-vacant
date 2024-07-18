@@ -11,11 +11,11 @@ interface Props {
   isPublicDisplay: boolean;
 }
 
-function LocalityTaxesCard({ locality, onEdit, isPublicDisplay }: Props) {
+function LocalityTaxesCard({ locality, onEdit, isPublicDisplay, }: Props) {
   return (
     <Card
       className="h-fit-content"
-      classes={{ end: 'd-none' }}
+      classes={{ end: 'd-none', }}
       size="small"
       titleAs="h2"
       title={

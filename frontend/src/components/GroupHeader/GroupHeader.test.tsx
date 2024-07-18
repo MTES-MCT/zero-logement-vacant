@@ -23,7 +23,7 @@ describe('GroupHeader', () => {
   it('should render', async () => {
     mockAPI.use(
       http.get(`${config.apiEndpoint}/api/groups`, () => {
-        const groups = Array.from({ length: DISPLAY_GROUPS + 1 }, () => {
+        const groups = Array.from({ length: DISPLAY_GROUPS + 1, }, () => {
           const creator = genUserDTO();
           return genGroupDTO(creator);
         });
@@ -47,9 +47,9 @@ describe('GroupHeader', () => {
     const creator = genUserDTO();
     const archived: GroupDTO = {
       ...genGroupDTO(creator),
-      archivedAt: new Date().toJSON()
+      archivedAt: new Date().toJSON(),
     };
-    const groups: GroupDTO[] = Array.from({ length: 2 }, () =>
+    const groups: GroupDTO[] = Array.from({ length: 2, }, () =>
       genGroupDTO(creator)
     ).concat(archived);
     mockAPI.use(
@@ -75,7 +75,7 @@ describe('GroupHeader', () => {
   it('should hide the "Display more" button if there is no more group', async () => {
     mockAPI.use(
       http.get(`${config.apiEndpoint}/api/groups`, () => {
-        const groups = Array.from({ length: DISPLAY_GROUPS }, () => {
+        const groups = Array.from({ length: DISPLAY_GROUPS, }, () => {
           const creator = genUserDTO();
           return genGroupDTO(creator);
         });
@@ -96,7 +96,7 @@ describe('GroupHeader', () => {
 
   it('should display all groups when the "Display more" button is clicked', async () => {
     const creator = genUserDTO();
-    const groups: GroupDTO[] = Array.from({ length: DISPLAY_GROUPS + 1 }, () =>
+    const groups: GroupDTO[] = Array.from({ length: DISPLAY_GROUPS + 1, }, () =>
       genGroupDTO(creator)
     );
     mockAPI.use(

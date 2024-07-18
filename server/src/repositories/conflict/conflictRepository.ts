@@ -4,7 +4,7 @@ import {
   formatOwnerApi,
   OwnerDBO,
   ownerTable,
-  parseOwnerApi,
+  parseOwnerApi
 } from '../ownerRepository';
 
 export const conflictsTable = 'conflicts';
@@ -22,7 +22,7 @@ const owners = {
       .join(
         ownerConflictsTable,
         `${ownerConflictsTable}.conflict_id`,
-        `${conflictsTable}.id`,
+        `${conflictsTable}.id`
       )
       .select(`${ownerConflictsTable}.*`)
       .join(ownerTable, `${ownerTable}.id`, `${ownerConflictsTable}.owner_id`)
@@ -34,7 +34,7 @@ const owners = {
     await db.transaction(async (transaction) => {
       await Conflicts(transaction).insert(formatConflictApi(conflict));
       await OwnerConflicts(transaction).insert(
-        formatOwnerConflictApi(conflict),
+        formatOwnerConflictApi(conflict)
       );
     });
   },
@@ -62,7 +62,7 @@ export interface OwnerConflictDBO extends ConflictDBO {
 }
 
 export const formatOwnerConflictApi = (
-  conflict: OwnerConflictApi,
+  conflict: OwnerConflictApi
 ): OwnerConflictRecordDBO => ({
   conflict_id: conflict.id,
   owner_id: conflict.existing.id,
@@ -70,7 +70,7 @@ export const formatOwnerConflictApi = (
 });
 
 export const parseOwnerConflictApi = (
-  conflict: OwnerConflictDBO,
+  conflict: OwnerConflictDBO
 ): OwnerConflictApi => ({
   id: conflict.id,
   createdAt: conflict.created_at,

@@ -6,7 +6,7 @@ export function loadIcon(map: MapRef, path: string, id: string) {
   map.loadImage(path, (error, image) => {
     if (error) throw error;
     if (image) {
-      map.addImage(id, image, { sdf: true });
+      map.addImage(id, image, { sdf: true, });
     }
   });
 }

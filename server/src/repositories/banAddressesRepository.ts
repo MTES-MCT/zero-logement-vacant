@@ -9,7 +9,7 @@ export const banAddressesTable = 'ban_addresses';
 
 const getByRefId = async (
   refId: string,
-  addressKind: AddressKinds,
+  addressKind: AddressKinds
 ): Promise<AddressApi | null> => {
   logger.debug('Get ban adresse with ref id', {
     ref: refId,
@@ -34,7 +34,7 @@ const lastUpdatedClause = (query: any) => {
     .orWhere(
       'last_updated_at',
       '<',
-      db.raw(`current_timestamp  - interval '${config.ban.update.delay}'`),
+      db.raw(`current_timestamp  - interval '${config.ban.update.delay}'`)
     );
 };
 
@@ -45,7 +45,7 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
       'raw_address',
       db.raw(`'${AddressKinds.Housing}' as address_kind`),
       'last_updated_at',
-      'geo_code',
+      'geo_code'
     )
     .leftJoin(banAddressesTable, (query: any) => {
       query
@@ -62,8 +62,8 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
             addressKind: result.address_kind,
             rawAddress: result.raw_address,
             geoCode: result.geo_code,
-          },
-      ),
+          }
+      )
     );
 };
 
@@ -74,7 +74,7 @@ const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
     .filter((_) => _.refId)
     .filter(
       (value, index, self) =>
-        self.findIndex((_) => _.refId === value.refId) === index,
+        self.findIndex((_) => _.refId === value.refId) === index
     )
     .map((addressApi) => ({
       ...formatAddressApi(addressApi),
@@ -97,7 +97,7 @@ const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
         'latitude',
         'longitude',
         'score',
-        'last_updated_at',
+        'last_updated_at'
       ])
       .returning('*');
   } catch (err) {
@@ -108,12 +108,12 @@ const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
 
 const markAddressToBeNormalized = async (
   addressId: string,
-  addressKind: AddressKinds,
+  addressKind: AddressKinds
 ) => {
   db(banAddressesTable)
     .where('ref_id', addressId)
     .andWhere('address_kind', addressKind)
-    .update({ last_updated_at: null });
+    .update({ last_updated_at: null, });
 };
 
 export const parseAddressApi = (result: any) =>

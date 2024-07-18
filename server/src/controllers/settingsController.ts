@@ -12,7 +12,7 @@ import { SettingsApi, toDBO } from '~/models/SettingsApi';
 import { logger } from '~/infra/logger';
 
 async function getSettings(request: Request, response: Response) {
-  const { auth } = request as AuthenticatedRequest;
+  const { auth, } = request as AuthenticatedRequest;
 
   const id = request.params.id ?? auth.establishmentId;
   logger.info('Get settings', id);
@@ -22,19 +22,19 @@ async function getSettings(request: Request, response: Response) {
   });
 
   if (!settings) {
-    throw new SettingsMissingError({ establishmentId: id });
+    throw new SettingsMissingError({ establishmentId: id, });
   }
   response.status(constants.HTTP_STATUS_OK).json(toDBO(settings));
 }
 
 const getSettingsValidators: ValidationChain[] = [
-  param('id').isString().notEmpty(),
+  param('id').isString().notEmpty()
 ];
 
 async function updateSettings(request: Request, response: Response) {
-  const { auth, body } = request as AuthenticatedRequest;
+  const { auth, body, } = request as AuthenticatedRequest;
   // Could be the given establishmentId param in a future with access control
-  const { establishmentId } = auth;
+  const { establishmentId, } = auth;
 
   logger.info('Update settings', establishmentId);
 
@@ -67,8 +67,8 @@ async function updateSettings(request: Request, response: Response) {
 
 const updateSettingsValidators: ValidationChain[] = [
   param('id').isString().notEmpty(),
-  body('contactPoints').isObject({ strict: true }),
-  body('contactPoints.public').default(false).isBoolean({ strict: true }),
+  body('contactPoints').isObject({ strict: true, }),
+  body('contactPoints.public').default(false).isBoolean({ strict: true, })
 ];
 
 export default {

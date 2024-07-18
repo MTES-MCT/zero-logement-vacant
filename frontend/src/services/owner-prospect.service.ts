@@ -26,11 +26,11 @@ export const ownerProspectApi = zlvApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.entities.map(({ id }) => ({
+              ...result.entities.map(({ id, }) => ({
                 type: 'OwnerProspect' as const,
                 id,
               })),
-              'OwnerProspect',
+              'OwnerProspect'
             ]
           : ['OwnerProspect'],
     }),
@@ -51,8 +51,8 @@ export const ownerProspectApi = zlvApi.injectEndpoints({
           headers: authService.withAuthHeader(),
         };
       },
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'OwnerProspect', id },
+      invalidatesTags: (result, error, { id, }) => [
+        { type: 'OwnerProspect', id, }
       ],
     }),
   }),

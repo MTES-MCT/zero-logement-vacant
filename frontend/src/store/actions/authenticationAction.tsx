@@ -8,7 +8,7 @@ export interface LoginAction {
   authUser: AuthUser;
 }
 
-const { logoutUser, loginUser, loginFail } = authenticationSlice.actions;
+const { logoutUser, loginUser, loginFail, } = authenticationSlice.actions;
 
 export const login = (
   email: string,
@@ -24,7 +24,7 @@ export const login = (
         if (authUser.accessToken) {
           dispatch(
             loginUser({
-              authUser
+              authUser,
             })
           );
         } else {
@@ -49,7 +49,7 @@ export const changeEstablishment = (establishmentId: string) => {
         if (authUser.accessToken) {
           dispatch(
             loginUser({
-              authUser
+              authUser,
             })
           );
           window.location.reload();

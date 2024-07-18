@@ -19,8 +19,8 @@ export function genAddressDTO(
     score: faker.number.float({
       fractionDigits: 2,
       min: 0,
-      max: 1
-    })
+      max: 1,
+    }),
   };
 }
 
@@ -41,9 +41,9 @@ export function genOwnerDTO(): OwnerDTO {
     fullName: `${firstName} ${lastName}`,
     email: faker.internet.email({
       firstName,
-      lastName
+      lastName,
     }),
     phone: faker.phone.number(),
-    kind: 'PERSONNE PHYSIQUE'
+    kind: 'PERSONNE PHYSIQUE',
   };
 }

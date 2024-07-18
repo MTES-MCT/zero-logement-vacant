@@ -18,10 +18,10 @@ import {
   UserDTO
 } from '@zerologementvacant/models';
 
-const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
+const campaigns: CampaignDTO[] = Array.from({ length: 10, }, genCampaignDTO);
 
 const datafoncierHousings: DatafoncierHousing[] = Array.from(
-  { length: 10 },
+  { length: 10, },
   () => genDatafoncierHousingDTO()
 );
 
@@ -29,15 +29,15 @@ const drafts: DraftDTO[] = campaigns.map<DraftDTO>(() =>
   genDraftDTO(genSenderDTO())
 );
 
-const users: UserDTO[] = Array.from({ length: 10 }, () => genUserDTO());
+const users: UserDTO[] = Array.from({ length: 10, }, () => genUserDTO());
 
-const groups: GroupDTO[] = Array.from({ length: 5 }, () =>
+const groups: GroupDTO[] = Array.from({ length: 5, }, () =>
   genGroupDTO(faker.helpers.arrayElement(users))
 );
 
-const owners: OwnerDTO[] = Array.from({ length: 30 }, genOwnerDTO);
+const owners: OwnerDTO[] = Array.from({ length: 30, }, genOwnerDTO);
 
-const housings: HousingDTO[] = Array.from({ length: 20 }).map(() =>
+const housings: HousingDTO[] = Array.from({ length: 20, }).map(() =>
   genHousingDTO(faker.helpers.arrayElement(owners))
 );
 
@@ -86,7 +86,7 @@ const data = {
   housings,
   housingCampaigns,
   owners,
-  users
+  users,
 };
 
 export default data;

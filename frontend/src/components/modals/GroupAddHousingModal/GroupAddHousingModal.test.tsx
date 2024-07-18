@@ -20,11 +20,11 @@ describe('GroupHousingModal', () => {
       reducer: applicationReducer,
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-          serializableCheck: false
+          serializableCheck: false,
         }).concat(applicationMiddlewares),
       preloadedState: {
-        authentication: { authUser: genAuthUser() }
-      }
+        authentication: { authUser: genAuthUser(), },
+      },
     });
   });
 

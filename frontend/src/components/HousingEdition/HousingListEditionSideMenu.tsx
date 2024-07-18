@@ -20,7 +20,7 @@ const HousingListEditionSideMenu = ({
   housingCount,
   open,
   onSubmit,
-  onClose
+  onClose,
 }: Props) => {
   const statusFormRef = useRef<{
     submit: () => void;

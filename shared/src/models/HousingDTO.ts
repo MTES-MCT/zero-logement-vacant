@@ -10,5 +10,5 @@ export type HousingSource =
 export const HOUSING_SOURCES: HousingSource[] = [
   'lovac',
   'datafoncier-manual',
-  'datafoncier-import',
+  'datafoncier-import'
 ];

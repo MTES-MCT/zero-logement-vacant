@@ -9,12 +9,12 @@ export const datafoncierApi = zlvApi.injectEndpoints({
       DatafoncierHousingQuery
     >({
       query: (params) => `datafoncier/housing${getURLQuery(params)}`,
-      providesTags: () => [{ type: 'Datafoncier housing', id: 'LIST' }],
+      providesTags: () => [{ type: 'Datafoncier housing', id: 'LIST', }],
     }),
     findOneHousing: builder.query<DatafoncierHousing, string>({
       query: (id: string) => `datafoncier/housing/${id}`,
       providesTags: (housing, error, id) => [
-        { type: 'Datafoncier housing', id },
+        { type: 'Datafoncier housing', id, }
       ],
     }),
   }),
@@ -27,4 +27,4 @@ interface DatafoncierHousingQuery
   idpar?: string;
 }
 
-export const { useLazyFindOneHousingQuery } = datafoncierApi;
+export const { useLazyFindOneHousingQuery, } = datafoncierApi;

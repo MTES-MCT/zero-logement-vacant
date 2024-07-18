@@ -6,7 +6,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
-  useUpdateGroupMutation,
+  useUpdateGroupMutation
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -14,7 +14,7 @@ import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListMap from '../HousingList/HousingListMap';
@@ -35,12 +35,12 @@ interface RouterState {
 }
 
 function GroupView() {
-  const { id } = useParams<{ id: string }>();
-  const { data: group, isLoading: isLoadingGroup } = useGetGroupQuery(id);
+  const { id, } = useParams<{ id: string }>();
+  const { data: group, isLoading: isLoadingGroup, } = useGetGroupQuery(id);
 
   useDocumentTitle(group?.title ?? 'Groupe');
 
-  const { trackEvent } = useMatomo();
+  const { trackEvent, } = useMatomo();
   const {
     filters,
     setFilters,
@@ -56,7 +56,7 @@ function GroupView() {
     },
   });
 
-  const { view } = useAppSelector((state) => state.housing);
+  const { view, } = useAppSelector((state) => state.housing);
 
   function searchWithQuery(query: string): void {
     trackEvent({
@@ -86,7 +86,7 @@ function GroupView() {
 
   const [createCampaignFromGroup] = useCreateCampaignFromGroupMutation();
   async function onCampaignCreate(
-    campaign: Pick<Campaign, 'title'>,
+    campaign: Pick<Campaign, 'title'>
   ): Promise<void> {
     if (group) {
       const created = await createCampaignFromGroup({

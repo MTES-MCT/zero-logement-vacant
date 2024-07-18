@@ -9,12 +9,12 @@ import HousingListEditionSideMenu from '../../components/HousingEdition/HousingL
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import {
   useCountHousingQuery,
-  useUpdateHousingListMutation,
+  useUpdateHousingListMutation
 } from '../../services/housing.service';
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import { HousingFilters } from '../../models/HousingFilters';
@@ -24,7 +24,7 @@ import {
   useAddGroupHousingMutation,
   useCreateGroupMutation,
   useGetGroupQuery,
-  useRemoveGroupHousingMutation,
+  useRemoveGroupHousingMutation
 } from '../../services/group.service';
 import { Group } from '../../models/Group';
 import { useHistory, useParams } from 'react-router-dom';
@@ -58,27 +58,27 @@ const HousingListTab = ({
   status,
   onCountFilteredHousing,
 }: HousingListTabProps) => {
-  const { trackEvent } = useMatomo();
+  const { trackEvent, } = useMatomo();
   const router = useHistory();
   const [
     updateHousingList,
-    { isSuccess: isUpdateSuccess, data: updatedCount },
+    { isSuccess: isUpdateSuccess, data: updatedCount, }
   ] = useUpdateHousingListMutation();
 
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
     useState<SelectedHousing>();
   const [error, setError] = useState<string>();
 
-  const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters),
+  const { data: housingCount, } = useCountHousingQuery(
+    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters)
   );
   const totalCount = housingCount?.housing;
 
-  const { data: count } = useCountHousingQuery(filters);
+  const { data: count, } = useCountHousingQuery(filters);
   const filteredCount = count;
 
-  const { selectedCount, selected, setSelected } = useSelection(
-    filteredCount?.housing,
+  const { selectedCount, selected, setSelected, } = useSelection(
+    filteredCount?.housing
   );
   const filteredHousingCount = filteredCount?.housing;
   const filteredOwnerCount = filteredCount?.owners;
@@ -127,7 +127,7 @@ const HousingListTab = ({
     } catch (error: any) {
       if (error.data.name === 'HousingUpdateForbiddenError') {
         setError(
-          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".',
+          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".'
         );
       }
     }
@@ -155,7 +155,7 @@ const HousingListTab = ({
 
   const [createGroup] = useCreateGroupMutation();
   async function doCreateGroup(
-    group: Pick<Group, 'title' | 'description'>,
+    group: Pick<Group, 'title' | 'description'>
   ): Promise<void> {
     try {
       const response = await createGroup({
@@ -182,7 +182,7 @@ const HousingListTab = ({
   }
 
   const params = useParams<{ id?: string }>();
-  const { data: group } = useGetGroupQuery(params?.id ?? '', {
+  const { data: group, } = useGetGroupQuery(params?.id ?? '', {
     skip: !params?.id,
   });
   const [removeGroupHousing] = useRemoveGroupHousingMutation();

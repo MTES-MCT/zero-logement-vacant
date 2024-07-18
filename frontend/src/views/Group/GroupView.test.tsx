@@ -43,7 +43,7 @@ describe('Group view', () => {
     const housings = faker.helpers.arrayElements(data.housings);
     const group: GroupDTO = {
       ...genGroupDTO(creator, housings),
-      archivedAt: new Date().toJSON()
+      archivedAt: new Date().toJSON(),
     };
     // Not pushed into the data.groups array
 

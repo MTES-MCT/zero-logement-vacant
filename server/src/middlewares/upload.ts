@@ -15,7 +15,7 @@ export function upload() {
     fileFilter(
       request: Request,
       file: Express.Multer.File,
-      callback: multer.FileFilterCallback,
+      callback: multer.FileFilterCallback
     ) {
       // TODO: check file.mimetype
       return callback(null, true);
@@ -31,7 +31,7 @@ export function upload() {
       bucket: config.s3.bucket,
       contentType: multerS3.AUTO_CONTENT_TYPE,
       metadata(request, file, cb) {
-        cb(null, { fieldName: file.fieldname });
+        cb(null, { fieldName: file.fieldname, });
       },
       key: function (req, file, cb) {
         const id = uuidv4();

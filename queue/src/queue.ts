@@ -47,7 +47,7 @@ export function createQueue(opts?: Options): Queue {
       event: K,
       callback: (returned: ReturnType<Jobs[K]>) => void
     ) {
-      eventQueues.get(event)?.on('completed', async ({ jobId }) => {
+      eventQueues.get(event)?.on('completed', async ({ jobId, }) => {
         const job = await queues.get(event)?.getJob(jobId);
         if (!job) {
           throw new Error(`Job not found: ${jobId}`);
@@ -64,6 +64,6 @@ export function createQueue(opts?: Options): Queue {
       await async.forEach(allQueues, async (queue) => {
         await queue.close();
       });
-    }
+    },
   };
 }

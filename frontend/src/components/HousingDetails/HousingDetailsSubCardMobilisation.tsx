@@ -17,7 +17,7 @@ interface Props {
   campaigns: Campaign[];
 }
 
-function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
+function HousingDetailsCardMobilisation({ housing, campaigns, }: Props) {
   if (!housing) {
     return <></>;
   }

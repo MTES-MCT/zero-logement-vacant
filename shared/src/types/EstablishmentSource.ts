@@ -6,5 +6,5 @@ export type EstablishmentSource =
 export const ESTABLISHMENT_SOURCES: EstablishmentSource[] = [
   'seed',
   'manual',
-  'cerema',
+  'cerema'
 ];

@@ -19,12 +19,12 @@ import Typography from '@mui/material/Typography';
 function AccountEmailCreationView() {
   const [email, setEmail] = useState('');
   const router = useHistory();
-  const { send: sendActivationEmail } = useActivationEmail();
-  const { trackEvent } = useMatomo();
+  const { send: sendActivationEmail, } = useActivationEmail();
+  const { trackEvent, } = useMatomo();
 
-  const shape = { email: emailValidator };
+  const shape = { email: emailValidator, };
   type FormShape = typeof shape;
-  const form = useForm(yup.object().shape(shape), { email });
+  const form = useForm(yup.object().shape(shape), { email, });
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,13 +32,13 @@ function AccountEmailCreationView() {
       await sendActivationEmail(email);
       trackEvent({
         category: TrackEventCategories.AccountCreation,
-        action: TrackEventActions.AccountCreation.SendEmail
+        action: TrackEventActions.AccountCreation.SendEmail,
       });
       return router.push({
         pathname: '/inscription/activation',
         state: {
-          email
-        }
+          email,
+        },
       });
     });
   }

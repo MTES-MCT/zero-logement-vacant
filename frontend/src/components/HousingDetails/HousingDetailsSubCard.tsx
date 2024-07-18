@@ -12,13 +12,13 @@ interface Props {
   children?: ReactElement | (ReactElement | undefined)[];
 }
 
-function HousingDetailsSubCard({ title, isGrey, hasBorder, children }: Props) {
+function HousingDetailsSubCard({ title, isGrey, hasBorder, children, }: Props) {
   return (
     <Card
       border={!!hasBorder}
       size="small"
       className={classNames(styles.subCard, 'app-card-xs', {
-        'bg-975': isGrey
+        'bg-975': isGrey,
       })}
       title={
         <>

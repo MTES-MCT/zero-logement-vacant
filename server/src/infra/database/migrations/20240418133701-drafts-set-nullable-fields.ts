@@ -18,11 +18,11 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex('drafts').whereNull('subject').update({ subject: '' });
-  await knex('drafts').whereNull('body').update({ body: '' });
-  await knex('drafts').whereNull('logo').update({ logo: [] });
-  await knex('drafts').whereNull('written_at').update({ written_at: '' });
-  await knex('drafts').whereNull('written_from').update({ written_from: '' });
+  await knex('drafts').whereNull('subject').update({ subject: '', });
+  await knex('drafts').whereNull('body').update({ body: '', });
+  await knex('drafts').whereNull('logo').update({ logo: [], });
+  await knex('drafts').whereNull('written_at').update({ written_at: '', });
+  await knex('drafts').whereNull('written_from').update({ written_from: '', });
   await knex.schema.alterTable('drafts', (table) => {
     table.dropNullable('subject');
     table.dropNullable('body');
@@ -30,11 +30,11 @@ export async function down(knex: Knex): Promise<void> {
     table.dropNullable('written_at');
     table.dropNullable('written_from');
   });
-  await knex('senders').whereNull('name').update({ name: '' });
-  await knex('senders').whereNull('service').update({ service: '' });
-  await knex('senders').whereNull('first_name').update({ first_name: '' });
-  await knex('senders').whereNull('last_name').update({ last_name: '' });
-  await knex('senders').whereNull('address').update({ address: '' });
+  await knex('senders').whereNull('name').update({ name: '', });
+  await knex('senders').whereNull('service').update({ service: '', });
+  await knex('senders').whereNull('first_name').update({ first_name: '', });
+  await knex('senders').whereNull('last_name').update({ last_name: '', });
+  await knex('senders').whereNull('address').update({ address: '', });
   await knex.schema.alterTable('senders', (table) => {
     table.dropNullable('name');
     table.dropNullable('service');

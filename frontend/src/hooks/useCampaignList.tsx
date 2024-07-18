@@ -1,10 +1,10 @@
 import {
   FindOptions,
-  useFindCampaignsQuery,
+  useFindCampaignsQuery
 } from '../services/campaign.service';
 
 export const useCampaignList = (opts?: FindOptions) => {
-  const { data: campaignList } = useFindCampaignsQuery(opts);
+  const { data: campaignList, } = useFindCampaignsQuery(opts);
 
   return campaignList;
 };

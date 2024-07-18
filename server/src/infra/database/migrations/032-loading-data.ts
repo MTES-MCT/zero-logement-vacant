@@ -13,7 +13,7 @@ export async function up(knex: Knex): Promise<void> {
     }),
     knex.schema.alterTable('campaigns', (table) => {
       table.uuid('created_by').nullable().alter();
-    }),
+    })
   ]);
 }
 
@@ -27,6 +27,6 @@ export async function down(knex: Knex): Promise<void> {
     }),
     knex.schema.alterTable('users', (table) => {
       table.dropUnique(['email']);
-    }),
+    })
   ]);
 }

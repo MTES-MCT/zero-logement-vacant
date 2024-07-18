@@ -10,7 +10,7 @@ import { ContactPointApi, toContactPointDTO } from '~/models/ContactPointApi';
 import { logger } from '~/infra/logger';
 
 const listContactPointsValidators = [
-  query('establishmentId').notEmpty().isUUID(),
+  query('establishmentId').notEmpty().isUUID()
 ];
 
 function listContactPoints(publicOnly: boolean) {
@@ -21,7 +21,7 @@ function listContactPoints(publicOnly: boolean) {
 
     const contactPoints = await contactPointsRepository.find(
       establishmentId,
-      publicOnly,
+      publicOnly
     );
     response
       .status(constants.HTTP_STATUS_OK)
@@ -48,16 +48,16 @@ const createContactPointValidators = [
     .isArray()
     .custom((value) =>
       value.every((v: any) =>
-        validator.matches(v, /^(0[1-9]|[1-9][ABab\d])\d{3}$/),
-      ),
+        validator.matches(v, /^(0[1-9]|[1-9][ABab\d])\d{3}$/)
+      )
     ),
   body('email').isEmail().optional(),
   body('phone').isString().optional(),
-  body('notes').isString().optional(),
+  body('notes').isString().optional()
 ];
 
 async function createContactPoint(request: Request, response: Response) {
-  const { establishmentId } = (request as AuthenticatedRequest).auth;
+  const { establishmentId, } = (request as AuthenticatedRequest).auth;
   const body = request.body as ContactPointBody;
 
   logger.info('Create contact point', {
@@ -79,7 +79,7 @@ async function createContactPoint(request: Request, response: Response) {
 const deleteContactPointValidators = [param('id').notEmpty().isUUID()];
 
 async function deleteContactPoint(request: Request, response: Response) {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, } = request as AuthenticatedRequest;
 
   logger.info('Delete contact point', params.id);
 
@@ -97,11 +97,11 @@ async function deleteContactPoint(request: Request, response: Response) {
 
 const updateContactPointValidators = [
   param('id').notEmpty().isUUID(),
-  ...createContactPointValidators,
+  ...createContactPointValidators
 ];
 
 async function updateContactPoint(request: Request, response: Response) {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, } = request as AuthenticatedRequest;
   const body = request.body as ContactPointBody;
 
   logger.info('Update contact point with id', params.id);

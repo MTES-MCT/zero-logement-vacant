@@ -26,7 +26,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
     establishmentSiren: Establishment1.siren,
     hasAccount: false,
     hasCommitment: false,
-  },
+  }
 ];
 
 export const getTestEmails = (): string[] => {

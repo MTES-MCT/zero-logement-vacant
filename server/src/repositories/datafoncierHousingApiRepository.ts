@@ -42,7 +42,7 @@ interface FindOneOptions {
 }
 
 const findOne = async (
-  opts: FindOneOptions,
+  opts: FindOneOptions
 ): Promise<DatafoncierHousing | null> => {
   logger.debug('Find one datafoncier housing', opts);
 

@@ -4,7 +4,7 @@ import { genHousingApi, genInvariant, genLocalId } from '~/test/testFixtures';
 import { HousingApi } from '~/models/HousingApi';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 
 describe('Housing stream', () => {
@@ -21,9 +21,9 @@ describe('Housing stream', () => {
       const stream = highland(
         Promise.resolve({
           [localId]: housingList,
-        }),
+        })
       );
-      const added: HousingApi = { ...genHousingApi('12345'), localId };
+      const added: HousingApi = { ...genHousingApi('12345'), localId, };
       await Housing().insert(formatHousingRecordApi(added));
 
       const actual = await prependOriginalHousing(stream).toPromise(Promise);

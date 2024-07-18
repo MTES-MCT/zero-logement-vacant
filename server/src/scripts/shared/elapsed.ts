@@ -4,7 +4,7 @@ export function timer() {
   const start = new Date();
   return (): Interval => {
     const end = new Date();
-    return { start, end };
+    return { start, end, };
   };
 }
 

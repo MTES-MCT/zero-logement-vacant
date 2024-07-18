@@ -36,5 +36,5 @@ export const VARIABLE_OPTIONS: Variable[] = [
   {
     label: 'DPE',
     value: '{{housing.energyConsumption}}',
-  },
+  }
 ];

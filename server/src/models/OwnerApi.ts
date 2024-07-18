@@ -17,9 +17,9 @@ export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {
         'email',
         'phone',
         'banAddress',
-        'additionalAddress',
+        'additionalAddress'
       ],
-      payload,
+      payload
     ),
     birthDate: payload.birthDate ? new Date(payload.birthDate) : undefined,
   };
@@ -45,15 +45,15 @@ export function hasContactChanges(prev: OwnerApi, curr: OwnerApi): boolean {
         'rawAddress',
         'email',
         'phone',
-        'additionalAddress',
-      ]),
+        'additionalAddress'
+      ])
     ).length > 0 ||
     Object.values(
       compare(
         prev.banAddress ?? emptyAddress,
         curr.banAddress ?? emptyAddress,
-        ['city', 'street', 'houseNumber', 'postalCode'],
-      ),
+        ['city', 'street', 'houseNumber', 'postalCode']
+      )
     ).length > 0
   );
 }

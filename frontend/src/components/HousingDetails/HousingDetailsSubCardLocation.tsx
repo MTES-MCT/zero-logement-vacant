@@ -9,8 +9,8 @@ interface Props {
   housing: Housing;
 }
 
-function HousingDetailsCardLocation({ housing }: Props) {
-  const { isVisitor } = useUser();
+function HousingDetailsCardLocation({ housing, }: Props) {
+  const { isVisitor, } = useUser();
 
   return (
     <HousingDetailsSubCard title="Localisation" isGrey>
@@ -30,7 +30,7 @@ function HousingDetailsCardLocation({ housing }: Props) {
               getBuildingLocation(housing)?.building,
               getBuildingLocation(housing)?.entrance,
               getBuildingLocation(housing)?.level,
-              getBuildingLocation(housing)?.local,
+              getBuildingLocation(housing)?.local
             ].join(', ')}
           </Text>
         </div>

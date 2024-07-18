@@ -6,14 +6,14 @@ import { useFindDraftsQuery } from '../services/draft.service';
 import { useCountHousingQuery } from '../services/housing.service';
 
 export function useCampaign() {
-  const { id } = useParams<{ id: string }>();
+  const { id, } = useParams<{ id: string }>();
 
-  const { data: campaign, isLoading: isLoadingCampaign } =
+  const { data: campaign, isLoading: isLoadingCampaign, } =
     useGetCampaignQuery(id);
-  const { data: drafts, isLoading: isLoadingDraft } = useFindDraftsQuery({
+  const { data: drafts, isLoading: isLoadingDraft, } = useFindDraftsQuery({
     campaign: id,
   });
-  const { data: count } = useCountHousingQuery({
+  const { data: count, } = useCountHousingQuery({
     campaignIds: [id],
   });
 

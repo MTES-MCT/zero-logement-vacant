@@ -26,7 +26,7 @@ function createServer() {
         postgresCheck(config.db.url),
         s3Check(config.s3)
       ],
-      logger
+      logger,
     })
   );
 
@@ -43,7 +43,7 @@ function createServer() {
 
   return {
     app,
-    start
+    start,
   };
 }
 

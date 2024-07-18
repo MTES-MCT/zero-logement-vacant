@@ -4,7 +4,7 @@ import { ownerImporter, processOwner } from '../ownerImporter';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import {
   OwnerMatchDBO,
-  OwnerMatches,
+  OwnerMatches
 } from '~/repositories/ownerMatchRepository';
 import { OwnerApi } from '~/models/OwnerApi';
 import { DatafoncierOwner, toOwnerApi } from '../../shared';
@@ -22,7 +22,7 @@ const createProgressBas = () => {
       format:
         '{bar} | {percentage}% | ETA: {eta_formatted} | {value}/{total} housing',
     },
-    progress.Presets.shades_classic,
+    progress.Presets.shades_classic
   );
 };
 
@@ -30,7 +30,7 @@ describe('Import owners', () => {
   describe('Importer', () => {
     it('should save one owner and two matches if the same owner appears twice in the stream', async () => {
       const a = genDatafoncierOwner();
-      const b = { ...a, idpersonne: randomstring.generate(8) };
+      const b = { ...a, idpersonne: randomstring.generate(8), };
 
       const progressBarOwner = createProgressBas();
       const ownerImporterForHighland = (stream: Stream<DatafoncierOwner>) =>
@@ -42,11 +42,11 @@ describe('Import owners', () => {
 
       const matches = await OwnerMatches().whereIn('idpersonne', [
         a.idpersonne,
-        b.idpersonne,
+        b.idpersonne
       ]);
       expect(matches).toHaveLength(2);
       expect(matches).toSatisfyAll<OwnerMatchDBO>(
-        (match) => match.owner_id === matches[0].owner_id,
+        (match) => match.owner_id === matches[0].owner_id
       );
     });
   });

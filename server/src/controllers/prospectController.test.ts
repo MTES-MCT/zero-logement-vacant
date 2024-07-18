@@ -7,12 +7,12 @@ import {
   genProspectApi,
   genSignupLinkApi,
   genSiren,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import { createServer } from '~/infra/server';
 import signupLinkRepository, {
   formatSignupLinkApi,
-  SignupLinks,
+  SignupLinks
 } from '~/repositories/signupLinkRepository';
 import { ProspectApi } from '~/models/ProspectApi';
 import ceremaService from '~/services/ceremaService';
@@ -20,23 +20,23 @@ import { SignupLinkApi } from '~/models/SignupLinkApi';
 import { subHours } from 'date-fns';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   formatProspectApi,
-  Prospects,
+  Prospects
 } from '~/repositories/prospectRepository';
 
 describe('Prospect API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const anotherEstablishment = genEstablishmentApi();
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi),
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
   });
 
@@ -58,7 +58,7 @@ describe('Prospect API', () => {
       const link = genSignupLinkApi(user.email);
       await SignupLinks().insert(formatSignupLinkApi(link));
 
-      const { status } = await request(app).put(testRoute(link.id));
+      const { status, } = await request(app).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
@@ -67,7 +67,7 @@ describe('Prospect API', () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
 
-      const { status } = await request(app).put(testRoute(link.id));
+      const { status, } = await request(app).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
@@ -80,7 +80,7 @@ describe('Prospect API', () => {
       };
       await signupLinkRepository.insert(link);
 
-      const { status } = await request(app).put(testRoute(link.id));
+      const { status, } = await request(app).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
     });
@@ -107,10 +107,10 @@ describe('Prospect API', () => {
           establishmentSiren: anotherEstablishment.siren,
           hasAccount: true,
           hasCommitment: true,
-        },
+        }
       ]);
 
-      const { body, status } = await request(app).put(testRoute(link.id));
+      const { body, status, } = await request(app).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject<ProspectApi>({
@@ -132,10 +132,10 @@ describe('Prospect API', () => {
           establishmentSiren: genSiren(),
           hasAccount: true,
           hasCommitment: true,
-        },
+        }
       ]);
 
-      const { body, status } = await request(app).put(testRoute(link.id));
+      const { body, status, } = await request(app).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject<ProspectApi>({
@@ -159,10 +159,10 @@ describe('Prospect API', () => {
           establishmentSiren: siren,
           hasAccount: true,
           hasCommitment: true,
-        },
+        }
       ]);
 
-      const { body, status } = await request(app).put(testRoute(link.id));
+      const { body, status, } = await request(app).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject<ProspectApi>({
@@ -189,7 +189,7 @@ describe('Prospect API', () => {
     });
 
     it('should return not found if the prospect is missing', async () => {
-      const { status } = await request(app).get(testRoute('test@test.test'));
+      const { status, } = await request(app).get(testRoute('test@test.test'));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
@@ -200,8 +200,8 @@ describe('Prospect API', () => {
       const prospect = genProspectApi(establishment);
       await Prospects().insert(formatProspectApi(prospect));
 
-      const { body, status } = await request(app).get(
-        testRoute(prospect.email),
+      const { body, status, } = await request(app).get(
+        testRoute(prospect.email)
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);

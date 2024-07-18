@@ -4,17 +4,17 @@ import {
   include,
   includeExclude,
   includeExcludeWith,
-  includeWith,
+  includeWith
 } from '../arrayUtils';
 
 describe('Array utils', () => {
-  const items: Identifiable[] = [{ id: 'A' }, { id: 'B' }, { id: 'C' }];
+  const items: Identifiable[] = [{ id: 'A', }, { id: 'B', }, { id: 'C', }];
 
   describe('#include', () => {
     it('should include only the given ids', () => {
       const actual = include(['B'])(items);
 
-      expect(actual).toStrictEqual([{ id: 'B' }]);
+      expect(actual).toStrictEqual([{ id: 'B', }]);
     });
 
     it('should return everything if ids is empty', () => {
@@ -31,7 +31,7 @@ describe('Array utils', () => {
         (item) => item.id
       )(items);
 
-      expect(actual).toStrictEqual([{ id: 'B' }]);
+      expect(actual).toStrictEqual([{ id: 'B', }]);
     });
   });
 
@@ -39,7 +39,7 @@ describe('Array utils', () => {
     it('should exclude only the given ids', () => {
       const actual = exclude(['C'])(items);
 
-      expect(actual).toStrictEqual([{ id: 'A' }, { id: 'B' }]);
+      expect(actual).toStrictEqual([{ id: 'A', }, { id: 'B', }]);
     });
   });
 
@@ -50,7 +50,7 @@ describe('Array utils', () => {
         (item) => item.id
       )(items);
 
-      expect(actual).toStrictEqual([{ id: 'A' }]);
+      expect(actual).toStrictEqual([{ id: 'A', }]);
     });
   });
 
@@ -58,7 +58,7 @@ describe('Array utils', () => {
     it('should include and exclude only the given ids', () => {
       const actual = includeExclude(['A', 'C'], ['C'])(items);
 
-      expect(actual).toStrictEqual([{ id: 'A' }]);
+      expect(actual).toStrictEqual([{ id: 'A', }]);
     });
   });
 
@@ -70,7 +70,7 @@ describe('Array utils', () => {
         (item) => item.id
       )(items);
 
-      expect(actual).toStrictEqual([{ id: 'A' }]);
+      expect(actual).toStrictEqual([{ id: 'A', }]);
     });
   });
 });

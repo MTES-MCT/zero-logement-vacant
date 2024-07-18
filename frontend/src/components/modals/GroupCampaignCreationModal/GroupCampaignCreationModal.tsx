@@ -31,7 +31,7 @@ function GroupCampaignCreationModal(props: Props) {
     await form.validate(() =>
       props.onSubmit({
         title,
-      }),
+      })
     );
   }
 

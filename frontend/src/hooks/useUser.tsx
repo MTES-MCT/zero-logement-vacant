@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { useAppSelector } from './useStore';
 
 export const useUser = () => {
-  const { authUser } = useAppSelector((state) => state.authentication);
+  const { authUser, } = useAppSelector((state) => state.authentication);
 
   const isAuthenticated = useMemo<boolean>(
     () =>

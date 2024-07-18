@@ -4,7 +4,7 @@ import { genHousingApi } from '~/test/testFixtures';
 import {
   formatHousingRecordApi,
   housingTable,
-  ReferenceDataYear,
+  ReferenceDataYear
 } from '~/repositories/housingRepository';
 import { housingOwnersTable } from '~/repositories/housingOwnerRepository';
 import { Locality1 } from './20240405011849_establishments';
@@ -24,8 +24,8 @@ export async function seed(knex: Knex): Promise<void> {
       .table(housingTable)
       .insert(
         [Housing0, Housing1, Housing2, HousingShortVacancy].map(
-          formatHousingRecordApi,
-        ),
+          formatHousingRecordApi
+        )
       )
       .then(() =>
         knex.table(housingOwnersTable).insert([
@@ -58,8 +58,8 @@ export async function seed(knex: Knex): Promise<void> {
             housing_id: HousingShortVacancy.id,
             housing_geo_code: HousingShortVacancy.geoCode,
             rank: 1,
-          },
-        ]),
-      ),
+          }
+        ])
+      )
   ]);
 }

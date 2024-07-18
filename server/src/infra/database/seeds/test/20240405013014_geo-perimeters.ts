@@ -2,11 +2,11 @@ import { Knex } from 'knex';
 
 import {
   Establishment1,
-  Establishment2,
+  Establishment2
 } from './20240405011849_establishments';
 import {
   formatGeoPerimeterApi,
-  geoPerimetersTable,
+  geoPerimetersTable
 } from '~/repositories/geoRepository';
 import { genGeoPerimeterApi } from '~/test/testFixtures';
 

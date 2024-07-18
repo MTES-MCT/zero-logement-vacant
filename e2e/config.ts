@@ -12,28 +12,28 @@ const config = convict<Config>({
     env: 'CYPRESS_API',
     doc: 'The API URL',
     default: null,
-    nullable: false
+    nullable: false,
   },
   baseURL: {
     env: 'CYPRESS_BASE_URL',
     doc: 'The base URL of the application',
     default: null,
-    nullable: false
+    nullable: false,
   },
   email: {
     env: 'CYPRESS_EMAIL',
     doc: 'The email to use for authentication',
     default: null,
     sensitive: true,
-    nullable: false
+    nullable: false,
   },
   password: {
     env: 'CYPRESS_PASSWORD',
     doc: 'The password to use for authentication',
     default: null,
     sensitive: true,
-    nullable: false
-  }
+    nullable: false,
+  },
 });
 
 export default config.get();

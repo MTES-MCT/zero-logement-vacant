@@ -6,7 +6,7 @@ export async function up(knex: Knex): Promise<void> {
     'establishments',
     (table: CreateTableBuilder) => {
       table.string('campaign_intent').nullable().defaultTo(null);
-    },
+    }
   );
 }
 
@@ -15,6 +15,6 @@ export async function down(knex: Knex): Promise<void> {
     'establishments',
     (table: CreateTableBuilder) => {
       table.dropColumn('campaign_intent');
-    },
+    }
   );
 }

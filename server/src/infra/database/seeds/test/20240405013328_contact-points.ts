@@ -2,12 +2,12 @@ import { Knex } from 'knex';
 
 import {
   contactPointsTable,
-  formatContactPointApi,
+  formatContactPointApi
 } from '~/repositories/contactPointsRepository';
 import { genContactPointApi } from '~/test/testFixtures';
 import {
   Establishment1,
-  Establishment2,
+  Establishment2
 } from './20240405011849_establishments';
 
 export const ContactPoint1 = genContactPointApi(Establishment1.id);

@@ -32,7 +32,7 @@ export const userCheck = () => {
   return async function (
     request: Request,
     response: Response,
-    next: NextFunction,
+    next: NextFunction
   ) {
     if (!request.auth || !request.auth.userId) {
       throw new AuthenticationMissingError();
@@ -40,7 +40,7 @@ export const userCheck = () => {
 
     const [user, establishment] = await Promise.all([
       getUser(request.auth.userId),
-      getEstablishment(request.auth.establishmentId),
+      getEstablishment(request.auth.establishmentId)
     ]);
     if (!user) {
       // Should never happen

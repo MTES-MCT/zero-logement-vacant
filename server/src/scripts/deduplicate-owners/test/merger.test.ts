@@ -5,26 +5,26 @@ import {
   genHousingApi,
   genOwnerApi,
   genOwnerEventApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import db from '~/infra/database/';
 import { formatOwnerApi, ownerTable } from '~/repositories/ownerRepository';
 import {
   eventsTable,
   formatEventApi,
-  ownerEventsTable,
+  ownerEventsTable
 } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
-  housingTable,
+  housingTable
 } from '~/repositories/housingRepository';
 import {
   HousingOwnerDBO,
-  housingOwnersTable,
+  housingOwnersTable
 } from '~/repositories/housingOwnerRepository';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 
@@ -39,12 +39,12 @@ describe('Merger', () => {
 
   describe('merge', () => {
     const source = genOwnerApi();
-    const duplicates = Array.from({ length: 2 }, () => genOwnerApi()).map(
-      (owner) => ({ ...owner, birthDate: undefined }),
+    const duplicates = Array.from({ length: 2, }, () => genOwnerApi()).map(
+      (owner) => ({ ...owner, birthDate: undefined, })
     );
     const suggestion = source;
     const events = duplicates.map((owner) =>
-      genOwnerEventApi(owner.id, user.id),
+      genOwnerEventApi(owner.id, user.id)
     );
     const housingList = duplicates.map(() => genHousingApi());
 
@@ -58,7 +58,7 @@ describe('Merger', () => {
         events.map((event) => ({
           owner_id: event.old?.id,
           event_id: event.id,
-        })),
+        }))
       );
 
       // Attach housing to the duplicates
@@ -71,7 +71,7 @@ describe('Merger', () => {
             owner_id: duplicates[i].id,
             rank: i + 1,
           };
-        }),
+        })
       );
     });
 
@@ -83,7 +83,7 @@ describe('Merger', () => {
           {
             score: 0.8,
             value: duplicates[0],
-          },
+          }
         ],
         needsReview: true,
       };
@@ -92,10 +92,10 @@ describe('Merger', () => {
 
       const ownerEvents = await db(ownerEventsTable).whereIn(
         'event_id',
-        events.map((event) => event.id),
+        events.map((event) => event.id)
       );
       expect(ownerEvents).toSatisfyAll(
-        (event) => event.owner_id !== suggestion.id,
+        (event) => event.owner_id !== suggestion.id
       );
     });
 
@@ -114,16 +114,16 @@ describe('Merger', () => {
 
       const ownerHousing = await db(housingOwnersTable).whereIn(
         'housing_id',
-        housingList.map((housing) => housing.id),
+        housingList.map((housing) => housing.id)
       );
       expect(ownerHousing).toSatisfyAll((oh) => oh.owner_id === suggestion.id);
 
       const ownerEvents = await db(ownerEventsTable).whereIn(
         'event_id',
-        events.map((event) => event.id),
+        events.map((event) => event.id)
       );
       expect(ownerEvents).toSatisfyAll(
-        (event) => event.owner_id === suggestion.id,
+        (event) => event.owner_id === suggestion.id
       );
     });
 
@@ -142,7 +142,7 @@ describe('Merger', () => {
 
       const dups = await db(ownerTable).whereIn(
         'id',
-        duplicates.map((duplicate) => duplicate.id),
+        duplicates.map((duplicate) => duplicate.id)
       );
       expect(dups).toBeArrayOfSize(0);
     });

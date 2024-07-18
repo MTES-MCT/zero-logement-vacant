@@ -10,7 +10,7 @@ import configureTestStore from '../../../../utils/test/storeUtils';
 
 describe('AccountCampaignIntentCreationView', () => {
   const user = userEvent.setup();
-  const store = configureTestStore({ withAuth: true });
+  const store = configureTestStore({ withAuth: true, });
   const password = randomstring.generate();
 
   function renderComponent(prospect: Prospect = genProspect()) {
@@ -22,8 +22,8 @@ describe('AccountCampaignIntentCreationView', () => {
               pathname: '/inscription/campagne',
               state: {
                 prospect,
-                password
-              }
+                password,
+              },
             }
           ]}
         >
@@ -63,8 +63,8 @@ describe('AccountCampaignIntentCreationView', () => {
       establishment: {
         id: randomstring.generate(),
         siren: genSiren(),
-        campaignIntent: '2-4'
-      }
+        campaignIntent: '2-4',
+      },
     });
 
     const labels = [
@@ -84,8 +84,8 @@ describe('AccountCampaignIntentCreationView', () => {
       ...genProspect(),
       establishment: {
         id: randomstring.generate(),
-        siren: genSiren()
-      }
+        siren: genSiren(),
+      },
     });
 
     const radio = screen.getByLabelText('Dans les 2 prochains mois');

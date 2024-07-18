@@ -7,7 +7,7 @@ describe('AddressDTO', () => {
         refId: 'owner.id',
         addressKind: AddressKinds.Owner,
         postalCode: '01000',
-        city: 'Bourg-en-Bresse'
+        city: 'Bourg-en-Bresse',
       };
 
       const actual = formatAddress(address);
@@ -22,7 +22,7 @@ describe('AddressDTO', () => {
         houseNumber: '1',
         street: 'rue de la paix',
         postalCode: '01000',
-        city: 'Bourg-en-Bresse'
+        city: 'Bourg-en-Bresse',
       };
       const additionalAddress = 'Appart. 1';
 

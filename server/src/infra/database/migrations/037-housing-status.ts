@@ -17,7 +17,7 @@ export async function up(knex: Knex): Promise<void> {
       }),
     knex.schema.alterTable('housing', (table) => {
       table.integer('status').defaultTo(0).alter();
-    }),
+    })
   ]);
 }
 

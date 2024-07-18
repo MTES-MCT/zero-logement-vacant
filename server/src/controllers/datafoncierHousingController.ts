@@ -8,7 +8,7 @@ import createDatafoncierHousingRepository from '~/repositories/datafoncierHousin
 const datafoncierHousingRepository = createDatafoncierHousingRepository();
 
 const findOne = async (request: Request, response: Response) => {
-  const { establishment } = request as AuthenticatedRequest;
+  const { establishment, } = request as AuthenticatedRequest;
 
   const geoCode = request.params.localId.substring(0, 5);
   if (!establishment.geoCodes.includes(geoCode)) {

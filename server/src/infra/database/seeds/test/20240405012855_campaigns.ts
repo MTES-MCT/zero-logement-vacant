@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import campaignRepository, {
-  campaignsTable,
+  campaignsTable
 } from '~/repositories/campaignRepository';
 import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
 import { housingTable } from '~/repositories/housingRepository';
@@ -23,11 +23,11 @@ export async function seed(knex: Knex): Promise<void> {
           campaign_id: Campaign1.id,
           housing_id: Housing1.id,
           housing_geo_code: Housing1.geoCode,
-        }),
+        })
       ),
     knex
       .table(housingTable)
-      .update({ status: HousingStatusApi.Waiting })
-      .where('id', Housing1.id),
+      .update({ status: HousingStatusApi.Waiting, })
+      .where('id', Housing1.id)
   ]);
 }

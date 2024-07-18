@@ -76,7 +76,7 @@ const CampaignCreationModal = ({
             onClick: create,
             disabled: buttonsDisabled,
             doClosesModal: false,
-          },
+          }
         ]}
       >
         <Container as="section" fluid>

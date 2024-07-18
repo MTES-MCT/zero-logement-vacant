@@ -34,7 +34,7 @@ const AppMultiSelect = ({
   const onChangeValue = (value: string, isChecked: boolean) => {
     onChange([
       ...(initialValues ?? []).filter((v) => v !== value),
-      ...(isChecked ? [value] : []),
+      ...(isChecked ? [value] : [])
     ]);
   };
 
@@ -104,7 +104,7 @@ const AppMultiSelect = ({
                       onChangeValue={onChangeValue}
                       small={small}
                     />
-                  ),
+                  )
               )}
             </div>
           </div>

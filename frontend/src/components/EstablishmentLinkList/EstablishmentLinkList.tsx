@@ -9,7 +9,7 @@ interface Props {
   address?: string;
 }
 
-const EstablishmentLinkList = ({ establishments, title, address }: Props) => {
+const EstablishmentLinkList = ({ establishments, title, address, }: Props) => {
   return (
     <section className="fr-mt-6w">
       <Typography component="h2" variant="h4" mb={0}>

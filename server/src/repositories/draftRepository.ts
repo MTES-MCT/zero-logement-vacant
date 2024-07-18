@@ -44,7 +44,7 @@ async function findOne(opts: FindOneOptions): Promise<DraftApi | null> {
     .where(
       filterQuery({
         id: opts.id,
-        establishment: opts.establishmentId
+        establishment: opts.establishmentId,
       })
     )
     .first();
@@ -131,7 +131,7 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   establishment_id: draft.establishmentId,
   sender_id: draft.senderId,
   created_at: new Date(draft.createdAt),
-  updated_at: new Date(draft.updatedAt)
+  updated_at: new Date(draft.updatedAt),
 });
 
 export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => ({
@@ -145,11 +145,11 @@ export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => ({
   senderId: draft.sender_id,
   sender: await parseSenderApi(draft.sender),
   createdAt: draft.created_at.toJSON(),
-  updatedAt: draft.updated_at.toJSON()
+  updatedAt: draft.updated_at.toJSON(),
 });
 
 export default {
   find,
   findOne,
-  save
+  save,
 };

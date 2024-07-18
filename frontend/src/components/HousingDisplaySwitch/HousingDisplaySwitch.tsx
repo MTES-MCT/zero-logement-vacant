@@ -3,16 +3,16 @@ import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { useAppDispatch } from '../../hooks/useStore';
 import housingSlice from '../../store/reducers/housingReducer';
 
 export function HousingDisplaySwitch() {
   const dispatch = useAppDispatch();
-  const { trackEvent } = useMatomo();
+  const { trackEvent, } = useMatomo();
 
-  const { changeView } = housingSlice.actions;
+  const { changeView, } = housingSlice.actions;
 
   function toList() {
     trackEvent({
@@ -50,7 +50,7 @@ export function HousingDisplaySwitch() {
             title: 'Vue carte',
             onClick: toMap,
           },
-        },
+        }
       ]}
     />
   );

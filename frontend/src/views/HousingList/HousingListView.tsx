@@ -8,7 +8,7 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useFilters } from '../../hooks/useFilters';
@@ -23,7 +23,7 @@ import { useUser } from '../../hooks/useUser';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
-  const { trackEvent } = useMatomo();
+  const { trackEvent, } = useMatomo();
 
   const {
     filters,
@@ -35,7 +35,7 @@ const HousingListView = () => {
     removeFilter,
   } = useFilters();
 
-  const { view } = useAppSelector((state) => state.housing);
+  const { view, } = useAppSelector((state) => state.housing);
 
   const searchWithQuery = (query: string) => {
     trackEvent({
@@ -53,11 +53,11 @@ const HousingListView = () => {
   const [alert, setAlert] = useState(router.location.state?.alert ?? '');
   function onFinish() {
     setAlert(
-      'Le logement sélectionné a bien été ajouté à votre parc de logements.',
+      'Le logement sélectionné a bien été ajouté à votre parc de logements.'
     );
   }
 
-  const { isVisitor } = useUser();
+  const { isVisitor, } = useUser();
 
   return (
     <Grid container position="relative">

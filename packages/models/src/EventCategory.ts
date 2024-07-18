@@ -12,5 +12,5 @@ export const EventCategories: EventCategory[] = [
   'Diagnostic',
   'Campaign',
   'Group',
-  'Trade',
+  'Trade'
 ];

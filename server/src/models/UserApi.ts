@@ -58,7 +58,7 @@ export function detectDomain(users: UserApi[]): string | null {
     }),
     fp.filter((value) => isAllowedDomain(value.domain)),
     fp.maxBy((value) => value.count),
-    (value) => value?.domain ?? null,
+    (value) => value?.domain ?? null
   )(users);
 }
 
@@ -68,7 +68,7 @@ function isAllowedDomain(domain: string): boolean {
     'hotmail.fr',
     'hotmail.com',
     'wanadoo.fr',
-    'wanadoo.com',
+    'wanadoo.com'
   ];
   return !domains.includes(domain);
 }

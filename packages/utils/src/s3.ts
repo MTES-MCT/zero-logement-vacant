@@ -18,8 +18,8 @@ export function createS3(opts: S3Options): S3Client {
     forcePathStyle: true,
     credentials: {
       accessKeyId: opts.accessKeyId,
-      secretAccessKey: opts.secretAccessKey
-    }
+      secretAccessKey: opts.secretAccessKey,
+    },
   });
 }
 
@@ -32,7 +32,7 @@ export async function getBase64Content(
   logo: string,
   opts: ToBase64Options
 ): Promise<string> {
-  const { response, content } = await getContent(logo, opts);
+  const { response, content, } = await getContent(logo, opts);
   return toBase64(content, response.ContentType);
 }
 
@@ -46,7 +46,7 @@ export async function getContent(
 ): Promise<{ response: GetObjectCommandOutput; content: string }> {
   const command = new GetObjectCommand({
     Bucket: opts.bucket,
-    Key: logo
+    Key: logo,
   });
   const response = await opts.s3.send(command);
   if (!response.Body) {
@@ -54,5 +54,5 @@ export async function getContent(
   }
   const content = await response.Body?.transformToString('base64');
 
-  return { response, content };
+  return { response, content, };
 }

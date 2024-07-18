@@ -16,7 +16,7 @@ describe('092 Owners birth date', () => {
       email: faker.internet.email(),
       phone: faker.phone.number(),
       owner_kind: 'PERSONNE PHYSIQUE',
-      owner_kind_detail: 'PERSONNE PHYSIQUE'
+      owner_kind_detail: 'PERSONNE PHYSIQUE',
     },
     {
       id: uuidv4(),
@@ -27,7 +27,7 @@ describe('092 Owners birth date', () => {
       email: faker.internet.email(),
       phone: faker.phone.number(),
       owner_kind: 'PERSONNE PHYSIQUE',
-      owner_kind_detail: 'PERSONNE PHYSIQUE'
+      owner_kind_detail: 'PERSONNE PHYSIQUE',
     }
   ];
 
@@ -50,8 +50,8 @@ describe('092 Owners birth date', () => {
       const actual = await db('owners').whereIn('id', ids);
 
       expect(actual).toIncludeAllPartialMembers([
-        { birth_date: new Date('2000-01-01') },
-        { birth_date: new Date('1990-01-01') }
+        { birth_date: new Date('2000-01-01'), },
+        { birth_date: new Date('1990-01-01'), }
       ]);
     });
   });
@@ -67,8 +67,8 @@ describe('092 Owners birth date', () => {
       const actual = await db('owners').whereIn('id', ids);
 
       expect(actual).toIncludeAllPartialMembers([
-        { birth_date: new Date(2000, 0, 1) },
-        { birth_date: new Date(1990, 0, 1) }
+        { birth_date: new Date(2000, 0, 1), },
+        { birth_date: new Date(1990, 0, 1), }
       ]);
     });
   });

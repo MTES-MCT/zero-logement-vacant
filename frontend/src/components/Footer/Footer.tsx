@@ -6,12 +6,12 @@ import fnv from '../../assets/images/france-nation-verte.svg';
 import styles from './footer.module.scss';
 
 function Footer() {
-  const { isAuthenticated } = useUser();
+  const { isAuthenticated, } = useUser();
   return (
     <DSFRFooter
       accessibility="non compliant"
       accessibilityLinkProps={{
-        to: '/accessibilite'
+        to: '/accessibilite',
       }}
       brandTop={
         <>
@@ -23,16 +23,16 @@ function Footer() {
         </>
       }
       classes={{
-        partnersLogos: styles.partners
+        partnersLogos: styles.partners,
       }}
       homeLinkProps={{
         className: styles.brandLink,
         to: 'https://www.ecologie.gouv.fr/',
-        title: 'Accueil - Zéro Logement Vacant'
+        title: 'Accueil - Zéro Logement Vacant',
       }}
       termsLinkProps={{
         to: '/mentions-legales',
-        content: 'Politique de confidentialité'
+        content: 'Politique de confidentialité',
       }}
       contentDescription="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée."
       linkList={[
@@ -41,80 +41,80 @@ function Footer() {
           links: [
             {
               linkProps: {
-                to: 'mailto:contact@zerologementvacant.beta.gouv.fr'
+                to: 'mailto:contact@zerologementvacant.beta.gouv.fr',
               },
-              text: 'Nous contacter'
+              text: 'Nous contacter',
             },
             {
               linkProps: {
-                to: 'https://zerologementvacant.crisp.help/fr/'
+                to: 'https://zerologementvacant.crisp.help/fr/',
               },
-              text: 'FAQ'
+              text: 'FAQ',
             },
             {
               linkProps: {
-                to: 'https://zlv.notion.site/Feuille-route-publique-Z-ro-Logement-Vacant-19355f27a5d740e4888b57027eed6441'
+                to: 'https://zlv.notion.site/Feuille-route-publique-Z-ro-Logement-Vacant-19355f27a5d740e4888b57027eed6441',
               },
-              text: 'Nouveautés'
+              text: 'Nouveautés',
             }
-          ]
+          ],
         },
-        { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
+        { categoryName: '', links: [{ linkProps: { to: '', }, text: '', }], },
         {
           categoryName: 'Informations légales',
           links: [
             {
               linkProps: {
-                to: '/mentions-legales'
+                to: '/mentions-legales',
               },
-              text: 'Mentions légales & CGU'
+              text: 'Mentions légales & CGU',
             },
             {
               linkProps: {
-                to: '/stats'
+                to: '/stats',
               },
-              text: 'Statistiques'
+              text: 'Statistiques',
             }
-          ]
+          ],
         },
-        { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
+        { categoryName: '', links: [{ linkProps: { to: '', }, text: '', }], },
         {
           categoryName: 'Navigation',
           links: isAuthenticated
             ? [
                 {
                   linkProps: {
-                    to: '/parc-de-logements'
+                    to: '/parc-de-logements',
                   },
-                  text: 'Parc de logements'
+                  text: 'Parc de logements',
                 },
                 {
                   linkProps: {
-                    to: '/campagnes'
+                    to: '/campagnes',
                   },
-                  text: 'Campagnes'
+                  text: 'Campagnes',
                 },
                 {
                   linkProps: {
-                    to: '/ressources'
+                    to: '/ressources',
                   },
-                  text: 'Ressources'
+                  text: 'Ressources',
                 },
                 {
                   linkProps: {
-                    to: '/compte'
+                    to: '/compte',
                   },
-                  text: 'Profil'
+                  text: 'Profil',
                 }
               ]
             : [
                 {
                   linkProps: {
-                    to: '/connexion'
+                    to: '/connexion',
                   },
-                  text: 'Connexion'
+                  text: 'Connexion',
                 }
-              ]
+              ],
         }
       ]}
       partnersLogos={{
@@ -124,18 +124,18 @@ function Footer() {
             imgUrl: anah,
             linkProps: {
               to: 'https://www.anah.gouv.fr/',
-              title: 'Agence national de l’habitat'
-            }
+              title: 'Agence national de l’habitat',
+            },
           },
           {
             alt: 'Logo de France Nation Verte',
             imgUrl: fnv,
             linkProps: {
               to: 'https://www.info.gouv.fr/france-nation-verte',
-              title: 'France Nation Verte'
-            }
+              title: 'France Nation Verte',
+            },
           }
-        ]
+        ],
       }}
     />
   );

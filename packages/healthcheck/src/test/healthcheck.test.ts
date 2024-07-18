@@ -12,7 +12,7 @@ describe('Healthcheck API', () => {
     const app = express();
     const logger = createLogger('test', {
       isProduction: false,
-      level: LogLevel.FATAL
+      level: LogLevel.FATAL,
     });
     app.get(
       '/',
@@ -21,11 +21,11 @@ describe('Healthcheck API', () => {
           redisCheck('redis://localhost:6379'),
           postgresCheck('postgres://postgres:postgres@localhost:5432')
         ],
-        logger
+        logger,
       })
     );
 
-    const { body, status } = await request(app).get('/');
+    const { body, status, } = await request(app).get('/');
 
     expect(status).toBe(constants.HTTP_STATUS_OK);
     expect(body.checks).toSatisfyAll<CheckStatus>((check) => {
@@ -37,7 +37,7 @@ describe('Healthcheck API', () => {
     const app = express();
     const logger = createLogger('test', {
       isProduction: false,
-      level: LogLevel.FATAL
+      level: LogLevel.FATAL,
     });
     app.get(
       '/',
@@ -46,16 +46,16 @@ describe('Healthcheck API', () => {
           redisCheck('redis://localhost:6000'),
           postgresCheck('postgres://postgres:postgres@localhost:5000')
         ],
-        logger
+        logger,
       })
     );
 
-    const { body, status } = await request(app).get('/');
+    const { body, status, } = await request(app).get('/');
 
     expect(status).toBe(constants.HTTP_STATUS_SERVICE_UNAVAILABLE);
     expect(body.checks).toIncludeSameMembers<CheckStatus>([
-      { name: 'redis', status: 'down' },
-      { name: 'postgres', status: 'down' }
+      { name: 'redis', status: 'down', },
+      { name: 'postgres', status: 'down', }
     ]);
   });
 });

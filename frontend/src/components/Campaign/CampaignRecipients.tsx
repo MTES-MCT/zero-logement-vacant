@@ -18,7 +18,7 @@ interface Props {
 }
 
 function CampaignRecipients(props: Props) {
-  const { housingList } = useHousingList({
+  const { housingList, } = useHousingList({
     filters: {
       campaignIds: [props.campaign.id],
     },
@@ -46,7 +46,7 @@ function CampaignRecipients(props: Props) {
     'Propriétaire principal',
     'Adresse BAN du propriétaire',
     'Complément d’adresse',
-    null,
+    null
   ];
   const data: ReactNode[][] = (housingList ?? []).map((housing, i) => [
     `# ${i}`,
@@ -97,7 +97,7 @@ function CampaignRecipients(props: Props) {
           Vous êtes sur le point de supprimer ce destinataire de la campagne.
         </Typography>
       </ConfirmationModal>
-    </Grid>,
+    </Grid>
   ]);
 
   return (

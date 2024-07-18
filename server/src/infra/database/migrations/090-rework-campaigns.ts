@@ -21,7 +21,7 @@ export async function up(knex: Knex): Promise<void> {
       knex
         .table('campaigns')
         .whereRaw('id = campaign_id')
-        .where('campaign_number', 0),
+        .where('campaign_number', 0)
     );
   await knex
     .table('campaigns_housing')
@@ -30,7 +30,7 @@ export async function up(knex: Knex): Promise<void> {
       knex
         .table('campaigns')
         .whereRaw('id = campaign_id')
-        .where('campaign_number', 0),
+        .where('campaign_number', 0)
     );
   await knex.table('campaigns').delete().where('campaign_number', 0);
 

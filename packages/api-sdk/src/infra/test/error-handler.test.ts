@@ -17,7 +17,7 @@ describe('Error handler', () => {
   it('should return null if the request status is 404 Not found', async () => {
     nock(host).get('/').reply(constants.HTTP_STATUS_NOT_FOUND);
 
-    const { data, status } = await http.get('/');
+    const { data, status, } = await http.get('/');
 
     expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     expect(data).toBeNull();

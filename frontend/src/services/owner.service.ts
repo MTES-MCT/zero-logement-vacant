@@ -15,7 +15,7 @@ export const ownerApi = zlvApi.injectEndpoints({
               {
                 type: 'Owner' as const,
                 id: result.id,
-              },
+              }
             ]
           : [],
     }),
@@ -23,10 +23,10 @@ export const ownerApi = zlvApi.injectEndpoints({
       PaginatedResult<Owner>,
       { q: string; page: number; perPage: number }
     >({
-      query: ({ q, page, perPage }) => ({
+      query: ({ q, page, perPage, }) => ({
         url: 'owners',
         method: 'POST',
-        body: { q, page, perPage },
+        body: { q, page, perPage, },
       }),
       providesTags: () => ['Owner'],
       transformResponse: (response: any) => {
@@ -56,22 +56,22 @@ export const ownerApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: formatOwner(owner),
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Owner', id },
-        'Housing',
+      invalidatesTags: (result, error, { id, }) => [
+        { type: 'Owner', id, },
+        'Housing'
       ],
     }),
     updateHousingOwners: builder.mutation<
       void,
       { housingId: string; housingOwners: HousingOwner[] }
     >({
-      query: ({ housingId, housingOwners }) => ({
+      query: ({ housingId, housingOwners, }) => ({
         url: `owners/housing/${housingId}`,
         method: 'PUT',
         body: housingOwners.map((ho) => formatOwner(ho)),
       }),
-      invalidatesTags: (result, error, { housingId }) => [
-        { type: 'HousingOwner', housingId },
+      invalidatesTags: (result, error, { housingId, }) => [
+        { type: 'HousingOwner', housingId, }
       ],
     }),
   }),

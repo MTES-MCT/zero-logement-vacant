@@ -4,7 +4,7 @@ import { useSendActivationEmailMutation } from '../services/signup-link.service'
 
 export function useActivationEmail() {
   const [error, setError] = useState('');
-  const { hidden, setHidden } = useHide();
+  const { hidden, setHidden, } = useHide();
 
   const [sendActivationEmail] = useSendActivationEmailMutation();
 

@@ -14,15 +14,15 @@ describe('HousingApi', () => {
       ${HousingStatusApi.Blocked}        | ${false}
     `(
       'should be {expected} when the status is {status}',
-      ({ status, expected }) => {
-        const housing: HousingApi = { ...genHousingApi(), status };
+      ({ status, expected, }) => {
+        const housing: HousingApi = { ...genHousingApi(), status, };
         const actual =
           housing.status !== undefined &&
           [HousingStatusApi.InProgress, HousingStatusApi.Completed].includes(
-            housing.status,
+            housing.status
           );
         expect(actual).toBe(expected);
-      },
+      }
     );
   });
 

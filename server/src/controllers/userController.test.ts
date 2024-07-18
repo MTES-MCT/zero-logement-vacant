@@ -8,30 +8,30 @@ import { tokenProvider } from '~/test/testUtils';
 import {
   genEstablishmentApi,
   genProspectApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import {
   formatUserApi,
   Users,
-  usersTable,
+  usersTable
 } from '~/repositories/userRepository';
 import { User1 } from '~/infra/database/seeds/test/20240405012221_users';
 import {
   Establishments,
   establishmentsTable,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { createServer } from '~/infra/server';
 import { CampaignIntent, EstablishmentApi } from '~/models/EstablishmentApi';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {
   formatProspectApi,
-  Prospects,
+  Prospects
 } from '~/repositories/prospectRepository';
 import { ProspectApi } from '~/models/ProspectApi';
 
-const { app } = createServer();
+const { app, } = createServer();
 
 describe('User API', () => {
   const establishment = genEstablishmentApi();
@@ -104,8 +104,8 @@ describe('User API', () => {
               email,
               password: validPassword,
               establishmentId: prospect.establishment?.id,
-            }),
-        ),
+            })
+        )
       );
 
       responses.forEach((response) => {
@@ -119,7 +119,7 @@ describe('User API', () => {
     });
 
     it('should fail if the prospect is missing', async () => {
-      const { status } = await request(app).post(testRoute).send({
+      const { status, } = await request(app).post(testRoute).send({
         email: 'missing@non.existing',
         password: '123QWEasd',
         establishmentId: prospect.establishment?.id,
@@ -129,7 +129,7 @@ describe('User API', () => {
     });
 
     it('should be not found if the user establishment does not exist', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send({
           ...prospect,
@@ -141,7 +141,7 @@ describe('User API', () => {
     });
 
     it('should create a new user with Usual role', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send({
           ...prospect,
@@ -176,7 +176,7 @@ describe('User API', () => {
         campaign_intent: null,
       });
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send({
           ...prospect,
@@ -199,7 +199,7 @@ describe('User API', () => {
       };
       await Establishments().insert(formatEstablishmentApi(establishment));
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send({
           ...prospect,
@@ -234,7 +234,7 @@ describe('User API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(User1.id));
+      const { status, } = await request(app).get(testRoute(User1.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -257,7 +257,7 @@ describe('User API', () => {
       };
       await Users().insert(formatUserApi(admin));
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute(user.id))
         .use(tokenProvider(admin));
 

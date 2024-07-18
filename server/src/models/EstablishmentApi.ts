@@ -16,7 +16,7 @@ export interface EstablishmentApi {
 export type EstablishmentPriority = 'standard' | 'high';
 
 export function hasPriority(
-  establishment: Pick<EstablishmentApi, 'campaignIntent'>,
+  establishment: Pick<EstablishmentApi, 'campaignIntent'>
 ): boolean {
   return establishment.campaignIntent === '0-2';
 }

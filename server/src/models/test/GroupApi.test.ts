@@ -3,7 +3,7 @@ import { toGroupDTO } from '~/models/GroupApi';
 import {
   genEstablishmentApi,
   genGroupApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 
 describe('GroupApi', () => {

@@ -16,13 +16,13 @@ const [redis] = parseRedisUrl(config.redis.url);
 const queues = JOBS.map(
   (job) =>
     new Queue(job, {
-      connection: redis
+      connection: redis,
     })
 ).map((queue) => new BullMQAdapter(queue));
 
 createBullBoard({
   queues,
-  serverAdapter: expressAdapter
+  serverAdapter: expressAdapter,
 });
 
 export const createDashboard = () => expressAdapter.getRouter();

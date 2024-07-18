@@ -8,8 +8,8 @@ const login = async (
 ): Promise<AuthUser> => {
   return fetch(`${config.apiEndpoint}/api/authenticate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, establishmentId }),
+    headers: { 'Content-Type': 'application/json', },
+    body: JSON.stringify({ email, password, establishmentId, }),
   })
     .then((response) => {
       if (response.ok) {
@@ -35,8 +35,8 @@ const resetPassword = async (key: string, password: string) => {
     `${config.apiEndpoint}/api/account/reset-password`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, password }),
+      headers: { 'Content-Type': 'application/json', },
+      body: JSON.stringify({ key, password, }),
     }
   );
   if (!response.ok) {
@@ -73,7 +73,7 @@ const changeEstablishment = async (establishmentId: string) => {
 const authHeader = () => {
   const authUser = JSON.parse(localStorage.getItem('authUser') ?? '{}');
   return authUser && authUser.accessToken
-    ? { 'x-access-token': authUser.accessToken }
+    ? { 'x-access-token': authUser.accessToken, }
     : undefined;
 };
 

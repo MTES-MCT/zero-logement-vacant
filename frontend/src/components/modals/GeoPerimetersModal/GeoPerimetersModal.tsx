@@ -8,14 +8,14 @@ import {
   ModalFooter,
   ModalTitle,
   Row,
-  Text,
+  Text
 } from '../../_dsfr';
 import { displayCount } from '../../../utils/stringUtils';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import GeoPerimeterEditionModal from '../GeoPerimeterEditionModal/GeoPerimeterEditionModal';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import GeoPerimeterUploadingModal from '../GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
@@ -25,7 +25,7 @@ import {
   useDeleteGeoPerimetersMutation,
   useListGeoPerimetersQuery,
   useUpdateGeoPerimeterMutation,
-  useUploadGeoPerimeterFileMutation,
+  useUploadGeoPerimeterFileMutation
 } from '../../../services/geo.service';
 import styles from './geo-perimeters-modal.module.scss';
 import GeoPerimetersTable from './GeoPerimetersTable';
@@ -38,9 +38,9 @@ interface Props {
   onClose: () => void;
 }
 
-const GeoPerimetersModal = ({ onClose }: Props) => {
-  const { trackEvent } = useMatomo();
-  const { data: geoPerimeters } = useListGeoPerimetersQuery();
+const GeoPerimetersModal = ({ onClose, }: Props) => {
+  const { trackEvent, } = useMatomo();
+  const { data: geoPerimeters, } = useListGeoPerimetersQuery();
   const [isUploadingModalOpen, setIsUploadingModalOpen] =
     useState<boolean>(false);
   const [geoPerimetersToUpdate, setGeoPerimeterToUpdate] =
@@ -53,15 +53,15 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
       isSuccess: isUpdateSuccess,
       originalArgs: updateArgs,
       isError: isUpdateError,
-    },
+    }
   ] = useUpdateGeoPerimeterMutation();
   const [
     uploadGeoPerimeterFile,
-    { isSuccess: isUploadSuccess, isError: isUploadError },
+    { isSuccess: isUploadSuccess, isError: isUploadError, }
   ] = useUploadGeoPerimeterFileMutation();
   const [
     deleteGeoPerimeters,
-    { isSuccess: isDeleteSuccess, isError: isDeleteError },
+    { isSuccess: isDeleteSuccess, isError: isDeleteError, }
   ] = useDeleteGeoPerimetersMutation();
 
   const onSubmitUploadingGeoPerimeter = (file: File) => {
@@ -114,15 +114,15 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
         ? geoPerimeters?.filter(
             (perimeter) =>
               perimeter.name.toLowerCase().search(query.toLowerCase()) !== -1 ||
-              perimeter.kind.toLowerCase().search(query.toLowerCase()) !== -1,
+              perimeter.kind.toLowerCase().search(query.toLowerCase()) !== -1
           )
         : geoPerimeters,
-    [query, geoPerimeters],
+    [query, geoPerimeters]
   );
 
   const invalidGeoPerimeters = useMemo<GeoPerimeter[] | undefined>(
     () => perimeters?.filter((_) => !_.kind?.length),
-    [perimeters],
+    [perimeters]
   );
 
   return (
@@ -190,7 +190,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
                   iconId: 'fr-icon-list-unordered',
                   priority: isCardView ? 'primary' : 'secondary',
                   onClick: () => setIsCardView(false),
-                },
+                }
               ]}
             ></ButtonsGroup>
           </Col>
@@ -240,7 +240,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
             description={`Il y a ${displayCount(
               invalidGeoPerimeters.length,
               'périmètre',
-              { capitalize: false },
+              { capitalize: false, }
             )} qui ${
               invalidGeoPerimeters.length === 1
                 ? "n'est pas valide"

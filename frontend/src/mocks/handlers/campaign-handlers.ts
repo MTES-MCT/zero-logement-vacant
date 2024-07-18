@@ -19,17 +19,17 @@ type CampaignParams = {
 export const campaignHandlers: RequestHandler[] = [
   http.get<Record<string, never>, never, CampaignDTO[]>(
     `${config.apiEndpoint}/api/campaigns`,
-    ({ request }) => {
+    ({ request, }) => {
       const url = new URL(request.url);
       const groups = url.searchParams.get('groups')?.split(',');
 
-      const campaigns = fp.pipe(filter({ groups }))(data.campaigns);
+      const campaigns = fp.pipe(filter({ groups, }))(data.campaigns);
       return HttpResponse.json(campaigns);
     }
   ),
   http.post<Record<string, never>, CampaignCreationPayloadDTO, CampaignDTO>(
     `${config.apiEndpoint}/api/campaigns`,
-    async ({ request }) => {
+    async ({ request, }) => {
       const payload = await request.json();
 
       const campaign: CampaignDTO = {
@@ -37,7 +37,7 @@ export const campaignHandlers: RequestHandler[] = [
         title: payload.title,
         filters: payload.housing.filters,
         status: 'draft',
-        createdAt: new Date().toJSON()
+        createdAt: new Date().toJSON(),
       };
       data.campaigns.push(campaign);
       // For now, add random housings to the campaign
@@ -51,19 +51,19 @@ export const campaignHandlers: RequestHandler[] = [
       });
 
       return HttpResponse.json(campaign, {
-        status: constants.HTTP_STATUS_CREATED
+        status: constants.HTTP_STATUS_CREATED,
       });
     }
   ),
   http.post<CampaignParams, CampaignCreationPayloadDTO, CampaignDTO>(
     `${config.apiEndpoint}/api/campaigns/:id/groups`,
-    async ({ params, request }) => {
+    async ({ params, request, }) => {
       const payload = await request.json();
 
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
@@ -71,11 +71,11 @@ export const campaignHandlers: RequestHandler[] = [
         id: faker.string.uuid(),
         title: payload.title,
         filters: {
-          groupIds: [group.id]
+          groupIds: [group.id],
         },
         status: 'draft',
         createdAt: new Date().toJSON(),
-        groupId: group.id
+        groupId: group.id,
       };
       data.campaigns.push(campaign);
       const housings = faker.helpers.arrayElements(data.housings);
@@ -88,19 +88,19 @@ export const campaignHandlers: RequestHandler[] = [
       });
 
       return HttpResponse.json(campaign, {
-        status: constants.HTTP_STATUS_CREATED
+        status: constants.HTTP_STATUS_CREATED,
       });
     }
   ),
   http.get<CampaignParams, never, CampaignDTO | null>(
     `${config.apiEndpoint}/api/campaigns/:id`,
-    ({ params }) => {
+    ({ params, }) => {
       const campaign = data.campaigns.find(
         (campaign) => campaign.id === params.id
       );
       if (!campaign) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
@@ -109,13 +109,13 @@ export const campaignHandlers: RequestHandler[] = [
   ),
   http.put<CampaignParams, CampaignUpdatePayloadDTO, CampaignDTO>(
     `${config.apiEndpoint}/api/campaigns/:id`,
-    async ({ params, request }) => {
+    async ({ params, request, }) => {
       const campaign = data.campaigns.find(
         (campaign) => campaign.id === params.id
       );
       if (!campaign) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
@@ -125,7 +125,7 @@ export const campaignHandlers: RequestHandler[] = [
         // TODO
         title: payload.title,
         status: payload.status,
-        file: payload.file
+        file: payload.file,
       };
       data.campaigns.splice(data.campaigns.indexOf(campaign), 1, updated);
       return HttpResponse.json(updated);
@@ -133,30 +133,30 @@ export const campaignHandlers: RequestHandler[] = [
   ),
   http.delete<CampaignParams, never, null>(
     `${config.apiEndpoint}/api/campaigns/:id`,
-    ({ params }) => {
+    ({ params, }) => {
       const campaign = data.campaigns.find(
         (campaign) => campaign.id === params.id
       );
       if (!campaign) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
       return new HttpResponse(null, {
-        status: constants.HTTP_STATUS_NO_CONTENT
+        status: constants.HTTP_STATUS_NO_CONTENT,
       });
     }
   ),
   http.delete<CampaignParams, CampaignCreationPayloadDTO['housing'], null>(
     `${config.apiEndpoint}/api/campaigns/:id/housing`,
-    async ({ params, request }) => {
+    async ({ params, request, }) => {
       const campaign = data.campaigns.find(
         (campaign) => campaign.id === params.id
       );
       if (!campaign) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
@@ -181,7 +181,7 @@ export const campaignHandlers: RequestHandler[] = [
       );
 
       return new HttpResponse(null, {
-        status: constants.HTTP_STATUS_NO_CONTENT
+        status: constants.HTTP_STATUS_NO_CONTENT,
       });
     }
   )
@@ -194,7 +194,7 @@ interface FilterOptions {
 function filter(
   opts: FilterOptions
 ): (campaigns: CampaignDTO[]) => CampaignDTO[] {
-  const { groups } = opts;
+  const { groups, } = opts;
 
   return fp.pipe((campaigns: CampaignDTO[]): CampaignDTO[] =>
     !!groups && groups.length > 0

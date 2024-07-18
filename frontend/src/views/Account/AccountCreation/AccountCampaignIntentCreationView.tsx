@@ -28,8 +28,8 @@ interface State {
 function AccountCampaignIntentCreationView() {
   const dispatch = useAppDispatch();
   const router = useHistory<State | undefined>();
-  const { location } = router;
-  const { trackEvent } = useMatomo();
+  const { location, } = router;
+  const { trackEvent, } = useMatomo();
   const prospect = location.state?.prospect;
   const password = location.state?.password;
 
@@ -43,10 +43,10 @@ function AccountCampaignIntentCreationView() {
     campaignIntent: yup
       .string()
       .required('Veuillez sélectionner une valeur')
-      .oneOf(['0-2', '2-4', '4+'])
+      .oneOf(['0-2', '2-4', '4+']),
   });
-  const { validate, message, messageType } = useForm(schema, {
-    campaignIntent
+  const { validate, message, messageType, } = useForm(schema, {
+    campaignIntent,
   });
 
   const disabled = useMemo<boolean>(
@@ -63,11 +63,11 @@ function AccountCampaignIntentCreationView() {
           email: prospect.email,
           password,
           establishmentId: prospect.establishment.id,
-          campaignIntent
+          campaignIntent,
         });
         trackEvent({
           category: TrackEventCategories.AccountCreation,
-          action: TrackEventActions.AccountCreation.SubmitCampaignIntent
+          action: TrackEventActions.AccountCreation.SubmitCampaignIntent,
         });
         dispatch(login(prospect.email, password, prospect.establishment.id));
       }
@@ -77,8 +77,8 @@ function AccountCampaignIntentCreationView() {
   const back: Partial<Location> = {
     pathname: '/inscription/mot-de-passe',
     state: {
-      prospect
-    }
+      prospect,
+    },
   };
 
   if (!location.state || !prospect || !password) {

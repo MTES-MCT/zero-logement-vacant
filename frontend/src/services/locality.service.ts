@@ -9,11 +9,11 @@ export const localityApi = zlvApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ geoCode }) => ({
+              ...result.map(({ geoCode, }) => ({
                 type: 'Locality' as const,
                 geoCode,
               })),
-              'Locality',
+              'Locality'
             ]
           : ['Locality'],
     }),
@@ -25,17 +25,17 @@ export const localityApi = zlvApi.injectEndpoints({
         taxRate?: number;
       }
     >({
-      query: ({ geoCode, taxKind, taxRate }) => ({
+      query: ({ geoCode, taxKind, taxRate, }) => ({
         url: `localities/${geoCode}/tax`,
         method: 'PUT',
-        body: { taxKind, taxRate },
+        body: { taxKind, taxRate, },
       }),
-      invalidatesTags: (result, error, { geoCode }) => [
-        { type: 'Locality', geoCode },
+      invalidatesTags: (result, error, { geoCode, }) => [
+        { type: 'Locality', geoCode, }
       ],
     }),
   }),
 });
 
-export const { useListLocalitiesQuery, useUpdateLocalityTaxMutation } =
+export const { useListLocalitiesQuery, useUpdateLocalityTaxMutation, } =
   localityApi;

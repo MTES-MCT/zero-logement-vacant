@@ -11,7 +11,7 @@ import {
   fromOwnerPayloadDTO,
   hasContactChanges,
   hasIdentityChanges,
-  OwnerApi,
+  OwnerApi
 } from '~/models/OwnerApi';
 import eventRepository from '~/repositories/eventRepository';
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -23,7 +23,7 @@ import HousingMissingError from '~/errors/housingMissingError';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 
 async function get(request: Request, response: Response) {
-  const { id } = request.params;
+  const { id, } = request.params;
   logger.info('Get owner', id);
 
   const owner = await ownerRepository.get(id);
@@ -66,7 +66,7 @@ async function listByHousing(request: Request, response: Response) {
 async function create(request: Request, response: Response) {
   logger.info('Create owner', request.body);
 
-  const { auth } = request as AuthenticatedRequest;
+  const { auth, } = request as AuthenticatedRequest;
   const body = request.body as OwnerPayloadDTO;
   const owner: OwnerApi = {
     id: uuidv4(),
@@ -82,7 +82,7 @@ async function create(request: Request, response: Response) {
   await ownerRepository.save(owner);
   await banAddressesRepository.markAddressToBeNormalized(
     owner.id,
-    AddressKinds.Owner,
+    AddressKinds.Owner
   );
   await eventRepository.insertOwnerEvent({
     id: uuidv4(),
@@ -102,7 +102,7 @@ async function create(request: Request, response: Response) {
 type HousingOwnerBody = HousingOwnerApi & { birthDate: string };
 
 const parseHousingOwnerApi = (
-  housingOwnerBody: HousingOwnerBody,
+  housingOwnerBody: HousingOwnerBody
 ): HousingOwnerApi => ({
   ...housingOwnerBody,
   birthDate: housingOwnerBody.birthDate
@@ -111,7 +111,7 @@ const parseHousingOwnerApi = (
 });
 
 async function update(request: Request, response: Response) {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, } = request as AuthenticatedRequest;
 
   const owner: OwnerApi = {
     ...fromOwnerPayloadDTO(request.body as OwnerPayloadDTO),
@@ -124,7 +124,7 @@ async function update(request: Request, response: Response) {
 
 async function updateOwner(
   ownerApi: OwnerApi,
-  userId: string,
+  userId: string
 ): Promise<OwnerApi | undefined> {
   logger.info('Update owner', ownerApi.id);
 
@@ -163,7 +163,7 @@ async function updateOwner(
           refId: ownerApi.id,
           addressKind: AddressKinds.Owner,
           ...updatedOwnerApi.banAddress,
-        },
+        }
       ]);
     }
 
@@ -202,10 +202,10 @@ async function updateOwner(
 }
 
 async function updateHousingOwners(request: Request, response: Response) {
-  const { auth, params, establishment } = request as AuthenticatedRequest;
+  const { auth, params, establishment, } = request as AuthenticatedRequest;
   const housingId = params.housingId;
 
-  logger.debug('Update housing owners', { housing: housingId });
+  logger.debug('Update housing owners', { housing: housingId, });
 
   const housing = await housingRepository.findOne({
     id: housingId,
@@ -221,8 +221,8 @@ async function updateHousingOwners(request: Request, response: Response) {
 
   await Promise.all(
     housingOwnersApi.map((housingOwnerApi) =>
-      updateOwner(housingOwnerApi, auth.userId),
-    ),
+      updateOwner(housingOwnerApi, auth.userId)
+    )
   );
 
   const prevHousingOwnersApi = await ownerRepository.findByHousing(housing);
@@ -232,20 +232,20 @@ async function updateHousingOwners(request: Request, response: Response) {
     prevHousingOwnersApi.some(
       (ho1) =>
         !housingOwnersApi.some(
-          (ho2) => ho1.id === ho2.id && ho1.rank === ho2.rank,
-        ),
+          (ho2) => ho1.id === ho2.id && ho1.rank === ho2.rank
+        )
     )
   ) {
     await ownerRepository.deleteHousingOwners(
       housingId,
-      housingOwnersApi.map((_) => _.id),
+      housingOwnersApi.map((_) => _.id)
     );
 
     await ownerRepository.insertHousingOwners(
       housingOwnersApi.map((housingOwnerApi) => ({
         ...housingOwnerApi,
         housingGeoCode: housing.geoCode,
-      })),
+      }))
     );
 
     const newHousingOwnersApi = await ownerRepository.findByHousing(housing);
@@ -273,9 +273,9 @@ async function updateHousingOwners(request: Request, response: Response) {
 const ownerValidators: ValidationChain[] = [
   body('fullName').isString(),
   body('birthDate').isString().isISO8601().optional(),
-  body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
-  body('email').optional({ checkFalsy: true }).isEmail(),
-  body('phone').isString().optional({ nullable: true }),
+  body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true, }),
+  body('email').optional({ checkFalsy: true, }).isEmail(),
+  body('phone').isString().optional({ nullable: true, }),
   body('banAddress.houseNumber').isString().optional(),
   body('banAddress.street').isString().optional(),
   body('banAddress.postalCode').isString().optional(),
@@ -283,7 +283,7 @@ const ownerValidators: ValidationChain[] = [
   body('banAddress.latitude').isNumeric().optional(),
   body('banAddress.longitude').isNumeric().optional(),
   body('banAddress.score').isNumeric().optional(),
-  body('additionalAddress').isString().optional(),
+  body('additionalAddress').isString().optional()
 ];
 
 const ownerController = {

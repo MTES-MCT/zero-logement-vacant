@@ -10,14 +10,14 @@ import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import { useCampaign } from '../../hooks/useCampaign';
 import DraftSendingDate, {
-  sentAtSchema,
+  sentAtSchema
 } from '../../components/Draft/DraftSendingDate';
 import { useForm } from '../../hooks/useForm';
 import { object } from 'yup';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   useLazyGetCampaignQuery,
-  useUpdateCampaignMutation,
+  useUpdateCampaignMutation
 } from '../../services/campaign.service';
 import { useNotification } from '../../hooks/useNotification';
 import DraftDownloader from '../../components/Draft/DraftDownloader';
@@ -39,7 +39,7 @@ interface Props {
 
 function CampaignSending(props: Readonly<Props>) {
   const [sentAt, setSentAt] = useState('');
-  const { count } = useCampaign();
+  const { count, } = useCampaign();
   const [updateCampaign, mutation] = useUpdateCampaignMutation();
 
   const form = useForm(schema, {
@@ -78,7 +78,7 @@ function CampaignSending(props: Readonly<Props>) {
     if (!hasFile) {
       const sse = new EventSource(`${config.apiEndpoint}/api/sse`);
       sse.addEventListener('campaign:generate', (event) => {
-        const { id } = JSON.parse(event.data);
+        const { id, } = JSON.parse(event.data);
         getCampaign(id);
       });
 
@@ -108,7 +108,7 @@ function CampaignSending(props: Readonly<Props>) {
       <Grid component="section" container mb={5} xs={12}>
         {!hasFile ? (
           <Grid xs={12}>
-            <Box sx={{ width: '100%' }}>
+            <Box sx={{ width: '100%', }}>
               <LinearProgress color="info" />
               <Alert
                 className="fr-mb-5w"
@@ -138,7 +138,7 @@ function CampaignSending(props: Readonly<Props>) {
                   onClick: submit,
                   children: 'Confirmer',
                   doClosesModal: false,
-                },
+                }
               ]}
             >
               <div className="fr-alert fr-alert--warning fr-alert--sm">

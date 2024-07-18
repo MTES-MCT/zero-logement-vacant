@@ -13,7 +13,7 @@ export const userApi = zlvApi.injectEndpoints({
               {
                 type: 'User' as const,
                 id: result.id,
-              },
+              }
             ]
           : [],
     }),
@@ -24,7 +24,7 @@ export const userApi = zlvApi.injectEndpoints({
         body: draftUser,
       }),
       transformResponse: (response) => parseUser(response),
-      invalidatesTags: [{ type: 'User', id: 'PARTIAL-LIST' }],
+      invalidatesTags: [{ type: 'User', id: 'PARTIAL-LIST', }],
     }),
   }),
 });
@@ -35,4 +35,4 @@ const parseUser = (u: any): User =>
     activatedAt: parseISO(u.activatedAt),
   } as User);
 
-export const { useGetUserQuery, useCreateUserMutation } = userApi;
+export const { useGetUserQuery, useCreateUserMutation, } = userApi;

@@ -8,7 +8,7 @@ import { CampaignStatus } from '../../../../shared';
 import NotFoundView from '../NotFoundView';
 
 function CampaignView() {
-  const { campaign, isLoadingCampaign } = useCampaign();
+  const { campaign, isLoadingCampaign, } = useCampaign();
 
   if (isLoadingCampaign) {
     return <Loading />;

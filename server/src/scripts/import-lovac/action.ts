@@ -11,7 +11,7 @@ import { UserApi } from '~/models/UserApi';
 import config from '~/infra/config';
 import UserMissingError from '~/errors/userMissingError';
 
-export function compare({ before, now, modifications }: Comparison): Action {
+export function compare({ before, now, modifications, }: Comparison): Action {
   if (before && now === null) {
     if (!hasAnyOwnershipModification(modifications)) {
       if (
@@ -19,7 +19,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
         [
           HousingStatusApi.NeverContacted,
           HousingStatusApi.Waiting,
-          HousingStatusApi.Completed,
+          HousingStatusApi.Completed
         ].includes(before.status)
       ) {
         const missingEvent: HousingEventApi = {
@@ -85,7 +85,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
     if (
       before.status !== undefined &&
       [HousingStatusApi.Waiting, HousingStatusApi.Completed].includes(
-        before.status,
+        before.status
       )
     ) {
       return {
@@ -145,7 +145,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
                 new: now,
                 createdBy: 'system',
                 createdAt: new Date(),
-              },
+              }
             ]
           : [];
 
@@ -244,13 +244,13 @@ export function compare({ before, now, modifications }: Comparison): Action {
         createdAt: new Date(),
       };
       return {
-        housing: { ...before, dataYears },
+        housing: { ...before, dataYears, },
         events: [ownershipConflict, occupancyConflict],
       };
     }
 
     return {
-      housing: { ...before, dataYears },
+      housing: { ...before, dataYears, },
       events: [ownershipConflict],
     };
   }

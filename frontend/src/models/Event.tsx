@@ -1,7 +1,7 @@
 import {
   EventCategory,
   EventKind,
-  EventSection,
+  EventSection
 } from '@zerologementvacant/models';
 
 export interface Event<T = any> {

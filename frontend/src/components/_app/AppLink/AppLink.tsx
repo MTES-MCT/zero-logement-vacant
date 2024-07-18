@@ -2,7 +2,7 @@ import { Link, LinkProps } from 'react-router-dom';
 import classNames from 'classnames';
 import {
   FrIconClassName,
-  RiIconClassName,
+  RiIconClassName
 } from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
 
 export type AppLinkProps = LinkProps & {
@@ -27,7 +27,7 @@ function AppLink({
       to={
         typeof to === 'string' &&
         (to.startsWith('http') || to.startsWith('mailto'))
-          ? { pathname: to }
+          ? { pathname: to, }
           : to
       }
       className={classNames(
@@ -39,7 +39,7 @@ function AppLink({
             ? iconPosition ?? 'left'
             : undefined,
         },
-        iconId,
+        iconId
       )}
     />
   );

@@ -10,7 +10,7 @@ import { formatUserApi, Users } from '~/repositories/userRepository';
 export async function seed(knex: Knex): Promise<void> {
   const [strasbourg, saintLo] = await Promise.all([
     knex(establishmentsTable).where('siren', SirenStrasbourg).first(),
-    knex(establishmentsTable).where('siren', SirenSaintLo).first(),
+    knex(establishmentsTable).where('siren', SirenSaintLo).first()
   ]);
 
   const users: UserApi[] = [
@@ -61,7 +61,7 @@ export async function seed(knex: Knex): Promise<void> {
       role: UserRoles.Usual,
       activatedAt: new Date(),
       updatedAt: new Date(),
-    },
+    }
   ];
   await Users()
     .insert(users.map(formatUserApi))

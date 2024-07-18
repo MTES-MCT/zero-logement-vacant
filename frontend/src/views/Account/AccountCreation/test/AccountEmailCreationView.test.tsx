@@ -21,7 +21,7 @@ describe('AccountEmailCreationView', () => {
             Accueil
           </Route>
         </Router>
-      </Provider>,
+      </Provider>
     );
   }
 
@@ -40,7 +40,7 @@ describe('AccountEmailCreationView', () => {
     await user.keyboard('{Enter}');
 
     const error = await screen.findByText(
-      "L'adresse doit être un email valide",
+      "L'adresse doit être un email valide"
     );
     expect(error).toBeVisible();
   });

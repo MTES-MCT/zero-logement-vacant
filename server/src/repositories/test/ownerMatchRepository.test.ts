@@ -3,7 +3,7 @@ import randomstring from 'randomstring';
 import {
   genDatafoncierOwner,
   genOwnerApi,
-  genOwnerMatch,
+  genOwnerMatch
 } from '../../test/testFixtures';
 import { formatOwnerApi, Owners } from '../ownerRepository';
 

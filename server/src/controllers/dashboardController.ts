@@ -8,7 +8,7 @@ import { param, ValidationChain } from 'express-validator';
 import { createURL, getResource, Resource } from '~/models/DashboardApi';
 
 async function findOne(request: Request, response: Response): Promise<void> {
-  const { auth, params } = request as AuthenticatedRequest;
+  const { auth, params, } = request as AuthenticatedRequest;
 
   const payload = {
     resource: {
@@ -28,7 +28,7 @@ async function findOne(request: Request, response: Response): Promise<void> {
   response.status(constants.HTTP_STATUS_OK).json(dashboard);
 }
 const findOneValidators: ValidationChain[] = [
-  param('id').isIn(['utilisateurs', 'etablissements']),
+  param('id').isIn(['utilisateurs', 'etablissements'])
 ];
 
 function sign(payload: any): Promise<string> {
@@ -45,7 +45,7 @@ function sign(payload: any): Promise<string> {
           return reject(err);
         }
         return resolve(token ?? '');
-      },
+      }
     );
   });
 }

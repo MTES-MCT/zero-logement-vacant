@@ -18,10 +18,10 @@ interface Props {
   userAccount: UserAccount;
 }
 
-const AccountForm = ({ user, userAccount }: Props) => {
+const AccountForm = ({ user, userAccount, }: Props) => {
   const [
     updateUserAccount,
-    { isSuccess: isUpdateSuccess, isError: isUpdateError },
+    { isSuccess: isUpdateSuccess, isError: isUpdateError, }
   ] = useUpdateUserAccountMutation();
 
   const [firstName, setFirstName] = useState(userAccount.firstName ?? '');
@@ -54,8 +54,8 @@ const AccountForm = ({ user, userAccount }: Props) => {
       '0,5 jour',
       '1 jour',
       '2 jours',
-      'Plus de 2 jours',
-    ].map((_) => ({ value: _, label: _ })),
+      'Plus de 2 jours'
+    ].map((_) => ({ value: _, label: _, }))
   ];
 
   const submit = async () => {
@@ -76,14 +76,14 @@ const AccountForm = ({ user, userAccount }: Props) => {
         <Row gutters>
           <Col n="6">
             <Input
-              nativeInputProps={{ type: 'email', value: user?.email }}
+              nativeInputProps={{ type: 'email', value: user?.email, }}
               disabled
               label="Adresse email : "
             />
           </Col>
           <Col n="6">
             <Input
-              nativeInputProps={{ type: 'password', value: '********' }}
+              nativeInputProps={{ type: 'password', value: '********', }}
               disabled
               label="Mot de passe : "
               className="fr-mb-1w"

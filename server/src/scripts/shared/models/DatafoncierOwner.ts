@@ -92,7 +92,7 @@ export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
   return {
     id: uuidv4(),
     rawAddress: [owner.dlign3, owner.dlign4, owner.dlign5, owner.dlign6].filter(
-      isNotNull,
+      isNotNull
     ),
     fullName:
       owner.catpro2txt === 'PERSONNE PHYSIQUE'

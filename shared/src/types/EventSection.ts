@@ -16,5 +16,5 @@ export const EventSections: EventSection[] = [
   'Ajout d’un logement dans un groupe',
   'Retrait du logement d’un groupe',
   'Archivage d’un groupe',
-  'Suppression d’un groupe',
+  'Suppression d’un groupe'
 ];

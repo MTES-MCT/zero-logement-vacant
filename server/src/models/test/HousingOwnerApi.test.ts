@@ -2,12 +2,12 @@ import {
   compareHousingOwners,
   equals,
   HousingOwnerApi,
-  toHousingOwnersApi,
+  toHousingOwnersApi
 } from '~/models/HousingOwnerApi';
 import {
   genHousingApi,
   genHousingOwnerApi,
-  genOwnerApi,
+  genOwnerApi
 } from '~/test/testFixtures';
 
 describe('HousingOwnerApi', () => {

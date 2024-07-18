@@ -18,4 +18,4 @@ const parseNote = (noteDTO: NoteDTO): Note => ({
   createdAt: parseISO(noteDTO.createdAt),
 });
 
-export const { useFindNotesByHousingQuery } = noteApi;
+export const { useFindNotesByHousingQuery, } = noteApi;

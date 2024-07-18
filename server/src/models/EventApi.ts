@@ -1,7 +1,7 @@
 import {
   EventCategory,
   EventKind,
-  EventSection,
+  EventSection
 } from '@zerologementvacant/shared';
 import { HousingApi } from './HousingApi';
 import { OwnerApi } from './OwnerApi';
@@ -43,7 +43,7 @@ export interface GroupHousingEventApi extends EventApi<GroupApi> {
 }
 
 export function isHousingEvent(
-  event: EventApi<unknown>,
+  event: EventApi<unknown>
 ): event is HousingEventApi {
   return 'housingId' in event;
 }

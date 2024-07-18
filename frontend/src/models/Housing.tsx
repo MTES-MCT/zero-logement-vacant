@@ -103,7 +103,7 @@ export const getBuildingLocation = (housing: Housing) => {
             : level.replace(/^0+/g, '') + 'ème étage',
       local:
         'Local ' +
-        housing.buildingLocation.substr(5 + idx, 5).replace(/^0+/g, '')
+        housing.buildingLocation.substr(5 + idx, 5).replace(/^0+/g, ''),
     } as BuildingLocation;
   }
 };
@@ -148,7 +148,7 @@ export enum OwnershipKinds {
 export const OwnershipKindLabels = {
   [OwnershipKinds.Single]: 'Monopropriété',
   [OwnershipKinds.CoOwnership]: 'Copropriété',
-  [OwnershipKinds.Other]: 'Autre'
+  [OwnershipKinds.Other]: 'Autre',
 };
 
 export type HousingSortable = Pick<
@@ -217,12 +217,12 @@ export const OccupancyKindLabels = {
   [OccupancyKind.Dependency]: 'Dépendance',
   [OccupancyKind.DemolishedOrDivided]: 'Local démoli ou divisé',
   [OccupancyKind.Others]: 'Autres',
-  [OccupancyUnknown]: 'Pas d’information'
+  [OccupancyUnknown]: 'Pas d’information',
 };
 
 export const OccupancyKindBadgeLabels = {
   ...OccupancyKindLabels,
-  [OccupancyKind.Others]: 'Occupation : Autres'
+  [OccupancyKind.Others]: 'Occupation : Autres',
 };
 
 export const getOccupancy = (
@@ -234,7 +234,7 @@ export function getSource(housing: Housing): string {
   const map: Record<HousingSource, string> = {
     lovac: `LOVAC ${year}`,
     'datafoncier-manual': `Fichiers Fonciers - import manuel (${year})`,
-    'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`
+    'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`,
   };
   return housing.source ? map[housing.source] : 'Inconnue';
 }
@@ -271,6 +271,6 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     occupancy: housing.occupancy as unknown as Occupancy,
     occupancyIntended: housing.occupancyIntended as unknown as Occupancy,
     source: housing.source,
-    owner: toOwnerDTO(housing.owner)
+    owner: toOwnerDTO(housing.owner),
   };
 }

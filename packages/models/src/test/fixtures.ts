@@ -32,8 +32,8 @@ export function genAddressDTO(
     score: faker.number.float({
       fractionDigits: 2,
       min: 0,
-      max: 1
-    })
+      max: 1,
+    }),
   };
 }
 
@@ -44,7 +44,7 @@ export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
     filters: {},
     status: 'draft',
     createdAt: new Date().toJSON(),
-    groupId: group?.id
+    groupId: group?.id,
   };
 }
 
@@ -57,27 +57,27 @@ export function genDatafoncierHousingDTO(
   const localId = department + invariant;
   return {
     idlocal: localId,
-    idbat: faker.string.alpha({ length: 10, casing: 'upper' }),
-    idpar: faker.string.alpha({ length: 14, casing: 'upper' }),
+    idbat: faker.string.alpha({ length: 10, casing: 'upper', }),
+    idpar: faker.string.alpha({ length: 14, casing: 'upper', }),
     idtup: faker.string.alpha(),
-    idsec: faker.string.alpha({ length: 9, casing: 'upper' }),
-    idvoie: faker.string.alpha({ length: 9, casing: 'upper' }),
+    idsec: faker.string.alpha({ length: 9, casing: 'upper', }),
+    idvoie: faker.string.alpha({ length: 9, casing: 'upper', }),
     idprocpte: faker.string.numeric(11),
     idcom: geoCode,
     idcomtxt: faker.location.county(),
-    ccodep: faker.string.alpha({ length: 2, casing: 'upper' }),
-    ccodir: faker.string.alpha({ length: 1, casing: 'upper' }),
+    ccodep: faker.string.alpha({ length: 2, casing: 'upper', }),
+    ccodir: faker.string.alpha({ length: 1, casing: 'upper', }),
     ccocom: locality,
     invar: invariant,
-    ccopre: faker.string.alpha({ length: 3, casing: 'upper' }),
-    ccosec: faker.string.alpha({ length: 2, casing: 'upper' }),
-    dnupla: faker.string.alpha({ length: 4, casing: 'upper' }),
-    dnubat: faker.string.alpha({ length: 2, casing: 'upper' }),
-    descc: faker.string.alpha({ length: 2, casing: 'upper' }),
-    dniv: faker.string.alpha({ length: 2, casing: 'upper' }),
-    dpor: faker.string.alpha({ length: 5, casing: 'upper' }),
-    ccoriv: faker.string.alpha({ length: 4, casing: 'upper' }),
-    ccovoi: faker.string.alpha({ length: 5, casing: 'upper' }),
+    ccopre: faker.string.alpha({ length: 3, casing: 'upper', }),
+    ccosec: faker.string.alpha({ length: 2, casing: 'upper', }),
+    dnupla: faker.string.alpha({ length: 4, casing: 'upper', }),
+    dnubat: faker.string.alpha({ length: 2, casing: 'upper', }),
+    descc: faker.string.alpha({ length: 2, casing: 'upper', }),
+    dniv: faker.string.alpha({ length: 2, casing: 'upper', }),
+    dpor: faker.string.alpha({ length: 5, casing: 'upper', }),
+    ccoriv: faker.string.alpha({ length: 4, casing: 'upper', }),
+    ccovoi: faker.string.alpha({ length: 5, casing: 'upper', }),
     dnvoiri: faker.location.buildingNumber().substring(0, 4),
     dindic: '',
     ccocif: faker.string.alphanumeric(4),
@@ -176,14 +176,14 @@ export function genDatafoncierHousingDTO(
     ban_geom: null,
     ban_type: faker.string.alphanumeric(15),
     ban_score: faker.number
-      .float({ min: 0, max: 1, fractionDigits: 2 })
+      .float({ min: 0, max: 1, fractionDigits: 2, })
       .toFixed(2),
     geomloc: null,
     idpk: null,
     code_epci: null,
     lib_epci: null,
     ban_cp: faker.string.alphanumeric(5),
-    dis_ban_ff: faker.number.int(9)
+    dis_ban_ff: faker.number.int(9),
   };
 }
 
@@ -200,7 +200,7 @@ export function genDraftDTO(
     updatedAt: new Date().toJSON(),
     sender,
     writtenAt: faker.date.recent().toJSON().substring(0, 'yyyy-mm-dd'.length),
-    writtenFrom: faker.location.city()
+    writtenFrom: faker.location.city(),
   };
 }
 
@@ -217,7 +217,7 @@ export function genGroupDTO(
     ownerCount: fp.uniqBy('id', owners).length ?? 0,
     createdAt: new Date().toJSON(),
     createdBy: creator,
-    archivedAt: null
+    archivedAt: null,
   };
 }
 
@@ -231,12 +231,12 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     geoCode,
     invariant,
     uncomfortable: faker.datatype.boolean(),
-    roomsCount: faker.number.int({ min: 1, max: 10 }),
-    livingArea: faker.number.int({ min: 8 }),
+    roomsCount: faker.number.int({ min: 1, max: 10, }),
+    livingArea: faker.number.int({ min: 8, }),
     dataYears: [
       faker.number.int({
         min: 2020,
-        max: new Date().getUTCFullYear()
+        max: new Date().getUTCFullYear(),
       })
     ],
     source: faker.helpers.arrayElement([
@@ -246,12 +246,12 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     ]),
     localId: genLocalId(department, invariant),
     rawAddress: faker.location
-      .streetAddress({ useFullAddress: true })
+      .streetAddress({ useFullAddress: true, })
       .split(' '),
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
-    owner
+    owner,
   };
 }
 
@@ -280,10 +280,10 @@ export function genOwnerDTO(): OwnerDTO {
     fullName: `${firstName} ${lastName}`,
     email: faker.internet.email({
       firstName,
-      lastName
+      lastName,
     }),
     phone: faker.phone.number(),
-    kind: 'PERSONNE PHYSIQUE'
+    kind: 'PERSONNE PHYSIQUE',
   };
 }
 
@@ -296,15 +296,15 @@ export function genSenderDTO(signature?: FileUploadDTO): SenderDTO {
     service: faker.company.name(),
     firstName,
     lastName,
-    address: faker.location.streetAddress({ useFullAddress: true }),
-    email: faker.internet.email({ firstName, lastName }),
+    address: faker.location.streetAddress({ useFullAddress: true, }),
+    email: faker.internet.email({ firstName, lastName, }),
     phone: faker.helpers.fromRegExp(/0[1-9][0-9]{8}/),
     signatoryFile: signature ?? null,
     signatoryRole: faker.person.jobTitle(),
     signatoryFirstName: faker.person.firstName(),
     signatoryLastName: faker.person.lastName(),
     createdAt: faker.date.past().toJSON(),
-    updatedAt: faker.date.recent().toJSON()
+    updatedAt: faker.date.recent().toJSON(),
   };
 }
 
@@ -315,6 +315,6 @@ export function genUserDTO(role = RolesDTO.Usual): UserDTO {
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     activatedAt: faker.date.recent().toJSON(),
-    role
+    role,
   };
 }

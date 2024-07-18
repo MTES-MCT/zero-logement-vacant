@@ -19,7 +19,7 @@ export function toGroupDTO(group: GroupApi): GroupDTO {
   return {
     ...fp.pick(
       ['id', 'title', 'description', 'housingCount', 'ownerCount'],
-      group,
+      group
     ),
     createdAt: group.createdAt.toJSON(),
     createdBy: group.createdBy ? toUserDTO(group.createdBy) : undefined,

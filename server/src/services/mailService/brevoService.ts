@@ -41,14 +41,14 @@ class BrevoService implements MailService {
       case 'housing:exported':
         return this.housingExported(
           email,
-          data as MailEvent['housing:exported'],
+          data as MailEvent['housing:exported']
         );
       case 'owner-prospect:created':
         return this.ownerProspectCreated(email);
       case 'prospect:initialized':
         return this.prospectInitialized(
           email,
-          data as MailEvent['prospect:initialized'],
+          data as MailEvent['prospect:initialized']
         );
       case 'user:created':
         return this.prospectActivated(email, data as MailEvent['user:created']);
@@ -77,7 +77,7 @@ class BrevoService implements MailService {
 
   async sendAccountActivationEmail(
     key: string,
-    options: SendOptions,
+    options: SendOptions
   ): Promise<void> {
     await this.send({
       ...options,
@@ -90,7 +90,7 @@ class BrevoService implements MailService {
 
   async sendAccountActivationEmailFromLovac(
     key: string,
-    options: SendOptions,
+    options: SendOptions
   ): Promise<void> {
     await this.send({
       ...options,
@@ -122,12 +122,12 @@ class BrevoService implements MailService {
 
   private prospectInitialized(
     email: string,
-    data: MailEvent['prospect:initialized'],
+    data: MailEvent['prospect:initialized']
   ) {
     this.contacts
       .getContactInfo(email)
       .then(() => {
-        logger.info('Contact exists. Skipping...', { email });
+        logger.info('Contact exists. Skipping...', { email, });
       })
       .catch((error) => {
         logger.error(error);

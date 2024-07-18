@@ -26,19 +26,19 @@ async function insertHousingNote(housingNote: HousingNoteApi): Promise<void> {
 }
 
 async function insertManyHousingNotes(
-  housingNotes: HousingNoteApi[],
+  housingNotes: HousingNoteApi[]
 ): Promise<void> {
   logger.info('Insert %d HousingNoteApi', housingNotes.length);
   if (housingNotes.length) {
     await Notes().insert(
-      housingNotes.map((housingNote) => formatNoteApi(housingNote)),
+      housingNotes.map((housingNote) => formatNoteApi(housingNote))
     );
     await HousingNotes().insert(
       housingNotes.map<HousingNoteDBO>((housingNote) => ({
         note_id: housingNote.id,
         housing_id: housingNote.housingId,
         housing_geo_code: housingNote.housingGeoCode,
-      })),
+      }))
     );
   }
 }
@@ -46,7 +46,7 @@ async function insertManyHousingNotes(
 async function findNotes(
   tableName: string,
   columnName: string,
-  value: string,
+  value: string
 ): Promise<NoteApi[]> {
   const notes = await Notes()
     .select(`${notesTable}.*`)

@@ -12,12 +12,12 @@ interface State {
 
 function AccountEmailActivationView() {
   const router = useHistory<State | undefined>();
-  const { error, hidden, send: sendActivationEmail } = useActivationEmail();
+  const { error, hidden, send: sendActivationEmail, } = useActivationEmail();
 
   const status = useMemo(() => (error ? 'error' : 'valid'), [error]);
 
   function send(): void {
-    const { state } = router.location;
+    const { state, } = router.location;
     if (state?.email) {
       sendActivationEmail(state.email);
     }
@@ -28,7 +28,7 @@ function AccountEmailActivationView() {
   }
 
   const confirmationClasses = classNames(`fr-${status}-text`, {
-    [styles.hidden]: hidden
+    [styles.hidden]: hidden,
   });
 
   return (

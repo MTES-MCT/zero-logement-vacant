@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
       table.string('street');
       table.string('postal_code');
       table.string('city');
-    }),
+    })
   ]);
 }
 
@@ -18,6 +18,6 @@ export async function down(knex: Knex): Promise<void> {
       table.dropColumn('street');
       table.dropColumn('postal_code');
       table.dropColumn('city');
-    }),
+    })
   ]);
 }

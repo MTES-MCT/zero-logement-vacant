@@ -31,16 +31,16 @@ async function update(contactPointApi: ContactPointApi): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, establishment_id, ...updatedData } =
     formatContactPointApi(contactPointApi);
-  await ContactPoints().where({ id: contactPointApi.id }).update(updatedData);
+  await ContactPoints().where({ id: contactPointApi.id, }).update(updatedData);
 }
 
 async function find(
   establishmentId: string,
-  publicOnly?: boolean,
+  publicOnly?: boolean
 ): Promise<ContactPointApi[]> {
   logger.info(
     'List contactPointApi for establishment with id',
-    establishmentId,
+    establishmentId
   );
   const contactPoints = await ContactPoints()
     .select(`${contactPointsTable}.*`)
@@ -51,7 +51,7 @@ async function find(
           .join(
             settingsTable,
             `${settingsTable}.establishment_id`,
-            `${contactPointsTable}.establishment_id`,
+            `${contactPointsTable}.establishment_id`
           )
           .andWhere('contact_points_public', true);
       }
@@ -61,7 +61,7 @@ async function find(
 }
 
 async function findOne(
-  options: ContactPointsUniqueProperties,
+  options: ContactPointsUniqueProperties
 ): Promise<ContactPointApi | null> {
   logger.info('Find contactPointApi with options', options);
   const contactPoint = await ContactPoints()
@@ -76,7 +76,7 @@ async function findOne(
 
 async function remove(id: string): Promise<void> {
   logger.info('Delete contactPointApi with id', id);
-  await ContactPoints().where({ id }).delete();
+  await ContactPoints().where({ id, }).delete();
 }
 
 interface ContactPointDBO {
@@ -92,7 +92,7 @@ interface ContactPointDBO {
 }
 
 export const formatContactPointApi = (
-  contactPointApi: ContactPointApi,
+  contactPointApi: ContactPointApi
 ): ContactPointDBO => ({
   id: contactPointApi.id,
   establishment_id: contactPointApi.establishmentId,
@@ -106,7 +106,7 @@ export const formatContactPointApi = (
 });
 
 export const parseContactPointApi = (
-  contactPointDbo: ContactPointDBO,
+  contactPointDbo: ContactPointDBO
 ): ContactPointApi => ({
   id: contactPointDbo.id,
   establishmentId: contactPointDbo.establishment_id,

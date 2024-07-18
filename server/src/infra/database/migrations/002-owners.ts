@@ -22,13 +22,13 @@ export async function up(knex: Knex): Promise<void> {
       })
       .alterTable('owners_housing', (table) => {
         table.primary(['owner_id', 'housing_id']);
-      }),
+      })
   ]);
 }
 
 export async function down(knex: Knex): Promise<void> {
   await Promise.all([
     knex.schema.dropTable('owners_housing'),
-    knex.schema.dropTable('owners'),
+    knex.schema.dropTable('owners')
   ]);
 }

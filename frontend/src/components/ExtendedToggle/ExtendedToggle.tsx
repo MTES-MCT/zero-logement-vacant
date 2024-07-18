@@ -7,7 +7,7 @@ import styles from './extended-toggle.module.scss';
 import { ToggleSwitchProps } from '@codegouvfr/react-dsfr/ToggleSwitch';
 import {
   FrIconClassName,
-  RiIconClassName,
+  RiIconClassName
 } from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
 
 type Props = ToggleSwitchProps & {

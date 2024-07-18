@@ -18,7 +18,7 @@ describe('Modal stepper', () => {
     {
       title: 'Title 2',
       Component: forwardRef(() => <p>Step 2</p>),
-    },
+    }
   ];
 
   it('should display the first step', async () => {

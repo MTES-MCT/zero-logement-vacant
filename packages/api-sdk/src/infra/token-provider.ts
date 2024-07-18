@@ -16,12 +16,12 @@ interface TokenProviderOptions {
 }
 
 export default function createTokenProvider(opts: TokenProviderOptions) {
-  const { auth, db, logger, serviceAccount, storage } = opts;
+  const { auth, db, logger, serviceAccount, storage, } = opts;
   const cache = new Map<string, string>();
 
   async function fetchToken(
     establishment: string,
-    user: string,
+    user: string
   ): Promise<string> {
     const payload = {
       establishmentId: establishment,
@@ -33,14 +33,14 @@ export default function createTokenProvider(opts: TokenProviderOptions) {
         if (error || !token) {
           return reject(error);
         }
-        logger.debug('Token generated', { establishment });
+        logger.debug('Token generated', { establishment, });
         return resolve(token);
       });
     });
   }
 
   return async (
-    config: InternalAxiosRequestConfig,
+    config: InternalAxiosRequestConfig
   ): Promise<InternalAxiosRequestConfig> => {
     logger.debug('Intercepting request...');
     const establishment = storage.getStore()?.establishment;
@@ -49,12 +49,12 @@ export default function createTokenProvider(opts: TokenProviderOptions) {
     }
 
     if (cache.has(establishment)) {
-      logger.debug('Cache hit!', { establishment });
+      logger.debug('Cache hit!', { establishment, });
       config.headers.set('x-access-token', cache.get(establishment));
       return config;
     }
 
-    const user = await db('users').where({ email: serviceAccount }).first();
+    const user = await db('users').where({ email: serviceAccount, }).first();
     if (!user) {
       throw new Error(`User ${serviceAccount} not found.`);
     }
@@ -64,7 +64,7 @@ export default function createTokenProvider(opts: TokenProviderOptions) {
     // TODO: change this to "Authorization: `Bearer ${token}`"
     config.headers.set('x-access-token', token);
     cache.set(establishment, token);
-    logger.debug('Cache token', { establishment, token });
+    logger.debug('Cache token', { establishment, token, });
     return config;
   };
 }

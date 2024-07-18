@@ -7,12 +7,12 @@ import { tokenProvider } from '../../test/testUtils';
 import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '../../repositories/establishmentRepository';
 import { formatUserApi, Users } from '../../repositories/userRepository';
 
 describe('File API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -26,7 +26,7 @@ describe('File API', () => {
     const testRoute = '/api/files';
 
     it('should upload a file', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .attach('file', path.join(__dirname, 'test.jpeg'))
         .use(tokenProvider(user));

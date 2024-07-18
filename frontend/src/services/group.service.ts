@@ -21,14 +21,14 @@ export const groupApi = zlvApi.injectEndpoints({
                 type: 'Group' as const,
                 id: group.id,
               })),
-              { type: 'Group', id: 'LIST' },
+              { type: 'Group', id: 'LIST', }
             ]
-          : [{ type: 'Group', id: 'LIST' }],
+          : [{ type: 'Group', id: 'LIST', }],
       transformResponse: (groups: GroupDTO[]) => groups.map(fromGroupDTO),
     }),
     getGroup: builder.query<Group, string>({
       query: (id: string) => `groups/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Group', id }],
+      providesTags: (result, error, id) => [{ type: 'Group', id, }],
       transformResponse: (group: GroupDTO) => fromGroupDTO(group),
     }),
     createGroup: builder.mutation<
@@ -40,7 +40,7 @@ export const groupApi = zlvApi.injectEndpoints({
         method: 'POST',
         body: group,
       }),
-      invalidatesTags: [{ type: 'Group', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Group', id: 'LIST', }],
       transformResponse: (group: GroupDTO, meta) => {
         return {
           status: meta?.response?.status ?? 201,
@@ -55,7 +55,7 @@ export const groupApi = zlvApi.injectEndpoints({
         body: group,
       }),
       invalidatesTags: (result, error, args) => [
-        { type: 'Group', id: args.id },
+        { type: 'Group', id: args.id, }
       ],
     }),
     addGroupHousing: builder.mutation<
@@ -68,15 +68,15 @@ export const groupApi = zlvApi.injectEndpoints({
         body: fp.omit(['id'], group),
       }),
       invalidatesTags: (result, error, args) => [
-        { type: 'Group', id: args.id },
+        { type: 'Group', id: args.id, }
       ],
-      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+      onQueryStarted: async (args, { dispatch, queryFulfilled, }) => {
         await queryFulfilled;
         dispatch(
           housingApi.util.invalidateTags([
             'Housing',
             'HousingByStatus',
-            'HousingCountByStatus',
+            'HousingCountByStatus'
           ])
         );
       },
@@ -91,15 +91,15 @@ export const groupApi = zlvApi.injectEndpoints({
         body: fp.omit(['id'], group),
       }),
       invalidatesTags: (result, error, args) => [
-        { type: 'Group', id: args.id },
+        { type: 'Group', id: args.id, }
       ],
-      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+      onQueryStarted: async (args, { dispatch, queryFulfilled, }) => {
         await queryFulfilled;
         dispatch(
           housingApi.util.invalidateTags([
             'Housing',
             'HousingByStatus',
-            'HousingCountByStatus',
+            'HousingCountByStatus'
           ])
         );
       },
@@ -110,7 +110,7 @@ export const groupApi = zlvApi.injectEndpoints({
         method: 'DELETE',
       }),
       invalidatesTags: (result, error, group) => [
-        { type: 'Group', id: group.id },
+        { type: 'Group', id: group.id, }
       ],
     }),
   }),

@@ -36,10 +36,10 @@ export function healthcheck(opts?: Options) {
             status: 'down',
           };
         }
-      },
+      }
     );
 
-    const code = statuses.every(({ status }) => status === 'up')
+    const code = statuses.every(({ status, }) => status === 'up')
       ? constants.HTTP_STATUS_OK
       : constants.HTTP_STATUS_SERVICE_UNAVAILABLE;
     response.status(code).json({

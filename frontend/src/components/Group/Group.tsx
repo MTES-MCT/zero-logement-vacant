@@ -55,7 +55,7 @@ function Group(props: GroupProps) {
                   priority: 'tertiary no outline',
                   iconId: 'ri-edit-line',
                   iconPosition: 'right',
-                  size: 'small'
+                  size: 'small',
                 }}
                 group={props.group}
                 onSubmit={updateGroup}
@@ -130,7 +130,7 @@ function Group(props: GroupProps) {
               group={props.group}
               housingCount={props.group.housingCount}
               openingButtonProps={{
-                className: styles.action
+                className: styles.action,
               }}
               onSubmit={createCampaign}
             />
@@ -145,7 +145,7 @@ function Group(props: GroupProps) {
             <GroupRemovalModal
               campaigns={props.campaigns}
               openingButtonProps={{
-                className: styles.action
+                className: styles.action,
               }}
               onSubmit={removeGroup}
             />

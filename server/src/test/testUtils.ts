@@ -4,7 +4,7 @@ import { Plugin } from 'superagent';
 import { TokenPayload, UserApi } from '~/models/UserApi';
 
 export const createTestToken = (payload: TokenPayload) =>
-  jwt.sign(payload, 'secret', { expiresIn: 86400 });
+  jwt.sign(payload, 'secret', { expiresIn: 86400, });
 
 export function tokenProvider(user: UserApi): Plugin {
   return (request) => {

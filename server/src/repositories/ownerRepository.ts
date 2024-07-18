@@ -16,7 +16,7 @@ import {
   HousingDBO,
   housingTable,
   ownerHousingJoinClause,
-  parseHousingApi,
+  parseHousingApi
 } from './housingRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { groupsHousingTable } from './groupRepository';
@@ -54,7 +54,7 @@ const filteredQuery =
         .join(
           housingOwnersTable,
           `${ownerTable}.id`,
-          `${housingOwnersTable}.owner_id`,
+          `${housingOwnersTable}.owner_id`
         )
         .join(housingTable, ownerHousingJoinClause)
         .join(campaignsHousingTable, (query) =>
@@ -62,8 +62,8 @@ const filteredQuery =
             .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
             .andOn(
               `${housingTable}.geo_code`,
-              `${campaignsHousingTable}.housing_geo_code`,
-            ),
+              `${campaignsHousingTable}.housing_geo_code`
+            )
         )
         .where(`${campaignsHousingTable}.campaign_id`, filters.campaignId);
     }
@@ -72,7 +72,7 @@ const filteredQuery =
         .join(
           housingOwnersTable,
           `${ownerTable}.id`,
-          `${housingOwnersTable}.owner_id`,
+          `${housingOwnersTable}.owner_id`
         )
         .join(housingTable, ownerHousingJoinClause)
         .join(groupsHousingTable, (query) =>
@@ -80,8 +80,8 @@ const filteredQuery =
             .on(`${housingTable}.id`, `${groupsHousingTable}.housing_id`)
             .andOn(
               `${housingTable}.geo_code`,
-              `${groupsHousingTable}.housing_geo_code`,
-            ),
+              `${groupsHousingTable}.housing_geo_code`
+            )
         )
         .where(`${groupsHousingTable}.group_id`, filters.groupId);
     }
@@ -98,18 +98,18 @@ const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
           .join(
             ownerMatchTable,
             `${ownerMatchTable}.owner_id`,
-            `${ownerTable}.id`,
+            `${ownerTable}.id`
           )
           .modify((query) => {
             if (opts?.filters?.idpersonne) {
               Array.isArray(opts?.filters?.idpersonne)
                 ? query.whereIn(
                     `${ownerMatchTable}.idpersonne`,
-                    opts?.filters?.idpersonne,
+                    opts?.filters?.idpersonne
                   )
                 : query.where(
                     `${ownerMatchTable}.idpersonne`,
-                    opts?.filters?.idpersonne,
+                    opts?.filters?.idpersonne
                   );
             }
           });
@@ -160,7 +160,7 @@ const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
       `${ownerTable}.id`,
       `${ownerTable}.raw_address`,
       `${ownerTable}.full_name`,
-      db.raw(`array_agg (to_json(fast_housing.*)) as housing_list`),
+      db.raw(`array_agg (to_json(fast_housing.*)) as housing_list`)
     )
     .groupBy(`${ownerTable}.id`)
     .orderByRaw(`count(distinct(${housingOwnersTable}.housing_id)) desc`)
@@ -170,9 +170,9 @@ const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
     (result: OwnerExportStreamDBO): OwnerExportStreamApi => ({
       ...parseOwnerApi(result),
       housingList: result.housing_list.map((housing) =>
-        parseHousingApi(housing),
+        parseHousingApi(housing)
       ),
-    }),
+    })
   );
 };
 
@@ -201,26 +201,26 @@ const findOne = async (opts: FindOneOptions): Promise<OwnerApi | null> => {
 const searchOwners = async (
   q: string,
   page?: number,
-  perPage?: number,
+  perPage?: number
 ): Promise<PaginatedResultApi<OwnerApi>> => {
   const filterQuery = db(ownerTable)
     .whereRaw(
       `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q,
+      q
     )
     .orWhereRaw(
       `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q?.split(' ').reverse().join(' '),
+      q?.split(' ').reverse().join(' ')
     );
 
   const filteredCount: number = await db(ownerTable)
     .whereRaw(
       `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q,
+      q
     )
     .orWhereRaw(
       `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q?.split(' ').reverse().join(' '),
+      q?.split(' ').reverse().join(' ')
     )
     .count('id')
     .first()
@@ -250,13 +250,13 @@ const searchOwners = async (
 };
 
 const findByHousing = async (
-  housing: HousingApi,
+  housing: HousingApi
 ): Promise<HousingOwnerApi[]> => {
   const owners: Array<OwnerDBO & HousingOwnerDBO> = await db(ownerTable)
     .join(
       housingOwnersTable,
       `${ownerTable}.id`,
-      `${housingOwnersTable}.owner_id`,
+      `${housingOwnersTable}.owner_id`
     )
     .modify(include(['banAddress']))
     .whereRaw(`${housingOwnersTable}.rank >= 1`)
@@ -321,7 +321,7 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
             return builder
               .onConflict(['full_name', 'raw_address', 'birth_date'])
               .ignore();
-          }),
+          })
       );
     }
 
@@ -334,19 +334,19 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
               return builder
                 .onConflict(
                   db.raw(
-                    '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null',
-                  ),
+                    '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
+                  )
                 )
                 .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
             }
             return builder
               .onConflict(
                 db.raw(
-                  '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null',
-                ),
+                  '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
+                )
               )
               .ignore();
-          }),
+          })
       );
     }
 
@@ -375,7 +375,7 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
 };
 
 const insertHousingOwners = async (
-  housingOwners: HousingOwnerApi[],
+  housingOwners: HousingOwnerApi[]
 ): Promise<number> => {
   try {
     return db(housingOwnersTable)
@@ -388,7 +388,7 @@ const insertHousingOwners = async (
           start_date: ho.startDate,
           end_date: ho.endDate,
           origin: ho.origin,
-        })),
+        }))
       )
       .returning('*')
       .then((_) => _.length);
@@ -400,7 +400,7 @@ const insertHousingOwners = async (
 
 const deleteHousingOwners = async (
   housingId: string,
-  ownerIds: string[],
+  ownerIds: string[]
 ): Promise<number> => {
   try {
     return db(housingOwnersTable)
@@ -414,7 +414,7 @@ const deleteHousingOwners = async (
 };
 
 const updateAddressList = async (
-  ownerAdresses: { addressId: string; addressApi: AddressApi }[],
+  ownerAdresses: { addressId: string; addressApi: AddressApi }[]
 ): Promise<HousingApi[]> => {
   try {
     if (ownerAdresses.filter((oa) => oa.addressId).length) {
@@ -429,8 +429,8 @@ const updateAddressList = async (
               `('${ha.addressId}', '${ha.addressApi.postalCode}', '${
                 ha.addressApi.houseNumber ?? ''
               }', '${escapeValue(ha.addressApi.street)}', '${escapeValue(
-                ha.addressApi.city,
-              )}')`,
+                ha.addressApi.city
+              )}')`
           ) +
         ') as c(id, postal_code, house_number, street, city)' +
         ' WHERE o.id::text = c.id';
@@ -482,7 +482,7 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
     result.house_number,
     result.street,
     result.city,
-    result.score,
+    result.score
   ].some((_) => isDefined(_) && isNotNull(_))
     ? {
         postalCode: result.postal_code ?? '',
@@ -496,7 +496,7 @@ export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
 });
 
 export const parseHousingOwnerApi = (
-  housingOwner: OwnerDBO & HousingOwnerDBO,
+  housingOwner: OwnerDBO & HousingOwnerDBO
 ): HousingOwnerApi => ({
   ...parseOwnerApi(housingOwner),
   housingId: housingOwner.housing_id,

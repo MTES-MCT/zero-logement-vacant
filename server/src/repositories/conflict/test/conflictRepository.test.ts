@@ -6,7 +6,7 @@ import conflictRepository, {
   formatConflictApi,
   formatOwnerConflictApi,
   OwnerConflictRecordDBO,
-  OwnerConflicts,
+  OwnerConflicts
 } from '../conflictRepository';
 import { ConflictApi, OwnerConflictApi } from '~/models/ConflictApi';
 import { genOwnerApi, genOwnerConflictApi } from '../../../test/testFixtures';
@@ -37,8 +37,8 @@ describe('Conflict repository', () => {
     const repository = conflictRepository.owners;
 
     describe('find', () => {
-      const conflicts: OwnerConflictApi[] = Array.from({ length: 5 }, () =>
-        genOwnerConflictApi(),
+      const conflicts: OwnerConflictApi[] = Array.from({ length: 5, }, () =>
+        genOwnerConflictApi()
       );
 
       beforeAll(async () => {
@@ -72,13 +72,13 @@ describe('Conflict repository', () => {
       });
 
       it('should create a conflict', async () => {
-        const actual = await Conflicts().where({ id: conflict.id }).first();
+        const actual = await Conflicts().where({ id: conflict.id, }).first();
         expect(actual).toBeDefined();
       });
 
       it('should create an owner conflict linked to the conflict entity', async () => {
         const actual = await OwnerConflicts()
-          .where({ conflict_id: conflict.id })
+          .where({ conflict_id: conflict.id, })
           .first();
         expect(actual).toMatchObject<Partial<OwnerConflictRecordDBO>>({
           conflict_id: conflict.id,

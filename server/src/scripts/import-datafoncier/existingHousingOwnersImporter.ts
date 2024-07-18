@@ -10,7 +10,7 @@ import {
   equals,
   HousingOwnerApi,
   MAX_OWNERS,
-  toHousingOwnersApi,
+  toHousingOwnersApi
 } from '~/models/HousingOwnerApi';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import { HousingOwnerConflictApi } from '~/models/ConflictApi';
@@ -25,7 +25,7 @@ let totalHousingOwnersCount = 0;
 let progressBar: SingleBar;
 
 export async function existingHousingOwnersImporter(
-  progressBarHousingOwners: SingleBar,
+  progressBarHousingOwners: SingleBar
 ): Promise<Stream<HousingApi>> {
   logger.info('Importing housing owners...');
 
@@ -62,7 +62,7 @@ export async function processHousing(housing: HousingApi): Promise<void> {
   });
   if (!datafoncierHousing) {
     logger.debug(
-      `No datafoncier housing found for idlocal ${housing.localId}. Skipping...`,
+      `No datafoncier housing found for idlocal ${housing.localId}. Skipping...`
     );
     return;
   }
@@ -74,11 +74,11 @@ export async function processHousing(housing: HousingApi): Promise<void> {
         idprocpte: datafoncierHousing.idprocpte,
       },
     }),
-    ownerRepository.findByHousing(housing),
+    ownerRepository.findByHousing(housing)
   ]);
   const datafoncierHousingOwners: HousingOwnerApi[] = toHousingOwnersApi(
     housing,
-    datafoncierOwners,
+    datafoncierOwners
   );
 
   // This is a new housing that had no owner yet

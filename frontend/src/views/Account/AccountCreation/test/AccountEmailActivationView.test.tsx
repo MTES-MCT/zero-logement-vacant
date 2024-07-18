@@ -20,7 +20,7 @@ describe('AccountEmailActivationView', () => {
               component={AccountEmailActivationView}
             />
           </Router>
-        </Provider>,
+        </Provider>
       );
     }
 
@@ -43,7 +43,7 @@ describe('AccountEmailActivationView', () => {
                 state: {
                   email: 'ok@beta.gouv.fr',
                 },
-              },
+              }
             ]}
           >
             <Route
@@ -51,7 +51,7 @@ describe('AccountEmailActivationView', () => {
               component={AccountEmailActivationView}
             />
           </Router>
-        </Provider>,
+        </Provider>
       );
     }
 
@@ -59,7 +59,7 @@ describe('AccountEmailActivationView', () => {
       setup();
 
       const title = screen.getByText(
-        'Vous devez confirmer votre adresse mail.',
+        'Vous devez confirmer votre adresse mail.'
       );
 
       expect(title).toBeVisible();
@@ -68,7 +68,7 @@ describe('AccountEmailActivationView', () => {
     it('should send an email again', async () => {
       const sendActivationEmail = jest.spyOn(
         signupLinkApi.endpoints.sendActivationEmail,
-        'initiate',
+        'initiate'
       );
       setup();
 

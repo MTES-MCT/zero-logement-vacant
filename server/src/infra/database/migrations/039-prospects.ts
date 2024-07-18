@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
       table.timestamp('last_account_request_at').notNullable();
       table.boolean('has_account').notNullable().defaultTo(false);
       table.boolean('has_commitment').notNullable().defaultTo(false);
-    }),
+    })
   ]);
 }
 

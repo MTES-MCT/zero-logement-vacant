@@ -10,11 +10,11 @@ export interface ConsultDossiersLovacService {
 export const TEST_DOSSIERS: ReadonlyArray<CeremaDossier> = [
   {
     email: 'test0@structure.fr',
-    establishmentId: 0
+    establishmentId: 0,
   },
   {
     email: 'test1@structure.fr',
-    establishmentId: 1
+    establishmentId: 1,
   }
 ];
 

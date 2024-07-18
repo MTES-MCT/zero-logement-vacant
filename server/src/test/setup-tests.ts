@@ -23,7 +23,7 @@ jest.mock<Queue>('~/infra/queue', () => {
     },
     close(): Promise<void> {
       return Promise.resolve();
-    }
+    },
   };
 });
 

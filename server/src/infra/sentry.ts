@@ -27,7 +27,7 @@ function init(app: Express): void {
         new Sentry.Integrations.Express({
           app,
         }),
-        new Sentry.Integrations.Postgres(),
+        new Sentry.Integrations.Postgres()
       ],
     });
 

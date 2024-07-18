@@ -25,7 +25,7 @@ function BuildingPoints(props: Props) {
           ['get', 'status', ['at', 0, ['get', 'housingList']]],
           // Apply a text color depending on the housing status
           ...statusColors.textColors.flat(),
-          statusColors.defaultBackgroundColor,
+          statusColors.defaultBackgroundColor
         ],
         'icon-halo-color': statusColors.defaultTextColor,
         'icon-halo-width': 4,

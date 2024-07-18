@@ -4,26 +4,26 @@ import fp from 'lodash/fp';
 
 import {
   establishmentsTable,
-  parseEstablishmentApi,
+  parseEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import {
   formatGroupApi,
   GroupHousingDBO,
   groupsHousingTable,
-  groupsTable,
+  groupsTable
 } from '~/repositories/groupRepository';
 import { housingTable } from '~/repositories/housingRepository';
 import {
   parseUserApi,
   UserDBO,
-  usersTable,
+  usersTable
 } from '~/repositories/userRepository';
 import { genGroupApi, genNumber } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   const users: UserDBO[] = await knex(usersTable).whereIn('email', [
     'test.strasbourg@zlv.fr',
-    'test.saintlo@zlv.fr',
+    'test.saintlo@zlv.fr'
   ]);
 
   await async.forEach(users, async (user: UserDBO) => {
@@ -35,8 +35,8 @@ export async function seed(knex: Knex): Promise<void> {
       .whereIn('geo_code', establishment.localities_geo_code)
       .limit(200);
 
-    const groups = Array.from({ length: genNumber(1) }, () =>
-      genGroupApi(parseUserApi(user), parseEstablishmentApi(establishment)),
+    const groups = Array.from({ length: genNumber(1), }, () =>
+      genGroupApi(parseUserApi(user), parseEstablishmentApi(establishment))
     ).map(formatGroupApi);
 
     const groupsHousing = groups.flatMap((group) => {

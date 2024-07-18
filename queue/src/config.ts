@@ -121,7 +121,7 @@ const config = convict<Config>({
     },
   },
 })
-  .validate({ allowed: 'strict' })
+  .validate({ allowed: 'strict', })
   .get();
 
 export default config;

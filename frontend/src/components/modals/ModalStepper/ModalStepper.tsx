@@ -71,7 +71,7 @@ function ModalStepper(props: Props) {
           stepper.isOver() ? modal.close() : stepper.next();
         }
       },
-    },
+    }
   ];
 
   return (

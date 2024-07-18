@@ -24,7 +24,7 @@ const AccountPasswordView = () => {
 
   const [
     updateUserPassword,
-    { isSuccess: isUpdateSuccess, error: updateError }
+    { isSuccess: isUpdateSuccess, error: updateError, }
   ] = useUpdatePasswordMutation();
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -39,7 +39,7 @@ const AccountPasswordView = () => {
       .string()
       .required('Veuillez renseigner votre nouveau mot de passe.'),
     passwordFormat: passwordFormatValidator,
-    passwordConfirmation: passwordConfirmationValidator
+    passwordConfirmation: passwordConfirmationValidator,
   };
   type FormShape = typeof shape;
 
@@ -49,14 +49,14 @@ const AccountPasswordView = () => {
       currentPassword,
       password,
       passwordFormat: password,
-      passwordConfirmation
+      passwordConfirmation,
     },
     ['passwordFormat']
   );
 
   const submit = async () => {
     await form.validate(() => {
-      updateUserPassword({ currentPassword, newPassword: password });
+      updateUserPassword({ currentPassword, newPassword: password, });
     });
   };
 

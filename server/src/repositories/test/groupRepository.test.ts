@@ -4,21 +4,21 @@ import {
   genEstablishmentApi,
   genGroupApi,
   genHousingApi,
-  genUserApi,
+  genUserApi
 } from '../../test/testFixtures';
 import groupRepository, {
   formatGroupApi,
   formatGroupHousingApi,
   GroupHousingDBO,
   Groups,
-  GroupsHousing,
+  GroupsHousing
 } from '../groupRepository';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { formatHousingRecordApi, Housing } from '../housingRepository';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '../establishmentRepository';
 import { formatUserApi, Users } from '../userRepository';
 
@@ -31,12 +31,12 @@ describe('Group repository', () => {
     const groups: GroupApi[] = [
       genGroupApi(user, establishment),
       genGroupApi(user, establishment),
-      genGroupApi(user, anotherEstablishment),
+      genGroupApi(user, anotherEstablishment)
     ];
 
     beforeAll(async () => {
       await Establishments().insert(
-        [establishment, anotherEstablishment].map(formatEstablishmentApi),
+        [establishment, anotherEstablishment].map(formatEstablishmentApi)
       );
       await Users().insert([user, anotherUser].map(formatUserApi));
       await Groups().insert(groups.map(formatGroupApi));
@@ -46,12 +46,12 @@ describe('Group repository', () => {
       const actual = await groupRepository.find();
 
       expect(actual).toIncludeAllMembers(groups);
-      expect(actual).toBeSortedBy('createdAt', { descending: true });
+      expect(actual).toBeSortedBy('createdAt', { descending: true, });
     });
 
     it('should return groups filtered by establishment', async () => {
       const filteredGroups = groups.filter(
-        (group) => group.establishmentId === establishment.id,
+        (group) => group.establishmentId === establishment.id
       );
 
       const actual = await groupRepository.find({
@@ -74,7 +74,7 @@ describe('Group repository', () => {
 
     beforeAll(async () => {
       await Establishments().insert(
-        [establishment, anotherEstablishment].map(formatEstablishmentApi),
+        [establishment, anotherEstablishment].map(formatEstablishmentApi)
       );
       await Users().insert([user, anotherUser].map(formatUserApi));
       await Groups().insert([group, anotherGroup].map(formatGroupApi));
@@ -120,7 +120,7 @@ describe('Group repository', () => {
     const housingList: HousingApi[] = [
       genHousingApi(),
       genHousingApi(),
-      genHousingApi(),
+      genHousingApi()
     ];
 
     beforeAll(async () => {
@@ -144,7 +144,7 @@ describe('Group repository', () => {
       const actualHousingList = await GroupsHousing().where({
         group_id: group.id,
       });
-      const ids = housingList.map((housing) => ({ housing_id: housing.id }));
+      const ids = housingList.map((housing) => ({ housing_id: housing.id, }));
       expect(actualHousingList).toBeArrayOfSize(housingList.length);
       expect(actualHousingList).toIncludeAllPartialMembers(ids);
     });
@@ -179,7 +179,7 @@ describe('Group repository', () => {
           group_id: group.id,
           housing_id: newHousing.id,
           housing_geo_code: newHousing.geoCode,
-        },
+        }
       ]);
     });
   });
@@ -213,7 +213,7 @@ describe('Group repository', () => {
     const housingList: HousingApi[] = [
       genHousingApi(),
       genHousingApi(),
-      genHousingApi(),
+      genHousingApi()
     ];
 
     beforeEach(async () => {

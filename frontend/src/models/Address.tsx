@@ -16,9 +16,9 @@ export const addressToString = (address?: Address, breakLine = true) => {
         address.street?.startsWith(address.houseNumber ?? '')
           ? address.street
           : [address.houseNumber, address.street].join(' '),
-        [address.postalCode, address.city].join(' '),
+        [address.postalCode, address.city].join(' ')
       ],
-      breakLine,
+      breakLine
     );
   }
 };

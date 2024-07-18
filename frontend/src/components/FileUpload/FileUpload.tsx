@@ -53,7 +53,7 @@ function FileUpload(props: Readonly<Props>) {
       label={props.label}
       multiple={false}
       hint={hint}
-      nativeInputProps={{ accept, onChange }}
+      nativeInputProps={{ accept, onChange, }}
     />
   );
 }

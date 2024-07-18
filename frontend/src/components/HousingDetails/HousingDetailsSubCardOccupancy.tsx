@@ -23,7 +23,7 @@ interface Props {
   lastOccupancyEvent?: Event;
 }
 
-function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
+function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent, }: Props) {
   const lastOccupancyChange = lastOccupancyEvent
     ? getYear(lastOccupancyEvent.createdAt)
     : housing.occupancy === 'V'

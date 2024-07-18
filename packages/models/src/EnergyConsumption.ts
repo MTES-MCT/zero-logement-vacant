@@ -5,7 +5,7 @@ export const ENERGY_CONSUMPTION_VALUES = [
   'D',
   'E',
   'F',
-  'G',
+  'G'
 ] as const;
 
 export type EnergyConsumption = (typeof ENERGY_CONSUMPTION_VALUES)[number];

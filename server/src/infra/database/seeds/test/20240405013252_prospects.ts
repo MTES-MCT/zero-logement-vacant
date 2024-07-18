@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 
 import prospectRepository, {
-  prospectsTable,
+  prospectsTable
 } from '~/repositories/prospectRepository';
 import { genProspectApi } from '~/test/testFixtures';
 import { Establishment1 } from './20240405011849_establishments';

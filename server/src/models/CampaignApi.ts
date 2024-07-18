@@ -23,9 +23,9 @@ export function toCampaignDTO(campaign: CampaignApi): CampaignDTO {
       'sentAt',
       'archivedAt',
       'confirmedAt',
-      'groupId',
+      'groupId'
     ],
-    campaign,
+    campaign
   );
 }
 

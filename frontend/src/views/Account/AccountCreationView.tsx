@@ -48,7 +48,7 @@ function AccountCreationView() {
         <Col n="5" offset="1" className="align-right">
           <img
             src={building}
-            style={{ maxWidth: '100%', height: '100%' }}
+            style={{ maxWidth: '100%', height: '100%', }}
             alt=""
           />
         </Col>

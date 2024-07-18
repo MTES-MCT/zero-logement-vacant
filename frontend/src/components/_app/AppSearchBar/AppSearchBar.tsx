@@ -149,7 +149,7 @@ const AppSearchBar = ({
       )}
       <button
         type="submit"
-        className={classNames('fr-btn', { 'fr-btn--lg': size === 'lg' })}
+        className={classNames('fr-btn', { 'fr-btn--lg': size === 'lg', })}
         title="Bouton de recherche"
       >
         {buttonLabel ?? 'Rechercher'}

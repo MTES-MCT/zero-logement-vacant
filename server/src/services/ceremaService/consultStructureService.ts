@@ -47,7 +47,7 @@ export async function structureToEstablishment(structure: Structure): Promise<Es
     localities_geo_code: structure.perimeter ? await getLocalitiesGeocode(structure.perimeter) : [],
     kind: structure.kind,
     source: 'cerema',
-    updated_at: new Date()
+    updated_at: new Date(),
   };
 };
 
@@ -66,10 +66,10 @@ export const TEST_STRUCTURES: ReadonlyArray<Structure> = [
       "comm_by_dep": {
         "06": [
             "06029"
-        ]
-      }
+        ],
+      },
     },
-    kind: "Commune et commune nouvelle"
+    kind: "Commune et commune nouvelle",
   },
   {
     establishmentId: 1,
@@ -80,7 +80,7 @@ export const TEST_STRUCTURES: ReadonlyArray<Structure> = [
       "dep_complet": ["85"],
       "comm_by_dep": {},
     },
-    kind: "Commune et commune nouvelle"
+    kind: "Commune et commune nouvelle",
   }
 ];
 

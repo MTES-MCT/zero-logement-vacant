@@ -5,7 +5,7 @@ export async function up(knex: Knex): Promise<void> {
     knex.schema.alterTable('events', (table) => {
       table.uuid('created_by').nullable().alter();
       table.text('content').alter();
-    }),
+    })
   ]);
 }
 

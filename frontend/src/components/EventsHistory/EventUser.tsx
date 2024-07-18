@@ -7,10 +7,10 @@ interface Props {
   userId: string;
 }
 
-const EventUser = ({ userId }: Props) => {
-  const { availableEstablishments } = useAvailableEstablishments();
+const EventUser = ({ userId, }: Props) => {
+  const { availableEstablishments, } = useAvailableEstablishments();
 
-  const { data: user } = useGetUserQuery(userId);
+  const { data: user, } = useGetUserQuery(userId);
 
   const establishment = availableEstablishments?.find(
     (_) => _.id === user?.establishmentId

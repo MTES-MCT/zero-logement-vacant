@@ -19,7 +19,7 @@ import {
   toUserAccountDTO,
   toUserDTO,
   UserApi,
-  UserRoles,
+  UserRoles
 } from '~/models/UserApi';
 import AuthenticationFailedError from '~/errors/authenticationFailedError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
@@ -31,8 +31,8 @@ import { logger } from '~/infra/logger';
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
-  body('password').isString().notEmpty({ ignore_whitespace: true }),
-  body('establishmentId').isString().optional(),
+  body('password').isString().notEmpty({ ignore_whitespace: true, }),
+  body('establishmentId').isString().optional()
 ];
 
 interface SignInPayload {
@@ -54,7 +54,7 @@ async function signIn(request: Request, response: Response) {
     throw new AuthenticationFailedError();
   }
 
-  await userRepository.update({ ...user, lastAuthenticatedAt: new Date() });
+  await userRepository.update({ ...user, lastAuthenticatedAt: new Date(), });
   const establishmentId = user.establishmentId ?? payload.establishmentId;
   if (!establishmentId) {
     throw new UnprocessableEntityError();
@@ -66,7 +66,7 @@ async function signIn(request: Request, response: Response) {
 async function signInToEstablishment(
   user: UserApi,
   establishmentId: string,
-  response: Response,
+  response: Response
 ) {
   const establishment = await establishmentRepository.get(establishmentId);
   if (!establishment) {
@@ -80,7 +80,7 @@ async function signInToEstablishment(
       role: user.role,
     } as TokenPayload,
     config.auth.secret,
-    { expiresIn: config.auth.expiresIn },
+    { expiresIn: config.auth.expiresIn, }
   );
 
   response.status(constants.HTTP_STATUS_OK).json({
@@ -91,7 +91,7 @@ async function signInToEstablishment(
 }
 
 async function changeEstablishment(request: Request, response: Response) {
-  const { user } = request as AuthenticatedRequest;
+  const { user, } = request as AuthenticatedRequest;
 
   if (user.role !== UserRoles.Admin && user.role !== UserRoles.Visitor) {
     throw new AuthenticationFailedError();
@@ -103,7 +103,7 @@ async function changeEstablishment(request: Request, response: Response) {
 }
 
 async function get(request: Request, response: Response) {
-  const { auth } = request as AuthenticatedRequest;
+  const { auth, } = request as AuthenticatedRequest;
 
   logger.info('Get account', auth.userId);
 
@@ -121,11 +121,11 @@ const updateAccountValidators: ValidationChain[] = [
   body('lastName').isString(),
   body('phone').isString(),
   body('position').isString(),
-  body('timePerWeek').isString(),
+  body('timePerWeek').isString()
 ];
 
 async function updateAccount(request: Request, response: Response) {
-  const { user } = request as AuthenticatedRequest;
+  const { user, } = request as AuthenticatedRequest;
   const account = request.body as UserAccountDTO;
 
   logger.info('Update account for ', user.id);
@@ -151,17 +151,17 @@ async function updatePassword(request: Request, response: Response) {
   }
 
   const hash = await bcrypt.hash(newPassword, SALT_LENGTH);
-  await userRepository.update({ ...user, password: hash });
+  await userRepository.update({ ...user, password: hash, });
 
   response.status(constants.HTTP_STATUS_OK).send();
 }
 const updatePasswordValidators: ValidationChain[] = [
-  body('currentPassword').isString().notEmpty({ ignore_whitespace: true }),
-  passwordCreationValidator('newPassword'),
+  body('currentPassword').isString().notEmpty({ ignore_whitespace: true, }),
+  passwordCreationValidator('newPassword')
 ];
 
 async function resetPassword(request: Request, response: Response) {
-  const { key, password } = request.body;
+  const { key, password, } = request.body;
 
   const link = await resetLinkRepository.get(key);
   if (!link) {
@@ -179,13 +179,13 @@ async function resetPassword(request: Request, response: Response) {
   }
 
   const hash = await bcrypt.hash(password, SALT_LENGTH);
-  await userRepository.update({ ...user, password: hash });
+  await userRepository.update({ ...user, password: hash, });
   await resetLinkRepository.used(link.id);
   response.sendStatus(constants.HTTP_STATUS_OK);
 }
 const resetPasswordValidators: ValidationChain[] = [
   body('key').isString().isAlphanumeric(),
-  passwordCreationValidator(),
+  passwordCreationValidator()
 ];
 
 export default {

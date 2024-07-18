@@ -33,8 +33,8 @@ async function getByEmail(email: string): Promise<UserApi | null> {
 }
 
 async function update(user: UserApi): Promise<void> {
-  logger.debug('Update user', { id: user.id });
-  await Users().where({ id: user.id }).update(formatUserApi(user));
+  logger.debug('Update user', { id: user.id, });
+  await Users().where({ id: user.id, }).update(formatUserApi(user));
 }
 
 async function insert(userApi: UserApi): Promise<UserApi> {
@@ -89,7 +89,7 @@ async function count(opts?: CountOptions): Promise<number> {
 
 async function remove(userId: string): Promise<void> {
   logger.info('Remove user', userId);
-  await db(usersTable).where('id', userId).update({ deleted_at: new Date() });
+  await db(usersTable).where('id', userId).update({ deleted_at: new Date(), });
 }
 
 export interface UserDBO {

@@ -6,8 +6,8 @@ const client = new Client({
   node: config.elastic.node,
   auth: {
     username: config.elastic.auth.username,
-    password: config.elastic.auth.password
-  }
+    password: config.elastic.auth.password,
+  },
 });
 
 type ExecutionStatus = | 'SUCCESS'
@@ -42,7 +42,7 @@ export async function logScriptExecution(scriptName: string, status: ExecutionSt
         script_name: scriptName,
         status: status,
         message: message,
-      }
+      },
     });
     logger.debug('Log script execution successfully');
   } catch (error) {
@@ -58,18 +58,18 @@ export async function getLastScriptExecutionDate(script_name: string): Promise<s
       sort: [
         {
           timestamp: {
-            order: 'desc'
-          }
+            order: 'desc',
+          },
         }
       ],
       query: {
         bool: {
           must: [
-            { match: { script_name: script_name } },
-            { match: { status: 'SUCCESS' } }
-          ]
-        }
-      }
+            { match: { script_name: script_name, }, },
+            { match: { status: 'SUCCESS', }, }
+          ],
+        },
+      },
     }) as ApiResponse;
 
     if (response.hits.hits.length > 0) {

@@ -15,11 +15,11 @@ export function createHousingAPI(http: AxiosInstance): HousingAPI {
     async find(opts?: FindOptions): Promise<HousingDTO[]> {
       const response = await http.post('/housing', opts, {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
       return response.data.entities;
-    }
+    },
   };
 }
 

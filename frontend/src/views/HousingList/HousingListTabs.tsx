@@ -25,7 +25,7 @@ const HousingListTabs = ({
   showCreateCampaign,
 }: Props) => {
   const statuses = [
-    { id: 'all', label: 'Tous', value: undefined },
+    { id: 'all', label: 'Tous', value: undefined, },
     ...HOUSING_STATUSES.map((status) => {
       const label = getHousingState(status).title;
       return {
@@ -33,10 +33,10 @@ const HousingListTabs = ({
         label,
         value: status,
       };
-    }),
+    })
   ];
 
-  const { activeTab, getTabLabel, isActive, setActiveTab, setStatusCount } =
+  const { activeTab, getTabLabel, isActive, setActiveTab, setStatusCount, } =
     useStatusTabs(statuses);
 
   const tabs = statuses.map((status) => ({
@@ -53,7 +53,7 @@ const HousingListTabs = ({
     >
       {statuses.map((status) => (
         <HousingListTab
-          filters={{ ...filters, status: status.value }}
+          filters={{ ...filters, status: status.value, }}
           isActive={isActive(status)}
           key={`status-tab-${status.id}`}
           showCount={showCount}

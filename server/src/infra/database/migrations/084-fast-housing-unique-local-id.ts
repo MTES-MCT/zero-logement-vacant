@@ -3,7 +3,7 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('fast_housing', (table) => {
     // Must include all partitioned columns
-    table.unique(['geo_code', 'local_id'], { useConstraint: true });
+    table.unique(['geo_code', 'local_id'], { useConstraint: true, });
   });
 }
 

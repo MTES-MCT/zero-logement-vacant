@@ -5,10 +5,10 @@ export async function up(knex: Knex): Promise<void> {
     table.string('subject');
   });
 
-  await knex('drafts').update({ subject: '' });
+  await knex('drafts').update({ subject: '', });
 
   await knex.schema.alterTable('drafts', (table) => {
-    table.string('subject').notNullable().alter({ alterNullable: true });
+    table.string('subject').notNullable().alter({ alterNullable: true, });
   });
 }
 

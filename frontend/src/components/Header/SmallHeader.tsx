@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   MainNavigation,
-  MainNavigationProps,
+  MainNavigationProps
 } from '@codegouvfr/react-dsfr/MainNavigation';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -23,10 +23,10 @@ import logo from '../../assets/images/zlv.svg';
 function SmallHeader() {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { displayName, establishment, isAdmin, isVisitor, isAuthenticated } = useUser();
+  const { displayName, establishment, isAdmin, isVisitor, isAuthenticated, } = useUser();
 
   function getMainNavigationItem(
-    navItem: UserNavItems,
+    navItem: UserNavItems
   ): MainNavigationProps.Item {
     const link = getUserNavItem(navItem);
     return {
@@ -53,7 +53,7 @@ function SmallHeader() {
           container
           component="header"
           px={3}
-          sx={{ height: '84px' }}
+          sx={{ height: '84px', }}
         >
           <Link className="fr-header-operator fr-enlarge-link fr-mr-5w" to="/">
             <img
@@ -76,7 +76,7 @@ function SmallHeader() {
                 ? [
                     getMainNavigationItem(UserNavItems.HousingList),
                     getMainNavigationItem(UserNavItems.Campaign),
-                    getMainNavigationItem(UserNavItems.Resources),
+                    getMainNavigationItem(UserNavItems.Resources)
                   ]
                 : []
             }

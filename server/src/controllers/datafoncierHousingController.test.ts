@@ -7,17 +7,17 @@ import {
   genDatafoncierHousing,
   genEstablishmentApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 
 describe('Datafoncier housing controller', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -35,7 +35,7 @@ describe('Datafoncier housing controller', () => {
       const housing = genDatafoncierHousing(oneOf(establishment.geoCodes));
       await DatafoncierHouses().insert(housing);
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute(housing.idlocal))
         .use(tokenProvider(user));
 
@@ -47,7 +47,7 @@ describe('Datafoncier housing controller', () => {
       const housing = genDatafoncierHousing('12345');
       await DatafoncierHouses().insert(housing);
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .get(testRoute(`1234512345678`))
         .use(tokenProvider(user));
 
@@ -59,10 +59,10 @@ describe('Datafoncier housing controller', () => {
         (request) => request.url.endsWith(`/ff/locaux/missing`),
         async () => ({
           status: 404,
-        }),
+        })
       );
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .get(testRoute('missing'))
         .use(tokenProvider(user));
 

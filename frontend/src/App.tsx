@@ -6,7 +6,7 @@ import {
   Redirect,
   Route,
   RouteProps,
-  Switch,
+  Switch
 } from 'react-router-dom';
 
 import './App.scss';
@@ -39,9 +39,9 @@ import SmallHeader from './components/Header/SmallHeader';
 import Header from './components/Header/Header';
 
 const publicRoutes: RouteProps[] = [
-  { path: '/stats', component: StatsView },
-  { path: '/accessibilite', component: AccessibilityView },
-  { path: '/mentions-legales', component: LegalNoticesView },
+  { path: '/stats', component: StatsView, },
+  { path: '/accessibilite', component: AccessibilityView, },
+  { path: '/mentions-legales', component: LegalNoticesView, }
 ];
 const authenticatedRoutes: RouteProps[] = [
   {
@@ -49,31 +49,31 @@ const authenticatedRoutes: RouteProps[] = [
     component: HousingListView,
   },
   // TODO: remove this
-  { path: '/parc-de-logements/campagnes/:id', component: CampaignView },
-  { path: '/groupes/:id', component: GroupView },
-  { path: '/campagnes', component: CampaignsListView },
-  { path: '/campagnes/:id', component: CampaignView },
+  { path: '/parc-de-logements/campagnes/:id', component: CampaignView, },
+  { path: '/groupes/:id', component: GroupView, },
+  { path: '/campagnes', component: CampaignsListView, },
+  { path: '/campagnes/:id', component: CampaignView, },
   {
     path: '/proprietaires/:ownerId/logements/:housingId',
     component: HousingView,
   },
-  { path: '/proprietaires/:ownerId', component: OwnerView },
+  { path: '/proprietaires/:ownerId', component: OwnerView, },
   {
     path: '/logements/:housingId/proprietaires/:ownerId',
     component: OwnerView,
   },
-  { path: '/logements/:housingId', component: HousingView },
-  { path: '/ressources/statuts', component: StatusView },
-  { path: '/ressources', component: ResourcesView },
+  { path: '/logements/:housingId', component: HousingView, },
+  { path: '/ressources/statuts', component: StatusView, },
+  { path: '/ressources', component: ResourcesView, },
 
-  { path: '/compte', component: AccountView },
-  { path: '/compte/mot-de-passe', component: AccountPasswordView },
-  { path: '/utilisateurs', component: UsersView },
-  { path: '/autres-etablissements', component: TerritoryEstablishmentsView },
+  { path: '/compte', component: AccountView, },
+  { path: '/compte/mot-de-passe', component: AccountPasswordView, },
+  { path: '/utilisateurs', component: UsersView, },
+  { path: '/autres-etablissements', component: TerritoryEstablishmentsView, }
 ];
 const guestRoutes: RouteProps[] = [
-  { path: '/inscription*', component: AccountCreationView },
-  { path: '/connexion', component: LoginView },
+  { path: '/inscription*', component: AccountCreationView, },
+  { path: '/connexion', component: LoginView, },
   {
     path: '/mot-de-passe/oublie',
     component: ForgottenPasswordView,
@@ -82,19 +82,19 @@ const guestRoutes: RouteProps[] = [
     path: '/mot-de-passe/nouveau',
     component: ResetPasswordView,
   },
-  { path: '/admin', component: LoginView },
-  { path: '/', component: EstablishmentHomeView },
+  { path: '/admin', component: LoginView, },
+  { path: '/', component: EstablishmentHomeView, }
 ];
 
 function App() {
-  const { pushInstruction } = useMatomo();
-  const { isAuthenticated, user } = useUser();
-  const { isLoggedOut } = useAppSelector((state) => state.authentication);
+  const { pushInstruction, } = useMatomo();
+  const { isAuthenticated, user, } = useUser();
+  const { isLoggedOut, } = useAppSelector((state) => state.authentication);
   const dispatch = useAppDispatch();
   const isSomeQueryPending = useAppSelector((state) =>
     Object.values(state.api.queries).some(
-      (query) => query?.status === 'pending',
-    ),
+      (query) => query?.status === 'pending'
+    )
   );
 
   FetchInterceptor();

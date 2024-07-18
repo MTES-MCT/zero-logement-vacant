@@ -20,7 +20,13 @@
     "@typescript-eslint/no-var-requires": "off",
     "import/no-commonjs": "error",
     "eqeqeq": ["error", "always"],
-    "semi": ["error", "always"]
+    "semi": ["error", "always"],
+    "comma-dangle": [
+      "error",
+      {
+        "objects": "always"
+      }
+    ]
   },
   "overrides": [
     {

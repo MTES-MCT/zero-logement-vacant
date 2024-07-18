@@ -4,7 +4,7 @@ import {
   differenceInYears,
   format,
   parse,
-  parseISO,
+  parseISO
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -21,10 +21,10 @@ export const durationSort = (d1?: Duration, d2?: Duration) =>
     : 0;
 
 export const dateShortFormat = (d: Date) =>
-  format(d, 'dd/MM/yy', { locale: fr });
+  format(d, 'dd/MM/yy', { locale: fr, });
 
 export const dateShortFormatWithMinutes = (d: Date) =>
-  format(d, 'dd/MM/yy à k:mm', { locale: fr });
+  format(d, 'dd/MM/yy à k:mm', { locale: fr, });
 
 export const parseDateInput = (s: string) =>
   s.length ? parse(s, 'yyyy-MM-dd', new Date()) : undefined;
@@ -33,7 +33,7 @@ export function birthdate(date: Date | string): string {
   return format(
     typeof date === 'string' ? parseISO(date) : date,
     'dd/MM/yyyy',
-    { locale: fr }
+    { locale: fr, }
   );
 }
 

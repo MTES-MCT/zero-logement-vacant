@@ -112,7 +112,7 @@ describe('Campaign', () => {
       .should('be.visible');
 
     cy.get('a')
-      .contains(/^Télécharger les courriers/, { timeout: 10_000 })
+      .contains(/^Télécharger les courriers/, { timeout: 10_000, })
       .should('be.visible');
 
     cy.get('label')

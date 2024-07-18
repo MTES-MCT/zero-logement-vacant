@@ -4,7 +4,7 @@ import fp from 'lodash/fp';
 import {
   EventCategory,
   EventKind,
-  EventSection,
+  EventSection
 } from '@zerologementvacant/shared';
 import config from '~/infra/config';
 import db from '~/infra/database';
@@ -15,7 +15,7 @@ import {
   EventApi,
   GroupHousingEventApi,
   HousingEventApi,
-  OwnerEventApi,
+  OwnerEventApi
 } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -41,13 +41,13 @@ export const GroupHousingEvents = (transaction = db) =>
   transaction<GroupHousingEventDBO>(groupHousingEventsTable);
 
 const insertHousingEvent = async (
-  housingEvent: HousingEventApi,
+  housingEvent: HousingEventApi
 ): Promise<void> => {
   await insertManyHousingEvents([housingEvent]);
 };
 
 const insertManyHousingEvents = async (
-  housingEvents: HousingEventApi[],
+  housingEvents: HousingEventApi[]
 ): Promise<void> => {
   if (housingEvents.length) {
     await db.transaction(async (transaction) => {
@@ -63,16 +63,16 @@ const insertManyHousingEvents = async (
               old: Array.isArray(housingEvent.old)
                 ? JSON.stringify(housingEvent.old)
                 : denormalizeStatus(housingEvent.old),
-            })),
+            }))
           );
           await HousingEvents(transaction).insert(
             chunk.map((housingEvent) => ({
               event_id: housingEvent.id,
               housing_id: housingEvent.housingId,
               housing_geo_code: housingEvent.housingGeoCode,
-            })),
+            }))
           );
-        },
+        }
       );
     });
   }
@@ -80,7 +80,7 @@ const insertManyHousingEvents = async (
 
 function denormalizeStatus(housing: HousingApi | undefined) {
   return housing
-    ? { ...housing, status: getHousingStatusApiLabel(housing.status) }
+    ? { ...housing, status: getHousingStatusApiLabel(housing.status), }
     : undefined;
 }
 
@@ -95,7 +95,7 @@ const insertOwnerEvent = async (ownerEvent: OwnerEventApi): Promise<void> => {
 };
 
 const insertCampaignEvent = async (
-  campaignEvent: CampaignEventApi,
+  campaignEvent: CampaignEventApi
 ): Promise<void> => {
   logger.info('Insert CampaignEventApi', campaignEvent);
   await db.transaction(async (transaction) => {
@@ -108,7 +108,7 @@ const insertCampaignEvent = async (
 };
 
 const insertManyGroupHousingEvents = async (
-  groupHousingEvents: GroupHousingEventApi[],
+  groupHousingEvents: GroupHousingEventApi[]
 ): Promise<void> => {
   if (!groupHousingEvents.length) {
     return;
@@ -128,9 +128,9 @@ const insertManyGroupHousingEvents = async (
             housing_geo_code: event.housingGeoCode,
             housing_id: event.housingId,
             group_id: event.groupId,
-          })),
+          }))
         );
-      },
+      }
     );
   });
 };
@@ -138,7 +138,7 @@ const insertManyGroupHousingEvents = async (
 async function findEvents<T>(
   tableName: string,
   columnName: string,
-  value: string,
+  value: string
 ): Promise<EventApi<T>[]> {
   const events = await Events()
     .select(`${eventsTable}.*`)
@@ -149,21 +149,21 @@ async function findEvents<T>(
 }
 
 const findOwnerEvents = async (
-  ownerId: string,
+  ownerId: string
 ): Promise<EventApi<OwnerApi>[]> => {
   logger.info('List eventApi for owner with id', ownerId);
   return findEvents(ownerEventsTable, 'owner_id', ownerId);
 };
 
 const findHousingEvents = async (
-  housingId: string,
+  housingId: string
 ): Promise<EventApi<HousingApi>[]> => {
   logger.info('List eventApi for housing with id', housingId);
   return findEvents(housingEventsTable, 'housing_id', housingId);
 };
 
 const findCampaignEvents = async (
-  campaignId: string,
+  campaignId: string
 ): Promise<EventApi<CampaignApi>[]> => {
   logger.info('List eventApi for campaign with id', campaignId);
   return findEvents(campaignEventsTable, 'campaign_id', campaignId);
@@ -171,7 +171,7 @@ const findCampaignEvents = async (
 
 const findGroupHousingEvents = async (
   housing: HousingApi,
-  group?: GroupApi,
+  group?: GroupApi
 ): Promise<EventApi<GroupApi>[]> => {
   logger.debug('Find group housing events', {
     housing: housing.id,
@@ -183,7 +183,7 @@ const findGroupHousingEvents = async (
     .join(
       groupHousingEventsTable,
       `${groupHousingEventsTable}.event_id`,
-      `${eventsTable}.id`,
+      `${eventsTable}.id`
     )
     .modify((query) => {
       if (group?.id) {
@@ -264,7 +264,7 @@ export function formatHousingEventApi(event: HousingEventApi): HousingEventDBO {
 }
 
 export function formatGroupHousingEventApi(
-  event: GroupHousingEventApi,
+  event: GroupHousingEventApi
 ): GroupHousingEventDBO {
   return {
     event_id: event.id,

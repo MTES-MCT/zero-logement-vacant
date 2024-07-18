@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
       table.date('end_date');
       table.string('origin');
     }),
-    knex.raw("update owners_housing set origin = 'Lovac'"),
+    knex.raw("update owners_housing set origin = 'Lovac'")
   ]);
 }
 
@@ -18,6 +18,6 @@ export async function down(knex: Knex): Promise<void> {
       table.dropColumn('start_date');
       table.dropColumn('end_date');
       table.dropColumn('origin');
-    }),
+    })
   ]);
 }

@@ -6,13 +6,13 @@ import {
   first,
   firstDefined,
   max,
-  merge as mergeObjects,
+  merge as mergeObjects
 } from '@zerologementvacant/shared';
 import { logger } from '~/infra/logger';
 import highland from 'highland';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import db from '~/infra/database/';
 import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
@@ -20,7 +20,7 @@ import { Knex } from 'knex';
 import { HousingNotes } from '~/repositories/noteRepository';
 import {
   GroupHousingEvents,
-  HousingEvents,
+  HousingEvents
 } from '~/repositories/eventRepository';
 import { GroupsHousing } from '~/repositories/groupRepository';
 import Stream = Highland.Stream;
@@ -33,7 +33,7 @@ function merge() {
           .orderBy<HousingRecordApi>(
             ['dataYears', 'mutationDate'],
             ['desc', 'desc'],
-            housingList,
+            housingList
           )
           .reduce((a, b) => {
             const youngest = youngestOf(a, b);
@@ -58,7 +58,7 @@ function merge() {
               taxed: firstDefined,
               vacancyReasons: firstDefined,
               dataYears: fp.pipe(fp.union<number>, (dataYears) =>
-                fp.orderBy<number>(fp.identity, 'desc', dataYears),
+                fp.orderBy<number>(fp.identity, 'desc', dataYears)
               ),
               buildingLocation: firstDefined,
               ownershipKind: firstDefined,
@@ -78,14 +78,14 @@ function merge() {
         return highland<HousingRecordApi>(cleanup(merged, housingList));
       })
       .tap((housing) => {
-        logger.debug('Merged housing', { localId: housing.localId });
+        logger.debug('Merged housing', { localId: housing.localId, });
       });
   };
 }
 
 export async function cleanup(
   merged: HousingRecordApi,
-  housingList: HousingRecordApi[],
+  housingList: HousingRecordApi[]
 ): Promise<HousingRecordApi> {
   const houses = housingList.filter((housing) => housing.id !== merged.id);
 
@@ -97,7 +97,7 @@ export async function cleanup(
         to: merged,
         foreignKey: 'campaign_id',
         table: 'campaigns_housing',
-      }),
+      })
     );
     await HousingEvents(transaction).modify(
       transfer({
@@ -105,7 +105,7 @@ export async function cleanup(
         to: merged,
         foreignKey: 'event_id',
         table: 'housing_events',
-      }),
+      })
     );
     await HousingNotes(transaction).modify(
       transfer({
@@ -113,7 +113,7 @@ export async function cleanup(
         to: merged,
         foreignKey: 'note_id',
         table: 'housing_notes',
-      }),
+      })
     );
     await GroupsHousing(transaction).modify(
       transfer({
@@ -121,7 +121,7 @@ export async function cleanup(
         to: merged,
         foreignKey: 'group_id',
         table: 'groups_housing',
-      }),
+      })
     );
     await GroupHousingEvents(transaction).modify(
       transfer({
@@ -129,7 +129,7 @@ export async function cleanup(
         to: merged,
         foreignKey: ['event_id', 'group_id'],
         table: 'group_housing_events',
-      }),
+      })
     );
 
     await Housing(transaction)
@@ -141,7 +141,7 @@ export async function cleanup(
     await Housing(transaction)
       .whereIn(
         'id',
-        houses.map((housing) => housing.id),
+        houses.map((housing) => housing.id)
       )
       .delete();
 
@@ -167,7 +167,7 @@ interface TransferOptions {
   table: string;
 }
 
-function transfer({ from, to, foreignKey, table }: TransferOptions) {
+function transfer({ from, to, foreignKey, table, }: TransferOptions) {
   return (query: Knex.QueryBuilder): void => {
     const foreignKeys = Array.isArray(foreignKey) ? foreignKey : [foreignKey];
     query
@@ -181,15 +181,15 @@ function transfer({ from, to, foreignKey, table }: TransferOptions) {
           .from(table)
           .whereIn(
             ['housing_geo_code', 'housing_id'],
-            from.map((housing) => [housing.geoCode, housing.id]),
+            from.map((housing) => [housing.geoCode, housing.id])
           )
           .whereNotExists((query) => {
             const refs = fp.fromPairs(
-              foreignKeys.map((key) => [key, db.ref(`${table}.${key}`)]),
+              foreignKeys.map((key) => [key, db.ref(`${table}.${key}`)])
             );
             query
               .select('*')
-              .from({ subquery: table })
+              .from({ subquery: table, })
               .where({
                 ...refs,
                 housing_geo_code: to.geoCode,
@@ -203,8 +203,8 @@ function transfer({ from, to, foreignKey, table }: TransferOptions) {
 
 const youngestOf = max<HousingRecordApi>(
   contramap((housing: HousingRecordApi) => Math.max(...housing.dataYears))(
-    DEFAULT_ORDER,
-  ),
+    DEFAULT_ORDER
+  )
 );
 
 export default {

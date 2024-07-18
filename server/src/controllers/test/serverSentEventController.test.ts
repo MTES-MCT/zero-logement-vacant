@@ -19,7 +19,7 @@ import { setImmediate } from 'async';
 const TIMEOUT = 10_000;
 
 describe('Server-sent event API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
   const testRoute = '/api/sse';
@@ -35,7 +35,7 @@ describe('Server-sent event API', () => {
       const campaign = genCampaignApi(establishment.id, user.id);
       jest.spyOn(queue, 'on').mockImplementation((event, callback) => {
         setImmediate(() => {
-          callback({ id: campaign.id });
+          callback({ id: campaign.id, });
         });
       });
 
@@ -49,7 +49,7 @@ describe('Server-sent event API', () => {
             expect(response.headers).toMatchObject({
               'content-type': 'text/event-stream',
               connection: 'keep-alive',
-              'cache-control': 'no-cache'
+              'cache-control': 'no-cache',
             });
 
             response.setEncoding('utf8');
@@ -58,7 +58,7 @@ describe('Server-sent event API', () => {
 
               response.once('data', (chunk) => {
                 expect(chunk).toBe(
-                  `data: ${JSON.stringify({ id: campaign.id })}\n\n`
+                  `data: ${JSON.stringify({ id: campaign.id, })}\n\n`
                 );
                 callback(null, response);
               });

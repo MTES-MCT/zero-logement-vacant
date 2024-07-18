@@ -29,23 +29,23 @@ const ContactPointEditionModal = ({
         id: `contact-point-edition-modal-${contactPoint?.id}`,
         isOpenedByDefault: false,
       }),
-    [contactPoint],
+    [contactPoint]
   );
 
-  const { localitiesOptions, localities, localitiesGeoCodes } =
+  const { localitiesOptions, localities, localitiesGeoCodes, } =
     useLocalityList(establishmentId);
   const [title, setTitle] = useState(contactPoint?.title ?? '');
   const [opening, setOpening] = useState(contactPoint?.opening ?? undefined);
   const [address, setAddress] = useState(contactPoint?.address ?? undefined);
   const [geoCodes, setGeoCodes] = useState(
-    contactPoint?.geoCodes ?? localitiesGeoCodes,
+    contactPoint?.geoCodes ?? localitiesGeoCodes
   );
   const [email, setEmail] = useState(contactPoint?.email ?? undefined);
   const [phone, setPhone] = useState(contactPoint?.phone ?? undefined);
   const [notes, setNotes] = useState(contactPoint?.notes ?? undefined);
 
   const filteredLocalityOptions = localitiesOptions.filter(
-    (option) => !geoCodes.includes(option.value),
+    (option) => !geoCodes.includes(option.value)
   );
 
   const shape = {
@@ -76,7 +76,7 @@ const ContactPointEditionModal = ({
   const submitContactPointForm = async () => {
     await form.validate(async () => {
       await onSubmit({
-        ...(contactPoint?.id ? { id: contactPoint.id } : {}),
+        ...(contactPoint?.id ? { id: contactPoint.id, } : {}),
         establishmentId,
         title: title!,
         opening,
@@ -125,9 +125,9 @@ const ContactPointEditionModal = ({
             children: 'Enregistrer',
             onClick: submitContactPointForm,
             doClosesModal: false,
-          },
+          }
         ]}
-        style={{ textAlign: 'initial' }}
+        style={{ textAlign: 'initial', }}
       >
         <Container as="section" fluid>
           <form id="user_form">

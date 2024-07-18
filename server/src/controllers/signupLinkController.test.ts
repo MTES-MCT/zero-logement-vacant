@@ -4,29 +4,29 @@ import request from 'supertest';
 import { createServer } from '~/infra/server';
 import {
   formatSignupLinkApi,
-  SignupLinks,
+  SignupLinks
 } from '~/repositories/signupLinkRepository';
 import {
   genEmail,
   genEstablishmentApi,
   genProspectApi,
   genSignupLinkApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import { SignupLinkApi } from '~/models/SignupLinkApi';
 import { subHours } from 'date-fns';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   formatProspectApi,
-  Prospects,
+  Prospects
 } from '~/repositories/prospectRepository';
 
 describe('Signup link API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -56,12 +56,12 @@ describe('Signup link API', () => {
       // With wrong format
       await request(app)
         .post(testRoute)
-        .send({ email: 'wrong-format' })
+        .send({ email: 'wrong-format', })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should send no email if the account already exists', async () => {
-      const { status } = await request(app).post(testRoute).send({
+      const { status, } = await request(app).post(testRoute).send({
         email: user.email,
       });
 
@@ -73,7 +73,7 @@ describe('Signup link API', () => {
     it('should create a signup link', async () => {
       const email = genEmail();
 
-      const { status } = await request(app).post(testRoute).send({
+      const { status, } = await request(app).post(testRoute).send({
         email,
       });
 
@@ -96,7 +96,7 @@ describe('Signup link API', () => {
       const link = genSignupLinkApi(prospect.email);
       await SignupLinks().insert(formatSignupLinkApi(link));
 
-      const { body, status } = await request(app).get(testRoute(link.id));
+      const { body, status, } = await request(app).get(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual({
@@ -106,7 +106,7 @@ describe('Signup link API', () => {
     });
 
     it('should return not found if the signup link does not exist', async () => {
-      const { status } = await request(app).get(testRoute('not-found'));
+      const { status, } = await request(app).get(testRoute('not-found'));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
@@ -119,7 +119,7 @@ describe('Signup link API', () => {
       };
       await SignupLinks().insert(formatSignupLinkApi(link));
 
-      const { status } = await request(app).get(testRoute(link.id));
+      const { status, } = await request(app).get(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
     });

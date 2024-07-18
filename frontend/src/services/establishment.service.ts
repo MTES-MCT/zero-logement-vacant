@@ -3,7 +3,7 @@ import { Establishment } from '../models/Establishment';
 import {
   createHttpService,
   getURLQuery,
-  normalizeUrlSegment,
+  normalizeUrlSegment
 } from '../utils/fetchUtils';
 import { zlvApi } from './api.service';
 
@@ -29,7 +29,7 @@ export const establishmentApi = zlvApi.injectEndpoints({
               {
                 type: 'Establishment' as const,
                 id: result.id,
-              },
+              }
             ]
           : [],
     }),
@@ -43,22 +43,22 @@ export const establishmentApi = zlvApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({
+              ...result.map(({ id, }) => ({
                 type: 'Establishment' as const,
                 id,
               })),
-              'Establishment',
+              'Establishment'
             ]
           : ['Establishment'],
     }),
   }),
 });
 
-export const { useFindOneEstablishmentQuery, useFindEstablishmentsQuery } =
+export const { useFindOneEstablishmentQuery, useFindEstablishmentsQuery, } =
   establishmentApi;
 
 const quickSearch = async (query: string): Promise<Establishment[]> => {
-  const params = new URLSearchParams({ query });
+  const params = new URLSearchParams({ query, });
   const response = await http.get(`/api/establishments?${params}`, {
     abortId: 'search-establishment',
   });

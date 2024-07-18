@@ -12,7 +12,7 @@ describe('OwnerDTO', () => {
         ...genOwnerDTO(),
         id,
         additionalAddress: undefined,
-        banAddress: genAddressDTO(id, AddressKinds.Owner)
+        banAddress: genAddressDTO(id, AddressKinds.Owner),
       };
 
       const actual = getAddress(owner);
@@ -29,7 +29,7 @@ describe('OwnerDTO', () => {
         ...genOwnerDTO(),
         additionalAddress: undefined,
         banAddress: undefined,
-        rawAddress: [address]
+        rawAddress: [address],
       };
 
       const actual = getAddress(owner);
@@ -42,7 +42,7 @@ describe('OwnerDTO', () => {
         ...genOwnerDTO(),
         banAddress: undefined,
         rawAddress: ['123 rue Bidon', '01234 Ville'],
-        additionalAddress: 'Appart. 1'
+        additionalAddress: 'Appart. 1',
       };
 
       const actual = getAddress(owner);

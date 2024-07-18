@@ -18,7 +18,7 @@ describe('UserApi', () => {
     it('should return the domain that appears the most among users', () => {
       const users = [
         ...new Array(2).fill(0).map(() => createUser('more.com')),
-        ...new Array(1).fill(0).map(() => createUser('less.com')),
+        ...new Array(1).fill(0).map(() => createUser('less.com'))
       ];
 
       const actual = detectDomain(users);
@@ -29,7 +29,7 @@ describe('UserApi', () => {
     it('should filter out some famous domain names', () => {
       const users = [
         ...new Array(2).fill(0).map(() => createUser('gmail.com')),
-        ...new Array(1).fill(0).map(() => createUser('more.com')),
+        ...new Array(1).fill(0).map(() => createUser('more.com'))
       ];
 
       const actual = detectDomain(users);

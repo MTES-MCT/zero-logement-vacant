@@ -62,7 +62,7 @@ import { CampaignsDrafts } from '~/repositories/campaignDraftRepository';
 import { formatSenderApi, Senders } from '~/repositories/senderRepository';
 
 describe('Campaign API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -81,13 +81,13 @@ describe('Campaign API', () => {
     });
 
     it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(campaign.id));
+      const { status, } = await request(app).get(testRoute(campaign.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid campaign id', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .get(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -95,7 +95,7 @@ describe('Campaign API', () => {
     });
 
     it('should return an error when there is no campaign with the required id', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .get(testRoute(uuidv4()))
         .use(tokenProvider(user));
 
@@ -103,14 +103,14 @@ describe('Campaign API', () => {
     });
 
     it('should return the campaign', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute(campaign.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
         id: campaign.id,
-        filters: expect.objectContaining(campaign.filters)
+        filters: expect.objectContaining(campaign.filters),
       });
     });
   });
@@ -118,7 +118,7 @@ describe('Campaign API', () => {
   describe('GET /campaigns', () => {
     const testRoute = '/api/campaigns';
 
-    const campaigns: CampaignApi[] = Array.from({ length: 3 }).map(() =>
+    const campaigns: CampaignApi[] = Array.from({ length: 3, }).map(() =>
       genCampaignApi(establishment.id, user.id)
     );
 
@@ -127,13 +127,13 @@ describe('Campaign API', () => {
     });
 
     it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status, } = await request(app).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should list campaigns', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -141,14 +141,14 @@ describe('Campaign API', () => {
       expect(body).toIncludeAllPartialMembers(
         campaigns.map((campaign) => {
           return {
-            id: campaign.id
+            id: campaign.id,
           };
         })
       );
     });
 
     it('should filter by group', async () => {
-      const groups = Array.from({ length: 2 }).map(() =>
+      const groups = Array.from({ length: 2, }).map(() =>
         genGroupApi(user, establishment)
       );
       await Groups().insert(groups.map(formatGroupApi));
@@ -158,7 +158,7 @@ describe('Campaign API', () => {
       await Campaigns().insert(campaigns.map(formatCampaignApi));
       const query = 'groups=' + groups.map((group) => group.id).join(',');
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute)
         .query(query)
         .use(tokenProvider(user));
@@ -168,7 +168,7 @@ describe('Campaign API', () => {
         campaigns.map((campaign) => {
           return {
             id: campaign.id,
-            groupId: campaign.groupId
+            groupId: campaign.groupId,
           };
         })
       );
@@ -179,14 +179,14 @@ describe('Campaign API', () => {
     const testRoute = '/api/campaigns';
 
     it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status, } = await request(app).post(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should create a new campaign', async () => {
       const title = randomstring.generate();
-      const houses: HousingApi[] = Array.from({ length: 2 }).map(() =>
+      const houses: HousingApi[] = Array.from({ length: 2, }).map(() =>
         genHousingApi(oneOf(establishment.geoCodes))
       );
       await Housing().insert(houses.map(formatHousingRecordApi));
@@ -195,11 +195,11 @@ describe('Campaign API', () => {
         housing: {
           filters: {},
           all: false,
-          ids: houses.map((housing) => housing.id)
-        }
+          ids: houses.map((housing) => housing.id),
+        },
       };
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -211,19 +211,19 @@ describe('Campaign API', () => {
         status: 'draft',
         filters: {
           ...payload.housing.filters,
-          establishmentIds: [establishment.id]
+          establishmentIds: [establishment.id],
         },
-        createdAt: expect.any(String)
+        createdAt: expect.any(String),
       });
 
       const actualCampaign = await Campaigns()
         .where({
           title,
-          establishment_id: establishment.id
+          establishment_id: establishment.id,
         })
         .first();
       expect(actualCampaign).toMatchObject({
-        title
+        title,
       });
 
       const actualCampaignHouses = await CampaignsHousing().whereIn(
@@ -260,13 +260,13 @@ describe('Campaign API', () => {
     });
 
     it('should throw if the group is missing', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute(uuidv4()))
         .send({
-          title: 'Campagne prioritaire'
+          title: 'Campagne prioritaire',
         })
         .set({
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         })
         .use(tokenProvider(user));
 
@@ -276,17 +276,17 @@ describe('Campaign API', () => {
     it('should throw if the group has been archived', async () => {
       const group: GroupApi = {
         ...genGroupApi(user, establishment),
-        archivedAt: new Date()
+        archivedAt: new Date(),
       };
       await Groups().insert(formatGroupApi(group));
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute(group.id))
         .send({
-          title: 'Campagne prioritaire'
+          title: 'Campagne prioritaire',
         })
         .set({
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         })
         .use(tokenProvider(user));
 
@@ -294,11 +294,11 @@ describe('Campaign API', () => {
     });
 
     it('should create the campaign', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute(group.id))
         .send({
           title: 'Logements prioritaires',
-          groupId: group.id
+          groupId: group.id,
         })
         .use(tokenProvider(user));
 
@@ -310,18 +310,18 @@ describe('Campaign API', () => {
         status: 'draft',
         establishmentId: establishment.id,
         filters: {
-          groupIds: [group.id]
+          groupIds: [group.id],
         },
         createdAt: expect.toBeDateString(),
-        userId: user.id
+        userId: user.id,
       });
     });
 
     it("should add the group's housing to this campaign", async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute(group.id))
         .send({
-          title: 'Logements prioritaires'
+          title: 'Logements prioritaires',
         })
         .use(tokenProvider(user));
 
@@ -331,15 +331,15 @@ describe('Campaign API', () => {
         body.id
       );
       expect(campaignHousing).toIncludeAllPartialMembers(
-        groupHousing.map((housing) => ({ housing_id: housing.id }))
+        groupHousing.map((housing) => ({ housing_id: housing.id, }))
       );
     });
 
     it('should create campaign events', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute(group.id))
         .send({
-          title: 'Logements prioritaires'
+          title: 'Logements prioritaires',
         })
         .use(tokenProvider(user));
 
@@ -359,7 +359,7 @@ describe('Campaign API', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
     const payload: CampaignUpdatePayloadDTO = {
       title: 'New title',
-      status: 'sending'
+      status: 'sending',
     };
 
     let campaign: CampaignApi;
@@ -374,12 +374,12 @@ describe('Campaign API', () => {
       await Drafts().insert(formatDraftApi(draft));
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
-        draft_id: draft.id
+        draft_id: draft.id,
       });
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).put(testRoute(campaign.id));
+      const { status, } = await request(app).put(testRoute(campaign.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -400,7 +400,7 @@ describe('Campaign API', () => {
 
     it('should received a valid request', async () => {
       async function fail(payload?: Record<string, unknown>): Promise<void> {
-        const { status } = await request(app)
+        const { status, } = await request(app)
           .put(testRoute(Campaign1.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -409,22 +409,22 @@ describe('Campaign API', () => {
       }
 
       await fail();
-      await fail({ title: payload.title });
-      await fail({ status: payload.status });
-      await fail({ ...payload, title: '' });
-      await fail({ ...payload, title: 42 });
-      await fail({ ...payload, status: '' });
-      await fail({ ...payload, status: 'invalid' });
-      await fail({ ...payload, status: 42 });
+      await fail({ title: payload.title, });
+      await fail({ status: payload.status, });
+      await fail({ ...payload, title: '', });
+      await fail({ ...payload, title: 42, });
+      await fail({ ...payload, status: '', });
+      await fail({ ...payload, status: 'invalid', });
+      await fail({ ...payload, status: 42, });
     });
 
     it('should update the campaign title', async () => {
       const payload: CampaignUpdatePayloadDTO = {
         status: campaign.status,
-        title: 'New title'
+        title: 'New title',
       };
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .put(testRoute(campaign.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -433,14 +433,14 @@ describe('Campaign API', () => {
       expect(body).toMatchObject({
         id: campaign.id,
         status: campaign.status,
-        title: payload.title
+        title: payload.title,
       });
 
-      const actual = await Campaigns().where({ id: campaign.id }).first();
+      const actual = await Campaigns().where({ id: campaign.id, }).first();
       expect(actual).toMatchObject({
         id: campaign.id,
         status: campaign.status,
-        title: payload.title
+        title: payload.title,
       });
     });
 
@@ -450,10 +450,10 @@ describe('Campaign API', () => {
       it('should set the status from "draft" to "sending"', async () => {
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
-          status: 'sending'
+          status: 'sending',
         };
 
-        const { body, status } = await request(app)
+        const { body, status, } = await request(app)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -463,7 +463,7 @@ describe('Campaign API', () => {
           id: campaign.id,
           title: campaign.title,
           status: 'sending',
-          validatedAt: expect.any(String)
+          validatedAt: expect.any(String),
         });
       });
 
@@ -471,10 +471,10 @@ describe('Campaign API', () => {
         const campaignWithoutDraft = genCampaignApi(establishment.id, user.id);
         const payload: CampaignUpdatePayloadDTO = {
           title: campaignWithoutDraft.title,
-          status: 'sending'
+          status: 'sending',
         };
 
-        const { status } = await request(app)
+        const { status, } = await request(app)
           .put(testRoute(campaignWithoutDraft.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -485,17 +485,17 @@ describe('Campaign API', () => {
 
     describe('Send the campaign', () => {
       it('should set the status from "sending" to "in-progress"', async () => {
-        campaign = { ...campaign, status: 'sending' };
-        await Campaigns().where({ id: campaign.id }).update({
-          status: campaign.status
+        campaign = { ...campaign, status: 'sending', };
+        await Campaigns().where({ id: campaign.id, }).update({
+          status: campaign.status,
         });
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
           status: 'in-progress',
-          sentAt: faker.date.recent().toJSON()
+          sentAt: faker.date.recent().toJSON(),
         };
 
-        const { body, status } = await request(app)
+        const { body, status, } = await request(app)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -506,7 +506,7 @@ describe('Campaign API', () => {
           title: campaign.title,
           status: payload.status,
           sentAt: payload.sentAt,
-          confirmedAt: expect.any(String)
+          confirmedAt: expect.any(String),
         });
       });
 
@@ -515,16 +515,16 @@ describe('Campaign API', () => {
 
     describe('Archive the campaign', () => {
       it('should set the status from "in-progress" to "archived"', async () => {
-        campaign = { ...campaign, status: 'in-progress' };
-        await Campaigns().where({ id: campaign.id }).update({
-          status: campaign.status
+        campaign = { ...campaign, status: 'in-progress', };
+        await Campaigns().where({ id: campaign.id, }).update({
+          status: campaign.status,
         });
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
-          status: 'archived'
+          status: 'archived',
         };
 
-        const { body, status } = await request(app)
+        const { body, status, } = await request(app)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -534,7 +534,7 @@ describe('Campaign API', () => {
           id: campaign.id,
           title: campaign.title,
           status: payload.status,
-          archivedAt: expect.any(String)
+          archivedAt: expect.any(String),
         });
       });
 
@@ -553,13 +553,13 @@ describe('Campaign API', () => {
     });
 
     it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(app).delete(testRoute(Campaign1.id));
+      const { status, } = await request(app).delete(testRoute(Campaign1.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid campaign id', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .delete(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -567,7 +567,7 @@ describe('Campaign API', () => {
     });
 
     it('should remove the campaign', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
@@ -575,20 +575,20 @@ describe('Campaign API', () => {
 
       const actualCampaign = await Campaigns().where({
         establishment_id: establishment.id,
-        id: campaign.id
+        id: campaign.id,
       });
       expect(actualCampaign).toStrictEqual([]);
     });
 
     it('should delete linked events and campaign housing', async () => {
-      const houses: HousingApi[] = Array.from({ length: 2 }).map(() =>
+      const houses: HousingApi[] = Array.from({ length: 2, }).map(() =>
         genHousingApi(oneOf(establishment.geoCodes))
       );
       await Housing().insert(houses.map(formatHousingRecordApi));
       const campaignHouses: CampaignHousingDBO[] = houses.map((housing) => ({
         campaign_id: campaign.id,
         housing_geo_code: housing.geoCode,
-        housing_id: housing.id
+        housing_id: housing.id,
       }));
       await CampaignsHousing().insert(campaignHouses);
 
@@ -597,12 +597,12 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       const actualCampaignHouses = await CampaignsHousing().where({
-        campaign_id: campaign.id
+        campaign_id: campaign.id,
       });
       expect(actualCampaignHouses).toBeArrayOfSize(0);
 
       const actualCampaignEvents = await CampaignEvents().where({
-        campaign_id: campaign.id
+        campaign_id: campaign.id,
       });
       expect(actualCampaignEvents).toBeArrayOfSize(0);
     });
@@ -610,13 +610,13 @@ describe('Campaign API', () => {
     it('should set status never contacted for waiting housing without anymore campaigns', async () => {
       const housing: HousingApi = {
         ...genHousingApi(oneOf(establishment.geoCodes)),
-        status: HousingStatusApi.Waiting
+        status: HousingStatusApi.Waiting,
       };
       await Housing().insert(formatHousingRecordApi(housing));
       await CampaignsHousing().insert({
         campaign_id: campaign.id,
         housing_geo_code: housing.geoCode,
-        housing_id: housing.id
+        housing_id: housing.id,
       });
 
       await request(app)
@@ -626,14 +626,14 @@ describe('Campaign API', () => {
       const actualHousing = await Housing()
         .where({
           geo_code: housing.geoCode,
-          id: housing.id
+          id: housing.id,
         })
         .first();
       expect(actualHousing).toMatchObject({
         geo_code: housing.geoCode,
         id: housing.id,
         status: HousingStatusApi.NeverContacted,
-        sub_status: null
+        sub_status: null,
       });
     });
   });

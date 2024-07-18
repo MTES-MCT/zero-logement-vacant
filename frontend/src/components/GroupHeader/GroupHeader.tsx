@@ -22,7 +22,7 @@ interface Props {
 function GroupHeader(props: Props) {
   const [showAll, setShowAll] = useState(false);
 
-  const { data: groups, isLoading: isLoadingGroups } = useFindGroupsQuery();
+  const { data: groups, isLoading: isLoadingGroups, } = useFindGroupsQuery();
 
   const unarchivedGroups = groups?.filter((group) => !group.archivedAt);
   const filteredGroups = unarchivedGroups?.slice(
@@ -81,7 +81,7 @@ function Empty() {
         width={100}
         src={search}
       />
-      <Typography mb={1} sx={{ fontWeight: 700 }} variant="body2">
+      <Typography mb={1} sx={{ fontWeight: 700, }} variant="body2">
         Créez un premier groupe pour faire un export et préparer une campagne !
       </Typography>
       <Typography mb={1} variant="caption">

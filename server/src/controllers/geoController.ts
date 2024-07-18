@@ -9,7 +9,7 @@ import { logger } from '~/infra/logger';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 
 async function listGeoPerimeters(request: Request, response: Response) {
-  const { auth } = request as AuthenticatedRequest;
+  const { auth, } = request as AuthenticatedRequest;
 
   logger.info('List geo perimeters', auth.establishmentId);
 
@@ -20,9 +20,9 @@ async function listGeoPerimeters(request: Request, response: Response) {
 async function createGeoPerimeter(
   // TODO: type this
   request: any,
-  response: Response,
+  response: Response
 ) {
-  const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
+  const { establishmentId, userId, } = (request as AuthenticatedRequest).auth;
   const file = request.files.geoPerimeter;
 
   logger.info('Create geo perimeter', {
@@ -39,9 +39,9 @@ async function createGeoPerimeter(
         establishmentId,
         feature.properties?.type ?? '',
         feature.properties?.nom ?? '',
-        userId,
-      ),
-    ),
+        userId
+      )
+    )
   );
 
   response.status(constants.HTTP_STATUS_OK).send();
@@ -50,11 +50,11 @@ async function createGeoPerimeter(
 const deleteGeoPerimeterListValidators = [
   body('geoPerimeterIds')
     .custom(isArrayOf(isUUID))
-    .withMessage('Must be an array of UUIDs'),
+    .withMessage('Must be an array of UUIDs')
 ];
 
 async function deleteGeoPerimeterList(request: Request, response: Response) {
-  const { auth, body } = request as AuthenticatedRequest;
+  const { auth, body, } = request as AuthenticatedRequest;
 
   logger.info('Delete geo perimeters', body.geoPerimeterIds);
 
@@ -66,7 +66,7 @@ async function deleteGeoPerimeterList(request: Request, response: Response) {
 const updateGeoPerimeterValidators = [
   param('geoPerimeterId').notEmpty().isUUID(),
   body('kind').notEmpty().isString(),
-  body('name').optional({ nullable: true }).isString(),
+  body('name').optional({ nullable: true, }).isString()
 ];
 
 async function updateGeoPerimeter(request: Request, response: Response) {
@@ -76,7 +76,7 @@ async function updateGeoPerimeter(request: Request, response: Response) {
   const kind = request.body.kind;
   const name = request.body.name;
 
-  logger.info('Update geo perimeter', { geoPerimeterId, kind, name });
+  logger.info('Update geo perimeter', { geoPerimeterId, kind, name, });
 
   const geoPerimeter = await geoRepository.get(geoPerimeterId);
 

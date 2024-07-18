@@ -74,7 +74,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
         filter={[
           'all',
           ['!', ['has', 'point_count']],
-          ['==', ['get', 'housingCount'], 1],
+          ['==', ['get', 'housingCount'], 1]
         ]}
         source={props.id}
       />
@@ -82,7 +82,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
         filter={[
           'all',
           ['!', ['has', 'point_count']],
-          ['>=', ['get', 'housingCount'], 2],
+          ['>=', ['get', 'housingCount'], 2]
         ]}
         source={props.id}
       />

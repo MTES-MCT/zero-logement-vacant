@@ -17,15 +17,15 @@ export default function registerEvents() {
 
     const queueEvents = new QueueEvents(queue, queueEventsConfig);
 
-    queueEvents.on('completed', ({ jobId, returnvalue }) => {
-      logger.info('Job completed', { job: jobId, value: returnvalue });
+    queueEvents.on('completed', ({ jobId, returnvalue, }) => {
+      logger.info('Job completed', { job: jobId, value: returnvalue, });
     });
 
     queueEvents.on('error', (error) => {
       logger.error(error);
     });
 
-    queueEvents.on('failed', ({ failedReason, jobId }) => {
+    queueEvents.on('failed', ({ failedReason, jobId, }) => {
       logger.error('Job failed', {
         job: jobId,
         reason: failedReason,

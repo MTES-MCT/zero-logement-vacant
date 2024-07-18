@@ -12,7 +12,7 @@ interface Props<T> {
 
 export function useMapLayerClick<T extends turf.Properties>(props: Props<T>) {
   useEffect(() => {
-    const { layers, map, onClick } = props;
+    const { layers, map, onClick, } = props;
 
     if (map) {
       layers.forEach((layer) => {

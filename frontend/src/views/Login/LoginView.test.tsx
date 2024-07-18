@@ -25,7 +25,7 @@ describe('login view', () => {
     expect(email).toBeVisible();
     const password = screen.queryByLabelText(/^Mot de passe/);
     expect(password).toBeVisible();
-    const logIn = screen.queryByRole('button', { name: /^Se connecter/ });
+    const logIn = screen.queryByRole('button', { name: /^Se connecter/, });
     expect(logIn).toBeVisible();
   });
 
@@ -45,7 +45,7 @@ describe('login view', () => {
     await user.type(email, 'test@test.test');
     const password = screen.getByLabelText(/^Mot de passe/);
     await user.type(password, faker.string.alphanumeric(16));
-    const logIn = screen.getByRole('button', { name: /^Se connecter/ });
+    const logIn = screen.getByRole('button', { name: /^Se connecter/, });
     await user.click(logIn);
 
     const alert = await screen.findByText(/^Échec de l'authentification/);
@@ -86,7 +86,7 @@ describe('login view', () => {
     const password = screen.getByLabelText(/^Mot de passe/);
     await user.type(password, 'password'); // Whatever you want
 
-    const logIn = screen.getByRole('button', { name: /^Se connecter/ });
+    const logIn = screen.getByRole('button', { name: /^Se connecter/, });
     await user.click(logIn);
 
     const alert = screen.queryByText(/^Échec de l'authentification/);

@@ -15,7 +15,7 @@ async function get(geoCode: string): Promise<LocalityApi | null> {
 }
 
 async function listByEstablishmentId(
-  establishmentId: string,
+  establishmentId: string
 ): Promise<LocalityApi[]> {
   return db(localitiesTable)
     .select(`${localitiesTable}.*`)
@@ -23,11 +23,11 @@ async function listByEstablishmentId(
       join
         .onVal(
           `${establishmentsLocalitiesTable}.establishment_id`,
-          establishmentId,
+          establishmentId
         )
         .andOn(
           `${establishmentsLocalitiesTable}.locality_id`,
-          `${localitiesTable}.id`,
+          `${localitiesTable}.id`
         );
     })
     .orderBy(`${localitiesTable}.name`)
@@ -46,10 +46,10 @@ export interface LocalityDBO {
 async function update(localityApi: LocalityApi): Promise<LocalityApi> {
   logger.info('Update localityApi with geoCode', localityApi.geoCode);
 
-  const { geo_code, tax_rate, tax_kind } = formatLocalityApi(localityApi);
+  const { geo_code, tax_rate, tax_kind, } = formatLocalityApi(localityApi);
   return db(localitiesTable)
     .where('geo_code', geo_code)
-    .update({ tax_rate: tax_rate ?? db.raw('null'), tax_kind })
+    .update({ tax_rate: tax_rate ?? db.raw('null'), tax_kind, })
     .returning('*')
     .then((_) => parseLocalityApi(_[0]));
 }

@@ -5,7 +5,7 @@ import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListMap from '../HousingList/HousingListMap';
@@ -22,7 +22,7 @@ interface Props {
 function CampaignInProgress(props: Readonly<Props>) {
   useDocumentTitle(props.campaign.title);
 
-  const { trackEvent } = useMatomo();
+  const { trackEvent, } = useMatomo();
   const {
     filters,
     setFilters,
@@ -38,7 +38,7 @@ function CampaignInProgress(props: Readonly<Props>) {
     },
   });
 
-  const { view } = useAppSelector((state) => state.housing);
+  const { view, } = useAppSelector((state) => state.housing);
 
   function searchWithQuery(query: string): void {
     trackEvent({

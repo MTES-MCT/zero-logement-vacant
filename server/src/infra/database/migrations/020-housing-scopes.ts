@@ -13,7 +13,7 @@ export async function up(knex: Knex): Promise<void> {
       table.dropColumn('fin');
       table.dropColumn('export');
       table.dropColumn('dispositif');
-    }),
+    })
   ]);
 }
 
@@ -30,6 +30,6 @@ export async function down(knex: Knex): Promise<void> {
       table.string('export');
       table.string('dispositif');
       table.dropColumn('establishment_id');
-    }),
+    })
   ]);
 }

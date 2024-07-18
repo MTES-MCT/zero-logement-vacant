@@ -7,11 +7,11 @@ import { tokenProvider } from '~/test/testUtils';
 import {
   genEstablishmentApi,
   genSettingsApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { formatSettingsApi, Settings } from '~/repositories/settingsRepository';
@@ -19,7 +19,7 @@ import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { UserApi } from '~/models/UserApi';
 
 describe('Settings API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   let establishment: EstablishmentApi;
   let user: UserApi;
@@ -38,7 +38,7 @@ describe('Settings API', () => {
       const settings = genSettingsApi(establishment.id);
       await Settings().insert(formatSettingsApi(settings));
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute(settings.establishmentId))
         .use(tokenProvider(user));
 
@@ -54,13 +54,13 @@ describe('Settings API', () => {
     const testRoute = (id: string) => `/api/establishments/${id}/settings`;
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).put(testRoute('any'));
+      const { status, } = await request(app).put(testRoute('any'));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should create missing settings', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .put(testRoute('any'))
         .send({
           contactPoints: {
@@ -84,7 +84,7 @@ describe('Settings API', () => {
       const settings = genSettingsApi(establishment.id);
       await Settings().insert(formatSettingsApi(settings));
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .put(testRoute('any'))
         .use(tokenProvider(user))
         .send({

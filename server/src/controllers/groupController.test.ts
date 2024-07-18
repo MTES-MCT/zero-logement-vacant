@@ -15,17 +15,17 @@ import {
   genHousingApi,
   genOwnerApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import {
   formatGroupApi,
   formatGroupHousingApi,
   Groups,
-  GroupsHousing,
+  GroupsHousing
 } from '~/repositories/groupRepository';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import { toUserDTO } from '~/models/UserApi';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
@@ -36,29 +36,29 @@ import {
   eventsTable,
   GroupHousingEvents,
   groupHousingEventsTable,
-  parseEventApi,
+  parseEventApi
 } from '~/repositories/eventRepository';
 import { EventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
 import campaignRepository, {
-  Campaigns,
+  Campaigns
 } from '~/repositories/campaignRepository';
 import { CampaignApi } from '~/models/CampaignApi';
 import {
   formatHousingOwnersApi,
   HousingOwnerDBO,
-  HousingOwners,
+  HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import config from '~/infra/config';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { OwnerApi } from '~/models/OwnerApi';
 
 describe('Group API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const otherEstablishment = genEstablishmentApi();
@@ -67,7 +67,7 @@ describe('Group API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, otherEstablishment].map(formatEstablishmentApi),
+      [establishment, otherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert([user, otherUser].map(formatUserApi));
   });
@@ -78,7 +78,7 @@ describe('Group API', () => {
     const groups = [
       genGroupApi(user, establishment),
       genGroupApi(user, establishment),
-      genGroupApi(otherUser, otherEstablishment),
+      genGroupApi(otherUser, otherEstablishment)
     ];
 
     beforeAll(async () => {
@@ -86,16 +86,16 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status, } = await request(app).get(testRoute);
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it("should list housing groups in the authenticated user's establishment", async () => {
       const establishmentGroups = groups.filter(
-        (group) => group.establishmentId === establishment.id,
+        (group) => group.establishmentId === establishment.id
       );
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -115,12 +115,12 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(group.id));
+      const { status, } = await request(app).get(testRoute(group.id));
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it("should be hidden for a user outside of the group's establishment", async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .get(testRoute(anotherGroup.id))
         .use(tokenProvider(otherUser));
 
@@ -128,7 +128,7 @@ describe('Group API', () => {
     });
 
     it("should return a housing group in the authenticated user's establishment", async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute(group.id))
         .use(tokenProvider(user));
 
@@ -145,7 +145,7 @@ describe('Group API', () => {
     const housingList = [
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0]),
+      genHousingApi(otherEstablishment.geoCodes[0])
     ];
     const payload: GroupPayloadDTO = {
       title: 'Logements prioritaires',
@@ -170,14 +170,14 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute).send(payload).set({
+      const { status, } = await request(app).post(testRoute).send(payload).set({
         'Content-Type': 'application/json',
       });
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should create a group with all the housing belonging to the given establishment', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .set({
@@ -199,7 +199,7 @@ describe('Group API', () => {
     });
 
     it('should validate the request payload', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute)
         .send({
           title: 'Logements prioritaires',
@@ -214,7 +214,7 @@ describe('Group API', () => {
     });
 
     it('should create a group with all the housing corresponding to the given criteria', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send({
           ...payload,
@@ -233,11 +233,11 @@ describe('Group API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       const filteredHousingList = housingList.filter(
-        (housing) => housing.status === HousingStatusApi.FirstContact,
+        (housing) => housing.status === HousingStatusApi.FirstContact
       );
       const filteredOwners = fp.uniqBy(
         'id',
-        filteredHousingList.map((housing) => housing.owner),
+        filteredHousingList.map((housing) => housing.owner)
       );
       expect(body).toStrictEqual<GroupDTO>({
         id: expect.any(String),
@@ -252,7 +252,7 @@ describe('Group API', () => {
     });
 
     it('should create events related to the group and its housing', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send(payload)
         .set({
@@ -262,13 +262,13 @@ describe('Group API', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       await wait(1000);
       const establishmentHousingList = housingList.filter((housing) =>
-        establishment.geoCodes.includes(housing.geoCode),
+        establishment.geoCodes.includes(housing.geoCode)
       );
       const events = await Events()
         .join(
           groupHousingEventsTable,
           `${groupHousingEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where('group_id', body.id)
         .then((events) => events.map(parseEventApi) as EventApi<GroupApi>[]);
@@ -281,7 +281,7 @@ describe('Group API', () => {
           section: 'Ajout d’un logement dans un groupe',
           conflict: false,
           createdBy: user.id,
-        })),
+        }))
       );
     });
 
@@ -293,17 +293,17 @@ describe('Group API', () => {
         fp.chunk(config.app.batchSize, housingList),
         async (chunk) => {
           await Housing().insert(chunk.map(formatHousingRecordApi));
-        },
+        }
       );
       const owner = genOwnerApi();
       await Owners().insert(formatOwnerApi(owner));
       await HousingOwners().insert(
         housingList.flatMap((housing) =>
-          formatHousingOwnersApi(housing, [owner]),
-        ),
+          formatHousingOwnersApi(housing, [owner])
+        )
       );
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute)
         .send({
           ...payload,
@@ -338,7 +338,7 @@ describe('Group API', () => {
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0]),
+      genHousingApi(otherEstablishment.geoCodes[0])
     ];
 
     const payload: GroupPayloadDTO = {
@@ -357,7 +357,7 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(group.id))
         .send(payload)
         .set({
@@ -367,7 +367,7 @@ describe('Group API', () => {
     });
 
     it("should be hidden for a user outside of the group's establishment", async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(group.id))
         .send(payload)
         .set({
@@ -385,7 +385,7 @@ describe('Group API', () => {
       };
       await Groups().insert(formatGroupApi(group));
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .put(testRoute(group.id))
         .send(payload)
         .set({
@@ -397,7 +397,7 @@ describe('Group API', () => {
     });
 
     it('should update a group', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .put(testRoute(group.id))
         .send(payload)
         .set({
@@ -426,10 +426,10 @@ describe('Group API', () => {
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0]),
+      genHousingApi(otherEstablishment.geoCodes[0])
     ];
     const establishmentHousingList = housingList.filter((housing) =>
-      establishment.geoCodes.includes(housing.geoCode),
+      establishment.geoCodes.includes(housing.geoCode)
     );
     const group = genGroupApi(user, establishment);
 
@@ -451,12 +451,12 @@ describe('Group API', () => {
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
       await GroupsHousing().insert(
-        formatGroupHousingApi(group, establishmentHousingList),
+        formatGroupHousingApi(group, establishmentHousingList)
       );
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute(group.id))
         .send(payload)
         .set({
@@ -466,7 +466,7 @@ describe('Group API', () => {
     });
 
     it("should be hidden for a user outside of the group's establishment", async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute(group.id))
         .send(payload)
         .set({
@@ -482,7 +482,7 @@ describe('Group API', () => {
         archivedAt: new Date(),
       };
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute(group.id))
         .send(payload)
         .set({
@@ -503,7 +503,7 @@ describe('Group API', () => {
         rank: 1,
       });
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute(group.id))
         .send({
           all: false,
@@ -538,7 +538,7 @@ describe('Group API', () => {
         rank: 1,
       });
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .post(testRoute(group.id))
         .send({
           all: false,
@@ -556,7 +556,7 @@ describe('Group API', () => {
         .join(
           groupHousingEventsTable,
           `${groupHousingEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where('group_id', body.id);
       expect(events).toIncludeAllPartialMembers([
@@ -567,7 +567,7 @@ describe('Group API', () => {
           section: 'Ajout d’un logement dans un groupe',
           conflict: false,
           created_by: user.id,
-        },
+        }
       ]);
     });
   });
@@ -579,10 +579,10 @@ describe('Group API', () => {
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0]),
+      genHousingApi(otherEstablishment.geoCodes[0])
     ];
     const establishmentHousingList = housingList.filter((housing) =>
-      establishment.geoCodes.includes(housing.geoCode),
+      establishment.geoCodes.includes(housing.geoCode)
     );
     const group = genGroupApi(user, establishment);
 
@@ -604,12 +604,12 @@ describe('Group API', () => {
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
       await GroupsHousing().insert(
-        formatGroupHousingApi(group, establishmentHousingList),
+        formatGroupHousingApi(group, establishmentHousingList)
       );
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .delete(testRoute(group.id))
         .send(payload)
         .set({
@@ -619,7 +619,7 @@ describe('Group API', () => {
     });
 
     it("should be hidden for a user outside of the group's establishment", async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .delete(testRoute(group.id))
         .send(payload)
         .set({
@@ -636,7 +636,7 @@ describe('Group API', () => {
       };
       await Groups().insert(formatGroupApi(group));
 
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .post(testRoute(group.id))
         .send(payload)
         .set({
@@ -648,7 +648,7 @@ describe('Group API', () => {
     });
 
     it('should remove the housing corresponding to the given criteria to the group', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .delete(testRoute(group.id))
         .send({
           all: false,
@@ -674,7 +674,7 @@ describe('Group API', () => {
     });
 
     it('should create events when some housing get removed', async () => {
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .delete(testRoute(group.id))
         .send(payload)
         .set({
@@ -688,7 +688,7 @@ describe('Group API', () => {
         .join(
           groupHousingEventsTable,
           `${groupHousingEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where('group_id', body.id);
       expect(events).toIncludeAllPartialMembers(
@@ -700,7 +700,7 @@ describe('Group API', () => {
           conflict: false,
           created_by: user.id,
           housing_id: housingId,
-        })),
+        }))
       );
     });
   });
@@ -716,8 +716,8 @@ describe('Group API', () => {
     beforeEach(async () => {
       group = genGroupApi(user, establishment);
       anotherGroup = genGroupApi(otherUser, otherEstablishment);
-      housingList = Array.from({ length: 3 }).map(() =>
-        genHousingApi(oneOf(establishment.geoCodes)),
+      housingList = Array.from({ length: 3, }).map(() =>
+        genHousingApi(oneOf(establishment.geoCodes))
       );
       owner = genOwnerApi();
 
@@ -735,12 +735,12 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).delete(testRoute(group.id));
+      const { status, } = await request(app).delete(testRoute(group.id));
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should be hidden for a user outside of the establishment', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .delete(testRoute(anotherGroup.id))
         .use(tokenProvider(user));
 
@@ -748,7 +748,7 @@ describe('Group API', () => {
     });
 
     it('should remove a group', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .delete(testRoute(group.id))
         .use(tokenProvider(user));
 
@@ -768,12 +768,12 @@ describe('Group API', () => {
           groupId: group.id,
         };
         await Campaigns().insert(
-          campaignRepository.formatCampaignApi(campaign),
+          campaignRepository.formatCampaignApi(campaign)
         );
       });
 
       it('should archive a group', async () => {
-        const { body, status } = await request(app)
+        const { body, status, } = await request(app)
           .delete(testRoute(group.id))
           .use(tokenProvider(user));
 
@@ -784,7 +784,7 @@ describe('Group API', () => {
       });
 
       it('should create events when the group is archived', async () => {
-        const { status } = await request(app)
+        const { status, } = await request(app)
           .delete(testRoute(group.id))
           .use(tokenProvider(user));
 
@@ -795,11 +795,11 @@ describe('Group API', () => {
           .join(
             eventsTable,
             `${eventsTable}.id`,
-            `${groupHousingEventsTable}.event_id`,
+            `${groupHousingEventsTable}.event_id`
           );
         expect(actual).toSatisfy<EventDBO<GroupApi>[]>((events) => {
           return events.some(
-            (event) => event.section === 'Archivage d’un groupe',
+            (event) => event.section === 'Archivage d’un groupe'
           );
         });
       });

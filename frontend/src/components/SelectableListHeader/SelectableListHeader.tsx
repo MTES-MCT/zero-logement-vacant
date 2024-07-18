@@ -20,7 +20,7 @@ interface SelectableListHeaderProps {
 function SelectableListHeader(props: SelectableListHeaderProps) {
   const actions = findChild(props.children, SelectableListHeaderActions);
 
-  const { selected } = {
+  const { selected, } = {
     selected: 0,
     ...props,
   };

@@ -12,13 +12,13 @@ interface OwnerParams {
 export const ownerHandlers: RequestHandler[] = [
   http.put<OwnerParams, OwnerPayloadDTO, OwnerDTO>(
     `${config.apiEndpoint}/api/owners/:id`,
-    async ({ params, request }) => {
+    async ({ params, request, }) => {
       const payload = await request.json();
 
       const owner = data.owners.find((owner) => owner.id === params.id);
       if (!owner) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 
@@ -27,7 +27,7 @@ export const ownerHandlers: RequestHandler[] = [
         ...payload,
         birthDate: payload.birthDate
           ? new Date(payload.birthDate)
-          : owner.birthDate
+          : owner.birthDate,
       };
       return HttpResponse.json(updated);
     }

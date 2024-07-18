@@ -64,7 +64,7 @@ const HousingStatusMultiSelect = ({
         {options.map((option) => (
           <AppCheckbox
             label={
-              <div style={{ marginTop: '-2px' }}>
+              <div style={{ marginTop: '-2px', }}>
                 <HousingStatusBadge status={Number(option.value)} />
               </div>
             }
@@ -74,7 +74,7 @@ const HousingStatusMultiSelect = ({
               styles.checkboxLabel,
               'bordered-b',
               'fr-mx-0',
-              'fr-pb-1w',
+              'fr-pb-1w'
             )}
             hintText={option.hint}
             key={option.label}

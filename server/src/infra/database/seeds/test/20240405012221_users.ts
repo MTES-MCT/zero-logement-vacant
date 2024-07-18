@@ -6,7 +6,7 @@ import userRepository, { usersTable } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
 import {
   Establishment1,
-  Establishment2,
+  Establishment2
 } from './20240405011849_establishments';
 
 export const TEST_SALT = bcrypt.genSaltSync();

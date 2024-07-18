@@ -12,13 +12,13 @@ interface DatafoncierHousingParams {
 export const datafoncierHandlers: RequestHandler[] = [
   http.get<DatafoncierHousingParams, never, DatafoncierHousing>(
     `${config.apiEndpoint}/api/datafoncier/housing/:localId`,
-    async ({ params }) => {
+    async ({ params, }) => {
       const housing = data.datafoncierHousings.find(
         (housing) => housing.idlocal === params.localId
       );
       if (!housing) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 

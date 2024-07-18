@@ -7,7 +7,7 @@ import {
   OccupancyKindBadgeLabels,
   OccupancyKindLabels,
   OwnershipKindLabels,
-  OwnershipKinds,
+  OwnershipKinds
 } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
@@ -23,7 +23,7 @@ export const allOccupancyOptions: SelectOption[] = [
     value,
     label: OccupancyKindLabels[value],
     badgeLabel: OccupancyKindBadgeLabels[value],
-  })),
+  }))
 ];
 
 export const ownerAgeOptions: SelectOption[] = [
@@ -32,54 +32,54 @@ export const ownerAgeOptions: SelectOption[] = [
     label: 'Moins de 40 ans',
     badgeLabel: 'Âge : moins de 40 ans',
   },
-  { value: '40to59', label: '40 - 59 ans', badgeLabel: 'Âge : 40 - 59 ans' },
-  { value: '60to74', label: '60 - 74 ans', badgeLabel: 'Âge : 60 - 74 ans' },
-  { value: '75to100', label: '75 - 100 ans', badgeLabel: 'Âge : 75 - 100 ans' },
+  { value: '40to59', label: '40 - 59 ans', badgeLabel: 'Âge : 40 - 59 ans', },
+  { value: '60to74', label: '60 - 74 ans', badgeLabel: 'Âge : 60 - 74 ans', },
+  { value: '75to100', label: '75 - 100 ans', badgeLabel: 'Âge : 75 - 100 ans', },
   {
     value: 'gte100',
     label: '100 ans et plus',
     badgeLabel: 'Âge : 100 ans et plus',
-  },
+  }
 ];
 
 export const ownerKindOptions: SelectOption[] = [
-  { value: 'Particulier', label: 'Particulier' },
-  { value: 'Investisseur', label: 'Investisseur' },
-  { value: 'SCI', label: 'SCI' },
-  { value: 'Autre', label: 'Autres' },
+  { value: 'Particulier', label: 'Particulier', },
+  { value: 'Investisseur', label: 'Investisseur', },
+  { value: 'SCI', label: 'SCI', },
+  { value: 'Autre', label: 'Autres', }
 ];
 
 export const campaignsCountOptions: SelectOption[] = [
-  { value: '0', label: 'Dans aucune campagne en cours' },
-  { value: 'current', label: 'Dans une campagne en cours' },
-  { value: '1', label: 'Déjà contacté 1 fois' },
-  { value: '2', label: 'Déjà contacté 2 fois' },
-  { value: 'gt3', label: 'Déjà contacté 3 fois et plus' },
+  { value: '0', label: 'Dans aucune campagne en cours', },
+  { value: 'current', label: 'Dans une campagne en cours', },
+  { value: '1', label: 'Déjà contacté 1 fois', },
+  { value: '2', label: 'Déjà contacté 2 fois', },
+  { value: 'gt3', label: 'Déjà contacté 3 fois et plus', }
 ];
 
 export const statusOptions = (
-  statusExcluded?: HousingStatus[],
+  statusExcluded?: HousingStatus[]
 ): SelectOption[] => [
   ...HousingStates.filter(
-    (_) => !(statusExcluded ?? []).includes(_.status),
+    (_) => !(statusExcluded ?? []).includes(_.status)
   ).map((status) => ({
     value: String(status.status),
     label: status.title,
     hint: status.hint,
-  })),
+  }))
 ];
 
 export const beneficiaryCountOptions: SelectOption[] = [
-  { value: '0', label: 'Aucun', badgeLabel: 'Aucun bénéficiaire' },
-  { value: '1', label: '1', badgeLabel: '1 bénéficiaire' },
-  { value: '2', label: '2', badgeLabel: '2 bénéficiaires' },
-  { value: '3', label: '3', badgeLabel: '3 bénéficiaires' },
-  { value: '4', label: '4', badgeLabel: '4 bénéficiaires' },
-  { value: 'gt5', label: '5 et plus', badgeLabel: '5 bénéficiaires et plus' },
+  { value: '0', label: 'Aucun', badgeLabel: 'Aucun bénéficiaire', },
+  { value: '1', label: '1', badgeLabel: '1 bénéficiaire', },
+  { value: '2', label: '2', badgeLabel: '2 bénéficiaires', },
+  { value: '3', label: '3', badgeLabel: '3 bénéficiaires', },
+  { value: '4', label: '4', badgeLabel: '4 bénéficiaires', },
+  { value: 'gt5', label: '5 et plus', badgeLabel: '5 bénéficiaires et plus', }
 ];
 
 export const housingCountOptions: SelectOption[] = [
-  { value: 'lt5', label: 'Moins de 5', badgeLabel: 'Moins de 5 logements' },
+  { value: 'lt5', label: 'Moins de 5', badgeLabel: 'Moins de 5 logements', },
   {
     value: '5to19',
     label: 'Entre 5 et 19',
@@ -90,7 +90,7 @@ export const housingCountOptions: SelectOption[] = [
     label: 'Entre 20 et 49',
     badgeLabel: 'Entre 20 et 49 logements',
   },
-  { value: 'gte50', label: '50 et plus', badgeLabel: '50 logements et plus' },
+  { value: 'gte50', label: '50 et plus', badgeLabel: '50 logements et plus', }
 ];
 
 export const vacancyRateOptions: SelectOption[] = [
@@ -118,7 +118,7 @@ export const vacancyRateOptions: SelectOption[] = [
     value: 'gte80',
     label: '80% et plus',
     badgeLabel: '80% de vacance et plus',
-  },
+  }
 ];
 
 const energyConsumptionGrades = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
@@ -133,47 +133,47 @@ export const energyConsumptionOptions: SelectOption[] =
   }));
 
 export const housingKindOptions: SelectOption[] = [
-  { value: 'APPART', label: 'Appartement' },
-  { value: 'MAISON', label: 'Maison' },
+  { value: 'APPART', label: 'Appartement', },
+  { value: 'MAISON', label: 'Maison', }
 ];
 
 export const housingAreaOptions: SelectOption[] = [
-  { value: 'lt35', label: 'Moins de 35 m²' },
-  { value: '35to74', label: '35 - 74 m²' },
-  { value: '75to99', label: '75 - 99 m²' },
-  { value: 'gte100', label: '100 m² et plus' },
+  { value: 'lt35', label: 'Moins de 35 m²', },
+  { value: '35to74', label: '35 - 74 m²', },
+  { value: '75to99', label: '75 - 99 m²', },
+  { value: 'gte100', label: '100 m² et plus', }
 ];
 
 export const roomsCountOptions: SelectOption[] = [
-  { value: '1', label: '1 pièce' },
-  { value: '2', label: '2 pièces' },
-  { value: '3', label: '3 pièces' },
-  { value: '4', label: '4 pièces' },
-  { value: '5', label: '5 pièces', hidden: true },
-  { value: 'gt5', label: '5 pièces et plus' },
+  { value: '1', label: '1 pièce', },
+  { value: '2', label: '2 pièces', },
+  { value: '3', label: '3 pièces', },
+  { value: '4', label: '4 pièces', },
+  { value: '5', label: '5 pièces', hidden: true, },
+  { value: 'gt5', label: '5 pièces et plus', }
 ];
 
 export const cadastralClassificationOptions: SelectOption[] = [
-  { value: '1', label: '1 - Grand luxe' },
-  { value: '2', label: '2 - Luxe' },
-  { value: '3', label: '3 - Très confortable' },
-  { value: '4', label: '4 - Confortable' },
-  { value: '5', label: '5 - Assez confortable' },
-  { value: '6', label: '6 - Ordinaire' },
-  { value: '7', label: '7 - Médiocre' },
-  { value: '8', label: '8 - Très médiocre' },
+  { value: '1', label: '1 - Grand luxe', },
+  { value: '2', label: '2 - Luxe', },
+  { value: '3', label: '3 - Très confortable', },
+  { value: '4', label: '4 - Confortable', },
+  { value: '5', label: '5 - Assez confortable', },
+  { value: '6', label: '6 - Ordinaire', },
+  { value: '7', label: '7 - Médiocre', },
+  { value: '8', label: '8 - Très médiocre', }
 ];
 
 export const buildingPeriodOptions: SelectOption[] = [
-  { value: 'lt1919', label: 'Avant 1919' },
-  { value: '1919to1945', label: 'Entre 1919 et 1945' },
-  { value: '1946to1990', label: 'Entre 1946 et 1990' },
-  { value: 'gt1991', label: '1991 ou après' },
+  { value: 'lt1919', label: 'Avant 1919', },
+  { value: '1919to1945', label: 'Entre 1919 et 1945', },
+  { value: '1946to1990', label: 'Entre 1946 et 1990', },
+  { value: 'gt1991', label: '1991 ou après', }
 ];
 
 export const multiOwnerOptions: SelectOption[] = [
-  { value: 'true', label: 'Oui', badgeLabel: 'Multi-propriétaire' },
-  { value: 'false', label: 'Non', badgeLabel: 'Mono-propriétaire' },
+  { value: 'true', label: 'Oui', badgeLabel: 'Multi-propriétaire', },
+  { value: 'false', label: 'Non', badgeLabel: 'Mono-propriétaire', }
 ];
 
 export const vacancyDurationOptions: SelectOption[] = [
@@ -204,12 +204,12 @@ export const vacancyDurationOptions: SelectOption[] = [
     value: 'gte10',
     label: '10 ans et plus',
     badgeLabel: 'Durée de vacance : 10 ans et plus',
-  },
+  }
 ];
 
 export const taxedOptions: SelectOption[] = [
-  { value: 'true', label: 'Oui', badgeLabel: 'Taxé' },
-  { value: 'false', label: 'Non', badgeLabel: 'Non taxé' },
+  { value: 'true', label: 'Oui', badgeLabel: 'Taxé', },
+  { value: 'false', label: 'Non', badgeLabel: 'Non taxé', }
 ];
 
 export const ownershipKindsOptions: SelectOption[] = [
@@ -225,28 +225,28 @@ export const ownershipKindsOptions: SelectOption[] = [
     value: OwnershipKinds.Other,
     label: OwnershipKindLabels[OwnershipKinds.Other],
     badgeLabel: 'Autre type de propriété',
-  },
+  }
 ];
 
 export const localityKindsOptions = [
-  { value: LocalityKinds.ACV, label: LocalityKindLabels[LocalityKinds.ACV] },
-  { value: LocalityKinds.PVD, label: LocalityKindLabels[LocalityKinds.PVD] },
+  { value: LocalityKinds.ACV, label: LocalityKindLabels[LocalityKinds.ACV], },
+  { value: LocalityKinds.PVD, label: LocalityKindLabels[LocalityKinds.PVD], }
 ];
 
 export const dataYearsIncludedOptions = [
-  { value: '2019', label: '2019', badgeLabel: 'Millésime 2019' },
-  { value: '2020', label: '2020', badgeLabel: 'Millésime 2020' },
-  { value: '2021', label: '2021', badgeLabel: 'Millésime 2021' },
-  { value: '2022', label: '2022', badgeLabel: 'Millésime 2022' },
-  { value: '2023', label: '2023', badgeLabel: 'Millésime 2023' },
+  { value: '2019', label: '2019', badgeLabel: 'Millésime 2019', },
+  { value: '2020', label: '2020', badgeLabel: 'Millésime 2020', },
+  { value: '2021', label: '2021', badgeLabel: 'Millésime 2021', },
+  { value: '2022', label: '2022', badgeLabel: 'Millésime 2022', },
+  { value: '2023', label: '2023', badgeLabel: 'Millésime 2023', }
 ];
 
 export const dataYearsExcludedOptions = [
-  { value: '2019', label: '2019', badgeLabel: 'Millésime 2019 exclu' },
-  { value: '2020', label: '2020', badgeLabel: 'Millésime 2020 exclu' },
-  { value: '2021', label: '2021', badgeLabel: 'Millésime 2021 exclu' },
-  { value: '2022', label: '2022', badgeLabel: 'Millésime 2022 exclu' },
-  { value: '2023', label: '2023', badgeLabel: 'Millésime 2023 exclu' },
+  { value: '2019', label: '2019', badgeLabel: 'Millésime 2019 exclu', },
+  { value: '2020', label: '2020', badgeLabel: 'Millésime 2020 exclu', },
+  { value: '2021', label: '2021', badgeLabel: 'Millésime 2021 exclu', },
+  { value: '2022', label: '2022', badgeLabel: 'Millésime 2022 exclu', },
+  { value: '2023', label: '2023', badgeLabel: 'Millésime 2023 exclu', }
 ];
 
 export const BlockingPointOptions: OptionTreeElement[] = [
@@ -261,7 +261,7 @@ export const BlockingPointOptions: OptionTreeElement[] = [
           "Défaut d'entretien / nécessité de travaux",
           'Problèmes de financements / Dossier non-éligible',
           "Manque de conseil en amont de l'achat",
-          'En incapacité (âge, handicap, précarité...)',
+          'En incapacité (âge, handicap, précarité...)'
         ],
       },
       {
@@ -271,9 +271,9 @@ export const BlockingPointOptions: OptionTreeElement[] = [
           'Stratégie de gestion',
           'Mauvaise expérience locative',
           'Montants des travaux perçus comme trop importants',
-          'Refus catégorique, sans raison',
+          'Refus catégorique, sans raison'
         ],
-      },
+      }
     ],
   },
   {
@@ -286,7 +286,7 @@ export const BlockingPointOptions: OptionTreeElement[] = [
           'Immeuble dégradé',
           'Ruine / Immeuble à démolir',
           'Nuisances à proximité',
-          'Risques Naturels / Technologiques',
+          'Risques Naturels / Technologiques'
         ],
       },
       {
@@ -296,11 +296,11 @@ export const BlockingPointOptions: OptionTreeElement[] = [
           'Copropriété en désaccord',
           'Expertise judiciaire',
           "Autorisation d'urbanisme refusée / Blocage ABF",
-          'Interdiction de location',
+          'Interdiction de location'
         ],
-      },
+      }
     ],
-  },
+  }
 ];
 
 export const SupportOptions: OptionTreeElement[] = [
@@ -322,7 +322,7 @@ export const SupportOptions: OptionTreeElement[] = [
           'Prime Rénovation Globale',
           'Prime locale rénovation énergétique',
           'Accompagnement à la vente',
-          'Autre',
+          'Autre'
         ],
       },
       {
@@ -334,16 +334,16 @@ export const SupportOptions: OptionTreeElement[] = [
           'DIA - préemption',
           "Procédure d'habitat indigne",
           'Permis de louer',
-          'Permis de diviser',
+          'Permis de diviser'
         ],
       },
       {
         title: 'Hors dispositif public',
         elements: [
           'Accompagné par un professionnel (archi, agent immo...)',
-          'Propriétaire autonome',
+          'Propriétaire autonome'
         ],
-      },
+      }
     ],
   },
   {
@@ -360,16 +360,16 @@ export const SupportOptions: OptionTreeElement[] = [
       {
         title: 'Mutation',
         elements: ['À venir', 'En cours', 'Effectuée'],
-      },
+      }
     ],
-  },
+  }
 ];
 
 export const OptionTreeSeparator = ' > ';
 
 export const filterCount = (housingFilters: HousingFilters) => {
   return Object.entries(housingFilters).filter(
-    ([, v]) => v !== undefined && v !== null && (v as any[]).length > 0,
+    ([, v]) => v !== undefined && v !== null && (v as any[]).length > 0
   ).length;
 };
 export const hasFilters = (housingFilters: HousingFilters) => {
@@ -378,10 +378,10 @@ export const hasFilters = (housingFilters: HousingFilters) => {
 
 export const unselectedOptions = (
   options: SelectOption[],
-  selectedValues?: string[],
+  selectedValues?: string[]
 ) =>
   options.filter(
-    (option: { value: any }) => !selectedValues?.includes(option.value),
+    (option: { value: any }) => !selectedValues?.includes(option.value)
   );
 
 export function hasPerimetersFilter(filters: HousingFilters): boolean {

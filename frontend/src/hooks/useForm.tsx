@@ -53,7 +53,7 @@ export const fileValidator = (supportedFormats: string[]) =>
     .test(
       'fileType',
       'Format de fichier invalide',
-      (value) => value && supportedFormats.includes(value.type),
+      (value) => value && supportedFormats.includes(value.type)
     );
 
 export const banAddressValidator = yup
@@ -97,7 +97,7 @@ export function useForm<
    * @param key
    */
   function errorList<K extends keyof U>(
-    key?: K,
+    key?: K
   ): yup.ValidationError[] | undefined {
     return key && touchedKeys.has(key)
       ? errors?.filter((error) => error.path === key)
@@ -115,7 +115,7 @@ export function useForm<
   function labels<K extends keyof U>(key?: K): string[] {
     if (key) {
       return (schema.fields[key] as any).tests.map(
-        (test: any) => test.OPTIONS.message,
+        (test: any) => test.OPTIONS.message
       );
     }
     return Object.values(schema.fields)
@@ -125,7 +125,7 @@ export function useForm<
 
   function message<K extends keyof U>(
     key: K,
-    whenValid?: string,
+    whenValid?: string
   ): string | undefined {
     return messageType(key) === 'success' && whenValid
       ? whenValid
@@ -161,7 +161,7 @@ export function useForm<
   async function validate(onValid?: () => Promise<void> | void) {
     try {
       setTouchedKeys(new Set(keysDeep(schema.fields)));
-      await schema.validate(input, { abortEarly: false });
+      await schema.validate(input, { abortEarly: false, });
       setErrors(undefined);
       await onValid?.();
     } catch (errors) {
@@ -181,7 +181,7 @@ export function useForm<
         ...errorsExcept(key),
         ...(!fullValidationKeys?.includes(key)
           ? [validationError as yup.ValidationError]
-          : (validationError as yup.ValidationError).inner),
+          : (validationError as yup.ValidationError).inner)
       ]);
     }
   }
@@ -190,8 +190,8 @@ export function useForm<
     const validations = entriesDeep(input)
       .filter(([k1, v1]) =>
         entriesDeep(previousInput.current || {}).find(
-          ([k2, v2]) => k1 === k2 && v1 !== v2,
-        ),
+          ([k2, v2]) => k1 === k2 && v1 !== v2
+        )
       )
       .filter(([key]) => touchedKeys.has(key))
       .map(([key]) => validateAt(key));
@@ -204,7 +204,7 @@ export function useForm<
 
   useEffect(() => {
     const validations = (fullValidationKeys ?? []).map((key) =>
-      validateAt(key),
+      validateAt(key)
     );
     (async () => await Promise.all(validations))();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,8 +228,8 @@ function keysDeep(record: ObjectShape, prefix: string = ''): string[] {
     fp.flatMap<[string, unknown], string>(([key, value]) =>
       fp.isObject(value) && 'fields' in value
         ? keysDeep(value.fields as ObjectShape, `${key}.`)
-        : `${prefix}${key}`,
-    ),
+        : `${prefix}${key}`
+    )
   )(record);
 }
 
@@ -239,7 +239,7 @@ function entriesDeep(record: object, prefix: string = ''): [string, unknown][] {
     fp.flatMap<[string, unknown], [string, unknown]>(([key, value]) =>
       fp.isObject(value)
         ? entriesDeep(value, `${key}.`)
-        : [[`${prefix}${key}`, value]],
-    ),
+        : [[`${prefix}${key}`, value]]
+    )
   )(record);
 }

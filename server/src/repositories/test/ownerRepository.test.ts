@@ -1,12 +1,12 @@
 import ownerRepository, {
   formatOwnerApi,
   Owners,
-  ownerTable,
+  ownerTable
 } from '../ownerRepository';
 import {
   genDatafoncierOwner,
   genOwnerApi,
-  genOwnerMatch,
+  genOwnerMatch
 } from '~/test/testFixtures';
 import db from '~/infra/database';
 import { OwnerApi } from '~/models/OwnerApi';
@@ -19,7 +19,7 @@ describe('Owner repository', () => {
       const owners = new Array(6).fill(0).map(() => genOwnerApi());
       const datafoncierOwners = owners.map(() => genDatafoncierOwner());
       const matches = owners.map((owner, i) =>
-        genOwnerMatch(datafoncierOwners[i], owner),
+        genOwnerMatch(datafoncierOwners[i], owner)
       );
       await Owners().insert(owners.map(formatOwnerApi));
       await DatafoncierOwners().insert(datafoncierOwners);

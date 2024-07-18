@@ -14,5 +14,5 @@ export const ESTABLISHMENT_KINDS: EstablishmentKind[] = [
   'DDTM',
   'DREAL',
   'DRIHL',
-  'DRIEAT',
+  'DRIEAT'
 ];

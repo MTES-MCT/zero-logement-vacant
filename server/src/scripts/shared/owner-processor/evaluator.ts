@@ -4,7 +4,7 @@ import {
   compare,
   findBest,
   findDuplicatesByName,
-  needsManualReview,
+  needsManualReview
 } from './duplicates';
 import cache from './cache';
 import fp from 'lodash/fp';
@@ -25,7 +25,7 @@ export function evaluate(owner: OwnerApi, duplicates: OwnerApi[]): Comparison {
       .map((comparison) => {
         cache.add(owner.id, comparison.value.id);
         return comparison;
-      }),
+      })
   );
 
   const best = findBest(scores);
@@ -48,11 +48,11 @@ export default {
             return owners.flatMap((owner) => {
               return evaluate(
                 owner,
-                owners.filter((o) => o.id !== owner.id),
+                owners.filter((o) => o.id !== owner.id)
               );
             });
           })
-          .flatten(),
+          .flatten()
       );
     };
   },

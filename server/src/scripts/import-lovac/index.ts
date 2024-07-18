@@ -9,7 +9,7 @@ import db from '~/infra/database/';
 import { appendAll, errorHandler } from '~/utils/stream';
 import lovacRepository, {
   AdditionalOwnerIndex,
-  LovacOwner,
+  LovacOwner
 } from './lovac-repository';
 import modificationRepository from './modification-repository';
 import { OwnerDBO, ownerTable } from '~/repositories/ownerRepository';
@@ -29,12 +29,12 @@ function run() {
       format:
         '{bar} | {percentage}% | ETA: {eta_formatted} | {value}/{total} housing',
     },
-    progress.Presets.shades_classic,
+    progress.Presets.shades_classic
   );
 
   highland([
     highland(housingRepository.countVacant()),
-    highland(lovacRepository.count()),
+    highland(lovacRepository.count())
   ])
     .parallel(2)
     .toArray(([count, lovac]) => {
@@ -76,7 +76,7 @@ function owners(count: number) {
       format:
         '{bar} | {percentage}% | ETA: {eta_formatted} | {value}/{total} housing',
     },
-    progress.Presets.shades_classic,
+    progress.Presets.shades_classic
   );
 
   bar.start(count, 0);
@@ -116,14 +116,14 @@ async function saveOwners(lovacOwner: LovacOwner): Promise<void> {
     createCoowner(3),
     createCoowner(4),
     createCoowner(5),
-    createCoowner(6),
+    createCoowner(6)
   ].filter((owner): owner is NonNullable<OwnerDBO> => owner !== null);
 
   const unique = fp.uniqWith<OwnerDBO>(
     (a, b) =>
       fp.isEqual(a.full_name, b.full_name) &&
       fp.isEqual(a.raw_address, b.raw_address) &&
-      fp.isEqual(a.birth_date, b.birth_date),
+      fp.isEqual(a.birth_date, b.birth_date)
   );
 
   const ownersWithoutBirthdate = unique(owners).filter((_) => !_.birth_date);
@@ -134,7 +134,7 @@ async function saveOwners(lovacOwner: LovacOwner): Promise<void> {
       db(ownerTable)
         .insert(ownersWithBirthdate)
         .onConflict(['full_name', 'raw_address', 'birth_date'])
-        .merge(['administrator', 'owner_kind', 'owner_kind_detail']),
+        .merge(['administrator', 'owner_kind', 'owner_kind_detail'])
     );
   }
   if (ownersWithoutBirthdate.length > 0) {
@@ -143,10 +143,10 @@ async function saveOwners(lovacOwner: LovacOwner): Promise<void> {
         .insert(ownersWithoutBirthdate)
         .onConflict(
           db.raw(
-            '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null',
-          ),
+            '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
+          )
         )
-        .merge(['administrator', 'owner_kind', 'owner_kind_detail']),
+        .merge(['administrator', 'owner_kind', 'owner_kind_detail'])
     );
   }
   await Promise.all(save).catch((error) => {
@@ -162,18 +162,18 @@ function oldHousing() {
       filters: {},
       includes: ['owner'],
     })
-    .map((housing) => ({ before: housing }))
+    .map((housing) => ({ before: housing, }))
     .through(
       appendAll({
-        now: ({ before }) =>
+        now: ({ before, }) =>
           lovacRepository.findOne({
             localId: before.localId,
           }),
-        modifications: ({ before }) =>
+        modifications: ({ before, }) =>
           modificationRepository.find({
             housingId: before.id,
           }),
-      }),
+      })
     )
     .map((_) => _ as Comparison);
 }

@@ -16,17 +16,17 @@ interface Props {
   onSubmit: (geoCode: string, taxKind: TaxKinds, taxRate?: number) => void;
 }
 
-const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
+const LocalityTaxEditionModal = ({ locality, onSubmit, }: Props) => {
   const modal = useMemo(
     () =>
       createModal({
         id: `locality-tax-edition-modal-${locality?.geoCode}`,
         isOpenedByDefault: false,
       }),
-    [locality],
+    [locality]
   );
 
-  const { isVisitor } = useUser();
+  const { isVisitor, } = useUser();
 
   const [hasTHLV, setHasTHLV] = useState(locality.taxKind === TaxKinds.THLV);
   const [taxRate, setTaxRate] = useState(String(locality.taxRate ?? ''));
@@ -78,7 +78,7 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
             children: 'Enregistrer',
             onClick: submitContactPointForm,
             doClosesModal: false,
-          },
+          }
         ]}
         style={{
           textAlign: 'initial',

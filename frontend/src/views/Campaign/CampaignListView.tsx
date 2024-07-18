@@ -9,7 +9,7 @@ import {
   Campaign,
   CampaignSort,
   CampaignSortable,
-  isCampaignDeletable,
+  isCampaignDeletable
 } from '../../models/Campaign';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import CampaignStatusBadge from '../../components/Campaign/CampaignStatusBadge';
@@ -19,24 +19,24 @@ import ConfirmationModal from '../../components/modals/ConfirmationModal/Confirm
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import styles from './campaign.module.scss';
 import {
   useRemoveCampaignMutation,
-  useUpdateCampaignMutation,
+  useUpdateCampaignMutation
 } from '../../services/campaign.service';
 import { useSort } from '../../hooks/useSort';
 import { useUser } from '../../hooks/useUser';
 
 const CampaignsListView = () => {
   useDocumentTitle('Campagnes');
-  const { trackEvent } = useMatomo();
-  const { isVisitor } = useUser();
+  const { trackEvent, } = useMatomo();
+  const { isVisitor, } = useUser();
 
-  const [sort, setSort] = useState<CampaignSort>({ createdAt: 'desc' });
-  const campaigns = useCampaignList({ sort });
+  const [sort, setSort] = useState<CampaignSort>({ createdAt: 'desc', });
+  const campaigns = useCampaignList({ sort, });
 
   const [removeCampaign] = useRemoveCampaignMutation();
   const onDeleteCampaign = async (campaignId: string) => {
@@ -49,14 +49,14 @@ const CampaignsListView = () => {
 
   const [updateCampaign] = useUpdateCampaignMutation();
   const onArchiveCampaign = async (campaign: Campaign) => {
-    await updateCampaign({ ...campaign, status: 'archived' }).unwrap();
+    await updateCampaign({ ...campaign, status: 'archived', }).unwrap();
     trackEvent({
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.Campaigns.Archive,
     });
   };
 
-  const { getSortButton } = useSort<CampaignSortable>({
+  const { getSortButton, } = useSort<CampaignSortable>({
     onSort: setSort,
     default: sort,
   });
@@ -98,7 +98,7 @@ const CampaignsListView = () => {
               getSortButton('status', 'Statut'),
               getSortButton('createdAt', 'Date de création'),
               getSortButton('sentAt', "Date d'envoi"),
-              '',
+              ''
             ]}
             data={campaigns.map((campaign, index) => [
               `#${index + 1}`,
@@ -182,7 +182,7 @@ const CampaignsListView = () => {
                     />
                   </ConfirmationModal>
                 )}
-              </div>,
+              </div>
             ])}
           />
         </>

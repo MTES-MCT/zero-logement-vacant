@@ -23,7 +23,7 @@ describe('String utils', () => {
     });
 
     it('should feminize the string', () => {
-      const actual = displayCount(2, 'maison', { feminine: true });
+      const actual = displayCount(2, 'maison', { feminine: true, });
       expect(actual).toBe('2 maisons');
     });
   });

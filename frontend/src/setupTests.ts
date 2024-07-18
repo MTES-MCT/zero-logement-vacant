@@ -20,7 +20,7 @@ beforeAll(() => {
     // This tells MSW to throw an error whenever it
     // encounters a request that doesn't have a
     // matching request handler.
-    onUnhandledRequest: 'error'
+    onUnhandledRequest: 'error',
   });
 });
 
@@ -42,6 +42,6 @@ window.dsfr = (element: HTMLElement) => ({
     conceal() {
       element.removeAttribute('aria-modal');
       element.removeAttribute('open');
-    }
-  }
+    },
+  },
 });

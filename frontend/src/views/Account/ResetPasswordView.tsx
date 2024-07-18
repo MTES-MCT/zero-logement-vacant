@@ -25,20 +25,20 @@ function ResetPasswordView() {
   const [error, setError] = useState('');
   const router = useHistory();
   const resetLink = useEmailLink({
-    service: resetLinkService
+    service: resetLinkService,
   });
 
   const shape = {
     password: yup.string().required('Veuillez renseigner votre mot de passe.'),
     passwordFormat: passwordFormatValidator,
-    passwordConfirmation: passwordConfirmationValidator
+    passwordConfirmation: passwordConfirmationValidator,
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
     password,
     passwordFormat: password,
-    passwordConfirmation
+    passwordConfirmation,
   });
 
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -71,7 +71,7 @@ function ResetPasswordView() {
           <Col n="5" offset="1" className="align-right">
             <img
               src={building}
-              style={{ width: '100%', height: '100%' }}
+              style={{ width: '100%', height: '100%', }}
               alt=""
             />
           </Col>
@@ -100,7 +100,7 @@ function ResetPasswordView() {
           <Col n="5" offset="1" className="align-right">
             <img
               src={building}
-              style={{ width: '100%', height: '100%' }}
+              style={{ width: '100%', height: '100%', }}
               alt=""
             />
           </Col>
@@ -160,7 +160,7 @@ function ResetPasswordView() {
         <Col n="5" offset="1" className="align-right">
           <img
             src={building}
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: '100%', height: '100%', }}
             alt=""
           />
         </Col>

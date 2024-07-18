@@ -3,7 +3,7 @@ import { EstablishmentKind } from '@zerologementvacant/models';
 import { useFindEstablishmentsQuery } from '../services/establishment.service';
 
 export const useAvailableEstablishments = () => {
-  const { data: availableEstablishments } = useFindEstablishmentsQuery({
+  const { data: availableEstablishments, } = useFindEstablishmentsQuery({
     available: true,
   });
 
@@ -13,7 +13,7 @@ export const useAvailableEstablishments = () => {
         value: establishment.id,
         label: establishment.name,
       })),
-    [availableEstablishments],
+    [availableEstablishments]
   );
 
   const availableEstablishmentWithKinds = useMemo(
@@ -21,7 +21,7 @@ export const useAvailableEstablishments = () => {
       (availableEstablishments ?? [])
         .filter((establishment) => kinds.includes(establishment.kind))
         .sort((e1, e2) => e1.shortName.localeCompare(e2.shortName)),
-    [availableEstablishments],
+    [availableEstablishments]
   );
 
   return {

@@ -144,13 +144,13 @@ export async function seed(knex: Knex): Promise<void> {
 
   // Inserts seed entries
   const availableEstablishments = await Establishments(knex).where({
-    available: true
+    available: true,
   });
   const geoCodes = availableEstablishments.map(
     (establishment) => establishment.localities_geo_code[0]
   );
   await async.forEachSeries(geoCodes, async (geoCode) => {
-    const houses = Array.from({ length: 10 }, () =>
+    const houses = Array.from({ length: 10, }, () =>
       genDatafoncierHousing(geoCode)
     );
     await knex(DF_HOUSING_NAT).insert(houses);

@@ -9,7 +9,7 @@ import {
   banAddressValidator,
   birthDateValidator,
   emailValidator,
-  useForm,
+  useForm
 } from '../../../hooks/useForm';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useUpdateOwnerMutation } from '../../../services/owner.service';
@@ -29,20 +29,20 @@ interface Props {
   onCancel?: () => void;
 }
 
-const OwnerEditionModal = ({ owner, onCancel }: Props) => {
-  const { isVisitor } = useUser();
+const OwnerEditionModal = ({ owner, onCancel, }: Props) => {
+  const { isVisitor, } = useUser();
   const [fullName, setFullName] = useState(owner?.fullName ?? '');
   const [birthDate, setBirthDate] = useState(
-    owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : '',
+    owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : ''
   );
   const [banAddress, setBanAddress] = useState(owner?.banAddress);
   const [email, setEmail] = useState(owner?.email);
   const [phone, setPhone] = useState(owner?.phone);
   const [additionalAddress, setAdditionalAddress] = useState(
-    owner?.additionalAddress,
+    owner?.additionalAddress
   );
 
-  const [updateOwner, { isError: isUpdateError }] = useUpdateOwnerMutation();
+  const [updateOwner, { isError: isUpdateError, }] = useUpdateOwnerMutation();
 
   const shape = {
     fullName: yup.string().required("Veuillez saisir l'identité"),
@@ -103,10 +103,10 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
             children: 'Enregistrer',
             onClick: submit,
             doClosesModal: false,
-          },
+          }
         ]}
         title='Modifier la rubrique "propriétaire"'
-        style={{ textAlign: 'initial', fontWeight: 'initial' }}
+        style={{ textAlign: 'initial', fontWeight: 'initial', }}
       >
         <Row gutters>
           <Col n="6">

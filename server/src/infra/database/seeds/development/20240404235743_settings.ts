@@ -6,7 +6,7 @@ import { genSettingsApi } from '~/test/testFixtures';
 import { establishmentsTable } from '~/repositories/establishmentRepository';
 import {
   formatSettingsApi,
-  settingsTable,
+  settingsTable
 } from '~/repositories/settingsRepository';
 
 export async function seed(knex: Knex): Promise<void> {
@@ -18,7 +18,7 @@ export async function seed(knex: Knex): Promise<void> {
       contactPoints: {
         public: true,
       },
-    }),
+    })
   );
 
   const chunks = fp.chunk(1000, settings);

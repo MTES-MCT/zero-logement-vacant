@@ -9,7 +9,7 @@ interface TestStoreOptions {
 function configureTestStore(opts?: TestStoreOptions) {
   const preloadedState = opts?.withAuth
     ? {
-        authentication: { authUser: genAuthUser() },
+        authentication: { authUser: genAuthUser(), },
       }
     : {};
 

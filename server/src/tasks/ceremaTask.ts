@@ -23,7 +23,7 @@ const createEstablishment = async (establishment: EstablishmentApi[] | undefined
         message: "Establishment has no 'kind'",
         establishmentId: establishment.id,
         type: 'missing_kind',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
     await establishmentRepository.save(establishment);
@@ -91,7 +91,7 @@ const run = async (): Promise<void> => {
           await wait(300);
 
           const establishment = await establishmentRepository.find({
-            sirens: [ Number(structure.siret.substring(0, 9)) ]
+            sirens: [ Number(structure.siret.substring(0, 9)) ],
           });
 
           await createEstablishment(establishment, structure);

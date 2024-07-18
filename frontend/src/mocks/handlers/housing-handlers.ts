@@ -22,7 +22,7 @@ type HousingPayload = {
 export const housingHandlers: RequestHandler[] = [
   http.post<Record<string, never>, HousingPayload, Paginated<HousingDTO>>(
     `${config.apiEndpoint}/api/housing`,
-    async ({ request }) => {
+    async ({ request, }) => {
       // TODO: use the request payload to filter results
       const payload = await request.json();
 
@@ -41,13 +41,13 @@ export const housingHandlers: RequestHandler[] = [
         perPage: 50,
         filteredCount: subset.length,
         totalCount: data.housings.length,
-        entities: subset
+        entities: subset,
       });
     }
   ),
   http.post<Record<string, never>, HousingPayload, HousingCountDTO>(
     `${config.apiEndpoint}/api/housing/count`,
-    async ({ request }) => {
+    async ({ request, }) => {
       const payload = await request.json();
 
       const subset: HousingDTO[] = fp.pipe(
@@ -67,17 +67,17 @@ export const housingHandlers: RequestHandler[] = [
 
       return HttpResponse.json({
         housing: subset.length,
-        owners: owners
+        owners: owners,
       });
     }
   ),
   http.get<HousingParams, never, HousingDTO | null>(
     `${config.apiEndpoint}/api/housing/:id`,
-    ({ params }) => {
+    ({ params, }) => {
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {
         return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
+          status: constants.HTTP_STATUS_NOT_FOUND,
         });
       }
 

@@ -7,7 +7,7 @@ interface Props {
   inline?: boolean;
 }
 
-const HousingStatusBadge = ({ status, inline }: Props) => {
+const HousingStatusBadge = ({ status, inline, }: Props) => {
   return status !== undefined ? (
     <div
       className={

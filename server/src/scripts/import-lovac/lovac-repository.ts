@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   getOwnershipKindFromValue,
   HousingApi,
-  OccupancyKindApi,
+  OccupancyKindApi
 } from '~/models/HousingApi';
 import db from '~/infra/database/';
 import { housingTable } from '~/repositories/housingRepository';
@@ -44,7 +44,7 @@ function newHousing() {
     .leftJoin(
       housingTable,
       `${lovacTable}.local_id`,
-      `${housingTable}.local_id`,
+      `${housingTable}.local_id`
     )
     .whereNull(`${housingTable}.local_id`);
 }
@@ -97,8 +97,8 @@ function streamOwners(): Highland.Stream<LovacOwner> {
     ...[2, 3, 4, 5, 6].flatMap((i) => [
       `full_name${i}`,
       `owner_raw_address${i}`,
-      `birth_date${i}`,
-    ]),
+      `birth_date${i}`
+    ])
   ];
   const stream = db<LovacOwner>(lovacTable)
     .select(fields)
@@ -158,7 +158,7 @@ function createOwnerQuery() {
         o.birth_date = ${lovacTable}.birth_date
         OR ${lovacTable}.birth_date IS NULL
       )
-    `,
+    `
       )
       .select({
         owner_id: 'o.id',
@@ -177,7 +177,7 @@ function createCoownerQuery(i: AdditionalOwnerIndex) {
         o${i}.birth_date = ${lovacTable}.birth_date${i}
         OR ${lovacTable}.birth_date${i} IS NULL
       )
-    `,
+    `
       )
       .select({
         [`owner_id${i}`]: `o${i}.id`,
@@ -215,7 +215,7 @@ function parseLovacHousingApi(housing: LovacHousingDBO): HousingApi {
     parseCoowner(3),
     parseCoowner(4),
     parseCoowner(5),
-    parseCoowner(6),
+    parseCoowner(6)
   ];
 
   return {
@@ -241,7 +241,7 @@ function parseLovacHousingApi(housing: LovacHousingDBO): HousingApi {
       administrator: housing.administrator,
     },
     coowners: coowners.filter(
-      (value): value is HousingOwnerApi => value !== null,
+      (value): value is HousingOwnerApi => value !== null
     ),
     invariant: housing.invariant,
     rawAddress: housing.raw_address,

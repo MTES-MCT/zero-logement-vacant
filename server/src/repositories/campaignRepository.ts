@@ -64,7 +64,7 @@ const campaignSortQuery = (sort?: CampaignSortApi) =>
         query.orderBy(`${campaignsTable}.sent_at`, sort?.sentAt),
       status: (query) =>
         query.orderByRaw(
-          `(case ${campaignsTable}.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end) ${sort?.status}`,
+          `(case ${campaignsTable}.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end) ${sort?.status}`
         ),
     },
     default: (query) => query.orderBy('created_at', 'desc'),
@@ -73,7 +73,7 @@ const campaignSortQuery = (sort?: CampaignSortApi) =>
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
   logger.info(
     'Insert campaignApi for establishment',
-    campaignApi.establishmentId,
+    campaignApi.establishmentId
   );
   return db(campaignsTable)
     .insert(formatCampaignApi(campaignApi))

@@ -1,7 +1,7 @@
 import {
   prependOriginalHousing,
   housingStream,
-  parseLocalId,
+  parseLocalId
 } from './housing-stream';
 import merger from './merger';
 import { logger } from '~/infra/logger';

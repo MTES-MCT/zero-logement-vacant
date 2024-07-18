@@ -12,9 +12,9 @@ describe('AppHeader', () => {
       reducer: applicationReducer,
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-          serializableCheck: false
+          serializableCheck: false,
         }).concat(applicationMiddlewares),
-      preloadedState: { authentication: { authUser: undefined } }
+      preloadedState: { authentication: { authUser: undefined, }, },
     });
 
     render(
@@ -44,9 +44,9 @@ describe('AppHeader', () => {
       reducer: applicationReducer,
       middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-          serializableCheck: false
+          serializableCheck: false,
         }).concat(applicationMiddlewares),
-      preloadedState: { authentication: { authUser: genAuthUser() } }
+      preloadedState: { authentication: { authUser: genAuthUser(), }, },
     });
 
     render(

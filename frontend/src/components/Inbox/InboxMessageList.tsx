@@ -19,7 +19,7 @@ interface Props {
 }
 
 function InboxMessageList(props: Props) {
-  const { getSortButton } = useSort<OwnerProspectSort>({
+  const { getSortButton, } = useSort<OwnerProspectSort>({
     onSort: props.onSort,
   });
 
@@ -45,7 +45,7 @@ function InboxMessageList(props: Props) {
           onChange={() => selection.toggleSelectAll()}
         />
       ),
-      render: ({ id }: { id: string }) => (
+      render: ({ id, }: { id: string }) => (
         <AppCheckbox
           checked={selection.isSelected(id)}
           label=""
@@ -94,7 +94,7 @@ function InboxMessageList(props: Props) {
           label="À recontacter"
           iconId="fr-icon-phone-fill"
           onChange={(checked) =>
-            props.onChange?.({ ...owner, callBack: checked })
+            props.onChange?.({ ...owner, callBack: checked, })
           }
           toggleColor="#4a9df7"
           vertical
@@ -122,12 +122,12 @@ function InboxMessageList(props: Props) {
           iconId="fr-icon-arrow-right-line"
           iconPosition="right"
           isSimple
-          onClick={() => props.onDisplay?.({ ...owner, read: true })}
+          onClick={() => props.onDisplay?.({ ...owner, read: true, })}
         >
           Afficher le message
         </AppLinkAsButton>
       ),
-    },
+    }
   ];
 
   return (

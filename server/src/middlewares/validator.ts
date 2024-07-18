@@ -13,18 +13,18 @@ function validate(
     ['body', 'cookies', 'headers', 'params', 'query'].forEach((location) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      request[location] = matchedData(request, { locations: [location] });
+      request[location] = matchedData(request, { locations: [location], });
     });
     return next();
   }
   logger.error('Validation error', {
-    errors: errors.array()
+    errors: errors.array(),
   });
   response
     .status(constants.HTTP_STATUS_BAD_REQUEST)
-    .json({ errors: errors.array() });
+    .json({ errors: errors.array(), });
 }
 
 export default {
-  validate
+  validate,
 };

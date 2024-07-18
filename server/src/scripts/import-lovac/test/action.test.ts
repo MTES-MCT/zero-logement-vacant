@@ -16,7 +16,7 @@ describe('Action', () => {
         const now = null;
 
         it('should keep dataYears untouched', () => {
-          const action = compare({ before, now, modifications: [] });
+          const action = compare({ before, now, modifications: [], });
 
           expect(action.housing?.dataYears).toStrictEqual(before.dataYears);
         });
@@ -30,7 +30,7 @@ describe('Action', () => {
             });
 
             it('should change the housing status to "exit"', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.housing?.status).toBe(HousingStatusApi.Completed);
               expect(action.housing?.subStatus).toBe('Sortie de la vacance');
@@ -44,14 +44,14 @@ describe('Action', () => {
               ${HousingStatusApi.Completed}
             `(
               'should change the housing status from $status to "exit"',
-              ({ status }) => {
+              ({ status, }) => {
                 before.status = status;
 
-                const action = compare({ before, now, modifications });
+                const action = compare({ before, now, modifications, });
 
                 expect(action.housing?.status).toBe(HousingStatusApi.Completed);
                 expect(action.housing?.subStatus).toBe('Sortie de la vacance');
-              },
+              }
             );
           });
 
@@ -61,7 +61,7 @@ describe('Action', () => {
             });
 
             it('should create an occupancy conflict event', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.events).toBeArrayOfSize(1);
               expect(action.events[0]).toMatchObject<Partial<HousingEventApi>>({
@@ -84,11 +84,11 @@ describe('Action', () => {
             {
               id: uuidv4(),
               kind: ModificationKind.HousingOwnersUpdate,
-            },
+            }
           ];
 
           it('should create an ownership conflict event', () => {
-            const action = compare({ before, now, modifications });
+            const action = compare({ before, now, modifications, });
 
             expect(action.events).toContainEqual<HousingEventApi>({
               id: expect.any(String),
@@ -113,14 +113,14 @@ describe('Action', () => {
               ${HousingStatusApi.Completed}
             `(
               'should change the housing status from $status to "exit"',
-              ({ status }) => {
+              ({ status, }) => {
                 before.status = status;
 
-                const action = compare({ before, now, modifications });
+                const action = compare({ before, now, modifications, });
 
                 expect(action.housing?.status).toBe(HousingStatusApi.Completed);
                 expect(action.housing?.subStatus).toBe('Sortie de la vacance');
-              },
+              }
             );
           });
 
@@ -129,13 +129,13 @@ describe('Action', () => {
             ${HousingStatusApi.Blocked}
             ${HousingStatusApi.InProgress}
             ${HousingStatusApi.FirstContact}
-          `('If it is vacant (status: $status)', ({ status }) => {
+          `('If it is vacant (status: $status)', ({ status, }) => {
             beforeAll(() => {
               before.status = status;
             });
 
             it('should create an occupancy conflict event', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.events).toContainEqual<HousingEventApi>({
                 id: expect.any(String),
@@ -160,7 +160,7 @@ describe('Action', () => {
             });
 
             it('should leave the housing untouched', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action).toStrictEqual({
                 housing: null,
@@ -186,7 +186,7 @@ describe('Action', () => {
             });
 
             it('should erase all data except zlv ones', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.housing).toStrictEqual({
                 ...now,
@@ -204,13 +204,13 @@ describe('Action', () => {
           describe.each`
             status
             ${HousingStatusApi.Completed}
-          `('If it is not vacant (status: $status)', ({ status }) => {
+          `('If it is not vacant (status: $status)', ({ status, }) => {
             beforeAll(() => {
               before.status = status;
             });
 
             it('should erase ownership data', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.housing).toStrictEqual<HousingApi>({
                 ...before,
@@ -221,7 +221,7 @@ describe('Action', () => {
             });
 
             it('should create an occupancy conflict event', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.events).toContainEqual<HousingEventApi>({
                 id: expect.any(String),
@@ -246,13 +246,13 @@ describe('Action', () => {
             ${HousingStatusApi.FirstContact}
             ${HousingStatusApi.InProgress}
             ${HousingStatusApi.Blocked}
-          `('If it has another status (status: $status)', ({ status }) => {
+          `('If it has another status (status: $status)', ({ status, }) => {
             beforeAll(() => {
               before.status = status;
             });
 
             it('should erase ownership data', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.housing).toStrictEqual<HousingApi>({
                 ...before,
@@ -269,7 +269,7 @@ describe('Action', () => {
             });
 
             it('should create an ownership update event', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.events).toContainEqual<HousingEventApi>({
                 id: expect.any(String),
@@ -294,11 +294,11 @@ describe('Action', () => {
             {
               id: uuidv4(),
               kind: ModificationKind.HousingOwnersUpdate,
-            },
+            }
           ];
 
           it('should create an ownership conflict event', () => {
-            const action = compare({ before, now, modifications });
+            const action = compare({ before, now, modifications, });
 
             expect(action.events).toContainEqual<HousingEventApi>({
               id: expect.any(String),
@@ -322,7 +322,7 @@ describe('Action', () => {
             });
 
             it('should erase ownership data', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.housing).toStrictEqual<HousingApi>({
                 ...before,
@@ -337,13 +337,13 @@ describe('Action', () => {
           describe.each`
             status
             ${HousingStatusApi.Completed}
-          `('If the housing is not vacant (status: $status)', ({ status }) => {
+          `('If the housing is not vacant (status: $status)', ({ status, }) => {
             beforeAll(() => {
               before.status = status;
             });
 
             it('should remain the same', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.housing).toStrictEqual({
                 ...before,
@@ -352,7 +352,7 @@ describe('Action', () => {
             });
 
             it('should create an occupancy conflict event', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.events).toContainEqual<Partial<HousingEventApi>>({
                 id: expect.any(String),
@@ -377,13 +377,13 @@ describe('Action', () => {
             ${HousingStatusApi.FirstContact}
             ${HousingStatusApi.InProgress}
             ${HousingStatusApi.Blocked}
-          `('If it has another status (status: $status)', ({ status }) => {
+          `('If it has another status (status: $status)', ({ status, }) => {
             beforeAll(() => {
               before.status = status;
             });
 
             it('should remain the same', () => {
-              const action = compare({ before, now, modifications });
+              const action = compare({ before, now, modifications, });
 
               expect(action.housing).toStrictEqual({
                 ...before,
@@ -401,13 +401,13 @@ describe('Action', () => {
       const now = genHousingApi();
 
       it('should add the current year to dataYears', () => {
-        const action = compare({ before, now, modifications });
+        const action = compare({ before, now, modifications, });
 
         expect(action.housing?.dataYears).toStrictEqual(now.dataYears);
       });
 
       it('should create an occupancy update event', () => {
-        const action = compare({ before, now, modifications });
+        const action = compare({ before, now, modifications, });
 
         expect(action.events).toContainEqual<HousingEventApi>({
           id: expect.any(String),
@@ -426,7 +426,7 @@ describe('Action', () => {
       });
 
       it('should save the housing', () => {
-        const action = compare({ before, now, modifications });
+        const action = compare({ before, now, modifications, });
 
         expect(action.housing).toStrictEqual(now);
       });

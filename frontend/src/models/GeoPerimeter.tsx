@@ -16,5 +16,5 @@ export const geoPerimeterOptions = (geoPerimeters?: GeoPerimeter[]) =>
         .filter((_) => _.kind?.length)
         .map((geoPerimeter) => geoPerimeter.kind)
         .filter((value, index, self) => self.indexOf(value) === index)
-        .map((_) => ({ value: _, label: _ }))
+        .map((_) => ({ value: _, label: _, }))
     : [];

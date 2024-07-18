@@ -13,7 +13,7 @@ describe('Campagne creation modal', () => {
   beforeEach(() => {
     store = configureStore({
       reducer: applicationReducer,
-      preloadedState: { authentication: { authUser: genAuthUser() } }
+      preloadedState: { authentication: { authUser: genAuthUser(), }, },
     });
   });
 

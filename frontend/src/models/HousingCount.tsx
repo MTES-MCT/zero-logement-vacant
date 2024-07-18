@@ -23,7 +23,7 @@ export const displayHousingCount = ({
   const items = displayCount(
     status === undefined ? totalCount : filteredHousingCount,
     'logement',
-    { capitalize: true },
+    { capitalize: true, },
     status === undefined ? filteredHousingCount : undefined
   ).split(' ');
   items.splice(

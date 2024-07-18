@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 
 import {
   NotificationProps,
-  useNotification,
+  useNotification
 } from '../../hooks/useNotification';
 
 interface Props

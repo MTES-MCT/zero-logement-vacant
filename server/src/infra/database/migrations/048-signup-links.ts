@@ -6,7 +6,7 @@ export async function up(knex: Knex): Promise<void> {
       table.string('id').primary();
       table.string('prospect_email').notNullable();
       table.timestamp('expires_at').notNullable();
-    }),
+    })
   ]);
 }
 

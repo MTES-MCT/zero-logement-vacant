@@ -7,7 +7,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalTitle,
-  Row,
+  Row
 } from '../../_dsfr';
 
 import * as yup from 'yup';

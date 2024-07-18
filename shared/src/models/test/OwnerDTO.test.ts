@@ -18,7 +18,7 @@ describe('OwnerDTO', () => {
 
       expect(actual).toIncludeAllMembers([
         `${owner.banAddress?.houseNumber} ${owner.banAddress?.street}`,
-        `${owner.banAddress?.postalCode} ${owner.banAddress?.city}`,
+        `${owner.banAddress?.postalCode} ${owner.banAddress?.city}`
       ]);
     });
 

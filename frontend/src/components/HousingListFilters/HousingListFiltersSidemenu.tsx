@@ -85,9 +85,9 @@ function HousingListFiltersSidemenu(props: Props) {
   const filters = props.filters;
   const onChangeFilters = props.onChange;
   const onResetFilters = props.onReset;
-  const { data: campaigns } = useFindCampaignsQuery();
-  const { data: geoPerimeters } = useListGeoPerimetersQuery();
-  const { localitiesOptions } = useLocalityList(establishment?.id);
+  const { data: campaigns, } = useFindCampaignsQuery();
+  const { data: geoPerimeters, } = useListGeoPerimetersQuery();
+  const { localitiesOptions, } = useLocalityList(establishment?.id);
 
   const onChangeStatusFilter = (status: HousingStatus, isChecked: boolean) => {
     const statusList = [
@@ -99,13 +99,13 @@ function HousingListFiltersSidemenu(props: Props) {
         statusList,
         subStatus: filters.subStatus?.filter((_) =>
           getSubStatusList(statusList).includes(_)
-        )
+        ),
       },
       'Statut'
     );
   };
 
-  const { isVisitor } = useUser();
+  const { isVisitor, } = useUser();
 
   return (
     <Drawer
@@ -114,12 +114,12 @@ function HousingListFiltersSidemenu(props: Props) {
         zIndex: theme.zIndex.appBar - 1,
         '& .MuiDrawer-root': {
           position: 'relative',
-          zIndex: theme.zIndex.appBar - 1
+          zIndex: theme.zIndex.appBar - 1,
         },
         '& .MuiPaper-root': {
           padding: '1rem',
-          position: 'relative'
-        }
+          position: 'relative',
+        },
       })}
       variant="permanent"
     >
@@ -133,7 +133,7 @@ function HousingListFiltersSidemenu(props: Props) {
         priority="tertiary"
         size="small"
         style={{
-          alignSelf: toggle.active ? 'flex-end' : 'center'
+          alignSelf: toggle.active ? 'flex-end' : 'center',
         }}
         title={toggle.active ? 'Fermer' : 'Ouvrir'}
         onClick={() => toggle.toggle()}
@@ -143,19 +143,19 @@ function HousingListFiltersSidemenu(props: Props) {
 
       <GroupHeader
         className={classNames('fr-mb-4w', styles.drawerContent, {
-          [styles.drawerContentExpanded]: toggle.active
+          [styles.drawerContentExpanded]: toggle.active,
         })}
       />
 
       <hr
         className={classNames('fr-pb-4w', styles.drawerContent, {
-          [styles.drawerContentExpanded]: toggle.active
+          [styles.drawerContentExpanded]: toggle.active,
         })}
       />
 
       <Grid
         className={classNames(styles.drawerContent, {
-          [styles.drawerContentExpanded]: toggle.active
+          [styles.drawerContentExpanded]: toggle.active,
         })}
         xs
       >
@@ -199,7 +199,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={getSubStatusListOptions(filters.statusList)}
               initialValues={filters.subStatus}
               onChange={(values) =>
-                onChangeFilters({ subStatus: values }, 'Sous-statut')
+                onChangeFilters({ subStatus: values, }, 'Sous-statut')
               }
             />
           </Grid>
@@ -209,11 +209,11 @@ function HousingListFiltersSidemenu(props: Props) {
                 label="Campagne"
                 options={campaigns.map((c) => ({
                   value: c.id,
-                  label: c.title
+                  label: c.title,
                 }))}
                 initialValues={filters.campaignIds}
                 onChange={(values) =>
-                  onChangeFilters({ campaignIds: values }, 'Campagne')
+                  onChangeFilters({ campaignIds: values, }, 'Campagne')
                 }
               />
             </Grid>
@@ -224,7 +224,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={campaignsCountOptions}
               initialValues={filters.campaignsCounts}
               onChange={(values) =>
-                onChangeFilters({ campaignsCounts: values }, 'Prise de contact')
+                onChangeFilters({ campaignsCounts: values, }, 'Prise de contact')
               }
             />
           </Grid>
@@ -243,7 +243,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={allOccupancyOptions}
               initialValues={filters.occupancies}
               onChange={(values) =>
-                onChangeFilters({ occupancies: values }, 'Statut d’occupation')
+                onChangeFilters({ occupancies: values, }, 'Statut d’occupation')
               }
             />
           </Grid>
@@ -261,7 +261,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(value: string) => {
                 if (value) {
                   onChangeFilters(
-                    { localities: concat(filters.localities, value) },
+                    { localities: concat(filters.localities, value), },
                     'Commune'
                   );
                 }
@@ -274,7 +274,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={localityKindsOptions}
               initialValues={filters.localityKinds}
               onChange={(values) =>
-                onChangeFilters({ localityKinds: values }, 'Type de commune')
+                onChangeFilters({ localityKinds: values, }, 'Type de commune')
               }
             />
           </Grid>
@@ -293,7 +293,7 @@ function HousingListFiltersSidemenu(props: Props) {
                       geoPerimetersIncluded: concat(
                         filters.geoPerimetersIncluded,
                         value
-                      )
+                      ),
                     },
                     'Périmètre inclus'
                   );
@@ -316,7 +316,7 @@ function HousingListFiltersSidemenu(props: Props) {
                       geoPerimetersExcluded: concat(
                         filters.geoPerimetersExcluded,
                         value
-                      )
+                      ),
                     },
                     'Périmètre exclu'
                   );
@@ -340,7 +340,7 @@ function HousingListFiltersSidemenu(props: Props) {
               initialValues={filters.housingCounts}
               onChange={(values) =>
                 onChangeFilters(
-                  { housingCounts: values },
+                  { housingCounts: values, },
                   'Nombre de logements'
                 )
               }
@@ -352,7 +352,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={vacancyRateOptions}
               initialValues={filters.vacancyRates}
               onChange={(values) =>
-                onChangeFilters({ vacancyRates: values }, 'Taux de vacance')
+                onChangeFilters({ vacancyRates: values, }, 'Taux de vacance')
               }
             />
           </Grid>
@@ -363,7 +363,7 @@ function HousingListFiltersSidemenu(props: Props) {
               initialValues={filters.energyConsumption}
               onChange={(values) =>
                 onChangeFilters(
-                  { energyConsumption: values },
+                  { energyConsumption: values, },
                   'Étiquette DPE représentatif (CSTB)'
                 )
               }
@@ -379,7 +379,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={housingKindOptions}
               initialValues={filters.housingKinds}
               onChange={(values) =>
-                onChangeFilters({ housingKinds: values }, 'Type')
+                onChangeFilters({ housingKinds: values, }, 'Type')
               }
             />
           </Grid>
@@ -390,7 +390,7 @@ function HousingListFiltersSidemenu(props: Props) {
               initialValues={filters.buildingPeriods}
               onChange={(values) =>
                 onChangeFilters(
-                  { buildingPeriods: values },
+                  { buildingPeriods: values, },
                   'Date de construction'
                 )
               }
@@ -402,7 +402,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={housingAreaOptions}
               initialValues={filters.housingAreas}
               onChange={(values) =>
-                onChangeFilters({ housingAreas: values }, 'Surface')
+                onChangeFilters({ housingAreas: values, }, 'Surface')
               }
             />
           </Grid>
@@ -413,7 +413,7 @@ function HousingListFiltersSidemenu(props: Props) {
               initialValues={filters.vacancyDurations}
               onChange={(values) =>
                 onChangeFilters(
-                  { vacancyDurations: values },
+                  { vacancyDurations: values, },
                   'Durée de vacance'
                 )
               }
@@ -425,7 +425,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={roomsCountOptions}
               initialValues={filters.roomsCounts ?? []}
               onChange={(values) =>
-                onChangeFilters({ roomsCounts: values }, 'Nombre de pièces')
+                onChangeFilters({ roomsCounts: values, }, 'Nombre de pièces')
               }
             />
           </Grid>
@@ -436,7 +436,7 @@ function HousingListFiltersSidemenu(props: Props) {
               initialValues={filters.isTaxedValues}
               onChange={(values) =>
                 onChangeFilters(
-                  { isTaxedValues: values as OwnershipKinds[] },
+                  { isTaxedValues: values as OwnershipKinds[], },
                   'Taxé'
                 )
               }
@@ -449,7 +449,7 @@ function HousingListFiltersSidemenu(props: Props) {
               initialValues={filters.cadastralClassifications}
               onChange={(values) =>
                 onChangeFilters(
-                  { cadastralClassifications: values },
+                  { cadastralClassifications: values, },
                   'Classement cadastral'
                 )
               }
@@ -461,7 +461,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={ownershipKindsOptions}
               initialValues={filters.ownershipKinds}
               onChange={(values) =>
-                onChangeFilters({ ownershipKinds: values }, 'Type de propriété')
+                onChangeFilters({ ownershipKinds: values, }, 'Type de propriété')
               }
             />
           </Grid>
@@ -478,7 +478,7 @@ function HousingListFiltersSidemenu(props: Props) {
                 options={ownerKindOptions}
                 initialValues={filters.ownerKinds}
                 onChange={(values) =>
-                  onChangeFilters({ ownerKinds: values }, 'Type')
+                  onChangeFilters({ ownerKinds: values, }, 'Type')
                 }
               />
             </div>
@@ -489,7 +489,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={ownerAgeOptions}
               initialValues={filters.ownerAges}
               onChange={(values) =>
-                onChangeFilters({ ownerAges: values }, 'Âge')
+                onChangeFilters({ ownerAges: values, }, 'Âge')
               }
             />
           </Grid>
@@ -499,7 +499,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={multiOwnerOptions}
               initialValues={filters.multiOwners}
               onChange={(values) =>
-                onChangeFilters({ multiOwners: values }, 'Multi-propriétaire')
+                onChangeFilters({ multiOwners: values, }, 'Multi-propriétaire')
               }
             />
           </Grid>
@@ -509,7 +509,7 @@ function HousingListFiltersSidemenu(props: Props) {
               options={beneficiaryCountOptions}
               initialValues={filters.beneficiaryCounts}
               onChange={(values) =>
-                onChangeFilters({ beneficiaryCounts: values }, 'Ayants droit')
+                onChangeFilters({ beneficiaryCounts: values, }, 'Ayants droit')
               }
             />
           </Grid>
@@ -528,7 +528,7 @@ function HousingListFiltersSidemenu(props: Props) {
               )}
               onChange={(values) =>
                 onChangeFilters(
-                  { dataYearsIncluded: values.map(Number) },
+                  { dataYearsIncluded: values.map(Number), },
                   'Millésime inclus'
                 )
               }
@@ -544,7 +544,7 @@ function HousingListFiltersSidemenu(props: Props) {
               )}
               onChange={(values) =>
                 onChangeFilters(
-                  { dataYearsExcluded: values.map(Number) },
+                  { dataYearsExcluded: values.map(Number), },
                   'Millésime exclu'
                 )
               }
@@ -562,38 +562,38 @@ const openedMixin = (theme: Theme): CSSObject => ({
   width: drawerWidth,
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen
+    duration: theme.transitions.duration.enteringScreen,
   }),
-  overflowX: 'hidden'
+  overflowX: 'hidden',
 });
 
 const closedMixin = (theme: Theme): CSSObject => ({
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen
+    duration: theme.transitions.duration.leavingScreen,
   }),
   overflowX: 'hidden',
   width: `calc(${theme.spacing(7)} + 1px)`,
   [theme.breakpoints.up('sm')]: {
-    width: `calc(${theme.spacing(8)} + 1px)`
-  }
+    width: `calc(${theme.spacing(8)} + 1px)`,
+  },
 });
 
 const Drawer = styled(MuiDrawer, {
-  shouldForwardProp: (prop) => prop !== 'open'
-})(({ theme, open }) => ({
+  shouldForwardProp: (prop) => prop !== 'open',
+})(({ theme, open, }) => ({
   width: drawerWidth,
   flexShrink: 0,
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
   ...(open && {
     ...openedMixin(theme),
-    '& .MuiDrawer-paper': openedMixin(theme)
+    '& .MuiDrawer-paper': openedMixin(theme),
   }),
   ...(!open && {
     ...closedMixin(theme),
-    '& .MuiDrawer-paper': closedMixin(theme)
-  })
+    '& .MuiDrawer-paper': closedMixin(theme),
+  }),
 }));
 
 export default HousingListFiltersSidemenu;

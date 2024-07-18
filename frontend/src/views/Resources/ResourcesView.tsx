@@ -21,12 +21,12 @@ const ResourceTile = ({
   linkHrefTarget = '_blank',
   children,
   icon,
-  iconStyle
+  iconStyle,
 }: Props) => {
   return (
     <Tile
       desc={children}
-      classes={{ root: 'fr-p-3w', body: styles.tileBody }}
+      classes={{ root: 'fr-p-3w', body: styles.tileBody, }}
       title={
         <>
           <div>
@@ -39,7 +39,7 @@ const ResourceTile = ({
       }
       linkProps={{
         to: linkHref,
-        target: linkHrefTarget
+        target: linkHrefTarget,
       }}
     />
   );

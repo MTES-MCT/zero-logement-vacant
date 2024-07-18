@@ -3,7 +3,7 @@ import {
   ReactElement,
   ReactNode,
   useEffect,
-  useState,
+  useState
 } from 'react';
 
 import { Pagination as DSFRPagination, Table } from '../_dsfr';
@@ -13,7 +13,7 @@ import {
   HousingSortable,
   HousingUpdate,
   OccupancyKindLabels,
-  SelectedHousing,
+  SelectedHousing
 } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import { HousingFilters } from '../../models/HousingFilters';
@@ -22,7 +22,7 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import _ from 'lodash';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
@@ -39,7 +39,7 @@ import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import {
   useCountHousingQuery,
-  useUpdateHousingMutation,
+  useUpdateHousingMutation
 } from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
@@ -66,8 +66,8 @@ const HousingList = ({
 
   const location = useLocation();
   const campaignList = useCampaignList();
-  const { trackEvent } = useMatomo();
-  const { isVisitor } = useUser();
+  const { trackEvent, } = useMatomo();
+  const { isVisitor, } = useUser();
 
   const [updateHousing] = useUpdateHousingMutation();
 
@@ -75,16 +75,16 @@ const HousingList = ({
   const [sort, setSort] = useState<HousingSort>();
   const [updatingHousing, setUpdatingHousing] = useState<Housing>();
 
-  const { housingList } = useHousingList({
+  const { housingList, } = useHousingList({
     filters,
     pagination,
     sort,
   });
 
-  const { data: count } = useCountHousingQuery(filters);
+  const { data: count, } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, rowNumber, hasPagination } = usePagination({
+  const { pageCount, rowNumber, hasPagination, } = usePagination({
     ...pagination,
     count: filteredCount,
   });
@@ -112,14 +112,14 @@ const HousingList = ({
     });
   };
 
-  const { getSortButton } = useSort<HousingSortable>({ onSort });
+  const { getSortButton, } = useSort<HousingSortable>({ onSort, });
 
   // Contains unchecked elements if "allChecked" is true
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
   const [allChecked, setAllChecked] = useState<boolean>(false);
 
   const checkAll = (checked: boolean) => {
-    const selectedHousing = { all: checked, ids: [] };
+    const selectedHousing = { all: checked, ids: [], };
     setAllChecked(selectedHousing.all);
     setCheckedIds(selectedHousing.ids);
     if (onSelectHousing) {
@@ -134,20 +134,20 @@ const HousingList = ({
         : checkedIds.filter((f) => f !== id);
     setCheckedIds(updatedCheckIds);
     if (onSelectHousing) {
-      onSelectHousing({ all: allChecked, ids: updatedCheckIds });
+      onSelectHousing({ all: allChecked, ids: updatedCheckIds, });
     }
   };
 
   const unselectAll = () => {
     setAllChecked(false);
     setCheckedIds([]);
-    onSelectHousing?.({ all: false, ids: [] });
+    onSelectHousing?.({ all: false, ids: [], });
   };
 
   useEffect(() => {
     setAllChecked(false);
     setCheckedIds([]);
-    onSelectHousing?.({ all: false, ids: [] });
+    onSelectHousing?.({ all: false, ids: [], });
   }, [housingList]); //eslint-disable-line react-hooks/exhaustive-deps
 
   if (!housingList) {
@@ -167,7 +167,7 @@ const HousingList = ({
         options={[]}
       ></AppCheckbox>
     ),
-    render: ({ id }: Housing) => (
+    render: ({ id, }: Housing) => (
       <AppCheckbox
         value={id}
         onChange={(e: ChangeEvent<any>) => checkOne(e.target.value)}
@@ -183,13 +183,13 @@ const HousingList = ({
 
   const rowNumberColumn = {
     name: 'number',
-    render: ({ rowNumber }: any) => <>#{rowNumber}</>,
+    render: ({ rowNumber, }: any) => <>#{rowNumber}</>,
   };
 
   const addressColumn = {
     name: 'address',
     headerRender: () => getSortButton('rawAddress', 'Adresse du logement'),
-    render: ({ id, rawAddress }: Housing) => (
+    render: ({ id, rawAddress, }: Housing) => (
       <AppLink className="capitalize" isSimple to={`/logements/${id}`}>
         {rawAddress.map((line) => capitalize(line)).join('\n')}
       </AppLink>
@@ -199,7 +199,7 @@ const HousingList = ({
   const ownerColumn = {
     name: 'owner',
     headerRender: () => getSortButton('owner', 'Propriétaire principal'),
-    render: ({ owner }: Housing) => (
+    render: ({ owner, }: Housing) => (
       <>
         <AppLink
           isSimple
@@ -216,7 +216,7 @@ const HousingList = ({
   const occupancyColumn = {
     name: 'occupancy',
     headerRender: () => getSortButton('occupancy', 'Occupation'),
-    render: ({ occupancy }: Housing) => (
+    render: ({ occupancy, }: Housing) => (
       <Badge className="bg-bf950 color-bf113">
         {OccupancyKindLabels[occupancy]}
       </Badge>
@@ -226,16 +226,16 @@ const HousingList = ({
   const campaignColumn = {
     name: 'campaign',
     label: 'Campagnes en cours',
-    render: ({ campaignIds, id }: Housing) => (
+    render: ({ campaignIds, id, }: Housing) => (
       <>
         {campaignIds?.length > 0 &&
           _.uniq(
             campaignIds
               .map((campaignId) =>
-                campaignList?.find((c) => c.id === campaignId),
+                campaignList?.find((c) => c.id === campaignId)
               )
               .filter(isDefined)
-              .sort(campaignSort),
+              .sort(campaignSort)
           ).map((campaign, campaignIdx) => (
             <div key={id + '-campaign-' + campaignIdx}>
               <AppLink isSimple to={`/campagnes/${campaign.id}`}>
@@ -251,8 +251,8 @@ const HousingList = ({
   const statusColumn = {
     name: 'status',
     headerRender: () => getSortButton('status', 'Statut de suivi'),
-    render: ({ status, subStatus }: Housing) => (
-      <div style={{ textAlign: 'center' }}>
+    render: ({ status, subStatus, }: Housing) => (
+      <div style={{ textAlign: 'center', }}>
         <HousingStatusBadge status={status} />
         <HousingSubStatusBadge status={status} subStatus={subStatus} />
       </div>
@@ -292,7 +292,7 @@ const HousingList = ({
 
   const submitHousingUpdate = async (
     housing: Housing,
-    housingUpdate: HousingUpdate,
+    housingUpdate: HousingUpdate
   ) => {
     trackEvent({
       category: location.pathname.includes('parc-de-logements')
@@ -339,7 +339,7 @@ const HousingList = ({
               'zlv-table',
               'with-modify-last',
               'with-row-number',
-              !isVisitor ?? { 'with-select': onSelectHousing },
+              !isVisitor ?? { 'with-select': onSelectHousing, }
             )}
             data-testid="housing-table"
           />
@@ -352,7 +352,7 @@ const HousingList = ({
                   pageCount={pageCount}
                 />
               </div>
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', }}>
                 <Button
                   onClick={() => changePerPage(50)}
                   priority="secondary"

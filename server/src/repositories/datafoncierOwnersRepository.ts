@@ -49,7 +49,7 @@ class DatafoncierOwnersRepository {
 
     const result = await DatafoncierOwners()
       .from(subquery.as('sub'))
-      .count({ total: '*' });
+      .count({ total: '*', });
 
     return Number(result[0] ? result[0].total : 0);
   }
@@ -92,9 +92,9 @@ class DatafoncierOwnersRepository {
         sortQuery(opts?.sort, {
           keys: {
             idprocpte: (query) =>
-              query.orderBy('idprocpte', opts?.sort?.idprocpte)
+              query.orderBy('idprocpte', opts?.sort?.idprocpte),
           },
-          default: (query) => query.orderBy('idpersonne')
+          default: (query) => query.orderBy('idpersonne'),
         })
       )
       .stream();

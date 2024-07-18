@@ -41,19 +41,19 @@ function HousingDetailsCard({
   housing,
   housingEvents,
   housingNotes,
-  housingCampaigns
+  housingCampaigns,
 }: Props) {
-  const { isVisitor } = useUser();
-  const { trackEvent } = useMatomo();
+  const { isVisitor, } = useUser();
+  const { trackEvent, } = useMatomo();
   const [updateHousing] = useUpdateHousingMutation();
 
   const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
     useState(false);
 
-  const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
+  const { refetch: refetchHousingEvents, } = useFindEventsByHousingQuery(
     housing.id
   );
-  const { refetch: refetchHousingNotes } = useFindNotesByHousingQuery(
+  const { refetch: refetchHousingNotes, } = useFindNotesByHousingQuery(
     housing.id
   );
 
@@ -63,11 +63,11 @@ function HousingDetailsCard({
   ) => {
     trackEvent({
       category: TrackEventCategories.Housing,
-      action: TrackEventActions.Housing.Update
+      action: TrackEventActions.Housing.Update,
     });
     await updateHousing({
       housing,
-      housingUpdate
+      housingUpdate,
     });
     await refetchHousingEvents();
     await refetchHousingNotes();
@@ -150,13 +150,13 @@ function HousingDetailsCard({
                       </Col>
                     </Row>
                   </div>
-                )
+                ),
               },
               {
                 label: 'Historique de suivi',
                 content: (
                   <EventsHistory events={housingEvents} notes={housingNotes} />
-                )
+                ),
               }
             ]}
           ></Tabs>

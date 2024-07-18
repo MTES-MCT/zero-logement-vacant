@@ -20,14 +20,14 @@ function ForgottenPasswordView() {
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
   const shape = {
-    email: emailValidator
+    email: emailValidator,
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
-    email
+    email,
   });
-  const { hidden, setHidden } = useHide();
+  const { hidden, setHidden, } = useHide();
 
   async function submit(e?: any) {
     try {
@@ -44,7 +44,7 @@ function ForgottenPasswordView() {
 
   function EmailSent() {
     const confirmationClasses = classNames('fr-valid-text', {
-      [styles.hidden]: hidden
+      [styles.hidden]: hidden,
     });
 
     return (
@@ -115,7 +115,7 @@ function ForgottenPasswordView() {
         <Col n="5" offset="1" className="align-right">
           <img
             src={building}
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: '100%', height: '100%', }}
             alt=""
           />
         </Col>

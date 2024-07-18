@@ -3,7 +3,7 @@ import {
   isArrayOf,
   isCommaDelimitedString,
   isUUID,
-  split,
+  split
 } from '~/utils/validators';
 
 export interface CampaignFiltersApi {
@@ -24,5 +24,5 @@ export const campaignFiltersValidators: ValidationChain[] = [
     .customSanitizer(split(','))
     .custom(isArrayOf(isUUID))
     .withMessage('Must be an array of UUIDs')
-    .optional(),
+    .optional()
 ];

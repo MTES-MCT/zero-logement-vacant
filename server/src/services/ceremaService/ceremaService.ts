@@ -92,7 +92,7 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultStruct
             Authorization: `Token ${config.cerema.token}`,
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
       const content: any = await response.json();
 
@@ -107,7 +107,7 @@ export class CeremaService implements ConsultDossiersLovacService, ConsultStruct
             establishmentSiren: Number(user.siret.substring(0, 9)),
             hasAccount: true,
             hasCommitment: user.lovac_ok,
-          }),
+          })
         );
       }
       return [];

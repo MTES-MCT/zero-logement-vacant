@@ -10,11 +10,11 @@ import {
   genOwnerApi,
   genOwnerEventApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
@@ -25,15 +25,15 @@ import {
   formatHousingEventApi,
   formatOwnerEventApi,
   HousingEvents,
-  OwnerEvents,
+  OwnerEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 
 describe('Event API', () => {
-  const { app } = createServer();
+  const { app, } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -53,13 +53,13 @@ describe('Event API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(owner.id));
+      const { status, } = await request(app).get(testRoute(owner.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid ownerId', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .get(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -67,13 +67,13 @@ describe('Event API', () => {
     });
 
     it('should list the owner events', async () => {
-      const events: OwnerEventApi[] = Array.from({ length: 3 }).map(() =>
-        genOwnerEventApi(owner.id, user.id),
+      const events: OwnerEventApi[] = Array.from({ length: 3, }).map(() =>
+        genOwnerEventApi(owner.id, user.id)
       );
       await Events().insert(events.map(formatEventApi));
       await OwnerEvents().insert(events.map(formatOwnerEventApi));
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute(owner.id))
         .use(tokenProvider(user));
 
@@ -95,13 +95,13 @@ describe('Event API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(housing.id));
+      const { status, } = await request(app).get(testRoute(housing.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid housingId', async () => {
-      const { status } = await request(app)
+      const { status, } = await request(app)
         .get(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -109,20 +109,20 @@ describe('Event API', () => {
     });
 
     it('should list the housing events', async () => {
-      const events: HousingEventApi[] = Array.from({ length: 3 }).map(() =>
-        genHousingEventApi(housing, user),
+      const events: HousingEventApi[] = Array.from({ length: 3, }).map(() =>
+        genHousingEventApi(housing, user)
       );
       await Events().insert(events.map(formatEventApi));
       await HousingEvents().insert(events.map(formatHousingEventApi));
 
-      const { body, status } = await request(app)
+      const { body, status, } = await request(app)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toSatisfy(() => {
         const ids = new Set([
-          ...body.map((event: HousingEventApi) => event.id),
+          ...body.map((event: HousingEventApi) => event.id)
         ]);
         return events.every((event) => ids.has(event.id));
       });

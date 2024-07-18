@@ -18,7 +18,7 @@ async function insert(
   establishmentId: string,
   kind: string,
   name: string,
-  createdBy?: string,
+  createdBy?: string
 ): Promise<void> {
   const rawGeom =
     geometry.type === 'LineString' || geometry.type === 'MultiLineString'
@@ -33,8 +33,8 @@ async function insert(
   await db(geoPerimetersTable).insert(
     db.raw(
       `(kind, name, geom, establishment_id, created_by) values (?, ?, ${rawGeom}, ?, ?)`,
-      [kind, name, JSON.stringify(geometry), establishmentId, createdBy ?? ''],
-    ),
+      [kind, name, JSON.stringify(geometry), establishmentId, createdBy ?? '']
+    )
   );
 }
 
@@ -45,13 +45,13 @@ async function update(geoPerimeterApi: GeoPerimeterApi): Promise<void> {
   const { id, establishment_id, geo_json, ...updatedData } =
     formatGeoPerimeterApi(geoPerimeterApi);
 
-  await GeoPerimeters().where({ id: geoPerimeterApi.id }).update(updatedData);
+  await GeoPerimeters().where({ id: geoPerimeterApi.id, }).update(updatedData);
 }
 
 async function find(establishmentId: string): Promise<GeoPerimeterApi[]> {
   logger.info(
     'List geoPerimeterApi for establishment with id',
-    establishmentId,
+    establishmentId
   );
 
   const geoPerimeters = await GeoPerimeters()
@@ -64,7 +64,7 @@ async function find(establishmentId: string): Promise<GeoPerimeterApi[]> {
 
 async function removeMany(
   geoPerimeterIds: string[],
-  establishmentId: string,
+  establishmentId: string
 ): Promise<void> {
   logger.info('Remove geoPerimeters with ids %s into establishment', {
     geoPerimeter: geoPerimeterIds,
@@ -85,7 +85,7 @@ export interface GeoPerimeterDBO {
 }
 
 export const formatGeoPerimeterApi = (
-  geoPerimeterApi: GeoPerimeterApi,
+  geoPerimeterApi: GeoPerimeterApi
 ): GeoPerimeterDBO => ({
   id: geoPerimeterApi.id,
   establishment_id: geoPerimeterApi.establishmentId,
@@ -94,7 +94,7 @@ export const formatGeoPerimeterApi = (
 });
 
 export const parseGeoPerimeterApi = (
-  geoPerimeterDbo: GeoPerimeterDBO,
+  geoPerimeterDbo: GeoPerimeterDBO
 ): GeoPerimeterApi => ({
   id: geoPerimeterDbo.id,
   establishmentId: geoPerimeterDbo.establishment_id,

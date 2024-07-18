@@ -17,7 +17,7 @@ interface Props {
 }
 
 function OwnerEditionSideMenu(props: Props) {
-  const { active, setActive, toggle } = useToggle();
+  const { active, setActive, toggle, } = useToggle();
 
   const shape = {
     fullName: string().optional(),
@@ -30,7 +30,7 @@ function OwnerEditionSideMenu(props: Props) {
   const [fullName, setFullName] = useState(props.owner.fullName);
   const [address, setAddress] = useState(props.owner.banAddress);
   const [additionalAddress, setAdditionalAddress] = useState(
-    props.owner.additionalAddress ?? '',
+    props.owner.additionalAddress ?? ''
   );
   const formId = 'owner-edition-form';
   const form = useForm(schema, {
@@ -115,7 +115,7 @@ function OwnerEditionSideMenu(props: Props) {
               Annuler
             </Button>
             <Button
-              nativeButtonProps={{ form: formId }}
+              nativeButtonProps={{ form: formId, }}
               priority="primary"
               onClick={save}
               type="submit"

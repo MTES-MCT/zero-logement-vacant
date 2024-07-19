@@ -7,14 +7,12 @@ class SourceOwnerFileRepository
   implements SourceRepository<SourceOwner>
 {
   protected columns: string[] = [
-    'id',
-    'idpersonne',
-    'Administrator',
     'full_name',
     'birth_date',
-    'raw_address',
-    'Additional Address',
-    'kind'
+    'dgfip_address',
+    'idpersonne',
+    'ownership_type',
+    'siren'
   ];
 
   constructor(protected file: string) {

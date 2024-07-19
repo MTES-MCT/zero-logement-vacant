@@ -34,7 +34,8 @@ export abstract class SourceFileRepository<A> implements SourceRepository<A> {
       '.csv': () =>
         parseCSV({
           cast(value) {
-            if (value === 'null') {
+            // Catch falsy values and 'null' string
+            if (!value || value === 'null') {
               return null;
             }
 

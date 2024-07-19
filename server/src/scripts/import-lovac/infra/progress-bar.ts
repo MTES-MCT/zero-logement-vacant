@@ -17,9 +17,8 @@ export function progress(opts: ProgressOptions) {
       bar.increment();
       controller.enqueue(chunk);
     },
-    flush(controller) {
+    flush() {
       bar.stop();
-      controller.terminate();
     }
   });
 }

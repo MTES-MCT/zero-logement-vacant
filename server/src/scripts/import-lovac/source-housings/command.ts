@@ -32,10 +32,6 @@ export function createSourceHousingCommand() {
   const housingReporter = createLoggerReporter<HousingRecordDBO>();
 
   return async (file: string, options: ExecOptions): Promise<void> => {
-    if (options.dryRun) {
-      logger.info('Dry run enabled');
-    }
-
     logger.info('Computing total...');
     const total = await countLines(Readable.toWeb(fs.createReadStream(file)));
 

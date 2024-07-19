@@ -1,3 +1,4 @@
+import { isDate } from 'date-fns/fp';
 import { TransformStream } from 'node:stream/web';
 import { Schema, ValidationError } from 'yup';
 
@@ -31,6 +32,13 @@ function validator<A>(schema: Schema<A>, opts: ValidatorOptions<A>) {
       }
     }
   });
+}
+
+export function toDate(value: any, originalValue: any): Date | undefined {
+  const date =
+    typeof originalValue === 'number' ? new Date(originalValue * 1000) : value;
+
+  return isDate(date) ? date : value;
 }
 
 export default validator;

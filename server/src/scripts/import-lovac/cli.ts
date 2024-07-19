@@ -1,8 +1,8 @@
 import commander from '@commander-js/extra-typings';
 
 import { createLogger } from '~/infra/logger';
-import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/command';
-import { createSourceOwnerCommand } from '~/scripts/import-lovac/source-owners/command';
+import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
+import { createSourceOwnerCommand } from '~/scripts/import-lovac/source-owners/source-owner-command';
 
 const logger = createLogger('cli');
 

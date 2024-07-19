@@ -3,9 +3,9 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import {
   HOUSING_KIND_VALUES,
-  OCCUPANCY_VALUES,
   OWNERSHIP_KINDS
 } from '@zerologementvacant/models';
+import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
 export function genSourceHousing(): SourceHousing {
   const geoCode = faker.location.zipCode();
@@ -30,15 +30,20 @@ export function genSourceHousing(): SourceHousing {
     uncomfortable: faker.datatype.boolean(),
     cadastral_classification: faker.number.int(10),
     beneficiary_count: faker.number.int(6),
-    rental_value: faker.number.float({
-      min: 100,
-      max: 1000,
-      fractionDigits: 2
-    }),
     living_area: faker.number.float({ min: 10, max: 100, fractionDigits: 2 }),
     taxed: faker.datatype.boolean(),
     vacancy_start_year: faker.date.past().getFullYear(),
-    mutation_date: faker.date.past().toJSON(),
-    occupancy_source: faker.helpers.arrayElement(OCCUPANCY_VALUES)
+    mutation_date: faker.date.past()
+  };
+}
+
+export function genSourceOwner(): SourceOwner {
+  return {
+    idpersonne: faker.string.alphanumeric(11),
+    full_name: faker.person.fullName(),
+    dgfip_address: faker.location.streetAddress(),
+    birth_date: faker.date.past(),
+    siren: null,
+    ownership_type: 'Particulier'
   };
 }

@@ -19,6 +19,10 @@ const dryRun = program.createOption(
   'Run the script without saving to the database'
 );
 
+program.hook('preAction', (_, actionCommand) => {
+  logger.info('Options', actionCommand.opts());
+});
+
 program
   .command('owners')
   .description('Import owners from a file to an existing database')

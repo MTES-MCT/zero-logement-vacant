@@ -45,7 +45,7 @@ export abstract class SourceFileRepository<A> implements SourceRepository<A> {
 
             return value;
           },
-          columns: this.columns
+          columns: () => this.columns
         }),
       '.jsonl': () => parseJSONL()
     };

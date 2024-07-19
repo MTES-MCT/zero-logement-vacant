@@ -12,7 +12,7 @@ const logger = createLogger('validator');
 
 type ValidatorOptions<A> = ReporterOptions<A>;
 
-function validator<A>(schema: Schema<A>, opts: ValidatorOptions<A>) {
+function validator<A>(schema: Schema<A>, options: ValidatorOptions<A>) {
   return new TransformStream<A, A>({
     transform(chunk, controller) {
       try {
@@ -21,11 +21,13 @@ function validator<A>(schema: Schema<A>, opts: ValidatorOptions<A>) {
         controller.enqueue(validated);
       } catch (error) {
         if (error instanceof ValidationError) {
-          opts?.reporter?.failed(
+          options?.reporter?.failed(
             chunk,
             new ReporterError(error.message, chunk)
           );
-          return;
+          if (!options.abortEarly) {
+            return;
+          }
         }
 
         controller.error(error);

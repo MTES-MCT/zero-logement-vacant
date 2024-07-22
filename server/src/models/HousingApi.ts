@@ -15,6 +15,9 @@ export interface HousingRecordApi {
   localId: string;
   buildingId?: string;
   buildingGroupId?: string;
+  /**
+   * @deprecateds Should become `addressDGFIP: string`
+   */
   rawAddress: string[];
   geoCode: string;
   longitude?: number;

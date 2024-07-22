@@ -46,6 +46,7 @@ export function createSourceHousingCommand() {
       )
       .pipeThrough(
         validator(sourceHousingSchema, {
+          abortEarly: options.abortEarly,
           reporter: sourceHousingReporter
         })
       )

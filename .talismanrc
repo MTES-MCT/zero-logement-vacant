@@ -1,6 +1,4 @@
 fileignoreconfig:
-- filename: .github/workflows/review-app.yml
-  checksum: 78d9abc578bda1e6622a67acfd199ffba381ad98cfeeb5b31bb1fe74c95fc3c1
 - filename: .github/workflows/github-actions.yml
   checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
 - filename: .github/workflows/review-app.yml
@@ -119,7 +117,7 @@ fileignoreconfig:
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
   checksum: b2db25db2503ffb08d08e232fa5aa319caa0bacca03b5af067038154bb5393ca
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
-  checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
+  checksum: 85407878a244313b70b8a60b5c7d3e41c33df83629866437cbca3a309ab6e1bc
 - filename: server/src/infra/database/seeds/development/20240627141242_e2e.ts
   checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
 - filename: server/src/routers/unprotected.ts
@@ -132,6 +130,13 @@ fileignoreconfig:
   checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 - filename: yarn.lock
   checksum: 59d37f8e1ecf81439bce81f285ac09fdcf3978c64ff996c2d0e8731431ecb2c0
+scopeconfig:
+- scope: node
+allowed_patterns:
+- key=\{.+\}
+- keyof
+version: "1.0"
+85ac09fdcf3978c64ff996c2d0e8731431ecb2c0
 scopeconfig:
 - scope: node
 allowed_patterns:

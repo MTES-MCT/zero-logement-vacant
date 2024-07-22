@@ -6,14 +6,7 @@ class SourceOwnerFileRepository
   extends SourceFileRepository<SourceOwner>
   implements SourceRepository<SourceOwner>
 {
-  protected columns: string[] = [
-    'full_name',
-    'birth_date',
-    'dgfip_address',
-    'idpersonne',
-    'ownership_type',
-    'siren'
-  ];
+  protected columns: string[] | true = true;
 
   constructor(protected file: string) {
     super(file);

@@ -6,7 +6,7 @@ class SourceHousingFileRepository
   extends SourceFileRepository<SourceHousing>
   implements SourceRepository<SourceHousing>
 {
-  protected columns: string[] = [];
+  protected columns: string[] | true = true;
 
   constructor(protected file: string) {
     super(file);

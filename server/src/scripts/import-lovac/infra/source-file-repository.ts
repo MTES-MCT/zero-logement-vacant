@@ -20,7 +20,7 @@ function isAllowedExtension(extension: string): extension is Extension {
 const logger = createLogger('sourceFileRepository');
 
 export abstract class SourceFileRepository<A> implements SourceRepository<A> {
-  protected abstract columns: string[];
+  protected abstract columns: string[] | true;
 
   protected constructor(protected file: string) {}
 
@@ -45,7 +45,7 @@ export abstract class SourceFileRepository<A> implements SourceRepository<A> {
 
             return value;
           },
-          columns: () => this.columns
+          columns: this.columns
         }),
       '.jsonl': () => parseJSONL()
     };

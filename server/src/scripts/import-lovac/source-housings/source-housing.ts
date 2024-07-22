@@ -1,3 +1,4 @@
+import { startOfYear } from 'date-fns/fp';
 import { boolean, date, number, object, ObjectSchema, string } from 'yup';
 
 import { HOUSING_KIND_VALUES } from '@zerologementvacant/models';
@@ -10,16 +11,16 @@ export interface SourceHousing {
   plot_id: string;
   location_detail: string;
   geo_code: string;
-  ban_address: string;
-  ban_score: number;
-  ban_latitude: number;
-  ban_longitude: number;
+  ban_address: string | null;
+  ban_score: number | null;
+  ban_latitude: number | null;
+  ban_longitude: number | null;
   geolocalisation: string;
   dgfip_address: string;
   dgfip_longitude: number;
   dgfip_latitude: number;
   housing_kind: string;
-  condominium: string;
+  condominium: string | null;
   living_area: number;
   rooms_count: number;
   building_year: number;
@@ -40,38 +41,58 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
   building_id: string().required('building_id is required'),
   plot_id: string().required('plot_id is required'),
   location_detail: string().required('location_detail is required'),
-  geo_code: string().required('geo_code is required'),
-  ban_address: string().required('ban_address is required'),
-  ban_score: number().required('ban_score is required'),
-  ban_latitude: number().required('ban_latitude is required'),
-  ban_longitude: number().required('ban_longitude is required'),
+  geo_code: string().length(5).required('geo_code is required'),
+  ban_address: string().defined('ban_address must be defined').nullable(),
+  ban_score: number().defined('ban_score must be defined').nullable(),
+  ban_latitude: number()
+    .defined('ban_latitude must be defined')
+    .min(-90)
+    .max(90)
+    .nullable(),
+  ban_longitude: number()
+    .required('ban_longitude is required')
+    .min(-180)
+    .max(180)
+    .nullable(),
   geolocalisation: string().required('geolocalisation is required'),
   dgfip_address: string().required('dgfip_address is required'),
-  dgfip_latitude: number().required('dgfip_latitude is required'),
-  dgfip_longitude: number().required('dgfip_longitude is required'),
+  dgfip_latitude: number()
+    .required('dgfip_latitude is required')
+    .min(-90)
+    .max(90),
+  dgfip_longitude: number()
+    .required('dgfip_longitude is required')
+    .min(-180)
+    .max(180),
   housing_kind: string()
     .oneOf(HOUSING_KIND_VALUES)
     .required('housing_kind is required'),
-  condominium: string().required('condominium is required'),
-  living_area: number().required('living_area is required'),
+  condominium: string().defined('condominium must be defined').nullable(),
+  living_area: number().required('living_area is required').min(0),
   rooms_count: number()
     .integer('rooms_count must be an integer')
-    .required('rooms_count is required'),
+    .required('rooms_count is required')
+    .min(0),
   building_year: number()
     .integer('building_year must be an integer')
-    .required('building_year is required'),
+    .required('building_year is required')
+    .min(1)
+    .max(new Date().getUTCFullYear()),
   uncomfortable: boolean().required('uncomfortable is required'),
-  cadastral_classification: number().required(
-    'cadastral_classification is required'
-  ),
+  cadastral_classification: number()
+    .required('cadastral_classification is required')
+    .min(0),
   beneficiary_count: number()
     .integer('beneficiary_count must be an integer')
-    .required('beneficiary_count is required'),
+    .required('beneficiary_count is required')
+    .min(1),
   taxed: boolean().required('taxed is required'),
   vacancy_start_year: number()
     .integer('vacancy_start_year must be an integer')
-    .min(1000)
-    .max(9999)
+    .min(0)
+    .max(new Date().getUTCFullYear())
     .required('vacancy_start_year is required'),
-  mutation_date: date().required('mutation_date is required')
+  mutation_date: date()
+    .required('mutation_date is required')
+    .max(startOfYear(new Date()))
 });

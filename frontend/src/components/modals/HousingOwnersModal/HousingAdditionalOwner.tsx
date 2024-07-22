@@ -36,8 +36,7 @@ const HousingAdditionalOwner = ({
     })),
     { value: '0', label: `Ancien propriétaire` },
     { value: '-1', label: 'Propriétaire incorrect'},
-    { value: '-2', label: 'Propriétaire en attente de traitement'},
-    { value: '-3', label: 'Propriétaire décédé'},
+    { value: '-3', label: 'Propriétaire décédé.e'},
   ];
 
   return (

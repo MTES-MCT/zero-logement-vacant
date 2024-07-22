@@ -164,8 +164,7 @@ const HousingOwnersModal = ({
     })),
     { value: '0', label: 'Ancien propriétaire' },
     { value: '-1', label: 'Propriétaire incorrect'},
-    { value: '-2', label: 'Propriétaire en attente de traitement'},
-    { value: '-3', label: 'Propriétaire décédé'},
+    { value: '-3', label: 'Propriétaire décédé.e'},
   ];
 
   const form = useForm(
@@ -299,6 +298,7 @@ const HousingOwnersModal = ({
           }
           value={String(ownerInput.rank)}
           inputForm={form}
+          disabled={ownerInput.rank === '-2'}
           inputKey="ownerRanks"
           options={ownerRankOptions}
         />
@@ -315,6 +315,7 @@ const HousingOwnersModal = ({
               required
               label="Nom prénom"
               inputForm={form}
+              disabled={ownerInput.rank === '-2'}
               // @ts-expect-error: dynamic key
               inputKey={`fullName${index}`}
             />
@@ -331,6 +332,7 @@ const HousingOwnersModal = ({
               }
               label="Date de naissance"
               inputForm={form}
+              disabled={ownerInput.rank === '-2'}
               // @ts-expect-error: dynamic key
               inputKey={`birthDate$${index}`}
             />
@@ -339,6 +341,7 @@ const HousingOwnersModal = ({
             <OwnerAddressEdition
               banAddress={ownerInput.banAddress}
               rawAddress={ownerInput.rawAddress}
+              disabled={ownerInput.rank === '-2'}
               onSelectAddress={(a) => onSelectAddress(ownerInput, a)}
               errorMessage={message(`banAddress${index}`)}
             />
@@ -354,6 +357,7 @@ const HousingOwnersModal = ({
               }
               label="Complément d'adresse"
               inputForm={form}
+              disabled={ownerInput.rank === '-2'}
               // @ts-expect-error: dynamic key
               inputKey={`additionalAddress$${index}`}
             />
@@ -370,6 +374,7 @@ const HousingOwnersModal = ({
               }
               label="Adresse mail"
               inputForm={form}
+              disabled={ownerInput.rank === '-2'}
               // @ts-expect-error: dynamic key
               inputKey={`email$${index}`}
             />
@@ -385,6 +390,7 @@ const HousingOwnersModal = ({
               }
               label="Numéro de téléphone"
               inputForm={form}
+              disabled={ownerInput.rank === '-2'}
               // @ts-expect-error: dynamic key
               inputKey={`phone$${index}`}
             />

@@ -12,6 +12,7 @@ interface Props {
   errorMessage?: string;
   rawAddress: string[];
   onSelectAddress: (address?: AddressSearchResult) => void;
+  disabled?: boolean;
 }
 
 function OwnerAddressEdition({
@@ -20,6 +21,7 @@ function OwnerAddressEdition({
   rawAddress,
   onSelectAddress,
   errorMessage,
+  disabled,
 }: Props) {
   const [searchAddressFromLovac, setSearchAddressFromLovac] = useState(false);
   const [previousAddress, setPreviousAddress] = useState<Address | undefined>();
@@ -57,6 +59,7 @@ function OwnerAddressEdition({
             initialQuery={rawAddress.join(' ')}
             initialSearch
             onSelectAddress={onSelectAddress}
+            disabled={disabled}
           />
           {errorMessage && (
             <p className="fr-error-text fr-m-2w">{errorMessage}</p>
@@ -70,6 +73,7 @@ function OwnerAddressEdition({
               initialQuery={
                 banAddress ? addressToString(banAddress, false) : undefined
               }
+              disabled={disabled}
               onSelectAddress={onSelectAddress}
             />
             {errorMessage && (

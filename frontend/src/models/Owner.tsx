@@ -60,8 +60,8 @@ export const getHousingOwnerRankLabel = (rank: number) => {
     { rank: 1, label: 'Propriétaire principal'},
     { rank: 0, label: 'Ancien propriétaire'},
     { rank: -1, label: 'Propriétaire incorrect'},
-    { rank: -2, label: 'Propriétaire en attente de traitement'},
-    { rank: -3, label: 'Propriétaire décédé'},
+    { rank: -2, label: 'Propriétaire doublon LOVAC 2024 - En attente de traitement par ZLV'},
+    { rank: -3, label: 'Propriétaire décédé.e'},
   ];
 
   const label = labels.find(label => label.rank === rank)?.label;

@@ -23,13 +23,13 @@ export interface SourceHousing {
   condominium: string | null;
   living_area: number;
   rooms_count: number;
-  building_year: number;
+  building_year: number | null;
   uncomfortable: boolean;
   cadastral_classification: number;
   beneficiary_count: number;
   taxed: boolean;
   vacancy_start_year: number;
-  mutation_date: Date;
+  mutation_date: Date | null;
 }
 
 export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
@@ -75,7 +75,9 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .min(0),
   building_year: number()
     .integer('building_year must be an integer')
-    .required('building_year is required')
+    .defined('building_year must be defined')
+    .nullable()
+    .transform((value) => (value === 0 ? null : value))
     .min(1)
     .max(new Date().getUTCFullYear()),
   uncomfortable: boolean().required('uncomfortable is required'),
@@ -93,6 +95,7 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .max(new Date().getUTCFullYear())
     .required('vacancy_start_year is required'),
   mutation_date: date()
-    .required('mutation_date is required')
+    .defined('mutation_date must be defined')
+    .nullable()
     .max(startOfYear(new Date()))
 });

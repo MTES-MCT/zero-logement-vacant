@@ -29,7 +29,9 @@ describe('SourceHousing', () => {
       condominium: fc.option(fc.string({ minLength: 1 })),
       living_area: fc.float({ min: 0 }),
       rooms_count: fc.integer({ min: 0 }),
-      building_year: fc.integer({ min: 1, max: new Date().getUTCFullYear() }),
+      building_year: fc.option(
+        fc.integer({ min: 1, max: new Date().getUTCFullYear() })
+      ),
       uncomfortable: fc.boolean(),
       cadastral_classification: fc.integer({ min: 0 }),
       beneficiary_count: fc.integer({ min: 1 }),
@@ -38,7 +40,7 @@ describe('SourceHousing', () => {
         min: 1,
         max: new Date().getUTCFullYear()
       }),
-      mutation_date: fc.date({ max: startOfYear(new Date()) })
+      mutation_date: fc.option(fc.date({ max: startOfYear(new Date()) }))
     })('should validate a source housing', (sourceHousing) => {
       const actual = sourceHousingSchema.validateSync(sourceHousing);
 

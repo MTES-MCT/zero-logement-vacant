@@ -20,17 +20,14 @@ function validator<A>(schema: Schema<A>, options: ValidatorOptions<A>) {
         const validated = schema.validateSync(chunk);
         controller.enqueue(validated);
       } catch (error) {
-        if (error instanceof ValidationError) {
-          options?.reporter?.failed(
-            chunk,
-            new ReporterError(error.message, chunk)
-          );
-          if (!options.abortEarly) {
-            return;
-          }
-        }
+        options?.reporter?.failed(
+          chunk,
+          new ReporterError((error as ValidationError).message, chunk)
+        );
 
-        controller.error(error);
+        if (options.abortEarly) {
+          controller.error(error);
+        }
       }
     }
   });

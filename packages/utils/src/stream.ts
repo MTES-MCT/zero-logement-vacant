@@ -1,6 +1,6 @@
 import { createInterface } from 'node:readline/promises';
 import { Readable } from 'node:stream';
-import { ReadableStream } from 'node:stream/web';
+import { ReadableStream, WritableStream } from 'node:stream/web';
 
 export async function countLines(file: ReadableStream): Promise<number> {
   return new Promise((resolve) => {
@@ -15,5 +15,22 @@ export async function countLines(file: ReadableStream): Promise<number> {
       .on('close', () => {
         resolve(lines);
       });
+  });
+}
+
+export async function count<A>(stream: ReadableStream<A>): Promise<number> {
+  return new Promise((resolve) => {
+    let i = 0;
+
+    stream.pipeTo(
+      new WritableStream<A>({
+        write() {
+          i++;
+        },
+        close() {
+          resolve(i);
+        }
+      })
+    );
   });
 }

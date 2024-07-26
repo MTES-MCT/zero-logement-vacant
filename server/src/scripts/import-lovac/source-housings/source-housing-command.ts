@@ -1,7 +1,4 @@
-import fs from 'node:fs';
-import { Readable } from 'node:stream';
-
-import { countLines } from '@zerologementvacant/utils';
+import { count } from '@zerologementvacant/utils';
 import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import validator from '~/scripts/import-lovac/infra/validator';
@@ -16,9 +13,10 @@ import housingRepository, {
   HousingRecordDBO
 } from '~/repositories/housingRepository';
 import eventRepository from '~/repositories/eventRepository';
-import { createHousingProcessor } from '~/scripts/import-lovac/housings/housing-processor';
 import { createLogger } from '~/infra/logger';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
+import { createHousingProcessor } from '~/scripts/import-lovac/housings/housing-processor';
+import { Readable } from 'node:stream';
 
 const logger = createLogger('sourceHousingCommand');
 
@@ -33,11 +31,18 @@ export function createSourceHousingCommand() {
 
   return async (file: string, options: ExecOptions): Promise<void> => {
     logger.info('Computing total...');
-    const total = await countLines(Readable.toWeb(fs.createReadStream(file)));
+
+    const total = await count(
+      createSourceHousingFileRepository(file).stream({
+        departments: ['01']
+      })
+    );
 
     logger.info('Starting import...', { file });
     await createSourceHousingFileRepository(file)
-      .stream()
+      .stream({
+        departments: ['01']
+      })
       .pipeThrough(
         progress({
           initial: 0,
@@ -86,15 +91,16 @@ export function createSourceHousingCommand() {
         })
       );
     logger.info(`File ${file} imported.`);
+    sourceHousingReporter.report();
 
     logger.info('Starting check for housings missing from the file...');
     const housingStream = Housing().stream();
-    const count = Number(await Housing().count().first());
+    const housingCount = Number(await Housing().count().first());
     await Readable.toWeb(housingStream)
       .pipeThrough(
         progress({
           initial: 0,
-          total: count
+          total: housingCount
         })
       )
       .pipeTo(
@@ -116,7 +122,6 @@ export function createSourceHousingCommand() {
         })
       );
     logger.info('Check done.');
-    sourceHousingReporter.report();
     housingReporter.report();
   };
 }

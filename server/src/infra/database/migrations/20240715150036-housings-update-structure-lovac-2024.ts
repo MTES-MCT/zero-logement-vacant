@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('fast_housing', (table) => {
-    table.string('address').notNullable();
+    table.string('address').nullable();
     table.renameColumn('raw_address', 'address_dgfip');
     table.renameColumn('longitude', 'longitude_dgfip');
     table.renameColumn('latitude', 'latitude_dgfip');
@@ -21,6 +21,12 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('fast_housing', (table) => {
     // Should be notNullable but we need to fill it first
     table.specificType('data_file_years', 'text[]').nullable();
+  });
+  await knex('fast_housing').update({
+    data_file_years: []
+  });
+  await knex.schema.alterTable('fast_housing', (table) => {
+    table.dropNullable('data_file_years');
   });
 
   await knex.schema.alterTable('fast_housing', (table) => {

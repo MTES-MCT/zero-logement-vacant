@@ -8,7 +8,7 @@ import {
 } from '@zerologementvacant/shared';
 import config from '~/infra/config';
 import db from '~/infra/database';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
 import { CampaignApi } from '~/models/CampaignApi';
 import {
   CampaignEventApi,
@@ -26,6 +26,8 @@ import {
   UserDBO,
   usersTable
 } from '~/repositories/userRepository';
+
+const logger = createLogger('eventRepository');
 
 export const eventsTable = 'events';
 export const ownerEventsTable = 'owner_events';
@@ -165,7 +167,7 @@ const findOwnerEvents = async (
 const findHousingEvents = async (
   housingId: string
 ): Promise<EventApi<HousingApi>[]> => {
-  logger.info('List eventApi for housing with id', housingId);
+  logger.debug('Finding housing events...', { housing: housingId });
   return findEvents(housingEventsTable, 'housing_id', housingId);
 };
 

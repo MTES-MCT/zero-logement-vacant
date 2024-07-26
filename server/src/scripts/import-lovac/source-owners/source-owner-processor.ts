@@ -2,7 +2,10 @@ import { WritableStream } from 'node:stream/web';
 import { v4 as uuidv4 } from 'uuid';
 
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
-import { ReporterOptions } from '~/scripts/import-lovac/infra/reporters';
+import {
+  ReporterError,
+  ReporterOptions
+} from '~/scripts/import-lovac/infra/reporters';
 import { createLogger } from '~/infra/logger';
 import { OwnerDBO } from '~/repositories/ownerRepository';
 
@@ -39,6 +42,10 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
         });
         reporter.passed(chunk);
       } catch (error) {
+        reporter.failed(
+          chunk,
+          new ReporterError((error as Error).message, chunk)
+        );
         controller.error(error);
       }
     }

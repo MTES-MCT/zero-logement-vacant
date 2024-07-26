@@ -55,7 +55,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             housingKind: chunk.housing_kind,
             roomsCount: chunk.rooms_count,
             livingArea: chunk.living_area,
-            buildingYear: chunk.building_year,
+            buildingYear: chunk.building_year ?? undefined,
             mutationDate: chunk.mutation_date,
             taxed: chunk.taxed,
             vacancyReasons: undefined,

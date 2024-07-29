@@ -240,7 +240,8 @@ export const genAddressApi = (
     city: faker.location.city(),
     latitude: faker.location.latitude(),
     longitude: faker.location.longitude(),
-    score: Math.random()
+    score: Math.random(),
+    lastUpdatedAt: faker.date.recent().toJSON()
   };
 };
 

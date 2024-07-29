@@ -1,5 +1,6 @@
 import { ReadableStream, TransformStream } from 'node:stream/web';
 
+import { filter } from '@zerologementvacant/utils';
 import { SourceRepository, StreamOptions } from '~/scripts/import-lovac/infra';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { SourceFileRepository } from '~/scripts/import-lovac/infra/source-file-repository';
@@ -15,29 +16,22 @@ class SourceHousingFileRepository
   }
 
   stream(options?: StreamOptions): ReadableStream<SourceHousing> {
-    return super.stream().pipeThrough(filter(options));
+    return super.stream().pipeThrough(filterSourceHousing(options));
   }
 }
 
-function filter(
+function filterSourceHousing(
   options?: StreamOptions
 ): TransformStream<SourceHousing, SourceHousing> {
-  if (!options?.departments?.length) {
+  const departments = options?.departments ?? [];
+
+  if (departments.length === 0) {
     return new TransformStream();
   }
 
-  return new TransformStream<SourceHousing, SourceHousing>({
-    async transform(sourceHousing, controller) {
-      const isInDepartment = options?.departments?.includes(
-        sourceHousing.geo_code.substring(0, 2)
-      );
-
-      if (isInDepartment) {
-        controller.enqueue(sourceHousing);
-        return;
-      }
-    }
-  });
+  return filter((sourceHousing) =>
+    departments.includes(sourceHousing.geo_code.substring(0, 2))
+  );
 }
 
 function createSourceHousingFileRepository(

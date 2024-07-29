@@ -229,7 +229,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
   return {
     id: faker.string.uuid(),
     geoCode,
-    invariant,
+    dataFileYears: ['lovac-2024'],
     uncomfortable: faker.datatype.boolean(),
     roomsCount: faker.number.int({ min: 1, max: 10 }),
     livingArea: faker.number.int({ min: 8 }),

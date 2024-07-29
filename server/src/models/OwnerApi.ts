@@ -1,4 +1,4 @@
-import { OwnerDTO, OwnerPayloadDTO } from '@zerologementvacant/shared';
+import { OwnerDTO, OwnerPayloadDTO } from '@zerologementvacant/models';
 import { compare } from '~/utils/compareUtils';
 import fp from 'lodash/fp';
 

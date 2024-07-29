@@ -3,9 +3,22 @@ import fp from 'lodash/fp';
 export interface AddressDTO {
   refId: string;
   addressKind: AddressKinds;
+  address: string;
+  /**
+   * @deprecated See {@link address}
+   */
   houseNumber?: string;
+  /**
+   * @deprecated See {@link address}
+   */
   street?: string;
+  /**
+   * @deprecated See {@link address}
+   */
   postalCode: string;
+  /**
+   * @deprecated See {@link address}
+   */
   city: string;
   latitude?: number;
   longitude?: number;

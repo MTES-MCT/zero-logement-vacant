@@ -2,7 +2,7 @@ import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
 
-import { AddressKinds, isDefined, isNotNull } from '@zerologementvacant/shared';
+import { AddressKinds } from '@zerologementvacant/shared';
 import db, {
   ConflictOptions,
   groupBy,
@@ -25,7 +25,11 @@ import {
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { groupsHousingTable } from './groupRepository';
 import { OwnerExportStreamApi } from '~/controllers/housingExportController';
-import { banAddressesTable } from './banAddressesRepository';
+import {
+  AddressDBO,
+  banAddressesTable,
+  parseAddressApi
+} from './banAddressesRepository';
 import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
@@ -484,10 +488,26 @@ export interface OwnerRecordDBO {
 }
 
 export interface OwnerDBO extends OwnerRecordDBO {
+  ban?: AddressDBO;
+  /**
+   * @deprecated See {@link ban}
+   */
   postal_code?: string;
+  /**
+   * @deprecated See {@link ban}
+   */
   house_number?: string;
+  /**
+   * @deprecated See {@link ban}
+   */
   street?: string;
+  /**
+   * @deprecated See {@link ban}
+   */
   city?: string;
+  /**
+   * @deprecated See {@link ban}
+   */
   score?: number;
 }
 
@@ -502,22 +522,11 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => ({
   phone: owner.phone ?? undefined,
   kind: owner.kind_class ?? undefined,
   kindDetail: owner.owner_kind_detail ?? undefined,
-  banAddress: [
-    owner.postal_code,
-    owner.house_number,
-    owner.street,
-    owner.city,
-    owner.score
-  ].some((_) => isDefined(_) && isNotNull(_))
-    ? {
-        postalCode: owner.postal_code ?? '',
-        houseNumber: owner.house_number,
-        street: owner.street,
-        city: owner.city ?? '',
-        score: owner.score
-      }
-    : undefined,
-  additionalAddress: owner.additional_address ?? undefined
+  siren: owner.siren ?? undefined,
+  banAddress: owner.ban ? parseAddressApi(owner.ban) : undefined,
+  additionalAddress: owner.additional_address ?? undefined,
+  createdAt: owner.created_at ? new Date(owner.created_at).toJSON() : undefined,
+  updatedAt: owner.updated_at ? new Date(owner.updated_at).toJSON() : undefined
 });
 
 export const parseHousingOwnerApi = (

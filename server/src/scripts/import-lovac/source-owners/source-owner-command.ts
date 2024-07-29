@@ -18,6 +18,7 @@ const logger = createLogger('sourceOwnerCommand');
 
 export interface ExecOptions {
   abortEarly?: boolean;
+  departments?: string[];
   dryRun?: boolean;
 }
 
@@ -31,7 +32,7 @@ export function createSourceOwnerCommand() {
 
       logger.info('Starting import...', { file });
       await createSourceOwnerFileRepository(file)
-        .stream()
+        .stream({ departments: options.departments })
         .pipeThrough(
           progress({
             initial: 0,

@@ -25,7 +25,7 @@ import { geoPerimetersTable } from './geoRepository';
 import establishmentRepository, {
   establishmentsTable
 } from './establishmentRepository';
-import { banAddressesTable } from './banAddressesRepository';
+import { AddressDBO, banAddressesTable } from './banAddressesRepository';
 import { logger } from '~/infra/logger';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
@@ -152,10 +152,10 @@ async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
       `${buildingTable}.vacant_housing_count`,
       `${localitiesTable}.locality_kind`,
       db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.latitude else null end) as latitude_ban`
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude_dgfip, ${housingTable}.longitude_dgfip), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.latitude else null end) as latitude_ban`
       ),
       db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.longitude else null end) as longitude_ban`
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude_dgfip, ${housingTable}.longitude_dgfip), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.longitude else null end) as longitude_ban`
       )
     )
     .where(whereOptions(opts))
@@ -861,10 +861,7 @@ export interface HousingDBO extends HousingRecordDBO {
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;
-  owner_ban_address?: Pick<
-    OwnerDBO,
-    'postal_code' | 'house_number' | 'street' | 'city' | 'score'
-  >;
+  owner_ban_address?: AddressDBO;
   locality_kind?: string;
   geo_perimeters?: string[];
   campaign_ids?: string[];
@@ -919,7 +916,8 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   owner: housing.owner
     ? parseOwnerApi({
         ...housing.owner,
-        ...housing.owner_ban_address
+        ...housing.owner_ban_address,
+        ban: housing.owner_ban_address
       })
     : undefined,
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),

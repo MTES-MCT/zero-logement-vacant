@@ -233,6 +233,7 @@ export const genAddressApi = (
   return {
     refId,
     addressKind,
+    address: faker.location.streetAddress({ useFullAddress: true }),
     houseNumber: faker.location.buildingNumber(),
     street: faker.location.street(),
     postalCode: faker.location.zipCode(),

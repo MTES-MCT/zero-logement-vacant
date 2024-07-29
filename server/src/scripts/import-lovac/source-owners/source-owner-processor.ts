@@ -16,10 +16,10 @@ interface ProcessorOptions extends ReporterOptions<SourceOwner> {
 }
 
 export function sourceOwnerProcessor(opts: ProcessorOptions) {
-  const { saveOwner, reporter } = opts;
+  const { abortEarly, saveOwner, reporter } = opts;
 
   return new WritableStream<SourceOwner>({
-    async write(chunk, controller) {
+    async write(chunk) {
       try {
         logger.debug('Processing source owner...', { chunk });
 
@@ -46,7 +46,10 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
           chunk,
           new ReporterError((error as Error).message, chunk)
         );
-        controller.error(error);
+
+        if (abortEarly) {
+          throw error;
+        }
       }
     }
   });

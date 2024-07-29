@@ -815,20 +815,7 @@ export interface HousingRecordDBO {
   building_group_id?: string;
   plot_id?: string;
   geo_code: string;
-  /**
-   * The actual address of the housing.
-   * Equal to address_dgfip or the BAN address from the `ban_addresses` table.
-   */
-  address: string;
   address_dgfip: string[];
-  /**
-   * Equal to longitude_ban if provided, longitude_dgfip otherwise
-   */
-  longitude?: number;
-  /**
-   * Equal to latitude_ban if provided, latitude_dgfip otherwise
-   */
-  latitude?: number;
   longitude_dgfip?: number;
   latitude_dgfip?: number;
   geolocation?: string;
@@ -848,7 +835,7 @@ export interface HousingRecordDBO {
    */
   data_years: number[];
   /**
-   * @example "lovac-2024"
+   * @example ['ff-2023', 'lovac-2024']
    */
   data_file_years: string[];
   data_source: HousingSource | null;
@@ -869,8 +856,8 @@ export interface HousingRecordDBO {
 export interface HousingDBO extends HousingRecordDBO {
   housing_count?: number;
   vacant_housing_count?: number;
-  latitude_ban?: number;
-  longitude_ban?: number;
+  latitude?: number;
+  longitude?: number;
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;
@@ -905,8 +892,8 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   beneficiaryCount: housing.beneficiary_count,
   rentalValue: housing.rental_value,
   geoCode: housing.geo_code,
-  longitude: housing.longitude_ban ?? housing.longitude,
-  latitude: housing.latitude_ban ?? housing.latitude,
+  longitude: housing.longitude,
+  latitude: housing.latitude,
   cadastralClassification: housing.cadastral_classification,
   uncomfortable: housing.uncomfortable,
   vacancyStartYear: housing.vacancy_start_year,
@@ -954,11 +941,8 @@ export const formatHousingRecordApi = (
   building_group_id: housingRecordApi.buildingGroupId,
   building_location: housingRecordApi.buildingLocation,
   building_year: housingRecordApi.buildingYear,
-  address: 'TODO',
   address_dgfip: housingRecordApi.rawAddress,
   geo_code: housingRecordApi.geoCode,
-  longitude: housingRecordApi.longitude,
-  latitude: housingRecordApi.latitude,
   cadastral_classification: housingRecordApi.cadastralClassification,
   uncomfortable: housingRecordApi.uncomfortable,
   vacancy_start_year: housingRecordApi.vacancyStartYear,

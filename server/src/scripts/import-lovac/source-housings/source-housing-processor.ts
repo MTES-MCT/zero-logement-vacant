@@ -154,8 +154,6 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
                 dataFileYears: [...existingHousing.dataFileYears, 'lovac-2024']
               }
             );
-            // TODO: create events
-
             reporter.passed(chunk);
             return;
           }

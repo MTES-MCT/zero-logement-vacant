@@ -1,5 +1,3 @@
-import { Readable } from 'node:stream';
-
 import { count } from '@zerologementvacant/utils';
 import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
@@ -10,10 +8,7 @@ import {
 } from '~/scripts/import-lovac/source-housings/source-housing';
 import { createSourceHousingProcessor } from '~/scripts/import-lovac/source-housings/source-housing-processor';
 import { HousingApi } from '~/models/HousingApi';
-import housingRepository, {
-  Housing,
-  HousingRecordDBO
-} from '~/repositories/housingRepository';
+import housingRepository, { Housing } from '~/repositories/housingRepository';
 import eventRepository from '~/repositories/eventRepository';
 import { createLogger } from '~/infra/logger';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
@@ -35,7 +30,7 @@ export interface ExecOptions {
 
 export function createSourceHousingCommand() {
   const sourceHousingReporter = createLoggerReporter<SourceHousing>();
-  const housingReporter = createLoggerReporter<HousingRecordDBO>();
+  const housingReporter = createLoggerReporter<HousingApi>();
 
   return async (file: string, options: ExecOptions): Promise<void> => {
     logger.debug('Starting source housing command...', { file, options });
@@ -69,6 +64,7 @@ export function createSourceHousingCommand() {
       )
       .pipeTo(
         createSourceHousingProcessor({
+          abortEarly: options.abortEarly,
           auth,
           reporter: sourceHousingReporter,
           banAddressRepository: {
@@ -119,9 +115,9 @@ export function createSourceHousingCommand() {
     sourceHousingReporter.report();
 
     logger.info('Starting check for housings missing from the file...');
-    const housingStream = Housing().stream();
+    const housingStream = housingRepository.betterStream();
     const housingCount = Number(await Housing().count().first());
-    await Readable.toWeb(housingStream)
+    await housingStream
       .pipeThrough(
         progress({
           initial: 0,
@@ -130,6 +126,8 @@ export function createSourceHousingCommand() {
       )
       .pipeTo(
         createHousingProcessor({
+          auth,
+          abortEarly: options.abortEarly,
           reporter: housingReporter,
           housingRepository: {
             async update(
@@ -141,6 +139,13 @@ export function createSourceHousingCommand() {
                   data_file_years: housing.dataFileYears,
                   occupancy: housing.occupancy
                 });
+              }
+            }
+          },
+          housingEventRepository: {
+            async insert(event: HousingEventApi): Promise<void> {
+              if (!options.dryRun) {
+                await eventRepository.insertHousingEvent(event);
               }
             }
           }

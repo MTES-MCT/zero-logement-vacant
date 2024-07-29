@@ -1,43 +1,57 @@
 import { ReadableStream } from 'node:stream/web';
-
-import {
-  formatHousingRecordApi,
-  HousingRecordDBO
-} from '~/repositories/housingRepository';
-import { genHousingApi } from '~/test/testFixtures';
+import { genHousingApi, genUserApi } from '~/test/testFixtures';
 import {
   createHousingProcessor,
   isCompleted,
-  isInProgress
+  isInProgress,
+  ProcessorOptions
 } from '~/scripts/import-lovac/housings/housing-processor';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
-import { OccupancyKindApi } from '~/models/HousingApi';
+import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatusApi
 } from '~/models/HousingStatusApi';
+import { HousingEventApi } from '~/models/EventApi';
 
 describe('Housing processor', () => {
+  let auth: ProcessorOptions['auth'];
+  let housing: HousingApi;
+  let housingRepository: jest.MockedObject<
+    ProcessorOptions['housingRepository']
+  >;
+  let housingEventRepository: jest.MockedObject<
+    ProcessorOptions['housingEventRepository']
+  >;
+
+  beforeEach(() => {
+    auth = genUserApi('');
+    housing = genHousingApi();
+    housingRepository = {
+      update: jest.fn().mockImplementation(() => Promise.resolve())
+    };
+    housingEventRepository = {
+      insert: jest.fn().mockImplementation(() => Promise.resolve())
+    };
+  });
+
   describe('If the housing is present in LOVAC 2024', () => {
-    const dataFileYears = ['lovac-2023', 'lovac-2024'];
+    beforeEach(() => {
+      housing.dataFileYears = ['lovac-2023', 'lovac-2024'];
+    });
 
     it('should skip it', async () => {
-      const stream = new ReadableStream<HousingRecordDBO>({
+      const stream = new ReadableStream<HousingApi>({
         pull(controller) {
-          const housing = formatHousingRecordApi({
-            ...genHousingApi(),
-            dataFileYears
-          });
           controller.enqueue(housing);
           controller.close();
         }
       });
-      const housingRepository = {
-        update: jest.fn()
-      };
       const processor = createHousingProcessor({
+        auth,
         reporter: createNoopReporter(),
-        housingRepository
+        housingRepository,
+        housingEventRepository
       });
 
       await stream.pipeTo(processor);
@@ -47,35 +61,37 @@ describe('Housing processor', () => {
   });
 
   describe('Otherwise the housing is missing from LOVAC 2024', () => {
-    const dataFileYears = ['lovac-2023'];
+    beforeEach(() => {
+      housing.dataFileYears = ['lovac-2023'];
+    });
 
     describe('if it is vacant', () => {
-      const occupancy = OccupancyKindApi.Vacant;
+      beforeEach(() => {
+        housing.occupancy = OccupancyKindApi.Vacant;
+      });
 
       describe('if it is currently monitored', () => {
-        const status = HousingStatusApi.InProgress;
+        beforeEach(() => {
+          housing.status = HousingStatusApi.InProgress;
+        });
+
         const subStatuses = ['En accompagnement', 'Intervention publique'];
 
         it.each(subStatuses)('should remain untouched', (subStatus) => {
-          const stream = new ReadableStream<HousingRecordDBO>({
+          const stream = new ReadableStream<HousingApi>({
             pull(controller) {
-              const housing = formatHousingRecordApi({
-                ...genHousingApi(),
-                dataFileYears,
-                occupancy,
-                status,
+              controller.enqueue({
+                ...housing,
                 subStatus
               });
-              controller.enqueue(housing);
               controller.close();
             }
           });
-          const housingRepository = {
-            update: jest.fn()
-          };
           const processor = createHousingProcessor({
+            auth,
             reporter: createNoopReporter(),
-            housingRepository
+            housingRepository,
+            housingEventRepository
           });
 
           stream.pipeTo(processor);
@@ -85,27 +101,22 @@ describe('Housing processor', () => {
       });
 
       describe('if it was set as completed', () => {
-        const status = HousingStatusApi.Completed;
+        beforeEach(() => {
+          housing.status = HousingStatusApi.Completed;
+        });
 
         it('should remain untouched', () => {
-          const stream = new ReadableStream<HousingRecordDBO>({
+          const stream = new ReadableStream<HousingApi>({
             pull(controller) {
-              const housing = formatHousingRecordApi({
-                ...genHousingApi(),
-                dataFileYears,
-                occupancy,
-                status
-              });
               controller.enqueue(housing);
               controller.close();
             }
           });
-          const housingRepository = {
-            update: jest.fn()
-          };
           const processor = createHousingProcessor({
+            auth,
             reporter: createNoopReporter(),
-            housingRepository
+            housingRepository,
+            housingEventRepository
           });
 
           stream.pipeTo(processor);
@@ -121,31 +132,27 @@ describe('Housing processor', () => {
       it.each(statuses)(
         'should be set as non-vacant otherwise',
         async (status) => {
-          const housing = formatHousingRecordApi({
-            ...genHousingApi(),
-            dataFileYears,
-            occupancy,
-            status
-          });
-          const stream = new ReadableStream<HousingRecordDBO>({
+          const stream = new ReadableStream<HousingApi>({
             pull(controller) {
-              controller.enqueue(housing);
+              controller.enqueue({
+                ...housing,
+                status
+              });
               controller.close();
             }
           });
-          const housingRepository = {
-            update: jest.fn().mockImplementation(() => Promise.resolve())
-          };
           const processor = createHousingProcessor({
+            auth,
             reporter: createNoopReporter(),
-            housingRepository
+            housingRepository,
+            housingEventRepository
           });
 
           await stream.pipeTo(processor);
 
           expect(housingRepository.update).toHaveBeenCalledOnce();
           expect(housingRepository.update).toHaveBeenCalledWith(
-            { id: housing.id, geoCode: housing.geo_code },
+            { id: housing.id, geoCode: housing.geoCode },
             expect.objectContaining({
               occupancy: OccupancyKindApi.Unknown,
               status: HousingStatusApi.Completed,
@@ -155,12 +162,82 @@ describe('Housing processor', () => {
         }
       );
 
-      // TODO: test events
-    });
+      it('should create an event "Changement de statut d’occupation"', async () => {
+        const stream = new ReadableStream<HousingApi>({
+          pull(controller) {
+            controller.enqueue(housing);
+            controller.close();
+          }
+        });
+        const processor = createHousingProcessor({
+          auth,
+          reporter: createNoopReporter(),
+          housingRepository,
+          housingEventRepository
+        });
 
-    describe('if the monitoring is in progress or completed', () => {
-      it('should create a conflict', () => {
-        // TODO
+        await stream.pipeTo(processor);
+
+        expect(housingEventRepository.insert).toHaveBeenCalled();
+        expect(housingEventRepository.insert).toHaveBeenCalledWith<
+          [HousingEventApi]
+        >(
+          expect.objectContaining<HousingEventApi>({
+            id: expect.any(String),
+            name: 'Changement de statut d’occupation',
+            kind: 'Update',
+            category: 'Followup',
+            section: 'Situation',
+            conflict: false,
+            old: housing,
+            new: { ...housing, occupancy: OccupancyKindApi.Unknown },
+            createdAt: expect.any(Date),
+            createdBy: expect.any(String),
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+        );
+      });
+
+      it('should create an event "Changement de statut de suivi"', async () => {
+        const stream = new ReadableStream<HousingApi>({
+          pull(controller) {
+            controller.enqueue(housing);
+            controller.close();
+          }
+        });
+        const processor = createHousingProcessor({
+          auth,
+          reporter: createNoopReporter(),
+          housingRepository,
+          housingEventRepository
+        });
+
+        await stream.pipeTo(processor);
+
+        expect(housingEventRepository.insert).toHaveBeenCalled();
+        expect(housingEventRepository.insert).toHaveBeenCalledWith<
+          [HousingEventApi]
+        >(
+          expect.objectContaining<HousingEventApi>({
+            id: expect.any(String),
+            name: 'Changement de statut de suivi',
+            kind: 'Update',
+            category: 'Followup',
+            section: 'Situation',
+            conflict: false,
+            old: housing,
+            new: {
+              ...housing,
+              status: HousingStatusApi.Completed,
+              subStatus: 'Sortie de la vacance'
+            },
+            createdAt: expect.any(Date),
+            createdBy: expect.any(String),
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+        );
       });
     });
   });
@@ -172,11 +249,11 @@ describe('Housing processor', () => {
       it.each(['En accompagnement', 'Intervention publique'])(
         'should return true if the housing status is %s and the substatus is %s',
         (subStatus) => {
-          const housing = formatHousingRecordApi({
+          const housing = {
             ...genHousingApi(),
             status,
             subStatus
-          });
+          };
 
           const actual = isInProgress(housing);
 
@@ -186,11 +263,11 @@ describe('Housing processor', () => {
     });
 
     it('should return false if the substatus is not set', () => {
-      const housing = formatHousingRecordApi({
+      const housing = {
         ...genHousingApi(),
         status: HousingStatusApi.InProgress,
         subStatus: undefined
-      });
+      };
 
       const actual = isInProgress(housing);
 
@@ -198,11 +275,11 @@ describe('Housing processor', () => {
     });
 
     it('should return false if the substatus is irrelevant', () => {
-      const housing = formatHousingRecordApi({
+      const housing = {
         ...genHousingApi(),
         status: HousingStatusApi.InProgress,
         subStatus: 'anything else'
-      });
+      };
 
       const actual = isInProgress(housing);
 
@@ -216,10 +293,10 @@ describe('Housing processor', () => {
     it.each(otherStatuses)(
       'should return false for other statuses',
       (status) => {
-        const housing = formatHousingRecordApi({
+        const housing = {
           ...genHousingApi(),
           status
-        });
+        };
 
         const actual = isInProgress(housing);
 
@@ -230,10 +307,10 @@ describe('Housing processor', () => {
 
   describe('isCompleted', () => {
     it(`should return true if the housing status is ${HousingStatusApi.Completed}`, () => {
-      const housing = formatHousingRecordApi({
+      const housing = {
         ...genHousingApi(),
         status: HousingStatusApi.Completed
-      });
+      };
 
       const actual = isCompleted(housing);
 
@@ -245,10 +322,10 @@ describe('Housing processor', () => {
     );
 
     it.each(otherStatuses)('should return false otherwise', (status) => {
-      const housing = formatHousingRecordApi({
+      const housing = {
         ...genHousingApi(),
         status
-      });
+      };
 
       const actual = isCompleted(housing);
 

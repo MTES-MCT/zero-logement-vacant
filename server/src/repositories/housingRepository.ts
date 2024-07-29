@@ -35,6 +35,8 @@ import { housingOwnersTable } from './housingOwnerRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
 import { AddressKinds } from '@zerologementvacant/models';
+import { ReadableStream } from 'node:stream/web';
+import { Readable } from 'node:stream';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -104,6 +106,19 @@ function stream(opts: StreamOptions): Highland.Stream<HousingApi> {
       );
     })
     .map(parseHousingApi);
+}
+
+function betterStream(
+  opts?: Pick<StreamOptions, 'filters' | 'includes'>
+): ReadableStream<HousingApi> {
+  return Readable.toWeb(
+    fastListQuery({
+      filters: opts?.filters ?? {},
+      includes: opts?.includes
+    })
+      .stream()
+      .map(parseHousingApi)
+  );
 }
 
 async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
@@ -968,6 +983,7 @@ export default {
   find,
   findOne,
   stream,
+  betterStream,
   count,
   update,
   save,

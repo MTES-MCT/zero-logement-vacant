@@ -1,6 +1,12 @@
 import { createInterface } from 'node:readline/promises';
 import { Readable } from 'node:stream';
-import { ReadableStream, WritableStream } from 'node:stream/web';
+import {
+  ReadableStream,
+  TransformStream,
+  WritableStream
+} from 'node:stream/web';
+
+import { Predicate } from './compare';
 
 export async function countLines(file: ReadableStream): Promise<number> {
   return new Promise((resolve) => {
@@ -32,5 +38,15 @@ export async function count<A>(stream: ReadableStream<A>): Promise<number> {
         }
       })
     );
+  });
+}
+
+export function filter<A>(predicate: Predicate<A>): TransformStream<A, A> {
+  return new TransformStream({
+    async transform(chunk, controller) {
+      if (predicate(chunk)) {
+        controller.enqueue(chunk);
+      }
+    }
   });
 }

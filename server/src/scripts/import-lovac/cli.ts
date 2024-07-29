@@ -14,6 +14,10 @@ const abortEarly = program.createOption(
   '-a, --abort-early',
   'Abort the script on the first error'
 );
+const departments = program.createOption(
+  '--departments <departments...>',
+  'Filter the departments to import'
+);
 const dryRun = program.createOption(
   '-d, --dry-run',
   'Run the script without saving to the database'
@@ -28,6 +32,7 @@ program
   .description('Import owners from a file to an existing database')
   .argument('<file>', 'The file to import in .csv or .jsonl')
   .addOption(abortEarly)
+  .addOption(departments)
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createSourceOwnerCommand();
@@ -41,6 +46,7 @@ program
   .description('Import housings from a file to an existing database')
   .argument('<file>', 'The file to import in .csv or .jsonl')
   .addOption(abortEarly)
+  .addOption(departments)
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createSourceHousingCommand();

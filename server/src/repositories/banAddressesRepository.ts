@@ -35,6 +35,23 @@ export interface AddressDBO {
   last_updated_at?: Date | string;
 }
 
+async function save(address: AddressApi): Promise<void> {
+  await Addresses()
+    .insert(formatAddressApi(address))
+    .onConflict(['ref_id', 'address_kind'])
+    .merge([
+      'address',
+      'house_number',
+      'street',
+      'postal_code',
+      'city',
+      'latitude',
+      'longitude',
+      'score',
+      'last_updated_at'
+    ]);
+}
+
 const getByRefId = async (
   refId: string,
   addressKind: AddressKinds
@@ -154,7 +171,10 @@ export const parseAddressApi = (address: AddressDBO): AddressApi => ({
   city: address.city ?? '',
   latitude: address.latitude,
   longitude: address.longitude,
-  score: address.score
+  score: address.score,
+  lastUpdatedAt: address.last_updated_at
+    ? new Date(address.last_updated_at).toJSON()
+    : undefined
 });
 
 export const formatAddressApi = (address: AddressApi): AddressDBO => ({
@@ -167,10 +187,14 @@ export const formatAddressApi = (address: AddressApi): AddressDBO => ({
   city: address.city,
   latitude: address.latitude,
   longitude: address.longitude,
-  score: address.score
+  score: address.score,
+  last_updated_at: address.lastUpdatedAt
+    ? new Date(address.lastUpdatedAt)
+    : undefined
 });
 
 export default {
+  save,
   getByRefId,
   listAddressesToNormalize,
   markAddressToBeNormalized,

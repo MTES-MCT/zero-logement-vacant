@@ -18,6 +18,12 @@ import eventRepository from '~/repositories/eventRepository';
 import { createLogger } from '~/infra/logger';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { createHousingProcessor } from '~/scripts/import-lovac/housings/housing-processor';
+import { AddressApi } from '~/models/AddressApi';
+import banAddressesRepository from '~/repositories/banAddressesRepository';
+import { HousingEventApi } from '~/models/EventApi';
+import userRepository from '~/repositories/userRepository';
+import config from '~/infra/config';
+import UserMissingError from '~/errors/userMissingError';
 
 const logger = createLogger('sourceHousingCommand');
 
@@ -33,6 +39,11 @@ export function createSourceHousingCommand() {
 
   return async (file: string, options: ExecOptions): Promise<void> => {
     logger.debug('Starting source housing command...', { file, options });
+
+    const auth = await userRepository.getByEmail(config.app.system);
+    if (!auth) {
+      throw new UserMissingError(config.app.system);
+    }
 
     const departments = options.departments ?? [];
 
@@ -58,7 +69,15 @@ export function createSourceHousingCommand() {
       )
       .pipeTo(
         createSourceHousingProcessor({
+          auth,
           reporter: sourceHousingReporter,
+          banAddressRepository: {
+            async insert(address: AddressApi): Promise<void> {
+              if (!options.dryRun) {
+                await banAddressesRepository.save(address);
+              }
+            }
+          },
           housingRepository: {
             findOne(localId: string): Promise<HousingApi | null> {
               const geoCode = localId.substring(0, 5);
@@ -87,7 +106,12 @@ export function createSourceHousingCommand() {
             }
           },
           housingEventRepository: {
-            find: eventRepository.findHousingEvents
+            find: eventRepository.findHousingEvents,
+            async insert(event: HousingEventApi): Promise<void> {
+              if (!options.dryRun) {
+                await eventRepository.insertHousingEvent(event);
+              }
+            }
           }
         })
       );

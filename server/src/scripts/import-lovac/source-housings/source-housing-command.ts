@@ -1,3 +1,5 @@
+import { Readable } from 'node:stream';
+
 import { count } from '@zerologementvacant/utils';
 import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
@@ -16,12 +18,12 @@ import eventRepository from '~/repositories/eventRepository';
 import { createLogger } from '~/infra/logger';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { createHousingProcessor } from '~/scripts/import-lovac/housings/housing-processor';
-import { Readable } from 'node:stream';
 
 const logger = createLogger('sourceHousingCommand');
 
 export interface ExecOptions {
   abortEarly?: boolean;
+  departments?: string[];
   dryRun?: boolean;
 }
 
@@ -30,19 +32,18 @@ export function createSourceHousingCommand() {
   const housingReporter = createLoggerReporter<HousingRecordDBO>();
 
   return async (file: string, options: ExecOptions): Promise<void> => {
-    logger.info('Computing total...');
+    logger.debug('Starting source housing command...', { file, options });
 
+    const departments = options.departments ?? [];
+
+    logger.info('Computing total...');
     const total = await count(
-      createSourceHousingFileRepository(file).stream({
-        departments: ['01']
-      })
+      createSourceHousingFileRepository(file).stream({ departments })
     );
 
     logger.info('Starting import...', { file });
     await createSourceHousingFileRepository(file)
-      .stream({
-        departments: ['01']
-      })
+      .stream({ departments })
       .pipeThrough(
         progress({
           initial: 0,

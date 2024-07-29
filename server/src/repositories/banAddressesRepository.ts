@@ -147,6 +147,7 @@ const markAddressToBeNormalized = async (
 export const parseAddressApi = (address: AddressDBO): AddressApi => ({
   refId: address.ref_id,
   addressKind: address.address_kind,
+  address: address.address,
   houseNumber: address.house_number,
   street: address.street,
   postalCode: address.postal_code ?? '',
@@ -156,16 +157,17 @@ export const parseAddressApi = (address: AddressDBO): AddressApi => ({
   score: address.score
 });
 
-export const formatAddressApi = (addressApi: AddressApi) => ({
-  ref_id: addressApi.refId,
-  address_kind: addressApi.addressKind,
-  house_number: addressApi.houseNumber ?? '',
-  street: addressApi.street,
-  postal_code: addressApi.postalCode,
-  city: addressApi.city,
-  latitude: addressApi.latitude,
-  longitude: addressApi.longitude,
-  score: addressApi.score
+export const formatAddressApi = (address: AddressApi): AddressDBO => ({
+  ref_id: address.refId,
+  address_kind: address.addressKind,
+  address: address.address,
+  house_number: address.houseNumber,
+  street: address.street,
+  postal_code: address.postalCode,
+  city: address.city,
+  latitude: address.latitude,
+  longitude: address.longitude,
+  score: address.score
 });
 
 export default {

@@ -124,6 +124,8 @@ fileignoreconfig:
   checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
 - filename: server/src/routers/unprotected.ts
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
+- filename: server/src/scripts/deduplicate-housing/merger.ts
+  checksum: a589e20f249e86844dd07ce425c24268666f3acb9d71104838559d146327b11e
 - filename: server/src/scripts/import-lovac/infra/reporters/logger-reporter.ts
   checksum: d61083d7e944f8ffa847fa782e6328c671ac50ab28fd21622fcb417e8b7a5392
 - filename: server/src/scripts/import-lovac/infra/reporters/noop-reporter.ts

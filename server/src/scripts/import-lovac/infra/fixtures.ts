@@ -11,6 +11,8 @@ export function genSourceHousing(): SourceHousing {
   const geoCode = faker.location.zipCode();
 
   return {
+    data_file_years: 'lovac-2024',
+    data_source: 'lovac',
     local_id: geoCode + faker.string.numeric(7),
     geo_code: geoCode,
     building_id: geoCode + faker.string.alphanumeric(10),
@@ -23,6 +25,8 @@ export function genSourceHousing(): SourceHousing {
     ban_score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
     ban_latitude: faker.location.latitude(),
     ban_longitude: faker.location.longitude(),
+    geolocalisation:
+      faker.location.latitude() + ',' + faker.location.longitude(),
     housing_kind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     condominium: faker.helpers.arrayElement(OWNERSHIP_KINDS),
     rooms_count: faker.number.int({ min: 1, max: 10 }),

@@ -88,6 +88,11 @@ type StreamOptions = FindOptions & {
   includes: HousingInclude[];
 };
 
+/**
+ * @deprecated Should be replaced by {@link betterStream} to get out of
+ * the highland library, and allow `opts` to be optional.
+ * @param opts
+ */
 function stream(opts: StreamOptions): Highland.Stream<HousingApi> {
   return highland(fetchGeoCodes(opts.filters?.establishmentIds ?? []))
     .flatMap((geoCodes) => {

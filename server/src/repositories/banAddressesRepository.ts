@@ -6,14 +6,42 @@ import { AddressApi, AddressToNormalize } from '~/models/AddressApi';
 import { housingTable } from './housingRepository';
 
 export const banAddressesTable = 'ban_addresses';
+export const Addresses = (transaction = db) =>
+  transaction<AddressDBO>(banAddressesTable);
+
+export interface AddressDBO {
+  ref_id: string;
+  address_kind: AddressKinds;
+  address: string;
+  /**
+   * @deprecated See {@link address}
+   */
+  house_number?: string;
+  /**
+   * @deprecated See {@link street}
+   */
+  street?: string;
+  /**
+   * @deprecated See {@link address}
+   */
+  postal_code?: string;
+  /**
+   * @deprecated See {@link address}
+   */
+  city?: string;
+  latitude?: number;
+  longitude?: number;
+  score?: number;
+  last_updated_at?: Date | string;
+}
 
 const getByRefId = async (
   refId: string,
-  addressKind: AddressKinds,
+  addressKind: AddressKinds
 ): Promise<AddressApi | null> => {
   logger.debug('Get ban adresse with ref id', {
     ref: refId,
-    addressKind,
+    addressKind
   });
   const address = await db(banAddressesTable)
     .where('ref_id', refId)
@@ -34,7 +62,7 @@ const lastUpdatedClause = (query: any) => {
     .orWhere(
       'last_updated_at',
       '<',
-      db.raw(`current_timestamp  - interval '${config.ban.update.delay}'`),
+      db.raw(`current_timestamp  - interval '${config.ban.update.delay}'`)
     );
 };
 
@@ -45,7 +73,7 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
       'raw_address',
       db.raw(`'${AddressKinds.Housing}' as address_kind`),
       'last_updated_at',
-      'geo_code',
+      'geo_code'
     )
     .leftJoin(banAddressesTable, (query: any) => {
       query
@@ -61,9 +89,9 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
             refId: result.id,
             addressKind: result.address_kind,
             rawAddress: result.raw_address,
-            geoCode: result.geo_code,
-          },
-      ),
+            geoCode: result.geo_code
+          }
+      )
     );
 };
 
@@ -74,11 +102,11 @@ const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
     .filter((_) => _.refId)
     .filter(
       (value, index, self) =>
-        self.findIndex((_) => _.refId === value.refId) === index,
+        self.findIndex((_) => _.refId === value.refId) === index
     )
     .map((addressApi) => ({
       ...formatAddressApi(addressApi),
-      last_updated_at: new Date(),
+      last_updated_at: new Date()
     }));
 
   if (!upsertedAddresses.length) {
@@ -97,7 +125,7 @@ const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
         'latitude',
         'longitude',
         'score',
-        'last_updated_at',
+        'last_updated_at'
       ])
       .returning('*');
   } catch (err) {
@@ -108,7 +136,7 @@ const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
 
 const markAddressToBeNormalized = async (
   addressId: string,
-  addressKind: AddressKinds,
+  addressKind: AddressKinds
 ) => {
   db(banAddressesTable)
     .where('ref_id', addressId)
@@ -116,18 +144,17 @@ const markAddressToBeNormalized = async (
     .update({ last_updated_at: null });
 };
 
-export const parseAddressApi = (result: any) =>
-  <AddressApi>{
-    refId: result.ref_id,
-    addressKind: result.address_kind,
-    houseNumber: result.house_number,
-    street: result.street,
-    postalCode: result.postal_code,
-    city: result.city,
-    latitude: result.latitude,
-    longitude: result.longitude,
-    score: result.score,
-  };
+export const parseAddressApi = (address: AddressDBO): AddressApi => ({
+  refId: address.ref_id,
+  addressKind: address.address_kind,
+  houseNumber: address.house_number,
+  street: address.street,
+  postalCode: address.postal_code ?? '',
+  city: address.city ?? '',
+  latitude: address.latitude,
+  longitude: address.longitude,
+  score: address.score
+});
 
 export const formatAddressApi = (addressApi: AddressApi) => ({
   ref_id: addressApi.refId,
@@ -138,12 +165,12 @@ export const formatAddressApi = (addressApi: AddressApi) => ({
   city: addressApi.city,
   latitude: addressApi.latitude,
   longitude: addressApi.longitude,
-  score: addressApi.score,
+  score: addressApi.score
 });
 
 export default {
   getByRefId,
   listAddressesToNormalize,
   markAddressToBeNormalized,
-  upsertList,
+  upsertList
 };

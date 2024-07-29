@@ -3,9 +3,22 @@ import fp from 'lodash/fp';
 export interface AddressDTO {
   refId: string;
   addressKind: AddressKinds;
+  address: string;
+  /**
+   * @deprecated See {@link address}
+   */
   houseNumber?: string;
+  /**
+   * @deprecated See {@link address}
+   */
   street?: string;
+  /**
+   * @deprecated See {@link address}
+   */
   postalCode: string;
+  /**
+   * @deprecated See {@link address}
+   */
   city: string;
   latitude?: number;
   longitude?: number;
@@ -14,7 +27,7 @@ export interface AddressDTO {
 
 export enum AddressKinds {
   Housing = 'Housing',
-  Owner = 'Owner',
+  Owner = 'Owner'
 }
 
 // TODO: improve this function
@@ -27,6 +40,6 @@ export function formatAddress(
     address.street?.startsWith(address.houseNumber ?? '')
       ? address.street
       : `${address.houseNumber} ${address.street}`,
-    `${address.postalCode} ${address.city}`,
+    `${address.postalCode} ${address.city}`
   ]);
 }

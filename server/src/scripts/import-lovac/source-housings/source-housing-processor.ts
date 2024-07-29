@@ -1,6 +1,7 @@
 import { WritableStream } from 'node:stream/web';
 import { v4 as uuidv4 } from 'uuid';
 
+import { AddressKinds } from '@zerologementvacant/models';
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { createLogger } from '~/infra/logger';
@@ -11,12 +12,19 @@ import {
   OwnershipKindsApi
 } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { EventApi } from '~/models/EventApi';
+import { EventApi, HousingEventApi } from '~/models/EventApi';
+import { AddressApi } from '~/models/AddressApi';
+import { UserApi } from '~/models/UserApi';
 
 const logger = createLogger('sourceHousingProcessor');
 
 export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
+  auth: UserApi;
+  banAddressRepository: {
+    insert(address: AddressApi): Promise<void>;
+  };
   housingEventRepository: {
+    insert(event: HousingEventApi): Promise<void>;
     find(housingId: string): Promise<ReadonlyArray<EventApi<HousingApi>>>;
   };
   housingRepository: {
@@ -30,8 +38,14 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
 }
 
 export function createSourceHousingProcessor(opts: ProcessorOptions) {
-  const { abortEarly, housingEventRepository, housingRepository, reporter } =
-    opts;
+  const {
+    abortEarly,
+    auth,
+    banAddressRepository,
+    housingEventRepository,
+    housingRepository,
+    reporter
+  } = opts;
 
   return new WritableStream<SourceHousing>({
     async write(chunk) {
@@ -40,7 +54,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
 
         const existingHousing = await housingRepository.findOne(chunk.local_id);
         if (!existingHousing) {
-          await housingRepository.insert({
+          const housing: HousingApi = {
             id: uuidv4(),
             invariant: '',
             localId: chunk.local_id,
@@ -68,8 +82,22 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             occupancy: OccupancyKindApi.Vacant,
             occupancyRegistered: OccupancyKindApi.Vacant,
             source: 'lovac'
-          });
-          // TODO: create events
+          };
+          await housingRepository.insert(housing);
+          if (chunk.ban_address) {
+            await banAddressRepository.insert({
+              refId: housing.id,
+              addressKind: AddressKinds.Housing,
+              address: chunk.ban_address,
+              postalCode: '',
+              city: '',
+              latitude: chunk.ban_latitude ?? undefined,
+              longitude: chunk.ban_longitude ?? undefined,
+              score: chunk.ban_score ?? undefined
+            });
+          }
+          reporter.passed(chunk);
+          return;
         }
 
         if (existingHousing) {
@@ -79,18 +107,29 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
 
           if (existingHousing.occupancy !== OccupancyKindApi.Vacant) {
             if (!isSupervised(existingHousing, existingEvents)) {
+              const occupancy = OccupancyKindApi.Vacant;
+              const dataFileYears = [
+                ...existingHousing.dataFileYears,
+                'lovac-2024'
+              ];
               await housingRepository.update(
                 { id: existingHousing.id, geoCode: existingHousing.geoCode },
-                {
-                  dataFileYears: [
-                    ...existingHousing.dataFileYears,
-                    'lovac-2024'
-                  ],
-                  occupancy: OccupancyKindApi.Vacant
-                }
+                { dataFileYears, occupancy }
               );
-              // TODO: create events
-
+              await housingEventRepository.insert({
+                id: uuidv4(),
+                name: 'Changement de statut d’occupation',
+                kind: 'Update',
+                category: 'Followup',
+                section: 'Situation',
+                conflict: false,
+                old: existingHousing,
+                new: { ...existingHousing, dataFileYears, occupancy },
+                createdBy: auth.id,
+                createdAt: new Date(),
+                housingGeoCode: existingHousing.geoCode,
+                housingId: existingHousing.id
+              });
               reporter.passed(chunk);
               return;
             } else {

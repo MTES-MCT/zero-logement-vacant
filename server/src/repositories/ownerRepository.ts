@@ -16,7 +16,6 @@ import { PaginatedResultApi } from '~/models/PaginatedResultApi';
 import { logger } from '~/infra/logger';
 import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { ownerMatchTable } from './ownerMatchRepository';
 import {
   HousingDBO,
   housingTable,
@@ -99,25 +98,12 @@ const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
     .where(whereOptions(opts?.filters))
     .modify((query) => {
       if (opts?.filters?.idpersonne) {
-        query
-          .join(
-            ownerMatchTable,
-            `${ownerMatchTable}.owner_id`,
-            `${ownerTable}.id`
-          )
-          .modify((query) => {
-            if (opts?.filters?.idpersonne) {
-              Array.isArray(opts?.filters?.idpersonne)
-                ? query.whereIn(
-                    `${ownerMatchTable}.idpersonne`,
-                    opts?.filters?.idpersonne
-                  )
-                : query.where(
-                    `${ownerMatchTable}.idpersonne`,
-                    opts?.filters?.idpersonne
-                  );
-            }
-          });
+        query.whereIn(
+          'idpersonne',
+          Array.isArray(opts.filters.idpersonne)
+            ? opts.filters.idpersonne
+            : [opts.filters.idpersonne]
+        );
       }
     })
     .orderBy('full_name');
@@ -163,7 +149,7 @@ const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
     .modify(filteredQuery(opts.filters))
     .select(
       `${ownerTable}.id`,
-      `${ownerTable}.raw_address`,
+      `${ownerTable}.address_dgfip`,
       `${ownerTable}.full_name`,
       db.raw(`array_agg (to_json(fast_housing.*)) as housing_list`)
     )
@@ -275,9 +261,9 @@ const findByHousing = async (
 
 const insert = async (draftOwnerApi: OwnerPayloadApi): Promise<OwnerApi> => {
   logger.info('Insert draftOwnerApi');
-  return db(ownerTable)
+  return Owners()
     .insert({
-      raw_address: draftOwnerApi.rawAddress,
+      address_dgfip: draftOwnerApi.rawAddress,
       full_name: draftOwnerApi.fullName,
       birth_date: draftOwnerApi.birthDate,
       email: draftOwnerApi.email,
@@ -345,11 +331,11 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
           .modify((builder) => {
             if (onConflict === 'merge') {
               return builder
-                .onConflict(['full_name', 'raw_address', 'birth_date'])
+                .onConflict(['full_name', 'address_dgfip', 'birth_date'])
                 .merge(['administrator', 'kind_class', 'owner_kind_detail']);
             }
             return builder
-              .onConflict(['full_name', 'raw_address', 'birth_date'])
+              .onConflict(['full_name', 'address_dgfip', 'birth_date'])
               .ignore();
           })
       );
@@ -364,7 +350,7 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
               return builder
                 .onConflict(
                   db.raw(
-                    '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
+                    '(full_name, address_dgfip, (birth_date IS NULL)) where birth_date is null'
                   )
                 )
                 .merge(['administrator', 'kind_class', 'owner_kind_detail']);
@@ -372,7 +358,7 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
             return builder
               .onConflict(
                 db.raw(
-                  '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null'
+                  '(full_name, address_dgfip, (birth_date IS NULL)) where birth_date is null'
                 )
               )
               .ignore();
@@ -389,7 +375,7 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
     return db(ownerTable)
       .where('id', ownerApi.id)
       .update({
-        raw_address: ownerApi.rawAddress,
+        address_dgfip: ownerApi.rawAddress,
         full_name: ownerApi.fullName,
         birth_date: ownerApi.birthDate ?? null,
         email: ownerApi.email ?? null,

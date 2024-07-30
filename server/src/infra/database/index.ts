@@ -56,6 +56,10 @@ export interface ConflictOptions<T> {
 
 export function onConflict<T extends object>(opts?: ConflictOptions<T>) {
   return (query: Knex.QueryBuilder): void => {
+    if (opts?.onConflict && opts.onConflict.length === 0) {
+      query.onConflict(opts.onConflict as any).ignore();
+    }
+
     if (opts?.onConflict && opts.onConflict.length > 0) {
       query.onConflict(opts.onConflict as any).merge(opts?.merge);
     }

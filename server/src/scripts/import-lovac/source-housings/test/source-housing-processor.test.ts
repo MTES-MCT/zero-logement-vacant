@@ -88,10 +88,13 @@ describe('Source housing processor', () => {
           await stream.pipeTo(processor);
 
           expect(housingRepository.update).toHaveBeenCalledOnce();
-          expect(housingRepository.update).toHaveBeenCalledWith(housing.id, {
-            dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
-            occupancy: OccupancyKindApi.Vacant
-          });
+          expect(housingRepository.update).toHaveBeenCalledWith(
+            { geoCode: housing.geoCode, id: housing.id },
+            {
+              dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
+              occupancy: OccupancyKindApi.Vacant
+            }
+          );
         });
       });
 
@@ -135,9 +138,12 @@ describe('Source housing processor', () => {
           await stream.pipeTo(processor);
 
           expect(housingRepository.update).toHaveBeenCalledOnce();
-          expect(housingRepository.update).toHaveBeenCalledWith(housing.id, {
-            dataFileYears: [...housing.dataFileYears, 'lovac-2024']
-          });
+          expect(housingRepository.update).toHaveBeenCalledWith(
+            { geoCode: housing.geoCode, id: housing.id },
+            {
+              dataFileYears: [...housing.dataFileYears, 'lovac-2024']
+            }
+          );
         });
 
         it.todo('should create events');
@@ -174,9 +180,12 @@ describe('Source housing processor', () => {
         await stream.pipeTo(processor);
 
         expect(housingRepository.update).toHaveBeenCalledOnce();
-        expect(housingRepository.update).toHaveBeenCalledWith(housing.id, {
-          dataFileYears: [...housing.dataFileYears, 'lovac-2024']
-        });
+        expect(housingRepository.update).toHaveBeenCalledWith(
+          { geoCode: housing.geoCode, id: housing.id },
+          {
+            dataFileYears: [...housing.dataFileYears, 'lovac-2024']
+          }
+        );
       });
 
       it.todo('should create an event');

@@ -55,7 +55,7 @@ export function createSourceOwnerCommand() {
                   .onConflict(['idpersonne'])
                   .merge([
                     'full_name',
-                    'dgfip_address',
+                    'address_dgfip',
                     'data_source',
                     'kind_class',
                     'birth_date',

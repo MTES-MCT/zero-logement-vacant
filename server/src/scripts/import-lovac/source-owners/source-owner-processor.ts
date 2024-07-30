@@ -30,7 +30,7 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
           birth_date: chunk.birth_date,
           administrator: null,
           siren: chunk.siren,
-          dgfip_address: [chunk.dgfip_address],
+          address_dgfip: [chunk.dgfip_address],
           additional_address: null,
           email: null,
           phone: null,

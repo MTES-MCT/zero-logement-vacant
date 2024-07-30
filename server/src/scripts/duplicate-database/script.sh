@@ -42,7 +42,6 @@ wait
 # Exclude datafoncier
 pg_restore --list ${backup_file_name} > toc.list
 grep -Ev "df_housing_nat|df_owners_nat" toc.list > filtered_toc.list
-grep -Ev "df_housing_nat_[0-9]{4}|df_owners_[0-9]{4}" filtered_toc.list > final_toc.list
 
 wait
 

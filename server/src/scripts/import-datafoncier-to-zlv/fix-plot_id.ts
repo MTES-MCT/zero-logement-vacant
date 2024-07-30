@@ -1,6 +1,6 @@
 import { logger } from '~/infra/logger';
 import db from '~/infra/database/';
-import { SingleBar, Presets } from 'cli-progress';
+import { Presets, SingleBar } from 'cli-progress';
 
 const progressBar = new SingleBar({}, Presets.shades_classic);
 
@@ -9,7 +9,7 @@ const processRow = async (housing: any) => {
     progressBar.increment();
     const doProcess = async () => {
       await db.raw(
-        `UPDATE fast_housing SET plot_id='${housing.idpar}' WHERE local_id='${housing.local_id}'`,
+        `UPDATE fast_housing SET plot_id='${housing.idpar}' WHERE local_id='${housing.local_id}'`
       );
       resolve();
     };
@@ -19,11 +19,11 @@ const processRow = async (housing: any) => {
 
 const main = async () => {
   logger.info(
-    'Importing datafoncier raw data to ZLV tables (missing plot_id)...',
+    'Importing datafoncier raw data to ZLV tables (missing plot_id)...'
   );
 
   const count = await db.raw(
-    `select count(*) from fast_housing where source = 'datafoncier-import' and plot_id IS NULL`,
+    `select count(*) from fast_housing where source = 'datafoncier-import' and plot_id IS NULL`
   );
   progressBar.start(parseInt(count.rows[0].count), 0);
 
@@ -31,8 +31,8 @@ const main = async () => {
     .raw(
       `SELECT local_id, idpar
   FROM fast_housing fh
-  JOIN df_housing_nat_2023 df ON fh.local_id = df.idLocal
-  WHERE source = 'datafoncier-import' and plot_id IS NULL`,
+  JOIN df_housing_nat df ON fh.local_id = df.idLocal
+  WHERE source = 'datafoncier-import' and plot_id IS NULL`
     )
     .stream();
 

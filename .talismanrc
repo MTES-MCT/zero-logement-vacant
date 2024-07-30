@@ -1,8 +1,4 @@
 fileignoreconfig:
-- filename: .github/workflows/deploy.yml
-  checksum: fe575a99e7ab0a3421ca14fcff7d4997cf2bf31ddf5619b7711233f5a4a316d3
-- filename: .github/workflows/e2e.yml
-  checksum: 1994a562d1d57521c10078640cd49fdccf7b3baecbaf46f3ed383ada996b5c90
 - filename: .github/workflows/github-actions.yml
   checksum: b1a53b557b6b2ac4c57f6afce9e902582f5589f97762a963da587496a455c0c1
 - filename: .github/workflows/review-app.yml
@@ -78,6 +74,8 @@ fileignoreconfig:
   checksum: df71affe33700cb0a36ee0b4824ef60e7d8e5a08f3d4d16ca53c31e9085b45ae
 - filename: queue/README.md
   checksum: fe2ac5277a42e6bf8dfc1e0fe53cc3308bba9019d9091f4b8c291e4a2e4a4eb8
+- filename: queue/src/.htpasswd
+  checksum: 7670652d46bed42247610009a41eadea1d18ff839db9fa831288cb6ab19792e1
 - filename: queue/src/config.ts
   checksum: 8ca4d9a0b6118457fb7dcea24e43645eb63bea92d9e0f1d0c4ae763ea55491a5
 - filename: queue/src/events/index.ts
@@ -113,7 +111,7 @@ fileignoreconfig:
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
   checksum: b2db25db2503ffb08d08e232fa5aa319caa0bacca03b5af067038154bb5393ca
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
-  checksum: f3fabfbe62c13a614236fd7c9474c78de726c44515e8f116f3532765907c218c
+  checksum: 85407878a244313b70b8a60b5c7d3e41c33df83629866437cbca3a309ab6e1bc
 - filename: server/src/infra/database/seeds/development/20240627141242_e2e.ts
   checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
 - filename: server/src/routers/unprotected.ts
@@ -132,8 +130,7 @@ allowed_patterns:
 - key=\{.+\}
 - keyof
 version: "1.0"
-red/src/utils/s3.ts
-  checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
+85ac09fdcf3978c64ff996c2d0e8731431ecb2c0
 scopeconfig:
 - scope: node
 allowed_patterns:

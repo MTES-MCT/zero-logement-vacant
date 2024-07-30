@@ -27,7 +27,7 @@ describe('SourceHousing', () => {
       dgfip_longitude: fc.float({ min: -180, max: 180, noNaN: true }),
       housing_kind: fc.constantFrom(...HOUSING_KIND_VALUES),
       condominium: fc.option(fc.string({ minLength: 1 })),
-      living_area: fc.float({ min: 0 }),
+      living_area: fc.float({ min: 0, noNaN: true }),
       rooms_count: fc.integer({ min: 0 }),
       building_year: fc.option(
         fc.integer({ min: 1, max: new Date().getUTCFullYear() })

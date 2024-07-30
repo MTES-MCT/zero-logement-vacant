@@ -38,7 +38,7 @@ describe('Owner repository', () => {
 
       expect(actual).toStrictEqual({
         ...owner,
-        administrator: null,
+        administrator: undefined,
         birthDate: undefined,
         banAddress: undefined
       });
@@ -56,7 +56,7 @@ describe('Owner repository', () => {
 
       expect(actual).toStrictEqual({
         ...owner,
-        administrator: null,
+        administrator: undefined,
         birthDate: owner.birthDate ? new Date(owner.birthDate) : null,
         banAddress: undefined
       });

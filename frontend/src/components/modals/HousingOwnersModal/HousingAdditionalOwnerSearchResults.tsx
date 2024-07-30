@@ -1,11 +1,13 @@
-import { Col, Pagination, Row, Table, Text } from '../../_dsfr';
+import { Col, Pagination as DSFRPagination, Row, Table, Text } from '../../_dsfr';
 import { format } from 'date-fns';
 import { displayCount } from '../../../utils/stringUtils';
 import { Owner } from '../../../models/Owner';
 import { usePagination } from '../../../hooks/usePagination';
 import { useFindOwnersQuery } from '../../../services/owner.service';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
-import housingSlice from '../../../store/reducers/housingReducer';
+import housingSlice, { DefaultPagination } from '../../../store/reducers/housingReducer';
+import { useState } from 'react';
+import { Pagination } from '@zerologementvacant/models';
 
 interface Props {
   onSelect: (owner: Owner) => void;
@@ -22,11 +24,12 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
     },
   );
 
+  const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
+
   const { pageCount, rowNumber, hasPagination } = usePagination({
+    pagination,
+    setPagination,
     count: additionalOwners?.filteredCount,
-    perPage: additionalOwners?.perPage,
-    page: additionalOwners?.page,
-    paginate: true,
   });
 
   const columns = () => [
@@ -96,7 +99,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
                   />
                   {hasPagination && (
                     <div className="fr-react-table--pagination-center nav">
-                      <Pagination
+                      <DSFRPagination
                         onClick={(page: number) =>
                           dispatch(
                             housingSlice.actions.fetchingAdditionalOwners({

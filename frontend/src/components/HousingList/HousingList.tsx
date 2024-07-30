@@ -84,25 +84,11 @@ const HousingList = ({
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, rowNumber, hasPagination } = usePagination({
-    ...pagination,
+  const { pageCount, hasPagination, rowNumber, changePerPage, changePage} = usePagination({
+    pagination,
+    setPagination,
     count: filteredCount,
   });
-
-  const changePerPage = (perPage: number) => {
-    setPagination({
-      ...pagination,
-      page: 1,
-      perPage,
-    });
-  };
-
-  const changePage = (page: number) => {
-    setPagination({
-      ...pagination,
-      page,
-    });
-  };
 
   const onSort = (sort: HousingSort) => {
     setSort(sort);

@@ -1,4 +1,3 @@
-import { startOfYear } from 'date-fns/fp';
 import { boolean, date, number, object, ObjectSchema, string } from 'yup';
 
 import { HOUSING_KIND_VALUES } from '@zerologementvacant/models';
@@ -15,10 +14,10 @@ export interface SourceHousing {
   ban_score: number | null;
   ban_latitude: number | null;
   ban_longitude: number | null;
-  geolocalisation: string;
+  geolocalisation: string | null;
   dgfip_address: string;
-  dgfip_longitude: number;
-  dgfip_latitude: number;
+  dgfip_longitude: number | null;
+  dgfip_latitude: number | null;
   housing_kind: string;
   condominium: string | null;
   living_area: number;
@@ -54,14 +53,18 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .min(-180)
     .max(180)
     .nullable(),
-  geolocalisation: string().required('geolocalisation is required'),
+  geolocalisation: string()
+    .defined('geolocalisation must be defined')
+    .nullable(),
   dgfip_address: string().required('dgfip_address is required'),
   dgfip_latitude: number()
-    .required('dgfip_latitude is required')
+    .defined('dgfip_latitude must be defined')
+    .nullable()
     .min(-90)
     .max(90),
   dgfip_longitude: number()
-    .required('dgfip_longitude is required')
+    .defined('dgfip_longitude must be defined')
+    .nullable()
     .min(-180)
     .max(180),
   housing_kind: string()
@@ -94,8 +97,5 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .min(0)
     .max(new Date().getUTCFullYear())
     .required('vacancy_start_year is required'),
-  mutation_date: date()
-    .defined('mutation_date must be defined')
-    .nullable()
-    .max(startOfYear(new Date()))
+  mutation_date: date().defined('mutation_date must be defined').nullable()
 });

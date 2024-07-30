@@ -13,6 +13,7 @@ export interface HousingRecordApi {
    */
   invariant: string;
   localId: string;
+  plotId?: string;
   buildingId?: string;
   buildingGroupId?: string;
   /**
@@ -41,6 +42,7 @@ export interface HousingRecordApi {
   beneficiaryCount?: number;
   buildingLocation?: string;
   rentalValue?: number;
+  geolocation?: string;
   ownershipKind?: OwnershipKindsApi;
   status: HousingStatusApi;
   subStatus?: string;

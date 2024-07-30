@@ -116,7 +116,7 @@ export function createSourceHousingCommand() {
 
     logger.info('Starting check for housings missing from the file...');
     const housingStream = housingRepository.betterStream();
-    const housingCount = Number(await Housing().count().first());
+    const housingCount = Number((await Housing().count().first())?.count);
     await housingStream
       .pipeThrough(
         progress({

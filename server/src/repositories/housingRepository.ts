@@ -381,11 +381,11 @@ export function queryOwnerHousingWhereClause(
           query?.split(' ').reverse().join(' ')
         );
         whereBuilder.orWhereRaw(
-          `replace(upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
+          `replace(upper(unaccent(array_to_string(${housingTable}.address_dgfip, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
           query
         );
         whereBuilder.orWhereRaw(
-          `upper(unaccent(array_to_string(${ownerTable}.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`,
+          `upper(unaccent(array_to_string(${ownerTable}.address_dgfip, '%'))) like '%' || upper(unaccent(?)) || '%'`,
           query
         );
       }
@@ -777,12 +777,12 @@ const housingSortQuery = (sort?: HousingSortApi) =>
       owner: (query) => query.orderBy(`${ownerTable}.full_name`, sort?.owner),
       rawAddress: (query) => {
         query
-          .orderBy(`${housingTable}.raw_address[2]`, sort?.rawAddress)
+          .orderBy(`${housingTable}.address_dgfip[2]`, sort?.rawAddress)
           .orderByRaw(
-            `array_to_string(((string_to_array(${housingTable}."raw_address"[1], ' '))[2:]), '') ${sort?.rawAddress}`
+            `array_to_string(((string_to_array(${housingTable}."address_dgfip"[1], ' '))[2:]), '') ${sort?.rawAddress}`
           )
           .orderByRaw(
-            `(string_to_array(${housingTable}."raw_address"[1], ' '))[1] ${sort?.rawAddress}`
+            `(string_to_array(${housingTable}."address_dgfip"[1], ' '))[1] ${sort?.rawAddress}`
           );
       },
       occupancy: (query) =>

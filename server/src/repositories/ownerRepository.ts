@@ -192,7 +192,7 @@ async function findOne(opts: FindOneOptions): Promise<OwnerApi | null> {
   const owner = await Owners()
     .where({
       full_name: opts.fullName,
-      dgfip_address: opts.rawAddress
+      address_dgfip: opts.rawAddress
     })
     .modify((builder) => {
       return opts.birthDate === undefined
@@ -485,7 +485,7 @@ export interface OwnerRecordDBO {
   birth_date: Date | string | null;
   administrator: string | null;
   siren: string | null;
-  dgfip_address: string[];
+  address_dgfip: string[];
   // ban_address: string | null;
   additional_address: string | null;
   email: string | null;
@@ -508,7 +508,7 @@ export interface OwnerDBO extends OwnerRecordDBO {
 export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => ({
   id: owner.id,
   idpersonne: owner.idpersonne ?? undefined,
-  rawAddress: owner.dgfip_address,
+  rawAddress: owner.address_dgfip,
   fullName: owner.full_name,
   administrator: owner.administrator ?? undefined,
   birthDate: owner.birth_date ? new Date(owner.birth_date) : undefined,
@@ -553,7 +553,7 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   birth_date: owner.birthDate ?? null,
   administrator: owner.administrator ?? null,
   siren: owner.siren ?? null,
-  dgfip_address: owner.rawAddress.filter((_: string) => _ && _.length),
+  address_dgfip: owner.rawAddress.filter((_: string) => _ && _.length),
   additional_address: owner.additionalAddress ?? null,
   email: owner.email ?? null,
   phone: owner.phone ?? null,

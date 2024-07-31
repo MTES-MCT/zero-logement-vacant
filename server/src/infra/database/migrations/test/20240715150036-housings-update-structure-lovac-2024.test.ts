@@ -35,12 +35,6 @@ describe('20240715150036-housings-update-structure-lovac-2024 ', () => {
       );
     });
   });
-
-  describe('down', () => {
-    beforeEach(async () => {
-      await migrator.down();
-    });
-  });
 });
 
 function createHousing() {

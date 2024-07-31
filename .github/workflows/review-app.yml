@@ -1,38 +1,38 @@
-name: Review app on pull request
-
-# Note that workflows must be updated on the main branch
+name: Manage review apps
 
 on:
   pull_request_target:
-    types: [opened, closed, synchronize, reopened]
+    types: [closed]
     branches: [main]
-    paths:
-        - frontend/**
-        - queue/**
-        - server/**
-        - shared/**
-        - packages/**
-    paths:
-        - frontend/**
-        - queue/**
-        - server/**
-        - shared/**
-        - packages/**
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: 'Numéro de la pull request'
+        required: true
+        type: number
+      action_type:
+        description: 'Action'
+        required: true
+        type: choice
+        options:
+          - Créer
+          - Mettre à jour
+          - Supprimer
+
 env:
   CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
   CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
   ORGA_ID: ${{ secrets.CLEVER_ORG }}
-  PR_NAME: pr${{ github.event.number }}
+  PR_NAME: pr${{ github.event.inputs.pull_request_number }}
 
 jobs:
   deploy-addons:
-    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    if: github.event.inputs.action_type == 'Créer'
     runs-on: ubuntu-latest
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
 
-      # TODO: do not create it if exists
       - name: Create postgres addon
         run: clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan xxs_sml --region par
 
@@ -40,20 +40,25 @@ jobs:
         run: clever addon create redis-addon $PR_NAME-redis --org $ORGA_ID --plan s_mono --region par
 
   deploy-api:
-    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    if: github.event.inputs.action_type == 'Créer'
     needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.number }}-api
-      url: https://pr${{ github.event.number }}-api.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number }}-api
+      url: https://pr${{ github.event.inputs.pull_request_number }}-api.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.number }}-api
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.repository }}
+          ref: ${{ steps.extract_branch.outputs.branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -110,20 +115,25 @@ jobs:
         run: clever scale --flavor S -a $APP_ALIAS
 
   deploy-queue:
-    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    if: github.event.inputs.action_type == 'Créer'
     needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.number }}-queue
-      url: https://pr${{ github.event.number }}-queue.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number }}-queue
+      url: https://pr${{ github.event.inputs.pull_request_number }}-queue.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.number }}-queue
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.repository }}
+          ref: ${{ steps.extract_branch.outputs.branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -170,20 +180,25 @@ jobs:
         run: clever scale --flavor M -a $APP_ALIAS
 
   deploy-front:
-    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    if: github.event.inputs.action_type == 'Créer'
     needs: [deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.number }}-front
-      url: https://pr${{ github.event.number }}-front.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number }}-front
+      url: https://pr${{ github.event.inputs.pull_request_number }}-front.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.number }}-front
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.repository }}
+          ref: ${{ steps.extract_branch.outputs.branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -223,19 +238,24 @@ jobs:
         run: clever scale --flavor XS -a $APP_ALIAS
 
   update-api:
-    if: github.event.action == 'synchronize'
+    if: github.event.inputs.action_type == 'Mettre à jour'
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.number }}-api
-      url: https://pr${{ github.event.number }}-api.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number }}-api
+      url: https://pr${{ github.event.inputs.pull_request_number }}-api.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.number }}-api
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.repository }}
+          ref: ${{ steps.extract_branch.outputs.branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -255,19 +275,24 @@ jobs:
         run: clever scale --flavor S -a $APP_ALIAS
 
   update-front:
-    if: github.event.action == 'synchronize'
+    if: github.event.inputs.action_type == 'Mettre à jour'
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.number }}-front
-      url: https://pr${{ github.event.number }}-front.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number }}-front
+      url: https://pr${{ github.event.inputs.pull_request_number }}-front.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.number }}-front
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.repository }}
+          ref: ${{ steps.extract_branch.outputs.branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -287,19 +312,24 @@ jobs:
         run: clever scale --flavor XS -a $APP_ALIAS
 
   update-queue:
-    if: github.event.action == 'synchronize'
+    if: github.event.inputs.action_type == 'Mettre à jour'
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.number }}-queue
-      url: https://pr${{ github.event.number }}-queue.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number }}-queue
+      url: https://pr${{ github.event.inputs.pull_request_number }}-queue.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.number }}-queue
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.repository }}
+          ref: ${{ steps.extract_branch.outputs.branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -320,9 +350,9 @@ jobs:
 
   delete-queue:
     runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.number }}-queue
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
@@ -334,9 +364,9 @@ jobs:
 
   delete-api:
     runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.number }}-api
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
@@ -348,9 +378,9 @@ jobs:
 
   delete-front:
     runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.number }}-front
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
@@ -362,7 +392,7 @@ jobs:
 
   delete-addons:
     runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+    if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools

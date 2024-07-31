@@ -99,7 +99,7 @@ describe('Campaign', () => {
     });
 
     cy.get('button')
-      .contains(/^Débuter l’envoi/)
+      .contains(/^Valider et passer au téléchargement/)
       .click();
 
     cy.get('dialog[open="true"]')

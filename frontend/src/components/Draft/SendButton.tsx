@@ -24,7 +24,7 @@ function SendButton(props: Readonly<Props>) {
     <ConfirmationModal
       modalId="campaign-validate-draft"
       openingButtonProps={{
-        children: 'Débuter l’envoi',
+        children: 'Valider et passer au téléchargement',
         iconId: 'fr-icon-send-plane-fill',
         priority: 'primary'
       }}

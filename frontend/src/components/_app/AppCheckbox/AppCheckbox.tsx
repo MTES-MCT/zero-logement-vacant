@@ -7,6 +7,7 @@ interface CheckboxProps
   onChange?: React.ChangeEventHandler;
   value?: string;
   label?: ReactNode;
+  hintText?: string;
 }
 
 const AppCheckbox: React.FC<CheckboxProps> = ({

@@ -10,6 +10,7 @@ import { OwnerApi } from './OwnerApi';
 import { CampaignApi } from './CampaignApi';
 import { GroupApi } from './GroupApi';
 import { UserApi } from '~/models/UserApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 
 export interface EventApi<T> {
   id: string;
@@ -25,7 +26,8 @@ export interface EventApi<T> {
   creator?: UserApi;
 }
 
-export interface HousingEventApi extends EventApi<HousingApi> {
+export interface HousingEventApi
+  extends EventApi<HousingApi | HousingOwnerApi[]> {
   housingId: string;
   housingGeoCode: string;
 }

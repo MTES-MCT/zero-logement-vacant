@@ -183,7 +183,6 @@ AS $$
                 -- OWNERS
                 --------------------------------
                 call load_owner(housing_var.full_name, housing_var.administrator, housing_var.birth_date, housing_var.owner_raw_address, housing_var.owner_kind, housing_var.owner_kind_detail, housing_var_id, housing_var.geo_code, 1);
-                call load_owner(housing_var.full_name, housing_var.administrator, housing_var.birth_date, housing_var.owner_raw_address, housing_var.owner_kind, housing_var.owner_kind_detail, housing_var_id, housing_var.geo_code, -2);
                 call load_owner(housing_var.full_name2, null, housing_var.birth_date2, housing_var.owner_raw_address2, null, null, housing_var_id, housing_var.geo_code, 2);
                 call load_owner(housing_var.full_name3, null, housing_var.birth_date3, housing_var.owner_raw_address3, null, null, housing_var_id, housing_var.geo_code, 3);
                 call load_owner(housing_var.full_name4, null, housing_var.birth_date4, housing_var.owner_raw_address4, null, null, housing_var_id, housing_var.geo_code, 4);

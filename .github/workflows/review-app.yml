@@ -57,7 +57,9 @@ jobs:
         with:
           script: |
             const pr_number = ${{ github.event.inputs.pull_request_number }};
-            const pr = await github.pulls.get({
+            const { context, getOctokit } = require('@actions/github');
+            const octokit = getOctokit(process.env.GITHUB_TOKEN);
+            const pr = await octokit.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: pr_number
@@ -139,19 +141,6 @@ jobs:
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
     steps:
-      - name: Fetch pull request information
-        id: fetch_pr
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const pr_number = ${{ github.event.inputs.pull_request_number }};
-            const pr = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pr_number
-            });
-            return { pr: pr.data };
-
       - name: Extract branch name
         id: extract_branch
         run: |
@@ -217,19 +206,6 @@ jobs:
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
     steps:
-      - name: Fetch pull request information
-        id: fetch_pr
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const pr_number = ${{ github.event.inputs.pull_request_number }};
-            const pr = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pr_number
-            });
-            return { pr: pr.data };
-
       - name: Extract branch name
         id: extract_branch
         run: |
@@ -293,7 +269,9 @@ jobs:
         with:
           script: |
             const pr_number = ${{ github.event.inputs.pull_request_number }};
-            const pr = await github.pulls.get({
+            const { context, getOctokit } = require('@actions/github');
+            const octokit = getOctokit(process.env.GITHUB_TOKEN);
+            const pr = await octokit.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: pr_number
@@ -337,19 +315,6 @@ jobs:
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
     steps:
-      - name: Fetch pull request information
-        id: fetch_pr
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const pr_number = ${{ github.event.inputs.pull_request_number }};
-            const pr = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pr_number
-            });
-            return { pr: pr.data };
-
       - name: Extract branch name
         id: extract_branch
         run: |
@@ -387,19 +352,6 @@ jobs:
     env:
       APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
     steps:
-      - name: Fetch pull request information
-        id: fetch_pr
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const pr_number = ${{ github.event.inputs.pull_request_number }};
-            const pr = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pr_number
-            });
-            return { pr: pr.data };
-
       - name: Extract branch name
         id: extract_branch
         run: |

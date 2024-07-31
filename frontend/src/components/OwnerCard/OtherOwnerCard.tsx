@@ -19,9 +19,9 @@ function OtherOwnerCard({ owner }: OtherOwnerCardProps) {
   return <Card
   enlargeLink
   key={'owner_' + owner.rank}
-  linkProps={{
+  linkProps={owner.rank !== -2 ? {
     to: '/proprietaires/' + owner.id
-  }}
+  } : { to: 'javascript:void(0)'}}
   className={classNames(
     'fr-mb-1w',
     styles.coOwnerCard,

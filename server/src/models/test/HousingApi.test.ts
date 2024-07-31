@@ -10,7 +10,7 @@ import {
   genHousingEventApi,
   genUserApi
 } from '~/test/testFixtures';
-import { HousingEventApi } from '~/models/EventApi';
+import { EventApi, HousingEventApi } from '~/models/EventApi';
 import { UserApi } from '~/models/UserApi';
 
 describe('HousingApi', () => {
@@ -67,7 +67,10 @@ describe('HousingApi', () => {
             genHousingEventApi(housing, creator)
           );
 
-          const actual = isSupervised(housing, events);
+          const actual = isSupervised(
+            housing,
+            events as ReadonlyArray<EventApi<HousingApi>>
+          );
 
           expect(actual).toBeTrue();
         }
@@ -81,7 +84,10 @@ describe('HousingApi', () => {
         };
         const events: HousingEventApi[] = [];
 
-        const actual = isSupervised(housing, events);
+        const actual = isSupervised(
+          housing,
+          events as ReadonlyArray<EventApi<HousingApi>>
+        );
 
         expect(actual).toBeFalse();
       });

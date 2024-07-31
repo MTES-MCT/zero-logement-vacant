@@ -45,6 +45,15 @@ export async function seed(knex: Knex): Promise<void> {
     },
     {
       id: uuidv4(),
+      email: 'test.visitor@zlv.fr',
+      password: bcrypt.hashSync('test'),
+      firstName: 'Test',
+      lastName: 'Visitor',
+      activatedAt: new Date(),
+      role: UserRoles.Visitor,
+    },
+    {
+      id: uuidv4(),
       email: 'admin@zerologementvacant.beta.gouv.fr',
       password: '',
       firstName: 'Zéro',

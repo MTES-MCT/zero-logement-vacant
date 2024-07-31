@@ -42,10 +42,12 @@ function OtherOwnerCard({ owner }: OtherOwnerCardProps) {
       <Label as="span" aria-label="Rang du propriétaire">
         {getHousingOwnerRankLabel(owner.rank)}
       </Label>
-      <Typography component="p" mb={0} mr={1} className='float-right fr-link'>
-        Voir la fiche
-        <span className={fr.cx("fr-icon-arrow-right-line")} aria-hidden={true} />
-      </Typography>
+      { owner.rank === -2 &&
+        <Typography component="p" mb={0} mr={1} className='float-right fr-link'>
+          Voir la fiche
+          <span className={fr.cx("fr-icon-arrow-right-line")} aria-hidden={true} />
+        </Typography>
+      }
     </>
   }
   classes={{ end: 'd-none' }}

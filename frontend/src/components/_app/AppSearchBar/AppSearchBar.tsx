@@ -12,6 +12,7 @@ interface AppSearchResultProps {
   searchResult: SearchResult;
   query: string;
   onClick: () => void;
+  disabled?: boolean;
 }
 
 const AppSearchResult = ({
@@ -53,6 +54,7 @@ interface Props {
   maxResults?: number;
   initialQuery?: string;
   initialSearch?: boolean;
+  disabled?: boolean;
 }
 
 const AppSearchBar = ({
@@ -64,6 +66,7 @@ const AppSearchBar = ({
   maxResults,
   initialQuery,
   initialSearch,
+  disabled,
 }: Props) => {
   const [searchInput, setSearchInput] = useState<string>(initialQuery ?? '');
   const [searchResults, setSearchResults] = useState<
@@ -116,6 +119,7 @@ const AppSearchBar = ({
         type="search"
         data-testid="search-input"
         value={searchInput}
+        disabled={disabled}
         onChange={(e) => setSearchInput(e.target.value)}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
@@ -138,6 +142,7 @@ const AppSearchBar = ({
                 key={'result_' + index}
                 searchResult={result}
                 query={searchInput}
+                disabled={disabled}
                 onClick={() => {
                   setSearchInput(result.title);
                   setSearchResults(undefined);
@@ -150,6 +155,7 @@ const AppSearchBar = ({
       <button
         type="submit"
         className={classNames('fr-btn', { 'fr-btn--lg': size === 'lg' })}
+        disabled={disabled}
         title="Bouton de recherche"
       >
         {buttonLabel ?? 'Rechercher'}

@@ -397,6 +397,19 @@ a.fr-btn[target='_blank']:after {
   font-size: 14px;
 }
 
+.zlv-label-icon {
+  margin-bottom: 0 !important;
+  color: var(--grey-425);
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 0.5rem;
+}
+
+.zlv-label-icon .fr-icon-xs {
+  margin-right: 0.2rem;
+  font-size: 1.25rem !important;
+}
+
 @for $i from 1 through 9 {
   .weight-#{$i}00 {
     font-weight: $i * 100;

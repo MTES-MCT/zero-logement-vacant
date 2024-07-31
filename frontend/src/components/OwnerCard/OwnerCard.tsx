@@ -1,22 +1,19 @@
-import { Icon, Text } from '../_dsfr';
 import { ReactNode } from 'react';
 
-import {
-  getHousingOwnerRankLabel,
-  HousingOwner,
-  isHousingOwner,
-  Owner
-} from '../../models/Owner';
-import { age, birthdate } from '../../utils/dateUtils';
+import { HousingOwner, isHousingOwner, Owner } from '../../models/Owner';
+import { birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import styles from './owner-card.module.scss';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Button from '@codegouvfr/react-dsfr/Button';
 import classNames from 'classnames';
-import Notice from '@codegouvfr/react-dsfr/Notice';
 import { isBanEligible } from '../../models/Address';
 import Typography from '@mui/material/Typography';
+import OtherOwnerCard from './OtherOwnerCard';
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import { fr } from '@codegouvfr/react-dsfr';
+import Label from '../Label/Label';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -26,6 +23,11 @@ interface OwnerCardProps {
 }
 
 function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
+  const secondaryOwners = coOwners?.filter((_) => _.rank > 1);
+  const archivedOwners = coOwners?.filter(
+    (_) => _.rank === 0 || _.rank === -1 || _.rank === -2 || _.rank === -3
+  );
+
   return (
     <Card
       border={false}
@@ -36,16 +38,85 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
           <Typography component="h1" variant="h4" mb={0} data-testid="fullName">
             {owner.fullName}
           </Typography>
+          <Typography>Propriétaire principal</Typography>
         </>
       }
       desc={
         <>
           {owner.birthDate && (
-            <Text size="lg" className="fr-mb-0">
-              né(e) le {birthdate(owner.birthDate)}{' '}
-              <b>({age(owner.birthDate)} ans)</b>
-            </Text>
+            <Typography component="p" mb={1}>
+              <span className={fr.cx("fr-icon-calendar-2-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <Label as="span">Date de naissance</Label>
+              <Typography component="p">
+                {birthdate(owner.birthDate)}
+              </Typography>
+            </Typography>
           )}
+
+          <Typography component="p" mb={1}>
+            <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+            <Label as="span">Adresse postale</Label>
+            <Typography component="p">
+              {owner.banAddress?.houseNumber} {owner.banAddress?.street}
+              <br />
+              {owner.banAddress?.postalCode} {owner.banAddress?.city}
+              {[owner, ...(coOwners ?? [])].find(
+                (owner) => !isBanEligible(owner.banAddress)
+              ) && (
+                <Alert
+                  severity="info"
+                  className={classNames(styles.addressNotice, 'fr-mt-2w')}
+                  title={
+                    <>
+                      <div className="fr-mb-2w">Adresse à vérifier</div>
+                    </>
+                  }
+                  description={
+                    <>
+                      Cette adresse issue de la BAN est différente de
+                      l’adresse fiscale.
+                      <br />
+                      Cliquez sur “Modifier” pour valider l’adresse que vous
+                      souhaitez utiliser.
+                    </>
+                  }
+                ></Alert>
+              )}
+            </Typography>
+          </Typography>
+
+          {owner.additionalAddress && (
+            <Typography component="p" mb={1}>
+              <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <Label as="span">Complément d’adresse</Label>
+              <Typography component="p">
+                {owner.additionalAddress}
+              </Typography>
+            </Typography>
+          )}
+
+          {owner.email && (
+            <Typography component="p" mb={1}>
+              <span className={fr.cx("fr-icon-mail-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <Label as="span">Adresse mail</Label>
+              <Typography component="p">
+                <AppLink className="mailto" isSimple to={mailto(owner.email)}>
+                    {owner.email}
+                </AppLink>
+              </Typography>
+            </Typography>
+          )}
+
+          {owner.phone && (
+            <Typography component="p" mb={1}>
+              <span className={fr.cx("fr-icon-phone-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <Label as="span">Téléphone</Label>
+              <Typography component="p">
+                {owner.phone}
+              </Typography>
+            </Typography>
+          )}
+
           {isHousingOwner(owner) && (
             <Button
               title="Voir tous ses logements"
@@ -59,124 +130,26 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
             </Button>
           )}
 
-          <div className="bg-975 fr-my-3w fr-px-2w fr-py-2w">
-            <Typography
-              component="h2"
-              variant="h6"
-              mb={1}
-              className={styles.titleInline}
-            >
-              Coordonnées du propriétaire
-            </Typography>
-            <hr />
-            <div>
-              <Text size="sm" className="zlv-label">
-                Adresse postale
-              </Text>
-              <Text className="fr-mb-0">
-                {owner.banAddress?.houseNumber} {owner.banAddress?.street}
-                <br />
-                {owner.banAddress?.postalCode} {owner.banAddress?.city}
-                {[owner, ...(coOwners ?? [])].find(
-                  (owner) => !isBanEligible(owner.banAddress)
-                ) && (
-                  <Notice
-                    className={classNames(styles.addressNotice, 'fr-mt-2w')}
-                    title={
-                      <>
-                        <div className="fr-mb-2w">ADRESSE À VÉRIFIER</div>
-                        Cette adresse issue de la BAN est différente de
-                        l’adresse fiscale.
-                        <br />
-                        Cliquez sur “Modifier” pour valider l’adresse que vous
-                        souhaitez utiliser.
-                      </>
-                    }
-                  ></Notice>
-                )}
-              </Text>
-            </div>
-            {owner.additionalAddress && (
-              <div>
-                <Text size="sm" className="zlv-label">
-                  Complément d’adresse
-                </Text>
-                <Text className="fr-mb-0">{owner.additionalAddress}</Text>
-              </div>
-            )}
-            {owner.email && (
-              <div>
-                <Text size="sm" className="zlv-label">
-                  Adresse mail
-                </Text>
-                <AppLink className="mailto" isSimple to={mailto(owner.email)}>
-                  {owner.email}
-                </AppLink>
-              </div>
-            )}
-            {owner.phone && (
-              <div>
-                <Text size="sm" className="zlv-label">
-                  Téléphone
-                </Text>
-                <Text spacing="mb-0">{owner.phone}</Text>
-              </div>
-            )}
-          </div>
-          {coOwners && coOwners.length > 0 && (
+          {secondaryOwners && secondaryOwners.length > 0 && (
             <>
-              <Typography component="h2" variant="h6" mb={1}>
-                Autres propriétaires ({coOwners.length})
+              <Typography component="h2" variant="h6" mb={1} mt={4}>
+                Propriétaires secondaires ({secondaryOwners.length})
               </Typography>
               <hr />
-              {coOwners.map((housingOwner) => (
-                <Card
-                  enlargeLink
-                  key={'owner_' + housingOwner.rank}
-                  linkProps={{
-                    to: '/proprietaires/' + housingOwner.id
-                  }}
-                  className={classNames(
-                    'fr-mb-1w',
-                    styles.coOwnerCard,
-                    'app-card-xs'
-                  )}
-                  title={
-                    <>
-                      <span className="icon-xs">
-                        <Icon
-                          name="fr-icon-user-fill"
-                          iconPosition="center"
-                          size="xs"
-                        />
-                      </span>
-                      <Text as="span" className="color-black-50">
-                        <b>{housingOwner.fullName}</b>
-                      </Text>
-                    </>
-                  }
-                  desc={
-                    <>
-                      <Text size="sm" className="zlv-label" as="span">
-                        {getHousingOwnerRankLabel(housingOwner.rank)}
-                      </Text>
-                      <Text
-                        as="span"
-                        spacing="mb-0 mr-1w"
-                        className="float-right fr-link"
-                      >
-                        Voir la fiche
-                        <Icon
-                          name="fr-icon-arrow-right-line"
-                          size="lg"
-                          verticalAlign="middle"
-                          iconPosition="center"
-                        />
-                      </Text>
-                    </>
-                  }
-                  classes={{ end: 'd-none' }}
-                ></Card>
+              {secondaryOwners.map((housingOwner) => (
+                <OtherOwnerCard owner={housingOwner} key={housingOwner.id} />
+              ))}
+            </>
+          )}
+
+          {archivedOwners && archivedOwners.length > 0 && (
+            <>
+              <Typography component="h2" variant="h6" mb={1} mt={4}>
+                Propriétaires archivés ({archivedOwners.length})
+              </Typography>
+              <hr />
+              {archivedOwners.map((housingOwner) => (
+                <OtherOwnerCard owner={housingOwner} key={housingOwner.id} />
               ))}
             </>
           )}

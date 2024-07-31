@@ -9,7 +9,7 @@ import {
   banAddressValidator,
   dateValidator,
   emailValidator,
-  useForm,
+  useForm
 } from '../../../hooks/useForm';
 import { parseDateInput } from '../../../utils/dateUtils';
 import classNames from 'classnames';
@@ -26,6 +26,8 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
 import { isBanEligible } from '../../../models/Address';
 import { useUser } from '../../../hooks/useUser';
+import { Typography } from '@mui/material';
+import Alert from '@codegouvfr/react-dsfr/Alert';
 
 interface Props {
   housingId: string;
@@ -38,7 +40,7 @@ const HousingOwnersModal = ({
   housingId,
   housingOwners: initialHousingOwners,
   onSubmit,
-  onCancel,
+  onCancel
 }: Props) => {
   type OwnerInput = Pick<
     HousingOwner,
@@ -61,9 +63,9 @@ const HousingOwnersModal = ({
     () =>
       createModal({
         id: `housing-owners-modal-${housingId}`,
-        isOpenedByDefault: false,
+        isOpenedByDefault: false
       }),
-    [housingId],
+    [housingId]
   );
 
   const isOpen = useIsModalOpen(modal);
@@ -84,11 +86,17 @@ const HousingOwnersModal = ({
     rank: String(housingOwner.endDate ? 0 : housingOwner.rank),
     birthDate: housingOwner?.birthDate
       ? format(housingOwner.birthDate, 'yyyy-MM-dd')
-      : '',
+      : ''
   });
 
   const [ownerInputs, setOwnerInputs] = useState<OwnerInput[]>(
-    housingOwners.map(getOwnerInput),
+    housingOwners.map(getOwnerInput)
+  );
+
+  const primaryOwner = ownerInputs?.filter((_) => _.rank === '1');
+  const secondaryOwners = ownerInputs?.filter((_) => parseInt(_.rank) > 1);
+  const archivedOwners = ownerInputs?.filter(
+    (_) => _.rank === '0' || _.rank === '-1' || _.rank === '-2' || _.rank === '-3'
   );
 
   const ranks =
@@ -106,20 +114,21 @@ const HousingOwnersModal = ({
         [`email${index}`]: emailValidator.nullable().notRequired(),
         [`birthDate${index}`]: dateValidator.nullable().notRequired(),
         [`banAddress${index}`]: banAddressValidator,
-        [`additionalAddress${index}`]: yup.string().nullable().notRequired(),
+        [`additionalAddress${index}`]: yup.string().nullable().notRequired()
       }),
-      {},
+      {}
     ),
     ownerRanks: yup.array().test({
       test(array, ctx) {
         if ((array ?? []).filter((_) => _.rank === '1').length < 1) {
           return ctx.createError({
-            message: 'Il doit y avoir au moins un propriétaire principal',
+            message:
+              'Vous devez définir un propriétaire principal pour enregistrer.'
           });
         }
         if ((array ?? []).filter((_) => _.rank === '1').length > 1) {
           return ctx.createError({
-            message: "Il ne peut y avoir qu'un propriétaire principal",
+            message: "Il ne peut y avoir qu'un propriétaire principal"
           });
         }
         for (const rank of ranks) {
@@ -127,13 +136,13 @@ const HousingOwnersModal = ({
             (array ?? []).filter((_) => _.rank === String(rank + 1)).length > 1
           ) {
             return ctx.createError({
-              message: `Il ne peut y avoir qu'un ${rank + 1}ème ayant-droit`,
+              message: `Il ne peut y avoir qu'un ${rank + 1}ème ayant-droit`
             });
           }
         }
         return true;
-      },
-    }),
+      }
+    })
   };
   type FormShape = typeof shape;
 
@@ -142,18 +151,20 @@ const HousingOwnersModal = ({
     newInputs.splice(
       ownerInputs.findIndex((_) => _.id === ownerInput.id),
       1,
-      ownerInput,
+      ownerInput
     );
     setOwnerInputs(newInputs);
   };
 
   const ownerRankOptions: SelectOption[] = [
-    { value: '1', label: `Propriétaire principal` },
+    { value: '1', label: 'Propriétaire principal' },
     ...ranks.map((_) => ({
       value: String(_ + 1),
-      label: _ + 1 + 'ème ayant droit',
+      label: _ + 1 + 'ème ayant droit'
     })),
-    { value: '0', label: `Ancien propriétaire` },
+    { value: '0', label: 'Ancien propriétaire' },
+    { value: '-1', label: 'Propriétaire incorrect'},
+    { value: '-3', label: 'Propriétaire décédé.e'},
   ];
 
   const form = useForm(
@@ -166,13 +177,13 @@ const HousingOwnersModal = ({
           [`email${index}`]: ownerInput.email,
           [`birthDate${index}`]: ownerInput.birthDate,
           [`banAddress${index}`]: ownerInput.banAddress,
-          [`additionalAddress${index}`]: ownerInput.additionalAddress,
+          [`additionalAddress${index}`]: ownerInput.additionalAddress
         }),
-        {},
+        {}
       ),
-      ownerRanks: ownerInputs,
+      ownerRanks: ownerInputs
     },
-    ['ownerRanks'],
+    ['ownerRanks']
   );
 
   const onAddOwner = (housingOwner: HousingOwner) => {
@@ -194,10 +205,10 @@ const HousingOwnersModal = ({
               endDate:
                 ownerInput.rank === String(0)
                   ? ho.endDate ?? new Date()
-                  : undefined,
+                  : undefined
             }))
-            .find((_) => _.id === ho.id) ?? {}),
-        })),
+            .find((_) => _.id === ho.id) ?? {})
+        }))
       );
       modal.close();
     });
@@ -205,17 +216,17 @@ const HousingOwnersModal = ({
 
   const onSelectAddress = (
     ownerInput: OwnerInput,
-    addressSearchResult?: AddressSearchResult,
+    addressSearchResult?: AddressSearchResult
   ) => {
     changeOwnerInputs({
       ...ownerInput,
-      banAddress: addressSearchResult,
+      banAddress: addressSearchResult
     });
   };
 
   useEffect(() => {
     ownerInputs.forEach((_, index) =>
-      form.validateAt(`banAddress${index}` as keyof FormShape),
+      form.validateAt(`banAddress${index}` as keyof FormShape)
     );
   }, [ownerInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -242,17 +253,166 @@ const HousingOwnersModal = ({
     }
   }, [modal, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  function ownerAccordion(ownerInput: OwnerInput, index: string) {
+    return (
+      <Accordion
+        label={
+          <div>
+            <span className="icon-xs">
+              <Icon
+                name={iconName(ownerInput.kind)}
+                iconPosition="center"
+                size="xs"
+              />
+            </span>
+            <Text as="span">
+              <b>{ownerInput.fullName}</b>
+            </Text>
+            <Text size="sm" className="zlv-label fr-ml-1w" as="span" aria-label="Rang du propriétaire">
+              {getHousingOwnerRankLabel(Number(ownerInput.rank))}
+            </Text>
+            {!isBanEligible(ownerInput.banAddress) && (
+              <Badge severity="info" className="fr-ml-1w">
+                ADRESSE À VÉRIFIER
+              </Badge>
+            )}
+          </div>
+        }
+        id={index}
+        key={index}
+        className={classNames({
+          error:
+            hasError(`fullName${index}`) ||
+            hasError(`banAddress${index}`) ||
+            hasError(`birthDate${index}`) ||
+            hasError(`email${index}`) ||
+            hasError(`additionalAddress${index}`)
+        })}
+      >
+        <AppSelect<FormShape>
+          onChange={(e) =>
+            changeOwnerInputs({
+              ...ownerInput,
+              rank: e.target.value
+            })
+          }
+          value={String(ownerInput.rank)}
+          inputForm={form}
+          disabled={ownerInput.rank === '-2'}
+          inputKey="ownerRanks"
+          options={ownerRankOptions}
+        />
+        <Row gutters>
+          <Col n="6">
+            <AppTextInput<FormShape>
+              value={ownerInput.fullName}
+              onChange={(e) =>
+                changeOwnerInputs({
+                  ...ownerInput,
+                  fullName: e.target.value
+                })
+              }
+              required
+              label="Nom prénom"
+              inputForm={form}
+              disabled={ownerInput.rank === '-2'}
+              // @ts-expect-error: dynamic key
+              inputKey={`fullName${index}`}
+            />
+          </Col>
+          <Col n="6">
+            <AppTextInput<FormShape>
+              type={'date'}
+              value={ownerInput.birthDate ?? ''}
+              onChange={(e) =>
+                changeOwnerInputs({
+                  ...ownerInput,
+                  birthDate: e.target.value
+                })
+              }
+              label="Date de naissance"
+              inputForm={form}
+              disabled={ownerInput.rank === '-2'}
+              // @ts-expect-error: dynamic key
+              inputKey={`birthDate$${index}`}
+            />
+          </Col>
+          <Col n="12">
+            <OwnerAddressEdition
+              banAddress={ownerInput.banAddress}
+              rawAddress={ownerInput.rawAddress}
+              disabled={ownerInput.rank === '-2'}
+              onSelectAddress={(a) => onSelectAddress(ownerInput, a)}
+              errorMessage={message(`banAddress${index}`)}
+            />
+          </Col>
+          <Col n="12">
+            <AppTextInput<FormShape>
+              value={ownerInput.additionalAddress ?? ''}
+              onChange={(e) =>
+                changeOwnerInputs({
+                  ...ownerInput,
+                  additionalAddress: e.target.value
+                })
+              }
+              label="Complément d'adresse"
+              inputForm={form}
+              disabled={ownerInput.rank === '-2'}
+              // @ts-expect-error: dynamic key
+              inputKey={`additionalAddress$${index}`}
+            />
+          </Col>
+          <Col n="6">
+            <AppTextInput<FormShape>
+              type={'email'}
+              value={ownerInput.email ?? ''}
+              onChange={(e) =>
+                changeOwnerInputs({
+                  ...ownerInput,
+                  email: e.target.value
+                })
+              }
+              label="Adresse mail"
+              inputForm={form}
+              disabled={ownerInput.rank === '-2'}
+              // @ts-expect-error: dynamic key
+              inputKey={`email$${index}`}
+            />
+          </Col>
+          <Col n="6">
+            <AppTextInput<FormShape>
+              value={ownerInput.phone}
+              onChange={(e) =>
+                changeOwnerInputs({
+                  ...ownerInput,
+                  phone: e.target.value
+                })
+              }
+              label="Numéro de téléphone"
+              inputForm={form}
+              disabled={ownerInput.rank === '-2'}
+              // @ts-expect-error: dynamic key
+              inputKey={`phone$${index}`}
+            />
+          </Col>
+        </Row>
+      </Accordion>
+    );
+  }
+
   return (
     <>
-      { !isVisitor && <Button
-        className="float-right"
-        iconId="fr-icon-edit-fill"
-        priority="tertiary no outline"
-        title="Modifier le propriétaire"
-        onClick={modal.open}
-      >
-        Modifier
-      </Button> }
+      {!isVisitor && (
+        <Button
+          className="float-right"
+          iconId="fr-icon-edit-fill"
+          priority="tertiary no outline"
+          title="Modifier le propriétaire"
+          onClick={modal.open}
+        >
+          Modifier
+        </Button>
+      )}
       <modal.Component
         size="large"
         title={
@@ -279,168 +439,70 @@ const HousingOwnersModal = ({
                 {
                   children: 'Annuler',
                   priority: 'secondary',
-                  onClick: onCancel,
+                  onClick: onCancel
                 },
                 {
                   children: 'Enregistrer',
                   onClick: submit,
-                  doClosesModal: false,
-                },
+                  doClosesModal: false
+                }
               ]
             : [
                 {
                   children: 'Retour',
                   priority: 'secondary',
                   doClosesModal: false,
-                  onClick: () => setModalMode('list'),
-                },
+                  onClick: () => setModalMode('list')
+                }
               ]
         }
         style={{ textAlign: 'initial', fontWeight: 'initial' }}
       >
         {modalMode === 'list' ? (
           <>
-            <div className={fr.cx('fr-accordions-group')}>
-              {ownerInputs.map((ownerInput, index) => (
-                <Accordion
-                  label={
-                    <div>
-                      <span className="icon-xs">
-                        <Icon
-                          name={iconName(ownerInput.kind)}
-                          iconPosition="center"
-                          size="xs"
-                        />
-                      </span>
-                      <Text as="span">
-                        <b>{ownerInput.fullName}</b>
-                      </Text>
-                      <Text size="sm" className="zlv-label fr-ml-1w" as="span">
-                        {getHousingOwnerRankLabel(Number(ownerInput.rank))}
-                      </Text>
-                      {!isBanEligible(ownerInput.banAddress) && (
-                        <Badge severity="info" className="fr-ml-1w">
-                          ADRESSE À VÉRIFIER
-                        </Badge>
-                      )}
-                    </div>
-                  }
-                  id={String(index)}
-                  key={ownerInput.id}
-                  className={classNames({
-                    error:
-                      hasError(`fullName${index}`) ||
-                      hasError(`banAddress${index}`) ||
-                      hasError(`birthDate${index}`) ||
-                      hasError(`email${index}`) ||
-                      hasError(`additionalAddress${index}`),
-                  })}
-                >
-                  <AppSelect<FormShape>
-                    onChange={(e) =>
-                      changeOwnerInputs({
-                        ...ownerInput,
-                        rank: e.target.value,
-                      })
-                    }
-                    value={String(ownerInput.rank)}
-                    inputForm={form}
-                    inputKey="ownerRanks"
-                    options={ownerRankOptions}
-                  />
-                  <Row gutters>
-                    <Col n="6">
-                      <AppTextInput<FormShape>
-                        value={ownerInput.fullName}
-                        onChange={(e) =>
-                          changeOwnerInputs({
-                            ...ownerInput,
-                            fullName: e.target.value,
-                          })
-                        }
-                        required
-                        label="Nom prénom"
-                        inputForm={form}
-                        // @ts-expect-error: dynamic key
-                        inputKey={`fullName${index}`}
-                      />
-                    </Col>
-                    <Col n="6">
-                      <AppTextInput<FormShape>
-                        type={'date'}
-                        value={ownerInput.birthDate}
-                        onChange={(e) =>
-                          changeOwnerInputs({
-                            ...ownerInput,
-                            birthDate: e.target.value,
-                          })
-                        }
-                        label="Date de naissance"
-                        inputForm={form}
-                        // @ts-expect-error: dynamic key
-                        inputKey={`birthDate$${index}`}
-                      />
-                    </Col>
-                    <Col n="12">
-                      <OwnerAddressEdition
-                        banAddress={ownerInput.banAddress}
-                        rawAddress={ownerInput.rawAddress}
-                        onSelectAddress={(a) => onSelectAddress(ownerInput, a)}
-                        errorMessage={message(`banAddress${index}`)}
-                      />
-                    </Col>
-                    <Col n="12">
-                      <AppTextInput<FormShape>
-                        value={ownerInput.additionalAddress}
-                        onChange={(e) =>
-                          changeOwnerInputs({
-                            ...ownerInput,
-                            additionalAddress: e.target.value,
-                          })
-                        }
-                        label="Complément d'adresse"
-                        inputForm={form}
-                        // @ts-expect-error: dynamic key
-                        inputKey={`additionalAddress$${index}`}
-                      />
-                    </Col>
-                    <Col n="6">
-                      <AppTextInput<FormShape>
-                        type={'email'}
-                        value={ownerInput.email}
-                        onChange={(e) =>
-                          changeOwnerInputs({
-                            ...ownerInput,
-                            email: e.target.value,
-                          })
-                        }
-                        label="Adresse mail"
-                        inputForm={form}
-                        // @ts-expect-error: dynamic key
-                        inputKey={`email$${index}`}
-                      />
-                    </Col>
-                    <Col n="6">
-                      <AppTextInput<FormShape>
-                        value={ownerInput.phone}
-                        onChange={(e) =>
-                          changeOwnerInputs({
-                            ...ownerInput,
-                            phone: e.target.value,
-                          })
-                        }
-                        label="Numéro de téléphone"
-                        inputForm={form}
-                        // @ts-expect-error: dynamic key
-                        inputKey={`phone$${index}`}
-                      />
-                    </Col>
-                  </Row>
-                </Accordion>
-              ))}
-            </div>
             {hasError('ownerRanks') && (
-              <p className="fr-error-text fr-m-2w">{message('ownerRanks')}</p>
+              <Alert
+                severity="warning"
+                description={message('ownerRanks')}
+                closable
+                small
+              ></Alert>
+            )}
+            {primaryOwner && primaryOwner.length > 0 && (
+              <>
+                <Typography component="h2" variant="h6" mb={1} mt={4}>
+                  Propriétaire principal
+                </Typography>
+                <div className={fr.cx('fr-accordions-group')}>
+                  {primaryOwner.map((ownerInput, index) =>
+                    ownerAccordion(ownerInput, `primary-owner-${index}`)
+                  )}
+                </div>
+              </>
+            )}
+            {secondaryOwners && secondaryOwners.length > 0 && (
+              <>
+                <Typography component="h2" variant="h6" mb={1} mt={2}>
+                  Propriétaires secondaires ({secondaryOwners.length})
+                </Typography>
+                <div className={fr.cx('fr-accordions-group')}>
+                  {secondaryOwners.map((ownerInput, index) =>
+                    ownerAccordion(ownerInput, `secondary-owner-${index}`)
+                  )}
+                </div>
+              </>
+            )}
+            {archivedOwners && archivedOwners.length > 0 && (
+              <>
+                <Typography component="h2" variant="h6" mb={1} mt={2}>
+                  Propriétaires archivés ({archivedOwners.length})
+                </Typography>
+                <div className={fr.cx('fr-accordions-group')}>
+                  {archivedOwners.map((ownerInput, index) =>
+                    ownerAccordion(ownerInput, `archived-owner-${index}`)
+                  )}
+                </div>
+              </>
             )}
           </>
         ) : (

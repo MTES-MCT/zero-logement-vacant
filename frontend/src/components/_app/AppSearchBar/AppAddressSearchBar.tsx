@@ -10,6 +10,7 @@ interface Props {
   initialQuery?: string;
   initialSearch?: boolean;
   onSelectAddress(addressSearchResult?: AddressSearchResult): void;
+  disabled?: boolean;
 }
 
 function AppAddressSearchBar(props: Props) {
@@ -62,6 +63,7 @@ function AppAddressSearchBar(props: Props) {
         placeholder="Rechercher une adresse"
         initialQuery={props.initialQuery}
         initialSearch={props.initialSearch}
+        disabled={props.disabled}
       ></AppSearchBar>
     </>
   );

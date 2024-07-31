@@ -206,7 +206,7 @@ describe('Campaign view', () => {
     renderComponent();
 
     const send = await screen.findByRole('button', {
-      name: /^Débuter l’envoi/
+      name: /^Valider et passer au téléchargement/
     });
     await user.click(send);
 

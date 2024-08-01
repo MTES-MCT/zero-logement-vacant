@@ -28,11 +28,12 @@ function SaveButton(props: Readonly<Props>) {
     <Button
       className={props.className}
       disabled={props.isLoading}
+      iconId="fr-icon-save-line"
       priority="secondary"
       type="button"
       onClick={props.onSave}
     >
-      Sauvegarder
+      Sauvegarder mon brouillon
     </Button>
   );
 }

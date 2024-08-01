@@ -29,12 +29,12 @@ function SendButton(props: Readonly<Props>) {
         priority: 'primary'
       }}
       size="large"
-      title="Envoi de la campagne"
+      title="Valider ma campagne"
       onOpen={open}
       onSubmit={submit}
     >
       <Alert
-        description="Une fois débuté l’envoi, votre campagne ne pourra plus être modifiée. Cliquez sur “Confirmer” pour poursuivre si vous avez finalisé votre courrier et vérifié la liste des destinataires. Sinon, cliquez sur “Annuler” pour revenir en arrière."
+        description='Une fois votre campagne validée, la liste des destinataires et le contenu des courriers ne pourront plus être modifiés. Cliquez sur "Confirmer" pour valider ou sur "Annuler" pour revenir en arrière.'
         severity="warning"
         small
       />

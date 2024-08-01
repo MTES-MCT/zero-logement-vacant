@@ -38,11 +38,9 @@ import { useUpdateCampaignMutation } from '../../services/campaign.service';
 const schema = yup
   .object({
     subject: yup
-      .string()
-      .required('Veuillez renseigner l’objet de votre courrier'),
+      .string(),
     body: yup
-      .string()
-      .required('Veuillez renseigner le contenu de votre courrier'),
+      .string(),
     sender: senderSchema
   })
   // Must do like that because the useForm hook has a validation bug

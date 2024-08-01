@@ -7,7 +7,7 @@ import {
   sourceHousingSchema
 } from '~/scripts/import-lovac/source-housings/source-housing';
 import { createSourceHousingProcessor } from '~/scripts/import-lovac/source-housings/source-housing-processor';
-import { HousingApi } from '~/models/HousingApi';
+import { HousingApi, HousingId } from '~/models/HousingApi';
 import housingRepository, { Housing } from '~/repositories/housingRepository';
 import eventRepository from '~/repositories/eventRepository';
 import { createLogger } from '~/infra/logger';
@@ -102,7 +102,17 @@ export function createSourceHousingCommand() {
             }
           },
           housingEventRepository: {
-            find: eventRepository.findHousingEvents,
+            async find({
+              id,
+              geoCode
+            }: HousingId): Promise<ReadonlyArray<HousingEventApi>> {
+              const events = await eventRepository.findHousingEvents(id);
+              return events.map((event) => ({
+                ...event,
+                housingId: id,
+                housingGeoCode: geoCode
+              }));
+            },
             async insert(event: HousingEventApi): Promise<void> {
               if (!options.dryRun) {
                 await eventRepository.insertHousingEvent(event);

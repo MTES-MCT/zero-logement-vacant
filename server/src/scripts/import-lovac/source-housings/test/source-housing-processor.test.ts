@@ -137,7 +137,8 @@ describe('Source housing processor', () => {
           expect(housingRepository.update).toHaveBeenCalledWith(
             { geoCode: housing.geoCode, id: housing.id },
 
-              {dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
+            {
+              dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
               occupancy: OccupancyKindApi.Vacant
             }
           );
@@ -173,7 +174,7 @@ describe('Source housing processor', () => {
       describe('If the housing is supervised', () => {
         const establishment = genEstablishmentApi();
         const creator = genUserApi(establishment.id);
-        let events: HousingEventApi[];
+        let events: ReadonlyArray<HousingEventApi>;
 
         beforeEach(async () => {
           housing.status = HousingStatusApi.Completed;

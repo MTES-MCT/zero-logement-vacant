@@ -4,11 +4,11 @@ import { object, string } from 'yup';
 import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../hooks/useForm';
-import { DATE_REGEXP } from '../../utils/dateUtils';
+import { DATE_REGEXP_OPTIONNAL } from '../../utils/dateUtils';
 
 export const writtenSchema = object({
   writtenAt: string().matches(
-    DATE_REGEXP,
+    DATE_REGEXP_OPTIONNAL,
     'Veuillez renseigner une date au format yyyy-mm-dd',
   ),
   writtenFrom: string(),
@@ -43,7 +43,7 @@ function DraftMailInfo(props: Readonly<Props>) {
       <AppTextInput
         inputForm={props.form}
         inputKey="writtenAt"
-        label="En date du ... (obligatoire)"
+        label="En date du ..."
         type="date"
         value={props.writtenAt}
         onChange={onChange('at')}

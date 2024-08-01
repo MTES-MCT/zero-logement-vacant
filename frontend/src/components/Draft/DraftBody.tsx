@@ -50,12 +50,14 @@ function DraftBody(props: Readonly<Props>) {
       </Row>
       <Row>
         <RichEditor
+          inputForm={props.form}
+          inputKey="body"
           ariaLabelledBy="draft-body-label"
           content={props.body}
           onChange={(content) =>
             props.onChange({
               subject: props.subject,
-              body: content,
+              body: content
             })
           }
         />

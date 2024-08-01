@@ -36,6 +36,8 @@ fileignoreconfig:
   checksum: 7e074d80f484efab059b7055a45cebf46d40cadc4018189ab1535f2a563071d0
 - filename: frontend/src/components/OwnerCard/OwnerCard.tsx
   checksum: 632dba1dc6c13a8f3dd1d8a31fa7be20ceceae67af009c3c7d1f28a64ac05d3f
+- filename: frontend/src/components/RichEditor/RichEditor.tsx
+  checksum: 451c9ce785153d468dbd783d3a96000854bd720517b7194418b48bc04f2a598f
 - filename: frontend/src/components/RichEditor/nodes/VariableNode.tsx
   checksum: 1f86b91a9b3e8bf3211a829a6ddf8a03e81d03310fe619a10ed658ccd9bfd1f8
 - filename: frontend/src/components/_dsfr/components/interface/Select/SearchableSelect.d.ts
@@ -138,15 +140,5 @@ allowed_patterns:
 - key=\{.+\}
 - keyof
 version: "1.0"
-nfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
-- keyof
-version: "1.0"
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
-- keyof
+
 version: "1.0"

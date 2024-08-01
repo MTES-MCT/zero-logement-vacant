@@ -244,6 +244,7 @@ function CampaignDraft(props: Readonly<Props>) {
                   </Row>
                   <Row spacing="mb-2w">
                     <Col>
+                    {values.body}
                       <DraftBody
                         body={values.body}
                         form={form}

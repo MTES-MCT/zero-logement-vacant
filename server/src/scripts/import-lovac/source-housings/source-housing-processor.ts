@@ -7,6 +7,7 @@ import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-hou
 import { createLogger } from '~/infra/logger';
 import {
   HousingApi,
+  HousingId,
   isSupervised,
   OccupancyKindApi,
   OwnershipKindsApi
@@ -25,7 +26,7 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
   };
   housingEventRepository: {
     insert(event: HousingEventApi): Promise<void>;
-    find(housingId: string): Promise<ReadonlyArray<HousingEventApi>>;
+    find(id: HousingId): Promise<ReadonlyArray<HousingEventApi>>;
   };
   housingRepository: {
     findOne(localId: string): Promise<HousingApi | null>;
@@ -101,9 +102,10 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         }
 
         if (existingHousing) {
-          const existingEvents = await housingEventRepository.find(
-            existingHousing.id
-          );
+          const existingEvents = await housingEventRepository.find({
+            id: existingHousing.id,
+            geoCode: existingHousing.geoCode
+          });
 
           if (existingHousing.occupancy !== OccupancyKindApi.Vacant) {
             if (!isSupervised(existingHousing, existingEvents)) {

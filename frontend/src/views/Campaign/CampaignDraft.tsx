@@ -34,6 +34,7 @@ import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
 import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
 import { FileUploadDTO } from '@zerologementvacant/models';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
+import Alert from '@codegouvfr/react-dsfr/Alert';
 
 const schema = yup
   .object({
@@ -209,6 +210,13 @@ function CampaignDraft(props: Readonly<Props>) {
             content: (
               <form id="draft" name="draft" className="fr-mt-2w">
                 <UnsavedChanges when={hasChanges} />
+                <Alert
+                  severity="info"
+                  closable
+                  title="Votre courrier"
+                  description='Rédigez votre courrier et insérez des champs personnalisés pour intégrer des informations sur les logements ou les propriétaires. Pour prévisualiser le format du courrier, cliquez sur "Visualiser mon brouillon". Une fois votre courrier rédigé, cliquez sur "Valider et passer au téléchargement" pour télécharger les courriers au format PDF.'
+                  className="fr-mt-2w fr-mb-2w"
+                />
                 <Container as="section" fluid>
                   <Row justifyContent="right" spacing="mb-2w">
                     <SaveButton

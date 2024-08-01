@@ -18,6 +18,7 @@ import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { usePagination } from '../../hooks/usePagination';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useCountHousingQuery } from '../../services/housing.service';
+import Alert from '@codegouvfr/react-dsfr/Alert';
 
 interface Props {
   campaign: Campaign;
@@ -120,6 +121,13 @@ function CampaignRecipients(props: Props) {
 
   return (
     <Grid container>
+      <Alert
+        severity="info"
+        closable
+        title="Vos propriétaires destinataires"
+        description={'Vérifiez les adresses des propriétaires, notamment dans les cas où l\'adresse BAN diffère de l\'adresse issue des Fichiers Fonciers (cas signalés par la mention "Adresse améliorable"). Une fois la liste des destinataires vérifiée, cliquez sur "Valider et passer au téléchargement" pour télécharger les destinataires au format XLSX.'}
+        className="fr-mt-2w"
+      />
       <Table data={data} headers={headers} />
       {hasPagination && (
         <>

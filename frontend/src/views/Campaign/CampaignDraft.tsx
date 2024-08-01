@@ -187,11 +187,6 @@ function CampaignDraft(props: Readonly<Props>) {
           />
         </Grid>
         <Grid display="flex" justifyContent="flex-end" xs={6}>
-          <PreviewButton
-            className="fr-mr-2w"
-            disabled={!exists}
-            draft={draft}
-          />
           <SendButton form={form} onSend={send} />
         </Grid>
       </Grid>
@@ -220,6 +215,7 @@ function CampaignDraft(props: Readonly<Props>) {
                 <Container as="section" fluid>
                   <Row justifyContent="right" spacing="mb-2w">
                     <SaveButton
+                      className="fr-mr-1w"
                       autoClose={5000}
                       isError={mutation.isError}
                       isLoading={mutation.isLoading}
@@ -228,6 +224,10 @@ function CampaignDraft(props: Readonly<Props>) {
                         success: 'Votre campagne a été sauvegardée avec succès'
                       }}
                       onSave={save}
+                    />
+                    <PreviewButton
+                      disabled={!exists}
+                      draft={draft}
                     />
                   </Row>
                   <Row gutters spacing="mb-2w">

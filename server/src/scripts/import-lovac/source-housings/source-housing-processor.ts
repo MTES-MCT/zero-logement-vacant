@@ -12,7 +12,7 @@ import {
   OwnershipKindsApi
 } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { EventApi, HousingEventApi } from '~/models/EventApi';
+import { HousingEventApi } from '~/models/EventApi';
 import { AddressApi } from '~/models/AddressApi';
 import { UserApi } from '~/models/UserApi';
 
@@ -25,7 +25,7 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
   };
   housingEventRepository: {
     insert(event: HousingEventApi): Promise<void>;
-    find(housingId: string): Promise<ReadonlyArray<EventApi<HousingApi>>>;
+    find(housingId: string): Promise<ReadonlyArray<HousingEventApi>>;
   };
   housingRepository: {
     findOne(localId: string): Promise<HousingApi | null>;

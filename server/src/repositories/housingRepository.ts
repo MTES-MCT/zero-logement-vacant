@@ -219,7 +219,7 @@ async function save(
   housing: HousingRecordApi,
   opts?: SaveOptions
 ): Promise<void> {
-  logger.debug('Saving housing...', { housing: housing.id });
+  logger.debug('Saving housing...', { housing });
   await saveMany([housing], opts);
   logger.info(`Housing saved.`, { housing: housing.id });
 }
@@ -307,7 +307,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
         `left join lateral (
          select json_agg(distinct(kind)) as perimeter_kind
          from ${geoPerimetersTable} perimeter
-         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
+         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))
        ) perimeters on true`
       )
   };

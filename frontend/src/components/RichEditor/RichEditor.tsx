@@ -12,7 +12,7 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
-import { EditorState, LexicalEditor } from 'lexical';
+import { $getRoot, EditorState, LexicalEditor } from 'lexical';
 
 import ToolbarPlugin from './ToolbarPlugin';
 import './rich-editor.scss';
@@ -20,8 +20,12 @@ import theme from './rich-editor-theme';
 import { VARIABLE_OPTIONS } from './variable-options';
 import { VariableNode } from './nodes/VariableNode';
 import RestorePlugin from './RestorePlugin';
+import { useForm } from '../../hooks/useForm';
+import classNames from 'classnames';
 
 interface Props {
+  inputForm: ReturnType<typeof useForm>;
+  inputKey: string;
   ariaLabelledBy?: string;
   content: string;
   onChange(content: string): void;
@@ -40,27 +44,41 @@ function RichEditor(props: Readonly<Props>) {
   function onChange(state: EditorState, editor: LexicalEditor): void {
     state.read(() => {
       const html = $generateHtmlFromNodes(editor, null);
-      props.onChange?.(html);
+      const root = $getRoot();
+      /*
+      * The HTML length could be greater than 0 but still be considered empty,
+      * for example, if it contains only non-content elements like <p><br /></p>.
+      */
+      const isEmpty = root?.getFirstChild()?.getTextContentSize() === 0;
+      const content = !isEmpty ? html : '';
+      props.onChange?.(content);
     });
   }
 
+  const hasError = props.inputForm.messageType(props.inputKey) === 'error';
+
   return (
-    <LexicalComposer initialConfig={config}>
-      <ToolbarPlugin className="fr-mb-2w" variableOptions={VARIABLE_OPTIONS} />
-      <RichTextPlugin
-        contentEditable={
-          <ContentEditable ariaLabelledBy={props.ariaLabelledBy} />
-        }
-        placeholder={null}
-        ErrorBoundary={LexicalErrorBoundary}
-      />
-      <OnChangePlugin ignoreSelectionChange onChange={onChange} />
-      <ClearEditorPlugin />
-      <HistoryPlugin />
-      <AutoFocusPlugin />
-      <ListPlugin />
-      <RestorePlugin content={props.content} />
-    </LexicalComposer>
+    <div className={classNames('fr-input-group', 'fr-col-12', { 'fr-input-group--error': hasError })}>
+      <LexicalComposer initialConfig={config}>
+        <ToolbarPlugin className="fr-mb-2w" variableOptions={VARIABLE_OPTIONS} />
+        <RichTextPlugin
+          contentEditable={
+            <ContentEditable ariaLabelledBy={props.ariaLabelledBy} />
+          }
+          placeholder={null}
+          ErrorBoundary={LexicalErrorBoundary}
+        />
+        <OnChangePlugin ignoreSelectionChange onChange={onChange} />
+        <ClearEditorPlugin />
+        <HistoryPlugin />
+        <AutoFocusPlugin />
+        <ListPlugin />
+        <RestorePlugin content={props.content} />
+      </LexicalComposer>
+      { hasError &&
+        <p className="fr-error-text">{props.inputForm.message(props.inputKey)}</p>
+      }
+    </div>
   );
 }
 

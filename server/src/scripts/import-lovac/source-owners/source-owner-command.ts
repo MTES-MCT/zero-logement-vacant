@@ -47,6 +47,7 @@ export function createSourceOwnerCommand() {
         )
         .pipeTo(
           sourceOwnerProcessor({
+            abortEarly: options.abortEarly,
             reporter,
             async saveOwner(owner): Promise<void> {
               if (!options.dryRun) {

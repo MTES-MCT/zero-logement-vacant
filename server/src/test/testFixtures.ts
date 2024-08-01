@@ -250,9 +250,10 @@ export const genHousingOwnerApi = (
   owner: OwnerApi
 ): HousingOwnerApi => ({
   ...owner,
+  ownerId: owner.id,
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
-  rank: genNumber(1)
+  rank: faker.number.int({ min: 1, max: 6 })
 });
 
 export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {

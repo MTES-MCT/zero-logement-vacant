@@ -533,6 +533,7 @@ export const parseHousingOwnerApi = (
   housingOwner: OwnerDBO & HousingOwnerDBO
 ): HousingOwnerApi => ({
   ...parseOwnerApi(housingOwner),
+  ownerId: housingOwner.id,
   housingId: housingOwner.housing_id,
   housingGeoCode: housingOwner.housing_geo_code,
   rank: housingOwner.rank,

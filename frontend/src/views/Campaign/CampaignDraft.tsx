@@ -203,6 +203,10 @@ function CampaignDraft(props: Readonly<Props>) {
         }}
         tabs={[
           {
+            label: 'Destinataires',
+            content: <CampaignRecipients campaign={props.campaign} />
+          },
+          {
             label: 'Courrier',
             content: (
               <form id="draft" name="draft" className="fr-mt-2w">
@@ -264,10 +268,6 @@ function CampaignDraft(props: Readonly<Props>) {
                 </Container>
               </form>
             )
-          },
-          {
-            label: 'Destinataires',
-            content: <CampaignRecipients campaign={props.campaign} />
           }
         ]}
       />

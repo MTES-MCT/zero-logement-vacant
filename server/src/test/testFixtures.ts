@@ -557,6 +557,13 @@ export const genDatafoncierHousing = (
   const localityCode = geoCode.substring(2, 5);
   const invariant = genInvariant(localityCode);
   const localId = genLocalId(department, invariant);
+  const birthdate = faker.date
+    .past()
+    .toJSON()
+    .substring(0, 'yyyy-mm-dd'.length)
+    .split('-')
+    .toReversed()
+    .join('');
   return {
     idlocal: localId,
     idbat: randomstring.generate(16),
@@ -589,8 +596,8 @@ export const genDatafoncierHousing = (
     gpdl: randomstring.generate(1),
     ctpdl: randomstring.generate(5),
     dnupro: randomstring.generate(6),
-    jdatat: randomstring.generate(8),
-    jdatatv: randomstring.generate(8),
+    jdatat: birthdate,
+    jdatatv: birthdate,
     jdatatan: genNumber(2),
     dnufnl: randomstring.generate(6),
     ccoeva: randomstring.generate(1),

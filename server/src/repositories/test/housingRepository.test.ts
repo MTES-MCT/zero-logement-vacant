@@ -855,7 +855,8 @@ describe('Housing repository', () => {
         city: address.city,
         latitude: address.latitude,
         longitude: address.longitude,
-        score: address.score
+        score: address.score,
+        lastUpdatedAt: expect.any(String)
       });
     });
   });

@@ -9,7 +9,7 @@ import {
   healthcheck,
   postgresCheck,
   redisCheck,
-  s3Check,
+  s3Check
 } from '@zerologementvacant/healthcheck';
 import RouteNotFoundError from '~/errors/routeNotFoundError';
 import config from '~/infra/config';
@@ -20,6 +20,7 @@ import mockServices from '~/mocks';
 import unprotectedRouter from '~/routers/unprotected';
 import protectedRouter from '~/routers/protected';
 import errorHandler from '~/middlewares/error-handler';
+import db from '~/infra/database';
 
 export interface Server {
   app: http.Server;
@@ -46,18 +47,18 @@ export function createServer(): Server {
             'https://stats.beta.gouv.fr',
             'https://client.crisp.chat',
             'https://www.googletagmanager.com',
-            'https://googleads.g.doubleclick.net',
+            'https://googleads.g.doubleclick.net'
           ],
           frameSrc: [
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',
-            'https://zerologementvacant.crisp.help',
+            'https://zerologementvacant.crisp.help'
           ],
           styleSrc: [
             "'self'",
             "'unsafe-inline'",
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css',
             'https://client.crisp.chat/static/stylesheets/client_default.css',
-            'https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css',
+            'https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css'
           ],
           imgSrc: [
             "'self'",
@@ -66,7 +67,7 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://www.google.fr',
             'https://www.google.com',
-            'data:',
+            'data:'
           ],
           fontSrc: [
             "'self'",
@@ -74,7 +75,7 @@ export function createServer(): Server {
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.woff2',
             'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.ttf',
             'https://client.crisp.chat',
-            'data:',
+            'data:'
           ],
           objectSrc: ["'self'"],
           mediaSrc: ["'self'"],
@@ -86,18 +87,18 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://openmaptiles.geo.data.gouv.fr',
             'https://openmaptiles.github.io',
-            'https://unpkg.com',
+            'https://unpkg.com'
           ],
-          workerSrc: ["'self'", 'blob:'],
-        },
-      },
-    }),
+          workerSrc: ["'self'", 'blob:']
+        }
+      }
+    })
   );
 
   app.use(
     cors({
-      credentials: false,
-    }),
+      credentials: false
+    })
   );
 
   // Mock services like Datafoncier API on specific environments
@@ -111,8 +112,8 @@ export function createServer(): Server {
       max: config.rateLimit.max, // start blocking after X requests for windowMs time
       message: 'Too many request from this address, try again later please.',
       standardHeaders: true,
-      legacyHeaders: false,
-    }),
+      legacyHeaders: false
+    })
   );
 
   app.get(
@@ -121,10 +122,10 @@ export function createServer(): Server {
       checks: [
         redisCheck(config.redis.url),
         postgresCheck(config.db.url),
-        s3Check(config.s3),
+        s3Check(config.s3)
       ],
-      logger,
-    }),
+      logger
+    })
   );
 
   app.use('/api', unprotectedRouter);
@@ -137,7 +138,9 @@ export function createServer(): Server {
   app.use(errorHandler());
 
   const server = http.createServer(app);
-  gracefulShutdown(server);
+  gracefulShutdown(server, {
+    closables: [db]
+  });
 
   async function start(): Promise<void> {
     const listen = util.promisify((port: number, cb: () => void) => {
@@ -155,6 +158,6 @@ export function createServer(): Server {
 
   return {
     app: server,
-    start,
+    start
   };
 }

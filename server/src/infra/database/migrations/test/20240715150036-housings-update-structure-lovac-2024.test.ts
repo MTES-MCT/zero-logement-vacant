@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import fp from 'lodash/fp';
 
 import createMigrator from './migrator';
 import db from '~/infra/database/';
@@ -44,7 +45,12 @@ function createHousing() {
     local_id: faker.string.alphanumeric(),
     building_id: faker.string.alphanumeric(),
     raw_address: ['123 rue Bidon', '75101 Paris'],
-    geo_code: faker.location.zipCode(),
+    // faker.location.zipCode() sometimes returns the department "20"
+    geo_code: fp.padCharsStart(
+      '0',
+      5,
+      faker.number.int({ min: 1, max: 19 }).toString() + faker.string.numeric(3)
+    ),
     longitude: faker.location.longitude(),
     latitude: faker.location.latitude(),
     cadastral_classification: faker.number.int(10),

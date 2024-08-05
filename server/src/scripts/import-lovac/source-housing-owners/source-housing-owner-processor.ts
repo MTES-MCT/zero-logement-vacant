@@ -15,10 +15,6 @@ import { UserApi } from '~/models/UserApi';
 
 const logger = createLogger('sourceHousingOwnerProcessor');
 
-export interface SaveManyOptions {
-  replace?: boolean;
-}
-
 export interface ProcessorOptions extends ReporterOptions<SourceHousingOwner> {
   auth: UserApi;
   housingRepository: {
@@ -28,10 +24,7 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousingOwner> {
     insert(event: HousingEventApi): Promise<void>;
   };
   housingOwnerRepository: {
-    saveMany(
-      housingOwners: ReadonlyArray<HousingOwnerApi>,
-      options?: SaveManyOptions
-    ): Promise<void>;
+    saveMany(housingOwners: ReadonlyArray<HousingOwnerApi>): Promise<void>;
     insert(housingOwner: HousingOwnerApi): Promise<void>;
   };
   ownerRepository: {

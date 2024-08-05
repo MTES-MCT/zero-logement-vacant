@@ -173,6 +173,7 @@ const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
 
 interface FindOneOptions {
   id?: string;
+  idpersonne?: string;
   fullName?: string;
   rawAddress?: string[];
   birthDate?: Date;
@@ -181,6 +182,7 @@ interface FindOneOptions {
 async function findOne(opts: FindOneOptions): Promise<OwnerApi | null> {
   const owner = await Owners()
     .where({
+      idpersonne: opts.idpersonne,
       full_name: opts.fullName,
       address_dgfip: opts.rawAddress
     })

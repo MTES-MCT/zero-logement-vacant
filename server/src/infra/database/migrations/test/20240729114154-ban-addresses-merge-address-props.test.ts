@@ -18,9 +18,9 @@ describe('20240729114154-ban-addresses-merge-address-props', () => {
   describe('up', () => {
     it.each`
       houseNumber | street                    | postalCode | city          | expected
-      ${'1'}      | ${'rue Bidon'}            | ${'75101'} | ${'Paris'}    | ${'1 rue Bidon, 75101 Paris'}
-      ${null}     | ${'Chemin des Violettes'} | ${'63450'} | ${'Chanonat'} | ${'Chemin des Violettes, 63450 Chanonat'}
-      ${''}       | ${'Chemin des Violettes'} | ${'63450'} | ${'Chanonat'} | ${'Chemin des Violettes, 63450 Chanonat'}
+      ${'1'}      | ${'rue Bidon'}            | ${'75101'} | ${'Paris'}    | ${'1 rue Bidon 75101 Paris'}
+      ${null}     | ${'Chemin des Violettes'} | ${'63450'} | ${'Chanonat'} | ${'Chemin des Violettes 63450 Chanonat'}
+      ${''}       | ${'Chemin des Violettes'} | ${'63450'} | ${'Chanonat'} | ${'Chemin des Violettes 63450 Chanonat'}
     `(
       'should merge $houseNumber, $street, $postalCode and $city into $expected',
       async ({ houseNumber, street, postalCode, city, expected }) => {

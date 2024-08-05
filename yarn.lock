@@ -9437,6 +9437,7 @@ __metadata:
   resolution: "@zerologementvacant/utils@workspace:packages/utils"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.577.0"
+    "@faker-js/faker": "npm:^8.4.1"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/jest": "npm:^29.5.12"
     "@types/lodash": "npm:^4.17.4"

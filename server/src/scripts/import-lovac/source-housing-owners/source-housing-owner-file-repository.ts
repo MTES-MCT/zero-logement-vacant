@@ -1,8 +1,9 @@
-import { ReadableStream } from 'node:stream/web';
+import { ReadableStream, TransformStream } from 'node:stream/web';
 
+import { filter } from '@zerologementvacant/utils';
 import { SourceFileRepository } from '~/scripts/import-lovac/infra/source-file-repository';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
-import { SourceRepository } from '~/scripts/import-lovac/infra';
+import { SourceRepository, StreamOptions } from '~/scripts/import-lovac/infra';
 
 class SourceHousingOwnerFileRepository
   extends SourceFileRepository<SourceHousingOwner>
@@ -14,9 +15,23 @@ class SourceHousingOwnerFileRepository
     super(file);
   }
 
-  stream(): ReadableStream<SourceHousingOwner> {
-    return super.stream();
+  stream(options?: StreamOptions): ReadableStream<SourceHousingOwner> {
+    return super.stream().pipeThrough(filterSourceHousingOwner(options));
   }
+}
+
+function filterSourceHousingOwner(
+  options?: StreamOptions
+): TransformStream<SourceHousingOwner, SourceHousingOwner> {
+  const departments = options?.departments ?? [];
+
+  if (departments.length === 0) {
+    return new TransformStream();
+  }
+
+  return filter((sourceHousingOwner) =>
+    departments.includes(sourceHousingOwner.local_id.substring(0, 2))
+  );
 }
 
 function createSourceHousingOwnerFileRepository(

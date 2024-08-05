@@ -42,12 +42,16 @@ export function createSourceHousingOwnerCommand() {
 
       logger.info('Computing total...');
       const total = await count(
-        createSourceHousingOwnerFileRepository(file).stream()
+        createSourceHousingOwnerFileRepository(file).stream({
+          departments: options.departments
+        })
       );
 
       logger.info('Starting import...', { file });
       await createSourceHousingOwnerFileRepository(file)
-        .stream()
+        .stream({
+          departments: options.departments
+        })
         .pipeThrough(
           progress({
             initial: 0,

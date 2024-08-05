@@ -1,7 +1,4 @@
-import fs from 'node:fs';
-import { Readable } from 'node:stream';
-
-import { countLines } from '@zerologementvacant/utils';
+import { count } from '@zerologementvacant/utils';
 import { createLogger } from '~/infra/logger';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import {
@@ -28,7 +25,11 @@ export function createSourceOwnerCommand() {
   return async (file: string, options: ExecOptions): Promise<void> => {
     try {
       logger.info('Computing total...');
-      const total = await countLines(Readable.toWeb(fs.createReadStream(file)));
+      const total = await count(
+        createSourceOwnerFileRepository(file).stream({
+          departments: options.departments
+        })
+      );
 
       logger.info('Starting import...', { file });
       await createSourceOwnerFileRepository(file)

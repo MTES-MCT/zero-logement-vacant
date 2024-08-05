@@ -8,5 +8,4 @@ export interface SourceHousingOwner {
   ownership_type: string;
   ownership_score: number;
   ownership_score_reason: string;
-  conflict: boolean;
 }

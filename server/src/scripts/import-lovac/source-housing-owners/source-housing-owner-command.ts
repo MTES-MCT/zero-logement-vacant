@@ -1,6 +1,9 @@
 import { count } from '@zerologementvacant/utils';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
-import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
+import {
+  SourceHousingOwner,
+  sourceHousingOwnerSchema
+} from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { createLogger } from '~/infra/logger';
 import { createSourceHousingOwnerProcessor } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-processor';
 import userRepository from '~/repositories/userRepository';
@@ -16,6 +19,7 @@ import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import ownerRepository from '~/repositories/ownerRepository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
+import validator from '~/scripts/import-lovac/infra/validator';
 
 const logger = createLogger('sourceHousingOwnerCommand');
 
@@ -55,7 +59,13 @@ export function createSourceHousingOwnerCommand() {
         .pipeThrough(
           progress({
             initial: 0,
-            total: total
+            total
+          })
+        )
+        .pipeThrough(
+          validator(sourceHousingOwnerSchema, {
+            abortEarly: options.abortEarly,
+            reporter
           })
         )
         .pipeTo(

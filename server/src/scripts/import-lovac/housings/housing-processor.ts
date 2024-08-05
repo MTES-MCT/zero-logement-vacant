@@ -48,6 +48,7 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                   subStatus: 'Sortie de la vacance'
                 }
               );
+              const now = new Date();
               await housingEventRepository.insert({
                 id: uuidv4(),
                 name: 'Changement de statut d’occupation',
@@ -57,7 +58,7 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                 conflict: false,
                 old: chunk,
                 new: { ...chunk, occupancy: OccupancyKindApi.Unknown },
-                createdAt: new Date(),
+                createdAt: now,
                 createdBy: auth.id,
                 housingId: chunk.id,
                 housingGeoCode: chunk.geoCode
@@ -75,7 +76,7 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                   status: HousingStatusApi.Completed,
                   subStatus: 'Sortie de la vacance'
                 },
-                createdAt: new Date(),
+                createdAt: now,
                 createdBy: auth.id,
                 housingId: chunk.id,
                 housingGeoCode: chunk.geoCode

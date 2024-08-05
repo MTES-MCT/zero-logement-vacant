@@ -22,6 +22,7 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
     async write(chunk) {
       try {
         logger.debug('Processing source owner...', { chunk });
+        const now = new Date();
 
         await saveOwner({
           id: uuidv4(),
@@ -37,8 +38,8 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
           data_source: 'lovac-2024',
           kind_class: chunk.ownership_type,
           owner_kind_detail: null,
-          created_at: new Date(),
-          updated_at: new Date()
+          created_at: now,
+          updated_at: now
         });
         reporter.passed(chunk);
       } catch (error) {

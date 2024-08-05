@@ -143,56 +143,6 @@ describe('Source housing owner processor', () => {
       });
     });
 
-    describe('If the housing owner has an internal conflict', () => {
-      beforeEach(() => {
-        sourceHousingOwners = sourceHousingOwners.map((sourceHousingOwner) => {
-          return {
-            ...sourceHousingOwner,
-            conflict: true
-          };
-        });
-      });
-
-      it('should archive the departmental owners', async () => {
-        const stream = new ReadableStream<SourceHousingOwner>({
-          pull(controller) {
-            sourceHousingOwners.forEach((_) => controller.enqueue(_));
-            controller.close();
-          }
-        });
-        const processor = createSourceHousingOwnerProcessor({
-          auth,
-          reporter,
-          housingRepository,
-          housingEventRepository,
-          housingOwnerRepository,
-          ownerRepository
-        });
-
-        await stream.pipeTo(processor);
-
-        expect(reporter.passed).toHaveBeenCalledTimes(
-          sourceHousingOwners.length
-        );
-        sourceHousingOwners.forEach((sourceHousingOwner, index) => {
-          expect(housingOwnerRepository.insert).toHaveBeenNthCalledWith<
-            [HousingOwnerApi]
-          >(
-            index + 1,
-            expect.objectContaining({
-              ownerId: departmentalOwners[index].id,
-              housingId: housing.id,
-              housingGeoCode: housing.geoCode,
-              idprocpte: sourceHousingOwner.idprocpte,
-              idprodroit: sourceHousingOwner.idprodroit,
-              locprop: sourceHousingOwner.locprop,
-              rank: -2
-            })
-          );
-        });
-      });
-    });
-
     describe('If the housing was missing before LOVAC 2024', () => {
       beforeEach(() => {
         housing.dataFileYears = ['lovac-2024'];

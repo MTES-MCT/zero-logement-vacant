@@ -60,28 +60,6 @@ export function createSourceHousingOwnerProcessor(opts: ProcessorOptions) {
           throw new HousingMissingError(chunk.local_id);
         }
 
-        if (chunk.conflict) {
-          logger.debug('Conflict detected', {
-            chunk
-          });
-          const housingOwner: HousingOwnerApi = {
-            ...departmentalOwner,
-            ownerId: departmentalOwner.id,
-            housingId: housing.id,
-            housingGeoCode: housing.geoCode,
-            idprocpte: chunk.idprocpte,
-            idprodroit: chunk.idprodroit,
-            locprop: chunk.locprop,
-            rank: -2,
-            startDate: new Date(),
-            endDate: undefined,
-            origin: 'lovac'
-          };
-          await housingOwnerRepository.insert(housingOwner);
-          reporter.passed(chunk);
-          return;
-        }
-
         if (isNewHousing(housing)) {
           logger.debug('Housing was missing from our database', {
             geoCode: housing.geoCode,

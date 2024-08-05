@@ -5,6 +5,7 @@ import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 
+import { genGeoCode } from '@zerologementvacant/utils';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
@@ -74,16 +75,6 @@ import { DraftApi } from '~/models/DraftApi';
 logger.debug(`Seed: ${faker.seed()}`);
 
 export const genEmail = () => faker.internet.email();
-
-export const genGeoCode = (): string => {
-  const geoCode = faker.location.zipCode();
-  const needsReroll =
-    geoCode.startsWith('00') ||
-    geoCode.startsWith('20') ||
-    geoCode.startsWith('99') ||
-    geoCode.endsWith('999');
-  return needsReroll ? genGeoCode() : geoCode;
-};
 
 /**
  * A locality string of 3 numeric characters

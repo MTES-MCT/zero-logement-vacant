@@ -1,20 +1,15 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import fp from 'lodash/fp';
 
-import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
+import { genGeoCode } from '@zerologementvacant/utils';
 import {
   HOUSING_KIND_VALUES,
   OWNERSHIP_KINDS
 } from '@zerologementvacant/models';
+import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
 export function genSourceHousing(): SourceHousing {
-  // faker.location.zipCode() sometimes returns the department "20"
-  const geoCode = fp.padCharsStart(
-    '0',
-    5,
-    faker.number.int({ min: 1, max: 19 }).toString() + faker.string.numeric(3)
-  );
+  const geoCode = genGeoCode();
 
   return {
     data_file_years: 'lovac-2024',

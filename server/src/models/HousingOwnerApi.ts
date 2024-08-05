@@ -28,7 +28,8 @@ export interface HousingOwnerApi extends OwnerApi {
 
 type Incorrect = -1;
 type Awaiting = -2;
-export type PositiveRank = 1 | 2 | 3 | 4 | 5 | 6;
+export const POSITIVE_RANKS = [1, 2, 3, 4, 5, 6] as const;
+export type PositiveRank = (typeof POSITIVE_RANKS)[number];
 export type Rank = Incorrect | Awaiting | PositiveRank;
 export function isIncorrect(rank: Rank): rank is Incorrect {
   return rank === -1;

@@ -1,11 +1,24 @@
+import { number, object, ObjectSchema, string } from 'yup';
+
+import { POSITIVE_RANKS, PositiveRank } from '~/models/HousingOwnerApi';
+
 export interface SourceHousingOwner {
   local_id: string;
   idpersonne: string;
   idprocpte: string;
   idprodroit: string;
   locprop: number;
-  rank: 1 | 2 | 3 | 4 | 5 | 6;
-  ownership_type: string;
-  ownership_score: number;
-  ownership_score_reason: string;
+  rank: PositiveRank;
 }
+
+export const sourceHousingOwnerSchema: ObjectSchema<SourceHousingOwner> =
+  object({
+    local_id: string().required('local_id is required').length(12),
+    idpersonne: string().required('idpersonne is required').length(8),
+    idprocpte: string().required('idprocpte is required').length(11),
+    idprodroit: string().required('idprodroit is required').length(13),
+    locprop: number().required('locprop is required').truncate(),
+    rank: number<PositiveRank>()
+      .required('rank is required')
+      .oneOf(POSITIVE_RANKS)
+  });

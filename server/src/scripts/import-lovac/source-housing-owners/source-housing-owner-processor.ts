@@ -36,10 +36,7 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousingOwner> {
   };
   ownerRepository: {
     findOne(idpersonne: string): Promise<OwnerApi | null>;
-    findByHousing(
-      geoCode: HousingApi['geoCode'],
-      id: HousingApi['id']
-    ): Promise<ReadonlyArray<HousingOwnerApi>>;
+    findByHousing(housing: HousingApi): Promise<ReadonlyArray<HousingOwnerApi>>;
   };
 }
 
@@ -94,10 +91,7 @@ export function createSourceHousingOwnerProcessor(opts: ProcessorOptions) {
           return;
         }
 
-        const existingOwners = await ownerRepository.findByHousing(
-          housing.geoCode,
-          housing.id
-        );
+        const existingOwners = await ownerRepository.findByHousing(housing);
 
         if (isSupervised(housing)) {
           // Archive the new departmental owners and log a conflict

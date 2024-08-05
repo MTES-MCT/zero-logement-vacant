@@ -153,7 +153,7 @@ describe('Source housing owner processor', () => {
         });
       });
 
-      it('should skip the housing owner', async () => {
+      it('should archive the departmental owners', async () => {
         const stream = new ReadableStream<SourceHousingOwner>({
           pull(controller) {
             sourceHousingOwners.forEach((_) => controller.enqueue(_));
@@ -171,9 +171,25 @@ describe('Source housing owner processor', () => {
 
         await stream.pipeTo(processor);
 
-        expect(reporter.skipped).toHaveBeenCalledTimes(
+        expect(reporter.passed).toHaveBeenCalledTimes(
           sourceHousingOwners.length
         );
+        sourceHousingOwners.forEach((sourceHousingOwner, index) => {
+          expect(housingOwnerRepository.insert).toHaveBeenNthCalledWith<
+            [HousingOwnerApi]
+          >(
+            index + 1,
+            expect.objectContaining({
+              ownerId: departmentalOwners[index].id,
+              housingId: housing.id,
+              housingGeoCode: housing.geoCode,
+              idprocpte: sourceHousingOwner.idprocpte,
+              idprodroit: sourceHousingOwner.idprodroit,
+              locprop: sourceHousingOwner.locprop,
+              rank: -2
+            })
+          );
+        });
       });
     });
 

@@ -33,7 +33,7 @@ describe('20240729114154-ban-addresses-merge-address-props', () => {
           city: city,
           latitude: faker.location.latitude(),
           longitude: faker.location.longitude(),
-          score: faker.number.float(),
+          score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
           last_updated_at: faker.date.recent()
         };
         await db('ban_addresses').insert(address);

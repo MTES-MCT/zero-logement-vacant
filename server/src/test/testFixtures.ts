@@ -231,7 +231,7 @@ export const genAddressApi = (
     city: faker.location.city(),
     latitude: faker.location.latitude(),
     longitude: faker.location.longitude(),
-    score: Math.random(),
+    score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
     lastUpdatedAt: faker.date.recent().toJSON()
   };
 };

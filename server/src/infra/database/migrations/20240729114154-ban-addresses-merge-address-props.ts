@@ -29,7 +29,7 @@ export async function up(knex: Knex): Promise<void> {
   // Copy to the new address column
   await knex('ban_addresses').update({
     address: knex.raw(
-      `trim(regexp_replace(coalesce(house_number, '') || ' ' || coalesce(street, '') || ', ' || coalesce(postal_code, '') || ' ' || coalesce(city, ''), '\\s{2}', ' '))`
+      `trim(regexp_replace(coalesce(house_number, '') || ' ' || coalesce(street, '') || ' ' || coalesce(postal_code, '') || ' ' || coalesce(city, ''), '\\s{2}', ' '))`
     )
   });
 

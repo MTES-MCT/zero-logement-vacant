@@ -71,7 +71,7 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .oneOf(HOUSING_KIND_VALUES)
     .required('housing_kind is required'),
   condominium: string().defined('condominium must be defined').nullable(),
-  living_area: number().required('living_area is required').min(0).truncate(),
+  living_area: number().required('living_area is required').min(1).truncate(),
   rooms_count: number()
     .integer('rooms_count must be an integer')
     .required('rooms_count is required')

@@ -66,7 +66,6 @@ export function genSourceHousingOwner(
     idprodroit: faker.string.alphanumeric(13),
     locprop: faker.helpers.arrayElement([1, 2, 3, 4, 5, 6, 9]),
     rank: faker.number.int({ min: 1, max: 6 }) as PositiveRank,
-    conflict: faker.datatype.boolean({ probability: 0.1 }),
     ownership_type: sourceOwner.ownership_type,
     ownership_score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
     ownership_score_reason: faker.lorem.sentence()

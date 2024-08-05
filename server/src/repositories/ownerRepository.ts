@@ -30,6 +30,7 @@ import {
   banAddressesTable,
   parseAddressApi
 } from './banAddressesRepository';
+import { compact } from '~/utils/object';
 import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
@@ -181,11 +182,13 @@ interface FindOneOptions {
 
 async function findOne(opts: FindOneOptions): Promise<OwnerApi | null> {
   const owner = await Owners()
-    .where({
-      idpersonne: opts.idpersonne,
-      full_name: opts.fullName,
-      address_dgfip: opts.rawAddress
-    })
+    .where(
+      compact({
+        idpersonne: opts.idpersonne,
+        full_name: opts.fullName,
+        address_dgfip: opts.rawAddress
+      })
+    )
     .modify((builder) => {
       return opts.birthDate === undefined
         ? builder.whereNull('birth_date')

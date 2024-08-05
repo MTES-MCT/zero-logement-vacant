@@ -143,6 +143,40 @@ describe('Source housing owner processor', () => {
       });
     });
 
+    describe('If the housing owner has an internal conflict', () => {
+      beforeEach(() => {
+        sourceHousingOwners = sourceHousingOwners.map((sourceHousingOwner) => {
+          return {
+            ...sourceHousingOwner,
+            conflict: true
+          };
+        });
+      });
+
+      it('should skip the housing owner', async () => {
+        const stream = new ReadableStream<SourceHousingOwner>({
+          pull(controller) {
+            sourceHousingOwners.forEach((_) => controller.enqueue(_));
+            controller.close();
+          }
+        });
+        const processor = createSourceHousingOwnerProcessor({
+          auth,
+          reporter,
+          housingRepository,
+          housingEventRepository,
+          housingOwnerRepository,
+          ownerRepository
+        });
+
+        await stream.pipeTo(processor);
+
+        expect(reporter.skipped).toHaveBeenCalledTimes(
+          sourceHousingOwners.length
+        );
+      });
+    });
+
     describe('If the housing was missing before LOVAC 2024', () => {
       beforeEach(() => {
         housing.dataFileYears = ['lovac-2024'];

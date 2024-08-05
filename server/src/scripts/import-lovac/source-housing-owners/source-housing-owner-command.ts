@@ -104,6 +104,9 @@ export function createSourceHousingOwnerCommand() {
           })
         );
       logger.info(`File ${file} imported.`);
+    } catch (error) {
+      logger.error(error);
+      throw error;
     } finally {
       reporter.report();
     }

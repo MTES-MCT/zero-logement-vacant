@@ -11,7 +11,7 @@ import { createLogger } from '~/infra/logger';
 const ALLOWED_EXTENSIONS = ['.csv', '.jsonl'] as const;
 type Extension = (typeof ALLOWED_EXTENSIONS)[number];
 
-const DATE_REGEXP = /^\d{4}-\d{2}-\d{2} 00:00:00$/;
+const ISO8601_DATE_REGEXP = /^\d{4}-\d{2}-\d{2}$/;
 
 function isAllowedExtension(extension: string): extension is Extension {
   return ALLOWED_EXTENSIONS.includes(extension as Extension);
@@ -39,7 +39,7 @@ export abstract class SourceFileRepository<A> implements SourceRepository<A> {
               return null;
             }
 
-            if (DATE_REGEXP.test(value)) {
+            if (ISO8601_DATE_REGEXP.test(value)) {
               return new Date(value.substring(0, 'yyyy-mm-dd'.length));
             }
 

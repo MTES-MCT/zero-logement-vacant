@@ -72,6 +72,8 @@ import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { SenderApi } from '~/models/SenderApi';
 import { DraftApi } from '~/models/DraftApi';
 
+export { genGeoCode } from '@zerologementvacant/utils';
+
 logger.debug(`Seed: ${faker.seed()}`);
 
 export const genEmail = () => faker.internet.email();

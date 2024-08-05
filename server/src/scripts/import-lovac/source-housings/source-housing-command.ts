@@ -33,135 +33,143 @@ export function createSourceHousingCommand() {
   const housingReporter = createLoggerReporter<HousingApi>();
 
   return async (file: string, options: ExecOptions): Promise<void> => {
-    logger.debug('Starting source housing command...', { file, options });
+    try {
+      logger.debug('Starting source housing command...', { file, options });
 
-    const auth = await userRepository.getByEmail(config.app.system);
-    if (!auth) {
-      throw new UserMissingError(config.app.system);
-    }
+      const auth = await userRepository.getByEmail(config.app.system);
+      if (!auth) {
+        throw new UserMissingError(config.app.system);
+      }
 
-    const departments = options.departments ?? [];
+      const departments = options.departments ?? [];
 
-    logger.info('Computing total...');
-    const total = await count(
-      createSourceHousingFileRepository(file).stream({ departments })
-    );
+      logger.info('Computing total...');
+      const total = await count(
+        createSourceHousingFileRepository(file).stream({ departments })
+      );
 
-    logger.info('Starting import...', { file });
-    await createSourceHousingFileRepository(file)
-      .stream({ departments })
-      .pipeThrough(
-        progress({
-          initial: 0,
-          total: total
-        })
-      )
-      .pipeThrough(
-        validator(sourceHousingSchema, {
-          abortEarly: options.abortEarly,
-          reporter: sourceHousingReporter
-        })
-      )
-      .pipeTo(
-        createSourceHousingProcessor({
-          abortEarly: options.abortEarly,
-          auth,
-          reporter: sourceHousingReporter,
-          banAddressRepository: {
-            async insert(address: AddressApi): Promise<void> {
-              if (!options.dryRun) {
-                await banAddressesRepository.save(address);
+      logger.info('Starting import...', { file });
+      await createSourceHousingFileRepository(file)
+        .stream({ departments })
+        .pipeThrough(
+          progress({
+            initial: 0,
+            total: total
+          })
+        )
+        .pipeThrough(
+          validator(sourceHousingSchema, {
+            abortEarly: options.abortEarly,
+            reporter: sourceHousingReporter
+          })
+        )
+        .pipeTo(
+          createSourceHousingProcessor({
+            abortEarly: options.abortEarly,
+            auth,
+            reporter: sourceHousingReporter,
+            banAddressRepository: {
+              async insert(address: AddressApi): Promise<void> {
+                if (!options.dryRun) {
+                  await banAddressesRepository.save(address);
+                }
               }
-            }
-          },
-          housingRepository: {
-            findOne(localId: string): Promise<HousingApi | null> {
-              const geoCode = localId.substring(0, 5);
-              return housingRepository.findOne({
-                localId,
+            },
+            housingRepository: {
+              findOne(localId: string): Promise<HousingApi | null> {
+                const geoCode = localId.substring(0, 5);
+                return housingRepository.findOne({
+                  localId,
+                  geoCode
+                });
+              },
+              async insert(housing: HousingApi): Promise<void> {
+                if (!options.dryRun) {
+                  await housingRepository.save(housing, {
+                    onConflict: 'ignore'
+                  });
+                }
+              },
+              async update(
+                { geoCode, id }: Pick<HousingApi, 'geoCode' | 'id'>,
+                housing: Partial<HousingApi>
+              ): Promise<void> {
+                if (!options.dryRun) {
+                  await Housing().where({ geo_code: geoCode, id }).update({
+                    data_file_years: housing.dataFileYears,
+                    occupancy: housing.occupancy
+                  });
+                }
+              }
+            },
+            housingEventRepository: {
+              async find({
+                id,
                 geoCode
-              });
-            },
-            async insert(housing: HousingApi): Promise<void> {
-              if (!options.dryRun) {
-                await housingRepository.save(housing, {
-                  onConflict: 'ignore'
-                });
-              }
-            },
-            async update(
-              { geoCode, id }: Pick<HousingApi, 'geoCode' | 'id'>,
-              housing: Partial<HousingApi>
-            ): Promise<void> {
-              if (!options.dryRun) {
-                await Housing().where({ geo_code: geoCode, id }).update({
-                  data_file_years: housing.dataFileYears,
-                  occupancy: housing.occupancy
-                });
+              }: HousingId): Promise<ReadonlyArray<HousingEventApi>> {
+                const events = await eventRepository.findHousingEvents(id);
+                return events.map((event) => ({
+                  ...event,
+                  housingId: id,
+                  housingGeoCode: geoCode
+                }));
+              },
+              async insert(event: HousingEventApi): Promise<void> {
+                if (!options.dryRun) {
+                  await eventRepository.insertHousingEvent(event);
+                }
               }
             }
-          },
-          housingEventRepository: {
-            async find({
-              id,
-              geoCode
-            }: HousingId): Promise<ReadonlyArray<HousingEventApi>> {
-              const events = await eventRepository.findHousingEvents(id);
-              return events.map((event) => ({
-                ...event,
-                housingId: id,
-                housingGeoCode: geoCode
-              }));
-            },
-            async insert(event: HousingEventApi): Promise<void> {
-              if (!options.dryRun) {
-                await eventRepository.insertHousingEvent(event);
-              }
-            }
-          }
-        })
-      );
-    logger.info(`File ${file} imported.`);
-    sourceHousingReporter.report();
+          })
+        );
+      logger.info(`File ${file} imported.`);
+      sourceHousingReporter.report();
 
-    logger.info('Starting check for housings missing from the file...');
-    const housingStream = housingRepository.betterStream();
-    const housingCount = Number((await Housing().count().first())?.count);
-    await housingStream
-      .pipeThrough(
-        progress({
-          initial: 0,
-          total: housingCount
-        })
-      )
-      .pipeTo(
-        createHousingProcessor({
-          auth,
-          abortEarly: options.abortEarly,
-          reporter: housingReporter,
-          housingRepository: {
-            async update(
-              { geoCode, id }: Pick<HousingApi, 'geoCode' | 'id'>,
-              housing: Partial<HousingApi>
-            ): Promise<void> {
-              if (!options.dryRun) {
-                await Housing().where({ geo_code: geoCode, id }).update({
-                  data_file_years: housing.dataFileYears,
-                  occupancy: housing.occupancy
-                });
+      logger.info('Starting check for housings missing from the file...');
+      const housingStream = housingRepository.betterStream();
+      const housingCount = Number((await Housing().count().first())?.count);
+      await housingStream
+        .pipeThrough(
+          progress({
+            initial: 0,
+            total: housingCount
+          })
+        )
+        .pipeTo(
+          createHousingProcessor({
+            auth,
+            abortEarly: options.abortEarly,
+            reporter: housingReporter,
+            housingRepository: {
+              async update(
+                { geoCode, id }: Pick<HousingApi, 'geoCode' | 'id'>,
+                housing: Partial<HousingApi>
+              ): Promise<void> {
+                if (!options.dryRun) {
+                  await Housing().where({ geo_code: geoCode, id }).update({
+                    data_file_years: housing.dataFileYears,
+                    occupancy: housing.occupancy
+                  });
+                }
+              }
+            },
+            housingEventRepository: {
+              async insert(event: HousingEventApi): Promise<void> {
+                if (!options.dryRun) {
+                  await eventRepository.insertHousingEvent(event);
+                }
               }
             }
-          },
-          housingEventRepository: {
-            async insert(event: HousingEventApi): Promise<void> {
-              if (!options.dryRun) {
-                await eventRepository.insertHousingEvent(event);
-              }
-            }
-          }
-        })
-      );
-    logger.info('Check done.');
-    housingReporter.report();
+          })
+        );
+      logger.info('Check done.');
+      housingReporter.report();
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    } finally {
+      sourceHousingReporter.report();
+      housingReporter.report();
+    }
   };
 }

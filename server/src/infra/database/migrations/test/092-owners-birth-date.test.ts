@@ -33,6 +33,7 @@ describe('092 Owners birth date', () => {
 
   beforeEach(async () => {
     const migrator = createMigrator(db);
+    await migrator.rollback(undefined, rollbackAll);
     await migrator.migrateUntil('092-owners-birth-date.ts');
 
     // Create some owners

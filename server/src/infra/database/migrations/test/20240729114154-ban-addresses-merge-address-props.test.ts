@@ -9,6 +9,7 @@ describe('20240729114154-ban-addresses-merge-address-props', () => {
   const migrator = createMigrator(db);
 
   beforeEach(async () => {
+    await migrator.rollback(undefined, rollbackAll);
     await migrator.migrateUntil(
       '20240729114154-ban-addresses-merge-address-props.ts'
     );

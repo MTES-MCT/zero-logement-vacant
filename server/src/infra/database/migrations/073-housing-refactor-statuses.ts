@@ -44,7 +44,7 @@ export async function up(knex: Knex): Promise<void> {
           const mapHousing = fp.compose(
             mapVacancyReasons,
             mapPrecisions,
-            mapSubStatus,
+            mapSubStatus
           );
           const newHousing = mapHousing(oldHousing);
           const event = {
@@ -58,7 +58,7 @@ export async function up(knex: Knex): Promise<void> {
             old: denormalizeOldStatus(oldHousing),
             new: denormalizeNewStatus(newHousing),
             created_at: new Date(),
-            created_by: admin.id,
+            created_by: admin.id
           };
 
           // Speed up the process by removing untouched housing
@@ -66,7 +66,7 @@ export async function up(knex: Knex): Promise<void> {
             ? null
             : {
                 event,
-                housing: newHousing,
+                housing: newHousing
               };
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -86,10 +86,10 @@ export async function up(knex: Knex): Promise<void> {
                   section: 'Situation',
                   conflict: false,
                   created_at: new Date(),
-                  created_by: event.created_by,
-                },
+                  created_by: event.created_by
+                }
               ]
-            : event,
+            : event
         );
       await async.forEach(fp.chunk(1000, events), async (events) => {
         await saveEvents(knex)(events);
@@ -103,7 +103,7 @@ export async function up(knex: Knex): Promise<void> {
       count += length;
       logger.info(`${count} / ${total} housing`);
     },
-    async () => length < BATCH_SIZE,
+    async () => length < BATCH_SIZE
   );
 
   const end = new Date();
@@ -114,10 +114,6 @@ export async function down(knex: Knex): Promise<void> {
   const email = 'admin@zerologementvacant.beta.gouv.fr';
   const admin = await knex('users').where({ email }).first();
 
-  if (!admin) {
-    throw new Error(`${email} not found`);
-  }
-
   let length = 0;
   let currentId: string | undefined;
 
@@ -126,7 +122,7 @@ export async function down(knex: Knex): Promise<void> {
     async () => {
       const events: HousingEvent[] = await knex('events')
         .where({
-          name: 'Modification arborescence de suivi',
+          name: 'Modification arborescence de suivi'
         })
         .modify((builder) => {
           if (currentId) {
@@ -142,11 +138,11 @@ export async function down(knex: Knex): Promise<void> {
         .map((event) => event.old)
         .filter(
           (housing): housing is NonNullable<HousingSerialized> =>
-            !fp.isNil(housing),
+            !fp.isNil(housing)
         )
         .map((h) => ({
           ...h,
-          mutation_date: isValid(h.mutation_date) ? h.mutation_date : null,
+          mutation_date: isValid(h.mutation_date) ? h.mutation_date : null
         }))
         .map(normalizeStatus);
 
@@ -158,10 +154,12 @@ export async function down(knex: Knex): Promise<void> {
 
       length = events.length;
     },
-    async () => length < BATCH_SIZE,
+    async () => length < BATCH_SIZE
   );
 
-  await knex('events').where({ created_by: admin.id }).delete();
+  if (admin) {
+    await knex('events').where({ created_by: admin.id }).delete();
+  }
 
   function normalizeStatus(housing: HousingSerialized): Housing {
     const statuses = [
@@ -171,7 +169,7 @@ export async function down(knex: Knex): Promise<void> {
       'Suivi en cours',
       'Non-vacant',
       'Bloqué',
-      'Sortie de la vacance',
+      'Sortie de la vacance'
     ];
 
     const status = statuses.indexOf(housing.status);
@@ -186,7 +184,7 @@ function statusChanges(housing: Housing): boolean {
   const changingStatuses = [
     HousingStatus.NeverContacted,
     HousingStatus.Exit,
-    HousingStatus.NotVacant,
+    HousingStatus.NotVacant
   ];
   return changingStatuses.includes(housing.status);
 }
@@ -197,7 +195,7 @@ function equals(a: Housing, b: Housing): boolean {
     'sub_status',
     'precisions',
     'vacancy_reasons',
-    'occupancy',
+    'occupancy'
   ]);
   return fp.isEqual(subset(a), subset(b));
 }
@@ -209,51 +207,51 @@ function mapSubStatus(housing: Housing): Housing {
 
   const map: Record<string, Partial<Housing>> = {
     'Intérêt potentiel': {
-      sub_status: 'Intérêt potentiel / En réflexion',
+      sub_status: 'Intérêt potentiel / En réflexion'
     },
     'Via accompagnement': {
-      sub_status: 'Sortie de la vacance',
+      sub_status: 'Sortie de la vacance'
     },
     'Intervention publique': {
-      sub_status: 'Sortie de la vacance',
+      sub_status: 'Sortie de la vacance'
     },
     'Sans accompagnement': {
-      sub_status: 'Sortie de la vacance',
+      sub_status: 'Sortie de la vacance'
     },
     'Absent du millésime suivant': {
-      sub_status: 'Sortie de la vacance',
+      sub_status: 'Sortie de la vacance'
     },
     'Déclaré non-vacant': {
-      sub_status: 'N’était pas vacant',
+      sub_status: 'N’était pas vacant'
     },
     'Constaté non-vacant': {
-      sub_status: 'N’était pas vacant',
+      sub_status: 'N’était pas vacant'
     },
     NPAI: {
       status: HousingStatus.FirstContact,
-      sub_status: 'NPAI',
+      sub_status: 'NPAI'
     },
     'Vacance volontaire': {
-      sub_status: 'Blocage volontaire du propriétaire',
+      sub_status: 'Blocage volontaire du propriétaire'
     },
     'Mauvais état': {
-      sub_status: 'Immeuble / Environnement',
+      sub_status: 'Immeuble / Environnement'
     },
     'Mauvaise expérience locative': {
-      sub_status: 'Blocage volontaire du propriétaire',
+      sub_status: 'Blocage volontaire du propriétaire'
     },
     'Blocage juridique': {
-      sub_status: 'Blocage involontaire du propriétaire',
+      sub_status: 'Blocage involontaire du propriétaire'
     },
     'Liée au propriétaire': {
-      sub_status: 'Blocage involontaire du propriétaire',
+      sub_status: 'Blocage involontaire du propriétaire'
     },
     'Projet qui n’aboutit pas': {
-      sub_status: 'Blocage involontaire du propriétaire',
+      sub_status: 'Blocage involontaire du propriétaire'
     },
     'Rejet formel de l’accompagnement': {
-      sub_status: 'Blocage volontaire du propriétaire',
-    },
+      sub_status: 'Blocage volontaire du propriétaire'
+    }
   };
 
   const changes = map[housing.sub_status] ?? {};
@@ -275,175 +273,175 @@ function mapPrecisions(housing: Housing): Housing {
     'Cause inconnue',
     'N’est pas une résidence principale',
     'Autre que logement',
-    `N’est plus un logement`,
+    `N’est plus un logement`
   ]);
 
   const map: Record<string, Partial<Housing>> = {
     'Logement récemment vendu': {
       precisions: ['Mode opératoire > Mutation > Effectuée'],
-      occupancy: 'A',
+      occupancy: 'A'
     },
     'Aides aux travaux': {
       precisions: [
-        'Dispositifs > Dispositifs incitatifs > Conventionnement avec travaux',
-      ],
+        'Dispositifs > Dispositifs incitatifs > Conventionnement avec travaux'
+      ]
     },
     'Aides à la gestion locative': {
       precisions: [
-        'Dispositifs > Dispositifs incitatifs > Aides à la gestion locative',
-      ],
+        'Dispositifs > Dispositifs incitatifs > Aides à la gestion locative'
+      ]
     },
     'Intermédiation Locative (IML)': {
       precisions: [
-        'Dispositifs > Dispositifs incitatifs > Intermédiation Locative (IML)',
-      ],
+        'Dispositifs > Dispositifs incitatifs > Intermédiation Locative (IML)'
+      ]
     },
     'Sécurisation loyer': {
-      precisions: ['Dispositifs > Dispositifs incitatifs > Sécurisation loyer'],
+      precisions: ['Dispositifs > Dispositifs incitatifs > Sécurisation loyer']
     },
     'Conventionnement sans travaux': {
       precisions: [
-        'Dispositifs > Dispositifs incitatifs > Conventionnement sans travaux',
-      ],
+        'Dispositifs > Dispositifs incitatifs > Conventionnement sans travaux'
+      ]
     },
     'Dispositifs fiscaux': {
-      precisions: ['Dispositifs > Dispositifs incitatifs > Dispositif fiscal'],
+      precisions: ['Dispositifs > Dispositifs incitatifs > Dispositif fiscal']
     },
     'Prime locale': {
       precisions: [
-        'Dispositifs > Dispositifs incitatifs > Prime locale vacance',
-      ],
+        'Dispositifs > Dispositifs incitatifs > Prime locale vacance'
+      ]
     },
     'Ma Prime Renov': {
-      precisions: ['Dispositifs > Dispositifs incitatifs > Ma Prime Renov'],
+      precisions: ['Dispositifs > Dispositifs incitatifs > Ma Prime Renov']
     },
     'Accompagnement à la vente': {
       precisions: [
-        'Dispositifs > Dispositifs incitatifs > Accompagnement à la vente',
-      ],
+        'Dispositifs > Dispositifs incitatifs > Accompagnement à la vente'
+      ]
     },
     'Aides locales': {
       precisions: [
-        'Dispositifs > Dispositifs incitatifs > Aides locales travaux',
-      ],
+        'Dispositifs > Dispositifs incitatifs > Aides locales travaux'
+      ]
     },
     Autre: {
-      precisions: ['Dispositifs > Dispositifs incitatifs > Autre'],
+      precisions: ['Dispositifs > Dispositifs incitatifs > Autre']
     },
     'ORI - TIRORI': {
-      precisions: ['Dispositifs > Dispositifs coercitifs > ORI - TIRORI'],
+      precisions: ['Dispositifs > Dispositifs coercitifs > ORI - TIRORI']
     },
     'Bien sans maitre': {
-      precisions: ['Dispositifs > Dispositifs coercitifs > Bien sans maître'],
+      precisions: ['Dispositifs > Dispositifs coercitifs > Bien sans maître']
     },
     'Abandon manifeste': {
-      precisions: ['Dispositifs > Dispositifs coercitifs > Abandon manifeste'],
+      precisions: ['Dispositifs > Dispositifs coercitifs > Abandon manifeste']
     },
     'DIA - préemption': {
-      precisions: ['Dispositifs > Dispositifs coercitifs > DIA - préemption'],
+      precisions: ['Dispositifs > Dispositifs coercitifs > DIA - préemption']
     },
     'Procédure d’habitat indigne': {
       precisions: [
-        'Dispositifs > Dispositifs coercitifs > Procédure d’habitat indigine',
-      ],
+        'Dispositifs > Dispositifs coercitifs > Procédure d’habitat indigine'
+      ]
     },
     'Vente en cours': {
-      precisions: ['Mode opératoire > Mutation > En cours'],
+      precisions: ['Mode opératoire > Mutation > En cours']
     },
     'Location en cours': {
-      precisions: ['Mode opératoire > Location/Occupation > En cours'],
+      precisions: ['Mode opératoire > Location/Occupation > En cours']
     },
     'Rénovation (ou projet) en cours': {
-      precisions: ['Mode opératoire > Travaux > En cours'],
+      precisions: ['Mode opératoire > Travaux > En cours']
     },
     Loué: {
       precisions: ['Mode opératoire > Location/Occupation > Occupé'],
-      occupancy: 'L',
+      occupancy: 'L'
     },
     Vendu: {
       precisions: ['Mode opératoire > Mutation > Effectuée'],
-      occupancy: 'A',
+      occupancy: 'A'
     },
     'Occupation personnelle ou pour un proche': {
       precisions: ['Mode opératoire > Mutation > Effectuée'],
-      occupancy: 'P',
+      occupancy: 'P'
     },
     'Occupé par le propriétaire ou proche': {
       precisions: ['Mode opératoire > Location/Occupation > Occupé'],
-      occupancy: 'P',
+      occupancy: 'P'
     },
     'Cause inconnue': {
-      occupancy: 'RS',
+      occupancy: 'RS'
     },
     'N’est pas une résidence principale': {
-      occupancy: 'RS',
+      occupancy: 'RS'
     },
     'Autre que logement': {
-      occupancy: 'T',
+      occupancy: 'T'
     },
     'N’est plus un logement': {
-      occupancy: 'T',
+      occupancy: 'T'
     },
     'Réserve personnelle ou pour une autre personne': {
       precisions: [
-        'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne',
-      ],
+        'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne'
+      ]
     },
     'Montant travaux trop important': {
       precisions: [
-        'Liés au propriétaire > Blocage involontaire > Problèmes de financements / Dossier non-éligible',
-      ],
+        'Liés au propriétaire > Blocage involontaire > Problèmes de financements / Dossier non-éligible'
+      ]
     },
     Dégradations: {
       precisions: [
-        'Liés au propriétaire > Blocage involontaire > Défaut d’entretien / nécessité de travaux',
-      ],
+        'Liés au propriétaire > Blocage involontaire > Défaut d’entretien / nécessité de travaux'
+      ]
     },
     'Impayés de loyer': {
       precisions: [
-        'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative',
-      ],
+        'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative'
+      ]
     },
     'Succession difficile, indivision en désaccord': {
       precisions: [
-        'Liés au propriétaire > Blocage involontaire > Succession difficile, indivision en désaccord',
-      ],
+        'Liés au propriétaire > Blocage involontaire > Succession difficile, indivision en désaccord'
+      ]
     },
     'Expertise judiciaire': {
       precisions: [
-        'Extérieurs au propriétaire > Tiers en cause > Expertise judiciaire',
-      ],
+        'Extérieurs au propriétaire > Tiers en cause > Expertise judiciaire'
+      ]
     },
     'Procédure contre les entrepreneurs': {
       precisions: [
-        'Extérieurs au propriétaire > Tiers en cause > Entreprise(s) en défaut',
-      ],
+        'Extérieurs au propriétaire > Tiers en cause > Entreprise(s) en défaut'
+      ]
     },
     'Âge du propriétaire': {
       precisions: [
-        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)',
-      ],
+        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)'
+      ]
     },
     'Difficultés de gestion / financière': {
       precisions: [
-        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)',
-      ],
+        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)'
+      ]
     },
     'Ne répond pas aux critères du marché (prix...)': {
       precisions: [
-        'Liés au propriétaire > Blocage involontaire > Mise en location ou vente infructueuse',
-      ],
+        'Liés au propriétaire > Blocage involontaire > Mise en location ou vente infructueuse'
+      ]
     },
     'Aides non accordées': {
       precisions: [
-        'Liés au propriétaire > Blocage involontaire > Problèmes de financements / Dossier non-éligible',
-      ],
+        'Liés au propriétaire > Blocage involontaire > Problèmes de financements / Dossier non-éligible'
+      ]
     },
     'Stratégie de gestion': {
       precisions: [
-        'Liés au propriétaire > Blocage volontaire > Stratégie de gestion',
-      ],
-    },
+        'Liés au propriétaire > Blocage volontaire > Stratégie de gestion'
+      ]
+    }
   };
 
   const changes: Partial<Housing> = housing.precisions
@@ -454,14 +452,14 @@ function mapPrecisions(housing: Housing): Housing {
         ...acc,
         ...changes,
         precisions: acc.precisions.concat(
-          changes.precisions?.filter((precision) => !removable.has(precision)),
-        ),
+          changes.precisions?.filter((precision) => !removable.has(precision))
+        )
       }),
-      { precisions: [] },
+      { precisions: [] }
     );
   return {
     ...housing,
-    ...changes,
+    ...changes
   };
 }
 
@@ -473,79 +471,79 @@ function mapVacancyReasons(housing: Housing): Housing {
   const map: Record<string, Partial<Housing>> = {
     'Liée au logement - pas d’accès indépendant': {
       vacancy_reasons: [
-        'Extérieurs au propriétaire > Immeuble / Environnement > Pas d’accès indépendant',
-      ],
+        'Extérieurs au propriétaire > Immeuble / Environnement > Pas d’accès indépendant'
+      ]
     },
     'Liée au logement - nuisances à proximité': {
       vacancy_reasons: [
-        'Extérieurs au propriétaire > Immeuble / Environnement > Nuisances à proximité',
-      ],
+        'Extérieurs au propriétaire > Immeuble / Environnement > Nuisances à proximité'
+      ]
     },
     'Liée au logement - nécessité de travaux': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage involontaire > Défaut d’entretien / nécessité de travaux',
-      ],
+        'Liés au propriétaire > Blocage involontaire > Défaut d’entretien / nécessité de travaux'
+      ]
     },
     'Liée au logement - montant travaux trop important': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage involontaire > Problèmes de financements / Dossier non-éligible',
-      ],
+        'Liés au propriétaire > Blocage involontaire > Problèmes de financements / Dossier non-éligible'
+      ]
     },
     'Liée au logement - ruine / à démolir': {
       vacancy_reasons: [
-        'Extérieurs au propriétaire > Immeuble / Environnement > Ruine / Immeuble à démolir',
-      ],
+        'Extérieurs au propriétaire > Immeuble / Environnement > Ruine / Immeuble à démolir'
+      ]
     },
     'Liée à l’immeuble - blocage lié à la copropriété': {
       vacancy_reasons: [
-        'Extérieurs au propriétaire > Tiers en cause > Copropriété en désaccord',
-      ],
+        'Extérieurs au propriétaire > Tiers en cause > Copropriété en désaccord'
+      ]
     },
     'Blocage juridique - succession difficile, indivision en désaccord': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage involontaire > Succession difficile, indivision en désaccord',
-      ],
+        'Liés au propriétaire > Blocage involontaire > Succession difficile, indivision en désaccord'
+      ]
     },
     'Blocage juridique - expertise judiciaire': {
       vacancy_reasons: [
-        'Extérieurs au propriétaire > Tiers en cause > Expertise judiciaire',
-      ],
+        'Extérieurs au propriétaire > Tiers en cause > Expertise judiciaire'
+      ]
     },
     'Blocage juridique - procédure contre les entrepreneurs': {
       vacancy_reasons: [
-        'Extérieurs au propriétaire > Tiers en cause > Entreprise(s) en défaut',
-      ],
+        'Extérieurs au propriétaire > Tiers en cause > Entreprise(s) en défaut'
+      ]
     },
     'Vacance volontaire - réserve personnelle': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne',
-      ],
+        'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne'
+      ]
     },
     'Vacance volontaire - réserve pour une autre personne': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne',
-      ],
+        'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne'
+      ]
     },
     'Mauvaise expérience locative - dégradations': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative',
-      ],
+        'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative'
+      ]
     },
     'Mauvaise expérience locative - impayés de loyer': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative',
-      ],
+        'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative'
+      ]
     },
     'Liée au propriétaire - âge du propriétaire': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)',
-      ],
+        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)'
+      ]
     },
     'Liée au propriétaire - difficultés de gestion': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)',
-      ],
-    },
+        'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité...)'
+      ]
+    }
   };
 
   const changes: Partial<Housing> = housing.vacancy_reasons
@@ -554,13 +552,13 @@ function mapVacancyReasons(housing: Housing): Housing {
       (acc, changes) => ({
         ...acc,
         ...changes,
-        vacancy_reasons: acc.vacancy_reasons.concat(changes.vacancy_reasons),
+        vacancy_reasons: acc.vacancy_reasons.concat(changes.vacancy_reasons)
       }),
-      { vacancy_reasons: [] },
+      { vacancy_reasons: [] }
     );
   return {
     ...housing,
-    ...changes,
+    ...changes
   };
 }
 
@@ -586,7 +584,7 @@ export enum HousingStatus {
   InProgress,
   NotVacant,
   NoAction,
-  Exit,
+  Exit
 }
 
 export interface HousingEvent {
@@ -607,7 +605,7 @@ export interface HousingEvent {
 function denormalizeStatus(statuses: string[]) {
   return (housing: Housing): HousingSerialized => ({
     ...housing,
-    status: statuses[housing.status],
+    status: statuses[housing.status]
   });
 }
 
@@ -618,7 +616,7 @@ const denormalizeOldStatus = denormalizeStatus([
   'Suivi en cours',
   'Non-vacant',
   'Bloqué',
-  'Sortie de la vacance',
+  'Sortie de la vacance'
 ]);
 
 const denormalizeNewStatus = denormalizeStatus([
@@ -628,14 +626,14 @@ const denormalizeNewStatus = denormalizeStatus([
   'Suivi en cours',
   'Suivi terminé',
   'Bloqué',
-  'Suivi terminé',
+  'Suivi terminé'
 ]);
 
 function saveEvents(knex: Knex) {
   return async (events: HousingEvent[]): Promise<void> => {
     const housingEvents = events.map((event) => ({
       event_id: event.id,
-      housing_id: event.housing_id,
+      housing_id: event.housing_id
     }));
     const eventsWithoutHousingId = events.map(fp.omit(['housing_id']));
 
@@ -657,7 +655,7 @@ function saveHousingList(knex: Knex) {
           'sub_status',
           'precisions',
           'vacancy_reasons',
-          'occupancy',
+          'occupancy'
         ]);
     }
   };

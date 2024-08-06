@@ -32,6 +32,7 @@ describe('073 Housing refactor statuses', () => {
 
   beforeEach(async () => {
     const migrator = createMigrator(db);
+    await migrator.rollback(undefined, rollbackAll);
     await migrator.migrateUntil('073-housing-refactor-statuses.ts');
 
     // Create some housing

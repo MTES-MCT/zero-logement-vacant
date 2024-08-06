@@ -8,7 +8,6 @@ import housingRepository, {
   Housing,
   ReferenceDataYear
 } from '../housingRepository';
-import { Establishment1 } from '~/infra/database/seeds/test/20240405011849_establishments';
 import {
   genAddressApi,
   genBuildingApi,
@@ -30,11 +29,11 @@ import {
 } from '../groupRepository';
 import { formatOwnerApi, Owners } from '../ownerRepository';
 import {
+  formatHousingOwnerApi,
   formatHousingOwnersApi,
   HousingOwners
 } from '../housingOwnerRepository';
 import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
-import { Owner1 } from '~/infra/database/seeds/test/20240405012710_owner';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '~/models/LocalityApi';
 import { BuildingApi } from '~/models/BuildingApi';
@@ -61,6 +60,7 @@ import {
   Addresses,
   formatAddressApi
 } from '~/repositories/banAddressesRepository';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
@@ -72,6 +72,21 @@ describe('Housing repository', () => {
   });
 
   describe('find', () => {
+    const housings = Array.from({ length: 10 }, () => genHousingApi());
+    const owners = housings.map((housing) => housing.owner);
+    const housingOwners: HousingOwnerApi[] = housings.map((housing) => ({
+      ...housing.owner,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id,
+      rank: 1
+    }));
+
+    beforeAll(async () => {
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      await Owners().insert(owners.map(formatOwnerApi));
+      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
+    });
+
     it('should sort by geo code and id by default', async () => {
       const actual = await housingRepository.find({
         filters: {}
@@ -90,7 +105,7 @@ describe('Housing repository', () => {
     });
 
     it('should include owner if needed by a filter', async () => {
-      const owner = Owner1;
+      const owner = owners[0];
 
       const actual = await housingRepository.find({
         filters: {
@@ -104,7 +119,7 @@ describe('Housing repository', () => {
     });
 
     it('should include owner only once', async () => {
-      const owner = Owner1;
+      const owner = owners[0];
 
       const actual = await housingRepository.find({
         filters: {
@@ -789,7 +804,7 @@ describe('Housing repository', () => {
   });
 
   describe('findOne', () => {
-    const housing: HousingApi = genHousingApi(oneOf(Establishment1.geoCodes));
+    const housing: HousingApi = genHousingApi(oneOf(establishment.geoCodes));
     const owner: OwnerApi = genOwnerApi();
     const address: AddressApi = genAddressApi(owner.id, AddressKinds.Owner);
 
@@ -889,7 +904,7 @@ describe('Housing repository', () => {
 
   describe('save', () => {
     it('should create a housing if it does not exist', async () => {
-      const housing = genHousingApi(oneOf(Establishment1.geoCodes));
+      const housing = genHousingApi(oneOf(establishment.geoCodes));
 
       await housingRepository.save(housing);
 
@@ -898,7 +913,7 @@ describe('Housing repository', () => {
     });
 
     it('should update all fields of an existing housing', async () => {
-      const original = genHousingApi(oneOf(Establishment1.geoCodes));
+      const original = genHousingApi(oneOf(establishment.geoCodes));
       await Housing().insert(formatHousingRecordApi(original));
       const update: HousingApi = {
         ...original,
@@ -918,7 +933,7 @@ describe('Housing repository', () => {
 
     it('should update specific fields of an existing housing', async () => {
       const original: HousingApi = {
-        ...genHousingApi(oneOf(Establishment1.geoCodes)),
+        ...genHousingApi(oneOf(establishment.geoCodes)),
         occupancy: OccupancyKindApi.Vacant,
         occupancyIntended: OccupancyKindApi.Rent
       };

@@ -9151,6 +9151,7 @@ __metadata:
     maplibre-gl: "npm:^2.4.0"
     mime: "npm:^4.0.3"
     msw: "npm:^2.3.0"
+    posthog-js: "npm:^1.154.5"
     prop-types: "npm:^15.8.1"
     randomstring: "npm:^1.3.0"
     react: "npm:^18.3.1"
@@ -14612,6 +14613,13 @@ __metadata:
   version: 2.4.0
   resolution: "fetch-intercept@npm:2.4.0"
   checksum: 10c0/e6b9599d6c63f7c1f9d81d4bac1433b740716ffd4d933d00e5b8b0ce1920251120870763b8ba9f2f2cabd01c6da6175fe0669c87978cb0399da6a21c057b196c
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.4.8":
+  version: 0.4.8
+  resolution: "fflate@npm:0.4.8"
+  checksum: 10c0/29d1eddaaa5deab61b1c6b0d21282adacadbc4d2c01e94d8b1ee784398151673b9c563e53f97a801bc410a1ae55e8de5378114a743430e643e7a0644ba8e5a42
   languageName: node
   linkType: hard
 
@@ -22166,6 +22174,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"posthog-js@npm:^1.154.5":
+  version: 1.154.5
+  resolution: "posthog-js@npm:1.154.5"
+  dependencies:
+    fflate: "npm:^0.4.8"
+    preact: "npm:^10.19.3"
+    web-vitals: "npm:^4.0.1"
+  checksum: 10c0/4e51b3bebd37a2695ae8bda26ce9487b1f18369e299747f4bbe3e47dce9cb2f7c2fab3808f0554a9fe471602796824f8ce6dc4114be339549fc8711f934f4d22
+  languageName: node
+  linkType: hard
+
 "potpack@npm:^1.0.2":
   version: 1.0.2
   resolution: "potpack@npm:1.0.2"
@@ -22177,6 +22196,13 @@ __metadata:
   version: 2.0.0
   resolution: "potpack@npm:2.0.0"
   checksum: 10c0/8df693484486535b95586a624c5abf3fd7bebad161b1c10c10d86562c870fe1c90703b862a19020b1d1c2f3fbd6cea1e9d699c6eca6ded4b5792873a992c81e1
+  languageName: node
+  linkType: hard
+
+"preact@npm:^10.19.3":
+  version: 10.23.1
+  resolution: "preact@npm:10.23.1"
+  checksum: 10c0/f0eb37999bfa9cbc725e57e189387c77919fa05d17cdc3c4ff41660298805159867689f1d974eb8e6496288c0212760490d0e6f1c12022e0f5a74d06cc618e85
   languageName: node
   linkType: hard
 
@@ -26469,6 +26495,13 @@ __metadata:
   version: 1.1.2
   resolution: "web-vitals@npm:1.1.2"
   checksum: 10c0/9521ea2e8ca2e4446ba8e3d5430b0c9a9a07e0d6f468a90dc5fab2bab524fb1a699f3874ea392c9e35a63dcf3651b40130d58ebd78e53a406cb9622049bf1403
+  languageName: node
+  linkType: hard
+
+"web-vitals@npm:^4.0.1":
+  version: 4.2.2
+  resolution: "web-vitals@npm:4.2.2"
+  checksum: 10c0/0e41d016a80d8f48e00c95f3d8405a4cb8c6a12a83ac6677ce49447c85ca6fb2325f40915ae5460bb59f07d1b7d65b66b8b42ea50135594ae7dc892453775004
   languageName: node
   linkType: hard
 

@@ -6,7 +6,7 @@ const config: JestConfigWithTsJest = {
   ...baseConfig,
   roots: ['<rootDir>/src/infra/database'],
   modulePathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/node_modules/'],
-  globalSetup: undefined
+  globalSetup: '<rootDir>/src/test/database-global-setup.ts'
 };
 
 export default config;

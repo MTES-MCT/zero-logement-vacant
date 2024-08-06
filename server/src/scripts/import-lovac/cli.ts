@@ -36,6 +36,7 @@ program
   )
   .argument('<file>', 'The file to import in .csv or .jsonl')
   .addOption(abortEarly)
+  .addOption(departments)
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createHistoryCommand();

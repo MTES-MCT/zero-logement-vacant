@@ -208,6 +208,9 @@ export const genOwnerApi = (): OwnerApi => {
   const id = uuidv4();
   return {
     id,
+    idpersonne:
+      faker.string.numeric(2) +
+      faker.string.alphanumeric({ length: 6, casing: 'upper' }),
     rawAddress: [
       faker.location.streetAddress(),
       `${faker.location.zipCode()}, ${faker.location.city()}`
@@ -236,7 +239,7 @@ export const genAddressApi = (
     city: faker.location.city(),
     latitude: faker.location.latitude(),
     longitude: faker.location.longitude(),
-    score: Math.random(),
+    score: Math.random()
   };
 };
 
@@ -280,7 +283,6 @@ export const genHousingApi = (
     geoCode,
     localityKind: randomstring.generate(),
     owner: genOwnerApi(),
-    coowners: [],
     livingArea: genNumber(4),
     cadastralClassification: genNumber(1),
     uncomfortable: false,
@@ -292,6 +294,7 @@ export const genHousingApi = (
     taxed: false,
     vacancyReasons: [],
     dataYears: [new Date().getUTCFullYear() - 1],
+    dataFileYears: [`lovac-${new Date().getUTCFullYear() - 1}`],
     buildingLocation: randomstring.generate(),
     ownershipKind: OwnershipKindsApi.Single,
     status: HousingStatusApi.NeverContacted,
@@ -386,7 +389,7 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
   };
 };
 
-function genEventApi<T>(createdBy: string): EventApi<T> {
+function genEventApi<T>(creator: UserApi): EventApi<T> {
   return {
     id: uuidv4(),
     name: randomstring.generate(),
@@ -395,28 +398,29 @@ function genEventApi<T>(createdBy: string): EventApi<T> {
     section: oneOf(EventSections),
     conflict: genBoolean(),
     createdAt: new Date(),
-    createdBy
+    createdBy: creator.id,
+    creator: creator
   };
 }
 
 export const genOwnerEventApi = (
-  ownerId: string,
-  createdBy: string
+  owner: OwnerApi,
+  creator: UserApi
 ): OwnerEventApi => {
   return {
-    ...genEventApi<OwnerApi>(createdBy),
-    old: { ...genOwnerApi(), id: ownerId },
-    new: { ...genOwnerApi(), id: ownerId },
-    ownerId
+    ...genEventApi<OwnerApi>(creator),
+    old: { ...genOwnerApi(), id: owner.id },
+    new: { ...genOwnerApi(), id: owner.id },
+    ownerId: owner.id
   };
 };
 
 export const genHousingEventApi = (
   housing: HousingApi,
-  createdBy: UserApi
+  creator: UserApi
 ): HousingEventApi => {
   return {
-    ...genEventApi<HousingApi>(createdBy.id),
+    ...genEventApi<HousingApi>(creator),
     old: housing,
     new: { ...genHousingApi(housing.geoCode), id: housing.id },
     housingId: housing.id,
@@ -427,10 +431,10 @@ export const genHousingEventApi = (
 export const genGroupHousingEventApi = (
   housing: HousingApi,
   group: GroupApi,
-  createdBy: UserApi
+  creator: UserApi
 ): GroupHousingEventApi => {
   return {
-    ...genEventApi<GroupApi>(createdBy.id),
+    ...genEventApi<GroupApi>(creator),
     old: group,
     new: group,
     groupId: group.id,

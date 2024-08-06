@@ -3,7 +3,12 @@ import { Knex } from 'knex';
 import _ from 'lodash';
 
 import { AddressKinds, isDefined, isNotNull } from '@zerologementvacant/shared';
-import db, { groupBy, where } from '~/infra/database';
+import db, {
+  ConflictOptions,
+  groupBy,
+  onConflict,
+  where
+} from '~/infra/database';
 import { OwnerApi, OwnerPayloadApi } from '~/models/OwnerApi';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -11,12 +16,11 @@ import { PaginatedResultApi } from '~/models/PaginatedResultApi';
 import { logger } from '~/infra/logger';
 import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { ownerMatchTable } from './ownerMatchRepository';
 import {
   HousingDBO,
   housingTable,
   ownerHousingJoinClause,
-  parseHousingApi,
+  parseHousingApi
 } from './housingRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { groupsHousingTable } from './groupRepository';
@@ -54,7 +58,7 @@ const filteredQuery =
         .join(
           housingOwnersTable,
           `${ownerTable}.id`,
-          `${housingOwnersTable}.owner_id`,
+          `${housingOwnersTable}.owner_id`
         )
         .join(housingTable, ownerHousingJoinClause)
         .join(campaignsHousingTable, (query) =>
@@ -62,8 +66,8 @@ const filteredQuery =
             .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
             .andOn(
               `${housingTable}.geo_code`,
-              `${campaignsHousingTable}.housing_geo_code`,
-            ),
+              `${campaignsHousingTable}.housing_geo_code`
+            )
         )
         .where(`${campaignsHousingTable}.campaign_id`, filters.campaignId);
     }
@@ -72,7 +76,7 @@ const filteredQuery =
         .join(
           housingOwnersTable,
           `${ownerTable}.id`,
-          `${housingOwnersTable}.owner_id`,
+          `${housingOwnersTable}.owner_id`
         )
         .join(housingTable, ownerHousingJoinClause)
         .join(groupsHousingTable, (query) =>
@@ -80,8 +84,8 @@ const filteredQuery =
             .on(`${housingTable}.id`, `${groupsHousingTable}.housing_id`)
             .andOn(
               `${housingTable}.geo_code`,
-              `${groupsHousingTable}.housing_geo_code`,
-            ),
+              `${groupsHousingTable}.housing_geo_code`
+            )
         )
         .where(`${groupsHousingTable}.group_id`, filters.groupId);
     }
@@ -94,25 +98,12 @@ const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
     .where(whereOptions(opts?.filters))
     .modify((query) => {
       if (opts?.filters?.idpersonne) {
-        query
-          .join(
-            ownerMatchTable,
-            `${ownerMatchTable}.owner_id`,
-            `${ownerTable}.id`,
-          )
-          .modify((query) => {
-            if (opts?.filters?.idpersonne) {
-              Array.isArray(opts?.filters?.idpersonne)
-                ? query.whereIn(
-                    `${ownerMatchTable}.idpersonne`,
-                    opts?.filters?.idpersonne,
-                  )
-                : query.where(
-                    `${ownerMatchTable}.idpersonne`,
-                    opts?.filters?.idpersonne,
-                  );
-            }
-          });
+        query.whereIn(
+          'idpersonne',
+          Array.isArray(opts.filters.idpersonne)
+            ? opts.filters.idpersonne
+            : [opts.filters.idpersonne]
+        );
       }
     })
     .orderBy('full_name');
@@ -128,7 +119,7 @@ function include(includes: OwnerInclude[]) {
         query
           .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
           .andOnVal('address_kind', AddressKinds.Owner);
-      }),
+      })
   };
 
   return (query: Knex.QueryBuilder) => {
@@ -158,9 +149,9 @@ const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
     .modify(filteredQuery(opts.filters))
     .select(
       `${ownerTable}.id`,
-      `${ownerTable}.raw_address`,
+      `${ownerTable}.address_dgfip`,
       `${ownerTable}.full_name`,
-      db.raw(`array_agg (to_json(fast_housing.*)) as housing_list`),
+      db.raw(`array_agg (to_json(fast_housing.*)) as housing_list`)
     )
     .groupBy(`${ownerTable}.id`)
     .orderByRaw(`count(distinct(${housingOwnersTable}.housing_id)) desc`)
@@ -170,9 +161,9 @@ const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
     (result: OwnerExportStreamDBO): OwnerExportStreamApi => ({
       ...parseOwnerApi(result),
       housingList: result.housing_list.map((housing) =>
-        parseHousingApi(housing),
-      ),
-    }),
+        parseHousingApi(housing)
+      )
+    })
   );
 };
 
@@ -183,11 +174,11 @@ interface FindOneOptions {
   birthDate?: Date;
 }
 
-const findOne = async (opts: FindOneOptions): Promise<OwnerApi | null> => {
-  const owner = await db<OwnerDBO>(ownerTable)
+async function findOne(opts: FindOneOptions): Promise<OwnerApi | null> {
+  const owner = await Owners()
     .where({
       full_name: opts.fullName,
-      raw_address: opts.rawAddress,
+      address_dgfip: opts.rawAddress
     })
     .modify((builder) => {
       return opts.birthDate === undefined
@@ -196,31 +187,31 @@ const findOne = async (opts: FindOneOptions): Promise<OwnerApi | null> => {
     })
     .first();
   return owner ? parseOwnerApi(owner) : null;
-};
+}
 
 const searchOwners = async (
   q: string,
   page?: number,
-  perPage?: number,
+  perPage?: number
 ): Promise<PaginatedResultApi<OwnerApi>> => {
   const filterQuery = db(ownerTable)
     .whereRaw(
       `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q,
+      q
     )
     .orWhereRaw(
       `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q?.split(' ').reverse().join(' '),
+      q?.split(' ').reverse().join(' ')
     );
 
   const filteredCount: number = await db(ownerTable)
     .whereRaw(
       `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q,
+      q
     )
     .orWhereRaw(
       `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q?.split(' ').reverse().join(' '),
+      q?.split(' ').reverse().join(' ')
     )
     .count('id')
     .first()
@@ -245,18 +236,18 @@ const searchOwners = async (
     totalCount,
     filteredCount,
     page,
-    perPage,
+    perPage
   };
 };
 
 const findByHousing = async (
-  housing: HousingApi,
+  housing: HousingApi
 ): Promise<HousingOwnerApi[]> => {
   const owners: Array<OwnerDBO & HousingOwnerDBO> = await db(ownerTable)
     .join(
       housingOwnersTable,
       `${ownerTable}.id`,
-      `${housingOwnersTable}.owner_id`,
+      `${housingOwnersTable}.owner_id`
     )
     .modify(include(['banAddress']))
     .where(`${housingOwnersTable}.housing_id`, housing.id)
@@ -269,17 +260,32 @@ const findByHousing = async (
 
 const insert = async (draftOwnerApi: OwnerPayloadApi): Promise<OwnerApi> => {
   logger.info('Insert draftOwnerApi');
-  return db(ownerTable)
+  return Owners()
     .insert({
-      raw_address: draftOwnerApi.rawAddress,
+      address_dgfip: draftOwnerApi.rawAddress,
       full_name: draftOwnerApi.fullName,
       birth_date: draftOwnerApi.birthDate,
       email: draftOwnerApi.email,
-      phone: draftOwnerApi.phone,
+      phone: draftOwnerApi.phone
     })
     .returning('*')
     .then((_) => parseOwnerApi(_[0]));
 };
+
+type BetterSaveOptions = ConflictOptions<OwnerDBO>;
+
+/**
+ * @todo Rename this to `save` when {@link save} and {@link saveMany} get removed
+ * @param owner
+ * @param opts
+ */
+async function betterSave(
+  owner: OwnerApi,
+  opts?: BetterSaveOptions
+): Promise<void> {
+  logger.debug(`Saving owner...`, { owner });
+  await Owners().insert(formatOwnerApi(owner)).modify(onConflict(opts));
+}
 
 interface SaveOptions {
   /**
@@ -288,10 +294,20 @@ interface SaveOptions {
   onConflict?: 'merge' | 'ignore';
 }
 
+/**
+ * @deprecated Use {@link betterSave} instead
+ * @param owner
+ * @param opts
+ */
 async function save(owner: OwnerApi, opts?: SaveOptions): Promise<void> {
   return saveMany([owner], opts);
 }
 
+/**
+ * @deprecated Use {@link betterSave} instead
+ * @param owners
+ * @param opts
+ */
 async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
   logger.debug(`Saving ${owners.length} owners...`);
 
@@ -314,13 +330,13 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
           .modify((builder) => {
             if (onConflict === 'merge') {
               return builder
-                .onConflict(['full_name', 'raw_address', 'birth_date'])
-                .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
+                .onConflict(['full_name', 'address_dgfip', 'birth_date'])
+                .merge(['administrator', 'kind_class', 'owner_kind_detail']);
             }
             return builder
-              .onConflict(['full_name', 'raw_address', 'birth_date'])
+              .onConflict(['full_name', 'address_dgfip', 'birth_date'])
               .ignore();
-          }),
+          })
       );
     }
 
@@ -333,19 +349,19 @@ async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
               return builder
                 .onConflict(
                   db.raw(
-                    '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null',
-                  ),
+                    '(full_name, address_dgfip, (birth_date IS NULL)) where birth_date is null'
+                  )
                 )
-                .merge(['administrator', 'owner_kind', 'owner_kind_detail']);
+                .merge(['administrator', 'kind_class', 'owner_kind_detail']);
             }
             return builder
               .onConflict(
                 db.raw(
-                  '(full_name, raw_address, (birth_date IS NULL)) where birth_date is null',
-                ),
+                  '(full_name, address_dgfip, (birth_date IS NULL)) where birth_date is null'
+                )
               )
               .ignore();
-          }),
+          })
       );
     }
 
@@ -358,12 +374,12 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
     return db(ownerTable)
       .where('id', ownerApi.id)
       .update({
-        raw_address: ownerApi.rawAddress,
+        address_dgfip: ownerApi.rawAddress,
         full_name: ownerApi.fullName,
         birth_date: ownerApi.birthDate ?? null,
         email: ownerApi.email ?? null,
         phone: ownerApi.phone ?? null,
-        additional_address: ownerApi.additionalAddress ?? null,
+        additional_address: ownerApi.additionalAddress ?? null
       })
       .returning('*')
       .then((_) => parseOwnerApi(_[0]));
@@ -374,7 +390,7 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
 };
 
 const insertHousingOwners = async (
-  housingOwners: HousingOwnerApi[],
+  housingOwners: HousingOwnerApi[]
 ): Promise<number> => {
   try {
     return db(housingOwnersTable)
@@ -386,8 +402,8 @@ const insertHousingOwners = async (
           rank: ho.rank,
           start_date: ho.startDate,
           end_date: ho.endDate,
-          origin: ho.origin,
-        })),
+          origin: ho.origin
+        }))
       )
       .returning('*')
       .then((_) => _.length);
@@ -399,7 +415,7 @@ const insertHousingOwners = async (
 
 const deleteHousingOwners = async (
   housingId: string,
-  ownerIds: string[],
+  ownerIds: string[]
 ): Promise<number> => {
   try {
     return db(housingOwnersTable)
@@ -413,7 +429,7 @@ const deleteHousingOwners = async (
 };
 
 const updateAddressList = async (
-  ownerAdresses: { addressId: string; addressApi: AddressApi }[],
+  ownerAdresses: { addressId: string; addressApi: AddressApi }[]
 ): Promise<HousingApi[]> => {
   try {
     if (ownerAdresses.filter((oa) => oa.addressId).length) {
@@ -428,8 +444,8 @@ const updateAddressList = async (
               `('${ha.addressId}', '${ha.addressApi.postalCode}', '${
                 ha.addressApi.houseNumber ?? ''
               }', '${escapeValue(ha.addressApi.street)}', '${escapeValue(
-                ha.addressApi.city,
-              )}')`,
+                ha.addressApi.city
+              )}')`
           ) +
         ') as c(id, postal_code, house_number, street, city)' +
         ' WHERE o.id::text = c.id';
@@ -448,54 +464,64 @@ const escapeValue = (value?: string) => {
   return value ? value.replace(/'/g, "''") : '';
 };
 
-export interface OwnerDBO {
+export interface OwnerRecordDBO {
   id: string;
+  idpersonne: string | null;
   full_name: string;
-  birth_date?: Date | string;
-  administrator?: string;
-  raw_address: string[];
-  owner_kind?: string;
-  owner_kind_detail?: string;
-  email?: string;
-  phone?: string;
+  birth_date: Date | string | null;
+  administrator: string | null;
+  siren: string | null;
+  address_dgfip: string[];
+  // ban_address: string | null;
+  additional_address: string | null;
+  email: string | null;
+  phone: string | null;
+  data_source: string | null;
+  kind_class: string | null;
+  owner_kind_detail: string | null;
+  created_at: Date | string | null;
+  updated_at: Date | string | null;
+}
+
+export interface OwnerDBO extends OwnerRecordDBO {
   postal_code?: string;
   house_number?: string;
   street?: string;
   city?: string;
   score?: number;
-  additional_address?: string;
 }
 
-export const parseOwnerApi = (result: OwnerDBO): OwnerApi => ({
-  id: result.id,
-  rawAddress: result.raw_address.filter((_: string) => _ && _.length),
-  fullName: result.full_name,
-  administrator: result.administrator,
-  birthDate: result.birth_date ? new Date(result.birth_date) : undefined,
-  email: result.email,
-  phone: result.phone,
-  kind: result.owner_kind,
-  kindDetail: result.owner_kind_detail,
+export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => ({
+  id: owner.id,
+  idpersonne: owner.idpersonne ?? undefined,
+  rawAddress: owner.address_dgfip,
+  fullName: owner.full_name,
+  administrator: owner.administrator ?? undefined,
+  birthDate: owner.birth_date ? new Date(owner.birth_date) : undefined,
+  email: owner.email ?? undefined,
+  phone: owner.phone ?? undefined,
+  kind: owner.kind_class ?? undefined,
+  kindDetail: owner.owner_kind_detail ?? undefined,
   banAddress: [
-    result.postal_code,
-    result.house_number,
-    result.street,
-    result.city,
-    result.score,
+    owner.postal_code,
+    owner.house_number,
+    owner.street,
+    owner.city,
+    owner.score
   ].some((_) => isDefined(_) && isNotNull(_))
     ? {
-        postalCode: result.postal_code ?? '',
-        houseNumber: result.house_number,
-        street: result.street,
-        city: result.city ?? '',
-        score: result.score,
+        postalCode: owner.postal_code ?? '',
+        houseNumber: owner.house_number,
+        street: owner.street,
+        city: owner.city ?? '',
+        score: owner.score
       }
     : undefined,
-  additionalAddress: result.additional_address,
+  additionalAddress: owner.additional_address ?? undefined
 });
 
 export const parseHousingOwnerApi = (
-  housingOwner: OwnerDBO & HousingOwnerDBO,
+  housingOwner: OwnerDBO & HousingOwnerDBO
 ): HousingOwnerApi => ({
   ...parseOwnerApi(housingOwner),
   housingId: housingOwner.housing_id,
@@ -503,20 +529,25 @@ export const parseHousingOwnerApi = (
   rank: housingOwner.rank,
   startDate: housingOwner.start_date,
   endDate: housingOwner.end_date,
-  origin: housingOwner.origin,
+  origin: housingOwner.origin
 });
 
-export const formatOwnerApi = (ownerApi: OwnerApi): OwnerDBO => ({
-  id: ownerApi.id,
-  raw_address: ownerApi.rawAddress.filter((_: string) => _ && _.length),
-  full_name: ownerApi.fullName,
-  administrator: ownerApi.administrator,
-  birth_date: ownerApi.birthDate,
-  email: ownerApi.email,
-  phone: ownerApi.phone,
-  owner_kind: ownerApi.kind,
-  owner_kind_detail: ownerApi.kindDetail,
-  additional_address: ownerApi.additionalAddress,
+export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
+  id: owner.id,
+  idpersonne: owner.idpersonne ?? null,
+  full_name: owner.fullName,
+  birth_date: owner.birthDate ?? null,
+  administrator: owner.administrator ?? null,
+  siren: owner.siren ?? null,
+  address_dgfip: owner.rawAddress.filter((_: string) => _ && _.length),
+  additional_address: owner.additionalAddress ?? null,
+  email: owner.email ?? null,
+  phone: owner.phone ?? null,
+  data_source: owner.dataSource ?? null,
+  kind_class: owner.kind ?? null,
+  owner_kind_detail: owner.kindDetail ?? null,
+  created_at: owner.createdAt ? new Date(owner.createdAt) : null,
+  updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null
 });
 
 export default {
@@ -528,10 +559,11 @@ export default {
   searchOwners,
   findByHousing,
   insert,
+  betterSave,
   save,
   saveMany,
   update,
   updateAddressList,
   deleteHousingOwners,
-  insertHousingOwners,
+  insertHousingOwners
 };

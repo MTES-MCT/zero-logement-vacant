@@ -4,14 +4,20 @@ import { HousingSource } from '@zerologementvacant/shared';
 import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
-import { HousingOwnerApi } from './HousingOwnerApi';
+import { EventApi, isUserModified } from '~/models/EventApi';
 
 export interface HousingRecordApi {
   id: string;
+  /**
+   * @deprecated Shall be replaced by `localId`
+   */
   invariant: string;
   localId: string;
   buildingId?: string;
   buildingGroupId?: string;
+  /**
+   * @deprecateds Should become `addressDGFIP: string`
+   */
   rawAddress: string[];
   geoCode: string;
   longitude?: number;
@@ -27,7 +33,11 @@ export interface HousingRecordApi {
   mutationDate: Date | null;
   taxed?: boolean;
   vacancyReasons?: string[];
+  /**
+   * @deprecated See {@link dataFileYears}
+   */
   dataYears: number[];
+  dataFileYears: string[];
   beneficiaryCount?: number;
   buildingLocation?: string;
   rentalValue?: number;
@@ -40,7 +50,6 @@ export interface HousingRecordApi {
   occupancy: OccupancyKindApi;
   occupancyRegistered: OccupancyKindApi;
   occupancyIntended?: OccupancyKindApi;
-  plotId?: string;
   source: HousingSource | null;
 }
 
@@ -48,19 +57,15 @@ export interface HousingApi extends HousingRecordApi {
   localityKind?: string;
   geoPerimeters?: string[];
   owner?: OwnerApi;
-  /**
-   * All the owners having rank >= 2
-   */
-  coowners: HousingOwnerApi[];
   buildingHousingCount?: number;
   buildingVacancyRate?: number;
-  campaignIds: string[];
-  contactCount: number;
+  campaignIds?: string[];
+  contactCount?: number;
   lastContact?: Date;
 }
 
 export function assertOwner<T extends HousingApi>(
-  housing: T,
+  housing: T
 ): asserts housing is T & MarkRequired<T, 'owner'> {
   assert(housing.owner !== undefined, 'Housing owner is undefined');
 }
@@ -74,7 +79,7 @@ export type HousingSortApi = Sort<HousingSortableApi>;
 export enum OwnershipKindsApi {
   Single = 'single',
   CoOwnership = 'co',
-  Other = 'other',
+  Other = 'other'
 }
 
 export const getOwnershipKindFromValue = (value?: string) => {
@@ -89,7 +94,7 @@ export const getOwnershipKindFromValue = (value?: string) => {
 
 export const OwnershipKindValues = {
   [OwnershipKindsApi.CoOwnership]: ['CL'],
-  [OwnershipKindsApi.Other]: ['BND', 'CLV', 'CV', 'MP', 'TF'],
+  [OwnershipKindsApi.Other]: ['BND', 'CLV', 'CV', 'MP', 'TF']
 };
 
 export enum OccupancyKindApi {
@@ -102,7 +107,7 @@ export enum OccupancyKindApi {
   CommercialOrOffice = 'T',
   Dependency = 'N',
   DemolishedOrDivided = 'D',
-  Others = 'A',
+  Others = 'A'
 }
 
 export const OccupancyKindApiLabels: Record<OccupancyKindApi, string> = {
@@ -115,7 +120,7 @@ export const OccupancyKindApiLabels: Record<OccupancyKindApi, string> = {
   [OccupancyKindApi.CommercialOrOffice]: 'Local commercial ou bureau',
   [OccupancyKindApi.Dependency]: 'Dépendance',
   [OccupancyKindApi.DemolishedOrDivided]: 'Local démoli ou divisé',
-  [OccupancyKindApi.Others]: 'Autres',
+  [OccupancyKindApi.Others]: 'Autres'
 };
 
 export enum EnergyConsumptionGradesApi {
@@ -125,11 +130,11 @@ export enum EnergyConsumptionGradesApi {
   D = 'D',
   E = 'E',
   F = 'F',
-  G = 'G',
+  G = 'G'
 }
 
 export const ENERGY_CONSUMPTION_GRADES = Object.values(
-  EnergyConsumptionGradesApi,
+  EnergyConsumptionGradesApi
 );
 
 const trimStartingZeros = (str: string): string => str.replace(/^0+/, '');
@@ -148,7 +153,7 @@ export function getBuildingLocation(housing: HousingApi) {
     housing.buildingLocation !== 'A010001001'
   ) {
     const BUILDING_REGEXP = new RegExp(
-      `([A-Z0-9]{1,${buildingCharLength}})([0-9]{2})([0-9]{2})([0-9]{5})`,
+      `([A-Z0-9]{1,${buildingCharLength}})([0-9]{2})([0-9]{2})([0-9]{5})`
     );
     const match = housing.buildingLocation.match(BUILDING_REGEXP);
     if (match) {
@@ -162,12 +167,34 @@ export function getBuildingLocation(housing: HousingApi) {
             : level === '01'
               ? '1er étage'
               : `${trimStartingZeros(level)}ème étage`,
-        local: `Local ${trimStartingZeros(local)}`,
+        local: `Local ${trimStartingZeros(local)}`
       };
     }
   }
 }
 
 export function hasCampaigns(housing: HousingApi): boolean {
-  return housing.campaignIds.length > 0;
+  return !!housing.campaignIds?.length;
+}
+
+export function isSupervised(
+  housing: HousingApi,
+  events: ReadonlyArray<EventApi<HousingApi>>
+): boolean {
+  if (housing.status === HousingStatusApi.InProgress) {
+    return (
+      housing.subStatus === 'En accompagnement' ||
+      housing.subStatus === 'Intervention publique'
+    );
+  }
+
+  if (housing.status === HousingStatusApi.Completed) {
+    return (
+      (housing.subStatus === 'N’était pas vacant' ||
+        housing.subStatus === 'Sortie de la vacance') &&
+      events.some(isUserModified)
+    );
+  }
+
+  return false;
 }

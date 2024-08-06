@@ -59,7 +59,7 @@ fileignoreconfig:
 - filename: frontend/src/views/Login/LoginView.test.tsx
   checksum: a1fab3ca0b731331cc1e0945e238f60ba319da577710ebeae502813623985a39
 - filename: package.json
-  checksum: bc3388c55b927b286f6e7ec0bf25c060b479eb136dd7a377443c8e99acdf7bd1
+  checksum: 89aa8f8ca7ee61039ba951b65dc090f492736a4d53b8c7132d3319a26d30cda9
 - filename: packages/api-sdk/src/infra/test/token-provider.test.ts
   checksum: c3ea87f28ca17a354e1dadf58e2832088503f258327f4620e0a23a24bb79241a
 - filename: packages/api-sdk/src/infra/token-provider.ts
@@ -124,6 +124,14 @@ fileignoreconfig:
   checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
 - filename: server/src/routers/unprotected.ts
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
+- filename: server/src/scripts/deduplicate-housing/merger.ts
+  checksum: a589e20f249e86844dd07ce425c24268666f3acb9d71104838559d146327b11e
+- filename: server/src/scripts/import-lovac/infra/reporters/logger-reporter.ts
+  checksum: d61083d7e944f8ffa847fa782e6328c671ac50ab28fd21622fcb417e8b7a5392
+- filename: server/src/scripts/import-lovac/infra/reporters/noop-reporter.ts
+  checksum: 8b585aa52733864ebc084a4530e00754543a8946eeb931dff55c4ae3b9c34895
+- filename: server/src/scripts/import-lovac/infra/reporters/reporter.ts
+  checksum: b1f14b25a0a589b6cf749b55fdb1fb75febeb56beeb3926fb1e4a121af8f6bdf
 - filename: server/src/test/testUtils.ts
   checksum: 7b398fd3f591cac34d94c9c81b1e3fd128ce09d48b849d530b4d883795b628d0
 - filename: shared/src/utils/merger.ts
@@ -132,18 +140,6 @@ fileignoreconfig:
   checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 - filename: yarn.lock
   checksum: 59d37f8e1ecf81439bce81f285ac09fdcf3978c64ff996c2d0e8731431ecb2c0
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
-- keyof
-version: "1.0"
-nfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
-- keyof
-version: "1.0"
 scopeconfig:
 - scope: node
 allowed_patterns:

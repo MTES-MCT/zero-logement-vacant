@@ -5,4 +5,5 @@ export * from './log-level';
 export * from './logger';
 export * from './merger';
 export * from './s3';
+export * from './stream';
 export * from './string';

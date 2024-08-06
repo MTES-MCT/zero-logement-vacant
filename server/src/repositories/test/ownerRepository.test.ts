@@ -1,34 +1,22 @@
 import ownerRepository, {
   formatOwnerApi,
   Owners,
-  ownerTable,
+  ownerTable
 } from '../ownerRepository';
-import {
-  genDatafoncierOwner,
-  genOwnerApi,
-  genOwnerMatch,
-} from '~/test/testFixtures';
+import { genOwnerApi } from '~/test/testFixtures';
 import db from '~/infra/database';
 import { OwnerApi } from '~/models/OwnerApi';
-import { DatafoncierOwners } from '../datafoncierOwnersRepository';
-import { OwnerMatches } from '../ownerMatchRepository';
 
 describe('Owner repository', () => {
   describe('find', () => {
     it('should find owners by idpersonne', async () => {
-      const owners = new Array(6).fill(0).map(() => genOwnerApi());
-      const datafoncierOwners = owners.map(() => genDatafoncierOwner());
-      const matches = owners.map((owner, i) =>
-        genOwnerMatch(datafoncierOwners[i], owner),
-      );
+      const owners = Array.from({ length: 6 }, () => genOwnerApi());
       await Owners().insert(owners.map(formatOwnerApi));
-      await DatafoncierOwners().insert(datafoncierOwners);
-      await OwnerMatches().insert(matches);
 
       const actual = await ownerRepository.find({
         filters: {
-          idpersonne: datafoncierOwners.map((owner) => owner.idpersonne),
-        },
+          idpersonne: owners.map((owner) => owner.idpersonne as string)
+        }
       });
 
       expect(actual).toBeArrayOfSize(owners.length);
@@ -39,20 +27,20 @@ describe('Owner repository', () => {
     it('should find a owner without birth date', async () => {
       const owner: OwnerApi = {
         ...genOwnerApi(),
-        birthDate: undefined,
+        birthDate: undefined
       };
       await db(ownerTable).insert(formatOwnerApi(owner));
 
       const actual = await ownerRepository.findOne({
         fullName: owner.fullName,
-        rawAddress: owner.rawAddress,
+        rawAddress: owner.rawAddress
       });
 
       expect(actual).toStrictEqual({
         ...owner,
-        administrator: null,
+        administrator: undefined,
         birthDate: undefined,
-        banAddress: undefined,
+        banAddress: undefined
       });
     });
 
@@ -63,14 +51,14 @@ describe('Owner repository', () => {
       const actual = await ownerRepository.findOne({
         fullName: owner.fullName,
         rawAddress: owner.rawAddress,
-        birthDate: owner.birthDate ? new Date(owner.birthDate) : undefined,
+        birthDate: owner.birthDate ? new Date(owner.birthDate) : undefined
       });
 
       expect(actual).toStrictEqual({
         ...owner,
-        administrator: null,
+        administrator: undefined,
         birthDate: owner.birthDate ? new Date(owner.birthDate) : null,
-        banAddress: undefined,
+        banAddress: undefined
       });
     });
   });
@@ -82,13 +70,13 @@ describe('Owner repository', () => {
         .map(() => genOwnerApi())
         .map<OwnerApi>((owner) => ({
           ...owner,
-          fullName: 'Jean Dupont',
+          fullName: 'Jean Dupont'
         }));
       await Owners().insert(owners.map(formatOwnerApi));
 
       const actual = await ownerRepository
         .stream({
-          groupBy: ['full_name'],
+          groupBy: ['full_name']
         })
         .collect()
         .toPromise(Promise);

@@ -113,7 +113,7 @@ fileignoreconfig:
 - filename: server/src/infra/config.ts
   checksum: 19f56261b2c4fee3c9968934ab851df11ec7c002293a4d1886d7707a373e5e33
 - filename: server/src/infra/database/procedures/001-load-housing.sql
-  checksum: f010145d04654293da6df1dfaa169b5c7079618052cc63a1fd1b8fed76047c2a
+  checksum: cbc19453d36a227bf2ee828d89f5a2dc3b3fd7af2ff5c7c7231bd4f54f611cea
 - filename: server/src/infra/database/scripts/001-load-establishments_com_epci_reg_dep.sql
   checksum: 10a08695a26495460f526ebae824fff99a56afb1f1d548aaff978e01d144f840
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql

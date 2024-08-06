@@ -257,6 +257,9 @@ export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
     housingCount: housingList.length,
     vacantHousingCount: housingList.filter(
       (housing) => housing.occupancy === OccupancyKindApi.Vacant
+    ).length,
+    rentHousingCount: housingList.filter(
+      (housing) => housing.occupancy === OccupancyKindApi.Rent
     ).length
   };
 };

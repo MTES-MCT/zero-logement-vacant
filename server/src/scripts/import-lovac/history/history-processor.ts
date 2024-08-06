@@ -48,12 +48,11 @@ export function historyProcessor(opts: ProcessorOptions) {
   });
 }
 
-function normalize(dataFileYears: string[]): string[] {
-  return (
-    fp
-      .sortedUniq(dataFileYears)
-      // "lovac-2024" should be added later to the array
-      // by the `housings` command
-      .filter((dataFileYear) => dataFileYear !== 'lovac-2024')
-  );
+export function normalize(dataFileYears: string[]): string[] {
+  return fp.pipe(
+    fp.sortBy<string>(fp.identity),
+    fp.sortedUniq,
+    // "lovac-2024" should be added later to the array by the `housings` command
+    fp.filter((dataFileYear) => dataFileYear !== 'lovac-2024')
+  )(dataFileYears);
 }

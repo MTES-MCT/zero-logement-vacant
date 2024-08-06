@@ -9,10 +9,14 @@ describe('20240715150036-housings-update-structure-lovac-2024 ', () => {
   const migrator = createMigrator(db);
 
   beforeEach(async () => {
-    await migrator.rollback(undefined, rollbackAll);
     await migrator.migrateUntil(
       '20240715150036-housings-update-structure-lovac-2024.ts'
     );
+  });
+
+  afterEach(async () => {
+    const migrator = createMigrator(db);
+    await migrator.rollback(undefined, rollbackAll);
   });
 
   describe('up', () => {

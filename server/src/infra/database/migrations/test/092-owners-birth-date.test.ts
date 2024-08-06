@@ -33,7 +33,6 @@ describe('092 Owners birth date', () => {
 
   beforeEach(async () => {
     const migrator = createMigrator(db);
-    await migrator.rollback(undefined, rollbackAll);
     await migrator.migrateUntil('092-owners-birth-date.ts');
 
     // Create some owners
@@ -41,6 +40,11 @@ describe('092 Owners birth date', () => {
 
     // Migrate the actual file
     await migrator.up();
+  });
+
+  afterEach(async () => {
+    const migrator = createMigrator(db);
+    await migrator.rollback(undefined, rollbackAll);
   });
 
   describe('up', () => {

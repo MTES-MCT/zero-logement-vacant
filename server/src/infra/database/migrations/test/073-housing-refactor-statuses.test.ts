@@ -8,7 +8,7 @@ import db from '~/infra/database/';
 import {
   Housing,
   HousingEvent,
-  HousingStatus,
+  HousingStatus
 } from '../073-housing-refactor-statuses';
 
 describe('073 Housing refactor statuses', () => {
@@ -21,18 +21,17 @@ describe('073 Housing refactor statuses', () => {
     createHousing({
       status: HousingStatus.FirstContact,
       sub_status: 'Intérêt potentiel',
-      precisions: ['Informations transmises'],
+      precisions: ['Informations transmises']
     }),
     createHousing({
       status: HousingStatus.Exit,
       sub_status: 'Absent du millésime suivant',
-      precisions: ['Loué'],
-    }),
+      precisions: ['Loué']
+    })
   ];
 
   beforeEach(async () => {
     const migrator = createMigrator(db);
-    await migrator.rollback(undefined, rollbackAll);
     await migrator.migrateUntil('073-housing-refactor-statuses.ts');
 
     // Create some housing
@@ -55,20 +54,20 @@ describe('073 Housing refactor statuses', () => {
         {
           status: HousingStatus.FirstContact,
           sub_status: 'Intérêt potentiel / En réflexion',
-          precisions: [],
+          precisions: []
         },
         {
           status: HousingStatus.Exit,
           sub_status: 'Sortie de la vacance',
           precisions: ['Mode opératoire > Location/Occupation > Occupé'],
-          occupancy: 'L',
-        },
+          occupancy: 'L'
+        }
       ];
 
       const actualList = await Promise.all(
         housingList.map((housing) =>
-          db('housing').where('id', housing.id).first(),
-        ),
+          db('housing').where('id', housing.id).first()
+        )
       );
 
       actualList.forEach((actual, i) => {
@@ -82,8 +81,8 @@ describe('073 Housing refactor statuses', () => {
           {
             name: 'Modification arborescence de suivi',
             old: expect.objectContaining({ status: 'Jamais contacté' }),
-            new: expect.objectContaining({ status: 'Non suivi' }),
-          },
+            new: expect.objectContaining({ status: 'Non suivi' })
+          }
         ],
         [housingList[1].id]: [],
         [housingList[2].id]: [
@@ -92,14 +91,14 @@ describe('073 Housing refactor statuses', () => {
             old: expect.objectContaining({
               status: 'Premier contact',
               sub_status: 'Intérêt potentiel',
-              precisions: ['Informations transmises'],
+              precisions: ['Informations transmises']
             }),
             new: expect.objectContaining({
               status: 'Premier contact',
               sub_status: 'Intérêt potentiel / En réflexion',
-              precisions: [],
-            }),
-          },
+              precisions: []
+            })
+          }
         ],
         [housingList[3].id]: [
           {
@@ -111,22 +110,22 @@ describe('073 Housing refactor statuses', () => {
               status: 'Sortie de la vacance',
               sub_status: 'Absent du millésime suivant',
               precisions: ['Loué'],
-              occupancy: 'V',
+              occupancy: 'V'
             }),
             new: expect.objectContaining({
               status: 'Suivi terminé',
               sub_status: 'Sortie de la vacance',
               precisions: ['Mode opératoire > Location/Occupation > Occupé'],
-              occupancy: 'L',
-            }),
+              occupancy: 'L'
+            })
           },
           {
             name: 'Absent du millésime 2023',
             kind: 'Delete',
             category: 'Followup',
-            section: 'Situation',
-          },
-        ],
+            section: 'Situation'
+          }
+        ]
       };
 
       await async.forEach(housingList, async (housing) => {
@@ -134,7 +133,7 @@ describe('073 Housing refactor statuses', () => {
           .join(
             `${housingEventsTable}`,
             `${housingEventsTable}.event_id`,
-            `${eventsTable}.id`,
+            `${eventsTable}.id`
           )
           .where({ housing_id: housing.id });
 
@@ -151,7 +150,7 @@ describe('073 Housing refactor statuses', () => {
         .join(
           `${housingEventsTable}`,
           `${housingEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where({ housing_id: housing.id });
 
@@ -167,8 +166,8 @@ describe('073 Housing refactor statuses', () => {
     it('should rollback the old housing', async () => {
       const actualList = await Promise.all(
         housingList.map((housing) =>
-          db('housing').where('id', housing.id).first(),
-        ),
+          db('housing').where('id', housing.id).first()
+        )
       );
 
       actualList.forEach((actual, i) => {
@@ -178,7 +177,7 @@ describe('073 Housing refactor statuses', () => {
 
     it('should remove their events', async () => {
       const events = await db(eventsTable).where({
-        name: 'Modification arborescence de suivi',
+        name: 'Modification arborescence de suivi'
       });
       expect(events).toHaveLength(0);
     });
@@ -196,7 +195,7 @@ describe('073 Housing refactor statuses', () => {
       rooms_count: 1,
       living_area: 42,
       occupancy: 'V',
-      ...housing,
+      ...housing
     };
   }
 });

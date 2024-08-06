@@ -1,5 +1,4 @@
 import { fc, test } from '@fast-check/jest';
-import { startOfYear } from 'date-fns/fp';
 
 import { HOUSING_KIND_VALUES } from '@zerologementvacant/models';
 import {
@@ -23,11 +22,13 @@ describe('SourceHousing', () => {
       ban_longitude: fc.option(fc.float({ min: -180, max: 180, noNaN: true })),
       geolocalisation: fc.string({ minLength: 1 }),
       dgfip_address: fc.string({ minLength: 1 }),
-      dgfip_latitude: fc.float({ min: -90, max: 90, noNaN: true }),
-      dgfip_longitude: fc.float({ min: -180, max: 180, noNaN: true }),
+      dgfip_latitude: fc.option(fc.float({ min: -90, max: 90, noNaN: true })),
+      dgfip_longitude: fc.option(
+        fc.float({ min: -180, max: 180, noNaN: true })
+      ),
       housing_kind: fc.constantFrom(...HOUSING_KIND_VALUES),
       condominium: fc.option(fc.string({ minLength: 1 })),
-      living_area: fc.float({ min: 0, noNaN: true }),
+      living_area: fc.integer({ min: 1 }),
       rooms_count: fc.integer({ min: 0 }),
       building_year: fc.option(
         fc.integer({ min: 1, max: new Date().getUTCFullYear() })
@@ -40,7 +41,7 @@ describe('SourceHousing', () => {
         min: 1,
         max: new Date().getUTCFullYear()
       }),
-      mutation_date: fc.option(fc.date({ max: startOfYear(new Date()) }))
+      mutation_date: fc.option(fc.date())
     })('should validate a source housing', (sourceHousing) => {
       const actual = sourceHousingSchema.validateSync(sourceHousing);
 

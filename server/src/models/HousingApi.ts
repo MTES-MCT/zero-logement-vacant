@@ -4,7 +4,9 @@ import { HousingSource } from '@zerologementvacant/shared';
 import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
-import { EventApi, isUserModified } from '~/models/EventApi';
+import { HousingEventApi, isUserModified } from '~/models/EventApi';
+
+export type HousingId = Pick<HousingRecordApi, 'geoCode' | 'id'>;
 
 export interface HousingRecordApi {
   id: string;
@@ -13,6 +15,7 @@ export interface HousingRecordApi {
    */
   invariant: string;
   localId: string;
+  plotId?: string;
   buildingId?: string;
   buildingGroupId?: string;
   /**
@@ -41,6 +44,7 @@ export interface HousingRecordApi {
   beneficiaryCount?: number;
   buildingLocation?: string;
   rentalValue?: number;
+  geolocation?: string;
   ownershipKind?: OwnershipKindsApi;
   status: HousingStatusApi;
   subStatus?: string;
@@ -179,7 +183,7 @@ export function hasCampaigns(housing: HousingApi): boolean {
 
 export function isSupervised(
   housing: HousingApi,
-  events: ReadonlyArray<EventApi<HousingApi>>
+  events: ReadonlyArray<HousingEventApi>
 ): boolean {
   if (housing.status === HousingStatusApi.InProgress) {
     return (

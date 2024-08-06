@@ -5,6 +5,7 @@ import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 
+import { genGeoCode } from '@zerologementvacant/utils';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
@@ -71,19 +72,11 @@ import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { SenderApi } from '~/models/SenderApi';
 import { DraftApi } from '~/models/DraftApi';
 
+export { genGeoCode } from '@zerologementvacant/utils';
+
 logger.debug(`Seed: ${faker.seed()}`);
 
 export const genEmail = () => faker.internet.email();
-
-export const genGeoCode = (): string => {
-  const geoCode = faker.location.zipCode();
-  const needsReroll =
-    geoCode.startsWith('00') ||
-    geoCode.startsWith('20') ||
-    geoCode.startsWith('99') ||
-    geoCode.endsWith('999');
-  return needsReroll ? genGeoCode() : geoCode;
-};
 
 /**
  * A locality string of 3 numeric characters
@@ -233,13 +226,15 @@ export const genAddressApi = (
   return {
     refId,
     addressKind,
+    address: faker.location.streetAddress({ useFullAddress: true }),
     houseNumber: faker.location.buildingNumber(),
     street: faker.location.street(),
     postalCode: faker.location.zipCode(),
     city: faker.location.city(),
     latitude: faker.location.latitude(),
     longitude: faker.location.longitude(),
-    score: Math.random()
+    score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
+    lastUpdatedAt: faker.date.recent().toJSON()
   };
 };
 
@@ -555,6 +550,13 @@ export const genDatafoncierHousing = (
   const localityCode = geoCode.substring(2, 5);
   const invariant = genInvariant(localityCode);
   const localId = genLocalId(department, invariant);
+  const birthdate = faker.date
+    .past()
+    .toJSON()
+    .substring(0, 'yyyy-mm-dd'.length)
+    .split('-')
+    .toReversed()
+    .join('');
   return {
     idlocal: localId,
     idbat: randomstring.generate(16),
@@ -587,8 +589,8 @@ export const genDatafoncierHousing = (
     gpdl: randomstring.generate(1),
     ctpdl: randomstring.generate(5),
     dnupro: randomstring.generate(6),
-    jdatat: randomstring.generate(8),
-    jdatatv: randomstring.generate(8),
+    jdatat: birthdate,
+    jdatatv: birthdate,
     jdatatan: genNumber(2),
     dnufnl: randomstring.generate(6),
     ccoeva: randomstring.generate(1),

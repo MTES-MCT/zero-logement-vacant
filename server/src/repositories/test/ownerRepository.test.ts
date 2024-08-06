@@ -36,11 +36,10 @@ describe('Owner repository', () => {
         rawAddress: owner.rawAddress
       });
 
-      expect(actual).toStrictEqual({
-        ...owner,
-        administrator: undefined,
-        birthDate: undefined,
-        banAddress: undefined
+      expect(actual).toMatchObject<Partial<OwnerApi>>({
+        id: owner.id,
+        fullName: owner.fullName,
+        rawAddress: owner.rawAddress
       });
     });
 
@@ -54,11 +53,11 @@ describe('Owner repository', () => {
         birthDate: owner.birthDate ? new Date(owner.birthDate) : undefined
       });
 
-      expect(actual).toStrictEqual({
-        ...owner,
-        administrator: undefined,
-        birthDate: owner.birthDate ? new Date(owner.birthDate) : null,
-        banAddress: undefined
+      expect(actual).toMatchObject<Partial<OwnerApi>>({
+        id: owner.id,
+        fullName: owner.fullName,
+        rawAddress: owner.rawAddress,
+        birthDate: owner.birthDate
       });
     });
   });

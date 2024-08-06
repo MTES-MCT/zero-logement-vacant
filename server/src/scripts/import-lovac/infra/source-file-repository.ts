@@ -1,8 +1,8 @@
-import { parse as parseJSONL } from '@jsonlines/core';
+import { parse as parseJSONL } from 'jsonlines';
 import { parse as parseCSV } from 'csv-parse';
 import fs from 'node:fs';
 import path from 'node:path';
-import { Duplex, Readable } from 'node:stream';
+import { Readable, Transform } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
 import { SourceRepository } from '~/scripts/import-lovac/infra/source-repository';
@@ -30,7 +30,7 @@ export abstract class SourceFileRepository<A> implements SourceRepository<A> {
       throw new Error('Bad file extension');
     }
 
-    const parsers: Record<Extension, () => Duplex> = {
+    const parsers: Record<Extension, () => Transform> = {
       '.csv': () =>
         parseCSV({
           cast(value) {

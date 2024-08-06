@@ -4281,15 +4281,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jsonlines/core@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "@jsonlines/core@npm:1.0.2"
-  dependencies:
-    core-js: "npm:^3.6.5"
-  checksum: 10c0/2b5637356880b729d3a86620943d052d29d46f8ccaed6af3ec0bb52a625ca8e002dbb12a4c9260b8f1e31b8e84420ab39d99eb47a4ff9ff6c399d9ddc1cd4d4d
-  languageName: node
-  linkType: hard
-
 "@leichtgewicht/ip-codec@npm:^2.0.1":
   version: 2.0.5
   resolution: "@leichtgewicht/ip-codec@npm:2.0.5"
@@ -8075,6 +8066,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/jsonlines@npm:^0.1.5":
+  version: 0.1.5
+  resolution: "@types/jsonlines@npm:0.1.5"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/3dc6d039cfb488a9afb8acba26d7132e083b712afd7a6245bc5febeefdde93121787a2f7e22c55eab9a98a4601624cd62cef5690759381ac0d8d6e1c294176da
+  languageName: node
+  linkType: hard
+
 "@types/jsonwebtoken@npm:^8.5.9":
   version: 8.5.9
   resolution: "@types/jsonwebtoken@npm:8.5.9"
@@ -9293,7 +9293,6 @@ __metadata:
     "@getbrevo/brevo": "npm:^1.0.1"
     "@godaddy/terminus": "npm:^4.12.1"
     "@jest/globals": "npm:^29.7.0"
-    "@jsonlines/core": "npm:^1.0.2"
     "@sendinblue/client": "npm:^3.3.1"
     "@sentry/integrations": "npm:^7.116.0"
     "@sentry/node": "npm:^7.116.0"
@@ -9310,6 +9309,7 @@ __metadata:
     "@types/geojson": "npm:^7946.0.14"
     "@types/highland": "npm:^2.13.0"
     "@types/jest": "npm:^29.5.12"
+    "@types/jsonlines": "npm:^0.1.5"
     "@types/jsonwebtoken": "npm:^8.5.9"
     "@types/lodash": "npm:^4.17.4"
     "@types/memoizee": "npm:^0.4.11"
@@ -9342,6 +9342,7 @@ __metadata:
     convict-format-with-validator: "npm:^6.2.0"
     cors: "npm:^2.8.5"
     csv-parse: "npm:^5.5.6"
+    csv-stringify: "npm:^6.5.1"
     date-fns: "npm:^3.6.0"
     dotenv: "npm:^16.4.5"
     download: "npm:^8.0.0"
@@ -9363,6 +9364,7 @@ __metadata:
     jest-fetch-mock: "npm:^3.0.3"
     jest-sorted: "npm:^1.0.15"
     joi: "npm:^17.13.1"
+    jsonlines: "npm:^0.1.1"
     jsonwebtoken: "npm:^9.0.2"
     knex: "npm:^3.1.0"
     lodash: "npm:^4.17.21"
@@ -9436,6 +9438,7 @@ __metadata:
   resolution: "@zerologementvacant/utils@workspace:packages/utils"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.577.0"
+    "@faker-js/faker": "npm:^8.4.1"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/jest": "npm:^29.5.12"
     "@types/lodash": "npm:^4.17.4"
@@ -11794,7 +11797,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.19.2, core-js@npm:^3.6.5":
+"core-js@npm:^3.19.2":
   version: 3.37.1
   resolution: "core-js@npm:3.37.1"
   checksum: 10c0/440eb51a7a39128a320225fe349f870a3641b96c9ecd26470227db730ef8c161ea298eaea621db66ec0ff622a85299efb4e23afebf889c0a1748616102307675
@@ -12306,6 +12309,13 @@ __metadata:
   version: 5.5.6
   resolution: "csv-parse@npm:5.5.6"
   checksum: 10c0/b4f6e9b885e4488829356455157bd009f3fed4119c5fbaadab1a879e85f0a9a1b62cd01e6de68ff77a50f820a6261722bce1b799da1ace2e2126e0b7c8d86760
+  languageName: node
+  linkType: hard
+
+"csv-stringify@npm:^6.5.1":
+  version: 6.5.1
+  resolution: "csv-stringify@npm:6.5.1"
+  checksum: 10c0/cb0425a8246c6f46d7350a374fcdbc1d78f5602b452526602f4171cfad4459000c68e352d6da43dddd1ae11452300b58028e06949d2e4c20a7bc1aad4a2e0bbc
   languageName: node
   linkType: hard
 
@@ -18214,6 +18224,13 @@ __metadata:
     graceful-fs:
       optional: true
   checksum: 10c0/4f95b5e8a5622b1e9e8f33c96b7ef3158122f595998114d1e7f03985649ea99cb3cd99ce1ed1831ae94c8c8543ab45ebd044207612f31a56fd08462140e46865
+  languageName: node
+  linkType: hard
+
+"jsonlines@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "jsonlines@npm:0.1.1"
+  checksum: 10c0/3f7af3d989680c330babe6aad2f53bb7ba8b4a0b7e3e93af8842423ebc263b4f9ce62ae154555079434e5881a8b3c58149bc4272e2fe8d96fa843cdb9caf2c8b
   languageName: node
   linkType: hard
 

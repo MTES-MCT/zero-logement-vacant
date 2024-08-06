@@ -9,8 +9,8 @@ import { HousingApi } from './HousingApi';
 import { OwnerApi } from './OwnerApi';
 import { CampaignApi } from './CampaignApi';
 import { GroupApi } from './GroupApi';
-import { HousingOwnerApi } from './HousingOwnerApi';
 import { UserApi } from '~/models/UserApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 
 export interface EventApi<T> {
   id: string;

@@ -25,7 +25,7 @@ import { geoPerimetersTable } from './geoRepository';
 import establishmentRepository, {
   establishmentsTable
 } from './establishmentRepository';
-import { banAddressesTable } from './banAddressesRepository';
+import { AddressDBO, banAddressesTable } from './banAddressesRepository';
 import { logger } from '~/infra/logger';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
@@ -35,6 +35,8 @@ import { housingOwnersTable } from './housingOwnerRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
 import { AddressKinds } from '@zerologementvacant/models';
+import { ReadableStream } from 'node:stream/web';
+import { Readable } from 'node:stream';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -86,6 +88,11 @@ type StreamOptions = FindOptions & {
   includes: HousingInclude[];
 };
 
+/**
+ * @deprecated Should be replaced by {@link betterStream} to get out of
+ * the highland library, and allow `opts` to be optional.
+ * @param opts
+ */
 function stream(opts: StreamOptions): Highland.Stream<HousingApi> {
   return highland(fetchGeoCodes(opts.filters?.establishmentIds ?? []))
     .flatMap((geoCodes) => {
@@ -104,6 +111,19 @@ function stream(opts: StreamOptions): Highland.Stream<HousingApi> {
       );
     })
     .map(parseHousingApi);
+}
+
+function betterStream(
+  opts?: Pick<StreamOptions, 'filters' | 'includes'>
+): ReadableStream<HousingApi> {
+  return Readable.toWeb(
+    fastListQuery({
+      filters: opts?.filters ?? {},
+      includes: opts?.includes
+    })
+      .stream()
+      .map(parseHousingApi)
+  );
 }
 
 async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
@@ -152,10 +172,10 @@ async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
       `${buildingTable}.vacant_housing_count`,
       `${localitiesTable}.locality_kind`,
       db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.latitude else null end) as latitude_ban`
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude_dgfip, ${housingTable}.longitude_dgfip), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.latitude else null end) as latitude_ban`
       ),
       db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.longitude else null end) as longitude_ban`
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude_dgfip, ${housingTable}.longitude_dgfip), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.longitude else null end) as longitude_ban`
       )
     )
     .where(whereOptions(opts))
@@ -199,7 +219,7 @@ async function save(
   housing: HousingRecordApi,
   opts?: SaveOptions
 ): Promise<void> {
-  logger.debug('Saving housing...', { housing: housing.id });
+  logger.debug('Saving housing...', { housing });
   await saveMany([housing], opts);
   logger.info(`Housing saved.`, { housing: housing.id });
 }
@@ -287,7 +307,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
         `left join lateral (
          select json_agg(distinct(kind)) as perimeter_kind
          from ${geoPerimetersTable} perimeter
-         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
+         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))
        ) perimeters on true`
       )
   };
@@ -815,20 +835,7 @@ export interface HousingRecordDBO {
   building_group_id?: string;
   plot_id?: string;
   geo_code: string;
-  /**
-   * The actual address of the housing.
-   * Equal to address_dgfip or the BAN address from the `ban_addresses` table.
-   */
-  address: string;
   address_dgfip: string[];
-  /**
-   * Equal to longitude_ban if provided, longitude_dgfip otherwise
-   */
-  longitude?: number;
-  /**
-   * Equal to latitude_ban if provided, latitude_dgfip otherwise
-   */
-  latitude?: number;
   longitude_dgfip?: number;
   latitude_dgfip?: number;
   geolocation?: string;
@@ -848,7 +855,7 @@ export interface HousingRecordDBO {
    */
   data_years: number[];
   /**
-   * @example "lovac-2024"
+   * @example ['ff-2023', 'lovac-2024']
    */
   data_file_years: string[];
   data_source: HousingSource | null;
@@ -869,15 +876,12 @@ export interface HousingRecordDBO {
 export interface HousingDBO extends HousingRecordDBO {
   housing_count?: number;
   vacant_housing_count?: number;
-  latitude_ban?: number;
-  longitude_ban?: number;
+  latitude?: number;
+  longitude?: number;
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;
-  owner_ban_address?: Pick<
-    OwnerDBO,
-    'postal_code' | 'house_number' | 'street' | 'city' | 'score'
-  >;
+  owner_ban_address?: AddressDBO;
   locality_kind?: string;
   geo_perimeters?: string[];
   campaign_ids?: string[];
@@ -890,6 +894,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   id: housing.id,
   invariant: housing.local_id,
   localId: housing.local_id,
+  plotId: housing.plot_id,
   buildingGroupId: housing.building_group_id,
   buildingHousingCount: housing.housing_count,
   buildingId: housing.building_id,
@@ -905,8 +910,8 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   beneficiaryCount: housing.beneficiary_count,
   rentalValue: housing.rental_value,
   geoCode: housing.geo_code,
-  longitude: housing.longitude_ban ?? housing.longitude,
-  latitude: housing.latitude_ban ?? housing.latitude,
+  longitude: housing.longitude,
+  latitude: housing.latitude,
   cadastralClassification: housing.cadastral_classification,
   uncomfortable: housing.uncomfortable,
   vacancyStartYear: housing.vacancy_start_year,
@@ -932,7 +937,8 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   owner: housing.owner
     ? parseOwnerApi({
         ...housing.owner,
-        ...housing.owner_ban_address
+        ...housing.owner_ban_address,
+        ban: housing.owner_ban_address
       })
     : undefined,
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
@@ -950,15 +956,19 @@ export const formatHousingRecordApi = (
   id: housingRecordApi.id,
   invariant: housingRecordApi.invariant,
   local_id: housingRecordApi.localId,
+  plot_id: housingRecordApi.plotId,
   building_id: housingRecordApi.buildingId,
   building_group_id: housingRecordApi.buildingGroupId,
   building_location: housingRecordApi.buildingLocation,
   building_year: housingRecordApi.buildingYear,
-  address: 'TODO',
   address_dgfip: housingRecordApi.rawAddress,
+  longitude_dgfip: housingRecordApi.longitude,
+  latitude_dgfip: housingRecordApi.latitude,
+  rental_value: housingRecordApi.rentalValue,
+  beneficiary_count: housingRecordApi.beneficiaryCount,
+  geolocation: housingRecordApi.geolocation,
+  mutation_date: housingRecordApi.mutationDate ?? undefined,
   geo_code: housingRecordApi.geoCode,
-  longitude: housingRecordApi.longitude,
-  latitude: housingRecordApi.latitude,
   cadastral_classification: housingRecordApi.cadastralClassification,
   uncomfortable: housingRecordApi.uncomfortable,
   vacancy_start_year: housingRecordApi.vacancyStartYear,
@@ -986,6 +996,7 @@ export default {
   find,
   findOne,
   stream,
+  betterStream,
   count,
   update,
   save,

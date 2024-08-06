@@ -1,14 +1,15 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
-import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
+import { genGeoCode } from '@zerologementvacant/utils';
 import {
   HOUSING_KIND_VALUES,
   OWNERSHIP_KINDS
 } from '@zerologementvacant/models';
+import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
 export function genSourceHousing(): SourceHousing {
-  const geoCode = faker.location.zipCode();
+  const geoCode = genGeoCode();
 
   return {
     data_file_years: 'lovac-2024',
@@ -33,7 +34,7 @@ export function genSourceHousing(): SourceHousing {
     building_year: faker.date.past().getFullYear(),
     uncomfortable: faker.datatype.boolean(),
     cadastral_classification: faker.number.int(10),
-    beneficiary_count: faker.number.int(6),
+    beneficiary_count: faker.number.int({ min: 1, max: 6 }),
     living_area: faker.number.float({ min: 10, max: 100, fractionDigits: 2 }),
     taxed: faker.datatype.boolean(),
     vacancy_start_year: faker.date.past().getFullYear(),

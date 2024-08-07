@@ -37,9 +37,6 @@ import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
 import SmallHeader from './components/Header/SmallHeader';
 import Header from './components/Header/Header';
-import posthog from 'posthog-js';
-
-posthog.init('phc_Thondx9VvGONN5SZK0OuDttJDIorIANsudwCL2gU3O7', { api_host: 'https://eu.i.posthog.com', person_profiles: 'identified_only' });
 
 const publicRoutes: RouteProps[] = [
   { path: '/stats', component: StatsView },

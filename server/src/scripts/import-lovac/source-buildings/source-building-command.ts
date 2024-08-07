@@ -1,13 +1,17 @@
-import { createLoggerReporter } from '~/scripts/import-lovac/infra';
-import { SourceBuilding } from '~/scripts/import-lovac/source-buildings/source-building';
-import { createLogger } from '~/infra/logger';
 import { count } from '@zerologementvacant/utils';
+import { createLoggerReporter } from '~/scripts/import-lovac/infra';
+import {
+  SourceBuilding,
+  sourceBuildingSchema
+} from '~/scripts/import-lovac/source-buildings/source-building';
+import { createLogger } from '~/infra/logger';
 import createSourceBuildingFileRepository from '~/scripts/import-lovac/source-buildings/source-building-file-repository';
 import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { createSourceBuildingProcessor } from '~/scripts/import-lovac/source-buildings/source-building-processor';
 import { BuildingApi } from '~/models/BuildingApi';
 import buildingRepository from '~/repositories/buildingRepository';
+import validator from '~/scripts/import-lovac/infra/validator';
 
 const logger = createLogger('sourceBuildingCommand');
 
@@ -38,6 +42,12 @@ export function createSourceBuildingCommand() {
           progress({
             initial: 0,
             total: total
+          })
+        )
+        .pipeThrough(
+          validator(sourceBuildingSchema, {
+            abortEarly: options.abortEarly,
+            reporter
           })
         )
         .pipeTo(

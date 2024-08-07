@@ -15,9 +15,16 @@ describe('20240715150036-housings-update-structure-lovac-2024 ', () => {
     );
   });
 
+  afterEach(async () => {
+    const migrator = createMigrator(db);
+    await migrator.rollback(undefined, rollbackAll);
+  });
+
   describe('up', () => {
     it('should copy the coordinates', async () => {
-      const housings = faker.helpers.multiple(createHousing, { count: 10 });
+      const housings = faker.helpers.multiple(() => createHousing(), {
+        count: 10
+      });
       await db('fast_housing').insert(housings);
 
       await migrator.up();
@@ -41,9 +48,9 @@ describe('20240715150036-housings-update-structure-lovac-2024 ', () => {
 function createHousing() {
   return {
     id: faker.string.uuid(),
-    invariant: faker.string.alphanumeric(),
-    local_id: faker.string.alphanumeric(),
-    building_id: faker.string.alphanumeric(),
+    invariant: faker.string.alphanumeric(10),
+    local_id: faker.string.alphanumeric(10),
+    building_id: faker.string.alphanumeric(10),
     raw_address: ['123 rue Bidon', '75101 Paris'],
     // faker.location.zipCode() sometimes returns the department "20"
     geo_code: fp.padCharsStart(

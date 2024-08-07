@@ -76,6 +76,7 @@ describe('Housing repository', () => {
     const owners = housings.map((housing) => housing.owner);
     const housingOwners: HousingOwnerApi[] = housings.map((housing) => ({
       ...housing.owner,
+      ownerId: housing.owner.id,
       housingGeoCode: housing.geoCode,
       housingId: housing.id,
       rank: 1

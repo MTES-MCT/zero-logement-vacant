@@ -1,7 +1,4 @@
-import fs from 'node:fs';
-import { Readable } from 'node:stream';
-
-import { countLines } from '@zerologementvacant/utils';
+import { count } from '@zerologementvacant/utils';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { History } from '~/scripts/import-lovac/history/history';
 import { createLogger } from '~/infra/logger';
@@ -15,6 +12,7 @@ const logger = createLogger('historyCommand');
 
 export interface ExecOptions {
   abortEarly?: boolean;
+  departments?: string[];
   dryRun?: boolean;
 }
 
@@ -24,11 +22,17 @@ export function createHistoryCommand() {
   return async (file: string, options: ExecOptions): Promise<void> => {
     try {
       logger.info('Computing total...');
-      const total = await countLines(Readable.toWeb(fs.createReadStream(file)));
+      const total = await count(
+        createHistoryFileRepository(file).stream({
+          departments: options.departments
+        })
+      );
 
       logger.info('Starting import...', { file });
       await createHistoryFileRepository(file)
-        .stream()
+        .stream({
+          departments: options.departments
+        })
         .pipeThrough(
           progress({
             initial: 0,

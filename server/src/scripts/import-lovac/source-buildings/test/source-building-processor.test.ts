@@ -3,8 +3,8 @@ import { ReadableStream } from 'node:stream/web';
 import { SourceBuilding } from '~/scripts/import-lovac/source-buildings/source-building';
 import { genSourceBuilding } from '~/scripts/import-lovac/infra/fixtures';
 import {
-  ProcessorOptions,
-  sourceBuildingProcessor
+  createSourceBuildingProcessor,
+  ProcessorOptions
 } from '~/scripts/import-lovac/source-buildings/source-building-processor';
 
 describe('Source building processor', () => {
@@ -35,7 +35,7 @@ describe('Source building processor', () => {
         controller.close();
       }
     });
-    const processor = sourceBuildingProcessor({
+    const processor = createSourceBuildingProcessor({
       abortEarly: true,
       buildingRepository,
       reporter

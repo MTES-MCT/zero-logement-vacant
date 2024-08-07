@@ -5,6 +5,7 @@ import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housin
 import { createSourceOwnerCommand } from '~/scripts/import-lovac/source-owners/source-owner-command';
 import { createHistoryCommand } from '~/scripts/import-lovac/history/history-command';
 import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
+import { createSourceBuildingCommand } from '~/scripts/import-lovac/source-buildings/source-building-command';
 
 const logger = createLogger('cli');
 
@@ -81,6 +82,20 @@ program
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createSourceHousingOwnerCommand();
+    await command(file, options).finally(() => {
+      process.exit();
+    });
+  });
+
+program
+  .command('buildings')
+  .description('Import buildings from a file to an existing database')
+  .argument('<file>', 'The file to import in .csv or .jsonl')
+  .addOption(abortEarly)
+  .addOption(departments)
+  .addOption(dryRun)
+  .action(async (file, options) => {
+    const command = createSourceBuildingCommand();
     await command(file, options).finally(() => {
       process.exit();
     });

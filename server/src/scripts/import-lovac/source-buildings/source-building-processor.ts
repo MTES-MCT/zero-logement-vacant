@@ -13,7 +13,7 @@ export interface ProcessorOptions extends ReporterOptions<SourceBuilding> {
   };
 }
 
-export function sourceBuildingProcessor(options: ProcessorOptions) {
+export function createSourceBuildingProcessor(options: ProcessorOptions) {
   const { abortEarly, buildingRepository, reporter } = options;
 
   return new WritableStream<SourceBuilding>({

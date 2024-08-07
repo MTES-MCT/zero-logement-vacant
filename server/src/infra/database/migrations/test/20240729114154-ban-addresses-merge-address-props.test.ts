@@ -15,6 +15,10 @@ describe('20240729114154-ban-addresses-merge-address-props', () => {
     );
   });
 
+  afterEach(async () => {
+    await migrator.rollback(undefined, rollbackAll);
+  });
+
   describe('up', () => {
     it.each`
       houseNumber | street                    | postalCode | city          | expected

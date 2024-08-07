@@ -6,7 +6,6 @@ import {
 } from '~/scripts/import-lovac/source-buildings/source-building';
 import { createLogger } from '~/infra/logger';
 import createSourceBuildingFileRepository from '~/scripts/import-lovac/source-buildings/source-building-file-repository';
-import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { createSourceBuildingProcessor } from '~/scripts/import-lovac/source-buildings/source-building-processor';
 import { BuildingApi } from '~/models/BuildingApi';
@@ -36,7 +35,7 @@ export function createSourceBuildingCommand() {
       );
 
       logger.info('Starting import...', { file });
-      await createSourceHousingFileRepository(file)
+      await createSourceBuildingFileRepository(file)
         .stream({ departments: options.departments })
         .pipeThrough(
           progress({

@@ -12,6 +12,13 @@ export interface BuildingDBO {
   rent_housing_count: number;
 }
 
+export async function save(building: BuildingApi): Promise<void> {
+  await Buildings()
+    .insert(formatBuildingApi(building))
+    .onConflict(['id'])
+    .merge(['housing_count', 'vacant_housing_count', 'rent_housing_count']);
+}
+
 export const formatBuildingApi = (building: BuildingApi): BuildingDBO => ({
   id: building.id,
   housing_count: building.housingCount,
@@ -25,3 +32,7 @@ export const parseBuildingApi = (building: BuildingDBO): BuildingApi => ({
   vacantHousingCount: building.vacant_housing_count,
   rentHousingCount: building.rent_housing_count
 });
+
+export default {
+  save
+};

@@ -14,6 +14,7 @@ import OtherOwnerCard from './OtherOwnerCard';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { fr } from '@codegouvfr/react-dsfr';
 import Label from '../Label/Label';
+import { getAddress } from '@zerologementvacant/models';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
@@ -45,7 +46,14 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
         <>
           {owner.birthDate && (
             <Typography component="p" mb={1}>
-              <span className={fr.cx("fr-icon-calendar-2-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <span
+                className={fr.cx(
+                  'fr-icon-calendar-2-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
               <Label as="span">Date de naissance</Label>
               <Typography component="p">
                 {birthdate(owner.birthDate)}
@@ -54,12 +62,19 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
           )}
 
           <Typography component="p" mb={1}>
-            <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+            <span
+              className={fr.cx(
+                'fr-icon-home-4-line',
+                'fr-icon--sm',
+                'fr-mr-1w'
+              )}
+              aria-hidden={true}
+            />
             <Label as="span">Adresse postale</Label>
             <Typography component="p">
-              {owner.banAddress?.houseNumber} {owner.banAddress?.street}
-              <br />
-              {owner.banAddress?.postalCode} {owner.banAddress?.city}
+              {getAddress(owner).map((line) => {
+                return <Typography key={line}>{line}</Typography>;
+              })}
               {[owner, ...(coOwners ?? [])].find(
                 (owner) => !isBanEligible(owner.banAddress)
               ) && (
@@ -73,8 +88,8 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                   }
                   description={
                     <>
-                      Cette adresse issue de la BAN est différente de
-                      l’adresse fiscale.
+                      Cette adresse issue de la BAN est différente de l’adresse
+                      fiscale.
                       <br />
                       Cliquez sur “Modifier” pour valider l’adresse que vous
                       souhaitez utiliser.
@@ -87,21 +102,33 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
 
           {owner.additionalAddress && (
             <Typography component="p" mb={1}>
-              <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <span
+                className={fr.cx(
+                  'fr-icon-home-4-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
               <Label as="span">Complément d’adresse</Label>
-              <Typography component="p">
-                {owner.additionalAddress}
-              </Typography>
+              <Typography component="p">{owner.additionalAddress}</Typography>
             </Typography>
           )}
 
           {owner.email && (
             <Typography component="p" mb={1}>
-              <span className={fr.cx("fr-icon-mail-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <span
+                className={fr.cx(
+                  'fr-icon-mail-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
               <Label as="span">Adresse mail</Label>
               <Typography component="p">
                 <AppLink className="mailto" isSimple to={mailto(owner.email)}>
-                    {owner.email}
+                  {owner.email}
                 </AppLink>
               </Typography>
             </Typography>
@@ -109,11 +136,16 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
 
           {owner.phone && (
             <Typography component="p" mb={1}>
-              <span className={fr.cx("fr-icon-phone-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <span
+                className={fr.cx(
+                  'fr-icon-phone-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
               <Label as="span">Téléphone</Label>
-              <Typography component="p">
-                {owner.phone}
-              </Typography>
+              <Typography component="p">{owner.phone}</Typography>
             </Typography>
           )}
 

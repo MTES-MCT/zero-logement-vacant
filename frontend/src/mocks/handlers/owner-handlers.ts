@@ -10,6 +10,19 @@ interface OwnerParams {
 }
 
 export const ownerHandlers: RequestHandler[] = [
+  http.get<OwnerParams, never, OwnerDTO | null>(
+    `${config.apiEndpoint}/api/owners/:id`,
+    ({ params }) => {
+      const owner = data.owners.find((owner) => owner.id === params.id);
+      if (!owner) {
+        return HttpResponse.json(null, {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        });
+      }
+
+      return HttpResponse.json(owner);
+    }
+  ),
   http.put<OwnerParams, OwnerPayloadDTO, OwnerDTO>(
     `${config.apiEndpoint}/api/owners/:id`,
     async ({ params, request }) => {

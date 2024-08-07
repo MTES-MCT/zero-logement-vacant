@@ -8,26 +8,25 @@ import { tokenProvider } from '~/test/testUtils';
 import {
   genEstablishmentApi,
   genProspectApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import {
   formatUserApi,
   Users,
-  usersTable,
+  usersTable
 } from '~/repositories/userRepository';
-import { User1 } from '~/infra/database/seeds/test/20240405012221_users';
 import {
   Establishments,
   establishmentsTable,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { createServer } from '~/infra/server';
 import { CampaignIntent, EstablishmentApi } from '~/models/EstablishmentApi';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {
   formatProspectApi,
-  Prospects,
+  Prospects
 } from '~/repositories/prospectRepository';
 import { ProspectApi } from '~/models/ProspectApi';
 
@@ -56,7 +55,7 @@ describe('User API', () => {
         .post(testRoute)
         .send({
           ...prospect,
-          email: randomstring.generate(),
+          email: randomstring.generate()
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
@@ -64,7 +63,7 @@ describe('User API', () => {
         .post(testRoute)
         .send({
           ...prospect,
-          email: undefined,
+          email: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
@@ -72,7 +71,7 @@ describe('User API', () => {
         .post(testRoute)
         .send({
           ...prospect,
-          establishmentId: randomstring.generate(),
+          establishmentId: randomstring.generate()
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
@@ -80,7 +79,7 @@ describe('User API', () => {
         .post(testRoute)
         .send({
           ...prospect,
-          establishmentId: undefined,
+          establishmentId: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
@@ -88,7 +87,7 @@ describe('User API', () => {
         .post(testRoute)
         .send({
           ...prospect,
-          campaignIntent: '123',
+          campaignIntent: '123'
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
@@ -103,9 +102,9 @@ describe('User API', () => {
               ...prospect,
               email,
               password: validPassword,
-              establishmentId: prospect.establishment?.id,
-            }),
-        ),
+              establishmentId: prospect.establishment?.id
+            })
+        )
       );
 
       responses.forEach((response) => {
@@ -122,7 +121,7 @@ describe('User API', () => {
       const { status } = await request(app).post(testRoute).send({
         email: 'missing@non.existing',
         password: '123QWEasd',
-        establishmentId: prospect.establishment?.id,
+        establishmentId: prospect.establishment?.id
       });
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
@@ -134,7 +133,7 @@ describe('User API', () => {
         .send({
           ...prospect,
           password: validPassword,
-          establishmentId: uuidv4(),
+          establishmentId: uuidv4()
         });
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
@@ -147,33 +146,33 @@ describe('User API', () => {
           ...prospect,
           establishmentId: prospect.establishment?.id,
           password: validPassword,
-          role: UserRoles.Admin,
+          role: UserRoles.Admin
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject({
         email: prospect.email,
         establishmentId: prospect.establishment?.id,
-        role: UserRoles.Usual,
+        role: UserRoles.Usual
       });
 
       const user = await Users()
         .where({
           establishment_id: establishment.id,
-          email: prospect.email,
+          email: prospect.email
         })
         .first();
       expect(user).toMatchObject({
         email: prospect.email,
         establishment_id: prospect.establishment?.id,
-        role: UserRoles.Usual,
+        role: UserRoles.Usual
       });
     });
 
     it('should save the establishment campaign intent if it was not provided yet', async () => {
       const campaignIntent: CampaignIntent = '2-4';
       await db(establishmentsTable).where('id', establishment.id).update({
-        campaign_intent: null,
+        campaign_intent: null
       });
 
       const { status } = await request(app)
@@ -182,7 +181,7 @@ describe('User API', () => {
           ...prospect,
           establishmentId: prospect.establishment?.id,
           password: validPassword,
-          campaignIntent,
+          campaignIntent
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
@@ -195,7 +194,7 @@ describe('User API', () => {
     it('should activate user establishment if needed', async () => {
       const establishment: EstablishmentApi = {
         ...genEstablishmentApi(),
-        available: false,
+        available: false
       };
       await Establishments().insert(formatEstablishmentApi(establishment));
 
@@ -204,14 +203,14 @@ describe('User API', () => {
         .send({
           ...prospect,
           password: validPassword,
-          establishmentId: establishment.id,
+          establishmentId: establishment.id
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject({
         email: prospect.email,
         establishmentId: establishment.id,
-        role: UserRoles.Usual,
+        role: UserRoles.Usual
       });
 
       const actual = await Establishments()
@@ -219,7 +218,7 @@ describe('User API', () => {
         .first();
       expect(actual).toMatchObject({
         id: establishment.id,
-        available: true,
+        available: true
       });
     });
   });
@@ -234,7 +233,7 @@ describe('User API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(User1.id));
+      const { status } = await request(app).get(testRoute(uuidv4()));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -253,7 +252,7 @@ describe('User API', () => {
     it('should retrieve any user if admin', async () => {
       const admin: UserApi = {
         ...genUserApi(establishment.id),
-        role: UserRoles.Admin,
+        role: UserRoles.Admin
       };
       await Users().insert(formatUserApi(admin));
 
@@ -263,7 +262,7 @@ describe('User API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
-        id: user.id,
+        id: user.id
       });
     });
   });

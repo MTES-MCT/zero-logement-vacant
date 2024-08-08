@@ -23,8 +23,8 @@ export interface HousingFiltersDTO {
   localityKinds?: string[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
-  dataYearsIncluded?: number[];
-  dataYearsExcluded?: number[];
+  dataYearsIncluded?: string[];
+  dataYearsExcluded?: string[];
   status?: number;
   statusList?: number[];
   subStatus?: string[];

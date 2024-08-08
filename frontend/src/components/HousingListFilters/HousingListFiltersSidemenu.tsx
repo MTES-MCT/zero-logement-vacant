@@ -521,14 +521,14 @@ function HousingListFiltersSidemenu(props: Props) {
         >
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Millésime inclus"
+              label="Sources et Millésimes"
               options={dataYearsIncludedOptions}
               initialValues={(filters.dataYearsIncluded ?? []).map((_) =>
                 String(_)
               )}
               onChange={(values) =>
                 onChangeFilters(
-                  { dataYearsIncluded: values.map(Number) },
+                  { dataYearsIncluded: values },
                   'Millésime inclus'
                 )
               }
@@ -544,7 +544,7 @@ function HousingListFiltersSidemenu(props: Props) {
               )}
               onChange={(values) =>
                 onChangeFilters(
-                  { dataYearsExcluded: values.map(Number) },
+                  { dataYearsExcluded: values },
                   'Millésime exclu'
                 )
               }

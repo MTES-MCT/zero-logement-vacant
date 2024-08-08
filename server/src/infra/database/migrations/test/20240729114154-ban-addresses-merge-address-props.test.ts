@@ -51,6 +51,29 @@ describe('20240729114154-ban-addresses-merge-address-props', () => {
         expect(actual.address).toBe(expected);
       }
     );
+
+    it('should update a large table', async () => {
+      const addresses = Array.from({ length: 99_999 }, () => {
+        return {
+          ref_id: faker.string.uuid(),
+          address_kind: AddressKinds.Housing,
+          house_number: faker.location.buildingNumber(),
+          street: faker.location.street(),
+          postal_code: faker.location.zipCode(),
+          city: faker.location.city(),
+          latitude: faker.location.latitude(),
+          longitude: faker.location.longitude(),
+          score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
+          last_updated_at: faker.date.recent()
+        };
+      });
+      await db.batchInsert('ban_addresses', addresses);
+
+      await migrator.up();
+
+      const actual = await db('ban_addresses').whereNull('address');
+      expect(actual).toHaveLength(0);
+    }, 60_000);
   });
 
   describe('down', () => {

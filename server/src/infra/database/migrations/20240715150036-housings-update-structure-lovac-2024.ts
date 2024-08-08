@@ -2,31 +2,14 @@ import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('fast_housing', (table) => {
-    table.string('address').nullable();
     table.renameColumn('raw_address', 'address_dgfip');
     table.renameColumn('longitude', 'longitude_dgfip');
     table.renameColumn('latitude', 'latitude_dgfip');
   });
 
   await knex.schema.alterTable('fast_housing', (table) => {
-    table.double('longitude').nullable();
-    table.double('latitude').nullable();
-  });
-  // Copy DGFIP coordinates to the new columns
-  await knex('fast_housing').update({
-    longitude: knex.raw('longitude_dgfip'),
-    latitude: knex.raw('latitude_dgfip')
-  });
-
-  await knex.schema.alterTable('fast_housing', (table) => {
     // Should be notNullable but we need to fill it first
     table.specificType('data_file_years', 'text[]').nullable();
-  });
-  await knex('fast_housing').update({
-    data_file_years: []
-  });
-  await knex.schema.alterTable('fast_housing', (table) => {
-    table.dropNullable('data_file_years');
   });
 
   await knex.schema.alterTable('fast_housing', (table) => {
@@ -51,11 +34,8 @@ export async function down(knex: Knex): Promise<void> {
   });
 
   await knex.schema.alterTable('fast_housing', (table) => {
-    table.dropColumn('latitude');
-    table.dropColumn('longitude');
     table.renameColumn('latitude_dgfip', 'latitude');
     table.renameColumn('longitude_dgfip', 'longitude');
     table.renameColumn('address_dgfip', 'raw_address');
-    table.dropColumn('address');
   });
 }

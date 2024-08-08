@@ -4,7 +4,7 @@ import { genHousingApi } from '~/test/testFixtures';
 import {
   formatHousingRecordApi,
   housingTable,
-  ReferenceDataYear,
+  ReferenceDataFileYear,
 } from '~/repositories/housingRepository';
 import { housingOwnersTable } from '~/repositories/housingOwnerRepository';
 import { Locality1 } from './20240405011849_establishments';
@@ -15,7 +15,7 @@ export const Housing1 = genHousingApi(Locality1.geoCode);
 export const Housing2 = genHousingApi(Locality1.geoCode);
 export const HousingShortVacancy = {
   ...genHousingApi(Locality1.geoCode),
-  vacancyStartYear: ReferenceDataYear - 1,
+  vacancyStartYear: ReferenceDataFileYear - 1,
 };
 
 export async function seed(knex: Knex): Promise<void> {

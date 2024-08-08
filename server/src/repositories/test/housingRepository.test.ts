@@ -6,7 +6,7 @@ import { isDefined } from '@zerologementvacant/shared';
 import housingRepository, {
   formatHousingRecordApi,
   Housing,
-  ReferenceDataYear,
+  ReferenceDataFileYear,
 } from '../housingRepository';
 import { Establishment1 } from '~/infra/database/seeds/test/20240405011849_establishments';
 import {
@@ -196,7 +196,7 @@ describe('Housing repository', () => {
             .fill('0')
             .map((_, i) => ({
               ...genHousingApi(),
-              vacancyStartYear: ReferenceDataYear - i,
+              vacancyStartYear: ReferenceDataFileYear - i,
             }));
           await Housing().insert(housingList.map(formatHousingRecordApi));
           const owner = genOwnerApi();
@@ -213,26 +213,26 @@ describe('Housing repository', () => {
             name: 'less than 2 years',
             filter: ['lt2'],
             predicate: (housing: HousingApi) =>
-              ReferenceDataYear - (housing.vacancyStartYear as number) < 2,
+              ReferenceDataFileYear - (housing.vacancyStartYear as number) < 2,
           },
           {
             name: '2 years',
             filter: ['2'],
             predicate: (housing: HousingApi) =>
-              ReferenceDataYear - (housing.vacancyStartYear as number) === 2,
+              ReferenceDataFileYear - (housing.vacancyStartYear as number) === 2,
           },
           {
             name: 'more than 2 years',
             filter: ['gt2'],
             predicate: (housing: HousingApi) =>
-              ReferenceDataYear - (housing.vacancyStartYear as number) > 2,
+              ReferenceDataFileYear - (housing.vacancyStartYear as number) > 2,
           },
           {
             name: 'between 3 and 4 years',
             filter: ['3to4'],
             predicate: (housing: HousingApi) => {
               const diff =
-                ReferenceDataYear - (housing.vacancyStartYear as number);
+              ReferenceDataFileYear - (housing.vacancyStartYear as number);
               return 3 <= diff && diff <= 4;
             },
           },
@@ -241,7 +241,7 @@ describe('Housing repository', () => {
             filter: ['5to9'],
             predicate: (housing: HousingApi) => {
               const diff =
-                ReferenceDataYear - (housing.vacancyStartYear as number);
+              ReferenceDataFileYear - (housing.vacancyStartYear as number);
               return 5 <= diff && diff <= 9;
             },
           },
@@ -249,7 +249,7 @@ describe('Housing repository', () => {
             name: '10 years and more',
             filter: ['gte10'],
             predicate: (housing: HousingApi) =>
-              ReferenceDataYear - (housing.vacancyStartYear as number) >= 10,
+              ReferenceDataFileYear - (housing.vacancyStartYear as number) >= 10,
           },
         ];
 

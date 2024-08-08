@@ -79,6 +79,7 @@ program
   .description('Import housing owners from a file to an existing database')
   .argument('<file>', 'The file to import in .csv or .jsonl')
   .addOption(abortEarly)
+  .addOption(departments)
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createSourceHousingOwnerCommand();

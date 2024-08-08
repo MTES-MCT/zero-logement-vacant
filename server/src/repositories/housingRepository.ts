@@ -47,17 +47,17 @@ export const buildingTable = 'buildings';
 export const Housing = (transaction = db) =>
   transaction<HousingDBO>(housingTable);
 
-export const ReferenceDataYear = 2022;
+export const ReferenceDataFileYear = 2023;
 
 export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
-  const dataYearsIncluded =
-    filters.dataYearsIncluded && filters.dataYearsIncluded.length > 0
-      ? filters.dataYearsIncluded
-      : Array.from(Array(ReferenceDataYear + 2).keys());
-  const maxDataYearIncluded = _.max(
-    _.without(dataYearsIncluded, ...(filters.dataYearsExcluded ?? []))
+  const dataFileYearsIncluded =
+    filters.dataFileYearsIncluded && filters.dataFileYearsIncluded.length > 0
+      ? filters.dataFileYearsIncluded
+      : Array.from(Array(ReferenceDataFileYear + 2).keys());
+  const maxDataFileYearIncluded = _.max(
+    _.without(dataFileYearsIncluded, ...(filters.dataFileYearsExcluded ?? []))
   );
-  return maxDataYearIncluded ? maxDataYearIncluded - 1 : ReferenceDataYear;
+  return maxDataFileYearIncluded ? maxDataFileYearIncluded - 1 : ReferenceDataFileYear;
 };
 
 interface FindOptions extends PaginationOptions {
@@ -119,15 +119,15 @@ async function countVacant(): Promise<number> {
   return Number(value[0].count);
 }
 
-function whereVacant(year: number = ReferenceDataYear) {
+function whereVacant(year: number = ReferenceDataFileYear) {
   return (query: Knex.QueryBuilder) =>
     query
       .andWhere({
         occupancy: OccupancyKindApi.Vacant
       })
       .andWhere('vacancy_start_year', '<=', year - 2)
-      .andWhereRaw('data_years && ?::integer[]', [[year]])
-      .andWhereRaw('NOT(data_years && ?::integer[])', [[year + 1]]);
+      .andWhereRaw('data_file_years && ?::integer[]', [[year]])
+      .andWhereRaw('NOT(data_file_years && ?::integer[])', [[year + 1]]);
 }
 
 async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
@@ -835,14 +835,14 @@ function filteredQuery(opts: ListQueryOptions) {
           .whereIn('kind', filters.geoPerimetersExcluded);
       });
     }
-    if (filters.dataYearsIncluded?.length) {
-      queryBuilder.whereRaw('data_years && ?::integer[]', [
-        filters.dataYearsIncluded
+    if (filters.dataFileYearsIncluded?.length) {
+      queryBuilder.whereRaw('data_file_years && ?::integer[]', [
+        filters.dataFileYearsIncluded
       ]);
     }
-    if (filters.dataYearsExcluded?.length) {
-      queryBuilder.whereRaw('not(data_years && ?::integer[])', [
-        filters.dataYearsExcluded
+    if (filters.dataFileYearsExcluded?.length) {
+      queryBuilder.whereRaw('not(data_file_years && ?::integer[])', [
+        filters.dataFileYearsExcluded
       ]);
     }
     if (filters.statusList?.length) {
@@ -912,7 +912,7 @@ export interface HousingRecordDBO {
   mutation_date?: Date;
   taxed?: boolean;
   vacancy_reasons?: string[];
-  data_years: number[];
+  data_file_years: string[];
   beneficiary_count?: number;
   building_location?: string;
   rental_value?: number;
@@ -973,7 +973,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   cadastralReference: housing.cadastral_reference,
   taxed: housing.taxed,
   vacancyReasons: housing.vacancy_reasons ?? undefined,
-  dataYears: housing.data_years,
+  dataFileYears: housing.data_file_years,
   ownershipKind: getOwnershipKindFromValue(housing.ownership_kind),
   status: housing.status,
   subStatus: housing.sub_status ?? undefined,
@@ -1023,7 +1023,7 @@ export const formatHousingRecordApi = (
   vacancy_reasons: housingRecordApi.vacancyReasons,
   taxed: housingRecordApi.taxed,
   ownership_kind: housingRecordApi.ownershipKind,
-  data_years: housingRecordApi.dataYears,
+  data_file_years: housingRecordApi.dataFileYears,
   status: housingRecordApi.status,
   sub_status: housingRecordApi.subStatus,
   precisions: housingRecordApi.precisions,

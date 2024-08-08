@@ -225,7 +225,7 @@ function parseLovacHousingApi(housing: LovacHousingDBO): HousingApi {
     cadastralReference: housing.cadastral_reference,
     campaignIds: [],
     contactCount: 0,
-    dataYears: [Number(lodash.trim(housing.data_year))],
+    dataFileYears: [Number(lodash.trim(housing.data_file_year))],
     geoCode: housing.geo_code,
     housingKind: housing.housing_kind,
     livingArea: housing.living_area,

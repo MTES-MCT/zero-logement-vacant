@@ -126,7 +126,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
   if (before && now) {
     assertOwner(before);
     assertOwner(now);
-    const dataYears = [...now.dataYears, ...before.dataYears];
+    const dataFileYears = [...now.dataFileYears, ...before.dataFileYears];
 
     if (!hasAnyOwnershipModification(modifications)) {
       const events: HousingEventApi[] =
@@ -159,7 +159,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
             precisions: before.precisions,
             vacancyReasons: before.vacancyReasons,
             energyConsumption: before.energyConsumption,
-            dataYears,
+            dataFileYears,
           },
           events,
         };
@@ -185,7 +185,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
             ...before,
             owner: now.owner,
             coowners: now.coowners,
-            dataYears,
+            dataFileYears,
           },
           events: [...events, occupancyConflict],
         };
@@ -196,7 +196,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
           ...before,
           owner: now.owner,
           coowners: now.coowners,
-          dataYears,
+          dataFileYears,
         },
         events,
       };
@@ -222,7 +222,7 @@ export function compare({ before, now, modifications }: Comparison): Action {
           ...before,
           owner: now.owner,
           coowners: now.coowners,
-          dataYears,
+          dataFileYears,
         },
         events: [ownershipConflict],
       };
@@ -244,13 +244,13 @@ export function compare({ before, now, modifications }: Comparison): Action {
         createdAt: new Date(),
       };
       return {
-        housing: { ...before, dataYears },
+        housing: { ...before, dataFileYears },
         events: [ownershipConflict, occupancyConflict],
       };
     }
 
     return {
-      housing: { ...before, dataYears },
+      housing: { ...before, dataFileYears },
       events: [ownershipConflict],
     };
   }

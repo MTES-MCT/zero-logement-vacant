@@ -4,8 +4,8 @@ import {
   buildingPeriodOptions,
   cadastralClassificationOptions,
   campaignsCountOptions,
-  dataYearsExcludedOptions,
-  dataYearsIncludedOptions,
+  dataFileYearsExcludedOptions,
+  dataFileYearsIncludedOptions,
   energyConsumptionOptions,
   housingAreaOptions,
   housingCountOptions,
@@ -241,21 +241,21 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         />
       )}
       <FilterBadges
-        options={dataYearsIncludedOptions}
-        filters={(filters.dataYearsIncluded ?? []).map((_) => String(_))}
+        options={dataFileYearsIncludedOptions}
+        filters={(filters.dataFileYearsIncluded ?? []).map((_) => String(_))}
         small={small}
         onChange={
           onChange &&
-          ((values) => onChange({ dataYearsIncluded: values.map(Number) }))
+          ((values) => onChange({ dataFileYearsIncluded: values.map(Number) }))
         }
       />
       <FilterBadges
-        options={dataYearsExcludedOptions}
-        filters={(filters.dataYearsExcluded ?? []).map((_) => String(_))}
+        options={dataFileYearsExcludedOptions}
+        filters={(filters.dataFileYearsExcluded ?? []).map((_) => String(_))}
         small={small}
         onChange={
           onChange &&
-          ((values) => onChange({ dataYearsExcluded: values.map(Number) }))
+          ((values) => onChange({ dataFileYearsExcluded: values.map(Number) }))
         }
       />
       <FilterBadges

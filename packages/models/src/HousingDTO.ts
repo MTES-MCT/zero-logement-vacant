@@ -24,7 +24,7 @@ export interface HousingDTO {
   buildingYear?: number;
   taxed?: boolean;
   vacancyReasons?: string[];
-  dataYears: number[];
+  dataFileYears: string[];
   beneficiaryCount?: number;
   buildingLocation?: string;
   rentalValue?: number;

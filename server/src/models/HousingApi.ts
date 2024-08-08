@@ -27,7 +27,7 @@ export interface HousingRecordApi {
   mutationDate: Date | null;
   taxed?: boolean;
   vacancyReasons?: string[];
-  dataYears: number[];
+  dataFileYears: string[];
   beneficiaryCount?: number;
   buildingLocation?: string;
   rentalValue?: number;

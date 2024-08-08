@@ -5,7 +5,7 @@ import {
   OwnershipKindsApi,
 } from '~/models/HousingApi';
 import { v4 as uuidv4 } from 'uuid';
-import { ReferenceDataYear } from '~/repositories/housingRepository';
+import { ReferenceDataFileYear } from '~/repositories/housingRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { DatafoncierHousing, HousingSource } from '@zerologementvacant/shared';
 import { parse } from 'date-fns';
@@ -31,7 +31,7 @@ export const toHousingRecordApi = fp.curry(
       livingArea: housing.stoth,
       buildingYear: housing.jannath,
       taxed: false,
-      dataYears: [ReferenceDataYear + 1],
+      dataFileYears: [`${ReferenceDataFileYear + 1}`],
       buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
       ownershipKind: housing.ctpdl as OwnershipKindsApi,
       status: HousingStatusApi.NeverContacted,

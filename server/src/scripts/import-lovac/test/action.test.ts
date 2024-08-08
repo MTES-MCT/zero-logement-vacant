@@ -15,10 +15,10 @@ describe('Action', () => {
       describe('If it is missing now', () => {
         const now = null;
 
-        it('should keep dataYears untouched', () => {
+        it('should keep dataFileYears untouched', () => {
           const action = compare({ before, now, modifications: [] });
 
-          expect(action.housing?.dataYears).toStrictEqual(before.dataYears);
+          expect(action.housing?.dataFileYears).toStrictEqual(before.dataFileYears);
         });
 
         describe('If it is untouched', () => {
@@ -196,7 +196,7 @@ describe('Action', () => {
                 precisions: before.precisions,
                 vacancyReasons: before.vacancyReasons,
                 energyConsumption: before.energyConsumption,
-                dataYears: [...now.dataYears, ...before.dataYears],
+                dataFileYears: [...now.dataFileYears, ...before.dataFileYears],
               });
             });
           });
@@ -216,7 +216,7 @@ describe('Action', () => {
                 ...before,
                 owner: now.owner,
                 coowners: now.coowners,
-                dataYears: [...now.dataYears, ...before.dataYears],
+                dataFileYears: [...now.dataFileYears, ...before.dataFileYears],
               });
             });
 
@@ -258,7 +258,7 @@ describe('Action', () => {
                 ...before,
                 owner: now.owner,
                 coowners: now.coowners,
-                dataYears: [...now.dataYears, ...before.dataYears],
+                dataFileYears: [...now.dataFileYears, ...before.dataFileYears],
               });
             });
           });
@@ -329,7 +329,7 @@ describe('Action', () => {
                 id: before.id,
                 owner: now.owner,
                 coowners: now.coowners,
-                dataYears: [...now.dataYears, ...before.dataYears],
+                dataFileYears: [...now.dataFileYears, ...before.dataFileYears],
               });
             });
           });
@@ -347,7 +347,7 @@ describe('Action', () => {
 
               expect(action.housing).toStrictEqual({
                 ...before,
-                dataYears: [...now.dataYears, ...before.dataYears],
+                dataFileYears: [...now.dataFileYears, ...before.dataFileYears],
               });
             });
 
@@ -387,7 +387,7 @@ describe('Action', () => {
 
               expect(action.housing).toStrictEqual({
                 ...before,
-                dataYears: [...now.dataYears, ...before.dataYears],
+                dataFileYears: [...now.dataFileYears, ...before.dataFileYears],
               });
             });
           });
@@ -400,10 +400,10 @@ describe('Action', () => {
       const modifications: Modification[] = [];
       const now = genHousingApi();
 
-      it('should add the current year to dataYears', () => {
+      it('should add the current year to dataFileYears', () => {
         const action = compare({ before, now, modifications });
 
-        expect(action.housing?.dataYears).toStrictEqual(now.dataYears);
+        expect(action.housing?.dataFileYears).toStrictEqual(now.dataFileYears);
       });
 
       it('should create an occupancy update event', () => {

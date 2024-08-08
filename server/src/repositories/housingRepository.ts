@@ -49,7 +49,7 @@ export const Housing = (transaction = db) =>
 
 export const ReferenceDataFileYear = 2023;
 
-export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
+export const referenceDataFileYearFromFilters = (filters: HousingFiltersApi) => {
   const dataFileYearsIncluded =
     filters.dataFileYearsIncluded && filters.dataFileYearsIncluded.length > 0
       ? filters.dataFileYearsIncluded
@@ -677,40 +677,40 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.where(function (whereBuilder: any) {
         if (filters.vacancyDurations?.includes('lt2')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            referenceDataYearFromFilters(filters) - 1,
-            referenceDataYearFromFilters(filters)
+            referenceDataFileYearFromFilters(filters) - 1,
+            referenceDataFileYearFromFilters(filters)
           ]);
         }
         if (filters.vacancyDurations?.includes('2')) {
           whereBuilder.orWhere(
             'vacancy_start_year',
-            referenceDataYearFromFilters(filters) - 2
+            referenceDataFileYearFromFilters(filters) - 2
           );
         }
         if (filters.vacancyDurations?.includes('gt2')) {
           whereBuilder.orWhere(
             'vacancy_start_year',
             '<',
-            referenceDataYearFromFilters(filters) - 2
+            referenceDataFileYearFromFilters(filters) - 2
           );
         }
         if (filters.vacancyDurations?.includes('3to4')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            referenceDataYearFromFilters(filters) - 4,
-            referenceDataYearFromFilters(filters) - 3
+            referenceDataFileYearFromFilters(filters) - 4,
+            referenceDataFileYearFromFilters(filters) - 3
           ]);
         }
         if (filters.vacancyDurations?.includes('5to9')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            referenceDataYearFromFilters(filters) - 9,
-            referenceDataYearFromFilters(filters) - 5
+            referenceDataFileYearFromFilters(filters) - 9,
+            referenceDataFileYearFromFilters(filters) - 5
           ]);
         }
         if (filters.vacancyDurations?.includes('gte10')) {
           whereBuilder.orWhere(
             'vacancy_start_year',
             '<=',
-            referenceDataYearFromFilters(filters) - 10
+            referenceDataFileYearFromFilters(filters) - 10
           );
         }
       });

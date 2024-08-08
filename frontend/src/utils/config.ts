@@ -20,7 +20,7 @@ const config = {
     },
   },
   perPageDefault: 50,
-  dataYear: 2023,
+  dataFileYear: 2023,
   banEligibleScore: 0.8,
   feature: {
     /**

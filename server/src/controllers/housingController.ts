@@ -30,16 +30,14 @@ import noteRepository from '~/repositories/noteRepository';
 import { NoteApi } from '~/models/NoteApi';
 import { logger } from '~/infra/logger';
 import { Pagination } from '@zerologementvacant/shared';
-import { toHousingRecordApi } from '~/scripts/shared';
+import { toHousingRecordApi, toOwnerApi } from '~/scripts/shared';
 import HousingExistsError from '~/errors/housingExistsError';
 import ownerRepository from '~/repositories/ownerRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import { toHousingOwnersApi } from '~/models/HousingOwnerApi';
 import async from 'async';
-import { processOwner } from '~/scripts/import-datafoncier/ownerImporter';
 import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
 import { HousingEventApi } from '~/models/EventApi';
-import ownerMatchRepository from '~/repositories/ownerMatchRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 
@@ -180,13 +178,10 @@ async function create(request: Request, response: Response) {
     });
   // Create the missing datafoncier owners if needed
   await async.forEach(datafoncierOwners, async (datafoncierOwner) => {
-    const { match, owner } = await processOwner(datafoncierOwner);
-    if (owner) {
-      await ownerRepository.save(owner);
-    }
-    if (match) {
-      await ownerMatchRepository.save(match);
-    }
+    const owner = toOwnerApi(datafoncierOwner);
+    await ownerRepository.betterSave(owner, {
+      onConflict: ['idpersonne']
+    });
   });
   const owners = await ownerRepository.find({
     filters: {

@@ -1,22 +1,22 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
 import { tokenProvider } from '~/test/testUtils';
-import { GeoPerimeter1 } from '~/infra/database/seeds/test/20240405013014_geo-perimeters';
 import {
   formatGeoPerimeterApi,
-  GeoPerimeters,
+  GeoPerimeters
 } from '~/repositories/geoRepository';
 import { createServer } from '~/infra/server';
 import {
   genEstablishmentApi,
   genGeoPerimeterApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
@@ -30,7 +30,7 @@ describe('Geo perimeters API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi),
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert(formatUserApi(user));
   });
@@ -39,16 +39,16 @@ describe('Geo perimeters API', () => {
     const testRoute = '/api/geo/perimeters';
 
     const geoPerimeters: GeoPerimeterApi[] = Array.from({ length: 3 }, () =>
-      genGeoPerimeterApi(establishment.id),
+      genGeoPerimeterApi(establishment.id)
     );
     const otherGeoPerimeters: GeoPerimeterApi[] = Array.from(
       { length: 2 },
-      () => genGeoPerimeterApi(anotherEstablishment.id),
+      () => genGeoPerimeterApi(anotherEstablishment.id)
     );
 
     beforeAll(async () => {
       await GeoPerimeters().insert(
-        geoPerimeters.concat(otherGeoPerimeters).map(formatGeoPerimeterApi),
+        geoPerimeters.concat(otherGeoPerimeters).map(formatGeoPerimeterApi)
       );
     });
 
@@ -66,13 +66,13 @@ describe('Geo perimeters API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
       const ids = new Set(
-        body.map((perimeter: GeoPerimeterApi) => perimeter.id),
+        body.map((perimeter: GeoPerimeterApi) => perimeter.id)
       );
       expect(geoPerimeters).toSatisfyAll<GeoPerimeterApi>((perimeter) =>
-        ids.has(perimeter.id),
+        ids.has(perimeter.id)
       );
       expect(otherGeoPerimeters).toSatisfyAll<GeoPerimeterApi>(
-        (perimeter) => !ids.has(perimeter.id),
+        (perimeter) => !ids.has(perimeter.id)
       );
     });
   });
@@ -108,7 +108,7 @@ describe('Geo perimeters API', () => {
       await request(app)
         .delete(testRoute)
         .send({
-          geoPerimeterIds: [geoPerimeter.id, randomstring.generate()],
+          geoPerimeterIds: [geoPerimeter.id, randomstring.generate()]
         })
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -143,7 +143,7 @@ describe('Geo perimeters API', () => {
         .where({ id: anotherGeoPerimeter.id })
         .first();
       expect(actual).toMatchObject({
-        id: anotherGeoPerimeter.id,
+        id: anotherGeoPerimeter.id
       });
     });
   });
@@ -156,12 +156,12 @@ describe('Geo perimeters API', () => {
 
     beforeAll(async () => {
       await GeoPerimeters().insert(
-        [geoPerimeter, anotherGeoPerimeter].map(formatGeoPerimeterApi),
+        [geoPerimeter, anotherGeoPerimeter].map(formatGeoPerimeterApi)
       );
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).put(testRoute(GeoPerimeter1.id));
+      const { status } = await request(app).put(testRoute(faker.string.uuid()));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -171,7 +171,7 @@ describe('Geo perimeters API', () => {
         .put(testRoute(anotherGeoPerimeter.id))
         .send({
           kind: randomstring.generate(),
-          name: randomstring.generate(),
+          name: randomstring.generate()
         })
         .use(tokenProvider(user));
 
@@ -187,7 +187,7 @@ describe('Geo perimeters API', () => {
       await request(app)
         .put(testRoute(geoPerimeter.id))
         .send({
-          name: randomstring.generate(),
+          name: randomstring.generate()
         })
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -201,7 +201,7 @@ describe('Geo perimeters API', () => {
         .put(testRoute(geoPerimeter.id))
         .send({
           kind: newKind,
-          name: newName,
+          name: newName
         })
         .use(tokenProvider(user));
 
@@ -209,7 +209,7 @@ describe('Geo perimeters API', () => {
       expect(body).toMatchObject({
         id: geoPerimeter.id,
         kind: newKind,
-        name: newName,
+        name: newName
       });
 
       const actual = await GeoPerimeters()
@@ -218,7 +218,7 @@ describe('Geo perimeters API', () => {
       expect(actual).toMatchObject({
         id: geoPerimeter.id,
         kind: newKind,
-        name: newName,
+        name: newName
       });
     });
   });

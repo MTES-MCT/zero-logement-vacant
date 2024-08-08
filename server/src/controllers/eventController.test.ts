@@ -10,11 +10,11 @@ import {
   genOwnerApi,
   genOwnerEventApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
@@ -25,11 +25,11 @@ import {
   formatHousingEventApi,
   formatOwnerEventApi,
   HousingEvents,
-  OwnerEvents,
+  OwnerEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 
 describe('Event API', () => {
@@ -68,7 +68,7 @@ describe('Event API', () => {
 
     it('should list the owner events', async () => {
       const events: OwnerEventApi[] = Array.from({ length: 3 }).map(() =>
-        genOwnerEventApi(owner.id, user.id),
+        genOwnerEventApi(owner, user)
       );
       await Events().insert(events.map(formatEventApi));
       await OwnerEvents().insert(events.map(formatOwnerEventApi));
@@ -110,7 +110,7 @@ describe('Event API', () => {
 
     it('should list the housing events', async () => {
       const events: HousingEventApi[] = Array.from({ length: 3 }).map(() =>
-        genHousingEventApi(housing, user),
+        genHousingEventApi(housing, user)
       );
       await Events().insert(events.map(formatEventApi));
       await HousingEvents().insert(events.map(formatHousingEventApi));
@@ -122,7 +122,7 @@ describe('Event API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toSatisfy(() => {
         const ids = new Set([
-          ...body.map((event: HousingEventApi) => event.id),
+          ...body.map((event: HousingEventApi) => event.id)
         ]);
         return events.every((event) => ids.has(event.id));
       });

@@ -205,7 +205,7 @@ function writeHousingWorksheet(
             vacancyReasons: reduceStringArray(housing.vacancyReasons),
             precisions: reduceStringArray(housing.precisions),
             campaigns: reduceStringArray(
-              housing.campaignIds.map(
+              housing.campaignIds?.map(
                 (campaignId) =>
                   campaigns.find((c) => c.id === campaignId)?.title
               )

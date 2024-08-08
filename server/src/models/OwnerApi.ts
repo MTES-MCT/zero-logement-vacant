@@ -1,4 +1,4 @@
-import { OwnerDTO, OwnerPayloadDTO } from '@zerologementvacant/shared';
+import { OwnerDTO, OwnerPayloadDTO } from '@zerologementvacant/models';
 import { compare } from '~/utils/compareUtils';
 import fp from 'lodash/fp';
 
@@ -6,7 +6,13 @@ export interface OwnerPayloadApi extends Omit<OwnerPayloadDTO, 'birthDate'> {
   birthDate?: Date;
 }
 
-export type OwnerApi = OwnerDTO;
+export interface OwnerApi extends OwnerDTO {
+  idpersonne?: string;
+  siren?: string;
+  dataSource?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {
   return {
@@ -17,11 +23,11 @@ export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {
         'email',
         'phone',
         'banAddress',
-        'additionalAddress',
+        'additionalAddress'
       ],
-      payload,
+      payload
     ),
-    birthDate: payload.birthDate ? new Date(payload.birthDate) : undefined,
+    birthDate: payload.birthDate ? new Date(payload.birthDate) : undefined
   };
 }
 
@@ -36,24 +42,19 @@ export function hasContactChanges(prev: OwnerApi, curr: OwnerApi): boolean {
     city: '',
     street: '',
     houseNumber: '',
-    postalCode: '',
+    postalCode: ''
   };
 
   return (
     Object.values(
-      compare(prev, curr, [
-        'rawAddress',
-        'email',
-        'phone',
-        'additionalAddress',
-      ]),
+      compare(prev, curr, ['rawAddress', 'email', 'phone', 'additionalAddress'])
     ).length > 0 ||
     Object.values(
       compare(
         prev.banAddress ?? emptyAddress,
         curr.banAddress ?? emptyAddress,
-        ['city', 'street', 'houseNumber', 'postalCode'],
-      ),
+        ['city', 'street', 'houseNumber', 'postalCode']
+      )
     ).length > 0
   );
 }

@@ -82,7 +82,7 @@ export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
   const kinds: Record<string, string> = {
     'PERSONNE PHYSIQUE': 'Particulier',
     'INVESTISSEUR PROFESSIONNEL': 'Investisseur',
-    'SOCIETE CIVILE A VOCATION IMMOBILIERE': 'SCI',
+    'SOCIETE CIVILE A VOCATION IMMOBILIERE': 'SCI'
   };
 
   const birthdate = owner.jdatnss
@@ -91,8 +91,10 @@ export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
 
   return {
     id: uuidv4(),
+    idpersonne: owner.idpersonne,
+    dataSource: 'ff',
     rawAddress: [owner.dlign3, owner.dlign4, owner.dlign5, owner.dlign6].filter(
-      isNotNull,
+      isNotNull
     ),
     fullName:
       owner.catpro2txt === 'PERSONNE PHYSIQUE'
@@ -100,7 +102,7 @@ export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
         : owner.ddenom,
     birthDate: isValid(birthdate) ? birthdate : undefined,
     kind: kinds[owner.catpro2txt] ?? 'Autre',
-    kindDetail: owner.catpro3txt,
+    kindDetail: owner.catpro3txt
   };
 }
 
@@ -121,9 +123,9 @@ export const ownerDatafoncierSchema = joi
       .regex(/^\d{2}\/\d{2}\/\d{4}$/)
       .when('catpro2txt', {
         not: 'PERSONNE PHYSIQUE',
-        then: joi.allow(null),
+        then: joi.allow(null)
       }),
-    ddenom: joi.string().uppercase().trim().replace(/\s+/g, ' '),
+    ddenom: joi.string().uppercase().trim().replace(/\s+/g, ' ')
     // Pose problème sur les noms composés et provoque l'arrêt du script
     // .when('catpro2txt', {
     //   is: 'PERSONNE PHYSIQUE',

@@ -11,7 +11,7 @@ import {
   fromOwnerPayloadDTO,
   hasContactChanges,
   hasIdentityChanges,
-  OwnerApi,
+  OwnerApi
 } from '~/models/OwnerApi';
 import eventRepository from '~/repositories/eventRepository';
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -21,6 +21,7 @@ import { logger } from '~/infra/logger';
 import housingRepository from '~/repositories/housingRepository';
 import HousingMissingError from '~/errors/housingMissingError';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { isDefined, isNotNull } from '@zerologementvacant/utils';
 
 async function get(request: Request, response: Response) {
   const { id } = request.params;
@@ -53,7 +54,7 @@ async function listByHousing(request: Request, response: Response) {
 
   const housing = await housingRepository.findOne({
     id: housingId,
-    geoCode: establishment.geoCodes,
+    geoCode: establishment.geoCodes
   });
   if (!housing) {
     throw new HousingMissingError(housingId);
@@ -76,13 +77,13 @@ async function create(request: Request, response: Response) {
       ? parse(body.birthDate, 'yyyy-MM-dd', new Date())
       : undefined,
     phone: body.phone,
-    email: body.email,
+    email: body.email
   };
 
   await ownerRepository.save(owner);
   await banAddressesRepository.markAddressToBeNormalized(
     owner.id,
-    AddressKinds.Owner,
+    AddressKinds.Owner
   );
   await eventRepository.insertOwnerEvent({
     id: uuidv4(),
@@ -93,7 +94,7 @@ async function create(request: Request, response: Response) {
     new: owner,
     createdBy: auth.userId,
     createdAt: new Date(),
-    ownerId: owner.id,
+    ownerId: owner.id
   });
 
   response.status(constants.HTTP_STATUS_OK).json(owner);
@@ -102,12 +103,12 @@ async function create(request: Request, response: Response) {
 type HousingOwnerBody = HousingOwnerApi & { birthDate: string };
 
 const parseHousingOwnerApi = (
-  housingOwnerBody: HousingOwnerBody,
+  housingOwnerBody: HousingOwnerBody
 ): HousingOwnerApi => ({
   ...housingOwnerBody,
   birthDate: housingOwnerBody.birthDate
     ? new Date(housingOwnerBody.birthDate)
-    : undefined,
+    : undefined
 });
 
 async function update(request: Request, response: Response) {
@@ -115,7 +116,7 @@ async function update(request: Request, response: Response) {
 
   const owner: OwnerApi = {
     ...fromOwnerPayloadDTO(request.body as OwnerPayloadDTO),
-    id: params.id,
+    id: params.id
   };
 
   const updatedOwnerApi = await updateOwner(owner, auth.userId);
@@ -124,7 +125,7 @@ async function update(request: Request, response: Response) {
 
 async function updateOwner(
   ownerApi: OwnerApi,
-  userId: string,
+  userId: string
 ): Promise<OwnerApi | undefined> {
   logger.info('Update owner', ownerApi.id);
 
@@ -142,7 +143,7 @@ async function updateOwner(
     email: ownerApi.email,
     phone: ownerApi.phone,
     banAddress: ownerApi.banAddress,
-    additionalAddress: ownerApi.additionalAddress,
+    additionalAddress: ownerApi.additionalAddress
   };
 
   if (
@@ -161,9 +162,18 @@ async function updateOwner(
       await banAddressesRepository.upsertList([
         {
           refId: ownerApi.id,
+          address: [
+            updatedOwnerApi.banAddress.houseNumber,
+            updatedOwnerApi.banAddress.street,
+            updatedOwnerApi.banAddress.postalCode,
+            updatedOwnerApi.banAddress.city
+          ]
+            .filter(isDefined)
+            .filter(isNotNull)
+            .join(''),
           addressKind: AddressKinds.Owner,
-          ...updatedOwnerApi.banAddress,
-        },
+          ...updatedOwnerApi.banAddress
+        }
       ]);
     }
 
@@ -178,7 +188,7 @@ async function updateOwner(
         new: updatedOwnerApi,
         createdBy: userId,
         createdAt: new Date(),
-        ownerId: ownerApi.id,
+        ownerId: ownerApi.id
       });
     }
 
@@ -193,7 +203,7 @@ async function updateOwner(
         new: updatedOwnerApi,
         createdBy: userId,
         createdAt: new Date(),
-        ownerId: ownerApi.id,
+        ownerId: ownerApi.id
       });
     }
 
@@ -209,7 +219,7 @@ async function updateHousingOwners(request: Request, response: Response) {
 
   const housing = await housingRepository.findOne({
     id: housingId,
-    geoCode: establishment.geoCodes,
+    geoCode: establishment.geoCodes
   });
   if (!housing) {
     throw new HousingMissingError(housingId);
@@ -221,8 +231,8 @@ async function updateHousingOwners(request: Request, response: Response) {
 
   await Promise.all(
     housingOwnersApi.map((housingOwnerApi) =>
-      updateOwner(housingOwnerApi, auth.userId),
-    ),
+      updateOwner(housingOwnerApi, auth.userId)
+    )
   );
 
   const prevHousingOwnersApi = await ownerRepository.findByHousing(housing);
@@ -232,20 +242,20 @@ async function updateHousingOwners(request: Request, response: Response) {
     prevHousingOwnersApi.some(
       (ho1) =>
         !housingOwnersApi.some(
-          (ho2) => ho1.id === ho2.id && ho1.rank === ho2.rank,
-        ),
+          (ho2) => ho1.id === ho2.id && ho1.rank === ho2.rank
+        )
     )
   ) {
     await ownerRepository.deleteHousingOwners(
       housingId,
-      housingOwnersApi.map((_) => _.id),
+      housingOwnersApi.map((_) => _.id)
     );
 
     await ownerRepository.insertHousingOwners(
       housingOwnersApi.map((housingOwnerApi) => ({
         ...housingOwnerApi,
-        housingGeoCode: housing.geoCode,
-      })),
+        housingGeoCode: housing.geoCode
+      }))
     );
 
     const newHousingOwnersApi = await ownerRepository.findByHousing(housing);
@@ -261,7 +271,7 @@ async function updateHousingOwners(request: Request, response: Response) {
       createdBy: auth.userId,
       createdAt: new Date(),
       housingId,
-      housingGeoCode: newHousingOwnersApi[0].housingGeoCode,
+      housingGeoCode: newHousingOwnersApi[0].housingGeoCode
     });
 
     return response.sendStatus(constants.HTTP_STATUS_OK);
@@ -283,7 +293,7 @@ const ownerValidators: ValidationChain[] = [
   body('banAddress.latitude').isNumeric().optional(),
   body('banAddress.longitude').isNumeric().optional(),
   body('banAddress.score').isNumeric().optional(),
-  body('additionalAddress').isString().optional(),
+  body('additionalAddress').isString().optional()
 ];
 
 const ownerController = {
@@ -293,7 +303,7 @@ const ownerController = {
   update,
   ownerValidators,
   listByHousing,
-  updateHousingOwners,
+  updateHousingOwners
 };
 
 export default ownerController;

@@ -15,44 +15,44 @@ import {
   genHousingApi,
   genOwnerApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import {
   formatGroupApi,
   formatGroupHousingApi,
   Groups,
-  GroupsHousing,
+  GroupsHousing
 } from '~/repositories/groupRepository';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import { toUserDTO } from '~/models/UserApi';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
-  EventDBO,
+  EventRecordDBO,
   Events,
   eventsTable,
   GroupHousingEvents,
   groupHousingEventsTable,
-  parseEventApi,
+  parseEventApi
 } from '~/repositories/eventRepository';
 import { EventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
 import campaignRepository, {
-  Campaigns,
+  Campaigns
 } from '~/repositories/campaignRepository';
 import { CampaignApi } from '~/models/CampaignApi';
 import {
   formatHousingOwnersApi,
   HousingOwnerDBO,
-  HousingOwners,
+  HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import config from '~/infra/config';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { OwnerApi } from '~/models/OwnerApi';
@@ -67,7 +67,7 @@ describe('Group API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, otherEstablishment].map(formatEstablishmentApi),
+      [establishment, otherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert([user, otherUser].map(formatUserApi));
   });
@@ -78,7 +78,7 @@ describe('Group API', () => {
     const groups = [
       genGroupApi(user, establishment),
       genGroupApi(user, establishment),
-      genGroupApi(otherUser, otherEstablishment),
+      genGroupApi(otherUser, otherEstablishment)
     ];
 
     beforeAll(async () => {
@@ -92,7 +92,7 @@ describe('Group API', () => {
 
     it("should list housing groups in the authenticated user's establishment", async () => {
       const establishmentGroups = groups.filter(
-        (group) => group.establishmentId === establishment.id,
+        (group) => group.establishmentId === establishment.id
       );
 
       const { body, status } = await request(app)
@@ -134,7 +134,7 @@ describe('Group API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
-        id: group.id,
+        id: group.id
       });
     });
   });
@@ -145,7 +145,7 @@ describe('Group API', () => {
     const housingList = [
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0]),
+      genHousingApi(otherEstablishment.geoCodes[0])
     ];
     const payload: GroupPayloadDTO = {
       title: 'Logements prioritaires',
@@ -153,8 +153,8 @@ describe('Group API', () => {
       housing: {
         all: false,
         ids: housingList.map((housing) => housing.id),
-        filters: {},
-      },
+        filters: {}
+      }
     };
 
     beforeAll(async () => {
@@ -164,14 +164,14 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1,
+        rank: 1
       }));
       await HousingOwners().insert(ownersHousing);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(app).post(testRoute).send(payload).set({
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       });
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -181,7 +181,7 @@ describe('Group API', () => {
         .post(testRoute)
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -194,7 +194,7 @@ describe('Group API', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(user),
-        archivedAt: null,
+        archivedAt: null
       });
     });
 
@@ -203,10 +203,10 @@ describe('Group API', () => {
         .post(testRoute)
         .send({
           title: 'Logements prioritaires',
-          description: 'Logements les plus énergivores',
+          description: 'Logements les plus énergivores'
         })
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -222,22 +222,22 @@ describe('Group API', () => {
             all: true,
             ids: [],
             filters: {
-              status: HousingStatusApi.FirstContact,
-            },
-          },
+              status: HousingStatusApi.FirstContact
+            }
+          }
         } as GroupPayloadDTO)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       const filteredHousingList = housingList.filter(
-        (housing) => housing.status === HousingStatusApi.FirstContact,
+        (housing) => housing.status === HousingStatusApi.FirstContact
       );
       const filteredOwners = fp.uniqBy(
         'id',
-        filteredHousingList.map((housing) => housing.owner),
+        filteredHousingList.map((housing) => housing.owner)
       );
       expect(body).toStrictEqual<GroupDTO>({
         id: expect.any(String),
@@ -247,7 +247,7 @@ describe('Group API', () => {
         ownerCount: filteredOwners.length,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(user),
-        archivedAt: null,
+        archivedAt: null
       });
     });
 
@@ -256,19 +256,19 @@ describe('Group API', () => {
         .post(testRoute)
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       await wait(1000);
       const establishmentHousingList = housingList.filter((housing) =>
-        establishment.geoCodes.includes(housing.geoCode),
+        establishment.geoCodes.includes(housing.geoCode)
       );
       const events = await Events()
         .join(
           groupHousingEventsTable,
           `${groupHousingEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where('group_id', body.id)
         .then((events) => events.map(parseEventApi) as EventApi<GroupApi>[]);
@@ -280,27 +280,27 @@ describe('Group API', () => {
           category: 'Group',
           section: 'Ajout d’un logement dans un groupe',
           conflict: false,
-          createdBy: user.id,
-        })),
+          createdBy: user.id
+        }))
       );
     });
 
     it('should create the group immediately and add housing later if the volume of housing exceeds the threshold', async () => {
       const housingList = Array.from({
-        length: config.app.batchSize * 2,
+        length: config.app.batchSize * 2
       }).map(() => genHousingApi(oneOf(establishment.geoCodes)));
       await async.forEach(
         fp.chunk(config.app.batchSize, housingList),
         async (chunk) => {
           await Housing().insert(chunk.map(formatHousingRecordApi));
-        },
+        }
       );
       const owner = genOwnerApi();
       await Owners().insert(formatOwnerApi(owner));
       await HousingOwners().insert(
         housingList.flatMap((housing) =>
-          formatHousingOwnersApi(housing, [owner]),
-        ),
+          formatHousingOwnersApi(housing, [owner])
+        )
       );
 
       const { body, status } = await request(app)
@@ -310,11 +310,11 @@ describe('Group API', () => {
           housing: {
             all: true,
             ids: [],
-            filters: {},
-          },
+            filters: {}
+          }
         } as GroupPayloadDTO)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -325,7 +325,7 @@ describe('Group API', () => {
         description: payload.description,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(user),
-        archivedAt: null,
+        archivedAt: null
       });
     });
   });
@@ -338,7 +338,7 @@ describe('Group API', () => {
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0]),
+      genHousingApi(otherEstablishment.geoCodes[0])
     ];
 
     const payload: GroupPayloadDTO = {
@@ -347,8 +347,8 @@ describe('Group API', () => {
       housing: {
         all: false,
         ids: housingList.map((housing) => housing.id),
-        filters: {},
-      },
+        filters: {}
+      }
     };
 
     beforeAll(async () => {
@@ -361,7 +361,7 @@ describe('Group API', () => {
         .put(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         });
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -371,7 +371,7 @@ describe('Group API', () => {
         .put(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(otherUser));
 
@@ -381,7 +381,7 @@ describe('Group API', () => {
     it('should be hidden if the group has been archived', async () => {
       const group: GroupApi = {
         ...genGroupApi(user, establishment),
-        archivedAt: new Date(),
+        archivedAt: new Date()
       };
       await Groups().insert(formatGroupApi(group));
 
@@ -389,7 +389,7 @@ describe('Group API', () => {
         .put(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -401,7 +401,7 @@ describe('Group API', () => {
         .put(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -414,7 +414,7 @@ describe('Group API', () => {
         ownerCount: group.ownerCount,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(user),
-        archivedAt: group.archivedAt?.toJSON() ?? null,
+        archivedAt: group.archivedAt?.toJSON() ?? null
       });
     });
   });
@@ -426,17 +426,17 @@ describe('Group API', () => {
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0]),
+      genHousingApi(otherEstablishment.geoCodes[0])
     ];
     const establishmentHousingList = housingList.filter((housing) =>
-      establishment.geoCodes.includes(housing.geoCode),
+      establishment.geoCodes.includes(housing.geoCode)
     );
     const group = genGroupApi(user, establishment);
 
     const payload: GroupPayloadDTO['housing'] = {
       all: false,
       ids: housingList.map((housing) => housing.id),
-      filters: {},
+      filters: {}
     };
 
     beforeAll(async () => {
@@ -446,12 +446,12 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1,
+        rank: 1
       }));
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
       await GroupsHousing().insert(
-        formatGroupHousingApi(group, establishmentHousingList),
+        formatGroupHousingApi(group, establishmentHousingList)
       );
     });
 
@@ -460,7 +460,7 @@ describe('Group API', () => {
         .post(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         });
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -470,7 +470,7 @@ describe('Group API', () => {
         .post(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(otherUser));
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
@@ -479,14 +479,14 @@ describe('Group API', () => {
     it('should be hidden if the group has been archived', async () => {
       const group: GroupApi = {
         ...genGroupApi(user, establishment),
-        archivedAt: new Date(),
+        archivedAt: new Date()
       };
 
       const { status } = await request(app)
         .post(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -500,7 +500,7 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1,
+        rank: 1
       });
 
       const { body, status } = await request(app)
@@ -508,10 +508,10 @@ describe('Group API', () => {
         .send({
           all: false,
           ids: [housing.id],
-          filters: {},
+          filters: {}
         } as GroupPayloadDTO['housing'])
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -524,7 +524,7 @@ describe('Group API', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(user),
-        archivedAt: group.archivedAt?.toJSON() ?? null,
+        archivedAt: group.archivedAt?.toJSON() ?? null
       });
     });
 
@@ -535,7 +535,7 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1,
+        rank: 1
       });
 
       const { body, status } = await request(app)
@@ -543,10 +543,10 @@ describe('Group API', () => {
         .send({
           all: false,
           ids: [housing.id],
-          filters: {},
+          filters: {}
         } as GroupPayloadDTO['housing'])
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -556,7 +556,7 @@ describe('Group API', () => {
         .join(
           groupHousingEventsTable,
           `${groupHousingEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where('group_id', body.id);
       expect(events).toIncludeAllPartialMembers([
@@ -566,8 +566,8 @@ describe('Group API', () => {
           category: 'Group',
           section: 'Ajout d’un logement dans un groupe',
           conflict: false,
-          created_by: user.id,
-        },
+          created_by: user.id
+        }
       ]);
     });
   });
@@ -579,17 +579,17 @@ describe('Group API', () => {
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0]),
+      genHousingApi(otherEstablishment.geoCodes[0])
     ];
     const establishmentHousingList = housingList.filter((housing) =>
-      establishment.geoCodes.includes(housing.geoCode),
+      establishment.geoCodes.includes(housing.geoCode)
     );
     const group = genGroupApi(user, establishment);
 
     const payload: GroupPayloadDTO['housing'] = {
       all: false,
       ids: housingList.slice(2, 3).map((housing) => housing.id),
-      filters: {},
+      filters: {}
     };
 
     beforeAll(async () => {
@@ -599,12 +599,12 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1,
+        rank: 1
       }));
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
       await GroupsHousing().insert(
-        formatGroupHousingApi(group, establishmentHousingList),
+        formatGroupHousingApi(group, establishmentHousingList)
       );
     });
 
@@ -613,7 +613,7 @@ describe('Group API', () => {
         .delete(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         });
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -623,7 +623,7 @@ describe('Group API', () => {
         .delete(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(otherUser));
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
@@ -632,7 +632,7 @@ describe('Group API', () => {
     it('should be hidden if the group has been archived', async () => {
       const group: GroupApi = {
         ...genGroupApi(user, establishment),
-        archivedAt: new Date(),
+        archivedAt: new Date()
       };
       await Groups().insert(formatGroupApi(group));
 
@@ -640,7 +640,7 @@ describe('Group API', () => {
         .post(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -653,10 +653,10 @@ describe('Group API', () => {
         .send({
           all: false,
           ids: [establishmentHousingList[0].id],
-          filters: {},
+          filters: {}
         } as GroupPayloadDTO['housing'])
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -669,7 +669,7 @@ describe('Group API', () => {
         ownerCount: 1,
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(user),
-        archivedAt: group.archivedAt?.toJSON() ?? null,
+        archivedAt: group.archivedAt?.toJSON() ?? null
       });
     });
 
@@ -678,7 +678,7 @@ describe('Group API', () => {
         .delete(testRoute(group.id))
         .send(payload)
         .set({
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         })
         .use(tokenProvider(user));
 
@@ -688,7 +688,7 @@ describe('Group API', () => {
         .join(
           groupHousingEventsTable,
           `${groupHousingEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where('group_id', body.id);
       expect(events).toIncludeAllPartialMembers(
@@ -699,8 +699,8 @@ describe('Group API', () => {
           section: 'Retrait du logement d’un groupe',
           conflict: false,
           created_by: user.id,
-          housing_id: housingId,
-        })),
+          housing_id: housingId
+        }))
       );
     });
   });
@@ -717,7 +717,7 @@ describe('Group API', () => {
       group = genGroupApi(user, establishment);
       anotherGroup = genGroupApi(otherUser, otherEstablishment);
       housingList = Array.from({ length: 3 }).map(() =>
-        genHousingApi(oneOf(establishment.geoCodes)),
+        genHousingApi(oneOf(establishment.geoCodes))
       );
       owner = genOwnerApi();
 
@@ -729,7 +729,7 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1,
+        rank: 1
       }));
       await HousingOwners().insert(ownersHousing);
     });
@@ -765,10 +765,10 @@ describe('Group API', () => {
       beforeEach(async () => {
         campaign = {
           ...genCampaignApi(establishment.id, user.id),
-          groupId: group.id,
+          groupId: group.id
         };
         await Campaigns().insert(
-          campaignRepository.formatCampaignApi(campaign),
+          campaignRepository.formatCampaignApi(campaign)
         );
       });
 
@@ -779,7 +779,7 @@ describe('Group API', () => {
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
         expect(body).toMatchObject({
-          archivedAt: expect.any(String),
+          archivedAt: expect.any(String)
         });
       });
 
@@ -795,11 +795,11 @@ describe('Group API', () => {
           .join(
             eventsTable,
             `${eventsTable}.id`,
-            `${groupHousingEventsTable}.event_id`,
+            `${groupHousingEventsTable}.event_id`
           );
-        expect(actual).toSatisfy<EventDBO<GroupApi>[]>((events) => {
+        expect(actual).toSatisfy<EventRecordDBO<GroupApi>[]>((events) => {
           return events.some(
-            (event) => event.section === 'Archivage d’un groupe',
+            (event) => event.section === 'Archivage d’un groupe'
           );
         });
       });

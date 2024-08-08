@@ -14,7 +14,6 @@ import {
   formatCampaignApi
 } from '~/repositories/campaignRepository';
 import { tokenProvider } from '~/test/testUtils';
-import { Campaign1 } from '~/infra/database/seeds/test/20240405012855_campaigns';
 import { CampaignEvents, HousingEvents } from '~/repositories/eventRepository';
 import { CampaignApi } from '~/models/CampaignApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
@@ -401,7 +400,7 @@ describe('Campaign API', () => {
     it('should received a valid request', async () => {
       async function fail(payload?: Record<string, unknown>): Promise<void> {
         const { status } = await request(app)
-          .put(testRoute(Campaign1.id))
+          .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
 
@@ -552,8 +551,8 @@ describe('Campaign API', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
     });
 
-    it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(app).delete(testRoute(Campaign1.id));
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).delete(testRoute(campaign.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });

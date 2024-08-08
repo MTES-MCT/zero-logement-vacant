@@ -14,7 +14,7 @@ export interface AddressDTO {
 
 export enum AddressKinds {
   Housing = 'Housing',
-  Owner = 'Owner',
+  Owner = 'Owner'
 }
 
 // TODO: improve this function
@@ -27,6 +27,6 @@ export function formatAddress(
     address.street?.startsWith(address.houseNumber ?? '')
       ? address.street
       : `${address.houseNumber} ${address.street}`,
-    `${address.postalCode} ${address.city}`,
+    `${address.postalCode} ${address.city}`
   ]);
 }

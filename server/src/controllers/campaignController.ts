@@ -241,7 +241,7 @@ async function createCampaignFromGroup(request: Request, response: Response) {
     old: housing,
     new: {
       ...housing,
-      campaignIds: [...housing.campaignIds, campaign.id]
+      campaignIds: [...(housing.campaignIds ?? []), campaign.id]
     },
     createdBy: auth.userId,
     createdAt: new Date(),

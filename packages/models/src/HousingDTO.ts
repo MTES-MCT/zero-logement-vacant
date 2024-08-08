@@ -8,7 +8,6 @@ import { HousingKind } from './HousingKind';
 // TODO: complete this type
 export interface HousingDTO {
   id: string;
-  invariant: string;
   localId: string;
   rawAddress: string[];
   geoCode: string;
@@ -24,7 +23,11 @@ export interface HousingDTO {
   buildingYear?: number;
   taxed?: boolean;
   vacancyReasons?: string[];
+  /**
+   * @deprecated See {@link dataFileYears}
+   */
   dataYears: number[];
+  dataFileYears: string[];
   beneficiaryCount?: number;
   buildingLocation?: string;
   rentalValue?: number;

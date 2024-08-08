@@ -186,14 +186,10 @@ async function findOne(opts: FindOneOptions): Promise<OwnerApi | null> {
       compact({
         idpersonne: opts.idpersonne,
         full_name: opts.fullName,
-        address_dgfip: opts.rawAddress
+        address_dgfip: opts.rawAddress,
+        birth_date: opts.birthDate
       })
     )
-    .modify((builder) => {
-      return opts.birthDate === undefined
-        ? builder.whereNull('birth_date')
-        : builder.where('birth_date', opts.birthDate);
-    })
     .first();
   return owner ? parseOwnerApi(owner) : null;
 }

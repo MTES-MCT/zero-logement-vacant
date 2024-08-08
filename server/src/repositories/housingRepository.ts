@@ -857,7 +857,7 @@ export interface HousingRecordDBO {
   /**
    * @example ['ff-2023', 'lovac-2024']
    */
-  data_file_years: string[];
+  data_file_years?: string[];
   data_source: HousingSource | null;
   beneficiary_count?: number;
   building_location?: string;
@@ -922,7 +922,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   taxed: housing.taxed,
   vacancyReasons: housing.vacancy_reasons ?? undefined,
   dataYears: housing.data_years,
-  dataFileYears: housing.data_file_years,
+  dataFileYears: housing.data_file_years ?? [],
   ownershipKind: getOwnershipKindFromValue(housing.condominium),
   status: housing.status,
   subStatus: housing.sub_status ?? undefined,

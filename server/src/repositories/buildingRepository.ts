@@ -9,7 +9,7 @@ export interface BuildingDBO {
   id: string;
   housing_count: number;
   vacant_housing_count: number;
-  rent_housing_count: number;
+  rent_housing_count?: number;
 }
 
 export async function save(building: BuildingApi): Promise<void> {

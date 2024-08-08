@@ -255,7 +255,7 @@ describe('Housing repository', () => {
             filter: ['3to4'],
             predicate: (housing: HousingApi) => {
               const diff =
-                ReferenceDataYear - (housing.vacancyStartYear as number);
+              ReferenceDataYear - (housing.vacancyStartYear as number);
               return 3 <= diff && diff <= 4;
             }
           },
@@ -264,7 +264,7 @@ describe('Housing repository', () => {
             filter: ['5to9'],
             predicate: (housing: HousingApi) => {
               const diff =
-                ReferenceDataYear - (housing.vacancyStartYear as number);
+              ReferenceDataYear - (housing.vacancyStartYear as number);
               return 5 <= diff && diff <= 9;
             }
           },

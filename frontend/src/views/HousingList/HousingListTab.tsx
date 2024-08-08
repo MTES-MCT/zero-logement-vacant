@@ -70,7 +70,7 @@ const HousingListTab = ({
   const [error, setError] = useState<string>();
 
   const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataYearsIncluded', 'dataYearsExcluded', 'occupancies'])(filters),
+    fp.pick(['dataFileYearsIncluded', 'dataFileYearsExcluded', 'occupancies'])(filters),
   );
   const totalCount = housingCount?.housing;
 

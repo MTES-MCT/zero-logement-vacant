@@ -94,7 +94,7 @@ export function genHousing(): Housing {
     roomsCount: genNumber(1),
     buildingYear: genNumber(4),
     vacancyStartYear: genNumber(4),
-    dataYears: [2021],
+    dataFileYears: ['2021'],
     campaignIds: [],
     cadastralReference: '',
     vacancyReasons: [],

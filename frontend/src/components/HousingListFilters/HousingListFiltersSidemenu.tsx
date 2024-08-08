@@ -15,8 +15,8 @@ import {
   buildingPeriodOptions,
   cadastralClassificationOptions,
   campaignsCountOptions,
-  dataYearsExcludedOptions,
-  dataYearsIncludedOptions,
+  dataFileYearsExcludedOptions,
+  dataFileYearsIncludedOptions,
   energyConsumptionOptions,
   housingAreaOptions,
   housingCountOptions,
@@ -521,14 +521,14 @@ function HousingListFiltersSidemenu(props: Props) {
         >
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Millésime inclus"
-              options={dataYearsIncludedOptions}
-              initialValues={(filters.dataYearsIncluded ?? []).map((_) =>
+              label="Sources et Millésimes"
+              options={dataFileYearsIncludedOptions}
+              initialValues={(filters.dataFileYearsIncluded ?? []).map((_) =>
                 String(_)
               )}
               onChange={(values) =>
                 onChangeFilters(
-                  { dataYearsIncluded: values.map(Number) },
+                  { dataFileYearsIncluded: values },
                   'Millésime inclus'
                 )
               }
@@ -538,13 +538,13 @@ function HousingListFiltersSidemenu(props: Props) {
             <AppMultiSelect
               label="Millésime exclu"
               defaultOption="Aucun"
-              options={dataYearsExcludedOptions}
-              initialValues={(filters.dataYearsExcluded ?? []).map((_) =>
+              options={dataFileYearsExcludedOptions}
+              initialValues={(filters.dataFileYearsExcluded ?? []).map((_) =>
                 String(_)
               )}
               onChange={(values) =>
                 onChangeFilters(
-                  { dataYearsExcluded: values.map(Number) },
+                  { dataFileYearsExcluded: values },
                   'Millésime exclu'
                 )
               }

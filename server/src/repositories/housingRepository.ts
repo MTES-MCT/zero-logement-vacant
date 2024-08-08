@@ -44,17 +44,17 @@ export const buildingTable = 'buildings';
 export const Housing = (transaction = db) =>
   transaction<HousingDBO>(housingTable);
 
-export const ReferenceDataYear = 2022;
+export const ReferenceDataYear = 2023;
 
 export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
-  const dataYearsIncluded =
-    filters.dataYearsIncluded && filters.dataYearsIncluded.length > 0
-      ? filters.dataYearsIncluded
+  const dataFileYearsIncluded =
+    filters.dataFileYearsIncluded && filters.dataFileYearsIncluded.length > 0
+      ? filters.dataFileYearsIncluded
       : Array.from(Array(ReferenceDataYear + 2).keys());
-  const maxDataYearIncluded = _.max(
-    _.without(dataYearsIncluded, ...(filters.dataYearsExcluded ?? []))
+  const maxDataFileYearIncluded = _.max(
+    _.without(dataFileYearsIncluded, ...(filters.dataFileYearsExcluded ?? []))
   );
-  return maxDataYearIncluded ? maxDataYearIncluded - 1 : ReferenceDataYear;
+  return maxDataFileYearIncluded ? maxDataFileYearIncluded - 1 : ReferenceDataYear;
 };
 
 interface FindOptions extends PaginationOptions {
@@ -768,14 +768,14 @@ function filteredQuery(opts: ListQueryOptions) {
           .whereIn('kind', filters.geoPerimetersExcluded);
       });
     }
-    if (filters.dataYearsIncluded?.length) {
-      queryBuilder.whereRaw('data_years && ?::integer[]', [
-        filters.dataYearsIncluded
+    if (filters.dataFileYearsIncluded?.length) {
+      queryBuilder.whereRaw('data_file_years && ?::integer[]', [
+        filters.dataFileYearsIncluded
       ]);
     }
-    if (filters.dataYearsExcluded?.length) {
-      queryBuilder.whereRaw('not(data_years && ?::integer[])', [
-        filters.dataYearsExcluded
+    if (filters.dataFileYearsExcluded?.length) {
+      queryBuilder.whereRaw('not(data_file_years && ?::integer[])', [
+        filters.dataFileYearsExcluded
       ]);
     }
     if (filters.statusList?.length) {

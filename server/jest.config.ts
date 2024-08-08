@@ -22,8 +22,7 @@ const config: JestConfigWithTsJest = {
     'jest-extended/all',
     '<rootDir>/src/test/setup-tests.ts'
   ],
-  globalSetup: '<rootDir>/src/test/global-setup.ts',
-  globalTeardown: '<rootDir>/src/test/global-teardown.ts'
+  globalSetup: '<rootDir>/src/test/global-setup.ts'
 };
 
 export default config;

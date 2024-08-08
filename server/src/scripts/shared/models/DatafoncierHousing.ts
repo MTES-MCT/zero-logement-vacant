@@ -2,10 +2,10 @@ import fp from 'lodash/fp';
 import {
   HousingRecordApi,
   OccupancyKindApi,
-  OwnershipKindsApi,
+  OwnershipKindsApi
 } from '~/models/HousingApi';
 import { v4 as uuidv4 } from 'uuid';
-import { ReferenceDataFileYear } from '~/repositories/housingRepository';
+import { ReferenceDataYear } from '~/repositories/housingRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { DatafoncierHousing, HousingSource } from '@zerologementvacant/shared';
 import { parse } from 'date-fns';
@@ -13,7 +13,7 @@ import { parse } from 'date-fns';
 export const toHousingRecordApi = fp.curry(
   (
     additionalData: AdditionalData,
-    housing: DatafoncierHousing,
+    housing: DatafoncierHousing
   ): HousingRecordApi => {
     // Should be erased later in the chain
     // by the original housing id if it exists
@@ -31,7 +31,8 @@ export const toHousingRecordApi = fp.curry(
       livingArea: housing.stoth,
       buildingYear: housing.jannath,
       taxed: false,
-      dataFileYears: [`${ReferenceDataFileYear + 1}`],
+      dataYears: [ReferenceDataYear + 1],
+      dataFileYears: [`${ReferenceDataYear + 1}`],
       buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
       ownershipKind: housing.ctpdl as OwnershipKindsApi,
       status: HousingStatusApi.NeverContacted,
@@ -39,9 +40,8 @@ export const toHousingRecordApi = fp.curry(
       occupancyRegistered: housing.ccthp as OccupancyKindApi,
       source: additionalData.source,
       mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
-      plotId: housing.idpar,
     };
-  },
+  }
 );
 
 interface AdditionalData {

@@ -2,27 +2,27 @@ import {
   genDatafoncierHousing,
   genDatafoncierOwner,
   genHousingApi,
-  genOwnerApi,
+  genOwnerApi
 } from '~/test/testFixtures';
 import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import {
   formatHousingOwnersApi,
-  HousingOwners,
+  HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import { processHousing } from '../existingHousingOwnersImporter';
 import {
   OwnerMatchDBO,
-  OwnerMatches,
+  OwnerMatches
 } from '~/repositories/ownerMatchRepository';
 import {
   HousingOwnerConflictRecordDBO,
-  HousingOwnerConflicts,
+  HousingOwnerConflicts
 } from '~/repositories/conflict/housingOwnerConflictRepository';
 import { DatafoncierHousing } from '@zerologementvacant/shared';
 import { HousingApi } from '~/models/HousingApi';
@@ -42,14 +42,14 @@ describe('Import housing owners from existing housing', () => {
         ...genDatafoncierHousing(),
         idlocal: housing.localId,
         ccthp: 'L',
-        dteloctxt: 'APPARTEMENT',
+        dteloctxt: 'APPARTEMENT'
       };
       datafoncierOwners = Array.from({ length: 6 }, () =>
-        genDatafoncierOwner(),
+        genDatafoncierOwner()
       ).map((owner, i) => ({
         ...owner,
         idprocpte: datafoncierHousing.idprocpte,
-        dnulp: (i + 1).toString(),
+        dnulp: (i + 1).toString()
       }));
       owners = Array.from({ length: 6 }, () => genOwnerApi());
 
@@ -59,7 +59,7 @@ describe('Import housing owners from existing housing', () => {
       await Owners().insert(owners.map(formatOwnerApi));
       const matches: OwnerMatchDBO[] = owners.map((owner, i) => ({
         owner_id: owner.id,
-        idpersonne: datafoncierOwners[i].idpersonne,
+        idpersonne: datafoncierOwners[i].idpersonne
       }));
       await OwnerMatches().insert(matches);
     });
@@ -69,7 +69,7 @@ describe('Import housing owners from existing housing', () => {
 
       const actualHousingOwners = await HousingOwners().where({
         housing_geo_code: housing.geoCode,
-        housing_id: housing.id,
+        housing_id: housing.id
       });
       const members = owners.map((owner, i) => ({
         housing_geo_code: housing.geoCode,
@@ -79,6 +79,9 @@ describe('Import housing owners from existing housing', () => {
         start_date: expect.any(Date),
         end_date: null,
         origin: null,
+        idprocpte: null,
+        idprodroit: null,
+        locprop: null
       }));
       expect(actualHousingOwners).toIncludeSameMembers(members);
     });
@@ -90,7 +93,7 @@ describe('Import housing owners from existing housing', () => {
 
       const actual = await HousingOwnerConflicts().where({
         housing_geo_code: housing.geoCode,
-        housing_id: housing.id,
+        housing_id: housing.id
       });
       expect(actual).toBeArrayOfSize(0);
     });
@@ -103,7 +106,7 @@ describe('Import housing owners from existing housing', () => {
 
       const actual = await HousingOwnerConflicts().where({
         housing_geo_code: housing.geoCode,
-        housing_id: housing.id,
+        housing_id: housing.id
       });
       const members: HousingOwnerConflictRecordDBO[] = owners
         .slice(3, owners.length)
@@ -112,7 +115,7 @@ describe('Import housing owners from existing housing', () => {
           housing_id: housing.id,
           conflict_id: expect.any(String),
           existing_owner_id: null,
-          replacement_owner_id: owner.id,
+          replacement_owner_id: owner.id
         }));
       expect(actual).toBeArrayOfSize(owners.length - slice.length);
       expect(actual).toIncludeSameMembers(members);

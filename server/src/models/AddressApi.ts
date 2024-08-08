@@ -1,7 +1,9 @@
-import { AddressDTO, AddressKinds } from '@zerologementvacant/shared';
+import { AddressDTO, AddressKinds } from '@zerologementvacant/models';
 import { reduceStringArray } from '~/utils/stringUtils';
 
-export type AddressApi = AddressDTO;
+export interface AddressApi extends AddressDTO {
+  lastUpdatedAt?: string;
+}
 
 export interface AddressToNormalize {
   refId: string;

@@ -30,7 +30,7 @@ AS $$
             -- CASE NEW OWNER
             IF owner_var_ids IS NULL or array_length(owner_var_ids, 1) = 0 THEN
 
-                INSERT INTO owners(full_name, administrator, raw_address, birth_date, owner_kind, owner_kind_detail)
+                INSERT INTO owners(full_name, administrator, address_dgfip, birth_date, owner_kind, owner_kind_detail)
                 VALUES(_full_name, _administrator, _raw_address, _birth_date, _owner_kind, _owner_kind_detail)
                        returning ARRAY[id] INTO owner_var_ids;
 
@@ -127,7 +127,7 @@ AS $$
         and upper(nature) in ('APPART','MAISON')
         and ff_idlocal is not null
         and owner is not null
-        group by invariant, local_id, building_id, raw_address, geo_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,
+        group by invariant, local_id, building_id, address_dgfip, geo_code, latitude, longitude, cadastral_classification, uncomfortable, vacancy_start_year,
                  housing_kind, rooms_count, living_area, cadastral_reference, building_year, mutation_date, taxed, annee, ff_ndroit, ff_ndroit, batloc, vlcad, ff_ctpdl,
                  owner, administrator, birth_date, adresse1, adresse2, adresse3, adresse4, ff_ddenom_1, owner_kind, owner_kind_detail,
                  full_name2, birth_date2, owner_raw_address2, full_name3, birth_date3, owner_raw_address3, full_name3, birth_date3, owner_raw_address3,
@@ -157,7 +157,7 @@ AS $$
                 -- CASE NEW HOUSING
                 IF housing_var_id IS NULL THEN
 
-                    insert into fast_housing (id, invariant, local_id, building_id, raw_address, geo_code, latitude, longitude, cadastral_classification,
+                    insert into fast_housing (id, invariant, local_id, building_id, address_dgfip, geo_code, latitude, longitude, cadastral_classification,
                         uncomfortable, vacancy_start_year, housing_kind, rooms_count, living_area, cadastral_reference,
                         building_year, mutation_date, taxed, data_years, beneficiary_count, building_location, rental_value, ownership_kind, occupancy, occupancy_registered, status)
                     values (gen_random_uuid(), housing_var.invariant, housing_var.local_id, housing_var.building_id, housing_var.raw_address,

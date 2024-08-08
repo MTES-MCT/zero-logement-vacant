@@ -42,3 +42,4 @@ export function age(date: Date): number {
 }
 
 export const DATE_REGEXP = /^\d{4}-\d{2}-\d{2}$/;
+export const DATE_REGEXP_OPTIONNAL = /^(\d{4}-\d{2}-\d{2})?$/;

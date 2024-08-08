@@ -5,6 +5,7 @@ import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 
+import { genGeoCode } from '@zerologementvacant/utils';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
@@ -71,19 +72,11 @@ import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { SenderApi } from '~/models/SenderApi';
 import { DraftApi } from '~/models/DraftApi';
 
+export { genGeoCode } from '@zerologementvacant/utils';
+
 logger.debug(`Seed: ${faker.seed()}`);
 
 export const genEmail = () => faker.internet.email();
-
-export const genGeoCode = (): string => {
-  const geoCode = faker.location.zipCode();
-  const needsReroll =
-    geoCode.startsWith('00') ||
-    geoCode.startsWith('20') ||
-    geoCode.startsWith('99') ||
-    geoCode.endsWith('999');
-  return needsReroll ? genGeoCode() : geoCode;
-};
 
 /**
  * A locality string of 3 numeric characters
@@ -208,6 +201,9 @@ export const genOwnerApi = (): OwnerApi => {
   const id = uuidv4();
   return {
     id,
+    idpersonne:
+      faker.string.numeric(2) +
+      faker.string.alphanumeric({ length: 6, casing: 'upper' }),
     rawAddress: [
       faker.location.streetAddress(),
       `${faker.location.zipCode()}, ${faker.location.city()}`
@@ -230,13 +226,15 @@ export const genAddressApi = (
   return {
     refId,
     addressKind,
+    address: faker.location.streetAddress({ useFullAddress: true }),
     houseNumber: faker.location.buildingNumber(),
     street: faker.location.street(),
     postalCode: faker.location.zipCode(),
     city: faker.location.city(),
     latitude: faker.location.latitude(),
     longitude: faker.location.longitude(),
-    score: Math.random(),
+    score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
+    lastUpdatedAt: faker.date.recent().toJSON()
   };
 };
 
@@ -245,9 +243,10 @@ export const genHousingOwnerApi = (
   owner: OwnerApi
 ): HousingOwnerApi => ({
   ...owner,
+  ownerId: owner.id,
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
-  rank: genNumber(1)
+  rank: faker.number.int({ min: 1, max: 6 })
 });
 
 export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
@@ -258,6 +257,9 @@ export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
     housingCount: housingList.length,
     vacantHousingCount: housingList.filter(
       (housing) => housing.occupancy === OccupancyKindApi.Vacant
+    ).length,
+    rentHousingCount: housingList.filter(
+      (housing) => housing.occupancy === OccupancyKindApi.Rent
     ).length
   };
 };
@@ -280,7 +282,6 @@ export const genHousingApi = (
     geoCode,
     localityKind: randomstring.generate(),
     owner: genOwnerApi(),
-    coowners: [],
     livingArea: genNumber(4),
     cadastralClassification: genNumber(1),
     uncomfortable: false,
@@ -291,7 +292,8 @@ export const genHousingApi = (
     buildingYear: faker.date.past().getUTCFullYear(),
     taxed: false,
     vacancyReasons: [],
-    dataFileYears: [`${new Date().getUTCFullYear() - 1}`],
+    dataYears: [new Date().getUTCFullYear() - 1],
+    dataFileYears: [`lovac-${new Date().getUTCFullYear() - 1}`],
     buildingLocation: randomstring.generate(),
     ownershipKind: OwnershipKindsApi.Single,
     status: HousingStatusApi.NeverContacted,
@@ -386,7 +388,7 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
   };
 };
 
-function genEventApi<T>(createdBy: string): EventApi<T> {
+function genEventApi<T>(creator: UserApi): EventApi<T> {
   return {
     id: uuidv4(),
     name: randomstring.generate(),
@@ -395,28 +397,29 @@ function genEventApi<T>(createdBy: string): EventApi<T> {
     section: oneOf(EventSections),
     conflict: genBoolean(),
     createdAt: new Date(),
-    createdBy
+    createdBy: creator.id,
+    creator: creator
   };
 }
 
 export const genOwnerEventApi = (
-  ownerId: string,
-  createdBy: string
+  owner: OwnerApi,
+  creator: UserApi
 ): OwnerEventApi => {
   return {
-    ...genEventApi<OwnerApi>(createdBy),
-    old: { ...genOwnerApi(), id: ownerId },
-    new: { ...genOwnerApi(), id: ownerId },
-    ownerId
+    ...genEventApi<OwnerApi>(creator),
+    old: { ...genOwnerApi(), id: owner.id },
+    new: { ...genOwnerApi(), id: owner.id },
+    ownerId: owner.id
   };
 };
 
 export const genHousingEventApi = (
   housing: HousingApi,
-  createdBy: UserApi
+  creator: UserApi
 ): HousingEventApi => {
   return {
-    ...genEventApi<HousingApi>(createdBy.id),
+    ...genEventApi<HousingApi>(creator),
     old: housing,
     new: { ...genHousingApi(housing.geoCode), id: housing.id },
     housingId: housing.id,
@@ -427,10 +430,10 @@ export const genHousingEventApi = (
 export const genGroupHousingEventApi = (
   housing: HousingApi,
   group: GroupApi,
-  createdBy: UserApi
+  creator: UserApi
 ): GroupHousingEventApi => {
   return {
-    ...genEventApi<GroupApi>(createdBy.id),
+    ...genEventApi<GroupApi>(creator),
     old: group,
     new: group,
     groupId: group.id,
@@ -551,6 +554,13 @@ export const genDatafoncierHousing = (
   const localityCode = geoCode.substring(2, 5);
   const invariant = genInvariant(localityCode);
   const localId = genLocalId(department, invariant);
+  const birthdate = faker.date
+    .past()
+    .toJSON()
+    .substring(0, 'yyyy-mm-dd'.length)
+    .split('-')
+    .toReversed()
+    .join('');
   return {
     idlocal: localId,
     idbat: randomstring.generate(16),
@@ -583,8 +593,8 @@ export const genDatafoncierHousing = (
     gpdl: randomstring.generate(1),
     ctpdl: randomstring.generate(5),
     dnupro: randomstring.generate(6),
-    jdatat: randomstring.generate(8),
-    jdatatv: randomstring.generate(8),
+    jdatat: birthdate,
+    jdatatv: birthdate,
     jdatatan: genNumber(2),
     dnufnl: randomstring.generate(6),
     ccoeva: randomstring.generate(1),

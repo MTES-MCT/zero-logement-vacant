@@ -23,6 +23,7 @@ export function genAddressDTO(
   return {
     refId,
     addressKind,
+    address: faker.location.streetAddress({ useFullAddress: true }),
     houseNumber: faker.location.buildingNumber(),
     street: faker.location.street(),
     postalCode: faker.location.zipCode(),
@@ -222,22 +223,23 @@ export function genGroupDTO(
 }
 
 export function genHousingDTO(owner: OwnerDTO): HousingDTO {
-  const geoCode = faker.location.zipCode();
+  // faker.location.zipCode() sometimes returns the department "20"
+  const geoCode = faker.helpers.fromRegExp(/[1-9][0-9]{4}/);
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);
   return {
     id: faker.string.uuid(),
     geoCode,
-    invariant,
+    dataFileYears: ['lovac-2024'],
     uncomfortable: faker.datatype.boolean(),
     roomsCount: faker.number.int({ min: 1, max: 10 }),
     livingArea: faker.number.int({ min: 8 }),
-    dataFileYears: [
+    dataYears: [
       faker.number.int({
         min: 2020,
         max: new Date().getUTCFullYear()
-      }).toString()
+      })
     ],
     source: faker.helpers.arrayElement([
       'lovac',

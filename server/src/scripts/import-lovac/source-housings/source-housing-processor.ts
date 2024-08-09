@@ -67,7 +67,8 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             geoCode: chunk.geo_code,
             longitude: chunk.dgfip_longitude ?? undefined,
             latitude: chunk.dgfip_latitude ?? undefined,
-            cadastralClassification: chunk.cadastral_classification,
+            cadastralClassification:
+              chunk.cadastral_classification ?? undefined,
             uncomfortable: chunk.uncomfortable,
             vacancyStartYear: chunk.vacancy_start_year,
             housingKind: chunk.housing_kind,

@@ -34,7 +34,7 @@ describe('SourceHousing', () => {
         fc.integer({ min: 1, max: new Date().getUTCFullYear() })
       ),
       uncomfortable: fc.boolean(),
-      cadastral_classification: fc.integer({ min: 0 }),
+      cadastral_classification: fc.option(fc.integer({ min: 0 })),
       beneficiary_count: fc.integer({ min: 1 }),
       taxed: fc.boolean(),
       vacancy_start_year: fc.integer({

@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { SirenSaintLo, SirenStrasbourg } from './20240404235442_establishments';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import { Establishments } from '~/repositories/establishmentRepository';
-import { formatUserApi, UserDBO, Users } from '~/repositories/userRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
@@ -79,12 +79,11 @@ export async function seed(knex: Knex): Promise<void> {
 
   const establishments = await Establishments(knex).where({ available: true });
   await async.forEachSeries(establishments, async (establishment) => {
-    const users: ReadonlyArray<UserDBO> = faker.helpers.multiple(
-      () => genUserApi(establishment.id),
-      {
+    const users = faker.helpers
+      .multiple(() => genUserApi(establishment.id), {
         count: { min: 1, max: 10 }
-      }
-    );
+      })
+      .map(formatUserApi);
     await Users(knex).insert(users);
   });
 }

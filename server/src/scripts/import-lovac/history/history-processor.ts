@@ -20,12 +20,12 @@ export function historyProcessor(opts: ProcessorOptions) {
   return new WritableStream<History>({
     async write(chunk) {
       try {
-        const dataFileYears: string[] = normalize(chunk.files_years);
+        const dataFileYears: string[] = normalize(chunk.file_years);
         if (dataFileYears.length > 0) {
           await housingRepository.update(
             {
               geoCode: chunk.geo_code,
-              localId: chunk.ff_idlocal
+              localId: chunk.local_id
             },
             { dataFileYears }
           );

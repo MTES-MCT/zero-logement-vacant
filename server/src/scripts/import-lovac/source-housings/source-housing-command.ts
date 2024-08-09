@@ -76,8 +76,10 @@ export function createSourceHousingCommand() {
               }
             },
             housingRepository: {
-              findOne(localId: string): Promise<HousingApi | null> {
-                const geoCode = localId.substring(0, 5);
+              findOne(
+                geoCode: string,
+                localId: string
+              ): Promise<HousingApi | null> {
                 return housingRepository.findOne({
                   localId,
                   geoCode

@@ -24,7 +24,7 @@ export function historyProcessor(opts: ProcessorOptions) {
         if (dataFileYears.length > 0) {
           await housingRepository.update(
             {
-              geoCode: chunk.ff_idlocal.substring(0, 5),
+              geoCode: chunk.geo_code,
               localId: chunk.ff_idlocal
             },
             { dataFileYears }

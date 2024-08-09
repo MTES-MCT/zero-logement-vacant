@@ -76,8 +76,10 @@ export function createSourceHousingCommand() {
               }
             },
             housingRepository: {
-              findOne(localId: string): Promise<HousingApi | null> {
-                const geoCode = localId.substring(0, 5);
+              findOne(
+                geoCode: string,
+                localId: string
+              ): Promise<HousingApi | null> {
                 return housingRepository.findOne({
                   localId,
                   geoCode
@@ -141,13 +143,11 @@ export function createSourceHousingCommand() {
             abortEarly: options.abortEarly,
             reporter: housingReporter,
             housingRepository: {
-              async update(
-                { geoCode, id }: Pick<HousingApi, 'geoCode' | 'id'>,
-                housing: Partial<HousingApi>
-              ): Promise<void> {
+              async update({ geoCode, id }, housing): Promise<void> {
                 if (!options.dryRun) {
                   await Housing().where({ geo_code: geoCode, id }).update({
-                    data_file_years: housing.dataFileYears,
+                    status: housing.status,
+                    sub_status: housing.subStatus,
                     occupancy: housing.occupancy
                   });
                 }

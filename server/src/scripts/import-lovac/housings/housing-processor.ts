@@ -15,7 +15,7 @@ export interface ProcessorOptions extends ReporterOptions<HousingApi> {
   housingRepository: {
     update(
       id: Pick<HousingApi, 'geoCode' | 'id'>,
-      housing: Partial<HousingApi>
+      housing: Pick<HousingApi, 'occupancy' | 'status' | 'subStatus'>
     ): Promise<void>;
   };
   housingEventRepository: {

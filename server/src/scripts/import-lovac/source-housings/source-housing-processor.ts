@@ -29,7 +29,7 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
     find(id: HousingId): Promise<ReadonlyArray<HousingEventApi>>;
   };
   housingRepository: {
-    findOne(localId: string): Promise<HousingApi | null>;
+    findOne(geoCode: string, localId: string): Promise<HousingApi | null>;
     insert(housing: HousingApi): Promise<void>;
     update(
       id: Pick<HousingApi, 'geoCode' | 'id'>,
@@ -53,7 +53,10 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
       try {
         logger.debug('Processing source housing...', { chunk });
 
-        const existingHousing = await housingRepository.findOne(chunk.local_id);
+        const existingHousing = await housingRepository.findOne(
+          chunk.geo_code,
+          chunk.local_id
+        );
         if (!existingHousing) {
           const housing: HousingApi = {
             id: uuidv4(),
@@ -64,7 +67,8 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             geoCode: chunk.geo_code,
             longitude: chunk.dgfip_longitude ?? undefined,
             latitude: chunk.dgfip_latitude ?? undefined,
-            cadastralClassification: chunk.cadastral_classification,
+            cadastralClassification:
+              chunk.cadastral_classification ?? undefined,
             uncomfortable: chunk.uncomfortable,
             vacancyStartYear: chunk.vacancy_start_year,
             housingKind: chunk.housing_kind,

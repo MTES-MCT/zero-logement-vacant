@@ -18,7 +18,7 @@ const logger = createLogger('sourceHousingOwnerProcessor');
 export interface ProcessorOptions extends ReporterOptions<SourceHousingOwner> {
   auth: UserApi;
   housingRepository: {
-    findOne(localId: string): Promise<HousingApi | null>;
+    findOne(geoCode: string, localId: string): Promise<HousingApi | null>;
   };
   housingEventRepository: {
     insert(event: HousingEventApi): Promise<void>;
@@ -51,7 +51,7 @@ export function createSourceHousingOwnerProcessor(opts: ProcessorOptions) {
 
         const [departmentalOwner, housing] = await Promise.all([
           ownerRepository.findOne(chunk.idpersonne),
-          housingRepository.findOne(chunk.local_id)
+          housingRepository.findOne(chunk.geo_code, chunk.local_id)
         ]);
         if (!departmentalOwner) {
           throw new OwnerMissingError(chunk.idpersonne);

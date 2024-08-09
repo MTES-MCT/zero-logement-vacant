@@ -8,14 +8,12 @@ import { logger } from '~/infra/logger';
 
 export const establishmentsTable = 'establishments';
 export const Establishments = (transaction = db) =>
-  transaction<EstablishmentDbo>(establishmentsTable);
+  transaction<EstablishmentDBO>(establishmentsTable);
 
 type FindOptions = Partial<EstablishmentFilterApi>;
 
 const find = async (opts?: FindOptions): Promise<EstablishmentApi[]> => {
-  const establishments: EstablishmentDbo[] = await db<EstablishmentDbo>(
-    establishmentsTable,
-  )
+  const establishments: EstablishmentDBO[] = await Establishments()
     .modify(filter(opts))
     .orderBy('name');
 
@@ -23,7 +21,7 @@ const find = async (opts?: FindOptions): Promise<EstablishmentApi[]> => {
 };
 
 function filter(filters?: EstablishmentFilterApi) {
-  return (builder: Knex.QueryBuilder<EstablishmentDbo>) => {
+  return (builder: Knex.QueryBuilder<EstablishmentDBO>) => {
     if (filters?.ids) {
       builder.whereIn('id', filters.ids);
     }
@@ -42,7 +40,7 @@ function filter(filters?: EstablishmentFilterApi) {
     if (filters?.name) {
       builder.whereRaw(
         `lower(unaccent(regexp_replace(regexp_replace(name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ?`,
-        filters?.name,
+        filters?.name
       );
     }
     if (filters?.sirens) {
@@ -54,7 +52,7 @@ function filter(filters?: EstablishmentFilterApi) {
 const get = async (id: string): Promise<EstablishmentApi | null> => {
   logger.debug('Get establishment by id', id);
 
-  const establishment = await db(establishmentsTable)
+  const establishment = await Establishments()
     .where(`${establishmentsTable}.id`, id)
     .first();
 
@@ -66,11 +64,11 @@ interface FindOneOptions {
 }
 
 const findOne = async (
-  options: FindOneOptions,
+  options: FindOneOptions
 ): Promise<EstablishmentApi | null> => {
   logger.info('Find establishment by', options);
 
-  const result = await db(establishmentsTable)
+  const result = await Establishments()
     .from(establishmentsTable)
     .where(`${establishmentsTable}.siren`, options.siren)
     .first();
@@ -95,7 +93,7 @@ interface StreamOptions {
 }
 
 const stream = (options?: StreamOptions) => {
-  const stream = db(establishmentsTable)
+  const stream = Establishments()
     .orderBy('name')
     .modify((query) => {
       if (options?.updatedAfter) {
@@ -103,24 +101,19 @@ const stream = (options?: StreamOptions) => {
       }
     })
     .stream();
-  return highland<EstablishmentDbo>(stream).map(parseEstablishmentApi);
+  return highland<EstablishmentDBO>(stream).map(parseEstablishmentApi);
 };
 
-const save = async (
-  establishment: EstablishmentDbo,
-): Promise<void> => {
+const save = async (establishment: EstablishmentDBO): Promise<void> => {
   logger.debug('Saving establishment...', {
-    establishment,
+    establishment
   });
 
-  await db.transaction(async (transaction) =>
-    await Establishments(transaction)
-      .insert(establishment)
-  );
+  await Establishments().insert(establishment);
   logger.info('Saved establishment', { establishment: establishment.id });
 };
 
-export interface EstablishmentDbo {
+export interface EstablishmentDBO {
   id: string;
   name: string;
   siren: number;
@@ -134,8 +127,8 @@ export interface EstablishmentDbo {
 }
 
 export const formatEstablishmentApi = (
-  establishmentApi: EstablishmentApi,
-): EstablishmentDbo => ({
+  establishmentApi: EstablishmentApi
+): EstablishmentDBO => ({
   id: establishmentApi.id,
   name: establishmentApi.name,
   siren: establishmentApi.siren,
@@ -145,11 +138,11 @@ export const formatEstablishmentApi = (
   priority: establishmentApi.priority,
   kind: establishmentApi.kind,
   updated_at: new Date(),
-  source: establishmentApi.source,
+  source: establishmentApi.source
 });
 
 export const parseEstablishmentApi = (
-  establishmentDbo: EstablishmentDbo,
+  establishmentDbo: EstablishmentDBO
 ): EstablishmentApi =>
   <EstablishmentApi>{
     id: establishmentDbo.id,
@@ -164,7 +157,7 @@ export const parseEstablishmentApi = (
     campaignIntent: establishmentDbo.campaign_intent,
     priority: establishmentDbo.priority ?? 'standard',
     kind: establishmentDbo.kind,
-    source: establishmentDbo.source,
+    source: establishmentDbo.source
   };
 
 export default {
@@ -175,5 +168,5 @@ export default {
   setAvailable,
   stream,
   formatEstablishmentApi,
-  save,
+  save
 };

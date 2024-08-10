@@ -19,6 +19,7 @@ import { HousingEventApi } from '~/models/EventApi';
 import userRepository from '~/repositories/userRepository';
 import config from '~/infra/config';
 import UserMissingError from '~/errors/userMissingError';
+import { compact } from '~/utils/object';
 
 const logger = createLogger('sourceHousingCommand');
 
@@ -97,10 +98,14 @@ export function createSourceHousingCommand() {
                 housing: Partial<HousingApi>
               ): Promise<void> {
                 if (!options.dryRun) {
-                  await Housing().where({ geo_code: geoCode, id }).update({
-                    data_file_years: housing.dataFileYears,
-                    occupancy: housing.occupancy
-                  });
+                  await Housing()
+                    .where({ geo_code: geoCode, id })
+                    .update(
+                      compact({
+                        data_file_years: housing.dataFileYears,
+                        occupancy: housing.occupancy
+                      })
+                    );
                 }
               }
             },

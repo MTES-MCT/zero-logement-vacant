@@ -9,6 +9,7 @@ import {
   HousingApi,
   HousingId,
   isSupervised,
+  normalizeDataFileYears,
   OccupancyKindApi,
   OwnershipKindsApi
 } from '~/models/HousingApi';
@@ -16,6 +17,7 @@ import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { AddressApi } from '~/models/AddressApi';
 import { UserApi } from '~/models/UserApi';
+import { compact } from '~/utils/object';
 
 const logger = createLogger('sourceHousingProcessor');
 
@@ -105,67 +107,46 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           return;
         }
 
-        if (existingHousing) {
-          const existingEvents = await housingEventRepository.find({
-            id: existingHousing.id,
-            geoCode: existingHousing.geoCode
-          });
+        // The housing exists
+        const existingEvents = await housingEventRepository.find({
+          id: existingHousing.id,
+          geoCode: existingHousing.geoCode
+        });
 
-          if (existingHousing.occupancy !== OccupancyKindApi.Vacant) {
-            if (!isSupervised(existingHousing, existingEvents)) {
-              const occupancy = OccupancyKindApi.Vacant;
-              const dataFileYears = [
-                ...existingHousing.dataFileYears,
-                'lovac-2024'
-              ];
-              await housingRepository.update(
-                { id: existingHousing.id, geoCode: existingHousing.geoCode },
-                { dataFileYears, occupancy }
-              );
-              await housingEventRepository.insert({
-                id: uuidv4(),
-                name: 'Changement de statut d’occupation',
-                kind: 'Update',
-                category: 'Followup',
-                section: 'Situation',
-                conflict: false,
-                old: existingHousing,
-                new: { ...existingHousing, dataFileYears, occupancy },
-                createdBy: auth.id,
-                createdAt: new Date(),
-                housingGeoCode: existingHousing.geoCode,
-                housingId: existingHousing.id
-              });
-              reporter.passed(chunk);
-              return;
-            } else {
-              await housingRepository.update(
-                { id: existingHousing.id, geoCode: existingHousing.geoCode },
-                {
-                  dataFileYears: [
-                    ...existingHousing.dataFileYears,
-                    'lovac-2024'
-                  ]
-                }
-              );
-              reporter.passed(chunk);
-              return;
-            }
-          }
+        const dataFileYears = normalizeDataFileYears(
+          existingHousing.dataFileYears.concat('lovac-2024')
+        );
+        let occupancy: OccupancyKindApi | undefined;
+        let event: HousingEventApi | undefined;
 
-          if (existingHousing.occupancy === OccupancyKindApi.Vacant) {
-            await housingRepository.update(
-              { id: existingHousing.id, geoCode: existingHousing.geoCode },
-              {
-                dataFileYears: [...existingHousing.dataFileYears, 'lovac-2024']
-              }
-            );
-            reporter.passed(chunk);
-            return;
+        if (existingHousing.occupancy !== OccupancyKindApi.Vacant) {
+          if (!isSupervised(existingHousing, existingEvents)) {
+            occupancy = OccupancyKindApi.Vacant;
+            event = {
+              id: uuidv4(),
+              name: 'Changement de statut d’occupation',
+              kind: 'Update',
+              category: 'Followup',
+              section: 'Situation',
+              conflict: false,
+              old: existingHousing,
+              new: { ...existingHousing, dataFileYears, occupancy },
+              createdBy: auth.id,
+              createdAt: new Date(),
+              housingGeoCode: existingHousing.geoCode,
+              housingId: existingHousing.id
+            };
           }
         }
 
-        reporter.skipped(chunk);
+        await Promise.all([
+          housingRepository.update(
+            { id: existingHousing.id, geoCode: existingHousing.geoCode },
+            compact({ dataFileYears, occupancy })
+          ),
+          event ? housingEventRepository.insert(event) : Promise.resolve()
+        ]);
+        reporter.passed(chunk);
       } catch (error) {
         reporter.failed(
           chunk,

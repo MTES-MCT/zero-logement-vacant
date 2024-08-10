@@ -1,7 +1,8 @@
 import {
   getBuildingLocation,
   HousingApi,
-  isSupervised
+  isSupervised,
+  normalizeDataFileYears
 } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
@@ -85,6 +86,34 @@ describe('HousingApi', () => {
 
         expect(actual).toBeFalse();
       });
+    });
+  });
+
+  describe('normalizeDataFileYears', () => {
+    it('should sort data file years', () => {
+      const actual = normalizeDataFileYears([
+        'lovac-2020',
+        'ff-2024',
+        'lovac-2022',
+        'lovac-2021'
+      ]);
+
+      expect(actual).toStrictEqual([
+        'ff-2024',
+        'lovac-2020',
+        'lovac-2021',
+        'lovac-2022'
+      ]);
+    });
+
+    it('should filter duplicates', () => {
+      const actual = normalizeDataFileYears([
+        'lovac-2021',
+        'lovac-2022',
+        'lovac-2022'
+      ]);
+
+      expect(actual).toStrictEqual(['lovac-2021', 'lovac-2022']);
     });
   });
 });

@@ -40,47 +40,50 @@ export function createHousingProcessor(opts: ProcessorOptions) {
         if (!chunk.dataFileYears.includes('lovac-2024')) {
           if (chunk.occupancy === OccupancyKindApi.Vacant) {
             if (!isInProgress(chunk) && !isCompleted(chunk)) {
-              await housingRepository.update(
-                { geoCode: chunk.geoCode, id: chunk.id },
-                {
-                  occupancy: OccupancyKindApi.Unknown,
-                  status: HousingStatusApi.Completed,
-                  subStatus: 'Sortie de la vacance'
-                }
-              );
-              const now = new Date();
-              await housingEventRepository.insert({
-                id: uuidv4(),
-                name: 'Changement de statut d’occupation',
-                kind: 'Update',
-                category: 'Followup',
-                section: 'Situation',
-                conflict: false,
-                old: chunk,
-                new: { ...chunk, occupancy: OccupancyKindApi.Unknown },
-                createdAt: now,
-                createdBy: auth.id,
-                housingId: chunk.id,
-                housingGeoCode: chunk.geoCode
-              });
-              await housingEventRepository.insert({
-                id: uuidv4(),
-                name: 'Changement de statut de suivi',
-                kind: 'Update',
-                category: 'Followup',
-                section: 'Situation',
-                conflict: false,
-                old: chunk,
-                new: {
-                  ...chunk,
-                  status: HousingStatusApi.Completed,
-                  subStatus: 'Sortie de la vacance'
-                },
-                createdAt: now,
-                createdBy: auth.id,
-                housingId: chunk.id,
-                housingGeoCode: chunk.geoCode
-              });
+              await Promise.all([
+                housingRepository.update(
+                  { geoCode: chunk.geoCode, id: chunk.id },
+                  {
+                    occupancy: OccupancyKindApi.Unknown,
+                    status: HousingStatusApi.Completed,
+                    subStatus: 'Sortie de la vacance'
+                  }
+                ),
+                housingEventRepository.insert({
+                  id: uuidv4(),
+                  name: 'Changement de statut d’occupation',
+                  kind: 'Update',
+                  category: 'Followup',
+                  section: 'Situation',
+                  conflict: false,
+                  old: chunk,
+                  new: { ...chunk, occupancy: OccupancyKindApi.Unknown },
+                  createdAt: new Date(),
+                  createdBy: auth.id,
+                  housingId: chunk.id,
+                  housingGeoCode: chunk.geoCode
+                }),
+                housingEventRepository.insert({
+                  id: uuidv4(),
+                  name: 'Changement de statut de suivi',
+                  kind: 'Update',
+                  category: 'Followup',
+                  section: 'Situation',
+                  conflict: false,
+                  // This event should come after the above one
+                  old: { ...chunk, occupancy: OccupancyKindApi.Unknown },
+                  new: {
+                    ...chunk,
+                    occupancy: OccupancyKindApi.Unknown,
+                    status: HousingStatusApi.Completed,
+                    subStatus: 'Sortie de la vacance'
+                  },
+                  createdAt: new Date(),
+                  createdBy: auth.id,
+                  housingId: chunk.id,
+                  housingGeoCode: chunk.geoCode
+                })
+              ]);
 
               reporter.passed(chunk);
               return;

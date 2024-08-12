@@ -5,10 +5,11 @@ import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 
 import { SirenSaintLo, SirenStrasbourg } from './20240404235442_establishments';
-import { UserApi, UserRoles } from '~/models/UserApi';
+import { SALT_LENGTH, UserApi, UserRoles } from '~/models/UserApi';
 import { Establishments } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
+import config from '~/infra/config';
 
 export async function seed(knex: Knex): Promise<void> {
   await Users(knex).delete();
@@ -20,6 +21,10 @@ export async function seed(knex: Knex): Promise<void> {
 
   if (!strasbourg || !saintLo) {
     throw new Error('Establishments not found');
+  }
+
+  if (!config.e2e.email || !config.e2e.password) {
+    throw new Error('You must provide E2E_EMAIL and E2E_PASSWORD');
   }
 
   const baseUsers: UserApi[] = [
@@ -67,6 +72,17 @@ export async function seed(knex: Knex): Promise<void> {
       password: '',
       firstName: 'Zéro',
       lastName: 'Logement Vacant',
+      role: UserRoles.Usual,
+      activatedAt: new Date(),
+      updatedAt: new Date()
+    },
+    // End-to-end test user
+    {
+      id: uuidv4(),
+      email: config.e2e.email,
+      password: await bcrypt.hash(config.e2e.password, SALT_LENGTH),
+      firstName: 'End',
+      lastName: 'TO END',
       role: UserRoles.Usual,
       activatedAt: new Date(),
       updatedAt: new Date()

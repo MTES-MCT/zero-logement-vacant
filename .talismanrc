@@ -123,7 +123,7 @@ fileignoreconfig:
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
   checksum: b2db25db2503ffb08d08e232fa5aa319caa0bacca03b5af067038154bb5393ca
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
-  checksum: 85407878a244313b70b8a60b5c7d3e41c33df83629866437cbca3a309ab6e1bc
+  checksum: 6ffb0ec0fed24723e16e8ff1831cf1abb66a4035b757b30b3bee92ca54072093
 - filename: server/src/infra/database/seeds/development/20240627141242_e2e.ts
   checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
 - filename: server/src/routers/unprotected.ts

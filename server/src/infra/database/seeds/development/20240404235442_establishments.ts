@@ -6,6 +6,9 @@ import { Establishments } from '~/repositories/establishmentRepository';
 export const SirenStrasbourg = '246700488';
 export const SirenSaintLo = '200066389';
 
+export const ZeroLogementVacantEstablishment =
+  'Zéro Logement Vacant à Marseille';
+
 export async function seed(knex: Knex): Promise<void> {
   await Establishments(knex)
     .whereIn('siren', [SirenStrasbourg, SirenSaintLo])
@@ -13,11 +16,11 @@ export async function seed(knex: Knex): Promise<void> {
 
   // End-to-end test establishment
   await Establishments(knex)
-    .where({ name: 'Zéro Logement Vacant à Marseille' })
+    .where({ name: ZeroLogementVacantEstablishment })
     .delete();
   await Establishments(knex).insert({
     id: faker.string.uuid(),
-    name: 'Zéro Logement Vacant à Marseille',
+    name: ZeroLogementVacantEstablishment,
     siren: Number(faker.string.numeric(9)),
     available: true,
     localities_geo_code: ['13055'],

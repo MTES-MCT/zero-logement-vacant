@@ -4,7 +4,11 @@ import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 
-import { SirenSaintLo, SirenStrasbourg } from './20240404235442_establishments';
+import {
+  SirenSaintLo,
+  SirenStrasbourg,
+  ZeroLogementVacantEstablishment
+} from './20240404235442_establishments';
 import { SALT_LENGTH, UserApi, UserRoles } from '~/models/UserApi';
 import { Establishments } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
@@ -14,12 +18,13 @@ import config from '~/infra/config';
 export async function seed(knex: Knex): Promise<void> {
   await Users(knex).delete();
 
-  const [strasbourg, saintLo] = await Promise.all([
+  const [strasbourg, saintLo, zlv] = await Promise.all([
     Establishments(knex).where('siren', SirenStrasbourg).first(),
-    Establishments(knex).where('siren', SirenSaintLo).first()
+    Establishments(knex).where('siren', SirenSaintLo).first(),
+    Establishments(knex).where('name', ZeroLogementVacantEstablishment).first()
   ]);
 
-  if (!strasbourg || !saintLo) {
+  if (!strasbourg || !saintLo || !zlv) {
     throw new Error('Establishments not found');
   }
 
@@ -83,6 +88,7 @@ export async function seed(knex: Knex): Promise<void> {
       password: await bcrypt.hash(config.e2e.password, SALT_LENGTH),
       firstName: 'End',
       lastName: 'TO END',
+      establishmentId: zlv.id,
       role: UserRoles.Usual,
       activatedAt: new Date(),
       updatedAt: new Date()

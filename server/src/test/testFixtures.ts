@@ -145,14 +145,13 @@ export const genUserApi = (establishmentId: string): UserApi => {
     lastName: faker.person.lastName(),
     establishmentId,
     role: UserRoles.Usual,
-    activatedAt: new Date(),
+    activatedAt: faker.date.recent(),
     phone: faker.phone.number(),
     position: faker.person.jobType(),
     timePerWeek: randomstring.generate(),
-    lastAuthenticatedAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: undefined,
-    ...genUserAccountDTO
+    lastAuthenticatedAt: faker.date.recent(),
+    updatedAt: faker.date.recent(),
+    deletedAt: undefined
   };
 };
 

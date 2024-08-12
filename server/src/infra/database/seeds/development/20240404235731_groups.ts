@@ -1,60 +1,67 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import async from 'async';
 import { Knex } from 'knex';
-import fp from 'lodash/fp';
 
 import {
-  establishmentsTable,
-  parseEstablishmentApi,
+  Establishments,
+  parseEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import {
   formatGroupApi,
   GroupHousingDBO,
+  Groups,
+  GroupsHousing,
   groupsHousingTable,
-  groupsTable,
+  groupsTable
 } from '~/repositories/groupRepository';
-import { housingTable } from '~/repositories/housingRepository';
-import {
-  parseUserApi,
-  UserDBO,
-  usersTable,
-} from '~/repositories/userRepository';
-import { genGroupApi, genNumber } from '~/test/testFixtures';
+import { Housing } from '~/repositories/housingRepository';
+import { parseUserApi, Users } from '~/repositories/userRepository';
+import { genGroupApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
-  const users: UserDBO[] = await knex(usersTable).whereIn('email', [
-    'test.strasbourg@zlv.fr',
-    'test.saintlo@zlv.fr',
-  ]);
+  await GroupsHousing(knex).delete();
+  await Groups(knex).delete();
 
-  await async.forEach(users, async (user: UserDBO) => {
-    const establishment = await knex(establishmentsTable)
-      .where('id', user.establishment_id)
-      .first();
+  const establishments = await Establishments(knex).where({ available: true });
+  await async.forEach(establishments, async (establishment) => {
+    const [users, housings] = await Promise.all([
+      Users(knex).where({ establishment_id: establishment.id }),
+      Housing(knex)
+        .whereIn('geo_code', establishment.localities_geo_code)
+        .limit(2000)
+    ]);
 
-    const housingList = await knex(housingTable)
-      .whereIn('geo_code', establishment.localities_geo_code)
-      .limit(200);
-
-    const groups = Array.from({ length: genNumber(1) }, () =>
-      genGroupApi(parseUserApi(user), parseEstablishmentApi(establishment)),
-    ).map(formatGroupApi);
-
-    const groupsHousing = groups.flatMap((group) => {
-      const takeRandom = fp.pipe(fp.shuffle, fp.take(genNumber(1)));
-
-      const randomHousingList = takeRandom(housingList);
-      return randomHousingList.map((housing: any): GroupHousingDBO => {
-        return {
+    const groups = faker.helpers.multiple(
+      () => {
+        const creator = faker.helpers.arrayElement(users);
+        return genGroupApi(
+          parseUserApi(creator),
+          parseEstablishmentApi(establishment)
+        );
+      },
+      {
+        count: { min: 1, max: 5 }
+      }
+    );
+    const groupHousings = groups.flatMap((group) => {
+      return faker.helpers
+        .arrayElements(housings, {
+          min: 1,
+          max: 100
+        })
+        .map<GroupHousingDBO>((housing) => ({
           group_id: group.id,
           housing_id: housing.id,
-          housing_geo_code: housing.geo_code,
-        };
-      });
+          housing_geo_code: housing.geo_code
+        }));
     });
 
-    if (groups.length && groupsHousing.length) {
-      await knex(groupsTable).insert(groups);
-      await knex(groupsHousingTable).insert(groupsHousing);
-    }
+    console.log('Inserting groups...', {
+      establishment: establishment.name,
+      groups: groups.length,
+      housings: groupHousings.length
+    });
+    await knex.batchInsert(groupsTable, groups.map(formatGroupApi));
+    await knex.batchInsert(groupsHousingTable, groupHousings);
   });
 }

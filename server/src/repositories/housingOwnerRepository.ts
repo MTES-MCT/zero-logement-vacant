@@ -16,10 +16,21 @@ async function saveMany(housingOwners: HousingOwnerApi[]): Promise<void> {
         housingOwner
       });
     });
-    await HousingOwners()
-      .insert(housingOwners.map(formatHousingOwnerApi))
-      .onConflict()
-      .ignore();
+
+    // Remove owners before inserting them back
+    await db.transaction(async (transaction) => {
+      const housingGeoCode = housingOwners[0].housingGeoCode;
+      const housingId = housingOwners[0].housingId;
+      await HousingOwners(transaction)
+        .where({
+          housing_geo_code: housingGeoCode,
+          housing_id: housingId
+        })
+        .delete();
+      await HousingOwners(transaction).insert(
+        housingOwners.map(formatHousingOwnerApi)
+      );
+    });
     logger.info(`Saved ${housingOwners.length} housing owners.`);
   }
 }

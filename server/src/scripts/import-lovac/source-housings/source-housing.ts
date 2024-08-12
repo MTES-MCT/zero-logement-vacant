@@ -24,7 +24,7 @@ export interface SourceHousing {
   rooms_count: number;
   building_year: number | null;
   uncomfortable: boolean;
-  cadastral_classification: number;
+  cadastral_classification: number | null;
   beneficiary_count: number;
   taxed: boolean;
   vacancy_start_year: number;
@@ -85,7 +85,8 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .max(new Date().getUTCFullYear()),
   uncomfortable: boolean().required('uncomfortable is required'),
   cadastral_classification: number()
-    .required('cadastral_classification is required')
+    .defined('cadastral_classification must be defined')
+    .nullable()
     .min(0),
   beneficiary_count: number()
     .integer('beneficiary_count must be an integer')

@@ -226,9 +226,10 @@ describe('Housing processor', () => {
             category: 'Followup',
             section: 'Situation',
             conflict: false,
-            old: housing,
+            old: { ...housing, occupancy: OccupancyKindApi.Unknown },
             new: {
               ...housing,
+              occupancy: OccupancyKindApi.Unknown,
               status: HousingStatusApi.Completed,
               subStatus: 'Sortie de la vacance'
             },

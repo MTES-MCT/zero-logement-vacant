@@ -32,9 +32,7 @@ function filterHistory(
     return new TransformStream();
   }
 
-  return filter((history) =>
-    departments.includes(history.ff_idlocal.substring(0, 2))
-  );
+  return filter((history) => departments.includes(history.geo_code));
 }
 
 function createHistoryFileRepository(file: string): SourceRepository<History> {

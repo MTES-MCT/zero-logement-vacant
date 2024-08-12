@@ -3,6 +3,7 @@ import { number, object, ObjectSchema, string } from 'yup';
 import { POSITIVE_RANKS, PositiveRank } from '~/models/HousingOwnerApi';
 
 export interface SourceHousingOwner {
+  geo_code: string;
   local_id: string;
   idpersonne: string;
   idprocpte: string;
@@ -13,6 +14,7 @@ export interface SourceHousingOwner {
 
 export const sourceHousingOwnerSchema: ObjectSchema<SourceHousingOwner> =
   object({
+    geo_code: string().required('geo_code is required').length(5),
     local_id: string().required('local_id is required').length(12),
     idpersonne: string().required('idpersonne is required').length(8),
     idprocpte: string().required('idprocpte is required').length(11),

@@ -2,7 +2,7 @@ FROM openjdk:19-buster
 
 ENV MB_PLUGINS_DIR=/home/plugins/
 
-ADD https://downloads.metabase.com/v0.46.2/metabase.jar /home
+ADD https://downloads.metabase.com/v0.50.22/metabase.jar /home
 ADD https://github.com/MotherDuck-Open-Source/metabase_duckdb_driver/releases/download/0.2.9/duckdb.metabase-driver.jar /home/plugins/
 
 

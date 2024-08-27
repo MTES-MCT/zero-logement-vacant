@@ -9,13 +9,15 @@ jobs:
   deploy-dagster:
     uses: ./.github/workflows/deploy.yml
     with:
-      app: dagster-production
+      app: Dagster (Production)
+      alias: dagster-production
       branch: main
     secrets: inherit
 
   deploy-metabase:
     uses: ./.github/workflows/deploy.yml
     with:
-      app: metabase-production
+      app: Production - Metabase
+      alias: metabase-production
       branch: main
     secrets: inherit

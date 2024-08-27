@@ -12,3 +12,10 @@ jobs:
       app: dagster-production
       branch: main
     secrets: inherit
+
+  deploy-metabase:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      app: metabase-production
+      branch: main
+    secrets: inherit

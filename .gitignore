@@ -40,3 +40,10 @@ __pycache__
 analytics/dagster/storage/
 .duckdb
 .jsonl
+analytics/*.duckdb
+analytics/dbt/*.duckdb
+analytics/exploration/data/*
+exploration/data/*
+data/
+data/*
+analytics/plugins/

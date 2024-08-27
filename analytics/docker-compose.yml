@@ -53,7 +53,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
-  postgres:
+  meta-postgres:
     image: postgres:latest
     container_name: postgres
     hostname: postgres

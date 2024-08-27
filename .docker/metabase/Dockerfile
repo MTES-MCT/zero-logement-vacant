@@ -1,6 +1,10 @@
 FROM openjdk:19-buster
 
-RUN apt-get update && apt-get install -y s3cmd
+# Installer pip pour Python et d'autres dépendances nécessaires
+RUN apt-get update && apt-get install -y python3-pip python3-setuptools
+
+# Installer s3cmd via pip
+RUN pip3 install s3cmd
 
 ENV MB_PLUGINS_DIR=/home/plugins/
 ADD https://downloads.metabase.com/v0.50.22/metabase.jar /home

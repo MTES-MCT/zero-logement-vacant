@@ -22,3 +22,18 @@ seeds:
   - name: prenom
     config:
       delimiter: ","
+
+  - name: tlv_cities
+    config:
+      delimiter: ";"
+      +header: true
+  - name: departement_france
+    config:
+      delimiter: ","
+      +header: true
+
+  - name: cities
+    config:
+      delimiter: ","
+      +header: true
+

@@ -11,6 +11,7 @@ profile: 'duckdb_profile'
 
 vars:
   dateFormat: '%d/%m/%Y'
+  startDate: '2020-01-01'
 
 seeds:
   zlv_dbt_project:

@@ -1,6 +1,13 @@
 # Utiliser l'image OpenJDK comme base
 FROM openjdk:19-buster
 
+
+ARG CELLAR_ADDON_HOST
+ARG CELLAR_ADDON_KEY_ID
+ARG CELLAR_ADDON_KEY_SECRET
+ARG CELLAR_ADDON_BUCKET
+ARG FILENAME=metabase.duckdb
+
 # Mettre à jour le système et installer les dépendances nécessaires
 RUN apt-get update && apt-get install -y \
     python3-pip \
@@ -23,18 +30,18 @@ RUN chmod 744 /home/plugins/duckdb.metabase-driver.jar
 
 # Définir les variables d'environnement AWS (vous pouvez les configurer lors du déploiement)
 #$CELLAR_ADDON_KEY_ID
-ENV AWS_ACCESS_KEY_ID=7HEO1E7QL2ZL06JUHDVZ
-ENV AWS_SECRET_ACCESS_KEY=SkmBkERVUHhhki3KKYu1Lsb1sgF2b0h05yIgdB1k
-ENV CELLAR_ADDON_BUCKET=zlv-metabase
-ENV AWS_ENDPOINT_URL=https://cellar-c2.services.clever-cloud.com
-ENV FILE_PATH=s3://zlv-metabase/metabase.duckdb
+ENV AWS_ACCESS_KEY_ID=$CELLAR_ADDON_KEY_ID
+ENV AWS_SECRET_ACCESS_KEY=$CELLAR_ADDON_KEY_SECRET
+ENV CELLAR_ADDON_BUCKET=$CELLAR_ADDON_BUCKET
+ENV AWS_ENDPOINT_URL=https://$CELLAR_ADDON_HOST
+ENV FILE_PATH=s3://$CELLAR_ADDON_BUCKET/$FILENAME
 # Téléchargement du fichier DuckDB depuis S3 avant le démarrage de Metabase
-RUN aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/metabase.duckdb
+RUN aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/$FILENAME
 
 # Configurer un cron job pour mettre à jour quotidiennement le fichier DuckDB
-RUN echo "0 3 * * * root aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/metabase.duckdb" >> /etc/crontab
+RUN echo "0 3 * * * root aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/$FILENAME" >> /etc/crontab
 
 # Commande pour démarrer Metabase
-CMD aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/metabase.duckdb && \
+CMD aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/$FILENAME && \
     cron && \
     java -jar /home/metabase.jar

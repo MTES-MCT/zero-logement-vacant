@@ -27,7 +27,7 @@ ENV AWS_ACCESS_KEY_ID=7HEO1E7QL2ZL06JUHDVZ
 ENV AWS_SECRET_ACCESS_KEY=SkmBkERVUHhhki3KKYu1Lsb1sgF2b0h05yIgdB1k
 ENV CELLAR_ADDON_BUCKET=zlv-metabase
 ENV AWS_ENDPOINT_URL=https://cellar-c2.services.clever-cloud.com
-ENV FILE_PATH=s3://zlv-metabase/duckdb/identifier.db
+ENV FILE_PATH=s3://zlv-metabase/identifier.db
 
 # Téléchargement du fichier DuckDB depuis S3 avant le démarrage de Metabase
 RUN aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/identifier.db

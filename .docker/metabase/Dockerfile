@@ -29,7 +29,7 @@ ENV AWS_ENDPOINT_URL=https://cellar-c2.services.clever-cloud.com
 ENV FILE_PATH=s3://$CELLAR_ADDON_BUCKET/duckdb/identifier.db
 
 # Téléchargement du fichier DuckDB depuis S3 avant le démarrage de Metabase
-RUN aws s3 --endpoint-url $AWS_ENDPOINT_URL cp -r $FILE_PATH /data/duckdb/identifier.db
+RUN aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/identifier.db
 
 # Configurer un cron job pour mettre à jour quotidiennement le fichier DuckDB
 RUN echo "0 3 * * * root aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/identifier.db" >> /etc/crontab

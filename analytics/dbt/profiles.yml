@@ -3,7 +3,7 @@ duckdb_profile:
   outputs:
     dev:
       type: duckdb
-      path: "database_name.duckdb"
+      path: "metabase.duckdb"
       extensions:
         - httpfs
         - parquet

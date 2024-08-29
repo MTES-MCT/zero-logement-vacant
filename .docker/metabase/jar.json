@@ -1,5 +1,0 @@
-{
-  "deploy": {
-    "jarName": ".docker/metabase/metabase.jar"
-  }
-}

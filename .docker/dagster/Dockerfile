@@ -27,7 +27,7 @@ WORKDIR $DAGSTER_HOME
 
 # Setup Nginx configuration
 RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
-COPY docker/nginx/nginx.conf /etc/nginx/sites-available/default
+COPY nginx/nginx.conf /etc/nginx/sites-available/default
 
 EXPOSE 8080 3000
 

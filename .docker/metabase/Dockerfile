@@ -8,35 +8,25 @@ ARG CELLAR_ADDON_KEY_SECRET
 ARG CELLAR_ADDON_BUCKET
 ARG FILENAME=metabase.duckdb
 
-# Mettre à jour le système et installer les dépendances nécessaires
-RUN apt-get update && apt-get install -y \
-    python3-pip \
-    python3-setuptools \
-    cron
-
-# Installer s3cmd et awscli
-RUN pip3 install s3cmd awscli
-
-# Définir les variables d'environnement pour Metabase
 ENV MB_PLUGINS_DIR=/home/plugins/
-
-# Télécharger Metabase et le plugin DuckDB
-ADD https://downloads.metabase.com/v0.50.22/metabase.jar /home
-ADD https://github.com/MotherDuck-Open-Source/metabase_duckdb_driver/releases/download/0.2.9/duckdb.metabase-driver.jar /home/plugins/
-
-# Créer les répertoires nécessaires
-RUN mkdir -p /data/duckdb/
-RUN chmod 744 /home/plugins/duckdb.metabase-driver.jar
-
-# Définir les variables d'environnement AWS (vous pouvez les configurer lors du déploiement)
-#$CELLAR_ADDON_KEY_ID
 ENV AWS_ACCESS_KEY_ID=$CELLAR_ADDON_KEY_ID
 ENV AWS_SECRET_ACCESS_KEY=$CELLAR_ADDON_KEY_SECRET
 ENV CELLAR_ADDON_BUCKET=$CELLAR_ADDON_BUCKET
 ENV AWS_ENDPOINT_URL=https://$CELLAR_ADDON_HOST
 ENV FILE_PATH=s3://$CELLAR_ADDON_BUCKET/$FILENAME
-# Téléchargement du fichier DuckDB depuis S3 avant le démarrage de Metabase
-RUN aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/$FILENAME
+
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-setuptools \
+    cron
+
+RUN pip3 install s3cmd awscli
+
+ADD https://downloads.metabase.com/v0.50.22/metabase.jar /home
+ADD https://github.com/MotherDuck-Open-Source/metabase_duckdb_driver/releases/download/0.2.9/duckdb.metabase-driver.jar $MB_PLUGINS_DIR
+
+RUN mkdir -p /data/duckdb/
+RUN chmod 744 /home/plugins/duckdb.metabase-driver.jar
 
 # Configurer un cron job pour mettre à jour quotidiennement le fichier DuckDB
 RUN echo "0 3 * * * root aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/$FILENAME" >> /etc/crontab

@@ -230,13 +230,7 @@ export const getOccupancy = (
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
-  const year = housing.dataFileYears[0];
-  const map: Record<HousingSource, string> = {
-    lovac: `LOVAC ${year}`,
-    'datafoncier-manual': `Fichiers Fonciers - import manuel (${year})`,
-    'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`
-  };
-  return housing.source ? map[housing.source] : 'Inconnue';
+  return housing.dataFileYears ? housing.dataFileYears.join(', ').toUpperCase().replaceAll('-', ' ') : 'Inconnue';
 }
 
 export function toHousingDTO(housing: Housing): HousingDTO {

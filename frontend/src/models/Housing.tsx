@@ -43,7 +43,7 @@ export interface Housing {
   ownershipKind: OwnershipKinds;
   buildingHousingCount?: number;
   buildingVacancyRate: number;
-  dataYears: number[];
+  dataFileYears: string[];
   campaignIds: string[];
   status: DeprecatedHousingStatus;
   subStatus?: string;
@@ -109,9 +109,9 @@ export const getBuildingLocation = (housing: Housing) => {
 };
 
 export const housingSort = (h1: Housing, h2: Housing) =>
-  Math.max(...h1.dataYears) === Math.max(...h2.dataYears)
+  Math.max(...h1.dataFileYears) === Math.max(...h2.dataFileYears)
     ? h1.invariant.localeCompare(h2.invariant)
-    : Math.max(...h1.dataYears) - Math.max(...h2.dataYears);
+    : Math.max(...h1.dataFileYears) - Math.max(...h2.dataFileYears);
 
 export function byAddress(h1: Housing, h2: Housing): Compare {
   const [house1, city1] = h1.rawAddress;
@@ -230,7 +230,7 @@ export const getOccupancy = (
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
-  const year = housing.dataYears[0];
+  const year = housing.dataFileYears[0];
   const map: Record<HousingSource, string> = {
     lovac: `LOVAC ${year}`,
     'datafoncier-manual': `Fichiers Fonciers - import manuel (${year})`,
@@ -258,7 +258,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     buildingYear: housing.buildingYear,
     taxed: housing.taxed,
     vacancyReasons: housing.vacancyReasons,
-    dataYears: housing.dataYears,
+    dataFileYears: housing.dataFileYears,
     buildingLocation: housing.buildingLocation,
     // TODO: fix this by making Housing extend HousingDTO
     ownershipKind: housing.ownershipKind as unknown as OwnershipKind,

@@ -32,7 +32,7 @@ export interface HousingState {
 }
 
 export const initialHousingFilters = {
-  dataYearsIncluded: [config.dataYear + 1],
+  dataFileYearsIncluded: [`lovac-${config.dataYear + 1}`],
   occupancies: [OccupancyKind.Vacant],
 } as HousingFilters;
 

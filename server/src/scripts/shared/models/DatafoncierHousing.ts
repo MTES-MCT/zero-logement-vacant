@@ -32,6 +32,7 @@ export const toHousingRecordApi = fp.curry(
       buildingYear: housing.jannath,
       taxed: false,
       dataYears: [ReferenceDataYear + 1],
+      dataFileYears: [`${ReferenceDataYear + 1}`],
       buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
       ownershipKind: housing.ctpdl as OwnershipKindsApi,
       status: HousingStatusApi.NeverContacted,
@@ -39,7 +40,6 @@ export const toHousingRecordApi = fp.curry(
       occupancyRegistered: housing.ccthp as OccupancyKindApi,
       source: additionalData.source,
       mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
-      dataFileYears: []
     };
   }
 );

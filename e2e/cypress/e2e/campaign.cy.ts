@@ -22,6 +22,8 @@ describe('Campaign', () => {
     cy.get('button').contains('Enregistrer').click();
     cy.location('pathname').should('match', /^\/campagnes\/.+/);
 
+    cy.get('button').contains('Courrier').click();
+
     // Fill the form
     cy.get('form[name="draft"]').within(() => {
       cy.get('input[type="file"]')

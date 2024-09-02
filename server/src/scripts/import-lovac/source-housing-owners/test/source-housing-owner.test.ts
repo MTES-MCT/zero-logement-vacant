@@ -9,6 +9,7 @@ import { PositiveRank } from '~/models/HousingOwnerApi';
 describe('SourceHousingOwner', () => {
   describe('sourceHousingOwnerSchema', () => {
     test.prop<SourceHousingOwner>({
+      geo_code: fc.string({ minLength: 5, maxLength: 5 }),
       local_id: fc.string({ minLength: 12, maxLength: 12 }),
       idpersonne: fc.string({ minLength: 8, maxLength: 8 }),
       idprocpte: fc.string({ minLength: 11, maxLength: 11 }),

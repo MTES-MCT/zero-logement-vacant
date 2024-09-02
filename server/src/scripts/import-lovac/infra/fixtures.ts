@@ -61,6 +61,7 @@ export function genSourceHousingOwner(
   sourceOwner: SourceOwner
 ): SourceHousingOwner {
   return {
+    geo_code: sourceHousing.geo_code,
     local_id: sourceHousing.local_id,
     idpersonne: sourceOwner.idpersonne,
     idprocpte: faker.string.alphanumeric(11),

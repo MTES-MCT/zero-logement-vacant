@@ -12,13 +12,14 @@ import { HousingStatusApi } from '~/models/HousingStatusApi';
 import OwnerMissingError from '~/errors/ownerMissingError';
 import { HousingEventApi } from '~/models/EventApi';
 import { UserApi } from '~/models/UserApi';
+import fp from 'lodash/fp';
 
 const logger = createLogger('sourceHousingOwnerProcessor');
 
 export interface ProcessorOptions extends ReporterOptions<SourceHousingOwner> {
   auth: UserApi;
   housingRepository: {
-    findOne(localId: string): Promise<HousingApi | null>;
+    findOne(geoCode: string, localId: string): Promise<HousingApi | null>;
   };
   housingEventRepository: {
     insert(event: HousingEventApi): Promise<void>;
@@ -51,7 +52,7 @@ export function createSourceHousingOwnerProcessor(opts: ProcessorOptions) {
 
         const [departmentalOwner, housing] = await Promise.all([
           ownerRepository.findOne(chunk.idpersonne),
-          housingRepository.findOne(chunk.local_id)
+          housingRepository.findOne(chunk.geo_code, chunk.local_id)
         ]);
         if (!departmentalOwner) {
           throw new OwnerMissingError(chunk.idpersonne);
@@ -133,25 +134,28 @@ export function createSourceHousingOwnerProcessor(opts: ProcessorOptions) {
           logger.debug('Inserting housing owner...', {
             housingOwner: newHousingOwner
           });
-          const housingOwners = existingOwners
-            .map((owner) => {
-              if (isNationalOwner(owner)) {
-                logger.debug('Moving national owner to rank -2', {
-                  id: owner.id,
-                  rank: owner.rank,
-                  housing: {
-                    id: housing.id,
-                    geoCode: housing.geoCode
-                  }
-                });
-                return {
-                  ...owner,
-                  rank: -2 // Awaiting further treatment
-                };
-              }
-              return owner;
-            })
-            .concat(newHousingOwner);
+          const housingOwners = fp.uniqBy<HousingOwnerApi>(
+            'ownerId',
+            existingOwners
+              .map((owner) => {
+                if (isNationalOwner(owner)) {
+                  logger.debug('Moving national owner to rank -2', {
+                    id: owner.id,
+                    rank: owner.rank,
+                    housing: {
+                      id: housing.id,
+                      geoCode: housing.geoCode
+                    }
+                  });
+                  return {
+                    ...owner,
+                    rank: -2 // Awaiting further treatment
+                  };
+                }
+                return owner;
+              })
+              .concat(newHousingOwner)
+          );
           await housingOwnerRepository.saveMany(housingOwners);
 
           await housingEventRepository.insert({

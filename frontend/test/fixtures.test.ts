@@ -196,8 +196,8 @@ export function genProspect(): Prospect {
 }
 
 export function genGroup(): Group {
-  const ownerCount = faker.number.int(10);
-  const housingCount = ownerCount + faker.number.int(10);
+  const ownerCount = faker.number.int({ min: 1, max: 10 });
+  const housingCount = ownerCount + faker.number.int({ min: 1, max: 10 });
   return {
     id: randomstring.generate(),
     title: randomstring.generate(),

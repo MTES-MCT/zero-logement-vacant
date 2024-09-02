@@ -1,3 +1,4 @@
+import fp from 'lodash/fp';
 import { assert, MarkRequired } from 'ts-essentials';
 
 import { HousingSource } from '@zerologementvacant/shared';
@@ -201,4 +202,8 @@ export function isSupervised(
   }
 
   return false;
+}
+
+export function normalizeDataFileYears(dataFileYears: string[]): string[] {
+  return fp.pipe(fp.sortBy<string>(fp.identity), fp.sortedUniq)(dataFileYears);
 }

@@ -1,9 +1,8 @@
-import fp from 'lodash/fp';
 import { WritableStream } from 'node:stream/web';
 
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 import { History } from '~/scripts/import-lovac/history/history';
-import { HousingApi } from '~/models/HousingApi';
+import { HousingApi, normalizeDataFileYears } from '~/models/HousingApi';
 
 interface ProcessorOptions extends ReporterOptions<History> {
   housingRepository: {
@@ -20,12 +19,14 @@ export function historyProcessor(opts: ProcessorOptions) {
   return new WritableStream<History>({
     async write(chunk) {
       try {
-        const dataFileYears: string[] = normalize(chunk.files_years);
+        const dataFileYears: string[] = normalizeDataFileYears(
+          chunk.file_years
+        );
         if (dataFileYears.length > 0) {
           await housingRepository.update(
             {
-              geoCode: chunk.ff_idlocal.substring(0, 5),
-              localId: chunk.ff_idlocal
+              geoCode: chunk.geo_code,
+              localId: chunk.local_id
             },
             { dataFileYears }
           );
@@ -46,13 +47,4 @@ export function historyProcessor(opts: ProcessorOptions) {
       }
     }
   });
-}
-
-export function normalize(dataFileYears: string[]): string[] {
-  return fp.pipe(
-    fp.sortBy<string>(fp.identity),
-    fp.sortedUniq,
-    // "lovac-2024" should be added later to the array by the `housings` command
-    fp.filter((dataFileYear) => dataFileYear !== 'lovac-2024')
-  )(dataFileYears);
 }

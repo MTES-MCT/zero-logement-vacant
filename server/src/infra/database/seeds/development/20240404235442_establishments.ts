@@ -1,14 +1,33 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { Knex } from 'knex';
 
-import { establishmentsTable } from '~/repositories/establishmentRepository';
+import { Establishments } from '~/repositories/establishmentRepository';
 
 export const SirenStrasbourg = '246700488';
 export const SirenSaintLo = '200066389';
 
+export const ZeroLogementVacantEstablishment =
+  'Zéro Logement Vacant à Marseille';
+
 export async function seed(knex: Knex): Promise<void> {
-  // Mise à disposition
-  await knex
-    .table(establishmentsTable)
-    .update({ available: true })
-    .whereIn('siren', [SirenStrasbourg, SirenSaintLo]);
+  await Establishments(knex)
+    .whereIn('siren', [SirenStrasbourg, SirenSaintLo])
+    .update({ available: true });
+
+  // End-to-end test establishment
+  await Establishments(knex)
+    .where({ name: ZeroLogementVacantEstablishment })
+    .delete();
+  await Establishments(knex).insert({
+    id: faker.string.uuid(),
+    name: ZeroLogementVacantEstablishment,
+    siren: Number(faker.string.numeric(9)),
+    available: true,
+    localities_geo_code: ['13055'],
+    campaign_intent: undefined,
+    priority: undefined,
+    kind: 'Commune',
+    source: 'seed',
+    updated_at: new Date()
+  });
 }

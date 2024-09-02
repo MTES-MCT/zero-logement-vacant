@@ -230,7 +230,9 @@ export const getOccupancy = (
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
-  return housing.dataFileYears ? housing.dataFileYears.join(', ').toUpperCase().replaceAll('-', ' ') : 'Inconnue';
+  const year = housing.dataFileYears[0];
+
+  return housing.source ? year.toUpperCase().replace('-', ' ') : 'Inconnue';
 }
 
 export function toHousingDTO(housing: Housing): HousingDTO {

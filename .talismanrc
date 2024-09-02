@@ -126,6 +126,8 @@ fileignoreconfig:
   checksum: 85407878a244313b70b8a60b5c7d3e41c33df83629866437cbca3a309ab6e1bc
 - filename: server/src/infra/database/seeds/development/20240627141242_e2e.ts
   checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
+- filename: server/src/repositories/housingRepository.ts
+  checksum: b34421a2b6224fc1bd759792616d9c8511d5c635a25dcea96550af37bbeac787
 - filename: server/src/routers/unprotected.ts
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
 - filename: server/src/scripts/deduplicate-housing/merger.ts

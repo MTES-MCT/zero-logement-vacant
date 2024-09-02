@@ -47,13 +47,16 @@ export const Housing = (transaction = db) =>
 export const ReferenceDataYear = 2023;
 
 export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
-  const dataFileYearsIncluded =
+  const dataFileYearsIncluded: string[] =
     filters.dataFileYearsIncluded && filters.dataFileYearsIncluded.length > 0
       ? filters.dataFileYearsIncluded
-      : Array.from(Array(ReferenceDataYear + 2).keys());
-  const maxDataFileYearIncluded = _.max(
-    _.without(dataFileYearsIncluded, ...(filters.dataFileYearsExcluded ?? []))
-  );
+      : Array.from(Array(ReferenceDataYear + 2).keys()).map(value => `lovac-${value}`);
+      const maxDataFileYearIncluded = _.max(
+        _.without(
+          dataFileYearsIncluded.map(yearString => parseInt(yearString.split('-')[1])),
+          ...(filters.dataFileYearsExcluded?.map(yearString => parseInt(yearString.split('-')[1])) ?? [])
+        )
+      );
   return maxDataFileYearIncluded ? maxDataFileYearIncluded - 1 : ReferenceDataYear;
 };
 
@@ -769,12 +772,12 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.dataFileYearsIncluded?.length) {
-      queryBuilder.whereRaw('data_file_years && ?::integer[]', [
+      queryBuilder.whereRaw('data_file_years && ?::text[]', [
         filters.dataFileYearsIncluded
       ]);
     }
     if (filters.dataFileYearsExcluded?.length) {
-      queryBuilder.whereRaw('not(data_file_years && ?::integer[])', [
+      queryBuilder.whereRaw('not(data_file_years && ?::text[])', [
         filters.dataFileYearsExcluded
       ]);
     }

@@ -234,11 +234,6 @@ export const localityKindsOptions = [
 ];
 
 export const dataFileYearsIncludedOptions = [
-  { value: '2019', label: '2019', badgeLabel: 'Millésime 2019' },
-  { value: '2020', label: '2020', badgeLabel: 'Millésime 2020' },
-  { value: '2021', label: '2021', badgeLabel: 'Millésime 2021' },
-  { value: '2022', label: '2022', badgeLabel: 'Millésime 2022' },
-  { value: '2023', label: '2023', badgeLabel: 'Millésime 2023' },
   { value: 'lovac-2019', label: 'LOVAC 2019', badgeLabel: 'LOVAC 2019' },
   { value: 'lovac-2020', label: 'LOVAC 2020', badgeLabel: 'LOVAC 2020' },
   { value: 'lovac-2021', label: 'LOVAC 2021', badgeLabel: 'LOVAC 2021' },
@@ -248,11 +243,6 @@ export const dataFileYearsIncludedOptions = [
 ].sort((optionA, optionB) => optionB.label.localeCompare(optionA.label));
 
 export const dataFileYearsExcludedOptions = [
-  { value: '2019', label: '2019', badgeLabel: 'Millésime 2019 exclu' },
-  { value: '2020', label: '2020', badgeLabel: 'Millésime 2020 exclu' },
-  { value: '2021', label: '2021', badgeLabel: 'Millésime 2021 exclu' },
-  { value: '2022', label: '2022', badgeLabel: 'Millésime 2022 exclu' },
-  { value: '2023', label: '2023', badgeLabel: 'Millésime 2023 exclu' },
   { value: 'lovac-2019', label: 'LOVAC 2019', badgeLabel: 'LOVAC 2019 exclu' },
   { value: 'lovac-2020', label: 'LOVAC 2020', badgeLabel: 'LOVAC 2020 exclu' },
   { value: 'lovac-2021', label: 'LOVAC 2021', badgeLabel: 'LOVAC 2021 exclu' },

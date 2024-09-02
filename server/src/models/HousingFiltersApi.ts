@@ -32,8 +32,8 @@ export interface HousingFiltersApi {
   localityKinds?: string[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
-  dataFileYearsIncluded?: number[];
-  dataFileYearsExcluded?: number[];
+  dataFileYearsIncluded?: string[];
+  dataFileYearsExcluded?: string[];
   status?: number;
   statusList?: number[];
   subStatus?: string[];
@@ -75,8 +75,8 @@ const validators = (property = 'filters'): ValidationChain[] => [
   body(`${property}.geoPerimetersExcluded`)
     .custom(isArrayOf(isString))
     .optional(),
-  body(`${property}.dataFileYearsIncluded`).custom(isArrayOf(isInteger)).optional(),
-  body(`${property}.dataFileYearsExcluded`).custom(isArrayOf(isInteger)).optional(),
+  body(`${property}.dataFileYearsIncluded`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.dataFileYearsExcluded`).custom(isArrayOf(isString)).optional(),
   body(`${property}.statusList`).custom(isArrayOf(isInteger)).optional(),
   body(`${property}.status`).optional().isInt().optional(),
   body(`${property}.subStatus`).custom(isArrayOf(isString)).optional(),

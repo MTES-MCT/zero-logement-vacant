@@ -242,20 +242,20 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       )}
       <FilterBadges
         options={dataFileYearsIncludedOptions}
-        filters={(filters.dataFileYearsIncluded ?? []).map((_) => String(_))}
+        filters={filters.dataFileYearsIncluded}
         small={small}
         onChange={
           onChange &&
-          ((values) => onChange({ dataFileYearsIncluded: values.map(Number) }))
+          ((values) => onChange({ dataFileYearsIncluded: values }))
         }
       />
       <FilterBadges
         options={dataFileYearsExcludedOptions}
-        filters={(filters.dataFileYearsExcluded ?? []).map((_) => String(_))}
+        filters={filters.dataFileYearsExcluded}
         small={small}
         onChange={
           onChange &&
-          ((values) => onChange({ dataFileYearsExcluded: values.map(Number) }))
+          ((values) => onChange({ dataFileYearsExcluded: values }))
         }
       />
       <FilterBadges

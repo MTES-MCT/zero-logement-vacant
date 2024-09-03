@@ -228,7 +228,7 @@ export function getSource(housing: Housing): string {
 
   const labels: { [key: string]: string } = {
     'lovac': 'LOVAC',
-    'ff': 'Fichiers fonciers'
+    'ff': 'Fichier foncier'
   };
 
   const aggregatedData: { [key: string]: string[] } = {};

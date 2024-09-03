@@ -121,9 +121,9 @@ export function createSourceHousingCommand() {
                   housingGeoCode: geoCode
                 }));
               },
-              async insert(event: HousingEventApi): Promise<void> {
+              async insertMany(events: HousingEventApi[]): Promise<void> {
                 if (!options.dryRun) {
-                  await eventRepository.insertHousingEvent(event);
+                  await eventRepository.insertManyHousingEvents(events);
                 }
               }
             }

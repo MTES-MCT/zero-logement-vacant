@@ -54,6 +54,8 @@ fileignoreconfig:
   checksum: ab84c274637d24aa7f18456c2bb32f39802d5e3afe700a052ece484a1eec46a6
 - filename: frontend/src/index.tsx
   checksum: fc40568505868aea637f6c4648b270a5e1b5a6aecb47b35395e3b8345212d324
+- filename: frontend/src/models/Housing.tsx
+  checksum: 5e7112007ac23f068aee466a74ba16eeedba8c88183085f56b13b75662580ee5
 - filename: frontend/src/views/Account/AccountPasswordView.tsx
   checksum: 0376180bebb491936522b58a6b371356c9f5ee28eb24cbdf6b2fe5029c8e4474
 - filename: frontend/src/views/Account/ResetPasswordView.tsx

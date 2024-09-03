@@ -108,11 +108,6 @@ export const getBuildingLocation = (housing: Housing) => {
   }
 };
 
-export const housingSort = (h1: Housing, h2: Housing) =>
-  Math.max(...h1.dataFileYears) === Math.max(...h2.dataFileYears)
-    ? h1.invariant.localeCompare(h2.invariant)
-    : Math.max(...h1.dataFileYears) - Math.max(...h2.dataFileYears);
-
 export function byAddress(h1: Housing, h2: Housing): Compare {
   const [house1, city1] = h1.rawAddress;
   const [hn1, ...s1] = house1.split(' ');
@@ -230,9 +225,28 @@ export const getOccupancy = (
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
-  const year = housing.dataFileYears[0];
 
-  return housing.source ? year.toUpperCase().replace('-', ' ') : 'Inconnue';
+  const labels: { [key: string]: string } = {
+    'lovac': 'LOVAC',
+    'ff': 'Fichiers fonciers'
+  };
+
+  const aggregatedData: { [key: string]: string[] } = {};
+
+  housing.dataFileYears.forEach(item => {
+      const [name, year] = item.split('-');
+      if (!aggregatedData[name]) {
+          aggregatedData[name] = [];
+      }
+      aggregatedData[name].push(year);
+  });
+
+  const result = Object.keys(aggregatedData).map(name => {
+      const years = aggregatedData[name].join(', ');
+      return labels[name] + ' (' + years + ')';
+  }).join(', ');
+
+  return result || 'Inconnue';
 }
 
 export function toHousingDTO(housing: Housing): HousingDTO {

@@ -243,5 +243,5 @@ function wasNotVacant(housing: HousingApi): boolean {
 }
 
 function hasUserModifications(events: ReadonlyArray<HousingEventApi>): boolean {
-  return events.some(isUserModified);
+  return events.length > 0 && events.some(isUserModified);
 }

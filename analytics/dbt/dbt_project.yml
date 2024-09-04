@@ -41,5 +41,5 @@ models:
       schema: int
       +materialized: view
     marts:
-      schema: main
+      schema: marts
       +materialized: table

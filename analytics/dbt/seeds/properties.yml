@@ -37,3 +37,21 @@ seeds:
       delimiter: ","
       +header: true
 
+  - name: article_232_1
+    config:
+      +header: true
+
+  - name: article_232_2
+    config:
+      +header: true
+
+
+  - name: ngeo-anct-cog2023
+    config:
+      +header: true
+
+  - name: opah
+    config:
+      +header: true
+
+

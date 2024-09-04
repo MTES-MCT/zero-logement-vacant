@@ -227,7 +227,7 @@ export const getOccupancy = (
 export function getSource(housing: Housing): string {
   const labels: Record<string, string> = {
     lovac: 'LOVAC',
-    ff: 'Fichier foncier'
+    ff: 'Fichiers fonciers'
   };
 
   const aggregatedData: Record<string, string[]> = {};

@@ -1,10 +1,11 @@
-import { byAddress, Housing } from '../Housing';
+import { byAddress, getSource, Housing } from '../Housing';
 import { Compare } from '../../utils/compareUtils';
+import { genHousing } from '../../../test/fixtures.test';
 
 describe('Housing', () => {
-  describe('#byAddress', () => {
+  describe('byAddress', () => {
     const housing = (rawAddress: string[]): Housing =>
-      ({ rawAddress } as unknown as Housing);
+      ({ rawAddress }) as unknown as Housing;
 
     it('should sort by city first', () => {
       const h1 = housing(['1 rue Alpha', 'Tours']);
@@ -38,7 +39,7 @@ describe('Housing', () => {
         housing(['1 rue Alpha', 'Tours']),
         housing(['1 rue Alpha', 'Strasbourg']),
         housing(['2 rue Beta', 'Strasbourg']),
-        housing(['2 rue Alpha', 'Strasbourg']),
+        housing(['2 rue Alpha', 'Strasbourg'])
       ];
 
       // Copy array because sort mutates input
@@ -48,8 +49,26 @@ describe('Housing', () => {
         housings[1],
         housings[3],
         housings[2],
-        housings[0],
+        housings[0]
       ]);
     });
+  });
+
+  describe('getSource', () => {
+    it.each`
+      dataFileYears                           | expected
+      ${['lovac-2019']}                       | ${'LOVAC (2019)'}
+      ${['lovac-2020', 'lovac-2021']}         | ${'LOVAC (2020, 2021)'}
+      ${['ff-2020', 'ff-2021', 'lovac-2021']} | ${'Fichiers fonciers (2020, 2021), LOVAC (2021)'}
+    `(
+      'should format $dataFileYears to $expected',
+      ({ dataFileYears, expected }) => {
+        const housing: Housing = { ...genHousing(), dataFileYears };
+
+        const actual = getSource(housing);
+
+        expect(actual).toBe(expected);
+      }
+    );
   });
 });

@@ -9,6 +9,18 @@ export const housingOwnersTable = 'owners_housing';
 export const HousingOwners = (transaction = db) =>
   transaction<HousingOwnerDBO>(housingOwnersTable);
 
+async function insert(housingOwner: HousingOwnerApi): Promise<void> {
+  logger.debug('Saving housing owner...', {
+    housingOwner
+  });
+
+  await HousingOwners()
+    .insert(formatHousingOwnerApi(housingOwner))
+    .onConflict()
+    .ignore();
+  logger.debug('Saved housing owner.');
+}
+
 async function saveMany(housingOwners: HousingOwnerApi[]): Promise<void> {
   if (housingOwners.length) {
     housingOwners.forEach((housingOwner) => {
@@ -31,7 +43,7 @@ async function saveMany(housingOwners: HousingOwnerApi[]): Promise<void> {
         housingOwners.map(formatHousingOwnerApi)
       );
     });
-    logger.info(`Saved ${housingOwners.length} housing owners.`);
+    logger.debug(`Saved ${housingOwners.length} housing owners.`);
   }
 }
 
@@ -90,6 +102,7 @@ export const formatHousingOwnersApi = (
   }));
 
 const housingOwnerRepository = {
+  insert,
   saveMany
 };
 

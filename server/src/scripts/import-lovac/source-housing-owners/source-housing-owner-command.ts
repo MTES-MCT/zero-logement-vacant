@@ -90,7 +90,7 @@ export function createSourceHousingOwnerCommand() {
             housingOwnerRepository: {
               async insert(housingOwner: HousingOwnerApi): Promise<void> {
                 if (!options.dryRun) {
-                  await housingOwnerRepository.saveMany([housingOwner]);
+                  await housingOwnerRepository.insert(housingOwner);
                 }
               },
               async saveMany(

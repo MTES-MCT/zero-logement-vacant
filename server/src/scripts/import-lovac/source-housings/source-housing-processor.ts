@@ -16,7 +16,6 @@ import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { HousingEventApi, isUserModified } from '~/models/EventApi';
 import { AddressApi } from '~/models/AddressApi';
 import { UserApi } from '~/models/UserApi';
-import { compact } from '~/utils/object';
 
 const logger = createLogger('sourceHousingProcessor');
 
@@ -115,12 +114,11 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         const dataFileYears = normalizeDataFileYears(
           existingHousing.dataFileYears.concat('lovac-2024')
         );
-        let occupancy: OccupancyKindApi | undefined;
         const events: HousingEventApi[] = [];
 
         const changes = applyChanges(existingHousing, existingEvents);
         if (
-          changes.occupancy &&
+          changes.occupancy !== undefined &&
           existingHousing.occupancy !== changes.occupancy
         ) {
           events.push({
@@ -130,10 +128,9 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             category: 'Followup',
             section: 'Situation',
             conflict: false,
-            old: { ...existingHousing, dataFileYears },
+            old: existingHousing,
             new: {
               ...existingHousing,
-              dataFileYears,
               occupancy: changes.occupancy
             },
             createdBy: auth.id,
@@ -142,7 +139,10 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             housingId: existingHousing.id
           });
         }
-        if (changes.status && existingHousing.status !== changes.status) {
+        if (
+          changes.status !== undefined &&
+          existingHousing.status !== changes.status
+        ) {
           events.push({
             id: uuidv4(),
             name: 'Changement de statut de suivi',
@@ -153,12 +153,11 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             // This event should come after the above one
             old: {
               ...existingHousing,
-              dataFileYears,
               occupancy: changes.occupancy ?? existingHousing.occupancy
             },
             new: {
               ...existingHousing,
-              dataFileYears,
+              occupancy: changes.occupancy ?? existingHousing.occupancy,
               status: changes.status,
               subStatus: changes.subStatus
             },
@@ -172,7 +171,10 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         await Promise.all([
           housingRepository.update(
             { id: existingHousing.id, geoCode: existingHousing.geoCode },
-            compact({ dataFileYears, occupancy })
+            {
+              ...changes,
+              dataFileYears
+            }
           ),
           events.length > 0
             ? housingEventRepository.insertMany(events)
@@ -218,7 +220,8 @@ function applyChanges(
   // Reset the housing in all other cases
   return {
     occupancy: OccupancyKindApi.Vacant,
-    status: HousingStatusApi.NeverContacted
+    status: HousingStatusApi.NeverContacted,
+    subStatus: null
   };
 }
 

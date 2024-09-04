@@ -19,7 +19,7 @@ import { HousingEventApi } from '~/models/EventApi';
 import userRepository from '~/repositories/userRepository';
 import config from '~/infra/config';
 import UserMissingError from '~/errors/userMissingError';
-import { compact } from '~/utils/object';
+import { compactUndefined } from '~/utils/object';
 
 const logger = createLogger('sourceHousingCommand');
 
@@ -101,9 +101,11 @@ export function createSourceHousingCommand() {
                   await Housing()
                     .where({ geo_code: geoCode, id })
                     .update(
-                      compact({
+                      compactUndefined({
                         data_file_years: housing.dataFileYears,
-                        occupancy: housing.occupancy
+                        occupancy: housing.occupancy,
+                        status: housing.status,
+                        sub_status: housing.subStatus
                       })
                     );
                 }

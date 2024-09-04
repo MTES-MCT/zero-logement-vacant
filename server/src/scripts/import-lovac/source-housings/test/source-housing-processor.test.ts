@@ -1,4 +1,4 @@
-import { ReadableStream } from 'node:stream/web';
+import { ReadableStream, WritableStream } from 'node:stream/web';
 
 import {
   createSourceHousingProcessor,
@@ -18,6 +18,8 @@ import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { HousingEventApi } from '~/models/EventApi';
 
 describe('Source housing processor', () => {
+  const establishment = genEstablishmentApi();
+  const creator = genUserApi(establishment.id);
   let auth: ProcessorOptions['auth'];
   let banAddressRepository: jest.MockedObject<
     ProcessorOptions['banAddressRepository']
@@ -40,7 +42,7 @@ describe('Source housing processor', () => {
       update: jest.fn().mockImplementation(() => Promise.resolve())
     };
     housingEventRepository = {
-      insert: jest.fn().mockImplementation(() => Promise.resolve()),
+      insertMany: jest.fn().mockImplementation(() => Promise.resolve()),
       find: jest.fn()
     };
   });
@@ -95,13 +97,32 @@ describe('Source housing processor', () => {
   });
 
   describe('If the housing is present in our database', () => {
+    let stream: ReadableStream<SourceHousing>;
+    let processor: WritableStream<SourceHousing>;
     let sourceHousing: SourceHousing;
     let housing: HousingApi;
+    let events: HousingEventApi[];
 
     beforeEach(() => {
       sourceHousing = genSourceHousing();
       housing = genHousingApi();
+      events = [];
       housingRepository.findOne.mockResolvedValue(housing);
+      housingEventRepository.find.mockResolvedValue(events);
+
+      stream = new ReadableStream<SourceHousing>({
+        pull(controller) {
+          controller.enqueue(sourceHousing);
+          controller.close();
+        }
+      });
+      processor = createSourceHousingProcessor({
+        auth,
+        reporter: createNoopReporter(),
+        banAddressRepository,
+        housingRepository,
+        housingEventRepository
+      });
     });
 
     describe('If the housing is not vacant', () => {
@@ -136,19 +157,18 @@ describe('Source housing processor', () => {
           expect(housingRepository.update).toHaveBeenCalledOnce();
           expect(housingRepository.update).toHaveBeenCalledWith(
             { geoCode: housing.geoCode, id: housing.id },
-
             {
               dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
-              occupancy: OccupancyKindApi.Vacant
+              occupancy: OccupancyKindApi.Vacant,
+              status: HousingStatusApi.NeverContacted,
+              subStatus: null
             }
           );
         });
 
-        it('should create an event "Changement de statut d’occupation"', async () => {
-          expect(housingEventRepository.insert).toHaveBeenCalledOnce();
-          expect(housingEventRepository.insert).toHaveBeenCalledWith<
-            [HousingEventApi]
-          >(
+        it('should create an event "Changement de statut d’occupation" and an event "Changement de statut de suivi"', async () => {
+          expect(housingEventRepository.insertMany).toHaveBeenCalledOnce();
+          expect(housingEventRepository.insertMany).toHaveBeenCalledWith([
             expect.objectContaining<HousingEventApi>({
               id: expect.any(String),
               name: 'Changement de statut d’occupation',
@@ -159,14 +179,80 @@ describe('Source housing processor', () => {
               old: housing,
               new: {
                 ...housing,
-                dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
                 occupancy: OccupancyKindApi.Vacant
               },
               createdAt: expect.any(Date),
               createdBy: expect.any(String),
               housingId: housing.id,
               housingGeoCode: housing.geoCode
+            }),
+            expect.objectContaining<HousingEventApi>({
+              id: expect.any(String),
+              name: 'Changement de statut de suivi',
+              kind: 'Update',
+              category: 'Followup',
+              section: 'Situation',
+              conflict: false,
+              old: {
+                ...housing,
+                occupancy: OccupancyKindApi.Vacant
+              },
+              new: {
+                ...housing,
+                occupancy: OccupancyKindApi.Vacant,
+                status: HousingStatusApi.NeverContacted,
+                subStatus: null
+              },
+              createdAt: expect.any(Date),
+              createdBy: expect.any(String),
+              housingId: housing.id,
+              housingGeoCode: housing.geoCode
             })
+          ]);
+          expect(housingEventRepository.insertMany).toHaveBeenCalledWith<
+            [HousingEventApi[]]
+          >(
+            expect.arrayContaining([
+              expect.objectContaining<HousingEventApi>({
+                id: expect.any(String),
+                name: 'Changement de statut d’occupation',
+                kind: 'Update',
+                category: 'Followup',
+                section: 'Situation',
+                conflict: false,
+                old: housing,
+                new: {
+                  ...housing,
+                  occupancy: OccupancyKindApi.Vacant
+                },
+                createdAt: expect.any(Date),
+                createdBy: expect.any(String),
+                housingId: housing.id,
+                housingGeoCode: housing.geoCode
+              }),
+              expect.objectContaining<HousingEventApi>({
+                id: expect.any(String),
+                name: 'Changement de statut de suivi',
+                kind: 'Update',
+                category: 'Followup',
+                section: 'Situation',
+                conflict: false,
+                old: {
+                  ...housing,
+                  occupancy: OccupancyKindApi.Vacant
+                },
+                new: {
+                  ...housing,
+                  occupancy: OccupancyKindApi.Vacant,
+                  status: HousingStatusApi.NeverContacted,
+                  subStatus: null
+                },
+                createdAt: expect.any(Date),
+                createdBy: expect.any(String),
+                housingId: housing.id,
+                housingGeoCode: housing.geoCode
+              })
+            ])
           );
         });
       });
@@ -214,40 +300,46 @@ describe('Source housing processor', () => {
     });
 
     describe('If the housing is vacant', () => {
-      let sourceHousing: SourceHousing;
-      let housing: HousingApi;
-
-      beforeEach(async () => {
-        sourceHousing = genSourceHousing();
-        housing = {
-          ...genHousingApi(sourceHousing.geo_code),
-          occupancy: OccupancyKindApi.Vacant
-        };
-        housingRepository.findOne.mockResolvedValue(housing);
-
-        const stream = new ReadableStream<SourceHousing>({
-          pull(controller) {
-            controller.enqueue(sourceHousing);
-            controller.close();
-          }
-        });
-        const processor = createSourceHousingProcessor({
-          auth,
-          reporter: createNoopReporter(),
-          banAddressRepository,
-          housingRepository,
-          housingEventRepository
-        });
-
-        await stream.pipeTo(processor);
+      beforeEach(() => {
+        housing.occupancy = OccupancyKindApi.Vacant;
       });
 
-      it('should append the source and year', async () => {
+      describe(`If the housing follow-up is not completed and it was set by users`, () => {
+        beforeEach(async () => {
+          housing.status = HousingStatusApi.Blocked;
+          events.push(genHousingEventApi(housing, creator));
+
+          await stream.pipeTo(processor);
+        });
+
+        it('should append the source and year and leave the rest untouched', () => {
+          expect(housingRepository.update).toHaveBeenCalledOnce();
+          expect(housingRepository.update).toHaveBeenCalledWith(
+            { geoCode: housing.geoCode, id: housing.id },
+            {
+              dataFileYears: [...housing.dataFileYears, 'lovac-2024']
+            }
+          );
+        });
+      });
+
+      it('should update the occupancy and the status otherwise', async () => {
+        housing.status = HousingStatusApi.Completed;
+        housing.subStatus = 'Sortie de la vacance';
+
+        await stream.pipeTo(processor);
+
         expect(housingRepository.update).toHaveBeenCalledOnce();
         expect(housingRepository.update).toHaveBeenCalledWith(
-          { geoCode: housing.geoCode, id: housing.id },
           {
-            dataFileYears: [...housing.dataFileYears, 'lovac-2024']
+            geoCode: housing.geoCode,
+            id: housing.id
+          },
+          {
+            dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
+            occupancy: OccupancyKindApi.Vacant,
+            status: HousingStatusApi.NeverContacted,
+            subStatus: null
           }
         );
       });

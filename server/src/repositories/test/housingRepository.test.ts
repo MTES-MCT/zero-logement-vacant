@@ -255,7 +255,7 @@ describe('Housing repository', () => {
             filter: ['3to4'],
             predicate: (housing: HousingApi) => {
               const diff =
-              ReferenceDataYear - (housing.vacancyStartYear as number);
+                ReferenceDataYear - (housing.vacancyStartYear as number);
               return 3 <= diff && diff <= 4;
             }
           },
@@ -264,7 +264,7 @@ describe('Housing repository', () => {
             filter: ['5to9'],
             predicate: (housing: HousingApi) => {
               const diff =
-              ReferenceDataYear - (housing.vacancyStartYear as number);
+                ReferenceDataYear - (housing.vacancyStartYear as number);
               return 5 <= diff && diff <= 9;
             }
           },
@@ -976,6 +976,27 @@ describe('Housing repository', () => {
         housing_id: housing.id
       });
       expect(actual).toBeArrayOfSize(0);
+    });
+  });
+
+  it('should save null values', async () => {
+    const housing: HousingApi = {
+      ...genHousingApi(),
+      subStatus: 'Sortie de la vacance'
+    };
+    await Housing().insert(formatHousingRecordApi(housing));
+
+    await Housing()
+      .where({ geo_code: housing.geoCode, id: housing.id })
+      .update({
+        sub_status: null
+      });
+
+    const actual = await Housing()
+      .where({ geo_code: housing.geoCode, id: housing.id })
+      .first();
+    expect(actual).toMatchObject({
+      sub_status: null
     });
   });
 });

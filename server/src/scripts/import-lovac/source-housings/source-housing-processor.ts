@@ -8,16 +8,21 @@ import { createLogger } from '~/infra/logger';
 import {
   HousingApi,
   HousingId,
-  isSupervised,
   normalizeDataFileYears,
   OccupancyKindApi,
   OwnershipKindsApi
 } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { HousingEventApi } from '~/models/EventApi';
+import {
+  HousingEventApi,
+  isUserModified as isEventUserModified
+} from '~/models/EventApi';
+import {
+  HousingNoteApi,
+  isUserModified as isNoteUserModified
+} from '~/models/NoteApi';
 import { AddressApi } from '~/models/AddressApi';
 import { UserApi } from '~/models/UserApi';
-import { compact } from '~/utils/object';
 
 const logger = createLogger('sourceHousingProcessor');
 
@@ -27,8 +32,11 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
     insert(address: AddressApi): Promise<void>;
   };
   housingEventRepository: {
-    insert(event: HousingEventApi): Promise<void>;
+    insertMany(events: HousingEventApi[]): Promise<void>;
     find(id: HousingId): Promise<ReadonlyArray<HousingEventApi>>;
+  };
+  housingNoteRepository: {
+    find(id: HousingId): Promise<ReadonlyArray<HousingNoteApi>>;
   };
   housingRepository: {
     findOne(geoCode: string, localId: string): Promise<HousingApi | null>;
@@ -46,6 +54,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
     auth,
     banAddressRepository,
     housingEventRepository,
+    housingNoteRepository,
     housingRepository,
     reporter
   } = opts;
@@ -108,43 +117,89 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         }
 
         // The housing exists
-        const existingEvents = await housingEventRepository.find({
-          id: existingHousing.id,
-          geoCode: existingHousing.geoCode
-        });
+        const [existingEvents, existingNotes] = await Promise.all([
+          housingEventRepository.find({
+            id: existingHousing.id,
+            geoCode: existingHousing.geoCode
+          }),
+          housingNoteRepository.find({
+            id: existingHousing.id,
+            geoCode: existingHousing.geoCode
+          })
+        ]);
 
         const dataFileYears = normalizeDataFileYears(
           existingHousing.dataFileYears.concat('lovac-2024')
         );
-        let occupancy: OccupancyKindApi | undefined;
-        let event: HousingEventApi | undefined;
+        const events: HousingEventApi[] = [];
 
-        if (existingHousing.occupancy !== OccupancyKindApi.Vacant) {
-          if (!isSupervised(existingHousing, existingEvents)) {
-            occupancy = OccupancyKindApi.Vacant;
-            event = {
-              id: uuidv4(),
-              name: 'Changement de statut d’occupation',
-              kind: 'Update',
-              category: 'Followup',
-              section: 'Situation',
-              conflict: false,
-              old: existingHousing,
-              new: { ...existingHousing, dataFileYears, occupancy },
-              createdBy: auth.id,
-              createdAt: new Date(),
-              housingGeoCode: existingHousing.geoCode,
-              housingId: existingHousing.id
-            };
-          }
+        const changes = applyChanges(
+          existingHousing,
+          existingEvents,
+          existingNotes
+        );
+        if (
+          changes.occupancy !== undefined &&
+          existingHousing.occupancy !== changes.occupancy
+        ) {
+          events.push({
+            id: uuidv4(),
+            name: 'Changement de statut d’occupation',
+            kind: 'Update',
+            category: 'Followup',
+            section: 'Situation',
+            conflict: false,
+            old: existingHousing,
+            new: {
+              ...existingHousing,
+              occupancy: changes.occupancy
+            },
+            createdBy: auth.id,
+            createdAt: new Date(),
+            housingGeoCode: existingHousing.geoCode,
+            housingId: existingHousing.id
+          });
+        }
+        if (
+          changes.status !== undefined &&
+          existingHousing.status !== changes.status
+        ) {
+          events.push({
+            id: uuidv4(),
+            name: 'Changement de statut de suivi',
+            kind: 'Update',
+            category: 'Followup',
+            section: 'Situation',
+            conflict: false,
+            // This event should come after the above one
+            old: {
+              ...existingHousing,
+              occupancy: changes.occupancy ?? existingHousing.occupancy
+            },
+            new: {
+              ...existingHousing,
+              occupancy: changes.occupancy ?? existingHousing.occupancy,
+              status: changes.status,
+              subStatus: changes.subStatus
+            },
+            createdBy: auth.id,
+            createdAt: new Date(),
+            housingGeoCode: existingHousing.geoCode,
+            housingId: existingHousing.id
+          });
         }
 
         await Promise.all([
           housingRepository.update(
             { id: existingHousing.id, geoCode: existingHousing.geoCode },
-            compact({ dataFileYears, occupancy })
+            {
+              ...changes,
+              dataFileYears
+            }
           ),
-          event ? housingEventRepository.insert(event) : Promise.resolve()
+          events.length > 0
+            ? housingEventRepository.insertMany(events)
+            : Promise.resolve()
         ]);
         reporter.passed(chunk);
       } catch (error) {
@@ -158,4 +213,55 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
       }
     }
   });
+}
+
+function applyChanges(
+  housing: HousingApi,
+  events: ReadonlyArray<HousingEventApi>,
+  notes: ReadonlyArray<HousingNoteApi>
+): Partial<HousingApi> {
+  const rules: ReadonlyArray<() => boolean> = [
+    () => events.length === 0 && notes.length === 0,
+    () =>
+      !hasUserNotes(notes) &&
+      !hasUserEvents(events) &&
+      isCompleted(housing) &&
+      isOutOfVacancy(housing)
+  ];
+
+  if (rules.some((rule) => rule())) {
+    return {
+      occupancy: OccupancyKindApi.Vacant,
+      status: HousingStatusApi.NeverContacted,
+      subStatus: null
+    };
+  }
+
+  return {};
+}
+
+function isCompleted(housing: HousingApi): boolean {
+  return housing.status === HousingStatusApi.Completed;
+}
+
+function isOutOfVacancy(housing: HousingApi): boolean {
+  return housing.subStatus === 'Sortie de la vacance';
+}
+
+function hasUserNotes(notes: ReadonlyArray<HousingNoteApi>): boolean {
+  return notes.length > 0 && notes.some(isNoteUserModified);
+}
+
+function hasUserEvents(events: ReadonlyArray<HousingEventApi>): boolean {
+  return (
+    events.length > 0 &&
+    events
+      .filter((event) =>
+        [
+          'Changement de statut de suivi',
+          'Changement de statut d’occupation'
+        ].includes(event.name)
+      )
+      .some(isEventUserModified)
+  );
 }

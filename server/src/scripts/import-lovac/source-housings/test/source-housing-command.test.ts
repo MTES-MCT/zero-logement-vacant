@@ -105,6 +105,12 @@ describe('Source housing command', () => {
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
       return housing.occupancy === OccupancyKindApi.Vacant;
     });
+    expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
+      return housing.status === HousingStatusApi.NeverContacted;
+    });
+    expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
+      return housing.sub_status === null;
+    });
   });
 
   it('should import existing vacant housings', async () => {

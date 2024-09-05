@@ -19,7 +19,9 @@ import { HousingEventApi } from '~/models/EventApi';
 import userRepository from '~/repositories/userRepository';
 import config from '~/infra/config';
 import UserMissingError from '~/errors/userMissingError';
-import { compact } from '~/utils/object';
+import { compactUndefined } from '~/utils/object';
+import { HousingNoteApi } from '~/models/NoteApi';
+import noteRepository from '~/repositories/noteRepository';
 
 const logger = createLogger('sourceHousingCommand');
 
@@ -101,9 +103,11 @@ export function createSourceHousingCommand() {
                   await Housing()
                     .where({ geo_code: geoCode, id })
                     .update(
-                      compact({
+                      compactUndefined({
                         data_file_years: housing.dataFileYears,
-                        occupancy: housing.occupancy
+                        occupancy: housing.occupancy,
+                        status: housing.status,
+                        sub_status: housing.subStatus
                       })
                     );
                 }
@@ -121,10 +125,23 @@ export function createSourceHousingCommand() {
                   housingGeoCode: geoCode
                 }));
               },
-              async insert(event: HousingEventApi): Promise<void> {
+              async insertMany(events: HousingEventApi[]): Promise<void> {
                 if (!options.dryRun) {
-                  await eventRepository.insertHousingEvent(event);
+                  await eventRepository.insertManyHousingEvents(events);
                 }
+              }
+            },
+            housingNoteRepository: {
+              async find({
+                id,
+                geoCode
+              }: HousingId): Promise<ReadonlyArray<HousingNoteApi>> {
+                const notes = await noteRepository.findHousingNotes(id);
+                return notes.map((note) => ({
+                  ...note,
+                  housingId: id,
+                  housingGeoCode: geoCode
+                }));
               }
             }
           })

@@ -13,6 +13,69 @@ import {
 } from '~/repositories/housingRepository';
 
 describe('housingOwnerRepository', () => {
+  describe('insert', () => {
+    it('should ignore the conflict if the same owner is inserted twice at the same rank', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+      await Promise.all([
+        Owners().insert(formatOwnerApi(owner)),
+        Housing().insert(formatHousingRecordApi(housing))
+      ]);
+      const housingOwner: HousingOwnerApi = {
+        ...owner,
+        rank: -2,
+        ownerId: owner.id,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      };
+      await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+
+      await housingOwnerRepository.insert({
+        ...owner,
+        rank: -2,
+        ownerId: owner.id,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      });
+    });
+
+    it('should ignore the conflict if the same owner is inserted at two different ranks', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+      await Promise.all([
+        Owners().insert(formatOwnerApi(owner)),
+        Housing().insert(formatHousingRecordApi(housing))
+      ]);
+      const housingOwner: HousingOwnerApi = {
+        ...owner,
+        rank: -2,
+        ownerId: owner.id,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      };
+      await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+
+      await housingOwnerRepository.insert({
+        ...owner,
+        rank: 1,
+        ownerId: owner.id,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      });
+
+      const actual = await HousingOwners()
+        .where({
+          owner_id: owner.id,
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
+        .first();
+      expect(actual).toMatchObject({
+        rank: -2
+      });
+    });
+  });
+
   describe('saveMany', () => {
     it('should replace housing owners', async () => {
       const existingOwner = genOwnerApi();

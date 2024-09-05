@@ -48,7 +48,7 @@ export interface HousingRecordApi {
   geolocation?: string;
   ownershipKind?: OwnershipKindsApi;
   status: HousingStatusApi;
-  subStatus?: string;
+  subStatus?: string | null;
   precisions?: string[];
   energyConsumption?: EnergyConsumptionGradesApi;
   energyConsumptionAt?: Date;

@@ -13,7 +13,14 @@ import {
   OwnershipKindsApi
 } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { HousingEventApi, isUserModified } from '~/models/EventApi';
+import {
+  HousingEventApi,
+  isUserModified as isEventUserModified
+} from '~/models/EventApi';
+import {
+  HousingNoteApi,
+  isUserModified as isNoteUserModified
+} from '~/models/NoteApi';
 import { AddressApi } from '~/models/AddressApi';
 import { UserApi } from '~/models/UserApi';
 
@@ -27,6 +34,9 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
   housingEventRepository: {
     insertMany(events: HousingEventApi[]): Promise<void>;
     find(id: HousingId): Promise<ReadonlyArray<HousingEventApi>>;
+  };
+  housingNoteRepository: {
+    find(id: HousingId): Promise<ReadonlyArray<HousingNoteApi>>;
   };
   housingRepository: {
     findOne(geoCode: string, localId: string): Promise<HousingApi | null>;
@@ -44,6 +54,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
     auth,
     banAddressRepository,
     housingEventRepository,
+    housingNoteRepository,
     housingRepository,
     reporter
   } = opts;
@@ -106,17 +117,27 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         }
 
         // The housing exists
-        const existingEvents = await housingEventRepository.find({
-          id: existingHousing.id,
-          geoCode: existingHousing.geoCode
-        });
+        const [existingEvents, existingNotes] = await Promise.all([
+          housingEventRepository.find({
+            id: existingHousing.id,
+            geoCode: existingHousing.geoCode
+          }),
+          housingNoteRepository.find({
+            id: existingHousing.id,
+            geoCode: existingHousing.geoCode
+          })
+        ]);
 
         const dataFileYears = normalizeDataFileYears(
           existingHousing.dataFileYears.concat('lovac-2024')
         );
         const events: HousingEventApi[] = [];
 
-        const changes = applyChanges(existingHousing, existingEvents);
+        const changes = applyChanges(
+          existingHousing,
+          existingEvents,
+          existingNotes
+        );
         if (
           changes.occupancy !== undefined &&
           existingHousing.occupancy !== changes.occupancy
@@ -196,41 +217,27 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
 
 function applyChanges(
   housing: HousingApi,
-  events: ReadonlyArray<HousingEventApi>
+  events: ReadonlyArray<HousingEventApi>,
+  notes: ReadonlyArray<HousingNoteApi>
 ): Partial<HousingApi> {
-  if (
-    housing.occupancy === OccupancyKindApi.Vacant &&
-    !(isCompleted(housing) && isOutOfVacancy(housing)) &&
-    hasUserModifications(events)
-  ) {
-    return {};
+  const rules: ReadonlyArray<() => boolean> = [
+    () => events.length === 0 && notes.length === 0,
+    () =>
+      !hasUserNotes(notes) &&
+      !hasUserEvents(events) &&
+      isCompleted(housing) &&
+      isOutOfVacancy(housing)
+  ];
+
+  if (rules.some((rule) => rule())) {
+    return {
+      occupancy: OccupancyKindApi.Vacant,
+      status: HousingStatusApi.NeverContacted,
+      subStatus: null
+    };
   }
 
-  if (housing.occupancy !== OccupancyKindApi.Vacant) {
-    if (
-      isInProgress(housing) ||
-      (isCompleted(housing) &&
-        (isOutOfVacancy(housing) || wasNotVacant(housing)) &&
-        hasUserModifications(events))
-    ) {
-      return {};
-    }
-  }
-
-  // Reset the housing in all other cases
-  return {
-    occupancy: OccupancyKindApi.Vacant,
-    status: HousingStatusApi.NeverContacted,
-    subStatus: null
-  };
-}
-
-function isInProgress(housing: HousingApi): boolean {
-  return (
-    housing.status === HousingStatusApi.InProgress &&
-    !!housing.subStatus &&
-    ['En accompagnement', 'Intervention publique'].includes(housing.subStatus)
-  );
+  return {};
 }
 
 function isCompleted(housing: HousingApi): boolean {
@@ -241,10 +248,20 @@ function isOutOfVacancy(housing: HousingApi): boolean {
   return housing.subStatus === 'Sortie de la vacance';
 }
 
-function wasNotVacant(housing: HousingApi): boolean {
-  return housing.subStatus === 'N’était pas vacant';
+function hasUserNotes(notes: ReadonlyArray<HousingNoteApi>): boolean {
+  return notes.length > 0 && notes.some(isNoteUserModified);
 }
 
-function hasUserModifications(events: ReadonlyArray<HousingEventApi>): boolean {
-  return events.length > 0 && events.some(isUserModified);
+function hasUserEvents(events: ReadonlyArray<HousingEventApi>): boolean {
+  return (
+    events.length > 0 &&
+    events
+      .filter((event) =>
+        [
+          'Changement de statut de suivi',
+          'Changement de statut d’occupation'
+        ].includes(event.name)
+      )
+      .some(isEventUserModified)
+  );
 }

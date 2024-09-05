@@ -20,6 +20,8 @@ import userRepository from '~/repositories/userRepository';
 import config from '~/infra/config';
 import UserMissingError from '~/errors/userMissingError';
 import { compactUndefined } from '~/utils/object';
+import { HousingNoteApi } from '~/models/NoteApi';
+import noteRepository from '~/repositories/noteRepository';
 
 const logger = createLogger('sourceHousingCommand');
 
@@ -127,6 +129,19 @@ export function createSourceHousingCommand() {
                 if (!options.dryRun) {
                   await eventRepository.insertManyHousingEvents(events);
                 }
+              }
+            },
+            housingNoteRepository: {
+              async find({
+                id,
+                geoCode
+              }: HousingId): Promise<ReadonlyArray<HousingNoteApi>> {
+                const notes = await noteRepository.findHousingNotes(id);
+                return notes.map((note) => ({
+                  ...note,
+                  housingId: id,
+                  housingGeoCode: geoCode
+                }));
               }
             }
           })

@@ -726,6 +726,7 @@ const genNoteApi = (creator: UserApi): NoteApi => ({
   noteKind: faker.word.noun(),
   content: faker.lorem.paragraph(),
   createdBy: creator.id,
+  creator,
   createdAt: faker.date.past()
 });
 

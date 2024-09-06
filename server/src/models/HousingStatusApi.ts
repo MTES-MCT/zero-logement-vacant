@@ -4,8 +4,12 @@ export enum HousingStatusApi {
   FirstContact,
   InProgress,
   Completed,
-  Blocked,
+  Blocked
 }
+
+export const HOUSING_STATUS_VALUES = Object.values(HousingStatusApi).filter(
+  (value): value is HousingStatusApi => typeof value === 'number'
+);
 
 export const getHousingStatusApiLabel = (
   housingStatusApi?: HousingStatusApi

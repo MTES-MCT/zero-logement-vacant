@@ -15,8 +15,8 @@ import {
   buildingPeriodOptions,
   cadastralClassificationOptions,
   campaignsCountOptions,
-  dataYearsExcludedOptions,
-  dataYearsIncludedOptions,
+  dataFileYearsExcludedOptions,
+  dataFileYearsIncludedOptions,
   energyConsumptionOptions,
   housingAreaOptions,
   housingCountOptions,
@@ -521,31 +521,31 @@ function HousingListFiltersSidemenu(props: Props) {
         >
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Millésime inclus"
-              options={dataYearsIncludedOptions}
-              initialValues={(filters.dataYearsIncluded ?? []).map((_) =>
+              label="Sources et millésimes inclus"
+              options={dataFileYearsIncludedOptions}
+              initialValues={(filters.dataFileYearsIncluded ?? []).map((_) =>
                 String(_)
               )}
               onChange={(values) =>
                 onChangeFilters(
-                  { dataYearsIncluded: values.map(Number) },
-                  'Millésime inclus'
+                  { dataFileYearsIncluded: values },
+                  'Sources et Millésimes inclus'
                 )
               }
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Millésime exclu"
+              label="Sources et millésimes exclus"
               defaultOption="Aucun"
-              options={dataYearsExcludedOptions}
-              initialValues={(filters.dataYearsExcluded ?? []).map((_) =>
+              options={dataFileYearsExcludedOptions}
+              initialValues={(filters.dataFileYearsExcluded ?? []).map((_) =>
                 String(_)
               )}
               onChange={(values) =>
                 onChangeFilters(
-                  { dataYearsExcluded: values.map(Number) },
-                  'Millésime exclu'
+                  { dataFileYearsExcluded: values },
+                  'Sources et millésime exclus'
                 )
               }
             />

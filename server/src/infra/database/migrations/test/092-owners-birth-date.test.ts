@@ -43,6 +43,11 @@ describe('092 Owners birth date', () => {
     await migrator.up();
   });
 
+  afterEach(async () => {
+    const migrator = createMigrator(db);
+    await migrator.rollback(undefined, rollbackAll);
+  });
+
   describe('up', () => {
     it('should migrate the birth date from Date to Datetime', async () => {
       const ids = owners.map((owner) => owner.id);

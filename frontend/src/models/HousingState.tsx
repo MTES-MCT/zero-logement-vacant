@@ -31,7 +31,7 @@ export const HOUSING_STATUSES: HousingStatus[] = Object.values(
 export const FirstContactToContactedSubStatus =
   'Intérêt potentiel / En réflexion';
 export const FirstContactWithPreSupportSubStatus = 'En pré-accompagnement';
-export const FirstContactNpai = 'NPAI';
+export const FirstContactNpai = 'N’habite pas à l’adresse indiquée';
 export const InProgressWithSupportSubStatus = 'En accompagnement';
 export const InProgressWithPublicSupportSubStatus = 'Intervention publique';
 export const InProgressWithoutSupportSubStatus =

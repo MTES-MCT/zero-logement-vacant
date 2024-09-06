@@ -1,36 +1,25 @@
-import { getBuildingLocation, HousingApi } from '~/models/HousingApi';
+import {
+  getBuildingLocation,
+  HousingApi,
+  isSupervised,
+  normalizeDataFileYears
+} from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { genHousingApi } from '~/test/testFixtures';
+import {
+  genEstablishmentApi,
+  genHousingApi,
+  genHousingEventApi,
+  genUserApi
+} from '~/test/testFixtures';
+import { HousingEventApi } from '~/models/EventApi';
+import { UserApi } from '~/models/UserApi';
 
 describe('HousingApi', () => {
-  describe('isVacant', () => {
-    test.each`
-      status                             | expected
-      ${HousingStatusApi.NeverContacted} | ${false}
-      ${HousingStatusApi.Waiting}        | ${false}
-      ${HousingStatusApi.FirstContact}   | ${false}
-      ${HousingStatusApi.InProgress}     | ${true}
-      ${HousingStatusApi.Completed}      | ${true}
-      ${HousingStatusApi.Blocked}        | ${false}
-    `(
-      'should be {expected} when the status is {status}',
-      ({ status, expected }) => {
-        const housing: HousingApi = { ...genHousingApi(), status };
-        const actual =
-          housing.status !== undefined &&
-          [HousingStatusApi.InProgress, HousingStatusApi.Completed].includes(
-            housing.status,
-          );
-        expect(actual).toBe(expected);
-      },
-    );
-  });
-
   describe('getBuildingLocation', () => {
     it('should parse a building location', () => {
       const housing: HousingApi = {
         ...genHousingApi(),
-        buildingLocation: 'B010002002',
+        buildingLocation: 'B010002002'
       };
 
       const actual = getBuildingLocation(housing);
@@ -39,8 +28,92 @@ describe('HousingApi', () => {
         building: 'Bâtiment B',
         entrance: 'Entrée 1',
         level: 'Rez-de-chaussée',
-        local: 'Local 2002',
+        local: 'Local 2002'
       });
+    });
+  });
+
+  describe('isSupervised', () => {
+    it.each(['En accompagnement', 'Intervention publique'])(
+      `should return true if the housing status is "in progress" and the subStatus is %s`,
+      (subStatus) => {
+        const housing: HousingApi = {
+          ...genHousingApi(),
+          status: HousingStatusApi.InProgress,
+          subStatus
+        };
+
+        const actual = isSupervised(housing, []);
+
+        expect(actual).toBe(true);
+      }
+    );
+
+    describe('if the housing status is "completed"', () => {
+      const establishment = genEstablishmentApi();
+
+      it.each(['N’était pas vacant', 'Sortie de la vacance'])(
+        'should return true if the substatus is %s and if the user modified the housing manually',
+        (subStatus) => {
+          const housing: HousingApi = {
+            ...genHousingApi(),
+            status: HousingStatusApi.Completed,
+            subStatus
+          };
+          const creator: UserApi = {
+            ...genUserApi(establishment.id),
+            email: 'test@test.test'
+          };
+          const events: HousingEventApi[] = Array.from({ length: 3 }, () =>
+            genHousingEventApi(housing, creator)
+          );
+
+          const actual = isSupervised(housing, events);
+
+          expect(actual).toBeTrue();
+        }
+      );
+
+      it('should return false if the user did not modify the housing', () => {
+        const housing: HousingApi = {
+          ...genHousingApi(),
+          status: HousingStatusApi.Completed,
+          subStatus: 'Sortie de la vacance'
+        };
+        const events: HousingEventApi[] = [];
+
+        const actual = isSupervised(housing, events);
+
+        expect(actual).toBeFalse();
+      });
+    });
+  });
+
+  describe('normalizeDataFileYears', () => {
+    it('should sort data file years', () => {
+      const actual = normalizeDataFileYears([
+        'lovac-2020',
+        'ff-2024',
+        'lovac-2022',
+        'lovac-2021'
+      ]);
+
+      expect(actual).toStrictEqual([
+        'ff-2024',
+        'lovac-2020',
+        'lovac-2021',
+        'lovac-2022'
+      ]);
+    });
+
+    it('should filter duplicates', () => {
+      const actual = normalizeDataFileYears([
+        'lovac-2021',
+        'lovac-2022',
+        'lovac-2022'
+      ]);
+
+      expect(actual).toStrictEqual(['lovac-2021', 'lovac-2022']);
     });
   });
 });

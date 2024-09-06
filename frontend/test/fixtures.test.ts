@@ -94,7 +94,7 @@ export function genHousing(): Housing {
     roomsCount: genNumber(1),
     buildingYear: genNumber(4),
     vacancyStartYear: genNumber(4),
-    dataYears: [2021],
+    dataFileYears: ['2021'],
     campaignIds: [],
     cadastralReference: '',
     vacancyReasons: [],
@@ -196,8 +196,8 @@ export function genProspect(): Prospect {
 }
 
 export function genGroup(): Group {
-  const ownerCount = faker.number.int(10);
-  const housingCount = ownerCount + faker.number.int(10);
+  const ownerCount = faker.number.int({ min: 1, max: 10 });
+  const housingCount = ownerCount + faker.number.int({ min: 1, max: 10 });
   return {
     id: randomstring.generate(),
     title: randomstring.generate(),

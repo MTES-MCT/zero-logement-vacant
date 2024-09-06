@@ -14,6 +14,8 @@ fileignoreconfig:
   checksum: 3bb7cab7d26c40e046724505a5f6dce90a9528f4f626067282ec1c6e3aa9b263
 - filename: frontend/.env.example
   checksum: 9d59fa5d5a2dd989c2aa9a06cf3ccab007df6a002cb963d63406a12ffbcfca8b
+- filename: frontend/src/App.tsx
+  checksum: 784c629ae10ac1f5ffe7911f5543df5cedd6afb35ed5a1fc6bc847072bb46e04
 - filename: frontend/src/components/Draft/DraftBody.tsx
   checksum: 6d329f083da80593e177c47abf416c37544d9255c3c4c4be226db80d7e32a690
 - filename: frontend/src/components/Draft/DraftMailInfo.tsx
@@ -50,6 +52,10 @@ fileignoreconfig:
   checksum: 6d16b338e7203dc37f64b3e00e4da0365dc35461e5c776853b55243509e3d9b9
 - filename: frontend/src/hooks/useSort.tsx
   checksum: ab84c274637d24aa7f18456c2bb32f39802d5e3afe700a052ece484a1eec46a6
+- filename: frontend/src/index.tsx
+  checksum: fc40568505868aea637f6c4648b270a5e1b5a6aecb47b35395e3b8345212d324
+- filename: frontend/src/models/Housing.tsx
+  checksum: 5e7112007ac23f068aee466a74ba16eeedba8c88183085f56b13b75662580ee5
 - filename: frontend/src/views/Account/AccountPasswordView.tsx
   checksum: 0376180bebb491936522b58a6b371356c9f5ee28eb24cbdf6b2fe5029c8e4474
 - filename: frontend/src/views/Account/ResetPasswordView.tsx
@@ -59,7 +65,7 @@ fileignoreconfig:
 - filename: frontend/src/views/Login/LoginView.test.tsx
   checksum: a1fab3ca0b731331cc1e0945e238f60ba319da577710ebeae502813623985a39
 - filename: package.json
-  checksum: bc3388c55b927b286f6e7ec0bf25c060b479eb136dd7a377443c8e99acdf7bd1
+  checksum: 89aa8f8ca7ee61039ba951b65dc090f492736a4d53b8c7132d3319a26d30cda9
 - filename: packages/api-sdk/src/infra/test/token-provider.test.ts
   checksum: c3ea87f28ca17a354e1dadf58e2832088503f258327f4620e0a23a24bb79241a
 - filename: packages/api-sdk/src/infra/token-provider.ts
@@ -113,17 +119,31 @@ fileignoreconfig:
 - filename: server/src/infra/config.ts
   checksum: 19f56261b2c4fee3c9968934ab851df11ec7c002293a4d1886d7707a373e5e33
 - filename: server/src/infra/database/procedures/001-load-housing.sql
-  checksum: f010145d04654293da6df1dfaa169b5c7079618052cc63a1fd1b8fed76047c2a
+  checksum: cbc19453d36a227bf2ee828d89f5a2dc3b3fd7af2ff5c7c7231bd4f54f611cea
 - filename: server/src/infra/database/scripts/001-load-establishments_com_epci_reg_dep.sql
   checksum: 10a08695a26495460f526ebae824fff99a56afb1f1d548aaff978e01d144f840
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
   checksum: b2db25db2503ffb08d08e232fa5aa319caa0bacca03b5af067038154bb5393ca
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
-  checksum: 85407878a244313b70b8a60b5c7d3e41c33df83629866437cbca3a309ab6e1bc
+  checksum: 6ffb0ec0fed24723e16e8ff1831cf1abb66a4035b757b30b3bee92ca54072093
 - filename: server/src/infra/database/seeds/development/20240627141242_e2e.ts
   checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
+- filename: server/src/repositories/housingRepository.ts
+  checksum: b34421a2b6224fc1bd759792616d9c8511d5c635a25dcea96550af37bbeac787
 - filename: server/src/routers/unprotected.ts
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
+- filename: server/src/scripts/deduplicate-housing/merger.ts
+  checksum: a589e20f249e86844dd07ce425c24268666f3acb9d71104838559d146327b11e
+- filename: server/src/scripts/import-lovac/infra/reporters/logger-reporter.ts
+  checksum: 0be9978df0ab004532e6b62a5aba5b1017cddeda452a7bc8813ac294cf80a4d7
+- filename: server/src/scripts/import-lovac/infra/reporters/noop-reporter.ts
+  checksum: 8b585aa52733864ebc084a4530e00754543a8946eeb931dff55c4ae3b9c34895
+- filename: server/src/scripts/import-lovac/infra/reporters/reporter.ts
+  checksum: be9af9bd164c6c32edfad797d6d8d700b10cff75187ded01ab9c049eb49063a9
+- filename: server/src/scripts/import-lovac/source-buildings/test/source-building-processor.test.ts
+  checksum: 35253e559f74a18e93af447da472a26149ac9875eabc66ab037fbe482d16fc32
+- filename: server/src/scripts/import-lovac/source-housing-owners/test/source-housing-owner-processor.test.ts
+  checksum: 3d950858f1d00233f33b7b84104cd3aa64fb5d00d4038a973455c15cc8ba7b3e
 - filename: server/src/test/testUtils.ts
   checksum: 7b398fd3f591cac34d94c9c81b1e3fd128ce09d48b849d530b4d883795b628d0
 - filename: shared/src/utils/merger.ts
@@ -132,18 +152,6 @@ fileignoreconfig:
   checksum: 96fa9978f136699921498fe90d02c495d4c1d27f47c96e64b646b219f29204c1
 - filename: yarn.lock
   checksum: 59d37f8e1ecf81439bce81f285ac09fdcf3978c64ff996c2d0e8731431ecb2c0
-scopeconfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
-- keyof
-version: "1.0"
-nfig:
-- scope: node
-allowed_patterns:
-- key=\{.+\}
-- keyof
-version: "1.0"
 scopeconfig:
 - scope: node
 allowed_patterns:

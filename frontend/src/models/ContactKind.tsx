@@ -7,7 +7,7 @@ export const CONTACT_KINDS = [
   'Mail entrant',
   'Mail sortant',
   'Retour indirect - via acteur terrain',
-  'Retour poste - NPAI',
+  'Retour poste - N’habite pas à l’adresse indiquée',
   'Visite - Rencontre',
   'Note personnelle',
 ];

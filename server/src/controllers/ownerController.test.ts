@@ -11,36 +11,35 @@ import {
   genHousingApi,
   genOwnerApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { OwnerPayloadDTO } from '@zerologementvacant/shared';
+import { AddressKinds, OwnerPayloadDTO } from '@zerologementvacant/shared';
 import {
-  EventDBO,
+  EventRecordDBO,
   Events,
   eventsTable,
   OwnerEventDBO,
-  ownerEventsTable,
+  ownerEventsTable
 } from '~/repositories/eventRepository';
 import { OwnerApi } from '~/models/OwnerApi';
 import db from '~/infra/database';
 import {
   banAddressesTable,
-  formatAddressApi,
+  formatAddressApi
 } from '~/repositories/banAddressesRepository';
-import { AddressKinds } from '@zerologementvacant/shared';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import {
   formatHousingOwnersApi,
-  HousingOwners,
+  HousingOwners
 } from '~/repositories/housingOwnerRepository';
 
 describe('Owner API', () => {
@@ -98,7 +97,7 @@ describe('Owner API', () => {
       const payload: OwnerPayloadDTO = {
         ...original,
         birthDate: original.birthDate?.toISOString().substring(0, 10),
-        phone: '+33 6 12 34 56 78',
+        phone: '+33 6 12 34 56 78'
       };
 
       const { status } = await request(app)
@@ -117,7 +116,7 @@ describe('Owner API', () => {
       const payload: OwnerPayloadDTO = {
         ...original,
         birthDate: birthDate.toISOString()?.substring(0, 10),
-        phone: '+33 6 12 34 56 78',
+        phone: '+33 6 12 34 56 78'
       };
 
       const { body, status } = await request(app)
@@ -129,7 +128,7 @@ describe('Owner API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
         ...payload,
-        birthDate: birthDate.toISOString(),
+        birthDate: birthDate.toISOString()
       });
     });
 
@@ -140,7 +139,7 @@ describe('Owner API', () => {
         ...original,
         birthDate: addDays(original.birthDate ?? new Date(), 1)
           .toISOString()
-          .substring(0, 10),
+          .substring(0, 10)
       };
 
       const { status } = await request(app)
@@ -154,18 +153,18 @@ describe('Owner API', () => {
         .join(
           ownerEventsTable,
           `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where({ owner_id: original.id });
       expect(events).toBeArrayOfSize(1);
       expect(events[0]).toMatchObject<
-        Partial<EventDBO<OwnerApi> & OwnerEventDBO>
+        Partial<EventRecordDBO<OwnerApi> & OwnerEventDBO>
       >({
         owner_id: original.id,
         name: "Modification d'identité",
         kind: 'Update',
         category: 'Ownership',
-        section: 'Coordonnées propriétaire',
+        section: 'Coordonnées propriétaire'
       });
     });
 
@@ -175,7 +174,7 @@ describe('Owner API', () => {
       const payload: OwnerPayloadDTO = {
         ...original,
         birthDate: original.birthDate?.toISOString(),
-        phone: '+33 6 12 34 56 78',
+        phone: '+33 6 12 34 56 78'
       };
 
       const { status } = await request(app)
@@ -189,17 +188,17 @@ describe('Owner API', () => {
         .join(
           ownerEventsTable,
           `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where({ owner_id: original.id });
       expect(events).toPartiallyContain<
-        Partial<EventDBO<OwnerApi> & OwnerEventDBO>
+        Partial<EventRecordDBO<OwnerApi> & OwnerEventDBO>
       >({
         owner_id: original.id,
         name: 'Modification de coordonnées',
         kind: 'Update',
         category: 'Ownership',
-        section: 'Coordonnées propriétaire',
+        section: 'Coordonnées propriétaire'
       });
     });
 
@@ -211,7 +210,7 @@ describe('Owner API', () => {
       const payload: OwnerPayloadDTO = {
         ...original,
         birthDate: original.birthDate?.toISOString(),
-        banAddress: genAddressApi(original.id, AddressKinds.Owner),
+        banAddress: genAddressApi(original.id, AddressKinds.Owner)
       };
 
       const { status } = await request(app)
@@ -225,17 +224,17 @@ describe('Owner API', () => {
         .join(
           ownerEventsTable,
           `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`,
+          `${eventsTable}.id`
         )
         .where({ owner_id: original.id });
       expect(events).toPartiallyContain<
-        Partial<EventDBO<OwnerApi> & OwnerEventDBO>
+        Partial<EventRecordDBO<OwnerApi> & OwnerEventDBO>
       >({
         owner_id: original.id,
         name: 'Modification de coordonnées',
         kind: 'Update',
         category: 'Ownership',
-        section: 'Coordonnées propriétaire',
+        section: 'Coordonnées propriétaire'
       });
     });
   });

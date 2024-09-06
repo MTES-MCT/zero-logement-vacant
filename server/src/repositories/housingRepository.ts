@@ -25,21 +25,18 @@ import { geoPerimetersTable } from './geoRepository';
 import establishmentRepository, {
   establishmentsTable
 } from './establishmentRepository';
-import { banAddressesTable } from './banAddressesRepository';
+import { AddressDBO, banAddressesTable } from './banAddressesRepository';
 import { logger } from '~/infra/logger';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { sortQuery } from '~/models/SortApi';
 import { groupsHousingTable } from './groupRepository';
-import {
-  formatHousingOwnerApi,
-  HousingOwnerDBO,
-  housingOwnersTable
-} from './housingOwnerRepository';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { housingOwnersTable } from './housingOwnerRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
 import { AddressKinds } from '@zerologementvacant/models';
+import { ReadableStream } from 'node:stream/web';
+import { Readable } from 'node:stream';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -47,17 +44,28 @@ export const buildingTable = 'buildings';
 export const Housing = (transaction = db) =>
   transaction<HousingDBO>(housingTable);
 
-export const ReferenceDataYear = 2022;
+export const ReferenceDataYear = 2023;
 
 export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
-  const dataYearsIncluded =
-    filters.dataYearsIncluded && filters.dataYearsIncluded.length > 0
-      ? filters.dataYearsIncluded
-      : Array.from(Array(ReferenceDataYear + 2).keys());
-  const maxDataYearIncluded = _.max(
-    _.without(dataYearsIncluded, ...(filters.dataYearsExcluded ?? []))
+  const dataFileYearsIncluded: string[] =
+    filters.dataFileYearsIncluded && filters.dataFileYearsIncluded.length > 0
+      ? filters.dataFileYearsIncluded
+      : Array.from(Array(ReferenceDataYear + 2).keys()).map(
+          (value) => `lovac-${value}`
+        );
+  const maxDataFileYearIncluded = _.max(
+    _.without(
+      dataFileYearsIncluded.map((yearString) =>
+        parseInt(yearString.split('-')[1])
+      ),
+      ...(filters.dataFileYearsExcluded?.map((yearString) =>
+        parseInt(yearString.split('-')[1])
+      ) ?? [])
+    )
   );
-  return maxDataYearIncluded ? maxDataYearIncluded - 1 : ReferenceDataYear;
+  return maxDataFileYearIncluded
+    ? maxDataFileYearIncluded - 1
+    : ReferenceDataYear;
 };
 
 interface FindOptions extends PaginationOptions {
@@ -91,6 +99,11 @@ type StreamOptions = FindOptions & {
   includes: HousingInclude[];
 };
 
+/**
+ * @deprecated Should be replaced by {@link betterStream} to get out of
+ * the highland library, and allow `opts` to be optional.
+ * @param opts
+ */
 function stream(opts: StreamOptions): Highland.Stream<HousingApi> {
   return highland(fetchGeoCodes(opts.filters?.establishmentIds ?? []))
     .flatMap((geoCodes) => {
@@ -111,23 +124,17 @@ function stream(opts: StreamOptions): Highland.Stream<HousingApi> {
     .map(parseHousingApi);
 }
 
-async function countVacant(): Promise<number> {
-  const value = await db(housingTable)
-    .countDistinct(`${housingTable}.id`)
-    .modify(whereVacant());
-
-  return Number(value[0].count);
-}
-
-function whereVacant(year: number = ReferenceDataYear) {
-  return (query: Knex.QueryBuilder) =>
-    query
-      .andWhere({
-        occupancy: OccupancyKindApi.Vacant
-      })
-      .andWhere('vacancy_start_year', '<=', year - 2)
-      .andWhereRaw('data_years && ?::integer[]', [[year]])
-      .andWhereRaw('NOT(data_years && ?::integer[])', [[year + 1]]);
+function betterStream(
+  opts?: Pick<StreamOptions, 'filters' | 'includes'>
+): ReadableStream<HousingApi> {
+  return Readable.toWeb(
+    fastListQuery({
+      filters: opts?.filters ?? {},
+      includes: opts?.includes
+    })
+      .stream()
+      .map(parseHousingApi)
+  );
 }
 
 async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
@@ -176,10 +183,10 @@ async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
       `${buildingTable}.vacant_housing_count`,
       `${localitiesTable}.locality_kind`,
       db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.latitude else null end) as latitude_ban`
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude_dgfip, ${housingTable}.longitude_dgfip), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.latitude else null end) as latitude_ban`
       ),
       db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude, ${housingTable}.longitude), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.longitude else null end) as longitude_ban`
+        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude_dgfip, ${housingTable}.longitude_dgfip), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.longitude else null end) as longitude_ban`
       )
     )
     .where(whereOptions(opts))
@@ -216,14 +223,14 @@ interface SaveOptions {
   /**
    * @default '*' (all fields)
    */
-  merge?: Array<keyof HousingRecordApi>;
+  merge?: Array<keyof HousingRecordDBO>;
 }
 
 async function save(
   housing: HousingRecordApi,
   opts?: SaveOptions
 ): Promise<void> {
-  logger.debug('Saving housing...', { housing: housing.id });
+  logger.debug('Saving housing...', { housing });
   await saveMany([housing], opts);
   logger.info(`Housing saved.`, { housing: housing.id });
 }
@@ -246,69 +253,6 @@ async function saveMany(
       }
       return builder.onConflict(['geo_code', 'local_id']).ignore();
     });
-}
-
-/**
- * @deprecated
- * Housing records should be saved independently of their owners.
- * @see saveMany
- */
-async function saveManyWithOwner(
-  housingList: HousingApi[],
-  opts?: SaveOptions
-): Promise<void> {
-  if (!housingList.length) {
-    return;
-  }
-
-  await db.transaction(async (transaction) => {
-    await transaction(housingTable)
-      .insert(housingList.map(formatHousingRecordApi))
-      .modify((builder) => {
-        if (opts?.onConflict === 'merge') {
-          return builder.onConflict('local_id').merge();
-        }
-        return builder.onConflict('local_id').ignore();
-      });
-
-    const newHousingList: HousingApi[] = await transaction(housingTable)
-      .whereIn(
-        'local_id',
-        housingList.map((h) => h.localId)
-      )
-      .then((results) =>
-        housingList.map(
-          (h) => <HousingApi>fp.merge(
-              h,
-              results.find((_) => _.local_id === h.localId)
-            )
-        )
-      );
-
-    const mainOwners: HousingOwnerApi[] = newHousingList.map((housing) => ({
-      ...housing.owner,
-      rank: 1,
-      housingId: housing.id,
-      housingGeoCode: housing.geoCode
-    })) as HousingOwnerApi[];
-    // FIXME
-    const coowners: HousingOwnerApi[] = newHousingList.flatMap((housing) =>
-      housing.coowners.map((coowner) => ({
-        ...coowner,
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode
-      }))
-    );
-    const owners: HousingOwnerApi[] = fp.pipe(
-      fp.uniqBy((o: HousingOwnerApi) => o.id + o.housingId)
-    )([...mainOwners, ...coowners]);
-    const ids = newHousingList.map((housing) => housing.id);
-
-    // Owners should already be present
-    const ownersHousing: HousingOwnerDBO[] = owners.map(formatHousingOwnerApi);
-    await transaction(housingOwnersTable).whereIn('housing_id', ids).delete();
-    await transaction(housingOwnersTable).insert(ownersHousing);
-  });
 }
 
 type HousingInclude = 'owner' | 'events' | 'campaigns' | 'perimeters';
@@ -374,7 +318,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
         `left join lateral (
          select json_agg(distinct(kind)) as perimeter_kind
          from ${geoPerimetersTable} perimeter
-         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))
+         where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))
        ) perimeters on true`
       )
   };
@@ -468,11 +412,11 @@ export function queryOwnerHousingWhereClause(
           query?.split(' ').reverse().join(' ')
         );
         whereBuilder.orWhereRaw(
-          `replace(upper(unaccent(array_to_string(${housingTable}.raw_address, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
+          `replace(upper(unaccent(array_to_string(${housingTable}.address_dgfip, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
           query
         );
         whereBuilder.orWhereRaw(
-          `upper(unaccent(array_to_string(${ownerTable}.raw_address, '%'))) like '%' || upper(unaccent(?)) || '%'`,
+          `upper(unaccent(array_to_string(${ownerTable}.address_dgfip, '%'))) like '%' || upper(unaccent(?)) || '%'`,
           query
         );
       }
@@ -835,14 +779,14 @@ function filteredQuery(opts: ListQueryOptions) {
           .whereIn('kind', filters.geoPerimetersExcluded);
       });
     }
-    if (filters.dataYearsIncluded?.length) {
-      queryBuilder.whereRaw('data_years && ?::integer[]', [
-        filters.dataYearsIncluded
+    if (filters.dataFileYearsIncluded?.length) {
+      queryBuilder.whereRaw('data_file_years && ?::text[]', [
+        filters.dataFileYearsIncluded
       ]);
     }
-    if (filters.dataYearsExcluded?.length) {
-      queryBuilder.whereRaw('not(data_years && ?::integer[])', [
-        filters.dataYearsExcluded
+    if (filters.dataFileYearsExcluded?.length) {
+      queryBuilder.whereRaw('not(data_file_years && ?::text[])', [
+        filters.dataFileYearsExcluded
       ]);
     }
     if (filters.statusList?.length) {
@@ -864,12 +808,12 @@ const housingSortQuery = (sort?: HousingSortApi) =>
       owner: (query) => query.orderBy(`${ownerTable}.full_name`, sort?.owner),
       rawAddress: (query) => {
         query
-          .orderBy(`${housingTable}.raw_address[2]`, sort?.rawAddress)
+          .orderBy(`${housingTable}.address_dgfip[2]`, sort?.rawAddress)
           .orderByRaw(
-            `array_to_string(((string_to_array(${housingTable}."raw_address"[1], ' '))[2:]), '') ${sort?.rawAddress}`
+            `array_to_string(((string_to_array(${housingTable}."address_dgfip"[1], ' '))[2:]), '') ${sort?.rawAddress}`
           )
           .orderByRaw(
-            `(string_to_array(${housingTable}."raw_address"[1], ' '))[1] ${sort?.rawAddress}`
+            `(string_to_array(${housingTable}."address_dgfip"[1], ' '))[1] ${sort?.rawAddress}`
           );
       },
       occupancy: (query) =>
@@ -892,15 +836,20 @@ async function fetchGeoCodes(establishmentIds: string[]): Promise<string[]> {
 }
 
 export interface HousingRecordDBO {
-  // In the same order as the database
   id: string;
+  /**
+   * @deprecated See {@link local_id}
+   */
   invariant: string;
   local_id: string;
   building_id?: string;
-  raw_address: string[];
+  building_group_id?: string;
+  plot_id?: string;
   geo_code: string;
-  longitude?: number;
-  latitude?: number;
+  address_dgfip: string[];
+  longitude_dgfip?: number;
+  latitude_dgfip?: number;
+  geolocation?: string;
   cadastral_classification?: number;
   uncomfortable: boolean;
   vacancy_start_year?: number;
@@ -912,43 +861,51 @@ export interface HousingRecordDBO {
   mutation_date?: Date;
   taxed?: boolean;
   vacancy_reasons?: string[];
+  /**
+   * @deprecated See {@link data_file_years}
+   */
   data_years: number[];
+  /**
+   * @example ['ff-2023', 'lovac-2024']
+   */
+  data_file_years?: string[];
+  data_source: HousingSource | null;
   beneficiary_count?: number;
   building_location?: string;
   rental_value?: number;
-  ownership_kind?: OwnershipKindsApi;
+  condominium?: OwnershipKindsApi;
   status: HousingStatusApi;
-  sub_status?: string;
+  sub_status?: string | null;
   precisions?: string[];
-  energy_consumption?: EnergyConsumptionGradesApi;
   occupancy: OccupancyKindApi;
-  occupancy_registered: OccupancyKindApi;
+  occupancy_source: OccupancyKindApi;
   occupancy_intended?: OccupancyKindApi;
-  plot_id?: string;
-  energy_consumption_at?: Date;
-  building_group_id?: string;
-  source: string | null;
+  energy_consumption_bdnb?: EnergyConsumptionGradesApi;
+  energy_consumption_at_bdnb?: Date;
 }
 
 export interface HousingDBO extends HousingRecordDBO {
-  latitude_ban?: number;
-  longitude_ban?: number;
+  housing_count?: number;
+  vacant_housing_count?: number;
+  latitude?: number;
+  longitude?: number;
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;
-  owner_ban_address?: Pick<
-    OwnerDBO,
-    'postal_code' | 'house_number' | 'street' | 'city' | 'score'
-  >;
-  coowners: OwnerDBO[];
-  // TODO: fix this
-  [key: string]: any;
+  owner_ban_address?: AddressDBO;
+  locality_kind?: string;
+  geo_perimeters?: string[];
+  campaign_ids?: string[];
+  contact_count?: number;
+  last_contact?: Date | string;
+  // TODO: fix and fill this type
 }
 
 export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   id: housing.id,
-  invariant: housing.invariant,
+  invariant: housing.local_id,
   localId: housing.local_id,
+  plotId: housing.plot_id,
   buildingGroupId: housing.building_group_id,
   buildingHousingCount: housing.housing_count,
   buildingId: housing.building_id,
@@ -960,10 +917,12 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
       )
     : undefined,
   buildingYear: housing.building_year,
-  rawAddress: housing.raw_address,
+  rawAddress: housing.address_dgfip,
+  beneficiaryCount: housing.beneficiary_count,
+  rentalValue: housing.rental_value,
   geoCode: housing.geo_code,
-  longitude: housing.longitude_ban ?? housing.longitude,
-  latitude: housing.latitude_ban ?? housing.latitude,
+  longitude: housing.longitude,
+  latitude: housing.latitude,
   cadastralClassification: housing.cadastral_classification,
   uncomfortable: housing.uncomfortable,
   vacancyStartYear: housing.vacancy_start_year,
@@ -974,28 +933,31 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   taxed: housing.taxed,
   vacancyReasons: housing.vacancy_reasons ?? undefined,
   dataYears: housing.data_years,
-  ownershipKind: getOwnershipKindFromValue(housing.ownership_kind),
+  dataFileYears: housing.data_file_years ?? [],
+  ownershipKind: getOwnershipKindFromValue(housing.condominium),
   status: housing.status,
   subStatus: housing.sub_status ?? undefined,
   precisions: housing.precisions ?? undefined,
-  energyConsumption: housing.energy_consumption,
-  energyConsumptionAt: housing.energy_consumption_at,
+  energyConsumption: housing.energy_consumption_bdnb,
+  energyConsumptionAt: housing.energy_consumption_at_bdnb,
   occupancy: housing.occupancy,
-  occupancyRegistered: housing.occupancy_registered,
+  occupancyRegistered: housing.occupancy_source,
   occupancyIntended: housing.occupancy_intended,
   localityKind: housing.locality_kind,
   geoPerimeters: housing.geo_perimeters,
   owner: housing.owner
     ? parseOwnerApi({
         ...housing.owner,
-        ...housing.owner_ban_address
+        ...housing.owner_ban_address,
+        ban: housing.owner_ban_address
       })
     : undefined,
-  coowners: [],
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
   contactCount: Number(housing.contact_count),
-  lastContact: housing.last_contact,
-  source: housing.source as HousingSource,
+  lastContact: housing.last_contact
+    ? new Date(housing.last_contact)
+    : undefined,
+  source: housing.data_source,
   mutationDate: housing.mutation_date ?? null
 });
 
@@ -1005,14 +967,19 @@ export const formatHousingRecordApi = (
   id: housingRecordApi.id,
   invariant: housingRecordApi.invariant,
   local_id: housingRecordApi.localId,
+  plot_id: housingRecordApi.plotId,
   building_id: housingRecordApi.buildingId,
   building_group_id: housingRecordApi.buildingGroupId,
   building_location: housingRecordApi.buildingLocation,
   building_year: housingRecordApi.buildingYear,
-  raw_address: housingRecordApi.rawAddress,
+  address_dgfip: housingRecordApi.rawAddress,
+  longitude_dgfip: housingRecordApi.longitude,
+  latitude_dgfip: housingRecordApi.latitude,
+  rental_value: housingRecordApi.rentalValue,
+  beneficiary_count: housingRecordApi.beneficiaryCount,
+  geolocation: housingRecordApi.geolocation,
+  mutation_date: housingRecordApi.mutationDate ?? undefined,
   geo_code: housingRecordApi.geoCode,
-  longitude: housingRecordApi.longitude,
-  latitude: housingRecordApi.latitude,
   cadastral_classification: housingRecordApi.cadastralClassification,
   uncomfortable: housingRecordApi.uncomfortable,
   vacancy_start_year: housingRecordApi.vacancyStartYear,
@@ -1022,28 +989,28 @@ export const formatHousingRecordApi = (
   cadastral_reference: housingRecordApi.cadastralReference,
   vacancy_reasons: housingRecordApi.vacancyReasons,
   taxed: housingRecordApi.taxed,
-  ownership_kind: housingRecordApi.ownershipKind,
+  condominium: housingRecordApi.ownershipKind,
   data_years: housingRecordApi.dataYears,
+  data_file_years: housingRecordApi.dataFileYears,
   status: housingRecordApi.status,
   sub_status: housingRecordApi.subStatus,
   precisions: housingRecordApi.precisions,
-  energy_consumption: housingRecordApi.energyConsumption,
-  energy_consumption_at: housingRecordApi.energyConsumptionAt,
+  energy_consumption_bdnb: housingRecordApi.energyConsumption,
+  energy_consumption_at_bdnb: housingRecordApi.energyConsumptionAt,
   occupancy: housingRecordApi.occupancy,
-  occupancy_registered: housingRecordApi.occupancyRegistered,
+  occupancy_source: housingRecordApi.occupancyRegistered,
   occupancy_intended: housingRecordApi.occupancyIntended,
-  source: housingRecordApi.source
+  data_source: housingRecordApi.source
 });
 
 export default {
   find,
   findOne,
   stream,
+  betterStream,
   count,
-  countVacant,
   update,
   save,
   saveMany,
-  saveManyWithOwner,
   remove
 };

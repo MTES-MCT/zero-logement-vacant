@@ -7,17 +7,3 @@ RewriteRule ^ - [L]
 
 # If the requested resource doesn't exist, use index.html
 RewriteRule ^ /index.html
-
-# Redirection de l'ancienne URL de base vers la nouvelle
-
-RewriteCond %{HTTP_HOST} ^zerologementvacant\.beta\.gouv\.fr$ [NC]
-RewriteRule ^connexion$ https://zlv.beta.gouv.fr/connexion [R=301,L]
-RewriteRule ^parc-de-logements$ https://zlv.beta.gouv.fr/parc-de-logements [R=301,L]
-RewriteRule ^logements$ https://zlv.beta.gouv.fr/logements [R=301,L]
-RewriteRule ^proprietaires$ https://zlv.beta.gouv.fr/proprietaires [R=301,L]
-RewriteRule ^campagnes$ https://zlv.beta.gouv.fr/campagnes [R=301,L]
-RewriteRule ^groupes$ https://zlv.beta.gouv.fr/groupes [R=301,L]
-RewriteRule ^ressources$ https://zlv.beta.gouv.fr/ressources [R=301,L]
-
-RewriteCond %{HTTP_HOST} ^zerologementvacant\.beta\.gouv\.fr$ [NC]
-RewriteRule ^(.*)$ https://zlv.beta.gouv.fr/$1 [R=301,L]

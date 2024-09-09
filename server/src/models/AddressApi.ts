@@ -8,7 +8,7 @@ export interface AddressApi extends AddressDTO {
 export interface AddressToNormalize {
   refId: string;
   addressKind: AddressKinds;
-  rawAddress: string[];
+  addressDGFIP: string[];
   geoCode?: string;
 }
 

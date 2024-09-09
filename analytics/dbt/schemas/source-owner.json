@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SourceOwner",
+  "definitions": {
+    "SourceOwner": {
+      "type": "object",
+      "properties": {
+        "idpersonne": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "dgfip_address": {
+          "type": "string"
+        },
+        "data_source": {
+          "type": "string"
+        },
+        "kind_class": {
+          "type": "string"
+        },
+        "birth_date": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "administrator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "siren": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ban_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "idpersonne",
+        "full_name",
+        "dgfip_address",
+        "data_source",
+        "kind_class",
+        "birth_date",
+        "administrator",
+        "siren",
+        "ban_address"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

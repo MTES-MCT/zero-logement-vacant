@@ -1,0 +1,6 @@
+version: 2
+
+models:
+  - name: marts_stats_monthly_campains
+  - name: marts_stats_monthly_global
+  - name: marts_stats_monthly_signup

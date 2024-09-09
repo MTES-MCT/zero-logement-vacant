@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: stg_production_events
+  - name: stg_production_old_events
+  - name: stg_production_housing_events
+  - name: stg_production_owners
+  - name: stg_production_housing
+  - name: stg_production_users

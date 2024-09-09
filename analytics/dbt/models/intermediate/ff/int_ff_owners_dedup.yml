@@ -1,8 +1,0 @@
-version: 2
-
-
-models:
-  - name: int_ff_owners_dedup
-    +enabled: false
-    description: "Description de ce que fait le modèle lovac, par exemple, analyse des locaux vacants."
-    

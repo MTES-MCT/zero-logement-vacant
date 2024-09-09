@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SourceHousingOwner",
+  "definitions": {
+    "SourceHousingOwner": {
+      "type": "object",
+      "properties": {
+        "local_id": {
+          "type": "string"
+        },
+        "idpersonne": {
+          "type": "string"
+        },
+        "idprocpte": {
+          "type": "string"
+        },
+        "idprodroit": {
+          "type": "string"
+        },
+        "ownership_type": {
+          "type": "string"
+        },
+        "ownership_score": {
+          "type": "number"
+        },
+        "ownership_score_reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "local_id",
+        "idpersonne",
+        "idprocpte",
+        "idprodroit",
+        "ownership_type",
+        "ownership_score",
+        "ownership_score_reason"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

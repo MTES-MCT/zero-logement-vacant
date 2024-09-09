@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: int_production_events
+  - name: int_production_housing
+  - name: int_production_last_housing_status
+  - name: int_production_owners
+  - name: int_production_establishments
+  - name: int_production_establishments_housing
+  - name: int_production_establishments_localities

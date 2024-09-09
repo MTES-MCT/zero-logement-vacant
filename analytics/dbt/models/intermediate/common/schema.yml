@@ -2,6 +2,7 @@ version: 2
 
 models:
   - name: int_common_cities
+  - name: int_common_cities_mapping
   - name: int_common_spine_days 
   - name: int_common_spine_months 
   - name: int_common_spine_years

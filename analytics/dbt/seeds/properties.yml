@@ -22,3 +22,36 @@ seeds:
   - name: prenom
     config:
       delimiter: ","
+
+  - name: tlv_cities
+    config:
+      delimiter: ";"
+      +header: true
+  - name: departement_france
+    config:
+      delimiter: ","
+      +header: true
+
+  - name: cities
+    config:
+      delimiter: ","
+      +header: true
+
+  - name: article_232_1
+    config:
+      +header: true
+
+  - name: article_232_2
+    config:
+      +header: true
+
+
+  - name: ngeo-anct-cog2023
+    config:
+      +header: true
+
+  - name: opah
+    config:
+      +header: true
+
+

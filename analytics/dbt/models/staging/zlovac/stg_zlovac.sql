@@ -10,7 +10,7 @@ cleaned_data AS (
         ff_idbat AS building_id,
 		ff_idpar AS plot_id,
 		ff_idsec AS section_id,
-        loc_num AS loc_num,
+        loc_num AS loc_num, -- TODO: Concatener loc_num + loc_voie + libvoie + libcom
 		ban_result_score,
 		ban_result_label,
 		ban_postcode,
@@ -18,6 +18,7 @@ cleaned_data AS (
         ff_idcom AS ff_idcom,
 		TRY_CAST(ban_latitude as DOUBLE) AS ban_latitude,
 		TRY_CAST(ban_longitude as DOUBLE) AS ban_longitude,
+        REGEXP_REPLACE(trim(REGEXP_REPLACE(libvoie || ' ' || libcom,'^\s*0+', '')), ' {2,}', ' ') as dgfip_address,
         CONCAT_WS(ltrim(trim(libvoie), '0'), trim(libcom)) AS raw_address,
         lpad(ccodep, 2, '0') || lpad(commune, 3, '0') AS geo_code,  
 		TRY_CAST(ff_y AS DOUBLE) AS y,
@@ -44,7 +45,10 @@ cleaned_data AS (
         try_strptime(anmutation, '{{ var("dateFormat") }}') AS mutation_date,
 		ff_jdatat,
 		ffh_jdatat,
-        txtlv AS taxed,
+        CASE
+            WHEN potentiel_tlv_thlv = '*' THEN TRUE
+            ELSE FALSE
+        END AS taxed,
         ff_ndroit AS beneficiary_count,
         batloc AS building_location,
         vlcad AS rental_value,
@@ -53,8 +57,8 @@ cleaned_data AS (
         TRY_CAST(groupe AS INTEGER) as groupe,
         debutvacance AS vacancy_start_year,
         aff as aff,
-        potentiel_tlv_thlv,
-        vl_revpro,
+        CAST(vl_revpro AS INTEGER) as vl_revpro,
+        potentiel_tlv_thlv, 
         ff_geomloc,
 		-- DVF
 		dvf_datemut,
@@ -107,6 +111,12 @@ cleaned_data AS (
 		ff_idprodroit_4 as ff_owner_4_idprodroit,
 		ff_idprodroit_5 as ff_owner_5_idprodroit,
 		ff_idprodroit_6 as ff_owner_6_idprodroit,
+        ff_locprop_1 as ff_owner_1_locprop,
+        ff_locprop_2 as ff_owner_2_locprop,
+        ff_locprop_3 as ff_owner_3_locprop,
+        ff_locprop_4 as ff_owner_4_locprop,
+        ff_locprop_5 as ff_owner_5_locprop,
+        ff_locprop_6 as ff_owner_6_locprop,
         upper(ff_ddenom_1) as ff_owner_1_fullname,
         upper(ff_ddenom_2) as ff_owner_2_fullname,
         upper(ff_ddenom_3) as ff_owner_3_fullname,
@@ -146,5 +156,7 @@ cleaned_data AS (
 )
 
 SELECT * FROM cleaned_data
+QUALIFY 
+    ROW_NUMBER() OVER (PARTITION BY local_id ORDER BY mutation_date DESC) = 1
 -- LIMIT 10000
 

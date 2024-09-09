@@ -2,13 +2,20 @@ name: Data Stack CI
 
 on:
   push:
-    paths:
-      - analytics/**
 
 jobs:
   deploy-dagster:
     uses: ./.github/workflows/deploy.yml
     with:
-      app: dagster-production
-      branch: main
+      app: Dagster (Production)
+      alias: dagster-production
+      branch: feat/data-*
+    secrets: inherit
+
+  deploy-metabase:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      app: Production - Metabase
+      alias: metabase-production
+      branch: feat/data-*
     secrets: inherit

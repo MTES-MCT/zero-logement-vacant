@@ -1,8 +1,5 @@
 version: '3.8'
 
-x-meltano-env: &meltano-env
-  MELTANO_DATABASE_URI: postgresql://meltano:meltano@meltano-db/meltano
-
 
 services:
   dagster:
@@ -18,37 +15,6 @@ services:
       - 3000
     ports:
       - 3000:3000
-
-  meltano-ui:
-    build: 
-      context: meltano/
-      dockerfile: Dockerfile
-    environment:
-      <<: *meltano-env
-    volumes:
-      - meltano_elt_logs_data:/project/.meltano/logs/elt
-    expose:
-      - 5001
-    ports:
-      - 5001:5000
-    depends_on:
-      - meltano-db
-
-    restart: unless-stopped
-  meltano-db:
-    image: postgres
-    environment:
-      POSTGRES_USER: meltano
-      POSTGRES_PASSWORD: meltano
-      POSTGRES_DB: meltano
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - meltano_postgresql_data:/var/lib/postgresql/data
-    expose:
-      - 54323
-    ports:
-      - 54323:5432
-    restart: unless-stopped
     
   postgres:
     image: postgres:latest
@@ -64,10 +30,40 @@ services:
       - POSTGRES_DB=${DAGSTER_PG_DB}
     volumes:
       - dagster-postgres:/var/lib/postgresql/data
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    hostname: metabase
+    volumes:
+      - /dev/urandom:/dev/random:ro
+    ports:
+      - 3000:3000
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=metabaseappdb
+      - MB_DB_PORT=5432
+      - MB_DB_USER=metabase
+      - MB_DB_PASS=${METABASE_PASSWORD}
+      - MB_DB_HOST=postgres
+    networks:
+      - metanet1
+    healthcheck:
+      test: curl --fail -I http://localhost:3000/api/health || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 5
+  meta-postgres:
+    image: postgres:latest
+    container_name: postgres
+    hostname: postgres
+    environment:
+      - POSTGRES_USER=metabase
+      - POSTGRES_DB=metabaseappdb
+      - POSTGRES_PASSWORD=${METABASE_PASSWORD}
+    networks:
+      - metanet1
 volumes:
   dagster-postgres:
     driver: local
-  meltano_postgresql_data:
-    driver: local
-  meltano_elt_logs_data:
-    driver: local
+

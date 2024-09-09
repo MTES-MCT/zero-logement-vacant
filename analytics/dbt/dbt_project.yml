@@ -11,6 +11,7 @@ profile: 'duckdb_profile'
 
 vars:
   dateFormat: '%d/%m/%Y'
+  startDate: '2020-01-01'
 
 seeds:
   zlv_dbt_project:
@@ -34,11 +35,11 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   zlv_dbt_project:
     staging:
-      +schema: stg
+      schema: stg
       +materialized: view
     intermediate:
-      +schema: int
-      +materialized: table
+      schema: int
+      +materialized: view
     marts:
-      +schema: mart
+      schema: marts
       +materialized: table

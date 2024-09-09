@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SourceHousing",
+  "definitions": {
+    "SourceHousing": {
+      "type": "object",
+      "properties": {
+        "local_id": {
+          "type": "string"
+        },
+        "geo_code": {
+          "type": "string"
+        },
+        "data_file_years": {
+          "type": "string"
+        },
+        "data_source": {
+          "type": "string"
+        },
+        "building_id": {
+          "type": "string"
+        },
+        "plot_id": {
+          "type": "string"
+        },
+        "dgfip_address": {
+          "type": "string"
+        },
+        "dgfip_latitude": {
+          "type": "number"
+        },
+        "dgfip_longitude": {
+          "type": "number"
+        },
+        "location_detail": {
+          "type": "string"
+        },
+        "ban_address": {
+          "type": "string"
+        },
+        "ban_score": {
+          "type": "string"
+        },
+        "ban_latitude": {
+          "type": "number"
+        },
+        "ban_longitude": {
+          "type": "number"
+        },
+        "housing_kind": {
+          "type": "string"
+        },
+        "condominium": {
+          "type": "string"
+        },
+        "rooms_count": {
+          "type": "number"
+        },
+        "building_year": {
+          "type": "number"
+        },
+        "uncomfortable": {
+          "type": "boolean"
+        },
+        "cadastral_classification": {
+          "type": "number"
+        },
+        "beneficiary_count": {
+          "type": "number"
+        },
+        "rental_value": {
+          "type": "number"
+        },
+        "living_area": {
+          "type": "number"
+        },
+        "taxed": {
+          "type": "boolean"
+        },
+        "vacancy_start_year": {
+          "type": "number"
+        },
+        "mutation_date": {
+          "type": "string"
+        },
+        "occupancy_source": {
+          "type": "string"
+        },
+        "bdnb_building_group_id": {
+          "type": "string"
+        },
+        "bdnb_energy_consumption": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bdnb_energy_consumption_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "local_id",
+        "geo_code",
+        "data_file_years",
+        "data_source",
+        "building_id",
+        "plot_id",
+        "dgfip_address",
+        "dgfip_latitude",
+        "dgfip_longitude",
+        "location_detail",
+        "ban_address",
+        "ban_score",
+        "ban_latitude",
+        "ban_longitude",
+        "housing_kind",
+        "condominium",
+        "rooms_count",
+        "building_year",
+        "uncomfortable",
+        "cadastral_classification",
+        "beneficiary_count",
+        "rental_value",
+        "living_area",
+        "taxed",
+        "vacancy_start_year",
+        "mutation_date",
+        "occupancy_source",
+        "bdnb_building_group_id",
+        "bdnb_energy_consumption",
+        "bdnb_energy_consumption_at"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,17 +1,17 @@
--- Missing columns  vacancy_reasons, data_years, status, sub_status, precisions, energy_consumption, energy_consumption_worst, occupancy_registered, occupancy, occupancy_intended, plot_id
-
 SELECT 
-    NULL as	owner_id,
-    NULL as	housing_id,
 	ownership_score,
     local_id,
-    ff_owner_idpersonne,
+    ff_owner_idpersonne as "idpersonne",
 	ownership_score_reason,
-	conflict,
+	IF(ownership_score > 2, FALSE, TRUE) as "conflict",
     owner_birth_date,
     owner_fullname,
     owner_postal_code,
-    ff_owner_idprodroit,
-    ff_owner_idprocpte,
-    rank
+    ff_owner_idprodroit as "idprodroit",
+    ff_owner_idprocpte as "idprocpte",
+    ff_owner_locprop as "locprop",
+    rank, 
+    geo_code,
+    old_rank
     FROM {{ ref('int_zlovac_owner_housing') }}
+    ORDER BY local_id ASC

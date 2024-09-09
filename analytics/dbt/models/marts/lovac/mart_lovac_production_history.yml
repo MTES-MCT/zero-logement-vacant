@@ -1,0 +1,4 @@
+version: 2
+
+models:
+  - name: mart_lovac_production_history

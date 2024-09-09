@@ -6,3 +6,4 @@ sources:
     schema: main
     tables:
       - name: raw_ff_owners
+      - name: raw_ff_2023

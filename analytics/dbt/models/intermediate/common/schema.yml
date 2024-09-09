@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: int_common_cities
+  - name: int_common_cities_mapping
+  - name: int_common_spine_days 
+  - name: int_common_spine_months 
+  - name: int_common_spine_years
+  - name: int_common_ngeo_anct_cog_2023
+  - name: int_common_opah
+  - name: int_common_article_232_2
+  - name: int_common_article_232_1

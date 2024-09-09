@@ -1,0 +1,54 @@
+version: "3.9"
+services:
+  metabase:
+    build:
+      context: .
+      dockerfile: Dockerfile.metabase
+    container_name: metabase
+    hostname: metabase
+    volumes:
+      - /dev/urandom:/dev/random:ro
+      - ./plugins:/home/plugins
+      - ./dbt/database_name.duckdb:/dev/database_name.duckdb
+      - ./metabase.duckdb:/dev/metabase.duckdb
+    ports:
+      - 3000:3000
+    environment:
+      - MB_PLUGINS_DIR=/home/plugins
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=metabase
+      - MB_DB_PORT=5432
+      - MB_DB_USER=metabase
+      - MB_DB_PASS=metabase
+      - MB_DB_HOST=postgres
+    networks:
+      - metanet1
+    secrets:
+      - db_password
+      - db_user
+    healthcheck:
+      test: curl --fail -I http://localhost:3000/api/health || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 5
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    hostname: postgres
+    environment:
+      POSTGRES_USER: metabase
+      POSTGRES_DB: metabase
+      POSTGRES_PASSWORD: metabase
+    networks:
+      - metanet1
+    secrets:
+      - db_password
+      - db_user
+networks:
+  metanet1:
+    driver: bridge
+secrets:
+  db_password:
+    file: db_password.txt
+  db_user:
+    file: db_user.txt

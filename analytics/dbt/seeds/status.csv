@@ -1,0 +1,7 @@
+status,old,new
+0,Jamais contacté,Non-suivi
+1,En attente de retour,En attente de retour
+2,Premier contact,Premier contact
+3,Suivi en cours,Suivi en cours
+4,Non-vacant,Suivi terminé
+5,Bloqué,Bloqué

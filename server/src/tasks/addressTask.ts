@@ -23,7 +23,7 @@ const run = async (): Promise<void> => {
   worksheet.columns = [
     { header: 'addressId', key: 'addressId' },
     { header: 'addressKind', key: 'addressKind' },
-    { header: 'rawAddress', key: 'rawAddress' },
+    { header: 'addressDGFIP', key: 'addressDGFIP' },
     { header: 'geoCode', key: 'geoCode' },
   ];
 
@@ -33,7 +33,7 @@ const run = async (): Promise<void> => {
       .map((address) => ({
         addressId: address.refId,
         addressKind: address.addressKind,
-        rawAddress: address.rawAddress.join(' '),
+        address_dgfip: address.addressDGFIP.join(' '),
         geoCode: address.geoCode ?? '',
       })),
   );

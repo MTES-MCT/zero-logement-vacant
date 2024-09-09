@@ -23,7 +23,7 @@ const run = async (): Promise<void> => {
   worksheet.columns = [
     { header: 'addressId', key: 'addressId' },
     { header: 'addressKind', key: 'addressKind' },
-    { header: 'rawAddress', key: 'rawAddress' },
+    { header: 'addressDGFIP', key: 'addressDGFIP' },
     { header: 'geoCode', key: 'geoCode' },
   ];
 
@@ -33,7 +33,7 @@ const run = async (): Promise<void> => {
       .map((address) => ({
         addressId: address.refId,
         addressKind: address.addressKind,
-        rawAddress: address.rawAddress.join(' '),
+        addressDGFIP: address.addressDGFIP.join(' '),
         geoCode: address.geoCode ?? '',
       })),
   );
@@ -46,7 +46,7 @@ const run = async (): Promise<void> => {
       const form = new FormData();
       form.append('data', fs.createReadStream(tmpCsvFileName));
       form.append('citycode', 'geoCode');
-      form.append('columns', 'rawAddress');
+      form.append('columns', 'addressDGFIP');
       form.append('result_columns', 'result_type');
       form.append('result_columns', 'result_housenumber');
       form.append('result_columns', 'result_street');

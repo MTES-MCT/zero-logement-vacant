@@ -106,6 +106,7 @@ export default function createWorker() {
                 service: draft.sender.service,
                 firstName: draft.sender.firstName,
                 lastName: draft.sender.lastName,
+                email: draft.sender.email,
                 address: draft.sender.address,
                 phone: draft.sender.phone,
                 signatoryLastName: draft.sender.signatoryLastName,

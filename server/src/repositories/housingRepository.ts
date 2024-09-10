@@ -887,8 +887,6 @@ export interface HousingRecordDBO {
 export interface HousingDBO extends HousingRecordDBO {
   housing_count?: number;
   vacant_housing_count?: number;
-  latitude_dgfip?: number;
-  longitude_dgfip?: number;
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;

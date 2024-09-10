@@ -53,8 +53,6 @@ export async function down(knex: Knex): Promise<void> {
       table.integer('vacancy_start_year').nullable().alter();
       table.string('cadastral_reference').nullable().alter();
       table.string('plot_id');
-    }),
-    knex.schema.table('housing', function (table) {
       table.unique(['local_id'], { indexName: 'housing_local_id_idx' });
       table.index(
         ['geo_code', 'data_years'],

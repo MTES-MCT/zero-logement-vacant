@@ -763,7 +763,7 @@ function filteredQuery(opts: ListQueryOptions) {
           .select('*')
           .from(geoPerimetersTable)
           .whereRaw(
-            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
+            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))`
           )
           .whereIn('kind', filters.geoPerimetersIncluded)
       );
@@ -774,7 +774,7 @@ function filteredQuery(opts: ListQueryOptions) {
           .select(`${geoPerimetersTable}.*`)
           .from(geoPerimetersTable)
           .whereRaw(
-            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
+            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))`
           )
           .whereIn('kind', filters.geoPerimetersExcluded);
       });
@@ -887,8 +887,8 @@ export interface HousingRecordDBO {
 export interface HousingDBO extends HousingRecordDBO {
   housing_count?: number;
   vacant_housing_count?: number;
-  latitude?: number;
-  longitude?: number;
+  latitude_dgfip?: number;
+  longitude_dgfip?: number;
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;
@@ -921,8 +921,8 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   beneficiaryCount: housing.beneficiary_count,
   rentalValue: housing.rental_value,
   geoCode: housing.geo_code,
-  longitude: housing.longitude,
-  latitude: housing.latitude,
+  longitude: housing.longitude_dgfip,
+  latitude: housing.latitude_dgfip,
   cadastralClassification: housing.cadastral_classification,
   uncomfortable: housing.uncomfortable,
   vacancyStartYear: housing.vacancy_start_year,

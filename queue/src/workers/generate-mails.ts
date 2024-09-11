@@ -1,6 +1,6 @@
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
 import archiver from 'archiver';
 import { Worker, WorkerOptions } from 'bullmq';
 import { parseRedisUrl } from 'parse-redis-url-simple';
@@ -189,20 +189,9 @@ export default function createWorker() {
 
           logger.info('Uploaded file to S3');
 
-          const command = new GetObjectCommand({
-            Bucket: config.s3.bucket,
-            Key: Key
-          });
-
-          const signedUrl = await getSignedUrl(s3, command, {
-            expiresIn: 60 * 60 * 24 * 7 // TTL: 7 days
-          });
-
-          logger.info(`Generated signed URL: ${signedUrl}`);
-
           await api.campaign.update(campaign.id, {
             ...campaign,
-            file: signedUrl
+            file: Key
           });
 
           return { id: campaign.id };

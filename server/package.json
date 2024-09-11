@@ -14,7 +14,8 @@
     "seed": "yarn db seed:run"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.577.0",
+    "@aws-sdk/client-s3": "^3.649.0",
+    "@aws-sdk/s3-request-presigner": "^3.649.0",
     "@commander-js/extra-typings": "^12.1.0",
     "@elastic/elasticsearch": "^8.13.1",
     "@faker-js/faker": "^8.4.1",
@@ -87,6 +88,7 @@
     "@jest/globals": "^29.7.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/async": "^3.2.24",
+    "@types/aws-sdk": "^2.7.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cli-progress": "^3.11.5",
     "@types/convict": "^6.1.6",
@@ -103,7 +105,7 @@
     "@types/lodash": "^4.17.4",
     "@types/memoizee": "^0.4.11",
     "@types/multer": "^1.4.11",
-    "@types/multer-s3": "^3.0.3",
+    "@types/multer-s3": "^3",
     "@types/node": "^20.12.12",
     "@types/nodemailer": "^6.4.15",
     "@types/pg": "^8.11.6",

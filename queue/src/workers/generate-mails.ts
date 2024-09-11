@@ -1,4 +1,3 @@
-import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 
 import archiver from 'archiver';

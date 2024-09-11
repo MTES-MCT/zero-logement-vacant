@@ -41,7 +41,7 @@ import CampaignStatusError from '~/errors/campaignStatusError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
 import draftRepository from '~/repositories/draftRepository';
 import DraftMissingError from '~/errors/draftMissingError';
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '~/infra/config';
 import { createS3 } from '@zerologementvacant/utils';
@@ -98,16 +98,7 @@ async function downloadCampaign(request: Request, response: Response) {
     secretAccessKey: config.s3.secretAccessKey
   });
 
-  const client = new S3Client({
-    endpoint: config.s3.endpoint,
-    region: config.s3.region,
-    credentials: {
-      accessKeyId: config.s3.accessKeyId,
-      secretAccessKey: config.s3.secretAccessKey
-    }
-  });
-
-  const signedUrl = await getSignedUrl(client, command, {
+  const signedUrl = await getSignedUrl(s3, command, {
     expiresIn: 60 * 60 // TTL: 1 hour
   });
 

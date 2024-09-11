@@ -1,5 +1,5 @@
 import { isDefined, isUndefined } from '@zerologementvacant/shared';
-import { OwnerApi } from './OwnerApi';
+import { OwnerApi, toOwnerDTO } from './OwnerApi';
 import { compare, includeSameMembers } from '~/utils/compareUtils';
 import { HousingRecordApi } from './HousingApi';
 import { HousingOwnerDTO } from '@zerologementvacant/models';
@@ -57,7 +57,7 @@ export function toHousingOwnerDTO(
   housingOwner: HousingOwnerApi
 ): HousingOwnerDTO {
   return {
-    ...housingOwner,
+    ...toOwnerDTO(housingOwner),
     id: housingOwner.ownerId,
     rank: housingOwner.rank,
     idprocpte: housingOwner.idprocpte ?? null,

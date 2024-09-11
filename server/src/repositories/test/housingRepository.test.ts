@@ -33,7 +33,7 @@ import {
   formatHousingOwnersApi,
   HousingOwners
 } from '../housingOwnerRepository';
-import { ENERGY_CONSUMPTION_GRADES, EnergyConsumptionGradesApi, HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { EnergyConsumptionGradesApi, HousingApi, OccupancyKindApi } from '~/models/HousingApi';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '~/models/LocalityApi';
 import { BuildingApi } from '~/models/BuildingApi';
@@ -55,7 +55,7 @@ import {
 } from '../establishmentRepository';
 import { formatUserApi, Users } from '../userRepository';
 import { AddressApi } from '~/models/AddressApi';
-import { AddressKinds, EnergyConsumption } from '@zerologementvacant/models';
+import { AddressKinds } from '@zerologementvacant/models';
 import {
   Addresses,
   formatAddressApi

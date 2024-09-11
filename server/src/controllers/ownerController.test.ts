@@ -3,12 +3,17 @@ import { constants } from 'http2';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import {
+  genHousingOwnerDTO,
+  HousingOwnerPayloadDTO
+} from '@zerologementvacant/models';
 import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
 import {
   genAddressApi,
   genEstablishmentApi,
   genHousingApi,
+  genHousingOwnerApi,
   genOwnerApi,
   genUserApi,
   oneOf
@@ -19,10 +24,11 @@ import {
   EventRecordDBO,
   Events,
   eventsTable,
+  housingEventsTable,
   OwnerEventDBO,
   ownerEventsTable
 } from '~/repositories/eventRepository';
-import { OwnerApi } from '~/models/OwnerApi';
+import { OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
 import db from '~/infra/database';
 import {
   banAddressesTable,
@@ -38,9 +44,13 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import {
+  formatHousingOwnerApi,
   formatHousingOwnersApi,
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { HousingApi } from '~/models/HousingApi';
+import { faker } from '@faker-js/faker/locale/fr';
 
 describe('Owner API', () => {
   const { app } = createServer();
@@ -240,12 +250,42 @@ describe('Owner API', () => {
   });
 
   describe('PUT /owners/housing/{id}', () => {
-    const testRoute = (id: string) => `/api/owners/housing/${id}`;
+    const testRoute = (id: string) => `/api/housing/${id}/owners`;
+
+    let housing: HousingApi;
+    let owners: ReadonlyArray<OwnerApi>;
+    let housingOwners: ReadonlyArray<HousingOwnerApi>;
+
+    beforeEach(async () => {
+      housing = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
+      await Housing().insert(formatHousingRecordApi(housing));
+      owners = Array.from({ length: 3 }, genOwnerApi);
+      await Owners().insert(owners.map(formatOwnerApi));
+      housingOwners = owners.map((owner, i) => {
+        return {
+          ...genHousingOwnerApi(housing, owner),
+          rank: i + 1
+        };
+      });
+      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
+    });
+
+    function createHousingOwnerPayload(
+      owner: OwnerApi,
+      rank: number
+    ): HousingOwnerPayloadDTO {
+      return {
+        ...genHousingOwnerDTO(toOwnerDTO(owner)),
+        rank
+      };
+    }
 
     it('should reject if the housing is missing', async () => {
-      const payload = {
-        // TODO
-      };
+      const payload: HousingOwnerPayloadDTO[] = owners.map((owner, i) => {
+        return createHousingOwnerPayload(owner, i + 1);
+      });
 
       const { status } = await request(app)
         .put(testRoute(uuidv4()))
@@ -253,6 +293,83 @@ describe('Owner API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should reject if one of the owners is missing', async () => {
+      const payload: HousingOwnerPayloadDTO[] = owners
+        .map((owner, i) => {
+          return createHousingOwnerPayload(owner, i + 1);
+        })
+        .concat(createHousingOwnerPayload(genOwnerApi(), owners.length + 1));
+
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    describe('If the housing owners have changed', () => {
+      it('should replace housing owners', async () => {
+        const payload = housingOwners.toReversed().map((housingOwner, i) => {
+          return { ...housingOwner, rank: i + 1 };
+        });
+
+        const { body, status } = await request(app)
+          .put(testRoute(housing.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toIncludeAllPartialMembers(
+          payload.map((housingOwner) => {
+            return {
+              id: housingOwner.id,
+              rank: housingOwner.rank
+            };
+          })
+        );
+      });
+
+      it('should create an event', async () => {
+        const payload = housingOwners.toReversed().map((housingOwner, i) => {
+          return { ...housingOwner, rank: i + 1 };
+        });
+
+        await request(app)
+          .put(testRoute(housing.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        const event = await Events()
+          .select(`${eventsTable}.*`)
+          .join(
+            housingEventsTable,
+            `${housingEventsTable}.event_id`,
+            `${eventsTable}.id`
+          )
+          .where({
+            housing_geo_code: housing.geoCode,
+            housing_id: housing.id
+          })
+          .first();
+        expect(event).toMatchObject({
+          name: 'Changement de propriétaires',
+          kind: 'Update'
+        });
+      });
+    });
+
+    it('should return 304 Not modified otherwise', async () => {
+      const payload = housingOwners;
+
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_MODIFIED);
     });
   });
 });

@@ -798,7 +798,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/lib-storage@npm:^3.46.0":
+"@aws-sdk/lib-storage@npm:^3.46.0, @aws-sdk/lib-storage@npm:^3.649.0":
   version: 3.649.0
   resolution: "@aws-sdk/lib-storage@npm:3.649.0"
   dependencies:
@@ -812,23 +812,6 @@ __metadata:
   peerDependencies:
     "@aws-sdk/client-s3": ^3.649.0
   checksum: 10c0/4e78d69473847a45a12b20f6e3c5a7c8b8a354f9eccb9c198076c978611830e0472b6947da79608f94de1b0f5630a1a2421d3f10bd9c2a5c4d2bac7934267eab
-  languageName: node
-  linkType: hard
-
-"@aws-sdk/lib-storage@npm:^3.578.0":
-  version: 3.600.0
-  resolution: "@aws-sdk/lib-storage@npm:3.600.0"
-  dependencies:
-    "@smithy/abort-controller": "npm:^3.0.1"
-    "@smithy/middleware-endpoint": "npm:^3.0.2"
-    "@smithy/smithy-client": "npm:^3.1.2"
-    buffer: "npm:5.6.0"
-    events: "npm:3.3.0"
-    stream-browserify: "npm:3.0.0"
-    tslib: "npm:^2.6.2"
-  peerDependencies:
-    "@aws-sdk/client-s3": ^3.600.0
-  checksum: 10c0/8c9a3734a2aa42847afdec73b8d923f591cda9ca80af02cb9b9d4b533f69dd4713700c8252d598b70905b256642735b07b1d36970f7958190d7859d8d67cd089
   languageName: node
   linkType: hard
 
@@ -5945,7 +5928,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/abort-controller@npm:^3.0.1, @smithy/abort-controller@npm:^3.1.0":
+"@smithy/abort-controller@npm:^3.1.0":
   version: 3.1.0
   resolution: "@smithy/abort-controller@npm:3.1.0"
   dependencies:
@@ -10245,7 +10228,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/healthcheck@workspace:packages/healthcheck"
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.577.0"
+    "@aws-sdk/client-s3": "npm:^3.649.0"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/async": "npm:^3.2.24"
     "@types/express": "npm:^4.17.21"
@@ -10292,8 +10275,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/queue@workspace:queue"
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.577.0"
-    "@aws-sdk/lib-storage": "npm:^3.578.0"
+    "@aws-sdk/client-s3": "npm:^3.649.0"
+    "@aws-sdk/lib-storage": "npm:^3.649.0"
     "@bull-board/api": "npm:5.20.2"
     "@bull-board/express": "npm:5.20.2"
     "@bull-board/ui": "npm:5.20.2"

@@ -25,8 +25,8 @@ See [ansible playbook](../../tools/import-raw-datafoncier/README.md).
 You must provide two dumps from the Datafoncier owner and housing tables.
 
 ```shell
-psql -v ON_ERROR_STOP=1 $(scalingo -a zerologementvacant env-get DATABASE_URL) -f datafoncier-owners.sql
-psql -v ON_ERROR_STOP=1 $(scalingo -a zerologementvacant env-get DATABASE_URL) -f datafoncier-housing.sql
+psql -v ON_ERROR_STOP=1 $DATABASE_URL -f datafoncier-owners.sql
+psql -v ON_ERROR_STOP=1 $DATABASE_URL -f datafoncier-housing.sql
 ```
 
 To run the script:
@@ -34,8 +34,6 @@ To run the script:
 ```shell
 # In local dev
 ts-node scripts/import-datafoncier
-# In production
-scalingo -a zerologementvacant run --detached --size XL "npm i --production=false && export DATABASE_ENV=production && ./node_modules/.bin/ts-node scripts/import-datafoncier"
 ```
 
 ## How

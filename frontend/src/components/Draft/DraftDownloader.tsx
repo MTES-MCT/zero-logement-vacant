@@ -10,7 +10,7 @@ interface Props {
 }
 
 function DraftDownloader(props: Readonly<Props>) {
-  const description = props.campaign.file?.split('/').pop()?.split('?')[0];
+  const description = props.campaign.file;
   const link = `${config.apiEndpoint}/api/campaigns/${
     props.campaign.id
   }/download?x-access-token=${authService.authHeader()?.['x-access-token']}`;

@@ -1,6 +1,9 @@
 dagster-dbt
 dbt-duckdb
-
+duckdb
 matplotlib
 pandas
 requests
+dlt[duckdb]
+
+

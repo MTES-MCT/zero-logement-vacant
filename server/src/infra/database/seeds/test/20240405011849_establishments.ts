@@ -2,20 +2,23 @@ import { Knex } from 'knex';
 
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import establishmentRepository, {
-  establishmentsTable,
+  establishmentsTable
 } from '~/repositories/establishmentRepository';
 import { establishmentsLocalitiesTable } from '~/repositories/establishmentLocalityRepository';
 import localityRepository, {
-  localitiesTable,
+  localitiesTable
 } from '~/repositories/localityRepository';
 import { genEstablishmentApi, genLocalityApi } from '~/test/testFixtures';
 
 export const Locality1: LocalityApi = genLocalityApi();
 export const Locality2: LocalityApi = {
   ...genLocalityApi(),
-  taxKind: TaxKindsApi.TLV,
+  taxKind: TaxKindsApi.TLV
 };
 
+/**
+ * Cannot remove this yet because it is used by {@link server/src/services/ceremaService/consultUserService.ts}
+ */
 export const Establishment1 = genEstablishmentApi(Locality1.geoCode);
 export const Establishment2 = genEstablishmentApi(Locality2.geoCode);
 
@@ -29,22 +32,22 @@ export async function seed(knex: Knex): Promise<void> {
       .insert(localityRepository.formatLocalityApi(Locality2)),
     knex.table(establishmentsTable).insert({
       ...establishmentRepository.formatEstablishmentApi(Establishment1),
-      available: true,
+      available: true
     }),
     knex.table(establishmentsTable).insert({
       ...establishmentRepository.formatEstablishmentApi(Establishment2),
-      available: true,
-    }),
+      available: true
+    })
   ]);
   const establishmentLocalities = [
     {
       establishment_id: Establishment1.id,
-      locality_id: Locality1.id,
+      locality_id: Locality1.id
     },
     {
       establishment_id: Establishment2.id,
-      locality_id: Locality2.id,
-    },
+      locality_id: Locality2.id
+    }
   ];
   await knex
     .table(establishmentsLocalitiesTable)

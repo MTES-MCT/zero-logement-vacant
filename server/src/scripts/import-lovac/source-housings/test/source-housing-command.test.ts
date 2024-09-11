@@ -100,10 +100,16 @@ describe('Source housing command', () => {
     );
     expect(actual).toHaveLength(nonVacantUnsupervisedHousings.length);
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
-      return housing.data_file_years.includes('lovac-2024');
+      return housing.data_file_years?.includes('lovac-2024') ?? false;
     });
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
       return housing.occupancy === OccupancyKindApi.Vacant;
+    });
+    expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
+      return housing.status === HousingStatusApi.NeverContacted;
+    });
+    expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
+      return housing.sub_status === null;
     });
   });
 
@@ -117,10 +123,10 @@ describe('Source housing command', () => {
     );
     expect(actual).toHaveLength(vacantHousings.length);
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
-      return housing.data_file_years.length >= 2;
+      return (housing.data_file_years?.length ?? 0) >= 2;
     });
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
-      return housing.data_file_years.includes('lovac-2024');
+      return housing.data_file_years?.includes('lovac-2024') ?? false;
     });
   });
 });

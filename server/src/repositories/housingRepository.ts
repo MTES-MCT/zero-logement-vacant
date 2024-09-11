@@ -44,17 +44,28 @@ export const buildingTable = 'buildings';
 export const Housing = (transaction = db) =>
   transaction<HousingDBO>(housingTable);
 
-export const ReferenceDataYear = 2022;
+export const ReferenceDataYear = 2023;
 
 export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
-  const dataYearsIncluded =
-    filters.dataYearsIncluded && filters.dataYearsIncluded.length > 0
-      ? filters.dataYearsIncluded
-      : Array.from(Array(ReferenceDataYear + 2).keys());
-  const maxDataYearIncluded = _.max(
-    _.without(dataYearsIncluded, ...(filters.dataYearsExcluded ?? []))
+  const dataFileYearsIncluded: string[] =
+    filters.dataFileYearsIncluded && filters.dataFileYearsIncluded.length > 0
+      ? filters.dataFileYearsIncluded
+      : Array.from(Array(ReferenceDataYear + 2).keys()).map(
+          (value) => `lovac-${value}`
+        );
+  const maxDataFileYearIncluded = _.max(
+    _.without(
+      dataFileYearsIncluded.map((yearString) =>
+        parseInt(yearString.split('-')[1])
+      ),
+      ...(filters.dataFileYearsExcluded?.map((yearString) =>
+        parseInt(yearString.split('-')[1])
+      ) ?? [])
+    )
   );
-  return maxDataYearIncluded ? maxDataYearIncluded - 1 : ReferenceDataYear;
+  return maxDataFileYearIncluded
+    ? maxDataFileYearIncluded - 1
+    : ReferenceDataYear;
 };
 
 interface FindOptions extends PaginationOptions {
@@ -752,7 +763,7 @@ function filteredQuery(opts: ListQueryOptions) {
           .select('*')
           .from(geoPerimetersTable)
           .whereRaw(
-            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
+            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))`
           )
           .whereIn('kind', filters.geoPerimetersIncluded)
       );
@@ -763,19 +774,19 @@ function filteredQuery(opts: ListQueryOptions) {
           .select(`${geoPerimetersTable}.*`)
           .from(geoPerimetersTable)
           .whereRaw(
-            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude, ${housingTable}.latitude), 4326))`
+            `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))`
           )
           .whereIn('kind', filters.geoPerimetersExcluded);
       });
     }
-    if (filters.dataYearsIncluded?.length) {
-      queryBuilder.whereRaw('data_years && ?::integer[]', [
-        filters.dataYearsIncluded
+    if (filters.dataFileYearsIncluded?.length) {
+      queryBuilder.whereRaw('data_file_years && ?::text[]', [
+        filters.dataFileYearsIncluded
       ]);
     }
-    if (filters.dataYearsExcluded?.length) {
-      queryBuilder.whereRaw('not(data_years && ?::integer[])', [
-        filters.dataYearsExcluded
+    if (filters.dataFileYearsExcluded?.length) {
+      queryBuilder.whereRaw('not(data_file_years && ?::text[])', [
+        filters.dataFileYearsExcluded
       ]);
     }
     if (filters.statusList?.length) {
@@ -857,14 +868,14 @@ export interface HousingRecordDBO {
   /**
    * @example ['ff-2023', 'lovac-2024']
    */
-  data_file_years: string[];
+  data_file_years?: string[];
   data_source: HousingSource | null;
   beneficiary_count?: number;
   building_location?: string;
   rental_value?: number;
   condominium?: OwnershipKindsApi;
   status: HousingStatusApi;
-  sub_status?: string;
+  sub_status?: string | null;
   precisions?: string[];
   occupancy: OccupancyKindApi;
   occupancy_source: OccupancyKindApi;
@@ -876,8 +887,6 @@ export interface HousingRecordDBO {
 export interface HousingDBO extends HousingRecordDBO {
   housing_count?: number;
   vacant_housing_count?: number;
-  latitude?: number;
-  longitude?: number;
   owner_id: string;
   owner_birth_date?: Date;
   owner?: OwnerDBO;
@@ -910,8 +919,8 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   beneficiaryCount: housing.beneficiary_count,
   rentalValue: housing.rental_value,
   geoCode: housing.geo_code,
-  longitude: housing.longitude,
-  latitude: housing.latitude,
+  longitude: housing.longitude_dgfip,
+  latitude: housing.latitude_dgfip,
   cadastralClassification: housing.cadastral_classification,
   uncomfortable: housing.uncomfortable,
   vacancyStartYear: housing.vacancy_start_year,
@@ -922,7 +931,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   taxed: housing.taxed,
   vacancyReasons: housing.vacancy_reasons ?? undefined,
   dataYears: housing.data_years,
-  dataFileYears: housing.data_file_years,
+  dataFileYears: housing.data_file_years ?? [],
   ownershipKind: getOwnershipKindFromValue(housing.condominium),
   status: housing.status,
   subStatus: housing.sub_status ?? undefined,

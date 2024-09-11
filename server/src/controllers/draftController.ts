@@ -205,6 +205,7 @@ async function preview(
       firstName: draft.sender.firstName,
       lastName: draft.sender.lastName,
       address: draft.sender.address,
+      email: draft.sender.email,
       phone: draft.sender.phone,
       signatoryLastName: draft.sender.signatoryLastName,
       signatoryFirstName: draft.sender.signatoryFirstName,

@@ -1,0 +1,2 @@
+- Checker si dans les fichiers fonciers ff_owner_1 == gdesip = 1 ?
+- Tous les propriétaires rank 1 qui matchent avec 1767 sont gdesip 1 ?

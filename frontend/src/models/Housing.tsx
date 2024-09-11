@@ -43,7 +43,7 @@ export interface Housing {
   ownershipKind: OwnershipKinds;
   buildingHousingCount?: number;
   buildingVacancyRate: number;
-  dataYears: number[];
+  dataFileYears: string[];
   campaignIds: string[];
   status: DeprecatedHousingStatus;
   subStatus?: string;
@@ -107,11 +107,6 @@ export const getBuildingLocation = (housing: Housing) => {
     } as BuildingLocation;
   }
 };
-
-export const housingSort = (h1: Housing, h2: Housing) =>
-  Math.max(...h1.dataYears) === Math.max(...h2.dataYears)
-    ? h1.invariant.localeCompare(h2.invariant)
-    : Math.max(...h1.dataYears) - Math.max(...h2.dataYears);
 
 export function byAddress(h1: Housing, h2: Housing): Compare {
   const [house1, city1] = h1.rawAddress;
@@ -230,13 +225,29 @@ export const getOccupancy = (
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
-  const year = housing.dataYears[0];
-  const map: Record<HousingSource, string> = {
-    lovac: `LOVAC ${year}`,
-    'datafoncier-manual': `Fichiers Fonciers - import manuel (${year})`,
-    'datafoncier-import': `Fichiers Fonciers - import automatique (${year})`
+  const labels: Record<string, string> = {
+    lovac: 'LOVAC',
+    ff: 'Fichiers fonciers'
   };
-  return housing.source ? map[housing.source] : 'Inconnue';
+
+  const aggregatedData: Record<string, string[]> = {};
+
+  housing.dataFileYears.forEach((item) => {
+    const [name, year] = item.split('-');
+    if (!aggregatedData[name]) {
+      aggregatedData[name] = [];
+    }
+    aggregatedData[name].push(year);
+  });
+
+  const result = Object.keys(aggregatedData)
+    .map((name) => {
+      const years = aggregatedData[name].join(', ');
+      return labels[name] + ' (' + years + ')';
+    })
+    .join(', ');
+
+  return result || 'Inconnue';
 }
 
 export function toHousingDTO(housing: Housing): HousingDTO {
@@ -258,7 +269,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     buildingYear: housing.buildingYear,
     taxed: housing.taxed,
     vacancyReasons: housing.vacancyReasons,
-    dataYears: housing.dataYears,
+    dataFileYears: housing.dataFileYears,
     buildingLocation: housing.buildingLocation,
     // TODO: fix this by making Housing extend HousingDTO
     ownershipKind: housing.ownershipKind as unknown as OwnershipKind,

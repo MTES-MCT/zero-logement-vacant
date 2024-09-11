@@ -75,6 +75,10 @@ def _process_biscom_scores(x):
 
     
 def _get_df_with_no_scores(df_owners):
+    """
+    This function aims to get the dataframe with the owners that have no scores processed.
+    That means that no owners have been matched between 1767 and FF.
+    """
     df_with_no_match =  df_owners.merge(
         df_owners.groupby("local_id")["final_owner_score"].sum().reset_index().query("final_owner_score == 0").drop("final_owner_score", axis=1), 
         on="local_id",
@@ -103,12 +107,12 @@ def _process_scores(df_owners):
     df_owners["final_owner_score"]   = df_owners.apply(lambda x: _define_score_reason(x)[0], axis=1)
     df_owners["final_owner_reason"]   = df_owners.apply(lambda x: _define_score_reason(x)[1], axis=1)
 
-    df_owners_with_no_scores = _get_df_with_no_scores(df_owners)
+    #df_owners_with_no_scores = _get_df_with_no_scores(df_owners)
     df_owners_with_scores = _get_df_with_scores(df_owners)
 
     df_owners = pd.concat([
         df_owners_with_scores,
-        df_owners_with_no_scores
+        #df_owners_with_no_scores
     ])
     return df_owners
 
@@ -129,7 +133,8 @@ def _structure_data(df):
                 f"ff_owner_{index}_postal_code",
                 f"ff_owner_{index}_birth_date", 
                 f"ff_owner_{index}_raw_address",
-                f"ff_owner_{index}_idprodroit"
+                f"ff_owner_{index}_idprodroit",
+                f"ff_owner_{index}_locprop",
                 ]
             ].assign(rank=index).rename(
             columns={
@@ -139,24 +144,51 @@ def _structure_data(df):
                 f"ff_owner_{index}_raw_address": "ff_owner_raw_address",
                 f"ff_owner_{index}_city": "ff_owner_city",
                 f"ff_owner_{index}_idprodroit": "ff_owner_idprodroit",
-            }).dropna(subset=["ff_owner_fullname"])# Drop toutes les lignes ou le nom est vide
+                f"ff_owner_{index}_locprop": "ff_owner_locprop",
+            }).dropna(subset=["ff_owner_fullname"]) # Drop toutes les lignes ou le nom est vide
     )
-        
     df = pd.concat(data)
     return df
+
+def _reprocess_rank(df_owners):
+    """
+    This function aims to reprocess the rank of the owners using the final_owner_score.
+    The rank is deduced from the final_owner_score ordering the owners by local_id and final_owner_score.
+    More the final_owner_score is high, more the rank is low.
+    """
+
+    df_owners_for_processing_rank = df_owners[["local_id", "rank", "final_owner_score"]].copy()
+    df_owners_for_processing_rank["new_rank"] = df_owners_for_processing_rank.groupby("local_id")["final_owner_score"].rank(ascending=False, method="first")
+    assert df_owners[["local_id", "rank", "final_owner_score"]].duplicated().sum() == 0, "There are duplicates in the dataframe df_owners. The rank reprocessing will not work properly."
+    assert df_owners_for_processing_rank[["local_id", "rank", "final_owner_score"]].duplicated().sum() == 0, "There are duplicates in the dataframe df_owners_for_processing_rank. The rank reprocessing will not work properly."
+
+    df_owners = df_owners.merge(df_owners_for_processing_rank, 
+                                on=["local_id", "rank", "final_owner_score"],
+                                how="left", 
+                                validate="one_to_one")
+
+    df_owners.rename(columns={"rank": "old_rank", "new_rank": "rank"}, inplace=True)
+    print("Output shape: ", df_owners.shape)
+    return df_owners
+
+
 
 def model(dbt, session):
     upstream_model = dbt.ref("int_zlovac")
     first_names_seed = dbt.ref("prenom")
 
-
     df_owners = upstream_model.to_df()
+    assert df_owners[["local_id"]].duplicated().sum() == 0, "There are duplicates in the dataframe df_owners"
+
     df_prenoms = first_names_seed.to_df()
 
     df_owners = _structure_data(df_owners)
+    assert df_owners.shape[0] > 0, "The dataframe df_owners is empty. The structure_data function is not working properly."
+    assert df_owners[["local_id", "rank"]].duplicated().sum() == 0, "There are duplicates in the dataframe df_owners at the generation"
     df_owners = _add_fuzzy_ratio(df_owners=df_owners)
     df_owners = _add_first_name_ratio(df_owners=df_owners, df_prenoms=df_prenoms)
     df_owners = _process_scores(df_owners=df_owners)
+    df_owners = _reprocess_rank(df_owners=df_owners)
 
     return df_owners
 

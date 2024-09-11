@@ -54,6 +54,8 @@ fileignoreconfig:
   checksum: ab84c274637d24aa7f18456c2bb32f39802d5e3afe700a052ece484a1eec46a6
 - filename: frontend/src/index.tsx
   checksum: fc40568505868aea637f6c4648b270a5e1b5a6aecb47b35395e3b8345212d324
+- filename: frontend/src/models/Housing.tsx
+  checksum: 5e7112007ac23f068aee466a74ba16eeedba8c88183085f56b13b75662580ee5
 - filename: frontend/src/views/Account/AccountPasswordView.tsx
   checksum: 0376180bebb491936522b58a6b371356c9f5ee28eb24cbdf6b2fe5029c8e4474
 - filename: frontend/src/views/Account/ResetPasswordView.tsx
@@ -123,19 +125,23 @@ fileignoreconfig:
 - filename: server/src/infra/database/scripts/002-load-establishments_direction_territoriale.sql
   checksum: b2db25db2503ffb08d08e232fa5aa319caa0bacca03b5af067038154bb5393ca
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
-  checksum: 85407878a244313b70b8a60b5c7d3e41c33df83629866437cbca3a309ab6e1bc
+  checksum: 6ffb0ec0fed24723e16e8ff1831cf1abb66a4035b757b30b3bee92ca54072093
 - filename: server/src/infra/database/seeds/development/20240627141242_e2e.ts
   checksum: 56a46923a8cffefb7e70949b80718dc56ae2f3dd28f5057cb102461fe2fa10eb
+- filename: server/src/repositories/housingRepository.ts
+  checksum: b34421a2b6224fc1bd759792616d9c8511d5c635a25dcea96550af37bbeac787
 - filename: server/src/routers/unprotected.ts
   checksum: 520455e33ad9672c522364241789eefb4a8d62d86ce90dec626b8a7146ea343e
 - filename: server/src/scripts/deduplicate-housing/merger.ts
   checksum: a589e20f249e86844dd07ce425c24268666f3acb9d71104838559d146327b11e
 - filename: server/src/scripts/import-lovac/infra/reporters/logger-reporter.ts
-  checksum: d61083d7e944f8ffa847fa782e6328c671ac50ab28fd21622fcb417e8b7a5392
+  checksum: 0be9978df0ab004532e6b62a5aba5b1017cddeda452a7bc8813ac294cf80a4d7
 - filename: server/src/scripts/import-lovac/infra/reporters/noop-reporter.ts
   checksum: 8b585aa52733864ebc084a4530e00754543a8946eeb931dff55c4ae3b9c34895
 - filename: server/src/scripts/import-lovac/infra/reporters/reporter.ts
-  checksum: b1f14b25a0a589b6cf749b55fdb1fb75febeb56beeb3926fb1e4a121af8f6bdf
+  checksum: be9af9bd164c6c32edfad797d6d8d700b10cff75187ded01ab9c049eb49063a9
+- filename: server/src/scripts/import-lovac/source-buildings/test/source-building-processor.test.ts
+  checksum: 35253e559f74a18e93af447da472a26149ac9875eabc66ab037fbe482d16fc32
 - filename: server/src/scripts/import-lovac/source-housing-owners/test/source-housing-owner-processor.test.ts
   checksum: 3d950858f1d00233f33b7b84104cd3aa64fb5d00d4038a973455c15cc8ba7b3e
 - filename: server/src/test/testUtils.ts

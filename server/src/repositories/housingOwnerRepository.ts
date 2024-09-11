@@ -9,6 +9,18 @@ export const housingOwnersTable = 'owners_housing';
 export const HousingOwners = (transaction = db) =>
   transaction<HousingOwnerDBO>(housingOwnersTable);
 
+async function insert(housingOwner: HousingOwnerApi): Promise<void> {
+  logger.debug('Saving housing owner...', {
+    housingOwner
+  });
+
+  await HousingOwners()
+    .insert(formatHousingOwnerApi(housingOwner))
+    .onConflict()
+    .ignore();
+  logger.debug('Saved housing owner.');
+}
+
 async function saveMany(housingOwners: HousingOwnerApi[]): Promise<void> {
   if (housingOwners.length) {
     housingOwners.forEach((housingOwner) => {
@@ -16,11 +28,22 @@ async function saveMany(housingOwners: HousingOwnerApi[]): Promise<void> {
         housingOwner
       });
     });
-    await HousingOwners()
-      .insert(housingOwners.map(formatHousingOwnerApi))
-      .onConflict()
-      .ignore();
-    logger.info(`Saved ${housingOwners.length} housing owners.`);
+
+    // Remove owners before inserting them back
+    await db.transaction(async (transaction) => {
+      const housingGeoCode = housingOwners[0].housingGeoCode;
+      const housingId = housingOwners[0].housingId;
+      await HousingOwners(transaction)
+        .where({
+          housing_geo_code: housingGeoCode,
+          housing_id: housingId
+        })
+        .delete();
+      await HousingOwners(transaction).insert(
+        housingOwners.map(formatHousingOwnerApi)
+      );
+    });
+    logger.debug(`Saved ${housingOwners.length} housing owners.`);
   }
 }
 
@@ -79,6 +102,7 @@ export const formatHousingOwnersApi = (
   }));
 
 const housingOwnerRepository = {
+  insert,
   saveMany
 };
 

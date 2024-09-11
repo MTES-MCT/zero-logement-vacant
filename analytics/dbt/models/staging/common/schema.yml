@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: stg_common_cities
+  - name: stg_common_article_232_1
+  - name: stg_common_article_232_2
+  - name: stg_common_ngeo_anct_cog_2023
+  - name: stg_common_opah

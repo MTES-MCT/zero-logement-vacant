@@ -1,4 +1,5 @@
 export interface History {
-  ff_idlocal: string;
-  files_years: string[];
+  geo_code: string;
+  local_id: string;
+  file_years: string[];
 }

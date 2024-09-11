@@ -6,10 +6,10 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import MainContainer from '../../components/MainContainer/MainContainer';
 
 const StatusView = () => {
-  useDocumentTitle('Arborescence des statuts');
+  useDocumentTitle('Liste des statuts de suivi');
 
   return (
-    <MainContainer title="Arborescence des statuts">
+    <MainContainer title="Liste des statuts de suivi">
       <Alert
         description="Afin de vous aider dans la mise à jour des dossiers, vous trouverez ci-dessous l'ensemble des statuts de suivi que vous pouvez appliquer aux dossiers dans la solution ZLV. En face des statuts, vous trouverez les sous-statuts correspondants."
         severity="info"

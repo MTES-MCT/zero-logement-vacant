@@ -73,8 +73,7 @@ export function createSourceHousingOwnerCommand() {
             abortEarly: options.abortEarly,
             auth,
             housingRepository: {
-              async findOne(localId: string): Promise<HousingApi | null> {
-                const geoCode = localId.substring(0, 5);
+              async findOne(geoCode, localId): Promise<HousingApi | null> {
                 return housingRepository.findOne({
                   localId,
                   geoCode
@@ -91,7 +90,7 @@ export function createSourceHousingOwnerCommand() {
             housingOwnerRepository: {
               async insert(housingOwner: HousingOwnerApi): Promise<void> {
                 if (!options.dryRun) {
-                  await housingOwnerRepository.saveMany([housingOwner]);
+                  await housingOwnerRepository.insert(housingOwner);
                 }
               },
               async saveMany(

@@ -19,6 +19,9 @@ import { HousingEventApi } from '~/models/EventApi';
 import userRepository from '~/repositories/userRepository';
 import config from '~/infra/config';
 import UserMissingError from '~/errors/userMissingError';
+import { compactUndefined } from '~/utils/object';
+import { HousingNoteApi } from '~/models/NoteApi';
+import noteRepository from '~/repositories/noteRepository';
 
 const logger = createLogger('sourceHousingCommand');
 
@@ -76,8 +79,10 @@ export function createSourceHousingCommand() {
               }
             },
             housingRepository: {
-              findOne(localId: string): Promise<HousingApi | null> {
-                const geoCode = localId.substring(0, 5);
+              findOne(
+                geoCode: string,
+                localId: string
+              ): Promise<HousingApi | null> {
                 return housingRepository.findOne({
                   localId,
                   geoCode
@@ -95,10 +100,16 @@ export function createSourceHousingCommand() {
                 housing: Partial<HousingApi>
               ): Promise<void> {
                 if (!options.dryRun) {
-                  await Housing().where({ geo_code: geoCode, id }).update({
-                    data_file_years: housing.dataFileYears,
-                    occupancy: housing.occupancy
-                  });
+                  await Housing()
+                    .where({ geo_code: geoCode, id })
+                    .update(
+                      compactUndefined({
+                        data_file_years: housing.dataFileYears,
+                        occupancy: housing.occupancy,
+                        status: housing.status,
+                        sub_status: housing.subStatus
+                      })
+                    );
                 }
               }
             },
@@ -114,10 +125,23 @@ export function createSourceHousingCommand() {
                   housingGeoCode: geoCode
                 }));
               },
-              async insert(event: HousingEventApi): Promise<void> {
+              async insertMany(events: HousingEventApi[]): Promise<void> {
                 if (!options.dryRun) {
-                  await eventRepository.insertHousingEvent(event);
+                  await eventRepository.insertManyHousingEvents(events);
                 }
+              }
+            },
+            housingNoteRepository: {
+              async find({
+                id,
+                geoCode
+              }: HousingId): Promise<ReadonlyArray<HousingNoteApi>> {
+                const notes = await noteRepository.findHousingNotes(id);
+                return notes.map((note) => ({
+                  ...note,
+                  housingId: id,
+                  housingGeoCode: geoCode
+                }));
               }
             }
           })
@@ -141,13 +165,11 @@ export function createSourceHousingCommand() {
             abortEarly: options.abortEarly,
             reporter: housingReporter,
             housingRepository: {
-              async update(
-                { geoCode, id }: Pick<HousingApi, 'geoCode' | 'id'>,
-                housing: Partial<HousingApi>
-              ): Promise<void> {
+              async update({ geoCode, id }, housing): Promise<void> {
                 if (!options.dryRun) {
                   await Housing().where({ geo_code: geoCode, id }).update({
-                    data_file_years: housing.dataFileYears,
+                    status: housing.status,
+                    sub_status: housing.subStatus,
                     occupancy: housing.occupancy
                   });
                 }

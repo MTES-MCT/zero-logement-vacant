@@ -15,6 +15,7 @@ export interface DraftData {
     firstName: string | null;
     lastName: string | null;
     address: string | null;
+    email: string | null;
     phone: string | null;
     signatoryFile: string | null;
     signatoryFirstName: string | null;

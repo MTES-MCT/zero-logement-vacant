@@ -229,7 +229,7 @@ function mapSubStatus(housing: Housing): Housing {
     },
     NPAI: {
       status: HousingStatus.FirstContact,
-      sub_status: 'NPAI'
+      sub_status: 'N’habite pas à l’adresse indiquée'
     },
     'Vacance volontaire': {
       sub_status: 'Blocage volontaire du propriétaire'

@@ -145,14 +145,13 @@ export const genUserApi = (establishmentId: string): UserApi => {
     lastName: faker.person.lastName(),
     establishmentId,
     role: UserRoles.Usual,
-    activatedAt: new Date(),
+    activatedAt: faker.date.recent(),
     phone: faker.phone.number(),
     position: faker.person.jobType(),
     timePerWeek: randomstring.generate(),
-    lastAuthenticatedAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: undefined,
-    ...genUserAccountDTO
+    lastAuthenticatedAt: faker.date.recent(),
+    updatedAt: faker.date.recent(),
+    deletedAt: undefined
   };
 };
 
@@ -257,6 +256,9 @@ export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
     housingCount: housingList.length,
     vacantHousingCount: housingList.filter(
       (housing) => housing.occupancy === OccupancyKindApi.Vacant
+    ).length,
+    rentHousingCount: housingList.filter(
+      (housing) => housing.occupancy === OccupancyKindApi.Rent
     ).length
   };
 };
@@ -724,6 +726,7 @@ const genNoteApi = (creator: UserApi): NoteApi => ({
   noteKind: faker.word.noun(),
   content: faker.lorem.paragraph(),
   createdBy: creator.id,
+  creator,
   createdAt: faker.date.past()
 });
 

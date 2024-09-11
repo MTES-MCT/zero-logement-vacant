@@ -9,6 +9,7 @@ import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-hou
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { PositiveRank } from '~/models/HousingOwnerApi';
+import { SourceBuilding } from '~/scripts/import-lovac/source-buildings/source-building';
 
 export function genSourceHousing(): SourceHousing {
   const geoCode = genGeoCode();
@@ -60,11 +61,20 @@ export function genSourceHousingOwner(
   sourceOwner: SourceOwner
 ): SourceHousingOwner {
   return {
+    geo_code: sourceHousing.geo_code,
     local_id: sourceHousing.local_id,
     idpersonne: sourceOwner.idpersonne,
     idprocpte: faker.string.alphanumeric(11),
     idprodroit: faker.string.alphanumeric(13),
     locprop: faker.helpers.arrayElement([1, 2, 3, 4, 5, 6, 9]),
     rank: faker.number.int({ min: 1, max: 6 }) as PositiveRank
+  };
+}
+
+export function genSourceBuilding(): SourceBuilding {
+  return {
+    building_id: faker.string.alphanumeric(15),
+    housing_vacant_count: faker.number.int({ min: 0, max: 10 }),
+    housing_rent_count: faker.number.int({ min: 0, max: 10 })
   };
 }

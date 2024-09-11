@@ -87,7 +87,7 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
   return db(housingTable)
     .select(
       'id',
-      'raw_address',
+      'address_dgfip',
       db.raw(`'${AddressKinds.Housing}' as address_kind`),
       'last_updated_at',
       'geo_code'
@@ -105,7 +105,7 @@ const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
           <AddressToNormalize>{
             refId: result.id,
             addressKind: result.address_kind,
-            rawAddress: result.raw_address,
+            addressDGFIP: result.address_dgfip,
             geoCode: result.geo_code
           }
       )

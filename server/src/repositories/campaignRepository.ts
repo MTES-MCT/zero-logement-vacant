@@ -9,7 +9,8 @@ import { sortQuery } from '~/models/SortApi';
 import queue from '~/infra/queue';
 
 export const campaignsTable = 'campaigns';
-export const Campaigns = () => db<CampaignDBO>(campaignsTable);
+export const Campaigns = (transaction = db) =>
+  transaction<CampaignDBO>(campaignsTable);
 
 interface FindOneOptions {
   id: string;
@@ -64,16 +65,16 @@ const campaignSortQuery = (sort?: CampaignSortApi) =>
         query.orderBy(`${campaignsTable}.sent_at`, sort?.sentAt),
       status: (query) =>
         query.orderByRaw(
-          `(case ${campaignsTable}.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end) ${sort?.status}`,
-        ),
+          `(case ${campaignsTable}.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end) ${sort?.status}`
+        )
     },
-    default: (query) => query.orderBy('created_at', 'desc'),
+    default: (query) => query.orderBy('created_at', 'desc')
   });
 
 const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
   logger.info(
     'Insert campaignApi for establishment',
-    campaignApi.establishmentId,
+    campaignApi.establishmentId
   );
   return db(campaignsTable)
     .insert(formatCampaignApi(campaignApi))
@@ -105,7 +106,7 @@ const remove = async (campaignId: string): Promise<void> => {
 async function generateMails(campaign: CampaignApi): Promise<void> {
   await queue.add('campaign:generate', {
     campaignId: campaign.id,
-    establishmentId: campaign.establishmentId,
+    establishmentId: campaign.establishmentId
   });
   logger.info('Generating campaign mails', campaign);
 }
@@ -141,7 +142,7 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   archivedAt: campaign.archived_at?.toJSON(),
   confirmedAt: campaign.confirmed_at?.toJSON(),
   title: campaign.title,
-  groupId: campaign.group_id,
+  groupId: campaign.group_id
 });
 
 export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
@@ -162,7 +163,7 @@ export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
   confirmed_at: campaign.confirmedAt
     ? new Date(campaign.confirmedAt)
     : undefined,
-  group_id: campaign.groupId,
+  group_id: campaign.groupId
 });
 
 export default {
@@ -173,5 +174,5 @@ export default {
   update,
   remove,
   generateMails,
-  formatCampaignApi,
+  formatCampaignApi
 };

@@ -33,7 +33,7 @@ import {
   formatHousingOwnersApi,
   HousingOwners
 } from '../housingOwnerRepository';
-import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { EnergyConsumptionGradesApi, HousingApi, OccupancyKindApi } from '~/models/HousingApi';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '~/models/LocalityApi';
 import { BuildingApi } from '~/models/BuildingApi';
@@ -801,6 +801,25 @@ describe('Housing repository', () => {
             .includes(actualHousing.id);
         });
       });
+
+      it('should filter by DPE score', async () => {
+
+        const actualAD = await housingRepository.find({
+          filters: {
+            energyConsumption: ['A' as EnergyConsumptionGradesApi, 'B' as EnergyConsumptionGradesApi, 'C' as EnergyConsumptionGradesApi, 'D' as EnergyConsumptionGradesApi]
+          }
+        });
+
+        const actualEFG = await housingRepository.find({
+          filters: {
+            energyConsumption: ['E' as EnergyConsumptionGradesApi, 'F' as EnergyConsumptionGradesApi, 'G' as EnergyConsumptionGradesApi]
+          }
+        });
+
+        expect(actualAD.length).toBeGreaterThan(0);
+        expect(actualEFG.length).toBeGreaterThan(0);
+      });
+
     });
   });
 

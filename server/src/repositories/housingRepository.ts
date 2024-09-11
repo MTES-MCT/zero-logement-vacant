@@ -461,7 +461,7 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.whereIn('occupancy', filters.occupancies);
     }
     if (filters.energyConsumption?.length) {
-      queryBuilder.whereIn('energy_consumption', filters.energyConsumption);
+      queryBuilder.whereIn('energy_consumption_bdnb', filters.energyConsumption);
     }
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(

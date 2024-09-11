@@ -208,7 +208,7 @@ export const genOwnerApi = (): OwnerApi => {
       `${faker.location.zipCode()}, ${faker.location.city()}`
     ],
     // Get the start of the day to avoid time zone issues
-    birthDate: faker.date.birthdate(),
+    birthDate: faker.date.birthdate().toJSON(),
     fullName: faker.person.fullName(),
     email: genEmail(),
     phone: faker.phone.number(),
@@ -222,14 +222,19 @@ export const genAddressApi = (
   refId: string,
   addressKind: AddressKinds
 ): AddressApi => {
+  const houseNumber = faker.location.buildingNumber();
+  const street = faker.location.street();
+  const postalCode = faker.location.zipCode();
+  const city = faker.location.city();
+  const address = `${houseNumber} ${street} ${postalCode} ${city}`;
   return {
     refId,
     addressKind,
-    address: faker.location.streetAddress({ useFullAddress: true }),
-    houseNumber: faker.location.buildingNumber(),
-    street: faker.location.street(),
-    postalCode: faker.location.zipCode(),
-    city: faker.location.city(),
+    label: address,
+    houseNumber,
+    street,
+    postalCode,
+    city,
     latitude: faker.location.latitude(),
     longitude: faker.location.longitude(),
     score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),

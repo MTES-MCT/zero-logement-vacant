@@ -24,7 +24,7 @@ export function genAddressDTO(
   return {
     refId,
     addressKind,
-    address: faker.location.streetAddress({ useFullAddress: true }),
+    label: faker.location.streetAddress({ useFullAddress: true }),
     houseNumber: faker.location.buildingNumber(),
     street: faker.location.street(),
     postalCode: faker.location.zipCode(),
@@ -289,7 +289,10 @@ export function genOwnerDTO(): OwnerDTO {
     ],
     banAddress: genAddressDTO(id, AddressKinds.Owner),
     additionalAddress: faker.helpers.maybe(() => faker.location.county()),
-    birthDate: faker.date.birthdate(),
+    birthDate: faker.date
+      .birthdate()
+      .toJSON()
+      .substring(0, 'yyyy-mm-dd'.length),
     fullName: `${firstName} ${lastName}`,
     email: faker.internet.email({
       firstName,

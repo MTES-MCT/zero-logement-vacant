@@ -8695,7 +8695,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/async@npm:^3.2.24":
+"@types/async@npm:^3, @types/async@npm:^3.2.24":
   version: 3.2.24
   resolution: "@types/async@npm:3.2.24"
   checksum: 10c0/4df8e108932fe9907fcb09aa192e57d4b97909803e92dc11ba5765347ca6bfa992ea4392fe6f78f3aef495580a1e9b342440878e1d639d5fc2ab1c44f1ad7862
@@ -10171,6 +10171,7 @@ __metadata:
     "@tsconfig/create-react-app": "npm:^2.0.4"
     "@turf/turf": "npm:^6.5.0"
     "@typeform/embed-react": "npm:^2.31.0"
+    "@types/async": "npm:^3"
     "@types/jest": "npm:^28.1.8"
     "@types/lodash": "npm:^4.17.4"
     "@types/mapbox-gl": "npm:^3.1.0"
@@ -10184,6 +10185,7 @@ __metadata:
     "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/queue": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
+    async: "npm:^3.2.6"
     classnames: "npm:^2.5.1"
     date-fns: "npm:^2.30.0"
     fetch-intercept: "npm:^2.4.0"
@@ -11201,6 +11203,13 @@ __metadata:
   version: 3.2.5
   resolution: "async@npm:3.2.5"
   checksum: 10c0/1408287b26c6db67d45cb346e34892cee555b8b59e6c68e6f8c3e495cad5ca13b4f218180e871f3c2ca30df4ab52693b66f2f6ff43644760cab0b2198bda79c1
+  languageName: node
+  linkType: hard
+
+"async@npm:^3.2.6":
+  version: 3.2.6
+  resolution: "async@npm:3.2.6"
+  checksum: 10c0/36484bb15ceddf07078688d95e27076379cc2f87b10c03b6dd8a83e89475a3c8df5848859dd06a4c95af1e4c16fc973de0171a77f18ea00be899aca2a4f85e70
   languageName: node
   linkType: hard
 

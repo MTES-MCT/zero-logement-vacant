@@ -4,7 +4,6 @@ import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 
 import * as yup from 'yup';
 import { SelectOption } from '../../../models/SelectOption';
-import { format } from 'date-fns';
 import {
   banAddressValidator,
   dateValidator,
@@ -84,9 +83,7 @@ const HousingOwnersModal = ({
   const getOwnerInput = (housingOwner: HousingOwner) => ({
     ...housingOwner,
     rank: String(housingOwner.endDate ? 0 : housingOwner.rank),
-    birthDate: housingOwner?.birthDate
-      ? format(housingOwner.birthDate, 'yyyy-MM-dd')
-      : ''
+    birthDate: housingOwner?.birthDate ?? ''
   });
 
   const [ownerInputs, setOwnerInputs] = useState<OwnerInput[]>(
@@ -96,7 +93,8 @@ const HousingOwnersModal = ({
   const primaryOwner = ownerInputs?.filter((_) => _.rank === '1');
   const secondaryOwners = ownerInputs?.filter((_) => parseInt(_.rank) > 1);
   const archivedOwners = ownerInputs?.filter(
-    (_) => _.rank === '0' || _.rank === '-1' || _.rank === '-2' || _.rank === '-3'
+    (_) =>
+      _.rank === '0' || _.rank === '-1' || _.rank === '-2' || _.rank === '-3'
   );
 
   const ranks =
@@ -163,8 +161,8 @@ const HousingOwnersModal = ({
       label: _ + 1 + 'ème ayant droit'
     })),
     { value: '0', label: 'Ancien propriétaire' },
-    { value: '-1', label: 'Propriétaire incorrect'},
-    { value: '-3', label: 'Propriétaire décédé.e'},
+    { value: '-1', label: 'Propriétaire incorrect' },
+    { value: '-3', label: 'Propriétaire décédé.e' }
   ];
 
   const form = useForm(
@@ -268,7 +266,12 @@ const HousingOwnersModal = ({
             <Text as="span">
               <b>{ownerInput.fullName}</b>
             </Text>
-            <Text size="sm" className="zlv-label fr-ml-1w" as="span" aria-label="Rang du propriétaire">
+            <Text
+              size="sm"
+              className="zlv-label fr-ml-1w"
+              as="span"
+              aria-label="Rang du propriétaire"
+            >
               {getHousingOwnerRankLabel(Number(ownerInput.rank))}
             </Text>
             {!isBanEligible(ownerInput.banAddress) && (

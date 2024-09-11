@@ -14,10 +14,10 @@ export const ownerApi = zlvApi.injectEndpoints({
           ? [
               {
                 type: 'Owner' as const,
-                id: result.id,
-              },
+                id: result.id
+              }
             ]
-          : [],
+          : []
     }),
     findOwners: builder.query<
       PaginatedResult<Owner>,
@@ -26,55 +26,55 @@ export const ownerApi = zlvApi.injectEndpoints({
       query: ({ q, page, perPage }) => ({
         url: 'owners',
         method: 'POST',
-        body: { q, page, perPage },
+        body: { q, page, perPage }
       }),
       providesTags: () => ['Owner'],
       transformResponse: (response: any) => {
         return {
           ...response,
-          entities: response.entities.map((e: any) => parseOwner(e)),
+          entities: response.entities.map((e: any) => parseOwner(e))
         };
-      },
+      }
     }),
     findOwnersByHousing: builder.query<HousingOwner[], string>({
       query: (housingId) => `owners/housing/${housingId}`,
       providesTags: () => ['HousingOwner'],
       transformResponse: (response: any[]) =>
-        response.map((_) => parseHousingOwner(_)),
+        response.map((_) => parseHousingOwner(_))
     }),
     createOwner: builder.mutation<Owner, DraftOwner>({
       query: (draftOwner) => ({
         url: 'owners/creation',
         method: 'POST',
-        body: formatOwner(draftOwner),
+        body: formatOwner(draftOwner)
       }),
-      transformResponse: (result: any) => parseOwner(result),
+      transformResponse: (result: any) => parseOwner(result)
     }),
     updateOwner: builder.mutation<void, Owner>({
       query: (owner) => ({
         url: `owners/${owner.id}`,
         method: 'PUT',
-        body: formatOwner(owner),
+        body: formatOwner(owner)
       }),
       invalidatesTags: (result, error, { id }) => [
         { type: 'Owner', id },
-        'Housing',
-      ],
+        'Housing'
+      ]
     }),
     updateHousingOwners: builder.mutation<
       void,
       { housingId: string; housingOwners: HousingOwner[] }
     >({
       query: ({ housingId, housingOwners }) => ({
-        url: `owners/housing/${housingId}`,
+        url: `/housing/${housingId}/owners`,
         method: 'PUT',
-        body: housingOwners.map((ho) => formatOwner(ho)),
+        body: housingOwners.map((ho) => formatOwner(ho))
       }),
       invalidatesTags: (result, error, { housingId }) => [
-        { type: 'HousingOwner', housingId },
-      ],
-    }),
-  }),
+        { type: 'HousingOwner', housingId }
+      ]
+    })
+  })
 });
 
 export const parseOwner = (o: any): Owner => ({
@@ -84,21 +84,19 @@ export const parseOwner = (o: any): Owner => ({
     : '',
   birthDate: o.birthDate ? parseISO(o.birthDate) : undefined,
   fullName: toTitleCase(o.fullName.replace(/^(MME |M )/i, '')),
-  administrator: o.administrator ? toTitleCase(o.administrator) : undefined,
+  administrator: o.administrator ? toTitleCase(o.administrator) : undefined
 });
 
 export const parseHousingOwner = (o: any): HousingOwner => ({
   ...o,
   ...parseOwner(o),
   startDate: o.startDate ? parseISO(o.startDate) : undefined,
-  endDate: o.endDate ? parseISO(o.endDate) : undefined,
+  endDate: o.endDate ? parseISO(o.endDate) : undefined
 });
 
 export const formatOwner = (owner: DraftOwner | Owner | HousingOwner) => ({
   ...owner,
-  birthDate: owner.birthDate
-    ? format(owner.birthDate, 'yyyy-MM-dd')
-    : undefined,
+  birthDate: owner.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : undefined
 });
 
 export const {
@@ -107,5 +105,5 @@ export const {
   useFindOwnersByHousingQuery,
   useCreateOwnerMutation,
   useUpdateHousingOwnersMutation,
-  useUpdateOwnerMutation,
+  useUpdateOwnerMutation
 } = ownerApi;

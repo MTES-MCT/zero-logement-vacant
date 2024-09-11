@@ -20,8 +20,19 @@ import { isArrayOf, isString } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import housingRepository from '~/repositories/housingRepository';
 import HousingMissingError from '~/errors/housingMissingError';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { HousingOwnerApi, toHousingOwnerDTO } from '~/models/HousingOwnerApi';
 import { isDefined, isNotNull } from '@zerologementvacant/utils';
+import {
+  HousingOwnerDTO,
+  HousingOwnerPayloadDTO,
+  OwnerDTO
+} from '@zerologementvacant/models';
+import async from 'async';
+import housingOwnerRepository from '~/repositories/housingOwnerRepository';
+
+interface PathParams extends Record<string, string> {
+  id: string;
+}
 
 async function get(request: Request, response: Response) {
   const { id } = request.params;
@@ -80,7 +91,7 @@ async function create(request: Request, response: Response) {
     email: body.email
   };
 
-  await ownerRepository.save(owner);
+  await ownerRepository.betterSave(owner);
   await banAddressesRepository.markAddressToBeNormalized(
     owner.id,
     AddressKinds.Owner
@@ -100,22 +111,19 @@ async function create(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(owner);
 }
 
-type HousingOwnerBody = HousingOwnerApi & { birthDate: string };
-
-const parseHousingOwnerApi = (
-  housingOwnerBody: HousingOwnerBody
-): HousingOwnerApi => ({
-  ...housingOwnerBody,
-  birthDate: housingOwnerBody.birthDate
-    ? new Date(housingOwnerBody.birthDate)
-    : undefined
-});
-
-async function update(request: Request, response: Response) {
-  const { auth, params } = request as AuthenticatedRequest;
+async function update(
+  request: Request<PathParams, OwnerDTO, OwnerPayloadDTO, never>,
+  response: Response<OwnerDTO>
+) {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    PathParams,
+    OwnerDTO,
+    OwnerPayloadDTO,
+    never
+  >;
 
   const owner: OwnerApi = {
-    ...fromOwnerPayloadDTO(request.body as OwnerPayloadDTO),
+    ...fromOwnerPayloadDTO(body),
     id: params.id
   };
 
@@ -211,73 +219,84 @@ async function updateOwner(
   }
 }
 
-async function updateHousingOwners(request: Request, response: Response) {
-  const { auth, params, establishment } = request as AuthenticatedRequest;
-  const housingId = params.housingId;
+async function updateHousingOwners(
+  request: Request<
+    PathParams,
+    HousingOwnerDTO[],
+    HousingOwnerPayloadDTO[],
+    never
+  >,
+  response: Response<HousingOwnerDTO[]>
+) {
+  const { auth, body, params, establishment } = request as AuthenticatedRequest<
+    PathParams,
+    HousingOwnerDTO[],
+    HousingOwnerPayloadDTO[],
+    never
+  >;
 
-  logger.debug('Update housing owners', { housing: housingId });
+  logger.debug('Updating housing owners...', { housing: params.housingId });
 
   const housing = await housingRepository.findOne({
-    id: housingId,
+    id: params.housingId,
     geoCode: establishment.geoCodes
   });
   if (!housing) {
-    throw new HousingMissingError(housingId);
+    throw new HousingMissingError(params.housingId);
   }
 
-  const housingOwnersApi = (<HousingOwnerBody[]>request.body)
-    .map(parseHousingOwnerApi)
-    .filter((_) => _.housingId === housingId);
-
-  await Promise.all(
-    housingOwnersApi.map((housingOwnerApi) =>
-      updateOwner(housingOwnerApi, auth.userId)
-    )
-  );
-
-  const prevHousingOwnersApi = await ownerRepository.findByHousing(housing);
+  const existingHousingOwners = await ownerRepository.findByHousing(housing);
 
   if (
-    prevHousingOwnersApi.length !== housingOwnersApi.length ||
-    prevHousingOwnersApi.some(
-      (ho1) =>
-        !housingOwnersApi.some(
-          (ho2) => ho1.id === ho2.id && ho1.rank === ho2.rank
-        )
-    )
+    existingHousingOwners.length === body.length &&
+    existingHousingOwners.every((existingHousingOwner) => {
+      const found = body.find((ho) => ho.id === existingHousingOwner.id);
+      return found && found.rank === existingHousingOwner.rank;
+    })
   ) {
-    await ownerRepository.deleteHousingOwners(
-      housingId,
-      housingOwnersApi.map((_) => _.id)
-    );
-
-    await ownerRepository.insertHousingOwners(
-      housingOwnersApi.map((housingOwnerApi) => ({
-        ...housingOwnerApi,
-        housingGeoCode: housing.geoCode
-      }))
-    );
-
-    const newHousingOwnersApi = await ownerRepository.findByHousing(housing);
-
-    await eventRepository.insertHousingEvent({
-      id: uuidv4(),
-      name: 'Changement de propriétaires',
-      kind: 'Update',
-      category: 'Ownership',
-      section: 'Propriétaire',
-      old: prevHousingOwnersApi,
-      new: newHousingOwnersApi,
-      createdBy: auth.userId,
-      createdAt: new Date(),
-      housingId,
-      housingGeoCode: newHousingOwnersApi[0].housingGeoCode
-    });
-
-    return response.sendStatus(constants.HTTP_STATUS_OK);
-  } else {
-    return response.sendStatus(constants.HTTP_STATUS_NOT_MODIFIED);
+    return response.status(constants.HTTP_STATUS_NOT_MODIFIED).send();
   }
+
+  const housingOwners: HousingOwnerApi[] = await async.map(
+    body,
+    async (
+      housingOwnerPayload: HousingOwnerPayloadDTO
+    ): Promise<HousingOwnerApi> => {
+      const owner = await ownerRepository.get(housingOwnerPayload.id);
+      if (!owner) {
+        throw new OwnerMissingError(housingOwnerPayload.id);
+      }
+      return {
+        ...owner,
+        ownerId: owner.id,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        rank: housingOwnerPayload.rank,
+        idprocpte: housingOwnerPayload.idprocpte ?? undefined,
+        idprodroit: housingOwnerPayload.idprodroit ?? undefined,
+        locprop: housingOwnerPayload.locprop ?? undefined
+      };
+    }
+  );
+
+  await housingOwnerRepository.saveMany(housingOwners);
+  await eventRepository.insertHousingEvent({
+    id: uuidv4(),
+    name: 'Changement de propriétaires',
+    kind: 'Update',
+    category: 'Ownership',
+    section: 'Propriétaire',
+    old: existingHousingOwners,
+    new: housingOwners,
+    createdBy: auth.userId,
+    createdAt: new Date(),
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode
+  });
+
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(housingOwners.map(toHousingOwnerDTO));
 }
 
 const ownerValidators: ValidationChain[] = [

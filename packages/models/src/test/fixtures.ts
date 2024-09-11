@@ -15,6 +15,7 @@ import { HOUSING_KIND_VALUES } from '../HousingKind';
 import { DatafoncierHousing } from '../DatafoncierHousing';
 import { HOUSING_STATUS_VALUES } from '../HousingStatus';
 import { FileUploadDTO } from '../FileUploadDTO';
+import { HousingOwnerDTO } from '../HousingOwnerDTO';
 
 export function genAddressDTO(
   refId: string,
@@ -254,6 +255,16 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
     owner
+  };
+}
+
+export function genHousingOwnerDTO(owner: OwnerDTO): HousingOwnerDTO {
+  return {
+    ...owner,
+    rank: faker.number.int({ min: 1, max: 10 }),
+    idprocpte: faker.string.numeric(11),
+    idprodroit: faker.string.numeric(13),
+    locprop: faker.number.int(9)
   };
 }
 

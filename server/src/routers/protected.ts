@@ -37,14 +37,14 @@ router.post(
   '/housing',
   housingController.listValidators,
   validator.validate,
-  housingController.list,
+  housingController.list
 );
 // TODO: replace by POST /housing
 router.post(
   '/housing/creation',
   housingController.createValidators,
   validator.validate,
-  housingController.create,
+  housingController.create
 );
 // TODO: replace by GET /housing/count
 router.post('/housing/count', housingController.count);
@@ -52,20 +52,20 @@ router.get(
   '/housing/:id',
   housingController.getValidators,
   validator.validate,
-  housingController.get,
+  housingController.get
 );
 router.post(
   '/housing/list',
   housingController.updateListValidators,
   validator.validate,
-  housingController.updateList,
+  housingController.updateList
 );
 // TODO: replace by PUT /housing/:id
 router.post(
   '/housing/:housingId',
   [param('housingId').isUUID(), ...housingController.updateValidators],
   validator.validate,
-  housingController.update,
+  housingController.update
 );
 
 router.get('/groups', groupController.list);
@@ -73,100 +73,100 @@ router.post(
   '/groups',
   groupController.createValidators,
   validator.validate,
-  groupController.create,
+  groupController.create
 );
 router.get(
   '/groups/:id',
   groupController.showValidators,
   validator.validate,
-  groupController.show,
+  groupController.show
 );
 router.put(
   '/groups/:id',
   groupController.updateValidators,
   validator.validate,
-  groupController.update,
+  groupController.update
 );
 router.delete(
   '/groups/:id',
   groupController.removeValidators,
   validator.validate,
-  groupController.remove,
+  groupController.remove
 );
 router.get(
   '/groups/:id/export',
   housingExportController.exportGroupValidators,
   validator.validate,
-  housingExportController.exportGroup,
+  housingExportController.exportGroup
 );
 router.post(
   '/groups/:id/housing',
   groupController.addHousingValidators,
   validator.validate,
-  groupController.addHousing,
+  groupController.addHousing
 );
 router.delete(
   '/groups/:id/housing',
   groupController.removeHousingValidators,
   validator.validate,
-  groupController.removeHousing,
+  groupController.removeHousing
 );
 
 router.get(
   '/campaigns',
   campaignController.listValidators,
   validator.validate,
-  campaignController.list,
+  campaignController.list
 );
 router.post(
   '/campaigns',
   campaignController.createValidators,
   validator.validate,
-  campaignController.create,
+  campaignController.create
 );
 router.get(
   '/campaigns/:id',
   campaignController.getCampaignValidators,
   validator.validate,
-  campaignController.getCampaign,
+  campaignController.getCampaign
 );
 router.put(
   '/campaigns/:id',
   campaignController.updateValidators,
   validator.validate,
   campaignController.update,
-  campaignController.update,
+  campaignController.update
 );
 router.delete(
   '/campaigns/:id',
   [isUUIDParam('id')],
   validator.validate,
-  campaignController.removeCampaign,
+  campaignController.removeCampaign
 );
 // TODO: replace by /groups/:id/campaigns
 router.post(
   '/campaigns/:id/groups',
   campaignController.createCampaignFromGroupValidators,
   validator.validate,
-  campaignController.createCampaignFromGroup,
+  campaignController.createCampaignFromGroup
 );
 router.get(
   '/campaigns/:id/export',
   housingExportController.exportCampaignValidators,
   validator.validate,
-  housingExportController.exportCampaign,
+  housingExportController.exportCampaign
 );
 router.get(
   '/campaigns/:id/download',
   campaignController.getCampaignValidators,
   validator.validate,
-  campaignController.downloadCampaign,
+  campaignController.downloadCampaign
 );
 router.delete(
   '/campaigns/:id/housing',
   campaignController.removeHousingValidators,
   validator.validate,
-  campaignController.removeHousing,
+  campaignController.removeHousing
 );
 
 router.get('/drafts', draftController.list);
@@ -174,19 +174,19 @@ router.post(
   '/drafts',
   draftController.createValidators,
   validator.validate,
-  draftController.create,
+  draftController.create
 );
 router.put(
   '/drafts/:id',
   draftController.updateValidators,
   validator.validate,
-  draftController.update,
+  draftController.update
 );
 router.post(
   '/drafts/:id/preview',
   draftController.previewValidators,
   validator.validate,
-  draftController.preview,
+  draftController.preview
 );
 
 router.post('/owners', ownerController.search);
@@ -195,48 +195,48 @@ router.post(
   '/owners/creation',
   ownerController.ownerValidators,
   validator.validate,
-  ownerController.create,
+  ownerController.create
 );
 router.put(
   '/owners/:id',
   [param('id').isUUID().notEmpty(), ...ownerController.ownerValidators],
   validator.validate,
-  ownerController.update,
+  ownerController.update
 );
 router.get('/owners/housing/:housingId', ownerController.listByHousing);
-router.put('/owners/housing/:housingId', ownerController.updateHousingOwners);
+router.put('/housing/:housingId/owners', ownerController.updateHousingOwners);
 
 router.get(
   '/owner-prospects',
   ownerProspectController.findOwnerProspectsValidators,
   validator.validate,
-  ownerProspectController.find,
+  ownerProspectController.find
 );
 router.put(
   '/owner-prospects/:id',
   ownerProspectController.updateOwnerProspectValidators,
   validator.validate,
-  ownerProspectController.update,
+  ownerProspectController.update
 );
 
 router.get(
   '/owners/:id/events',
   [isUUIDParam('id')],
   validator.validate,
-  eventController.listByOwnerId,
+  eventController.listByOwnerId
 );
 router.get(
   '/housing/:id/events',
   [isUUIDParam('id')],
   validator.validate,
-  eventController.listByHousingId,
+  eventController.listByHousingId
 );
 
 router.get(
   '/notes/housing/:housingId',
   [isUUIDParam('housingId')],
   validator.validate,
-  noteController.listByHousingId,
+  noteController.listByHousingId
 );
 
 // TODO: rework and merge this API with the User API
@@ -245,26 +245,26 @@ router.put(
   '/account',
   accountController.updateAccountValidators,
   validator.validate,
-  accountController.updateAccount,
+  accountController.updateAccount
 );
 router.put(
   '/account/password',
   accountController.updatePasswordValidators,
   validator.validate,
-  accountController.updatePassword,
+  accountController.updatePassword
 );
 router.get(
   '/account/establishments/:establishmentId',
   [isUUIDParam('establishmentId')],
   validator.validate,
-  accountController.changeEstablishment,
+  accountController.changeEstablishment
 );
 
 router.get(
   '/users/:userId',
   [isUUIDParam('userId')],
   validator.validate,
-  userController.get,
+  userController.get
 );
 
 // TODO: should be /geo-perimeters
@@ -274,59 +274,59 @@ router.put(
   '/geo/perimeters/:geoPerimeterId',
   geoController.updateGeoPerimeterValidators,
   validator.validate,
-  geoController.updateGeoPerimeter,
+  geoController.updateGeoPerimeter
 );
 router.delete(
   '/geo/perimeters',
   geoController.deleteGeoPerimeterListValidators,
   validator.validate,
-  geoController.deleteGeoPerimeterList,
+  geoController.deleteGeoPerimeterList
 );
 
 router.get(
   '/contact-points',
   contactPointController.listContactPointsValidators,
   validator.validate,
-  contactPointController.listContactPoints(false),
+  contactPointController.listContactPoints(false)
 );
 router.post(
   '/contact-points',
   contactPointController.createContactPointValidators,
   validator.validate,
-  contactPointController.createContactPoint,
+  contactPointController.createContactPoint
 );
 router.put(
   '/contact-points/:id',
   contactPointController.updateContactPointValidators,
   validator.validate,
-  contactPointController.updateContactPoint,
+  contactPointController.updateContactPoint
 );
 router.delete(
   '/contact-points/:id',
   contactPointController.deleteContactPointValidators,
   validator.validate,
-  contactPointController.deleteContactPoint,
+  contactPointController.deleteContactPoint
 );
 
 router.put(
   '/localities/:geoCode/tax',
   localityController.updateLocalityTaxValidators,
   validator.validate,
-  localityController.updateLocalityTax,
+  localityController.updateLocalityTax
 );
 
 router.put(
   '/establishments/:id/settings',
   settingsController.updateSettingsValidators,
   validator.validate,
-  settingsController.updateSettings,
+  settingsController.updateSettings
 );
 
 router.get(
   '/dashboards/:id',
   dashboardController.findOneValidators,
   validator.validate,
-  dashboardController.findOne,
+  dashboardController.findOne
 );
 
 router.get('/datafoncier/housing/:localId', datafoncierController.findOne);

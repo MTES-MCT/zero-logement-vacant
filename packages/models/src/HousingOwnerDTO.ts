@@ -10,3 +10,5 @@ interface HousingOwner {
 
 export type HousingOwnerDTO = HousingOwner & OwnerDTO;
 export type OwnerHousingDTO = HousingOwner & HousingDTO;
+
+export type HousingOwnerPayloadDTO = HousingOwner & Pick<OwnerDTO, 'id'>;

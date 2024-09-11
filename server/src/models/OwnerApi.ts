@@ -14,6 +14,10 @@ export interface OwnerApi extends OwnerDTO {
   updatedAt?: string;
 }
 
+export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
+  return owner;
+}
+
 export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {
   return {
     ...fp.pick(

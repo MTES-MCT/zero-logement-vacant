@@ -2,6 +2,7 @@ import { isDefined, isUndefined } from '@zerologementvacant/shared';
 import { OwnerApi } from './OwnerApi';
 import { compare, includeSameMembers } from '~/utils/compareUtils';
 import { HousingRecordApi } from './HousingApi';
+import { HousingOwnerDTO } from '@zerologementvacant/models';
 
 export const MAX_OWNERS = 6;
 
@@ -50,6 +51,19 @@ export function toHousingOwnersApi(
     rank: i + 1,
     startDate: new Date()
   }));
+}
+
+export function toHousingOwnerDTO(
+  housingOwner: HousingOwnerApi
+): HousingOwnerDTO {
+  return {
+    ...housingOwner,
+    id: housingOwner.ownerId,
+    rank: housingOwner.rank,
+    idprocpte: housingOwner.idprocpte ?? null,
+    idprodroit: housingOwner.idprodroit ?? null,
+    locprop: housingOwner.locprop ?? null
+  };
 }
 
 export function compareHousingOwners(

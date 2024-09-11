@@ -4,8 +4,12 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
+  AddressDTO,
+  AddressKinds,
   genHousingOwnerDTO,
-  HousingOwnerPayloadDTO
+  HousingOwnerPayloadDTO,
+  OwnerDTO,
+  OwnerPayloadDTO
 } from '@zerologementvacant/models';
 import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
@@ -19,7 +23,6 @@ import {
   oneOf
 } from '~/test/testFixtures';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { AddressKinds, OwnerPayloadDTO } from '@zerologementvacant/shared';
 import {
   EventRecordDBO,
   Events,
@@ -96,17 +99,16 @@ describe('Owner API', () => {
   describe('PUT /owners/{id}', () => {
     const testRoute = (id: string) => `/api/owners/${id}`;
 
-    let original: OwnerApi;
+    let owner: OwnerApi;
 
     beforeEach(async () => {
-      original = genOwnerApi();
-      await Owners().insert(formatOwnerApi(original));
+      owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
     });
 
     it('should reject if the owner is missing', async () => {
       const payload: OwnerPayloadDTO = {
-        ...original,
-        birthDate: original.birthDate?.toISOString().substring(0, 10),
+        ...owner,
         phone: '+33 6 12 34 56 78'
       };
 
@@ -120,25 +122,58 @@ describe('Owner API', () => {
     });
 
     it('should update an owner', async () => {
-      const original = genOwnerApi();
-      await Owners().insert(formatOwnerApi(original));
-      const birthDate = new Date('2000-01-01');
       const payload: OwnerPayloadDTO = {
-        ...original,
-        birthDate: birthDate.toISOString()?.substring(0, 10),
+        ...owner,
+        birthDate: new Date('2000-01-01')
+          .toJSON()
+          .substring(0, 'yyyy-mm-dd'.length),
         phone: '+33 6 12 34 56 78'
       };
 
       const { body, status } = await request(app)
-        .put(testRoute(original.id))
+        .put(testRoute(owner.id))
         .send(payload)
         .set('Content-Type', 'application/json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject({
-        ...payload,
-        birthDate: birthDate.toISOString()
+      expect(body).toMatchObject<Partial<OwnerDTO>>({
+        id: owner.id,
+        rawAddress: payload.rawAddress,
+        fullName: payload.fullName,
+        administrator: owner.administrator,
+        birthDate: payload.birthDate,
+        email: payload.email,
+        phone: payload.phone,
+        kind: owner.kind,
+        kindDetail: owner.kindDetail
+      });
+    });
+
+    it('should update their BAN address', async () => {
+      const payload: OwnerPayloadDTO = {
+        ...owner,
+        banAddress: genAddressApi(owner.id, AddressKinds.Owner)
+      };
+
+      const { body, status } = await request(app)
+        .put(testRoute(owner.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.banAddress).toMatchObject<Partial<AddressDTO>>({
+        refId: owner.id,
+        addressKind: AddressKinds.Owner,
+        label: body.banAddress.label,
+        houseNumber: body.banAddress.houseNumber,
+        street: body.banAddress.street,
+        postalCode: body.banAddress.postalCode,
+        city: body.banAddress.city,
+        latitude: body.banAddress.latitude,
+        longitude: body.banAddress.longitude,
+        score: body.banAddress.score
       });
     });
 
@@ -183,7 +218,6 @@ describe('Owner API', () => {
       await Owners().insert(formatOwnerApi(original));
       const payload: OwnerPayloadDTO = {
         ...original,
-        birthDate: original.birthDate?.toISOString(),
         phone: '+33 6 12 34 56 78'
       };
 
@@ -219,7 +253,6 @@ describe('Owner API', () => {
       await db(banAddressesTable).insert(formatAddressApi(originalAddress));
       const payload: OwnerPayloadDTO = {
         ...original,
-        birthDate: original.birthDate?.toISOString(),
         banAddress: genAddressApi(original.id, AddressKinds.Owner)
       };
 

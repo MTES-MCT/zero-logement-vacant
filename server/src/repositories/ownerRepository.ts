@@ -518,7 +518,9 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => ({
   rawAddress: owner.address_dgfip,
   fullName: owner.full_name,
   administrator: owner.administrator ?? undefined,
-  birthDate: owner.birth_date ? new Date(owner.birth_date) : undefined,
+  birthDate: owner.birth_date
+    ? new Date(owner.birth_date).toJSON().substring(0, 'yyyy-mm-dd'.length)
+    : undefined,
   email: owner.email ?? undefined,
   phone: owner.phone ?? undefined,
   kind: owner.kind_class ?? undefined,

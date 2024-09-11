@@ -883,7 +883,7 @@ describe('Housing repository', () => {
       expect(actual?.owner?.banAddress).toStrictEqual<AddressApi>({
         refId: owner.id,
         addressKind: AddressKinds.Owner,
-        address: address.address,
+        address: address.label,
         houseNumber: address.houseNumber,
         street: address.street,
         postalCode: address.postalCode,

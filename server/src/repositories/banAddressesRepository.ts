@@ -164,7 +164,7 @@ const markAddressToBeNormalized = async (
 export const parseAddressApi = (address: AddressDBO): AddressApi => ({
   refId: address.ref_id,
   addressKind: address.address_kind,
-  address: address.address,
+  label: address.address,
   houseNumber: address.house_number,
   street: address.street,
   postalCode: address.postal_code ?? '',
@@ -180,7 +180,7 @@ export const parseAddressApi = (address: AddressDBO): AddressApi => ({
 export const formatAddressApi = (address: AddressApi): AddressDBO => ({
   ref_id: address.refId,
   address_kind: address.addressKind,
-  address: address.address,
+  address: address.label,
   house_number: address.houseNumber,
   street: address.street,
   postal_code: address.postalCode,

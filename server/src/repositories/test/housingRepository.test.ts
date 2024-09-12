@@ -472,11 +472,13 @@ describe('Housing repository', () => {
         function createOwner(age: number): OwnerApi {
           return {
             ...genOwnerApi(),
-            birthDate: faker.date.birthdate({
-              min: age,
-              max: age,
-              mode: 'age'
-            })
+            birthDate: faker.date
+              .birthdate({
+                min: age,
+                max: age,
+                mode: 'age'
+              })
+              .toJSON()
           };
         }
 
@@ -507,7 +509,7 @@ describe('Housing repository', () => {
             filter: ['lt40'],
             predicate: (owner: OwnerApi) => {
               return (
-                differenceInYears(new Date(), owner.birthDate as Date) < 40
+                differenceInYears(new Date(), owner.birthDate as string) < 40
               );
             }
           },
@@ -517,7 +519,7 @@ describe('Housing repository', () => {
             predicate: (owner: OwnerApi) => {
               const diff = differenceInYears(
                 new Date(),
-                owner.birthDate as Date
+                owner.birthDate as string
               );
               return 40 <= diff && diff <= 59;
             }
@@ -528,7 +530,7 @@ describe('Housing repository', () => {
             predicate: (owner: OwnerApi) => {
               const diff = differenceInYears(
                 new Date(),
-                owner.birthDate as Date
+                owner.birthDate as string
               );
               return 60 <= diff && diff <= 74;
             }
@@ -539,7 +541,7 @@ describe('Housing repository', () => {
             predicate: (owner: OwnerApi) => {
               const diff = differenceInYears(
                 new Date(),
-                owner.birthDate as Date
+                owner.birthDate as string
               );
               return 75 <= diff && diff <= 99;
             }
@@ -549,7 +551,7 @@ describe('Housing repository', () => {
             filter: ['gte100'],
             predicate: (owner: OwnerApi) => {
               return (
-                differenceInYears(new Date(), owner.birthDate as Date) >= 100
+                differenceInYears(new Date(), owner.birthDate as string) >= 100
               );
             }
           }
@@ -883,7 +885,7 @@ describe('Housing repository', () => {
       expect(actual?.owner?.banAddress).toStrictEqual<AddressApi>({
         refId: owner.id,
         addressKind: AddressKinds.Owner,
-        address: address.label,
+        label: address.label,
         houseNumber: address.houseNumber,
         street: address.street,
         postalCode: address.postalCode,

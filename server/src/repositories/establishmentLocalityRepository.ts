@@ -31,5 +31,5 @@ async function updateLocalities(establishment: EstablishmentDBO): Promise<void> 
 }
 
 export default {
-  updateLocalities
+  updateLocalities,
 }

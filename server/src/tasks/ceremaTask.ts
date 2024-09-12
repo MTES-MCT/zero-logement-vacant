@@ -27,6 +27,7 @@ const createEstablishment = async (establishment: EstablishmentApi[] | undefined
         timestamp: new Date().toISOString()
       });
     }
+    establishment.available = true;
     await establishmentRepository.save(establishment);
     await establishmentLocalityRepository.updateLocalities(establishment);
   }

@@ -64,7 +64,11 @@ const HousingView = () => {
         await updateOwner(housingOwner).unwrap();
       }
     });
-    if (hasRankChanges(housingOwners, housingOwnersUpdated)) {
+
+    if (
+      housingOwners.length !== housingOwnersUpdated.length ||
+      hasRankChanges(housingOwners, housingOwnersUpdated)
+    ) {
       await updateHousingOwners({
         housingId: housing.id,
         housingOwners: housingOwnersUpdated

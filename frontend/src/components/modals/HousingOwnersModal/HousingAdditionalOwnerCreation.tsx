@@ -5,9 +5,8 @@ import * as yup from 'yup';
 import {
   birthDateValidator,
   emailValidator,
-  useForm,
+  useForm
 } from '../../../hooks/useForm';
-import { parseDateInput } from '../../../utils/dateUtils';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useCreateOwnerMutation } from '../../../services/owner.service';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
@@ -32,7 +31,7 @@ const HousingAdditionalOwnerCreation = ({ onAdd, rank }: Props) => {
     rawAddress: yup.array().nullable(),
     email: emailValidator.nullable().notRequired(),
     phone: yup.string().nullable().notRequired(),
-    rank: yup.number(),
+    rank: yup.number()
   };
   type FormShape = typeof shape;
 
@@ -42,29 +41,28 @@ const HousingAdditionalOwnerCreation = ({ onAdd, rank }: Props) => {
     rawAddress,
     email,
     phone,
-    rank,
+    rank
   });
 
   const [createOwner, { data: owner, isError: isCreateError }] =
     useCreateOwnerMutation();
-  const submit = async () => {
-    await form.validate(() => {
-      createOwner({
+  async function submit() {
+    await form.validate(async () => {
+      await createOwner({
         fullName,
-        birthDate: parseDateInput(birthDate),
+        birthDate: birthDate,
         rawAddress: rawAddress ?? [],
         email,
-        phone,
-        rank
-      });
+        phone
+      }).unwrap();
     });
-  };
+  }
 
   useEffect(() => {
     if (owner) {
       onAdd(owner);
     }
-  }, [owner]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [onAdd, owner]);
 
   return (
     <Container as="section">

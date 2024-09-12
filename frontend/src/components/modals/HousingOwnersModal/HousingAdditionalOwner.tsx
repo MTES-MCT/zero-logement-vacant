@@ -13,30 +13,29 @@ interface Props {
   onAddOwner: (housingOwner: HousingOwner) => void;
 }
 
-const HousingAdditionalOwner = ({
-  housingId,
-  activeOwnersCount,
-  onAddOwner,
-}: Props) => {
-  const [additionalOwnerRank, setAdditionalOwnerRank] = useState<string>('invalid');
+function HousingAdditionalOwner({ activeOwnersCount, onAddOwner }: Props) {
+  const [additionalOwnerRank, setAdditionalOwnerRank] =
+    useState<string>('invalid');
 
-  const submitAddingHousingOwner = (owner: Owner) => {
+  function submitAddingHousingOwner(owner: Owner) {
     onAddOwner?.({
       ...owner,
       rank: Number(additionalOwnerRank),
-      housingId,
+      idprocpte: null,
+      idprodroit: null,
+      locprop: null
     });
-  };
+  }
 
   const ownerRankOptions: SelectOption[] = [
     { value: '1', label: `Propriétaire principal` },
     ...Array.from(Array(activeOwnersCount).keys()).map((_) => ({
       value: String(_ + 2),
-      label: _ + 2 + 'ème ayant droit',
+      label: _ + 2 + 'ème ayant droit'
     })),
     { value: '0', label: `Ancien propriétaire` },
-    { value: '-1', label: 'Propriétaire incorrect'},
-    { value: '-3', label: 'Propriétaire décédé.e'},
+    { value: '-1', label: 'Propriétaire incorrect' },
+    { value: '-3', label: 'Propriétaire décédé.e' }
   ];
 
   return (
@@ -45,7 +44,7 @@ const HousingAdditionalOwner = ({
         nativeSelectProps={{
           onChange: (e: ChangeEvent<HTMLSelectElement>) =>
             setAdditionalOwnerRank(e.target.value),
-          value: additionalOwnerRank,
+          value: additionalOwnerRank
         }}
         label="Sélectionner les droits de propriétés"
         className="fr-pt-2w"
@@ -60,13 +59,13 @@ const HousingAdditionalOwner = ({
           ></option>
         ))}
       </Select>
-      { additionalOwnerRank === 'invalid' &&
+      {additionalOwnerRank === 'invalid' && (
         <Alert
           severity="warning"
           description="Veuillez sélectionner un rang"
           small
-        ></Alert>
-      }
+        />
+      )}
       <hr />
       <div className="fr-py-2w fr-px-6w">
         <HousingAdditionalOwnerSearch onSelect={submitAddingHousingOwner} />
@@ -82,6 +81,6 @@ const HousingAdditionalOwner = ({
       </div>
     </>
   );
-};
+}
 
 export default HousingAdditionalOwner;

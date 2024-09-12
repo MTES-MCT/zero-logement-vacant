@@ -10,7 +10,6 @@ import {
   emailValidator,
   useForm
 } from '../../../hooks/useForm';
-import { parseDateInput } from '../../../utils/dateUtils';
 import classNames from 'classnames';
 import HousingAdditionalOwner from './HousingAdditionalOwner';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
@@ -27,6 +26,7 @@ import { isBanEligible } from '../../../models/Address';
 import { useUser } from '../../../hooks/useUser';
 import { Typography } from '@mui/material';
 import Alert from '@codegouvfr/react-dsfr/Alert';
+import { AddressKinds } from '@zerologementvacant/models';
 
 interface Props {
   housingId: string;
@@ -199,7 +199,7 @@ const HousingOwnersModal = ({
             .map((ownerInput) => ({
               ...ownerInput,
               rank: Number(ownerInput.rank),
-              birthDate: parseDateInput(ownerInput.birthDate),
+              birthDate: ownerInput.birthDate,
               endDate:
                 ownerInput.rank === String(0)
                   ? ho.endDate ?? new Date()
@@ -216,10 +216,17 @@ const HousingOwnersModal = ({
     ownerInput: OwnerInput,
     addressSearchResult?: AddressSearchResult
   ) => {
-    changeOwnerInputs({
-      ...ownerInput,
-      banAddress: addressSearchResult
-    });
+    if (addressSearchResult) {
+      changeOwnerInputs({
+        ...ownerInput,
+        banAddress: {
+          ...addressSearchResult,
+          refId: ownerInput.id,
+          addressKind: AddressKinds.Owner,
+          label: addressSearchResult?.label
+        }
+      });
+    }
   };
 
   useEffect(() => {

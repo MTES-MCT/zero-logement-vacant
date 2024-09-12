@@ -1,4 +1,6 @@
+dagster<w
 dagster-dbt
+dagster-embedded-elt
 dbt-duckdb
 duckdb
 matplotlib

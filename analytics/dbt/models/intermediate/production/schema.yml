@@ -8,3 +8,4 @@ models:
   - name: int_production_establishments
   - name: int_production_establishments_housing
   - name: int_production_establishments_localities
+  - name: stg_production_housing_groups

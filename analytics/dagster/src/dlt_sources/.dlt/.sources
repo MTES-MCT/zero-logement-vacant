@@ -1,0 +1,84 @@
+engine_version: 1
+sources:
+  sql_database:
+    is_dirty: false
+    last_commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+    last_commit_timestamp: '2024-08-27T15:40:56+02:00'
+    files:
+      sql_database/arrow_helpers.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 25d6eb7268cb048af1f96fcc803405b8e05b45a7
+        sha3_256: d53530001111b759a5b9602dfd89e09532a2f0101673e834097508a3cd59786a
+      sql_database/__init__.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 729fd387122400d0961a5a5629a9ae0578bed8b4
+        sha3_256: 11765bb12b6f4a45236093c7891dcf0d89f427cc64e0dc7ff030a888c6484252
+      sql_database/README.md:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: dfa4b5e161f059b8399db203801ed0d638b7734c
+        sha3_256: a21100e31c5f4d514b38ba6229735d3c3a9a7f364ef54d2e9d6068c75c8d8e2b
+      sql_database/schema_types.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 4c281d222daa902fef91241ee13ad6579f6161cf
+        sha3_256: d30b68acd8e6a3f9cc052dc2d994562b0f5eb4934fc67e6f6726bb6f643b74d5
+      sql_database/helpers.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 2c79a59a5775cf38d1f11d78107eae407ccb9ace
+        sha3_256: ad44ea1ce01dab0d9fa1942c0d2f6e6d8a1fffaee9771302d52970c3821ce179
+    dlt_version_constraint: '>=0.4.11'
+  github:
+    is_dirty: false
+    last_commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+    last_commit_timestamp: '2024-08-27T15:40:56+02:00'
+    files:
+      github/__init__.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 4a1834528bda5e01c7001f547e102028772d6c79
+        sha3_256: 5cf3a4f7ed2a0f3501d36a9918c784d9fb97dd91d026e86d439ac0eb3590b7bb
+      github/README.md:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 40ebf50d8df6112211c1e46f04f461b33ea80d76
+        sha3_256: be5c81a31373f3c0be66dde44473502b34e43855663d1a6377ea39cf75252c2d
+      github/settings.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 96a18a0d60eaea6884cc3fbdfdd2d308993e4814
+        sha3_256: 468244c5a32f6893623effc110273c920ed8cadb5f2e47071f15ad48e9512d3b
+      github/queries.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 4ebd31f35df3eabae127c1645f0af6811fa6b82e
+        sha3_256: 210fb7c1d4ad57aa3bb674b0eb3912a0f1399909a9c18fcb20a43a615189ba80
+      github/helpers.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 943c2c1aba80eae9dea35215b993ad779925556f
+        sha3_256: 4ba2da3313e33aced3ee82fc3051af92736d9b83e2e5b6af706b5e20714d19c5
+    dlt_version_constraint: '>=0.3.25'
+  notion:
+    is_dirty: false
+    last_commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+    last_commit_timestamp: '2024-08-27T15:40:56+02:00'
+    files:
+      notion/__init__.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 6a6771a4106829c1077a86c78830fd80737857f6
+        sha3_256: 271c4eafc21dd74be2b89d0c48cf7499f182569ff8f690ea77b870adf901127c
+      notion/README.md:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 6739772d216548cd6ddb38fabb9f570138211dc3
+        sha3_256: 9f4438b8f98ff4b46f064cdacb241f08fabc594abf4404cba85b2e9b51f198ef
+      notion/settings.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: fe4ecbb1ee2ba1907246f141db7af0b214ebfb5f
+        sha3_256: e96550d8ae5cf81df9b2d1465fa66832ac4e00f357df2b419b32de0dfbfb96bf
+      notion/helpers/database.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 29212850ca3cde0450c8bdcc247b08671d2f721e
+        sha3_256: 78d592328f054bf52d6c059365eaee08fcef0696b2186e1f76cc43642d07e96d
+      notion/helpers/client.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: 72a9fbbb60ef4432c5f047834ae36080e325bb81
+        sha3_256: df5803242f35735fa8e4dd0bd7ca625ec55cb8066420736410da17c09f0a0997
+      notion/helpers/__init__.py:
+        commit_sha: b304784c92f44582f0214b863232b7c3d28c5962
+        git_sha: e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+        sha3_256: a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a
+    dlt_version_constraint: '>=0.3.5'

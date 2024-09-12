@@ -15,3 +15,7 @@ sources:
       - name: campaigns_housing
       - name: campaigns
       - name: owners_housing
+      - name: group_housing_events
+      - name: groups
+      - name: groups_housing
+      - name: geo_perimeters

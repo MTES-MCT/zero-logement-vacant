@@ -7,3 +7,7 @@ models:
   - name: stg_production_owners
   - name: stg_production_housing
   - name: stg_production_users
+  - name: stg_production_groups
+  - name: stg_production_groups_housing
+  - name: stg_production_geo_perimeters
+  

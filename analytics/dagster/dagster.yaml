@@ -1,16 +1,20 @@
-storage:
-  postgres:
-    postgres_db:
-      username:
-        env: DAGSTER_PG_USERNAME
-      password:
-        env: DAGSTER_PG_PASSWORD
-      hostname:
-        env: DAGSTER_PG_HOST
-      db_name:
-        env: DAGSTER_PG_DB
-      port: 
-        env: DAGSTER_PG_PORT
+# storage:
+#   postgres:
+#     postgres_db:
+#       username:
+#         env: DAGSTER_PG_USERNAME
+#       password:
+#         env: DAGSTER_PG_PASSWORD
+#       hostname:
+#         env: DAGSTER_PG_HOST
+#       db_name:
+#         env: DAGSTER_PG_DB
+#       port: 
+#         env: DAGSTER_PG_PORT
 
 telemetry:
   enabled: false
+
+python_logs:
+  managed_python_loggers:
+    - my_logger

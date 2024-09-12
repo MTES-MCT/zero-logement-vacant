@@ -1,11 +1,19 @@
-import { Col, Pagination as DSFRPagination, Row, Table, Text } from '../../_dsfr';
+import {
+  Col,
+  Pagination as DSFRPagination,
+  Row,
+  Table,
+  Text
+} from '../../_dsfr';
 import { format } from 'date-fns';
 import { displayCount } from '../../../utils/stringUtils';
 import { Owner } from '../../../models/Owner';
 import { usePagination } from '../../../hooks/usePagination';
 import { useFindOwnersQuery } from '../../../services/owner.service';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
-import housingSlice, { DefaultPagination } from '../../../store/reducers/housingReducer';
+import housingSlice, {
+  DefaultPagination
+} from '../../../store/reducers/housingReducer';
 import { useState } from 'react';
 import { Pagination } from '@zerologementvacant/models';
 
@@ -20,8 +28,8 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
   const { data: additionalOwners, isLoading } = useFindOwnersQuery(
     additionalOwnersQuery!,
     {
-      skip: !additionalOwnersQuery,
-    },
+      skip: !additionalOwnersQuery
+    }
   );
 
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
@@ -29,7 +37,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
   const { pageCount, rowNumber, hasPagination } = usePagination({
     pagination,
     setPagination,
-    count: additionalOwners?.filteredCount,
+    count: additionalOwners?.filteredCount
   });
 
   const columns = () => [
@@ -42,7 +50,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
           {owner.birthDate ? (
             <>
               <br />
-              {format(owner.birthDate, 'dd/MM/yyyy')}
+              {format(new Date(owner.birthDate), 'dd/MM/yyyy')}
             </>
           ) : (
             ''
@@ -58,8 +66,8 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
           <br />
           {owner.rawAddress.join(' - ')}
         </>
-      ),
-    },
+      )
+    }
   ];
 
   return (
@@ -77,7 +85,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
                   <b>
                     {displayCount(
                       additionalOwners.filteredCount,
-                      'propriétaire trouvé',
+                      'propriétaire trouvé'
                     )}
                   </b>
                 </Col>
@@ -91,7 +99,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
                     rowKey="id"
                     data={additionalOwners.entities.map((_, index) => ({
                       ..._,
-                      rowNumber: rowNumber(index),
+                      rowNumber: rowNumber(index)
                     }))}
                     columns={columns()}
                     fixedLayout={true}
@@ -104,8 +112,8 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
                           dispatch(
                             housingSlice.actions.fetchingAdditionalOwners({
                               ...additionalOwnersQuery,
-                              page,
-                            }),
+                              page
+                            })
                           )
                         }
                         currentPage={additionalOwners.page}

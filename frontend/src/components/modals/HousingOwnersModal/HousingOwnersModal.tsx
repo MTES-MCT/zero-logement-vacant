@@ -26,7 +26,8 @@ import { isBanEligible } from '../../../models/Address';
 import { useUser } from '../../../hooks/useUser';
 import { Typography } from '@mui/material';
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import { AddressKinds } from '@zerologementvacant/models';
+import { useList } from 'react-use';
+import fp from 'lodash/fp';
 
 interface Props {
   housingId: string;
@@ -35,27 +36,12 @@ interface Props {
   onCancel?: () => void;
 }
 
-const HousingOwnersModal = ({
+function HousingOwnersModal({
   housingId,
   housingOwners: initialHousingOwners,
   onSubmit,
   onCancel
-}: Props) => {
-  type OwnerInput = Pick<
-    HousingOwner,
-    | 'id'
-    | 'fullName'
-    | 'rawAddress'
-    | 'email'
-    | 'phone'
-    | 'kind'
-    | 'banAddress'
-    | 'additionalAddress'
-  > & {
-    rank: string;
-    birthDate: string;
-  };
-
+}: Props) {
   const { isVisitor } = useUser();
 
   const modal = useMemo(
@@ -72,71 +58,72 @@ const HousingOwnersModal = ({
   useEffect(() => {
     if (!isOpen) {
       setModalMode('list');
-      setHousingOwners(initialHousingOwners);
+      resetHousingOwners();
     }
   }, [isOpen]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const [modalMode, setModalMode] = useState<'list' | 'add'>('list');
-  const [housingOwners, setHousingOwners] =
-    useState<HousingOwner[]>(initialHousingOwners);
+  const [
+    housingOwners,
+    {
+      reset: resetHousingOwners,
+      push: appendHousingOwner,
+      updateFirst: updateHousingOwner
+    }
+  ] = useList(initialHousingOwners);
 
-  const getOwnerInput = (housingOwner: HousingOwner) => ({
-    ...housingOwner,
-    rank: String(housingOwner.endDate ? 0 : housingOwner.rank),
-    birthDate: housingOwner?.birthDate ?? ''
-  });
-
-  const [ownerInputs, setOwnerInputs] = useState<OwnerInput[]>(
-    housingOwners.map(getOwnerInput)
-  );
-
-  const primaryOwner = ownerInputs?.filter((_) => _.rank === '1');
-  const secondaryOwners = ownerInputs?.filter((_) => parseInt(_.rank) > 1);
-  const archivedOwners = ownerInputs?.filter(
-    (_) =>
-      _.rank === '0' || _.rank === '-1' || _.rank === '-2' || _.rank === '-3'
-  );
-
-  const ranks =
-    ownerInputs.length > 0
-      ? Array.from(Array(ownerInputs.length - 1).keys()).map((_) => _ + 1)
-      : [];
+  const primaryOwner = housingOwners.filter((ho) => ho.rank === 1);
+  const secondaryOwners = housingOwners.filter((ho) => ho.rank >= 2);
+  const archivedOwners = housingOwners.filter((ho) => ho.rank <= 0);
 
   const shape = {
-    ...ownerInputs.reduce(
-      (shape, ownerInput, index) => ({
+    ...housingOwners.reduce(
+      (shape, housingOwner) => ({
         ...shape,
-        [`fullName${index}`]: yup
+        [`fullName-${housingOwner.id}`]: yup
           .string()
           .required('Veuillez renseigner un nom.'),
-        [`email${index}`]: emailValidator.nullable().notRequired(),
-        [`birthDate${index}`]: dateValidator.nullable().notRequired(),
-        [`banAddress${index}`]: banAddressValidator,
-        [`additionalAddress${index}`]: yup.string().nullable().notRequired()
+        [`email-${housingOwner.id}`]: emailValidator.nullable().notRequired(),
+        [`birthDate-${housingOwner.id}`]: dateValidator
+          .nullable()
+          .notRequired(),
+        [`banAddress-${housingOwner.id}`]: banAddressValidator,
+        [`additionalAddress-${housingOwner.id}`]: yup
+          .string()
+          .nullable()
+          .notRequired()
       }),
       {}
     ),
     ownerRanks: yup.array().test({
       test(array, ctx) {
-        if ((array ?? []).filter((_) => _.rank === '1').length < 1) {
+        const owners = array ?? [];
+
+        if (owners.every((owner) => owner.rank !== 1)) {
           return ctx.createError({
             message:
               'Vous devez définir un propriétaire principal pour enregistrer.'
           });
         }
-        if ((array ?? []).filter((_) => _.rank === '1').length > 1) {
+
+        if (owners.filter((owner) => owner.rank === 1).length >= 2) {
           return ctx.createError({
             message: "Il ne peut y avoir qu'un propriétaire principal"
           });
         }
-        for (const rank of ranks) {
-          if (
-            (array ?? []).filter((_) => _.rank === String(rank + 1)).length > 1
-          ) {
-            return ctx.createError({
-              message: `Il ne peut y avoir qu'un ${rank + 1}ème ayant-droit`
-            });
-          }
+
+        const findOverlaps = fp.pipe(
+          fp.filter((housingOwner: any) => housingOwner.rank >= 1),
+          fp.groupBy((housingOwner) => housingOwner.rank),
+          fp.pickBy((housingOwners) => housingOwners.length > 1),
+          fp.keys
+        );
+        const overlaps = findOverlaps(owners);
+        if (overlaps.length > 0) {
+          const [overlap] = overlaps;
+          return ctx.createError({
+            message: `Il ne peut y avoir qu'un ${overlap}ème ayant-droit`
+          });
         }
         return true;
       }
@@ -144,21 +131,21 @@ const HousingOwnersModal = ({
   };
   type FormShape = typeof shape;
 
-  const changeOwnerInputs = (ownerInput: OwnerInput) => {
-    const newInputs = [...ownerInputs];
-    newInputs.splice(
-      ownerInputs.findIndex((_) => _.id === ownerInput.id),
-      1,
-      ownerInput
-    );
-    setOwnerInputs(newInputs);
-  };
+  function changeOwnerInputs(housingOwner: HousingOwner) {
+    updateHousingOwner((a, b) => a.id === b.id, housingOwner);
+  }
+
+  const secondaryRanks =
+    secondaryOwners.length > 0
+      ? // Starts at rank 2
+        Array.from({ length: secondaryOwners.length }, (_, i) => i + 2)
+      : [];
 
   const ownerRankOptions: SelectOption[] = [
     { value: '1', label: 'Propriétaire principal' },
-    ...ranks.map((_) => ({
-      value: String(_ + 1),
-      label: _ + 1 + 'ème ayant droit'
+    ...secondaryRanks.map((i) => ({
+      value: String(i),
+      label: `${i}ème ayant droit`
     })),
     { value: '0', label: 'Ancien propriétaire' },
     { value: '-1', label: 'Propriétaire incorrect' },
@@ -168,72 +155,46 @@ const HousingOwnersModal = ({
   const form = useForm(
     yup.object().shape(shape),
     {
-      ...ownerInputs.reduce(
-        (inputs, ownerInput, index) => ({
+      ...housingOwners.reduce(
+        (inputs, housingOwner) => ({
           ...inputs,
-          [`fullName${index}`]: ownerInput.fullName,
-          [`email${index}`]: ownerInput.email,
-          [`birthDate${index}`]: ownerInput.birthDate,
-          [`banAddress${index}`]: ownerInput.banAddress,
-          [`additionalAddress${index}`]: ownerInput.additionalAddress
+          [`fullName-${housingOwner.id}`]: housingOwner.fullName,
+          [`email-${housingOwner.id}`]: housingOwner.email,
+          [`birthDate-${housingOwner.id}`]: housingOwner.birthDate,
+          [`banAddress-${housingOwner.id}`]: housingOwner.banAddress,
+          [`additionalAddress-${housingOwner.id}`]:
+            housingOwner.additionalAddress
         }),
         {}
       ),
-      ownerRanks: ownerInputs
+      ownerRanks: housingOwners
     },
     ['ownerRanks']
   );
 
-  const onAddOwner = (housingOwner: HousingOwner) => {
-    setHousingOwners([...housingOwners, housingOwner]);
-    setOwnerInputs([...ownerInputs, getOwnerInput(housingOwner)]);
+  function onAddOwner(housingOwner: HousingOwner) {
+    appendHousingOwner(housingOwner);
     setModalMode('list');
-  };
+  }
 
-  const submit = async () => {
+  async function submit() {
     await form.validate(async () => {
-      await onSubmit(
-        housingOwners.map((ho) => ({
-          ...ho,
-          ...(ownerInputs
-            .map((ownerInput) => ({
-              ...ownerInput,
-              rank: Number(ownerInput.rank),
-              birthDate: ownerInput.birthDate,
-              endDate:
-                ownerInput.rank === String(0)
-                  ? ho.endDate ?? new Date()
-                  : undefined
-            }))
-            .find((_) => _.id === ho.id) ?? {})
-        }))
-      );
+      await onSubmit(housingOwners);
       modal.close();
     });
-  };
+  }
 
   const onSelectAddress = (
-    ownerInput: OwnerInput,
+    ownerInput: HousingOwner,
     addressSearchResult?: AddressSearchResult
   ) => {
     if (addressSearchResult) {
       changeOwnerInputs({
         ...ownerInput,
-        banAddress: {
-          ...addressSearchResult,
-          refId: ownerInput.id,
-          addressKind: AddressKinds.Owner,
-          label: addressSearchResult?.label
-        }
+        banAddress: addressSearchResult
       });
     }
   };
-
-  useEffect(() => {
-    ownerInputs.forEach((_, index) =>
-      form.validateAt(`banAddress${index}` as keyof FormShape)
-    );
-  }, [ownerInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // @ts-expect-error: dynamic key
   const message = (key: string) => form.message(key);
@@ -258,20 +219,21 @@ const HousingOwnersModal = ({
     }
   }, [modal, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function ownerAccordion(ownerInput: OwnerInput, index: string) {
+  function OwnerAccordion(housingOwner: HousingOwner) {
+    const index = `housing-owner-${housingOwner.id}`;
     return (
       <Accordion
         label={
           <div>
             <span className="icon-xs">
               <Icon
-                name={iconName(ownerInput.kind)}
+                name={iconName(housingOwner.kind)}
                 iconPosition="center"
                 size="xs"
               />
             </span>
             <Text as="span">
-              <b>{ownerInput.fullName}</b>
+              <b>{housingOwner.fullName}</b>
             </Text>
             <Text
               size="sm"
@@ -279,9 +241,9 @@ const HousingOwnersModal = ({
               as="span"
               aria-label="Rang du propriétaire"
             >
-              {getHousingOwnerRankLabel(Number(ownerInput.rank))}
+              {getHousingOwnerRankLabel(housingOwner.rank)}
             </Text>
-            {!isBanEligible(ownerInput.banAddress) && (
+            {!isBanEligible(housingOwner.banAddress) && (
               <Badge severity="info" className="fr-ml-1w">
                 ADRESSE À VÉRIFIER
               </Badge>
@@ -292,117 +254,117 @@ const HousingOwnersModal = ({
         key={index}
         className={classNames({
           error:
-            hasError(`fullName${index}`) ||
-            hasError(`banAddress${index}`) ||
-            hasError(`birthDate${index}`) ||
-            hasError(`email${index}`) ||
-            hasError(`additionalAddress${index}`)
+            hasError(`fullName-${index}`) ||
+            hasError(`banAddress-${index}`) ||
+            hasError(`birthDate-${index}`) ||
+            hasError(`email-${index}`) ||
+            hasError(`additionalAddress-${index}`)
         })}
       >
         <AppSelect<FormShape>
           onChange={(e) =>
             changeOwnerInputs({
-              ...ownerInput,
-              rank: e.target.value
+              ...housingOwner,
+              rank: Number(e.target.value)
             })
           }
-          value={String(ownerInput.rank)}
+          value={String(housingOwner.rank)}
           inputForm={form}
-          disabled={ownerInput.rank === '-2'}
+          disabled={housingOwner.rank === -2}
           inputKey="ownerRanks"
           options={ownerRankOptions}
         />
         <Row gutters>
           <Col n="6">
             <AppTextInput<FormShape>
-              value={ownerInput.fullName}
+              value={housingOwner.fullName}
               onChange={(e) =>
                 changeOwnerInputs({
-                  ...ownerInput,
+                  ...housingOwner,
                   fullName: e.target.value
                 })
               }
               required
               label="Nom prénom"
               inputForm={form}
-              disabled={ownerInput.rank === '-2'}
+              disabled={housingOwner.rank === -2}
               // @ts-expect-error: dynamic key
-              inputKey={`fullName${index}`}
+              inputKey={`fullName-${housingOwner.id}`}
             />
           </Col>
           <Col n="6">
             <AppTextInput<FormShape>
               type={'date'}
-              value={ownerInput.birthDate ?? ''}
+              value={housingOwner.birthDate ?? ''}
               onChange={(e) =>
                 changeOwnerInputs({
-                  ...ownerInput,
+                  ...housingOwner,
                   birthDate: e.target.value
                 })
               }
               label="Date de naissance"
               inputForm={form}
-              disabled={ownerInput.rank === '-2'}
+              disabled={housingOwner.rank === -2}
               // @ts-expect-error: dynamic key
-              inputKey={`birthDate$${index}`}
+              inputKey={`birthDate-${housingOwner.id}`}
             />
           </Col>
           <Col n="12">
             <OwnerAddressEdition
-              banAddress={ownerInput.banAddress}
-              rawAddress={ownerInput.rawAddress}
-              disabled={ownerInput.rank === '-2'}
-              onSelectAddress={(a) => onSelectAddress(ownerInput, a)}
-              errorMessage={message(`banAddress${index}`)}
+              banAddress={housingOwner.banAddress}
+              rawAddress={housingOwner.rawAddress}
+              disabled={housingOwner.rank === -2}
+              onSelectAddress={(a) => onSelectAddress(housingOwner, a)}
+              errorMessage={message(`banAddress-${housingOwner.id}`)}
             />
           </Col>
           <Col n="12">
             <AppTextInput<FormShape>
-              value={ownerInput.additionalAddress ?? ''}
+              value={housingOwner.additionalAddress ?? ''}
               onChange={(e) =>
                 changeOwnerInputs({
-                  ...ownerInput,
+                  ...housingOwner,
                   additionalAddress: e.target.value
                 })
               }
               label="Complément d'adresse"
               inputForm={form}
-              disabled={ownerInput.rank === '-2'}
+              disabled={housingOwner.rank === -2}
               // @ts-expect-error: dynamic key
-              inputKey={`additionalAddress$${index}`}
+              inputKey={`additionalAddress-${housingOwner.id}`}
             />
           </Col>
           <Col n="6">
             <AppTextInput<FormShape>
               type={'email'}
-              value={ownerInput.email ?? ''}
+              value={housingOwner.email ?? ''}
               onChange={(e) =>
                 changeOwnerInputs({
-                  ...ownerInput,
+                  ...housingOwner,
                   email: e.target.value
                 })
               }
               label="Adresse mail"
               inputForm={form}
-              disabled={ownerInput.rank === '-2'}
+              disabled={housingOwner.rank === -2}
               // @ts-expect-error: dynamic key
-              inputKey={`email$${index}`}
+              inputKey={`email-${housingOwner.id}`}
             />
           </Col>
           <Col n="6">
             <AppTextInput<FormShape>
-              value={ownerInput.phone}
+              value={housingOwner.phone}
               onChange={(e) =>
                 changeOwnerInputs({
-                  ...ownerInput,
+                  ...housingOwner,
                   phone: e.target.value
                 })
               }
               label="Numéro de téléphone"
               inputForm={form}
-              disabled={ownerInput.rank === '-2'}
+              disabled={housingOwner.rank === -2}
               // @ts-expect-error: dynamic key
-              inputKey={`phone$${index}`}
+              inputKey={`phone-${housingOwner.id}`}
             />
           </Col>
         </Row>
@@ -484,8 +446,8 @@ const HousingOwnersModal = ({
                   Propriétaire principal
                 </Typography>
                 <div className={fr.cx('fr-accordions-group')}>
-                  {primaryOwner.map((ownerInput, index) =>
-                    ownerAccordion(ownerInput, `primary-owner-${index}`)
+                  {primaryOwner.map((housingOwner) =>
+                    OwnerAccordion(housingOwner)
                   )}
                 </div>
               </>
@@ -496,8 +458,8 @@ const HousingOwnersModal = ({
                   Propriétaires secondaires ({secondaryOwners.length})
                 </Typography>
                 <div className={fr.cx('fr-accordions-group')}>
-                  {secondaryOwners.map((ownerInput, index) =>
-                    ownerAccordion(ownerInput, `secondary-owner-${index}`)
+                  {secondaryOwners.map((ownerInput) =>
+                    OwnerAccordion(ownerInput)
                   )}
                 </div>
               </>
@@ -508,8 +470,8 @@ const HousingOwnersModal = ({
                   Propriétaires archivés ({archivedOwners.length})
                 </Typography>
                 <div className={fr.cx('fr-accordions-group')}>
-                  {archivedOwners.map((ownerInput, index) =>
-                    ownerAccordion(ownerInput, `archived-owner-${index}`)
+                  {archivedOwners.map((ownerInput) =>
+                    OwnerAccordion(ownerInput)
                   )}
                 </div>
               </>
@@ -525,6 +487,6 @@ const HousingOwnersModal = ({
       </modal.Component>
     </>
   );
-};
+}
 
 export default HousingOwnersModal;

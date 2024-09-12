@@ -47,7 +47,7 @@ fileignoreconfig:
 - filename: frontend/src/components/modals/HousingCreationModal/FillLocalId.tsx
   checksum: 215449d00a43a291e8efd8b28aeb0240b11ee8226efaf87dadc7709f4fa17325
 - filename: frontend/src/components/modals/HousingOwnersModal/HousingOwnersModal.tsx
-  checksum: 16e0c8861d5060b05344d5b69908d18c8980908d049a12f44416718a958ef9b6
+  checksum: 0f56c244b78d19588ebfe7f31222d97a861b3eb775ea8c385c202d5b0d8af387
 - filename: frontend/src/hooks/useForm.tsx
   checksum: 6d16b338e7203dc37f64b3e00e4da0365dc35461e5c776853b55243509e3d9b9
 - filename: frontend/src/hooks/useSort.tsx

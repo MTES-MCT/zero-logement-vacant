@@ -99,7 +99,7 @@ describe('Source housing processor', () => {
       expect(banAddressRepository.insert).toHaveBeenCalledOnce();
       expect(banAddressRepository.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          address: sourceHousing.ban_address,
+          label: sourceHousing.ban_address,
           latitude: sourceHousing.ban_latitude,
           longitude: sourceHousing.ban_longitude,
           score: sourceHousing.ban_score

@@ -141,7 +141,6 @@ describe('Owner API', () => {
         id: owner.id,
         rawAddress: payload.rawAddress,
         fullName: payload.fullName,
-        administrator: owner.administrator,
         birthDate: payload.birthDate,
         email: payload.email,
         phone: payload.phone,

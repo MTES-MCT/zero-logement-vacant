@@ -10,6 +10,7 @@ import config from '../infra/config';
 import { logger } from '../infra/logger';
 import { CeremaDossier } from '../services/ceremaService/consultDossiersLovacService';
 import establishmentRepository from '~/repositories/establishmentRepository';
+import establishmentLocalityRepository from '~/repositories/establishmentLocalityRepository';
 import { Structure, structureToEstablishment } from '../services/ceremaService/consultStructureService';
 import { getLastScriptExecutionDate, logScriptExecution } from '~/infra/elastic';
 import { wait } from '@zerologementvacant/utils';
@@ -27,6 +28,7 @@ const createEstablishment = async (establishment: EstablishmentApi[] | undefined
       });
     }
     await establishmentRepository.save(establishment);
+    await establishmentLocalityRepository.updateLocalities(establishment);
   }
 };
 

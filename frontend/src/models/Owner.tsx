@@ -1,4 +1,8 @@
-import { HousingOwnerDTO, OwnerDTO } from '@zerologementvacant/models';
+import {
+  BaseHousingOwnerDTO,
+  HousingOwnerDTO,
+  OwnerDTO
+} from '@zerologementvacant/models';
 import { Address, fromAddressDTO, toOwnerAddressDTO } from './Address';
 import fp from 'lodash/fp';
 
@@ -47,8 +51,7 @@ export function toOwnerDTO(owner: Owner): OwnerDTO {
   };
 }
 
-export interface HousingOwner extends HousingOwnerDTO {
-  rank: number;
+export interface HousingOwner extends BaseHousingOwnerDTO, Owner {
   startDate?: Date;
   endDate?: Date;
   origin?: string;

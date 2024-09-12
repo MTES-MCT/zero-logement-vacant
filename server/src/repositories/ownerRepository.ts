@@ -38,6 +38,7 @@ export const Owners = (transaction = db) => transaction<OwnerDBO>(ownerTable);
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
   const owner = await Owners()
+    .select(`${ownerTable}.*`)
     .modify(include(['banAddress']))
     .where('id', ownerId)
     .first();
@@ -120,11 +121,13 @@ type OwnerInclude = 'banAddress';
 function include(includes: OwnerInclude[]) {
   const joins: Record<OwnerInclude, (query: Knex.QueryBuilder) => void> = {
     banAddress: (query) =>
-      query.leftJoin(banAddressesTable, (query: any) => {
-        query
-          .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
-          .andOnVal('address_kind', AddressKinds.Owner);
-      })
+      query
+        .leftJoin(banAddressesTable, (query: any) => {
+          query
+            .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
+            .andOnVal('address_kind', AddressKinds.Owner);
+        })
+        .select(db.raw(`to_json(${banAddressesTable}.*) AS ban`))
   };
 
   return (query: Knex.QueryBuilder) => {
@@ -249,11 +252,13 @@ const findByHousing = async (
   housing: HousingApi
 ): Promise<HousingOwnerApi[]> => {
   const owners: Array<OwnerDBO & HousingOwnerDBO> = await db(ownerTable)
+    .select(`${ownerTable}.*`)
     .join(
       housingOwnersTable,
       `${ownerTable}.id`,
       `${housingOwnersTable}.owner_id`
     )
+    .select(`${housingOwnersTable}.*`)
     .modify(include(['banAddress']))
     .where(`${housingOwnersTable}.housing_id`, housing.id)
     .where(`${housingOwnersTable}.housing_geo_code`, housing.geoCode)

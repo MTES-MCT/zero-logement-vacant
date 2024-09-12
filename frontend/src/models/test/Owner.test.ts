@@ -28,20 +28,24 @@ describe('Owner', () => {
   describe('hasRankChanges', () => {
     it('should return false if no rank has changed', () => {
       const owner = genOwner();
-      const before: HousingOwner = {
-        ...owner,
-        rank: 1,
-        idprocpte: null,
-        idprodroit: null,
-        locprop: null
-      };
-      const after: HousingOwner = {
-        ...owner,
-        rank: 1,
-        idprocpte: null,
-        idprodroit: null,
-        locprop: null
-      };
+      const before: HousingOwner[] = [
+        {
+          ...owner,
+          rank: 1,
+          idprocpte: null,
+          idprodroit: null,
+          locprop: null
+        }
+      ];
+      const after: HousingOwner[] = [
+        {
+          ...owner,
+          rank: 1,
+          idprocpte: null,
+          idprodroit: null,
+          locprop: null
+        }
+      ];
 
       const actual = hasRankChanges(before, after);
 

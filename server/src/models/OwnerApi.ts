@@ -10,8 +10,29 @@ export interface OwnerApi extends OwnerDTO {
   idpersonne?: string;
   siren?: string;
   dataSource?: string;
-  createdAt?: string;
-  updatedAt?: string;
+}
+
+export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
+  return {
+    ...fp.pick(
+      [
+        'id',
+        'rawAddress',
+        'fullName',
+        'administrator',
+        'email',
+        'phone',
+        'banAddress',
+        'additionalAddress',
+        'kind',
+        'kindDetail',
+        'createdAt',
+        'updatedAt'
+      ],
+      owner
+    ),
+    birthDate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length)
+  };
 }
 
 export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {

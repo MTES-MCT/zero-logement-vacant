@@ -3,13 +3,21 @@ import { Col, Row } from '../../components/_dsfr';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import { useHousing } from '../../hooks/useHousing';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
-import { HousingOwner } from '../../models/Owner';
+import {
+  hasOwnerChanges,
+  hasRankChanges,
+  HousingOwner
+} from '../../models/Owner';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
-import { useUpdateHousingOwnersMutation } from '../../services/owner.service';
+import {
+  useUpdateHousingOwnersMutation,
+  useUpdateOwnerMutation
+} from '../../services/owner.service';
 import { Campaign } from '../../models/Campaign';
 import MainContainer from '../../components/MainContainer/MainContainer';
+import async from 'async';
 
 const HousingView = () => {
   useDocumentTitle('Fiche logement');
@@ -21,18 +29,19 @@ const HousingView = () => {
     housingOwners,
     events,
     notes,
-    campaigns,
+    campaigns
   } = useHousing();
   const housingCount = count?.housing ?? 0;
 
   const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
     housing?.id ?? '',
-    { skip: !housing },
+    { skip: !housing }
   );
+  const [updateOwner] = useUpdateOwnerMutation();
   const [updateHousingOwners] = useUpdateHousingOwnersMutation();
 
   const [housingOwnersModalKey, setHousingOwnersModalKey] = useState(
-    new Date().getTime(),
+    new Date().getTime()
   );
 
   if (!housing) {
@@ -40,13 +49,32 @@ const HousingView = () => {
   }
 
   const submitHousingOwnersUpdate = async (
-    housingOwnersUpdated: HousingOwner[],
+    housingOwnersUpdated: HousingOwner[]
   ) => {
-    await updateHousingOwners({
-      housingId: housing.id,
-      housingOwners: housingOwnersUpdated,
+    if (!housingOwners || housingOwners.length === 0) {
+      return;
+    }
+
+    await async.forEach(housingOwnersUpdated, async (housingOwner) => {
+      const before = housingOwners.find(
+        (before) => before.id === housingOwner.id
+      );
+      const after = housingOwner;
+      if (!before || hasOwnerChanges(before, after)) {
+        await updateOwner(housingOwner).unwrap();
+      }
     });
-    await refetchHousingEvents();
+
+    if (
+      housingOwners.length !== housingOwnersUpdated.length ||
+      hasRankChanges(housingOwners, housingOwnersUpdated)
+    ) {
+      await updateHousingOwners({
+        housingId: housing.id,
+        housingOwners: housingOwnersUpdated
+      }).unwrap();
+      await refetchHousingEvents().unwrap();
+    }
   };
 
   return (

@@ -15,6 +15,7 @@ import { HOUSING_KIND_VALUES } from '../HousingKind';
 import { DatafoncierHousing } from '../DatafoncierHousing';
 import { HOUSING_STATUS_VALUES } from '../HousingStatus';
 import { FileUploadDTO } from '../FileUploadDTO';
+import { HousingOwnerDTO } from '../HousingOwnerDTO';
 
 export function genAddressDTO(
   refId: string,
@@ -23,7 +24,7 @@ export function genAddressDTO(
   return {
     refId,
     addressKind,
-    address: faker.location.streetAddress({ useFullAddress: true }),
+    label: faker.location.streetAddress({ useFullAddress: true }),
     houseNumber: faker.location.buildingNumber(),
     street: faker.location.street(),
     postalCode: faker.location.zipCode(),
@@ -257,6 +258,16 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
   };
 }
 
+export function genHousingOwnerDTO(owner: OwnerDTO): HousingOwnerDTO {
+  return {
+    ...owner,
+    rank: faker.number.int({ min: 1, max: 10 }),
+    idprocpte: faker.string.numeric(11),
+    idprodroit: faker.string.numeric(13),
+    locprop: faker.number.int(9)
+  };
+}
+
 export function genInvariant(locality: string): string {
   return locality + faker.string.alpha(7);
 }
@@ -278,7 +289,10 @@ export function genOwnerDTO(): OwnerDTO {
     ],
     banAddress: genAddressDTO(id, AddressKinds.Owner),
     additionalAddress: faker.helpers.maybe(() => faker.location.county()),
-    birthDate: faker.date.birthdate(),
+    birthDate: faker.date
+      .birthdate()
+      .toJSON()
+      .substring(0, 'yyyy-mm-dd'.length),
     fullName: `${firstName} ${lastName}`,
     email: faker.internet.email({
       firstName,

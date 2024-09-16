@@ -15,15 +15,15 @@ export const passwordFormatValidator = yup
   .min(8, 'Au moins 8 caractères.')
   .matches(/[A-Z]/g, {
     name: 'uppercase',
-    message: 'Au moins une majuscule.',
+    message: 'Au moins une majuscule.'
   })
   .matches(/[a-z]/g, {
     name: 'lowercase',
-    message: 'Au moins une minuscule.',
+    message: 'Au moins une minuscule.'
   })
   .matches(/[0-9]/g, {
     name: 'number',
-    message: 'Au moins un chiffre.',
+    message: 'Au moins un chiffre.'
   });
 
 export const passwordConfirmationValidator = yup
@@ -53,12 +53,10 @@ export const fileValidator = (supportedFormats: string[]) =>
     .test(
       'fileType',
       'Format de fichier invalide',
-      (value) => value && supportedFormats.includes(value.type),
+      (value) => value && supportedFormats.includes(value.type)
     );
 
-export const banAddressValidator = yup
-  .object()
-  .required('Veuillez sélectionner une adresse issue de la BAN.');
+export const banAddressValidator = yup.object();
 
 export const birthDateValidator = dateValidator.nullable().notRequired();
 
@@ -77,7 +75,7 @@ interface Message {
  */
 export function useForm<
   T extends ObjectShape,
-  U extends Record<keyof T, unknown>,
+  U extends Record<keyof T, unknown>
 >(schema: yup.ObjectSchema<T>, input: U, fullValidationKeys?: (keyof U)[]) {
   const [errors, setErrors] = useState<yup.ValidationError[]>();
   const [touchedKeys, setTouchedKeys] = useState<Set<keyof U>>(new Set());
@@ -97,7 +95,7 @@ export function useForm<
    * @param key
    */
   function errorList<K extends keyof U>(
-    key?: K,
+    key?: K
   ): yup.ValidationError[] | undefined {
     return key && touchedKeys.has(key)
       ? errors?.filter((error) => error.path === key)
@@ -115,7 +113,7 @@ export function useForm<
   function labels<K extends keyof U>(key?: K): string[] {
     if (key) {
       return (schema.fields[key] as any).tests.map(
-        (test: any) => test.OPTIONS.message,
+        (test: any) => test.OPTIONS.message
       );
     }
     return Object.values(schema.fields)
@@ -125,7 +123,7 @@ export function useForm<
 
   function message<K extends keyof U>(
     key: K,
-    whenValid?: string,
+    whenValid?: string
   ): string | undefined {
     return messageType(key) === 'success' && whenValid
       ? whenValid
@@ -141,7 +139,7 @@ export function useForm<
       text: label,
       type: errorList(key)?.find((error) => error.message === label)
         ? 'error'
-        : 'valid',
+        : 'valid'
     }));
   }
 
@@ -173,7 +171,7 @@ export function useForm<
     setTouchedKeys(touchedKeys.add(key));
     try {
       await schema.validateAt(String(key), input, {
-        abortEarly: !fullValidationKeys?.includes(key),
+        abortEarly: !fullValidationKeys?.includes(key)
       });
       setErrors([...errorsExcept(key)]);
     } catch (validationError) {
@@ -181,7 +179,7 @@ export function useForm<
         ...errorsExcept(key),
         ...(!fullValidationKeys?.includes(key)
           ? [validationError as yup.ValidationError]
-          : (validationError as yup.ValidationError).inner),
+          : (validationError as yup.ValidationError).inner)
       ]);
     }
   }
@@ -190,8 +188,8 @@ export function useForm<
     const validations = entriesDeep(input)
       .filter(([k1, v1]) =>
         entriesDeep(previousInput.current || {}).find(
-          ([k2, v2]) => k1 === k2 && v1 !== v2,
-        ),
+          ([k2, v2]) => k1 === k2 && v1 !== v2
+        )
       )
       .filter(([key]) => touchedKeys.has(key))
       .map(([key]) => validateAt(key));
@@ -204,7 +202,7 @@ export function useForm<
 
   useEffect(() => {
     const validations = (fullValidationKeys ?? []).map((key) =>
-      validateAt(key),
+      validateAt(key)
     );
     (async () => await Promise.all(validations))();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -218,7 +216,7 @@ export function useForm<
     message,
     messageType,
     validate,
-    validateAt,
+    validateAt
   };
 }
 
@@ -228,8 +226,8 @@ function keysDeep(record: ObjectShape, prefix: string = ''): string[] {
     fp.flatMap<[string, unknown], string>(([key, value]) =>
       fp.isObject(value) && 'fields' in value
         ? keysDeep(value.fields as ObjectShape, `${key}.`)
-        : `${prefix}${key}`,
-    ),
+        : `${prefix}${key}`
+    )
   )(record);
 }
 
@@ -239,7 +237,7 @@ function entriesDeep(record: object, prefix: string = ''): [string, unknown][] {
     fp.flatMap<[string, unknown], [string, unknown]>(([key, value]) =>
       fp.isObject(value)
         ? entriesDeep(value, `${key}.`)
-        : [[`${prefix}${key}`, value]],
-    ),
+        : [[`${prefix}${key}`, value]]
+    )
   )(record);
 }

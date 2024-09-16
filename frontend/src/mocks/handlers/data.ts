@@ -14,9 +14,11 @@ import {
   genUserDTO,
   GroupDTO,
   HousingDTO,
+  HousingOwnerDTO,
   OwnerDTO,
   UserDTO
 } from '@zerologementvacant/models';
+import { EventDTO } from '@zerologementvacant/models/dist/EventDTO';
 
 const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
 
@@ -74,6 +76,22 @@ Array.from(campaignHousings.entries()).forEach(([campaignId, housings]) => {
 
 const groupHousings = new Map<GroupDTO['id'], HousingDTO[]>();
 
+const housingOwners = new Map<HousingDTO['id'], HousingOwnerDTO[]>(
+  housings.map((housing) => {
+    const elements = faker.helpers.arrayElements(owners);
+    const housingOwners: HousingOwnerDTO[] = elements.map((owner, i) => ({
+      ...owner,
+      rank: i + 1,
+      idprocpte: null,
+      idprodroit: null,
+      locprop: null
+    }));
+    return [housing.id, housingOwners];
+  })
+);
+
+const housingEvents = new Map<HousingDTO['id'], EventDTO<HousingDTO>[]>();
+
 const data = {
   campaigns,
   campaignDrafts,
@@ -85,6 +103,8 @@ const data = {
   groupHousings,
   housings,
   housingCampaigns,
+  housingEvents,
+  housingOwners,
   owners,
   users
 };

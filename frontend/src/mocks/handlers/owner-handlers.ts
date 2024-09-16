@@ -1,7 +1,11 @@
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 
-import { OwnerDTO, OwnerPayloadDTO } from '@zerologementvacant/models';
+import {
+  AddressKinds,
+  OwnerDTO,
+  OwnerPayloadDTO
+} from '@zerologementvacant/models';
 import config from '../../utils/config';
 import data from './data';
 
@@ -25,9 +29,13 @@ export const ownerHandlers: RequestHandler[] = [
       const updated: OwnerDTO = {
         ...owner,
         ...payload,
-        birthDate: payload.birthDate
-          ? new Date(payload.birthDate)
-          : owner.birthDate
+        banAddress: payload.banAddress
+          ? {
+              ...payload.banAddress,
+              refId: owner.id,
+              addressKind: AddressKinds.Owner
+            }
+          : undefined
       };
       return HttpResponse.json(updated);
     }

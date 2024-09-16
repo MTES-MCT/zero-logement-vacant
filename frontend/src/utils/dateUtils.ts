@@ -4,7 +4,7 @@ import {
   differenceInYears,
   format,
   parse,
-  parseISO,
+  parseISO
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -17,8 +17,8 @@ export const durationSort = (d1?: Duration, d2?: Duration) =>
       ? dateSort(add(new Date(), d1), add(new Date(), d2))
       : 1
     : d2
-    ? -1
-    : 0;
+      ? -1
+      : 0;
 
 export const dateShortFormat = (d: Date) =>
   format(d, 'dd/MM/yy', { locale: fr });
@@ -37,8 +37,8 @@ export function birthdate(date: Date | string): string {
   );
 }
 
-export function age(date: Date): number {
-  return differenceInYears(new Date(), date);
+export function age(date: Date | string): number {
+  return differenceInYears(new Date(), new Date(date));
 }
 
 export const DATE_REGEXP = /^\d{4}-\d{2}-\d{2}$/;

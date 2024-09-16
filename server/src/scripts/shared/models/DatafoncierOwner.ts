@@ -100,7 +100,7 @@ export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
       owner.catpro2txt === 'PERSONNE PHYSIQUE'
         ? owner.ddenom.replace('/', ' ')
         : owner.ddenom,
-    birthDate: isValid(birthdate) ? birthdate : undefined,
+    birthDate: isValid(birthdate) ? birthdate?.toJSON() : undefined,
     kind: kinds[owner.catpro2txt] ?? 'Autre',
     kindDetail: owner.catpro3txt
   };

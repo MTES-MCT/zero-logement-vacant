@@ -4,7 +4,7 @@ import {
   MATCH_THRESHOLD,
   needsManualReview,
   preprocessAddress,
-  REVIEW_THRESHOLD,
+  REVIEW_THRESHOLD
 } from '../duplicates';
 import { genOwnerApi } from '~/test/testFixtures';
 import { OwnerApi } from '~/models/OwnerApi';
@@ -15,7 +15,7 @@ describe('Duplicates', () => {
     return {
       ...genOwnerApi(),
       rawAddress,
-      birthDate,
+      birthDate: birthDate?.toJSON()
     };
   }
 
@@ -85,16 +85,16 @@ describe('Duplicates', () => {
           score: REVIEW_THRESHOLD,
           value: {
             ...genOwnerApi(),
-            birthDate: undefined,
-          },
+            birthDate: undefined
+          }
         },
         {
           score: REVIEW_THRESHOLD,
           value: {
             ...genOwnerApi(),
-            birthDate: undefined,
-          },
-        },
+            birthDate: undefined
+          }
+        }
       ];
 
       const actual = needsManualReview(source, duplicates);
@@ -105,17 +105,20 @@ describe('Duplicates', () => {
     it('should need review if some matches have a different birth date', async () => {
       const source: OwnerApi = {
         ...genOwnerApi(),
-        birthDate: new Date('2000-01-01'),
+        birthDate: new Date('2000-01-01').toJSON()
       };
       const duplicates: ScoredOwner[] = [
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: new Date('1999-02-03') },
+          value: {
+            ...genOwnerApi(),
+            birthDate: new Date('1999-02-03').toJSON()
+          }
         },
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: undefined },
-        },
+          value: { ...genOwnerApi(), birthDate: undefined }
+        }
       ];
 
       const actual = needsManualReview(source, duplicates);
@@ -126,13 +129,16 @@ describe('Duplicates', () => {
     it('should need review if there is a perfect match and it has a different birth date', () => {
       const source: OwnerApi = {
         ...genOwnerApi(),
-        birthDate: new Date('2000-01-01'),
+        birthDate: new Date('2000-01-01').toJSON()
       };
       const duplicates: ScoredOwner[] = [
         {
           score: 1,
-          value: { ...genOwnerApi(), birthDate: new Date('1999-01-01') },
-        },
+          value: {
+            ...genOwnerApi(),
+            birthDate: new Date('1999-01-01').toJSON()
+          }
+        }
       ];
 
       const actual = needsManualReview(source, duplicates);
@@ -145,12 +151,15 @@ describe('Duplicates', () => {
       const duplicates: ScoredOwner[] = [
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: new Date('2000-01-01') },
+          value: {
+            ...genOwnerApi(),
+            birthDate: new Date('2000-01-01').toJSON()
+          }
         },
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: undefined },
-        },
+          value: { ...genOwnerApi(), birthDate: undefined }
+        }
       ];
 
       const actual = needsManualReview(source, duplicates);

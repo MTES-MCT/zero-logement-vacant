@@ -104,7 +104,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             await banAddressRepository.insert({
               refId: housing.id,
               addressKind: AddressKinds.Housing,
-              address: chunk.ban_address,
+              label: chunk.ban_address,
               postalCode: '',
               city: '',
               latitude: chunk.ban_latitude ?? undefined,

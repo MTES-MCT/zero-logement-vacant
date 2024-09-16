@@ -3,27 +3,39 @@ import fp from 'lodash/fp';
 export interface AddressDTO {
   refId: string;
   addressKind: AddressKinds;
-  address: string;
+  label: string;
   /**
-   * @deprecated See {@link address}
+   * @deprecated See {@link label}
    */
   houseNumber?: string;
   /**
-   * @deprecated See {@link address}
+   * @deprecated See {@link label}
    */
   street?: string;
   /**
-   * @deprecated See {@link address}
+   * @deprecated See {@link label}
    */
   postalCode: string;
   /**
-   * @deprecated See {@link address}
+   * @deprecated See {@link label}
    */
   city: string;
   latitude?: number;
   longitude?: number;
   score?: number;
 }
+
+export type AddressPayloadDTO = Pick<
+  AddressDTO,
+  | 'label'
+  | 'houseNumber'
+  | 'street'
+  | 'postalCode'
+  | 'city'
+  | 'latitude'
+  | 'longitude'
+  | 'score'
+>;
 
 export enum AddressKinds {
   Housing = 'Housing',

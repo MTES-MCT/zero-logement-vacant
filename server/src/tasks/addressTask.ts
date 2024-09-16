@@ -63,7 +63,8 @@ async function run(): Promise<void> {
       city: record.result_city,
       latitude: record.latitude ? Number(record.latitude) : undefined,
       longitude: record.longitude ? Number(record.longitude) : undefined,
-      score: record.result_score ? Number(record.result_score) : undefined
+      score: record.result_score ? Number(record.result_score) : undefined,
+      lastUpdatedAt: new Date().toJSON()
     })
   );
   await banAddressesRepository.saveMany(addresses);

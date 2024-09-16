@@ -804,20 +804,20 @@ describe('Housing repository', () => {
 
       it('should filter by DPE score', async () => {
 
-        const actualAD = await housingRepository.find({
+        const actualA = await housingRepository.find({
           filters: {
-            energyConsumption: ['A' as EnergyConsumptionGradesApi, 'B' as EnergyConsumptionGradesApi, 'C' as EnergyConsumptionGradesApi, 'D' as EnergyConsumptionGradesApi]
+            energyConsumption: ['A' as EnergyConsumptionGradesApi]
           }
         });
+        expect(actualA).toSatisfyAll<HousingApi>(housing => housing.energyConsumption === EnergyConsumptionGradesApi.A);
 
+        const EFGClasses = ['E' as EnergyConsumptionGradesApi, 'F' as EnergyConsumptionGradesApi, 'G' as EnergyConsumptionGradesApi];
         const actualEFG = await housingRepository.find({
           filters: {
-            energyConsumption: ['E' as EnergyConsumptionGradesApi, 'F' as EnergyConsumptionGradesApi, 'G' as EnergyConsumptionGradesApi]
+            energyConsumption: EFGClasses
           }
         });
-
-        expect(actualAD.length).toBeGreaterThan(0);
-        expect(actualEFG.length).toBeGreaterThan(0);
+        expect(actualEFG).toSatisfyAll<HousingApi>(housing => EFGClasses.includes(housing.energyConsumption as EnergyConsumptionGradesApi));
       });
 
     });

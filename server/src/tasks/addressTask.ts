@@ -56,7 +56,7 @@ async function run(): Promise<void> {
     (record) => ({
       refId: record.refId,
       addressKind: record.addressKind as AddressKinds,
-      address: record.result_label,
+      label: record.result_label,
       houseNumber: record.result_housenumber,
       street: record.result_street,
       postalCode: record.result_postcode,

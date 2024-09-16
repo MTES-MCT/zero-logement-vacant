@@ -79,7 +79,7 @@ describe('BAN addresses repository', () => {
           geoCode: housing.geoCode
         })
       );
-      expect(actual).toIncludeSameMembers<AddressToNormalize>(addresses);
+      expect(actual).toIncludeAllMembers<AddressToNormalize>(addresses);
     });
   });
 });

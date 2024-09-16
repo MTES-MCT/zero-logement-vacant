@@ -1,14 +1,14 @@
 import { parse as fromCSV } from 'csv-parse/sync';
 import { stringify as toCSV } from 'csv-stringify/sync';
 
+import { AddressKinds } from '@zerologementvacant/models';
 import config from '~/infra/config';
 import db from '~/infra/database/';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import { AddressApi } from '~/models/AddressApi';
 import { createLogger } from '~/infra/logger';
-import { AddressKinds } from '@zerologementvacant/models';
 
-const logger = createLogger('tasks/addressTask');
+const logger = createLogger('addressTask');
 
 async function run(): Promise<void> {
   logger.info('Starting address task...');

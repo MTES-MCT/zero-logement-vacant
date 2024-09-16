@@ -27,9 +27,9 @@ function LegalNoticesView() {
         <Typography component="h3" mt={4}>
           Prestataire d’hébergement
         </Typography>
-        <Text spacing="mb-0">SCALINGO SAS</Text>
-        <Text spacing="mb-0">15 avenue du Rhin </Text>
-        <Text spacing="mb-0">67100 Strasbourg</Text>
+        <Text spacing="mb-0">Clever Cloud SAS</Text>
+        <Text spacing="mb-0">4 rue Voltaire</Text>
+        <Text spacing="mb-0">44000 Nantes</Text>
       </Container>
       <Container as="article" spacing="mb-7w px-0">
         <Typography variant="h2" mb={3}>

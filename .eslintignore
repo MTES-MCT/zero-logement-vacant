@@ -13,7 +13,6 @@ jest.config.js
 .eslintrc.json
 package.json
 package-lock.json
-scalingo.json
 yarn.lock
 cron.json
 

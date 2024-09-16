@@ -43,16 +43,13 @@ export enum AddressKinds {
 }
 
 export function formatAddress(
-  address: Pick<AddressDTO, 'houseNumber' | 'street' | 'postalCode' | 'city'>,
+  address: Pick<AddressDTO, 'label'>,
   additionalAddress?: string
 ): string[] {
-  const reduce = fp.pipe(fp.compact);
-
-  return reduce([
-    additionalAddress,
-    address.street?.startsWith(address.houseNumber ?? '')
-      ? address.street
-      : reduce([address.houseNumber, address.street]).join(' '),
-    `${address.postalCode} ${address.city}`
-  ]);
+  const label = address.label
+    .replace(/(\d{5})/, ', $1')
+    .replace(/(2A|2B)(\d{3})/, ', $1$2')
+    .split(',')
+    .map(fp.trim);
+  return fp.compact([additionalAddress, ...label]);
 }

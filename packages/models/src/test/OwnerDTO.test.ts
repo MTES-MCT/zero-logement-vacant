@@ -17,10 +17,7 @@ describe('OwnerDTO', () => {
 
       const actual = getAddress(owner);
 
-      expect(actual).toStrictEqual([
-        `${owner.banAddress?.houseNumber} ${owner.banAddress?.street}`,
-        `${owner.banAddress?.postalCode} ${owner.banAddress?.city}`
-      ]);
+      expect(actual).toStrictEqual([owner.banAddress?.label]);
     });
 
     it('should return the LOVAC address otherwise', () => {

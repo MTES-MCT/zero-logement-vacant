@@ -1,9 +1,9 @@
-import { AddressKinds } from '@zerologementvacant/shared';
+import { AddressKinds } from '@zerologementvacant/models';
 import config from '~/infra/config';
 import db from '~/infra/database';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
 import { AddressApi, AddressToNormalize } from '~/models/AddressApi';
-import { housingTable } from './housingRepository';
+import { Housing, housingTable } from './housingRepository';
 
 export const banAddressesTable = 'ban_addresses';
 export const Addresses = (transaction = db) =>
@@ -35,9 +35,16 @@ export interface AddressDBO {
   last_updated_at?: Date | string;
 }
 
+const logger = createLogger('banAddressRepository');
+
 async function save(address: AddressApi): Promise<void> {
+  await saveMany([address]);
+}
+
+async function saveMany(addresses: ReadonlyArray<AddressApi>): Promise<void> {
+  logger.debug(`Saving ${addresses.length} BAN addresses...`);
   await Addresses()
-    .insert(formatAddressApi(address))
+    .insert(addresses.map(formatAddressApi))
     .onConflict(['ref_id', 'address_kind'])
     .merge([
       'address',
@@ -50,6 +57,7 @@ async function save(address: AddressApi): Promise<void> {
       'score',
       'last_updated_at'
     ]);
+  logger.debug(`Saved ${addresses.length} addresses.`);
 }
 
 const getByRefId = async (
@@ -67,50 +75,37 @@ const getByRefId = async (
   return address ? parseAddressApi(address) : null;
 };
 
-const orderWithLimit = (query: any) => {
-  query
-    .orderByRaw('last_updated_at asc nulls first')
-    .limit(config.ban.update.pageSize);
-};
-
-const lastUpdatedClause = (query: any) => {
-  query
-    .whereNull('last_updated_at')
-    .orWhere(
-      'last_updated_at',
-      '<',
-      db.raw(`current_timestamp  - interval '${config.ban.update.delay}'`)
-    );
-};
-
-const listAddressesToNormalize = async (): Promise<AddressToNormalize[]> => {
-  return db(housingTable)
+async function listAddressesToNormalize(): Promise<AddressToNormalize[]> {
+  const housings = await Housing()
     .select(
-      'id',
-      'address_dgfip',
-      db.raw(`'${AddressKinds.Housing}' as address_kind`),
-      'last_updated_at',
-      'geo_code'
+      `${housingTable}.id`,
+      `${housingTable}.address_dgfip`,
+      `${housingTable}.geo_code`
     )
-    .leftJoin(banAddressesTable, (query: any) => {
-      query
+    .leftJoin<AddressDBO>(banAddressesTable, (join) => {
+      join
         .on(`${housingTable}.id`, `${banAddressesTable}.ref_id`)
         .andOnVal('address_kind', AddressKinds.Housing);
     })
-    .modify(lastUpdatedClause)
-    .modify(orderWithLimit)
-    .then((_) =>
-      _.map(
-        (result: any) =>
-          <AddressToNormalize>{
-            refId: result.id,
-            addressKind: result.address_kind,
-            addressDGFIP: result.address_dgfip,
-            geoCode: result.geo_code
-          }
-      )
-    );
-};
+    .where((where) => {
+      where
+        .whereNull('last_updated_at')
+        .orWhere(
+          'last_updated_at',
+          '<',
+          db.raw(`current_timestamp  - interval '${config.ban.update.delay}'`)
+        );
+    })
+    .orderBy([{ column: 'last_updated_at', order: 'asc', nulls: 'first' }])
+    .limit(config.ban.update.pageSize);
+
+  return housings.map<AddressToNormalize>((housing) => ({
+    refId: housing.id,
+    addressKind: AddressKinds.Housing,
+    label: housing.address_dgfip.join(' '),
+    geoCode: housing.geo_code
+  }));
+}
 
 const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
   logger.info('Upsert address list', addresses.length);
@@ -195,6 +190,7 @@ export const formatAddressApi = (address: AddressApi): AddressDBO => ({
 
 export default {
   save,
+  saveMany,
   getByRefId,
   listAddressesToNormalize,
   markAddressToBeNormalized,

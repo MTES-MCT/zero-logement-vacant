@@ -3,6 +3,7 @@ import { AddressDTO } from '@zerologementvacant/models';
 import { reduceStringArray } from '~/utils/stringUtils';
 
 export interface AddressApi extends AddressDTO {
+  banId?: string;
   lastUpdatedAt?: string;
 }
 

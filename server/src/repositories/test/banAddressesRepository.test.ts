@@ -28,6 +28,7 @@ describe('BAN addresses repository', () => {
       expect(actual).toStrictEqual<AddressDBO>({
         ref_id: refId,
         address_kind: AddressKinds.Housing,
+        ban_id: address.banId ?? null,
         address: address.label,
         house_number: address.houseNumber,
         street: address.street,

@@ -105,7 +105,7 @@ describe('Housing view', () => {
       const rank = await within(modal).findByLabelText(
         /^Sélectionner les droits de propriétés/
       );
-      await user.selectOptions(rank, '0');
+      await user.selectOptions(rank, String(housingOwners.length + 1));
       const identity = await within(modal).findByLabelText(/^Identité/);
       await user.type(identity, newOwner.fullName);
       const birthDate =
@@ -121,10 +121,10 @@ describe('Housing view', () => {
         name: /^Ajouter/
       });
       await user.click(add);
-      const archivedOwners = await within(modal).findByText(
-        'Propriétaires archivés (1)'
-      );
-      expect(archivedOwners).toBeVisible();
+      const newAccordion = await within(modal).findByRole('button', {
+        name: new RegExp(`^${newOwner.fullName}`)
+      });
+      expect(newAccordion).toBeVisible();
       const save = await within(modal).findByRole('button', {
         name: /^Enregistrer/
       });
@@ -136,8 +136,46 @@ describe('Housing view', () => {
       expect(link).toBeVisible();
     });
 
-    it('should add an owner who is present in the database', () => {
-      // TODO
+    it('should add an owner who is present in the database', async () => {
+      const newOwner = genOwnerDTO();
+      data.owners.push(newOwner);
+
+      renderView(housing);
+
+      const modifyOwners = await screen.findByRole('button', {
+        name: /^Modifier/
+      });
+      await user.click(modifyOwners);
+      const modal = await screen.findByRole('dialog');
+      const addOwner = await within(modal).findByRole('button', {
+        name: /^Ajouter un propriétaire/
+      });
+      await user.click(addOwner);
+      const rank = await within(modal).findByLabelText(
+        /^Sélectionner les droits de propriétés/
+      );
+      await user.selectOptions(rank, String(housingOwners.length + 1));
+      const search = await within(modal).findByRole('searchbox');
+      await user.type(search, newOwner.fullName + '{Enter}');
+      await within(modal).findByText(/^Un propriétaire trouvé/);
+      const cell = await within(modal).findByRole('cell');
+      const add = await within(cell).findByRole('button', {
+        name: /^Ajouter/
+      });
+      await user.click(add);
+      const newAccordion = await within(modal).findByRole('button', {
+        name: new RegExp(`^${newOwner.fullName}`)
+      });
+      expect(newAccordion).toBeVisible();
+      const save = await within(modal).findByRole('button', {
+        name: /^Enregistrer/
+      });
+      await user.click(save);
+      expect(modal).not.toBeVisible();
+      const link = await screen.findByRole('heading', {
+        name: newOwner.fullName
+      });
+      expect(link).toBeVisible();
     });
   });
 });

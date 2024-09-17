@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import fp from 'lodash/fp';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 
@@ -7,7 +8,9 @@ import {
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
   OwnerDTO,
-  OwnerPayloadDTO
+  OwnerPayloadDTO,
+  Paginated,
+  Pagination
 } from '@zerologementvacant/models';
 import config from '../../utils/config';
 import data from './data';
@@ -16,7 +19,37 @@ interface PathParams {
   id: string;
 }
 
+interface SearchPayloadDTO {
+  page: number;
+  perPage: number;
+  q: string;
+}
+
 export const ownerHandlers: RequestHandler[] = [
+  http.post<never, SearchPayloadDTO, Paginated<OwnerDTO>>(
+    `${config.apiEndpoint}/api/owners`,
+    async ({ request }) => {
+      const payload = await request.json();
+      const search = fp.pipe(
+        fp.filter<OwnerDTO>(byName(payload.q)),
+        paginate({ page: payload.page, perPage: payload.perPage })
+      );
+
+      const owners = search(data.owners);
+      return HttpResponse.json(
+        {
+          page: payload.page,
+          perPage: payload.perPage,
+          entities: owners,
+          filteredCount: owners.length,
+          totalCount: data.owners.length
+        },
+        {
+          status: constants.HTTP_STATUS_PARTIAL_CONTENT
+        }
+      );
+    }
+  ),
   http.post<never, OwnerPayloadDTO, OwnerDTO>(
     `${config.apiEndpoint}/api/owners/creation`,
     async ({ request }) => {
@@ -127,3 +160,16 @@ export const ownerHandlers: RequestHandler[] = [
     }
   )
 ];
+
+function byName(name: string) {
+  return (owner: OwnerDTO): boolean =>
+    owner.fullName.toLowerCase().includes(name.toLowerCase());
+}
+
+function paginate(pagination: Pagination) {
+  return (owners: ReadonlyArray<OwnerDTO>): ReadonlyArray<OwnerDTO> => {
+    const start = (pagination.page - 1) * pagination.perPage;
+    const end = start + pagination.perPage;
+    return owners.slice(start, end);
+  };
+}

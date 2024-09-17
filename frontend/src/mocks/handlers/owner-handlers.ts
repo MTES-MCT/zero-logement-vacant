@@ -50,6 +50,7 @@ export const ownerHandlers: RequestHandler[] = [
       );
     }
   ),
+
   http.post<never, OwnerPayloadDTO, OwnerDTO>(
     `${config.apiEndpoint}/api/owners/creation`,
     async ({ request }) => {
@@ -93,18 +94,15 @@ export const ownerHandlers: RequestHandler[] = [
         });
       }
 
-      const updated: OwnerDTO = {
-        ...owner,
-        ...payload,
-        banAddress: payload.banAddress
-          ? {
-              ...payload.banAddress,
-              refId: owner.id,
-              addressKind: AddressKinds.Owner
-            }
-          : undefined
-      };
-      return HttpResponse.json(updated);
+      owner.rawAddress = payload.rawAddress;
+      owner.fullName = payload.fullName;
+      owner.birthDate = payload.birthDate;
+      owner.email = payload.email;
+      owner.phone = payload.phone;
+      owner.additionalAddress = payload.additionalAddress;
+      owner.updatedAt = new Date().toJSON();
+
+      return HttpResponse.json(owner);
     }
   ),
 
@@ -118,7 +116,20 @@ export const ownerHandlers: RequestHandler[] = [
         });
       }
 
-      const housingOwners = data.housingOwners.get(housing.id) || [];
+      const housingOwners = data.housingOwners
+        .get(housing.id)
+        ?.map((housingOwner) => {
+          const owner = data.owners.find(
+            (owner) => owner.id === housingOwner.id
+          );
+          if (!owner) {
+            // Should never happen
+            throw HttpResponse.json(null, {
+              status: constants.HTTP_STATUS_NOT_FOUND
+            });
+          }
+          return { ...housingOwner, ...owner };
+        });
       return HttpResponse.json(housingOwners, {
         status: constants.HTTP_STATUS_OK
       });
@@ -153,7 +164,12 @@ export const ownerHandlers: RequestHandler[] = [
           locprop: payload.locprop
         };
       });
-      data.housingOwners.set(housing.id, housingOwners);
+      data.housingOwners.set(
+        housing.id,
+        housingOwners.map(
+          fp.pick(['id', 'rank', 'idprocpte', 'idprodroit', 'locprop'])
+        )
+      );
       return HttpResponse.json(housingOwners, {
         status: constants.HTTP_STATUS_OK
       });

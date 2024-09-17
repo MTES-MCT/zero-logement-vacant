@@ -183,6 +183,10 @@ function CampaignDraft(props: Readonly<Props>) {
         <Grid display="flex" justifyContent="flex-end" xs={6}>
           <SendButton form={form} onSend={send} />
         </Grid>
+        { props.campaign.description && <Grid xs={12} mt={2}>
+          <h3 className='fr-mb-1w fr-text--md'>Description</h3>
+          <p>{props.campaign.description}</p>
+        </Grid>}
       </Grid>
       <Tabs
         className={styles.tabs}

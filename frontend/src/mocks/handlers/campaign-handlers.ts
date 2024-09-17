@@ -35,6 +35,7 @@ export const campaignHandlers: RequestHandler[] = [
       const campaign: CampaignDTO = {
         id: faker.string.uuid(),
         title: payload.title,
+        description: payload.description,
         filters: payload.housing.filters,
         status: 'draft',
         createdAt: new Date().toJSON()
@@ -70,6 +71,7 @@ export const campaignHandlers: RequestHandler[] = [
       const campaign: CampaignDTO = {
         id: faker.string.uuid(),
         title: payload.title,
+        description: payload.description,
         filters: {
           groupIds: [group.id]
         },
@@ -124,6 +126,7 @@ export const campaignHandlers: RequestHandler[] = [
         ...campaign,
         // TODO
         title: payload.title,
+        description: payload.description,
         status: payload.status,
         file: payload.file
       };

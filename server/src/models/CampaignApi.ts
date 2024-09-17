@@ -14,6 +14,7 @@ export function toCampaignDTO(campaign: CampaignApi): CampaignDTO {
     [
       'id',
       'title',
+      'description',
       'status',
       'filters',
       'file',

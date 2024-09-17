@@ -112,7 +112,8 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
                 <AppTextInput<FormShape>
                   inputForm={form}
                   inputKey="title"
-                  label="Titre de la campagne (obligatoire)"
+                  label="Titre de la campagne"
+                  placeholder="Titre de la campagne (obligatoire)"
                   required
                   value={title}
                   state={form.hasError('title') ? 'error' : 'default'}

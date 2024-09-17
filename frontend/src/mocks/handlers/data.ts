@@ -4,6 +4,7 @@ import {
   CampaignDTO,
   DatafoncierHousing,
   DraftDTO,
+  EventDTO,
   genCampaignDTO,
   genDatafoncierHousingDTO,
   genDraftDTO,
@@ -15,10 +16,10 @@ import {
   GroupDTO,
   HousingDTO,
   HousingOwnerDTO,
+  NoteDTO,
   OwnerDTO,
   UserDTO
 } from '@zerologementvacant/models';
-import { EventDTO } from '@zerologementvacant/models/dist/EventDTO';
 
 const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
 
@@ -92,6 +93,8 @@ const housingOwners = new Map<HousingDTO['id'], HousingOwnerDTO[]>(
 
 const housingEvents = new Map<HousingDTO['id'], EventDTO<HousingDTO>[]>();
 
+const housingNotes = new Map<HousingDTO['id'], NoteDTO[]>();
+
 const data = {
   campaigns,
   campaignDrafts,
@@ -104,6 +107,7 @@ const data = {
   housings,
   housingCampaigns,
   housingEvents,
+  housingNotes,
   housingOwners,
   owners,
   users

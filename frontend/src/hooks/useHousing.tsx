@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { useCampaignList } from './useCampaignList';
 import {
   useCountHousingQuery,
-  useGetHousingQuery,
+  useGetHousingQuery
 } from '../services/housing.service';
 import { campaignSort } from '../models/Campaign';
 import { isDefined } from '../utils/compareUtils';
@@ -32,7 +32,7 @@ export function useHousing() {
 
   const { data: count } = useCountHousingQuery(
     {
-      ownerIds: [mainHousingOwner?.id ?? ''],
+      ownerIds: [mainHousingOwner?.id ?? '']
     },
     { skip: !mainHousingOwner }
   );
@@ -41,9 +41,9 @@ export function useHousing() {
     () =>
       _.uniq(
         housing?.campaignIds
-          .map((campaignId) => campaignList?.find((c) => c.id === campaignId))
-          .filter(isDefined)
-          .sort(campaignSort)
+          ?.map((campaignId) => campaignList?.find((c) => c.id === campaignId))
+          ?.filter(isDefined)
+          ?.sort(campaignSort)
       ),
     [housing, campaignList]
   );
@@ -58,6 +58,6 @@ export function useHousing() {
     housingOwners,
     housing,
     count,
-    campaigns,
+    campaigns
   };
 }

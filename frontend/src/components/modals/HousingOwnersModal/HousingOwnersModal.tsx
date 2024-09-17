@@ -402,7 +402,7 @@ function HousingOwnersModal({
               </Button>
             </>
           ) : (
-            "Ajout d'un nouveau propriétaire"
+            'Ajout d’un nouveau propriétaire'
           )
         }
         buttons={

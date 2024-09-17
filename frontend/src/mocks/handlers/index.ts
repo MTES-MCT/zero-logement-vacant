@@ -9,6 +9,7 @@ import { geoPerimeterHandlers } from './geo-perimeter-handlers';
 import { groupHandlers } from './group-handlers';
 import { housingHandlers } from './housing-handlers';
 import { ownerHandlers } from './owner-handlers';
+import { noteHandlers } from './note-handlers';
 import { userHandlers } from './user-handlers';
 
 export const handlers: RequestHandler[] = [
@@ -20,6 +21,7 @@ export const handlers: RequestHandler[] = [
   ...geoPerimeterHandlers,
   ...groupHandlers,
   ...housingHandlers,
+  ...noteHandlers,
   ...ownerHandlers,
   ...userHandlers
 ];

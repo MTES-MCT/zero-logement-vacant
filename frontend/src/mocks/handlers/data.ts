@@ -1,9 +1,12 @@
 import { faker } from '@faker-js/faker';
+import fp from 'lodash/fp';
 
 import {
+  BaseHousingOwnerDTO,
   CampaignDTO,
   DatafoncierHousing,
   DraftDTO,
+  EventDTO,
   genCampaignDTO,
   genDatafoncierHousingDTO,
   genDraftDTO,
@@ -14,11 +17,10 @@ import {
   genUserDTO,
   GroupDTO,
   HousingDTO,
-  HousingOwnerDTO,
+  NoteDTO,
   OwnerDTO,
   UserDTO
 } from '@zerologementvacant/models';
-import { EventDTO } from '@zerologementvacant/models/dist/EventDTO';
 
 const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
 
@@ -43,23 +45,29 @@ const housings: HousingDTO[] = Array.from({ length: 20 }).map(() =>
   genHousingDTO(faker.helpers.arrayElement(owners))
 );
 
-const campaignDrafts = new Map<CampaignDTO['id'], DraftDTO[]>(
+const campaignDrafts = new Map<
+  CampaignDTO['id'],
+  ReadonlyArray<Pick<DraftDTO, 'id'>>
+>(
   campaigns.map((campaign, i) => {
     const draft = drafts[i];
-    return [campaign.id, [draft]];
+    return [campaign.id, [{ id: draft.id }]];
   })
 );
-const draftCampaigns = new Map<DraftDTO['id'], CampaignDTO>(
+const draftCampaigns = new Map<DraftDTO['id'], Pick<CampaignDTO, 'id'>>(
   drafts.map((draft, i) => {
     const campaign = campaigns[i];
-    return [draft.id, campaign];
+    return [draft.id, { id: campaign.id }];
   })
 );
 
-const campaignHousings = new Map<CampaignDTO['id'], HousingDTO[]>(
+const campaignHousings = new Map<
+  CampaignDTO['id'],
+  ReadonlyArray<Pick<HousingDTO, 'id'>>
+>(
   campaigns.map((campaign) => {
     const elements = faker.helpers.arrayElements(housings);
-    return [campaign.id, elements];
+    return [campaign.id, elements.map(fp.pick(['id']))];
   })
 );
 const housingCampaigns = new Map<HousingDTO['id'], CampaignDTO[]>();
@@ -74,13 +82,19 @@ Array.from(campaignHousings.entries()).forEach(([campaignId, housings]) => {
   }
 });
 
-const groupHousings = new Map<GroupDTO['id'], HousingDTO[]>();
+const groupHousings = new Map<
+  GroupDTO['id'],
+  ReadonlyArray<Pick<HousingDTO, 'id'>>
+>();
 
-const housingOwners = new Map<HousingDTO['id'], HousingOwnerDTO[]>(
+const housingOwners = new Map<
+  HousingDTO['id'],
+  ReadonlyArray<BaseHousingOwnerDTO & Pick<OwnerDTO, 'id'>>
+>(
   housings.map((housing) => {
     const elements = faker.helpers.arrayElements(owners);
-    const housingOwners: HousingOwnerDTO[] = elements.map((owner, i) => ({
-      ...owner,
+    const housingOwners = elements.map((owner, i) => ({
+      id: owner.id,
       rank: i + 1,
       idprocpte: null,
       idprodroit: null,
@@ -91,6 +105,8 @@ const housingOwners = new Map<HousingDTO['id'], HousingOwnerDTO[]>(
 );
 
 const housingEvents = new Map<HousingDTO['id'], EventDTO<HousingDTO>[]>();
+
+const housingNotes = new Map<HousingDTO['id'], NoteDTO[]>();
 
 const data = {
   campaigns,
@@ -104,6 +120,7 @@ const data = {
   housings,
   housingCampaigns,
   housingEvents,
+  housingNotes,
   housingOwners,
   owners,
   users

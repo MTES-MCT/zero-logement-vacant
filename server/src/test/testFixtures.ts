@@ -330,6 +330,7 @@ export const genCampaignApi = (
     id: uuidv4(),
     establishmentId,
     title: randomstring.generate(),
+    description: randomstring.generate(),
     status: 'draft',
     filters: {
       geoPerimetersIncluded: [randomstring.generate()],

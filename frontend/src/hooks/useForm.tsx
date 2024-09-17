@@ -33,7 +33,11 @@ export const passwordConfirmationValidator = yup
 
 export const campaignTitleValidator = yup
   .string()
+  .max(64, 'La longueur maximale du titre de la campagne est de 64 caractères.')
   .required('Veuillez renseigner le titre de la campagne.');
+
+export const campaignDescriptionValidator = yup.string()
+.max(1000, 'La longueur maximale de la description de la campagne est de 1000 caractères.');
 
 export const dateValidator = yup
   .date()

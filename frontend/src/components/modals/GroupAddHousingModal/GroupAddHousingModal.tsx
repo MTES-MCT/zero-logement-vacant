@@ -71,9 +71,11 @@ function GroupAddHousingModal(props: Props) {
   const shape = {
     title: yup
       .string()
+      .max(64, 'La longueur maximale du titre du groupe est de 64 caractères.')
       .required('Veuillez donner un nom au groupe pour confirmer'),
     description: yup
       .string()
+      .max(1000, 'La longueur maximale de la description du groupe est de 1000 caractères.')
       .required('Veuillez donner une description au groupe pour confirmer'),
   };
   type FormShape = typeof shape;

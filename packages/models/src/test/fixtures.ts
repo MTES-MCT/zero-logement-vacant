@@ -43,6 +43,7 @@ export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
   return {
     id: faker.string.uuid(),
     title: faker.commerce.product(),
+    description: faker.commerce.productDescription(),
     filters: {},
     status: 'draft',
     createdAt: new Date().toJSON(),

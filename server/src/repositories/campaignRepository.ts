@@ -87,7 +87,7 @@ async function save(campaign: CampaignApi): Promise<void> {
   await Campaigns()
     .insert(formatCampaignApi(campaign))
     .onConflict(['id'])
-    .merge(['status', 'title', 'file', 'sent_at']);
+    .merge(['status', 'title', 'description', 'file', 'sent_at']);
   logger.debug('Campaign saved', campaign);
 }
 
@@ -114,6 +114,7 @@ async function generateMails(campaign: CampaignApi): Promise<void> {
 export interface CampaignDBO {
   id: string;
   title: string;
+  description: string;
   status: CampaignStatus;
   filters: HousingFiltersDTO;
   file?: string;
@@ -142,6 +143,7 @@ export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
   archivedAt: campaign.archived_at?.toJSON(),
   confirmedAt: campaign.confirmed_at?.toJSON(),
   title: campaign.title,
+  description: campaign.description,
   groupId: campaign.group_id
 });
 
@@ -152,6 +154,7 @@ export const formatCampaignApi = (campaign: CampaignApi): CampaignDBO => ({
   filters: campaign.filters,
   file: campaign.file,
   title: campaign.title,
+  description: campaign.description,
   user_id: campaign.userId,
   created_at: new Date(campaign.createdAt),
   validated_at: campaign.validatedAt

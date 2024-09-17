@@ -3,7 +3,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import * as yup from 'yup';
 import { useState } from 'react';
-import { campaignTitleValidator, useForm } from '../../../hooks/useForm';
+import { campaignDescriptionValidator, campaignTitleValidator, useForm } from '../../../hooks/useForm';
 import { Campaign } from '../../../models/Campaign';
 import { Group } from '../../../models/Group';
 import { Container, Text } from '../../_dsfr';
@@ -14,13 +14,15 @@ interface Props {
   group: Group;
   housingCount: number;
   openingButtonProps?: Omit<ButtonProps, 'onClick'>;
-  onSubmit: (campaign: Pick<Campaign, 'title'>) => void;
+  onSubmit: (campaign: Pick<Campaign, 'title' | 'description'>) => void;
 }
 
 function GroupCampaignCreationModal(props: Props) {
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const shape = {
     title: campaignTitleValidator,
+    description: campaignDescriptionValidator,
   };
   type FormShape = typeof shape;
   const form = useForm(yup.object().shape(shape), {
@@ -31,6 +33,7 @@ function GroupCampaignCreationModal(props: Props) {
     await form.validate(() =>
       props.onSubmit({
         title,
+        description,
       }),
     );
   }
@@ -64,9 +67,19 @@ function GroupCampaignCreationModal(props: Props) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           label="Titre de la campagne"
+          placeholder="Titre de la campagne (obligatoire)"
           inputForm={form}
           inputKey="title"
           required
+        />
+        <AppTextInput<FormShape>
+          textArea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          label="Description de la campagne"
+          placeholder="Description de la campagne"
+          inputForm={form}
+          inputKey="description"
         />
         <Text>
           La liste a été établie à partir du groupe 

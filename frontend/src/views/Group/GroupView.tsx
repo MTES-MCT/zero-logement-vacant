@@ -86,7 +86,7 @@ function GroupView() {
 
   const [createCampaignFromGroup] = useCreateCampaignFromGroupMutation();
   async function onCampaignCreate(
-    campaign: Pick<Campaign, 'title'>
+    campaign: Pick<Campaign, 'title' | 'description'>,
   ): Promise<void> {
     if (group) {
       const created = await createCampaignFromGroup({

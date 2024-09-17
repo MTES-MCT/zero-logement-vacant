@@ -9,7 +9,7 @@ import { Col, Container, Row } from '../_dsfr';
 import { Campaign } from '../../models/Campaign';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import styles from './campaign.module.scss';
-import { campaignTitleValidator, useForm } from '../../hooks/useForm';
+import { campaignTitleValidator, campaignDescriptionValidator, useForm } from '../../hooks/useForm';
 import {
   TrackEventActions,
   TrackEventCategories
@@ -25,7 +25,8 @@ const modal = createModal({
 });
 
 const schema = object().shape({
-  title: campaignTitleValidator
+  title: campaignTitleValidator,
+  description: campaignDescriptionValidator
 });
 type FormShape = InferType<typeof schema>;
 
@@ -42,16 +43,20 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
   const [updateCampaign] = useUpdateCampaignMutation();
 
   const [title, setTitle] = useState(campaign.title);
+  const [description, setDescription] = useState(campaign.description);
   const form = useForm(schema, {
-    title
+    title,
+    description
   });
 
   function submit(event: FormEvent) {
     event.preventDefault();
+
     form.validate(async () => {
       await updateCampaign({
         ...campaign,
-        title
+        title,
+        description,
       }).unwrap();
       trackEvent({
         category: TrackEventCategories.Campaigns,
@@ -107,11 +112,24 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
                 <AppTextInput<FormShape>
                   inputForm={form}
                   inputKey="title"
-                  label="Nom de la campagne *"
+                  label="Titre de la campagne (obligatoire)"
                   required
                   value={title}
                   state={form.hasError('title') ? 'error' : 'default'}
                   onChange={(e) => setTitle(e.target.value)}
+                />
+              </Col>
+            </Row>
+            <Row gutters>
+              <Col n="10">
+                <AppTextInput<FormShape>
+                  textArea
+                  inputForm={form}
+                  inputKey="description"
+                  label="Description de la campagne"
+                  value={description}
+                  state={form.hasError('description') ? 'error' : 'default'}
+                  onChange={(e) => { setDescription(e.target.value) }}
                 />
               </Col>
             </Row>

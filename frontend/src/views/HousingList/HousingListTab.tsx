@@ -90,10 +90,11 @@ const HousingListTab = ({
   }, [filteredCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const [createCampaign] = useCreateCampaignMutation();
-  const onSubmitCampaignCreation = async (title: string) => {
+  const onSubmitCampaignCreation = async (title: string, description: string) => {
     if (title) {
       const created = await createCampaign({
         title,
+        description,
         housing: {
           filters,
           all: selected.all,

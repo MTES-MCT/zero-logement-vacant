@@ -5,7 +5,7 @@ import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadge
 import * as yup from 'yup';
 import { hasFilters, HousingFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
-import { campaignTitleValidator, useForm } from '../../../hooks/useForm';
+import { campaignDescriptionValidator, campaignTitleValidator, useForm } from '../../../hooks/useForm';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -19,7 +19,7 @@ interface Props {
   housingCount: number;
   housingExcludedCount?: number;
   filters: HousingFilters;
-  onSubmit: (title: string) => Promise<void>;
+  onSubmit: (title: string, description: string) => Promise<void>;
 }
 
 const CampaignCreationModal = ({
@@ -29,20 +29,23 @@ const CampaignCreationModal = ({
   onSubmit,
 }: Props) => {
   const [campaignTitle, setCampaignTitle] = useState('');
+  const [campaignDescription, setCampaignDescription] = useState('');
   const [buttonsDisabled, setButtonsDisabled] = useState(false);
   const shape = {
     campaignTitle: campaignTitleValidator,
+    campaignDescription: campaignDescriptionValidator
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
     campaignTitle,
+    campaignDescription
   });
 
   const create = async () => {
     await form.validate(async () => {
       setButtonsDisabled(true);
-      await onSubmit(campaignTitle);
+      await onSubmit(campaignTitle, campaignDescription);
       modal.close();
     });
   };
@@ -97,6 +100,20 @@ const CampaignCreationModal = ({
                 inputKey="campaignTitle"
                 required
                 data-testid="campaign-title-input"
+              />
+            </Col>
+          </Row>
+          <Row gutters>
+            <Col n="6">
+              <AppTextInput<FormShape>
+                textArea
+                value={campaignDescription}
+                onChange={(e) => setCampaignDescription(e.target.value)}
+                label="Description de la campagne"
+                placeholder="Description de la campagne"
+                inputForm={form}
+                inputKey="campaignDescription"
+                data-testid="campaign-description-input"
               />
             </Col>
           </Row>

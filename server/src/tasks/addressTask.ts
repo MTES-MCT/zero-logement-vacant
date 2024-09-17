@@ -1,100 +1,87 @@
-import ExcelJS from 'exceljs';
-import FormData from 'form-data';
-import fs from 'fs';
+import { parse as fromCSV } from 'csv-parse/sync';
+import { stringify as toCSV } from 'csv-stringify/sync';
 
+import { AddressKinds } from '@zerologementvacant/models';
 import config from '~/infra/config';
 import db from '~/infra/database/';
-import { logger } from '~/infra/logger';
-import { AddressApi } from '~/models/AddressApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
+import { AddressApi } from '~/models/AddressApi';
+import { createLogger } from '~/infra/logger';
 
-const run = async (): Promise<void> => {
-  if (config.app.isReviewApp) {
-    logger.info('This is a review app. Skipping...');
-    return;
-  }
+const logger = createLogger('addressTask');
+
+async function run(): Promise<void> {
+  logger.info('Starting address task...');
 
   const addressesToNormalize =
     await banAddressesRepository.listAddressesToNormalize();
+  logger.debug(`Found ${addressesToNormalize.length} dirty addresses...`);
 
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet();
+  const csv = toCSV(addressesToNormalize, {
+    header: true,
+    columns: ['refId', 'addressKind', 'label', 'geoCode']
+  });
 
-  worksheet.columns = [
-    { header: 'addressId', key: 'addressId' },
-    { header: 'addressKind', key: 'addressKind' },
-    { header: 'addressDGFIP', key: 'addressDGFIP' },
-    { header: 'geoCode', key: 'geoCode' },
-  ];
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const form = new FormData();
+  form.append('data', blob, 'search.csv');
+  form.append('columns', 'refId');
+  form.append('columns', 'addressKind');
+  form.append('columns', 'label');
+  form.append('columns', 'geoCode');
+  // Tells the API that geoCode is an INSEE code
+  form.append('citycode', 'geoCode');
+  form.append('result_columns', 'result_label');
+  form.append('result_columns', 'result_type');
+  form.append('result_columns', 'result_housenumber');
+  form.append('result_columns', 'result_street');
+  form.append('result_columns', 'result_postcode');
+  form.append('result_columns', 'result_city');
+  form.append('result_columns', 'latitude');
+  form.append('result_columns', 'longitude');
+  form.append('result_columns', 'result_score');
 
-  worksheet.addRows(
-    addressesToNormalize
-      .filter((value, index, self) => self.indexOf(value) === index)
-      .map((address) => ({
-        addressId: address.refId,
-        addressKind: address.addressKind,
-        addressDGFIP: address.addressDGFIP.join(' '),
-        geoCode: address.geoCode ?? '',
-      })),
-  );
+  const response = await fetch(`${config.ban.api.endpoint}/search/csv/`, {
+    method: 'POST',
+    body: form
+  });
 
-  const tmpCsvFileName = `${new Date().getTime()}.csv`;
-
-  const csvText = await workbook.csv
-    .writeFile(tmpCsvFileName)
-    .then(() => {
-      const form = new FormData();
-      form.append('data', fs.createReadStream(tmpCsvFileName));
-      form.append('citycode', 'geoCode');
-      form.append('columns', 'addressDGFIP');
-      form.append('result_columns', 'result_type');
-      form.append('result_columns', 'result_housenumber');
-      form.append('result_columns', 'result_street');
-      form.append('result_columns', 'result_postcode');
-      form.append('result_columns', 'result_city');
-      form.append('result_columns', 'latitude');
-      form.append('result_columns', 'longitude');
-      form.append('result_columns', 'result_score');
-
-      return fetch(`${config.ban.api.endpoint}/search/csv/`, {
-        method: 'POST',
-        body: form,
-      });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error((error as { message: string }).message);
+  }
+  const text = await response.text();
+  const records: ReadonlyArray<BANAddress> = fromCSV(text, { columns: true });
+  const addresses: ReadonlyArray<AddressApi> = records.map<AddressApi>(
+    (record) => ({
+      refId: record.refId,
+      addressKind: record.addressKind as AddressKinds,
+      label: record.result_label,
+      houseNumber: record.result_housenumber,
+      street: record.result_street,
+      postalCode: record.result_postcode,
+      city: record.result_city,
+      latitude: record.latitude ? Number(record.latitude) : undefined,
+      longitude: record.longitude ? Number(record.longitude) : undefined,
+      score: record.result_score ? Number(record.result_score) : undefined,
+      lastUpdatedAt: new Date().toJSON()
     })
-    .then((fetchResponse: Response) => fetchResponse.text());
-
-  fs.unlinkSync(tmpCsvFileName);
-
-  const headers = csvText.split('\n')[0].split(',');
-
-  await banAddressesRepository.upsertList(
-    csvText
-      .split('\n')
-      .slice(1)
-      .map((line: any) => {
-        const columns = line.split(',');
-        return <AddressApi>{
-          refId: columns[headers.indexOf('addressId')],
-          addressKind: columns[headers.indexOf('addressKind')],
-          houseNumber: columns[headers.indexOf('result_housenumber')],
-          street: columns[headers.indexOf('result_street')],
-          postalCode: columns[headers.indexOf('result_postcode')],
-          city: columns[headers.indexOf('result_city')],
-          latitude: columns[headers.indexOf('latitude')]
-            ? Number(columns[headers.indexOf('latitude')])
-            : undefined,
-          longitude: columns[headers.indexOf('longitude')]
-            ? Number(columns[headers.indexOf('longitude')])
-            : undefined,
-          score: columns[headers.indexOf('result_score')]
-            ? Number(columns[headers.indexOf('result_score')])
-            : undefined,
-        };
-      })
-      .filter((_: AddressApi) => _.refId),
   );
-};
+  await banAddressesRepository.saveMany(addresses);
+  logger.info('Address task done.');
+}
 
-run()
-  .catch(console.error)
-  .finally(() => db.destroy());
+interface BANAddress {
+  refId: string;
+  addressKind: string;
+  result_label: string;
+  result_housenumber: string;
+  result_street: string;
+  result_postcode: string;
+  result_city: string;
+  latitude: string;
+  longitude: string;
+  result_score: string;
+}
+
+run().finally(() => db.destroy());

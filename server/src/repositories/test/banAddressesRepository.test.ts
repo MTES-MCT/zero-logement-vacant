@@ -1,11 +1,15 @@
 import { faker } from '@faker-js/faker/locale/fr';
-
-import { AddressKinds } from '@zerologementvacant/shared';
 import banAddressesRepository, {
   AddressDBO,
   Addresses
 } from '~/repositories/banAddressesRepository';
-import { genAddressApi } from '~/test/testFixtures';
+import { genAddressApi, genHousingApi } from '~/test/testFixtures';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
+import { AddressKinds } from '@zerologementvacant/models';
+import db from '~/infra/database';
 
 describe('BAN addresses repository', () => {
   describe('save', () => {
@@ -36,6 +40,37 @@ describe('BAN addresses repository', () => {
           ? new Date(address.lastUpdatedAt)
           : undefined
       });
+    });
+  });
+
+  describe('saveMany', () => {
+    it('should save thousands of records', async () => {
+      const housings = Array.from({ length: 2_000 }, genHousingApi);
+      await db.batchInsert(
+        'fast_housing',
+        housings.map(formatHousingRecordApi)
+      );
+      const addresses = housings.map((housing) => {
+        return genAddressApi(housing.id, AddressKinds.Housing);
+      });
+
+      await banAddressesRepository.saveMany(addresses);
+
+      const actual = await Addresses().where({
+        address_kind: AddressKinds.Housing
+      });
+      expect(actual.length).toBeGreaterThanOrEqual(addresses.length);
+    }, 10_000);
+  });
+
+  describe('listAddressesToNormalize', () => {
+    it('should list addresses to normalize', async () => {
+      const housings = Array.from({ length: 3 }, genHousingApi);
+      await Housing().insert(housings.map(formatHousingRecordApi));
+
+      const actual = await banAddressesRepository.listAddressesToNormalize();
+
+      expect(actual.length).toBeGreaterThanOrEqual(housings.length);
     });
   });
 });

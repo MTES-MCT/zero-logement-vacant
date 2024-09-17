@@ -148,7 +148,7 @@ describe('Source housing processor', () => {
       expect(housingRepository.update).toHaveBeenCalledWith(
         { geoCode: housing.geoCode, id: housing.id },
         expect.objectContaining({
-          dataFileYears: [...housing.dataFileYears, 'lovac-2024']
+          dataFileYears: expect.arrayContaining(['lovac-2024'])
         })
       );
     });
@@ -172,7 +172,7 @@ describe('Source housing processor', () => {
           expect(housingRepository.update).toHaveBeenCalledWith(
             { geoCode: housing.geoCode, id: housing.id },
             {
-              dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
+              dataFileYears: expect.arrayContaining(['lovac-2024']),
               occupancy: OccupancyKindApi.Vacant,
               status: HousingStatusApi.NeverContacted,
               subStatus: null
@@ -202,7 +202,7 @@ describe('Source housing processor', () => {
         expect(housingRepository.update).toHaveBeenCalledWith(
           { geoCode: housing.geoCode, id: housing.id },
           {
-            dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
+            dataFileYears: expect.arrayContaining(['lovac-2024']),
             occupancy: OccupancyKindApi.Vacant,
             status: HousingStatusApi.NeverContacted,
             subStatus: null

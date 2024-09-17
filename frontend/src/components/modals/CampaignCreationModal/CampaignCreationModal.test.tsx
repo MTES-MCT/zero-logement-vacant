@@ -1,10 +1,11 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import CampaignCreationModal from './CampaignCreationModal';
 import { Provider } from 'react-redux';
 import { genAuthUser } from '../../../../test/fixtures.test';
 import { configureStore } from '@reduxjs/toolkit';
 import { applicationReducer } from '../../../store/store';
 import userEvent from '@testing-library/user-event';
+import { faker } from '@faker-js/faker';
 
 describe('Campagne creation modal', () => {
   const user = userEvent.setup();
@@ -62,6 +63,37 @@ describe('Campagne creation modal', () => {
 
     const error = await screen.findByText(
       'Veuillez renseigner le titre de la campagne.'
+    );
+    expect(error).toBeVisible();
+  });
+
+  test('should restrict campaign titles exceeding 64 characters in length', async () => {
+    render(
+      <Provider store={store}>
+        <CampaignCreationModal
+          housingCount={2}
+          filters={{}}
+          onSubmit={() => Promise.resolve()}
+        />
+      </Provider>
+    );
+
+    const createButton = screen.getByText('Créer une campagne');
+    expect(createButton).toBeVisible();
+    await user.click(createButton);
+
+    const campaignTitleInputElement = screen.getAllByTestId(
+      'campaign-title-input'
+    )[0].childNodes[0] as Element;
+
+    await userEvent.type(campaignTitleInputElement, faker.lorem.paragraph());
+
+    const modal = screen.getByRole('dialog');
+    const save = within(modal).getByText('Enregistrer');
+    await user.click(save);
+
+    const error = await screen.findByText(
+      'La longueur maximale du titre de la campagne est de 64 caractères.'
     );
     expect(error).toBeVisible();
   });

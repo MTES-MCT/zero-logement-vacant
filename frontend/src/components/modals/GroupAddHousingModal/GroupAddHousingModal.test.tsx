@@ -61,7 +61,7 @@ describe('GroupHousingModal', () => {
     const createButton = screen.getByTestId("create-new-group");
     await user.click(createButton);
 
-    const save = screen.getByText('Confirmer');
+    const save =  await screen.findByText('Confirmer');
     await user.click(save);
 
     const error = await screen.findByText(
@@ -83,13 +83,11 @@ describe('GroupHousingModal', () => {
     const createButton = screen.getByTestId("create-new-group");
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getAllByTestId(
-      'group-title-input'
-    )[0].childNodes[0] as Element;
+    const campaignTitleInputElement = screen.getByLabelText(/^Nom du groupe/);
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.paragraph());
 
-    const save = screen.getByText('Confirmer');
+    const save = await screen.findByText('Confirmer');
     await user.click(save);
 
     const error = await screen.findByText(
@@ -111,19 +109,15 @@ describe('GroupHousingModal', () => {
     const createButton = screen.getByTestId("create-new-group");
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getAllByTestId(
-      'group-title-input'
-    )[0].childNodes[0] as Element;
+    const campaignTitleInputElement = screen.getByLabelText(/^Nom du groupe/);
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.words(3));
 
-    const campaignDescriptionInputElement = screen.getAllByTestId(
-      'group-description-input'
-    )[0].childNodes[0] as Element;
+    const campaignDescriptionInputElement = screen.getByLabelText(/^Description/);
 
     await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
 
-    const save = screen.getByText('Confirmer');
+    const save = await screen.findByText('Confirmer');
     await user.click(save);
 
     const error = await screen.findByText(

@@ -18,6 +18,7 @@ export async function seed(knex: Knex): Promise<void> {
     .map<AddressDBO>((id) => ({
       ref_id: id,
       address_kind: AddressKinds.Owner,
+      ban_id: faker.string.numeric(16),
       address: faker.location.streetAddress({ useFullAddress: true }),
       house_number: faker.location.buildingNumber(),
       street: faker.location.street(),

@@ -185,12 +185,14 @@ describe('Campaign API', () => {
 
     it('should create a new campaign', async () => {
       const title = randomstring.generate();
+      const description = randomstring.generate();
       const houses: HousingApi[] = Array.from({ length: 2 }).map(() =>
         genHousingApi(oneOf(establishment.geoCodes))
       );
       await Housing().insert(houses.map(formatHousingRecordApi));
       const payload: CampaignCreationPayloadDTO = {
         title,
+        description,
         housing: {
           filters: {},
           all: false,
@@ -207,6 +209,7 @@ describe('Campaign API', () => {
       expect(body).toStrictEqual<CampaignDTO>({
         id: expect.any(String),
         title: payload.title,
+        description: payload.description,
         status: 'draft',
         filters: {
           ...payload.housing.filters,
@@ -306,6 +309,7 @@ describe('Campaign API', () => {
         id: expect.any(String),
         groupId: group.id,
         title: 'Logements prioritaires',
+        description: '',
         status: 'draft',
         establishmentId: establishment.id,
         filters: {
@@ -358,6 +362,7 @@ describe('Campaign API', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
     const payload: CampaignUpdatePayloadDTO = {
       title: 'New title',
+      description: '',
       status: 'sending'
     };
 
@@ -420,7 +425,8 @@ describe('Campaign API', () => {
     it('should update the campaign title', async () => {
       const payload: CampaignUpdatePayloadDTO = {
         status: campaign.status,
-        title: 'New title'
+        title: 'New title',
+        description: ''
       };
 
       const { body, status } = await request(app)
@@ -449,7 +455,8 @@ describe('Campaign API', () => {
       it('should set the status from "draft" to "sending"', async () => {
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
-          status: 'sending'
+          status: 'sending',
+          description: ''
         };
 
         const { body, status } = await request(app)
@@ -470,7 +477,8 @@ describe('Campaign API', () => {
         const campaignWithoutDraft = genCampaignApi(establishment.id, user.id);
         const payload: CampaignUpdatePayloadDTO = {
           title: campaignWithoutDraft.title,
-          status: 'sending'
+          status: 'sending',
+          description: ''
         };
 
         const { status } = await request(app)
@@ -491,7 +499,8 @@ describe('Campaign API', () => {
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
           status: 'in-progress',
-          sentAt: faker.date.recent().toJSON()
+          sentAt: faker.date.recent().toJSON(),
+          description: ''
         };
 
         const { body, status } = await request(app)
@@ -520,7 +529,8 @@ describe('Campaign API', () => {
         });
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
-          status: 'archived'
+          status: 'archived',
+          description: ''
         };
 
         const { body, status } = await request(app)

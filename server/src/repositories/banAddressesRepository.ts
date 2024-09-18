@@ -49,6 +49,7 @@ async function saveMany(addresses: ReadonlyArray<AddressApi>): Promise<void> {
     .onConflict(['ref_id', 'address_kind'])
     .merge([
       'address',
+      'ban_id',
       'house_number',
       'street',
       'postal_code',

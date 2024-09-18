@@ -1,15 +1,17 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import banAddressesRepository, {
   AddressDBO,
-  Addresses
+  Addresses,
+  formatAddressApi
 } from '~/repositories/banAddressesRepository';
 import { genAddressApi, genHousingApi } from '~/test/testFixtures';
 import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-import { AddressKinds } from '@zerologementvacant/models';
 import db from '~/infra/database';
+import { AddressApi } from '~/models/AddressApi';
+import { AddressKinds } from '@zerologementvacant/shared';
 
 describe('BAN addresses repository', () => {
   describe('save', () => {
@@ -28,7 +30,7 @@ describe('BAN addresses repository', () => {
       expect(actual).toStrictEqual<AddressDBO>({
         ref_id: refId,
         address_kind: AddressKinds.Housing,
-        ban_id: address.banId ?? null,
+        ban_id: address.banId as string,
         address: address.label,
         house_number: address.houseNumber,
         street: address.street,
@@ -39,6 +41,38 @@ describe('BAN addresses repository', () => {
         score: address.score,
         last_updated_at: address.lastUpdatedAt
           ? new Date(address.lastUpdatedAt)
+          : undefined
+      });
+    });
+
+    it('should update an existing BAN address', async () => {
+      const refId = faker.string.uuid();
+      const address = genAddressApi(refId, AddressKinds.Housing);
+      await Addresses().insert(formatAddressApi(address));
+      const newAddress: AddressApi = genAddressApi(refId, AddressKinds.Housing);
+
+      await banAddressesRepository.save(newAddress);
+
+      const actual = await Addresses()
+        .where({
+          ref_id: refId,
+          address_kind: AddressKinds.Housing
+        })
+        .first();
+      expect(actual).toStrictEqual<AddressDBO>({
+        ref_id: refId,
+        address_kind: AddressKinds.Housing,
+        ban_id: newAddress.banId as string,
+        address: newAddress.label,
+        house_number: newAddress.houseNumber,
+        street: newAddress.street,
+        postal_code: newAddress.postalCode,
+        city: newAddress.city,
+        latitude: newAddress.latitude,
+        longitude: newAddress.longitude,
+        score: newAddress.score,
+        last_updated_at: newAddress.lastUpdatedAt
+          ? new Date(newAddress.lastUpdatedAt)
           : undefined
       });
     });

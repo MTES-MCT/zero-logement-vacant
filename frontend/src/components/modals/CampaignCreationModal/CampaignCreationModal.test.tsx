@@ -86,7 +86,7 @@ describe('Campagne creation modal', () => {
       'campaign-title-input'
     )[0].childNodes[0] as Element;
 
-    await userEvent.type(campaignTitleInputElement, faker.lorem.paragraph());
+    await userEvent.type(campaignTitleInputElement, faker.lorem.words(50));
 
     const modal = screen.getByRole('dialog');
     const save = within(modal).getByText('Enregistrer');
@@ -123,14 +123,14 @@ describe('Campagne creation modal', () => {
       'campaign-description-input'
     )[0].childNodes[0] as Element;
 
-    await userEvent.type(campaignDescriptionInputElement, faker.lorem.paragraph(10));
+    await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
 
     const modal = screen.getByRole('dialog');
     const save = within(modal).getByText('Enregistrer');
     await user.click(save);
 
     const error = await screen.findByText(
-      'La longueur maximale de la description du groupe est de 1000 caractères.'
+      'La longueur maximale de la description de la campagne est de 1000 caractères.'
     );
     expect(error).toBeVisible();
   });

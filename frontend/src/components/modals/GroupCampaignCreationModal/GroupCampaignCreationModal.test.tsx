@@ -5,7 +5,6 @@ import { genAuthUser } from '../../../../test/fixtures.test';
 import { configureStore } from '@reduxjs/toolkit';
 import { applicationReducer } from '../../../store/store';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 import { faker } from '@faker-js/faker';
 import { Group } from '../../../models/Group';
 import { UserRoles } from '../../../models/User';

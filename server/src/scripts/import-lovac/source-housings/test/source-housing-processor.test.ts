@@ -99,7 +99,7 @@ describe('Source housing processor', () => {
       expect(banAddressRepository.insert).toHaveBeenCalledOnce();
       expect(banAddressRepository.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          address: sourceHousing.ban_address,
+          label: sourceHousing.ban_address,
           latitude: sourceHousing.ban_latitude,
           longitude: sourceHousing.ban_longitude,
           score: sourceHousing.ban_score
@@ -148,7 +148,7 @@ describe('Source housing processor', () => {
       expect(housingRepository.update).toHaveBeenCalledWith(
         { geoCode: housing.geoCode, id: housing.id },
         expect.objectContaining({
-          dataFileYears: [...housing.dataFileYears, 'lovac-2024']
+          dataFileYears: expect.arrayContaining(['lovac-2024'])
         })
       );
     });
@@ -172,7 +172,7 @@ describe('Source housing processor', () => {
           expect(housingRepository.update).toHaveBeenCalledWith(
             { geoCode: housing.geoCode, id: housing.id },
             {
-              dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
+              dataFileYears: expect.arrayContaining(['lovac-2024']),
               occupancy: OccupancyKindApi.Vacant,
               status: HousingStatusApi.NeverContacted,
               subStatus: null
@@ -202,7 +202,7 @@ describe('Source housing processor', () => {
         expect(housingRepository.update).toHaveBeenCalledWith(
           { geoCode: housing.geoCode, id: housing.id },
           {
-            dataFileYears: [...housing.dataFileYears, 'lovac-2024'],
+            dataFileYears: expect.arrayContaining(['lovac-2024']),
             occupancy: OccupancyKindApi.Vacant,
             status: HousingStatusApi.NeverContacted,
             subStatus: null

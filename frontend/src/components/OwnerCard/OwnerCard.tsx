@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import { HousingOwner, isHousingOwner, Owner } from '../../models/Owner';
+import { HousingOwner, Owner } from '../../models/Owner';
 import { birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
@@ -22,11 +22,11 @@ interface OwnerCardProps {
   modify?: ReactNode;
 }
 
-function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
-  const secondaryOwners = coOwners?.filter((_) => _.rank > 1);
-  const archivedOwners = coOwners?.filter(
-    (_) => _.rank === 0 || _.rank === -1 || _.rank === -2 || _.rank === -3
-  );
+function OwnerCard(props: OwnerCardProps) {
+  const secondaryOwners =
+    props.coOwners?.filter((owner) => owner.rank > 1) ?? [];
+  const archivedOwners =
+    props.coOwners?.filter((owner) => owner.rank <= 0) ?? [];
 
   return (
     <Card
@@ -34,33 +34,45 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
       size="small"
       title={
         <>
-          {modify}
+          {props.modify}
           <Typography component="h1" variant="h4" mb={0} data-testid="fullName">
-            {owner.fullName}
+            {props.owner.fullName}
           </Typography>
           <Typography>Propriétaire principal</Typography>
         </>
       }
       desc={
         <>
-          {owner.birthDate && (
+          {props.owner.birthDate && (
             <Typography component="p" mb={1}>
-              <span className={fr.cx("fr-icon-calendar-2-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <span
+                className={fr.cx(
+                  'fr-icon-calendar-2-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
               <Label as="span">Date de naissance</Label>
               <Typography component="p">
-                {birthdate(owner.birthDate)}
+                {birthdate(props.owner.birthDate)}
               </Typography>
             </Typography>
           )}
 
           <Typography component="p" mb={1}>
-            <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+            <span
+              className={fr.cx(
+                'fr-icon-home-4-line',
+                'fr-icon--sm',
+                'fr-mr-1w'
+              )}
+              aria-hidden={true}
+            />
             <Label as="span">Adresse postale</Label>
             <Typography component="p">
-              {owner.banAddress?.houseNumber} {owner.banAddress?.street}
-              <br />
-              {owner.banAddress?.postalCode} {owner.banAddress?.city}
-              {[owner, ...(coOwners ?? [])].find(
+              {props.owner.banAddress?.label}
+              {[props.owner, ...(props.coOwners ?? [])].find(
                 (owner) => !isBanEligible(owner.banAddress)
               ) && (
                 <Alert
@@ -73,8 +85,8 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
                   }
                   description={
                     <>
-                      Cette adresse issue de la BAN est différente de
-                      l’adresse fiscale.
+                      Cette adresse issue de la BAN est différente de l’adresse
+                      fiscale.
                       <br />
                       Cliquez sur “Modifier” pour valider l’adresse que vous
                       souhaitez utiliser.
@@ -85,52 +97,75 @@ function OwnerCard({ owner, coOwners, housingCount, modify }: OwnerCardProps) {
             </Typography>
           </Typography>
 
-          {owner.additionalAddress && (
+          {props.owner.additionalAddress && (
             <Typography component="p" mb={1}>
-              <span className={fr.cx("fr-icon-home-4-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <span
+                className={fr.cx(
+                  'fr-icon-home-4-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
               <Label as="span">Complément d’adresse</Label>
               <Typography component="p">
-                {owner.additionalAddress}
+                {props.owner.additionalAddress}
               </Typography>
             </Typography>
           )}
 
-          {owner.email && (
+          {props.owner.email && (
             <Typography component="p" mb={1}>
-              <span className={fr.cx("fr-icon-mail-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <span
+                className={fr.cx(
+                  'fr-icon-mail-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
               <Label as="span">Adresse mail</Label>
               <Typography component="p">
-                <AppLink className="mailto" isSimple to={mailto(owner.email)}>
-                    {owner.email}
+                <AppLink
+                  className="mailto"
+                  isSimple
+                  to={mailto(props.owner.email)}
+                >
+                  {props.owner.email}
                 </AppLink>
               </Typography>
             </Typography>
           )}
 
-          {owner.phone && (
+          {props.owner.phone && (
             <Typography component="p" mb={1}>
-              <span className={fr.cx("fr-icon-phone-line", "fr-icon--sm", "fr-mr-1w")} aria-hidden={true} />
+              <span
+                className={fr.cx(
+                  'fr-icon-phone-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
               <Label as="span">Téléphone</Label>
-              <Typography component="p">
-                {owner.phone}
-              </Typography>
+              <Typography component="p">{props.owner.phone}</Typography>
             </Typography>
           )}
 
-          {isHousingOwner(owner) && (
+          {props.housingCount > 0 && (
             <Button
               title="Voir tous ses logements"
               priority="secondary"
               linkProps={{
-                to: `/proprietaires/${owner.id}`
+                to: `/proprietaires/${props.owner.id}`
               }}
               className={styles.housingBouton}
             >
-              Voir tous ses logements ({housingCount})
+              Voir tous ses logements ({props.housingCount})
             </Button>
           )}
 
-          {secondaryOwners && secondaryOwners.length > 0 && (
+          {secondaryOwners && secondaryOwners?.length > 0 && (
             <>
               <Typography component="h2" variant="h6" mb={1} mt={4}>
                 Propriétaires secondaires ({secondaryOwners.length})

@@ -3,13 +3,12 @@ import { Col, Row } from '../../_dsfr';
 import { Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';
-import { format } from 'date-fns';
 import { parseDateInput } from '../../../utils/dateUtils';
 import {
   banAddressValidator,
   birthDateValidator,
   emailValidator,
-  useForm,
+  useForm
 } from '../../../hooks/useForm';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useUpdateOwnerMutation } from '../../../services/owner.service';
@@ -21,7 +20,7 @@ import { useUser } from '../../../hooks/useUser';
 
 const modal = createModal({
   id: 'owner-edition-modal',
-  isOpenedByDefault: true,
+  isOpenedByDefault: true
 });
 
 interface Props {
@@ -32,14 +31,12 @@ interface Props {
 const OwnerEditionModal = ({ owner, onCancel }: Props) => {
   const { isVisitor } = useUser();
   const [fullName, setFullName] = useState(owner?.fullName ?? '');
-  const [birthDate, setBirthDate] = useState(
-    owner?.birthDate ? format(owner.birthDate, 'yyyy-MM-dd') : '',
-  );
+  const [birthDate, setBirthDate] = useState(owner?.birthDate ?? '');
   const [banAddress, setBanAddress] = useState(owner?.banAddress);
   const [email, setEmail] = useState(owner?.email);
   const [phone, setPhone] = useState(owner?.phone);
   const [additionalAddress, setAdditionalAddress] = useState(
-    owner?.additionalAddress,
+    owner?.additionalAddress
   );
 
   const [updateOwner, { isError: isUpdateError }] = useUpdateOwnerMutation();
@@ -50,7 +47,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
     banAddress: banAddressValidator,
     email: emailValidator.nullable().notRequired(),
     phone: yup.string().nullable(),
-    additionalAddress: yup.string().nullable().notRequired(),
+    additionalAddress: yup.string().nullable().notRequired()
   };
   type FormShape = typeof shape;
 
@@ -60,7 +57,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
     banAddress,
     email,
     phone,
-    additionalAddress,
+    additionalAddress
   });
   const submit = async () => {
     await form.validate(() => {
@@ -68,11 +65,11 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
         updateOwner({
           ...owner,
           fullName,
-          birthDate: parseDateInput(birthDate),
+          birthDate: parseDateInput(birthDate)?.toJSON(),
           banAddress,
           email,
           phone,
-          additionalAddress,
+          additionalAddress
         });
         modal.close();
       }
@@ -81,15 +78,17 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
 
   return (
     <>
-      { !isVisitor && <Button
-        className="float-right fr-pr-0"
-        iconId="fr-icon-edit-fill"
-        priority="tertiary no outline"
-        title="Modifier le propriétaire"
-        onClick={modal.open}
-      >
-        Modifier
-      </Button> }
+      {!isVisitor && (
+        <Button
+          className="float-right fr-pr-0"
+          iconId="fr-icon-edit-fill"
+          priority="tertiary no outline"
+          title="Modifier le propriétaire"
+          onClick={modal.open}
+        >
+          Modifier
+        </Button>
+      )}
       <modal.Component
         size="large"
         buttons={[
@@ -97,13 +96,13 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
             children: 'Annuler',
             priority: 'secondary',
             className: 'fr-mr-2w',
-            onClick: onCancel,
+            onClick: onCancel
           },
           {
             children: 'Enregistrer',
             onClick: submit,
-            doClosesModal: false,
-          },
+            doClosesModal: false
+          }
         ]}
         title='Modifier la rubrique "propriétaire"'
         style={{ textAlign: 'initial', fontWeight: 'initial' }}

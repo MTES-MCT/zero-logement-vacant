@@ -1,17 +1,23 @@
-import { parse } from 'date-fns';
+import async from 'async';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AddressKinds, OwnerPayloadDTO } from '@zerologementvacant/shared';
+import {
+  AddressKinds,
+  HousingOwnerDTO,
+  HousingOwnerPayloadDTO,
+  OwnerDTO,
+  OwnerPayloadDTO
+} from '@zerologementvacant/models';
 import ownerRepository from '~/repositories/ownerRepository';
 import {
-  fromOwnerPayloadDTO,
   hasContactChanges,
   hasIdentityChanges,
-  OwnerApi
+  OwnerApi,
+  toOwnerDTO
 } from '~/models/OwnerApi';
 import eventRepository from '~/repositories/eventRepository';
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -20,8 +26,13 @@ import { isArrayOf, isString } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import housingRepository from '~/repositories/housingRepository';
 import HousingMissingError from '~/errors/housingMissingError';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { isDefined, isNotNull } from '@zerologementvacant/utils';
+import { HousingOwnerApi, toHousingOwnerDTO } from '~/models/HousingOwnerApi';
+import housingOwnerRepository from '~/repositories/housingOwnerRepository';
+import { AddressApi } from '~/models/AddressApi';
+
+interface PathParams extends Record<string, string> {
+  id: string;
+}
 
 async function get(request: Request, response: Response) {
   const { id } = request.params;
@@ -60,27 +71,36 @@ async function listByHousing(request: Request, response: Response) {
     throw new HousingMissingError(housingId);
   }
 
-  const owners = await ownerRepository.findByHousing(housing);
-  response.status(constants.HTTP_STATUS_OK).json(owners);
+  const housingOwners = await ownerRepository.findByHousing(housing);
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(housingOwners.map(toHousingOwnerDTO));
 }
 
-async function create(request: Request, response: Response) {
-  logger.info('Create owner', request.body);
+async function create(
+  request: Request<never, OwnerDTO, OwnerPayloadDTO, never>,
+  response: Response<OwnerDTO>
+) {
+  logger.info('Creating owner...', request.body);
 
-  const { auth } = request as AuthenticatedRequest;
-  const body = request.body as OwnerPayloadDTO;
+  const { auth, body } = request as AuthenticatedRequest<
+    never,
+    OwnerDTO,
+    OwnerPayloadDTO,
+    never
+  >;
   const owner: OwnerApi = {
     id: uuidv4(),
     fullName: body.fullName,
     rawAddress: body.rawAddress,
-    birthDate: body.birthDate
-      ? parse(body.birthDate, 'yyyy-MM-dd', new Date())
-      : undefined,
+    birthDate: body.birthDate ? new Date(body.birthDate).toJSON() : undefined,
     phone: body.phone,
-    email: body.email
+    email: body.email,
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON()
   };
 
-  await ownerRepository.save(owner);
+  await ownerRepository.betterSave(owner);
   await banAddressesRepository.markAddressToBeNormalized(
     owner.id,
     AddressKinds.Owner
@@ -97,187 +117,177 @@ async function create(request: Request, response: Response) {
     ownerId: owner.id
   });
 
-  response.status(constants.HTTP_STATUS_OK).json(owner);
+  response.status(constants.HTTP_STATUS_OK).json(toOwnerDTO(owner));
 }
 
-type HousingOwnerBody = HousingOwnerApi & { birthDate: string };
+async function update(
+  request: Request<PathParams, OwnerDTO, OwnerPayloadDTO, never>,
+  response: Response<OwnerDTO>
+) {
+  const { auth, body, params } = request as AuthenticatedRequest<
+    PathParams,
+    OwnerDTO,
+    OwnerPayloadDTO,
+    never
+  >;
 
-const parseHousingOwnerApi = (
-  housingOwnerBody: HousingOwnerBody
-): HousingOwnerApi => ({
-  ...housingOwnerBody,
-  birthDate: housingOwnerBody.birthDate
-    ? new Date(housingOwnerBody.birthDate)
-    : undefined
-});
+  const existingOwner = await ownerRepository.get(params.id);
+  if (!existingOwner) {
+    throw new OwnerMissingError(params.id);
+  }
 
-async function update(request: Request, response: Response) {
-  const { auth, params } = request as AuthenticatedRequest;
-
+  const banAddress: AddressApi | undefined = body.banAddress
+    ? {
+        ...body.banAddress,
+        refId: existingOwner.id,
+        addressKind: AddressKinds.Owner,
+        lastUpdatedAt: new Date().toJSON()
+      }
+    : undefined;
   const owner: OwnerApi = {
-    ...fromOwnerPayloadDTO(request.body as OwnerPayloadDTO),
-    id: params.id
+    id: existingOwner.id,
+    rawAddress: existingOwner.rawAddress,
+    banAddress,
+    fullName: body.fullName,
+    administrator: existingOwner.administrator,
+    birthDate: body.birthDate,
+    email: body.email,
+    phone: body.phone,
+    additionalAddress: body.additionalAddress,
+    kind: existingOwner.kind,
+    kindDetail: existingOwner.kindDetail,
+    idpersonne: existingOwner.idpersonne,
+    siren: existingOwner.siren,
+    dataSource: existingOwner.dataSource,
+    createdAt: existingOwner.createdAt,
+    updatedAt: new Date().toJSON()
   };
 
-  const updatedOwnerApi = await updateOwner(owner, auth.userId);
-  response.status(constants.HTTP_STATUS_OK).json(updatedOwnerApi);
+  await Promise.all([
+    ownerRepository.betterSave(owner, {
+      onConflict: ['id'],
+      merge: [
+        'address_dgfip',
+        'full_name',
+        'birth_date',
+        'email',
+        'phone',
+        'additional_address',
+        'updated_at'
+      ]
+    }),
+    banAddress ? banAddressesRepository.save(banAddress) : Promise.resolve(),
+    hasIdentityChanges(existingOwner, owner)
+      ? eventRepository.insertOwnerEvent({
+          id: uuidv4(),
+          name: "Modification d'identité",
+          kind: 'Update',
+          category: 'Ownership',
+          section: 'Coordonnées propriétaire',
+          old: existingOwner,
+          new: owner,
+          createdBy: auth.userId,
+          createdAt: new Date(),
+          ownerId: owner.id
+        })
+      : Promise.resolve(),
+    hasContactChanges(existingOwner, owner)
+      ? eventRepository.insertOwnerEvent({
+          id: uuidv4(),
+          name: 'Modification de coordonnées',
+          kind: 'Update',
+          category: 'Ownership',
+          section: 'Coordonnées propriétaire',
+          old: existingOwner,
+          new: owner,
+          createdBy: auth.userId,
+          createdAt: new Date(),
+          ownerId: owner.id
+        })
+      : Promise.resolve()
+  ]);
+
+  response.status(constants.HTTP_STATUS_OK).json(toOwnerDTO(owner));
 }
 
-async function updateOwner(
-  ownerApi: OwnerApi,
-  userId: string
-): Promise<OwnerApi | undefined> {
-  logger.info('Update owner', ownerApi.id);
+async function updateHousingOwners(
+  request: Request<
+    PathParams,
+    HousingOwnerDTO[],
+    HousingOwnerPayloadDTO[],
+    never
+  >,
+  response: Response<HousingOwnerDTO[]>
+) {
+  const { auth, body, params, establishment } = request as AuthenticatedRequest<
+    PathParams,
+    HousingOwnerDTO[],
+    HousingOwnerPayloadDTO[],
+    never
+  >;
 
-  const prevOwnerApi = await ownerRepository.get(ownerApi.id);
-
-  if (!prevOwnerApi) {
-    throw new OwnerMissingError(ownerApi.id);
-  }
-
-  const updatedOwnerApi = {
-    ...prevOwnerApi,
-    fullName: ownerApi.fullName,
-    birthDate: ownerApi.birthDate,
-    rawAddress: ownerApi.rawAddress,
-    email: ownerApi.email,
-    phone: ownerApi.phone,
-    banAddress: ownerApi.banAddress,
-    additionalAddress: ownerApi.additionalAddress
-  };
-
-  if (
-    hasIdentityChanges(prevOwnerApi, updatedOwnerApi) ||
-    hasContactChanges(prevOwnerApi, updatedOwnerApi) ||
-    updatedOwnerApi.banAddress !== prevOwnerApi.banAddress
-  ) {
-    logger.debug('updatedOwnerApi', updatedOwnerApi);
-
-    await ownerRepository.update(updatedOwnerApi);
-
-    if (
-      updatedOwnerApi.banAddress &&
-      updatedOwnerApi.banAddress !== prevOwnerApi.banAddress
-    ) {
-      await banAddressesRepository.upsertList([
-        {
-          refId: ownerApi.id,
-          address: [
-            updatedOwnerApi.banAddress.houseNumber,
-            updatedOwnerApi.banAddress.street,
-            updatedOwnerApi.banAddress.postalCode,
-            updatedOwnerApi.banAddress.city
-          ]
-            .filter(isDefined)
-            .filter(isNotNull)
-            .join(''),
-          addressKind: AddressKinds.Owner,
-          ...updatedOwnerApi.banAddress
-        }
-      ]);
-    }
-
-    if (hasIdentityChanges(prevOwnerApi, updatedOwnerApi)) {
-      await eventRepository.insertOwnerEvent({
-        id: uuidv4(),
-        name: "Modification d'identité",
-        kind: 'Update',
-        category: 'Ownership',
-        section: 'Coordonnées propriétaire',
-        old: prevOwnerApi,
-        new: updatedOwnerApi,
-        createdBy: userId,
-        createdAt: new Date(),
-        ownerId: ownerApi.id
-      });
-    }
-
-    if (hasContactChanges(prevOwnerApi, updatedOwnerApi)) {
-      await eventRepository.insertOwnerEvent({
-        id: uuidv4(),
-        name: 'Modification de coordonnées',
-        kind: 'Update',
-        category: 'Ownership',
-        section: 'Coordonnées propriétaire',
-        old: prevOwnerApi,
-        new: updatedOwnerApi,
-        createdBy: userId,
-        createdAt: new Date(),
-        ownerId: ownerApi.id
-      });
-    }
-
-    return updatedOwnerApi;
-  }
-}
-
-async function updateHousingOwners(request: Request, response: Response) {
-  const { auth, params, establishment } = request as AuthenticatedRequest;
-  const housingId = params.housingId;
-
-  logger.debug('Update housing owners', { housing: housingId });
+  logger.debug('Updating housing owners...', { housing: params.housingId });
 
   const housing = await housingRepository.findOne({
-    id: housingId,
+    id: params.housingId,
     geoCode: establishment.geoCodes
   });
   if (!housing) {
-    throw new HousingMissingError(housingId);
+    throw new HousingMissingError(params.housingId);
   }
 
-  const housingOwnersApi = (<HousingOwnerBody[]>request.body)
-    .map(parseHousingOwnerApi)
-    .filter((_) => _.housingId === housingId);
-
-  await Promise.all(
-    housingOwnersApi.map((housingOwnerApi) =>
-      updateOwner(housingOwnerApi, auth.userId)
-    )
-  );
-
-  const prevHousingOwnersApi = await ownerRepository.findByHousing(housing);
+  const existingHousingOwners = await ownerRepository.findByHousing(housing);
 
   if (
-    prevHousingOwnersApi.length !== housingOwnersApi.length ||
-    prevHousingOwnersApi.some(
-      (ho1) =>
-        !housingOwnersApi.some(
-          (ho2) => ho1.id === ho2.id && ho1.rank === ho2.rank
-        )
-    )
+    existingHousingOwners.length === body.length &&
+    existingHousingOwners.every((existingHousingOwner) => {
+      const found = body.find((ho) => ho.id === existingHousingOwner.id);
+      return found && found.rank === existingHousingOwner.rank;
+    })
   ) {
-    await ownerRepository.deleteHousingOwners(
-      housingId,
-      housingOwnersApi.map((_) => _.id)
-    );
-
-    await ownerRepository.insertHousingOwners(
-      housingOwnersApi.map((housingOwnerApi) => ({
-        ...housingOwnerApi,
-        housingGeoCode: housing.geoCode
-      }))
-    );
-
-    const newHousingOwnersApi = await ownerRepository.findByHousing(housing);
-
-    await eventRepository.insertHousingEvent({
-      id: uuidv4(),
-      name: 'Changement de propriétaires',
-      kind: 'Update',
-      category: 'Ownership',
-      section: 'Propriétaire',
-      old: prevHousingOwnersApi,
-      new: newHousingOwnersApi,
-      createdBy: auth.userId,
-      createdAt: new Date(),
-      housingId,
-      housingGeoCode: newHousingOwnersApi[0].housingGeoCode
-    });
-
-    return response.sendStatus(constants.HTTP_STATUS_OK);
-  } else {
-    return response.sendStatus(constants.HTTP_STATUS_NOT_MODIFIED);
+    return response.status(constants.HTTP_STATUS_NOT_MODIFIED).send();
   }
+
+  const housingOwners: HousingOwnerApi[] = await async.map(
+    body,
+    async (
+      housingOwnerPayload: HousingOwnerPayloadDTO
+    ): Promise<HousingOwnerApi> => {
+      const owner = await ownerRepository.get(housingOwnerPayload.id);
+      if (!owner) {
+        throw new OwnerMissingError(housingOwnerPayload.id);
+      }
+      return {
+        ...owner,
+        ownerId: owner.id,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        rank: housingOwnerPayload.rank,
+        idprocpte: housingOwnerPayload.idprocpte ?? undefined,
+        idprodroit: housingOwnerPayload.idprodroit ?? undefined,
+        locprop: housingOwnerPayload.locprop ?? undefined
+      };
+    }
+  );
+
+  await housingOwnerRepository.saveMany(housingOwners);
+  await eventRepository.insertHousingEvent({
+    id: uuidv4(),
+    name: 'Changement de propriétaires',
+    kind: 'Update',
+    category: 'Ownership',
+    section: 'Propriétaire',
+    old: existingHousingOwners,
+    new: housingOwners,
+    createdBy: auth.userId,
+    createdAt: new Date(),
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode
+  });
+
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(housingOwners.map(toHousingOwnerDTO));
 }
 
 const ownerValidators: ValidationChain[] = [
@@ -286,6 +296,8 @@ const ownerValidators: ValidationChain[] = [
   body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
   body('email').optional({ checkFalsy: true }).isEmail(),
   body('phone').isString().optional({ nullable: true }),
+  body('banAddress.banId').isString().optional(),
+  body('banAddress.label').isString().optional(),
   body('banAddress.houseNumber').isString().optional(),
   body('banAddress.street').isString().optional(),
   body('banAddress.postalCode').isString().optional(),

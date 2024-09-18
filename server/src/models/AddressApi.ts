@@ -1,15 +1,14 @@
-import { AddressDTO, AddressKinds } from '@zerologementvacant/models';
+import { AddressDTO } from '@zerologementvacant/models';
+
 import { reduceStringArray } from '~/utils/stringUtils';
 
 export interface AddressApi extends AddressDTO {
   lastUpdatedAt?: string;
 }
 
-export interface AddressToNormalize {
-  refId: string;
-  addressKind: AddressKinds;
-  addressDGFIP: string[];
-  geoCode?: string;
+export interface AddressToNormalize
+  extends Pick<AddressApi, 'label' | 'refId' | 'addressKind'> {
+  geoCode: string;
 }
 
 export const formatAddressApi = (

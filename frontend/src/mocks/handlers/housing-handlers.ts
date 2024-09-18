@@ -76,12 +76,41 @@ export const housingHandlers: RequestHandler[] = [
     ({ params }) => {
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {
-        return HttpResponse.json(null, {
+        throw HttpResponse.json(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
 
-      return HttpResponse.json(housing);
+      const housingOwners = data.housingOwners.get(housing.id);
+      const owner = housingOwners?.find(
+        (housingOwner) => housingOwner.rank === 1
+      );
+      if (!owner) {
+        throw HttpResponse.json(null, {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        });
+      }
+      return HttpResponse.json({
+        ...housing,
+        owner: fp.pick(
+          [
+            'id',
+            'rawAddress',
+            'fullName',
+            'administrator',
+            'birthDate',
+            'email',
+            'phone',
+            'banAddress',
+            'additionalAddress',
+            'kind',
+            'kindDetail',
+            'createdAt',
+            'updatedAt'
+          ],
+          owner
+        )
+      });
     }
   )
 ];

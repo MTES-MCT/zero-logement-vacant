@@ -3,21 +3,22 @@ import fp from 'lodash/fp';
 export interface AddressDTO {
   refId: string;
   addressKind: AddressKinds;
-  address: string;
+  banId?: string;
+  label: string;
   /**
-   * @deprecated See {@link address}
+   * @deprecated See {@link label}
    */
   houseNumber?: string;
   /**
-   * @deprecated See {@link address}
+   * @deprecated See {@link label}
    */
   street?: string;
   /**
-   * @deprecated See {@link address}
+   * @deprecated See {@link label}
    */
   postalCode: string;
   /**
-   * @deprecated See {@link address}
+   * @deprecated See {@link label}
    */
   city: string;
   latitude?: number;
@@ -25,22 +26,32 @@ export interface AddressDTO {
   score?: number;
 }
 
+export type AddressPayloadDTO = Pick<
+  AddressDTO,
+  | 'banId'
+  | 'label'
+  | 'houseNumber'
+  | 'street'
+  | 'postalCode'
+  | 'city'
+  | 'latitude'
+  | 'longitude'
+  | 'score'
+>;
+
 export enum AddressKinds {
   Housing = 'Housing',
   Owner = 'Owner'
 }
 
 export function formatAddress(
-  address: Pick<AddressDTO, 'houseNumber' | 'street' | 'postalCode' | 'city'>,
+  address: Pick<AddressDTO, 'label'>,
   additionalAddress?: string
 ): string[] {
-  const reduce = fp.pipe(fp.compact);
-
-  return reduce([
-    additionalAddress,
-    address.street?.startsWith(address.houseNumber ?? '')
-      ? address.street
-      : reduce([address.houseNumber, address.street]).join(' '),
-    `${address.postalCode} ${address.city}`
-  ]);
+  const label = address.label
+    .replace(/(\d{5})/, ', $1')
+    .replace(/(2A|2B)(\d{3})/, ', $1$2')
+    .split(',')
+    .map(fp.trim);
+  return fp.compact([additionalAddress, ...label]);
 }

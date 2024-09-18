@@ -208,7 +208,7 @@ export const genOwnerApi = (): OwnerApi => {
       `${faker.location.zipCode()}, ${faker.location.city()}`
     ],
     // Get the start of the day to avoid time zone issues
-    birthDate: faker.date.birthdate(),
+    birthDate: faker.date.birthdate().toJSON(),
     fullName: faker.person.fullName(),
     email: genEmail(),
     phone: faker.phone.number(),
@@ -222,14 +222,20 @@ export const genAddressApi = (
   refId: string,
   addressKind: AddressKinds
 ): AddressApi => {
+  const houseNumber = faker.location.buildingNumber();
+  const street = faker.location.street();
+  const postalCode = faker.location.zipCode();
+  const city = faker.location.city();
+  const address = `${houseNumber} ${street} ${postalCode} ${city}`;
   return {
     refId,
     addressKind,
-    address: faker.location.streetAddress({ useFullAddress: true }),
-    houseNumber: faker.location.buildingNumber(),
-    street: faker.location.street(),
-    postalCode: faker.location.zipCode(),
-    city: faker.location.city(),
+    banId: faker.string.numeric(16),
+    label: address,
+    houseNumber,
+    street,
+    postalCode,
+    city,
     latitude: faker.location.latitude(),
     longitude: faker.location.longitude(),
     score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
@@ -270,6 +276,14 @@ export const genHousingApi = (
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);
+  const dataYears = faker.helpers
+    .arrayElements(fp.range(2019, new Date().getUTCFullYear() + 1), {
+      min: 1,
+      max: new Date().getUTCFullYear() + 1 - 2019
+    })
+    .toSorted();
+  const dataFileYears = dataYears.map((year) => `lovac-${year}`);
+
   return {
     id,
     invariant,
@@ -291,8 +305,8 @@ export const genHousingApi = (
     buildingYear: faker.date.past().getUTCFullYear(),
     taxed: false,
     vacancyReasons: [],
-    dataYears: [new Date().getUTCFullYear() - 1],
-    dataFileYears: [`lovac-${new Date().getUTCFullYear() - 1}`],
+    dataYears,
+    dataFileYears,
     buildingLocation: randomstring.generate(),
     ownershipKind: OwnershipKindsApi.Single,
     status: HousingStatusApi.NeverContacted,

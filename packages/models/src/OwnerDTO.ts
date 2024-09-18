@@ -1,31 +1,35 @@
-import { formatAddress } from './AddressDTO';
+import { AddressDTO, AddressPayloadDTO, formatAddress } from './AddressDTO';
 
-export interface OwnerPayloadDTO {
+export interface OwnerDTO {
+  id: string;
   rawAddress: string[];
   fullName: string;
+  administrator?: string;
   /**
-   * A date formatted like YYYY-MM-DD
+   * A date formatted like yyyy-mm-dd
    */
   birthDate?: string;
   email?: string;
   phone?: string;
-  banAddress?: {
-    houseNumber?: string;
-    postalCode: string;
-    street?: string;
-    city: string;
-    score?: number;
-  };
+  banAddress?: AddressDTO;
   additionalAddress?: string;
-}
-
-export interface OwnerDTO extends Omit<OwnerPayloadDTO, 'birthDate'> {
-  id: string;
-  administrator?: string;
-  birthDate?: Date;
   kind?: string;
   kindDetail?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
+
+export type OwnerPayloadDTO = Pick<
+  OwnerDTO,
+  | 'rawAddress'
+  | 'fullName'
+  | 'birthDate'
+  | 'email'
+  | 'phone'
+  | 'additionalAddress'
+> & {
+  banAddress?: AddressPayloadDTO;
+};
 
 export function getAddress(owner: OwnerDTO): string[] {
   if (owner.banAddress) {

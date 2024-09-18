@@ -33,7 +33,11 @@ import {
   formatHousingOwnersApi,
   HousingOwners
 } from '../housingOwnerRepository';
-import { EnergyConsumptionGradesApi, HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import {
+  EnergyConsumptionGradesApi,
+  HousingApi,
+  OccupancyKindApi
+} from '~/models/HousingApi';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '~/models/LocalityApi';
 import { BuildingApi } from '~/models/BuildingApi';
@@ -472,11 +476,13 @@ describe('Housing repository', () => {
         function createOwner(age: number): OwnerApi {
           return {
             ...genOwnerApi(),
-            birthDate: faker.date.birthdate({
-              min: age,
-              max: age,
-              mode: 'age'
-            })
+            birthDate: faker.date
+              .birthdate({
+                min: age,
+                max: age,
+                mode: 'age'
+              })
+              .toJSON()
           };
         }
 
@@ -507,7 +513,7 @@ describe('Housing repository', () => {
             filter: ['lt40'],
             predicate: (owner: OwnerApi) => {
               return (
-                differenceInYears(new Date(), owner.birthDate as Date) < 40
+                differenceInYears(new Date(), owner.birthDate as string) < 40
               );
             }
           },
@@ -517,7 +523,7 @@ describe('Housing repository', () => {
             predicate: (owner: OwnerApi) => {
               const diff = differenceInYears(
                 new Date(),
-                owner.birthDate as Date
+                owner.birthDate as string
               );
               return 40 <= diff && diff <= 59;
             }
@@ -528,7 +534,7 @@ describe('Housing repository', () => {
             predicate: (owner: OwnerApi) => {
               const diff = differenceInYears(
                 new Date(),
-                owner.birthDate as Date
+                owner.birthDate as string
               );
               return 60 <= diff && diff <= 74;
             }
@@ -539,7 +545,7 @@ describe('Housing repository', () => {
             predicate: (owner: OwnerApi) => {
               const diff = differenceInYears(
                 new Date(),
-                owner.birthDate as Date
+                owner.birthDate as string
               );
               return 75 <= diff && diff <= 99;
             }
@@ -549,7 +555,7 @@ describe('Housing repository', () => {
             filter: ['gte100'],
             predicate: (owner: OwnerApi) => {
               return (
-                differenceInYears(new Date(), owner.birthDate as Date) >= 100
+                differenceInYears(new Date(), owner.birthDate as string) >= 100
               );
             }
           }
@@ -803,23 +809,32 @@ describe('Housing repository', () => {
       });
 
       it('should filter by DPE score', async () => {
-
-        const actualAD = await housingRepository.find({
+        const actualA = await housingRepository.find({
           filters: {
-            energyConsumption: ['A' as EnergyConsumptionGradesApi, 'B' as EnergyConsumptionGradesApi, 'C' as EnergyConsumptionGradesApi, 'D' as EnergyConsumptionGradesApi]
+            energyConsumption: ['A' as EnergyConsumptionGradesApi]
           }
         });
+        expect(actualA).toSatisfyAll<HousingApi>(
+          (housing) =>
+            housing.energyConsumption === EnergyConsumptionGradesApi.A
+        );
 
+        const EFGClasses = [
+          'E' as EnergyConsumptionGradesApi,
+          'F' as EnergyConsumptionGradesApi,
+          'G' as EnergyConsumptionGradesApi
+        ];
         const actualEFG = await housingRepository.find({
           filters: {
-            energyConsumption: ['E' as EnergyConsumptionGradesApi, 'F' as EnergyConsumptionGradesApi, 'G' as EnergyConsumptionGradesApi]
+            energyConsumption: EFGClasses
           }
         });
-
-        expect(actualAD.length).toBeGreaterThan(0);
-        expect(actualEFG.length).toBeGreaterThan(0);
+        expect(actualEFG).toSatisfyAll<HousingApi>((housing) =>
+          EFGClasses.includes(
+            housing.energyConsumption as EnergyConsumptionGradesApi
+          )
+        );
       });
-
     });
   });
 
@@ -883,7 +898,8 @@ describe('Housing repository', () => {
       expect(actual?.owner?.banAddress).toStrictEqual<AddressApi>({
         refId: owner.id,
         addressKind: AddressKinds.Owner,
-        address: address.address,
+        banId: address.banId,
+        label: address.label,
         houseNumber: address.houseNumber,
         street: address.street,
         postalCode: address.postalCode,

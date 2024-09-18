@@ -3,26 +3,35 @@ import { constants } from 'http2';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import {
+  AddressDTO,
+  AddressKinds,
+  genHousingOwnerDTO,
+  HousingOwnerPayloadDTO,
+  OwnerDTO,
+  OwnerPayloadDTO
+} from '@zerologementvacant/models';
 import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
 import {
   genAddressApi,
   genEstablishmentApi,
   genHousingApi,
+  genHousingOwnerApi,
   genOwnerApi,
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { AddressKinds, OwnerPayloadDTO } from '@zerologementvacant/shared';
 import {
   EventRecordDBO,
   Events,
   eventsTable,
+  housingEventsTable,
   OwnerEventDBO,
   ownerEventsTable
 } from '~/repositories/eventRepository';
-import { OwnerApi } from '~/models/OwnerApi';
+import { OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
 import db from '~/infra/database';
 import {
   banAddressesTable,
@@ -38,9 +47,13 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import {
+  formatHousingOwnerApi,
   formatHousingOwnersApi,
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { HousingApi } from '~/models/HousingApi';
+import { faker } from '@faker-js/faker/locale/fr';
 
 describe('Owner API', () => {
   const { app } = createServer();
@@ -86,17 +99,16 @@ describe('Owner API', () => {
   describe('PUT /owners/{id}', () => {
     const testRoute = (id: string) => `/api/owners/${id}`;
 
-    let original: OwnerApi;
+    let owner: OwnerApi;
 
     beforeEach(async () => {
-      original = genOwnerApi();
-      await Owners().insert(formatOwnerApi(original));
+      owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
     });
 
     it('should reject if the owner is missing', async () => {
       const payload: OwnerPayloadDTO = {
-        ...original,
-        birthDate: original.birthDate?.toISOString().substring(0, 10),
+        ...owner,
         phone: '+33 6 12 34 56 78'
       };
 
@@ -110,25 +122,58 @@ describe('Owner API', () => {
     });
 
     it('should update an owner', async () => {
-      const original = genOwnerApi();
-      await Owners().insert(formatOwnerApi(original));
-      const birthDate = new Date('2000-01-01');
       const payload: OwnerPayloadDTO = {
-        ...original,
-        birthDate: birthDate.toISOString()?.substring(0, 10),
+        ...owner,
+        birthDate: new Date('2000-01-01')
+          .toJSON()
+          .substring(0, 'yyyy-mm-dd'.length),
         phone: '+33 6 12 34 56 78'
       };
 
       const { body, status } = await request(app)
-        .put(testRoute(original.id))
+        .put(testRoute(owner.id))
         .send(payload)
         .set('Content-Type', 'application/json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject({
-        ...payload,
-        birthDate: birthDate.toISOString()
+      expect(body).toMatchObject<Partial<OwnerDTO>>({
+        id: owner.id,
+        rawAddress: payload.rawAddress,
+        fullName: payload.fullName,
+        birthDate: payload.birthDate,
+        email: payload.email,
+        phone: payload.phone,
+        kind: owner.kind,
+        kindDetail: owner.kindDetail
+      });
+    });
+
+    it('should update their BAN address', async () => {
+      const payload: OwnerPayloadDTO = {
+        ...owner,
+        banAddress: genAddressApi(owner.id, AddressKinds.Owner)
+      };
+
+      const { body, status } = await request(app)
+        .put(testRoute(owner.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.banAddress).toMatchObject<Partial<AddressDTO>>({
+        refId: owner.id,
+        addressKind: AddressKinds.Owner,
+        label: payload.banAddress?.label,
+        houseNumber: payload.banAddress?.houseNumber,
+        street: payload.banAddress?.street,
+        postalCode: payload.banAddress?.postalCode,
+        city: payload.banAddress?.city,
+        latitude: payload.banAddress?.latitude,
+        longitude: payload.banAddress?.longitude,
+        score: payload.banAddress?.score,
+        banId: payload.banAddress?.banId
       });
     });
 
@@ -173,7 +218,6 @@ describe('Owner API', () => {
       await Owners().insert(formatOwnerApi(original));
       const payload: OwnerPayloadDTO = {
         ...original,
-        birthDate: original.birthDate?.toISOString(),
         phone: '+33 6 12 34 56 78'
       };
 
@@ -209,7 +253,6 @@ describe('Owner API', () => {
       await db(banAddressesTable).insert(formatAddressApi(originalAddress));
       const payload: OwnerPayloadDTO = {
         ...original,
-        birthDate: original.birthDate?.toISOString(),
         banAddress: genAddressApi(original.id, AddressKinds.Owner)
       };
 
@@ -240,12 +283,42 @@ describe('Owner API', () => {
   });
 
   describe('PUT /owners/housing/{id}', () => {
-    const testRoute = (id: string) => `/api/owners/housing/${id}`;
+    const testRoute = (id: string) => `/api/housing/${id}/owners`;
+
+    let housing: HousingApi;
+    let owners: ReadonlyArray<OwnerApi>;
+    let housingOwners: ReadonlyArray<HousingOwnerApi>;
+
+    beforeEach(async () => {
+      housing = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
+      await Housing().insert(formatHousingRecordApi(housing));
+      owners = Array.from({ length: 3 }, genOwnerApi);
+      await Owners().insert(owners.map(formatOwnerApi));
+      housingOwners = owners.map((owner, i) => {
+        return {
+          ...genHousingOwnerApi(housing, owner),
+          rank: i + 1
+        };
+      });
+      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
+    });
+
+    function createHousingOwnerPayload(
+      owner: OwnerApi,
+      rank: number
+    ): HousingOwnerPayloadDTO {
+      return {
+        ...genHousingOwnerDTO(toOwnerDTO(owner)),
+        rank
+      };
+    }
 
     it('should reject if the housing is missing', async () => {
-      const payload = {
-        // TODO
-      };
+      const payload: HousingOwnerPayloadDTO[] = owners.map((owner, i) => {
+        return createHousingOwnerPayload(owner, i + 1);
+      });
 
       const { status } = await request(app)
         .put(testRoute(uuidv4()))
@@ -253,6 +326,83 @@ describe('Owner API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should reject if one of the owners is missing', async () => {
+      const payload: HousingOwnerPayloadDTO[] = owners
+        .map((owner, i) => {
+          return createHousingOwnerPayload(owner, i + 1);
+        })
+        .concat(createHousingOwnerPayload(genOwnerApi(), owners.length + 1));
+
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    describe('If the housing owners have changed', () => {
+      it('should replace housing owners', async () => {
+        const payload = housingOwners.toReversed().map((housingOwner, i) => {
+          return { ...housingOwner, rank: i + 1 };
+        });
+
+        const { body, status } = await request(app)
+          .put(testRoute(housing.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toIncludeAllPartialMembers(
+          payload.map((housingOwner) => {
+            return {
+              id: housingOwner.id,
+              rank: housingOwner.rank
+            };
+          })
+        );
+      });
+
+      it('should create an event', async () => {
+        const payload = housingOwners.toReversed().map((housingOwner, i) => {
+          return { ...housingOwner, rank: i + 1 };
+        });
+
+        await request(app)
+          .put(testRoute(housing.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        const event = await Events()
+          .select(`${eventsTable}.*`)
+          .join(
+            housingEventsTable,
+            `${housingEventsTable}.event_id`,
+            `${eventsTable}.id`
+          )
+          .where({
+            housing_geo_code: housing.geoCode,
+            housing_id: housing.id
+          })
+          .first();
+        expect(event).toMatchObject({
+          name: 'Changement de propriétaires',
+          kind: 'Update'
+        });
+      });
+    });
+
+    it('should return 304 Not modified otherwise', async () => {
+      const payload = housingOwners;
+
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_MODIFIED);
     });
   });
 });

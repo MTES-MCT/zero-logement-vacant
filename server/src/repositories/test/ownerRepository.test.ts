@@ -57,7 +57,7 @@ describe('Owner repository', () => {
         id: owner.id,
         fullName: owner.fullName,
         rawAddress: owner.rawAddress,
-        birthDate: owner.birthDate
+        birthDate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length)
       });
     });
   });

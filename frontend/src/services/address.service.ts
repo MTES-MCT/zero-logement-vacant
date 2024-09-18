@@ -1,40 +1,45 @@
+import type { FeatureCollection, Point } from 'geojson';
+
 import config from '../utils/config';
 import { createHttpService } from '../utils/fetchUtils';
-import { Feature } from 'maplibre-gl';
 import { Address } from '../models/Address';
 
 export type AddressSearchResult = Address & {
+  banId: string;
   label: string;
 };
 
 const http = createHttpService('address', {
   authenticated: false,
   host: config.banEndpoint,
-  json: true,
+  json: true
 });
 
 const quickSearch = async (query: string): Promise<AddressSearchResult[]> => {
   const params = new URLSearchParams({ q: query });
   const response = await http.get(`/search?${params}`, {
-    abortId: 'search-address',
+    abortId: 'search-address'
   });
-  const addresses = await response.json();
-  return addresses.features.map(
-    (a: Feature): AddressSearchResult => ({
-      label: a.properties.label,
-      street: a.properties.street,
-      houseNumber: a.properties.housenumber,
-      postalCode: a.properties.postcode,
-      city: a.properties.city,
-      longitude: a.properties.x,
-      latitude: a.properties.y,
-      score: a.properties.score,
-    })
-  );
+  const addresses: FeatureCollection<Point> = await response.json();
+  return addresses.features.map((point): AddressSearchResult => {
+    const [longitude, latitude] = point.geometry.coordinates;
+    const properties = point.properties ?? {};
+    return {
+      banId: properties.id,
+      label: properties.label,
+      street: properties.street,
+      houseNumber: properties.housenumber,
+      postalCode: properties.postcode,
+      city: properties.city,
+      longitude: longitude,
+      latitude: latitude,
+      score: properties.score
+    };
+  });
 };
 
 const addressService = {
-  quickSearch,
+  quickSearch
 };
 
 export default addressService;

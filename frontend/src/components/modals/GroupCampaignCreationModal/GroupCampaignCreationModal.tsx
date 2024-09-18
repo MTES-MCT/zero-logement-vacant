@@ -9,6 +9,7 @@ import { Group } from '../../../models/Group';
 import { Container, Text } from '../../_dsfr';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import { displayCount } from '../../../utils/stringUtils';
 
 interface Props {
   group: Group;
@@ -27,6 +28,7 @@ function GroupCampaignCreationModal(props: Props) {
   type FormShape = typeof shape;
   const form = useForm(yup.object().shape(shape), {
     title,
+    description,
   });
 
   async function submit(): Promise<void> {
@@ -60,8 +62,10 @@ function GroupCampaignCreationModal(props: Props) {
           className="fr-mb-2w"
         />
         <Text>
-          Vous êtes sur le point de créer une campagne comportant 
-          {props.housingCount} logements.
+          <span data-testid="housing-infos">
+            Vous êtes sur le point de créer une campagne comportant{' '}
+            <b>{displayCount(props.housingCount, 'logement')}.</b>
+          </span>
         </Text>
         <AppTextInput<FormShape>
           value={title}
@@ -71,6 +75,7 @@ function GroupCampaignCreationModal(props: Props) {
           inputForm={form}
           inputKey="title"
           required
+          data-testid="campaign-title-input"
         />
         <AppTextInput<FormShape>
           textArea
@@ -80,6 +85,7 @@ function GroupCampaignCreationModal(props: Props) {
           placeholder="Description de la campagne"
           inputForm={form}
           inputKey="description"
+          data-testid="campaign-description-input"
         />
         <Text>
           La liste a été établie à partir du groupe 

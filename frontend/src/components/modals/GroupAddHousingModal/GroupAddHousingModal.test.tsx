@@ -1,5 +1,5 @@
 import { configureStore, Store } from '@reduxjs/toolkit';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import GroupAddHousingModal from './GroupAddHousingModal';
@@ -67,7 +67,7 @@ describe('GroupHousingModal', () => {
     const error = await screen.findByText(
       'Veuillez donner un nom au groupe pour confirmer'
     );
-    expect(error);
+    expect(error).toBeInTheDocument();
   });
 
   test('should restrict group name exceeding 64 characters in length', async () => {
@@ -95,7 +95,7 @@ describe('GroupHousingModal', () => {
     const error = await screen.findByText(
       'La longueur maximale du titre du groupe est de 64 caractères.'
     );
-    expect(error);
+    expect(error).toBeInTheDocument();
   });
 
   test('should restrict group description exceeding 1000 characters in length', async () => {
@@ -129,6 +129,6 @@ describe('GroupHousingModal', () => {
     const error = await screen.findByText(
       'La longueur maximale de la description du groupe est de 1000 caractères.'
     );
-    expect(error);
+    expect(error).toBeInTheDocument();
   });
 });

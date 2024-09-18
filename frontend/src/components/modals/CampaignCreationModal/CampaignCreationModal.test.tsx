@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import CampaignCreationModal from './CampaignCreationModal';
 import { Provider } from 'react-redux';
 import { genAuthUser } from '../../../../test/fixtures.test';
@@ -67,7 +67,7 @@ describe('Campagne creation modal', () => {
     expect(error).toBeVisible();
   });
 
-  test('should restrict campaign titles exceeding 64 characters in length', async () => {
+  test('should restrict campaign title exceeding 64 characters in length', async () => {
     render(
       <Provider store={store}>
         <CampaignCreationModal
@@ -94,6 +94,43 @@ describe('Campagne creation modal', () => {
 
     const error = await screen.findByText(
       'La longueur maximale du titre de la campagne est de 64 caractères.'
+    );
+    expect(error).toBeVisible();
+  });
+
+  test('should restrict campaign description exceeding 1000 characters in length', async () => {
+    render(
+      <Provider store={store}>
+        <CampaignCreationModal
+          housingCount={2}
+          filters={{}}
+          onSubmit={() => Promise.resolve()}
+        />
+      </Provider>
+    );
+
+    const createButton = screen.getByText('Créer une campagne');
+    expect(createButton).toBeVisible();
+    await user.click(createButton);
+
+    const campaignTitleInputElement = screen.getAllByTestId(
+      'campaign-title-input'
+    )[0].childNodes[0] as Element;
+
+    await userEvent.type(campaignTitleInputElement, faker.lorem.words(3));
+
+    const campaignDescriptionInputElement = screen.getAllByTestId(
+      'campaign-description-input'
+    )[0].childNodes[0] as Element;
+
+    await userEvent.type(campaignDescriptionInputElement, faker.lorem.paragraph(10));
+
+    const modal = screen.getByRole('dialog');
+    const save = within(modal).getByText('Enregistrer');
+    await user.click(save);
+
+    const error = await screen.findByText(
+      'La longueur maximale de la description du groupe est de 1000 caractères.'
     );
     expect(error).toBeVisible();
   });

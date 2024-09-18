@@ -130,7 +130,7 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
                   label="Description de la campagne"
                   value={description}
                   state={form.hasError('description') ? 'error' : 'default'}
-                  onChange={(e) => { setDescription(e.target.value) }}
+                  onChange={(e) => { setDescription(e.target.value); }}
                 />
               </Col>
             </Row>

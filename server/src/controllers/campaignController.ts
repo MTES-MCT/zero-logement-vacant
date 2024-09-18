@@ -40,7 +40,6 @@ import {
 import CampaignStatusError from '~/errors/campaignStatusError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
 import draftRepository from '~/repositories/draftRepository';
-import DraftMissingError from '~/errors/draftMissingError';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '~/infra/config';
@@ -300,7 +299,7 @@ async function update(request: Request, response: Response) {
   const { auth, params } = request as AuthenticatedRequest;
   const body = request.body as CampaignUpdatePayloadDTO;
 
-  const [campaign, drafts] = await Promise.all([
+  const [campaign] = await Promise.all([
     campaignRepository.findOne({
       id: params.id,
       establishmentId: auth.establishmentId

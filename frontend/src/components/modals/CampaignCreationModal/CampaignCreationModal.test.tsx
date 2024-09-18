@@ -30,9 +30,8 @@ describe('Campagne creation modal', () => {
     );
 
     const housingInfosTextElement = screen.getByTestId('housing-infos');
-    const campaignTitleInputElement = screen.getAllByTestId(
-      'campaign-title-input'
-    )[0];
+    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/)
+    
     const createButton = screen.getByText('Enregistrer');
     expect(housingInfosTextElement).toBeInTheDocument();
     expect(housingInfosTextElement).toContainHTML(
@@ -82,10 +81,7 @@ describe('Campagne creation modal', () => {
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getAllByTestId(
-      'campaign-title-input'
-    )[0].childNodes[0] as Element;
-
+    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/)
     await userEvent.type(campaignTitleInputElement, faker.lorem.words(50));
 
     const modal = screen.getByRole('dialog');
@@ -113,15 +109,11 @@ describe('Campagne creation modal', () => {
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getAllByTestId(
-      'campaign-title-input'
-    )[0].childNodes[0] as Element;
+    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/)
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.words(3));
 
-    const campaignDescriptionInputElement = screen.getAllByTestId(
-      'campaign-description-input'
-    )[0].childNodes[0] as Element;
+    const campaignDescriptionInputElement = screen.getByLabelText(/^Titre de la campagne/)
 
     await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
 

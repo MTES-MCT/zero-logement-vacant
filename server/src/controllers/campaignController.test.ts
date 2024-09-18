@@ -300,6 +300,7 @@ describe('Campaign API', () => {
         .post(testRoute(group.id))
         .send({
           title: 'Logements prioritaires',
+          description: 'description',
           groupId: group.id
         })
         .use(tokenProvider(user));
@@ -309,7 +310,7 @@ describe('Campaign API', () => {
         id: expect.any(String),
         groupId: group.id,
         title: 'Logements prioritaires',
-        description: '',
+        description: 'description',
         status: 'draft',
         establishmentId: establishment.id,
         filters: {

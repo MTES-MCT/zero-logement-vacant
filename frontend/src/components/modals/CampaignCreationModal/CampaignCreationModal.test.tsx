@@ -52,7 +52,7 @@ describe('Campagne creation modal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByText('Créer une campagne');
+    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
@@ -77,7 +77,7 @@ describe('Campagne creation modal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByText('Créer une campagne');
+    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
@@ -105,7 +105,7 @@ describe('Campagne creation modal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByText('Créer une campagne');
+    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
@@ -113,7 +113,7 @@ describe('Campagne creation modal', () => {
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.words(3));
 
-    const campaignDescriptionInputElement = screen.getByLabelText(/^Titre de la campagne/);
+    const campaignDescriptionInputElement = screen.getByLabelText(/^Description de la campagne/);
 
     await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
 

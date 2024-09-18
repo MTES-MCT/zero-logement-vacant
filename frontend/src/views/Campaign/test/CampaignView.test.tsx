@@ -100,7 +100,7 @@ describe('Campaign view', () => {
     await user.click(rename);
     const modal = await screen.findByRole('dialog');
     const input = within(modal).getByRole('textbox', {
-      name: /^Nom de la campagne/
+      name: /^Titre de la campagne/
     });
     await user.clear(input);
     await user.type(input, title);

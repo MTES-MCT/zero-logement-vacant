@@ -30,7 +30,7 @@ describe('Campagne creation modal', () => {
     );
 
     const housingInfosTextElement = screen.getByTestId('housing-infos');
-    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/)
+    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
     
     const createButton = screen.getByText('Enregistrer');
     expect(housingInfosTextElement).toBeInTheDocument();
@@ -81,7 +81,7 @@ describe('Campagne creation modal', () => {
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/)
+    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
     await userEvent.type(campaignTitleInputElement, faker.lorem.words(50));
 
     const modal = screen.getByRole('dialog');
@@ -109,11 +109,11 @@ describe('Campagne creation modal', () => {
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/)
+    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.words(3));
 
-    const campaignDescriptionInputElement = screen.getByLabelText(/^Titre de la campagne/)
+    const campaignDescriptionInputElement = screen.getByLabelText(/^Titre de la campagne/);
 
     await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
 

@@ -29,6 +29,7 @@ export const ownerApi = zlvApi.injectEndpoints({
             ]
           : []
     }),
+
     findOwners: builder.query<
       PaginatedResult<Owner>,
       { q: string; page: number; perPage: number }
@@ -38,7 +39,16 @@ export const ownerApi = zlvApi.injectEndpoints({
         method: 'POST',
         body: { q, page, perPage }
       }),
-      providesTags: () => ['Owner'],
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.entities.map((owner) => ({
+                type: 'Owner' as const,
+                id: owner.id
+              })),
+              { type: 'Owner', id: 'LIST' }
+            ]
+          : [{ type: 'Owner', id: 'LIST' }],
       transformResponse: (response: any) => {
         return {
           ...response,
@@ -46,20 +56,33 @@ export const ownerApi = zlvApi.injectEndpoints({
         };
       }
     }),
+
     findOwnersByHousing: builder.query<HousingOwner[], string>({
       query: (housingId) => `owners/housing/${housingId}`,
-      providesTags: () => ['HousingOwner'],
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((housingOwner) => ({
+                type: 'Owner' as const,
+                id: housingOwner.id
+              })),
+              { type: 'HousingOwner' as const, id: 'LIST' }
+            ]
+          : [{ type: 'HousingOwner', id: 'LIST' }],
       transformResponse: (housingOwners: HousingOwnerDTO[]) =>
         housingOwners.map(fromHousingOwnerDTO)
     }),
+
     createOwner: builder.mutation<Owner, OwnerPayloadDTO>({
       query: (payload) => ({
         url: 'owners/creation',
         method: 'POST',
         body: payload
       }),
-      transformResponse: (owner: OwnerDTO) => fromOwnerDTO(owner)
+      transformResponse: (owner: OwnerDTO) => fromOwnerDTO(owner),
+      invalidatesTags: () => [{ type: 'Owner', id: 'LIST' }]
     }),
+
     updateOwner: builder.mutation<void, OwnerPayloadDTO & Pick<Owner, 'id'>>({
       query: (payload) => ({
         url: `owners/${payload.id}`,
@@ -68,10 +91,11 @@ export const ownerApi = zlvApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, { id }) => [
         { type: 'Owner', id },
-        'HousingOwner',
+        { type: 'HousingOwner', id },
         'Housing'
       ]
     }),
+
     updateHousingOwners: builder.mutation<
       void,
       { housingId: string; housingOwners: HousingOwner[] }
@@ -82,7 +106,7 @@ export const ownerApi = zlvApi.injectEndpoints({
         body: housingOwners
       }),
       invalidatesTags: (result, error, { housingId }) => [
-        { type: 'HousingOwner', housingId },
+        { type: 'HousingOwner', id: 'LIST' },
         { type: 'Housing', id: housingId }
       ]
     })

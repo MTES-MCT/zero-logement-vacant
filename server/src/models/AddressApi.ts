@@ -3,13 +3,11 @@ import { AddressDTO } from '@zerologementvacant/models';
 import { reduceStringArray } from '~/utils/stringUtils';
 
 export interface AddressApi extends AddressDTO {
-  banId?: string;
   lastUpdatedAt?: string;
 }
 
 export interface AddressToNormalize
-  extends Pick<AddressApi, 'refId' | 'addressKind'> {
-  label: string;
+  extends Pick<AddressApi, 'label' | 'refId' | 'addressKind'> {
   geoCode: string;
 }
 

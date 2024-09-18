@@ -165,14 +165,15 @@ describe('Owner API', () => {
       expect(body.banAddress).toMatchObject<Partial<AddressDTO>>({
         refId: owner.id,
         addressKind: AddressKinds.Owner,
-        label: body.banAddress.label,
-        houseNumber: body.banAddress.houseNumber,
-        street: body.banAddress.street,
-        postalCode: body.banAddress.postalCode,
-        city: body.banAddress.city,
-        latitude: body.banAddress.latitude,
-        longitude: body.banAddress.longitude,
-        score: body.banAddress.score
+        label: payload.banAddress?.label,
+        houseNumber: payload.banAddress?.houseNumber,
+        street: payload.banAddress?.street,
+        postalCode: payload.banAddress?.postalCode,
+        city: payload.banAddress?.city,
+        latitude: payload.banAddress?.latitude,
+        longitude: payload.banAddress?.longitude,
+        score: payload.banAddress?.score,
+        banId: payload.banAddress?.banId
       });
     });
 

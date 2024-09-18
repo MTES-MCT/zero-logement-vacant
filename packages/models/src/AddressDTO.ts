@@ -3,6 +3,7 @@ import fp from 'lodash/fp';
 export interface AddressDTO {
   refId: string;
   addressKind: AddressKinds;
+  banId?: string;
   label: string;
   /**
    * @deprecated See {@link label}
@@ -27,6 +28,7 @@ export interface AddressDTO {
 
 export type AddressPayloadDTO = Pick<
   AddressDTO,
+  | 'banId'
   | 'label'
   | 'houseNumber'
   | 'street'

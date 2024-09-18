@@ -65,7 +65,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
         updateOwner({
           ...owner,
           fullName,
-          birthDate: parseDateInput(birthDate),
+          birthDate: parseDateInput(birthDate)?.toJSON(),
           banAddress,
           email,
           phone,

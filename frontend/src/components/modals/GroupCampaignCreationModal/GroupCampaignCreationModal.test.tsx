@@ -54,10 +54,8 @@ describe('Group campaign creation modal', () => {
     );
 
     const housingInfosTextElement = screen.getByTestId('housing-infos');
-    const campaignTitleInputElement = screen.getAllByTestId(
-      'campaign-title-input'
-    )[0];
-    const createButton = screen.getByText('Créer une campagne');
+    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
+    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
     expect(housingInfosTextElement).toBeInTheDocument();
     expect(housingInfosTextElement.textContent).toBe(
       'Vous êtes sur le point de créer une campagne comportant 2 logements.'

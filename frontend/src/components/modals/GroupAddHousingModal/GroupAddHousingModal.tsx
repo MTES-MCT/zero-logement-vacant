@@ -153,6 +153,7 @@ function GroupAddHousingModal(props: Props) {
                 size="small"
                 className={styles.center}
                 onClick={() => setMode('createContent')}
+                data-testid="create-new-group"
               >
                 Créer un nouveau groupe
               </Button>
@@ -168,6 +169,7 @@ function GroupAddHousingModal(props: Props) {
                       label="Nom du groupe"
                       inputForm={form}
                       inputKey="title"
+                      data-testid="group-title-input"
                       required
                     />
                     <AppTextInput<FormShape>
@@ -177,6 +179,7 @@ function GroupAddHousingModal(props: Props) {
                       label="Description"
                       inputForm={form}
                       inputKey="description"
+                      data-testid="group-description-input"
                       required
                     />
                     <AppInfo>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Col, Icon, Row, Text } from '../../_dsfr';
 import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
 
@@ -36,6 +36,11 @@ interface Props {
   onCancel?: () => void;
 }
 
+const modal = createModal({
+  id: 'housing-owners-modal',
+  isOpenedByDefault: false
+});
+
 function HousingOwnersModal({
   housingId,
   housingOwners: initialHousingOwners,
@@ -44,36 +49,23 @@ function HousingOwnersModal({
 }: Props) {
   const { isVisitor } = useUser();
 
-  const modal = useMemo(
-    () =>
-      createModal({
-        id: `housing-owners-modal-${housingId}`,
-        isOpenedByDefault: false
-      }),
-    [housingId]
-  );
-
-  const isOpen = useIsModalOpen(modal);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setModalMode('list');
-      resetHousingOwners();
-    }
-  }, [isOpen]); //eslint-disable-line react-hooks/exhaustive-deps
-
   const [modalMode, setModalMode] = useState<'list' | 'add'>('list');
   const [
     housingOwners,
-    {
-      reset: resetHousingOwners,
-      push: appendHousingOwner,
-      updateFirst: updateHousingOwner
-    }
+    { push: appendHousingOwner, updateFirst: updateHousingOwner }
   ] = useList(initialHousingOwners);
 
+  useIsModalOpen(modal, {
+    onConceal() {
+      setModalMode('list');
+    }
+  });
+
   const primaryOwner = housingOwners.filter((ho) => ho.rank === 1);
-  const secondaryOwners = housingOwners.filter((ho) => ho.rank >= 2);
+  const secondaryOwners = fp.sortBy(
+    ['rank'],
+    housingOwners.filter((ho) => ho.rank >= 2)
+  );
   const archivedOwners = housingOwners.filter((ho) => ho.rank <= 0);
 
   const shape = {
@@ -206,18 +198,6 @@ function HousingOwnersModal({
       ? 'fr-icon-team-fill'
       : 'fr-icon-user-fill';
   }
-
-  useEffect(() => {
-    const element = document.getElementById(modal.id);
-    const onConceal = () => onCancel?.();
-    if (element && isOpen) {
-      element.addEventListener('dsfr.conceal', onConceal);
-
-      return () => {
-        element.removeEventListener('dsfr.conceal', onConceal);
-      };
-    }
-  }, [modal, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function OwnerAccordion(housingOwner: HousingOwner) {
     const index = `housing-owner-${housingOwner.id}`;

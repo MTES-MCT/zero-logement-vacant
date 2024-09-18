@@ -7,8 +7,7 @@ export interface AddressApi extends AddressDTO {
 }
 
 export interface AddressToNormalize
-  extends Pick<AddressApi, 'refId' | 'addressKind'> {
-  label: string;
+  extends Pick<AddressApi, 'label' | 'refId' | 'addressKind'> {
   geoCode: string;
 }
 

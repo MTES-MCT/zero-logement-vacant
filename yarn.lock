@@ -10184,6 +10184,7 @@ __metadata:
     "@turf/turf": "npm:^6.5.0"
     "@typeform/embed-react": "npm:^2.31.0"
     "@types/async": "npm:^3"
+    "@types/geojson": "npm:^7946.0.14"
     "@types/jest": "npm:^28.1.8"
     "@types/lodash": "npm:^4.17.4"
     "@types/mapbox-gl": "npm:^3.1.0"

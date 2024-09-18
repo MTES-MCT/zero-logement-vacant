@@ -12,6 +12,7 @@ export const Addresses = (transaction = db) =>
 export interface AddressDBO {
   ref_id: string;
   address_kind: AddressKinds;
+  ban_id: string | null;
   address: string;
   /**
    * @deprecated See {@link address}
@@ -48,6 +49,7 @@ async function saveMany(addresses: ReadonlyArray<AddressApi>): Promise<void> {
     .onConflict(['ref_id', 'address_kind'])
     .merge([
       'address',
+      'ban_id',
       'house_number',
       'street',
       'postal_code',
@@ -159,6 +161,7 @@ const markAddressToBeNormalized = async (
 export const parseAddressApi = (address: AddressDBO): AddressApi => ({
   refId: address.ref_id,
   addressKind: address.address_kind,
+  banId: address.ban_id ?? undefined,
   label: address.address,
   houseNumber: address.house_number,
   street: address.street,
@@ -174,6 +177,7 @@ export const parseAddressApi = (address: AddressDBO): AddressApi => ({
 
 export const formatAddressApi = (address: AddressApi): AddressDBO => ({
   ref_id: address.refId,
+  ban_id: address.banId ?? null,
   address_kind: address.addressKind,
   address: address.label,
   house_number: address.houseNumber,

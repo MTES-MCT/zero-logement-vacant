@@ -33,7 +33,11 @@ import {
   formatHousingOwnersApi,
   HousingOwners
 } from '../housingOwnerRepository';
-import { EnergyConsumptionGradesApi, HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import {
+  EnergyConsumptionGradesApi,
+  HousingApi,
+  OccupancyKindApi
+} from '~/models/HousingApi';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '~/models/LocalityApi';
 import { BuildingApi } from '~/models/BuildingApi';
@@ -805,23 +809,32 @@ describe('Housing repository', () => {
       });
 
       it('should filter by DPE score', async () => {
-
         const actualA = await housingRepository.find({
           filters: {
             energyConsumption: ['A' as EnergyConsumptionGradesApi]
           }
         });
-        expect(actualA).toSatisfyAll<HousingApi>(housing => housing.energyConsumption === EnergyConsumptionGradesApi.A);
+        expect(actualA).toSatisfyAll<HousingApi>(
+          (housing) =>
+            housing.energyConsumption === EnergyConsumptionGradesApi.A
+        );
 
-        const EFGClasses = ['E' as EnergyConsumptionGradesApi, 'F' as EnergyConsumptionGradesApi, 'G' as EnergyConsumptionGradesApi];
+        const EFGClasses = [
+          'E' as EnergyConsumptionGradesApi,
+          'F' as EnergyConsumptionGradesApi,
+          'G' as EnergyConsumptionGradesApi
+        ];
         const actualEFG = await housingRepository.find({
           filters: {
             energyConsumption: EFGClasses
           }
         });
-        expect(actualEFG).toSatisfyAll<HousingApi>(housing => EFGClasses.includes(housing.energyConsumption as EnergyConsumptionGradesApi));
+        expect(actualEFG).toSatisfyAll<HousingApi>((housing) =>
+          EFGClasses.includes(
+            housing.energyConsumption as EnergyConsumptionGradesApi
+          )
+        );
       });
-
     });
   });
 
@@ -885,6 +898,7 @@ describe('Housing repository', () => {
       expect(actual?.owner?.banAddress).toStrictEqual<AddressApi>({
         refId: owner.id,
         addressKind: AddressKinds.Owner,
+        banId: address.banId,
         label: address.label,
         houseNumber: address.houseNumber,
         street: address.street,

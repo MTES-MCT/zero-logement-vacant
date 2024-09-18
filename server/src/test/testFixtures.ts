@@ -230,6 +230,7 @@ export const genAddressApi = (
   return {
     refId,
     addressKind,
+    banId: faker.string.numeric(16),
     label: address,
     houseNumber,
     street,

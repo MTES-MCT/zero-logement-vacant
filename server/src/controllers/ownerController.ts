@@ -141,7 +141,6 @@ async function update(
         ...body.banAddress,
         refId: existingOwner.id,
         addressKind: AddressKinds.Owner,
-        label: body.banAddress.label,
         lastUpdatedAt: new Date().toJSON()
       }
     : undefined;
@@ -297,6 +296,7 @@ const ownerValidators: ValidationChain[] = [
   body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
   body('email').optional({ checkFalsy: true }).isEmail(),
   body('phone').isString().optional({ nullable: true }),
+  body('banAddress.banId').isString().optional(),
   body('banAddress.label').isString().optional(),
   body('banAddress.houseNumber').isString().optional(),
   body('banAddress.street').isString().optional(),

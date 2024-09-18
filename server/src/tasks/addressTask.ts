@@ -31,6 +31,7 @@ async function run(): Promise<void> {
   form.append('columns', 'geoCode');
   // Tells the API that geoCode is an INSEE code
   form.append('citycode', 'geoCode');
+  form.append('result_columns', 'result_id');
   form.append('result_columns', 'result_label');
   form.append('result_columns', 'result_type');
   form.append('result_columns', 'result_housenumber');
@@ -52,10 +53,13 @@ async function run(): Promise<void> {
   }
   const text = await response.text();
   const records: ReadonlyArray<BANAddress> = fromCSV(text, { columns: true });
-  const addresses: ReadonlyArray<AddressApi> = records.map<AddressApi>(
-    (record) => ({
+  const addresses: ReadonlyArray<AddressApi> = records
+    // Filter out addresses that could not be found
+    .filter((record) => !!record.result_id)
+    .map<AddressApi>((record) => ({
       refId: record.refId,
       addressKind: record.addressKind as AddressKinds,
+      banId: record.result_id,
       label: record.result_label,
       houseNumber: record.result_housenumber,
       street: record.result_street,
@@ -65,8 +69,7 @@ async function run(): Promise<void> {
       longitude: record.longitude ? Number(record.longitude) : undefined,
       score: record.result_score ? Number(record.result_score) : undefined,
       lastUpdatedAt: new Date().toJSON()
-    })
-  );
+    }));
   await banAddressesRepository.saveMany(addresses);
   logger.info('Address task done.');
 }
@@ -74,6 +77,7 @@ async function run(): Promise<void> {
 interface BANAddress {
   refId: string;
   addressKind: string;
+  result_id: string;
   result_label: string;
   result_housenumber: string;
   result_street: string;

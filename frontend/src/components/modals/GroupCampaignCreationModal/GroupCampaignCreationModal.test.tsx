@@ -78,7 +78,7 @@ describe('Group campaign creation modal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByText('Créer une campagne');
+    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
@@ -104,13 +104,11 @@ describe('Group campaign creation modal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByText('Créer une campagne');
+    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getAllByTestId(
-      'campaign-title-input'
-    )[0].childNodes[0] as Element;
+    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.paragraph());
 
@@ -136,19 +134,15 @@ describe('Group campaign creation modal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByText('Créer une campagne');
+    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getAllByTestId(
-      'campaign-title-input'
-    )[0].childNodes[0] as Element;
+    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.words(3));
 
-    const campaignDescriptionInputElement = screen.getAllByTestId(
-      'campaign-description-input'
-    )[0].childNodes[0] as Element;
+    const campaignDescriptionInputElement = screen.getByLabelText(/^Description de la campagne/);
 
     await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
 

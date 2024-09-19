@@ -153,6 +153,7 @@ function GroupAddHousingModal(props: Props) {
                 size="small"
                 className={styles.center}
                 onClick={() => setMode('createContent')}
+                data-testid="create-new-group"
               >
                 Créer un nouveau groupe
               </Button>

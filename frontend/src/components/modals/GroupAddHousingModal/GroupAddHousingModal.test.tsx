@@ -1,5 +1,5 @@
 import { configureStore, Store } from '@reduxjs/toolkit';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import GroupAddHousingModal from './GroupAddHousingModal';
@@ -57,8 +57,8 @@ describe('GroupHousingModal', () => {
         />
       </Provider>
     );
-
-    const createButton = screen.getByTestId("create-new-group");
+    
+    const createButton = await screen.findByRole('button', { name: /^Créer un nouveau groupe/ });
     await user.click(createButton);
 
     const save =  await screen.findByText('Confirmer');
@@ -80,7 +80,7 @@ describe('GroupHousingModal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByTestId("create-new-group");
+    const createButton = await screen.findByRole('button', { name: /^Créer un nouveau groupe/ });
     await user.click(createButton);
 
     const campaignTitleInputElement = screen.getByLabelText(/^Nom du groupe/);
@@ -106,7 +106,7 @@ describe('GroupHousingModal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByTestId("create-new-group");
+    const createButton = await screen.findByRole('button', { name: /^Créer un nouveau groupe/ });
     await user.click(createButton);
 
     const campaignTitleInputElement = screen.getByLabelText(/^Nom du groupe/);

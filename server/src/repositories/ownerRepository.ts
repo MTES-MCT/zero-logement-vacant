@@ -517,15 +517,18 @@ export interface OwnerDBO extends OwnerRecordDBO {
   score?: number;
 }
 
-export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => ({
+export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
+  const birthDate = owner.birth_date ? new Date(owner.birth_date) : undefined;
+  const birthDateStr = birthDate && !isNaN(birthDate.getTime())
+    ? birthDate.toISOString().split('T')[0]
+    : undefined;
+  return {
   id: owner.id,
   idpersonne: owner.idpersonne ?? undefined,
   rawAddress: owner.address_dgfip,
   fullName: owner.full_name,
   administrator: owner.administrator ?? undefined,
-  birthDate: owner.birth_date
-    ? new Date(owner.birth_date).toJSON().substring(0, 'yyyy-mm-dd'.length)
-    : undefined,
+  birthDate: birthDateStr,
   email: owner.email ?? undefined,
   phone: owner.phone ?? undefined,
   kind: owner.kind_class ?? undefined,
@@ -535,7 +538,7 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => ({
   additionalAddress: owner.additional_address ?? undefined,
   createdAt: owner.created_at ? new Date(owner.created_at).toJSON() : undefined,
   updatedAt: owner.updated_at ? new Date(owner.updated_at).toJSON() : undefined
-});
+};};
 
 export const parseHousingOwnerApi = (
   housingOwner: OwnerDBO & HousingOwnerDBO

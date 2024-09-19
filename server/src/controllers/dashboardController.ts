@@ -28,7 +28,7 @@ async function findOne(request: Request, response: Response): Promise<void> {
   response.status(constants.HTTP_STATUS_OK).json(dashboard);
 }
 const findOneValidators: ValidationChain[] = [
-  param('id').isIn(['utilisateurs', 'etablissements']),
+  param('id').isIn(['6-utilisateurs-de-zlv-sur-votre-structure', '7-autres-structures-de-votre-territoires-inscrites-sur-zlv']),
 ];
 
 function sign(payload: any): Promise<string> {

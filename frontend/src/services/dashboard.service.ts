@@ -4,7 +4,7 @@ interface FindOneOptions {
   id: Resource;
 }
 
-type Resource = 'utilisateurs' | 'etablissements';
+type Resource = '6-utilisateurs-de-zlv-sur-votre-structure' | '7-autres-structures-de-votre-territoires-inscrites-sur-zlv';
 
 interface Dashboard {
   url: string;

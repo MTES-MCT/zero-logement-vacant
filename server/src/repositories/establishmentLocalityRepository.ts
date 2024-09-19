@@ -18,7 +18,7 @@ async function updateLocalities(establishment: EstablishmentDBO): Promise<void> 
   .where('establishments.id', establishment.id)
   .select('localities.id as locality_id', 'establishments.id as establishment_id');
 
-  EstablishmentLocalities()
+  await EstablishmentLocalities()
   .insert(subquery)
   .onConflict()
   .ignore()

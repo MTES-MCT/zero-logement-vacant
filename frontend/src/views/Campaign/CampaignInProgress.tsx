@@ -1,11 +1,10 @@
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListMap from '../HousingList/HousingListMap';
@@ -20,8 +19,6 @@ interface Props {
 }
 
 function CampaignInProgress(props: Readonly<Props>) {
-  useDocumentTitle(props.campaign.title);
-
   const { trackEvent } = useMatomo();
   const {
     filters,
@@ -30,12 +27,12 @@ function CampaignInProgress(props: Readonly<Props>) {
     removeFilter,
     setExpand,
     onChangeFilters,
-    onResetFilters,
+    onResetFilters
   } = useFilters({
     storage: 'state',
     initialState: {
-      campaignIds: [props.campaign.id],
-    },
+      campaignIds: [props.campaign.id]
+    }
   });
 
   const { view } = useAppSelector((state) => state.housing);
@@ -44,11 +41,11 @@ function CampaignInProgress(props: Readonly<Props>) {
     trackEvent({
       category: TrackEventCategories.Campaigns,
       action: TrackEventActions.HousingList.Search,
-      name: query,
+      name: query
     });
     setFilters({
       ...filters,
-      query,
+      query
     });
   }
 

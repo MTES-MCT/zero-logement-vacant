@@ -3,8 +3,6 @@ import Grid from '@mui/material/Unstable_Grid2';
 import fp from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import * as yup from 'yup';
-
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import DraftBody, { Body } from '../../components/Draft/DraftBody';
@@ -38,10 +36,8 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 
 const schema = yup
   .object({
-    subject: yup
-      .string(),
-    body: yup
-      .string(),
+    subject: yup.string(),
+    body: yup.string(),
     sender: senderSchema
   })
   // Must do like that because the useForm hook has a validation bug
@@ -54,8 +50,6 @@ interface Props {
 
 function CampaignDraft(props: Readonly<Props>) {
   const { count, draft, isLoadingDraft } = useCampaign();
-
-  useDocumentTitle(props.campaign.title);
 
   const [values, setValues] = useState<DraftCreationPayload>({
     subject: '',
@@ -225,10 +219,7 @@ function CampaignDraft(props: Readonly<Props>) {
                       }}
                       onSave={save}
                     />
-                    <PreviewButton
-                      disabled={!exists}
-                      draft={draft}
-                    />
+                    <PreviewButton disabled={!exists} draft={draft} />
                   </Row>
                   <Row gutters spacing="mb-2w">
                     <Col n="5">

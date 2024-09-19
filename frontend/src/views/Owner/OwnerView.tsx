@@ -11,9 +11,10 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import Typography from '@mui/material/Typography';
 
 const OwnerView = () => {
-  useDocumentTitle('Fiche propriétaire');
-
   const { count, owner, paginatedHousing } = useOwner();
+  useDocumentTitle(
+    owner ? `Fiche propriétaire - ${owner.fullName}` : 'Page non trouvée'
+  );
   const housingCount = count?.housing ?? 0;
 
   const [ownerEditionModalKey, setOwnerEditionModalKey] = useState(

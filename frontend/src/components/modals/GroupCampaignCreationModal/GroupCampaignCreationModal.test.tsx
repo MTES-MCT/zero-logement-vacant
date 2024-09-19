@@ -81,7 +81,7 @@ describe('Group campaign creation modal', () => {
     await user.click(createButton);
 
     const modal = screen.getByRole('dialog');
-    const save = within(modal).getByText('Confirmer');
+    const save = await within(modal).findByRole('button', { name: /^Confirmer/ });
     await user.click(save);
 
     const error = await screen.findByText(
@@ -111,7 +111,7 @@ describe('Group campaign creation modal', () => {
     await userEvent.type(campaignTitleInputElement, faker.lorem.paragraph());
 
     const modal = screen.getByRole('dialog');
-    const save = within(modal).getByText('Confirmer');
+    const save = await within(modal).findByRole('button', { name: /^Confirmer/ });
     await user.click(save);
 
     const error = await screen.findByText(
@@ -145,7 +145,7 @@ describe('Group campaign creation modal', () => {
     await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
 
     const modal = screen.getByRole('dialog');
-    const save = within(modal).getByText('Confirmer');
+    const save = await within(modal).findByRole('button', { name: /^Confirmer/ });
     await user.click(save);
 
     const error = await screen.findByText(

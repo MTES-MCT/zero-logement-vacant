@@ -58,7 +58,7 @@ describe('GroupHousingModal', () => {
       </Provider>
     );
     
-    const createButton = await screen.findByRole('button', { name: /^Créer un nouveau groupe/ });
+    const createButton = await screen.findByText('Créer un nouveau groupe');
     await user.click(createButton);
 
     const save =  await screen.findByText('Confirmer');
@@ -80,7 +80,7 @@ describe('GroupHousingModal', () => {
       </Provider>
     );
 
-    const createButton = await screen.findByRole('button', { name: /^Créer un nouveau groupe/ });
+    const createButton = await screen.findByText('Créer un nouveau groupe');
     await user.click(createButton);
 
     const campaignTitleInputElement = screen.getByLabelText(/^Nom du groupe/);
@@ -106,7 +106,7 @@ describe('GroupHousingModal', () => {
       </Provider>
     );
 
-    const createButton = await screen.findByRole('button', { name: /^Créer un nouveau groupe/ });
+    const createButton = await screen.findByText('Créer un nouveau groupe');
     await user.click(createButton);
 
     const campaignTitleInputElement = screen.getByLabelText(/^Nom du groupe/);

@@ -516,7 +516,7 @@ function HousingListFiltersSidemenu(props: Props) {
         </Accordion>
         <Accordion
           label={
-            <TitleWithIcon icon="fr-icon-calendar-line" title="Millésime" />
+            <TitleWithIcon icon="fr-icon-calendar-line" title="Données" />
           }
         >
           <Grid component="article" mb={2} xs={12}>

@@ -538,7 +538,7 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
   additionalAddress: owner.additional_address ?? undefined,
   createdAt: owner.created_at ? new Date(owner.created_at).toJSON() : undefined,
   updatedAt: owner.updated_at ? new Date(owner.updated_at).toJSON() : undefined
-}};
+};};
 
 export const parseHousingOwnerApi = (
   housingOwner: OwnerDBO & HousingOwnerDBO

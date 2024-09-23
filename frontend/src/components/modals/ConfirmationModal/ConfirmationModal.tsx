@@ -69,7 +69,7 @@ function ConfirmationModal({
           {
             children: 'Confirmer',
             onClick: onSubmit,
-            doClosesModal: false,
+            doClosesModal: true,
           },
         ]}
         style={{ textAlign: 'initial' }}

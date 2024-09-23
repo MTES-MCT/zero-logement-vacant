@@ -56,8 +56,7 @@ function AccountEmailCreationView() {
       <div className="fr-alert fr-alert--warning">
         <h3 className="fr-alert__title">Les demandes d'accès à ZLV et LOVAC évoluent !</h3>
         <p>
-          Les procédures via Démarches Simpifiées évoluent. Toute demande de données devra désormais être effectuée sur le nouveau Portail des Données Fonicères qui sera déployé à compter du 01/10/2024.&nbsp;
-          <a href="https://datafoncier.cerema.fr/actualites/interruption-des-demandes-dacces-aux-donnees-du-15-septembre-au-1er-octobre-2024">En savoir plus</a>
+          Les procédures via Démarches Simpifiées évoluent. Toute demande de données devra désormais être effectuée sur le nouveau Portail des Données Fonicères qui sera déployé à compter du 01/10/2024. <a href="https://datafoncier.cerema.fr/actualites/interruption-des-demandes-dacces-aux-donnees-du-15-septembre-au-1er-octobre-2024">En savoir plus</a>
         </p>
       </div>
       <Container as="section" fluid>

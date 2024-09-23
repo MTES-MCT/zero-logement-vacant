@@ -13,7 +13,7 @@ const AccessibilityView = () => {
         Établie le <span>27 juin 2022</span>.
       </p>
       <p>
-        Le <span>Ministère de la Transition Ecologique</span> s’engage à rendre
+        Le <span>Ministère du Logement et de la Rénovation urbaine</span> s’engage à rendre
         son service accessible, conformément à l’article 47 de la loi n°
         2005-102 du 11 février 2005.
       </p>

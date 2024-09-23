@@ -15,11 +15,10 @@ function Footer() {
       }}
       brandTop={
         <>
-          Ministère de <br />
-          la transition <br />
-          écologique <br />
-          et de la cohésion <br />
-          des territoires
+          Ministère
+          du Logement <br />
+          et de la Rénovation <br />
+          urbaine
         </>
       }
       classes={{

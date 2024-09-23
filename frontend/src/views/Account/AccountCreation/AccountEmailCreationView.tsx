@@ -53,6 +53,14 @@ function AccountEmailCreationView() {
         impérativement avoir déjà signé l’acte d’engagement permettant d’accéder
         aux données LOVAC via la procédure indiquée sur le site du Cerema.
       </Text>
+      <div className="fr-alert fr-alert--error">
+        <h3 className="fr-alert__title">Les demandes d'accès à ZLV et LOVAC évoluent !</h3>
+        <p>Comme indiqué, les procédures d'obtention via Démarches simplifiées sont à présent clôturées.</p>
+        <p>Toute demande de données devra être effectuée sur le nouveau "Portail Données Foncières" qui sera déployé à compter du 01/10/24.
+        Plus d'informations sur datafoncier :</p>
+        <a href="https://datafoncier.cerema.fr/actualites/interruption-des-demandes-dacces-aux-donnees-du-15-septembre-au-1er-octobre-2024">https://datafoncier.cerema.fr/actualites/interruption-des-demandes-dacces-aux-donnees-du-15-septembre-au-1er-octobre-2024</a>
+        <p>Cordialement,</p>
+      </div>
       <Container as="section" fluid>
         <Row justifyContent="right">
           <AppLink

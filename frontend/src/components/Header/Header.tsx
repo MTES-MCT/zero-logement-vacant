@@ -52,11 +52,10 @@ function Header() {
       <DSFRHeader
         brandTop={
           <>
-            Ministère de <br />
-            la transition <br />
-            écologique <br />
-            et de la cohésion <br />
-            des territoires
+            Ministère <br />
+            du Logement <br />
+            et de la Rénovation <br />
+            urbaine 
           </>
         }
         homeLinkProps={{

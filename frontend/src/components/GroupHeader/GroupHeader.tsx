@@ -43,7 +43,9 @@ function GroupHeader(props: Props) {
   return (
     <Grid className={props.className} component="article" container>
       <Grid component="header" mb={2}>
-        <Typography variant="h6">Vos groupes de logements</Typography>
+        <Typography component="h2" variant="h6">
+          Vos groupes de logements
+        </Typography>
       </Grid>
 
       {isLoadingGroups && <Loading />}

@@ -18,12 +18,17 @@ function GroupCard(props: GroupCardProps) {
       <Container
         as="article"
         className={classNames(styles.container, {
-          [styles.active]: props.isActive,
+          [styles.active]: props.isActive
         })}
         fluid
         role="group-card"
       >
-        <Typography className={styles.title} mr={1} variant="body2">
+        <Typography
+          className={styles.title}
+          component="h3"
+          mr={1}
+          variant="body2"
+        >
           {props.group.title}
         </Typography>
         <HousingCount

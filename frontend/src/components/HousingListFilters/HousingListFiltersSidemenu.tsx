@@ -160,14 +160,14 @@ function HousingListFiltersSidemenu(props: Props) {
         xs
       >
         <Grid
-          alignItems="center"
+          alignItems="flex-start"
           component="header"
           container
           mb={1}
           justifyContent="space-between"
         >
           <Grid component="section" xs="auto">
-            <Typography variant="h6" mb={3}>
+            <Typography component="h2" variant="h6" mb={3}>
               Filtres
             </Typography>
           </Grid>

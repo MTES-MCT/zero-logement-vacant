@@ -92,7 +92,7 @@ function Group(props: GroupProps) {
           <Container as="main" fluid>
             <Row>
               <Col n="12">
-                <Typography component="h6" mb={1}>
+                <Typography component="h3" variant="body1" mb={1}>
                   Description
                 </Typography>
               </Col>

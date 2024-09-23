@@ -70,7 +70,7 @@ describe('Campaign', () => {
       cy.get('div[aria-labelledby="draft-body-label"]')
         .type('Madame, Monsieur,{enter}')
         .type(
-          'Marseille BB fait partie des lauréats du plan national de lutte contre les logements vacants du Ministère de la Transition écologique et de la Cohésion des Territoires. Ce plan a pour objectif d’accélérer, dans les territoires pilotes, la remise sur le marché immobilier (rénovation, location, vente, restructuration) du plus grand nombre possible de logements vacants. Dans ce cadre, l’ADIL 13 a été missionnée par Marseille BB pour assurer une mission d’information, de sensibilisation et d’accompagnement des propriétaires de logements vacants qui le souhaitent.{enter}'
+          'Marseille BB fait partie des lauréats du plan national de lutte contre les logements vacants du Ministère du Logement et de la Rénovation urbaine. Ce plan a pour objectif d’accélérer, dans les territoires pilotes, la remise sur le marché immobilier (rénovation, location, vente, restructuration) du plus grand nombre possible de logements vacants. Dans ce cadre, l’ADIL 13 a été missionnée par Marseille BB pour assurer une mission d’information, de sensibilisation et d’accompagnement des propriétaires de logements vacants qui le souhaitent.{enter}'
         )
         .type(
           'Un formulaire vous est proposé dans le cadre d’une enquête destinée à mieux comprendre les raisons de la vacance et s’inscrit dans une politique plus globale afin de construire l’aide qui vous sera la plus adaptée, et permettrait la remise des biens sur un marché en forte demande.{enter}'

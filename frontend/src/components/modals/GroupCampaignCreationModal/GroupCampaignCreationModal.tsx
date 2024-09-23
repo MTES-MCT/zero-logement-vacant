@@ -85,16 +85,6 @@ function GroupCampaignCreationModal(props: Props) {
           placeholder="Description de la campagne"
           inputForm={form}
           inputKey="description"
-          data-testid="campaign-description-input"
-        />
-        <AppTextInput<FormShape>
-          textArea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          label="Description de la campagne"
-          placeholder="Description de la campagne"
-          inputForm={form}
-          inputKey="description"
         />
         <Text>
           La liste a été établie à partir du groupe 

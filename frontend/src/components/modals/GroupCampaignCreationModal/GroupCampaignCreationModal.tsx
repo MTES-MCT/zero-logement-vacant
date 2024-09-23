@@ -36,7 +36,7 @@ function GroupCampaignCreationModal(props: Props) {
       props.onSubmit({
         title,
         description,
-      }),
+      })
     );
   }
 

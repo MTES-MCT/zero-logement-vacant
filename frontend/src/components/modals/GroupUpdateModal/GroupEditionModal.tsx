@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as yup from 'yup';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
@@ -37,6 +37,15 @@ function GroupEditionModal(props: Props) {
     props.group?.description ?? '',
   );
 
+  useEffect(() => {
+    if (props.group?.title) {
+      setTitle(props.group.title);
+    }
+    if (props.group?.description) {
+      setDescription(props.group.description);
+    }
+  }, [props.group]);
+
   const shape = {
     title: yup
       .string()
@@ -55,12 +64,12 @@ function GroupEditionModal(props: Props) {
   });
 
   async function onSubmit(): Promise<void> {
-    await form.validate(() => {
+    await form.validate(() =>
       props.onSubmit({
         title,
         description,
-      });
-    });
+      })
+    );
   }
 
   const housingCount = props.group?.housingCount ?? 0;

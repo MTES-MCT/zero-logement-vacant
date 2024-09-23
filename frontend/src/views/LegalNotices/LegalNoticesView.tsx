@@ -10,7 +10,7 @@ function LegalNoticesView() {
         <Typography component="h3" mt={4}>
           Éditeur du site
         </Typography>
-        <Text spacing="mb-0">Ministère de la Transition écologique (MTE)</Text>
+        <Text spacing="mb-0">Ministère du Logement et de la Rénovation urbaine (MLRU)</Text>
         <Text spacing="mb-0">
           Direction générale de l’Aménagement, du Logement et de la Nature
           (DGALN)
@@ -36,8 +36,7 @@ function LegalNoticesView() {
           Conditions générales d’utilisation
         </Typography>
         <Text>
-          Zéro Logement Vacant est un service numérique du Ministère de la
-          Transition écologique.
+          Zéro Logement Vacant est un service numérique du Ministère du Logement et de la Rénovation urbaine.
         </Text>
 
         <Typography component="h3" mt={4}>

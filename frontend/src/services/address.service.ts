@@ -15,7 +15,7 @@ const http = createHttpService('address', {
   json: true
 });
 
-const quickSearch = async (query: string): Promise<AddressSearchResult[]> => {
+async function quickSearch(query: string): Promise<AddressSearchResult[]> {
   const params = new URLSearchParams({ q: query });
   const response = await http.get(`/search?${params}`, {
     abortId: 'search-address'
@@ -36,7 +36,7 @@ const quickSearch = async (query: string): Promise<AddressSearchResult[]> => {
       score: properties.score
     };
   });
-};
+}
 
 const addressService = {
   quickSearch

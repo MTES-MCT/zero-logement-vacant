@@ -53,7 +53,7 @@ function GroupHeader(props: Props) {
       {!isLoadingGroups && !filteredGroups?.length && <Empty />}
 
       {!isLoadingGroups && filteredGroups && filteredGroups.length > 0 && (
-        <Grid component="section" container justifyContent="center">
+        <Grid component="section" container justifyContent="center" xs={12}>
           {filteredGroups.map((group) => (
             <Grid component="article" key={group.id} mb={1} xs={12}>
               <GroupCard group={group} isActive={isActive(group)} />

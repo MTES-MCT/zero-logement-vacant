@@ -47,7 +47,7 @@ function ConfirmationModal({
   const onClick = async () => {
     await onSubmit();
     modal.close();
-  }
+  };
 
   return (
     <>

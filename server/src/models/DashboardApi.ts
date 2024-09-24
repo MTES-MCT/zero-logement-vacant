@@ -7,9 +7,9 @@ export type Resource = '6-utilisateurs-de-zlv-sur-votre-structure' | '7-autres-s
 export function getResource(id: Resource): number {
   switch (id) {
     case '6-utilisateurs-de-zlv-sur-votre-structure':
-      return 27;
+      return 6;
     case '7-autres-structures-de-votre-territoires-inscrites-sur-zlv':
-      return 33;
+      return 7;
   }
 }
 

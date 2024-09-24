@@ -59,7 +59,11 @@ import {
 } from '../establishmentRepository';
 import { formatUserApi, Users } from '../userRepository';
 import { AddressApi } from '~/models/AddressApi';
-import { AddressKinds, OWNERSHIP_KINDS } from '@zerologementvacant/models';
+import {
+  AddressKinds,
+  HOUSING_KIND_VALUES,
+  OWNERSHIP_KINDS
+} from '@zerologementvacant/models';
 import {
   Addresses,
   formatAddressApi
@@ -682,6 +686,34 @@ describe('Housing repository', () => {
 
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
             return housing.owner?.kind === kind;
+          });
+        });
+      });
+
+      describe('by housing kind', () => {
+        beforeEach(async () => {
+          const housings = HOUSING_KIND_VALUES.map((kind) => {
+            return { ...genHousingApi(), kind };
+          });
+          await Housing().insert(housings.map(formatHousingRecordApi));
+          const owners = housings.map((housing) => housing.owner);
+          await Owners().insert(owners.map(formatOwnerApi));
+          await HousingOwners().insert(
+            housings.flatMap((housing) =>
+              formatHousingOwnersApi(housing, [housing.owner])
+            )
+          );
+        });
+
+        test.each(HOUSING_KIND_VALUES)('should filter by %s', async (kind) => {
+          const actual = await housingRepository.find({
+            filters: {
+              housingKinds: [kind]
+            }
+          });
+
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.housingKind === kind;
           });
         });
       });

@@ -44,6 +44,11 @@ function ConfirmationModal({
     onOpen(modal.open);
   }
 
+  const onClick = async () => {
+    await onSubmit();
+    modal.close();
+  }
+
   return (
     <>
       {openingButtonProps !== undefined ? (
@@ -68,8 +73,8 @@ function ConfirmationModal({
           },
           {
             children: 'Confirmer',
-            onClick: onSubmit,
-            doClosesModal: true,
+            onClick: onClick,
+            doClosesModal: false,
           },
         ]}
         style={{ textAlign: 'initial' }}

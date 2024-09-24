@@ -44,13 +44,13 @@ function CampaignRecipients(props: Props) {
   });
 
   const [removeCampaignHousing] = useRemoveCampaignHousingMutation();
-  function removeHousing(housing: Housing): void {
-    removeCampaignHousing({
+  async function removeHousing(housing: Housing): Promise<void> {
+    await removeCampaignHousing({
       campaignId: props.campaign.id,
       all: false,
       ids: [housing.id],
       filters: {},
-    });
+    }).unwrap();
   }
 
   function formatAddress(address: Address): ReactNode[] {

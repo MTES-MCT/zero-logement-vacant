@@ -4,7 +4,7 @@ import { Text } from '../_dsfr';
 
 interface Props {
   housingCount: number;
-  onSubmit: () => void;
+  onSubmit: () => Promise<void>;
 }
 
 function GroupRemoveHousingModal(props: Props) {

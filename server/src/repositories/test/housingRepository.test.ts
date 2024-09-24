@@ -59,7 +59,7 @@ import {
 } from '../establishmentRepository';
 import { formatUserApi, Users } from '../userRepository';
 import { AddressApi } from '~/models/AddressApi';
-import { AddressKinds } from '@zerologementvacant/models';
+import { AddressKinds, OWNERSHIP_KINDS } from '@zerologementvacant/models';
 import {
   Addresses,
   formatAddressApi
@@ -656,29 +656,33 @@ describe('Housing repository', () => {
         });
       });
 
-      it('should filter by owner kind', async () => {
-        const housingList = new Array(10).fill('0').map(() => genHousingApi());
-        await Housing().insert(housingList.map(formatHousingRecordApi));
-        const owners = housingList.map((housing) => housing.owner);
-        await Owners().insert(owners.map(formatOwnerApi));
-        await HousingOwners().insert(
-          housingList.flatMap((housing) =>
-            formatHousingOwnersApi(housing, [housing.owner])
-          )
-        );
-
-        const actual = await housingRepository.find({
-          filters: {
-            ownerAges: ['lt40']
-          }
+      describe('by owner kind', () => {
+        beforeEach(async () => {
+          const housings = Array.from({ length: OWNERSHIP_KINDS.length }, () =>
+            genHousingApi()
+          );
+          await Housing().insert(housings.map(formatHousingRecordApi));
+          const owners: OwnerApi[] = OWNERSHIP_KINDS.map((kind, i) => {
+            return { ...housings[i].owner, kind };
+          });
+          await Owners().insert(owners.map(formatOwnerApi));
+          await HousingOwners().insert(
+            housings.flatMap((housing) =>
+              formatHousingOwnersApi(housing, [housing.owner])
+            )
+          );
         });
 
-        expect(actual).toSatisfyAll<HousingApi>((housing) => {
-          return (
-            !!housing.owner?.birthDate &&
-            differenceInYears(new Date(), new Date(housing.owner?.birthDate)) <
-              40
-          );
+        test.each(OWNERSHIP_KINDS)('should filter by %s', async (kind) => {
+          const actual = await housingRepository.find({
+            filters: {
+              ownerKinds: [kind]
+            }
+          });
+
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.owner?.kind === kind;
+          });
         });
       });
 

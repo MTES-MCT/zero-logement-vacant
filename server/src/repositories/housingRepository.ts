@@ -461,7 +461,10 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.whereIn('occupancy', filters.occupancies);
     }
     if (filters.energyConsumption?.length) {
-      queryBuilder.whereIn('energy_consumption_bdnb', filters.energyConsumption);
+      queryBuilder.whereIn(
+        'energy_consumption_bdnb',
+        filters.energyConsumption
+      );
     }
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(
@@ -509,7 +512,7 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }
     if (filters.ownerKinds?.length) {
-      queryBuilder.whereIn('owner_kind', filters.ownerKinds);
+      queryBuilder.whereIn(`${ownerTable}.kind_class`, filters.ownerKinds);
     }
     if (filters.ownerAges?.length) {
       queryBuilder.where((whereBuilder) => {

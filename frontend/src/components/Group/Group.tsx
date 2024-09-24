@@ -17,22 +17,22 @@ interface GroupProps {
   campaigns?: Campaign[];
   className?: string;
   group: GroupModel;
-  onCampaignCreate?: (campaign: Pick<Campaign, 'title'>) => void;
+  onCampaignCreate?: (campaign: Pick<Campaign, 'title' | 'description'>) => void;
   onExport?: () => void;
   onUpdate?: (group: GroupPayload) => void;
-  onRemove?: () => void;
+  onRemove?: () => Promise<void>;
 }
 
 function Group(props: GroupProps) {
   const housing = pluralize(props.group.housingCount)('logement');
   const owners = pluralize(props.group.ownerCount)('propriétaire');
 
-  function createCampaign(campaign: Pick<Campaign, 'title'>): void {
+  function createCampaign(campaign: Pick<Campaign, 'title' | 'description'>): void {
     props.onCampaignCreate?.(campaign);
   }
 
-  function removeGroup(): void {
-    props.onRemove?.();
+  async function removeGroup(): Promise<void> {
+    await props.onRemove?.();
   }
 
   function updateGroup(group: GroupPayload): void {

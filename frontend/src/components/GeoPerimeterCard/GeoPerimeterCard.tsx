@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 interface Props {
   geoPerimeter: GeoPerimeter;
   onEdit: (geoPerimeter: GeoPerimeter) => void;
-  onRemove: (geoPerimeter: GeoPerimeter) => void;
+  onRemove: (geoPerimeter: GeoPerimeter) => Promise<void>;
 }
 
 function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {

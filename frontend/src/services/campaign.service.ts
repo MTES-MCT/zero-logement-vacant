@@ -67,7 +67,7 @@ export const campaignApi = zlvApi.injectEndpoints({
     createCampaignFromGroup: builder.mutation<
       Campaign,
       {
-        campaign: Pick<Campaign, 'title'>;
+        campaign: Pick<Campaign, 'title' | 'description'>;
         group: Group;
       }
     >({
@@ -76,6 +76,7 @@ export const campaignApi = zlvApi.injectEndpoints({
         method: 'POST',
         body: {
           title: payload.campaign.title,
+          description: payload.campaign.description,
         },
       }),
       invalidatesTags: [{ type: 'Campaign', id: 'LIST' }],
@@ -132,6 +133,7 @@ export const campaignApi = zlvApi.injectEndpoints({
 function toCampaignPayloadDTO(campaign: Campaign): CampaignUpdatePayloadDTO {
   return {
     title: campaign.title,
+    description: campaign.description,
     status: campaign.status,
     sentAt: campaign.sentAt,
   };

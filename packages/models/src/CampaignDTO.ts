@@ -3,6 +3,7 @@ import { HousingFiltersDTO } from './HousingFiltersDTO';
 export interface CampaignDTO {
   id: string;
   title: string;
+  description: string;
   status: CampaignStatus;
   filters: HousingFiltersDTO;
   file?: string;
@@ -33,7 +34,7 @@ export function nextStatus(current: CampaignStatus): CampaignStatus | null {
   return CAMPAIGN_STATUSES[CAMPAIGN_STATUSES.indexOf(current) + 1];
 }
 
-export interface CampaignCreationPayloadDTO extends Pick<CampaignDTO, 'title'> {
+export interface CampaignCreationPayloadDTO extends Pick<CampaignDTO, 'title' | 'description'> {
   housing: {
     all: boolean;
     ids: string[];
@@ -42,6 +43,6 @@ export interface CampaignCreationPayloadDTO extends Pick<CampaignDTO, 'title'> {
 }
 
 export interface CampaignUpdatePayloadDTO
-  extends Pick<CampaignDTO, 'title' | 'status' | 'file'> {
+  extends Pick<CampaignDTO, 'title' | 'description' | 'status' | 'file'> {
   sentAt?: string;
 }

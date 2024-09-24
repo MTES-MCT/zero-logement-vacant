@@ -6,7 +6,7 @@ import { Campaign } from '../../../models/Campaign';
 interface Props {
   campaigns?: Campaign[];
   openingButtonProps?: Omit<ButtonProps, 'onClick'>;
-  onSubmit: () => void;
+  onSubmit: () => Promise<void>;
   onClose?: () => void;
 }
 

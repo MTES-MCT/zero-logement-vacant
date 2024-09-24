@@ -1,13 +1,36 @@
 import { render, screen, within } from '@testing-library/react';
-import CampaignCreationModal from './CampaignCreationModal';
+import GroupCampaignCreationModal from './GroupCampaignCreationModal';
 import { Provider } from 'react-redux';
 import { genAuthUser } from '../../../../test/fixtures.test';
 import { configureStore } from '@reduxjs/toolkit';
 import { applicationReducer } from '../../../store/store';
 import userEvent from '@testing-library/user-event';
 import { faker } from '@faker-js/faker';
+import { Group } from '../../../models/Group';
+import { UserRoles } from '../../../models/User';
 
-describe('Campagne creation modal', () => {
+const createGroup = (): Group => {
+    return {
+      id: faker.string.uuid(),
+      title: faker.lorem.words(3),
+      description: faker.lorem.paragraph(),
+      housingCount: faker.number.int({ min: 0, max: 100 }),
+      ownerCount: faker.number.int({ min: 0, max: 50 }),
+      createdAt: faker.date.past(),
+      createdBy: {
+        id: faker.string.uuid(),
+        email: faker.internet.email(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        role: UserRoles.Usual,
+        activatedAt: faker.date.past(),
+        establishmentId: faker.string.uuid(),
+      },
+      archivedAt: faker.datatype.boolean() ? faker.date.past() : null,
+    };
+  };
+
+describe('Group campaign creation modal', () => {
   const user = userEvent.setup();
   let store: any;
 
@@ -19,11 +42,12 @@ describe('Campagne creation modal', () => {
   });
 
   test('should display housing count, campaign title input and submit button', () => {
+    const group = createGroup();
     render(
       <Provider store={store}>
-        <CampaignCreationModal
+        <GroupCampaignCreationModal
+          group={group}
           housingCount={2}
-          filters={{}}
           onSubmit={() => Promise.resolve()}
         />
       </Provider>
@@ -31,22 +55,22 @@ describe('Campagne creation modal', () => {
 
     const housingInfosTextElement = screen.getByTestId('housing-infos');
     const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
-    
-    const createButton = screen.getByText('Enregistrer');
+    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
     expect(housingInfosTextElement).toBeInTheDocument();
-    expect(housingInfosTextElement).toContainHTML(
-      'Vous êtes sur le point de créer une campagne comportant <b>2 logements.</b>'
+    expect(housingInfosTextElement.textContent).toBe(
+      'Vous êtes sur le point de créer une campagne comportant 2 logements.'
     );
     expect(campaignTitleInputElement).toBeInTheDocument();
     expect(createButton).toBeInTheDocument();
   });
 
   test('should require campaign title', async () => {
+    const group = createGroup();
     render(
       <Provider store={store}>
-        <CampaignCreationModal
+        <GroupCampaignCreationModal
+          group={group}
           housingCount={2}
-          filters={{}}
           onSubmit={() => Promise.resolve()}
         />
       </Provider>
@@ -57,7 +81,7 @@ describe('Campagne creation modal', () => {
     await user.click(createButton);
 
     const modal = screen.getByRole('dialog');
-    const save = within(modal).getByText('Enregistrer');
+    const save = await within(modal).findByRole('button', { name: /^Confirmer/ });
     await user.click(save);
 
     const error = await screen.findByText(
@@ -67,11 +91,12 @@ describe('Campagne creation modal', () => {
   });
 
   test('should restrict campaign title exceeding 64 characters in length', async () => {
+    const group = createGroup();
     render(
       <Provider store={store}>
-        <CampaignCreationModal
+        <GroupCampaignCreationModal
+          group={group}
           housingCount={2}
-          filters={{}}
           onSubmit={() => Promise.resolve()}
         />
       </Provider>
@@ -82,10 +107,11 @@ describe('Campagne creation modal', () => {
     await user.click(createButton);
 
     const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
-    await userEvent.type(campaignTitleInputElement, faker.lorem.words(50));
+
+    await userEvent.type(campaignTitleInputElement, faker.lorem.paragraph());
 
     const modal = screen.getByRole('dialog');
-    const save = within(modal).getByText('Enregistrer');
+    const save = await within(modal).findByRole('button', { name: /^Confirmer/ });
     await user.click(save);
 
     const error = await screen.findByText(
@@ -95,11 +121,12 @@ describe('Campagne creation modal', () => {
   });
 
   test('should restrict campaign description exceeding 1000 characters in length', async () => {
+    const group = createGroup();
     render(
       <Provider store={store}>
-        <CampaignCreationModal
+        <GroupCampaignCreationModal
+          group={group}
           housingCount={2}
-          filters={{}}
           onSubmit={() => Promise.resolve()}
         />
       </Provider>
@@ -118,7 +145,7 @@ describe('Campagne creation modal', () => {
     await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
 
     const modal = screen.getByRole('dialog');
-    const save = within(modal).getByText('Enregistrer');
+    const save = await within(modal).findByRole('button', { name: /^Confirmer/ });
     await user.click(save);
 
     const error = await screen.findByText(
@@ -126,4 +153,5 @@ describe('Campagne creation modal', () => {
     );
     expect(error).toBeVisible();
   });
+
 });

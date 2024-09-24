@@ -40,7 +40,6 @@ import {
 import CampaignStatusError from '~/errors/campaignStatusError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
 import draftRepository from '~/repositories/draftRepository';
-import DraftMissingError from '~/errors/draftMissingError';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '~/infra/config';
@@ -137,6 +136,7 @@ const createValidators: ValidationChain[] = [
     .trim()
     .notEmpty()
     .withMessage('Required'),
+  body('description').optional({ nullable: true }).isString(),
   body('housing').isObject({ strict: true }),
   body('housing.all')
     .if(body('housing').notEmpty())
@@ -163,6 +163,7 @@ async function create(request: Request, response: Response<CampaignDTO>) {
   const campaign: CampaignApi = {
     id: uuidv4(),
     title: body.title,
+    description: body.description,
     status: 'draft',
     filters,
     createdAt: new Date().toJSON(),
@@ -232,6 +233,7 @@ async function createCampaignFromGroup(request: Request, response: Response) {
   const campaign: CampaignApi = {
     id: uuidv4(),
     title: body.title,
+    description: body.description,
     status: 'draft',
     filters: {
       groupIds: [group.id]
@@ -278,12 +280,14 @@ async function createCampaignFromGroup(request: Request, response: Response) {
 }
 const createCampaignFromGroupValidators: ValidationChain[] = [
   param('id').isUUID().notEmpty(),
-  body('title').isString().notEmpty()
+  body('title').isString().notEmpty(),
+  body('description').optional({ nullable: true }).isString()
 ];
 
 const updateValidators: ValidationChain[] = [
   param('id').notEmpty().isUUID(),
   body('title').isString().notEmpty(),
+  body('description').optional({ nullable: true }).isString(),
   body('status').isString().isIn(CAMPAIGN_STATUSES),
   body('sentAt')
     .if(body('status').equals('in-progress'))
@@ -295,7 +299,7 @@ async function update(request: Request, response: Response) {
   const { auth, params } = request as AuthenticatedRequest;
   const body = request.body as CampaignUpdatePayloadDTO;
 
-  const [campaign, drafts] = await Promise.all([
+  const [campaign] = await Promise.all([
     campaignRepository.findOne({
       id: params.id,
       establishmentId: auth.establishmentId
@@ -311,10 +315,6 @@ async function update(request: Request, response: Response) {
     throw new CampaignMissingError(params.id);
   }
 
-  if (drafts.length === 0) {
-    throw new DraftMissingError(params.id);
-  }
-
   if (
     campaign.status !== body.status &&
     nextStatus(campaign.status) !== body.status
@@ -328,6 +328,7 @@ async function update(request: Request, response: Response) {
   const updated: CampaignApi = {
     ...campaign,
     title: body.title,
+    description: body.description,
     status: body.status,
     file: body.file,
     validatedAt:

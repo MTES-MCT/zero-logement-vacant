@@ -199,6 +199,128 @@ describe('Housing repository', () => {
         );
       });
 
+      it('should filter by DPE score', async () => {
+        const actualA = await housingRepository.find({
+          filters: {
+            energyConsumption: ['A' as EnergyConsumptionGradesApi]
+          }
+        });
+        expect(actualA).toSatisfyAll<HousingApi>(
+          (housing) =>
+            housing.energyConsumption === EnergyConsumptionGradesApi.A
+        );
+
+        const EFGClasses = [
+          'E' as EnergyConsumptionGradesApi,
+          'F' as EnergyConsumptionGradesApi,
+          'G' as EnergyConsumptionGradesApi
+        ];
+        const actualEFG = await housingRepository.find({
+          filters: {
+            energyConsumption: EFGClasses
+          }
+        });
+        expect(actualEFG).toSatisfyAll<HousingApi>((housing) =>
+          EFGClasses.includes(
+            housing.energyConsumption as EnergyConsumptionGradesApi
+          )
+        );
+      });
+
+      it('should filter by establishment', async () => {
+        const otherEstablishment = genEstablishmentApi();
+        await Establishments().insert(
+          formatEstablishmentApi(otherEstablishment)
+        );
+        const houses: HousingApi[] = [
+          genHousingApi(oneOf(establishment.geoCodes)),
+          genHousingApi(oneOf(otherEstablishment.geoCodes))
+        ];
+        await Housing().insert(houses.map(formatHousingRecordApi));
+
+        const actual = await housingRepository.find({
+          filters: {
+            establishmentIds: [establishment.id]
+          }
+        });
+
+        expect(actual).toSatisfyAll<HousingApi>((housing) =>
+          establishment.geoCodes.includes(housing.geoCode)
+        );
+      });
+
+      it('should filter by group', async () => {
+        const groups = Array.from({ length: 2 }).map(() =>
+          genGroupApi(user, establishment)
+        );
+        await Groups().insert(groups.map(formatGroupApi));
+        const housesByGroup = fp.fromPairs(
+          groups.map((group) => {
+            const houses: HousingApi[] = Array.from({ length: 3 }).map(() =>
+              genHousingApi(oneOf(establishment.geoCodes))
+            );
+            return [group.id, houses];
+          })
+        );
+        const houses: HousingApi[] = fp.values(housesByGroup).flat();
+        await Housing().insert(houses.map(formatHousingRecordApi));
+        await GroupsHousing().insert(
+          groups.flatMap((group) => {
+            return formatGroupHousingApi(
+              group,
+              manyOf(
+                housesByGroup[group.id],
+                faker.number.int({ min: 1, max: 3 })
+              )
+            );
+          })
+        );
+        const [firstGroup] = groups;
+
+        const actual = await housingRepository.find({
+          filters: {
+            groupIds: [firstGroup.id]
+          }
+        });
+
+        expect(actual).toSatisfyAll<HousingApi>((actualHousing) => {
+          return housesByGroup[firstGroup.id]
+            .map((housing) => housing.id)
+            .includes(actualHousing.id);
+        });
+      });
+
+      it('should filter by campaign id', async () => {
+        const campaigns = Array.from({ length: 3 }, () =>
+          genCampaignApi(establishment.id, user.id)
+        );
+        await Campaigns().insert(campaigns.map(formatCampaignApi));
+        const campaignHousings = campaigns.map((campaign) => {
+          return {
+            campaign: campaign,
+            housings: Array.from({ length: 3 }, () => genHousingApi())
+          };
+        });
+        const housings = campaignHousings.flatMap(({ housings }) => housings);
+        await Housing().insert(housings.map(formatHousingRecordApi));
+        await CampaignsHousing().insert(
+          campaignHousings.flatMap((ch) => {
+            return formatCampaignHousingApi(ch.campaign, ch.housings);
+          })
+        );
+
+        const id = campaigns[0].id;
+        const actual = await housingRepository.find({
+          filters: {
+            campaignIds: [id]
+          }
+        });
+
+        expect(actual).toSatisfyAll<HousingApi>((housing) => {
+          return housing.campaignIds?.includes(id) ?? false;
+        });
+      });
+
       describe('by living area', () => {
         beforeEach(async () => {
           const housingList: HousingApi[] = [
@@ -615,28 +737,6 @@ describe('Housing repository', () => {
         });
       });
 
-      it('should filter by establishment', async () => {
-        const otherEstablishment = genEstablishmentApi();
-        await Establishments().insert(
-          formatEstablishmentApi(otherEstablishment)
-        );
-        const houses: HousingApi[] = [
-          genHousingApi(oneOf(establishment.geoCodes)),
-          genHousingApi(oneOf(otherEstablishment.geoCodes))
-        ];
-        await Housing().insert(houses.map(formatHousingRecordApi));
-
-        const actual = await housingRepository.find({
-          filters: {
-            establishmentIds: [establishment.id]
-          }
-        });
-
-        expect(actual).toSatisfyAll<HousingApi>((housing) =>
-          establishment.geoCodes.includes(housing.geoCode)
-        );
-      });
-
       it('should filter by owner ids', async () => {
         const housingList = new Array(10).fill('0').map(() => genHousingApi());
         await Housing().insert(housingList.map(formatHousingRecordApi));
@@ -835,75 +935,6 @@ describe('Housing repository', () => {
 
         expect(actual).toSatisfyAll<HousingApi>(
           (housing) => housing.owner?.fullName?.includes(query) ?? false
-        );
-      });
-
-      it('should filter by group', async () => {
-        const groups = Array.from({ length: 2 }).map(() =>
-          genGroupApi(user, establishment)
-        );
-        await Groups().insert(groups.map(formatGroupApi));
-        const housesByGroup = fp.fromPairs(
-          groups.map((group) => {
-            const houses: HousingApi[] = Array.from({ length: 3 }).map(() =>
-              genHousingApi(oneOf(establishment.geoCodes))
-            );
-            return [group.id, houses];
-          })
-        );
-        const houses: HousingApi[] = fp.values(housesByGroup).flat();
-        await Housing().insert(houses.map(formatHousingRecordApi));
-        await GroupsHousing().insert(
-          groups.flatMap((group) => {
-            return formatGroupHousingApi(
-              group,
-              manyOf(
-                housesByGroup[group.id],
-                faker.number.int({ min: 1, max: 3 })
-              )
-            );
-          })
-        );
-        const [firstGroup] = groups;
-
-        const actual = await housingRepository.find({
-          filters: {
-            groupIds: [firstGroup.id]
-          }
-        });
-
-        expect(actual).toSatisfyAll<HousingApi>((actualHousing) => {
-          return housesByGroup[firstGroup.id]
-            .map((housing) => housing.id)
-            .includes(actualHousing.id);
-        });
-      });
-
-      it('should filter by DPE score', async () => {
-        const actualA = await housingRepository.find({
-          filters: {
-            energyConsumption: ['A' as EnergyConsumptionGradesApi]
-          }
-        });
-        expect(actualA).toSatisfyAll<HousingApi>(
-          (housing) =>
-            housing.energyConsumption === EnergyConsumptionGradesApi.A
-        );
-
-        const EFGClasses = [
-          'E' as EnergyConsumptionGradesApi,
-          'F' as EnergyConsumptionGradesApi,
-          'G' as EnergyConsumptionGradesApi
-        ];
-        const actualEFG = await housingRepository.find({
-          filters: {
-            energyConsumption: EFGClasses
-          }
-        });
-        expect(actualEFG).toSatisfyAll<HousingApi>((housing) =>
-          EFGClasses.includes(
-            housing.energyConsumption as EnergyConsumptionGradesApi
-          )
         );
       });
     });

@@ -160,6 +160,41 @@ describe('Housing repository', () => {
         });
       });
 
+      describe('by occupancy', () => {
+        beforeEach(async () => {
+          const housings: HousingApi[] = Object.values(OccupancyKindApi).map(
+            (occupancy) => ({
+              ...genHousingApi(),
+              occupancy
+            })
+          );
+          await Housing().insert(housings.map(formatHousingRecordApi));
+          const owner = genOwnerApi();
+          await Owners().insert(formatOwnerApi(owner));
+          await HousingOwners().insert(
+            housings.flatMap((housing) =>
+              formatHousingOwnersApi(housing, [owner])
+            )
+          );
+        });
+
+        test.each(Object.values(OccupancyKindApi))(
+          'should filter by %s',
+          async (occupancy) => {
+            const actual = await housingRepository.find({
+              filters: {
+                occupancies: [occupancy]
+              }
+            });
+
+            expect(actual.length).toBeGreaterThan(0);
+            expect(actual).toSatisfyAll<HousingApi>(
+              (housing) => housing.occupancy === occupancy
+            );
+          }
+        );
+      });
+
       describe('by living area', () => {
         beforeEach(async () => {
           const housingList: HousingApi[] = [

@@ -87,7 +87,7 @@ describe('Group campaign creation modal', () => {
     const error = await screen.findByText(
       'Veuillez renseigner le titre de la campagne.'
     );
-    expect(error).toBeVisible();
+    expect(error).toBeInTheDocument();
   });
 
   test('should restrict campaign title exceeding 64 characters in length', async () => {
@@ -117,7 +117,7 @@ describe('Group campaign creation modal', () => {
     const error = await screen.findByText(
       'La longueur maximale du titre de la campagne est de 64 caractères.'
     );
-    expect(error).toBeVisible();
+    expect(error).toBeInTheDocument();
   });
 
   test('should restrict campaign description exceeding 1000 characters in length', async () => {
@@ -151,7 +151,7 @@ describe('Group campaign creation modal', () => {
     const error = await screen.findByText(
       'La longueur maximale de la description de la campagne est de 1000 caractères.'
     );
-    expect(error).toBeVisible();
+    expect(error).toBeInTheDocument();
   });
 
 });

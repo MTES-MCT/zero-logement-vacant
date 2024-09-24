@@ -6,7 +6,7 @@ const UsersView = () => {
   useDocumentTitle('Utilisateurs');
 
   const { data: dashboard, isSuccess } = useFindOneDashboardQuery({
-    id: 'utilisateurs',
+    id: '6-utilisateurs-de-zlv-sur-votre-structure',
   });
 
   return (

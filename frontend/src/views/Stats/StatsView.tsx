@@ -8,7 +8,7 @@ const StatsView = () => {
     <MainContainer title="Statistiques">
       {config.metabase.siteUrl && config.metabase.public.statsDashboard ? (
         <iframe
-          src={`${config.metabase.siteUrl}/public/dashboard/${config.metabase.public.statsDashboard}`}
+          src={`https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io/public/dashboard/${config.metabase.public.statsDashboard}`}
           width="100%"
           height="900"
           title="Statistiques"

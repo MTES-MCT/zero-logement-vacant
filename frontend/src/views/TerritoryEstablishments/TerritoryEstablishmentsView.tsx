@@ -6,7 +6,7 @@ const UsersView = () => {
   useDocumentTitle('Autres structures');
 
   const { data: dashboard, isSuccess } = useFindOneDashboardQuery({
-    id: 'etablissements',
+    id: '7-autres-structures-de-votre-territoires-inscrites-sur-zlv',
   });
 
   return (

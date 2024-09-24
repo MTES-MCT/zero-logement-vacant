@@ -20,7 +20,6 @@ import MainContainer from '../../components/MainContainer/MainContainer';
 import async from 'async';
 
 const HousingView = () => {
-  useDocumentTitle('Fiche logement');
   const {
     housing,
     count,
@@ -32,6 +31,11 @@ const HousingView = () => {
     campaigns
   } = useHousing();
   const housingCount = count?.housing ?? 0;
+  useDocumentTitle(
+    housing
+      ? `Fiche logement - ${housing.rawAddress.join(' ')}`
+      : 'Page non trouvée'
+  );
 
   const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
     housing?.id ?? '',

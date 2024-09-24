@@ -2,13 +2,13 @@ export interface DashboardApi {
   url: string;
 }
 
-export type Resource = 'utilisateurs' | 'etablissements';
+export type Resource = '6-utilisateurs-de-zlv-sur-votre-structure' | '7-autres-structures-de-votre-territoires-inscrites-sur-zlv';
 
 export function getResource(id: Resource): number {
   switch (id) {
-    case 'utilisateurs':
+    case '6-utilisateurs-de-zlv-sur-votre-structure':
       return 27;
-    case 'etablissements':
+    case '7-autres-structures-de-votre-territoires-inscrites-sur-zlv':
       return 33;
   }
 }

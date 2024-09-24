@@ -1,9 +1,5 @@
-import { useEffect } from 'react';
+import { useTitle } from 'react-use';
 
 export function useDocumentTitle(title?: string) {
-  useEffect(() => {
-    document.title = title
-      ? `Zéro Logement Vacant - ${title}`
-      : 'Zéro Logement Vacant';
-  });
+  useTitle(title ? `Zéro Logement Vacant - ${title}` : 'Zéro Logement Vacant');
 }

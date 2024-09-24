@@ -6,9 +6,13 @@ import CampaignDraft from './CampaignDraft';
 import CampaignSending from './CampaignSending';
 import { CampaignStatus } from '../../../../shared';
 import NotFoundView from '../NotFoundView';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 function CampaignView() {
   const { campaign, isLoadingCampaign } = useCampaign();
+  useDocumentTitle(
+    campaign ? `Campagne - ${campaign.title}` : 'Page non trouvée'
+  );
 
   if (isLoadingCampaign) {
     return <Loading />;
@@ -22,7 +26,7 @@ function CampaignView() {
     draft: <CampaignDraft campaign={campaign} />,
     sending: <CampaignSending campaign={campaign} />,
     'in-progress': <CampaignInProgress campaign={campaign} />,
-    archived: <CampaignInProgress campaign={campaign} />,
+    archived: <CampaignInProgress campaign={campaign} />
   };
   const CampaignComponent = steps[campaign.status] || <NotFoundView />;
 

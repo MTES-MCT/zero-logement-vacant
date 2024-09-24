@@ -160,14 +160,14 @@ function HousingListFiltersSidemenu(props: Props) {
         xs
       >
         <Grid
-          alignItems="center"
+          alignItems="flex-start"
           component="header"
           container
           mb={1}
           justifyContent="space-between"
         >
           <Grid component="section" xs="auto">
-            <Typography variant="h6" mb={3}>
+            <Typography component="h2" variant="h6" mb={3}>
               Filtres
             </Typography>
           </Grid>
@@ -516,7 +516,7 @@ function HousingListFiltersSidemenu(props: Props) {
         </Accordion>
         <Accordion
           label={
-            <TitleWithIcon icon="fr-icon-calendar-line" title="Millésime" />
+            <TitleWithIcon icon="fr-database-2-line" title="Données" />
           }
         >
           <Grid component="article" mb={2} xs={12}>

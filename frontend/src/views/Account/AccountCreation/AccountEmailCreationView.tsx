@@ -9,6 +9,7 @@ import { useActivationEmail } from '../../../hooks/useActivationEmail';
 import styles from './account-email-creation-view.module.scss';
 import AppTextInput from '../../../components/_app/AppTextInput/AppTextInput';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Alert from '@codegouvfr/react-dsfr/Alert';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import {
   TrackEventActions,
@@ -53,6 +54,11 @@ function AccountEmailCreationView() {
         impérativement avoir déjà signé l’acte d’engagement permettant d’accéder
         aux données LOVAC via la procédure indiquée sur le site du Cerema.
       </Text>
+      <Alert
+          severity="warning"
+          title="Les demandes d&apos;accès à ZLV et LOVAC évoluent !"
+          description={<>Les procédures via Démarches Simpifiées évoluent. Toute demande de données devra désormais être effectuée sur le nouveau Portail des Données Foncières qui sera déployé à compter du 01/10/2024. <a href='https://datafoncier.cerema.fr/actualites/interruption-des-demandes-dacces-aux-donnees-du-15-septembre-au-1er-octobre-2024'>En savoir plus</a></>}
+        />
       <Container as="section" fluid>
         <Row justifyContent="right">
           <AppLink

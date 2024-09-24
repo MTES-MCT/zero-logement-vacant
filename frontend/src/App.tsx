@@ -6,7 +6,7 @@ import {
   Redirect,
   Route,
   RouteProps,
-  Switch,
+  Switch
 } from 'react-router-dom';
 
 import './App.scss';
@@ -37,19 +37,16 @@ import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
 import SmallHeader from './components/Header/SmallHeader';
 import Header from './components/Header/Header';
-import posthog from 'posthog-js';
-
-posthog.init('phc_Thondx9VvGONN5SZK0OuDttJDIorIANsudwCL2gU3O7', { api_host: 'https://eu.i.posthog.com', person_profiles: 'identified_only' });
 
 const publicRoutes: RouteProps[] = [
   { path: '/stats', component: StatsView },
   { path: '/accessibilite', component: AccessibilityView },
-  { path: '/mentions-legales', component: LegalNoticesView },
+  { path: '/mentions-legales', component: LegalNoticesView }
 ];
 const authenticatedRoutes: RouteProps[] = [
   {
     path: '/parc-de-logements',
-    component: HousingListView,
+    component: HousingListView
   },
   // TODO: remove this
   { path: '/parc-de-logements/campagnes/:id', component: CampaignView },
@@ -58,12 +55,12 @@ const authenticatedRoutes: RouteProps[] = [
   { path: '/campagnes/:id', component: CampaignView },
   {
     path: '/proprietaires/:ownerId/logements/:housingId',
-    component: HousingView,
+    component: HousingView
   },
   { path: '/proprietaires/:ownerId', component: OwnerView },
   {
     path: '/logements/:housingId/proprietaires/:ownerId',
-    component: OwnerView,
+    component: OwnerView
   },
   { path: '/logements/:housingId', component: HousingView },
   { path: '/ressources/statuts', component: StatusView },
@@ -72,21 +69,21 @@ const authenticatedRoutes: RouteProps[] = [
   { path: '/compte', component: AccountView },
   { path: '/compte/mot-de-passe', component: AccountPasswordView },
   { path: '/utilisateurs', component: UsersView },
-  { path: '/autres-etablissements', component: TerritoryEstablishmentsView },
+  { path: '/autres-etablissements', component: TerritoryEstablishmentsView }
 ];
 const guestRoutes: RouteProps[] = [
   { path: '/inscription*', component: AccountCreationView },
   { path: '/connexion', component: LoginView },
   {
     path: '/mot-de-passe/oublie',
-    component: ForgottenPasswordView,
+    component: ForgottenPasswordView
   },
   {
     path: '/mot-de-passe/nouveau',
-    component: ResetPasswordView,
+    component: ResetPasswordView
   },
   { path: '/admin', component: LoginView },
-  { path: '/', component: EstablishmentHomeView },
+  { path: '/', component: EstablishmentHomeView }
 ];
 
 function App() {
@@ -96,8 +93,8 @@ function App() {
   const dispatch = useAppDispatch();
   const isSomeQueryPending = useAppSelector((state) =>
     Object.values(state.api.queries).some(
-      (query) => query?.status === 'pending',
-    ),
+      (query) => query?.status === 'pending'
+    )
   );
 
   FetchInterceptor();

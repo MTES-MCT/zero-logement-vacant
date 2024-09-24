@@ -180,7 +180,6 @@ async function preview(
     Buffer,
     DraftPreviewPayloadDTO
   >;
-
   const draft = await draftRepository.findOne({
     id: params.id,
     establishmentId: auth.establishmentId
@@ -234,7 +233,9 @@ const previewValidators: ValidationChain[] = [
     .withMessage('geoCode is required'),
   body('housing.localId').isInt().isLength({ min: 12, max: 12 }),
   body('housing.rawAddress').isArray().isLength({ min: 1 }),
-  body('housing.cadastralReference').isString().notEmpty(),
+  body('housing.cadastralReference').isString().optional({
+    nullable: true
+  }),
   body('housing.housingKind')
     .isString()
     .withMessage('Must be a string')

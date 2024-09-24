@@ -6,7 +6,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
-  useUpdateGroupMutation,
+  useUpdateGroupMutation
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -14,7 +14,7 @@ import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListMap from '../HousingList/HousingListMap';
@@ -38,7 +38,7 @@ function GroupView() {
   const { id } = useParams<{ id: string }>();
   const { data: group, isLoading: isLoadingGroup } = useGetGroupQuery(id);
 
-  useDocumentTitle(group?.title ?? 'Groupe');
+  useDocumentTitle(group ? `Groupe - ${group?.title}` : 'Page non trouvée');
 
   const { trackEvent } = useMatomo();
   const {
@@ -48,12 +48,12 @@ function GroupView() {
     removeFilter,
     setExpand,
     onChangeFilters,
-    onResetFilters,
+    onResetFilters
   } = useFilters({
     storage: 'state',
     initialState: {
-      groupIds: [id],
-    },
+      groupIds: [id]
+    }
   });
 
   const { view } = useAppSelector((state) => state.housing);
@@ -62,11 +62,11 @@ function GroupView() {
     trackEvent({
       category: TrackEventCategories.Group,
       action: TrackEventActions.HousingList.Search,
-      name: query,
+      name: query
     });
     setFilters({
       ...filters,
-      query,
+      query
     });
   }
 
@@ -86,12 +86,12 @@ function GroupView() {
 
   const [createCampaignFromGroup] = useCreateCampaignFromGroupMutation();
   async function onCampaignCreate(
-    campaign: Pick<Campaign, 'title'>,
+    campaign: Pick<Campaign, 'title'>
   ): Promise<void> {
     if (group) {
       const created = await createCampaignFromGroup({
         campaign,
-        group,
+        group
       }).unwrap();
       router.push(`/campagnes/${created.id}`);
     }
@@ -110,15 +110,15 @@ function GroupView() {
     if (group) {
       updateGroup({
         ...payload,
-        id: group.id,
+        id: group.id
       });
     }
   }
 
   const campaigns = useCampaignList({
     filters: {
-      groupIds: [id],
-    },
+      groupIds: [id]
+    }
   });
 
   if (isLoadingGroup) {

@@ -90,12 +90,12 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
     }
   };
 
-  const onSubmitRemovingGeoPerimeter = (geoPerimeters: GeoPerimeter[]) => {
+  const onSubmitRemovingGeoPerimeter = async (geoPerimeters: GeoPerimeter[]): Promise<void> => {
     trackEvent({
       category: TrackEventCategories.GeoPerimeters,
       action: TrackEventActions.GeoPerimeters.Delete,
     });
-    deleteGeoPerimeters(geoPerimeters.map((_) => _.id));
+    await deleteGeoPerimeters(geoPerimeters.map((_) => _.id));
   };
 
   const [query, setQuery] = useState<string>();

@@ -39,7 +39,7 @@ const CampaignsListView = () => {
   const campaigns = useCampaignList({ sort });
 
   const [removeCampaign] = useRemoveCampaignMutation();
-  const onDeleteCampaign = async (campaignId: string) => {
+  const onDeleteCampaign = async (campaignId: string): Promise<void> => {
     await removeCampaign(campaignId).unwrap();
     trackEvent({
       category: TrackEventCategories.Campaigns,
@@ -48,7 +48,7 @@ const CampaignsListView = () => {
   };
 
   const [updateCampaign] = useUpdateCampaignMutation();
-  const onArchiveCampaign = async (campaign: Campaign) => {
+  const onArchiveCampaign = async (campaign: Campaign): Promise<void> => {
     await updateCampaign({ ...campaign, status: 'archived' }).unwrap();
     trackEvent({
       category: TrackEventCategories.Campaigns,

@@ -20,7 +20,7 @@ interface GroupProps {
   onCampaignCreate?: (campaign: Pick<Campaign, 'title' | 'description'>) => void;
   onExport?: () => void;
   onUpdate?: (group: GroupPayload) => void;
-  onRemove?: () => void;
+  onRemove?: () => Promise<void>;
 }
 
 function Group(props: GroupProps) {
@@ -31,8 +31,8 @@ function Group(props: GroupProps) {
     props.onCampaignCreate?.(campaign);
   }
 
-  function removeGroup(): void {
-    props.onRemove?.();
+  async function removeGroup(): Promise<void> {
+    await props.onRemove?.();
   }
 
   function updateGroup(group: GroupPayload): void {

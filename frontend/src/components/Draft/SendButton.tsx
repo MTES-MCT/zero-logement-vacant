@@ -6,7 +6,7 @@ import { useForm } from '../../hooks/useForm';
 interface Props {
   className?: string;
   form: ReturnType<typeof useForm>;
-  onSend(): void;
+  onSend(): Promise<void>;
 }
 
 function SendButton(props: Readonly<Props>) {
@@ -16,8 +16,8 @@ function SendButton(props: Readonly<Props>) {
     });
   }
 
-  function submit(): void {
-    props.onSend();
+  async function submit(): Promise<void> {
+    await props.onSend();
   }
 
   return (

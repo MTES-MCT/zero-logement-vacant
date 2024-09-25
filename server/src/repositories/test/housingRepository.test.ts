@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { differenceInYears } from 'date-fns';
 import fp from 'lodash/fp';
 
+import { Predicate } from '@zerologementvacant/utils';
 import { isDefined } from '@zerologementvacant/shared';
 import housingRepository, {
   formatHousingRecordApi,
@@ -791,6 +792,63 @@ describe('Housing repository', () => {
         });
       });
 
+      describe('by multi owners', () => {
+        beforeEach(async () => {
+          const housings = Array.from({ length: 3 }, () => genHousingApi());
+          await Housing().insert(housings.map(formatHousingRecordApi));
+          const owner = genOwnerApi();
+          const anotherOwner = genOwnerApi();
+          await Owners().insert([owner, anotherOwner].map(formatOwnerApi));
+          const housingOwners = housings
+            .slice(0, 2)
+            .flatMap((housing) => formatHousingOwnersApi(housing, [owner]))
+            .concat(
+              housings
+                .slice(2)
+                .flatMap((housing) =>
+                  formatHousingOwnersApi(housing, [anotherOwner])
+                )
+            );
+          await HousingOwners().insert(housingOwners);
+        });
+
+        function countOwners(
+          expected: Predicate<number>
+        ): (housings: ReadonlyArray<HousingApi>) => boolean {
+          return fp.pipe(
+            fp.map((housing: HousingApi) => housing.owner),
+            fp.groupBy('id'),
+            fp.mapValues(fp.size),
+            fp.values,
+            fp.every(expected)
+          );
+        }
+
+        const tests = [
+          {
+            name: 'housings belonging to owners who have many properties',
+            filter: ['true'],
+            predicate: countOwners((count) => count > 1)
+          },
+          {
+            name: 'housings belonging to owners who have only one property',
+            filter: ['false'],
+            predicate: countOwners((count) => count === 1)
+          }
+        ];
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              multiOwners: filter
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfy<ReadonlyArray<HousingApi>>(predicate);
+        });
+      });
+
       describe('by housing kind', () => {
         beforeEach(async () => {
           const housings = HOUSING_KIND_VALUES.map((kind) => {
@@ -817,33 +875,6 @@ describe('Housing repository', () => {
             return housing.housingKind === kind;
           });
         });
-      });
-
-      it('should filter by multi owners', async () => {
-        const housingList = new Array(10).fill('0').map(() => genHousingApi());
-        await Housing().insert(housingList.map(formatHousingRecordApi));
-        const owner = genOwnerApi();
-        await Owners().insert(formatOwnerApi(owner));
-        await HousingOwners().insert(
-          housingList.flatMap((housing) =>
-            formatHousingOwnersApi(housing, [owner])
-          )
-        );
-
-        const actual = await housingRepository.find({
-          filters: {
-            multiOwners: ['true']
-          }
-        });
-
-        const countOwners = fp.pipe(
-          fp.map((housing: HousingApi) => housing.owner),
-          fp.groupBy('id'),
-          fp.mapValues(fp.size),
-          fp.values,
-          fp.every((occurence) => occurence > 1)
-        );
-        expect(actual).toSatisfy<HousingApi[]>(countOwners);
       });
 
       it('should filter by locality kind', async () => {

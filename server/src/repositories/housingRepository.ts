@@ -2,7 +2,6 @@ import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import fp from 'lodash/fp';
-import validator from 'validator';
 
 import { HousingSource, PaginationOptions } from '@zerologementvacant/shared';
 import db, { toRawArray, where } from '~/infra/database';
@@ -601,14 +600,16 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.roomsCounts?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.roomsCounts?.indexOf('gt5') !== -1) {
-          whereBuilder.orWhereRaw('rooms_count >= 5');
+      queryBuilder.where((where) => {
+        if (filters.roomsCounts?.includes('gte5')) {
+          where.orWhere(`${housingTable}.rooms_count`, '>=', 5);
         }
-        whereBuilder.orWhereIn(
-          'rooms_count',
-          filters.roomsCounts?.filter((_) => validator.isNumeric(_))
-        );
+        const roomCounts = filters.roomsCounts
+          ?.map(Number)
+          ?.filter((count) => !Number.isNaN(count));
+        if (roomCounts && roomCounts.length) {
+          where.orWhereIn(`${housingTable}.rooms_count`, roomCounts);
+        }
       });
     }
     if (filters.cadastralClassifications?.length) {

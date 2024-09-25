@@ -29,6 +29,7 @@ export * from './OwnerDTO';
 export * from './OwnershipKind';
 export * from './Pagination';
 export * from './RolesDTO';
+export * from './RoomCount';
 export * from './SenderDTO';
 export * from './SettingsDTO';
 export * from './TimePerWeek';

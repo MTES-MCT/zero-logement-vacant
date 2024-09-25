@@ -66,7 +66,8 @@ import {
   BENEFIARY_COUNT_VALUES,
   HOUSING_KIND_VALUES,
   isSecondaryOwner,
-  OWNERSHIP_KINDS
+  OWNERSHIP_KINDS,
+  ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 import {
   Addresses,
@@ -947,6 +948,57 @@ describe('Housing repository', () => {
           const actual = await housingRepository.find({
             filters: {
               housingAreas: filter
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>(predicate);
+        });
+      });
+
+      describe('by room count', () => {
+        beforeEach(async () => {
+          const housings = Array.from({ length: 10 }).map<HousingApi>(
+            (_, i) => {
+              return {
+                ...genHousingApi(),
+                roomsCount: i + 1
+              };
+            }
+          );
+          await Housing().insert(housings.map(formatHousingRecordApi));
+          const owner = genOwnerApi();
+          await Owners().insert(formatOwnerApi(owner));
+          await HousingOwners().insert(
+            housings.flatMap((housing) =>
+              formatHousingOwnersApi(housing, [owner])
+            )
+          );
+        });
+
+        const tests = ROOM_COUNT_VALUES.map(Number)
+          .filter((count) => !Number.isNaN(count))
+          .map((count) => {
+            return {
+              name: `housings with ${count} room(s)`,
+              filter: [String(count)],
+              predicate(housing: HousingApi) {
+                return housing.roomsCount === count;
+              }
+            };
+          })
+          .concat({
+            name: 'housings with 5+ rooms',
+            filter: ['gte5'],
+            predicate(housing: HousingApi) {
+              return housing.roomsCount >= 5;
+            }
+          });
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              roomsCounts: filter
             }
           });
 

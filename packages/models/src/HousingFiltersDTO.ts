@@ -1,3 +1,5 @@
+import { BeneficiaryCount } from './BeneficiaryCount';
+
 export interface HousingFiltersDTO {
   housingIds?: string[];
   establishmentIds?: string[];
@@ -5,7 +7,7 @@ export interface HousingFiltersDTO {
   ownerKinds?: string[];
   ownerAges?: string[];
   multiOwners?: string[];
-  beneficiaryCounts?: string[];
+  beneficiaryCounts?: BeneficiaryCount[];
   housingKinds?: string[];
   cadastralClassifications?: string[];
   housingAreas?: string[];

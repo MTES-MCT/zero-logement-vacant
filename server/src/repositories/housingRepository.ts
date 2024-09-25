@@ -5,7 +5,7 @@ import fp from 'lodash/fp';
 import validator from 'validator';
 
 import { HousingSource, PaginationOptions } from '@zerologementvacant/shared';
-import db, { where } from '~/infra/database';
+import db, { toRawArray, where } from '~/infra/database';
 import {
   EnergyConsumptionGradesApi,
   getOwnershipKindFromValue,
@@ -555,17 +555,30 @@ function filteredQuery(opts: ListQueryOptions) {
     }
 
     if (filters.beneficiaryCounts?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        whereBuilder.whereIn(
-          `${housingTable}.beneficiary_count`,
-          filters.beneficiaryCounts?.filter((_: string) => !isNaN(+_))
-        );
-        if (filters.beneficiaryCounts?.indexOf('0') !== -1) {
-          whereBuilder.orWhereNull('beneficiary_count');
-        }
-        if (filters.beneficiaryCounts?.indexOf('gt5') !== -1) {
-          whereBuilder.orWhereRaw('beneficiary_count >= 5');
-        }
+      // Count secondary owners, e.g., those who have a rank >= 2
+      queryBuilder.whereIn(`${housingTable}.id`, (subquery) => {
+        subquery
+          .select(`${housingOwnersTable}.housing_id`)
+          .from(housingOwnersTable)
+          // Include the main owner otherwise housings that have
+          // no secondary owner will not appear in the GROUP BY clause
+          .where(`${housingOwnersTable}.rank`, '>=', 1)
+          .groupBy(`${housingOwnersTable}.housing_id`)
+          .modify((query) => {
+            const counts = filters.beneficiaryCounts
+              ?.map(Number)
+              ?.filter((count) => !Number.isNaN(count))
+              // Beneficiary count = 0 implies there is a main owner
+              // but no secondary owner
+              ?.map((count) => count + 1);
+            if (counts && counts.length) {
+              query.havingRaw(`COUNT(*) IN ${toRawArray(counts)}`, [...counts]);
+            }
+            if (filters.beneficiaryCounts?.includes('gte5')) {
+              // At least 6 housing owners (including the main owner)
+              query.orHavingRaw('COUNT(*) >= 6');
+            }
+          });
       });
     }
     if (filters.housingKinds?.length) {

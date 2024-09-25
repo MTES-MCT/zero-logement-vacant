@@ -32,6 +32,7 @@ import { formatOwnerApi, Owners } from '../ownerRepository';
 import {
   formatHousingOwnerApi,
   formatHousingOwnersApi,
+  HousingOwnerDBO,
   HousingOwners
 } from '../housingOwnerRepository';
 import {
@@ -62,7 +63,9 @@ import { formatUserApi, Users } from '../userRepository';
 import { AddressApi } from '~/models/AddressApi';
 import {
   AddressKinds,
+  BENEFIARY_COUNT_VALUES,
   HOUSING_KIND_VALUES,
+  isSecondaryOwner,
   OWNERSHIP_KINDS
 } from '@zerologementvacant/models';
 import {
@@ -846,6 +849,72 @@ describe('Housing repository', () => {
 
           expect(actual.length).toBeGreaterThan(0);
           expect(actual).toSatisfy<ReadonlyArray<HousingApi>>(predicate);
+        });
+      });
+
+      describe('by beneficiary count', () => {
+        beforeEach(async () => {
+          const housings = Array.from(
+            { length: BENEFIARY_COUNT_VALUES.length },
+            () => genHousingApi()
+          );
+          await Housing().insert(housings.map(formatHousingRecordApi));
+          const housingOwners = housings.map((housing, i) => {
+            return {
+              housing,
+              owners: Array.from({ length: i + 1 }, () => genOwnerApi())
+            };
+          });
+          const owners = housingOwners.flatMap(
+            (housingOwner) => housingOwner.owners
+          );
+          await Owners().insert(owners.map(formatOwnerApi));
+          await HousingOwners().insert(
+            housingOwners.flatMap((housingOwner) =>
+              formatHousingOwnersApi(housingOwner.housing, housingOwner.owners)
+            )
+          );
+        });
+
+        const tests = BENEFIARY_COUNT_VALUES.map(Number)
+          .filter((count) => !Number.isNaN(count))
+          .map((count) => {
+            return {
+              name: `housings that have ${count} secondary owner(s)`,
+              filter: [String(count)],
+              predicate(housingOwners: ReadonlyArray<HousingOwnerDBO>) {
+                return (
+                  housingOwners.filter((housingOwner) => housingOwner.rank >= 2)
+                    .length === count
+                );
+              }
+            };
+          })
+          .concat({
+            name: `housings that have 5 or more secondary owners`,
+            filter: ['gte5'],
+            predicate(housingOwners: ReadonlyArray<HousingOwnerDBO>) {
+              return housingOwners.filter(isSecondaryOwner).length >= 5;
+            }
+          });
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              beneficiaryCounts: filter
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          await async.forEach(actual, async (housing) => {
+            const actualHousingOwners = await HousingOwners().where({
+              housing_geo_code: housing.geoCode,
+              housing_id: housing.id
+            });
+            expect(actualHousingOwners).toSatisfy<
+              ReadonlyArray<HousingOwnerDBO>
+            >(predicate);
+          });
         });
       });
 

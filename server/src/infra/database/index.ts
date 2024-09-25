@@ -66,4 +66,9 @@ export function onConflict<T extends object>(opts?: ConflictOptions<T>) {
   };
 }
 
+export function toRawArray<A>(items: ReadonlyArray<A>): string {
+  const bindings = items.map(() => '?').join(', ');
+  return `(${bindings})`;
+}
+
 export default db;

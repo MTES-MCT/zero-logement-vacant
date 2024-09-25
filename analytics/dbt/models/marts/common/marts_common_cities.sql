@@ -20,7 +20,14 @@ SELECT
     SUM(vac_2023_4ans_plus) AS total_vac_2023_4ans_plus,
     SUM(vac_2023_total) AS total_vac_2023_total,
     SUM(vac_2024_total) AS total_vac_2024_total,
+    SUM(vac_2024_plus_2ans) AS total_vac_2024_plus_2ans,
+    SUM(vac_2024_moins_2ans) AS total_vac_2024_moins_2ans,
     SUM(ext_2023_gc.nombre_logements) AS nombre_logements_prives_2023,
+
+    100 * (SUM(vac_2024_plus_2ans)  / SUM(ext_2023_gc.nombre_logements)) AS part_logement_vacants_plus_2ans_parc_prive, --Part des logements vacants >2 ans en 2024
+    100 * (SUM(vac_2024_moins_2ans)  / SUM(ext_2023_gc.nombre_logements)) AS part_logement_vacants_plus_2ans_parc_prive, -- Part des logements ≤ 2 ans en 2023
+    100 * (SUM(vac_2023_total)  / SUM(ext_2023_gc.nombre_logements)) AS part_logement_vacants_parc_prive_2023,-- Part des logements vacants en 2024
+    100 * (SUM(vac_2024_total)  / SUM(ext_2023_gc.nombre_logements)) AS part_logement_vacants_parc_prive_2024,-- Part des logements vacants en 2023
     MAX(ca1.is_in) AS tlv1,  -- Prend 1 s'il y a au moins un arrondissement où la valeur est 1
     MAX(ca2.is_in) AS tlv2,  -- Idem
     MAX(action_coeur_de_ville) AS action_coeur_de_ville,

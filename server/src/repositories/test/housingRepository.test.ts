@@ -891,13 +891,22 @@ describe('Housing repository', () => {
             };
           })
           .concat({
-            name: `housings that have 5 or more secondary owners`,
+            name: `housings that have 5+ secondary owners`,
             filter: ['gte5'],
             predicate(housingOwners: ReadonlyArray<HousingOwnerDBO>) {
               return housingOwners.filter(isSecondaryOwner).length >= 5;
             }
+          })
+          .concat({
+            name: 'housings that have 0 or 5+ secondary owners',
+            filter: ['0', 'gte5'],
+            predicate(housingOwners: ReadonlyArray<HousingOwnerDBO>) {
+              return (
+                housingOwners.filter(isSecondaryOwner).length === 0 ||
+                housingOwners.filter(isSecondaryOwner).length >= 5
+              );
+            }
           });
-
         test.each(tests)('should keep $name', async ({ filter, predicate }) => {
           const actual = await housingRepository.find({
             filters: {

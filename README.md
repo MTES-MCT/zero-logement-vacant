@@ -71,8 +71,8 @@ De plus, créez un fichier .env dans le sous-dossier `zero-logement-vacant/front
 **Développement / Staging**
 
 ```bash
-npm run migrate-latest
-cd database/scripts
+yarn run migrate
+cd src/infra/database/scripts
 psql [DATABASE_URL] -f 001-load-establishments_com_epci_reg_dep.sql -v filePath=../data/common/com_epci_dep_reg.csv
 psql [DATABASE_URL] -f 002-load-establishments_direction_territoriale.sql -v filePath=../data/common/direction_territoriale.csv
 psql [DATABASE_URL] -f 003-load-establishment_kinds.sql -v filePath=../data/common/nature_juridique.csv
@@ -85,10 +85,11 @@ Permet le chargement de données minimales pour faire fonctionner l'application 
 - Eurométropole de Strasbourg
 - CA Saint-Lô Agglo
 
-et trois utilisateurs :
-- test.strasbourg@zlv.fr / test => utilisateur avec des droits pour Eurométropole de Strasbourg
-- test.saintlo@zlv.fr / test => utilisateur avec des droits pour Saint-Lô
-- test.admin@zlv.fr / test => utilisateur avec des droits d'administration
+et trois utilisateurs dont les mots de passes sont partagés sur https://vaultwarden.incubateur.net/:
+- test.strasbourg@zlv.fr => utilisateur avec des droits pour Eurométropole de Strasbourg
+- test.saintlo@zlv.fr => utilisateur avec des droits pour Saint-Lô
+- test.admin@zlv.fr => utilisateur avec des droits d'administration
+- test.visitor@zlv.fr => utilisateur lecture seule France entière
 
 **Production**
 

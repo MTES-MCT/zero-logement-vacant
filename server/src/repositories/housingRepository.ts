@@ -484,7 +484,7 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.campaignIds?.length) {
-      queryBuilder.whereRaw('campaigns.campaign_ids && ?', [
+      queryBuilder.whereRaw(`${campaignsTable}.campaign_ids && ?`, [
         filters.campaignIds
       ]);
     }

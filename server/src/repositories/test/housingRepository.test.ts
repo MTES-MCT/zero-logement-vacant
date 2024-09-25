@@ -738,25 +738,26 @@ describe('Housing repository', () => {
       });
 
       it('should filter by owner ids', async () => {
-        const housingList = new Array(10).fill('0').map(() => genHousingApi());
-        await Housing().insert(housingList.map(formatHousingRecordApi));
-        const owner = genOwnerApi();
-        await Owners().insert(formatOwnerApi(owner));
+        const housings = Array.from({ length: 3 }, () => genHousingApi());
+        await Housing().insert(housings.map(formatHousingRecordApi));
+        await Owners().insert(
+          housings.map((housing) => formatOwnerApi(housing.owner))
+        );
         await HousingOwners().insert(
-          housingList.flatMap((housing) =>
-            formatHousingOwnersApi(housing, [owner])
+          housings.flatMap((housing) =>
+            formatHousingOwnersApi(housing, [housing.owner])
           )
         );
 
         const actual = await housingRepository.find({
           filters: {
-            ownerIds: [owner.id]
+            ownerIds: housings.map((housing) => housing.owner.id)
           }
         });
 
-        expect(actual).toBeArrayOfSize(housingList.length);
-        expect(actual).toSatisfyAll<HousingApi>((housing) => {
-          return owner.id === housing.owner?.id;
+        expect(actual).toBeArrayOfSize(housings.length);
+        expect(actual).toSatisfyAll<HousingApi>((actual) => {
+          return housings.map((housing) => housing.id).includes(actual.id);
         });
       });
 

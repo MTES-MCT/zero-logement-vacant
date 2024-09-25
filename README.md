@@ -85,10 +85,10 @@ Permet le chargement de données minimales pour faire fonctionner l'application 
 - Eurométropole de Strasbourg
 - CA Saint-Lô Agglo
 
-et trois utilisateurs :
-- test.strasbourg@zlv.fr / test => utilisateur avec des droits pour Eurométropole de Strasbourg
-- test.saintlo@zlv.fr / test => utilisateur avec des droits pour Saint-Lô
-- test.admin@zlv.fr / test => utilisateur avec des droits d'administration
+et trois utilisateurs dont les mots de passes sont partagés sur https://vaultwarden.incubateur.net/:
+- test.strasbourg@zlv.fr => utilisateur avec des droits pour Eurométropole de Strasbourg
+- test.saintlo@zlv.fr => utilisateur avec des droits pour Saint-Lô
+- test.admin@zlv.fr => utilisateur avec des droits d'administration
 
 **Production**
 

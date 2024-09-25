@@ -32,6 +32,12 @@ export async function seed(knex: Knex): Promise<void> {
     throw new Error('You must provide E2E_EMAIL and E2E_PASSWORD');
   }
 
+  const password: string = process.env.TEST_PASSWORD || '';
+
+  if(password === '') {
+    throw new Error('You must provide TEST_PASSWORD');
+  }
+
   const baseUsers: UserApi[] = [
     {
       id: uuidv4(),
@@ -46,7 +52,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: uuidv4(),
       email: 'test.saintlo@zlv.fr',
-      password: bcrypt.hashSync('test'),
+      password: bcrypt.hashSync(password),
       firstName: 'Test',
       lastName: 'Saint-Lô Agglo',
       establishmentId: saintLo.id,
@@ -56,7 +62,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: uuidv4(),
       email: 'test.admin@zlv.fr',
-      password: bcrypt.hashSync('test'),
+      password: bcrypt.hashSync(password),
       firstName: 'Test',
       lastName: 'Admin',
       activatedAt: new Date(),
@@ -65,7 +71,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: uuidv4(),
       email: 'test.visitor@zlv.fr',
-      password: bcrypt.hashSync('test'),
+      password: bcrypt.hashSync(password),
       firstName: 'Test',
       lastName: 'Visitor',
       activatedAt: new Date(),

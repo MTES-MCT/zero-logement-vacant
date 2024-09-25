@@ -71,8 +71,8 @@ De plus, créez un fichier .env dans le sous-dossier `zero-logement-vacant/front
 **Développement / Staging**
 
 ```bash
-npm run migrate-latest
-cd database/scripts
+yarn run migrate
+cd src/infra/database/scripts
 psql [DATABASE_URL] -f 001-load-establishments_com_epci_reg_dep.sql -v filePath=../data/common/com_epci_dep_reg.csv
 psql [DATABASE_URL] -f 002-load-establishments_direction_territoriale.sql -v filePath=../data/common/direction_territoriale.csv
 psql [DATABASE_URL] -f 003-load-establishment_kinds.sql -v filePath=../data/common/nature_juridique.csv

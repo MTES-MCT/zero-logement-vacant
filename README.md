@@ -89,6 +89,7 @@ et trois utilisateurs dont les mots de passes sont partagés sur https://vaultwa
 - test.strasbourg@zlv.fr => utilisateur avec des droits pour Eurométropole de Strasbourg
 - test.saintlo@zlv.fr => utilisateur avec des droits pour Saint-Lô
 - test.admin@zlv.fr => utilisateur avec des droits d'administration
+- test.visitor@zlv.fr => utilisateur lecture seule France entière
 
 **Production**
 

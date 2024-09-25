@@ -42,7 +42,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: uuidv4(),
       email: 'test.strasbourg@zlv.fr',
-      password: bcrypt.hashSync('test'),
+      password: bcrypt.hashSync(password),
       firstName: 'Test',
       lastName: 'Strasbourg',
       establishmentId: strasbourg.id,

@@ -677,13 +677,12 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.isTaxedValues?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.isTaxedValues?.indexOf('true') !== -1) {
-          whereBuilder.orWhereRaw('taxed');
+      queryBuilder.where((where) => {
+        if (filters.isTaxedValues?.includes('true')) {
+          where.orWhereRaw('taxed');
         }
-        if (filters.isTaxedValues?.indexOf('false') !== -1) {
-          whereBuilder.orWhereNull('taxed');
-          whereBuilder.orWhereRaw('not(taxed)');
+        if (filters.isTaxedValues?.includes('false')) {
+          where.orWhereNull('taxed').orWhereRaw('not(taxed)');
         }
       });
     }

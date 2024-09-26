@@ -927,8 +927,39 @@ describe('Housing repository', () => {
         });
       });
 
-      describe('by taxed boolean', () => {
-        // TODO
+      describe('by taxed', () => {
+        beforeEach(async () => {
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), taxed: true },
+            { ...genHousingApi(), taxed: false },
+            { ...genHousingApi(), taxed: undefined }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+        });
+
+        const tests = [
+          {
+            name: 'housings that get taxed',
+            filter: ['true'],
+            predicate: (housing: HousingApi) => !!housing.taxed
+          },
+          {
+            name: 'housings that do not get taxed',
+            filter: ['false'],
+            predicate: (housing: HousingApi) => !housing.taxed
+          }
+        ];
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              isTaxedValues: filter
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>(predicate);
+        });
       });
 
       describe('by ownership kind', () => {

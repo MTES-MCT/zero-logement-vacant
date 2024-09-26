@@ -385,57 +385,6 @@ export function ownerHousingJoinClause(query: any) {
     .andOnVal('rank', 1);
 }
 
-export function queryOwnerHousingWhereClause(
-  queryBuilder: any,
-  query?: string
-) {
-  if (query?.length) {
-    queryBuilder.where(function (whereBuilder: any) {
-      //With more than 20 tokens, the query is likely nor a name neither an address
-      if (query.replaceAll(' ', ',').split(',').length < 20) {
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-          query
-        );
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-          query?.split(' ').reverse().join(' ')
-        );
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
-          query
-        );
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
-          query?.split(' ').reverse().join(' ')
-        );
-        whereBuilder.orWhereRaw(
-          `replace(upper(unaccent(array_to_string(${housingTable}.address_dgfip, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
-          query
-        );
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(array_to_string(${ownerTable}.address_dgfip, '%'))) like '%' || upper(unaccent(?)) || '%'`,
-          query
-        );
-      }
-      whereBuilder.orWhereIn(
-        'invariant',
-        query
-          ?.replaceAll(' ', ',')
-          .split(',')
-          .map((_) => _.trim())
-      );
-      whereBuilder.orWhereIn(
-        'cadastral_reference',
-        query
-          ?.replaceAll(' ', ',')
-          .split(',')
-          .map((_) => _.trim())
-      );
-    });
-  }
-}
-
 function fastListQuery(opts: ListQueryOptions) {
   return db
     .select(`${housingTable}.*`)
@@ -822,7 +771,52 @@ function filteredQuery(opts: ListQueryOptions) {
     if (filters.subStatus?.length) {
       queryBuilder.whereIn('sub_status', filters.subStatus);
     }
-    queryOwnerHousingWhereClause(queryBuilder, filters.query);
+    if (filters.query?.length) {
+      const { query } = filters;
+      queryBuilder.where(function (whereBuilder: any) {
+        // With more than 20 tokens, the query is likely nor a name neither an address
+        if (query.replaceAll(' ', ',').split(',').length < 20) {
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+            query
+          );
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+            query?.split(' ').reverse().join(' ')
+          );
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
+            query
+          );
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
+            query?.split(' ').reverse().join(' ')
+          );
+          whereBuilder.orWhereRaw(
+            `replace(upper(unaccent(array_to_string(${housingTable}.address_dgfip, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
+            query
+          );
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(array_to_string(${ownerTable}.address_dgfip, '%'))) like '%' || upper(unaccent(?)) || '%'`,
+            query
+          );
+        }
+        whereBuilder.orWhereIn(
+          'invariant',
+          query
+            ?.replaceAll(' ', ',')
+            .split(',')
+            .map((_) => _.trim())
+        );
+        whereBuilder.orWhereIn(
+          'cadastral_reference',
+          query
+            ?.replaceAll(' ', ',')
+            .split(',')
+            .map((_) => _.trim())
+        );
+      });
+    }
   };
 }
 

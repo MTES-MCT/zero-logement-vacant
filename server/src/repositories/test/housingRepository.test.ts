@@ -66,7 +66,6 @@ import {
   BENEFIARY_COUNT_VALUES,
   HOUSING_KIND_VALUES,
   isSecondaryOwner,
-  OWNERSHIP_KINDS,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 import {
@@ -455,8 +454,9 @@ describe('Housing repository', () => {
       });
 
       describe('by owner kind', () => {
+        const kinds = ['Particulier', 'Investisseur', 'SCI'];
+
         beforeEach(async () => {
-          const kinds = ['Particulier', 'Investisseur', 'SCI'];
           const housings = Array.from({ length: kinds.length }, () =>
             genHousingApi()
           );
@@ -472,7 +472,7 @@ describe('Housing repository', () => {
           );
         });
 
-        test.each(OWNERSHIP_KINDS)('should filter by %s', async (kind) => {
+        test.each(kinds)('should filter by %s', async (kind) => {
           const actual = await housingRepository.find({
             filters: {
               ownerKinds: [kind]
@@ -623,13 +623,6 @@ describe('Housing repository', () => {
             return { ...genHousingApi(), kind };
           });
           await Housing().insert(housings.map(formatHousingRecordApi));
-          const owners = housings.map((housing) => housing.owner);
-          await Owners().insert(owners.map(formatOwnerApi));
-          await HousingOwners().insert(
-            housings.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [housing.owner])
-            )
-          );
         });
 
         test.each(HOUSING_KIND_VALUES)('should filter by %s', async (kind) => {
@@ -656,13 +649,6 @@ describe('Housing repository', () => {
             { ...genHousingApi(), livingArea: 100 }
           ];
           await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            housingList.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [owner])
-            )
-          );
         });
 
         const tests = [
@@ -713,13 +699,6 @@ describe('Housing repository', () => {
             }
           );
           await Housing().insert(housings.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            housings.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [owner])
-            )
-          );
         });
 
         const tests = ROOM_COUNT_VALUES.map(Number)
@@ -861,13 +840,6 @@ describe('Housing repository', () => {
               vacancyStartYear: ReferenceDataYear - i
             }));
           await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            housingList.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [owner])
-            )
-          );
         });
 
         const tests = [

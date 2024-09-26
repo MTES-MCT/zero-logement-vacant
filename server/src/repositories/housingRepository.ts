@@ -780,15 +780,16 @@ function filteredQuery(opts: ListQueryOptions) {
         .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
     }
     if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
-      queryBuilder.whereExists((builder: any) =>
-        builder
+      queryBuilder.whereExists((subquery) => {
+        subquery
           .select('*')
           .from(geoPerimetersTable)
+          // @ts-expect-error: knex types are wrong here
+          .whereIn('kind', filters.geoPerimetersIncluded)
           .whereRaw(
             `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))`
-          )
-          .whereIn('kind', filters.geoPerimetersIncluded)
-      );
+          );
+      });
     }
     if (filters.geoPerimetersExcluded && filters.geoPerimetersExcluded.length) {
       queryBuilder.whereNotExists(function (whereBuilder: any) {
@@ -895,7 +896,7 @@ export interface HousingRecordDBO {
   beneficiary_count?: number;
   building_location?: string;
   rental_value?: number;
-  condominium?: OwnershipKindsApi;
+  condominium?: string;
   status: HousingStatusApi;
   sub_status?: string | null;
   precisions?: string[];
@@ -954,7 +955,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   vacancyReasons: housing.vacancy_reasons ?? undefined,
   dataYears: housing.data_years,
   dataFileYears: housing.data_file_years ?? [],
-  ownershipKind: getOwnershipKindFromValue(housing.condominium),
+  ownershipKind: housing.condominium,
   status: housing.status,
   subStatus: housing.sub_status ?? undefined,
   precisions: housing.precisions ?? undefined,

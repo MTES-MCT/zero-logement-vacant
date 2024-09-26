@@ -1,5 +1,6 @@
+import type { Geometry, MultiPolygon } from 'geojson';
+
 import db from '~/infra/database';
-import { GeoJSON, Geometry } from 'geojson';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { logger } from '~/infra/logger';
 
@@ -18,7 +19,7 @@ async function insert(
   establishmentId: string,
   kind: string,
   name: string,
-  createdBy?: string,
+  createdBy?: string
 ): Promise<void> {
   const rawGeom =
     geometry.type === 'LineString' || geometry.type === 'MultiLineString'
@@ -28,13 +29,13 @@ async function insert(
   logger.info('Insert geo perimeter', {
     establishment: establishmentId,
     kind,
-    name,
+    name
   });
   await db(geoPerimetersTable).insert(
     db.raw(
       `(kind, name, geom, establishment_id, created_by) values (?, ?, ${rawGeom}, ?, ?)`,
-      [kind, name, JSON.stringify(geometry), establishmentId, createdBy ?? ''],
-    ),
+      [kind, name, JSON.stringify(geometry), establishmentId, createdBy ?? '']
+    )
   );
 }
 
@@ -42,7 +43,7 @@ async function update(geoPerimeterApi: GeoPerimeterApi): Promise<void> {
   logger.info('Update geoPerimeterApi with id', geoPerimeterApi.id);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, establishment_id, geo_json, ...updatedData } =
+  const { id, establishment_id, geom, ...updatedData } =
     formatGeoPerimeterApi(geoPerimeterApi);
 
   await GeoPerimeters().where({ id: geoPerimeterApi.id }).update(updatedData);
@@ -51,7 +52,7 @@ async function update(geoPerimeterApi: GeoPerimeterApi): Promise<void> {
 async function find(establishmentId: string): Promise<GeoPerimeterApi[]> {
   logger.info(
     'List geoPerimeterApi for establishment with id',
-    establishmentId,
+    establishmentId
   );
 
   const geoPerimeters = await GeoPerimeters()
@@ -64,11 +65,11 @@ async function find(establishmentId: string): Promise<GeoPerimeterApi[]> {
 
 async function removeMany(
   geoPerimeterIds: string[],
-  establishmentId: string,
+  establishmentId: string
 ): Promise<void> {
   logger.info('Remove geoPerimeters with ids %s into establishment', {
     geoPerimeter: geoPerimeterIds,
-    establishment: establishmentId,
+    establishment: establishmentId
   });
   await db(geoPerimetersTable)
     .whereIn('id', geoPerimeterIds)
@@ -81,26 +82,27 @@ export interface GeoPerimeterDBO {
   establishment_id: string;
   name: string;
   kind: string;
-  geo_json?: GeoJSON;
+  geom?: MultiPolygon;
 }
 
 export const formatGeoPerimeterApi = (
-  geoPerimeterApi: GeoPerimeterApi,
+  geoPerimeterApi: GeoPerimeterApi
 ): GeoPerimeterDBO => ({
   id: geoPerimeterApi.id,
   establishment_id: geoPerimeterApi.establishmentId,
+  geom: geoPerimeterApi.geometry,
   name: geoPerimeterApi.name,
-  kind: geoPerimeterApi.kind,
+  kind: geoPerimeterApi.kind
 });
 
 export const parseGeoPerimeterApi = (
-  geoPerimeterDbo: GeoPerimeterDBO,
+  geoPerimeterDbo: GeoPerimeterDBO
 ): GeoPerimeterApi => ({
   id: geoPerimeterDbo.id,
   establishmentId: geoPerimeterDbo.establishment_id,
   name: geoPerimeterDbo.name,
   kind: geoPerimeterDbo.kind,
-  geoJson: geoPerimeterDbo.geo_json,
+  geometry: geoPerimeterDbo.geom
 });
 
 export default {
@@ -108,5 +110,5 @@ export default {
   insert,
   update,
   find,
-  removeMany,
+  removeMany
 };

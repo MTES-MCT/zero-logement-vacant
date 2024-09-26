@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import * as turf from '@turf/turf';
 import { differenceInYears } from 'date-fns';
 import fp from 'lodash/fp';
 
@@ -14,6 +15,7 @@ import {
   genBuildingApi,
   genCampaignApi,
   genEstablishmentApi,
+  genGeoPerimeterApi,
   genGroupApi,
   genHousingApi,
   genLocalityApi,
@@ -76,6 +78,11 @@ import {
   formatAddressApi
 } from '~/repositories/banAddressesRepository';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import {
+  formatGeoPerimeterApi,
+  GeoPerimeters
+} from '~/repositories/geoRepository';
+import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
@@ -1275,7 +1282,49 @@ describe('Housing repository', () => {
       });
 
       describe('by included perimeter', () => {
-        // TODO
+        it('should keep housings within the perimeter', async () => {
+          const box = turf.multiPolygon([
+            [
+              [
+                [2, 48],
+                [2, 49],
+                [3, 49],
+                [3, 48],
+                [2, 48]
+              ]
+            ]
+          ]);
+          const perimeter: GeoPerimeterApi = {
+            ...genGeoPerimeterApi(establishment.id),
+            geometry: box.geometry
+          };
+          await GeoPerimeters().insert(formatGeoPerimeterApi(perimeter));
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), longitude: 2.5, latitude: 48.5 },
+            { ...genHousingApi(), longitude: 2, latitude: 47.9 },
+            { ...genHousingApi(), longitude: 1.9, latitude: 48 }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              geoPerimetersIncluded: [perimeter.kind]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            if (
+              housing.longitude === undefined ||
+              housing.latitude === undefined
+            ) {
+              return false;
+            }
+
+            const point = turf.point([housing.longitude, housing.latitude]);
+            return turf.booleanPointInPolygon(point, box);
+          });
+        });
       });
 
       describe('by excluded perimeter', () => {

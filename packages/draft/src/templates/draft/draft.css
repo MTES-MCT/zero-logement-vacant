@@ -35,9 +35,13 @@ p {
   width: 40%;
 }
 
-.header__image {
+.header__image, .footer__image {
   max-width: 140px;
-  height: auto;
+  max-height: 140px;
+  object-fit: contain;
+}
+
+.header__image {
   margin-bottom: 0.5rem;
 }
 

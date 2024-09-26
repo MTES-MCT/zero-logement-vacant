@@ -792,14 +792,15 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.geoPerimetersExcluded && filters.geoPerimetersExcluded.length) {
-      queryBuilder.whereNotExists(function (whereBuilder: any) {
-        whereBuilder
+      queryBuilder.whereNotExists((subquery) => {
+        subquery
           .select(`${geoPerimetersTable}.*`)
           .from(geoPerimetersTable)
+          // @ts-expect-error: knex types are wrong here
+          .whereIn('kind', filters.geoPerimetersExcluded)
           .whereRaw(
             `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))`
-          )
-          .whereIn('kind', filters.geoPerimetersExcluded);
+          );
       });
     }
     if (filters.dataFileYearsIncluded?.length) {

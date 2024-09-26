@@ -1328,7 +1328,46 @@ describe('Housing repository', () => {
       });
 
       describe('by excluded perimeter', () => {
-        // TODO
+        it('should keep housings outside the perimeter', async () => {
+          const box = turf.multiPolygon([
+            [
+              [
+                [2, 48],
+                [2, 49],
+                [3, 49],
+                [3, 48],
+                [2, 48]
+              ]
+            ]
+          ]);
+          const perimeter: GeoPerimeterApi = {
+            ...genGeoPerimeterApi(establishment.id),
+            geometry: box.geometry
+          };
+          await GeoPerimeters().insert(formatGeoPerimeterApi(perimeter));
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), longitude: 2.5, latitude: 48.5 },
+            { ...genHousingApi(), longitude: 2, latitude: 47.9 },
+            { ...genHousingApi(), longitude: 1.9, latitude: 48 }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              geoPerimetersExcluded: [perimeter.kind]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            if (!housing.longitude || !housing.latitude) {
+              return true;
+            }
+
+            const point = turf.point([housing.longitude, housing.latitude]);
+            return !turf.booleanPointInPolygon(point, box);
+          });
+        });
       });
 
       describe('by status', () => {

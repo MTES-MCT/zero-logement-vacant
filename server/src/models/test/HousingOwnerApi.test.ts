@@ -12,9 +12,10 @@ import {
 
 describe('HousingOwnerApi', () => {
   describe('toHousingOwnersApi', () => {
-    it('should map a housing and its owners to housing owners', () => {
-      const housing = genHousingApi();
-      const owners = new Array(5).fill(0).map(genOwnerApi);
+    it('should map a housing and its owners to housing owners', async () => {
+      const housing = await genHousingApi();
+      const geoCode = '67268';
+      const owners = await Promise.all(new Array(5).fill(0).map(async () => await genOwnerApi(geoCode)));
 
       const actual = toHousingOwnersApi(housing, owners);
 
@@ -24,8 +25,10 @@ describe('HousingOwnerApi', () => {
   });
 
   describe('compareHousingOwners', () => {
-    it('should return properties that differ', () => {
-      const a = genHousingOwnerApi(genHousingApi(), genOwnerApi());
+    it('should return properties that differ', async () => {
+      const housingApi = await genHousingApi();
+      const geoCode = '67268';
+      const a = genHousingOwnerApi(housingApi, await genOwnerApi(geoCode));
       const b: HousingOwnerApi = {
         ...a,
         rank: a.rank + 1,
@@ -40,8 +43,10 @@ describe('HousingOwnerApi', () => {
   });
 
   describe('equals', () => {
-    it('should return true if all properties are equal, false otherwise', () => {
-      const a = genHousingOwnerApi(genHousingApi(), genOwnerApi());
+    it('should return true if all properties are equal, false otherwise', async () => {
+      const housingApi = await genHousingApi();
+      const geoCode = '67268';
+      const a = genHousingOwnerApi(housingApi, await genOwnerApi(geoCode));
       const b: HousingOwnerApi = {
         ...a,
         rank: a.rank + 1,

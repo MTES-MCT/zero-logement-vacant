@@ -116,9 +116,9 @@ describe('Source housing processor', () => {
     let events: HousingEventApi[];
     let notes: HousingNoteApi[];
 
-    beforeEach(() => {
+    beforeEach(async () => {
       sourceHousing = genSourceHousing();
-      housing = genHousingApi();
+      housing = await genHousingApi();
       events = [];
       notes = [];
       housingRepository.findOne.mockResolvedValue(housing);
@@ -186,8 +186,10 @@ describe('Source housing processor', () => {
 
     describe(`If the housing has no user notes, no user events about status or occupancy, has status ${HousingStatusApi.Completed} and substatus "Sortie de la vacance"`, () => {
       beforeEach(async () => {
+
+        const housingEventApi = await genHousingEventApi(housing, admin);
         events.push({
-          ...genHousingEventApi(housing, admin),
+          ...housingEventApi,
           name: 'Ajout dans une campagne'
         });
         notes.push(genHousingNoteApi(admin, housing));

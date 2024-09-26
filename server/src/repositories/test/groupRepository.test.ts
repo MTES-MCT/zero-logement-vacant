@@ -114,14 +114,14 @@ describe('Group repository', () => {
     });
   });
 
-  describe('save', () => {
+  describe('save', async () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
-    const housingList: HousingApi[] = [
+    const housingList: HousingApi[] = await Promise.all([
       genHousingApi(),
       genHousingApi(),
       genHousingApi(),
-    ];
+    ]);
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
@@ -152,7 +152,7 @@ describe('Group repository', () => {
     it('should update a group that exists', async () => {
       const group = genGroupApi(user, establishment);
       await Groups().insert(formatGroupApi(group));
-      const newHousing = genHousingApi();
+      const newHousing = await genHousingApi();
       await Housing().insert(formatHousingRecordApi(newHousing));
       const newGroup: GroupApi = {
         ...group,
@@ -206,15 +206,15 @@ describe('Group repository', () => {
     });
   });
 
-  describe('remove', () => {
+  describe('remove', async () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
     const group = genGroupApi(user, establishment);
-    const housingList: HousingApi[] = [
+    const housingList: HousingApi[] = await Promise.all([
       genHousingApi(),
       genHousingApi(),
       genHousingApi(),
-    ];
+    ]);
 
     beforeEach(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));

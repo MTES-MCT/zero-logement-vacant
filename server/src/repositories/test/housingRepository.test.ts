@@ -75,8 +75,8 @@ describe('Housing repository', () => {
     await Users().insert(formatUserApi(user));
   });
 
-  describe('find', () => {
-    const housings = Array.from({ length: 10 }, () => genHousingApi());
+  describe('find', async () => {
+    const housings = await Promise.all(Array.from({ length: 10 }, () => genHousingApi()));
     const owners = housings.map((housing) => housing.owner);
     const housingOwners: HousingOwnerApi[] = housings.map((housing) => ({
       ...housing.owner,
@@ -140,12 +140,12 @@ describe('Housing repository', () => {
 
     describe('Filters', () => {
       it('should filter by housing ids', async () => {
-        const houses: HousingApi[] = Array.from({ length: 4 })
+        const houses: HousingApi[] = await Promise.all(Array.from({ length: 4 })
           .map(() =>
             genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
           )
           // Should not return this one
-          .concat(genHousingApi());
+          .concat(genHousingApi()));
         await Housing().insert(houses.map(formatHousingRecordApi));
 
         const actual = await housingRepository.find({
@@ -160,18 +160,19 @@ describe('Housing repository', () => {
         });
       });
 
-      describe('by living area', () => {
+      describe('by living area', async () => {
         beforeEach(async () => {
-          const housingList: HousingApi[] = [
+          const housingList: HousingApi[] = await Promise.all([
             { ...genHousingApi(), livingArea: 34 },
             { ...genHousingApi(), livingArea: 35 },
             { ...genHousingApi(), livingArea: 74 },
             { ...genHousingApi(), livingArea: 75 },
             { ...genHousingApi(), livingArea: 99 },
             { ...genHousingApi(), livingArea: 100 }
-          ];
+          ]);
           await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
+          const geoCode = '67268';
+          const owner = await genOwnerApi(geoCode);
           await Owners().insert(formatOwnerApi(owner));
           await HousingOwners().insert(
             housingList.flatMap((housing) =>
@@ -217,16 +218,17 @@ describe('Housing repository', () => {
         });
       });
 
-      describe('by vacancy duration', () => {
+      describe('by vacancy duration', async () => {
         beforeEach(async () => {
-          const housingList: HousingApi[] = new Array(12)
+          const housingList: HousingApi[] = await Promise.all(new Array(12)
             .fill('0')
             .map((_, i) => ({
               ...genHousingApi(),
               vacancyStartYear: ReferenceDataYear - i
-            }));
+            })));
           await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
+          const geoCode = '67268';
+          const owner = await genOwnerApi(geoCode);
           await Owners().insert(formatOwnerApi(owner));
           await HousingOwners().insert(
             housingList.flatMap((housing) =>
@@ -293,25 +295,26 @@ describe('Housing repository', () => {
       });
 
       describe('by housing count by building', () => {
-        function createHousingByBuilding(count: number): HousingApi[] {
+        async function createHousingByBuilding(count: number): Promise<HousingApi[]> {
           const buildingId = faker.string.alphanumeric(10);
-          return new Array(count)
+          return await Promise.all(new Array(count)
             .fill('0')
-            .map(() => ({ ...genHousingApi(), buildingId }));
+            .map(() => ({ ...genHousingApi(), buildingId })));
         }
 
         beforeEach(async () => {
-          const housingByBuilding: HousingApi[][] = [
+          const housingByBuilding: HousingApi[][] = await Promise.all([
             createHousingByBuilding(4),
             createHousingByBuilding(5),
             createHousingByBuilding(19),
             createHousingByBuilding(20),
             createHousingByBuilding(49),
             createHousingByBuilding(50)
-          ];
+          ]);
           const housingList = housingByBuilding.flat();
           await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
+          const geoCode = '67268';
+          const owner = await genOwnerApi(geoCode);
           await Owners().insert(formatOwnerApi(owner));
           await HousingOwners().insert(
             housingList.flatMap((housing) =>
@@ -374,21 +377,21 @@ describe('Housing repository', () => {
       });
 
       describe('by vacancy rate by building', () => {
-        function createHousingByBuilding(
+        async function createHousingByBuilding(
           vacant: number,
           other: number
-        ): HousingApi[] {
+        ): Promise<HousingApi[]> {
           const buildingId = faker.string.alphanumeric(10);
-          return new Array(vacant + other).fill('0').map((_, i) => ({
+          return await Promise.all(new Array(vacant + other).fill('0').map((_, i) => ({
             ...genHousingApi(),
             buildingId,
             occupancy:
               i < vacant ? OccupancyKindApi.Vacant : OccupancyKindApi.Rent
-          }));
+          })));
         }
 
         beforeEach(async () => {
-          const housingByBuilding: HousingApi[][] = [
+          const housingByBuilding: HousingApi[][] = await Promise.all([
             createHousingByBuilding(19, 81), // 19 %
             createHousingByBuilding(2, 8), // 20 %
             createHousingByBuilding(39, 61), // 39 %
@@ -397,10 +400,11 @@ describe('Housing repository', () => {
             createHousingByBuilding(6, 4), // 60 %
             createHousingByBuilding(79, 21), // 79 %
             createHousingByBuilding(8, 2) // 80 %
-          ];
+          ]);
           const housingList = housingByBuilding.flat();
           await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
+          const geoCode = '67268';
+          const owner = await genOwnerApi(geoCode);
           await Owners().insert(formatOwnerApi(owner));
           await HousingOwners().insert(
             housingList.flatMap((housing) =>
@@ -473,9 +477,10 @@ describe('Housing repository', () => {
       });
 
       describe('by owner’s age', () => {
-        function createOwner(age: number): OwnerApi {
+        async function createOwner(age: number): Promise<OwnerApi> {
+          const geoCode = '67268';
           return {
-            ...genOwnerApi(),
+            ...(await genOwnerApi(geoCode)),
             birthDate: faker.date
               .birthdate({
                 min: age,
@@ -487,7 +492,7 @@ describe('Housing repository', () => {
         }
 
         beforeAll(async () => {
-          const owners: OwnerApi[] = [
+          const owners: OwnerApi[] = await Promise.all([
             createOwner(39),
             createOwner(40),
             createOwner(59),
@@ -496,9 +501,9 @@ describe('Housing repository', () => {
             createOwner(75),
             createOwner(99),
             createOwner(100)
-          ];
+          ]);
           await Owners().insert(owners.map(formatOwnerApi));
-          const housingList: HousingApi[] = owners.map(() => genHousingApi());
+          const housingList: HousingApi[] = await Promise.all(owners.map(async () => await genHousingApi()));
           await Housing().insert(housingList.map(formatHousingRecordApi));
           await HousingOwners().insert(
             housingList.flatMap((housing, i) =>
@@ -581,10 +586,10 @@ describe('Housing repository', () => {
         await Establishments().insert(
           formatEstablishmentApi(otherEstablishment)
         );
-        const houses: HousingApi[] = [
+        const houses: HousingApi[] = await Promise.all([
           genHousingApi(oneOf(establishment.geoCodes)),
           genHousingApi(oneOf(otherEstablishment.geoCodes))
-        ];
+        ]);
         await Housing().insert(houses.map(formatHousingRecordApi));
 
         const actual = await housingRepository.find({
@@ -599,9 +604,10 @@ describe('Housing repository', () => {
       });
 
       it('should filter by owner ids', async () => {
-        const housingList = new Array(10).fill('0').map(() => genHousingApi());
+        const housingList = await Promise.all(new Array(10).fill('0').map(() => genHousingApi()));
         await Housing().insert(housingList.map(formatHousingRecordApi));
-        const owner = genOwnerApi();
+        const geoCode = '67268';
+        const owner = await genOwnerApi(geoCode);
         await Owners().insert(formatOwnerApi(owner));
         await HousingOwners().insert(
           housingList.flatMap((housing) =>
@@ -650,12 +656,13 @@ describe('Housing repository', () => {
       it('should filter by multi owners', async () => {
         const housingList = new Array(10).fill('0').map(() => genHousingApi());
         await Housing().insert(housingList.map(formatHousingRecordApi));
-        const owner = genOwnerApi();
+        const geoCode = '67268';
+        const owner = await genOwnerApi(geoCode);
         await Owners().insert(formatOwnerApi(owner));
         await HousingOwners().insert(
-          housingList.flatMap((housing) =>
-            formatHousingOwnersApi(housing, [owner])
-          )
+          await Promise.all(housingList.flatMap(async (housing) =>
+            formatHousingOwnersApi(await housing, [owner])
+          ))
         );
 
         const actual = await housingRepository.find({
@@ -701,7 +708,7 @@ describe('Housing repository', () => {
 
       it('should filter by building vacancy rate', async () => {
         const buildingId = faker.string.uuid();
-        const housingList: HousingApi[] = new Array(10)
+        const housingList: HousingApi[] = await Promise.all(new Array(10)
           .fill('0')
           .map(() => genHousingApi())
           .map((housing, i, array) => ({
@@ -712,7 +719,7 @@ describe('Housing repository', () => {
               i === array.length - 1
                 ? OccupancyKindApi.Vacant
                 : OccupancyKindApi.Rent
-          }));
+          })));
         await Housing().insert(housingList.map(formatHousingRecordApi));
         const building: BuildingApi = {
           ...genBuildingApi(housingList),
@@ -742,10 +749,11 @@ describe('Housing repository', () => {
       });
 
       it('should query by an owner’s name', async () => {
-        const housingList = new Array(10).fill('0').map(() => genHousingApi());
+        const housingList = await Promise.all(new Array(10).fill('0').map(() => genHousingApi()));
         await Housing().insert(housingList.map(formatHousingRecordApi));
+        const geoCode = '67268';
         const owner: OwnerApi = {
-          ...genOwnerApi(),
+          ...(await genOwnerApi(geoCode)),
           fullName: 'Jean Dupont'
         };
         await Owners().insert(formatOwnerApi(owner));
@@ -773,12 +781,12 @@ describe('Housing repository', () => {
         );
         await Groups().insert(groups.map(formatGroupApi));
         const housesByGroup = fp.fromPairs(
-          groups.map((group) => {
-            const houses: HousingApi[] = Array.from({ length: 3 }).map(() =>
+          await Promise.all(groups.map(async (group) => {
+            const houses: HousingApi[] = await Promise.all(Array.from({ length: 3 }).map(() =>
               genHousingApi(oneOf(establishment.geoCodes))
-            );
+            ));
             return [group.id, houses];
-          })
+          }))
         );
         const houses: HousingApi[] = fp.values(housesByGroup).flat();
         await Housing().insert(houses.map(formatHousingRecordApi));
@@ -838,8 +846,8 @@ describe('Housing repository', () => {
     });
   });
 
-  describe('findOne', () => {
-    const housing: HousingApi = genHousingApi(oneOf(establishment.geoCodes));
+  describe('findOne', async () => {
+    const housing: HousingApi = await genHousingApi(oneOf(establishment.geoCodes));
     const owner: OwnerApi = genOwnerApi();
     const address: AddressApi = genAddressApi(owner.id, AddressKinds.Owner);
 
@@ -912,10 +920,10 @@ describe('Housing repository', () => {
     });
   });
 
-  describe('stream', () => {
-    const houses: HousingApi[] = Array.from({ length: 5 }).map(() =>
+  describe('stream', async () => {
+    const houses: HousingApi[] = await Promise.all(Array.from({ length: 5 }).map(() =>
       genHousingApi(oneOf(establishment.geoCodes))
-    );
+    ));
 
     beforeAll(async () => {
       await Housing().insert(houses.map(formatHousingRecordApi));
@@ -940,7 +948,7 @@ describe('Housing repository', () => {
 
   describe('save', () => {
     it('should create a housing if it does not exist', async () => {
-      const housing = genHousingApi(oneOf(establishment.geoCodes));
+      const housing = await genHousingApi(oneOf(establishment.geoCodes));
 
       await housingRepository.save(housing);
 
@@ -949,7 +957,7 @@ describe('Housing repository', () => {
     });
 
     it('should update all fields of an existing housing', async () => {
-      const original = genHousingApi(oneOf(establishment.geoCodes));
+      const original = await genHousingApi(oneOf(establishment.geoCodes));
       await Housing().insert(formatHousingRecordApi(original));
       const update: HousingApi = {
         ...original,
@@ -968,8 +976,9 @@ describe('Housing repository', () => {
     });
 
     it('should update specific fields of an existing housing', async () => {
+      const housingApi = await genHousingApi(oneOf(establishment.geoCodes));
       const original: HousingApi = {
-        ...genHousingApi(oneOf(establishment.geoCodes)),
+        ...housingApi,
         occupancy: OccupancyKindApi.Vacant,
         occupancyIntended: OccupancyKindApi.Rent
       };
@@ -996,7 +1005,7 @@ describe('Housing repository', () => {
 
   describe('remove', () => {
     it('should remove the links with a campaign in cascade', async () => {
-      const housing = genHousingApi();
+      const housing = await genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
       const campaign = genCampaignApi(establishment.id, user.id);
       await Campaigns().insert(formatCampaignApi(campaign));
@@ -1015,8 +1024,9 @@ describe('Housing repository', () => {
   });
 
   it('should save null values', async () => {
+    const housingApi = await genHousingApi();
     const housing: HousingApi = {
-      ...genHousingApi(),
+      ...housingApi,
       subStatus: 'Sortie de la vacance'
     };
     await Housing().insert(formatHousingRecordApi(housing));

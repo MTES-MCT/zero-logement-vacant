@@ -27,12 +27,12 @@ import {
 } from '~/repositories/noteRepository';
 import { NoteApi } from '~/models/NoteApi';
 
-describe('Note API', () => {
+describe('Note API', async () => {
   const { app } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
-  const housing = genHousingApi(oneOf(establishment.geoCodes));
+  const housing = await genHousingApi(oneOf(establishment.geoCodes));
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));

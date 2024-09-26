@@ -15,8 +15,9 @@ import {
 describe('housingOwnerRepository', () => {
   describe('insert', () => {
     it('should ignore the conflict if the same owner is inserted twice at the same rank', async () => {
-      const owner = genOwnerApi();
-      const housing = genHousingApi();
+      const geoCode = '67268';
+      const owner = await genOwnerApi(geoCode);
+      const housing = await genHousingApi();
       await Promise.all([
         Owners().insert(formatOwnerApi(owner)),
         Housing().insert(formatHousingRecordApi(housing))
@@ -40,8 +41,9 @@ describe('housingOwnerRepository', () => {
     });
 
     it('should ignore the conflict if the same owner is inserted at two different ranks', async () => {
-      const owner = genOwnerApi();
-      const housing = genHousingApi();
+      const geoCode = '67268';
+      const owner = await genOwnerApi(geoCode);
+      const housing = await genHousingApi();
       await Promise.all([
         Owners().insert(formatOwnerApi(owner)),
         Housing().insert(formatHousingRecordApi(housing))
@@ -78,8 +80,9 @@ describe('housingOwnerRepository', () => {
 
   describe('saveMany', () => {
     it('should replace housing owners', async () => {
-      const existingOwner = genOwnerApi();
-      const housing = genHousingApi();
+      const geoCode = '67268';
+      const existingOwner = await genOwnerApi(geoCode);
+      const housing = await genHousingApi();
       await Promise.all([
         Owners().insert(formatOwnerApi(existingOwner)),
         Housing().insert(formatHousingRecordApi(housing))
@@ -93,7 +96,7 @@ describe('housingOwnerRepository', () => {
       };
       await HousingOwners().insert(formatHousingOwnerApi(existingHousingOwner));
 
-      const newOwner: OwnerApi = genOwnerApi();
+      const newOwner: OwnerApi = await genOwnerApi(geoCode);
       const newHousingOwner: HousingOwnerApi = {
         ...newOwner,
         rank: 1,

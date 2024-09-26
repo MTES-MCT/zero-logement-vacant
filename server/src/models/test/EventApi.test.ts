@@ -10,14 +10,15 @@ import {
 import { UserApi } from '~/models/UserApi';
 
 describe('EventApi', () => {
-  describe('isUserModified', () => {
+  describe('isUserModified', async () => {
     const establishment = genEstablishmentApi();
-    const housing = genHousingApi();
+    const housing = await genHousingApi();
 
-    it('should throw an error if the event creator is missing', () => {
+    it('should throw an error if the event creator is missing', async () => {
       const creator: UserApi = genUserApi(establishment.id);
+      const housingApiEvent = await genHousingEventApi(housing, creator);
       const event: HousingEventApi = {
-        ...genHousingEventApi(housing, creator),
+        ...housingApiEvent,
         creator: undefined
       };
 
@@ -28,12 +29,12 @@ describe('EventApi', () => {
 
     it.each(['@zerologementvacant.beta.gouv.fr', '@beta.gouv.fr'])(
       'should return false if the event creator’s email ends with %s',
-      (domain) => {
+      async (domain) => {
         const creator: UserApi = {
           ...genUserApi(establishment.id),
           email: `admin${domain}`
         };
-        const event = genHousingEventApi(housing, creator);
+        const event = await genHousingEventApi(housing, creator);
 
         const actual = isUserModified(event);
 
@@ -45,9 +46,9 @@ describe('EventApi', () => {
       count: 10
     });
 
-    it.each(emails)('should return true otherwise (%s)', (email) => {
+    it.each(emails)('should return true otherwise (%s)', async (email) => {
       const creator: UserApi = { ...genUserApi(establishment.id), email };
-      const event = genHousingEventApi(housing, creator);
+      const event = await genHousingEventApi(housing, creator);
 
       const actual = isUserModified(event);
 

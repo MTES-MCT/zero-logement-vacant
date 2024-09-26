@@ -37,7 +37,7 @@ describe('Import housing owners from existing housing', () => {
     let owners: OwnerApi[];
 
     beforeEach(async () => {
-      housing = genHousingApi();
+      housing = await genHousingApi();
       datafoncierHousing = {
         ...genDatafoncierHousing(),
         idlocal: housing.localId,
@@ -51,7 +51,8 @@ describe('Import housing owners from existing housing', () => {
         idprocpte: datafoncierHousing.idprocpte,
         dnulp: (i + 1).toString()
       }));
-      owners = Array.from({ length: 6 }, () => genOwnerApi());
+      const geoCode = '67268';
+      owners = await Promise.all(Array.from({ length: 6 }, async () => genOwnerApi(geoCode)));
 
       await DatafoncierHouses().insert(datafoncierHousing);
       await DatafoncierOwners().insert(datafoncierOwners);

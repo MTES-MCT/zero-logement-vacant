@@ -66,11 +66,11 @@ describe('Owner API', () => {
     await Users().insert(formatUserApi(user));
   });
 
-  describe('GET /owners/housing/{id}', () => {
+  describe('GET /owners/housing/{id}', async () => {
     const testRoute = (housingId: string) => `/api/owners/housing/${housingId}`;
 
-    const housing = genHousingApi(oneOf(establishment.geoCodes));
-    const owners: OwnerApi[] = Array.from({ length: 3 }, () => genOwnerApi());
+    const housing = await genHousingApi(oneOf(establishment.geoCodes));
+    const owners: OwnerApi[] = await Promise.all(Array.from({ length: 3 }, () => genOwnerApi(oneOf(establishment.geoCodes))));
 
     beforeAll(async () => {
       await Housing().insert(formatHousingRecordApi(housing));
@@ -102,7 +102,8 @@ describe('Owner API', () => {
     let owner: OwnerApi;
 
     beforeEach(async () => {
-      owner = genOwnerApi();
+      const geoCode = '67268';
+      owner = await genOwnerApi(geoCode);
       await Owners().insert(formatOwnerApi(owner));
     });
 
@@ -178,7 +179,8 @@ describe('Owner API', () => {
     });
 
     it('should create an event if the name or birth date has changed', async () => {
-      const original = genOwnerApi();
+      const geoCode = '67268';
+      const original = await genOwnerApi(geoCode);
       await Owners().insert(formatOwnerApi(original));
       const payload: OwnerPayloadDTO = {
         ...original,
@@ -214,7 +216,8 @@ describe('Owner API', () => {
     });
 
     it('should create an event if the email or phone has changed', async () => {
-      const original = genOwnerApi();
+      const geoCode = '67268';
+      const original = await genOwnerApi(geoCode);
       await Owners().insert(formatOwnerApi(original));
       const payload: OwnerPayloadDTO = {
         ...original,
@@ -247,7 +250,8 @@ describe('Owner API', () => {
     });
 
     it('should create an event if the address has changed', async () => {
-      const original = genOwnerApi();
+      const geoCode = '67268';
+      const original = await genOwnerApi(geoCode);
       const originalAddress = genAddressApi(original.id, AddressKinds.Owner);
       await Owners().insert(formatOwnerApi(original));
       await db(banAddressesTable).insert(formatAddressApi(originalAddress));
@@ -290,11 +294,12 @@ describe('Owner API', () => {
     let housingOwners: ReadonlyArray<HousingOwnerApi>;
 
     beforeEach(async () => {
-      housing = genHousingApi(
+      housing = await genHousingApi(
         faker.helpers.arrayElement(establishment.geoCodes)
       );
       await Housing().insert(formatHousingRecordApi(housing));
-      owners = Array.from({ length: 3 }, genOwnerApi);
+      const geoCode = '67268';
+      owners = await Promise.all(Array.from({ length: 3 }, async () => await genOwnerApi(geoCode)));
       await Owners().insert(owners.map(formatOwnerApi));
       housingOwners = owners.map((owner, i) => {
         return {
@@ -329,11 +334,12 @@ describe('Owner API', () => {
     });
 
     it('should reject if one of the owners is missing', async () => {
+      const geoCode = '67268';
       const payload: HousingOwnerPayloadDTO[] = owners
         .map((owner, i) => {
           return createHousingOwnerPayload(owner, i + 1);
         })
-        .concat(createHousingOwnerPayload(genOwnerApi(), owners.length + 1));
+        .concat(createHousingOwnerPayload(await genOwnerApi(geoCode), owners.length + 1));
 
       const { status } = await request(app)
         .put(testRoute(housing.id))

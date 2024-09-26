@@ -186,9 +186,9 @@ describe('Campaign API', () => {
     it('should create a new campaign', async () => {
       const title = randomstring.generate();
       const description = randomstring.generate();
-      const houses: HousingApi[] = Array.from({ length: 2 }).map(() =>
-        genHousingApi(oneOf(establishment.geoCodes))
-      );
+      const houses: HousingApi[] = await Promise.all(Array.from({ length: 2 }).map(async () =>
+        await genHousingApi(oneOf(establishment.geoCodes))
+      ));
       await Housing().insert(houses.map(formatHousingRecordApi));
       const payload: CampaignCreationPayloadDTO = {
         title,
@@ -239,16 +239,16 @@ describe('Campaign API', () => {
     });
   });
 
-  describe('POST /campaigns/{id}/groups', () => {
+  describe('POST /campaigns/{id}/groups', async () => {
     const testRoute = (id: string) => `/api/campaigns/${id}/groups`;
 
     const geoCode = oneOf(establishment.geoCodes);
     const group = genGroupApi(user, establishment);
-    const groupHousing = [
+    const groupHousing = await Promise.all([
       genHousingApi(geoCode),
       genHousingApi(geoCode),
       genHousingApi(geoCode)
-    ];
+    ]);
     const owners = groupHousing
       .map((housing) => housing.owner)
       .filter(isDefined);
@@ -591,9 +591,9 @@ describe('Campaign API', () => {
     });
 
     it('should delete linked events and campaign housing', async () => {
-      const houses: HousingApi[] = Array.from({ length: 2 }).map(() =>
+      const houses: HousingApi[] = await Promise.all(Array.from({ length: 2 }).map(() =>
         genHousingApi(oneOf(establishment.geoCodes))
-      );
+      ));
       await Housing().insert(houses.map(formatHousingRecordApi));
       const campaignHouses: CampaignHousingDBO[] = houses.map((housing) => ({
         campaign_id: campaign.id,

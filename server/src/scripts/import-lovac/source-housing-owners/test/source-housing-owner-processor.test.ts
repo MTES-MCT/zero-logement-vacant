@@ -128,13 +128,14 @@ describe('Source housing owner processor', () => {
     let housing: HousingApi;
     let departmentalOwners: ReadonlyArray<OwnerApi>;
 
-    beforeEach(() => {
-      housing = genHousingApi();
+    beforeEach(async () => {
+      housing = await genHousingApi();
       housingRepository.findOne.mockResolvedValue(housing);
-      departmentalOwners = sourceOwners.map((sourceOwner) => ({
-        ...genOwnerApi(),
+      const geoCode = '67268';
+      departmentalOwners = await Promise.all(sourceOwners.map(async (sourceOwner) => ({
+        ...await genOwnerApi(geoCode),
         idpersonne: sourceOwner.idpersonne
-      }));
+      })));
       ownerRepository.findOne.mockImplementation(async (idpersonne) => {
         return (
           departmentalOwners.find((owner) => owner.idpersonne === idpersonne) ??
@@ -349,9 +350,10 @@ describe('Source housing owner processor', () => {
   });
 
   describe('isNewHousing', () => {
-    it('should return true if dataFileYears contains only "lovac-2024"', () => {
+    it('should return true if dataFileYears contains only "lovac-2024"', async () => {
+      const housingApi = await genHousingApi();
       const housing: HousingApi = {
-        ...genHousingApi(),
+        ...housingApi,
         dataFileYears: ['lovac-2024']
       };
 
@@ -360,9 +362,10 @@ describe('Source housing owner processor', () => {
       expect(actual).toBeTrue();
     });
 
-    it('should return false otherwise', () => {
+    it('should return false otherwise', async () => {
+      const housingApi = await genHousingApi();
       const housing: HousingApi = {
-        ...genHousingApi(),
+        ...housingApi,
         dataFileYears: ['lovac-2022', 'lovac-2024']
       };
 
@@ -373,9 +376,10 @@ describe('Source housing owner processor', () => {
   });
 
   describe('isSupervised', () => {
-    it('should return true if the status is "in progress" and the substatus is "En accompagnement" or "Intervention publique"', () => {
+    it('should return true if the status is "in progress" and the substatus is "En accompagnement" or "Intervention publique"', async () => {
+      const housingApi = await genHousingApi();
       const housing: HousingApi = {
-        ...genHousingApi(),
+        ...housingApi,
         status: HousingStatusApi.InProgress,
         subStatus: 'En accompagnement'
       };
@@ -385,9 +389,10 @@ describe('Source housing owner processor', () => {
       expect(actual).toBeTrue();
     });
 
-    it('should return false otherwise', () => {
+    it('should return false otherwise', async () => {
+      const housingApi = await genHousingApi();
       const housing: HousingApi = {
-        ...genHousingApi(),
+        ...housingApi,
         status: HousingStatusApi.InProgress,
         subStatus: 'En instruction'
       };
@@ -399,8 +404,8 @@ describe('Source housing owner processor', () => {
   });
 
   describe('isNationalOwner', () => {
-    it('should return true if the housing owner has no _idpersonne_', () => {
-      const housing = genHousingApi();
+    it('should return true if the housing owner has no _idpersonne_', async () => {
+      const housing = await genHousingApi();
       const owner = genOwnerApi();
       const housingOwner: HousingOwnerApi = {
         ...genHousingOwnerApi(housing, owner),
@@ -412,8 +417,8 @@ describe('Source housing owner processor', () => {
       expect(actual).toBeTrue();
     });
 
-    it('should return false if _idpersonne_ is defined', () => {
-      const housing = genHousingApi();
+    it('should return false if _idpersonne_ is defined', async () => {
+      const housing = await genHousingApi();
       const owner = genOwnerApi();
       const housingOwner: HousingOwnerApi = {
         ...genHousingOwnerApi(housing, owner),

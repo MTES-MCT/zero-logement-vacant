@@ -72,9 +72,9 @@ describe('Event repository', () => {
     });
 
     it('should return events linked to a group and a housing', async () => {
-      const houses = Array.from({ length: 3 }).map(() =>
+      const houses = await Promise.all(Array.from({ length: 3 }).map(() =>
         genHousingApi(oneOf(establishment.geoCodes))
-      );
+      ));
       const group = genGroupApi(user, establishment);
       const events: EventApi<GroupApi>[] = houses.map(() => ({
         id: uuidv4(),

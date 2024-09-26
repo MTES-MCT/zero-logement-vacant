@@ -83,6 +83,7 @@ import {
   GeoPerimeters
 } from '~/repositories/geoRepository';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
+import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
@@ -1421,7 +1422,30 @@ describe('Housing repository', () => {
       });
 
       describe('by status', () => {
-        // TODO
+        beforeEach(async () => {
+          const housings: ReadonlyArray<HousingApi> = HOUSING_STATUS_VALUES.map(
+            (status) => {
+              return { ...genHousingApi(), status };
+            }
+          );
+          await Housing().insert(housings.map(formatHousingRecordApi));
+        });
+
+        test.each(HOUSING_STATUS_VALUES)(
+          'should keep housings with status %s',
+          async (status) => {
+            const actual = await housingRepository.find({
+              filters: {
+                statusList: [status]
+              }
+            });
+
+            expect(actual.length).toBeGreaterThan(0);
+            expect(actual).toSatisfyAll<HousingApi>(
+              (housing) => housing.status === status
+            );
+          }
+        );
       });
 
       describe('by substatus', () => {

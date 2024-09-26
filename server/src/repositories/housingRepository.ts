@@ -487,14 +487,14 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.multiOwners?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
+      queryBuilder.where((where) => {
         if (filters.multiOwners?.includes('true')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
           );
         }
         if (filters.multiOwners?.includes('false')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
           );
         }
@@ -532,18 +532,18 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.whereIn('housing_kind', filters.housingKinds);
     }
     if (filters.housingAreas?.length) {
-      queryBuilder.where((whereBuilder) => {
+      queryBuilder.where((where) => {
         if (filters.housingAreas?.includes('lt35')) {
-          whereBuilder.orWhereBetween('living_area', [0, 34]);
+          where.orWhereBetween('living_area', [0, 34]);
         }
         if (filters.housingAreas?.includes('35to74')) {
-          whereBuilder.orWhereBetween('living_area', [35, 74]);
+          where.orWhereBetween('living_area', [35, 74]);
         }
         if (filters.housingAreas?.includes('75to99')) {
-          whereBuilder.orWhereBetween('living_area', [75, 99]);
+          where.orWhereBetween('living_area', [75, 99]);
         }
         if (filters.housingAreas?.includes('gte100')) {
-          whereBuilder.orWhereRaw('living_area >= 100');
+          where.orWhereRaw('living_area >= 100');
         }
       });
     }
@@ -672,47 +672,43 @@ function filteredQuery(opts: ListQueryOptions) {
     }
 
     if (filters.housingCounts?.length) {
-      queryBuilder.where((whereBuilder) => {
+      queryBuilder.where((where) => {
         if (filters.housingCounts?.includes('lt5')) {
-          whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
+          where.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
         }
         if (filters.housingCounts?.includes('5to19')) {
-          whereBuilder.orWhereBetween('housing_count', [5, 19]);
+          where.orWhereBetween('housing_count', [5, 19]);
         }
         if (filters.housingCounts?.includes('20to49')) {
-          whereBuilder.orWhereBetween('housing_count', [20, 49]);
+          where.orWhereBetween('housing_count', [20, 49]);
         }
         if (filters.housingCounts?.includes('gte50')) {
-          whereBuilder.orWhereRaw('housing_count >= 50');
+          where.orWhereRaw('housing_count >= 50');
         }
       });
     }
     if (filters.vacancyRates?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
+      queryBuilder.where((where) => {
         if (filters.vacancyRates?.includes('lt20')) {
-          whereBuilder.orWhereRaw(
-            'vacant_housing_count * 100 / housing_count < 20'
-          );
+          where.orWhereRaw('vacant_housing_count * 100 / housing_count < 20');
         }
         if (filters.vacancyRates?.includes('20to39')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'vacant_housing_count * 100 / housing_count between 20 and 39'
           );
         }
         if (filters.vacancyRates?.includes('40to59')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'vacant_housing_count * 100 / housing_count between 40 and 59'
           );
         }
         if (filters.vacancyRates?.includes('60to79')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'vacant_housing_count * 100 / housing_count between 60 and 79'
           );
         }
         if (filters.vacancyRates?.includes('gte80')) {
-          whereBuilder.orWhereRaw(
-            'vacant_housing_count * 100 / housing_count >= 80'
-          );
+          where.orWhereRaw('vacant_housing_count * 100 / housing_count >= 80');
         }
       });
     }

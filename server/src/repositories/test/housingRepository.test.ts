@@ -1225,7 +1225,28 @@ describe('Housing repository', () => {
       });
 
       describe('by locality', () => {
-        // TODO
+        const geoCodes = ['12345', '23456', '34567'];
+
+        beforeEach(async () => {
+          const housings = geoCodes.map((geoCode) => genHousingApi(geoCode));
+          await Housing().insert(housings.map(formatHousingRecordApi));
+        });
+
+        test.each(geoCodes)(
+          `should keep housings that have the geo code %s`,
+          async (geoCode) => {
+            const actual = await housingRepository.find({
+              filters: {
+                localities: [geoCode]
+              }
+            });
+
+            expect(actual.length).toBeGreaterThan(0);
+            expect(actual).toSatisfyAll<HousingApi>(
+              (housing) => housing.geoCode === geoCode
+            );
+          }
+        );
       });
 
       it('should filter by locality kind', async () => {

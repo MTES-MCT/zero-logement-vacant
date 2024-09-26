@@ -1,4 +1,4 @@
-import { HousingFiltersDTO } from '@zerologementvacant/models';
+import { HousingFiltersDTO, OwnershipKind } from '@zerologementvacant/models';
 import { OptionTreeElement, SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import {
@@ -211,7 +211,7 @@ export const taxedOptions: SelectOption[] = [
   { value: 'false', label: 'Non', badgeLabel: 'Non taxé' }
 ];
 
-export const ownershipKindsOptions: SelectOption[] = [
+export const ownershipKindsOptions: SelectOption<OwnershipKind>[] = [
   {
     value: OwnershipKinds.Single,
     label: OwnershipKindLabels[OwnershipKinds.Single]

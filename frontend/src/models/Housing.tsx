@@ -5,8 +5,7 @@ import {
   HousingDTO,
   HousingKind,
   HousingStatus,
-  Occupancy,
-  OwnershipKind
+  Occupancy
 } from '@zerologementvacant/models';
 import { Owner, toOwnerDTO } from './Owner';
 import { HousingStatus as DeprecatedHousingStatus } from './HousingState';
@@ -272,7 +271,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     dataFileYears: housing.dataFileYears,
     buildingLocation: housing.buildingLocation,
     // TODO: fix this by making Housing extend HousingDTO
-    ownershipKind: housing.ownershipKind as unknown as OwnershipKind,
+    ownershipKind: housing.ownershipKind,
     status: housing.status as unknown as HousingStatus,
     subStatus: housing.subStatus,
     precisions: housing.precisions,

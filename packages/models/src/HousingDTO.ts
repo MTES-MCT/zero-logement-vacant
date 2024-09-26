@@ -1,5 +1,4 @@
 import { OwnerDTO } from './OwnerDTO';
-import { OwnershipKind } from './OwnershipKind';
 import { HousingStatus } from './HousingStatus';
 import { EnergyConsumption } from './EnergyConsumption';
 import { Occupancy } from './Occupancy';
@@ -31,7 +30,7 @@ export interface HousingDTO {
   beneficiaryCount?: number;
   buildingLocation?: string;
   rentalValue?: number;
-  ownershipKind?: OwnershipKind;
+  ownershipKind?: string;
   status: HousingStatus;
   subStatus?: string;
   precisions?: string[];

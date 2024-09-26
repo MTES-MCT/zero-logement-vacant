@@ -7,13 +7,12 @@ import { HousingSource, PaginationOptions } from '@zerologementvacant/shared';
 import db, { toRawArray, where } from '~/infra/database';
 import {
   EnergyConsumptionGradesApi,
-  getOwnershipKindFromValue,
   HousingApi,
   HousingRecordApi,
   HousingSortApi,
-  OccupancyKindApi,
-  OwnershipKindsApi,
-  OwnershipKindValues
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES,
+  OccupancyKindApi
 } from '~/models/HousingApi';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
@@ -687,23 +686,30 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.ownershipKinds?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.Single) !== -1) {
-          whereBuilder.orWhereNull('ownership_kind');
+      queryBuilder.where((where) => {
+        if (filters.ownershipKinds?.includes('single')) {
+          where
+            .orWhereNull(`${housingTable}.condominium`)
+            .orWhereIn(
+              `${housingTable}.condominium`,
+              INTERNAL_MONO_CONDOMINIUM_VALUES
+            );
         }
-        if (
-          filters.ownershipKinds?.indexOf(OwnershipKindsApi.CoOwnership) !== -1
-        ) {
-          whereBuilder.orWhereIn(
-            'ownership_kind',
-            OwnershipKindValues[OwnershipKindsApi.CoOwnership]
+        if (filters.ownershipKinds?.includes('co')) {
+          where.orWhereIn(
+            `${housingTable}.condominium`,
+            INTERNAL_CO_CONDOMINIUM_VALUES
           );
         }
-        if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.Other) !== -1) {
-          whereBuilder.orWhereIn(
-            'ownership_kind',
-            OwnershipKindValues[OwnershipKindsApi.Other]
-          );
+        if (filters.ownershipKinds?.includes('other')) {
+          where.orWhere((orWhere) => {
+            orWhere
+              .whereNotNull(`${housingTable}.condominium`)
+              .whereNotIn(`${housingTable}.condominium`, [
+                ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+                ...INTERNAL_CO_CONDOMINIUM_VALUES
+              ]);
+          });
         }
       });
     }

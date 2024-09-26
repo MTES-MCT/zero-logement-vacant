@@ -38,6 +38,8 @@ import {
 import {
   EnergyConsumptionGradesApi,
   HousingApi,
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES,
   OccupancyKindApi
 } from '~/models/HousingApi';
 import { formatLocalityApi, Localities } from '../localityRepository';
@@ -66,6 +68,7 @@ import {
   BENEFIARY_COUNT_VALUES,
   HOUSING_KIND_VALUES,
   isSecondaryOwner,
+  OwnershipKind,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 import {
@@ -935,7 +938,110 @@ describe('Housing repository', () => {
       });
 
       describe('by ownership kind', () => {
-        // TODO
+        beforeEach(async () => {
+          const housings: ReadonlyArray<HousingApi> = [
+            // Monopropriété
+            { ...genHousingApi(), ownershipKind: 'single' },
+            { ...genHousingApi(), ownershipKind: undefined },
+            // Copropriété
+            { ...genHousingApi(), ownershipKind: 'CL' },
+            { ...genHousingApi(), ownershipKind: 'co' },
+            { ...genHousingApi(), ownershipKind: 'CLV' },
+            { ...genHousingApi(), ownershipKind: 'CV' },
+            // Autre
+            { ...genHousingApi(), ownershipKind: 'BND' },
+            { ...genHousingApi(), ownershipKind: 'MP' },
+            { ...genHousingApi(), ownershipKind: 'TF' }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+        });
+
+        const tests: ReadonlyArray<{
+          name: string;
+          filter: OwnershipKind[];
+          predicate: Predicate<HousingApi>;
+        }> = [
+          {
+            name: 'housings that are single-owned',
+            filter: ['single'],
+            predicate: (housing: HousingApi) =>
+              !housing.ownershipKind || housing.ownershipKind === 'single'
+          },
+          {
+            name: 'housings that are co-owned',
+            filter: ['co'],
+            predicate: (housing: HousingApi) => {
+              return (
+                !!housing.ownershipKind &&
+                (
+                  INTERNAL_CO_CONDOMINIUM_VALUES as ReadonlyArray<string>
+                ).includes(housing.ownershipKind)
+              );
+            }
+          },
+          {
+            name: 'other housings',
+            filter: ['other'],
+            predicate: (housing: HousingApi) => {
+              const values = [
+                ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+                ...INTERNAL_CO_CONDOMINIUM_VALUES
+              ] as ReadonlyArray<string>;
+              return (
+                !!housing.ownershipKind &&
+                !values.includes(housing.ownershipKind)
+              );
+            }
+          },
+          {
+            name: 'single-owned and co-owned housings',
+            filter: ['single', 'co'],
+            predicate: (housing: HousingApi) => {
+              const values = [
+                ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+                ...INTERNAL_CO_CONDOMINIUM_VALUES
+              ] as ReadonlyArray<string>;
+              return (
+                !housing.ownershipKind || values.includes(housing.ownershipKind)
+              );
+            }
+          },
+          {
+            name: 'single-owned and other housings',
+            filter: ['single', 'other'],
+            predicate: (housing: HousingApi) => {
+              const values =
+                INTERNAL_CO_CONDOMINIUM_VALUES as ReadonlyArray<string>;
+              return (
+                !housing.ownershipKind ||
+                !values.includes(housing.ownershipKind)
+              );
+            }
+          },
+          {
+            name: 'co-owned and other housings',
+            filter: ['co', 'other'],
+            predicate: (housing: HousingApi) => {
+              const values =
+                INTERNAL_MONO_CONDOMINIUM_VALUES as ReadonlyArray<string>;
+              return (
+                !!housing.ownershipKind &&
+                !values.includes(housing.ownershipKind)
+              );
+            }
+          }
+        ];
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              ownershipKinds: filter
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>(predicate);
+        });
       });
 
       describe('by housing count by building', () => {

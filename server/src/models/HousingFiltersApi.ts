@@ -1,8 +1,5 @@
-import {
-  EnergyConsumptionGradesApi,
-  OccupancyKindApi,
-  OwnershipKindsApi
-} from './HousingApi';
+import { OwnershipKind } from '@zerologementvacant/models';
+import { EnergyConsumptionGradesApi, OccupancyKindApi } from './HousingApi';
 import { body, ValidationChain } from 'express-validator';
 import { isArrayOf, isInteger, isString, isUUID } from '~/utils/validators';
 
@@ -25,7 +22,7 @@ export interface HousingFiltersApi {
   buildingPeriods?: string[];
   vacancyDurations?: string[];
   isTaxedValues?: string[];
-  ownershipKinds?: OwnershipKindsApi[];
+  ownershipKinds?: OwnershipKind[];
   housingCounts?: string[];
   // TODO: type there based on housing repository values
   vacancyRates?: string[];

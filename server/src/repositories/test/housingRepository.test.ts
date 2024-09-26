@@ -1449,7 +1449,28 @@ describe('Housing repository', () => {
       });
 
       describe('by substatus', () => {
-        // TODO
+        const substatus = 'Intervention publique';
+
+        beforeEach(async () => {
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), subStatus: substatus },
+            { ...genHousingApi(), subStatus: 'Autre' }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+        });
+
+        it(`should keep housings with substatus "${substatus}"`, async () => {
+          const actual = await housingRepository.find({
+            filters: {
+              subStatus: [substatus]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>(
+            (housing) => housing.subStatus === substatus
+          );
+        });
       });
 
       it('should query by an owner’s name', async () => {

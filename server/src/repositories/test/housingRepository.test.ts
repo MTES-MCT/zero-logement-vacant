@@ -401,186 +401,6 @@ describe('Housing repository', () => {
         });
       });
 
-      describe('by housing count by building', () => {
-        function createHousingByBuilding(count: number): HousingApi[] {
-          const buildingId = faker.string.alphanumeric(10);
-          return new Array(count)
-            .fill('0')
-            .map(() => ({ ...genHousingApi(), buildingId }));
-        }
-
-        beforeEach(async () => {
-          const housingByBuilding: HousingApi[][] = [
-            createHousingByBuilding(4),
-            createHousingByBuilding(5),
-            createHousingByBuilding(19),
-            createHousingByBuilding(20),
-            createHousingByBuilding(49),
-            createHousingByBuilding(50)
-          ];
-          const housingList = housingByBuilding.flat();
-          await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            housingList.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [owner])
-            )
-          );
-          const buildings: BuildingApi[] = housingByBuilding.map(
-            (housingList) => genBuildingApi(housingList)
-          );
-          await Buildings().insert(buildings.map(formatBuildingApi));
-        });
-
-        const tests = [
-          {
-            name: 'less than 5',
-            filter: ['lt5'],
-            predicate: (building: BuildingApi) => {
-              return building.housingCount < 5;
-            }
-          },
-          {
-            name: 'between 5 and 19',
-            filter: ['5to19'],
-            predicate: (building: BuildingApi) => {
-              return 5 <= building.housingCount && building.housingCount <= 19;
-            }
-          },
-          {
-            name: 'between 20 and 49',
-            filter: ['20to49'],
-            predicate: (building: BuildingApi) => {
-              return 20 <= building.housingCount && building.housingCount <= 49;
-            }
-          },
-          {
-            name: '50 and more',
-            filter: ['gte50'],
-            predicate: (building: BuildingApi) => {
-              return building.housingCount >= 50;
-            }
-          }
-        ];
-
-        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
-          const actual = await housingRepository.find({
-            filters: {
-              housingCounts: filter
-            }
-          });
-
-          expect(actual.length).toBeGreaterThan(0);
-          const ids = fp.uniq(
-            actual.map((housing) => housing.buildingId).filter(isDefined)
-          );
-          const buildings = await Buildings()
-            .whereIn('id', ids)
-            .then((buildings) => buildings.map(parseBuildingApi));
-          expect(buildings).toSatisfyAll<BuildingApi>(predicate);
-        });
-      });
-
-      describe('by vacancy rate by building', () => {
-        function createHousingByBuilding(
-          vacant: number,
-          other: number
-        ): HousingApi[] {
-          const buildingId = faker.string.alphanumeric(10);
-          return new Array(vacant + other).fill('0').map((_, i) => ({
-            ...genHousingApi(),
-            buildingId,
-            occupancy:
-              i < vacant ? OccupancyKindApi.Vacant : OccupancyKindApi.Rent
-          }));
-        }
-
-        beforeEach(async () => {
-          const housingByBuilding: HousingApi[][] = [
-            createHousingByBuilding(19, 81), // 19 %
-            createHousingByBuilding(2, 8), // 20 %
-            createHousingByBuilding(39, 61), // 39 %
-            createHousingByBuilding(4, 6), // 40 %
-            createHousingByBuilding(59, 41), // 59 %
-            createHousingByBuilding(6, 4), // 60 %
-            createHousingByBuilding(79, 21), // 79 %
-            createHousingByBuilding(8, 2) // 80 %
-          ];
-          const housingList = housingByBuilding.flat();
-          await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            housingList.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [owner])
-            )
-          );
-          const buildings: BuildingApi[] = housingByBuilding.map(
-            (housingList) => genBuildingApi(housingList)
-          );
-          await Buildings().insert(buildings.map(formatBuildingApi));
-        });
-
-        const tests = [
-          {
-            name: 'less than 20 %',
-            filter: ['lt20'],
-            predicate: (building: BuildingApi) => {
-              return building.vacantHousingCount / building.housingCount < 0.2;
-            }
-          },
-          {
-            name: 'between 20 and 39 %',
-            filter: ['20to39'],
-            predicate: (building: BuildingApi) => {
-              const rate = building.vacantHousingCount / building.housingCount;
-              return 0.2 <= rate && rate <= 0.39;
-            }
-          },
-          {
-            name: 'between 40 and 59 %',
-            filter: ['40to59'],
-            predicate: (building: BuildingApi) => {
-              const rate = building.vacantHousingCount / building.housingCount;
-              return 0.4 <= rate && rate <= 0.59;
-            }
-          },
-          {
-            name: 'between 60 and 79 %',
-            filter: ['60to79'],
-            predicate: (building: BuildingApi) => {
-              const rate = building.vacantHousingCount / building.housingCount;
-              return 0.6 <= rate && rate <= 0.79;
-            }
-          },
-          {
-            name: '80 % and more',
-            filter: ['gte80'],
-            predicate: (building: BuildingApi) => {
-              return building.vacantHousingCount / building.housingCount >= 0.8;
-            }
-          }
-        ];
-
-        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
-          const actual = await housingRepository.find({
-            filters: {
-              vacancyRates: filter
-            }
-          });
-
-          expect(actual.length).toBeGreaterThan(0);
-          const ids = fp.uniq(
-            actual.map((housing) => housing.buildingId).filter(isDefined)
-          );
-          const buildings = await Buildings()
-            .whereIn('id', ids)
-            .then((buildings) => buildings.map(parseBuildingApi));
-          expect(buildings).toSatisfyAll<BuildingApi>(predicate);
-        });
-      });
-
       describe('by owner’s age', () => {
         function createOwner(age: number): OwnerApi {
           return {
@@ -711,11 +531,12 @@ describe('Housing repository', () => {
 
       describe('by owner kind', () => {
         beforeEach(async () => {
-          const housings = Array.from({ length: OWNERSHIP_KINDS.length }, () =>
+          const kinds = ['Particulier', 'Investisseur', 'SCI'];
+          const housings = Array.from({ length: kinds.length }, () =>
             genHousingApi()
           );
           await Housing().insert(housings.map(formatHousingRecordApi));
-          const owners: OwnerApi[] = OWNERSHIP_KINDS.map((kind, i) => {
+          const owners: OwnerApi[] = kinds.map((kind, i) => {
             return { ...housings[i].owner, kind };
           });
           await Owners().insert(owners.map(formatOwnerApi));
@@ -1007,6 +828,231 @@ describe('Housing repository', () => {
         });
       });
 
+      describe('by cadastral classification', () => {
+        it('should filter by cadastral classification', async () => {
+          const cadastralClassifications = housings
+            .slice(0, 3)
+            .map((housing) => housing.cadastralClassification)
+            .map(String);
+
+          const actual = await housingRepository.find({
+            filters: {
+              cadastralClassifications
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return (
+              housing.cadastralClassification !== undefined &&
+              cadastralClassifications
+                .map(Number)
+                .includes(housing.cadastralClassification)
+            );
+          });
+        });
+      });
+
+      describe('by building period', () => {
+        // TODO
+      });
+
+      describe('by vacancy duration', () => {
+        // TODO
+      });
+
+      describe('by taxed boolean', () => {
+        // TODO
+      });
+
+      describe('by ownership kind', () => {
+        // TODO
+      });
+
+      describe('by housing count by building', () => {
+        function createHousingByBuilding(count: number): HousingApi[] {
+          const buildingId = faker.string.alphanumeric(10);
+          return new Array(count)
+            .fill('0')
+            .map(() => ({ ...genHousingApi(), buildingId }));
+        }
+
+        beforeEach(async () => {
+          const housingByBuilding: HousingApi[][] = [
+            createHousingByBuilding(4),
+            createHousingByBuilding(5),
+            createHousingByBuilding(19),
+            createHousingByBuilding(20),
+            createHousingByBuilding(49),
+            createHousingByBuilding(50)
+          ];
+          const housingList = housingByBuilding.flat();
+          await Housing().insert(housingList.map(formatHousingRecordApi));
+          const owner = genOwnerApi();
+          await Owners().insert(formatOwnerApi(owner));
+          await HousingOwners().insert(
+            housingList.flatMap((housing) =>
+              formatHousingOwnersApi(housing, [owner])
+            )
+          );
+          const buildings: BuildingApi[] = housingByBuilding.map(
+            (housingList) => genBuildingApi(housingList)
+          );
+          await Buildings().insert(buildings.map(formatBuildingApi));
+        });
+
+        const tests = [
+          {
+            name: 'less than 5',
+            filter: ['lt5'],
+            predicate: (building: BuildingApi) => {
+              return building.housingCount < 5;
+            }
+          },
+          {
+            name: 'between 5 and 19',
+            filter: ['5to19'],
+            predicate: (building: BuildingApi) => {
+              return 5 <= building.housingCount && building.housingCount <= 19;
+            }
+          },
+          {
+            name: 'between 20 and 49',
+            filter: ['20to49'],
+            predicate: (building: BuildingApi) => {
+              return 20 <= building.housingCount && building.housingCount <= 49;
+            }
+          },
+          {
+            name: '50 and more',
+            filter: ['gte50'],
+            predicate: (building: BuildingApi) => {
+              return building.housingCount >= 50;
+            }
+          }
+        ];
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              housingCounts: filter
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          const ids = fp.uniq(
+            actual.map((housing) => housing.buildingId).filter(isDefined)
+          );
+          const buildings = await Buildings()
+            .whereIn('id', ids)
+            .then((buildings) => buildings.map(parseBuildingApi));
+          expect(buildings).toSatisfyAll<BuildingApi>(predicate);
+        });
+      });
+
+      describe('by vacancy rate by building', () => {
+        function createHousingByBuilding(
+          vacant: number,
+          other: number
+        ): HousingApi[] {
+          const buildingId = faker.string.alphanumeric(10);
+          return new Array(vacant + other).fill('0').map((_, i) => ({
+            ...genHousingApi(),
+            buildingId,
+            occupancy:
+              i < vacant ? OccupancyKindApi.Vacant : OccupancyKindApi.Rent
+          }));
+        }
+
+        beforeEach(async () => {
+          const housingByBuilding: HousingApi[][] = [
+            createHousingByBuilding(19, 81), // 19 %
+            createHousingByBuilding(2, 8), // 20 %
+            createHousingByBuilding(39, 61), // 39 %
+            createHousingByBuilding(4, 6), // 40 %
+            createHousingByBuilding(59, 41), // 59 %
+            createHousingByBuilding(6, 4), // 60 %
+            createHousingByBuilding(79, 21), // 79 %
+            createHousingByBuilding(8, 2) // 80 %
+          ];
+          const housingList = housingByBuilding.flat();
+          await Housing().insert(housingList.map(formatHousingRecordApi));
+          const owner = genOwnerApi();
+          await Owners().insert(formatOwnerApi(owner));
+          await HousingOwners().insert(
+            housingList.flatMap((housing) =>
+              formatHousingOwnersApi(housing, [owner])
+            )
+          );
+          const buildings: BuildingApi[] = housingByBuilding.map(
+            (housingList) => genBuildingApi(housingList)
+          );
+          await Buildings().insert(buildings.map(formatBuildingApi));
+        });
+
+        const tests = [
+          {
+            name: 'less than 20 %',
+            filter: ['lt20'],
+            predicate: (building: BuildingApi) => {
+              return building.vacantHousingCount / building.housingCount < 0.2;
+            }
+          },
+          {
+            name: 'between 20 and 39 %',
+            filter: ['20to39'],
+            predicate: (building: BuildingApi) => {
+              const rate = building.vacantHousingCount / building.housingCount;
+              return 0.2 <= rate && rate <= 0.39;
+            }
+          },
+          {
+            name: 'between 40 and 59 %',
+            filter: ['40to59'],
+            predicate: (building: BuildingApi) => {
+              const rate = building.vacantHousingCount / building.housingCount;
+              return 0.4 <= rate && rate <= 0.59;
+            }
+          },
+          {
+            name: 'between 60 and 79 %',
+            filter: ['60to79'],
+            predicate: (building: BuildingApi) => {
+              const rate = building.vacantHousingCount / building.housingCount;
+              return 0.6 <= rate && rate <= 0.79;
+            }
+          },
+          {
+            name: '80 % and more',
+            filter: ['gte80'],
+            predicate: (building: BuildingApi) => {
+              return building.vacantHousingCount / building.housingCount >= 0.8;
+            }
+          }
+        ];
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              vacancyRates: filter
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          const ids = fp.uniq(
+            actual.map((housing) => housing.buildingId).filter(isDefined)
+          );
+          const buildings = await Buildings()
+            .whereIn('id', ids)
+            .then((buildings) => buildings.map(parseBuildingApi));
+          expect(buildings).toSatisfyAll<BuildingApi>(predicate);
+        });
+      });
+
+      describe('by locality', () => {
+        // TODO
+      });
+
       it('should filter by locality kind', async () => {
         const localities: LocalityApi[] = [
           { ...genLocalityApi(), kind: 'ACV' },
@@ -1032,46 +1078,20 @@ describe('Housing repository', () => {
         );
       });
 
-      it('should filter by building vacancy rate', async () => {
-        const buildingId = faker.string.uuid();
-        const housingList: HousingApi[] = new Array(10)
-          .fill('0')
-          .map(() => genHousingApi())
-          .map((housing, i, array) => ({
-            ...housing,
-            buildingId,
-            // Create one vacant housing and nine others
-            occupancy:
-              i === array.length - 1
-                ? OccupancyKindApi.Vacant
-                : OccupancyKindApi.Rent
-          }));
-        await Housing().insert(housingList.map(formatHousingRecordApi));
-        const building: BuildingApi = {
-          ...genBuildingApi(housingList),
-          id: buildingId
-        };
-        expect(building.vacantHousingCount).toBe(1);
-        await Buildings().insert(formatBuildingApi(building));
+      describe('by included perimeter', () => {
+        // TODO
+      });
 
-        const actual = await housingRepository.find({
-          filters: {
-            vacancyRates: ['lt20']
-          }
-        });
+      describe('by excluded perimeter', () => {
+        // TODO
+      });
 
-        const buildingIds = fp.uniq(
-          actual.map((housing) => housing.buildingId)
-        );
-        await async.forEach(buildingIds, async (id) => {
-          const building = await Buildings().where('id', id).first();
-          expect(building).toBeDefined();
-          if (building) {
-            expect(
-              building.vacant_housing_count / building.housing_count
-            ).toSatisfy((rate) => rate <= 0.2);
-          }
-        });
+      describe('by status', () => {
+        // TODO
+      });
+
+      describe('by substatus', () => {
+        // TODO
       });
 
       it('should query by an owner’s name', async () => {

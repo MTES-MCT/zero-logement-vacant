@@ -614,7 +614,7 @@ function filteredQuery(opts: ListQueryOptions) {
     }
     if (filters.cadastralClassifications?.length) {
       queryBuilder.whereIn(
-        'cadastral_classification',
+        `${housingTable}.cadastral_classification`,
         filters.cadastralClassifications
       );
     }

@@ -244,7 +244,9 @@ const previewValidators: ValidationChain[] = [
     .notEmpty()
     .withMessage('kind is required'),
   body('housing.livingArea').isInt().notEmpty(),
-  body('housing.buildingYear').isInt().notEmpty(),
+  body('housing.buildingYear').optional({
+    nullable: true
+  }).isInt(),
   body('housing.energyConsumption')
     .optional({
       nullable: true

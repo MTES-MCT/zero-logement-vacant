@@ -31,7 +31,6 @@ import {
   statusOptions,
   taxedOptions,
   unselectedOptions,
-  vacancyDurationOptions,
   vacancyRateOptions
 } from '../../models/HousingFilters';
 import styles from './housing-list-filters.module.scss';
@@ -408,19 +407,6 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Durée de vacance"
-              options={vacancyDurationOptions}
-              initialValues={filters.vacancyDurations}
-              onChange={(values) =>
-                onChangeFilters(
-                  { vacancyDurations: values },
-                  'Durée de vacance'
-                )
-              }
-            />
-          </Grid>
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
               label="Nombre de pièces"
               options={roomsCountOptions}
               initialValues={filters.roomsCounts ?? []}
@@ -515,9 +501,7 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
         </Accordion>
         <Accordion
-          label={
-            <TitleWithIcon icon="fr-icon-server-line" title="Données" />
-          }
+          label={<TitleWithIcon icon="fr-icon-server-line" title="Données" />}
         >
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect

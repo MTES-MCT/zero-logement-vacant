@@ -1370,6 +1370,56 @@ describe('Housing repository', () => {
         });
       });
 
+      describe('by included data file year', () => {
+        beforeEach(async () => {
+          const housings = Array.from({ length: 10 }, () => genHousingApi());
+          await Housing().insert(housings.map(formatHousingRecordApi));
+        });
+
+        it('should keep housings that belong to the given data file year', async () => {
+          const dataFileYears = ['lovac-2023', 'lovac-2024'];
+
+          const actual = await housingRepository.find({
+            filters: {
+              dataFileYearsIncluded: dataFileYears
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            const set = new Set(dataFileYears);
+            return housing.dataFileYears.some((dataFileYear) =>
+              set.has(dataFileYear)
+            );
+          });
+        });
+      });
+
+      describe('by excluded data file year', () => {
+        beforeEach(() => {
+          const housings = Array.from({ length: 10 }, () => genHousingApi());
+          return Housing().insert(housings.map(formatHousingRecordApi));
+        });
+
+        it('should keep housings that do not belong to the given data file year', async () => {
+          const dataFileYears = ['lovac-2023', 'lovac-2024'];
+
+          const actual = await housingRepository.find({
+            filters: {
+              dataFileYearsExcluded: dataFileYears
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            const set = new Set(dataFileYears);
+            return !housing.dataFileYears.some((dataFileYear) =>
+              set.has(dataFileYear)
+            );
+          });
+        });
+      });
+
       describe('by status', () => {
         // TODO
       });

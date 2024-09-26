@@ -1,6 +1,7 @@
 export * from './test/fixtures';
 export * from './AddressDTO';
 export * from './BeneficiaryCount';
+export * from './BuildingPeriods';
 export * from './CampaignCount';
 export * from './CampaignDTO';
 export * from './ContactPoint';

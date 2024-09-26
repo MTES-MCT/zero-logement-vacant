@@ -1,4 +1,5 @@
 import { BeneficiaryCount } from './BeneficiaryCount';
+import { BuildingPeriod } from './BuildingPeriods';
 
 export interface HousingFiltersDTO {
   housingIds?: string[];
@@ -12,7 +13,7 @@ export interface HousingFiltersDTO {
   cadastralClassifications?: string[];
   housingAreas?: string[];
   roomsCounts?: string[];
-  buildingPeriods?: string[];
+  buildingPeriods?: BuildingPeriod[];
   vacancyDurations?: string[];
   isTaxedValues?: string[];
   ownershipKinds?: string[];

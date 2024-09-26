@@ -619,18 +619,18 @@ function filteredQuery(opts: ListQueryOptions) {
       );
     }
     if (filters.buildingPeriods?.length) {
-      queryBuilder.where((whereBuilder) => {
-        if (filters.buildingPeriods?.indexOf('lt1919') !== -1) {
-          whereBuilder.orWhereBetween('building_year', [0, 1918]);
+      queryBuilder.where((where) => {
+        if (filters.buildingPeriods?.includes('lt1919')) {
+          where.orWhereBetween(`${housingTable}.building_year`, [0, 1918]);
         }
-        if (filters.buildingPeriods?.indexOf('1919to1945') !== -1) {
-          whereBuilder.orWhereBetween('building_year', [1919, 1945]);
+        if (filters.buildingPeriods?.includes('1919to1945')) {
+          where.orWhereBetween(`${housingTable}.building_year`, [1919, 1945]);
         }
-        if (filters.buildingPeriods?.indexOf('1946to1990') !== -1) {
-          whereBuilder.orWhereBetween('building_year', [1946, 1990]);
+        if (filters.buildingPeriods?.includes('1946to1990')) {
+          where.orWhereBetween(`${housingTable}.building_year`, [1946, 1990]);
         }
-        if (filters.buildingPeriods?.indexOf('gt1991') !== -1) {
-          whereBuilder.orWhereRaw('building_year >= 1991');
+        if (filters.buildingPeriods?.includes('gte1991')) {
+          where.orWhere(`${housingTable}.building_year`, '>=', 1991);
         }
       });
     }

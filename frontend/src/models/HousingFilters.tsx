@@ -167,7 +167,7 @@ export const buildingPeriodOptions: SelectOption[] = [
   { value: 'lt1919', label: 'Avant 1919' },
   { value: '1919to1945', label: 'Entre 1919 et 1945' },
   { value: '1946to1990', label: 'Entre 1946 et 1990' },
-  { value: 'gt1991', label: '1991 ou après' }
+  { value: 'gte1991', label: '1991 ou après' }
 ];
 
 export const multiOwnerOptions: SelectOption[] = [

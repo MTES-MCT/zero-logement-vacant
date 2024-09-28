@@ -29,7 +29,7 @@
     "@lexical/html": "^0.14.5",
     "@lexical/list": "^0.14.5",
     "@lexical/react": "^0.14.5",
-    "@lexical/text": "^0.14.5",
+    "@lexical/text": "^0.17.1",
     "@lexical/utils": "^0.14.5",
     "@mui/material": "^5.15.18",
     "@reduxjs/toolkit": "^1.9.7",

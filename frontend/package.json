@@ -26,7 +26,7 @@
     "@emotion/styled": "^11.11.5",
     "@faker-js/faker": "^8.4.1",
     "@jonkoops/matomo-tracker-react": "^0.7.0",
-    "@lexical/html": "^0.14.5",
+    "@lexical/html": "^0.17.1",
     "@lexical/list": "^0.14.5",
     "@lexical/react": "^0.14.5",
     "@lexical/text": "^0.14.5",

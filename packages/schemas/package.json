@@ -7,7 +7,7 @@
     "build": "tsc -b tsconfig.build.json"
   },
   "dependencies": {
-    "@zerologementvacant/models": "workspace:^",
+    "@zerologementvacant/models": "workspace:*",
     "yup": "^1.4.0"
   },
   "devDependencies": {

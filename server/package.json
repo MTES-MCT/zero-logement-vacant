@@ -29,6 +29,7 @@
     "@zerologementvacant/healthcheck": "workspace:*",
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/queue": "workspace:*",
+    "@zerologementvacant/schemas": "workspace:*",
     "@zerologementvacant/shared": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
     "async": "^3.2.5",

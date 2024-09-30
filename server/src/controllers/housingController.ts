@@ -8,6 +8,7 @@ import validator from 'validator';
 
 import housingRepository from '~/repositories/housingRepository';
 import {
+  EnergyConsumptionGradesApi,
   hasCampaigns,
   HousingApi,
   HousingRecordApi,
@@ -40,6 +41,7 @@ import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
 import { HousingEventApi } from '~/models/EventApi';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
+import { HousingFiltersDTO } from '@zerologementvacant/models';
 
 const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
@@ -72,11 +74,19 @@ const listValidators: ValidationChain[] = [
   ...paginationApi.validators
 ];
 
+type ListHousingPayload = Pagination & {
+  filters?: HousingFiltersDTO;
+};
+
 async function list(
-  request: Request,
+  request: Request<never, HousingPaginatedResultApi, ListHousingPayload>,
   response: Response<HousingPaginatedResultApi>
 ) {
-  const { auth, body, user } = request as AuthenticatedRequest;
+  const { auth, body, user } = request as AuthenticatedRequest<
+    never,
+    HousingPaginatedResultApi,
+    ListHousingPayload
+  >;
   // TODO: type the whole body
   const pagination: Pagination = fp.pick(['paginate', 'perPage', 'page'], body);
 
@@ -86,10 +96,20 @@ async function list(
   );
   const filters: HousingFiltersApi = {
     ...body.filters,
+    multiOwners: body.filters?.multiOwners?.map((value) =>
+      value ? 'true' : 'false'
+    ),
+    roomsCounts: body.filters?.roomsCounts?.map((value) => value.toString()),
+    isTaxedValues: body.filters?.isTaxedValues?.map((value) =>
+      value ? 'true' : 'false'
+    ),
+    energyConsumption: body.filters
+      ?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
+    occupancies: body.filters?.occupancies as unknown as OccupancyKindApi[],
     establishmentIds:
       [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
-      body.filters.establishmentIds?.length > 0
-        ? body.filters.establishmentIds
+      body.filters?.establishmentIds?.length
+        ? body.filters?.establishmentIds
         : [auth.establishmentId]
   };
 

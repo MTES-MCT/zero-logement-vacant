@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "references": [{ "path": "../packages/models/tsconfig.build.json" }],
+  "references": [{ "path": "../models/tsconfig.build.json" }],
   "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
 }

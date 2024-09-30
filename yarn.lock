@@ -11809,7 +11809,7 @@ __metadata:
     "@types/async": "npm:^3.2.24"
     "@types/jest": "npm:^29.5.12"
     "@types/node": "npm:^20.12.12"
-    "@zerologementvacant/utils": "workspace:^"
+    "@zerologementvacant/utils": "workspace:*"
     async: "npm:^3.2.5"
     copyfiles: "npm:^2.4.1"
     handlebars: "npm:^4.7.8"
@@ -11944,7 +11944,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zerologementvacant/models@workspace:*, @zerologementvacant/models@workspace:^, @zerologementvacant/models@workspace:packages/models":
+"@zerologementvacant/models@workspace:*, @zerologementvacant/models@workspace:packages/models":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/models@workspace:packages/models"
   dependencies:
@@ -12012,7 +12012,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zerologementvacant/schemas@workspace:packages/schemas":
+"@zerologementvacant/schemas@workspace:*, @zerologementvacant/schemas@workspace:packages/schemas":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/schemas@workspace:packages/schemas"
   dependencies:
@@ -12021,7 +12021,7 @@ __metadata:
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/jest": "npm:^29.5.12"
     "@types/node": "npm:^20.12.12"
-    "@zerologementvacant/models": "workspace:^"
+    "@zerologementvacant/models": "workspace:*"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     rimraf: "npm:^5.0.7"
@@ -12084,6 +12084,7 @@ __metadata:
     "@zerologementvacant/healthcheck": "workspace:*"
     "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/queue": "workspace:*"
+    "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/shared": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:^3.2.5"
@@ -12185,7 +12186,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zerologementvacant/utils@workspace:*, @zerologementvacant/utils@workspace:^, @zerologementvacant/utils@workspace:packages/utils":
+"@zerologementvacant/utils@workspace:*, @zerologementvacant/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/utils@workspace:packages/utils"
   dependencies:

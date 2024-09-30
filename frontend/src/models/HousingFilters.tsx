@@ -1,11 +1,25 @@
-import { HousingFiltersDTO, OwnershipKind } from '@zerologementvacant/models';
+import {
+  BeneficiaryCount,
+  BuildingPeriod,
+  CampaignCount,
+  ENERGY_CONSUMPTION_VALUES,
+  EnergyConsumption,
+  HousingByBuilding,
+  HousingFiltersDTO,
+  HousingKind,
+  LivingArea,
+  LocalityKind,
+  Occupancy,
+  OCCUPANCY_VALUES,
+  OwnerAge,
+  OwnershipKind,
+  RoomCount,
+  VacancyRate
+} from '@zerologementvacant/models';
 import { OptionTreeElement, SelectOption } from './SelectOption';
 import { HousingStates, HousingStatus } from './HousingState';
 import {
-  OccupancyKind,
-  OccupancyKindBadgeLabels,
-  OccupancyKindLabels,
-  OccupancyUnknown,
+  OCCUPANCY_LABELS,
   OwnershipKindLabels,
   OwnershipKinds
 } from './Housing';
@@ -14,19 +28,21 @@ import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyCon
 
 export interface HousingFilters extends HousingFiltersDTO {}
 
-export const allOccupancyOptions: SelectOption[] = [
+export const allOccupancyOptions: SelectOption<Occupancy>[] = [
   {
-    label: OccupancyKindLabels[OccupancyUnknown],
-    value: OccupancyUnknown
+    label: OCCUPANCY_LABELS[Occupancy.UNKNOWN],
+    value: Occupancy.UNKNOWN
   },
-  ...Object.values(OccupancyKind).map((value) => ({
-    value,
-    label: OccupancyKindLabels[value],
-    badgeLabel: OccupancyKindBadgeLabels[value]
+  ...OCCUPANCY_VALUES.filter(
+    (occupancy) => occupancy !== Occupancy.UNKNOWN
+  ).map((occupancy) => ({
+    label: OCCUPANCY_LABELS[occupancy],
+    value: occupancy,
+    badgeLabel: OCCUPANCY_LABELS[occupancy]
   }))
 ];
 
-export const ownerAgeOptions: SelectOption[] = [
+export const ownerAgeOptions: SelectOption<OwnerAge>[] = [
   {
     value: 'lt40',
     label: 'Moins de 40 ans',
@@ -49,12 +65,11 @@ export const ownerKindOptions: SelectOption[] = [
   { value: 'Autre', label: 'Autres' }
 ];
 
-export const campaignsCountOptions: SelectOption[] = [
+export const campaignsCountOptions: SelectOption<CampaignCount>[] = [
   { value: '0', label: 'Dans aucune campagne en cours' },
-  { value: 'current', label: 'Dans une campagne en cours' },
   { value: '1', label: 'Déjà contacté 1 fois' },
   { value: '2', label: 'Déjà contacté 2 fois' },
-  { value: 'gt3', label: 'Déjà contacté 3 fois et plus' }
+  { value: 'gt2', label: 'Déjà contacté 3 fois et plus' }
 ];
 
 export const statusOptions = (
@@ -69,7 +84,7 @@ export const statusOptions = (
   }))
 ];
 
-export const beneficiaryCountOptions: SelectOption[] = [
+export const beneficiaryCountOptions: SelectOption<BeneficiaryCount>[] = [
   { value: '0', label: 'Aucun', badgeLabel: 'Aucun bénéficiaire' },
   { value: '1', label: '1', badgeLabel: '1 bénéficiaire' },
   { value: '2', label: '2', badgeLabel: '2 bénéficiaires' },
@@ -78,7 +93,7 @@ export const beneficiaryCountOptions: SelectOption[] = [
   { value: 'gte5', label: '5 et plus', badgeLabel: '5 bénéficiaires et plus' }
 ];
 
-export const housingCountOptions: SelectOption[] = [
+export const housingCountOptions: SelectOption<HousingByBuilding>[] = [
   { value: 'lt5', label: 'Moins de 5', badgeLabel: 'Moins de 5 logements' },
   {
     value: '5to19',
@@ -93,7 +108,7 @@ export const housingCountOptions: SelectOption[] = [
   { value: 'gte50', label: '50 et plus', badgeLabel: '50 logements et plus' }
 ];
 
-export const vacancyRateOptions: SelectOption[] = [
+export const vacancyRateOptions: SelectOption<VacancyRate>[] = [
   {
     value: 'lt20',
     label: 'Moins de 20%',
@@ -121,9 +136,8 @@ export const vacancyRateOptions: SelectOption[] = [
   }
 ];
 
-const energyConsumptionGrades = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-export const energyConsumptionOptions: SelectOption[] =
-  energyConsumptionGrades.map((grade) => ({
+export const energyConsumptionOptions: SelectOption<EnergyConsumption>[] =
+  ENERGY_CONSUMPTION_VALUES.map((grade) => ({
     value: grade,
     label: grade,
     markup: (props) => (
@@ -132,19 +146,19 @@ export const energyConsumptionOptions: SelectOption[] =
     badgeLabel: `DPE représentatif (CSTB) ${grade}`
   }));
 
-export const housingKindOptions: SelectOption[] = [
-  { value: 'APPART', label: 'Appartement' },
-  { value: 'MAISON', label: 'Maison' }
+export const housingKindOptions: SelectOption<HousingKind>[] = [
+  { value: HousingKind.APARTMENT, label: 'Appartement' },
+  { value: HousingKind.HOUSE, label: 'Maison' }
 ];
 
-export const housingAreaOptions: SelectOption[] = [
+export const housingAreaOptions: SelectOption<LivingArea>[] = [
   { value: 'lt35', label: 'Moins de 35 m²' },
   { value: '35to74', label: '35 - 74 m²' },
   { value: '75to99', label: '75 - 99 m²' },
   { value: 'gte100', label: '100 m² et plus' }
 ];
 
-export const roomsCountOptions: SelectOption[] = [
+export const roomsCountOptions: SelectOption<RoomCount>[] = [
   { value: '1', label: '1 pièce' },
   { value: '2', label: '2 pièces' },
   { value: '3', label: '3 pièces' },
@@ -163,7 +177,7 @@ export const cadastralClassificationOptions: SelectOption[] = [
   { value: '8', label: '8 - Très médiocre' }
 ];
 
-export const buildingPeriodOptions: SelectOption[] = [
+export const buildingPeriodOptions: SelectOption<BuildingPeriod>[] = [
   { value: 'lt1919', label: 'Avant 1919' },
   { value: '1919to1945', label: 'Entre 1919 et 1945' },
   { value: '1946to1990', label: 'Entre 1946 et 1990' },
@@ -227,12 +241,12 @@ export const ownershipKindsOptions: SelectOption<OwnershipKind>[] = [
   }
 ];
 
-export const localityKindsOptions = [
+export const localityKindsOptions: SelectOption<LocalityKind>[] = [
   { value: LocalityKinds.ACV, label: LocalityKindLabels[LocalityKinds.ACV] },
   { value: LocalityKinds.PVD, label: LocalityKindLabels[LocalityKinds.PVD] }
 ];
 
-export const dataFileYearsIncludedOptions = [
+export const dataFileYearsIncludedOptions: SelectOption[] = [
   { value: 'lovac-2019', label: 'LOVAC 2019', badgeLabel: 'LOVAC 2019' },
   { value: 'lovac-2020', label: 'LOVAC 2020', badgeLabel: 'LOVAC 2020' },
   { value: 'lovac-2021', label: 'LOVAC 2021', badgeLabel: 'LOVAC 2021' },
@@ -241,7 +255,7 @@ export const dataFileYearsIncludedOptions = [
   { value: 'lovac-2024', label: 'LOVAC 2024', badgeLabel: 'LOVAC 2024' }
 ].sort((optionA, optionB) => optionB.label.localeCompare(optionA.label));
 
-export const dataFileYearsExcludedOptions = [
+export const dataFileYearsExcludedOptions: SelectOption[] = [
   { value: 'lovac-2019', label: 'LOVAC 2019', badgeLabel: 'LOVAC 2019 exclu' },
   { value: 'lovac-2020', label: 'LOVAC 2020', badgeLabel: 'LOVAC 2020 exclu' },
   { value: 'lovac-2021', label: 'LOVAC 2021', badgeLabel: 'LOVAC 2021 exclu' },

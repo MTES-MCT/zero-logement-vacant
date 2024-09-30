@@ -9,6 +9,8 @@ import { Occupancy } from './Occupancy';
 import { HousingStatus } from './HousingStatus';
 import { EnergyConsumption } from './EnergyConsumption';
 import { HousingKind } from './HousingKind';
+import { CampaignCount } from './CampaignCount';
+import { RoomCount } from './RoomCount';
 
 export interface HousingFiltersDTO {
   housingIds?: string[];
@@ -16,7 +18,7 @@ export interface HousingFiltersDTO {
   energyConsumption?: EnergyConsumption[];
   establishmentIds?: string[];
   groupIds?: string[];
-  campaignsCounts?: string[];
+  campaignsCounts?: CampaignCount[];
   campaignIds?: string[];
   ownerIds?: string[];
   ownerKinds?: string[];
@@ -25,7 +27,7 @@ export interface HousingFiltersDTO {
   beneficiaryCounts?: BeneficiaryCount[];
   housingKinds?: HousingKind[];
   housingAreas?: LivingArea[];
-  roomsCounts?: number[];
+  roomsCounts?: RoomCount[];
   cadastralClassifications?: string[];
   buildingPeriods?: BuildingPeriod[];
   vacancyDurations?: string[];

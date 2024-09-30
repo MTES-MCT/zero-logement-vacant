@@ -6,15 +6,15 @@ export interface SelectOption<Value extends string = string> {
   disabled?: boolean;
   hidden?: boolean;
   badgeLabel?: string;
-  markup?: (props: SelectOptionProps) => ReactElement;
+  markup?: (props: SelectOptionProps<Value>) => ReactElement;
   hint?: ReactElement;
   icon?: string;
 }
 
-interface SelectOptionProps {
+interface SelectOptionProps<Value extends string> {
   key?: string;
   checked?: boolean;
-  onChangeValue?: (value: string, isChecked: boolean) => void;
+  onChangeValue?: (value: Value, isChecked: boolean) => void;
   small?: boolean;
 }
 

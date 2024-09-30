@@ -1,19 +1,19 @@
 import { SelectOption } from '../../models/SelectOption';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 
-interface FilterBadgeProps {
+interface FilterBadgeProps<Value extends string> {
   option: SelectOption;
-  filters: string[] | undefined;
-  onChange?: (value: string[]) => void;
+  filters: Value[] | undefined;
+  onChange?(value: Value[]): void;
   small?: boolean;
 }
 
-const FilterBadge = ({
+function FilterBadge<Value extends string>({
   option,
   filters = [],
   onChange,
   small
-}: FilterBadgeProps) => {
+}: FilterBadgeProps<Value>) {
   function onClose() {
     onChange?.(filters.filter((v) => v !== option.value));
   }
@@ -29,18 +29,20 @@ const FilterBadge = ({
       {option.badgeLabel ?? option.label}
     </Tag>
   );
-};
+}
 
-interface FilterBadgesProps {
+interface FilterBadgesProps<Value extends string> {
   options: SelectOption[];
-  filters: string[] | undefined;
-  onChange?: (value: string[]) => void;
+  filters: Value[] | undefined;
+  onChange?(value: Value[]): void;
   small?: boolean;
   keepEmptyValue?: boolean;
 }
 
-const FilterBadges = (props: FilterBadgesProps) => {
-  const { filters, onChange, options, small }: FilterBadgesProps = {
+function FilterBadges<Value extends string = string>(
+  props: FilterBadgesProps<Value>
+) {
+  const { filters, onChange, options, small }: FilterBadgesProps<Value> = {
     ...props,
     filters: props.filters ?? []
   };
@@ -75,6 +77,6 @@ const FilterBadges = (props: FilterBadgesProps) => {
         ))}
     </>
   );
-};
+}
 
 export default FilterBadges;

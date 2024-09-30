@@ -1,6 +1,8 @@
+import { ReactElement } from 'react';
+
+import { HousingStatus as HousingStatusDTO } from '@zerologementvacant/models';
 import { DefaultOption, SelectOption } from './SelectOption';
 import { Housing } from './Housing';
-import { ReactElement } from 'react';
 import { Text } from '../components/_dsfr';
 
 export interface HousingState {
@@ -15,17 +17,20 @@ export interface HousingSubStatus {
   title: string;
 }
 
+/**
+ * @deprecated See {@link HousingStatusDTO}
+ */
 export enum HousingStatus {
   NeverContacted,
   Waiting,
   FirstContact,
   InProgress,
   Completed,
-  Blocked,
+  Blocked
 }
 
 export const HOUSING_STATUSES: HousingStatus[] = Object.values(
-  HousingStatus,
+  HousingStatus
 ).filter((_) => typeof _ === 'number') as HousingStatus[];
 
 export const FirstContactToContactedSubStatus =
@@ -53,7 +58,7 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatus.NeverContacted,
     title: 'Non suivi',
-    colorFamily: 'beige-gris-galet',
+    colorFamily: 'beige-gris-galet'
   },
   {
     status: HousingStatus.Waiting,
@@ -63,7 +68,7 @@ export const HousingStates: HousingState[] = [
         Le propriétaire<b> n’a pas répondu au courrier.</b>
       </Text>
     ),
-    colorFamily: 'yellow-tournesol',
+    colorFamily: 'yellow-tournesol'
   },
   {
     status: HousingStatus.FirstContact,
@@ -77,15 +82,15 @@ export const HousingStates: HousingState[] = [
     colorFamily: 'blue-cumulus',
     subStatusList: [
       {
-        title: FirstContactToContactedSubStatus,
+        title: FirstContactToContactedSubStatus
       },
       {
-        title: FirstContactWithPreSupportSubStatus,
+        title: FirstContactWithPreSupportSubStatus
       },
       {
-        title: FirstContactNpai,
-      },
-    ],
+        title: FirstContactNpai
+      }
+    ]
   },
   {
     status: HousingStatus.InProgress,
@@ -99,18 +104,18 @@ export const HousingStates: HousingState[] = [
     colorFamily: 'orange-terre-battue',
     subStatusList: [
       {
-        title: InProgressWithSupportSubStatus,
+        title: InProgressWithSupportSubStatus
       },
       {
-        title: InProgressWithPublicSupportSubStatus,
+        title: InProgressWithPublicSupportSubStatus
       },
       {
-        title: InProgressWithoutSupportSubStatus,
+        title: InProgressWithoutSupportSubStatus
       },
       {
-        title: MutationInProgress,
-      },
-    ],
+        title: MutationInProgress
+      }
+    ]
   },
   {
     status: HousingStatus.Completed,
@@ -124,21 +129,21 @@ export const HousingStates: HousingState[] = [
     colorFamily: 'green-bourgeon',
     subStatusList: [
       {
-        title: CompletedWithVacancyExit,
+        title: CompletedWithVacancyExit
       },
       {
-        title: CompletedNotVacant,
+        title: CompletedNotVacant
       },
       {
-        title: CompletedWithPoorlyInsulatedExit,
+        title: CompletedWithPoorlyInsulatedExit
       },
       {
-        title: CompletedNotPoorlyInsulated,
+        title: CompletedNotPoorlyInsulated
       },
       {
-        title: OtherObjectiveAchieved,
-      },
-    ],
+        title: OtherObjectiveAchieved
+      }
+    ]
   },
   {
     status: HousingStatus.Blocked,
@@ -151,36 +156,36 @@ export const HousingStates: HousingState[] = [
     colorFamily: 'purple-glycine-sun',
     subStatusList: [
       {
-        title: BlockedByOwnerInvoluntary,
+        title: BlockedByOwnerInvoluntary
       },
       {
-        title: BlockedByOwnerVoluntary,
+        title: BlockedByOwnerVoluntary
       },
       {
-        title: BuildingEnvironment,
+        title: BuildingEnvironment
       },
       {
-        title: ThirdPartiesInvolved,
-      },
-    ],
-  },
+        title: ThirdPartiesInvolved
+      }
+    ]
+  }
 ];
 
-export const getHousingState = (status: HousingStatus) => {
+export const getHousingState = (status: HousingStatus | HousingStatusDTO) => {
   return HousingStates[status];
 };
 
 export const getSubStatus = (
   status: HousingStatus,
-  subStatusTitle: string,
+  subStatusTitle: string
 ): HousingSubStatus | undefined => {
   return getHousingState(status).subStatusList?.filter(
-    (s) => s.title === subStatusTitle,
+    (s) => s.title === subStatusTitle
   )[0];
 };
 
 export const getHousingSubStatus = (
-  housing: Housing,
+  housing: Housing
 ): HousingSubStatus | undefined => {
   if (housing.status && housing.subStatus) {
     return getSubStatus(housing.status, housing.subStatus);
@@ -193,29 +198,29 @@ export const getSubStatusOptions = (status: HousingStatus) => {
     ? [
         {
           ...DefaultOption,
-          label: 'Sélectionnez un sous-statut de suivi',
+          label: 'Sélectionnez un sous-statut de suivi'
         },
         ...housingState.subStatusList.map((subStatus) => ({
           value: subStatus.title,
-          label: subStatus.title,
-        })),
+          label: subStatus.title
+        }))
       ]
     : undefined;
 };
 
 export const getSubStatusList = (
-  statusList: string[] | HousingStatus[] | undefined,
+  statusList: string[] | HousingStatus[] | HousingStatusDTO[] | undefined
 ) =>
   (statusList ?? [])
     .map((_) => getHousingState(_ as HousingStatus))
     .map((housingState) =>
-      (housingState.subStatusList ?? []).map((subStatus) => subStatus.title),
+      (housingState.subStatusList ?? []).map((subStatus) => subStatus.title)
     )
     .flat()
     .filter((_) => _ !== undefined);
 
 export const getSubStatusListOptions = (
-  statusList: string[] | HousingStatus[] | undefined,
+  statusList: string[] | HousingStatus[] | HousingStatusDTO[] | undefined
 ) =>
   (statusList ?? [])
     .map((_) => getHousingState(_ as HousingStatus))
@@ -224,8 +229,8 @@ export const getSubStatusListOptions = (
       { value: housingState.title, label: housingState.title, disabled: true },
       ...(housingState.subStatusList ?? []).map((subStatus) => ({
         value: subStatus.title,
-        label: subStatus.title,
-      })),
+        label: subStatus.title
+      }))
     ])
     .flat()
     .filter((_) => _ !== undefined) as SelectOption[];

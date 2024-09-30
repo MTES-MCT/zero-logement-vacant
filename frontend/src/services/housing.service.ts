@@ -9,12 +9,13 @@ import { HousingPayloadDTO, PaginationOptions } from '../../../shared';
 import { parseOwner } from './owner.service';
 import { HousingCount } from '../models/HousingCount';
 import { zlvApi } from './api.service';
+import { HousingFiltersDTO } from '@zerologementvacant/models';
 
 export interface FindOptions
   extends PaginationOptions,
     SortOptions<HousingSort>,
     AbortOptions {
-  filters: HousingFilters;
+  filters: HousingFiltersDTO;
 }
 
 // TODO: add input type

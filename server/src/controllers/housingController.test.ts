@@ -65,10 +65,10 @@ describe('Housing API', () => {
     await Users().insert([user, anotherUser].map(formatUserApi));
   });
 
-  describe('GET /housing/{id}', () => {
+  describe('GET /housing/{id}', async () => {
     const testRoute = (id: string) => `/api/housing/${id}`;
 
-    const housing = genHousingApi(oneOf(anotherEstablishment.geoCodes));
+    const housing = await genHousingApi(oneOf(anotherEstablishment.geoCodes));
 
     beforeAll(async () => {
       await Housing().insert(formatHousingRecordApi(housing));
@@ -107,12 +107,13 @@ describe('Housing API', () => {
     });
 
     it('should return the housing list for a query filter', async () => {
+      const housingApi = await genHousingApi(oneOf(establishment.geoCodes));
       const queriedHousing = {
-        ...genHousingApi(oneOf(establishment.geoCodes)),
+        ...housingApi,
         rawAddress: ['line1 with   many      spaces', 'line2'],
       };
       await Housing().insert(formatHousingRecordApi(queriedHousing));
-      const owner = genOwnerApi();
+      const owner = await genOwnerApi(oneOf(establishment.geoCodes));
       await Owners().insert(formatOwnerApi(owner));
       await HousingOwners().insert(
         formatHousingOwnersApi(queriedHousing, [owner]),
@@ -152,7 +153,7 @@ describe('Housing API', () => {
     });
 
     it('should fail if the housing already exists', async () => {
-      const housing = genHousingApi(oneOf(establishment.geoCodes));
+      const housing = await genHousingApi(oneOf(establishment.geoCodes));
       await Housing().insert(formatHousingRecordApi(housing));
       const payload = {
         localId: housing.localId,
@@ -259,7 +260,7 @@ describe('Housing API', () => {
     });
   });
 
-  describe('POST /housing/{id}', () => {
+  describe('POST /housing/{id}', async () => {
     const validBody: { housingUpdate: HousingUpdateBody } = {
       housingUpdate: {
         statusUpdate: {
@@ -279,7 +280,7 @@ describe('Housing API', () => {
 
     const testRoute = (housingId: string) => `/api/housing/${housingId}`;
 
-    const housing = genHousingApi(oneOf(establishment.geoCodes));
+    const housing = await genHousingApi(oneOf(establishment.geoCodes));
 
     beforeAll(async () => {
       await Housing().insert(formatHousingRecordApi(housing));

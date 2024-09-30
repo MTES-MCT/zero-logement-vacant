@@ -2,7 +2,6 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { addHours } from 'date-fns';
 import fp from 'lodash/fp';
 import randomstring from 'randomstring';
-import { MarkRequired } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 
 import { genGeoCode } from '@zerologementvacant/utils';
@@ -71,6 +70,8 @@ import { AddressApi } from '~/models/AddressApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { SenderApi } from '~/models/SenderApi';
 import { DraftApi } from '~/models/DraftApi';
+import config from '~/infra/config';
+import { createClient } from 'redis';
 
 export { genGeoCode } from '@zerologementvacant/utils';
 
@@ -196,16 +197,17 @@ export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
   };
 };
 
-export const genOwnerApi = (): OwnerApi => {
+export const genOwnerApi = async (geoCode: string): Promise<OwnerApi> => {
   const id = uuidv4();
+  const addressProperties = await genAddressProperties(geoCode);
   return {
     id,
     idpersonne:
       faker.string.numeric(2) +
       faker.string.alphanumeric({ length: 6, casing: 'upper' }),
     rawAddress: [
-      faker.location.streetAddress(),
-      `${faker.location.zipCode()}, ${faker.location.city()}`
+      addressProperties.street,
+      `${addressProperties.postcode}, ${addressProperties.city}`
     ],
     // Get the start of the day to avoid time zone issues
     birthDate: faker.date.birthdate().toJSON(),
@@ -269,9 +271,70 @@ export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
   };
 };
 
-export const genHousingApi = (
+type AdressProperties = {
+  street: string,
+  postcode: string,
+  city: string,
+}
+
+async function genAddressProperties(geoCode: string): Promise<AdressProperties> {
+  const client = createClient({ url: config.redis.url });
+  await client.connect();
+
+  const urlGeoApi = `https://geo.api.gouv.fr/communes?code=${geoCode}`;
+  let cachedData = await client.get(urlGeoApi);
+
+  if (!(cachedData)) {
+    const responseGeoApi = await fetch(urlGeoApi);
+    const dataGeoApi: unknown = await responseGeoApi.json();
+
+    type Commune = {
+      codesPostaux?: string[];
+    };
+
+    let postalCode = '';
+    const communes = dataGeoApi as Commune[];
+    if (communes.length > 0 && communes[0].codesPostaux) {
+      postalCode = communes[0].codesPostaux[0];
+    }
+
+    if(!postalCode) {
+      console.log(dataGeoApi)
+      throw new Error(`Unknown INSEE code ${geoCode}`)
+    }
+    await client.set(urlGeoApi, postalCode);
+    cachedData = postalCode;
+  }
+
+  const urlBanApi = `https://api-adresse.data.gouv.fr/search/?q=${cachedData}&type=street`;
+  cachedData = await client.get(urlBanApi);
+  if (!(cachedData)) {
+    const responseBanApi = await fetch(urlBanApi);
+    const dataBanApi: unknown = await responseBanApi.json();
+
+    type Address = {
+      features: [{
+        properties: AdressProperties
+      }];
+    };
+
+    const address = dataBanApi as Address;
+    let addressProperties = {} as AdressProperties;
+    if (address.features.length > 0) {
+      const randomIndex = Math.floor(Math.random() * address.features.length);
+      addressProperties = address.features[randomIndex].properties;
+    }
+
+    await client.set(urlBanApi, JSON.stringify(addressProperties));
+    return addressProperties;
+  }
+
+  return JSON.parse(cachedData);
+}
+
+export const genHousingApi = async (
   geoCode: string = genGeoCode()
-): MarkRequired<HousingApi, 'owner'> => {
+): Promise<HousingApi & Required<Pick<HousingApi, 'owner'>>> => {
   const id = uuidv4();
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
@@ -284,17 +347,19 @@ export const genHousingApi = (
     .toSorted();
   const dataFileYears = dataYears.map((year) => `lovac-${year}`);
 
+  const addressProperties = await genAddressProperties(geoCode);
+
   return {
     id,
     invariant,
     localId: genLocalId(department, invariant),
     rawAddress: [
-      faker.location.streetAddress(),
-      `${geoCode} ${faker.location.city()}`
+      addressProperties.street,
+      `${addressProperties.postcode} ${addressProperties.city}`
     ],
     geoCode,
     localityKind: randomstring.generate(),
-    owner: genOwnerApi(),
+    owner: await genOwnerApi(addressProperties.postcode),
     livingArea: genNumber(4),
     cadastralClassification: genNumber(1),
     uncomfortable: false,
@@ -416,26 +481,28 @@ function genEventApi<T>(creator: UserApi): EventApi<T> {
   };
 }
 
-export const genOwnerEventApi = (
+export const genOwnerEventApi = async (
   owner: OwnerApi,
-  creator: UserApi
-): OwnerEventApi => {
+  creator: UserApi,
+  geoCode: string,
+): Promise<OwnerEventApi> => {
   return {
     ...genEventApi<OwnerApi>(creator),
-    old: { ...genOwnerApi(), id: owner.id },
-    new: { ...genOwnerApi(), id: owner.id },
+    old: { ...(await genOwnerApi(geoCode)), id: owner.id },
+    new: { ...(await genOwnerApi(geoCode)), id: owner.id },
     ownerId: owner.id
   };
 };
 
-export const genHousingEventApi = (
+export const genHousingEventApi = async (
   housing: HousingApi,
   creator: UserApi
-): HousingEventApi => {
+): Promise<HousingEventApi> => {
+  const housingApi = await genHousingApi(housing.geoCode);
   return {
     ...genEventApi<HousingApi>(creator),
     old: housing,
-    new: { ...genHousingApi(housing.geoCode), id: housing.id },
+    new: { ...housingApi, id: housing.id },
     housingId: housing.id,
     housingGeoCode: housing.geoCode
   };
@@ -723,8 +790,8 @@ export const genConflictApi = <T>(
   replacement
 });
 
-export const genOwnerConflictApi = (): OwnerConflictApi =>
-  genConflictApi(genOwnerApi(), genOwnerApi()) as OwnerConflictApi;
+export const genOwnerConflictApi = async (geoCode: string): Promise<ConflictApi<OwnerApi> & Required<Pick<ConflictApi<OwnerApi>, "existing" | "replacement">>> =>
+  genConflictApi(await genOwnerApi(geoCode), await genOwnerApi(geoCode)) as OwnerConflictApi;
 
 export const genHousingOwnerConflictApi = (
   housing: HousingApi,
@@ -794,3 +861,4 @@ export function genSenderApi(establishment: EstablishmentApi): SenderApi {
     establishmentId: establishment.id
   };
 }
+

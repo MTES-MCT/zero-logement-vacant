@@ -80,7 +80,7 @@ describe('BAN addresses repository', () => {
 
   describe('saveMany', () => {
     it('should save thousands of records', async () => {
-      const housings = Array.from({ length: 2_000 }, genHousingApi);
+      const housings = await Promise.all(Array.from({ length: 2_000 }, genHousingApi));
       await db.batchInsert(
         'fast_housing',
         housings.map(formatHousingRecordApi)
@@ -100,7 +100,7 @@ describe('BAN addresses repository', () => {
 
   describe('listAddressesToNormalize', () => {
     it('should list addresses to normalize', async () => {
-      const housings = Array.from({ length: 3 }, genHousingApi);
+      const housings = await Promise.all(Array.from({ length: 3 }, genHousingApi));
       await Housing().insert(housings.map(formatHousingRecordApi));
 
       const actual = await banAddressesRepository.listAddressesToNormalize();

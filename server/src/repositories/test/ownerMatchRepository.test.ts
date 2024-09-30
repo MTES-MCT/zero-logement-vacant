@@ -19,7 +19,8 @@ describe('Owner match repository', () => {
 
     it('should return the match if it exists', async () => {
       const datafoncierOwner = genDatafoncierOwner();
-      const owner = genOwnerApi();
+      const geoCode = '67268';
+      const owner = await genOwnerApi(geoCode);
       const ownerMatch = genOwnerMatch(datafoncierOwner, owner);
       await Owners().insert(formatOwnerApi(owner));
       await OwnerMatches().insert(ownerMatch);

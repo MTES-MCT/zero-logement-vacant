@@ -16,9 +16,10 @@ import { UserApi } from '~/models/UserApi';
 
 describe('HousingApi', () => {
   describe('getBuildingLocation', () => {
-    it('should parse a building location', () => {
+    it('should parse a building location', async () => {
+      const housingApi = await genHousingApi();
       const housing: HousingApi = {
-        ...genHousingApi(),
+        ...housingApi,
         buildingLocation: 'B010002002'
       };
 
@@ -36,9 +37,10 @@ describe('HousingApi', () => {
   describe('isSupervised', () => {
     it.each(['En accompagnement', 'Intervention publique'])(
       `should return true if the housing status is "in progress" and the subStatus is %s`,
-      (subStatus) => {
+      async (subStatus) => {
+        const housingApi = await genHousingApi();
         const housing: HousingApi = {
-          ...genHousingApi(),
+          ...housingApi,
           status: HousingStatusApi.InProgress,
           subStatus
         };
@@ -54,9 +56,10 @@ describe('HousingApi', () => {
 
       it.each(['N’était pas vacant', 'Sortie de la vacance'])(
         'should return true if the substatus is %s and if the user modified the housing manually',
-        (subStatus) => {
+        async (subStatus) => {
+          const housingApi = await genHousingApi();
           const housing: HousingApi = {
-            ...genHousingApi(),
+            ...housingApi,
             status: HousingStatusApi.Completed,
             subStatus
           };
@@ -64,9 +67,9 @@ describe('HousingApi', () => {
             ...genUserApi(establishment.id),
             email: 'test@test.test'
           };
-          const events: HousingEventApi[] = Array.from({ length: 3 }, () =>
-            genHousingEventApi(housing, creator)
-          );
+          const events: HousingEventApi[] = await Promise.all(Array.from({ length: 3 }, async () =>
+            await genHousingEventApi(housing, creator)
+          ));
 
           const actual = isSupervised(housing, events);
 
@@ -74,9 +77,10 @@ describe('HousingApi', () => {
         }
       );
 
-      it('should return false if the user did not modify the housing', () => {
+      it('should return false if the user did not modify the housing', async () => {
+        const housingApi = await genHousingApi();
         const housing: HousingApi = {
-          ...genHousingApi(),
+          ...housingApi,
           status: HousingStatusApi.Completed,
           subStatus: 'Sortie de la vacance'
         };

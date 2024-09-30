@@ -25,8 +25,8 @@ import { OwnerApi } from '~/models/OwnerApi';
 import { HousingApi } from '~/models/HousingApi';
 
 describe('Housing owner conflict repository', () => {
-  describe('find', () => {
-    const housing = genHousingApi();
+  describe('find', async () => {
+    const housing = await genHousingApi();
     const owner = housing.owner;
     const conflicts = new Array(5)
       .fill(0)
@@ -62,8 +62,9 @@ describe('Housing owner conflict repository', () => {
     let conflict: HousingOwnerConflictApi;
 
     beforeEach(async () => {
-      housing = genHousingApi();
-      owners = Array.from({ length: 2 }, () => genOwnerApi());
+      housing = await genHousingApi();
+      const geoCode = '67268';
+      owners = await Promise.all(Array.from({ length: 2 }, async () => await genOwnerApi(geoCode)));
       conflict = genHousingOwnerConflictApi(
         housing,
         genHousingOwnerApi(housing, owners[0]),

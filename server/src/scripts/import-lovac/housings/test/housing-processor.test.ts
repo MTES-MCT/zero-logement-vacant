@@ -24,9 +24,9 @@ describe('Housing processor', () => {
     ProcessorOptions['housingEventRepository']
   >;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     auth = genUserApi('');
-    housing = genHousingApi();
+    housing = await genHousingApi();
     housingRepository = {
       update: jest.fn().mockImplementation(() => Promise.resolve())
     };
@@ -249,40 +249,40 @@ describe('Housing processor', () => {
 
       it.each(['En accompagnement', 'Intervention publique'])(
         'should return true if the housing status is %s and the substatus is %s',
-        (subStatus) => {
+        async (subStatus) => {
           const housing = {
             ...genHousingApi(),
             status,
             subStatus
           };
 
-          const actual = isInProgress(housing);
+          const actual = isInProgress(await housing);
 
           expect(actual).toBeTrue();
         }
       );
     });
 
-    it('should return false if the substatus is not set', () => {
+    it('should return false if the substatus is not set', async () => {
       const housing = {
         ...genHousingApi(),
         status: HousingStatusApi.InProgress,
         subStatus: undefined
       };
 
-      const actual = isInProgress(housing);
+      const actual = isInProgress(await housing);
 
       expect(actual).toBeFalse();
     });
 
-    it('should return false if the substatus is irrelevant', () => {
+    it('should return false if the substatus is irrelevant', async () => {
       const housing = {
         ...genHousingApi(),
         status: HousingStatusApi.InProgress,
         subStatus: 'anything else'
       };
 
-      const actual = isInProgress(housing);
+      const actual = isInProgress(await housing);
 
       expect(actual).toBeFalse();
     });
@@ -293,13 +293,13 @@ describe('Housing processor', () => {
 
     it.each(otherStatuses)(
       'should return false for other statuses',
-      (status) => {
+      async (status) => {
         const housing = {
           ...genHousingApi(),
           status
         };
 
-        const actual = isInProgress(housing);
+        const actual = isInProgress(await housing);
 
         expect(actual).toBeFalse();
       }
@@ -307,13 +307,13 @@ describe('Housing processor', () => {
   });
 
   describe('isCompleted', () => {
-    it(`should return true if the housing status is ${HousingStatusApi.Completed}`, () => {
+    it(`should return true if the housing status is ${HousingStatusApi.Completed}`, async () => {
       const housing = {
         ...genHousingApi(),
         status: HousingStatusApi.Completed
       };
 
-      const actual = isCompleted(housing);
+      const actual = isCompleted(await housing);
 
       expect(actual).toBeTrue();
     });
@@ -322,13 +322,13 @@ describe('Housing processor', () => {
       (status) => status !== HousingStatusApi.Completed
     );
 
-    it.each(otherStatuses)('should return false otherwise', (status) => {
+    it.each(otherStatuses)('should return false otherwise', async (status) => {
       const housing = {
         ...genHousingApi(),
         status
       };
 
-      const actual = isCompleted(housing);
+      const actual = isCompleted(await housing);
 
       expect(actual).toBeFalse();
     });

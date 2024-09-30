@@ -53,20 +53,22 @@ describe('Source housing command', () => {
     };
     await Users().insert(formatUserApi(auth));
     const housings: ReadonlyArray<HousingApi> = [
-      ...nonVacantUnsupervisedHousings.map<HousingApi>((sourceHousing) => ({
-        ...genHousingApi(),
+      ...(await Promise.all(nonVacantUnsupervisedHousings.map(async (sourceHousing) => ({
+        ...(await genHousingApi()),
         geoCode: sourceHousing.geo_code,
         localId: sourceHousing.local_id,
         occupancy: OccupancyKindApi.Rent
-      })),
-      ...vacantHousings.map<HousingApi>((sourceHousing) => ({
-        ...genHousingApi(),
+      })))),
+      
+      ...(await Promise.all(vacantHousings.map(async (sourceHousing) => ({
+        ...(await genHousingApi()),
         geoCode: sourceHousing.geo_code,
         localId: sourceHousing.local_id,
         occupancy: OccupancyKindApi.Vacant,
         dataFileYears: ['lovac-2022']
-      }))
+      }))))
     ];
+    
     await Housing().insert(housings.map(formatHousingRecordApi));
     await write(file, sourceHousings);
 

@@ -36,10 +36,11 @@ describe('Conflict repository', () => {
   describe('Owner conflicts', () => {
     const repository = conflictRepository.owners;
 
-    describe('find', () => {
-      const conflicts: OwnerConflictApi[] = Array.from({ length: 5 }, () =>
-        genOwnerConflictApi(),
-      );
+    describe('find', async () => {
+      const geoCode = '67268';
+      const conflicts: OwnerConflictApi[] = await Promise.all(Array.from({ length: 5 }, async () =>
+        await genOwnerConflictApi(geoCode),
+      ));
 
       beforeAll(async () => {
         await Conflicts().insert(conflicts.map(formatConflictApi));
@@ -63,8 +64,9 @@ describe('Conflict repository', () => {
       });
     });
 
-    describe('save', () => {
-      const conflict = genOwnerConflictApi();
+    describe('save', async () => {
+      const geoCode = '67268';
+      const conflict = await genOwnerConflictApi(geoCode);
 
       beforeAll(async () => {
         await Owners().insert(formatOwnerApi(conflict.existing));
@@ -88,12 +90,13 @@ describe('Conflict repository', () => {
     });
 
     describe('formatOwnerConflictApi', () => {
-      it('should format a owner conflict', () => {
+      it('should format a owner conflict', async () => {
+        const geoCode = '67268';
         const conflict: OwnerConflictApi = {
           id: uuidv4(),
           createdAt: new Date(),
-          existing: genOwnerApi(),
-          replacement: genOwnerApi(),
+          existing: await genOwnerApi(geoCode),
+          replacement: await genOwnerApi(geoCode),
         };
 
         const actual = formatOwnerConflictApi(conflict);

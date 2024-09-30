@@ -139,14 +139,15 @@ describe('Group API', () => {
     });
   });
 
-  describe('POST /groups', () => {
+  describe('POST /groups',  async () => {
     const testRoute = '/api/groups';
-    const owner = genOwnerApi();
-    const housingList = [
+    const geoCode = '67268';
+    const owner = await genOwnerApi(geoCode);
+    const housingList = await Promise.all([
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(otherEstablishment.geoCodes[0])
-    ];
+    ]);
     const payload: GroupPayloadDTO = {
       title: 'Logements prioritaires',
       description: 'Logements les plus énergivores',
@@ -286,16 +287,17 @@ describe('Group API', () => {
     });
 
     it('should create the group immediately and add housing later if the volume of housing exceeds the threshold', async () => {
-      const housingList = Array.from({
+      const housingList = await Promise.all(Array.from({
         length: config.app.batchSize * 2
-      }).map(() => genHousingApi(oneOf(establishment.geoCodes)));
+      }).map(() => genHousingApi(oneOf(establishment.geoCodes))));
       await async.forEach(
         fp.chunk(config.app.batchSize, housingList),
         async (chunk) => {
           await Housing().insert(chunk.map(formatHousingRecordApi));
         }
       );
-      const owner = genOwnerApi();
+      const geoCode = oneOf(establishment.geoCodes);
+      const owner = await genOwnerApi(geoCode);
       await Owners().insert(formatOwnerApi(owner));
       await HousingOwners().insert(
         housingList.flatMap((housing) =>
@@ -330,16 +332,16 @@ describe('Group API', () => {
     });
   });
 
-  describe('PUT /groups/{id}', () => {
+  describe('PUT /groups/{id}', async () => {
     const testRoute = (id: string) => `/api/groups/${id}`;
     const group = genGroupApi(user, establishment);
     const anotherGroup = genGroupApi(otherUser, otherEstablishment);
-    const housingList = [
+    const housingList = await Promise.all([
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(otherEstablishment.geoCodes[0])
-    ];
+    ]);
 
     const payload: GroupPayloadDTO = {
       title: 'Logement prioritaires',
@@ -419,15 +421,16 @@ describe('Group API', () => {
     });
   });
 
-  describe('POST /groups/{id}/housing', () => {
+  describe('POST /groups/{id}/housing', async () => {
     const testRoute = (id: string) => `/api/groups/${id}/housing`;
-    const owner = genOwnerApi();
-    const housingList = [
+    const geoCode = '67268';
+    const owner = await genOwnerApi(geoCode);
+    const housingList = await Promise.all([
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(otherEstablishment.geoCodes[0])
-    ];
+    ]);
     const establishmentHousingList = housingList.filter((housing) =>
       establishment.geoCodes.includes(housing.geoCode)
     );
@@ -494,7 +497,7 @@ describe('Group API', () => {
     });
 
     it('should add the housing corresponding to the given criteria to the group', async () => {
-      const housing = genHousingApi(oneOf(establishment.geoCodes));
+      const housing = await genHousingApi(oneOf(establishment.geoCodes));
       await Housing().insert(formatHousingRecordApi(housing));
       await HousingOwners().insert({
         owner_id: owner.id,
@@ -529,7 +532,7 @@ describe('Group API', () => {
     });
 
     it('should create events when some housing get added', async () => {
-      const housing = genHousingApi(oneOf(establishment.geoCodes));
+      const housing = await genHousingApi(oneOf(establishment.geoCodes));
       await Housing().insert(formatHousingRecordApi(housing));
       await HousingOwners().insert({
         owner_id: owner.id,
@@ -572,15 +575,16 @@ describe('Group API', () => {
     });
   });
 
-  describe('DELETE /groups/{id}/housing', () => {
+  describe('DELETE /groups/{id}/housing', async () => {
     const testRoute = (id: string) => `/api/groups/${id}/housing`;
-    const owner = genOwnerApi();
-    const housingList = [
+    const geoCode = '67268';
+    const owner = await genOwnerApi(geoCode);
+    const housingList = await Promise.all([
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(establishment.geoCodes[0]),
       genHousingApi(otherEstablishment.geoCodes[0])
-    ];
+    ]);
     const establishmentHousingList = housingList.filter((housing) =>
       establishment.geoCodes.includes(housing.geoCode)
     );
@@ -716,10 +720,11 @@ describe('Group API', () => {
     beforeEach(async () => {
       group = genGroupApi(user, establishment);
       anotherGroup = genGroupApi(otherUser, otherEstablishment);
-      housingList = Array.from({ length: 3 }).map(() =>
+      housingList = await Promise.all(Array.from({ length: 3 }).map(() =>
         genHousingApi(oneOf(establishment.geoCodes))
-      );
-      owner = genOwnerApi();
+      ));
+      const geoCode = '67268';
+      owner = await genOwnerApi(geoCode);
 
       await Groups().insert(formatGroupApi(group));
       await Housing().insert(housingList.map(formatHousingRecordApi));

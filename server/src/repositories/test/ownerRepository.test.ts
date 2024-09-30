@@ -10,7 +10,9 @@ import { OwnerApi } from '~/models/OwnerApi';
 describe('Owner repository', () => {
   describe('find', () => {
     it('should find owners by idpersonne', async () => {
-      const owners = Array.from({ length: 6 }, () => genOwnerApi());
+      const geoCode = '67268';
+      const owners = await Promise.all(Array.from({ length: 6 }, async () => await genOwnerApi(geoCode)));
+      
       await Owners().insert(owners.map(formatOwnerApi));
 
       const actual = await ownerRepository.find({
@@ -25,8 +27,9 @@ describe('Owner repository', () => {
 
   describe('findOne', () => {
     it('should find a owner without birth date', async () => {
+      const geoCode = '67268';
       const owner: OwnerApi = {
-        ...genOwnerApi(),
+        ...await genOwnerApi(geoCode),
         birthDate: undefined
       };
       await db(ownerTable).insert(formatOwnerApi(owner));
@@ -44,7 +47,8 @@ describe('Owner repository', () => {
     });
 
     it('should find a owner with birth date', async () => {
-      const owner: OwnerApi = genOwnerApi();
+      const geoCode = '67268';
+      const owner: OwnerApi = await genOwnerApi(geoCode);
       await db(ownerTable).insert(formatOwnerApi(owner));
 
       const actual = await ownerRepository.findOne({
@@ -64,13 +68,14 @@ describe('Owner repository', () => {
 
   describe('stream', () => {
     it('should group by full name', async () => {
-      const owners = new Array(4)
+      const geoCode = '67268';
+      const owners = await Promise.all(new Array(4)
         .fill('0')
-        .map(() => genOwnerApi())
+        .map(async () => await genOwnerApi(geoCode))
         .map<OwnerApi>((owner) => ({
           ...owner,
           fullName: 'Jean Dupont'
-        }));
+        })));
       await Owners().insert(owners.map(formatOwnerApi));
 
       const actual = await ownerRepository

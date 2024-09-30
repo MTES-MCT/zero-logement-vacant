@@ -43,10 +43,11 @@ describe('Event API', () => {
     await Users().insert(formatUserApi(user));
   });
 
-  describe('GET /owners/{id}/events', () => {
+  describe('GET /owners/{id}/events', async () => {
     const testRoute = (id: string) => `/api/owners/${id}/events`;
 
-    const owner = genOwnerApi();
+    const geoCode = '67268';
+    const owner = await genOwnerApi(geoCode);
 
     beforeAll(async () => {
       await Owners().insert(formatOwnerApi(owner));
@@ -67,9 +68,9 @@ describe('Event API', () => {
     });
 
     it('should list the owner events', async () => {
-      const events: OwnerEventApi[] = Array.from({ length: 3 }).map(() =>
-        genOwnerEventApi(owner, user)
-      );
+      const events: OwnerEventApi[] = await Promise.all(Array.from({ length: 3 }).map(() =>
+        genOwnerEventApi(owner, user, geoCode)
+      ));
       await Events().insert(events.map(formatEventApi));
       await OwnerEvents().insert(events.map(formatOwnerEventApi));
 
@@ -85,10 +86,10 @@ describe('Event API', () => {
     });
   });
 
-  describe('GET /housing/{id}/events', () => {
+  describe('GET /housing/{id}/events', async () => {
     const testRoute = (id: string) => `/api/housing/${id}/events`;
 
-    const housing = genHousingApi(oneOf(establishment.geoCodes));
+    const housing = await genHousingApi(oneOf(establishment.geoCodes));
 
     beforeAll(async () => {
       await Housing().insert(formatHousingRecordApi(housing));

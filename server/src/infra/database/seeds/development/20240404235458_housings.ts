@@ -18,29 +18,52 @@ import {
 } from '~/repositories/housingOwnerRepository';
 
 export async function seed(knex: Knex): Promise<void> {
+
   const establishments = await Establishments(knex).where({ available: true });
 
+  async function delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async function tryGenHousingApi(establishment: any, maxAttempts = 3): Promise<HousingApi> {
+    let attempts = 0;
+    let lastError: any;
+  
+    while (attempts < maxAttempts) {
+      attempts += 1;
+      const geoCode = faker.helpers.arrayElement(establishment.localities_geo_code) as string;
+      try {
+        return await genHousingApi(geoCode);
+      } catch (error) {
+        lastError = error;
+        console.log(`Tentative ${attempts} échouée avec geoCode ${geoCode}.`);
+      }
+      await delay(200);
+    }
+
+    throw new Error(`Échec après ${maxAttempts} tentatives : ${lastError}`);
+  }
+
   await async.forEachSeries(establishments, async (establishment) => {
-    const housings: ReadonlyArray<HousingApi> = faker.helpers.multiple(
-      () =>
-        genHousingApi(
-          faker.helpers.arrayElement(establishment.localities_geo_code)
-        ),
+    const housings: ReadonlyArray<HousingApi> = await Promise.all(faker.helpers.multiple(
+      async () =>
+        await tryGenHousingApi(establishment, 3),
       {
         count: {
-          min: 100,
-          max: 10000
+          min: 30,
+          max: 100
         }
       }
-    );
-    const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(
-      (housing) => {
-        const owners = faker.helpers.multiple(() => genOwnerApi(), {
+    ));
+    const housingOwners: ReadonlyArray<HousingOwnerApi> = (await Promise.all(housings.flatMap(
+      async (housing) => {
+        const geoCode = '67268';
+        const owners = await Promise.all(faker.helpers.multiple(() => genOwnerApi(geoCode), {
           count: {
             min: 1,
             max: 6
           }
-        });
+        }));
         const archivedOwners: ReadonlyArray<HousingOwnerApi> = [];
 
         return owners
@@ -53,7 +76,7 @@ export async function seed(knex: Knex): Promise<void> {
           }))
           .concat(archivedOwners);
       }
-    );
+    ))).flat();
     const owners: ReadonlyArray<OwnerApi> = housingOwners.flat();
 
     await knex.batchInsert(housingTable, housings.map(formatHousingRecordApi));

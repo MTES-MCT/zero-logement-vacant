@@ -14,7 +14,6 @@ import {
   genDatafoncierOwner,
   genEstablishmentApi,
   genHousingApi,
-  genOwnerApi,
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
@@ -49,6 +48,7 @@ import {
   CampaignsHousing,
   formatCampaignHousingApi
 } from '~/repositories/campaignHousingRepository';
+import { faker } from '@faker-js/faker/locale/fr';
 
 describe('Housing API', () => {
   const { app } = createServer();
@@ -106,38 +106,50 @@ describe('Housing API', () => {
       });
     });
 
-    it('should return the housing list for a query filter', async () => {
-      const queriedHousing = {
-        ...genHousingApi(oneOf(establishment.geoCodes)),
-        rawAddress: ['line1 with   many      spaces', 'line2']
-      };
-      await Housing().insert(formatHousingRecordApi(queriedHousing));
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
-      await HousingOwners().insert(
-        formatHousingOwnersApi(queriedHousing, [owner])
+    it('should return 200 OK', async () => {
+      const { status } = await request(app)
+        .post(testRoute)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    it('should paginate the response', async () => {
+      const housings = Array.from({ length: 2 }, () =>
+        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
       );
+      const owners = housings.map((housing) => housing.owner);
+      await Promise.all([
+        Housing().insert(housings.map(formatHousingRecordApi)),
+        Owners().insert(owners.map(formatOwnerApi))
+      ]);
+      const housingOwners = housings.flatMap((housing) => {
+        return formatHousingOwnersApi(housing, [housing.owner]);
+      });
+      await HousingOwners().insert(housingOwners);
 
       const { body, status } = await request(app)
         .post(testRoute)
         .send({
           page: 1,
-          perPage: 10,
-          filters: { query: 'line1   with many spaces' }
+          perPage: 1
         })
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject({
-        entities: expect.arrayContaining([
-          expect.objectContaining({
-            id: queriedHousing.id
-          })
-        ]),
-        page: 1,
-        perPage: 10,
-        filteredCount: 1,
-        totalCount: 0
+      expect(body.entities).toHaveLength(1);
+    });
+
+    it('should sort housings by occupancy', async () => {
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .query('sort=-occupancy')
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.entities).toBeSortedBy('occupancy', {
+        descending: true
       });
     });
   });

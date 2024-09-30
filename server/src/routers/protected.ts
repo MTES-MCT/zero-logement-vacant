@@ -26,6 +26,8 @@ import validator from '~/middlewares/validator';
 import { isUUIDParam } from '~/utils/validators';
 import draftController from '~/controllers/draftController';
 import validatorNext from '~/middlewares/validator-next';
+import { paginationSchema } from '~/models/PaginationApi';
+import sortApi from '~/models/SortApi';
 
 const router = Router();
 
@@ -38,7 +40,8 @@ router.post('/files', upload(), fileController.create);
 router.post(
   '/housing',
   validatorNext.validate({
-    body: schemas.housingFilters
+    body: schemas.housingFilters.concat(paginationSchema),
+    query: sortApi.sortSchema
   }),
   housingController.list
 );

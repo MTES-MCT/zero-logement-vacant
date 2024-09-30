@@ -62,7 +62,9 @@
             <p>Le {{localdate writtenAt}}</p>
           {{/if}}
         {{/if}}
+        {{#if subject}}
         <p><strong>Objet : </strong>{{subject}}</p>
+        {{/if}}
       </header>
       <section class="main__body">
         {{{body}}}

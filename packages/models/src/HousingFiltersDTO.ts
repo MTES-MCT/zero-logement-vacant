@@ -8,6 +8,7 @@ import { VacancyRate } from './VacancyRate';
 import { Occupancy } from './Occupancy';
 import { HousingStatus } from './HousingStatus';
 import { EnergyConsumption } from './EnergyConsumption';
+import { HousingKind } from './HousingKind';
 
 export interface HousingFiltersDTO {
   housingIds?: string[];
@@ -22,7 +23,7 @@ export interface HousingFiltersDTO {
   ownerAges?: OwnerAge[];
   multiOwners?: boolean[];
   beneficiaryCounts?: BeneficiaryCount[];
-  housingKinds?: string[];
+  housingKinds?: HousingKind[];
   housingAreas?: LivingArea[];
   roomsCounts?: number[];
   cadastralClassifications?: string[];

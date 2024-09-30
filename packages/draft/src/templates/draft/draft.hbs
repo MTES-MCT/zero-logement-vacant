@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -54,9 +54,17 @@
         {{#if writtenFrom}}
           {{#if writtenAt}}
             <p>À {{writtenFrom}}, le {{localdate writtenAt}}</p>
+          {{else}}
+            <p>À {{writtenFrom}}</p>
+          {{/if}}
+        {{else}}
+          {{#if writtenAt}}
+            <p>Le {{localdate writtenAt}}</p>
           {{/if}}
         {{/if}}
+        {{#if subject}}
         <p><strong>Objet : </strong>{{subject}}</p>
+        {{/if}}
       </header>
       <section class="main__body">
         {{{body}}}
@@ -65,7 +73,7 @@
     <footer>
       <section class="footer__signature">
         {{#if sender.signatoryFile}}
-          <p><img src="{{sender.signatoryFile}}" alt="Signature" /></p>
+          <p><img src="{{sender.signatoryFile}}" alt="Signature" class="footer__image" /></p>
         {{/if}}
         {{#if sender.signatoryFirstName}}
           {{#if sender.signatoryLastName}}

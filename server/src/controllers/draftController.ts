@@ -231,7 +231,7 @@ const previewValidators: ValidationChain[] = [
     .withMessage('geoCode must be 5 characters long')
     .notEmpty()
     .withMessage('geoCode is required'),
-  body('housing.localId').isInt().isLength({ min: 12, max: 12 }),
+  body('housing.localId').isString().isLength({ min: 12, max: 12 }),
   body('housing.rawAddress').isArray().isLength({ min: 1 }),
   body('housing.cadastralReference').isString().optional({
     nullable: true
@@ -244,7 +244,9 @@ const previewValidators: ValidationChain[] = [
     .notEmpty()
     .withMessage('kind is required'),
   body('housing.livingArea').isInt().notEmpty(),
-  body('housing.buildingYear').isInt().notEmpty(),
+  body('housing.buildingYear').optional({
+    nullable: true
+  }).isInt(),
   body('housing.energyConsumption')
     .optional({
       nullable: true

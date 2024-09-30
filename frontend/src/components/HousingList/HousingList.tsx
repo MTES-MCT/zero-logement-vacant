@@ -3,7 +3,7 @@ import {
   ReactElement,
   ReactNode,
   useEffect,
-  useState,
+  useState
 } from 'react';
 
 import { Pagination as DSFRPagination, Table } from '../_dsfr';
@@ -13,7 +13,7 @@ import {
   HousingSortable,
   HousingUpdate,
   OccupancyKindLabels,
-  SelectedHousing,
+  SelectedHousing
 } from '../../models/Housing';
 import { capitalize } from '../../utils/stringUtils';
 import { HousingFilters } from '../../models/HousingFilters';
@@ -22,7 +22,7 @@ import { useCampaignList } from '../../hooks/useCampaignList';
 import _ from 'lodash';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
@@ -39,7 +39,7 @@ import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import {
   useCountHousingQuery,
-  useUpdateHousingMutation,
+  useUpdateHousingMutation
 } from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
@@ -60,7 +60,7 @@ const HousingList = ({
   actions,
   children,
   filters,
-  onSelectHousing,
+  onSelectHousing
 }: HousingListProps) => {
   const header = findChild(children, SelectableListHeader);
 
@@ -78,23 +78,24 @@ const HousingList = ({
   const { housingList } = useHousingList({
     filters,
     pagination,
-    sort,
+    sort
   });
 
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, hasPagination, rowNumber, changePerPage, changePage} = usePagination({
-    pagination,
-    setPagination,
-    count: filteredCount,
-  });
+  const { pageCount, hasPagination, rowNumber, changePerPage, changePage } =
+    usePagination({
+      pagination,
+      setPagination,
+      count: filteredCount
+    });
 
   const onSort = (sort: HousingSort) => {
     setSort(sort);
     setPagination({
       ...pagination,
-      page: 1,
+      page: 1
     });
   };
 
@@ -150,7 +151,6 @@ const HousingList = ({
           (!allChecked && checkedIds.length === filteredCount)
         }
         className={checkedIds.length !== 0 ? 'indeterminate' : ''}
-        options={[]}
       ></AppCheckbox>
     ),
     render: ({ id }: Housing) => (
@@ -162,14 +162,13 @@ const HousingList = ({
           (!allChecked && checkedIds.includes(id))
         }
         data-testid={'housing-check-' + id}
-        options={[]}
       ></AppCheckbox>
-    ),
+    )
   };
 
   const rowNumberColumn = {
     name: 'number',
-    render: ({ rowNumber }: any) => <>#{rowNumber}</>,
+    render: ({ rowNumber }: any) => <>#{rowNumber}</>
   };
 
   const addressColumn = {
@@ -179,7 +178,7 @@ const HousingList = ({
       <AppLink className="capitalize" isSimple to={`/logements/${id}`}>
         {rawAddress.map((line) => capitalize(line)).join('\n')}
       </AppLink>
-    ),
+    )
   };
 
   const ownerColumn = {
@@ -196,7 +195,7 @@ const HousingList = ({
         </AppLink>
         {owner.administrator && <div>({owner.administrator})</div>}
       </>
-    ),
+    )
   };
 
   const occupancyColumn = {
@@ -206,7 +205,7 @@ const HousingList = ({
       <Badge className="bg-bf950 color-bf113">
         {OccupancyKindLabels[occupancy]}
       </Badge>
-    ),
+    )
   };
 
   const campaignColumn = {
@@ -218,10 +217,10 @@ const HousingList = ({
           _.uniq(
             campaignIds
               .map((campaignId) =>
-                campaignList?.find((c) => c.id === campaignId),
+                campaignList?.find((c) => c.id === campaignId)
               )
               .filter(isDefined)
-              .sort(campaignSort),
+              .sort(campaignSort)
           ).map((campaign, campaignIdx) => (
             <div key={id + '-campaign-' + campaignIdx}>
               <AppLink isSimple to={`/campagnes/${campaign.id}`}>
@@ -231,7 +230,7 @@ const HousingList = ({
             </div>
           ))}
       </>
-    ),
+    )
   };
 
   const statusColumn = {
@@ -242,7 +241,7 @@ const HousingList = ({
         <HousingStatusBadge status={status} />
         <HousingSubStatusBadge status={status} subStatus={subStatus} />
       </div>
-    ),
+    )
   };
 
   const actionColumn = {
@@ -260,7 +259,7 @@ const HousingList = ({
         >
           Mettre à jour
         </Button>
-      ),
+      )
   };
 
   let columns = [
@@ -272,13 +271,13 @@ const HousingList = ({
     statusColumn
   ];
 
-  if(!isVisitor) {
-    columns = [ selectColumn, ...columns, actionColumn ];
+  if (!isVisitor) {
+    columns = [selectColumn, ...columns, actionColumn];
   }
 
   const submitHousingUpdate = async (
     housing: Housing,
-    housingUpdate: HousingUpdate,
+    housingUpdate: HousingUpdate
   ) => {
     trackEvent({
       category: location.pathname.includes('parc-de-logements')
@@ -287,11 +286,11 @@ const HousingList = ({
       action: location.pathname.includes('parc-de-logements')
         ? TrackEventActions.HousingList.Update
         : TrackEventActions.Campaigns.Update,
-      value: 1,
+      value: 1
     });
     await updateHousing({
       housing,
-      housingUpdate,
+      housingUpdate
     });
     setUpdatingHousing(undefined);
   };
@@ -317,7 +316,7 @@ const HousingList = ({
             rowKey={(h: Housing) => `${h.id}_${h.owner.id}`}
             data={housingList.map((_, index) => ({
               ..._,
-              rowNumber: rowNumber(index),
+              rowNumber: rowNumber(index)
             }))}
             columns={columns}
             fixedLayout={true}
@@ -325,7 +324,7 @@ const HousingList = ({
               'zlv-table',
               'with-modify-last',
               'with-row-number',
-              !isVisitor ?? { 'with-select': onSelectHousing },
+              !isVisitor ?? { 'with-select': onSelectHousing }
             )}
             data-testid="housing-table"
           />

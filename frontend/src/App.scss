@@ -3,6 +3,10 @@
 @use "src/components/Map/housing-popup-overrides";
 @use "notification";
 
+:root[data-fr-scrolling] body {
+  overflow: auto;
+}
+
 :root {
   --material-transition-curve: cubic-bezier(.39,.4,.82,.78);
 }

@@ -48,23 +48,23 @@ export async function down(knex: Knex): Promise<void> {
     }),
     knex.schema.createTable('housing', (table) => {
       table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
-      table.string('invariant').notNullable();
+      table.string('invariant').nullable();
       table.string('local_id').notNullable();
-      table.string('building_id').notNullable();
+      table.string('building_id').nullable();
       table.specificType('raw_address', 'text[]').notNullable();
       table.string('geo_code').notNullable();
-      table.double('latitude').notNullable();
-      table.double('longitude').notNullable();
-      table.integer('cadastral_classification').notNullable();
+      table.double('latitude').nullable();
+      table.double('longitude').nullable();
+      table.integer('cadastral_classification').nullable();
       table.boolean('uncomfortable').notNullable();
-      table.integer('vacancy_start_year').notNullable();
+      table.integer('vacancy_start_year').nullable();
       table.string('housing_kind').notNullable();
       table.integer('rooms_count').notNullable();
       table.integer('living_area').notNullable();
       table.string('cadastral_reference').notNullable();
       table.integer('building_year');
-      table.date('mutation_date').notNullable();
-      table.boolean('taxed').notNullable();
+      table.date('mutation_date');
+      table.boolean('taxed');
       table.specificType('vacancy_reasons', 'text[]');
       table.specificType('data_years', 'integer[]').defaultTo('{2021}');
       table.integer('beneficiary_count');
@@ -74,7 +74,6 @@ export async function down(knex: Knex): Promise<void> {
       table.integer('status');
       table.string('sub_status');
       table.string('precisions');
-      table.integer('cadastral_classification').nullable().alter();
       table.string('energy_consumption');
       table.string('energy_consumption_worst');
       table.string('occupancy_registered').notNullable().defaultTo('V');
@@ -91,8 +90,8 @@ export async function down(knex: Knex): Promise<void> {
     knex.schema.createTable('old_events', (table) => {
       table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
       table.uuid('campaign_id').references('id').inTable('campaigns');
-      table.uuid('housing_id').references('id').inTable('housing').alter();
-      table.uuid('owner_id').references('id').inTable('owners').alter();
+      table.uuid('housing_id').references('id').inTable('housing');
+      table.uuid('owner_id').references('id').inTable('owners');
       table.string('kind').notNullable();
       table.timestamp('created_at').defaultTo(knex.fn.now());
       table.string('content');

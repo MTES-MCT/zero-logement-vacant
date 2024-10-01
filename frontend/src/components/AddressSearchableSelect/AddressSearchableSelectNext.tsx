@@ -59,6 +59,7 @@ function AddressSearchableSelectNext(props: Props) {
       inputValue={props.inputValue}
       disablePortal={true}
       value={props.value}
+      clearOnBlur
       clearText="Supprimer"
       closeText="Fermer"
       loadingText="Chargement..."

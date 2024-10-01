@@ -39,10 +39,10 @@ export async function down(knex: Knex): Promise<void> {
       table.string('energy_consumption');
       table.string('energy_consumption_worst');
       table.string('occupancy').notNullable().defaultTo('V');
-      table.unique(['local_id'], { indexName: 'housing_local_id_idx' });
+      table.unique(['local_id'], { indexName: 'old_housing_local_id_idx' });
       table.index(
         ['geo_code', 'data_years'],
-        'housing_geo_code_data_years_idx'
+        'old_housing_geo_code_data_years_idx'
       );
       table.index(['geo_code'], 'housing_geo_code_idx');
     }),

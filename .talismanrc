@@ -1,3 +1,5 @@
+scopeconfig:
+- scope: node
 fileignoreconfig:
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176

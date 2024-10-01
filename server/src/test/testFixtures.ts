@@ -18,8 +18,9 @@ import {
 import {
   ENERGY_CONSUMPTION_GRADES,
   HousingApi,
-  OccupancyKindApi,
-  OwnershipKindsApi
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES,
+  OccupancyKindApi
 } from '~/models/HousingApi';
 import { CampaignApi } from '~/models/CampaignApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
@@ -38,7 +39,10 @@ import {
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { OwnerProspectApi } from '~/models/OwnerProspectApi';
 import { SettingsApi } from '~/models/SettingsApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
+import {
+  HOUSING_STATUS_VALUES,
+  HousingStatusApi
+} from '~/models/HousingStatusApi';
 import {
   EventApi,
   GroupHousingEventApi,
@@ -72,6 +76,7 @@ import { AddressApi } from '~/models/AddressApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { SenderApi } from '~/models/SenderApi';
 import { DraftApi } from '~/models/DraftApi';
+import { HOUSING_KIND_VALUES } from '@zerologementvacant/models';
 
 export { genGeoCode } from '@zerologementvacant/utils';
 
@@ -293,32 +298,55 @@ export const genHousingApi = (
       faker.location.streetAddress(),
       `${geoCode} ${faker.location.city()}`
     ],
+    longitude: faker.location.longitude({ min: 41, max: 51 }),
+    latitude: faker.location.latitude({ min: -5, max: 10 }),
     geoCode,
-    localityKind: randomstring.generate(),
+    localityKind: faker.helpers.maybe(
+      () => faker.helpers.arrayElement(['ACV', 'PVD']),
+      { probability: 0.2 }
+    ),
     owner: genOwnerApi(),
-    livingArea: genNumber(4),
-    cadastralClassification: genNumber(1),
-    uncomfortable: false,
-    vacancyStartYear: faker.date.past().getUTCFullYear(),
-    housingKind: randomstring.generate(),
-    roomsCount: genNumber(1),
+    livingArea: faker.number.int({ min: 10, max: 300 }),
+    cadastralClassification: faker.number.int({ min: 1, max: 10 }),
+    uncomfortable: faker.datatype.boolean(),
+    vacancyStartYear: faker.date.past({ years: 20 }).getUTCFullYear(),
+    housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
+    roomsCount: faker.number.int({ min: 0, max: 10 }),
     cadastralReference: randomstring.generate(),
-    buildingYear: faker.date.past().getUTCFullYear(),
-    taxed: false,
+    buildingYear: faker.date.past({ years: 100 }).getUTCFullYear(),
+    taxed: faker.datatype.boolean(),
     vacancyReasons: [],
     dataYears,
     dataFileYears,
     buildingLocation: randomstring.generate(),
-    ownershipKind: OwnershipKindsApi.Single,
-    status: HousingStatusApi.NeverContacted,
-    energyConsumption: oneOf(ENERGY_CONSUMPTION_GRADES),
-    occupancy: OccupancyKindApi.Vacant,
-    occupancyRegistered: OccupancyKindApi.Vacant,
-    buildingVacancyRate: genNumber(2),
+    ownershipKind: faker.helpers.maybe(() =>
+      faker.helpers.arrayElement([
+        ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+        ...INTERNAL_CO_CONDOMINIUM_VALUES
+      ])
+    ),
+    status: faker.helpers.weightedArrayElement([
+      {
+        value: HousingStatusApi.NeverContacted,
+        weight: HOUSING_STATUS_VALUES.length - 1
+      },
+      ...HOUSING_STATUS_VALUES.filter(
+        (status) => status !== HousingStatusApi.NeverContacted
+      ).map((status) => ({
+        value: status,
+        weight: 1
+      }))
+    ]),
+    energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_GRADES),
+    occupancy: faker.helpers.arrayElement(Object.values(OccupancyKindApi)),
+    occupancyRegistered: faker.helpers.arrayElement(
+      Object.values(OccupancyKindApi)
+    ),
+    buildingVacancyRate: faker.number.float(),
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCES),
-    mutationDate: faker.date.past()
+    mutationDate: faker.date.past({ years: 20 })
   };
 };
 

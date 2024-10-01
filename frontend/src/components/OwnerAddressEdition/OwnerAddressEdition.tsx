@@ -73,7 +73,6 @@ function OwnerAddressEdition(props: Props) {
         onChange={props.onSelectAddress}
         onInputChange={setInputValue}
       />
-      <Typography>BAN : {props.banAddress?.label}</Typography>
       {props.banAddress && !isBanEligible(props.banAddress) && (
         <div className="fr-mt-3w fr-p-2w bg-bf975">
           <Text size="md" className="color-info-425 weight-900">

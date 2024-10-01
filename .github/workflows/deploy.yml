@@ -55,4 +55,4 @@ jobs:
           ORGA_ID: ${{ secrets.CLEVER_ORG }}
         run: |
           clever link --org $ORGA_ID --alias ${{ inputs.alias }} '${{ inputs.app }}'
-          clever deploy --alias ${{ inputs.alias }}
+          clever deploy --alias ${{ inputs.alias }} --force

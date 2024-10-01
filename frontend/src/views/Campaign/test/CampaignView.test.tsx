@@ -96,7 +96,7 @@ describe('Campaign view', () => {
 
     renderComponent();
 
-    const rename = await screen.findByRole('button', { name: /^Renommer/ });
+    const rename = await screen.findByRole('button', { name: /^Modifier le nom/ });
     await user.click(rename);
     const modal = await screen.findByRole('dialog');
     const input = within(modal).getByRole('textbox', {
@@ -251,7 +251,7 @@ describe('Campaign view', () => {
     );
 
     await screen.findByRole('heading', {
-      name: /^Chargement de vos courriers en cours/
+      name: /^Vos fichiers à télécharger pour lancer votre campagne/
     });
     campaign.file = faker.image.url();
     const event = new MessageEvent('campaign-generate', {

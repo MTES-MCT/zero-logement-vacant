@@ -7,6 +7,7 @@ import authService from '../../services/auth.service';
 
 interface Props {
   campaign: Campaign;
+  setDownloaded: (state: boolean) => void;
 }
 
 function DraftDownloader(props: Readonly<Props>) {
@@ -31,6 +32,7 @@ function DraftDownloader(props: Readonly<Props>) {
         href: link,
       }}
       title="Télécharger les courriers et les destinataires"
+      onClick={() => props.setDownloaded(true)}
     />
   );
 }

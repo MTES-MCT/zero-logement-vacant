@@ -110,7 +110,7 @@ describe('Campaign', () => {
       .click();
 
     cy.get('*')
-      .contains('Chargement de vos courriers en cours')
+      .contains('Vos fichiers à télécharger pour lancer votre campagne')
       .should('be.visible');
 
     cy.get('a')

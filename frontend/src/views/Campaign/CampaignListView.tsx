@@ -97,7 +97,7 @@ const CampaignsListView = () => {
               'Titre',
               getSortButton('status', 'Statut'),
               getSortButton('createdAt', 'Date de création'),
-              getSortButton('sentAt', "Date d'envoi"),
+              getSortButton('sentAt', "Date d’envoi"),
               '',
             ]}
             data={campaigns.map((campaign, index) => [

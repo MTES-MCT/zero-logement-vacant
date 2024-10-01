@@ -3,6 +3,7 @@ import { fc, test } from '@fast-check/jest';
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
+  CAMPAIGN_COUNT_VALUES,
   ENERGY_CONSUMPTION_VALUES,
   HOUSING_BY_BUILDING_VALUES,
   HOUSING_KIND_VALUES,
@@ -12,6 +13,7 @@ import {
   OCCUPANCY_VALUES,
   OWNER_AGE_VALUES,
   OWNERSHIP_KIND_VALUES,
+  ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES
 } from '@zerologementvacant/models';
 import { housingFilters } from '../housing-filters';
@@ -23,7 +25,7 @@ describe('Housing filters', () => {
     energyConsumption: fc.array(fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)),
     establishmentIds: fc.array(fc.uuid()),
     groupIds: fc.array(fc.uuid()),
-    campaignsCounts: fc.array(fc.string({ minLength: 1 })),
+    campaignsCounts: fc.array(fc.constantFrom(...CAMPAIGN_COUNT_VALUES)),
     campaignIds: fc.array(fc.uuid()),
     ownerIds: fc.array(fc.uuid()),
     ownerKinds: fc.array(fc.string({ minLength: 1 })),
@@ -32,7 +34,7 @@ describe('Housing filters', () => {
     beneficiaryCounts: fc.array(fc.constantFrom(...BENEFIARY_COUNT_VALUES)),
     housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
     housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
-    roomsCounts: fc.array(fc.integer({ min: 0 })),
+    roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
     cadastralClassifications: fc.array(fc.string({ minLength: 1 })),
     buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
     vacancyDurations: fc.array(fc.string({ minLength: 1 })),

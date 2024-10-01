@@ -3,6 +3,7 @@ import { array, boolean, number, object, ObjectSchema, string } from 'yup';
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
+  CAMPAIGN_COUNT_VALUES,
   ENERGY_CONSUMPTION_VALUES,
   HOUSING_BY_BUILDING_VALUES,
   HOUSING_KIND_VALUES,
@@ -12,6 +13,7 @@ import {
   OCCUPANCY_VALUES,
   OWNER_AGE_VALUES,
   OWNERSHIP_KIND_VALUES,
+  ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES
 } from '@zerologementvacant/models';
 
@@ -23,7 +25,7 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   ),
   establishmentIds: array().of(string().uuid().required()),
   groupIds: array().of(string().uuid().required()),
-  campaignsCounts: array().of(string().required()),
+  campaignsCounts: array().of(string().oneOf(CAMPAIGN_COUNT_VALUES).required()),
   campaignIds: array().of(string().uuid().required()),
   ownerIds: array().of(string().uuid().required()),
   ownerKinds: array().of(string().required()),
@@ -34,7 +36,7 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   ),
   housingKinds: array().of(string().oneOf(HOUSING_KIND_VALUES).required()),
   housingAreas: array().of(string().oneOf(LIVING_AREA_VALUES).required()),
-  roomsCounts: array().of(number().integer().min(0).required()),
+  roomsCounts: array().of(string().oneOf(ROOM_COUNT_VALUES).required()),
   cadastralClassifications: array().of(string().required()),
   buildingPeriods: array().of(
     string().oneOf(BUILDING_PERIOD_VALUES).required()

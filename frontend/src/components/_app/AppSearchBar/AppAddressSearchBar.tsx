@@ -1,5 +1,5 @@
 import addressService, {
-  AddressSearchResult,
+  AddressSearchResult
 } from '../../../services/address.service';
 import AppSearchBar, { SearchResult } from './AppSearchBar';
 import AppLink from '../AppLink/AppLink';
@@ -9,7 +9,7 @@ interface Props {
   label?: string;
   initialQuery?: string;
   initialSearch?: boolean;
-  onSelectAddress(addressSearchResult?: AddressSearchResult): void;
+  onSelectAddress(address: AddressSearchResult | null): void;
   disabled?: boolean;
 }
 
@@ -25,9 +25,9 @@ function AppAddressSearchBar(props: Props) {
           onclick: () => {
             props.onSelectAddress({
               ...address,
-              score: 1,
+              score: 1
             });
-          },
+          }
         }));
       } catch (err) {
         console.log('error', err);

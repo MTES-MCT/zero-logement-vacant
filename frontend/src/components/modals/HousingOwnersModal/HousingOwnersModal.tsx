@@ -180,12 +180,10 @@ function HousingOwnersModal({
     ownerInput: HousingOwner,
     addressSearchResult?: AddressSearchResult
   ) => {
-    if (addressSearchResult) {
-      changeOwnerInputs({
-        ...ownerInput,
-        banAddress: addressSearchResult
-      });
-    }
+    changeOwnerInputs({
+      ...ownerInput,
+      banAddress: addressSearchResult
+    });
   };
 
   // @ts-expect-error: dynamic key
@@ -201,6 +199,7 @@ function HousingOwnersModal({
 
   function OwnerAccordion(housingOwner: HousingOwner) {
     const index = `housing-owner-${housingOwner.id}`;
+
     return (
       <Accordion
         label={
@@ -294,7 +293,9 @@ function HousingOwnersModal({
               banAddress={housingOwner.banAddress}
               rawAddress={housingOwner.rawAddress}
               disabled={housingOwner.rank === -2}
-              onSelectAddress={(a) => onSelectAddress(housingOwner, a)}
+              onSelectAddress={(address) =>
+                onSelectAddress(housingOwner, address ?? undefined)
+              }
               errorMessage={message(`banAddress-${housingOwner.id}`)}
             />
           </Col>

@@ -22,7 +22,7 @@ function OwnerEditionSideMenu(props: Props) {
   const shape = {
     fullName: string().optional(),
     address: banAddressValidator.optional(),
-    additionalAddress: string().optional().nullable(),
+    additionalAddress: string().optional().nullable()
   };
   type FormShape = typeof shape;
   const schema = object(shape);
@@ -30,13 +30,13 @@ function OwnerEditionSideMenu(props: Props) {
   const [fullName, setFullName] = useState(props.owner.fullName);
   const [address, setAddress] = useState(props.owner.banAddress);
   const [additionalAddress, setAdditionalAddress] = useState(
-    props.owner.additionalAddress ?? '',
+    props.owner.additionalAddress ?? ''
   );
   const formId = 'owner-edition-form';
   const form = useForm(schema, {
     address,
     additionalAddress,
-    fullName,
+    fullName
   });
 
   function open(): void {
@@ -56,7 +56,7 @@ function OwnerEditionSideMenu(props: Props) {
         ...props.owner,
         fullName,
         banAddress: address,
-        additionalAddress,
+        additionalAddress
       }).unwrap();
       close();
     });
@@ -66,7 +66,7 @@ function OwnerEditionSideMenu(props: Props) {
     isError: mutation.isError,
     isLoading: mutation.isLoading,
     isSuccess: mutation.isSuccess,
-    toastId: 'owner-edition',
+    toastId: 'owner-edition'
   });
 
   return (
@@ -97,7 +97,7 @@ function OwnerEditionSideMenu(props: Props) {
                 errorMessage={form.message('address')}
                 help={false}
                 rawAddress={props.owner.rawAddress}
-                onSelectAddress={setAddress}
+                onSelectAddress={(value) => setAddress(value ?? undefined)}
               />
             </section>
             <AppTextInput<FormShape>

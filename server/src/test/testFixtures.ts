@@ -218,7 +218,19 @@ export const genOwnerApi = (): OwnerApi => {
     fullName: faker.person.fullName(),
     email: genEmail(),
     phone: faker.phone.number(),
-    kind: randomstring.generate(),
+    kind: faker.helpers.maybe(
+      () =>
+        faker.helpers.arrayElement([
+          'Particulier',
+          'Investisseur',
+          'Promoteur, Investisseur privé',
+          'SCI',
+          'SCI, Copropriété, Autres personnes morales',
+          'Autres',
+          'Etat et collectivité territoriale'
+        ]),
+      { probability: 0.8 }
+    ),
     kindDetail: randomstring.generate(),
     additionalAddress: randomstring.generate()
   };

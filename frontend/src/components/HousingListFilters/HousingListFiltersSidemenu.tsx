@@ -499,11 +499,14 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Ayants droit"
+              label="Propriétaires secondaires"
               options={beneficiaryCountOptions}
               initialValues={filters.beneficiaryCounts}
               onChange={(values) =>
-                onChangeFilters({ beneficiaryCounts: values }, 'Ayants droit')
+                onChangeFilters(
+                  { beneficiaryCounts: values },
+                  'Propriétaires secondaires'
+                )
               }
             />
           </Grid>

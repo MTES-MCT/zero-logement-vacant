@@ -5,8 +5,7 @@ import {
   HousingDTO,
   HousingKind,
   HousingStatus,
-  Occupancy,
-  OwnershipKind
+  Occupancy
 } from '@zerologementvacant/models';
 import { Owner, toOwnerDTO } from './Owner';
 import { HousingStatus as DeprecatedHousingStatus } from './HousingState';
@@ -202,6 +201,22 @@ export const OccupancyUnknown = 'inconnu';
 
 export type OccupancyKindUnknown = typeof OccupancyUnknown;
 
+export const OCCUPANCY_LABELS: Record<Occupancy, string> = {
+  [Occupancy.VACANT]: 'Vacant',
+  [Occupancy.RENT]: 'En location',
+  [Occupancy.SHORT_RENT]: 'Meublé de tourisme',
+  [Occupancy.PRIMARY_RESIDENCE]: 'Occupé par le propriétaire',
+  [Occupancy.SECONDARY_RESIDENCE]: 'Résidence secondaire non louée',
+  [Occupancy.COMMERCIAL_OR_OFFICE]: 'Local commercial ou bureau',
+  [Occupancy.DEPENDENCY]: 'Dépendance',
+  [Occupancy.DEMOLISHED_OR_DIVIDED]: 'Local démoli ou divisé',
+  [Occupancy.OTHERS]: 'Autres',
+  [Occupancy.UNKNOWN]: 'Pas d’information'
+};
+
+/**
+ * @deprecated See {@link OCCUPANCY_LABELS}
+ */
 export const OccupancyKindLabels = {
   [OccupancyKind.Vacant]: 'Vacant',
   [OccupancyKind.Rent]: 'En location',
@@ -272,7 +287,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     dataFileYears: housing.dataFileYears,
     buildingLocation: housing.buildingLocation,
     // TODO: fix this by making Housing extend HousingDTO
-    ownershipKind: housing.ownershipKind as unknown as OwnershipKind,
+    ownershipKind: housing.ownershipKind,
     status: housing.status as unknown as HousingStatus,
     subStatus: housing.subStatus,
     precisions: housing.precisions,

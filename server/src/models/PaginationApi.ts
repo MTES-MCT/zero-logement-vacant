@@ -2,6 +2,7 @@ import { body, query, ValidationChain } from 'express-validator';
 import { Knex } from 'knex';
 
 import { Pagination } from '@zerologementvacant/shared';
+import { boolean, number, object } from 'yup';
 
 export type PaginationApi = PaginationEnabled | PaginationDisabled;
 
@@ -16,7 +17,7 @@ export interface PaginationDisabled {
 }
 
 export const isPaginationEnabled = (
-  pagination?: PaginationApi,
+  pagination?: PaginationApi
 ): pagination is PaginationEnabled =>
   pagination !== undefined && pagination.paginate;
 
@@ -25,14 +26,20 @@ export const MAX_PER_PAGE = 500;
 export const validators: ValidationChain[] = [
   body('paginate').default(true).isBoolean(),
   body('page').default(1).isInt({ min: 1 }).toInt(10),
-  body('perPage').default(50).isInt({ min: 1, max: MAX_PER_PAGE }).toInt(10),
+  body('perPage').default(50).isInt({ min: 1, max: MAX_PER_PAGE }).toInt(10)
 ];
 
 export const queryValidators: ValidationChain[] = [
   query('paginate').default(true).isBoolean(),
   query('page').default(1).isInt({ min: 1 }).toInt(10),
-  query('perPage').default(50).isInt({ min: 1, max: MAX_PER_PAGE }).toInt(10),
+  query('perPage').default(50).isInt({ min: 1, max: MAX_PER_PAGE }).toInt(10)
 ];
+
+export const paginationSchema = object({
+  paginate: boolean().default(true),
+  page: number().integer().min(1).default(1),
+  perPage: number().integer().min(1).max(MAX_PER_PAGE).default(50)
+});
 
 /**
  * Create pagination from a parsed query object.
@@ -44,7 +51,7 @@ export function createPagination(query: Pagination): PaginationApi {
     ? {
         paginate: true,
         page: query.page,
-        perPage: query.perPage,
+        perPage: query.perPage
       }
     : { paginate: false };
 }
@@ -63,4 +70,5 @@ export default {
   query: paginationQuery,
   validators,
   queryValidators,
+  schema: paginationSchema
 };

@@ -1,8 +1,9 @@
-import { ChangeEvent, useRef, useState } from 'react';
 import classNames from 'classnames';
+import { ChangeEvent, useRef, useState } from 'react';
+
+import { HousingStatus } from '@zerologementvacant/models';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
-import { HousingStatus } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import styles from './housing-list-filters.module.scss';
 import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
@@ -14,13 +15,14 @@ interface Props {
   messageType?: string;
   message?: string;
 }
-const HousingStatusMultiSelect = ({
+
+function HousingStatusMultiSelect({
   selectedStatus,
   options,
   onChange,
   messageType,
-  message,
-}: Props) => {
+  message
+}: Props) {
   const [showOptions, setShowOptions] = useState(false);
 
   const wrapperRef = useRef(null);
@@ -35,7 +37,7 @@ const HousingStatusMultiSelect = ({
     <div className="select-single-input" ref={wrapperRef}>
       <div
         className={classNames({
-          [`fr-select-group--${messageType}`]: messageType,
+          [`fr-select-group--${messageType}`]: messageType
         })}
       >
         <label className="fr-label">Statut de suivi</label>
@@ -58,7 +60,7 @@ const HousingStatusMultiSelect = ({
       </div>
       <div
         className={classNames('select-single-options', 'fr-pt-1w', {
-          'select-single-options__visible': showOptions,
+          'select-single-options__visible': showOptions
         })}
       >
         {options.map((option) => (
@@ -74,7 +76,7 @@ const HousingStatusMultiSelect = ({
               styles.checkboxLabel,
               'bordered-b',
               'fr-mx-0',
-              'fr-pb-1w',
+              'fr-pb-1w'
             )}
             hintText={option.hint}
             key={option.label}
@@ -86,6 +88,6 @@ const HousingStatusMultiSelect = ({
       </div>
     </div>
   );
-};
+}
 
 export default HousingStatusMultiSelect;

@@ -12,3 +12,9 @@ export type HousingOwnerDTO = BaseHousingOwnerDTO & OwnerDTO;
 export type OwnerHousingDTO = BaseHousingOwnerDTO & HousingDTO;
 
 export type HousingOwnerPayloadDTO = BaseHousingOwnerDTO & Pick<OwnerDTO, 'id'>;
+
+export function isSecondaryOwner(
+  housingOwner: Pick<HousingOwnerDTO, 'rank'>
+): boolean {
+  return housingOwner.rank >= 2;
+}

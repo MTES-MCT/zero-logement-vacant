@@ -1,3 +1,4 @@
+import * as turf from '@turf/turf';
 import { faker } from '@faker-js/faker/locale/fr';
 import { addHours } from 'date-fns';
 import fp from 'lodash/fp';
@@ -348,6 +349,11 @@ export const genGeoPerimeterApi = (
   return {
     id: uuidv4(),
     establishmentId,
+    geometry: turf.multiPolygon(
+      turf
+        .randomPolygon()
+        .features.map((feature) => feature.geometry.coordinates)
+    ).geometry,
     name: randomstring.generate(),
     kind: randomstring.generate()
   };

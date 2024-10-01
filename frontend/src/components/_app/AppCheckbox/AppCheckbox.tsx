@@ -1,23 +1,21 @@
-import React, { ComponentPropsWithoutRef, ReactNode } from 'react';
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
+import { ChangeEventHandler, ReactNode } from 'react';
+import Checkbox, { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
 
-interface CheckboxProps
-  extends Partial<ComponentPropsWithoutRef<typeof Checkbox>> {
+interface Props<Value extends string> extends Omit<CheckboxProps, 'options'> {
   checked?: boolean;
-  onChange?: React.ChangeEventHandler;
-  value?: string;
+  onChange?: ChangeEventHandler;
+  value?: Value;
   label?: ReactNode;
-  hintText?: string;
 }
 
-const AppCheckbox: React.FC<CheckboxProps> = ({
+function AppCheckbox<Value extends string = string>({
   checked,
   onChange,
   value,
   label,
   hintText,
   ...props
-}: CheckboxProps) => {
+}: Props<Value>) {
   return (
     <Checkbox
       {...props}
@@ -27,13 +25,13 @@ const AppCheckbox: React.FC<CheckboxProps> = ({
           nativeInputProps: {
             onChange,
             checked,
-            value,
+            value
           },
-          hintText,
-        },
+          hintText
+        }
       ]}
     />
   );
-};
+}
 
 export default AppCheckbox;

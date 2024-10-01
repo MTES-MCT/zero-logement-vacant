@@ -2,6 +2,7 @@ import fileUpload from 'express-fileupload';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
 
+import schemas from '@zerologementvacant/schemas';
 import accountController from '~/controllers/accountController';
 import campaignController from '~/controllers/campaignController';
 import contactPointController from '~/controllers/contactPointController';
@@ -24,6 +25,9 @@ import { upload } from '~/middlewares/upload';
 import validator from '~/middlewares/validator';
 import { isUUIDParam } from '~/utils/validators';
 import draftController from '~/controllers/draftController';
+import validatorNext from '~/middlewares/validator-next';
+import { paginationSchema } from '~/models/PaginationApi';
+import sortApi from '~/models/SortApi';
 
 const router = Router();
 
@@ -35,8 +39,10 @@ router.post('/files', upload(), fileController.create);
 // TODO: replace by GET /housing
 router.post(
   '/housing',
-  housingController.listValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: schemas.housingFilters.concat(paginationSchema),
+    query: sortApi.sortSchema
+  }),
   housingController.list
 );
 // TODO: replace by POST /housing

@@ -2,19 +2,17 @@ import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import fp from 'lodash/fp';
-import validator from 'validator';
 
 import { HousingSource, PaginationOptions } from '@zerologementvacant/shared';
-import db, { where } from '~/infra/database';
+import db, { toRawArray, where } from '~/infra/database';
 import {
   EnergyConsumptionGradesApi,
-  getOwnershipKindFromValue,
   HousingApi,
   HousingRecordApi,
   HousingSortApi,
-  OccupancyKindApi,
-  OwnershipKindsApi,
-  OwnershipKindValues
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES,
+  OccupancyKindApi
 } from '~/models/HousingApi';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
@@ -387,57 +385,6 @@ export function ownerHousingJoinClause(query: any) {
     .andOnVal('rank', 1);
 }
 
-export function queryOwnerHousingWhereClause(
-  queryBuilder: any,
-  query?: string
-) {
-  if (query?.length) {
-    queryBuilder.where(function (whereBuilder: any) {
-      //With more than 20 tokens, the query is likely nor a name neither an address
-      if (query.replaceAll(' ', ',').split(',').length < 20) {
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-          query
-        );
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-          query?.split(' ').reverse().join(' ')
-        );
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
-          query
-        );
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
-          query?.split(' ').reverse().join(' ')
-        );
-        whereBuilder.orWhereRaw(
-          `replace(upper(unaccent(array_to_string(${housingTable}.address_dgfip, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
-          query
-        );
-        whereBuilder.orWhereRaw(
-          `upper(unaccent(array_to_string(${ownerTable}.address_dgfip, '%'))) like '%' || upper(unaccent(?)) || '%'`,
-          query
-        );
-      }
-      whereBuilder.orWhereIn(
-        'invariant',
-        query
-          ?.replaceAll(' ', ',')
-          .split(',')
-          .map((_) => _.trim())
-      );
-      whereBuilder.orWhereIn(
-        'cadastral_reference',
-        query
-          ?.replaceAll(' ', ',')
-          .split(',')
-          .map((_) => _.trim())
-      );
-    });
-  }
-}
-
 function fastListQuery(opts: ListQueryOptions) {
   return db
     .select(`${housingTable}.*`)
@@ -461,7 +408,10 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.whereIn('occupancy', filters.occupancies);
     }
     if (filters.energyConsumption?.length) {
-      queryBuilder.whereIn('energy_consumption_bdnb', filters.energyConsumption);
+      queryBuilder.whereIn(
+        'energy_consumption_bdnb',
+        filters.energyConsumption
+      );
     }
     if (filters.establishmentIds?.length) {
       queryBuilder.joinRaw(
@@ -481,7 +431,7 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.campaignIds?.length) {
-      queryBuilder.whereRaw('campaigns.campaign_ids && ?', [
+      queryBuilder.whereRaw(`${campaignsTable}.campaign_ids && ?`, [
         filters.campaignIds
       ]);
     }
@@ -509,7 +459,7 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }
     if (filters.ownerKinds?.length) {
-      queryBuilder.whereIn('owner_kind', filters.ownerKinds);
+      queryBuilder.whereIn(`${ownerTable}.kind_class`, filters.ownerKinds);
     }
     if (filters.ownerAges?.length) {
       queryBuilder.where((whereBuilder) => {
@@ -537,14 +487,14 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.multiOwners?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
+      queryBuilder.where((where) => {
         if (filters.multiOwners?.includes('true')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
           );
         }
         if (filters.multiOwners?.includes('false')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
           );
         }
@@ -552,68 +502,83 @@ function filteredQuery(opts: ListQueryOptions) {
     }
 
     if (filters.beneficiaryCounts?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        whereBuilder.whereIn(
-          `${housingTable}.beneficiary_count`,
-          filters.beneficiaryCounts?.filter((_: string) => !isNaN(+_))
-        );
-        if (filters.beneficiaryCounts?.indexOf('0') !== -1) {
-          whereBuilder.orWhereNull('beneficiary_count');
-        }
-        if (filters.beneficiaryCounts?.indexOf('gt5') !== -1) {
-          whereBuilder.orWhereRaw('beneficiary_count >= 5');
-        }
+      // Count secondary owners, e.g., those who have a rank >= 2
+      queryBuilder.whereIn(`${housingTable}.id`, (subquery) => {
+        subquery
+          .select(`${housingOwnersTable}.housing_id`)
+          .from(housingOwnersTable)
+          // Include the main owner otherwise housings that have
+          // no secondary owner will not appear in the GROUP BY clause
+          .where(`${housingOwnersTable}.rank`, '>=', 1)
+          .groupBy(`${housingOwnersTable}.housing_id`)
+          .modify((query) => {
+            const counts = filters.beneficiaryCounts
+              ?.map(Number)
+              ?.filter((count) => !Number.isNaN(count))
+              // Beneficiary count = 0 implies there is a main owner
+              // but no secondary owner
+              ?.map((count) => count + 1);
+            if (counts && counts.length) {
+              query.havingRaw(`COUNT(*) IN ${toRawArray(counts)}`, [...counts]);
+            }
+            if (filters.beneficiaryCounts?.includes('gte5')) {
+              // At least 6 housing owners (including the main owner)
+              query.orHavingRaw('COUNT(*) >= 6');
+            }
+          });
       });
     }
     if (filters.housingKinds?.length) {
       queryBuilder.whereIn('housing_kind', filters.housingKinds);
     }
     if (filters.housingAreas?.length) {
-      queryBuilder.where((whereBuilder) => {
+      queryBuilder.where((where) => {
         if (filters.housingAreas?.includes('lt35')) {
-          whereBuilder.orWhereBetween('living_area', [0, 34]);
+          where.orWhereBetween('living_area', [0, 34]);
         }
         if (filters.housingAreas?.includes('35to74')) {
-          whereBuilder.orWhereBetween('living_area', [35, 74]);
+          where.orWhereBetween('living_area', [35, 74]);
         }
         if (filters.housingAreas?.includes('75to99')) {
-          whereBuilder.orWhereBetween('living_area', [75, 99]);
+          where.orWhereBetween('living_area', [75, 99]);
         }
         if (filters.housingAreas?.includes('gte100')) {
-          whereBuilder.orWhereRaw('living_area >= 100');
+          where.orWhereRaw('living_area >= 100');
         }
       });
     }
     if (filters.roomsCounts?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.roomsCounts?.indexOf('gt5') !== -1) {
-          whereBuilder.orWhereRaw('rooms_count >= 5');
+      queryBuilder.where((where) => {
+        if (filters.roomsCounts?.includes('gte5')) {
+          where.orWhere(`${housingTable}.rooms_count`, '>=', 5);
         }
-        whereBuilder.orWhereIn(
-          'rooms_count',
-          filters.roomsCounts?.filter((_) => validator.isNumeric(_))
-        );
+        const roomCounts = filters.roomsCounts
+          ?.map(Number)
+          ?.filter((count) => !Number.isNaN(count));
+        if (roomCounts && roomCounts.length) {
+          where.orWhereIn(`${housingTable}.rooms_count`, roomCounts);
+        }
       });
     }
     if (filters.cadastralClassifications?.length) {
       queryBuilder.whereIn(
-        'cadastral_classification',
+        `${housingTable}.cadastral_classification`,
         filters.cadastralClassifications
       );
     }
     if (filters.buildingPeriods?.length) {
-      queryBuilder.where((whereBuilder) => {
-        if (filters.buildingPeriods?.indexOf('lt1919') !== -1) {
-          whereBuilder.orWhereBetween('building_year', [0, 1918]);
+      queryBuilder.where((where) => {
+        if (filters.buildingPeriods?.includes('lt1919')) {
+          where.orWhereBetween(`${housingTable}.building_year`, [0, 1918]);
         }
-        if (filters.buildingPeriods?.indexOf('1919to1945') !== -1) {
-          whereBuilder.orWhereBetween('building_year', [1919, 1945]);
+        if (filters.buildingPeriods?.includes('1919to1945')) {
+          where.orWhereBetween(`${housingTable}.building_year`, [1919, 1945]);
         }
-        if (filters.buildingPeriods?.indexOf('1946to1990') !== -1) {
-          whereBuilder.orWhereBetween('building_year', [1946, 1990]);
+        if (filters.buildingPeriods?.includes('1946to1990')) {
+          where.orWhereBetween(`${housingTable}.building_year`, [1946, 1990]);
         }
-        if (filters.buildingPeriods?.indexOf('gt1991') !== -1) {
-          whereBuilder.orWhereRaw('building_year >= 1991');
+        if (filters.buildingPeriods?.includes('gte1991')) {
+          where.orWhere(`${housingTable}.building_year`, '>=', 1991);
         }
       });
     }
@@ -660,34 +625,40 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.isTaxedValues?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.isTaxedValues?.indexOf('true') !== -1) {
-          whereBuilder.orWhereRaw('taxed');
+      queryBuilder.where((where) => {
+        if (filters.isTaxedValues?.includes('true')) {
+          where.orWhereRaw('taxed');
         }
-        if (filters.isTaxedValues?.indexOf('false') !== -1) {
-          whereBuilder.orWhereNull('taxed');
-          whereBuilder.orWhereRaw('not(taxed)');
+        if (filters.isTaxedValues?.includes('false')) {
+          where.orWhereNull('taxed').orWhereRaw('not(taxed)');
         }
       });
     }
     if (filters.ownershipKinds?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.Single) !== -1) {
-          whereBuilder.orWhereNull('ownership_kind');
+      queryBuilder.where((where) => {
+        if (filters.ownershipKinds?.includes('single')) {
+          where
+            .orWhereNull(`${housingTable}.condominium`)
+            .orWhereIn(
+              `${housingTable}.condominium`,
+              INTERNAL_MONO_CONDOMINIUM_VALUES
+            );
         }
-        if (
-          filters.ownershipKinds?.indexOf(OwnershipKindsApi.CoOwnership) !== -1
-        ) {
-          whereBuilder.orWhereIn(
-            'ownership_kind',
-            OwnershipKindValues[OwnershipKindsApi.CoOwnership]
+        if (filters.ownershipKinds?.includes('co')) {
+          where.orWhereIn(
+            `${housingTable}.condominium`,
+            INTERNAL_CO_CONDOMINIUM_VALUES
           );
         }
-        if (filters.ownershipKinds?.indexOf(OwnershipKindsApi.Other) !== -1) {
-          whereBuilder.orWhereIn(
-            'ownership_kind',
-            OwnershipKindValues[OwnershipKindsApi.Other]
-          );
+        if (filters.ownershipKinds?.includes('other')) {
+          where.orWhere((orWhere) => {
+            orWhere
+              .whereNotNull(`${housingTable}.condominium`)
+              .whereNotIn(`${housingTable}.condominium`, [
+                ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+                ...INTERNAL_CO_CONDOMINIUM_VALUES
+              ]);
+          });
         }
       });
     }
@@ -701,47 +672,43 @@ function filteredQuery(opts: ListQueryOptions) {
     }
 
     if (filters.housingCounts?.length) {
-      queryBuilder.where((whereBuilder) => {
+      queryBuilder.where((where) => {
         if (filters.housingCounts?.includes('lt5')) {
-          whereBuilder.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
+          where.orWhereRaw('coalesce(housing_count, 0) between 0 and 4');
         }
         if (filters.housingCounts?.includes('5to19')) {
-          whereBuilder.orWhereBetween('housing_count', [5, 19]);
+          where.orWhereBetween('housing_count', [5, 19]);
         }
         if (filters.housingCounts?.includes('20to49')) {
-          whereBuilder.orWhereBetween('housing_count', [20, 49]);
+          where.orWhereBetween('housing_count', [20, 49]);
         }
         if (filters.housingCounts?.includes('gte50')) {
-          whereBuilder.orWhereRaw('housing_count >= 50');
+          where.orWhereRaw('housing_count >= 50');
         }
       });
     }
     if (filters.vacancyRates?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
+      queryBuilder.where((where) => {
         if (filters.vacancyRates?.includes('lt20')) {
-          whereBuilder.orWhereRaw(
-            'vacant_housing_count * 100 / housing_count < 20'
-          );
+          where.orWhereRaw('vacant_housing_count * 100 / housing_count < 20');
         }
         if (filters.vacancyRates?.includes('20to39')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'vacant_housing_count * 100 / housing_count between 20 and 39'
           );
         }
         if (filters.vacancyRates?.includes('40to59')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'vacant_housing_count * 100 / housing_count between 40 and 59'
           );
         }
         if (filters.vacancyRates?.includes('60to79')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'vacant_housing_count * 100 / housing_count between 60 and 79'
           );
         }
         if (filters.vacancyRates?.includes('gte80')) {
-          whereBuilder.orWhereRaw(
-            'vacant_housing_count * 100 / housing_count >= 80'
-          );
+          where.orWhereRaw('vacant_housing_count * 100 / housing_count >= 80');
         }
       });
     }
@@ -758,25 +725,27 @@ function filteredQuery(opts: ListQueryOptions) {
         .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
     }
     if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
-      queryBuilder.whereExists((builder: any) =>
-        builder
+      queryBuilder.whereExists((subquery) => {
+        subquery
           .select('*')
           .from(geoPerimetersTable)
+          // @ts-expect-error: knex types are wrong here
+          .whereIn('kind', filters.geoPerimetersIncluded)
           .whereRaw(
             `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))`
-          )
-          .whereIn('kind', filters.geoPerimetersIncluded)
-      );
+          );
+      });
     }
     if (filters.geoPerimetersExcluded && filters.geoPerimetersExcluded.length) {
-      queryBuilder.whereNotExists(function (whereBuilder: any) {
-        whereBuilder
+      queryBuilder.whereNotExists((subquery) => {
+        subquery
           .select(`${geoPerimetersTable}.*`)
           .from(geoPerimetersTable)
+          // @ts-expect-error: knex types are wrong here
+          .whereIn('kind', filters.geoPerimetersExcluded)
           .whereRaw(
             `st_contains(${geoPerimetersTable}.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))`
-          )
-          .whereIn('kind', filters.geoPerimetersExcluded);
+          );
       });
     }
     if (filters.dataFileYearsIncluded?.length) {
@@ -798,7 +767,52 @@ function filteredQuery(opts: ListQueryOptions) {
     if (filters.subStatus?.length) {
       queryBuilder.whereIn('sub_status', filters.subStatus);
     }
-    queryOwnerHousingWhereClause(queryBuilder, filters.query);
+    if (filters.query?.length) {
+      const { query } = filters;
+      queryBuilder.where(function (whereBuilder: any) {
+        // With more than 20 tokens, the query is likely nor a name neither an address
+        if (query.replaceAll(' ', ',').split(',').length < 20) {
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+            query
+          );
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
+            query?.split(' ').reverse().join(' ')
+          );
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
+            query
+          );
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
+            query?.split(' ').reverse().join(' ')
+          );
+          whereBuilder.orWhereRaw(
+            `replace(upper(unaccent(array_to_string(${housingTable}.address_dgfip, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
+            query
+          );
+          whereBuilder.orWhereRaw(
+            `upper(unaccent(array_to_string(${ownerTable}.address_dgfip, '%'))) like '%' || upper(unaccent(?)) || '%'`,
+            query
+          );
+        }
+        whereBuilder.orWhereIn(
+          'invariant',
+          query
+            ?.replaceAll(' ', ',')
+            .split(',')
+            .map((_) => _.trim())
+        );
+        whereBuilder.orWhereIn(
+          'cadastral_reference',
+          query
+            ?.replaceAll(' ', ',')
+            .split(',')
+            .map((_) => _.trim())
+        );
+      });
+    }
   };
 }
 
@@ -873,7 +887,7 @@ export interface HousingRecordDBO {
   beneficiary_count?: number;
   building_location?: string;
   rental_value?: number;
-  condominium?: OwnershipKindsApi;
+  condominium?: string;
   status: HousingStatusApi;
   sub_status?: string | null;
   precisions?: string[];
@@ -932,7 +946,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   vacancyReasons: housing.vacancy_reasons ?? undefined,
   dataYears: housing.data_years,
   dataFileYears: housing.data_file_years ?? [],
-  ownershipKind: getOwnershipKindFromValue(housing.condominium),
+  ownershipKind: housing.condominium,
   status: housing.status,
   subStatus: housing.sub_status ?? undefined,
   precisions: housing.precisions ?? undefined,

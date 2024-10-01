@@ -31,15 +31,12 @@ import {
   statusOptions,
   taxedOptions,
   unselectedOptions,
-  vacancyDurationOptions,
   vacancyRateOptions
 } from '../../models/HousingFilters';
 import styles from './housing-list-filters.module.scss';
-import { OwnershipKinds } from '../../models/Housing';
 import {
   getSubStatusList,
-  getSubStatusListOptions,
-  HousingStatus
+  getSubStatusListOptions
 } from '../../models/HousingState';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
@@ -52,6 +49,7 @@ import { useToggle } from '../../hooks/useToggle';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import { useUser } from '../../hooks/useUser';
+import { HousingStatus } from '@zerologementvacant/models';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -89,7 +87,7 @@ function HousingListFiltersSidemenu(props: Props) {
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
-  const onChangeStatusFilter = (status: HousingStatus, isChecked: boolean) => {
+  function onChangeStatusFilter(status: HousingStatus, isChecked: boolean) {
     const statusList = [
       ...(filters.statusList ?? []).filter((_) => _ !== status),
       ...(isChecked ? [status] : [])
@@ -103,7 +101,7 @@ function HousingListFiltersSidemenu(props: Props) {
       },
       'Statut'
     );
-  };
+  }
 
   const { isVisitor } = useUser();
 
@@ -207,9 +205,9 @@ function HousingListFiltersSidemenu(props: Props) {
             <Grid component="article" mb={2} xs={12}>
               <AppMultiSelect
                 label="Campagne"
-                options={campaigns.map((c) => ({
-                  value: c.id,
-                  label: c.title
+                options={campaigns.map((campaign) => ({
+                  value: campaign.id,
+                  label: campaign.title
                 }))}
                 initialValues={filters.campaignIds}
                 onChange={(values) =>
@@ -408,19 +406,6 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Durée de vacance"
-              options={vacancyDurationOptions}
-              initialValues={filters.vacancyDurations}
-              onChange={(values) =>
-                onChangeFilters(
-                  { vacancyDurations: values },
-                  'Durée de vacance'
-                )
-              }
-            />
-          </Grid>
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
               label="Nombre de pièces"
               options={roomsCountOptions}
               initialValues={filters.roomsCounts ?? []}
@@ -433,10 +418,14 @@ function HousingListFiltersSidemenu(props: Props) {
             <AppMultiSelect
               label="Taxé"
               options={taxedOptions}
-              initialValues={filters.isTaxedValues}
+              initialValues={filters.isTaxedValues?.map((value) =>
+                value ? 'true' : 'false'
+              )}
               onChange={(values) =>
                 onChangeFilters(
-                  { isTaxedValues: values as OwnershipKinds[] },
+                  {
+                    isTaxedValues: values.map((value) => value === 'true')
+                  },
                   'Taxé'
                 )
               }
@@ -497,27 +486,33 @@ function HousingListFiltersSidemenu(props: Props) {
             <AppMultiSelect
               label="Multi-propriétaire"
               options={multiOwnerOptions}
-              initialValues={filters.multiOwners}
+              initialValues={filters.multiOwners?.map((value) =>
+                value ? 'true' : 'false'
+              )}
               onChange={(values) =>
-                onChangeFilters({ multiOwners: values }, 'Multi-propriétaire')
+                onChangeFilters(
+                  { multiOwners: values?.map((value) => value === 'true') },
+                  'Multi-propriétaire'
+                )
               }
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Ayants droit"
+              label="Propriétaires secondaires"
               options={beneficiaryCountOptions}
               initialValues={filters.beneficiaryCounts}
               onChange={(values) =>
-                onChangeFilters({ beneficiaryCounts: values }, 'Ayants droit')
+                onChangeFilters(
+                  { beneficiaryCounts: values },
+                  'Propriétaires secondaires'
+                )
               }
             />
           </Grid>
         </Accordion>
         <Accordion
-          label={
-            <TitleWithIcon icon="fr-icon-server-line" title="Données" />
-          }
+          label={<TitleWithIcon icon="fr-icon-server-line" title="Données" />}
         >
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect

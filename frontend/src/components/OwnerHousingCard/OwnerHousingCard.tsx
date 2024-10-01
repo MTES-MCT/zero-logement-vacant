@@ -6,6 +6,7 @@ import styles from './owner-housing-card.module.scss';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Typography from '@mui/material/Typography';
+import { HousingStatus } from '@zerologementvacant/models';
 
 interface OwnerHousingCardProps {
   housing: Housing;
@@ -39,7 +40,9 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
             {capitalize(housing.rawAddress[0])}
           </Typography>
           {housing.status !== undefined && (
-            <HousingStatusBadge status={housing.status} />
+            <HousingStatusBadge
+              status={housing.status as unknown as HousingStatus}
+            />
           )}
         </>
       }

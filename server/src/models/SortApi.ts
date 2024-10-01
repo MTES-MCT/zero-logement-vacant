@@ -4,6 +4,7 @@ import { Knex } from 'knex';
 import { keys } from '~/utils/object';
 import validator from 'validator';
 import { isArrayOf, isString } from '~/utils/validators';
+import { array, object, string } from 'yup';
 
 type Direction = 'asc' | 'desc';
 export type Sort<Sortable extends object = object> = Partial<
@@ -20,7 +21,7 @@ export type Sort<Sortable extends object = object> = Partial<
  * // { owner: 'asc', rawAddress: 'desc' }
  */
 function parse<Sortable extends object = object>(
-  query?: string[] | string,
+  query?: string[] | string
 ): Sort<Sortable> | undefined {
   if (!query) {
     return;
@@ -49,7 +50,7 @@ interface FormatOptions<Sortable> {
 
 export function sortQuery<Sortable extends object>(
   sort?: Sort<Sortable>,
-  options?: FormatOptions<Sortable>,
+  options?: FormatOptions<Sortable>
 ) {
   return (query: Knex.QueryBuilder): void => {
     if (sort) {
@@ -65,8 +66,23 @@ export function sortQuery<Sortable extends object>(
 export const queryValidators: ValidationChain[] = [
   query('sort')
     .optional()
-    .custom((value) => isSortValue(value) || isArrayOf(isSortValue)(value)),
+    .custom((value) => isSortValue(value) || isArrayOf(isSortValue)(value))
 ];
+
+export const sortSchema = object({
+  sort: array()
+    .transform((value) =>
+      typeof value === 'string' ? value.split(',') : value
+    )
+    .of(
+      string().test({
+        name: 'comma-separated values',
+        test(value) {
+          return value ? /^-?[a-zA-Z]+$/i.test(value) : true;
+        }
+      })
+    )
+});
 
 const isSortValue = (value: unknown): value is string =>
   isString(value) && validator.matches(value, /^-?[a-zA-Z]+$/i);
@@ -75,4 +91,5 @@ export default {
   parse,
   query: sortQuery,
   queryValidators,
+  sortSchema
 };

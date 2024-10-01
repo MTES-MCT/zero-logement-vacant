@@ -6,7 +6,7 @@ import db from '~/infra/database';
 import { tokenProvider } from '~/test/testUtils';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import {
   genCampaignApi,
@@ -14,9 +14,8 @@ import {
   genDatafoncierOwner,
   genEstablishmentApi,
   genHousingApi,
-  genOwnerApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
@@ -24,7 +23,7 @@ import {
   Events,
   eventsTable,
   HousingEvents,
-  housingEventsTable,
+  housingEventsTable
 } from '~/repositories/eventRepository';
 import { createServer } from '~/infra/server';
 import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
@@ -32,23 +31,24 @@ import { HousingUpdateBody } from './housingController';
 import { housingNotesTable, Notes } from '~/repositories/noteRepository';
 import {
   formatHousingOwnersApi,
-  HousingOwners,
+  HousingOwners
 } from '~/repositories/housingOwnerRepository';
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import {
   Campaigns,
-  formatCampaignApi,
+  formatCampaignApi
 } from '~/repositories/campaignRepository';
 import {
   CampaignsHousing,
-  formatCampaignHousingApi,
+  formatCampaignHousingApi
 } from '~/repositories/campaignHousingRepository';
+import { faker } from '@faker-js/faker/locale/fr';
 
 describe('Housing API', () => {
   const { app } = createServer();
@@ -60,7 +60,7 @@ describe('Housing API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi),
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert([user, anotherUser].map(formatUserApi));
   });
@@ -96,7 +96,7 @@ describe('Housing API', () => {
       const { body, status } = await request(app)
         .post(testRoute)
         .send({
-          filters: {},
+          filters: {}
         })
         .use(tokenProvider(user));
 
@@ -106,38 +106,50 @@ describe('Housing API', () => {
       });
     });
 
-    it('should return the housing list for a query filter', async () => {
-      const queriedHousing = {
-        ...genHousingApi(oneOf(establishment.geoCodes)),
-        rawAddress: ['line1 with   many      spaces', 'line2'],
-      };
-      await Housing().insert(formatHousingRecordApi(queriedHousing));
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
-      await HousingOwners().insert(
-        formatHousingOwnersApi(queriedHousing, [owner]),
+    it('should return 200 OK', async () => {
+      const { status } = await request(app)
+        .post(testRoute)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    it('should paginate the response', async () => {
+      const housings = Array.from({ length: 2 }, () =>
+        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
       );
+      const owners = housings.map((housing) => housing.owner);
+      await Promise.all([
+        Housing().insert(housings.map(formatHousingRecordApi)),
+        Owners().insert(owners.map(formatOwnerApi))
+      ]);
+      const housingOwners = housings.flatMap((housing) => {
+        return formatHousingOwnersApi(housing, [housing.owner]);
+      });
+      await HousingOwners().insert(housingOwners);
 
       const { body, status } = await request(app)
         .post(testRoute)
         .send({
           page: 1,
-          perPage: 10,
-          filters: { query: 'line1   with many spaces' },
+          perPage: 1
         })
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject({
-        entities: expect.arrayContaining([
-          expect.objectContaining({
-            id: queriedHousing.id,
-          }),
-        ]),
-        page: 1,
-        perPage: 10,
-        filteredCount: 1,
-        totalCount: 0,
+      expect(body.entities).toHaveLength(1);
+    });
+
+    it('should sort housings by occupancy', async () => {
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .query('sort=-occupancy')
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.entities).toBeSortedBy('occupancy', {
+        descending: true
       });
     });
   });
@@ -155,7 +167,7 @@ describe('Housing API', () => {
       const housing = genHousingApi(oneOf(establishment.geoCodes));
       await Housing().insert(formatHousingRecordApi(housing));
       const payload = {
-        localId: housing.localId,
+        localId: housing.localId
       };
 
       const { status } = await request(app)
@@ -168,7 +180,7 @@ describe('Housing API', () => {
 
     it('should fail if the housing was not found in datafoncier', async () => {
       const payload = {
-        localId: randomstring.generate(12),
+        localId: randomstring.generate(12)
       };
 
       const { status } = await request(app)
@@ -182,12 +194,12 @@ describe('Housing API', () => {
     it('should create a housing', async () => {
       const datafoncierHousing = genDatafoncierHousing();
       const datafoncierOwners = Array.from({ length: 3 }, () =>
-        genDatafoncierOwner(datafoncierHousing.idprocpte),
+        genDatafoncierOwner(datafoncierHousing.idprocpte)
       );
       await DatafoncierHouses().insert(datafoncierHousing);
       await DatafoncierOwners().insert(datafoncierOwners);
       const payload = {
-        localId: datafoncierHousing.idlocal,
+        localId: datafoncierHousing.idlocal
       };
 
       const { body, status } = await request(app)
@@ -197,19 +209,19 @@ describe('Housing API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject({
-        localId: payload.localId,
+        localId: payload.localId
       });
     });
 
     it('should assign its owners', async () => {
       const datafoncierHousing = genDatafoncierHousing();
       const datafoncierOwners = Array.from({ length: 6 }, () =>
-        genDatafoncierOwner(datafoncierHousing.idprocpte),
+        genDatafoncierOwner(datafoncierHousing.idprocpte)
       );
       await DatafoncierHouses().insert(datafoncierHousing);
       await DatafoncierOwners().insert(datafoncierOwners);
       const payload = {
-        localId: datafoncierHousing.idlocal,
+        localId: datafoncierHousing.idlocal
       };
 
       const { body, status } = await request(app)
@@ -220,7 +232,7 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       const actual = await HousingOwners().where({
         housing_geo_code: body.geoCode,
-        housing_id: body.id,
+        housing_id: body.id
       });
       expect(actual).toBeArrayOfSize(datafoncierOwners.length);
     });
@@ -228,12 +240,12 @@ describe('Housing API', () => {
     it('should create an event', async () => {
       const datafoncierHousing = genDatafoncierHousing();
       const datafoncierOwners = [
-        genDatafoncierOwner(datafoncierHousing.idprocpte),
+        genDatafoncierOwner(datafoncierHousing.idprocpte)
       ];
       await DatafoncierHouses().insert(datafoncierHousing);
       await DatafoncierOwners().insert(datafoncierOwners);
       const payload = {
-        localId: datafoncierHousing.idlocal,
+        localId: datafoncierHousing.idlocal
       };
 
       const { body, status } = await request(app)
@@ -245,7 +257,7 @@ describe('Housing API', () => {
       const event = await HousingEvents()
         .where({
           housing_geo_code: body.geoCode,
-          housing_id: body.id,
+          housing_id: body.id
         })
         .join(eventsTable, 'id', 'event_id')
         .first();
@@ -254,7 +266,7 @@ describe('Housing API', () => {
         kind: 'Create',
         section: 'Situation',
         category: 'Followup',
-        created_by: user.id,
+        created_by: user.id
       });
     });
   });
@@ -264,17 +276,17 @@ describe('Housing API', () => {
       housingUpdate: {
         statusUpdate: {
           status: HousingStatusApi.InProgress,
-          vacancyReasons: [randomstring.generate()],
+          vacancyReasons: [randomstring.generate()]
         },
         occupancyUpdate: {
           occupancy: OccupancyKindApi.Vacant,
-          occupancyIntended: OccupancyKindApi.DemolishedOrDivided,
+          occupancyIntended: OccupancyKindApi.DemolishedOrDivided
         },
         note: {
           content: randomstring.generate(),
-          noteKind: randomstring.generate(),
-        },
-      },
+          noteKind: randomstring.generate()
+        }
+      }
     };
 
     const testRoute = (housingId: string) => `/api/housing/${housingId}`;
@@ -309,35 +321,35 @@ describe('Housing API', () => {
     const campaign = genCampaignApi(establishment.id, user.id);
     const housing: HousingApi = {
       ...genHousingApi(oneOf(establishment.geoCodes)),
-      status: HousingStatusApi.Waiting,
+      status: HousingStatusApi.Waiting
     };
     const payload = {
       filters: {
         status: HousingStatusApi.Waiting,
-        campaignIds: [campaign.id],
+        campaignIds: [campaign.id]
       },
       housingIds: [housing.id],
       allHousing: false,
       housingUpdate: {
         statusUpdate: {
           status: HousingStatusApi.InProgress,
-          vacancyReasons: [randomstring.generate()],
+          vacancyReasons: [randomstring.generate()]
         },
         occupancyUpdate: {
           occupancy: OccupancyKindApi.Vacant,
-          occupancyIntended: OccupancyKindApi.DemolishedOrDivided,
+          occupancyIntended: OccupancyKindApi.DemolishedOrDivided
         },
         note: {
-          content: randomstring.generate(),
-        },
-      },
+          content: randomstring.generate()
+        }
+      }
     };
 
     beforeAll(async () => {
       await Campaigns().insert(formatCampaignApi(campaign));
       await Housing().insert(formatHousingRecordApi(housing));
       await CampaignsHousing().insert(
-        formatCampaignHousingApi(campaign, [housing]),
+        formatCampaignHousingApi(campaign, [housing])
       );
     });
 
@@ -361,14 +373,14 @@ describe('Housing API', () => {
       await badRequestTest({ ...payload, housingIds: undefined });
       await badRequestTest({
         ...payload,
-        housingIds: [randomstring.generate()],
+        housingIds: [randomstring.generate()]
       });
       await badRequestTest({
         ...payload,
         filters: {
           ...payload.filters,
-          campaignIds: [randomstring.generate()],
-        },
+          campaignIds: [randomstring.generate()]
+        }
       });
       await badRequestTest({ ...payload, housingUpdate: undefined });
       await badRequestTest({
@@ -377,9 +389,9 @@ describe('Housing API', () => {
           ...payload.housingUpdate,
           statusUpdate: {
             ...payload.housingUpdate.statusUpdate,
-            status: undefined,
-          },
-        },
+            status: undefined
+          }
+        }
       });
       await badRequestTest({
         ...payload,
@@ -387,9 +399,9 @@ describe('Housing API', () => {
           ...payload.housingUpdate,
           statusUpdate: {
             ...payload.housingUpdate.statusUpdate,
-            status: randomstring.generate(),
-          },
-        },
+            status: randomstring.generate()
+          }
+        }
       });
       await badRequestTest({
         ...payload,
@@ -397,9 +409,9 @@ describe('Housing API', () => {
           ...payload.housingUpdate,
           occupancyUpdate: {
             ...payload.housingUpdate.occupancyUpdate,
-            occupancy: null,
-          },
-        },
+            occupancy: null
+          }
+        }
       });
       await badRequestTest({
         ...payload,
@@ -407,9 +419,9 @@ describe('Housing API', () => {
           ...payload.housingUpdate,
           occupancyUpdate: {
             ...payload.housingUpdate.occupancyUpdate,
-            occupancy: randomstring.generate(),
-          },
-        },
+            occupancy: randomstring.generate()
+          }
+        }
       });
       await badRequestTest({
         ...payload,
@@ -417,9 +429,9 @@ describe('Housing API', () => {
           ...payload.housingUpdate,
           occupancyUpdate: {
             ...payload.housingUpdate.occupancyUpdate,
-            occupancyIntended: randomstring.generate(),
-          },
-        },
+            occupancyIntended: randomstring.generate()
+          }
+        }
       });
       await badRequestTest({
         ...payload,
@@ -427,9 +439,9 @@ describe('Housing API', () => {
           ...payload.housingUpdate,
           note: {
             ...payload.housingUpdate.note,
-            content: undefined,
-          },
-        },
+            content: undefined
+          }
+        }
       });
     });
 
@@ -439,13 +451,13 @@ describe('Housing API', () => {
         .send({
           ...payload,
           filters: {
-            status: HousingStatusApi.Waiting,
+            status: HousingStatusApi.Waiting
           },
           housingUpdate: {
             statusUpdate: {
-              status: HousingStatusApi.NeverContacted,
-            },
-          },
+              status: HousingStatusApi.NeverContacted
+            }
+          }
         })
         .use(tokenProvider(user));
 
@@ -466,8 +478,8 @@ describe('Housing API', () => {
           status: payload.housingUpdate.statusUpdate.status,
           occupancy: payload.housingUpdate.occupancyUpdate.occupancy,
           occupancyIntended:
-            payload.housingUpdate.occupancyUpdate.occupancyIntended,
-        },
+            payload.housingUpdate.occupancyUpdate.occupancyIntended
+        }
       ]);
 
       const actual = await Housing().where('id', housing.id).first();
@@ -476,7 +488,7 @@ describe('Housing API', () => {
         status: payload.housingUpdate.statusUpdate.status,
         occupancy: payload.housingUpdate.occupancyUpdate.occupancy,
         occupancy_intended:
-          payload.housingUpdate.occupancyUpdate.occupancyIntended,
+          payload.housingUpdate.occupancyUpdate.occupancyIntended
       });
     });
 
@@ -501,17 +513,17 @@ describe('Housing API', () => {
                 kind: 'Update',
                 category: 'Followup',
                 section: 'Situation',
-                created_by: user.id,
-              }),
-            ]),
-          ),
+                created_by: user.id
+              })
+            ])
+          )
         );
 
       await request(app)
         .post(testRoute)
         .send({
           ...payload,
-          currentStatus: payload.housingUpdate.statusUpdate.status,
+          currentStatus: payload.housingUpdate.statusUpdate.status
         })
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_OK);
@@ -537,7 +549,7 @@ describe('Housing API', () => {
         .join(housingEventsTable, 'event_id', 'id')
         .where({
           housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
+          housing_id: housing.id
         });
       expect(actual).toIncludeAllPartialMembers([
         {
@@ -547,8 +559,8 @@ describe('Housing API', () => {
           kind: 'Update',
           category: 'Followup',
           section: 'Situation',
-          created_by: user.id,
-        },
+          created_by: user.id
+        }
       ]);
     });
 
@@ -567,7 +579,7 @@ describe('Housing API', () => {
       expect(actual).toMatchObject({
         housing_id: housing.id,
         ...payload.housingUpdate.note,
-        created_by: user.id,
+        created_by: user.id
       });
     });
   });

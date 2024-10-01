@@ -87,7 +87,7 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
           size="small"
           onClick={modal.open}
         >
-          Renommer
+          Modifier le nom
         </Button>
       </Container>
       <modal.Component

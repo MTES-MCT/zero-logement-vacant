@@ -33,7 +33,7 @@ function SaveButton(props: Readonly<Props>) {
       type="button"
       onClick={props.onSave}
     >
-      Sauvegarder mon brouillon
+      Sauvegarder
     </Button>
   );
 }

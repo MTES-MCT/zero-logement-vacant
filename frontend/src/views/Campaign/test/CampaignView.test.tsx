@@ -96,7 +96,7 @@ describe('Campaign view', () => {
 
     renderComponent();
 
-    const rename = await screen.findByRole('button', { name: /^Renommer/ });
+    const rename = await screen.findByRole('button', { name: /^Modifier le nom/ });
     await user.click(rename);
     const modal = await screen.findByRole('dialog');
     const input = within(modal).getByRole('textbox', {

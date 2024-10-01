@@ -56,7 +56,7 @@ export default function createTokenProvider(opts: TokenProviderOptions) {
 
     const user = await db('users').where({ email: serviceAccount }).first();
     if (!user) {
-      throw new Error(`User ${serviceAccount} not found.`);
+      throw new Error(`User xxxx ${serviceAccount} not found.`);
     }
     logger.debug('Found user', user);
     const token = await fetchToken(establishment, user.id);

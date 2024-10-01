@@ -4,6 +4,8 @@ import { useForm } from '../../hooks/useForm';
 import { Container } from '../_dsfr';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { DATE_REGEXP } from '../../utils/dateUtils';
+import { Typography } from '@mui/material';
+import styles from './draft.module.scss';
 
 export const sentAtSchema = string()
   .required('Veuillez renseigner une date d’envoi')
@@ -22,15 +24,17 @@ function DraftSendingDate(props: Readonly<Props>) {
 
   return (
     <Container as="section" className={props.className} fluid>
+      <Typography variant="h5" mb={2}>Votre date d'envoi de campagne</Typography>
       <AppTextInput
         disabled={props.disabled}
         inputForm={props.form}
         inputKey="sentAt"
-        label="Date d’envoi de votre campagne*"
+        label="Date d’envoi de votre campagne (obligatoire)"
         type="date"
         value={value}
         onChange={(e) => props.onChange(e.target.value)}
       />
+      <p className="fr-info-text">Après avoir téléchargé vos documents, indiquez la date d'envoi de votre campagne. Le statut des logements "Non suivi" passera automatiquement au statut "En attente de retour". Les autres statuts ne seront pas modifiés.</p>
     </Container>
   );
 }

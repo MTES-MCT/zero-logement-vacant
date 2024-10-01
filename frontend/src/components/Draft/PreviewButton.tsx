@@ -102,7 +102,7 @@ function PreviewButton(props: Readonly<Props>) {
       priority="secondary"
       onClick={preview}
     >
-      Visualiser mon brouillon
+      Visualiser
     </Button>
   );
 }

@@ -80,7 +80,7 @@ function CampaignSending(props: Readonly<Props>) {
   useEffect(() => {
     if (!hasFile) {
       const sse = new EventSource(`${config.apiEndpoint}/api/sse`);
-      sse.addEventListener('campaign:generate', (event) => {
+      sse.addEventListener('campaign-generate', (event) => {
         const { id } = JSON.parse(event.data);
         getCampaign(id);
       });

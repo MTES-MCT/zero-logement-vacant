@@ -117,7 +117,7 @@ describe('Campaign view', () => {
 
     const form = await screen.findByRole('form');
     const name = await within(form).findByLabelText(
-      /^Nom de la collectivité ou de l’administration/,
+      /^Nom de la collectivité ou de l’administration/
     );
     if (sender.name) {
       await user.type(name, sender.name);
@@ -135,7 +135,7 @@ describe('Campaign view', () => {
     const form = await screen.findByRole('form');
     if (sender.name) {
       const name = await within(form).findByLabelText(
-        /^Nom de la collectivité ou de l’administration/,
+        /^Nom de la collectivité ou de l’administration/
       );
       await user.clear(name);
       await user.type(name, sender.name);
@@ -254,7 +254,7 @@ describe('Campaign view', () => {
       name: /^Vos fichiers à télécharger pour lancer votre campagne/
     });
     campaign.file = faker.image.url();
-    const event = new MessageEvent('campaign:generate', {
+    const event = new MessageEvent('campaign-generate', {
       data: JSON.stringify({ id: campaign.id })
     });
     sources.get(`${config.apiEndpoint}/api/sse`)?.emit(event.type, event);

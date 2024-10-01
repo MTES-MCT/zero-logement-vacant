@@ -107,10 +107,10 @@ function CampaignSending(props: Readonly<Props>) {
               ></div>
               <p className={`fr-stepper__details ${styles.lastStep}`}>
                 <span className="fr-text--bold">
-                  Après l'étape de validation :
+                  Après l’étape de validation :
                 </span>
-                &nbsp;Suivi de campagne et passage de tous les logements "Non
-                suivi" au statut "En attente de retour".
+                &nbsp;Suivi de campagne et passage de tous les logements &quot;Non
+                suivi&quot; au statut &quot;En attente de retour&quot;.
               </p>
             </div>
           </Grid>
@@ -121,7 +121,7 @@ function CampaignSending(props: Readonly<Props>) {
                 disabled={disabled}
                 onClick={handleFormSubmit}
               >
-                Valider la date d'envoi de votre campagne
+                Valider la date d’envoi de votre campagne
               </Button>
             </div>
           </Grid>

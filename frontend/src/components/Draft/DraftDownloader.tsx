@@ -7,7 +7,7 @@ import authService from '../../services/auth.service';
 
 interface Props {
   campaign: Campaign;
-  setDownloaded: Function;
+  setDownloaded: (state: boolean) => void;
 }
 
 function DraftDownloader(props: Readonly<Props>) {

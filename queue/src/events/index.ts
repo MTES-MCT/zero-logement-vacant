@@ -7,12 +7,12 @@ import config from '../config';
 
 export default function registerEvents() {
   const logger = createLogger('queue');
-  const queues: Array<keyof Jobs> = ['campaign:generate'];
+  const queues: Array<keyof Jobs> = ['campaign-generate'];
 
   const listeners = queues.map((queue) => {
     const [redis] = parseRedisUrl(config.redis.url);
     const queueEventsConfig: QueueEventsOptions = {
-      connection: redis,
+      connection: redis
     };
 
     const queueEvents = new QueueEvents(queue, queueEventsConfig);
@@ -28,7 +28,7 @@ export default function registerEvents() {
     queueEvents.on('failed', ({ failedReason, jobId }) => {
       logger.error('Job failed', {
         job: jobId,
-        reason: failedReason,
+        reason: failedReason
       });
     });
   });

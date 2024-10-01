@@ -104,7 +104,7 @@ const remove = async (campaignId: string): Promise<void> => {
 };
 
 async function generateMails(campaign: CampaignApi): Promise<void> {
-  await queue.add('campaign:generate', {
+  await queue.add('campaign-generate', {
     campaignId: campaign.id,
     establishmentId: campaign.establishmentId
   });

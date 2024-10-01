@@ -54,7 +54,7 @@ describe('Server-sent event API', () => {
 
             response.setEncoding('utf8');
             response.once('data', (chunk) => {
-              expect(chunk).toBe('event: campaign:generate\n');
+              expect(chunk).toBe('event: campaign-generate\n');
 
               response.once('data', (chunk) => {
                 expect(chunk).toBe(

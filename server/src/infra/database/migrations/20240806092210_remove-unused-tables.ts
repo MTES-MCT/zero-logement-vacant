@@ -44,7 +44,7 @@ export async function down(knex: Knex): Promise<void> {
         ['geo_code', 'data_years'],
         'old_housing_geo_code_data_years_idx'
       );
-      table.index(['geo_code'], 'housing_geo_code_idx');
+      table.index(['geo_code'], 'old_housing_geo_code_idx');
     }),
     knex.schema.createTable('housing', (table) => {
       table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));

@@ -25,6 +25,7 @@ import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedF
 import config from '../../utils/config';
 import styles from './campaign.module.scss';
 import { Typography } from '@mui/material';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 
 const modal = createModal({
   id: 'campaign-sending-modal',
@@ -94,17 +95,11 @@ function CampaignSending(props: Readonly<Props>) {
       <Grid className={styles.steps} xs={12} py={4}>
         <Grid container xsOffset={1}>
           <Grid xs={11}>
-            <div className="fr-stepper">
-              <h2 className="fr-stepper__title">
-                Téléchargement des fichiers (destinataires au format XLSX et
-                courriers au format PDF)
-                <span className="fr-stepper__state">Étape 2 sur 2</span>
-              </h2>
-              <div
-                className="fr-stepper__steps"
-                data-fr-current-step="2"
-                data-fr-steps="2"
-              ></div>
+            <Stepper
+                currentStep={2}
+                stepCount={2}
+                title="Édition de votre courrier et vérification des adresses propriétaires"
+              />
               <p className={`fr-stepper__details ${styles.lastStep}`}>
                 <span className="fr-text--bold">
                   Après l’étape de validation :
@@ -112,7 +107,6 @@ function CampaignSending(props: Readonly<Props>) {
                 &nbsp;Suivi de campagne et passage de tous les logements &quot;Non
                 suivi&quot; au statut &quot;En attente de retour&quot;.
               </p>
-            </div>
           </Grid>
           <Grid xs={11}>
             <div className={'float-right'}>

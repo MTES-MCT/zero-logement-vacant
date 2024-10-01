@@ -33,6 +33,7 @@ import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedF
 import { FileUploadDTO } from '@zerologementvacant/models';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import Alert from '@codegouvfr/react-dsfr/Alert';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 
 const schema = yup
   .object({
@@ -167,23 +168,12 @@ function CampaignDraft(props: Readonly<Props>) {
       <Grid className={styles.steps} xs={12} py={4}>
         <Grid container xsOffset={1}>
           <Grid xs={11}>
-            <div className="fr-stepper">
-              <h2 className="fr-stepper__title">
-                Édition de votre courrier et vérification des adresses
-                propriétaires
-                <span className="fr-stepper__state">Étape 1 sur 2</span>
-              </h2>
-              <div
-                className="fr-stepper__steps"
-                data-fr-current-step="1"
-                data-fr-steps="2"
-              ></div>
-              <p className="fr-stepper__details">
-                <span className="fr-text--bold">Étape suivante :</span>
-                &nbsp;Téléchargement de vos fichiers et du fichier de
-                publipostage CSV
-              </p>
-            </div>
+            <Stepper
+                currentStep={1}
+                nextTitle='Téléchargement de vos fichiers et du fichier de publipostage CSV.'
+                stepCount={2}
+                title="Édition de votre courrier et vérification des adresses propriétaires"
+              />
           </Grid>
           <Grid xs={11}>
             <div className={'float-right'}>

@@ -10,14 +10,14 @@ import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import { useCampaign } from '../../hooks/useCampaign';
 import DraftSendingDate, {
-  sentAtSchema,
+  sentAtSchema
 } from '../../components/Draft/DraftSendingDate';
 import { useForm } from '../../hooks/useForm';
 import { object } from 'yup';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   useLazyGetCampaignQuery,
-  useUpdateCampaignMutation,
+  useUpdateCampaignMutation
 } from '../../services/campaign.service';
 import { useNotification } from '../../hooks/useNotification';
 import DraftDownloader from '../../components/Draft/DraftDownloader';
@@ -26,11 +26,11 @@ import config from '../../utils/config';
 
 const modal = createModal({
   id: 'campaign-sending-modal',
-  isOpenedByDefault: false,
+  isOpenedByDefault: false
 });
 
 const schema = object({
-  sentAt: sentAtSchema,
+  sentAt: sentAtSchema
 });
 
 interface Props {
@@ -43,14 +43,14 @@ function CampaignSending(props: Readonly<Props>) {
   const [updateCampaign, mutation] = useUpdateCampaignMutation();
 
   const form = useForm(schema, {
-    sentAt,
+    sentAt
   });
 
   useNotification({
     isError: mutation.isError,
     isLoading: mutation.isLoading,
     isSuccess: mutation.isSuccess,
-    toastId: 'update-sending-date',
+    toastId: 'update-sending-date'
   });
 
   const hasFile = !!props.campaign.file;
@@ -67,7 +67,7 @@ function CampaignSending(props: Readonly<Props>) {
       updateCampaign({
         ...props.campaign,
         sentAt,
-        status: 'in-progress',
+        status: 'in-progress'
       });
     });
     modal.close();
@@ -77,7 +77,7 @@ function CampaignSending(props: Readonly<Props>) {
   useEffect(() => {
     if (!hasFile) {
       const sse = new EventSource(`${config.apiEndpoint}/api/sse`);
-      sse.addEventListener('campaign:generate', (event) => {
+      sse.addEventListener('campaign-generate', (event) => {
         const { id } = JSON.parse(event.data);
         getCampaign(id);
       });
@@ -132,13 +132,13 @@ function CampaignSending(props: Readonly<Props>) {
                 {
                   children: 'Annuler',
                   className: 'fr-mr-2w',
-                  priority: 'secondary',
+                  priority: 'secondary'
                 },
                 {
                   onClick: submit,
                   children: 'Confirmer',
-                  doClosesModal: false,
-                },
+                  doClosesModal: false
+                }
               ]}
             >
               <div className="fr-alert fr-alert--warning fr-alert--sm">

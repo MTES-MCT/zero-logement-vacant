@@ -10,22 +10,20 @@ import addressService, {
   AddressSearchResult
 } from '../../services/address.service';
 import { Address } from '../../models/Address';
-import { useState } from 'react';
 
 interface Props extends MarkOptional<InputProps.RegularInput, 'label'> {
   debounce?: number;
   value: Address | null;
   inputValue: string;
-  open?: boolean;
+  open: boolean;
   onInputChange(value: string): void;
   onChange(value: Address | null): void;
-  onOpen?(): void;
-  onClose?(): void;
+  onOpen(): void;
+  onClose(): void;
 }
 
 function AddressSearchableSelectNext(props: Props) {
   const debounce = props?.debounce ?? 300;
-  const [focus, setFocus] = useState(false);
   const [options, { set: setOptions }] = useList<AddressSearchResult>([]);
 
   async function search(query: string | undefined): Promise<void> {
@@ -38,12 +36,12 @@ function AddressSearchableSelectNext(props: Props) {
   const previousInputValue = usePreviousDistinct(props.inputValue);
   useDebounce(
     () => {
-      if (focus && props.inputValue !== previousInputValue) {
+      if (props.open && props.inputValue !== previousInputValue) {
         search(props.inputValue).catch(console.error);
       }
     },
     debounce,
-    [props.inputValue, focus, previousInputValue]
+    [props.inputValue, props.open, previousInputValue]
   );
 
   return (
@@ -61,6 +59,7 @@ function AddressSearchableSelectNext(props: Props) {
       disablePortal={true}
       value={props.value}
       clearOnBlur
+      openOnFocus
       clearText="Supprimer"
       closeText="Fermer"
       loadingText="Chargement..."
@@ -77,8 +76,6 @@ function AddressSearchableSelectNext(props: Props) {
       onInputChange={(_, query) => {
         props.onInputChange(query);
       }}
-      onFocus={() => setFocus(true)}
-      onBlur={() => setFocus(false)}
       renderInput={(params) => (
         <>
           <Input

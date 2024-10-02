@@ -82,8 +82,11 @@ function OwnerAddressEdition(props: Props) {
         stateRelatedMessage={props.errorMessage}
         value={props.banAddress ?? null}
         inputValue={inputValue}
+        open={open}
         onChange={props.onSelectAddress}
         onInputChange={setInputValue}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
       />
       {props.banAddress && !isBanEligible(props.banAddress) && (
         <div className="fr-mt-3w fr-p-2w bg-bf975">

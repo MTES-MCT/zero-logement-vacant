@@ -118,7 +118,6 @@ function OwnerAddressEdition(props: Props) {
                     });
                   }
                   setInputValue(props.rawAddress.join(' '));
-                  // props.onSelectAddress(null);
                   setSearchAddressFromLovac(true);
                   setOpen(true);
                 }

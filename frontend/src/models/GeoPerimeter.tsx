@@ -1,14 +1,8 @@
-import { Geometry } from '@turf/turf';
+import { GeoPerimeterDTO } from '@zerologementvacant/models';
 
-export interface GeoPerimeter {
-  id: string;
-  establishmentId: string;
-  name: string;
-  kind: string;
-  geoJson?: Geometry;
-}
+export type GeoPerimeter = GeoPerimeterDTO;
 
-export type GeoPerimeterProperties = Omit<GeoPerimeter, 'geoJson'>;
+export type GeoPerimeterProperties = Omit<GeoPerimeter, 'geometry'>;
 
 export const geoPerimeterOptions = (geoPerimeters?: GeoPerimeter[]) =>
   geoPerimeters

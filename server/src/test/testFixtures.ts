@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf';
 import { faker } from '@faker-js/faker/locale/fr';
 import { addHours } from 'date-fns';
+import type { BBox } from 'geojson';
 import fp from 'lodash/fp';
 import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
@@ -254,8 +255,14 @@ export const genAddressApi = (
     street,
     postalCode,
     city,
-    latitude: faker.location.latitude(),
-    longitude: faker.location.longitude(),
+    latitude: faker.location.latitude({
+      min: FRANCE_BBOX[1],
+      max: FRANCE_BBOX[3]
+    }),
+    longitude: faker.location.longitude({
+      min: FRANCE_BBOX[0],
+      max: FRANCE_BBOX[2]
+    }),
     score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
     lastUpdatedAt: faker.date.recent().toJSON()
   };
@@ -310,8 +317,14 @@ export const genHousingApi = (
       faker.location.streetAddress(),
       `${geoCode} ${faker.location.city()}`
     ],
-    longitude: faker.location.longitude({ min: 41, max: 51 }),
-    latitude: faker.location.latitude({ min: -5, max: 10 }),
+    latitude: faker.location.latitude({
+      min: FRANCE_BBOX[1],
+      max: FRANCE_BBOX[3]
+    }),
+    longitude: faker.location.longitude({
+      min: FRANCE_BBOX[0],
+      max: FRANCE_BBOX[2]
+    }),
     geoCode,
     localityKind: faker.helpers.maybe(
       () => faker.helpers.arrayElement(['ACV', 'PVD']),
@@ -383,6 +396,8 @@ export const genCampaignApi = (
   };
 };
 
+export const FRANCE_BBOX: BBox = [-1.69, 43.19, 6.8, 49.49];
+
 export const genGeoPerimeterApi = (
   establishmentId: string
 ): GeoPerimeterApi => {
@@ -391,10 +406,19 @@ export const genGeoPerimeterApi = (
     establishmentId,
     geometry: turf.multiPolygon(
       turf
-        .randomPolygon()
-        .features.map((feature) => feature.geometry.coordinates)
+        .randomPolygon(1, {
+          bbox: FRANCE_BBOX,
+          max_radial_length: 3
+        })
+        .features.map((feature) => {
+          return feature.geometry.coordinates;
+        })
     ).geometry,
-    name: randomstring.generate(),
+    name: faker.helpers.arrayElement([
+      'OPAH',
+      'OPAH-RU',
+      'Zone Commerciale Linéaire'
+    ]),
     kind: randomstring.generate()
   };
 };

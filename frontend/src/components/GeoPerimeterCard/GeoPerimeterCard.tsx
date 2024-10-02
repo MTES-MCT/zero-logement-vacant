@@ -73,7 +73,7 @@ function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
               className="fr-mt-4w"
               to={
                 'https://geojson.io/#data=data:application/json,' +
-                encodeURIComponent(JSON.stringify(geoPerimeter.geoJson))
+                encodeURIComponent(JSON.stringify(geoPerimeter.geometry))
               }
             >
               Afficher (.json)

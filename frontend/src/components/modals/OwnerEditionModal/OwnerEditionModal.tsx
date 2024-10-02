@@ -123,7 +123,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
               value={birthDate}
               type="date"
               onChange={(e) => setBirthDate(e.target.value)}
-              label="Date de naissance"
+              label="Date de naissance (obligatoire)"
               inputForm={form}
               inputKey="birthDate"
             />
@@ -168,7 +168,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
         {isUpdateError && (
           <Alert
             severity="error"
-            description="Une erreur s'est produite, veuillez réessayer."
+            description="Les champs "Identité et "Date de naissance" doivent obligatoirement être renseignés pour pouvoir ajouter un nouveau propriétaire."
             closable
             small
             className="fr-mb-2w"

@@ -56,7 +56,7 @@ async function find(establishmentId: string): Promise<GeoPerimeterApi[]> {
   );
 
   const geoPerimeters = await GeoPerimeters()
-    .select('*', db.raw('st_asgeojson(geom)::jsonb as geo_json'))
+    .select('*', db.raw('st_asgeojson(geom)::jsonb as geom'))
     .where('establishment_id', establishmentId)
     .orWhereNull('establishment_id')
     .orderBy('name');
@@ -82,7 +82,7 @@ export interface GeoPerimeterDBO {
   establishment_id: string;
   name: string;
   kind: string;
-  geom?: MultiPolygon;
+  geom: MultiPolygon;
 }
 
 export const formatGeoPerimeterApi = (

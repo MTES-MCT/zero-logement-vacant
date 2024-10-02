@@ -26,9 +26,11 @@ import {
 import { campaignsTable } from '~/repositories/campaignRepository';
 import { resetLinkTable } from '~/repositories/resetLinkRepository';
 import { signupLinkTable } from '~/repositories/signupLinkRepository';
+import { geoPerimetersTable } from '~/repositories/geoRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
+  await knex(geoPerimetersTable).delete();
   await knex(housingNotesTable).delete();
   await knex(ownerNotesTable).delete();
   await knex(notesTable).delete();

@@ -27,8 +27,6 @@ function OwnerAddressEdition(props: Props) {
   if (searchAddressFromLovac) {
     return (
       <>
-        <Typography>BAN: {props.banAddress?.label}</Typography>
-        <Typography>Input value: {inputValue}</Typography>
         <AddressSearchableSelectNext
           className="fr-mb-2w"
           disabled={props.disabled}
@@ -79,8 +77,6 @@ function OwnerAddressEdition(props: Props) {
 
   return (
     <>
-      <Typography>BAN: {props.banAddress?.label}</Typography>
-      <Typography>Input value: {inputValue}</Typography>
       <AddressSearchableSelectNext
         disabled={props.disabled}
         stateRelatedMessage={props.errorMessage}

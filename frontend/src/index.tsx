@@ -15,7 +15,7 @@ import App from './App';
 
 startReactDsfr({
   defaultColorScheme: 'light',
-  Link,
+  Link
 });
 
 declare module '@codegouvfr/react-dsfr/spa' {
@@ -26,10 +26,15 @@ declare module '@codegouvfr/react-dsfr/spa' {
 
 const matomo = createInstance({
   ...config.matomo,
-  disabled: !config.matomo.enabled,
+  disabled: !config.matomo.enabled
 });
 
-posthog.init('phc_Thondx9VvGONN5SZK0OuDttJDIorIANsudwCL2gU3O7', { api_host: 'https://eu.i.posthog.com', person_profiles: 'identified_only' });
+if (config.posthog.enabled) {
+  posthog.init('phc_Thondx9VvGONN5SZK0OuDttJDIorIANsudwCL2gU3O7', {
+    api_host: 'https://eu.i.posthog.com',
+    person_profiles: 'identified_only'
+  });
+}
 
 const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container!);
@@ -45,5 +50,5 @@ root.render(
         </MatomoProvider>
       </MapProvider>
     </MuiDsfrThemeProvider>
-  </StrictMode>,
+  </StrictMode>
 );

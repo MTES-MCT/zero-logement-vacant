@@ -14,6 +14,8 @@ export async function seed(knex: Knex): Promise<void> {
 
   const owners = await Owners(knex).select('id');
   const addresses = owners
+    // Create a BAN address for 75% of the owners
+    .filter(() => faker.datatype.boolean(0.75))
     .map((owner) => owner.id)
     .map<AddressDBO>((id) => ({
       ref_id: id,

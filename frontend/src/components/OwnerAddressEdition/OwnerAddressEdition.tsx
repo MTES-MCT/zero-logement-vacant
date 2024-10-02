@@ -27,6 +27,33 @@ function OwnerAddressEdition(props: Props) {
   if (searchAddressFromLovac) {
     return (
       <>
+        <Typography>BAN: {props.banAddress?.label}</Typography>
+        <Typography>Input value: {inputValue}</Typography>
+        <AddressSearchableSelectNext
+          className="fr-mb-2w"
+          disabled={props.disabled}
+          value={props.banAddress ?? null}
+          inputValue={inputValue}
+          open={open}
+          onChange={(address) => {
+            props.onSelectAddress(
+              address
+                ? {
+                    ...address,
+                    banId: address.banId ?? '',
+                    latitude: address.latitude ?? 0,
+                    longitude: address.longitude ?? 0,
+                    // Consider that the user has validated the address
+                    score: 1
+                  }
+                : null
+            );
+          }}
+          onInputChange={setInputValue}
+          onOpen={() => setOpen(true)}
+          onClose={() => setOpen(false)}
+          stateRelatedMessage={props.errorMessage}
+        />
         {previousAddress && (
           <div className="fr-p-2w fr-mb-2w bg-bf975">
             <Typography mb={2}>Adresse précédente :</Typography>
@@ -46,25 +73,14 @@ function OwnerAddressEdition(props: Props) {
             </div>
           </div>
         )}
-        <Typography>BAN: {props.banAddress?.label}</Typography>
-        <Typography>Input value: {inputValue}</Typography>
-        <AddressSearchableSelectNext
-          disabled={props.disabled}
-          value={props.banAddress ?? null}
-          inputValue={inputValue}
-          open={open}
-          onChange={props.onSelectAddress}
-          onInputChange={setInputValue}
-          onOpen={() => setOpen(true)}
-          onClose={() => setOpen(false)}
-          stateRelatedMessage={props.errorMessage}
-        />
       </>
     );
   }
 
   return (
     <>
+      <Typography>BAN: {props.banAddress?.label}</Typography>
+      <Typography>Input value: {inputValue}</Typography>
       <AddressSearchableSelectNext
         disabled={props.disabled}
         stateRelatedMessage={props.errorMessage}
@@ -92,7 +108,6 @@ function OwnerAddressEdition(props: Props) {
                 children: 'Oui',
                 priority: 'secondary',
                 onClick: () => {
-                  setSearchAddressFromLovac(true);
                   if (props.banAddress) {
                     setPreviousAddress({
                       ...props.banAddress,
@@ -103,7 +118,8 @@ function OwnerAddressEdition(props: Props) {
                     });
                   }
                   setInputValue(props.rawAddress.join(' '));
-                  props.onSelectAddress(null);
+                  // props.onSelectAddress(null);
+                  setSearchAddressFromLovac(true);
                   setOpen(true);
                 }
               },

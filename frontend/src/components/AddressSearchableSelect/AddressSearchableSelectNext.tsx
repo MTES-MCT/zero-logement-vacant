@@ -35,19 +35,20 @@ function AddressSearchableSelectNext(props: Props) {
     }
   }
 
-  const previous = usePreviousDistinct(props.inputValue);
+  const previousInputValue = usePreviousDistinct(props.inputValue);
   useDebounce(
     () => {
-      if (focus && props.inputValue !== previous) {
+      if (focus && props.inputValue !== previousInputValue) {
         search(props.inputValue).catch(console.error);
       }
     },
     debounce,
-    [props.inputValue, focus, previous]
+    [props.inputValue, focus, previousInputValue]
   );
 
   return (
     <Autocomplete
+      className={props.className}
       disabled={props.disabled}
       // TODO: filter address options by type
       filterOptions={(options) => options}

@@ -19,8 +19,8 @@ export const senderSchema = object({
     .nullable()
     .matches(/^\d{10}$/, {
       message: 'Veuillez renseigner un numéro de téléphone valide',
-      excludeEmptyString: true,
-    }),
+      excludeEmptyString: true
+    })
 });
 
 interface Props {
@@ -38,7 +38,7 @@ function DraftSender(props: Readonly<Props>) {
       if (props.value) {
         props.onChange({
           ...props.value,
-          [key]: e.target.value,
+          [key]: e.target.value
         });
       }
     };

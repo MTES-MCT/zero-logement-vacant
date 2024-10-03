@@ -11,6 +11,7 @@ import {
 } from '@zerologementvacant/models';
 import data from './data';
 import config from '../../utils/config';
+import { isDefined } from '../../utils/compareUtils';
 
 type CampaignParams = {
   id: string;
@@ -146,7 +147,7 @@ export const campaignHandlers: RequestHandler[] = [
         });
       }
 
-      return new HttpResponse(null, {
+      return HttpResponse.json(null, {
         status: constants.HTTP_STATUS_NO_CONTENT
       });
     }
@@ -158,13 +159,17 @@ export const campaignHandlers: RequestHandler[] = [
         (campaign) => campaign.id === params.id
       );
       if (!campaign) {
-        return HttpResponse.json(null, {
+        throw new HttpResponse(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
 
       const payload = await request.json();
-      const housings = data.campaignHousings.get(campaign.id) ?? [];
+      const housings =
+        data.campaignHousings
+          .get(campaign.id)
+          ?.map(({ id }) => data.housings.find((housing) => housing.id === id))
+          ?.filter(isDefined) ?? [];
       const updated: HousingDTO[] = payload.all
         ? housings.filter((housing) => payload.ids.includes(housing.id))
         : housings.filter((housing) => !payload.ids.includes(housing.id));
@@ -182,8 +187,15 @@ export const campaignHandlers: RequestHandler[] = [
       data.campaigns = data.campaigns.filter(
         (campaign) => campaign.id !== params.id
       );
+      data.campaignHousings.delete(campaign.id);
+      data.campaignDrafts.delete(campaign.id);
+      data.draftCampaigns.forEach((campaignId, draftId, map) => {
+        if (campaignId.id === campaign.id) {
+          map.delete(draftId);
+        }
+      });
 
-      return new HttpResponse(null, {
+      return HttpResponse.json(null, {
         status: constants.HTTP_STATUS_NO_CONTENT
       });
     }

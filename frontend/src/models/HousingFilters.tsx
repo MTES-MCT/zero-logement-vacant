@@ -7,6 +7,7 @@ import {
   HousingByBuilding,
   HousingFiltersDTO,
   HousingKind,
+  HousingStatus,
   LivingArea,
   LocalityKind,
   Occupancy,
@@ -17,7 +18,7 @@ import {
   VacancyRate
 } from '@zerologementvacant/models';
 import { OptionTreeElement, SelectOption } from './SelectOption';
-import { HousingStates, HousingStatus } from './HousingState';
+import { HousingStates } from './HousingState';
 import {
   OCCUPANCY_LABELS,
   OwnershipKindLabels,

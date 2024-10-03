@@ -8,7 +8,6 @@ import {
   Occupancy
 } from '@zerologementvacant/models';
 import { Owner, toOwnerDTO } from './Owner';
-import { HousingStatus as DeprecatedHousingStatus } from './HousingState';
 import { stringSort } from '../utils/stringUtils';
 import { Sort } from './Sort';
 import { LocalityKinds } from './Locality';
@@ -44,7 +43,7 @@ export interface Housing {
   buildingVacancyRate: number;
   dataFileYears: string[];
   campaignIds: string[];
-  status: DeprecatedHousingStatus;
+  status: HousingStatus;
   subStatus?: string;
   precisions?: string[];
   lastContact?: Date;
@@ -268,7 +267,6 @@ export function getSource(housing: Housing): string {
 export function toHousingDTO(housing: Housing): HousingDTO {
   return {
     id: housing.id,
-    invariant: housing.invariant,
     localId: housing.localId,
     rawAddress: housing.rawAddress,
     geoCode: housing.geoCode,
@@ -284,6 +282,9 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     buildingYear: housing.buildingYear,
     taxed: housing.taxed,
     vacancyReasons: housing.vacancyReasons,
+    dataYears: housing.dataFileYears
+      .map((dataFileYear) => dataFileYear.split('-')[1])
+      .map(Number),
     dataFileYears: housing.dataFileYears,
     buildingLocation: housing.buildingLocation,
     // TODO: fix this by making Housing extend HousingDTO

@@ -1,13 +1,13 @@
 import React, { useEffect, useImperativeHandle, useState } from 'react';
 import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
-import { getSubStatusOptions, HousingStatus } from '../../models/HousingState';
+import { getSubStatusOptions } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
 import {
   allOccupancyOptions,
-  statusOptions,
+  statusOptions
 } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
 import { useForm } from '../../hooks/useForm';
@@ -18,10 +18,11 @@ import { pluralize } from '../../utils/stringUtils';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import AppSelect from '../_app/AppSelect/AppSelect';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { HousingStatus } from '@zerologementvacant/models';
 
 const modal = createModal({
   id: `housing-edition-modal`,
-  isOpenedByDefault: false,
+  isOpenedByDefault: false
 });
 
 interface Props {
@@ -52,11 +53,11 @@ const HousingEditionForm = (
 
   useEffect(() => {
     if (housing) {
-      selectStatus(housing.status ?? HousingStatus.Waiting);
+      selectStatus(housing.status ?? HousingStatus.WAITING);
     }
   }, [housing?.status]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const selectStatus = (newStatus: HousingStatus) => {
+  function selectStatus(newStatus: HousingStatus): void {
     setStatus(+newStatus);
     setSubStatusOptions(getSubStatusOptions(newStatus));
     setSubStatus(
@@ -64,7 +65,7 @@ const HousingEditionForm = (
         ?.map((_) => _.label)
         .find((_) => _ === subStatus)
     );
-  };
+  }
 
   const shape = {
     occupancy: yup.string().nullable(),
@@ -74,7 +75,7 @@ const HousingEditionForm = (
       .nullable()
       .when('hasCurrent', {
         is: true,
-        then: yup.string().required('Veuillez sélectionner un statut.'),
+        then: yup.string().required('Veuillez sélectionner un statut.')
       }),
     subStatus: yup
       .string()
@@ -83,13 +84,16 @@ const HousingEditionForm = (
         is: true,
         then: yup
           .string()
-          .required('Veuillez sélectionner un sous-statut de suivi.'),
+          .required('Veuillez sélectionner un sous-statut de suivi.')
       }),
     comment: yup.string().nullable(),
     noteKind: yup.string().nullable(),
     hasChange: yup
       .boolean()
-      .oneOf([true], 'Pour enregister, veuillez saisir au moins une donnée. Sinon, cliquez sur "Annuler" ou sur "Fermer" pour quitter la mise à jour groupée.'),
+      .oneOf(
+        [true],
+        'Pour enregister, veuillez saisir au moins une donnée. Sinon, cliquez sur "Annuler" ou sur "Fermer" pour quitter la mise à jour groupée.'
+      )
   };
   type FormShape = typeof shape;
 
@@ -129,23 +133,23 @@ const HousingEditionForm = (
       [occupancy, occupancyIntended].some(
         (prop) => prop !== MultiHousingOccupancyDefaultValue
       ) ||
-      hasNote,
+      hasNote
   });
 
   useImperativeHandle(ref, () => ({
     submit: async () => {
       await form.validate(() => (housingCount ? modal.open() : submitForm()));
-    },
+    }
   }));
 
   const submitForm = () => {
     onSubmit({
       statusUpdate: isStatusUpdate
         ? {
-            status: +(status ?? HousingStatus.Waiting),
+            status: +(status ?? HousingStatus.WAITING),
             subStatus,
             precisions,
-            vacancyReasons: vacancyReasons ?? [],
+            vacancyReasons: vacancyReasons ?? []
           }
         : undefined,
       occupancyUpdate: isOccupancyUpdate()
@@ -157,15 +161,15 @@ const HousingEditionForm = (
             occupancyIntended:
               occupancyIntended === MultiHousingOccupancyDefaultValue
                 ? undefined
-                : (occupancyIntended as OccupancyKind),
+                : (occupancyIntended as OccupancyKind)
           }
         : undefined,
       note: hasNote
         ? {
             content: comment,
-            noteKind: noteKind!,
+            noteKind: noteKind!
           }
-        : undefined,
+        : undefined
     });
     modal.close();
   };
@@ -175,10 +179,10 @@ const HousingEditionForm = (
     'Échanges avec le(s) propriétaire(s)',
     'Échanges avec une partie prenante',
     'Diagnostic/Qualification',
-    'Avis de situation',
+    'Avis de situation'
   ].map((note) => ({
     label: note,
-    value: note,
+    value: note
   }));
 
   return (
@@ -209,7 +213,7 @@ const HousingEditionForm = (
             options={statusOptions(
               (housing?.campaignIds ?? []).length === 0
                 ? []
-                : [HousingStatus.NeverContacted]
+                : [HousingStatus.NEVER_CONTACTED]
             )}
             onChange={(e: HousingStatus) => {
               selectStatus(e);
@@ -275,10 +279,10 @@ const HousingEditionForm = (
                       {
                         label: 'Sélectionnez une occupation actuelle',
                         value: MultiHousingOccupancyDefaultValue,
-                        disabled: true,
-                      },
+                        disabled: true
+                      }
                     ]),
-                ...allOccupancyOptions,
+                ...allOccupancyOptions
               ]}
             />
             <AppSelect<FormShape>
@@ -296,10 +300,10 @@ const HousingEditionForm = (
                       {
                         label: 'Sélectionnez une occupation prévisionnelle',
                         value: MultiHousingOccupancyDefaultValue,
-                        disabled: true,
-                      },
+                        disabled: true
+                      }
                     ]),
-                ...allOccupancyOptions,
+                ...allOccupancyOptions
               ]}
             />
           </Col>
@@ -332,13 +336,13 @@ const HousingEditionForm = (
           {
             children: 'Annuler',
             priority: 'secondary',
-            className: 'fr-mr-2w',
+            className: 'fr-mr-2w'
           },
           {
             children: 'Confirmer',
             onClick: submitForm,
-            doClosesModal: false,
-          },
+            doClosesModal: false
+          }
         ]}
         style={{ textAlign: 'initial' }}
       >

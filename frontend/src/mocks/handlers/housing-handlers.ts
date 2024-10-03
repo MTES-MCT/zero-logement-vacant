@@ -81,9 +81,11 @@ export const housingHandlers: RequestHandler[] = [
         });
       }
 
-      const housingOwners = data.housingOwners.get(housing.id);
-      const owner = housingOwners?.find(
-        (housingOwner) => housingOwner.rank === 1
+      const mainHousingOwner = data.housingOwners
+        .get(housing.id)
+        ?.find((housingOwner) => housingOwner.rank === 1);
+      const owner = data.owners.find(
+        (owner) => owner.id === mainHousingOwner?.id
       );
       if (!owner) {
         throw HttpResponse.json(null, {

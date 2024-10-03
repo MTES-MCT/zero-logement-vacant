@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import classNames from 'classnames';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
-import { HousingStatus } from '../../models/HousingState';
+import { HousingStatus } from '@zerologementvacant/models';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
 
@@ -18,7 +18,7 @@ const HousingStatusSelect = ({
   options,
   onChange,
   messageType,
-  message,
+  message
 }: Props) => {
   const [showOptions, setShowOptions] = useState(false);
 
@@ -34,7 +34,7 @@ const HousingStatusSelect = ({
     <div className="select-single-input" ref={wrapperRef}>
       <div
         className={classNames({
-          [`fr-select-group--${messageType}`]: messageType,
+          [`fr-select-group--${messageType}`]: messageType
         })}
       >
         <label className="fr-label">Statut de suivi</label>
@@ -55,7 +55,7 @@ const HousingStatusSelect = ({
       </div>
       <div
         className={classNames('select-single-options', {
-          'select-single-options__visible': showOptions,
+          'select-single-options__visible': showOptions
         })}
       >
         <RadioButtons
@@ -66,8 +66,8 @@ const HousingStatusSelect = ({
             nativeInputProps: {
               value: option.value,
               checked: Number(option.value) === selected,
-              onChange: () => handleStatusChange(Number(option.value)),
-            },
+              onChange: () => handleStatusChange(Number(option.value))
+            }
           }))}
           data-testid="housing-status-options"
         />

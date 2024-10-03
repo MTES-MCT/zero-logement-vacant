@@ -9,6 +9,7 @@ import {
 } from '@zerologementvacant/models';
 import data from './data';
 import config from '../../utils/config';
+import { isDefined } from '../../utils/compareUtils';
 
 interface DraftParams {
   id: string;
@@ -26,7 +27,11 @@ export const draftHandlers: RequestHandler[] = [
         });
       }
 
-      const drafts: DraftDTO[] = data.campaignDrafts.get(campaignId) ?? [];
+      const drafts =
+        data.campaignDrafts
+          .get(campaignId)
+          ?.map(({ id }) => data.drafts.find((draft) => draft.id === id))
+          ?.filter(isDefined) ?? [];
       return HttpResponse.json(drafts);
     }
   ),

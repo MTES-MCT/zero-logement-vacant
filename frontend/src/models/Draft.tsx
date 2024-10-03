@@ -10,12 +10,14 @@ import { DeepNonNullable } from 'ts-essentials';
 export interface Draft extends DraftDTO {}
 
 export interface DraftCreationPayload
-  extends DeepNonNullable<Omit<DraftCreationPayloadDTO, 'logo' | 'sender'>>,
-    Pick<DraftCreationPayloadDTO, 'logo'> {
-  sender: DeepNonNullable<Omit<SenderPayload, 'signatoryFile'>> &
-    Pick<SenderPayload, 'signatoryFile'>;
+  extends DeepNonNullable<Omit<DraftCreationPayloadDTO, 'sender'>> {
+  sender: SenderPayload;
 }
 
-export type DraftUpdatePayload = DeepNonNullable<DraftUpdatePayloadDTO>;
+export type DraftUpdatePayload = DeepNonNullable<
+  Omit<DraftUpdatePayloadDTO, 'sender'>
+> & {
+  sender: SenderPayload;
+};
 
 export type DraftPreviewPayload = DraftPreviewPayloadDTO;

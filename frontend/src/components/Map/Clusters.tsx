@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { Layer, MapRef, Source } from 'react-map-gl';
+import { Layer, MapRef, Source } from 'react-map-gl/maplibre';
 
 import { useMapLayerClick } from '../../hooks/useMapLayerClick';
 import HousingPoints from './HousingPoints';
@@ -35,7 +35,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
   useMapLayerClick({
     layers: ['unclustered-points', 'buildings'],
     map: props.map,
-    onClick: props.onClick,
+    onClick: props.onClick
   });
 
   return (
@@ -55,7 +55,8 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
           'circle-color': 'rgba(227, 227, 253, 0.8)',
           'circle-stroke-color': '#000091',
           'circle-stroke-width': 2,
-          'circle-radius': ['step', ['get', 'point_count'], ...radius],
+          // @ts-expect-error: step expects 3 arguments
+          'circle-radius': ['step', ['get', 'point_count'], ...radius]
         }}
       />
       <Layer
@@ -64,17 +65,17 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
         filter={['has', 'point_count']}
         layout={{
           'text-field': '{point_count_abbreviated}',
-          'text-size': 16,
+          'text-size': 16
         }}
         paint={{
-          'text-color': '#000091',
+          'text-color': '#000091'
         }}
       />
       <HousingPoints
         filter={[
           'all',
           ['!', ['has', 'point_count']],
-          ['==', ['get', 'housingCount'], 1],
+          ['==', ['get', 'housingCount'], 1]
         ]}
         source={props.id}
       />
@@ -82,7 +83,7 @@ function Clusters<T extends turf.Properties>(props: Props<T>) {
         filter={[
           'all',
           ['!', ['has', 'point_count']],
-          ['>=', ['get', 'housingCount'], 2],
+          ['>=', ['get', 'housingCount'], 2]
         ]}
         source={props.id}
       />

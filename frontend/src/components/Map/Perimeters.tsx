@@ -1,4 +1,4 @@
-import { Layer, MapRef, Source } from 'react-map-gl';
+import { Layer, MapRef, Source } from 'react-map-gl/maplibre';
 import * as turf from '@turf/turf';
 
 import {

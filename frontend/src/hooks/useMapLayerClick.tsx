@@ -1,6 +1,6 @@
 import * as turf from '@turf/turf';
 import { useEffect } from 'react';
-import { MapRef } from 'react-map-gl';
+import { MapRef } from 'react-map-gl/maplibre';
 
 import { deserialize } from '../utils/jsonUtils';
 

@@ -33,7 +33,7 @@
     "@maplibre/maplibre-gl-style-spec": "^20.3.1",
     "@mui/material": "^5.16.7",
     "@reduxjs/toolkit": "^1.9.7",
-    "@turf/turf": "^6.5.0",
+    "@turf/turf": "^7.1.0",
     "@typeform/embed-react": "^2.31.0",
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/queue": "workspace:*",

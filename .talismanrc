@@ -1,12 +1,14 @@
-scopeconfig:
-- scope: node
-
-allowed_patterns:
-- keyof
-
 fileignoreconfig:
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
+- filename: server/.env.example
+  checksum: 885f04b25c4159fe59d1de7251ef2918467d06c67ab9300406765fd7580c9a2d
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
+- filename: server/src/services/ceremaService/ceremaService.ts
+  checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
+scopeconfig:
+- scope: node
+allowed_patterns:
+- keyof
 version: "1.0"

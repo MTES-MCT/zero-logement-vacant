@@ -71,7 +71,7 @@ export async function structureToEstablishment(
 }
 
 export interface ConsultStructureService {
-  consultStructure(id: number): Promise<Structure>;
+  //consultStructure(id: number): Promise<Structure>;
 }
 
 export const TEST_STRUCTURES: ReadonlyArray<Structure> = [

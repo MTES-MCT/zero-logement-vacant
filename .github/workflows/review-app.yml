@@ -110,6 +110,7 @@ jobs:
           clever env set MAILER_PORT $MAILER_PORT -a $APP_ALIAS
           clever env set MAILER_USER $MAILER_USER -a $APP_ALIAS
           clever env set MAILER_PASSWORD $MAILER_PASSWORD -a $APP_ALIAS
+          clever env set MAILER_PROVIDER "nodemailer" -a $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor M -a $APP_ALIAS

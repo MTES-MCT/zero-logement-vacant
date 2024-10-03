@@ -24,7 +24,7 @@
     ]
   },
   "dependencies": {
-    "@codegouvfr/react-dsfr": "1.9.16",
+    "@codegouvfr/react-dsfr": "1.13.2",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@hookform/resolvers": "^3.9.1",

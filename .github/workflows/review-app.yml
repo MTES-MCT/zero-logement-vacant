@@ -24,6 +24,10 @@ env:
   CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
   ORGA_ID: ${{ secrets.CLEVER_ORG }}
   PR_NAME: pr${{ github.event.inputs.pull_request_number }}
+  MAILER_HOST: ${{ secrets.MAILER_HOST }}
+  MAILER_PORT: ${{ secrets.MAILER_PORT }}
+  MAILER_USER: ${{ secrets.MAILER_USER }}
+  MAILER_PASSWORD: ${{ secrets.MAILER_PASSWORD }}
 
 jobs:
   deploy-addons:
@@ -102,6 +106,11 @@ jobs:
           clever env set SENTRY_ENABLED "false" -a $APP_ALIAS
           clever env set TZ "Etc/UTC" -a $APP_ALIAS
           clever env set WORKSPACE "@zerologementvacant/server" -a $APP_ALIAS
+          clever env set MAILER_HOST $MAILER_HOST -a $APP_ALIAS
+          clever env set MAILER_PORT $MAILER_PORT -a $APP_ALIAS
+          clever env set MAILER_USER $MAILER_USER -a $APP_ALIAS
+          clever env set MAILER_PASSWORD $MAILER_PASSWORD -a $APP_ALIAS
+          clever env set MAILER_PROVIDER "nodemailer" -a $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor M -a $APP_ALIAS

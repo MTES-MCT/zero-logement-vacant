@@ -37,7 +37,7 @@ router.use(userCheck());
 router.post('/files', upload(), fileController.create);
 
 // TODO: replace by GET /housing
-router.post(
+router.get(
   '/housing',
   validatorNext.validate({
     body: schemas.housingFilters.concat(paginationSchema),

@@ -82,34 +82,43 @@ async function list(
   request: Request<never, HousingPaginatedResultApi, ListHousingPayload>,
   response: Response<HousingPaginatedResultApi>
 ) {
-  const { auth, body, user } = request as AuthenticatedRequest<
+  const { auth, body, user, query } = request as AuthenticatedRequest<
     never,
     HousingPaginatedResultApi,
     ListHousingPayload
   >;
-  // TODO: type the whole body
-  const pagination: Pagination = fp.pick(['paginate', 'perPage', 'page'], body);
+
+  const pagination: Pagination = {
+    paginate: query.paginate === 'true',
+    page: parseInt(query.page as string, 10),
+    perPage: parseInt(query.perPage as string, 10),
+  };
 
   const role = user.role;
   const sort = sortApi.parse<HousingSortableApi>(
     request.query.sort as string[] | undefined
   );
+
+  const rawFilters = JSON.parse(query.filters);
+
   const filters: HousingFiltersApi = {
-    ...body.filters,
-    multiOwners: body.filters?.multiOwners?.map((value) =>
-      value ? 'true' : 'false'
+    ...rawFilters,
+    multiOwners: rawFilters?.multiOwners?.map((value: string) =>
+      value === 'true' ? 'true' : 'false'
     ),
-    roomsCounts: body.filters?.roomsCounts?.map((value) => value.toString()),
-    isTaxedValues: body.filters?.isTaxedValues?.map((value) =>
-      value ? 'true' : 'false'
+    roomsCounts: rawFilters?.roomsCounts?.map((value: string) =>
+      value.toString()
     ),
-    energyConsumption: body.filters
+    isTaxedValues: rawFilters?.isTaxedValues?.map((value: string) =>
+      value === 'true' ? 'true' : 'false'
+    ),
+    energyConsumption: rawFilters
       ?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
-    occupancies: body.filters?.occupancies as unknown as OccupancyKindApi[],
+    occupancies: rawFilters?.occupancies as unknown as OccupancyKindApi[],
     establishmentIds:
       [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
-      body.filters?.establishmentIds?.length
-        ? body.filters?.establishmentIds
+      rawFilters?.establishmentIds?.length
+        ? rawFilters?.establishmentIds
         : [auth.establishmentId]
   };
 

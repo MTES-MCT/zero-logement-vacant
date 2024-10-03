@@ -96,10 +96,10 @@ async function find(request: Request, response: Response) {
     sort,
   });
 
-  const status = isPartial(ownerProspects)
-    ? constants.HTTP_STATUS_PARTIAL_CONTENT
-    : constants.HTTP_STATUS_OK;
-  response.status(status).json(ownerProspects);
+  // const status = isPartial(ownerProspects)
+  //   ? constants.HTTP_STATUS_PARTIAL_CONTENT
+  //   : constants.HTTP_STATUS_OK;
+  response.status(constants.HTTP_STATUS_OK).json(ownerProspects);
 }
 
 const updateOwnerProspectValidators: ValidationChain[] = [

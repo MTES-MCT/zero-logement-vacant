@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { body, oneOf, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import _ from 'lodash';
-import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 
@@ -82,7 +81,7 @@ async function list(
   request: Request<never, HousingPaginatedResultApi, ListHousingPayload>,
   response: Response<HousingPaginatedResultApi>
 ) {
-  const { auth, body, user, query } = request as AuthenticatedRequest<
+  const { auth, user, query } = request as AuthenticatedRequest<
     never,
     HousingPaginatedResultApi,
     ListHousingPayload

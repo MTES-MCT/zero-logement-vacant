@@ -1,4 +1,4 @@
-import { body, query, ValidationChain } from 'express-validator';
+import { query, ValidationChain } from 'express-validator';
 import { Knex } from 'knex';
 
 import { Pagination } from '@zerologementvacant/shared';
@@ -38,7 +38,7 @@ export const queryValidators: ValidationChain[] = [
 export const paginationSchema = object({
   paginate: boolean().default(true),
   page: number().integer().min(1).default(1),
-  perPage: number().integer().min(1).max(MAX_PER_PAGE).default(50)
+  perPage: number().integer().min(1).max(MAX_PER_PAGE).default(50),
 });
 
 /**

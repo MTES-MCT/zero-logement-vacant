@@ -1,6 +1,6 @@
 import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import { useMemo, useState } from 'react';
-import { Popup, PopupProps } from 'react-map-gl';
+import { Popup, PopupProps } from 'react-map-gl/maplibre';
 
 import { HousingWithCoordinates, toLink } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
@@ -12,7 +12,7 @@ import styles from './housing-popup.module.scss';
 import classNames from 'classnames';
 import {
   getHousingState,
-  getHousingSubStatus,
+  getHousingSubStatus
 } from '../../models/HousingState';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
@@ -28,22 +28,22 @@ function HousingPopup(props: HousingPopupProps) {
   const [currentHousing, setCurrentHousing] = useState(0);
 
   const popupClasses = classNames({
-    building: building.housingCount >= 2,
+    building: building.housingCount >= 2
   });
 
   const housing = useMemo<HousingWithCoordinates>(
     () => building.housingList[currentHousing],
-    [building, currentHousing],
+    [building, currentHousing]
   );
 
   const housingState = useMemo(
     () => (housing.status ? getHousingState(housing.status) : undefined),
-    [housing.status],
+    [housing.status]
   );
 
   const housingSubState = useMemo(
     () => (housing.subStatus ? getHousingSubStatus(housing) : undefined),
-    [housing],
+    [housing]
   );
 
   function address(rawAddress: string[]) {

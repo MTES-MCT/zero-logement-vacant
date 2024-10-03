@@ -56,12 +56,12 @@ export class CeremaService implements ConsultUserService {
               throw establishmentContent.detail;
             }
 
-            let u = {
+            const u = {
               email: user.email,
               establishmentSiren: parseInt(establishmentContent.siret.substring(0, 9)),
               hasAccount: true,
-              hasCommitment: establishmentContent.acces_lovac !== null
-            }
+              hasCommitment: establishmentContent.acces_lovac !== null,
+            };
             return u;
         }));
         return users;

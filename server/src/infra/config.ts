@@ -56,11 +56,8 @@ interface Config {
   cerema: {
     api: string;
     enabled: boolean;
-    dryMode: boolean;
     username: string;
     password: string;
-    inviteLimit: number;
-    forceInvite: boolean;
   };
   datafoncier: {
     api: string;
@@ -199,11 +196,6 @@ const config = convict<Config>({
       format: 'strict-boolean',
       default: isProduction
     },
-    dryMode: {
-      env: 'CEREMA_DRY_MODE',
-      format: 'strict-boolean',
-      default: !isProduction
-    },
     api: {
       env: 'CEREMA_API',
       format: 'url',
@@ -223,17 +215,6 @@ const config = convict<Config>({
       default: null,
       nullable: !isProduction
     },
-    inviteLimit: {
-      env: 'CEREMA_INVITE_LIMIT',
-      format: 'int',
-      default: 10
-    },
-    forceInvite: {
-      env: 'CEREMA_FORCE_INVITE',
-      format: Boolean,
-      default: false,
-      nullable: !isProduction
-    }
   },
   datafoncier: {
     api: {

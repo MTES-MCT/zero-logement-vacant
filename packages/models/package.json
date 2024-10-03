@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
+    "@types/geojson": "^7946.0.14",
     "@types/jest": "^29.5.13",
     "@types/lodash": "^4.17.9",
     "@types/node": "^20.16.10",

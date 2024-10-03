@@ -19,7 +19,7 @@ interface GeoPerimetersTableProps {
 const GeoPerimetersTable = ({
   geoPerimeters,
   onEdit,
-  onRemove,
+  onRemove
 }: GeoPerimetersTableProps) => {
   const selection = useSelection(geoPerimeters.length);
 
@@ -45,7 +45,7 @@ const GeoPerimetersTable = ({
         onChange={() => selection.toggleSelect(id)}
         value={id}
       />
-    ),
+    )
   };
   const kindColumn = {
     name: 'kind',
@@ -53,13 +53,13 @@ const GeoPerimetersTable = ({
     render: ({ kind }: GeoPerimeter) => (
       <Tag className="bg-900">{kind ? kind : 'Non renseigné'}</Tag>
     ),
-    sortable: true,
+    sortable: true
   };
 
   const nameColumn = {
     name: 'name',
     label: 'Nom du périmètre',
-    sortable: true,
+    sortable: true
   };
 
   const actionsColumn = {
@@ -80,7 +80,7 @@ const GeoPerimetersTable = ({
             iconId: 'fr-icon-delete-bin-fill',
             priority: 'tertiary no outline',
             title: 'Supprimer',
-            className: 'd-inline-block',
+            className: 'd-inline-block'
           }}
         >
           <Text size="md">
@@ -88,13 +88,13 @@ const GeoPerimetersTable = ({
           </Text>
         </ConfirmationModal>
       </>
-    ),
+    )
   };
 
   const viewColumn = {
     name: 'view',
     headerRender: () => '',
-    render: ({ geoJson }: GeoPerimeter) => (
+    render: ({ geometry }: GeoPerimeter) => (
       <AppLink
         title="Afficher (.json)"
         target="_blank"
@@ -103,12 +103,12 @@ const GeoPerimetersTable = ({
         iconPosition="left"
         to={
           'https://geojson.io/#data=data:application/json,' +
-          encodeURIComponent(JSON.stringify(geoJson))
+          encodeURIComponent(JSON.stringify(geometry))
         }
       >
         Afficher (.json)
       </AppLink>
-    ),
+    )
   };
 
   const columns = [
@@ -116,13 +116,13 @@ const GeoPerimetersTable = ({
     nameColumn,
     kindColumn,
     viewColumn,
-    actionsColumn,
+    actionsColumn
   ];
 
   const selectedGeoPerimeters = geoPerimeters.filter((geoPerimeter) =>
     selection.selected.all
       ? !selection.selected.ids.includes(geoPerimeter.id)
-      : selection.selected.ids.includes(geoPerimeter.id),
+      : selection.selected.ids.includes(geoPerimeter.id)
   );
 
   return (

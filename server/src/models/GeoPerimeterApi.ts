@@ -5,5 +5,5 @@ export interface GeoPerimeterApi {
   establishmentId: string;
   name: string;
   kind: string;
-  geometry?: MultiPolygon;
+  geometry: MultiPolygon;
 }

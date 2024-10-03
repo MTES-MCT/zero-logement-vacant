@@ -11,15 +11,21 @@ const config = {
       ? Number(process.env.REACT_APP_MATOMO_SITE_ID)
       : 1,
     srcUrl: process.env.REACT_APP_MATOMO_SRC_URL,
-    linkTracking: true,
+    linkTracking: true
   },
   metabase: {
     siteUrl: process.env.REACT_APP_METABASE_SITE_URL,
     public: {
-      statsDashboard: process.env.REACT_APP_METABASE_STATS_DASHBOARD,
-    },
+      statsDashboard: process.env.REACT_APP_METABASE_STATS_DASHBOARD
+    }
   },
   perPageDefault: 50,
+  posthog: {
+    enabled:
+      process.env.REACT_APP_POSTHOG_ENABLED !== undefined
+        ? process.env.REACT_APP_POSTHOG_ENABLED === 'true'
+        : process.env.NODE_ENV === 'production'
+  },
   dataYear: 2023,
   banEligibleScore: 0.8,
   feature: {
@@ -29,8 +35,8 @@ const config = {
      */
     occupancy: (process.env.REACT_APP_FEATURE_OCCUPANCY ?? '')
       .split(',')
-      .map((element) => element.trim()),
-  },
+      .map((element) => element.trim())
+  }
 };
 
 export default config;

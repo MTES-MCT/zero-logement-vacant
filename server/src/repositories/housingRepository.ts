@@ -79,8 +79,6 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
 
   const geoCodes = await fetchGeoCodes(opts.filters.establishmentIds ?? []);
 
-  console.log(opts.filters);
-
   const housingList: HousingDBO[] = await fastListQuery({
     filters: {
       ...opts.filters,

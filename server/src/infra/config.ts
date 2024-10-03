@@ -57,7 +57,8 @@ interface Config {
     api: string;
     enabled: boolean;
     dryMode: boolean;
-    token: string;
+    username: string;
+    password: string;
     inviteLimit: number;
     forceInvite: boolean;
   };
@@ -208,8 +209,15 @@ const config = convict<Config>({
       format: 'url',
       default: 'https://getdf.cerema.fr'
     },
-    token: {
-      env: 'CEREMA_TOKEN',
+    username: {
+      env: 'CEREMA_USERNAME',
+      format: String,
+      sensitive: true,
+      default: null,
+      nullable: !isProduction
+    },
+    password: {
+      env: 'CEREMA_PASSWORD',
       format: String,
       sensitive: true,
       default: null,

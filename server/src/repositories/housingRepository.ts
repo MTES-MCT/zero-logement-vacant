@@ -79,6 +79,8 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
 
   const geoCodes = await fetchGeoCodes(opts.filters.establishmentIds ?? []);
 
+  console.log(opts.filters);
+
   const housingList: HousingDBO[] = await fastListQuery({
     filters: {
       ...opts.filters,
@@ -774,6 +776,10 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.where(function (whereBuilder: any) {
         // With more than 20 tokens, the query is likely nor a name neither an address
         if (query.replaceAll(' ', ',').split(',').length < 20) {
+          whereBuilder.orWhereRaw(
+            `local_id = ?`,
+            query
+          );
           whereBuilder.orWhereRaw(
             `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
             query

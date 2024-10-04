@@ -1,2 +1,5 @@
+[sources.filesystem]
+bucket_url = "bucket_url" # please set me up!
+
 [runtime]
 dlthub_telemetry = true

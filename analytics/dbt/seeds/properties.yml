@@ -27,6 +27,7 @@ seeds:
     config:
       delimiter: ";"
       +header: true
+
   - name: departement_france
     config:
       delimiter: ","
@@ -54,4 +55,23 @@ seeds:
     config:
       +header: true
 
+  - name: ort
+    delimiter: ","
+    config:
+      +header: true
+      column_types:
+          "Si signée, date de signature": varchar(5)
 
+  - name: table_appartenance_geo_communes_2024
+    config:
+      delimiter: ","
+      +header: true
+  - name: fusions
+    config:
+      delimiter: ","
+      +header: true
+
+  - name: scissions
+    config:
+      delimiter: ","
+      +header: true

@@ -1,4 +1,5 @@
 import * as turf from '@turf/turf';
+import { Feature, GeoJsonProperties, Point } from 'geojson';
 import { Layer, MapRef, Source } from 'react-map-gl/maplibre';
 
 import { useMapLayerClick } from '../../hooks/useMapLayerClick';
@@ -11,7 +12,7 @@ interface Props<T> {
   clusterize?: boolean;
   maxZoom?: number;
   onClick?: (value: T) => void;
-  points: turf.Feature<turf.Point, T>[];
+  points: Feature<Point, T>[];
   /**
    * The radius (in px) depending on the number of points in the cluster.
    * @example
@@ -23,7 +24,7 @@ interface Props<T> {
   radius?: Record<number, number>;
 }
 
-function Clusters<T extends turf.Properties>(props: Props<T>) {
+function Clusters<T extends GeoJsonProperties>(props: Props<T>) {
   const maxZoom = props.maxZoom ?? 16;
   // Flatten and remove the zero
   const radius = !props.radius

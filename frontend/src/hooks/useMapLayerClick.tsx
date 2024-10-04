@@ -1,4 +1,4 @@
-import * as turf from '@turf/turf';
+import { GeoJsonProperties } from 'geojson';
 import { useEffect } from 'react';
 import { MapRef } from 'react-map-gl/maplibre';
 
@@ -10,7 +10,7 @@ interface Props<T> {
   onClick?: (value: T) => void;
 }
 
-export function useMapLayerClick<T extends turf.Properties>(props: Props<T>) {
+export function useMapLayerClick<T extends GeoJsonProperties>(props: Props<T>) {
   useEffect(() => {
     const { layers, map, onClick } = props;
 

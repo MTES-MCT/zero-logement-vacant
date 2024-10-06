@@ -8,10 +8,36 @@ export const geoPerimetersTable = 'geo_perimeters';
 export const GeoPerimeters = (transaction = db) =>
   transaction<GeoPerimeterDBO>(geoPerimetersTable);
 
+async function find(establishmentId: string): Promise<GeoPerimeterApi[]> {
+  logger.debug('Finding perimeters...', {
+    establishment: establishmentId
+  });
+
+  const geoPerimeters = await GeoPerimeters()
+    .select('*', db.raw('st_asgeojson(geom)::jsonb as geom'))
+    .where('establishment_id', establishmentId)
+    .orWhereNull('establishment_id')
+    .orderBy('name');
+  logger.debug('Found perimeters.', {
+    establishment: establishmentId,
+    perimeters: geoPerimeters.length
+  });
+  return geoPerimeters.map(parseGeoPerimeterApi);
+}
+
 async function get(id: string): Promise<GeoPerimeterApi | null> {
   logger.info('Get GeoPerimeter with id', id);
   const geoPerimeter = await GeoPerimeters().where('id', id).first();
   return geoPerimeter ? parseGeoPerimeterApi(geoPerimeter) : null;
+}
+
+async function save(perimeter: GeoPerimeterApi): Promise<void> {
+  logger.debug('Saving perimeter...', { perimeter });
+  await GeoPerimeters()
+    .insert(formatGeoPerimeterApi(perimeter))
+    .onConflict('id')
+    .merge(['geom', 'name', 'kind']);
+  logger.debug('Saved perimeter.', { perimeter });
 }
 
 async function insert(
@@ -49,20 +75,6 @@ async function update(geoPerimeterApi: GeoPerimeterApi): Promise<void> {
   await GeoPerimeters().where({ id: geoPerimeterApi.id }).update(updatedData);
 }
 
-async function find(establishmentId: string): Promise<GeoPerimeterApi[]> {
-  logger.info(
-    'List geoPerimeterApi for establishment with id',
-    establishmentId
-  );
-
-  const geoPerimeters = await GeoPerimeters()
-    .select('*', db.raw('st_asgeojson(geom)::jsonb as geom'))
-    .where('establishment_id', establishmentId)
-    .orWhereNull('establishment_id')
-    .orderBy('name');
-  return geoPerimeters.map(parseGeoPerimeterApi);
-}
-
 async function removeMany(
   geoPerimeterIds: string[],
   establishmentId: string
@@ -83,32 +95,39 @@ export interface GeoPerimeterDBO {
   name: string;
   kind: string;
   geom: MultiPolygon;
+  created_at: Date | string;
+  created_by: string;
 }
 
 export const formatGeoPerimeterApi = (
-  geoPerimeterApi: GeoPerimeterApi
+  perimeter: GeoPerimeterApi
 ): GeoPerimeterDBO => ({
-  id: geoPerimeterApi.id,
-  establishment_id: geoPerimeterApi.establishmentId,
-  geom: geoPerimeterApi.geometry,
-  name: geoPerimeterApi.name,
-  kind: geoPerimeterApi.kind
+  id: perimeter.id,
+  establishment_id: perimeter.establishmentId,
+  geom: perimeter.geometry,
+  name: perimeter.name,
+  kind: perimeter.kind,
+  created_at: perimeter.createdAt,
+  created_by: perimeter.createdBy
 });
 
 export const parseGeoPerimeterApi = (
-  geoPerimeterDbo: GeoPerimeterDBO
+  perimeter: GeoPerimeterDBO
 ): GeoPerimeterApi => ({
-  id: geoPerimeterDbo.id,
-  establishmentId: geoPerimeterDbo.establishment_id,
-  name: geoPerimeterDbo.name,
-  kind: geoPerimeterDbo.kind,
-  geometry: geoPerimeterDbo.geom
+  id: perimeter.id,
+  establishmentId: perimeter.establishment_id,
+  name: perimeter.name,
+  kind: perimeter.kind,
+  geometry: perimeter.geom,
+  createdAt: new Date(perimeter.created_at).toJSON(),
+  createdBy: perimeter.created_by
 });
 
 export default {
+  find,
   get,
+  save,
   insert,
   update,
-  find,
   removeMany
 };

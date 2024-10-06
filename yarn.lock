@@ -9662,6 +9662,7 @@ __metadata:
     ts-essentials: "npm:^10.0.2"
     ts-jest: "npm:^29.2.5"
     ts-node: "npm:^10.9.2"
+    ts-pattern: "npm:^5.4.0"
     tsc-alias: "npm:^1.8.10"
     tsconfig-paths: "npm:^4.2.0"
     typescript: "npm:^5.6.2"
@@ -25978,6 +25979,13 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 10c0/5f29938489f96982a25ba650b64218e83a3357d76f7bede80195c65ab44ad279c8357264639b7abdd5d7e75fc269a83daa0e9c62fd8637a3def67254ecc9ddc2
+  languageName: node
+  linkType: hard
+
+"ts-pattern@npm:^5.4.0":
+  version: 5.4.0
+  resolution: "ts-pattern@npm:5.4.0"
+  checksum: 10c0/8b7b785e51af736d110e181e8338fb74baafacf32f017b9df4f26bbefb295175f60d7cc22e23e77e9219930b2d3126aa1b0322bce210c9e18bede81cb4c2d2a5
   languageName: node
   linkType: hard
 

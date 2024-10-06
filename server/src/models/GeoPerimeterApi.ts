@@ -6,4 +6,6 @@ export interface GeoPerimeterApi {
   name: string;
   kind: string;
   geometry: MultiPolygon;
+  createdAt: string;
+  createdBy: string;
 }

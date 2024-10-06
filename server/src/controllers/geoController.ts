@@ -1,9 +1,14 @@
+import * as turf from '@turf/turf';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import shpjs, { FeatureCollectionWithFilename } from 'shpjs';
-import geoRepository from '~/repositories/geoRepository';
 import { body, param } from 'express-validator';
+import { Geometry, MultiPolygon } from 'geojson';
 import { constants } from 'http2';
+import shpjs from 'shpjs';
+import { v4 as uuidv4 } from 'uuid';
+import { match, Pattern } from 'ts-pattern';
+
+import geoRepository from '~/repositories/geoRepository';
 import { isArrayOf, isUUID } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
@@ -20,37 +25,78 @@ async function listGeoPerimeters(request: Request, response: Response) {
 async function createGeoPerimeter(
   // TODO: type this
   request: any,
-  response: Response,
+  response: Response
 ) {
   const { establishmentId, userId } = (request as AuthenticatedRequest).auth;
   const file = request.files.geoPerimeter;
 
   logger.info('Create geo perimeter', {
     establishment: establishmentId,
-    name: file.name,
+    name: file.name
   });
 
   const geojson = await shpjs(file.data);
+  const featureCollections = Array.isArray(geojson) ? geojson : [geojson];
 
   await Promise.all(
-    (<FeatureCollectionWithFilename>geojson).features.map((feature) =>
-      geoRepository.insert(
-        feature.geometry,
-        establishmentId,
-        feature.properties?.type ?? '',
-        feature.properties?.nom ?? '',
-        userId,
-      ),
-    ),
+    // TODO: ask if it necessary to create one perimeter by feature
+    featureCollections
+      .flatMap((featureCollection) => featureCollection.features)
+      .map((feature) => {
+        const multiPolygon: MultiPolygon = to2D(
+          toMultiPolygon(feature.geometry)
+        );
+        const perimeter: GeoPerimeterApi = {
+          id: uuidv4(),
+          kind: feature.properties?.type ?? '',
+          name: feature.properties?.nom ?? '',
+          geometry: multiPolygon,
+          establishmentId,
+          createdAt: new Date().toJSON(),
+          createdBy: userId
+        };
+        return geoRepository.save(perimeter);
+      })
   );
 
   response.status(constants.HTTP_STATUS_OK).send();
 }
 
+// TODO: export this to the `utils` package
+export function toMultiPolygon(geometry: Geometry): MultiPolygon {
+  return match(geometry)
+    .with({ type: 'MultiPolygon' }, (multiPolygon) => multiPolygon)
+    .with({ type: 'Polygon' }, (polygon) => {
+      return turf.multiPolygon([polygon.coordinates]).geometry;
+    })
+    .with(
+      { type: Pattern.union('LineString', 'MultiLineString') },
+      (lineString) => {
+        const polygons = turf
+          .polygonize(lineString)
+          .features.map(turf.getGeom)
+          .map((polygon) => polygon.coordinates);
+        return turf.multiPolygon(polygons).geometry;
+      }
+    )
+    .otherwise((geometry) => {
+      throw new Error(`${geometry.type} is not supported`);
+    });
+}
+
+export function to2D(multiPolygon: MultiPolygon): MultiPolygon {
+  const polygons = multiPolygon.coordinates.map((polygons) => {
+    return polygons.map((polygon) => {
+      return polygon.map((position) => position.slice(0, 2));
+    });
+  });
+  return turf.multiPolygon(polygons).geometry;
+}
+
 const deleteGeoPerimeterListValidators = [
   body('geoPerimeterIds')
     .custom(isArrayOf(isUUID))
-    .withMessage('Must be an array of UUIDs'),
+    .withMessage('Must be an array of UUIDs')
 ];
 
 async function deleteGeoPerimeterList(request: Request, response: Response) {
@@ -66,7 +112,7 @@ async function deleteGeoPerimeterList(request: Request, response: Response) {
 const updateGeoPerimeterValidators = [
   param('geoPerimeterId').notEmpty().isUUID(),
   body('kind').notEmpty().isString(),
-  body('name').optional({ nullable: true }).isString(),
+  body('name').optional({ nullable: true }).isString()
 ];
 
 async function updateGeoPerimeter(request: Request, response: Response) {
@@ -87,7 +133,7 @@ async function updateGeoPerimeter(request: Request, response: Response) {
   const updated: GeoPerimeterApi = {
     ...geoPerimeter,
     kind,
-    name,
+    name
   };
   await geoRepository.update(updated);
   response.status(constants.HTTP_STATUS_OK).json(updated);
@@ -99,7 +145,7 @@ const geoController = {
   deleteGeoPerimeterListValidators,
   deleteGeoPerimeterList,
   updateGeoPerimeterValidators,
-  updateGeoPerimeter,
+  updateGeoPerimeter
 };
 
 export default geoController;

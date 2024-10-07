@@ -83,7 +83,20 @@ function OwnerAddressEdition(props: Props) {
         value={props.banAddress ?? null}
         inputValue={inputValue}
         open={open}
-        onChange={props.onSelectAddress}
+        onChange={(address) => {
+          props.onSelectAddress(
+            address
+              ? {
+                  ...address,
+                  banId: address.banId ?? '',
+                  latitude: address.latitude ?? 0,
+                  longitude: address.longitude ?? 0,
+                  // Consider that the user has validated the address
+                  score: 1
+                }
+              : null
+          );
+        }}
         onInputChange={setInputValue}
         onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}

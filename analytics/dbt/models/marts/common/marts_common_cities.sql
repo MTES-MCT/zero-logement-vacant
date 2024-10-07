@@ -65,8 +65,9 @@ SELECT
     MAX(inscrit_zlv_via_intercommunalité) AS inscrit_zlv_via_intercommunalité,
     MAX(nom_intercommunalité) AS nom_intercommunalité,
     MAX(type_intercommunalité ) AS type_intercommunalité,
-    MAX(department_state_service_name) AS department_state_service_name,
-    MAX(region_state_service_name) AS region_state_service_name
+    MAX(couverte_via_service_etat) AS couverte_via_service_etat,
+    MAX(department_state_service_name) AS nom_service_etat_departemental,
+    MAX(region_state_service_name) AS nom_service_etat_régional
 FROM 
     {{ ref('int_common_cities') }} cc
 LEFT JOIN {{ ref('int_common_cities_mapping') }} ccm ON ccm.geo_code = cc.geo_code

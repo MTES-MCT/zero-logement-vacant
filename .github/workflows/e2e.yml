@@ -1,13 +1,17 @@
 name: End-to-end tests
 
 on:
-  push:
-    branches:
+  workflow_run:
+    workflows: ["Node.js CI"]
+    types:
+      - completed
+    branch:
       - main
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment: Staging
     strategy:
       matrix:

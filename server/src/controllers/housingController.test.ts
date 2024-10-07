@@ -87,7 +87,7 @@ describe('Housing API', () => {
     const testRoute = '/api/housing';
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status } = await request(app).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -95,7 +95,7 @@ describe('Housing API', () => {
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
       const { body, status } = await request(app)
         .get(testRoute)
-        .send({
+        .query({
           filters: {}
         })
         .use(tokenProvider(user));
@@ -130,7 +130,7 @@ describe('Housing API', () => {
 
       const { body, status } = await request(app)
         .get(testRoute)
-        .send({
+        .query({
           page: 1,
           perPage: 1
         })

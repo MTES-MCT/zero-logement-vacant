@@ -70,7 +70,7 @@ async function get(request: Request, response: Response) {
 const listValidators: ValidationChain[] = [
   ...housingFiltersApi.validators(),
   ...sortApi.queryValidators,
-  ...paginationApi.validators
+  ...paginationApi.queryValidators
 ];
 
 type ListHousingPayload = Pagination & {

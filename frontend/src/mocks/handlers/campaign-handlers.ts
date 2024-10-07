@@ -64,7 +64,7 @@ export const campaignHandlers: RequestHandler[] = [
 
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
-        return HttpResponse.json(null, {
+        throw new HttpResponse(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
@@ -102,7 +102,7 @@ export const campaignHandlers: RequestHandler[] = [
         (campaign) => campaign.id === params.id
       );
       if (!campaign) {
-        return HttpResponse.json(null, {
+        throw new HttpResponse(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
@@ -117,7 +117,7 @@ export const campaignHandlers: RequestHandler[] = [
         (campaign) => campaign.id === params.id
       );
       if (!campaign) {
-        return HttpResponse.json(null, {
+        throw new HttpResponse(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
@@ -142,7 +142,7 @@ export const campaignHandlers: RequestHandler[] = [
         (campaign) => campaign.id === params.id
       );
       if (!campaign) {
-        return HttpResponse.json(null, {
+        throw new HttpResponse(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
@@ -195,7 +195,7 @@ export const campaignHandlers: RequestHandler[] = [
         }
       });
 
-      return HttpResponse.json(null, {
+      return HttpResponse.json(undefined, {
         status: constants.HTTP_STATUS_NO_CONTENT
       });
     }

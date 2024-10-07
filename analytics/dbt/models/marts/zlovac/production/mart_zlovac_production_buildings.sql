@@ -1,4 +1,3 @@
--- Missing columns  vacancy_reasons, data_years, status, sub_status, precisions, energy_consumption, energy_consumption_worst, occupancy_registered, occupancy, occupancy_intended, plot_id
 SELECT
    building_id,
    NULL AS id,

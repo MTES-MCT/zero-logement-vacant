@@ -1,4 +1,6 @@
-SELECT h.*, 
+SELECT 
+        CAST(h.id as VARCHAR) as housing_id,
+        h.* EXCLUDE (vacancy_reasons), 
         hs.last_event_status_zlv,
         hs.last_event_status_label_zlv,
         hs.last_event_date_zlv,

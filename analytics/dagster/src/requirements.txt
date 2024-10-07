@@ -1,2 +1,5 @@
 sqlalchemy>=1.4
 dlt[duckdb]>=0.4.11
+dlt[filesystem]
+s3fs
+

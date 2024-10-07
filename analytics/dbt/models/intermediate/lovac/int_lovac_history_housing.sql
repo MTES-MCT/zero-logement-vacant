@@ -1,21 +1,21 @@
 WITH lovac_history as (
                        SELECT local_id, 'lovac-' || data_year as file_year, geo_code, data_year,
-                       FROM {{ ref('int_lovac_2024') }}
+                       FROM {{ ref('int_lovac_fil_2024') }}
                        UNION ALL
                        SELECT local_id, 'lovac-' || data_year as file_year, geo_code, data_year,
-                       FROM {{ ref('int_lovac_2023') }}
+                       FROM {{ ref('int_lovac_fil_2023') }}
                        UNION ALL
                        SELECT local_id, 'lovac-' || data_year as file_year, geo_code, data_year,
-                       FROM {{ ref('int_lovac_2022') }}
+                       FROM {{ ref('int_lovac_fil_2022') }}
                        UNION ALL
                        SELECT local_id, 'lovac-' || data_year as file_year, geo_code, data_year,
-                       FROM {{ ref('int_lovac_2021') }}
+                       FROM {{ ref('int_lovac_fil_2021') }}
                        UNION ALL
                        SELECT local_id, 'lovac-' || data_year as file_year, geo_code, data_year,
-                       FROM {{ ref('int_lovac_2020') }}
+                       FROM {{ ref('int_lovac_fil_2020') }}
                        UNION ALL
                        SELECT local_id, 'lovac-' || data_year as file_year, geo_code, data_year,
-                       FROM {{ ref('int_lovac_2019') }}
+                       FROM {{ ref('int_lovac_fil_2019') }}
                        )
 
 SELECT 

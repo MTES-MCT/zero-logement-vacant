@@ -1,5 +1,7 @@
 
-SELECT pe.*, peu.*, pec.*, peg.*, pep.*
+SELECT 
+    CAST(pe.id as VARCHAR) AS establishment_id,
+    pe.*, peu.*, pec.*, peg.*, pep.*
 FROM {{ ref('int_production_establishments') }} pe 
 LEFT JOIN {{ ref('int_production_establishments_users')}} peu ON pe.id = peu.establishment_id
 LEFT JOIN {{ ref('int_production_establishments_campaigns')}} pec ON pe.id = pec.establishment_id

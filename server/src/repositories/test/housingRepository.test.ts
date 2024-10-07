@@ -1296,7 +1296,7 @@ describe('Housing repository', () => {
             ]
           ]);
           const perimeter: GeoPerimeterApi = {
-            ...genGeoPerimeterApi(establishment.id),
+            ...genGeoPerimeterApi(establishment.id, user),
             geometry: box.geometry
           };
           await GeoPerimeters().insert(formatGeoPerimeterApi(perimeter));
@@ -1342,7 +1342,7 @@ describe('Housing repository', () => {
             ]
           ]);
           const perimeter: GeoPerimeterApi = {
-            ...genGeoPerimeterApi(establishment.id),
+            ...genGeoPerimeterApi(establishment.id, user),
             geometry: box.geometry
           };
           await GeoPerimeters().insert(formatGeoPerimeterApi(perimeter));

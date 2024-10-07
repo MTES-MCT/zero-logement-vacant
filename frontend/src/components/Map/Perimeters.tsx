@@ -1,5 +1,6 @@
-import { Layer, MapRef, Source } from 'react-map-gl/maplibre';
 import * as turf from '@turf/turf';
+import { Geometry } from 'geojson';
+import { Layer, MapRef, Source } from 'react-map-gl/maplibre';
 
 import {
   GeoPerimeter,
@@ -18,7 +19,7 @@ interface Props {
 function Perimeters(props: Props) {
   const perimeters = turf.featureCollection(
     props.perimeters.map((perimeter) =>
-      turf.feature<turf.Geometry, GeoPerimeterProperties>(perimeter.geometry, {
+      turf.feature<Geometry, GeoPerimeterProperties>(perimeter.geometry, {
         id: perimeter.id,
         name: perimeter.name,
         kind: perimeter.kind

@@ -399,7 +399,8 @@ export const genCampaignApi = (
 export const FRANCE_BBOX: BBox = [-1.69, 43.19, 6.8, 49.49];
 
 export const genGeoPerimeterApi = (
-  establishmentId: string
+  establishmentId: string,
+  creator: UserApi
 ): GeoPerimeterApi => {
   return {
     id: uuidv4(),
@@ -419,7 +420,9 @@ export const genGeoPerimeterApi = (
       'OPAH-RU',
       'Zone Commerciale Linéaire'
     ]),
-    kind: randomstring.generate()
+    kind: randomstring.generate(),
+    createdAt: faker.date.past().toJSON(),
+    createdBy: creator?.id
   };
 };
 

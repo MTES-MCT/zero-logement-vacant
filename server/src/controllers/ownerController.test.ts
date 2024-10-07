@@ -144,7 +144,6 @@ describe('Owner API', () => {
         birthDate: payload.birthDate,
         email: payload.email,
         phone: payload.phone,
-        kind: owner.kind,
         kindDetail: owner.kindDetail
       });
     });

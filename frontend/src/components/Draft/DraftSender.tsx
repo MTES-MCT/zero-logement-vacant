@@ -6,6 +6,7 @@ import { Sender, SenderPayload } from '../../models/Sender';
 import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { Col, Container, Row } from '../_dsfr';
+import Typography from '@mui/material/Typography';
 
 export const senderSchema = object({
   name: string().trim(),
@@ -46,7 +47,9 @@ function DraftSender(props: Readonly<Props>) {
 
   return (
     <Container as="article" className={styles.article}>
-      <h6>Coordonnées de l’expéditeur</h6>
+      <Typography component="h4" variant="h6" mb={2}>
+        Coordonnées de l’expéditeur
+      </Typography>
       <AppTextInput
         inputForm={props.form}
         inputKey="sender.name"

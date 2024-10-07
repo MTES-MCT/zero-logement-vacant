@@ -12,7 +12,13 @@ function HousingDetailsSubCardProperties({ housing }: Props) {
     <HousingDetailsSubCard title="Logement" isGrey>
       <div>
         <Text size="sm" className="zlv-label">
-          Invariant fiscal
+          Identifiant fiscal national
+        </Text>
+        <Text spacing="mb-1w">{housing.localId}</Text>
+      </div>
+      <div>
+        <Text size="sm" className="zlv-label">
+        Identifiant fiscal départemental
         </Text>
         <Text spacing="mb-1w">{housing.invariant}</Text>
       </div>

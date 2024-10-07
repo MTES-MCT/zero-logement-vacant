@@ -83,7 +83,7 @@ describe('Housing API', () => {
     });
   });
 
-  describe('POST /housing', () => {
+  describe('GET /housing', () => {
     const testRoute = '/api/housing';
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -94,7 +94,7 @@ describe('Housing API', () => {
 
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
       const { body, status } = await request(app)
-        .post(testRoute)
+        .get(testRoute)
         .send({
           filters: {}
         })
@@ -108,7 +108,7 @@ describe('Housing API', () => {
 
     it('should return 200 OK', async () => {
       const { status } = await request(app)
-        .post(testRoute)
+        .get(testRoute)
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -129,7 +129,7 @@ describe('Housing API', () => {
       await HousingOwners().insert(housingOwners);
 
       const { body, status } = await request(app)
-        .post(testRoute)
+        .get(testRoute)
         .send({
           page: 1,
           perPage: 1
@@ -142,7 +142,7 @@ describe('Housing API', () => {
 
     it('should sort housings by occupancy', async () => {
       const { body, status } = await request(app)
-        .post(testRoute)
+        .get(testRoute)
         .query('sort=-occupancy')
         .set('Content-Type', 'application/json')
         .use(tokenProvider(user));

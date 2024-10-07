@@ -1,0 +1,5 @@
+[sources.sql_database]
+table = "table" # please set me up!
+
+[runtime]
+dlthub_telemetry = true

@@ -1,8 +1,11 @@
-import { OccupancyKind } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
 import config from '../../utils/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Pagination } from '@zerologementvacant/models';
+import {
+  HousingFiltersDTO,
+  Occupancy,
+  Pagination
+} from '@zerologementvacant/models';
 import { DatafoncierHousing } from '../../../../shared';
 
 export type ViewMode = 'list' | 'map';
@@ -10,7 +13,7 @@ export type ViewMode = 'list' | 'map';
 export const DefaultPagination: Pagination = {
   paginate: true,
   page: 1,
-  perPage: config.perPageDefault,
+  perPage: config.perPageDefault
 };
 
 export interface HousingState {
@@ -31,10 +34,10 @@ export interface HousingState {
   };
 }
 
-export const initialHousingFilters = {
+export const initialHousingFilters: HousingFiltersDTO = {
   dataFileYearsIncluded: [`lovac-${config.dataYear + 1}`],
-  occupancies: [OccupancyKind.Vacant],
-} as HousingFilters;
+  occupancies: [Occupancy.VACANT]
+};
 
 const initialState: HousingState = {
   totalCount: 0,
@@ -42,7 +45,7 @@ const initialState: HousingState = {
   filters: initialHousingFilters,
   filtersExpanded: true,
   view: 'list',
-  creator: {},
+  creator: {}
 };
 
 const housingSlice = createSlice({
@@ -54,7 +57,7 @@ const housingSlice = createSlice({
     },
     changeFilters: (
       state: HousingState,
-      action: PayloadAction<HousingFilters>,
+      action: PayloadAction<HousingFilters>
     ) => {
       state.filters = action.payload;
     },
@@ -67,24 +70,24 @@ const housingSlice = createSlice({
         q: string;
         page: number;
         perPage: number;
-      }>,
+      }>
     ) => {
       state.additionalOwnersQuery = {
         page: action.payload.page,
         perPage: action.payload.perPage,
-        q: action.payload.q,
+        q: action.payload.q
       };
     },
     changeCreator: (
       state: HousingState,
-      action: PayloadAction<CreatorPayload>,
+      action: PayloadAction<CreatorPayload>
     ) => {
       state.creator = {
         ...state.creator,
-        ...action.payload,
+        ...action.payload
       };
-    },
-  },
+    }
+  }
 });
 
 export interface CreatorPayload {

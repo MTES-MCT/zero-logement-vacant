@@ -1,10 +1,11 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import fp from 'lodash/fp';
 
-import { getHousingState, HOUSING_STATUSES } from '../../models/HousingState';
+import { getHousingState } from '../../models/HousingState';
 import HousingListTab from './HousingListTab';
 import { HousingFilters } from '../../models/HousingFilters';
 import { useStatusTabs } from '../../hooks/useStatusTabs';
+import { HOUSING_STATUS_VALUES } from '@zerologementvacant/models';
 
 interface Props {
   filters: HousingFilters;
@@ -22,18 +23,18 @@ const HousingListTabs = ({
   showCount,
   showCreateGroup,
   showRemoveGroupHousing,
-  showCreateCampaign,
+  showCreateCampaign
 }: Props) => {
   const statuses = [
     { id: 'all', label: 'Tous', value: undefined },
-    ...HOUSING_STATUSES.map((status) => {
+    ...HOUSING_STATUS_VALUES.map((status) => {
       const label = getHousingState(status).title;
       return {
         id: fp.kebabCase(label),
         label,
-        value: status,
+        value: status
       };
-    }),
+    })
   ];
 
   const { activeTab, getTabLabel, isActive, setActiveTab, setStatusCount } =
@@ -41,7 +42,7 @@ const HousingListTabs = ({
 
   const tabs = statuses.map((status) => ({
     tabId: status.id,
-    label: getTabLabel(status),
+    label: getTabLabel(status)
   }));
 
   return (

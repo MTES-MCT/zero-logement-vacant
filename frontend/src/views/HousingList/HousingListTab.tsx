@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { HousingStatus } from '../../models/HousingState';
 import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
@@ -9,12 +8,12 @@ import HousingListEditionSideMenu from '../../components/HousingEdition/HousingL
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import {
   useCountHousingQuery,
-  useUpdateHousingListMutation,
+  useUpdateHousingListMutation
 } from '../../services/housing.service';
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import { HousingFilters } from '../../models/HousingFilters';
@@ -24,7 +23,7 @@ import {
   useAddGroupHousingMutation,
   useCreateGroupMutation,
   useGetGroupQuery,
-  useRemoveGroupHousingMutation,
+  useRemoveGroupHousingMutation
 } from '../../services/group.service';
 import { Group } from '../../models/Group';
 import { useHistory, useParams } from 'react-router-dom';
@@ -33,6 +32,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useCreateCampaignMutation } from '../../services/campaign.service';
 import fp from 'lodash/fp';
+import { HousingStatus } from '@zerologementvacant/models';
 
 export type HousingListTabProps = {
   isActive: boolean;
@@ -56,13 +56,13 @@ const HousingListTab = ({
   showRemoveGroupHousing,
   showCreateCampaign,
   status,
-  onCountFilteredHousing,
+  onCountFilteredHousing
 }: HousingListTabProps) => {
   const { trackEvent } = useMatomo();
   const router = useHistory();
   const [
     updateHousingList,
-    { isSuccess: isUpdateSuccess, data: updatedCount },
+    { isSuccess: isUpdateSuccess, data: updatedCount }
   ] = useUpdateHousingListMutation();
 
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
@@ -70,7 +70,9 @@ const HousingListTab = ({
   const [error, setError] = useState<string>();
 
   const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataFileYearsIncluded', 'dataFileYearsExcluded', 'occupancies'])(filters),
+    fp.pick(['dataFileYearsIncluded', 'dataFileYearsExcluded', 'occupancies'])(
+      filters
+    )
   );
   const totalCount = housingCount?.housing;
 
@@ -78,7 +80,7 @@ const HousingListTab = ({
   const filteredCount = count;
 
   const { selectedCount, selected, setSelected } = useSelection(
-    filteredCount?.housing,
+    filteredCount?.housing
   );
   const filteredHousingCount = filteredCount?.housing;
   const filteredOwnerCount = filteredCount?.owners;
@@ -90,7 +92,10 @@ const HousingListTab = ({
   }, [filteredCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const [createCampaign] = useCreateCampaignMutation();
-  const onSubmitCampaignCreation = async (title: string, description: string) => {
+  const onSubmitCampaignCreation = async (
+    title: string,
+    description: string
+  ) => {
     if (title) {
       const created = await createCampaign({
         title,
@@ -98,16 +103,16 @@ const HousingListTab = ({
         housing: {
           filters,
           all: selected.all,
-          ids: selected.ids,
-        },
+          ids: selected.ids
+        }
       }).unwrap();
       trackEvent({
         category: TrackEventCategories.HousingList,
         action: TrackEventActions.HousingList.SaveCampaign,
-        value: selectedCount,
+        value: selectedCount
       });
       router.push({
-        pathname: `/campagnes/${created.id}`,
+        pathname: `/campagnes/${created.id}`
       });
     }
   };
@@ -116,19 +121,19 @@ const HousingListTab = ({
     trackEvent({
       category: TrackEventCategories.HousingList,
       action: TrackEventActions.HousingList.UpdateList,
-      value: selectedCount,
+      value: selectedCount
     });
     try {
       await updateHousingList({
         housingUpdate,
         allHousing: selected.all,
         housingIds: selected.ids,
-        filters,
+        filters
       }).unwrap();
     } catch (error: any) {
       if (error.data.name === 'HousingUpdateForbiddenError') {
         setError(
-          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".',
+          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".'
         );
       }
     }
@@ -143,20 +148,20 @@ const HousingListTab = ({
         id: group.id,
         all: selected.all,
         ids: selected.ids,
-        filters,
+        filters
       });
       router.push({
         pathname: `/groupes/${group.id}`,
         state: {
-          alert: 'Les logements sélectionnés ont bien été ajoutés à ce groupe.',
-        },
+          alert: 'Les logements sélectionnés ont bien été ajoutés à ce groupe.'
+        }
       });
     }
   }
 
   const [createGroup] = useCreateGroupMutation();
   async function doCreateGroup(
-    group: Pick<Group, 'title' | 'description'>,
+    group: Pick<Group, 'title' | 'description'>
   ): Promise<void> {
     try {
       const response = await createGroup({
@@ -165,8 +170,8 @@ const HousingListTab = ({
         housing: {
           all: selected.all,
           ids: selected.ids,
-          filters,
-        },
+          filters
+        }
       }).unwrap();
       router.push({
         pathname: `/groupes/${response.group.id}`,
@@ -174,8 +179,8 @@ const HousingListTab = ({
           alert:
             response.status === 202
               ? 'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
-              : 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.',
-        },
+              : 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
+        }
       });
     } catch (error) {
       console.error(error);
@@ -184,17 +189,17 @@ const HousingListTab = ({
 
   const params = useParams<{ id?: string }>();
   const { data: group } = useGetGroupQuery(params?.id ?? '', {
-    skip: !params?.id,
+    skip: !params?.id
   });
   const [removeGroupHousing] = useRemoveGroupHousingMutation();
-  function doRemoveGroupHousing() {
+  async function doRemoveGroupHousing(): Promise<void> {
     if (group) {
-      removeGroupHousing({
+      await removeGroupHousing({
         id: group.id,
         all: selected.all,
         ids: selected.ids,
-        filters: filters,
-      });
+        filters: filters
+      }).unwrap();
     }
   }
 
@@ -230,7 +235,7 @@ const HousingListTab = ({
               filteredHousingCount,
               filteredOwnerCount,
               totalCount,
-              status,
+              status
             })}
           </Text>
         )}

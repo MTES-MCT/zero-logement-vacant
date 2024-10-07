@@ -10,11 +10,11 @@ export const geoPerimetersApi = zlvApi.injectEndpoints({
           ? [
               ...result.map(({ id }) => ({
                 type: 'GeoPerimeter' as const,
-                id,
+                id
               })),
-              'GeoPerimeter',
+              'GeoPerimeter'
             ]
-          : ['GeoPerimeter'],
+          : ['GeoPerimeter']
     }),
     updateGeoPerimeter: builder.mutation<
       void,
@@ -23,31 +23,31 @@ export const geoPerimetersApi = zlvApi.injectEndpoints({
       query: ({ geoPerimeterId, kind, name }) => ({
         url: `geo/perimeters/${geoPerimeterId}`,
         method: 'PUT',
-        body: { kind, name },
+        body: { kind, name }
       }),
-      invalidatesTags: (result, error, { geoPerimeterId }) => [
-        { type: 'GeoPerimeter', id: geoPerimeterId },
-      ],
+      invalidatesTags: (_result, _error, { geoPerimeterId }) => [
+        { type: 'GeoPerimeter', id: geoPerimeterId }
+      ]
     }),
     deleteGeoPerimeters: builder.mutation<void, string[]>({
       query: (geoPerimeterIds) => ({
         url: 'geo/perimeters',
         method: 'DELETE',
-        body: { geoPerimeterIds },
+        body: { geoPerimeterIds }
       }),
-      invalidatesTags: (result, error, geoPerimeterId) => [
-        { type: 'GeoPerimeter', geoPerimeterId },
-      ],
+      invalidatesTags: (_result, _error, geoPerimeterId) => [
+        { type: 'GeoPerimeter', geoPerimeterId }
+      ]
     }),
     uploadGeoPerimeterFile: builder.mutation<void, File>({
       query: (file) => ({
         url: 'geo/perimeters',
         method: 'POST',
-        body: fileToFormData(file),
+        body: fileToFormData(file)
       }),
-      invalidatesTags: ['GeoPerimeter'],
-    }),
-  }),
+      invalidatesTags: ['GeoPerimeter']
+    })
+  })
 });
 
 const fileToFormData = (file: File) => {
@@ -60,5 +60,5 @@ export const {
   useListGeoPerimetersQuery,
   useUpdateGeoPerimeterMutation,
   useDeleteGeoPerimetersMutation,
-  useUploadGeoPerimeterFileMutation,
+  useUploadGeoPerimeterFileMutation
 } = geoPerimetersApi;

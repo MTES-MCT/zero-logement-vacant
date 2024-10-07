@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { constants } from 'http2';
+import { constants } from 'node:http2';
 import fp from 'lodash/fp';
 import { http, HttpResponse, RequestHandler } from 'msw';
 

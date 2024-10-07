@@ -2,7 +2,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { FormEvent, useEffect, useState } from 'react';
 
 import { Campaign } from '../../models/Campaign';
@@ -92,23 +92,23 @@ function CampaignSending(props: Readonly<Props>) {
 
   return (
     <>
-      <Grid className={styles.steps} xs={12} py={4}>
-        <Grid container xsOffset={1}>
-          <Grid xs={11}>
+      <Grid className={styles.steps} py={4} size={12}>
+        <Grid container offset={1}>
+          <Grid size={11}>
             <Stepper
-                currentStep={2}
-                stepCount={2}
-                title="Édition de votre courrier et vérification des adresses propriétaires"
-              />
-              <p className={`fr-stepper__details ${styles.lastStep}`}>
-                <span className="fr-text--bold">
-                  Après l’étape de validation :
-                </span>
-                &nbsp;Suivi de campagne et passage de tous les logements &quot;Non
-                suivi&quot; au statut &quot;En attente de retour&quot;.
-              </p>
+              currentStep={2}
+              stepCount={2}
+              title="Édition de votre courrier et vérification des adresses propriétaires"
+            />
+            <p className={`fr-stepper__details ${styles.lastStep}`}>
+              <span className="fr-text--bold">
+                Après l’étape de validation :
+              </span>
+              &nbsp;Suivi de campagne et passage de tous les logements &quot;Non
+              suivi&quot; au statut &quot;En attente de retour&quot;.
+            </p>
           </Grid>
-          <Grid xs={11}>
+          <Grid size={11}>
             <div className={'float-right'}>
               <Button
                 priority="primary"
@@ -121,13 +121,12 @@ function CampaignSending(props: Readonly<Props>) {
           </Grid>
         </Grid>
       </Grid>
-
-      <Grid component="article" container xs={10} xsOffset={1}>
-        <Grid component="header" mb={2} xs={12}>
-          <Grid component="section" mb={2} xs={12}>
+      <Grid component="article" container size={10} offset={1}>
+        <Grid component="header" mb={2} size={12}>
+          <Grid component="section" mb={2} size={12}>
             <CampaignCreatedFromGroup campaign={props.campaign} />
           </Grid>
-          <Grid component="section" xs={12}>
+          <Grid component="section" size={12}>
             <CampaignTitle
               as="h2"
               campaign={props.campaign}
@@ -139,16 +138,16 @@ function CampaignSending(props: Readonly<Props>) {
               owners={count?.owners}
             />
             {props.campaign.description && (
-              <Grid xs={12} mt={2}>
+              <Grid mt={2} size={12}>
                 <h3 className="fr-mb-1w fr-text--md">Description</h3>
                 <p>{props.campaign.description}</p>
               </Grid>
             )}
           </Grid>
         </Grid>
-        <Grid component="section" container mb={5} xs={12}>
+        <Grid component="section" container mb={5} size={12}>
           {!hasFile ? (
-            <Grid xs={6}>
+            <Grid size={6}>
               <Typography variant="h5" mb={2}>
                 Vos fichiers à télécharger pour lancer votre campagne
               </Typography>
@@ -163,13 +162,13 @@ function CampaignSending(props: Readonly<Props>) {
               </Box>
             </Grid>
           ) : (
-            <Grid container mb={5} xs={6}>
-              <Grid xs={12}>
+            <Grid container mb={5} size={6}>
+              <Grid size={12}>
                 <Typography variant="h5" mb={2}>
                   Vos fichiers à télécharger pour lancer votre campagne
                 </Typography>
               </Grid>
-              <Grid xs={8}>
+              <Grid size={8}>
                 <DraftDownloader
                   campaign={props.campaign}
                   setDownloaded={setDownloaded}
@@ -177,7 +176,7 @@ function CampaignSending(props: Readonly<Props>) {
               </Grid>
             </Grid>
           )}
-          <Grid container xs={6} px={4}>
+          <Grid container px={4} size={6}>
             <modal.Component
               title="Confirmation de la date d’envoi"
               buttons={[

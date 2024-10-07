@@ -3,7 +3,7 @@ import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import Button from '@codegouvfr/react-dsfr/Button';
 import MuiDrawer from '@mui/material/Drawer';
 import { CSSObject, styled, Theme } from '@mui/material/styles';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 
@@ -138,24 +138,21 @@ function HousingListFiltersSidemenu(props: Props) {
       >
         {toggle.active ? 'Réduire' : undefined}
       </Button>
-
       <GroupHeader
         className={classNames('fr-mb-4w', styles.drawerContent, {
           [styles.drawerContentExpanded]: toggle.active
         })}
       />
-
       <hr
         className={classNames('fr-pb-4w', styles.drawerContent, {
           [styles.drawerContentExpanded]: toggle.active
         })}
       />
-
       <Grid
         className={classNames(styles.drawerContent, {
           [styles.drawerContentExpanded]: toggle.active
         })}
-        xs
+        size="grow"
       >
         <Grid
           alignItems="flex-start"
@@ -164,12 +161,12 @@ function HousingListFiltersSidemenu(props: Props) {
           mb={1}
           justifyContent="space-between"
         >
-          <Grid component="section" xs="auto">
+          <Grid component="section" size="auto">
             <Typography component="h2" variant="h6" mb={3}>
               Filtres
             </Typography>
           </Grid>
-          <Grid component="section" xs="auto">
+          <Grid component="section" size="auto">
             <Button
               priority="tertiary no outline"
               size="small"
@@ -184,14 +181,14 @@ function HousingListFiltersSidemenu(props: Props) {
             <TitleWithIcon icon="fr-icon-folder-2-line" title="Mobilisation" />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <HousingStatusMultiSelect
               selectedStatus={filters.statusList}
               options={statusOptions()}
               onChange={onChangeStatusFilter}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Sous-statut de suivi"
               options={getSubStatusListOptions(filters.statusList ?? [])}
@@ -202,7 +199,7 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           {campaigns && (
-            <Grid component="article" mb={2} xs={12}>
+            <Grid component="article" mb={2} size={12}>
               <AppMultiSelect
                 label="Campagne"
                 options={campaigns.map((campaign) => ({
@@ -216,7 +213,7 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
           )}
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Prise de contact"
               options={campaignsCountOptions}
@@ -235,7 +232,7 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Statut d’occupation"
               options={allOccupancyOptions}
@@ -251,7 +248,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <TitleWithIcon icon="fr-icon-france-line" title="Localisation" />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <SearchableSelect
               options={unselectedOptions(localitiesOptions, filters.localities)}
               label="Commune"
@@ -266,7 +263,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Type de commune"
               options={localityKindsOptions}
@@ -276,7 +273,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <SearchableSelect
               options={unselectedOptions(
                 geoPerimeterOptions(geoPerimeters),
@@ -299,7 +296,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={0} xs={12}>
+          <Grid component="article" mb={0} size={12}>
             <SearchableSelect
               options={unselectedOptions(
                 geoPerimeterOptions(geoPerimeters),
@@ -331,7 +328,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <TitleWithIcon icon="fr-icon-building-line" title="Bâtiment/DPE" />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Nombre de logements"
               options={housingCountOptions}
@@ -344,7 +341,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Taux de vacance"
               options={vacancyRateOptions}
@@ -354,7 +351,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Étiquette DPE représentatif (CSTB)"
               options={energyConsumptionOptions}
@@ -371,7 +368,7 @@ function HousingListFiltersSidemenu(props: Props) {
         <Accordion
           label={<TitleWithIcon icon="fr-icon-home-4-line" title="Logement" />}
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Type"
               options={housingKindOptions}
@@ -381,7 +378,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Date de construction"
               options={buildingPeriodOptions}
@@ -394,7 +391,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Surface"
               options={housingAreaOptions}
@@ -404,7 +401,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Nombre de pièces"
               options={roomsCountOptions}
@@ -414,7 +411,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Taxé"
               options={taxedOptions}
@@ -431,7 +428,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Classement cadastral"
               options={cadastralClassificationOptions}
@@ -444,7 +441,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Type de propriété"
               options={ownershipKindsOptions}
@@ -460,7 +457,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <TitleWithIcon icon="fr-icon-user-line" title="Propriétaires" />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <div data-testid="ownerkind-filter">
               <AppMultiSelect
                 label="Type"
@@ -472,7 +469,7 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </div>
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Âge"
               options={ownerAgeOptions}
@@ -482,7 +479,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Multi-propriétaire"
               options={multiOwnerOptions}
@@ -497,7 +494,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Propriétaires secondaires"
               options={beneficiaryCountOptions}
@@ -514,7 +511,7 @@ function HousingListFiltersSidemenu(props: Props) {
         <Accordion
           label={<TitleWithIcon icon="fr-icon-server-line" title="Données" />}
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Sources et millésimes inclus"
               options={dataFileYearsIncludedOptions}
@@ -529,7 +526,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <AppMultiSelect
               label="Sources et millésimes exclus"
               defaultOption="Aucun"

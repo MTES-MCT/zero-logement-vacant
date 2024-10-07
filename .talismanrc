@@ -1,4 +1,6 @@
 fileignoreconfig:
+- filename: frontend/src/*.d.ts
+  checksum: e408f7c4caa7f621942295e47e2fdd297240ed0f8e2ed0a090d78d25bd4b9411
 - filename: .github/workflows/review-app.yml
   checksum: 00550719490eeb392f0f211567c3e55b50a1512fd25218e8d8bdd349a769649a
 - filename: README.md
@@ -13,4 +15,5 @@ scopeconfig:
 - scope: node
 allowed_patterns:
 - keyof
+- key={.+}
 version: "1.0"

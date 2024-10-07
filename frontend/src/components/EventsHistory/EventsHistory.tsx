@@ -43,7 +43,7 @@ const EventsHistory = ({ events, notes }: Props) => {
   return (
     <>
       {eventAndNotes
-        .filter((eventOrNote, index) => expandEvents || index < 3)
+        .filter((_, index) => expandEvents || index < 3)
         .map((eventOrNote, index) => (
           <div key={`event_note_${index}`} className="fr-mb-3w">
             <div className={styles.eventData}>

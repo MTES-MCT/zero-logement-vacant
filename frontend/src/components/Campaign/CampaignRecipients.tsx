@@ -2,7 +2,7 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import Table from '@codegouvfr/react-dsfr/Table';
 import { Pagination as DSFRPagination } from '../_dsfr';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { ReactNode, useState } from 'react';
 
 import { Campaign } from '../../models/Campaign';
@@ -27,21 +27,23 @@ interface Props {
 function CampaignRecipients(props: Props) {
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const filters = {
-    campaignIds: [props.campaign.id],
+    campaignIds: [props.campaign.id]
   };
   const { housingList } = useHousingList({
     filters,
-    pagination,
+    pagination
   });
 
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, hasPagination, changePerPage, changePage} = usePagination({
-    pagination,
-    setPagination,
-    count: filteredCount,
-  });
+  const { pageCount, hasPagination, changePerPage, changePage } = usePagination(
+    {
+      pagination,
+      setPagination,
+      count: filteredCount
+    }
+  );
 
   const [removeCampaignHousing] = useRemoveCampaignHousingMutation();
   async function removeHousing(housing: Housing): Promise<void> {
@@ -49,7 +51,7 @@ function CampaignRecipients(props: Props) {
       campaignId: props.campaign.id,
       all: false,
       ids: [housing.id],
-      filters: {},
+      filters: {}
     }).unwrap();
   }
 
@@ -65,7 +67,7 @@ function CampaignRecipients(props: Props) {
     'Propriétaire principal',
     'Adresse BAN du propriétaire',
     'Complément d’adresse',
-    null,
+    null
   ];
   const data: ReactNode[][] = (housingList ?? []).map((housing, i) => [
     `# ${i + 1 + (pagination.page - 1) * pagination.perPage}`,
@@ -107,7 +109,7 @@ function CampaignRecipients(props: Props) {
           iconId: 'fr-icon-close-line',
           priority: 'tertiary',
           size: 'small',
-          title: 'Supprimer le propriétaire',
+          title: 'Supprimer le propriétaire'
         }}
         title="Suppression d’un propriétaire"
         onSubmit={() => removeHousing(housing)}
@@ -116,7 +118,7 @@ function CampaignRecipients(props: Props) {
           Vous êtes sur le point de supprimer ce destinataire de la campagne.
         </Typography>
       </ConfirmationModal>
-    </Grid>,
+    </Grid>
   ]);
 
   return (
@@ -125,7 +127,9 @@ function CampaignRecipients(props: Props) {
         severity="info"
         closable
         title="Vos propriétaires destinataires"
-        description={'Vérifiez les adresses des propriétaires, notamment dans les cas où l\'adresse BAN diffère de l\'adresse issue des Fichiers Fonciers (cas signalés par la mention "Adresse améliorable"). Une fois la liste des destinataires vérifiée, cliquez sur "Valider et passer au téléchargement" pour télécharger les destinataires au format XLSX.'}
+        description={
+          'Vérifiez les adresses des propriétaires, notamment dans les cas où l\'adresse BAN diffère de l\'adresse issue des Fichiers Fonciers (cas signalés par la mention "Adresse améliorable"). Une fois la liste des destinataires vérifiée, cliquez sur "Valider et passer au téléchargement" pour télécharger les destinataires au format XLSX.'
+        }
         className="fr-mt-2w"
       />
       <Table data={data} headers={headers} />

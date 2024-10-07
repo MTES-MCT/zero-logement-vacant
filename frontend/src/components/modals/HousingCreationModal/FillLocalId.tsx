@@ -12,7 +12,7 @@ import { useAppDispatch } from '../../../hooks/useStore';
 import housingSlice from '../../../store/reducers/housingReducer';
 import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
-const FillLocalId = forwardRef((props: StepProps, ref) => {
+const FillLocalId = forwardRef((_: StepProps, ref) => {
   const [localId, setLocalId] = useState('');
   const dispatch = useAppDispatch();
   const { changeCreator } = housingSlice.actions;
@@ -20,11 +20,11 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
   const shape = {
     localId: yup
       .string()
-      .required('Veuillez renseigner un identifiant pour ce logement'),
+      .required('Veuillez renseigner un identifiant pour ce logement')
   };
   type FormShape = typeof shape;
   const form = useForm(yup.object().shape(shape), {
-    localId,
+    localId
   });
 
   const [getHousing, getHousingQuery] = housingApi.useLazyGetHousingQuery();
@@ -52,14 +52,14 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
               if (housing) {
                 throw new Error('HousingExistsError');
               }
-            }),
+            })
         ]);
         dispatch(changeCreator({ localId }));
         return 'review-housing';
       } catch (error) {
         return null;
       }
-    },
+    }
   }));
 
   return (
@@ -137,7 +137,7 @@ FillLocalId.displayName = 'FillLocalId';
 
 const step: Step = {
   id: 'fill-local-id',
-  Component: FillLocalId,
+  Component: FillLocalId
 };
 
 export default step;

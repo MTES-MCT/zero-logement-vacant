@@ -1,6 +1,6 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
@@ -8,7 +8,7 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useFilters } from '../../hooks/useFilters';
@@ -32,7 +32,7 @@ const HousingListView = () => {
     onChangeFilters,
     onResetFilters,
     setExpand,
-    removeFilter,
+    removeFilter
   } = useFilters();
 
   const { view } = useAppSelector((state) => state.housing);
@@ -41,11 +41,11 @@ const HousingListView = () => {
     trackEvent({
       category: TrackEventCategories.HousingList,
       action: TrackEventActions.HousingList.Search,
-      name: query,
+      name: query
     });
     setFilters({
       ...filters,
-      query,
+      query
     });
   };
 
@@ -53,7 +53,7 @@ const HousingListView = () => {
   const [alert, setAlert] = useState(router.location.state?.alert ?? '');
   function onFinish() {
     setAlert(
-      'Le logement sélectionné a bien été ajouté à votre parc de logements.',
+      'Le logement sélectionné a bien été ajouté à votre parc de logements.'
     );
   }
 
@@ -68,9 +68,9 @@ const HousingListView = () => {
         onReset={onResetFilters}
         onClose={() => setExpand(false)}
       />
-      <Grid container flexDirection="column" px={3} py={4} xs>
+      <Grid container flexDirection="column" px={3} py={4} size="grow">
         {alert && (
-          <Grid xs>
+          <Grid size="grow">
             <Alert
               severity="success"
               description={alert}
@@ -81,23 +81,23 @@ const HousingListView = () => {
           </Grid>
         )}
 
-        <Grid container mb={1} spacing={2} xs={12}>
-          <Grid xs>
+        <Grid container mb={1} spacing={2} size={12}>
+          <Grid size="grow">
             <AppSearchBar
               onSearch={searchWithQuery}
               initialQuery={filters.query}
               placeholder="Rechercher (propriétaire, invariant, ref. cadastrale...)"
             />
           </Grid>
-          <Grid xs="auto">
+          <Grid size="auto">
             <HousingDisplaySwitch />
           </Grid>
-          <Grid xs="auto">
-            { !isVisitor && <HousingCreationModal onFinish={onFinish} /> }
+          <Grid size="auto">
+            {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
           </Grid>
         </Grid>
 
-        <Grid mb={3} xs={12}>
+        <Grid mb={3} size={12}>
           <HousingFiltersBadges filters={filters} onChange={removeFilter} />
         </Grid>
 

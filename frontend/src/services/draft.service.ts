@@ -53,7 +53,7 @@ export const draftApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: toDraftUpdatePayloadDTO(draft)
       }),
-      invalidatesTags: (result, error, draft) => [
+      invalidatesTags: (_result, _error, draft) => [
         { type: 'Draft', id: draft.id }
       ]
     })

@@ -59,7 +59,7 @@ export const housingApi = zlvApi.injectEndpoints({
           ...opts?.pagination
         }
       }),
-      providesTags: (result, errors, args) => [
+      providesTags: (result, _errors, args) => [
         {
           type: 'HousingByStatus' as const,
           id: args.filters.status
@@ -82,7 +82,7 @@ export const housingApi = zlvApi.injectEndpoints({
         method: 'POST',
         body: { filters }
       }),
-      providesTags: (result, errors, args) => [
+      providesTags: (_result, _errors, args) => [
         {
           type: 'HousingCountByStatus' as const,
           id: args.status
@@ -112,7 +112,7 @@ export const housingApi = zlvApi.injectEndpoints({
           housingUpdate
         }
       }),
-      invalidatesTags: (result, error, { housing, housingUpdate }) => [
+      invalidatesTags: (_result, _error, { housing, housingUpdate }) => [
         { type: 'Housing', id: housing.id },
         { type: 'HousingByStatus', id: housingUpdate.statusUpdate?.status },
         { type: 'HousingByStatus', id: housing.status },
@@ -149,8 +149,8 @@ export const housingApi = zlvApi.injectEndpoints({
         return response.length;
       },
       invalidatesTags: (
-        result,
-        error,
+        _result,
+        _error,
         { allHousing, housingIds, housingUpdate, filters }
       ) => [
         ...(allHousing

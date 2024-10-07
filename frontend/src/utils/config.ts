@@ -1,30 +1,30 @@
 const config = {
-  apiEndpoint: process.env.REACT_APP_API_URL,
+  apiEndpoint: import.meta.env.REACT_APP_API_URL,
   banEndpoint: 'https://api-adresse.data.gouv.fr',
   matomo: {
     enabled:
-      process.env.REACT_APP_MATOMO_ENABLED !== undefined
-        ? process.env.REACT_APP_MATOMO_ENABLED === 'true'
-        : process.env.NODE_ENV === 'production',
-    urlBase: process.env.REACT_APP_MATOMO_URL_BASE ?? 'http://localhost',
-    siteId: process.env.REACT_APP_MATOMO_SITE_ID
-      ? Number(process.env.REACT_APP_MATOMO_SITE_ID)
+      import.meta.env.REACT_APP_MATOMO_ENABLED !== undefined
+        ? import.meta.env.REACT_APP_MATOMO_ENABLED === 'true'
+        : import.meta.env.NODE_ENV === 'production',
+    urlBase: import.meta.env.REACT_APP_MATOMO_URL_BASE ?? 'http://localhost',
+    siteId: import.meta.env.REACT_APP_MATOMO_SITE_ID
+      ? Number(import.meta.env.REACT_APP_MATOMO_SITE_ID)
       : 1,
-    srcUrl: process.env.REACT_APP_MATOMO_SRC_URL,
+    srcUrl: import.meta.env.REACT_APP_MATOMO_SRC_URL,
     linkTracking: true
   },
   metabase: {
-    siteUrl: process.env.REACT_APP_METABASE_SITE_URL,
+    siteUrl: import.meta.env.REACT_APP_METABASE_SITE_URL,
     public: {
-      statsDashboard: process.env.REACT_APP_METABASE_STATS_DASHBOARD
+      statsDashboard: import.meta.env.REACT_APP_METABASE_STATS_DASHBOARD
     }
   },
   perPageDefault: 50,
   posthog: {
     enabled:
-      process.env.REACT_APP_POSTHOG_ENABLED !== undefined
-        ? process.env.REACT_APP_POSTHOG_ENABLED === 'true'
-        : process.env.NODE_ENV === 'production'
+      import.meta.env.REACT_APP_POSTHOG_ENABLED !== undefined
+        ? import.meta.env.REACT_APP_POSTHOG_ENABLED === 'true'
+        : import.meta.env.NODE_ENV === 'production'
   },
   dataYear: 2023,
   banEligibleScore: 0.8,
@@ -33,9 +33,9 @@ const config = {
      * @example
      * REACT_APP_FEATURE_OCCUPANCY=ct1,ct2,ct3
      */
-    occupancy: (process.env.REACT_APP_FEATURE_OCCUPANCY ?? '')
+    occupancy: (import.meta.env.REACT_APP_FEATURE_OCCUPANCY ?? '')
       .split(',')
-      .map((element) => element.trim())
+      .map((element: string) => element.trim())
   }
 };
 

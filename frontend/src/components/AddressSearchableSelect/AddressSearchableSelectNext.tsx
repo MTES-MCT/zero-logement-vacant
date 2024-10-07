@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
 import Autocomplete from '@mui/material/Autocomplete';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { useDebounce, useList, usePreviousDistinct } from 'react-use';
 import type { MarkOptional } from 'ts-essentials';
 
@@ -84,7 +84,9 @@ function AddressSearchableSelectNext(props: Props) {
                 container
                 flexDirection="row"
                 justifyContent="space-between"
-                sm
+                size={{
+                  sm: 'grow'
+                }}
               >
                 <Typography component="span">
                   Adresse (source : 

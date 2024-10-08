@@ -97,9 +97,7 @@ async function list(
   const sort = sortApi.parse<HousingSortableApi>(
     request.query.sort as string[] | undefined
   );
-
-  const rawFilters = JSON.parse(query.filters);
-
+  const rawFilters = query.filters !== undefined ? JSON.parse(query.filters) : undefined;
   const filters: HousingFiltersApi = {
     ...rawFilters,
     multiOwners: rawFilters?.multiOwners?.map((value: string) =>

@@ -96,7 +96,7 @@ describe('Housing API', () => {
       const { body, status } = await request(app)
         .get(testRoute)
         .query({
-          filters: {}
+          filters: JSON.stringify({})
         })
         .use(tokenProvider(user));
 
@@ -131,6 +131,7 @@ describe('Housing API', () => {
       const { body, status } = await request(app)
         .get(testRoute)
         .query({
+          paginate: true,
           page: 1,
           perPage: 1
         })

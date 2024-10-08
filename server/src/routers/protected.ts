@@ -36,7 +36,6 @@ router.use(userCheck());
 
 router.post('/files', upload(), fileController.create);
 
-// TODO: replace by GET /housing
 router.get(
   '/housing',
   validatorNext.validate({

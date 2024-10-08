@@ -98,7 +98,7 @@ function CampaignSending(props: Readonly<Props>) {
             <Stepper
                 currentStep={2}
                 stepCount={2}
-                title="Édition de votre courrier et vérification des adresses propriétaires"
+                title="Téléchargement du fichier de publipostage (XLSX) et/ou de vos courriers rédigés (PDF)"
               />
               <p className={`fr-stepper__details ${styles.lastStep}`}>
                 <span className="fr-text--bold">

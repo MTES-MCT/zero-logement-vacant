@@ -170,9 +170,9 @@ function CampaignDraft(props: Readonly<Props>) {
           <Grid xs={11}>
             <Stepper
               currentStep={1}
-              nextTitle="Téléchargement de vos fichiers et du fichier de publipostage CSV."
+              nextTitle="Téléchargement du fichier de publipostage (XLSX) et/ou de vos courriers rédigés (PDF)."
               stepCount={2}
-              title="Édition de votre courrier et vérification des adresses propriétaires"
+              title="Vérification des adresses propriétaires et édition de votre courrier"
             />
           </Grid>
           <Grid xs={11}>
@@ -188,12 +188,12 @@ function CampaignDraft(props: Readonly<Props>) {
           <Grid mb={2} xs={12}>
             <CampaignCreatedFromGroup campaign={props.campaign} />
           </Grid>
-          <Grid xs={6}>
-            <CampaignTitle
+          <CampaignTitle
               as="h2"
               campaign={props.campaign}
               className="fr-mb-1w"
             />
+          <Grid xs={6}>
             <CampaignCounts
               display="row"
               housing={count?.housing}

@@ -259,7 +259,7 @@ describe('Campaign view', () => {
     });
     sources.get(`${config.apiEndpoint}/api/sse`)?.emit(event.type, event);
     const title = await screen.findByRole('heading', {
-      name: /^Télécharger les courriers et les destinataires/
+      name: /^Télécharger les destinataires et vos courriers/
     });
     expect(title).toBeVisible();
   });

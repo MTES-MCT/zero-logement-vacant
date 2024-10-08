@@ -31,7 +31,7 @@ function DraftDownloader(props: Readonly<Props>) {
         download: true,
         href: link,
       }}
-      title="Télécharger les courriers et les destinataires"
+      title="Télécharger les destinataires et vos courriers"
       onClick={() => props.setDownloaded(true)}
     />
   );

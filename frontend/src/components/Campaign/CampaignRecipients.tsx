@@ -128,7 +128,6 @@ function CampaignRecipients(props: Props) {
     <Grid container>
       <Alert
         severity="info"
-        closable
         title="Vos propriétaires destinataires"
         description={
           'Vérifiez les adresses des propriétaires, notamment dans les cas où l\'adresse BAN diffère de l\'adresse issue des Fichiers Fonciers (cas signalés par la mention "Adresse améliorable"). Une fois la liste des destinataires vérifiée, cliquez sur "Valider et passer au téléchargement" pour télécharger les destinataires au format XLSX.'

@@ -15,8 +15,6 @@ fileignoreconfig:
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
 - filename: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
-- filename: server/src/utils/validators.ts
-  checksum: 0e66a928db0199f1ce82d1c52d1b6c8e6695b26cbbd35f50d8a655d1f1d8fd75
 scopeconfig:
 - scope: node
 allowed_patterns:

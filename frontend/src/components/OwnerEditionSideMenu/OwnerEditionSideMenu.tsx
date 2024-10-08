@@ -77,7 +77,7 @@ function OwnerEditionSideMenu(props: Props) {
         size="small"
         onClick={open}
       >
-        Éditer l’adresse
+        Éditer
       </Button>
       <Aside
         expand={active}

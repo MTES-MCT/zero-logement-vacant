@@ -1,10 +1,13 @@
 import { differenceInDays, format } from 'date-fns';
+import { match, Pattern } from 'ts-pattern';
 
 import {
   EnergyConsumption,
   HousingDTO,
   HousingKind,
   HousingStatus,
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES,
   Occupancy
 } from '@zerologementvacant/models';
 import { Owner, toOwnerDTO } from './Owner';
@@ -38,7 +41,7 @@ export interface Housing {
   uncomfortable: boolean;
   cadastralClassification: number;
   taxed: boolean;
-  ownershipKind: OwnershipKinds;
+  ownershipKind: string;
   buildingHousingCount?: number;
   buildingVacancyRate: number;
   dataFileYears: string[];
@@ -128,21 +131,15 @@ export function byAddress(h1: Housing, h2: Housing): Compare {
   return byCity;
 }
 
-export const hasGeoPerimeters = (housing: Housing) =>
-  housing.geoPerimeters &&
-  housing.geoPerimeters.filter((_) => _ !== null).length > 0;
-
-export enum OwnershipKinds {
-  Single = 'single',
-  CoOwnership = 'co',
-  Other = 'other'
+export function formatOwnershipKind(kind: string | null): string {
+  return match(kind)
+    .with(
+      Pattern.union(null, ...INTERNAL_MONO_CONDOMINIUM_VALUES),
+      () => 'Monopropriété'
+    )
+    .with(Pattern.union(...INTERNAL_CO_CONDOMINIUM_VALUES), () => 'Copropriété')
+    .otherwise(() => 'Autre');
 }
-
-export const OwnershipKindLabels = {
-  [OwnershipKinds.Single]: 'Monopropriété',
-  [OwnershipKinds.CoOwnership]: 'Copropriété',
-  [OwnershipKinds.Other]: 'Autre'
-};
 
 export type HousingSortable = Pick<
   Housing,

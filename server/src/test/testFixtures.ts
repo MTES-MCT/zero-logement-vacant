@@ -19,8 +19,6 @@ import {
 import {
   ENERGY_CONSUMPTION_GRADES,
   HousingApi,
-  INTERNAL_CO_CONDOMINIUM_VALUES,
-  INTERNAL_MONO_CONDOMINIUM_VALUES,
   OccupancyKindApi
 } from '~/models/HousingApi';
 import { CampaignApi } from '~/models/CampaignApi';
@@ -77,7 +75,11 @@ import { AddressApi } from '~/models/AddressApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { SenderApi } from '~/models/SenderApi';
 import { DraftApi } from '~/models/DraftApi';
-import { HOUSING_KIND_VALUES } from '@zerologementvacant/models';
+import {
+  HOUSING_KIND_VALUES,
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES
+} from '@zerologementvacant/models';
 
 export { genGeoCode } from '@zerologementvacant/utils';
 

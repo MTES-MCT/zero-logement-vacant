@@ -20,6 +20,7 @@ function Aside(props: AsideProps) {
   const expand = props.expand ?? false;
   const component = (
     <aside
+      aria-hidden={!expand}
       className={classNames(styles.aside, {
         [styles.collapsed]: !expand
       })}

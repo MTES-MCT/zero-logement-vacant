@@ -39,11 +39,11 @@ describe('Geo perimeters API', () => {
     const testRoute = '/api/geo/perimeters';
 
     const geoPerimeters: GeoPerimeterApi[] = Array.from({ length: 3 }, () =>
-      genGeoPerimeterApi(establishment.id)
+      genGeoPerimeterApi(establishment.id, user)
     );
     const otherGeoPerimeters: GeoPerimeterApi[] = Array.from(
       { length: 2 },
-      () => genGeoPerimeterApi(anotherEstablishment.id)
+      () => genGeoPerimeterApi(anotherEstablishment.id, user)
     );
 
     beforeAll(async () => {
@@ -80,7 +80,7 @@ describe('Geo perimeters API', () => {
   describe('DELETE /geo/perimeters', () => {
     const testRoute = '/api/geo/perimeters';
 
-    const geoPerimeter = genGeoPerimeterApi(establishment.id);
+    const geoPerimeter = genGeoPerimeterApi(establishment.id, user);
 
     beforeAll(async () => {
       await GeoPerimeters().insert(formatGeoPerimeterApi(geoPerimeter));
@@ -129,7 +129,10 @@ describe('Geo perimeters API', () => {
     });
 
     it('should not delete a perimeter from another establishment', async () => {
-      const anotherGeoPerimeter = genGeoPerimeterApi(anotherEstablishment.id);
+      const anotherGeoPerimeter = genGeoPerimeterApi(
+        anotherEstablishment.id,
+        user
+      );
       await GeoPerimeters().insert(formatGeoPerimeterApi(anotherGeoPerimeter));
 
       const { status } = await request(app)
@@ -151,8 +154,11 @@ describe('Geo perimeters API', () => {
   describe('PUT /geo/perimeters/{id}', () => {
     const testRoute = (id: string) => `/api/geo/perimeters/${id}`;
 
-    const geoPerimeter = genGeoPerimeterApi(establishment.id);
-    const anotherGeoPerimeter = genGeoPerimeterApi(anotherEstablishment.id);
+    const geoPerimeter = genGeoPerimeterApi(establishment.id, user);
+    const anotherGeoPerimeter = genGeoPerimeterApi(
+      anotherEstablishment.id,
+      user
+    );
 
     beforeAll(async () => {
       await GeoPerimeters().insert(

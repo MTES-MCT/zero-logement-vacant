@@ -1,5 +1,6 @@
 import * as turf from '@turf/turf';
-import { MapRef, Source } from 'react-map-gl';
+import { Feature, GeoJsonProperties, Point } from 'geojson';
+import { MapRef, Source } from 'react-map-gl/maplibre';
 
 import { useMapLayerClick } from '../../hooks/useMapLayerClick';
 import HousingPoints from './HousingPoints';
@@ -9,16 +10,16 @@ interface Props<T> {
   id: string;
   map?: MapRef;
   onClick?: (value: T) => void;
-  points: turf.Feature<turf.Point, T>[];
+  points: Feature<Point, T>[];
 }
 
-function Points<T extends turf.Properties>(props: Props<T>) {
+function Points<T extends GeoJsonProperties>(props: Props<T>) {
   const points = turf.featureCollection(props.points);
 
   useMapLayerClick({
     layers: ['unclustered-points', 'buildings'],
     map: props.map,
-    onClick: props.onClick,
+    onClick: props.onClick
   });
 
   return (

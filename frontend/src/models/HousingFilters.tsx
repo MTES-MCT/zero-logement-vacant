@@ -7,6 +7,7 @@ import {
   HousingByBuilding,
   HousingFiltersDTO,
   HousingKind,
+  HousingStatus,
   LivingArea,
   LocalityKind,
   Occupancy,
@@ -17,12 +18,8 @@ import {
   VacancyRate
 } from '@zerologementvacant/models';
 import { OptionTreeElement, SelectOption } from './SelectOption';
-import { HousingStates, HousingStatus } from './HousingState';
-import {
-  OCCUPANCY_LABELS,
-  OwnershipKindLabels,
-  OwnershipKinds
-} from './Housing';
+import { HousingStates } from './HousingState';
+import { OCCUPANCY_LABELS } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 
@@ -227,16 +224,16 @@ export const taxedOptions: SelectOption[] = [
 
 export const ownershipKindsOptions: SelectOption<OwnershipKind>[] = [
   {
-    value: OwnershipKinds.Single,
-    label: OwnershipKindLabels[OwnershipKinds.Single]
+    value: 'single',
+    label: 'Monopropriété'
   },
   {
-    value: OwnershipKinds.CoOwnership,
-    label: OwnershipKindLabels[OwnershipKinds.CoOwnership]
+    value: 'co',
+    label: 'Copropriété'
   },
   {
-    value: OwnershipKinds.Other,
-    label: OwnershipKindLabels[OwnershipKinds.Other],
+    value: 'other',
+    label: 'Autre',
     badgeLabel: 'Autre type de propriété'
   }
 ];

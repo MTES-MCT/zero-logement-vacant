@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { Text } from '../../components/_dsfr';
 import Map, { MapProps } from '../../components/Map/Map';
-import { ViewState } from 'react-map-gl';
+import { ViewState } from 'react-map-gl/maplibre';
 import {
   hasPerimetersFilter,
-  HousingFilters,
+  HousingFilters
 } from '../../models/HousingFilters';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import {
   excludeWith,
   includeExcludeWith,
-  includeWith,
+  includeWith
 } from '../../utils/arrayUtils';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Label from '../../components/Label/Label';
@@ -29,12 +29,14 @@ const HousingListMap = ({ filters }: Props) => {
   const { housingList } = useHousingList({
     filters,
     pagination: {
-      paginate: false,
-    },
+      paginate: false
+    }
   });
 
   const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataFileYearsIncluded', 'dataFileYearsExcluded', 'occupancies'])(filters),
+    fp.pick(['dataFileYearsIncluded', 'dataFileYearsExcluded', 'occupancies'])(
+      filters
+    )
   );
   const totalCount = housingCount?.housing;
 
@@ -50,20 +52,20 @@ const HousingListMap = ({ filters }: Props) => {
     ? includeExcludeWith<GeoPerimeter, 'kind'>(
         filters.geoPerimetersIncluded,
         filters.geoPerimetersExcluded ?? [],
-        (perimeter) => perimeter.kind,
+        (perimeter) => perimeter.kind
       )(perimeters ?? [])
     : [];
 
   const perimetersExcluded = filters.geoPerimetersExcluded?.length
     ? includeWith<GeoPerimeter, 'kind'>(
         filters.geoPerimetersExcluded ?? [],
-        (perimeter) => perimeter.kind,
+        (perimeter) => perimeter.kind
       )(perimeters ?? [])
     : [];
 
   const remainingPerimeters = excludeWith<GeoPerimeter, 'kind'>(
     [...perimetersIncluded, ...perimetersExcluded].map((p) => p.kind),
-    (perimeter) => perimeter.kind,
+    (perimeter) => perimeter.kind
   )(perimeters ?? []);
 
   if (!housingList) {
@@ -76,7 +78,7 @@ const HousingListMap = ({ filters }: Props) => {
         {displayHousingCount({
           filteredHousingCount,
           filteredOwnerCount,
-          totalCount,
+          totalCount
         })}
       </Text>
       <Label spacing="mb-1w">

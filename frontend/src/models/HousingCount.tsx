@@ -1,5 +1,5 @@
+import { HousingStatus } from '@zerologementvacant/models';
 import { displayCount } from '../utils/stringUtils';
-import { HousingStatus } from './HousingState';
 
 export interface HousingCount {
   housing: number;
@@ -10,7 +10,7 @@ export const displayHousingCount = ({
   filteredHousingCount,
   filteredOwnerCount,
   totalCount,
-  status,
+  status
 }: {
   filteredHousingCount: number;
   filteredOwnerCount: number;
@@ -30,7 +30,7 @@ export const displayHousingCount = ({
     2,
     0,
     `(${displayCount(filteredOwnerCount, 'propriétaire', {
-      capitalize: false,
+      capitalize: false
     })})`
   );
   return items.join(' ');

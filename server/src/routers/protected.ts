@@ -140,7 +140,6 @@ router.put(
   '/campaigns/:id',
   campaignController.updateValidators,
   validator.validate,
-  campaignController.update,
   campaignController.update
 );
 router.delete(

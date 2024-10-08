@@ -1,8 +1,12 @@
 fileignoreconfig:
+- filename: .github/workflows/review-app.yml
+  checksum: 00550719490eeb392f0f211567c3e55b50a1512fd25218e8d8bdd349a769649a
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
 - filename: server/.env.example
   checksum: 885f04b25c4159fe59d1de7251ef2918467d06c67ab9300406765fd7580c9a2d
+- filename: frontend/src/components/Draft/DraftSender.tsx
+  checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
 - filename: server/src/services/ceremaService/ceremaService.ts
@@ -13,4 +17,6 @@ scopeconfig:
 - scope: node
 allowed_patterns:
 - keyof
+- \[key\]
+- key=
 version: "1.0"

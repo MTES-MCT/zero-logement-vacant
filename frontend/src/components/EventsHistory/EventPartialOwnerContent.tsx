@@ -2,7 +2,8 @@ import styles from './events-history.module.scss';
 import { hasValues } from '../../models/Diff';
 import { Owner } from '../../models/Owner';
 import { birthdate } from '../../utils/dateUtils';
-import { addressToString } from '../../models/Address';
+import { formatAddress } from '@zerologementvacant/models';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   partialOwner: Partial<Owner>;
@@ -49,7 +50,9 @@ const EventPartialOwnerContent = ({
             partialOwner.banAddress !== null && (
               <>
                 <span className="color-grey-625">Adresse postale</span>
-                {addressToString(partialOwner.banAddress)}
+                {formatAddress(partialOwner.banAddress).map((line) => (
+                  <Typography key={line}>{line}</Typography>
+                ))}
               </>
             )}
           {partialOwner.additionalAddress !== undefined &&

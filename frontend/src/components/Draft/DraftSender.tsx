@@ -6,6 +6,7 @@ import { Sender, SenderPayload } from '../../models/Sender';
 import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { Col, Container, Row } from '../_dsfr';
+import Typography from '@mui/material/Typography';
 
 export const senderSchema = object({
   name: string().trim(),
@@ -19,8 +20,8 @@ export const senderSchema = object({
     .nullable()
     .matches(/^\d{10}$/, {
       message: 'Veuillez renseigner un numéro de téléphone valide',
-      excludeEmptyString: true,
-    }),
+      excludeEmptyString: true
+    })
 });
 
 interface Props {
@@ -38,7 +39,7 @@ function DraftSender(props: Readonly<Props>) {
       if (props.value) {
         props.onChange({
           ...props.value,
-          [key]: e.target.value,
+          [key]: e.target.value
         });
       }
     };
@@ -46,7 +47,9 @@ function DraftSender(props: Readonly<Props>) {
 
   return (
     <Container as="article" className={styles.article}>
-      <h6>Coordonnées de l’expéditeur</h6>
+      <Typography component="h4" variant="h6" mb={2}>
+        Coordonnées de l’expéditeur
+      </Typography>
       <AppTextInput
         inputForm={props.form}
         inputKey="sender.name"

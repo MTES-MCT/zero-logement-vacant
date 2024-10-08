@@ -1,6 +1,8 @@
-import { getHousingState, HousingStatus } from '../../models/HousingState';
-import styles from './housing-status-badge.module.scss';
 import classNames from 'classnames';
+
+import { HousingStatus } from '@zerologementvacant/models';
+import { getHousingState } from '../../models/HousingState';
+import styles from './housing-status-badge.module.scss';
 import AppBadge from '../_app/AppBadge/AppBadge';
 
 interface Props {

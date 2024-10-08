@@ -5,15 +5,18 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import { ReactNode, useState } from 'react';
 
+import {
+  formatAddress as formatAddressDTO,
+  Pagination
+} from '@zerologementvacant/models';
 import { Campaign } from '../../models/Campaign';
 import { useHousingList } from '../../hooks/useHousingList';
-import { Address, addressToString, isBanEligible } from '../../models/Address';
+import { Address, isBanEligible } from '../../models/Address';
 import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
 import AppLink from '../_app/AppLink/AppLink';
 import { Housing } from '../../models/Housing';
 import { useRemoveCampaignHousingMutation } from '../../services/campaign.service';
 import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
-import { Pagination } from '@zerologementvacant/models';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { usePagination } from '../../hooks/usePagination';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -27,21 +30,23 @@ interface Props {
 function CampaignRecipients(props: Props) {
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const filters = {
-    campaignIds: [props.campaign.id],
+    campaignIds: [props.campaign.id]
   };
   const { housingList } = useHousingList({
     filters,
-    pagination,
+    pagination
   });
 
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, hasPagination, changePerPage, changePage} = usePagination({
-    pagination,
-    setPagination,
-    count: filteredCount,
-  });
+  const { pageCount, hasPagination, changePerPage, changePage } = usePagination(
+    {
+      pagination,
+      setPagination,
+      count: filteredCount
+    }
+  );
 
   const [removeCampaignHousing] = useRemoveCampaignHousingMutation();
   async function removeHousing(housing: Housing): Promise<void> {
@@ -49,14 +54,14 @@ function CampaignRecipients(props: Props) {
       campaignId: props.campaign.id,
       all: false,
       ids: [housing.id],
-      filters: {},
+      filters: {}
     }).unwrap();
   }
 
   function formatAddress(address: Address): ReactNode[] {
-    return (addressToString(address) as string)
-      .split('\n')
-      .map((line) => <Typography key={line}>{line}</Typography>);
+    return formatAddressDTO(address).map((line) => (
+      <Typography key={line}>{line}</Typography>
+    ));
   }
 
   const headers: ReactNode[] = [
@@ -65,7 +70,7 @@ function CampaignRecipients(props: Props) {
     'Propriétaire principal',
     'Adresse BAN du propriétaire',
     'Complément d’adresse',
-    null,
+    null
   ];
   const data: ReactNode[][] = (housingList ?? []).map((housing, i) => [
     `# ${i + 1 + (pagination.page - 1) * pagination.perPage}`,
@@ -107,7 +112,7 @@ function CampaignRecipients(props: Props) {
           iconId: 'fr-icon-close-line',
           priority: 'tertiary',
           size: 'small',
-          title: 'Supprimer le propriétaire',
+          title: 'Supprimer le propriétaire'
         }}
         title="Suppression d’un propriétaire"
         onSubmit={() => removeHousing(housing)}
@@ -116,7 +121,7 @@ function CampaignRecipients(props: Props) {
           Vous êtes sur le point de supprimer ce destinataire de la campagne.
         </Typography>
       </ConfirmationModal>
-    </Grid>,
+    </Grid>
   ]);
 
   return (
@@ -125,7 +130,9 @@ function CampaignRecipients(props: Props) {
         severity="info"
         closable
         title="Vos propriétaires destinataires"
-        description={'Vérifiez les adresses des propriétaires, notamment dans les cas où l\'adresse BAN diffère de l\'adresse issue des Fichiers Fonciers (cas signalés par la mention "Adresse améliorable"). Une fois la liste des destinataires vérifiée, cliquez sur "Valider et passer au téléchargement" pour télécharger les destinataires au format XLSX.'}
+        description={
+          'Vérifiez les adresses des propriétaires, notamment dans les cas où l\'adresse BAN diffère de l\'adresse issue des Fichiers Fonciers (cas signalés par la mention "Adresse améliorable"). Une fois la liste des destinataires vérifiée, cliquez sur "Valider et passer au téléchargement" pour télécharger les destinataires au format XLSX.'
+        }
         className="fr-mt-2w"
       />
       <Table data={data} headers={headers} />

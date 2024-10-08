@@ -88,7 +88,7 @@ function HousingPopup(props: HousingPopupProps) {
           <div className="fr-px-2w">
             {address(building.rawAddress)}
             <Text as="span" className="zlv-label" size="sm">
-              Invariant fiscal : 
+              Identifiant fiscal départemental :
             </Text>
             <Text as="span">{housing.invariant}</Text>
           </div>

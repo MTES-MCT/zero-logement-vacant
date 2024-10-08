@@ -116,7 +116,7 @@ const OwnerProspectForm = ({
             onChange={(e) => setInvariant(e.target.value)}
             inputForm={form}
             inputKey="invariant"
-            label="Invariant fiscal"
+            label="Identifiant fiscal départemental"
             placeholder="ex : I9904012457A"
           />
         </Col>

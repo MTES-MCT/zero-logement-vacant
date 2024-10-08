@@ -324,7 +324,7 @@ const HousingList = ({
               'zlv-table',
               'with-modify-last',
               'with-row-number',
-              !isVisitor ?? { 'with-select': onSelectHousing }
+              !isVisitor ? { 'with-select': onSelectHousing } : undefined
             )}
             data-testid="housing-table"
           />

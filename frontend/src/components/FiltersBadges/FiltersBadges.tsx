@@ -32,7 +32,7 @@ function FilterBadge<Value extends string>({
 }
 
 interface FilterBadgesProps<Value extends string> {
-  options: SelectOption[];
+  options: SelectOption<Value>[];
   filters: Value[] | undefined;
   onChange?(value: Value[]): void;
   small?: boolean;
@@ -50,9 +50,9 @@ function FilterBadges<Value extends string = string>(
     <>
       {options
         .filter(
-          (o) =>
-            (props.keepEmptyValue || o.value.length) &&
-            filters.includes(o.value)
+          (option) =>
+            (!!props.keepEmptyValue || !!option.value.length) &&
+            filters.includes(option.value)
         )
         .map((option, index) => (
           <FilterBadge

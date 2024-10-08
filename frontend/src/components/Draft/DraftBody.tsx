@@ -4,6 +4,7 @@ import RichEditor from '../RichEditor/RichEditor';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { Col, Container, Row } from '../_dsfr';
 import AppLink from '../_app/AppLink/AppLink';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   form: ReturnType<typeof useForm>;
@@ -21,9 +22,9 @@ function DraftBody(props: Readonly<Props>) {
   return (
     <Container as="article" className={styles.article} fluid>
       <Row className="fr-mb-2w justify-space-between">
-        <h6 id="draft-body-label" className="fr-mb-0">
+        <Typography id="draft-body-label" component="h4" variant="h6">
           Contenu de votre courrier
-        </h6>
+        </Typography>
         <AppLink
           isSimple
           target="_blank"
@@ -42,7 +43,7 @@ function DraftBody(props: Readonly<Props>) {
             onChange={(event) =>
               props.onChange({
                 subject: event.target.value,
-                body: props.body,
+                body: props.body
               })
             }
           />
@@ -55,7 +56,7 @@ function DraftBody(props: Readonly<Props>) {
           onChange={(content) =>
             props.onChange({
               subject: props.subject,
-              body: content,
+              body: content
             })
           }
         />

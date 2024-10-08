@@ -5,13 +5,14 @@ import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../hooks/useForm';
 import { DATE_REGEXP_OPTIONNAL } from '../../utils/dateUtils';
+import Typography from '@mui/material/Typography';
 
 export const writtenSchema = object({
   writtenAt: string().matches(
     DATE_REGEXP_OPTIONNAL,
-    'Veuillez renseigner une date au format yyyy-mm-dd',
+    'Veuillez renseigner une date au format yyyy-mm-dd'
   ),
-  writtenFrom: string(),
+  writtenFrom: string()
 });
 
 export interface Written {
@@ -32,14 +33,16 @@ function DraftMailInfo(props: Readonly<Props>) {
       props.onChange({
         at: props.writtenAt,
         from: props.writtenFrom,
-        [key]: e.target.value,
+        [key]: e.target.value
       });
     };
   }
 
   return (
     <article className={styles.article}>
-      <h6>Informations sur le courrier</h6>
+      <Typography component="h4" variant="h6" mb={2}>
+        Informations sur le courrier
+      </Typography>
       <AppTextInput
         inputForm={props.form}
         inputKey="writtenAt"

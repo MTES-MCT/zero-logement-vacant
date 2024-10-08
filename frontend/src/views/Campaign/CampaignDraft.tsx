@@ -169,11 +169,11 @@ function CampaignDraft(props: Readonly<Props>) {
         <Grid container xsOffset={1}>
           <Grid xs={11}>
             <Stepper
-                currentStep={1}
-                nextTitle='Téléchargement de vos fichiers et du fichier de publipostage CSV.'
-                stepCount={2}
-                title="Édition de votre courrier et vérification des adresses propriétaires"
-              />
+              currentStep={1}
+              nextTitle="Téléchargement de vos fichiers et du fichier de publipostage CSV."
+              stepCount={2}
+              title="Édition de votre courrier et vérification des adresses propriétaires"
+            />
           </Grid>
           <Grid xs={11}>
             <div className={'float-right'}>

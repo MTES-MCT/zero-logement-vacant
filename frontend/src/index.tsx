@@ -4,7 +4,7 @@ import { createInstance, MatomoProvider } from '@jonkoops/matomo-tracker-react';
 import posthog from 'posthog-js';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { MapProvider } from 'react-map-gl';
+import { MapProvider } from 'react-map-gl/maplibre';
 import { Provider as StoreProvider } from 'react-redux';
 import { Link } from 'react-router-dom';
 

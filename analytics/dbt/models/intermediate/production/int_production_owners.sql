@@ -1,7 +1,7 @@
 WITH first_address AS (
     SELECT 
         po.*,
-        raw_address[1] AS address_element
+        address_dgfip[1] AS address_element
     FROM 
         {{ ref('stg_production_owners') }} po
 ),

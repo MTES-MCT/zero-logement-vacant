@@ -195,7 +195,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       <FilterBadges
         options={statusOptions()}
-        filters={filters.statusList?.map((_) => _.toString())}
+        filters={filters.statusList?.map(String)}
         small={small}
         onChange={(values) =>
           onChange?.({
@@ -207,7 +207,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         }
       />
       <FilterBadges
-        options={getSubStatusListOptions(filters.statusList)}
+        options={getSubStatusListOptions(filters.statusList ?? [])}
         filters={filters.subStatus}
         small={small}
         onChange={(values) => onChange?.({ subStatus: values })}

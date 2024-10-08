@@ -69,6 +69,19 @@ function OwnerEditionSideMenu(props: Props) {
     toastId: 'owner-edition'
   });
 
+  if (!active) {
+    return (
+      <Button
+        className={props.className}
+        priority="tertiary"
+        size="small"
+        onClick={open}
+      >
+        Éditer l’adresse
+      </Button>
+    );
+  }
+
   return (
     <>
       <Button
@@ -77,7 +90,7 @@ function OwnerEditionSideMenu(props: Props) {
         size="small"
         onClick={open}
       >
-        Éditer l’adresse
+        Éditer
       </Button>
       <Aside
         expand={active}

@@ -4,6 +4,7 @@ import styles from './draft.module.scss';
 import { FileUploadDTO } from '@zerologementvacant/models';
 import classNames from 'classnames';
 import LogoViewer from './LogoViewer';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   className?: string;
@@ -24,10 +25,12 @@ function DraftSenderLogo(props: Readonly<Props>) {
 
   function deleteLogo(id: string, index: number) {
     return (): void => {
-      const newFiles = [...files].filter(file => file?.id !== id);
+      const newFiles = [...files].filter((file) => file?.id !== id);
       props.onChange(newFiles);
-      const elem = document.getElementById(`fileUploadLogo${index}-input`) as HTMLInputElement;
-      if(elem !== null) {
+      const elem = document.getElementById(
+        `fileUploadLogo${index}-input`
+      ) as HTMLInputElement;
+      if (elem !== null) {
         elem.value = '';
       }
     };
@@ -41,15 +44,32 @@ function DraftSenderLogo(props: Readonly<Props>) {
     >
       <Row>
         <FileUpload
-          id='fileUploadLogo0'
-          label={<h6 className="fr-mb-2w">Logos de l’expéditeur</h6>}
+          id="fileUploadLogo0"
+          label={
+            <Typography component="h4" variant="h6" mb={2}>
+              Logos de l’expéditeur
+            </Typography>
+          }
           onUpload={onUpload(0)}
         />
-        <LogoViewer index={0} logo={props.value[0]} onDelete={deleteLogo(props.value[0]?.id, 0)} />
+        <LogoViewer
+          index={0}
+          logo={props.value[0]}
+          onDelete={deleteLogo(props.value[0]?.id, 0)}
+        />
       </Row>
       <Row spacing="mb-2w">
-        <FileUpload id='fileUploadLogo1' hint="" label={null} onUpload={onUpload(1)} />
-        <LogoViewer index={1} logo={props.value[1]} onDelete={deleteLogo(props.value[1]?.id, 1)} />
+        <FileUpload
+          id="fileUploadLogo1"
+          hint=""
+          label={null}
+          onUpload={onUpload(1)}
+        />
+        <LogoViewer
+          index={1}
+          logo={props.value[1]}
+          onDelete={deleteLogo(props.value[1]?.id, 1)}
+        />
       </Row>
     </Container>
   );

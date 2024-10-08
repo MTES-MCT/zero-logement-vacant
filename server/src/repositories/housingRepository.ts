@@ -3,6 +3,11 @@ import { Knex } from 'knex';
 import _ from 'lodash';
 import fp from 'lodash/fp';
 
+import {
+  AddressKinds,
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES
+} from '@zerologementvacant/models';
 import { HousingSource, PaginationOptions } from '@zerologementvacant/shared';
 import db, { toRawArray, where } from '~/infra/database';
 import {
@@ -10,8 +15,6 @@ import {
   HousingApi,
   HousingRecordApi,
   HousingSortApi,
-  INTERNAL_CO_CONDOMINIUM_VALUES,
-  INTERNAL_MONO_CONDOMINIUM_VALUES,
   OccupancyKindApi
 } from '~/models/HousingApi';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
@@ -32,7 +35,6 @@ import { groupsHousingTable } from './groupRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
-import { AddressKinds } from '@zerologementvacant/models';
 import { ReadableStream } from 'node:stream/web';
 import { Readable } from 'node:stream';
 

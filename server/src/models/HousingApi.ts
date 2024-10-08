@@ -87,14 +87,6 @@ export enum OwnershipKindsApi {
   Other = 'other'
 }
 
-export const INTERNAL_MONO_CONDOMINIUM_VALUES = ['single'] as const; // and null
-export const INTERNAL_CO_CONDOMINIUM_VALUES = [
-  'co',
-  'CL',
-  'CLV',
-  'CV'
-] as const;
-
 export const getOwnershipKindFromValue = (value?: string) => {
   return !value
     ? OwnershipKindsApi.Single

@@ -15,4 +15,5 @@ scopeconfig:
 - scope: node
 allowed_patterns:
 - keyof
+- key=
 version: "1.0"

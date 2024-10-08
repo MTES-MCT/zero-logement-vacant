@@ -51,13 +51,13 @@ export const housingApi = zlvApi.injectEndpoints({
     findHousing: builder.query<HousingPaginatedResult, FindOptions>({
       query: (opts) => ({
         url: `housing${getURLQuery({
-          sort: toQuery(opts?.sort)
+          sort: toQuery(opts?.sort),
+          filters: opts?.filters ? JSON.stringify(opts?.filters) : undefined,
+          paginate: opts?.pagination?.paginate,
+          page: opts?.pagination?.paginate ? opts.pagination.page : undefined,
+          perPage: opts?.pagination?.paginate ? opts.pagination.perPage : undefined
         })}`,
-        method: 'POST',
-        body: {
-          filters: opts?.filters,
-          ...opts?.pagination
-        }
+        method: 'GET',
       }),
       providesTags: (result, errors, args) => [
         {

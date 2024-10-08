@@ -61,7 +61,6 @@ jobs:
       - name: Build
         run: yarn build
         env:
-          CEREMA_TOKEN: token
           DISABLE_ESLINT_PLUGIN: true
           METABASE_TOKEN: token
 

@@ -9426,6 +9426,7 @@ __metadata:
     rimraf: "npm:^5.0.10"
     sass: "npm:^1.79.4"
     ts-essentials: "npm:^10.0.2"
+    ts-pattern: "npm:^5.4.0"
     typescript: "npm:^5.6.2"
     undici: "npm:^6.19.8"
     uuid: "npm:^9.0.1"

@@ -4,7 +4,7 @@ import randomstring from 'randomstring';
 
 import { Owner } from '../src/models/Owner';
 import { Address } from '../src/models/Address';
-import { Housing, OccupancyKind, OwnershipKinds } from '../src/models/Housing';
+import { Housing, OccupancyKind } from '../src/models/Housing';
 import { AuthUser, User } from '../src/models/User';
 import { SignupLink } from '../src/models/SignupLink';
 import { Prospect } from '../src/models/Prospect';
@@ -103,7 +103,7 @@ export function genHousing(): Housing {
     uncomfortable: false,
     cadastralClassification: genNumber(1),
     taxed: false,
-    ownershipKind: OwnershipKinds.Single,
+    ownershipKind: 'single',
     buildingVacancyRate: genNumber(2),
     status: HousingStatus.NEVER_CONTACTED,
     source: null,

@@ -3,8 +3,10 @@ fileignoreconfig:
   checksum: 00550719490eeb392f0f211567c3e55b50a1512fd25218e8d8bdd349a769649a
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
+- filename: frontend/src/index.tsx
+  checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
 - filename: server/.env.example
-  checksum: 885f04b25c4159fe59d1de7251ef2918467d06c67ab9300406765fd7580c9a2d
+  checksum: 4955533b2ba29ebc4a052e65ce2aab5b911ebf8e4b4eeecff50b5e83d1857c35
 - filename: frontend/src/components/Draft/DraftSender.tsx
   checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts

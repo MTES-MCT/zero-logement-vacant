@@ -1,4 +1,4 @@
-import { SettingsDTO } from '@zerologementvacant/shared';
+import { SettingsDTO } from '@zerologementvacant/models';
 
 export interface SettingsApi {
   id: string;
@@ -14,6 +14,6 @@ export interface SettingsApi {
 export function toDBO(settings: SettingsApi): SettingsDTO {
   return {
     contactPoints: settings.contactPoints,
-    inbox: settings.inbox,
+    inbox: settings.inbox
   };
 }

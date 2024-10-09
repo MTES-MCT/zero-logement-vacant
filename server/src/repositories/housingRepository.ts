@@ -5,10 +5,11 @@ import fp from 'lodash/fp';
 
 import {
   AddressKinds,
+  HousingSource,
   INTERNAL_CO_CONDOMINIUM_VALUES,
-  INTERNAL_MONO_CONDOMINIUM_VALUES
+  INTERNAL_MONO_CONDOMINIUM_VALUES,
+  PaginationOptions
 } from '@zerologementvacant/models';
-import { HousingSource, PaginationOptions } from '@zerologementvacant/shared';
 import db, { toRawArray, where } from '~/infra/database';
 import {
   EnergyConsumptionGradesApi,
@@ -774,10 +775,7 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.where(function (whereBuilder: any) {
         // With more than 20 tokens, the query is likely nor a name neither an address
         if (query.replaceAll(' ', ',').split(',').length < 20) {
-          whereBuilder.orWhereRaw(
-            `local_id = ?`,
-            query
-          );
+          whereBuilder.orWhereRaw(`local_id = ?`, query);
           whereBuilder.orWhereRaw(
             `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
             query

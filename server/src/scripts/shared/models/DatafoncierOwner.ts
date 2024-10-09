@@ -3,7 +3,7 @@ import joi from 'joi';
 import { v4 as uuidv4 } from 'uuid';
 
 import { OwnerApi } from '~/models/OwnerApi';
-import { isNotNull } from '@zerologementvacant/shared';
+import { isNotNull } from '@zerologementvacant/utils';
 import { Sort } from '~/models/SortApi';
 
 /**

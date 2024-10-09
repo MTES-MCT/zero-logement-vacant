@@ -3,7 +3,7 @@ import formats from 'convict-format-with-validator';
 import dotenv from 'dotenv';
 import path from 'node:path';
 
-import { LOG_LEVELS, LogLevel } from '@zerologementvacant/shared';
+import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
 dotenv.config({
   path: path.join(__dirname, '..', '..', '.env')
@@ -77,8 +77,8 @@ interface Config {
     auth: {
       username: string;
       password: string;
-    }
-  },
+    };
+  };
   e2e: {
     email: string | null;
     password: string | null;
@@ -214,7 +214,7 @@ const config = convict<Config>({
       sensitive: true,
       default: null,
       nullable: !isProduction
-    },
+    }
   },
   datafoncier: {
     api: {
@@ -294,7 +294,7 @@ const config = convict<Config>({
         env: 'ELASTIC_PASSWORD',
         format: String,
         default: ''
-      },
+      }
     }
   },
   log: {

@@ -1,4 +1,4 @@
-import { SettingsDTO } from '../../../shared';
+import { SettingsDTO } from '@zerologementvacant/models';
 import { DeepPartial } from 'ts-essentials';
 import { zlvApi } from './api.service';
 
@@ -8,11 +8,11 @@ interface FindOneOptions {
 
 const DEFAULT_SETTINGS: SettingsDTO = {
   contactPoints: {
-    public: false,
+    public: false
   },
   inbox: {
-    enabled: true,
-  },
+    enabled: true
+  }
 };
 
 export const settingsApi = zlvApi.injectEndpoints({
@@ -24,7 +24,7 @@ export const settingsApi = zlvApi.injectEndpoints({
         if (response.status === 404) {
           return DEFAULT_SETTINGS;
         }
-      },
+      }
     }),
     upsertSettings: builder.mutation<
       void,
@@ -36,11 +36,11 @@ export const settingsApi = zlvApi.injectEndpoints({
       query: ({ establishmentId, settings }) => ({
         url: `establishments/${establishmentId}/settings`,
         method: 'PUT',
-        body: settings,
+        body: settings
       }),
-      invalidatesTags: ['Settings'],
-    }),
-  }),
+      invalidatesTags: ['Settings']
+    })
+  })
 });
 
 export const { useFindSettingsQuery, useUpsertSettingsMutation } = settingsApi;

@@ -2,16 +2,16 @@ import { constants } from 'http2';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
-import { SettingsDTO } from '@zerologementvacant/shared';
+import { SettingsDTO } from '@zerologementvacant/models';
 import { tokenProvider } from '~/test/testUtils';
 import {
   genEstablishmentApi,
   genSettingsApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { formatSettingsApi, Settings } from '~/repositories/settingsRepository';
@@ -45,7 +45,7 @@ describe('Settings API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual<SettingsDTO>({
         contactPoints: settings.contactPoints,
-        inbox: settings.inbox,
+        inbox: settings.inbox
       });
     });
   });
@@ -64,19 +64,19 @@ describe('Settings API', () => {
         .put(testRoute('any'))
         .send({
           contactPoints: {
-            public: true,
-          },
+            public: true
+          }
         })
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toStrictEqual<SettingsDTO>({
         contactPoints: {
-          public: true,
+          public: true
         },
         inbox: {
-          enabled: true,
-        },
+          enabled: true
+        }
       });
     });
 
@@ -89,18 +89,18 @@ describe('Settings API', () => {
         .use(tokenProvider(user))
         .send({
           contactPoints: {
-            public: !settings.contactPoints.public,
-          },
+            public: !settings.contactPoints.public
+          }
         });
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toStrictEqual<SettingsDTO>({
         contactPoints: {
-          public: !settings.contactPoints.public,
+          public: !settings.contactPoints.public
         },
         inbox: {
-          enabled: true,
-        },
+          enabled: true
+        }
       });
     });
   });

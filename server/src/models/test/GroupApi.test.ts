@@ -1,9 +1,9 @@
-import { GroupDTO } from '@zerologementvacant/shared';
+import { GroupDTO } from '@zerologementvacant/models';
 import { toGroupDTO } from '~/models/GroupApi';
 import {
   genEstablishmentApi,
   genGroupApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 
 describe('GroupApi', () => {
@@ -30,10 +30,10 @@ describe('GroupApi', () => {
               lastName: group.createdBy.lastName,
               role: group.createdBy.role,
               activatedAt: group.createdBy.activatedAt?.toJSON(),
-              establishmentId: group.createdBy.establishmentId,
+              establishmentId: group.createdBy.establishmentId
             }
           : undefined,
-        archivedAt: null,
+        archivedAt: null
       });
     });
   });

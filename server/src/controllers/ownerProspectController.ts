@@ -8,7 +8,7 @@ import {
   OwnerProspectApi,
   OwnerProspectCreateApi,
   OwnerProspectSortableApi,
-  OwnerProspectUpdateApi,
+  OwnerProspectUpdateApi
 } from '~/models/OwnerProspectApi';
 import ownerProspectRepository from '~/repositories/ownerProspectRepository';
 import pagination, { createPagination } from '~/models/PaginationApi';
@@ -20,7 +20,7 @@ import mailService from '~/services/mailService';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import userRepository from '~/repositories/userRepository';
 import { UserApi } from '~/models/UserApi';
-import { Pagination } from '@zerologementvacant/shared';
+import { Pagination } from '@zerologementvacant/models';
 import { logger } from '~/infra/logger';
 
 const createOwnerProspectValidators: ValidationChain[] = [
@@ -31,7 +31,7 @@ const createOwnerProspectValidators: ValidationChain[] = [
   body('invariant').isString().optional(),
   body('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
   body('phone').isString().notEmpty(),
-  body('notes').isString().optional(),
+  body('notes').isString().optional()
 ];
 
 async function create(request: Request, response: Response) {
@@ -42,7 +42,7 @@ async function create(request: Request, response: Response) {
     id: uuidv4(),
     createdAt: new Date(),
     callBack: true,
-    read: false,
+    read: false
   });
   response.status(constants.HTTP_STATUS_CREATED).json(createdOwnerProspect);
 
@@ -50,27 +50,27 @@ async function create(request: Request, response: Response) {
     // Optional steps
     const establishments = await establishmentRepository.find({
       available: true,
-      geoCodes: [body.geoCode],
+      geoCodes: [body.geoCode]
     });
     if (establishments.length > 0) {
       const byEstablishment = {
-        establishmentIds: establishments.map((_) => _.id),
+        establishmentIds: establishments.map((_) => _.id)
       };
 
       const users = await userRepository.find({
         filters: byEstablishment,
         pagination: {
-          paginate: false,
-        },
+          paginate: false
+        }
       });
 
       const sendEmails = fp.pipe(
         fp.groupBy('establishmentId'),
         fp.mapValues(
           (users: UserApi[]): Promise<void> =>
-            mailService.sendOwnerProspectCreatedEmail(users),
+            mailService.sendOwnerProspectCreatedEmail(users)
         ),
-        Object.values,
+        Object.values
       );
       await Promise.all(sendEmails(users));
     }
@@ -81,19 +81,19 @@ async function create(request: Request, response: Response) {
 
 export const findOwnerProspectsValidators: ValidationChain[] = [
   ...sortApi.queryValidators,
-  ...pagination.queryValidators,
+  ...pagination.queryValidators
 ];
 
 async function find(request: Request, response: Response) {
   const { auth, query } = request as AuthenticatedRequest;
   const sort = SortApi.parse<OwnerProspectSortableApi>(
-    query.sort as string[] | undefined,
+    query.sort as string[] | undefined
   );
 
   const ownerProspects = await ownerProspectRepository.find({
     establishmentId: auth.establishmentId,
     pagination: createPagination(query as unknown as Pagination),
-    sort,
+    sort
   });
 
   const status = isPartial(ownerProspects)
@@ -105,7 +105,7 @@ async function find(request: Request, response: Response) {
 const updateOwnerProspectValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID'),
   body('callBack').isBoolean().withMessage('Must be a boolean'),
-  body('read').isBoolean().withMessage('Must be a boolean'),
+  body('read').isBoolean().withMessage('Must be a boolean')
 ];
 
 async function update(request: Request, response: Response) {
@@ -114,7 +114,7 @@ async function update(request: Request, response: Response) {
 
   const ownerProspect = await ownerProspectRepository.findOne({
     id: params.id,
-    establishmentId: auth.establishmentId,
+    establishmentId: auth.establishmentId
   });
   if (!ownerProspect) {
     throw new OwnerProspectMissingError(params.id);
@@ -123,7 +123,7 @@ async function update(request: Request, response: Response) {
   const updated: OwnerProspectApi = {
     ...ownerProspect,
     callBack: body.callBack,
-    read: body.read,
+    read: body.read
   };
   await ownerProspectRepository.update(updated);
 
@@ -136,5 +136,5 @@ export default {
   findOwnerProspectsValidators,
   find,
   updateOwnerProspectValidators,
-  update,
+  update
 };

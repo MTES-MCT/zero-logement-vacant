@@ -1,4 +1,4 @@
-import { ContactPoint, DraftContactPoint } from '../../../shared';
+import { ContactPoint, DraftContactPoint } from '@zerologementvacant/models';
 import { zlvApi } from './api.service';
 
 export const contactPointsApi = zlvApi.injectEndpoints({
@@ -19,45 +19,43 @@ export const contactPointsApi = zlvApi.injectEndpoints({
           ? [
               ...result.map(({ id }) => ({
                 type: 'ContactPoint' as const,
-                id,
+                id
               })),
-              'ContactPoint',
+              'ContactPoint'
             ]
-          : ['ContactPoint'],
+          : ['ContactPoint']
     }),
     createContactPoint: builder.mutation<void, DraftContactPoint>({
       query: (draftContactPoint) => ({
         url: 'contact-points',
         method: 'POST',
-        body: draftContactPoint,
+        body: draftContactPoint
       }),
-      invalidatesTags: ['ContactPoint'],
+      invalidatesTags: ['ContactPoint']
     }),
     updateContactPoint: builder.mutation<void, ContactPoint>({
       query: ({ id, ...body }) => ({
         url: `contact-points/${id}`,
         method: 'PUT',
-        body,
+        body
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'ContactPoint', id },
-      ],
+      invalidatesTags: (result, error, { id }) => [{ type: 'ContactPoint', id }]
     }),
     removeContactPoint: builder.mutation<void, string>({
       query: (contactPointId) => ({
         url: `contact-points/${contactPointId}`,
-        method: 'DELETE',
+        method: 'DELETE'
       }),
       invalidatesTags: (result, error, contactPointId) => [
-        { type: 'ContactPoint', contactPointId },
-      ],
-    }),
-  }),
+        { type: 'ContactPoint', contactPointId }
+      ]
+    })
+  })
 });
 
 export const {
   useCreateContactPointMutation,
   useUpdateContactPointMutation,
   useFindContactPointsQuery,
-  useRemoveContactPointMutation,
+  useRemoveContactPointMutation
 } = contactPointsApi;

@@ -2,10 +2,10 @@ import { genDatafoncierHousing } from '~/test/testFixtures';
 import { processHousing } from '../housingImporter';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import { toHousingRecordApi } from '../../shared';
-import { DatafoncierHousing } from '@zerologementvacant/shared';
+import { DatafoncierHousing } from '@zerologementvacant/models';
 
 describe('Housing importer', () => {
   describe('processHousing', () => {
@@ -14,7 +14,7 @@ describe('Housing importer', () => {
     beforeEach(() => {
       housing = {
         ...genDatafoncierHousing(),
-        ccthp: 'V',
+        ccthp: 'V'
       };
     });
 
@@ -29,13 +29,11 @@ describe('Housing importer', () => {
 
     it('should leave the existing housing untouched otherwise', async () => {
       await Housing().insert(
-        formatHousingRecordApi(
-          toHousingRecordApi({ source: 'lovac' }, housing),
-        ),
+        formatHousingRecordApi(toHousingRecordApi({ source: 'lovac' }, housing))
       );
       const updated: DatafoncierHousing = {
         ...housing,
-        ccthp: 'L',
+        ccthp: 'L'
       };
 
       await processHousing(updated);

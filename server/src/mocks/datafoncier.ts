@@ -3,13 +3,13 @@ import fp from 'lodash/fp';
 import nock from 'nock';
 import { URLSearchParams } from 'url';
 
-import { DatafoncierHousing } from '@zerologementvacant/shared';
+import { DatafoncierHousing } from '@zerologementvacant/models';
 import config from '~/infra/config';
 import { DatafoncierResultDTO } from '~/models/DatafoncierResultDTO';
 import { DatafoncierOwner } from '~/scripts/shared';
 import {
   genDatafoncierHousing,
-  genDatafoncierOwner,
+  genDatafoncierOwner
 } from '~/test/testFixtures';
 
 function mock() {
@@ -32,7 +32,7 @@ function mock() {
         const body: DatafoncierHousing = {
           ...genDatafoncierHousing(),
           idcom: geoCode,
-          idlocal: localId,
+          idlocal: localId
         };
         housingCache.set(localId, body);
         return [constants.HTTP_STATUS_OK, body];
@@ -50,7 +50,7 @@ function mock() {
           count: owners.length,
           previous: null,
           next: null,
-          results: owners,
+          results: owners
         };
         return [constants.HTTP_STATUS_OK, body];
       })

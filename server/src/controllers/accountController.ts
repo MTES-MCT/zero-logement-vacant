@@ -5,7 +5,7 @@ import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import jwt from 'jsonwebtoken';
 
-import { UserAccountDTO } from '@zerologementvacant/shared';
+import { UserAccountDTO } from '@zerologementvacant/models';
 import userRepository from '~/repositories/userRepository';
 import config from '~/infra/config';
 import establishmentRepository from '~/repositories/establishmentRepository';
@@ -19,7 +19,7 @@ import {
   toUserAccountDTO,
   toUserDTO,
   UserApi,
-  UserRoles,
+  UserRoles
 } from '~/models/UserApi';
 import AuthenticationFailedError from '~/errors/authenticationFailedError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
@@ -32,7 +32,7 @@ import { logger } from '~/infra/logger';
 const signInValidators: ValidationChain[] = [
   emailValidator(),
   body('password').isString().notEmpty({ ignore_whitespace: true }),
-  body('establishmentId').isString().optional(),
+  body('establishmentId').isString().optional()
 ];
 
 interface SignInPayload {
@@ -66,7 +66,7 @@ async function signIn(request: Request, response: Response) {
 async function signInToEstablishment(
   user: UserApi,
   establishmentId: string,
-  response: Response,
+  response: Response
 ) {
   const establishment = await establishmentRepository.get(establishmentId);
   if (!establishment) {
@@ -77,16 +77,16 @@ async function signInToEstablishment(
     {
       userId: user.id,
       establishmentId: establishment.id,
-      role: user.role,
+      role: user.role
     } as TokenPayload,
     config.auth.secret,
-    { expiresIn: config.auth.expiresIn },
+    { expiresIn: config.auth.expiresIn }
   );
 
   response.status(constants.HTTP_STATUS_OK).json({
     user: toUserDTO(user),
     establishment,
-    accessToken,
+    accessToken
   });
 }
 
@@ -121,7 +121,7 @@ const updateAccountValidators: ValidationChain[] = [
   body('lastName').isString(),
   body('phone').isString(),
   body('position').isString(),
-  body('timePerWeek').isString(),
+  body('timePerWeek').isString()
 ];
 
 async function updateAccount(request: Request, response: Response) {
@@ -133,7 +133,7 @@ async function updateAccount(request: Request, response: Response) {
   await userRepository.update({
     ...user,
     ...account,
-    updatedAt: new Date(),
+    updatedAt: new Date()
   });
   response.status(constants.HTTP_STATUS_OK).send();
 }
@@ -157,7 +157,7 @@ async function updatePassword(request: Request, response: Response) {
 }
 const updatePasswordValidators: ValidationChain[] = [
   body('currentPassword').isString().notEmpty({ ignore_whitespace: true }),
-  passwordCreationValidator('newPassword'),
+  passwordCreationValidator('newPassword')
 ];
 
 async function resetPassword(request: Request, response: Response) {
@@ -185,7 +185,7 @@ async function resetPassword(request: Request, response: Response) {
 }
 const resetPasswordValidators: ValidationChain[] = [
   body('key').isString().isAlphanumeric(),
-  passwordCreationValidator(),
+  passwordCreationValidator()
 ];
 
 export default {
@@ -198,5 +198,5 @@ export default {
   updatePasswordValidators,
   resetPassword,
   resetPasswordValidators,
-  changeEstablishment,
+  changeEstablishment
 };

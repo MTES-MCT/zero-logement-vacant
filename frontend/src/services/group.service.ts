@@ -1,4 +1,4 @@
-import { GroupDTO, PaginationOptions } from '../../../shared';
+import { GroupDTO, PaginationOptions } from '@zerologementvacant/models';
 import { fromGroupDTO, Group } from '../models/Group';
 import { GroupFilters } from '../models/GroupFilters';
 import fp from 'lodash/fp';
@@ -19,17 +19,17 @@ export const groupApi = zlvApi.injectEndpoints({
           ? [
               ...groups.map((group) => ({
                 type: 'Group' as const,
-                id: group.id,
+                id: group.id
               })),
-              { type: 'Group', id: 'LIST' },
+              { type: 'Group', id: 'LIST' }
             ]
           : [{ type: 'Group', id: 'LIST' }],
-      transformResponse: (groups: GroupDTO[]) => groups.map(fromGroupDTO),
+      transformResponse: (groups: GroupDTO[]) => groups.map(fromGroupDTO)
     }),
     getGroup: builder.query<Group, string>({
       query: (id: string) => `groups/${id}`,
       providesTags: (result, error, id) => [{ type: 'Group', id }],
-      transformResponse: (group: GroupDTO) => fromGroupDTO(group),
+      transformResponse: (group: GroupDTO) => fromGroupDTO(group)
     }),
     createGroup: builder.mutation<
       { status: number; group: Group },
@@ -38,25 +38,23 @@ export const groupApi = zlvApi.injectEndpoints({
       query: (group) => ({
         url: 'groups',
         method: 'POST',
-        body: group,
+        body: group
       }),
       invalidatesTags: [{ type: 'Group', id: 'LIST' }],
       transformResponse: (group: GroupDTO, meta) => {
         return {
           status: meta?.response?.status ?? 201,
-          group: fromGroupDTO(group),
+          group: fromGroupDTO(group)
         };
-      },
+      }
     }),
     updateGroup: builder.mutation<void, GroupPayload & Pick<Group, 'id'>>({
       query: ({ id, ...group }) => ({
         url: `groups/${id}`,
         method: 'PUT',
-        body: group,
+        body: group
       }),
-      invalidatesTags: (result, error, args) => [
-        { type: 'Group', id: args.id },
-      ],
+      invalidatesTags: (result, error, args) => [{ type: 'Group', id: args.id }]
     }),
     addGroupHousing: builder.mutation<
       void,
@@ -65,10 +63,10 @@ export const groupApi = zlvApi.injectEndpoints({
       query: (group) => ({
         url: `groups/${group.id}/housing`,
         method: 'POST',
-        body: fp.omit(['id'], group),
+        body: fp.omit(['id'], group)
       }),
       invalidatesTags: (result, error, args) => [
-        { type: 'Group', id: args.id },
+        { type: 'Group', id: args.id }
       ],
       onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
@@ -76,10 +74,10 @@ export const groupApi = zlvApi.injectEndpoints({
           housingApi.util.invalidateTags([
             'Housing',
             'HousingByStatus',
-            'HousingCountByStatus',
+            'HousingCountByStatus'
           ])
         );
-      },
+      }
     }),
     removeGroupHousing: builder.mutation<
       void,
@@ -88,10 +86,10 @@ export const groupApi = zlvApi.injectEndpoints({
       query: (group) => ({
         url: `groups/${group.id}/housing`,
         method: 'DELETE',
-        body: fp.omit(['id'], group),
+        body: fp.omit(['id'], group)
       }),
       invalidatesTags: (result, error, args) => [
-        { type: 'Group', id: args.id },
+        { type: 'Group', id: args.id }
       ],
       onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
@@ -99,21 +97,21 @@ export const groupApi = zlvApi.injectEndpoints({
           housingApi.util.invalidateTags([
             'Housing',
             'HousingByStatus',
-            'HousingCountByStatus',
+            'HousingCountByStatus'
           ])
         );
-      },
+      }
     }),
     removeGroup: builder.mutation<void, Group>({
       query: (group) => ({
         url: `groups/${group.id}`,
-        method: 'DELETE',
+        method: 'DELETE'
       }),
       invalidatesTags: (result, error, group) => [
-        { type: 'Group', id: group.id },
-      ],
-    }),
-  }),
+        { type: 'Group', id: group.id }
+      ]
+    })
+  })
 });
 
 export const {
@@ -123,5 +121,5 @@ export const {
   useUpdateGroupMutation,
   useAddGroupHousingMutation,
   useRemoveGroupHousingMutation,
-  useRemoveGroupMutation,
+  useRemoveGroupMutation
 } = groupApi;

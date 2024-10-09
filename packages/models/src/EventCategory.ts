@@ -1,16 +1,10 @@
-export type EventCategory =
-  | 'Ownership'
-  | 'Followup'
-  | 'Diagnostic'
-  | 'Campaign'
-  | 'Group'
-  | 'Trade';
-
-export const EventCategories: EventCategory[] = [
+export const EVENT_CATEGORY_VALUES = [
   'Ownership',
   'Followup',
   'Diagnostic',
   'Campaign',
   'Group',
-  'Trade',
-];
+  'Trade'
+] as const;
+
+export type EventCategory = (typeof EVENT_CATEGORY_VALUES)[number];

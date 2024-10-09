@@ -9606,7 +9606,6 @@ __metadata:
     "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/queue": "workspace:*"
     "@zerologementvacant/schemas": "workspace:*"
-    "@zerologementvacant/shared": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:^3.2.6"
     bcryptjs: "npm:^2.4.3"
@@ -9676,7 +9675,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zerologementvacant/shared@workspace:*, @zerologementvacant/shared@workspace:shared":
+"@zerologementvacant/shared@workspace:shared":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/shared@workspace:shared"
   dependencies:

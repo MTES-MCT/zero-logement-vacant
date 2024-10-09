@@ -1,7 +1,7 @@
 import fp from 'lodash/fp';
 import { assert, MarkRequired } from 'ts-essentials';
 
-import { HousingSource } from '@zerologementvacant/shared';
+import { HousingSource } from '@zerologementvacant/models';
 import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';

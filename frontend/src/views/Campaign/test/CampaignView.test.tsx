@@ -112,6 +112,25 @@ describe('Campaign view', () => {
     await screen.findByRole('heading', { name: title });
   });
 
+  it('should confirm a recipient removal', async () => {
+    renderComponent();
+
+    const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
+    await user.click(tab);
+    const rowsBefore = screen.getAllByRole('row').slice(1); // Remove headers
+    expect(rowsBefore).toHaveLength(housings.length);
+    const row = rowsBefore[rowsBefore.length - 1];
+    const remove = within(row).getByTitle(/^Supprimer le propriétaire/);
+    await user.click(remove);
+    const dialog = await screen.findByRole('dialog');
+    const confirm = within(dialog).getByRole('button', {
+      name: /^Confirmer/
+    });
+    await user.click(confirm);
+    const rowsAfter = screen.getAllByRole('row').slice(1);
+    expect(rowsAfter).toHaveLength(rowsBefore.length - 1);
+  });
+
   it('should save the draft if at least one field is filled', async () => {
     renderComponent();
 
@@ -224,7 +243,7 @@ describe('Campaign view', () => {
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
     const [edit] = await screen.findAllByRole('button', {
-      name: /^Éditer/
+      name: /^Éditer l’adresse/
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');
@@ -262,25 +281,6 @@ describe('Campaign view', () => {
       name: /^Télécharger les destinataires et vos courriers/
     });
     expect(title).toBeVisible();
-  });
-
-  it('should confirm a recipient removal', async () => {
-    renderComponent();
-
-    const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
-    await user.click(tab);
-    const rowsBefore = screen.getAllByRole('row').slice(1); // Remove headers
-    expect(rowsBefore).toHaveLength(housings.length);
-    const row = rowsBefore[rowsBefore.length - 1];
-    const remove = within(row).getByTitle(/^Supprimer le propriétaire/);
-    await user.click(remove);
-    const dialog = await screen.findByRole('dialog');
-    const confirm = within(dialog).getByRole('button', {
-      name: /^Confirmer/
-    });
-    await user.click(confirm);
-    const rowsAfter = screen.getAllByRole('row').slice(1);
-    expect(rowsAfter).toHaveLength(rowsBefore.length - 1);
   });
 
   // Hard to mock window.confirm because it's a browser-level function

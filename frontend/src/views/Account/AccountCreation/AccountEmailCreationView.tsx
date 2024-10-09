@@ -50,15 +50,8 @@ function AccountEmailCreationView() {
         Créer votre compte
       </Typography>
       <Text size="lead">
-        Pour créer votre compte sur Zéro Logement Vacant, vous devez
-        impérativement avoir déjà signé l’acte d’engagement permettant d’accéder
-        aux données LOVAC via la procédure indiquée sur le site du Cerema.
+        Pour créer votre compte sur Zéro Logement Vacant, vous devez impérativement avoir effectué votre demande d’accès aux données LOVAC via le <a href= 'https://datafoncier.cerema.fr/portail-des-donnees-foncieres'>portail Données Foncières du Cerema</a>.
       </Text>
-      <Alert
-          severity="warning"
-          title="Les demandes d&apos;accès à ZLV et LOVAC évoluent !"
-          description={<>Les procédures via Démarches Simpifiées évoluent. Toute demande de données devra désormais être effectuée sur le nouveau Portail des Données Foncières qui sera déployé à compter du 01/10/2024. <a href='https://datafoncier.cerema.fr/actualites/interruption-des-demandes-dacces-aux-donnees-du-15-septembre-au-1er-octobre-2024'>En savoir plus</a></>}
-        />
       <Container as="section" fluid>
         <Row justifyContent="right">
           <AppLink

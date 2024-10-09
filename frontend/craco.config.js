@@ -29,6 +29,8 @@ module.exports = {
         '<rootDir>/node_modules/(?!@codegouvfr)/.+\\.js$',
         '<rootDir>/node_modules/.store/(?!@codegouvfr)/.+\\.js$'
       ];
+      config.moduleNameMapper['^@zerologementvacant/models/fixtures$'] =
+        '<rootDir>/node_modules/@zerologementvacant/models/dist/test/fixtures.js';
       return config;
     }
   }

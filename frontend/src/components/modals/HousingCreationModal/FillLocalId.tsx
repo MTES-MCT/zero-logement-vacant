@@ -80,15 +80,15 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
             >
               L’identifiant du logement
             </a>
-            &nbsp;est une concaténation du&nbsp;
+            &nbsp;est une concaténation du
             <a
               href="https://doc-datafoncier.cerema.fr/doc/dv3f/local/coddep"
               target="_blank"
               rel="noreferrer"
             >
-              &nbsp;code département
+              code département
             </a>
-            &nbsp;du logement et de&nbsp;
+            &nbsp;du logement et de
             <a
               href="https://doc-datafoncier.cerema.fr/doc/ff/pb0010_local/invar"
               target="_blank"

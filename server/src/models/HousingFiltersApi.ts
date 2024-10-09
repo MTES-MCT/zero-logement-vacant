@@ -1,8 +1,5 @@
-import {
-  EnergyConsumptionGradesApi,
-  OccupancyKindApi,
-  OwnershipKindsApi,
-} from './HousingApi';
+import { OwnershipKind } from '@zerologementvacant/models';
+import { EnergyConsumptionGradesApi, OccupancyKindApi } from './HousingApi';
 import { body, ValidationChain } from 'express-validator';
 import { isArrayOf, isInteger, isString, isUUID } from '~/utils/validators';
 
@@ -13,6 +10,10 @@ export interface HousingFiltersApi {
   ownerKinds?: string[];
   ownerAges?: string[];
   multiOwners?: string[];
+  /**
+   * The secondary owners
+   * @todo Rename this to secondaryOwners
+   */
   beneficiaryCounts?: string[];
   housingKinds?: string[];
   cadastralClassifications?: string[];
@@ -21,7 +22,7 @@ export interface HousingFiltersApi {
   buildingPeriods?: string[];
   vacancyDurations?: string[];
   isTaxedValues?: string[];
-  ownershipKinds?: OwnershipKindsApi[];
+  ownershipKinds?: OwnershipKind[];
   housingCounts?: string[];
   // TODO: type there based on housing repository values
   vacancyRates?: string[];
@@ -75,16 +76,20 @@ const validators = (property = 'filters'): ValidationChain[] => [
   body(`${property}.geoPerimetersExcluded`)
     .custom(isArrayOf(isString))
     .optional(),
-  body(`${property}.dataFileYearsIncluded`).custom(isArrayOf(isString)).optional(),
-  body(`${property}.dataFileYearsExcluded`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.dataFileYearsIncluded`)
+    .custom(isArrayOf(isString))
+    .optional(),
+  body(`${property}.dataFileYearsExcluded`)
+    .custom(isArrayOf(isString))
+    .optional(),
   body(`${property}.statusList`).custom(isArrayOf(isInteger)).optional(),
   body(`${property}.status`).optional().isInt().optional(),
   body(`${property}.subStatus`).custom(isArrayOf(isString)).optional(),
   body(`${property}.query`).default('').isString().optional(),
   body(`${property}.energyConsumption`).custom(isArrayOf(isString)).optional(),
-  body(`${property}.occupancies`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.occupancies`).custom(isArrayOf(isString)).optional()
 ];
 
 export default {
-  validators,
+  validators
 };

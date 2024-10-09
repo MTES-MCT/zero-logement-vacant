@@ -56,10 +56,8 @@ interface Config {
   cerema: {
     api: string;
     enabled: boolean;
-    dryMode: boolean;
-    token: string;
-    inviteLimit: number;
-    forceInvite: boolean;
+    username: string;
+    password: string;
   };
   datafoncier: {
     api: string;
@@ -198,34 +196,25 @@ const config = convict<Config>({
       format: 'strict-boolean',
       default: isProduction
     },
-    dryMode: {
-      env: 'CEREMA_DRY_MODE',
-      format: 'strict-boolean',
-      default: !isProduction
-    },
     api: {
       env: 'CEREMA_API',
       format: 'url',
       default: 'https://getdf.cerema.fr'
     },
-    token: {
-      env: 'CEREMA_TOKEN',
+    username: {
+      env: 'CEREMA_USERNAME',
       format: String,
       sensitive: true,
       default: null,
       nullable: !isProduction
     },
-    inviteLimit: {
-      env: 'CEREMA_INVITE_LIMIT',
-      format: 'int',
-      default: 10
-    },
-    forceInvite: {
-      env: 'CEREMA_FORCE_INVITE',
-      format: Boolean,
-      default: false,
+    password: {
+      env: 'CEREMA_PASSWORD',
+      format: String,
+      sensitive: true,
+      default: null,
       nullable: !isProduction
-    }
+    },
   },
   datafoncier: {
     api: {

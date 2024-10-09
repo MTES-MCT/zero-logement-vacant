@@ -9,11 +9,12 @@ import { Col, Container, Row } from '../_dsfr';
 import FileUpload from '../FileUpload/FileUpload';
 import { FileUploadDTO } from '@zerologementvacant/models';
 import LogoViewer from './LogoViewer';
+import Typography from '@mui/material/Typography';
 
 export const signatureSchema = object({
   signatoryFirstName: string().optional().nullable(),
   signatoryLastName: string().optional().nullable(),
-  signatoryRole: string().optional().nullable(),
+  signatoryRole: string().optional().nullable()
 });
 
 interface Props {
@@ -32,7 +33,7 @@ function DraftSignature(props: Readonly<Props>) {
       if (props.value) {
         props.onChange({
           ...props.value,
-          [key]: e.target.value,
+          [key]: e.target.value
         });
       }
     };
@@ -41,22 +42,26 @@ function DraftSignature(props: Readonly<Props>) {
   function onFileUpload(file: FileUploadDTO) {
     props.onChange({
       ...props.value,
-      signatoryFile: file,
+      signatoryFile: file
     });
   }
 
   function deleteFile() {
     props.value.signatoryFile = null;
     props.onChange(props.value);
-    const elem = document.getElementById(`fileUploadSignature-input`) as HTMLInputElement;
-    if(elem !== null) {
+    const elem = document.getElementById(
+      `fileUploadSignature-input`
+    ) as HTMLInputElement;
+    if (elem !== null) {
       elem.value = '';
     }
   }
 
   return (
     <Container as="article" className={styles.article}>
-      <h6>Signature de l’expéditeur</h6>
+      <Typography component="h4" variant="h6" mb={2}>
+        Signature de l’expéditeur
+      </Typography>
       <Row className={styles.row} gutters>
         <Col n="6">
           <AppTextInput
@@ -86,7 +91,11 @@ function DraftSignature(props: Readonly<Props>) {
       />
       <FileUpload id="fileUploadSignature" onUpload={onFileUpload} />
 
-      <LogoViewer index={0} logo={props.value.signatoryFile as FileUploadDTO} onDelete={deleteFile} />
+      <LogoViewer
+        index={0}
+        logo={props.value.signatoryFile as FileUploadDTO}
+        onDelete={deleteFile}
+      />
     </Container>
   );
 }

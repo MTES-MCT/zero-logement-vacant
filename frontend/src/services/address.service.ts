@@ -2,12 +2,18 @@ import type { FeatureCollection, Point } from 'geojson';
 
 import config from '../utils/config';
 import { createHttpService } from '../utils/fetchUtils';
-import { Address } from '../models/Address';
 
-export type AddressSearchResult = Address & {
+export interface AddressSearchResult {
   banId: string;
   label: string;
-};
+  houseNumber?: string;
+  street?: string;
+  postalCode: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+  score: number;
+}
 
 const http = createHttpService('address', {
   authenticated: false,
@@ -15,11 +21,9 @@ const http = createHttpService('address', {
   json: true
 });
 
-const quickSearch = async (query: string): Promise<AddressSearchResult[]> => {
+async function quickSearch(query: string): Promise<AddressSearchResult[]> {
   const params = new URLSearchParams({ q: query });
-  const response = await http.get(`/search?${params}`, {
-    abortId: 'search-address'
-  });
+  const response = await http.get(`/search?${params}`);
   const addresses: FeatureCollection<Point> = await response.json();
   return addresses.features.map((point): AddressSearchResult => {
     const [longitude, latitude] = point.geometry.coordinates;
@@ -36,7 +40,7 @@ const quickSearch = async (query: string): Promise<AddressSearchResult[]> => {
       score: properties.score
     };
   });
-};
+}
 
 const addressService = {
   quickSearch

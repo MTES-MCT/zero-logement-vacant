@@ -14,7 +14,7 @@ import config from '../config';
 import { createLogger } from '../logger';
 import { storage } from '../storage';
 
-type Name = 'campaign:generate';
+type Name = 'campaign-generate';
 type Args = Parameters<Jobs[Name]>[0];
 type Returned = ReturnType<Jobs[Name]>;
 
@@ -55,7 +55,7 @@ export default function createWorker() {
   const transformer = pdf.createTransformer({ logger });
 
   return new Worker<Args, Returned, Name>(
-    'campaign:generate',
+    'campaign-generate',
     async (job) => {
       return storage
         .run({ establishment: job.data.establishmentId }, async () => {

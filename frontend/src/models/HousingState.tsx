@@ -1,10 +1,13 @@
+import { ReactElement } from 'react';
+
+import { HousingStatus as HousingStatusDTO } from '@zerologementvacant/models';
 import { DefaultOption, SelectOption } from './SelectOption';
 import { Housing } from './Housing';
-import { ReactElement } from 'react';
 import { Text } from '../components/_dsfr';
+import { isDefined } from '../utils/compareUtils';
 
 export interface HousingState {
-  status: HousingStatus;
+  status: HousingStatusDTO;
   title: string;
   subStatusList?: HousingSubStatus[];
   colorFamily: string;
@@ -15,58 +18,36 @@ export interface HousingSubStatus {
   title: string;
 }
 
+/**
+ * @deprecated See {@link HousingStatusDTO}
+ */
 export enum HousingStatus {
-  NeverContacted,
-  Waiting,
-  FirstContact,
-  InProgress,
-  Completed,
-  Blocked,
+  NeverContacted = HousingStatusDTO.NEVER_CONTACTED,
+  Waiting = HousingStatusDTO.WAITING,
+  FirstContact = HousingStatusDTO.FIRST_CONTACT,
+  InProgress = HousingStatusDTO.IN_PROGRESS,
+  Completed = HousingStatusDTO.COMPLETED,
+  Blocked = HousingStatusDTO.BLOCKED
 }
-
-export const HOUSING_STATUSES: HousingStatus[] = Object.values(
-  HousingStatus,
-).filter((_) => typeof _ === 'number') as HousingStatus[];
-
-export const FirstContactToContactedSubStatus =
-  'Intérêt potentiel / En réflexion';
-export const FirstContactWithPreSupportSubStatus = 'En pré-accompagnement';
-export const FirstContactNpai = 'N’habite pas à l’adresse indiquée';
-export const InProgressWithSupportSubStatus = 'En accompagnement';
-export const InProgressWithPublicSupportSubStatus = 'Intervention publique';
-export const InProgressWithoutSupportSubStatus =
-  'En sortie sans accompagnement';
-export const MutationInProgress = 'Mutation en cours';
-export const CompletedWithVacancyExit = 'Sortie de la vacance';
-export const CompletedNotVacant = "N'était pas vacant";
-export const CompletedWithPoorlyInsulatedExit =
-  'Sortie de la passoire énergétique';
-export const CompletedNotPoorlyInsulated =
-  "N'était pas une passoire énergétique";
-export const OtherObjectiveAchieved = 'Autre objectif rempli';
-export const BlockedByOwnerInvoluntary = 'Blocage involontaire du propriétaire';
-export const BlockedByOwnerVoluntary = 'Blocage volontaire du propriétaire';
-export const BuildingEnvironment = 'Immeuble / Environnement';
-export const ThirdPartiesInvolved = 'Tiers en cause';
 
 export const HousingStates: HousingState[] = [
   {
-    status: HousingStatus.NeverContacted,
+    status: HousingStatusDTO.NEVER_CONTACTED,
     title: 'Non suivi',
-    colorFamily: 'beige-gris-galet',
+    colorFamily: 'beige-gris-galet'
   },
   {
-    status: HousingStatus.Waiting,
+    status: HousingStatusDTO.WAITING,
     title: 'En attente de retour',
     hint: (
       <Text spacing="mb-0" as="span">
         Le propriétaire<b> n’a pas répondu au courrier.</b>
       </Text>
     ),
-    colorFamily: 'yellow-tournesol',
+    colorFamily: 'yellow-tournesol'
   },
   {
-    status: HousingStatus.FirstContact,
+    status: HousingStatusDTO.FIRST_CONTACT,
     title: 'Premier contact',
     hint: (
       <Text spacing="mb-0" as="span">
@@ -76,19 +57,13 @@ export const HousingStates: HousingState[] = [
     ),
     colorFamily: 'blue-cumulus',
     subStatusList: [
-      {
-        title: FirstContactToContactedSubStatus,
-      },
-      {
-        title: FirstContactWithPreSupportSubStatus,
-      },
-      {
-        title: FirstContactNpai,
-      },
-    ],
+      { title: 'Intérêt potentiel / En réflexion' },
+      { title: 'En pré-accompagnement' },
+      { title: 'N’habite pas à l’adresse indiquée' }
+    ]
   },
   {
-    status: HousingStatus.InProgress,
+    status: HousingStatusDTO.IN_PROGRESS,
     title: 'Suivi en cours',
     hint: (
       <Text spacing="mb-0" as="span">
@@ -98,22 +73,14 @@ export const HousingStates: HousingState[] = [
     ),
     colorFamily: 'orange-terre-battue',
     subStatusList: [
-      {
-        title: InProgressWithSupportSubStatus,
-      },
-      {
-        title: InProgressWithPublicSupportSubStatus,
-      },
-      {
-        title: InProgressWithoutSupportSubStatus,
-      },
-      {
-        title: MutationInProgress,
-      },
-    ],
+      { title: 'En accompagnement' },
+      { title: 'Intervention publique' },
+      { title: 'En sortie sans accompagnement' },
+      { title: 'Mutation en cours' }
+    ]
   },
   {
-    status: HousingStatus.Completed,
+    status: HousingStatusDTO.COMPLETED,
     title: 'Suivi terminé',
     hint: (
       <Text spacing="mb-0" as="span">
@@ -123,25 +90,15 @@ export const HousingStates: HousingState[] = [
     ),
     colorFamily: 'green-bourgeon',
     subStatusList: [
-      {
-        title: CompletedWithVacancyExit,
-      },
-      {
-        title: CompletedNotVacant,
-      },
-      {
-        title: CompletedWithPoorlyInsulatedExit,
-      },
-      {
-        title: CompletedNotPoorlyInsulated,
-      },
-      {
-        title: OtherObjectiveAchieved,
-      },
-    ],
+      { title: 'Sortie de la vacance' },
+      { title: "N'était pas vacant" },
+      { title: 'Sortie de la passoire énergétique' },
+      { title: "N'était pas une passoire énergétique" },
+      { title: 'Autre objectif rempli' }
+    ]
   },
   {
-    status: HousingStatus.Blocked,
+    status: HousingStatusDTO.BLOCKED,
     title: 'Bloqué',
     hint: (
       <Text spacing="mb-0" as="span">
@@ -150,82 +107,78 @@ export const HousingStates: HousingState[] = [
     ),
     colorFamily: 'purple-glycine-sun',
     subStatusList: [
-      {
-        title: BlockedByOwnerInvoluntary,
-      },
-      {
-        title: BlockedByOwnerVoluntary,
-      },
-      {
-        title: BuildingEnvironment,
-      },
-      {
-        title: ThirdPartiesInvolved,
-      },
-    ],
-  },
+      { title: 'Blocage involontaire du propriétaire' },
+      { title: 'Blocage volontaire du propriétaire' },
+      { title: 'Immeuble / Environnement' },
+      { title: 'Tiers en cause' }
+    ]
+  }
 ];
 
-export const getHousingState = (status: HousingStatus) => {
+export function getHousingState(status: HousingStatusDTO): HousingState {
   return HousingStates[status];
-};
+}
 
 export const getSubStatus = (
-  status: HousingStatus,
-  subStatusTitle: string,
+  status: HousingStatusDTO,
+  subStatusTitle: string
 ): HousingSubStatus | undefined => {
   return getHousingState(status).subStatusList?.filter(
-    (s) => s.title === subStatusTitle,
+    (s) => s.title === subStatusTitle
   )[0];
 };
 
 export const getHousingSubStatus = (
-  housing: Housing,
+  housing: Housing
 ): HousingSubStatus | undefined => {
   if (housing.status && housing.subStatus) {
     return getSubStatus(housing.status, housing.subStatus);
   }
 };
 
-export const getSubStatusOptions = (status: HousingStatus) => {
+export function getSubStatusOptions(status: HousingStatusDTO) {
   const housingState = getHousingState(status);
   return housingState.subStatusList
     ? [
         {
           ...DefaultOption,
-          label: 'Sélectionnez un sous-statut de suivi',
+          label: 'Sélectionnez un sous-statut de suivi'
         },
         ...housingState.subStatusList.map((subStatus) => ({
           value: subStatus.title,
-          label: subStatus.title,
-        })),
+          label: subStatus.title
+        }))
       ]
     : undefined;
-};
+}
 
-export const getSubStatusList = (
-  statusList: string[] | HousingStatus[] | undefined,
-) =>
-  (statusList ?? [])
-    .map((_) => getHousingState(_ as HousingStatus))
-    .map((housingState) =>
-      (housingState.subStatusList ?? []).map((subStatus) => subStatus.title),
-    )
-    .flat()
-    .filter((_) => _ !== undefined);
+export function getSubStatusList(
+  statuses: string[] | HousingStatusDTO[]
+): string[] {
+  return statuses
+    .map((status) => (typeof status === 'string' ? Number(status) : status))
+    .map(getHousingState)
+    .flatMap((state) => state.subStatusList)
+    .filter(isDefined)
+    .map((substatus) => substatus.title);
+}
 
-export const getSubStatusListOptions = (
-  statusList: string[] | HousingStatus[] | undefined,
-) =>
-  (statusList ?? [])
-    .map((_) => getHousingState(_ as HousingStatus))
-    .filter((_) => _.subStatusList)
-    .map((housingState) => [
-      { value: housingState.title, label: housingState.title, disabled: true },
-      ...(housingState.subStatusList ?? []).map((subStatus) => ({
-        value: subStatus.title,
-        label: subStatus.title,
-      })),
-    ])
-    .flat()
-    .filter((_) => _ !== undefined) as SelectOption[];
+export function getSubStatusListOptions(
+  statuses: string[] | HousingStatusDTO[]
+): SelectOption[] {
+  return statuses
+    .map((status) => (typeof status === 'string' ? Number(status) : status))
+    .map(getHousingState)
+    .flatMap<SelectOption>((state) => {
+      const substatuses: SelectOption[] =
+        state.subStatusList?.map((substatus) => ({
+          value: substatus.title,
+          label: substatus.title
+        })) ?? [];
+      return [
+        { value: state.title, label: state.title, disabled: true },
+        ...substatuses
+      ];
+    })
+    .filter(isDefined);
+}

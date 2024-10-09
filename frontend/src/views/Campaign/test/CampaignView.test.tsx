@@ -96,7 +96,7 @@ describe('Campaign view', () => {
 
     renderComponent();
 
-    const rename = await screen.findByRole('button', { name: /^Renommer/ });
+    const rename = await screen.findByRole('button', { name: /^Modifier le nom/ });
     await user.click(rename);
     const modal = await screen.findByRole('dialog');
     const input = within(modal).getByRole('textbox', {
@@ -117,7 +117,7 @@ describe('Campaign view', () => {
 
     const form = await screen.findByRole('form');
     const name = await within(form).findByLabelText(
-      /^Nom de la collectivité ou de l’administration/,
+      /^Nom de la collectivité ou de l’administration/
     );
     if (sender.name) {
       await user.type(name, sender.name);
@@ -135,7 +135,7 @@ describe('Campaign view', () => {
     const form = await screen.findByRole('form');
     if (sender.name) {
       const name = await within(form).findByLabelText(
-        /^Nom de la collectivité ou de l’administration/,
+        /^Nom de la collectivité ou de l’administration/
       );
       await user.clear(name);
       await user.type(name, sender.name);
@@ -224,7 +224,7 @@ describe('Campaign view', () => {
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
     const [edit] = await screen.findAllByRole('button', {
-      name: /^Éditer l’adresse/
+      name: /^Éditer/
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');
@@ -251,15 +251,15 @@ describe('Campaign view', () => {
     );
 
     await screen.findByRole('heading', {
-      name: /^Chargement de vos courriers en cours/
+      name: /^Vos fichiers à télécharger pour lancer votre campagne/
     });
     campaign.file = faker.image.url();
-    const event = new MessageEvent('campaign:generate', {
+    const event = new MessageEvent('campaign-generate', {
       data: JSON.stringify({ id: campaign.id })
     });
     sources.get(`${config.apiEndpoint}/api/sse`)?.emit(event.type, event);
     const title = await screen.findByRole('heading', {
-      name: /^Télécharger les courriers et les destinataires/
+      name: /^Télécharger les destinataires et vos courriers/
     });
     expect(title).toBeVisible();
   });

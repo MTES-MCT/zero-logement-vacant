@@ -1,15 +1,16 @@
 import { differenceInDays, format } from 'date-fns';
+import { match, Pattern } from 'ts-pattern';
 
 import {
   EnergyConsumption,
   HousingDTO,
   HousingKind,
   HousingStatus,
-  Occupancy,
-  OwnershipKind
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES,
+  Occupancy
 } from '@zerologementvacant/models';
 import { Owner, toOwnerDTO } from './Owner';
-import { HousingStatus as DeprecatedHousingStatus } from './HousingState';
 import { stringSort } from '../utils/stringUtils';
 import { Sort } from './Sort';
 import { LocalityKinds } from './Locality';
@@ -40,12 +41,12 @@ export interface Housing {
   uncomfortable: boolean;
   cadastralClassification: number;
   taxed: boolean;
-  ownershipKind: OwnershipKinds;
+  ownershipKind: string;
   buildingHousingCount?: number;
   buildingVacancyRate: number;
   dataFileYears: string[];
   campaignIds: string[];
-  status: DeprecatedHousingStatus;
+  status: HousingStatus;
   subStatus?: string;
   precisions?: string[];
   lastContact?: Date;
@@ -130,21 +131,15 @@ export function byAddress(h1: Housing, h2: Housing): Compare {
   return byCity;
 }
 
-export const hasGeoPerimeters = (housing: Housing) =>
-  housing.geoPerimeters &&
-  housing.geoPerimeters.filter((_) => _ !== null).length > 0;
-
-export enum OwnershipKinds {
-  Single = 'single',
-  CoOwnership = 'co',
-  Other = 'other'
+export function formatOwnershipKind(kind: string | null): string {
+  return match(kind)
+    .with(
+      Pattern.union(null, ...INTERNAL_MONO_CONDOMINIUM_VALUES),
+      () => 'Monopropriété'
+    )
+    .with(Pattern.union(...INTERNAL_CO_CONDOMINIUM_VALUES), () => 'Copropriété')
+    .otherwise(() => 'Autre');
 }
-
-export const OwnershipKindLabels = {
-  [OwnershipKinds.Single]: 'Monopropriété',
-  [OwnershipKinds.CoOwnership]: 'Copropriété',
-  [OwnershipKinds.Other]: 'Autre'
-};
 
 export type HousingSortable = Pick<
   Housing,
@@ -202,6 +197,22 @@ export const OccupancyUnknown = 'inconnu';
 
 export type OccupancyKindUnknown = typeof OccupancyUnknown;
 
+export const OCCUPANCY_LABELS: Record<Occupancy, string> = {
+  [Occupancy.VACANT]: 'Vacant',
+  [Occupancy.RENT]: 'En location',
+  [Occupancy.SHORT_RENT]: 'Meublé de tourisme',
+  [Occupancy.PRIMARY_RESIDENCE]: 'Occupé par le propriétaire',
+  [Occupancy.SECONDARY_RESIDENCE]: 'Résidence secondaire non louée',
+  [Occupancy.COMMERCIAL_OR_OFFICE]: 'Local commercial ou bureau',
+  [Occupancy.DEPENDENCY]: 'Dépendance',
+  [Occupancy.DEMOLISHED_OR_DIVIDED]: 'Local démoli ou divisé',
+  [Occupancy.OTHERS]: 'Autres',
+  [Occupancy.UNKNOWN]: 'Pas d’information'
+};
+
+/**
+ * @deprecated See {@link OCCUPANCY_LABELS}
+ */
 export const OccupancyKindLabels = {
   [OccupancyKind.Vacant]: 'Vacant',
   [OccupancyKind.Rent]: 'En location',
@@ -253,7 +264,6 @@ export function getSource(housing: Housing): string {
 export function toHousingDTO(housing: Housing): HousingDTO {
   return {
     id: housing.id,
-    invariant: housing.invariant,
     localId: housing.localId,
     rawAddress: housing.rawAddress,
     geoCode: housing.geoCode,
@@ -269,10 +279,13 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     buildingYear: housing.buildingYear,
     taxed: housing.taxed,
     vacancyReasons: housing.vacancyReasons,
+    dataYears: housing.dataFileYears
+      .map((dataFileYear) => dataFileYear.split('-')[1])
+      .map(Number),
     dataFileYears: housing.dataFileYears,
     buildingLocation: housing.buildingLocation,
     // TODO: fix this by making Housing extend HousingDTO
-    ownershipKind: housing.ownershipKind as unknown as OwnershipKind,
+    ownershipKind: housing.ownershipKind,
     status: housing.status as unknown as HousingStatus,
     subStatus: housing.subStatus,
     precisions: housing.precisions,

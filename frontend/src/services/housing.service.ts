@@ -9,12 +9,13 @@ import { HousingPayloadDTO, PaginationOptions } from '../../../shared';
 import { parseOwner } from './owner.service';
 import { HousingCount } from '../models/HousingCount';
 import { zlvApi } from './api.service';
+import { HousingFiltersDTO } from '@zerologementvacant/models';
 
 export interface FindOptions
   extends PaginationOptions,
     SortOptions<HousingSort>,
     AbortOptions {
-  filters: HousingFilters;
+  filters: HousingFiltersDTO;
 }
 
 // TODO: add input type
@@ -50,13 +51,13 @@ export const housingApi = zlvApi.injectEndpoints({
     findHousing: builder.query<HousingPaginatedResult, FindOptions>({
       query: (opts) => ({
         url: `housing${getURLQuery({
-          sort: toQuery(opts?.sort)
+          sort: toQuery(opts?.sort),
+          filters: opts?.filters ? JSON.stringify(opts?.filters) : undefined,
+          paginate: opts?.pagination?.paginate,
+          page: opts?.pagination?.paginate ? opts.pagination.page : undefined,
+          perPage: opts?.pagination?.paginate ? opts.pagination.perPage : undefined
         })}`,
-        method: 'POST',
-        body: {
-          filters: opts?.filters,
-          ...opts?.pagination
-        }
+        method: 'GET',
       }),
       providesTags: (result, errors, args) => [
         {

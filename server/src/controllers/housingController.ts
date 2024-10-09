@@ -2,12 +2,12 @@ import { Request, Response } from 'express';
 import { body, oneOf, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import _ from 'lodash';
-import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 
 import housingRepository from '~/repositories/housingRepository';
 import {
+  EnergyConsumptionGradesApi,
   hasCampaigns,
   HousingApi,
   HousingRecordApi,
@@ -40,6 +40,7 @@ import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
 import { HousingEventApi } from '~/models/EventApi';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
+import { HousingFiltersDTO } from '@zerologementvacant/models';
 
 const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
@@ -69,27 +70,52 @@ async function get(request: Request, response: Response) {
 const listValidators: ValidationChain[] = [
   ...housingFiltersApi.validators(),
   ...sortApi.queryValidators,
-  ...paginationApi.validators
+  ...paginationApi.queryValidators
 ];
 
+type ListHousingPayload = Pagination & {
+  filters?: HousingFiltersDTO;
+};
+
 async function list(
-  request: Request,
+  request: Request<never, HousingPaginatedResultApi, ListHousingPayload>,
   response: Response<HousingPaginatedResultApi>
 ) {
-  const { auth, body, user } = request as AuthenticatedRequest;
-  // TODO: type the whole body
-  const pagination: Pagination = fp.pick(['paginate', 'perPage', 'page'], body);
+  const { auth, user, query } = request as AuthenticatedRequest<
+    never,
+    HousingPaginatedResultApi,
+    ListHousingPayload
+  >;
+
+  const pagination: Pagination = {
+    paginate: query.paginate === 'true',
+    page: parseInt(query.page as string, 10),
+    perPage: parseInt(query.perPage as string, 10),
+  };
 
   const role = user.role;
   const sort = sortApi.parse<HousingSortableApi>(
     request.query.sort as string[] | undefined
   );
+  const rawFilters = query.filters !== undefined ? JSON.parse(query.filters) : undefined;
   const filters: HousingFiltersApi = {
-    ...body.filters,
+    ...rawFilters,
+    multiOwners: rawFilters?.multiOwners?.map((value: string) =>
+      value === 'true' ? 'true' : 'false'
+    ),
+    roomsCounts: rawFilters?.roomsCounts?.map((value: string) =>
+      value.toString()
+    ),
+    isTaxedValues: rawFilters?.isTaxedValues?.map((value: string) =>
+      value === 'true' ? 'true' : 'false'
+    ),
+    energyConsumption: rawFilters
+      ?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
+    occupancies: rawFilters?.occupancies as unknown as OccupancyKindApi[],
     establishmentIds:
       [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
-      body.filters.establishmentIds?.length > 0
-        ? body.filters.establishmentIds
+      rawFilters?.establishmentIds?.length
+        ? rawFilters?.establishmentIds
         : [auth.establishmentId]
   };
 

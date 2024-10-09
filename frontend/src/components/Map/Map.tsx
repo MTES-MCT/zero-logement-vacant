@@ -1,23 +1,22 @@
-import maplibregl from 'maplibre-gl';
 import { useEffect, useMemo, useState } from 'react';
 import * as turf from '@turf/turf';
 import ReactiveMap, {
   NavigationControl,
   useMap,
   ViewState,
-  ViewStateChangeEvent,
-} from 'react-map-gl';
+  ViewStateChangeEvent
+} from 'react-map-gl/maplibre';
 import {
   hasCoordinates,
   Housing,
-  HousingWithCoordinates,
+  HousingWithCoordinates
 } from '../../models/Housing';
 import HousingPopup from './HousingPopup';
 import Clusters from './Clusters';
 import {
   Building,
   groupByBuilding,
-  HousingByBuilding,
+  HousingByBuilding
 } from '../../models/Building';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Perimeters from './Perimeters';
@@ -27,7 +26,7 @@ import { BUILDING_DARK, loadIcon } from './Icon';
 
 const STYLE = {
   title: 'Carte',
-  uri: 'https://openmaptiles.geo.data.gouv.fr/styles/osm-bright/style.json',
+  uri: 'https://openmaptiles.geo.data.gouv.fr/styles/osm-bright/style.json'
 };
 
 export interface MapProps {
@@ -53,8 +52,8 @@ function Map(props: MapProps) {
       left: 16,
       top: 64,
       right: 16,
-      bottom: 16,
-    },
+      bottom: 16
+    }
   });
 
   function onMove(event: ViewStateChangeEvent): void {
@@ -88,8 +87,8 @@ function Map(props: MapProps) {
   const [showPerimeters, setShowPerimeters] = useState(true);
 
   useEffect(() => {
-    if (map && !map.hasImage('building')) {
-      loadIcon(map, '/map/square-fill.png', BUILDING_DARK);
+    if (map && !map.hasImage(BUILDING_DARK)) {
+      loadIcon(map, '/map/square-fill.png', BUILDING_DARK).catch(console.error);
     }
   }, [map]);
 
@@ -98,7 +97,7 @@ function Map(props: MapProps) {
       const bounds = turf.bbox(turf.featureCollection(points));
       map.fitBounds(bounds as [number, number, number, number], {
         padding: 64,
-        duration: 800,
+        duration: 800
       });
     }
   }, [map, points]);
@@ -106,7 +105,7 @@ function Map(props: MapProps) {
   function popUp(building: Building): void {
     setOpenPopups((state) => ({
       ...state,
-      [building.id]: true,
+      [building.id]: true
     }));
   }
 
@@ -114,7 +113,7 @@ function Map(props: MapProps) {
     return (): void => {
       setOpenPopups((state) => ({
         ...state,
-        [building.id]: false,
+        [building.id]: false
       }));
     };
   }
@@ -134,14 +133,13 @@ function Map(props: MapProps) {
       {...viewState}
       attributionControl
       id="housingMap"
-      mapLib={maplibregl}
       mapStyle={STYLE.uri}
       onMove={onMove}
       reuseMaps
       style={{
         minHeight: '600px',
         height: 'auto',
-        fontFamily: 'Marianne, sans-serif',
+        fontFamily: 'Marianne, sans-serif'
       }}
     >
       <Perimeters

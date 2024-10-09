@@ -4,19 +4,19 @@ import randomstring from 'randomstring';
 
 import { Owner } from '../src/models/Owner';
 import { Address } from '../src/models/Address';
-import { Housing, OccupancyKind, OwnershipKinds } from '../src/models/Housing';
+import { Housing, OccupancyKind } from '../src/models/Housing';
 import { AuthUser, User } from '../src/models/User';
-import { Campaign } from '../src/models/Campaign';
-import { initialHousingFilters } from '../src/store/reducers/housingReducer';
-import { PaginatedResult } from '../src/models/PaginatedResult';
 import { SignupLink } from '../src/models/SignupLink';
 import { Prospect } from '../src/models/Prospect';
 import { LocalityKinds } from '../src/models/Locality';
-import { HousingStatus } from '../src/models/HousingState';
 import { Group } from '../src/models/Group';
 import { DatafoncierHousing } from '../../shared';
-import { Draft } from '../src/models/Draft';
-import { Sender } from '../src/models/Sender';
+import {
+  AddressKinds,
+  genAddressDTO,
+  HousingStatus
+} from '@zerologementvacant/models';
+import fp from 'lodash/fp';
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -75,7 +75,7 @@ export function genOwner(): Owner {
     id: randomstring.generate(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
     fullName: randomstring.generate(),
-    birthDate: new Date(),
+    birthDate: new Date().toJSON(),
     email: genEmail(),
     phone: randomstring.generate(),
     banAddress: genAddress()
@@ -85,6 +85,8 @@ export function genOwner(): Owner {
 export function genHousing(): Housing {
   return {
     id: randomstring.generate(),
+    localId: randomstring.generate(),
+    geoCode: genNumber(5).toString(),
     invariant: randomstring.generate(),
     rawAddress: [randomstring.generate(), randomstring.generate()],
     localityKind: LocalityKinds.ACV,
@@ -101,75 +103,16 @@ export function genHousing(): Housing {
     uncomfortable: false,
     cadastralClassification: genNumber(1),
     taxed: false,
-    ownershipKind: OwnershipKinds.Single,
+    ownershipKind: 'single',
     buildingVacancyRate: genNumber(2),
-    status: HousingStatus.NeverContacted,
+    status: HousingStatus.NEVER_CONTACTED,
     source: null,
     occupancy: OccupancyKind.Vacant
   };
 }
 
-export const genAddress = (): Address => ({
-  street: randomstring.generate(),
-  houseNumber: randomstring.generate(),
-  postalCode: randomstring.generate(),
-  city: randomstring.generate()
-});
-
-export const genCampaign = (): Campaign => ({
-  id: randomstring.generate(),
-  title: randomstring.generate(),
-  filters: initialHousingFilters,
-  status: 'draft',
-  createdAt: new Date().toJSON(),
-  validatedAt: new Date().toJSON(),
-  exportURL: randomstring.generate()
-});
-
-export function genDraft(sender: Sender): Draft {
-  return {
-    id: randomstring.generate(),
-    subject: randomstring.generate(),
-    body: randomstring.generate(),
-    logo: ['https://via.placeholder.com/150.png'],
-    sender,
-    writtenAt: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
-    writtenFrom: randomstring.generate(),
-    createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON()
-  };
-}
-
-export function genSender(): Sender {
-  return {
-    id: randomstring.generate(),
-    name: randomstring.generate(),
-    service: randomstring.generate(),
-    firstName: randomstring.generate(),
-    lastName: randomstring.generate(),
-    address: randomstring.generate(),
-    email: genEmail(),
-    phone: randomstring.generate({
-      length: 10,
-      charset: 'numeric'
-    }),
-    signatoryFile: null,
-    signatoryRole: null,
-    signatoryFirstName: randomstring.generate(),
-    signatoryLastName: randomstring.generate(),
-    createdAt: new Date().toJSON(),
-    updatedAt: new Date().toJSON()
-  };
-}
-
-export function genPaginatedResult<T>(results: Array<T>) {
-  return {
-    filteredCount: genNumber(2),
-    entities: results,
-    page: 1,
-    perPage: 50
-  } as PaginatedResult<T>;
-}
+export const genAddress = (): Address =>
+  fp.omit(['refId', 'addressKind'], genAddressDTO('', AddressKinds.Housing));
 
 export function genSignupLink(email: string): SignupLink {
   return {

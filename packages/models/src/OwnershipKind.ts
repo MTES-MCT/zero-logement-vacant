@@ -1,7 +1,11 @@
-export enum OwnershipKind {
-  SINGLE = 'single',
-  CO_OWNERSHIP = 'co',
-  OTHER = 'other',
-}
+export const OWNERSHIP_KIND_VALUES = ['single', 'co', 'other'] as const;
 
-export const OWNERSHIP_KINDS: OwnershipKind[] = Object.values(OwnershipKind);
+export type OwnershipKind = (typeof OWNERSHIP_KIND_VALUES)[number];
+
+export const INTERNAL_MONO_CONDOMINIUM_VALUES = ['single'] as const; // and null
+export const INTERNAL_CO_CONDOMINIUM_VALUES = [
+  'co',
+  'CL',
+  'CLV',
+  'CV'
+] as const;

@@ -13,6 +13,11 @@ interface Props {
   onSelectAddress(addressSearchResult?: AddressSearchResult): void;
 }
 
+/**
+ * @deprecated See {@link AddressSearchableSelectNext}
+ * @param onSelectAddress
+ * @constructor
+ */
 const AddressSearchableSelect = ({ onSelectAddress }: Props) => {
   const [addressOptions, setAddressOptions] = useState<
     { value: string; label: string }[]

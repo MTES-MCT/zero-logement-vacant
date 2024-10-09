@@ -7,11 +7,11 @@ import {
   LexicalNode,
   NodeKey,
   SerializedLexicalNode,
-  Spread,
+  Spread
 } from 'lexical';
 
 import { Variable } from '../Variable';
-import { VariableOption } from '../../../../../shared';
+import { VariableOption } from '@zerologementvacant/models';
 
 interface VariableProps {
   children: string;
@@ -57,13 +57,13 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
             return {
               node: $createVariableNode({
                 label,
-                value: value as VariableOption,
-              }),
+                value: value as VariableOption
+              })
             };
           },
-          priority: 1,
+          priority: 1
         };
-      },
+      }
     };
   }
 
@@ -73,7 +73,7 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
 
   constructor(
     private variable: Variable,
-    key?: NodeKey,
+    key?: NodeKey
   ) {
     super(key);
   }
@@ -96,7 +96,7 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
     element.setAttribute('data-variable-label', this.variable.label);
 
     return {
-      element,
+      element
     };
   }
 
@@ -105,7 +105,7 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
       ...super.exportJSON(),
       type: 'variable',
       version: 1,
-      variable: this.variable,
+      variable: this.variable
     };
   }
 }
@@ -115,7 +115,7 @@ export function $createVariableNode(variable: Variable): VariableNode {
 }
 
 export function $isVariableNode(
-  node: LexicalNode | null | undefined,
+  node: LexicalNode | null | undefined
 ): node is VariableNode {
   return node instanceof VariableNode;
 }

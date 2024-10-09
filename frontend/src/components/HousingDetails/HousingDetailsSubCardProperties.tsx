@@ -1,5 +1,5 @@
 import { Text } from '../_dsfr';
-import { Housing, OwnershipKindLabels } from '../../models/Housing';
+import { formatOwnershipKind, Housing } from '../../models/Housing';
 import { cadastralClassificationOptions } from '../../models/HousingFilters';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 
@@ -21,7 +21,7 @@ function HousingDetailsSubCardProperties({ housing }: Props) {
           Type de propriété
         </Text>
         <Text spacing="mb-1w">
-          {OwnershipKindLabels[housing.ownershipKind]}
+          {formatOwnershipKind(housing.ownershipKind)}
         </Text>
       </div>
       <div>
@@ -49,7 +49,7 @@ function HousingDetailsSubCardProperties({ housing }: Props) {
         <Text spacing="mb-1w">
           {
             cadastralClassificationOptions.find(
-              (_) => _.value === String(housing.cadastralClassification),
+              (_) => _.value === String(housing.cadastralClassification)
             )?.label
           }
         </Text>

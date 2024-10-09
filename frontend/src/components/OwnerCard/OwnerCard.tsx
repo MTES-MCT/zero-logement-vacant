@@ -1,3 +1,8 @@
+import { fr } from '@codegouvfr/react-dsfr';
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Card from '@codegouvfr/react-dsfr/Card';
+import Typography from '@mui/material/Typography';
 import { ReactNode } from 'react';
 
 import { HousingOwner, Owner } from '../../models/Owner';
@@ -5,14 +10,8 @@ import { birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import styles from './owner-card.module.scss';
-import Card from '@codegouvfr/react-dsfr/Card';
-import Button from '@codegouvfr/react-dsfr/Button';
-import classNames from 'classnames';
 import { isBanEligible } from '../../models/Address';
-import Typography from '@mui/material/Typography';
 import OtherOwnerCard from './OtherOwnerCard';
-import Alert from '@codegouvfr/react-dsfr/Alert';
-import { fr } from '@codegouvfr/react-dsfr';
 import Label from '../Label/Label';
 
 interface OwnerCardProps {
@@ -60,7 +59,7 @@ function OwnerCard(props: OwnerCardProps) {
             </Typography>
           )}
 
-          <Typography component="p" mb={1}>
+          <section className={fr.cx('fr-mb-2w')}>
             <span
               className={fr.cx(
                 'fr-icon-home-4-line',
@@ -70,32 +69,31 @@ function OwnerCard(props: OwnerCardProps) {
               aria-hidden={true}
             />
             <Label as="span">Adresse postale</Label>
-            <Typography component="p">
-              {props.owner.banAddress?.label}
-              {[props.owner, ...(props.coOwners ?? [])].find(
-                (owner) => !isBanEligible(owner.banAddress)
-              ) && (
-                <Alert
-                  severity="info"
-                  className={classNames(styles.addressNotice, 'fr-mt-2w')}
-                  title={
-                    <>
-                      <div className="fr-mb-2w">Adresse à vérifier</div>
-                    </>
-                  }
-                  description={
-                    <>
+            <Typography mb={1}>
+              {props.owner.banAddress
+                ? props.owner.banAddress.label
+                : props.owner.rawAddress.join(' ')}
+            </Typography>
+            {!isBanEligible(props.owner.banAddress) && (
+              <Alert
+                severity="info"
+                classes={{ title: fr.cx('fr-mb-2w') }}
+                title="Adresse à vérifier"
+                description={
+                  <>
+                    <Typography>
                       Cette adresse issue de la BAN est différente de l’adresse
                       fiscale.
-                      <br />
+                    </Typography>
+                    <Typography>
                       Cliquez sur “Modifier” pour valider l’adresse que vous
                       souhaitez utiliser.
-                    </>
-                  }
-                ></Alert>
-              )}
-            </Typography>
-          </Typography>
+                    </Typography>
+                  </>
+                }
+              />
+            )}
+          </section>
 
           {props.owner.additionalAddress && (
             <Typography component="p" mb={1}>

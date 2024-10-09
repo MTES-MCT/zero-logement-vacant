@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { genGeoCode } from '@zerologementvacant/utils';
 import {
   HOUSING_KIND_VALUES,
-  OWNERSHIP_KINDS
+  OWNERSHIP_KIND_VALUES
 } from '@zerologementvacant/models';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
@@ -32,7 +32,7 @@ export function genSourceHousing(): SourceHousing {
     geolocalisation:
       faker.location.latitude() + ',' + faker.location.longitude(),
     housing_kind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
-    condominium: faker.helpers.arrayElement(OWNERSHIP_KINDS),
+    condominium: faker.helpers.arrayElement(OWNERSHIP_KIND_VALUES),
     rooms_count: faker.number.int({ min: 1, max: 10 }),
     building_year: faker.date.past().getFullYear(),
     uncomfortable: faker.datatype.boolean(),

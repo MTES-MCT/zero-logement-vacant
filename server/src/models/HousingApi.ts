@@ -46,7 +46,7 @@ export interface HousingRecordApi {
   buildingLocation?: string;
   rentalValue?: number;
   geolocation?: string;
-  ownershipKind?: OwnershipKindsApi;
+  ownershipKind?: string;
   status: HousingStatusApi;
   subStatus?: string | null;
   precisions?: string[];

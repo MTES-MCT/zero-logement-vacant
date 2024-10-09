@@ -10,6 +10,7 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
 import Button from '@codegouvfr/react-dsfr/Button';
+import { useUser } from '../../../hooks/useUser';
 
 interface Props {
   locality: Locality;
@@ -21,9 +22,9 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
     () =>
       createModal({
         id: `locality-tax-edition-modal-${locality?.geoCode}`,
-        isOpenedByDefault: false,
+        isOpenedByDefault: false
       }),
-    [locality],
+    [locality]
   );
 
   const { isVisitor } = useUser();
@@ -34,13 +35,13 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
   const shape = {
     taxRate: hasTHLV
       ? yup.number().typeError('Veuillez saisir un taux valide')
-      : yup.string().nullable(),
+      : yup.string().nullable()
   };
 
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
-    taxRate,
+    taxRate
   });
 
   const submitContactPointForm = async () => {
@@ -55,13 +56,15 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
 
   return (
     <>
-      { !isVisitor && <Button
-        iconId="fr-icon-edit-fill"
-        onClick={modal.open}
-        title="Modifier"
-        priority="tertiary no outline"
-        className="d-inline-block"
-      /> }
+      {!isVisitor && (
+        <Button
+          iconId="fr-icon-edit-fill"
+          onClick={modal.open}
+          title="Modifier"
+          priority="tertiary no outline"
+          className="d-inline-block"
+        />
+      )}
       <modal.Component
         title={
           <>
@@ -72,18 +75,18 @@ const LocalityTaxEditionModal = ({ locality, onSubmit }: Props) => {
         buttons={[
           {
             children: 'Annuler',
-            priority: 'secondary',
+            priority: 'secondary'
           },
           {
             children: 'Enregistrer',
             onClick: submitContactPointForm,
-            doClosesModal: false,
-          },
+            doClosesModal: false
+          }
         ]}
         style={{
           textAlign: 'initial',
           fontWeight: 'initial',
-          fontSize: 'initial',
+          fontSize: 'initial'
         }}
       >
         <Container as="section" fluid>

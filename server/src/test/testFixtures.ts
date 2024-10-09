@@ -1,5 +1,7 @@
+import * as turf from '@turf/turf';
 import { faker } from '@faker-js/faker/locale/fr';
 import { addHours } from 'date-fns';
+import type { BBox } from 'geojson';
 import fp from 'lodash/fp';
 import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
@@ -17,8 +19,7 @@ import {
 import {
   ENERGY_CONSUMPTION_GRADES,
   HousingApi,
-  OccupancyKindApi,
-  OwnershipKindsApi
+  OccupancyKindApi
 } from '~/models/HousingApi';
 import { CampaignApi } from '~/models/CampaignApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
@@ -37,7 +38,10 @@ import {
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { OwnerProspectApi } from '~/models/OwnerProspectApi';
 import { SettingsApi } from '~/models/SettingsApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
+import {
+  HOUSING_STATUS_VALUES,
+  HousingStatusApi
+} from '~/models/HousingStatusApi';
 import {
   EventApi,
   GroupHousingEventApi,
@@ -71,6 +75,11 @@ import { AddressApi } from '~/models/AddressApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { SenderApi } from '~/models/SenderApi';
 import { DraftApi } from '~/models/DraftApi';
+import {
+  HOUSING_KIND_VALUES,
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES
+} from '@zerologementvacant/models';
 
 export { genGeoCode } from '@zerologementvacant/utils';
 
@@ -212,7 +221,19 @@ export const genOwnerApi = (): OwnerApi => {
     fullName: faker.person.fullName(),
     email: genEmail(),
     phone: faker.phone.number(),
-    kind: randomstring.generate(),
+    kind: faker.helpers.maybe(
+      () =>
+        faker.helpers.arrayElement([
+          'Particulier',
+          'Investisseur',
+          'Promoteur, Investisseur privé',
+          'SCI',
+          'SCI, Copropriété, Autres personnes morales',
+          'Autres',
+          'Etat et collectivité territoriale'
+        ]),
+      { probability: 0.8 }
+    ),
     kindDetail: randomstring.generate(),
     additionalAddress: randomstring.generate()
   };
@@ -236,8 +257,14 @@ export const genAddressApi = (
     street,
     postalCode,
     city,
-    latitude: faker.location.latitude(),
-    longitude: faker.location.longitude(),
+    latitude: faker.location.latitude({
+      min: FRANCE_BBOX[1],
+      max: FRANCE_BBOX[3]
+    }),
+    longitude: faker.location.longitude({
+      min: FRANCE_BBOX[0],
+      max: FRANCE_BBOX[2]
+    }),
     score: faker.number.float({ min: 0, max: 1, fractionDigits: 2 }),
     lastUpdatedAt: faker.date.recent().toJSON()
   };
@@ -292,32 +319,61 @@ export const genHousingApi = (
       faker.location.streetAddress(),
       `${geoCode} ${faker.location.city()}`
     ],
+    latitude: faker.location.latitude({
+      min: FRANCE_BBOX[1],
+      max: FRANCE_BBOX[3]
+    }),
+    longitude: faker.location.longitude({
+      min: FRANCE_BBOX[0],
+      max: FRANCE_BBOX[2]
+    }),
     geoCode,
-    localityKind: randomstring.generate(),
+    localityKind: faker.helpers.maybe(
+      () => faker.helpers.arrayElement(['ACV', 'PVD']),
+      { probability: 0.2 }
+    ),
     owner: genOwnerApi(),
-    livingArea: genNumber(4),
-    cadastralClassification: genNumber(1),
-    uncomfortable: false,
-    vacancyStartYear: faker.date.past().getUTCFullYear(),
-    housingKind: randomstring.generate(),
-    roomsCount: genNumber(1),
+    livingArea: faker.number.int({ min: 10, max: 300 }),
+    cadastralClassification: faker.number.int({ min: 1, max: 10 }),
+    uncomfortable: faker.datatype.boolean(),
+    vacancyStartYear: faker.date.past({ years: 20 }).getUTCFullYear(),
+    housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
+    roomsCount: faker.number.int({ min: 0, max: 10 }),
     cadastralReference: randomstring.generate(),
-    buildingYear: faker.date.past().getUTCFullYear(),
-    taxed: false,
+    buildingYear: faker.date.past({ years: 100 }).getUTCFullYear(),
+    taxed: faker.datatype.boolean(),
     vacancyReasons: [],
     dataYears,
     dataFileYears,
     buildingLocation: randomstring.generate(),
-    ownershipKind: OwnershipKindsApi.Single,
-    status: HousingStatusApi.NeverContacted,
-    energyConsumption: oneOf(ENERGY_CONSUMPTION_GRADES),
-    occupancy: OccupancyKindApi.Vacant,
-    occupancyRegistered: OccupancyKindApi.Vacant,
-    buildingVacancyRate: genNumber(2),
+    ownershipKind: faker.helpers.maybe(() =>
+      faker.helpers.arrayElement([
+        ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+        ...INTERNAL_CO_CONDOMINIUM_VALUES
+      ])
+    ),
+    status: faker.helpers.weightedArrayElement([
+      {
+        value: HousingStatusApi.NeverContacted,
+        weight: HOUSING_STATUS_VALUES.length - 1
+      },
+      ...HOUSING_STATUS_VALUES.filter(
+        (status) => status !== HousingStatusApi.NeverContacted
+      ).map((status) => ({
+        value: status,
+        weight: 1
+      }))
+    ]),
+    energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_GRADES),
+    occupancy: faker.helpers.arrayElement(Object.values(OccupancyKindApi)),
+    occupancyRegistered: faker.helpers.arrayElement(
+      Object.values(OccupancyKindApi)
+    ),
+    buildingVacancyRate: faker.number.float(),
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCES),
-    mutationDate: faker.date.past()
+    mutationDate: faker.date.past({ years: 20 })
   };
 };
 
@@ -342,14 +398,33 @@ export const genCampaignApi = (
   };
 };
 
+export const FRANCE_BBOX: BBox = [-1.69, 43.19, 6.8, 49.49];
+
 export const genGeoPerimeterApi = (
-  establishmentId: string
+  establishmentId: string,
+  creator: UserApi
 ): GeoPerimeterApi => {
   return {
     id: uuidv4(),
     establishmentId,
-    name: randomstring.generate(),
-    kind: randomstring.generate()
+    geometry: turf.multiPolygon(
+      turf
+        .randomPolygon(1, {
+          bbox: FRANCE_BBOX,
+          max_radial_length: 3
+        })
+        .features.map((feature) => {
+          return feature.geometry.coordinates;
+        })
+    ).geometry,
+    name: faker.helpers.arrayElement([
+      'OPAH',
+      'OPAH-RU',
+      'Zone Commerciale Linéaire'
+    ]),
+    kind: randomstring.generate(),
+    createdAt: faker.date.past().toJSON(),
+    createdBy: creator?.id
   };
 };
 

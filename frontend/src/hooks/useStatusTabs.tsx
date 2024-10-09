@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { HousingStatus } from '../models/HousingState';
+import { HousingStatus } from '@zerologementvacant/models';
 import { HousingCount } from '../models/HousingCount';
 
 interface Status {
@@ -46,6 +46,6 @@ export function useStatusTabs(statuses: Status[]) {
     isActive,
     getTabLabel,
     setActiveTab,
-    setStatusCount,
+    setStatusCount
   };
 }

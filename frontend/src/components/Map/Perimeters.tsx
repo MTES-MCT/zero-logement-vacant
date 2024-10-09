@@ -1,11 +1,11 @@
-import { Layer, MapRef, Source } from 'react-map-gl';
 import * as turf from '@turf/turf';
+import { Geometry } from 'geojson';
+import { Layer, MapRef, Source } from 'react-map-gl/maplibre';
 
 import {
   GeoPerimeter,
-  GeoPerimeterProperties,
+  GeoPerimeterProperties
 } from '../../models/GeoPerimeter';
-import { isNotNull } from '../../utils/compareUtils';
 
 interface Props {
   id: string;
@@ -18,21 +18,13 @@ interface Props {
 
 function Perimeters(props: Props) {
   const perimeters = turf.featureCollection(
-    props.perimeters
-      .map((perimeter) =>
-        perimeter.geoJson
-          ? turf.feature<turf.Geometry, GeoPerimeterProperties>(
-              perimeter.geoJson,
-              {
-                id: perimeter.id,
-                name: perimeter.name,
-                kind: perimeter.kind,
-                establishmentId: perimeter.establishmentId,
-              },
-            )
-          : null,
-      )
-      .filter(isNotNull),
+    props.perimeters.map((perimeter) =>
+      turf.feature<Geometry, GeoPerimeterProperties>(perimeter.geometry, {
+        id: perimeter.id,
+        name: perimeter.name,
+        kind: perimeter.kind
+      })
+    )
   );
 
   const isVisible = props.isVisible ?? true;
@@ -44,7 +36,7 @@ function Perimeters(props: Props) {
         type="fill"
         paint={{
           'fill-color': props.backgroundColor ?? '#f6f6f6',
-          'fill-opacity': isVisible ? 0.51 : 0,
+          'fill-opacity': isVisible ? 0.51 : 0
         }}
       />
       <Layer
@@ -53,7 +45,7 @@ function Perimeters(props: Props) {
         paint={{
           'line-color': props.borderColor ?? '#000091',
           'line-width': 2,
-          'line-opacity': isVisible ? 1 : 0,
+          'line-opacity': isVisible ? 1 : 0
         }}
       />
     </Source>

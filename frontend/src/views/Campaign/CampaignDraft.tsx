@@ -33,6 +33,7 @@ import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedF
 import { FileUploadDTO } from '@zerologementvacant/models';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import Alert from '@codegouvfr/react-dsfr/Alert';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 
 const schema = yup
   .object({
@@ -163,116 +164,136 @@ function CampaignDraft(props: Readonly<Props>) {
   }
 
   return (
-    <Grid component="article" container py={4} xs={10} xsOffset={1}>
-      <Grid alignItems="center" container component="header" mb={5} xs>
-        <Grid mb={2} xs={12}>
-          <CampaignCreatedFromGroup campaign={props.campaign} />
+    <>
+      <Grid className={styles.steps} xs={12} py={4}>
+        <Grid container xsOffset={1}>
+          <Grid xs={11}>
+            <Stepper
+              currentStep={1}
+              nextTitle="Téléchargement du fichier de publipostage (XLSX) et/ou de vos courriers rédigés (PDF)."
+              stepCount={2}
+              title="Vérification des adresses propriétaires et édition de votre courrier"
+            />
+          </Grid>
+          <Grid xs={11}>
+            <div className={'float-right'}>
+              <SendButton form={form} onSend={send} />
+            </div>
+          </Grid>
         </Grid>
-        <Grid xs={6}>
-          <CampaignTitle
-            as="h2"
-            campaign={props.campaign}
-            className="fr-mb-1w"
-          />
-          <CampaignCounts
-            display="row"
-            housing={count?.housing}
-            owners={count?.owners}
-          />
-        </Grid>
-        <Grid display="flex" justifyContent="flex-end" xs={6}>
-          <SendButton form={form} onSend={send} />
-        </Grid>
-        { props.campaign.description && <Grid xs={12} mt={2}>
-          <h3 className='fr-mb-1w fr-text--md'>Description</h3>
-          <p>{props.campaign.description}</p>
-        </Grid>}
       </Grid>
-      <Tabs
-        className={styles.tabs}
-        classes={{
-          panel: styles.panel
-        }}
-        tabs={[
-          {
-            label: 'Destinataires',
-            content: <CampaignRecipients campaign={props.campaign} />
-          },
-          {
-            label: 'Courrier',
-            content: (
-              <form id="draft" name="draft" className="fr-mt-2w">
-                <UnsavedChanges when={hasChanges} />
-                <Alert
-                  severity="info"
-                  closable
-                  title="Votre courrier"
-                  description='Rédigez votre courrier et insérez des champs personnalisés pour intégrer des informations sur les logements ou les propriétaires. Pour prévisualiser le format du courrier, cliquez sur "Visualiser mon brouillon". Une fois votre courrier rédigé, cliquez sur "Valider et passer au téléchargement" pour télécharger les courriers au format PDF.'
-                  className="fr-mt-2w fr-mb-2w"
-                />
-                <Container as="section" fluid>
-                  <Row justifyContent="right" spacing="mb-2w">
-                    <SaveButton
-                      className="fr-mr-1w"
-                      autoClose={5000}
-                      isError={mutation.isError}
-                      isLoading={mutation.isLoading}
-                      isSuccess={mutation.isSuccess}
-                      message={{
-                        success: 'Votre campagne a été sauvegardée avec succès'
-                      }}
-                      onSave={save}
-                    />
-                    <PreviewButton disabled={!exists} draft={draft} />
-                  </Row>
-                  <Row gutters spacing="mb-2w">
-                    <Col n="5">
-                      <DraftSenderLogo
-                        className="fr-mb-2w"
-                        value={values.logo}
-                        onChange={setLogo}
+
+      <Grid component="article" container xs={10} xsOffset={1}>
+        <Grid alignItems="center" container component="header" mb={5} xs>
+          <Grid mb={2} xs={12}>
+            <CampaignCreatedFromGroup campaign={props.campaign} />
+          </Grid>
+          <CampaignTitle
+              as="h2"
+              campaign={props.campaign}
+              className="fr-mb-1w"
+            />
+          <Grid xs={6}>
+            <CampaignCounts
+              display="row"
+              housing={count?.housing}
+              owners={count?.owners}
+            />
+          </Grid>
+          {props.campaign.description && (
+            <Grid xs={12} mt={2}>
+              <h3 className="fr-mb-1w fr-text--md">Description</h3>
+              <p>{props.campaign.description}</p>
+            </Grid>
+          )}
+        </Grid>
+        <Tabs
+          className={styles.tabs}
+          classes={{
+            panel: styles.panel
+          }}
+          tabs={[
+            {
+              label: 'Destinataires',
+              content: <CampaignRecipients campaign={props.campaign} />
+            },
+            {
+              label: 'Courrier',
+              content: (
+                <form id="draft" name="draft" className="fr-mt-2w">
+                  <UnsavedChanges when={hasChanges} />
+                  <Alert
+                    severity="info"
+                    closable
+                    title="Votre courrier"
+                    description='Rédigez votre courrier et insérez des champs personnalisés pour intégrer des informations sur les logements ou les propriétaires. Pour prévisualiser le format du courrier, cliquez sur "Visualiser mon brouillon". Une fois votre courrier rédigé, cliquez sur "Valider et passer au téléchargement" pour télécharger les courriers au format PDF.'
+                    className="fr-mt-2w fr-mb-2w"
+                  />
+                  <Container as="section" fluid>
+                    <Row justifyContent="right" spacing="mb-2w">
+                      <SaveButton
+                        className="fr-mr-1w"
+                        autoClose={5000}
+                        isError={mutation.isError}
+                        isLoading={mutation.isLoading}
+                        isSuccess={mutation.isSuccess}
+                        message={{
+                          success:
+                            'Votre campagne a été sauvegardée avec succès'
+                        }}
+                        onSave={save}
                       />
-                      <DraftMailInfo
-                        form={form}
-                        writtenAt={values.writtenAt}
-                        writtenFrom={values.writtenFrom}
-                        onChange={setWritten}
-                      />
-                    </Col>
-                    <Col n="7">
-                      <DraftSender
-                        form={form}
-                        value={values.sender}
-                        onChange={setSender}
-                      />
-                    </Col>
-                  </Row>
-                  <Row spacing="mb-2w">
-                    <Col>
-                      <DraftBody
-                        body={values.body}
-                        form={form}
-                        subject={values.subject}
-                        onChange={setBody}
-                      />
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col n="7" offset="5">
-                      <DraftSignature
-                        form={form}
-                        value={values.sender}
-                        onChange={setSignature}
-                      />
-                    </Col>
-                  </Row>
-                </Container>
-              </form>
-            )
-          }
-        ]}
-      />
-    </Grid>
+                      <PreviewButton disabled={!exists} draft={draft} />
+                    </Row>
+                    <Row gutters spacing="mb-2w">
+                      <Col n="5">
+                        <DraftSenderLogo
+                          className="fr-mb-2w"
+                          value={values.logo}
+                          onChange={setLogo}
+                        />
+                        <DraftMailInfo
+                          form={form}
+                          writtenAt={values.writtenAt}
+                          writtenFrom={values.writtenFrom}
+                          onChange={setWritten}
+                        />
+                      </Col>
+                      <Col n="7">
+                        <DraftSender
+                          form={form}
+                          value={values.sender}
+                          onChange={setSender}
+                        />
+                      </Col>
+                    </Row>
+                    <Row spacing="mb-2w">
+                      <Col>
+                        <DraftBody
+                          body={values.body}
+                          form={form}
+                          subject={values.subject}
+                          onChange={setBody}
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col n="7" offset="5">
+                        <DraftSignature
+                          form={form}
+                          value={values.sender}
+                          onChange={setSignature}
+                        />
+                      </Col>
+                    </Row>
+                  </Container>
+                </form>
+              )
+            }
+          ]}
+        />
+      </Grid>
+    </>
   );
 }
 

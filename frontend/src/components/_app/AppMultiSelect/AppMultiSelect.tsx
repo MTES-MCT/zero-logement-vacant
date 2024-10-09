@@ -5,18 +5,18 @@ import { useOutsideClick } from '../../../hooks/useOutsideClick';
 import { SelectOption } from '../../../models/SelectOption';
 import AppMultiSelectOption from './AppMultiSelectOption';
 
-interface AppMultiSelectProps {
+interface AppMultiSelectProps<Value extends string> {
   label: string;
   defaultOption?: string;
-  options: SelectOption[];
-  initialValues: string[] | undefined;
-  onChange: (values: string[]) => void;
+  options: SelectOption<Value>[];
+  initialValues: Value[] | undefined;
+  onChange: (values: Value[]) => void;
   messageType?: string;
   message?: string;
   small?: boolean;
 }
 
-const AppMultiSelect = ({
+function AppMultiSelect<Value extends string = string>({
   label,
   defaultOption,
   options,
@@ -24,17 +24,17 @@ const AppMultiSelect = ({
   onChange,
   messageType,
   message,
-  small,
-}: AppMultiSelectProps) => {
+  small
+}: AppMultiSelectProps<Value>) {
   const wrapperRef = useRef(null);
   useOutsideClick(wrapperRef, () => setShowOptions(false));
 
   const [showOptions, setShowOptions] = useState(false);
 
-  const onChangeValue = (value: string, isChecked: boolean) => {
+  const onChangeValue = (value: Value, isChecked: boolean) => {
     onChange([
       ...(initialValues ?? []).filter((v) => v !== value),
-      ...(isChecked ? [value] : []),
+      ...(isChecked ? [value] : [])
     ]);
   };
 
@@ -63,7 +63,7 @@ const AppMultiSelect = ({
         <div className="select-multi-input" ref={wrapperRef}>
           <div
             className={classNames({
-              [`fr-select-group--${messageType}`]: messageType,
+              [`fr-select-group--${messageType}`]: messageType
             })}
           >
             <label className="fr-label" htmlFor={id}>
@@ -85,7 +85,7 @@ const AppMultiSelect = ({
           </div>
           <div
             className={classNames('select-multi-options', {
-              'select-multi-options__visible': showOptions,
+              'select-multi-options__visible': showOptions
             })}
           >
             <div data-testid={`${label.toLowerCase()}-checkbox-group`}>
@@ -95,7 +95,7 @@ const AppMultiSelect = ({
                     key: key(index),
                     checked: (initialValues ?? []).includes(option.value),
                     onChangeValue,
-                    small,
+                    small
                   }) ?? (
                     <AppMultiSelectOption
                       {...option}
@@ -104,7 +104,7 @@ const AppMultiSelect = ({
                       onChangeValue={onChangeValue}
                       small={small}
                     />
-                  ),
+                  )
               )}
             </div>
           </div>
@@ -112,6 +112,6 @@ const AppMultiSelect = ({
       )}
     </>
   );
-};
+}
 
 export default AppMultiSelect;

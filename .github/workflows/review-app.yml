@@ -90,6 +90,8 @@ jobs:
           clever env set CC_PRE_RUN_HOOK 'corepack yarn workspace $WORKSPACE migrate && corepack yarn workspace $WORKSPACE seed' -a $APP_ALIAS
           clever env set CEREMA_API "https://api.cerema.fr" -a $APP_ALIAS
           clever env set CEREMA_ENABLED "false" -a $APP_ALIAS
+          clever env set CEREMA_USERNAME "unused" -a $APP_ALIAS
+          clever env set CEREMA_PASSWORD "unused" -a $APP_ALIAS
           clever env set DATABASE_ENV "development" -a $APP_ALIAS
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
           clever env set E2E_EMAIL $E2E_EMAIL -a $APP_ALIAS

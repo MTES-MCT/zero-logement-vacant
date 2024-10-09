@@ -8,7 +8,7 @@ import { Readable } from 'node:stream';
 import { createSDK } from '@zerologementvacant/api-sdk';
 import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
 import { getAddress, replaceVariables } from '@zerologementvacant/models';
-import { createS3, slugify } from '@zerologementvacant/utils';
+import { createS3, slugify, timestamp } from '@zerologementvacant/utils';
 import { Jobs } from '../jobs';
 import config from '../config';
 import { createLogger } from '../logger';
@@ -124,11 +124,7 @@ export default function createWorker() {
 
           const finalPDF = await transformer.fromHTML(htmls);
           logger.debug('Done writing PDF');
-          const name = new Date()
-            .toISOString()
-            .substring(0, 'yyyy-mm-ddThh:mm:ss'.length)
-            .replace(/[-T:]/g, '')
-            .concat('-', slugify(campaign.title));
+          const name = timestamp().concat('-', slugify(campaign.title));
 
           const archive = archiver('zip');
           const buffer: ArrayBuffer = await api.campaign.exportCampaign(

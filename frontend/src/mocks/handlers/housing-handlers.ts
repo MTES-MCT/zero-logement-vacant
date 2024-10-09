@@ -20,19 +20,20 @@ type HousingPayload = {
 };
 
 export const housingHandlers: RequestHandler[] = [
-  http.post<Record<string, never>, HousingPayload, Paginated<HousingDTO>>(
+  http.get<Record<string, never>, HousingPayload, Paginated<HousingDTO>>(
     `${config.apiEndpoint}/api/housing`,
     async ({ request }) => {
-      // TODO: use the request payload to filter results
-      const payload = await request.json();
+      const url = new URL(request.url);
+      const queryParams = url.searchParams;
+      const filters = queryParams.get('filters') ? JSON.parse(queryParams.get('filters') as string) : null;
 
       const subset = fp.pipe(
-        filterByCampaign(payload.filters?.campaignIds),
-        filterByHousingKind(payload.filters?.housingKinds),
+        filterByCampaign(filters?.campaignIds),
+        filterByHousingKind(filters?.housingKinds),
         filterByStatus(
-          payload.filters?.status
-            ? [payload.filters.status]
-            : payload.filters?.statusList
+          filters?.status
+            ? [filters.status]
+            : filters?.statusList
         )
       )(data.housings);
 

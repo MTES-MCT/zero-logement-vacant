@@ -11,11 +11,7 @@ const config: JestConfigWithTsJest = {
   rootDir: '.',
   roots: ['<rootDir>'],
   moduleDirectories: ['node_modules', '<rootDir>'],
-  moduleNameMapper: {
-    ...pathsToModuleNameMapper(tsconfig.compilerOptions.paths),
-    '^@zerologementvacant/models/fixtures$':
-      '<rootDir>/node_modules/@zerologementvacant/models/dist/test/fixtures.js'
-  },
+  moduleNameMapper: pathsToModuleNameMapper(tsconfig.compilerOptions.paths),
   modulePathIgnorePatterns: [
     '<rootDir>/dist/',
     '<rootDir>/node_modules/',

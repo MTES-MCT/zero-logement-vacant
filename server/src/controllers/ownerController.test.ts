@@ -10,7 +10,6 @@ import {
   OwnerDTO,
   OwnerPayloadDTO
 } from '@zerologementvacant/models';
-import { genHousingOwnerDTO } from '@zerologementvacant/models/fixtures';
 import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
 import {
@@ -31,7 +30,7 @@ import {
   OwnerEventDBO,
   ownerEventsTable
 } from '~/repositories/eventRepository';
-import { OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import db from '~/infra/database';
 import {
   banAddressesTable,
@@ -309,8 +308,11 @@ describe('Owner API', () => {
       rank: number
     ): HousingOwnerPayloadDTO {
       return {
-        ...genHousingOwnerDTO(toOwnerDTO(owner)),
-        rank
+        id: owner.id,
+        rank: rank,
+        locprop: null,
+        idprocpte: null,
+        idprodroit: null
       };
     }
 

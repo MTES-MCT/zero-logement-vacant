@@ -11,11 +11,9 @@ import { Prospect } from '../src/models/Prospect';
 import { LocalityKinds } from '../src/models/Locality';
 import { Group } from '../src/models/Group';
 import { DatafoncierHousing } from '../../shared';
-import {
-  AddressKinds,
-  genAddressDTO,
-  HousingStatus
-} from '@zerologementvacant/models';
+import { AddressKinds, HousingStatus } from '@zerologementvacant/models';
+import { genAddressDTO } from '@zerologementvacant/models/fixtures';
+
 import fp from 'lodash/fp';
 
 export const genBoolean = () => Math.random() < 0.5;

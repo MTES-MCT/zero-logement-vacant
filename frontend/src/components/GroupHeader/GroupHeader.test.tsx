@@ -5,7 +5,8 @@ import { http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
 
-import { genGroupDTO, genUserDTO, GroupDTO } from '@zerologementvacant/models';
+import { GroupDTO } from '@zerologementvacant/models';
+import { genGroupDTO, genUserDTO } from '@zerologementvacant/models/fixtures';
 import GroupHeader, { DISPLAY_GROUPS } from './GroupHeader';
 import configureTestStore from '../../utils/test/storeUtils';
 import { mockAPI } from '../../mocks/mock-api';

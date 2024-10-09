@@ -1,7 +1,17 @@
 {
   "name": "@zerologementvacant/models",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./fixtures": {
+      "import": "./dist/test/fixtures.js",
+      "require": "./dist/test/fixtures.js",
+      "types": "./dist/test/fixtures.d.ts"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "build": "tsc -b tsconfig.build.json",
@@ -9,11 +19,11 @@
     "dev": "nodemon --watch src -e ts --exec 'yarn build'"
   },
   "dependencies": {
-    "@faker-js/faker": "^8.4.1",
     "@zerologementvacant/draft": "workspace:*",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@tsconfig/node20": "^20.1.4",
     "@types/geojson": "^7946.0.14",
     "@types/jest": "^29.5.13",

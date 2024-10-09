@@ -1,7 +1,12 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "moduleResolution": "bundler"
-  },
-  "exclude": ["node_modules", "dist","src/**/*.test.ts", "src/**/*.test.tsx"]
+  "exclude": [
+    "node_modules",
+    "build",
+    "src/mocks/**/*.ts",
+    "src/setupTests.ts",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "test/fixtures.test.ts"
+  ]
 }

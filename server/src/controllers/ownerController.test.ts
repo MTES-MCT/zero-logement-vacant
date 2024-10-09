@@ -6,11 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   AddressDTO,
   AddressKinds,
-  genHousingOwnerDTO,
   HousingOwnerPayloadDTO,
   OwnerDTO,
   OwnerPayloadDTO
 } from '@zerologementvacant/models';
+import { genHousingOwnerDTO } from '@zerologementvacant/models/fixtures';
 import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
 import {

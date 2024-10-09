@@ -31,6 +31,8 @@ import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 
 const logger = createLogger('housingExportController');
 
+const MAX_TITLE_LENGTH = 100;
+
 export type OwnerExportStreamApi = OwnerApi & { housingList: HousingApi[] };
 
 const exportCampaignValidators: ValidationChain[] = [
@@ -58,7 +60,9 @@ async function exportCampaign(
     throw new CampaignMissingError(params.id);
   }
 
-  const file = timestamp().concat('-', slugify(campaign.title));
+  const file = timestamp()
+    .concat('-', slugify(campaign.title))
+    .substring(0, MAX_TITLE_LENGTH);
   logger.debug('Found campaign', {
     campaign: campaign.title,
     file
@@ -117,7 +121,9 @@ async function exportGroup(request: Request, response: Response) {
     throw new GroupMissingError(params.id);
   }
 
-  const file = timestamp().concat('-', slugify(group.title));
+  const file = timestamp()
+    .concat('-', slugify(group.title))
+    .substring(0, MAX_TITLE_LENGTH);
   const workbook = excelUtils.initWorkbook(`${file}.xlsx`, response);
 
   const housingStream = housingRepository.stream({

@@ -1,6 +1,6 @@
 fileignoreconfig:
 - filename: .github/workflows/review-app.yml
-  checksum: 00550719490eeb392f0f211567c3e55b50a1512fd25218e8d8bdd349a769649a
+  checksum: f7719ba0d36160d97e80ee15cb5415b601354576929e36df0596c7d192465cfb
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
 - filename: frontend/src/components/Draft/DraftSender.tsx

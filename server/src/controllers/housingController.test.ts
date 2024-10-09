@@ -143,15 +143,12 @@ describe('Housing API', () => {
     });
 
     it('should sort housings by occupancy', async () => {
-      const housings = Object.values(OccupancyKindApi)
-        // Filter this out to avoid a collation issue with the databases
-        // that don’t use the fr_FR collation.
-        // "inconnu" will be before "L", while it should be after it
-        .filter((occupancy) => occupancy !== OccupancyKindApi.Unknown)
-        .map<HousingApi>((occupancy) => ({
+      const housings = Object.values(OccupancyKindApi).map<HousingApi>(
+        (occupancy) => ({
           ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
           occupancy
-        }));
+        })
+      );
       const owner = genOwnerApi();
       await Promise.all([
         Housing().insert(housings.map(formatHousingRecordApi)),
@@ -171,7 +168,9 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body.entities.length).toBeGreaterThan(0);
       expect(body.entities).toBeSortedBy('occupancy', {
-        descending: true
+        descending: true,
+        compare: (a: string, b: string) =>
+          a.toUpperCase().localeCompare(b.toUpperCase())
       });
     });
   });

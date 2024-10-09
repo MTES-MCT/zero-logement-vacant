@@ -25,6 +25,7 @@ import { OwnerApi } from '~/models/OwnerApi';
 import ownerRepository from '~/repositories/ownerRepository';
 import { AddressKinds } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
+import { slugify, timestamp } from '@zerologementvacant/utils';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 
@@ -35,11 +36,12 @@ export type OwnerExportStreamApi = OwnerApi & { housingList: HousingApi[] };
 const exportCampaignValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID')
 ];
-const exportCampaign = async (
+
+async function exportCampaign(
   request: Request,
   response: Response,
   next: NextFunction
-) => {
+) {
   const { auth, params } = request as AuthenticatedRequest;
 
   logger.info('Export campaign', {
@@ -56,9 +58,12 @@ const exportCampaign = async (
     throw new CampaignMissingError(params.id);
   }
 
-  logger.debug('Found campaign', { campaign: campaign.title });
-  const fileName = `${campaign.title}.xlsx`;
-  const workbook = excelUtils.initWorkbook(fileName, response);
+  const file = timestamp().concat('-', slugify(campaign.title));
+  logger.debug('Found campaign', {
+    campaign: campaign.title,
+    file
+  });
+  const workbook = excelUtils.initWorkbook(`${file}.xlsx`, response);
   const housingStream = housingRepository.stream({
     filters: {
       campaignIds: [campaign.id],
@@ -88,12 +93,12 @@ const exportCampaign = async (
       logger.info('Workbook committed');
       logger.info('Campaign exported', { campaign: campaign.id });
     });
-};
+}
 
-const exportGroup = async (request: Request, response: Response) => {
+async function exportGroup(request: Request, response: Response) {
   const { auth, params } = request as AuthenticatedRequest;
 
-  logger.info('Export group', {
+  logger.info('Exporting group...', {
     id: params.id
   });
 
@@ -108,12 +113,12 @@ const exportGroup = async (request: Request, response: Response) => {
       }
     })
   ]);
-
   if (!group) {
     throw new GroupMissingError(params.id);
   }
-  const fileName = `${group.title}.xlsx`;
-  const workbook = excelUtils.initWorkbook(fileName, response);
+
+  const file = timestamp().concat('-', slugify(group.title));
+  const workbook = excelUtils.initWorkbook(`${file}.xlsx`, response);
 
   const housingStream = housingRepository.stream({
     filters: {
@@ -143,7 +148,7 @@ const exportGroup = async (request: Request, response: Response) => {
       });
       logger.info('Exported group', { group: group.id });
     });
-};
+}
 
 const exportGroupValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID')

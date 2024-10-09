@@ -1,20 +1,26 @@
 fileignoreconfig:
 - filename: .github/workflows/review-app.yml
-  checksum: 00550719490eeb392f0f211567c3e55b50a1512fd25218e8d8bdd349a769649a
+  checksum: f7719ba0d36160d97e80ee15cb5415b601354576929e36df0596c7d192465cfb
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
+- filename: frontend/src/components/Draft/DraftSender.tsx
+  checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: frontend/src/index.tsx
   checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
 - filename: server/.env.example
   checksum: 4955533b2ba29ebc4a052e65ce2aab5b911ebf8e4b4eeecff50b5e83d1857c35
-- filename: frontend/src/components/Draft/DraftSender.tsx
-  checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
 - filename: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
-- filename: frontend/src/index.tsx
-  checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
+scopeconfig:
+- scope: node
+allowed_patterns:
+- keyof
+- \[key\]
+- key=
+version: "1.0"
+7a4a8a18e745712b39198d93a5
 scopeconfig:
 - scope: node
 allowed_patterns:

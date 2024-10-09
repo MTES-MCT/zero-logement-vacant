@@ -40,8 +40,6 @@ import {
 import {
   EnergyConsumptionGradesApi,
   HousingApi,
-  INTERNAL_CO_CONDOMINIUM_VALUES,
-  INTERNAL_MONO_CONDOMINIUM_VALUES,
   OccupancyKindApi
 } from '~/models/HousingApi';
 import { formatLocalityApi, Localities } from '../localityRepository';
@@ -69,6 +67,8 @@ import {
   AddressKinds,
   BENEFIARY_COUNT_VALUES,
   HOUSING_KIND_VALUES,
+  INTERNAL_CO_CONDOMINIUM_VALUES,
+  INTERNAL_MONO_CONDOMINIUM_VALUES,
   isSecondaryOwner,
   OwnershipKind,
   ROOM_COUNT_VALUES

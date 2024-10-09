@@ -81,7 +81,7 @@ function AccountEmailCreationView() {
         whenValid="Email valide."
         placeholder="example@gmail.com"
         label="Adresse email (obligatoire)"
-        hintText="Veuillez renseigner l’adresse utilisée sur Démarches Simplifiées pour transmettre l’acte d'engagement."
+        hintText="L’adresse mail doit être autorisée à accéder aux données LOVAC sur le "
         required
       />
       <Row alignItems="middle" className="justify-space-between">

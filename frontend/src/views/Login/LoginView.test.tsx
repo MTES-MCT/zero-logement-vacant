@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
-import { genUserDTO } from '@zerologementvacant/models';
+import { genUserDTO } from '@zerologementvacant/models/fixtures';
 import { store } from '../../store/store';
 import LoginView from './LoginView';
 import data from '../../mocks/handlers/data';

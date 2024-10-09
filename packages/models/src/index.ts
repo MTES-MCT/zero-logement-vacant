@@ -1,4 +1,3 @@
-export * from './test/fixtures';
 export * from './AddressDTO';
 export * from './BeneficiaryCount';
 export * from './BuildingPeriod';

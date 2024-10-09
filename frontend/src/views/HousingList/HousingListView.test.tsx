@@ -7,12 +7,13 @@ import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
+import { HousingKind } from '@zerologementvacant/models';
 import {
   genDatafoncierHousingDTO,
   genGroupDTO,
-  genUserDTO,
-  HousingKind
-} from '@zerologementvacant/models';
+  genUserDTO
+} from '@zerologementvacant/models/fixtures';
+
 import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import configureTestStore from '../../utils/test/storeUtils';

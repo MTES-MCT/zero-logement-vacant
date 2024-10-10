@@ -2,7 +2,7 @@ import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
 
-import { AddressKinds } from '@zerologementvacant/shared';
+import { AddressKinds } from '@zerologementvacant/models';
 import db, {
   ConflictOptions,
   groupBy,
@@ -519,26 +519,32 @@ export interface OwnerDBO extends OwnerRecordDBO {
 
 export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
   const birthDate = owner.birth_date ? new Date(owner.birth_date) : undefined;
-  const birthDateStr = birthDate && !isNaN(birthDate.getTime())
-    ? birthDate.toISOString().split('T')[0]
-    : undefined;
+  const birthDateStr =
+    birthDate && !isNaN(birthDate.getTime())
+      ? birthDate.toISOString().split('T')[0]
+      : undefined;
   return {
-  id: owner.id,
-  idpersonne: owner.idpersonne ?? undefined,
-  rawAddress: owner.address_dgfip,
-  fullName: owner.full_name,
-  administrator: owner.administrator ?? undefined,
-  birthDate: birthDateStr,
-  email: owner.email ?? undefined,
-  phone: owner.phone ?? undefined,
-  kind: owner.kind_class ?? undefined,
-  kindDetail: owner.owner_kind_detail ?? undefined,
-  siren: owner.siren ?? undefined,
-  banAddress: owner.ban ? parseAddressApi(owner.ban) : undefined,
-  additionalAddress: owner.additional_address ?? undefined,
-  createdAt: owner.created_at ? new Date(owner.created_at).toJSON() : undefined,
-  updatedAt: owner.updated_at ? new Date(owner.updated_at).toJSON() : undefined
-};};
+    id: owner.id,
+    idpersonne: owner.idpersonne ?? undefined,
+    rawAddress: owner.address_dgfip,
+    fullName: owner.full_name,
+    administrator: owner.administrator ?? undefined,
+    birthDate: birthDateStr,
+    email: owner.email ?? undefined,
+    phone: owner.phone ?? undefined,
+    kind: owner.kind_class ?? undefined,
+    kindDetail: owner.owner_kind_detail ?? undefined,
+    siren: owner.siren ?? undefined,
+    banAddress: owner.ban ? parseAddressApi(owner.ban) : undefined,
+    additionalAddress: owner.additional_address ?? undefined,
+    createdAt: owner.created_at
+      ? new Date(owner.created_at).toJSON()
+      : undefined,
+    updatedAt: owner.updated_at
+      ? new Date(owner.updated_at).toJSON()
+      : undefined
+  };
+};
 
 export const parseHousingOwnerApi = (
   housingOwner: OwnerDBO & HousingOwnerDBO

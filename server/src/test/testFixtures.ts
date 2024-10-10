@@ -7,7 +7,7 @@ import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 
-import { genGeoCode } from '@zerologementvacant/utils';
+import { firstDefined, genGeoCode } from '@zerologementvacant/utils';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
@@ -48,18 +48,6 @@ import {
   HousingEventApi,
   OwnerEventApi
 } from '~/models/EventApi';
-import {
-  AddressKinds,
-  DatafoncierHousing,
-  ESTABLISHMENT_KINDS,
-  EstablishmentKind,
-  EventCategories,
-  EventKinds,
-  EventSections,
-  firstDefined,
-  HOUSING_SOURCES,
-  UserAccountDTO
-} from '@zerologementvacant/shared';
 import { GroupApi } from '~/models/GroupApi';
 import { DatafoncierOwner } from '~/scripts/shared';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -76,9 +64,17 @@ import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { SenderApi } from '~/models/SenderApi';
 import { DraftApi } from '~/models/DraftApi';
 import {
+  AddressKinds,
+  DatafoncierHousing,
+  ESTABLISHMENT_KIND_VALUES,
+  EVENT_CATEGORY_VALUES,
+  EVENT_KIND_VALUES,
+  EVENT_SECTION_VALUES,
   HOUSING_KIND_VALUES,
+  HOUSING_SOURCE_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
-  INTERNAL_MONO_CONDOMINIUM_VALUES
+  INTERNAL_MONO_CONDOMINIUM_VALUES,
+  UserAccountDTO
 } from '@zerologementvacant/models';
 
 export { genGeoCode } from '@zerologementvacant/utils';
@@ -140,7 +136,7 @@ export const genEstablishmentApi = (
     campaignIntent,
     available: true,
     priority: hasPriority({ campaignIntent }) ? 'high' : 'standard',
-    kind: oneOf<EstablishmentKind>(ESTABLISHMENT_KINDS),
+    kind: faker.helpers.arrayElement(ESTABLISHMENT_KIND_VALUES),
     source: 'seed'
   };
 };
@@ -372,7 +368,7 @@ export const genHousingApi = (
     buildingVacancyRate: faker.number.float(),
     campaignIds: [],
     contactCount: genNumber(1),
-    source: faker.helpers.arrayElement(HOUSING_SOURCES),
+    source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
     mutationDate: faker.date.past({ years: 20 })
   };
 };
@@ -481,9 +477,9 @@ function genEventApi<T>(creator: UserApi): EventApi<T> {
   return {
     id: uuidv4(),
     name: randomstring.generate(),
-    kind: oneOf(EventKinds),
-    category: oneOf(EventCategories),
-    section: oneOf(EventSections),
+    kind: faker.helpers.arrayElement(EVENT_KIND_VALUES),
+    category: faker.helpers.arrayElement(EVENT_CATEGORY_VALUES),
+    section: faker.helpers.arrayElement(EVENT_SECTION_VALUES),
     conflict: genBoolean(),
     createdAt: new Date(),
     createdBy: creator.id,

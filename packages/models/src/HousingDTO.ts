@@ -48,17 +48,10 @@ export interface HousingCountDTO {
   owners: number;
 }
 
-export interface HousingPayloadDTO {
-  localId: string;
-}
-
-export type HousingSource =
-  | 'lovac'
-  | 'datafoncier-manual'
-  | 'datafoncier-import';
-
-export const HOUSING_SOURCES: HousingSource[] = [
+export const HOUSING_SOURCE_VALUES = [
   'lovac',
   'datafoncier-manual',
   'datafoncier-import'
-];
+] as const;
+
+export type HousingSource = (typeof HOUSING_SOURCE_VALUES)[number];

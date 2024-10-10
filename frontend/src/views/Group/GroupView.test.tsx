@@ -5,12 +5,13 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
+import { GroupDTO } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
   genGroupDTO,
-  genUserDTO,
-  GroupDTO
-} from '@zerologementvacant/models';
+  genUserDTO
+} from '@zerologementvacant/models/fixtures';
+
 import data from '../../mocks/handlers/data';
 import configureTestStore from '../../utils/test/storeUtils';
 import GroupView from './GroupView';

@@ -2,7 +2,7 @@ import highland from 'highland';
 
 import { logger } from '~/infra/logger';
 import db from '~/infra/database';
-import { DatafoncierHousing } from '@zerologementvacant/shared';
+import { DatafoncierHousing } from '@zerologementvacant/models';
 import Stream = Highland.Stream;
 
 const FIELDS = ['*'];

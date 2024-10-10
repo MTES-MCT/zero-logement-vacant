@@ -5,7 +5,7 @@ import { tapAsync, toHousingRecordApi } from '../shared';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import housingRepository from '~/repositories/housingRepository';
 import { logger } from '~/infra/logger';
-import { DatafoncierHousing } from '@zerologementvacant/shared';
+import { DatafoncierHousing } from '@zerologementvacant/models';
 
 export function housingImporter(): Stream<HousingRecordApi> {
   return createDatafoncierHousingRepository()
@@ -18,11 +18,11 @@ export function housingImporter(): Stream<HousingRecordApi> {
 }
 
 export async function processHousing(
-  datafoncierHousing: DatafoncierHousing,
+  datafoncierHousing: DatafoncierHousing
 ): Promise<void> {
   await housingRepository.save(
     toHousingRecordApi({ source: 'datafoncier-import' }, datafoncierHousing),
-    { onConflict: 'ignore' },
+    { onConflict: 'ignore' }
   );
 }
 

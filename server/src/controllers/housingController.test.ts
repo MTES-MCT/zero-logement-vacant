@@ -14,6 +14,7 @@ import {
   genDatafoncierOwner,
   genEstablishmentApi,
   genHousingApi,
+  genOwnerApi,
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
@@ -142,6 +143,22 @@ describe('Housing API', () => {
     });
 
     it('should sort housings by occupancy', async () => {
+      const housings = Object.values(OccupancyKindApi).map<HousingApi>(
+        (occupancy) => ({
+          ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+          occupancy
+        })
+      );
+      const owner = genOwnerApi();
+      await Promise.all([
+        Housing().insert(housings.map(formatHousingRecordApi)),
+        Owners().insert(formatOwnerApi(owner))
+      ]);
+      const housingOwners = housings.flatMap((housing) =>
+        formatHousingOwnersApi(housing, [owner])
+      );
+      await HousingOwners().insert(housingOwners);
+
       const { body, status } = await request(app)
         .get(testRoute)
         .query('sort=-occupancy')
@@ -149,8 +166,11 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.entities.length).toBeGreaterThan(0);
       expect(body.entities).toBeSortedBy('occupancy', {
-        descending: true
+        descending: true,
+        compare: (a: string, b: string) =>
+          a.toUpperCase().localeCompare(b.toUpperCase())
       });
     });
   });

@@ -7,6 +7,13 @@ import {
   DatafoncierHousing,
   DraftDTO,
   EventDTO,
+  GroupDTO,
+  HousingDTO,
+  NoteDTO,
+  OwnerDTO,
+  UserDTO
+} from '@zerologementvacant/models';
+import {
   genCampaignDTO,
   genDatafoncierHousingDTO,
   genDraftDTO,
@@ -14,13 +21,8 @@ import {
   genHousingDTO,
   genOwnerDTO,
   genSenderDTO,
-  genUserDTO,
-  GroupDTO,
-  HousingDTO,
-  NoteDTO,
-  OwnerDTO,
-  UserDTO
-} from '@zerologementvacant/models';
+  genUserDTO
+} from '@zerologementvacant/models/fixtures';
 
 const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
 

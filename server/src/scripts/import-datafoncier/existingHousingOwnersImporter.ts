@@ -10,13 +10,13 @@ import {
   equals,
   HousingOwnerApi,
   MAX_OWNERS,
-  toHousingOwnersApi,
+  toHousingOwnersApi
 } from '~/models/HousingOwnerApi';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import { HousingOwnerConflictApi } from '~/models/ConflictApi';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
-import { isNotNull } from '@zerologementvacant/shared';
+import { isNotNull } from '@zerologementvacant/utils';
 import housingOwnerConflictRepository from '~/repositories/conflict/housingOwnerConflictRepository';
 import Stream = Highland.Stream;
 
@@ -25,7 +25,7 @@ let totalHousingOwnersCount = 0;
 let progressBar: SingleBar;
 
 export async function existingHousingOwnersImporter(
-  progressBarHousingOwners: SingleBar,
+  progressBarHousingOwners: SingleBar
 ): Promise<Stream<HousingApi>> {
   logger.info('Importing housing owners...');
 
@@ -39,7 +39,7 @@ export async function existingHousingOwnersImporter(
   return housingRepository
     .stream({
       filters: {},
-      includes: ['owner'],
+      includes: ['owner']
     })
     .consume(tapAsync(processHousing))
     .errors((error) => {
@@ -58,11 +58,11 @@ export async function processHousing(housing: HousingApi): Promise<void> {
 
   const datafoncierHousing = await datafoncierHousingRepository.findOne({
     idlocal: housing.localId,
-    ccthp: 'L',
+    ccthp: 'L'
   });
   if (!datafoncierHousing) {
     logger.debug(
-      `No datafoncier housing found for idlocal ${housing.localId}. Skipping...`,
+      `No datafoncier housing found for idlocal ${housing.localId}. Skipping...`
     );
     return;
   }
@@ -71,14 +71,14 @@ export async function processHousing(housing: HousingApi): Promise<void> {
   const [datafoncierOwners, housingOwners] = await Promise.all([
     datafoncierOwnersRepository.find({
       filters: {
-        idprocpte: datafoncierHousing.idprocpte,
-      },
+        idprocpte: datafoncierHousing.idprocpte
+      }
     }),
-    ownerRepository.findByHousing(housing),
+    ownerRepository.findByHousing(housing)
   ]);
   const datafoncierHousingOwners: HousingOwnerApi[] = toHousingOwnersApi(
     housing,
-    datafoncierOwners,
+    datafoncierOwners
   );
 
   // This is a new housing that had no owner yet
@@ -101,7 +101,7 @@ export async function processHousing(housing: HousingApi): Promise<void> {
           housingId: housing.id,
           housingGeoCode: housing.geoCode,
           existing: housingOwner,
-          replacement: datafoncierHousingOwner,
+          replacement: datafoncierHousingOwner
         };
         return conflict;
       }

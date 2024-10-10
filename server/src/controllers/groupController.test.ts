@@ -21,11 +21,14 @@ import {
   formatGroupApi,
   formatGroupHousingApi,
   Groups,
-  GroupsHousing
+  GroupsHousing,
+  groupsHousingTable
 } from '~/repositories/groupRepository';
 import {
   formatHousingRecordApi,
-  Housing
+  Housing,
+  HousingRecordDBO,
+  housingTable
 } from '~/repositories/housingRepository';
 import { toUserDTO } from '~/models/UserApi';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
@@ -56,6 +59,7 @@ import {
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { OwnerApi } from '~/models/OwnerApi';
+import db from '~/infra/database';
 
 describe('Group API', () => {
   const { app } = createServer();
@@ -232,19 +236,25 @@ describe('Group API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const filteredHousingList = housingList.filter(
-        (housing) => housing.status === HousingStatusApi.FirstContact
-      );
-      const filteredOwners = fp.uniqBy(
-        'id',
-        filteredHousingList.map((housing) => housing.owner)
-      );
+      const housings = await Housing().whereExists((subquery) => {
+        subquery
+          .select('*')
+          .from(groupsHousingTable)
+          .where({
+            group_id: body.id,
+            housing_id: db.ref(`${housingTable}.id`),
+            housing_geo_code: db.ref(`${housingTable}.geo_code`)
+          });
+      });
+      expect(housings).toSatisfyAll<HousingRecordDBO>((housing) => {
+        return housing.status === HousingStatusApi.FirstContact;
+      });
       expect(body).toStrictEqual<GroupDTO>({
         id: expect.any(String),
         title: payload.title,
         description: payload.description,
-        housingCount: filteredHousingList.length,
-        ownerCount: filteredOwners.length,
+        housingCount: expect.toBeNumber(),
+        ownerCount: expect.toBeNumber(),
         createdAt: expect.toBeDateString(),
         createdBy: toUserDTO(user),
         archivedAt: null

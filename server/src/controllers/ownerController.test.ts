@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   AddressDTO,
   AddressKinds,
-  genHousingOwnerDTO,
   HousingOwnerPayloadDTO,
   OwnerDTO,
   OwnerPayloadDTO
@@ -31,7 +30,7 @@ import {
   OwnerEventDBO,
   ownerEventsTable
 } from '~/repositories/eventRepository';
-import { OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import db from '~/infra/database';
 import {
   banAddressesTable,
@@ -309,8 +308,11 @@ describe('Owner API', () => {
       rank: number
     ): HousingOwnerPayloadDTO {
       return {
-        ...genHousingOwnerDTO(toOwnerDTO(owner)),
-        rank
+        id: owner.id,
+        rank: rank,
+        locprop: null,
+        idprocpte: null,
+        idprodroit: null
       };
     }
 

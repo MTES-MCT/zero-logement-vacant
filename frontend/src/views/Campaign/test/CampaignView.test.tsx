@@ -11,15 +11,18 @@ import Notification from '../../../components/Notification/Notification';
 import {
   CampaignDTO,
   DraftDTO,
-  genCampaignDTO,
-  genDraftDTO,
-  genHousingDTO,
-  genOwnerDTO,
-  genSenderDTO,
   HousingDTO,
   OwnerDTO,
   SenderDTO
 } from '@zerologementvacant/models';
+import {
+  genCampaignDTO,
+  genDraftDTO,
+  genHousingDTO,
+  genOwnerDTO,
+  genSenderDTO
+} from '@zerologementvacant/models/fixtures';
+
 import data from '../../../mocks/handlers/data';
 import { sources } from '../../../../test/event-source-mock';
 import config from '../../../utils/config';
@@ -96,7 +99,9 @@ describe('Campaign view', () => {
 
     renderComponent();
 
-    const rename = await screen.findByRole('button', { name: /^Modifier le nom/ });
+    const rename = await screen.findByRole('button', {
+      name: /^Modifier le nom/
+    });
     await user.click(rename);
     const modal = await screen.findByRole('dialog');
     const input = within(modal).getByRole('textbox', {

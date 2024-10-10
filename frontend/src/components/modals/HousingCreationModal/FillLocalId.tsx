@@ -1,11 +1,11 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Unstable_Grid2';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import * as yup from 'yup';
-
-import { Col, Row, Text } from '../../_dsfr';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../../hooks/useForm';
 import { unwrapError } from '../../../store/store';
-import Alert from '@codegouvfr/react-dsfr/Alert';
 import { datafoncierApi } from '../../../services/datafoncier.service';
 import { housingApi } from '../../../services/housing.service';
 import { useAppDispatch } from '../../../hooks/useStore';
@@ -20,11 +20,11 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
   const shape = {
     localId: yup
       .string()
-      .required('Veuillez renseigner un identifiant pour ce logement'),
+      .required('Veuillez renseigner un identifiant pour ce logement')
   };
   type FormShape = typeof shape;
   const form = useForm(yup.object().shape(shape), {
-    localId,
+    localId
   });
 
   const [getHousing, getHousingQuery] = housingApi.useLazyGetHousingQuery();
@@ -52,21 +52,48 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
               if (housing) {
                 throw new Error('HousingExistsError');
               }
-            }),
+            })
         ]);
         dispatch(changeCreator({ localId }));
         return 'review-housing';
       } catch (error) {
         return null;
       }
-    },
+    }
   }));
+
+  function inputState(): { state: string; stateRelatedMessage?: string } {
+    if (housing) {
+      return {
+        state: 'error',
+        stateRelatedMessage: 'Ce logement existe déjà dans votre parc'
+      };
+    }
+
+    if (
+      unwrapError(getDatafoncierHousingQuery.error)?.name ===
+      'HousingMissingError'
+    ) {
+      return {
+        state: 'error',
+        stateRelatedMessage:
+          'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement.'
+      };
+    }
+
+    return {
+      state: 'default',
+      stateRelatedMessage: undefined
+    };
+  }
+
+  const { state, stateRelatedMessage } = inputState();
 
   return (
     <>
-      <Text size="lg" spacing="mb-2w">
+      <Typography sx={{ fontSize: '1.125rem', mb: 2 }}>
         Saisissez l’identifiant du logement à ajouter.
-      </Text>
+      </Typography>
       <Alert
         className="fr-mb-2w"
         severity="info"
@@ -101,34 +128,21 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
         }
       />
       <form id="housing-creation-form" onSubmit={(e) => e.preventDefault()}>
-        <Row>
-          <Col n="6">
+        <Grid container>
+          <Grid xs={8}>
             <AppTextInput<FormShape>
               inputForm={form}
               inputKey="localId"
               label="Identifiant du logement (obligatoire)"
               required
               value={localId}
-              state={housing ? 'error' : 'default'}
-              stateRelatedMessage={
-                housing ? 'Ce logement existe déjà dans votre parc' : undefined
-              }
+              state={state}
+              stateRelatedMessage={stateRelatedMessage}
               onChange={(e) => setLocalId(e.target.value)}
             />
-          </Col>
-        </Row>
+          </Grid>
+        </Grid>
       </form>
-
-      {unwrapError(getDatafoncierHousingQuery.error)?.name ===
-        'HousingMissingError' && (
-        <Alert
-          severity="error"
-          className="fr-mt-2w"
-          title="Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies."
-          description="Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement."
-          closable
-        />
-      )}
     </>
   );
 });
@@ -137,7 +151,7 @@ FillLocalId.displayName = 'FillLocalId';
 
 const step: Step = {
   id: 'fill-local-id',
-  Component: FillLocalId,
+  Component: FillLocalId
 };
 
 export default step;

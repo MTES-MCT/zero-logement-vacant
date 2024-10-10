@@ -17,9 +17,13 @@ export const datafoncierHandlers: RequestHandler[] = [
         (housing) => housing.idlocal === params.localId
       );
       if (!housing) {
-        return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        });
+        throw HttpResponse.json(
+          {
+            name: 'HousingMissingError',
+            message: `Housing ${params.localId} missing`
+          },
+          { status: constants.HTTP_STATUS_NOT_FOUND }
+        );
       }
 
       return HttpResponse.json(housing);

@@ -7,7 +7,6 @@ import { SortOptions, toQuery } from '../models/Sort';
 import { AbortOptions, getURLQuery } from '../utils/fetchUtils';
 import {
   HousingFiltersDTO,
-  HousingPayloadDTO,
   PaginationOptions
 } from '@zerologementvacant/models';
 import { parseOwner } from './owner.service';
@@ -94,7 +93,8 @@ export const housingApi = zlvApi.injectEndpoints({
         }
       ]
     }),
-    createHousing: builder.mutation<Housing, HousingPayloadDTO>({
+    // TODO: fix this any type
+    createHousing: builder.mutation<Housing, any>({
       query: (payload) => ({
         url: 'housing/creation',
         method: 'POST',

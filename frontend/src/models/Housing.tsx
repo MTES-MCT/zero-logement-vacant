@@ -265,6 +265,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
   return {
     id: housing.id,
     localId: housing.localId,
+    invariant: housing.invariant,
     rawAddress: housing.rawAddress,
     geoCode: housing.geoCode,
     longitude: housing.longitude,

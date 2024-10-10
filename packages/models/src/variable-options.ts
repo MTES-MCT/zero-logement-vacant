@@ -2,6 +2,7 @@ export type VariableOption =
   | '{{owner.fullName}}'
   | '{{housing.rawAddress}}'
   | '{{housing.localId}}'
+  | '{{housing.invariant}}'
   | '{{housing.cadastralReference}}'
   | '{{housing.housingKind}}'
   | '{{housing.livingArea}}'
@@ -13,6 +14,7 @@ const VARIABLES_OPTIONS: VariableOption[] = [
   '{{owner.fullName}}',
   '{{housing.rawAddress}}',
   '{{housing.localId}}',
+  '{{housing.invariant}}',
   '{{housing.cadastralReference}}',
   '{{housing.housingKind}}',
   '{{housing.livingArea}}',
@@ -32,6 +34,7 @@ interface Replacement {
   housing: {
     rawAddress?: string[];
     localId?: string;
+    invariant?: string;
     cadastralReference?: string;
     housingKind?: string;
     livingArea?: number;
@@ -52,6 +55,7 @@ export function replaceVariables(
       replacement.housing.rawAddress?.join(', ') ?? '',
     )
     .replaceAll('{{housing.localId}}', replacement.housing.localId ?? '')
+    .replaceAll('{{housing.invariant}}', replacement.housing.invariant ?? '')
     .replaceAll(
       '{{housing.cadastralReference}}',
       replacement.housing.cadastralReference ?? '',

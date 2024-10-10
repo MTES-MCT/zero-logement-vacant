@@ -121,7 +121,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
               target="_blank"
               rel="noreferrer"
             >
-              l’invariant fiscal
+              l’identifiant fiscal national
             </a>
             &nbsp;du logement, dans cet ordre-là.
           </>
@@ -133,7 +133,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
             <AppTextInput<FormShape>
               inputForm={form}
               inputKey="localId"
-              label="Identifiant du logement (obligatoire)"
+              label="Identifiant fiscal national (obligatoire)"
               required
               value={localId}
               state={state}

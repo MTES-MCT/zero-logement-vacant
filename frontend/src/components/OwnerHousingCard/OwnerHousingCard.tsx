@@ -50,7 +50,7 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
         <div className={styles.content}>
           <div>
             <Text size="sm" className="zlv-label">
-              Invariant fiscal
+              Identifiant fiscal départemental
             </Text>
             <Text className="fr-mb-0">{housing.invariant}</Text>
           </div>

@@ -39,7 +39,6 @@ function AccountAccessForbiddenView() {
               portail Données Foncières du Cerema
             </AppLink>
              et effectuez une demande de rattachement à votre structure. C'est la personne gestionnaire de la structure qui pourra valider votre demande de rattachement via ce même portail.
-            </AppLink>
           </Text>
         </Accordion>
         <Accordion label="Votre mail est rattaché à la structure mais vous n'avez pas créé votre propre compte utilisateur sur le portail Données Foncières">

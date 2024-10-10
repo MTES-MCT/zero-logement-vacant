@@ -7,7 +7,11 @@ import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
-import { HousingDTO, HousingKind } from '@zerologementvacant/models';
+import {
+  DatafoncierHousing,
+  HousingDTO,
+  HousingKind
+} from '@zerologementvacant/models';
 import {
   genDatafoncierHousingDTO,
   genGroupDTO,
@@ -96,8 +100,12 @@ describe('Housing list view', () => {
   });
 
   describe('Add a housing', () => {
-    const datafoncierHousing = genDatafoncierHousingDTO();
-    data.datafoncierHousings.push(datafoncierHousing);
+    let datafoncierHousing: DatafoncierHousing;
+
+    beforeEach(() => {
+      datafoncierHousing = genDatafoncierHousingDTO();
+      data.datafoncierHousings.push(datafoncierHousing);
+    });
 
     it('should fail if the housing was not found in datafoncier', async () => {
       const localId = randomstring.generate(12);
@@ -171,7 +179,7 @@ describe('Housing list view', () => {
       expect(alert).toBeVisible();
     });
 
-    it('should success otherwise', async () => {
+    it('should succeed otherwise', async () => {
       render(
         <Provider store={store}>
           <Router>

@@ -6,8 +6,13 @@ import {
   HousingCountDTO,
   HousingDTO,
   HousingFiltersDTO,
+  HousingPayloadDTO,
   Paginated
 } from '@zerologementvacant/models';
+import {
+  genHousingDTO,
+  genOwnerDTO
+} from '@zerologementvacant/models/fixtures';
 import data from './data';
 import config from '../../utils/config';
 
@@ -25,16 +30,14 @@ export const housingHandlers: RequestHandler[] = [
     async ({ request }) => {
       const url = new URL(request.url);
       const queryParams = url.searchParams;
-      const filters = queryParams.get('filters') ? JSON.parse(queryParams.get('filters') as string) : null;
+      const filters = queryParams.get('filters')
+        ? JSON.parse(queryParams.get('filters') as string)
+        : null;
 
       const subset = fp.pipe(
         filterByCampaign(filters?.campaignIds),
         filterByHousingKind(filters?.housingKinds),
-        filterByStatus(
-          filters?.status
-            ? [filters.status]
-            : filters?.statusList
-        )
+        filterByStatus(filters?.status ? [filters.status] : filters?.statusList)
       )(data.housings);
 
       return HttpResponse.json({
@@ -72,14 +75,63 @@ export const housingHandlers: RequestHandler[] = [
       });
     }
   ),
+
+  // Add a housing
+  http.post<never, HousingPayloadDTO, HousingDTO>(
+    `${config.apiEndpoint}/api/housing/creation`,
+    async ({ request }) => {
+      const payload = await request.json();
+      const datafoncierHousing = data.datafoncierHousings.find(
+        (datafoncierHousing) => datafoncierHousing.idlocal === payload.localId
+      );
+      if (!datafoncierHousing) {
+        throw HttpResponse.json(
+          {
+            name: 'HousingMissingError',
+            message: `Housing ${payload.localId} missing`
+          },
+          { status: constants.HTTP_STATUS_NOT_FOUND }
+        );
+      }
+
+      const owner = genOwnerDTO();
+      const housing: HousingDTO = {
+        ...genHousingDTO(owner),
+        localId: datafoncierHousing.idlocal,
+        geoCode: datafoncierHousing.idcom,
+        source: 'datafoncier-manual'
+      };
+      data.housings.push(housing);
+      data.owners.push(owner);
+      data.housingOwners.set(housing.id, [
+        {
+          id: owner.id,
+          rank: 1,
+          locprop: null,
+          idprocpte: null,
+          idprodroit: null
+        }
+      ]);
+      return HttpResponse.json(housing, {
+        status: constants.HTTP_STATUS_CREATED
+      });
+    }
+  ),
+
   http.get<HousingParams, never, HousingDTO | null>(
     `${config.apiEndpoint}/api/housing/:id`,
     ({ params }) => {
-      const housing = data.housings.find((housing) => housing.id === params.id);
+      const housing = data.housings.find((housing) =>
+        [housing.id, housing.localId].includes(params.id)
+      );
       if (!housing) {
-        throw HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        });
+        throw HttpResponse.json(
+          {
+            name: 'HousingMissingError',
+            message: `Housing ${params.id} missing`
+          },
+          { status: constants.HTTP_STATUS_NOT_FOUND }
+        );
       }
 
       const mainHousingOwner = data.housingOwners

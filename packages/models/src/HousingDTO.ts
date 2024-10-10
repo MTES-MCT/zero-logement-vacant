@@ -42,6 +42,8 @@ export interface HousingDTO {
   owner: OwnerDTO;
 }
 
+export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;
+
 export interface HousingCountDTO {
   housing: number;
   owners: number;

@@ -93,12 +93,68 @@ describe('Housing list view', () => {
     expect(createCampaign).toBeVisible();
   });
 
-  // TODO: should be resolved by the relevant bug story
-  describe.skip('If the user does not know the local id', () => {
+  describe('Add a housing', () => {
     const datafoncierHousing = genDatafoncierHousingDTO();
     data.datafoncierHousings.push(datafoncierHousing);
 
-    it('should add a housing', async () => {
+    it('should fail if the housing was not found in datafoncier', async () => {
+      const localId = randomstring.generate(12);
+
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const button = screen.getByText('Ajouter un logement', {
+        selector: 'button'
+      });
+      await user.click(button);
+      const modal = await screen.findByRole('dialog');
+      const input = await within(modal).findByLabelText(
+        /^Identifiant du logement/
+      );
+      await user.type(input, localId);
+      await user.click(
+        within(modal).getByRole('button', { name: /^Confirmer/ })
+      );
+      const error = await within(modal).findByText(
+        'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement.'
+      );
+      expect(error).toBeVisible();
+    });
+
+    it('should fail if the housing already exists in our database', async () => {
+      const localId = data.housings[0].localId;
+      expect(localId).toBeDefined();
+
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const button = screen.getByText('Ajouter un logement', {
+        selector: 'button'
+      });
+      await user.click(button);
+      const modal = await screen.findByRole('dialog');
+      const input = await within(modal).findByLabelText(
+        /^Identifiant du logement/
+      );
+      await user.type(input, datafoncierHousing.idlocal);
+      await user.click(within(modal).getByText('Confirmer'));
+      const alert = await within(modal).findByText(
+        'Ce logement existe déjà dans votre parc'
+      );
+      expect(alert).toBeVisible();
+    });
+
+    it('should success otherwise', async () => {
       render(
         <Provider store={store}>
           <Router>
@@ -129,63 +185,6 @@ describe('Housing list view', () => {
       expect(modal).not.toBeVisible();
       const alert = await screen.findByText(
         'Le logement sélectionné a bien été ajouté à votre parc de logements.'
-      );
-      expect(alert).toBeVisible();
-    });
-
-    it('should fail if the housing was not found in datafoncier', async () => {
-      const localId = randomstring.generate(12);
-
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
-
-      const button = screen.getByText('Ajouter un logement', {
-        selector: 'button'
-      });
-      await user.click(button);
-      const modal = await screen.findByRole('dialog');
-      const input = await within(modal).findByLabelText(
-        /^Identifiant du logement/
-      );
-      await user.type(input, localId);
-      await user.click(
-        within(modal).getByRole('button', { name: /^Confirmer/ })
-      );
-      const alert = await within(modal).findByText(
-        'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies.'
-      );
-      expect(alert).toBeVisible();
-    });
-
-    it('should fail if the housing already exists in our database', async () => {
-      const localId = data.housings[0].localId;
-      expect(localId).toBeDefined();
-
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
-
-      const button = screen.getByText('Ajouter un logement', {
-        selector: 'button'
-      });
-      await user.click(button);
-      const modal = await screen.findByRole('dialog');
-      const input = await within(modal).findByLabelText(
-        /^Identifiant du logement/
-      );
-      await user.type(input, datafoncierHousing.idlocal);
-      await user.click(within(modal).getByText('Confirmer'));
-      const alert = await within(modal).findByText(
-        'Ce logement existe déjà dans votre parc'
       );
       expect(alert).toBeVisible();
     });

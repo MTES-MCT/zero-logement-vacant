@@ -28,7 +28,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
   });
 
   const [getHousing, getHousingQuery] = housingApi.useLazyGetHousingQuery();
-  const { data: housing } = getHousingQuery;
+  const { currentData: housing } = getHousingQuery;
   const [getDatafoncierHousing, getDatafoncierHousingQuery] =
     datafoncierApi.useLazyFindOneHousingQuery();
 

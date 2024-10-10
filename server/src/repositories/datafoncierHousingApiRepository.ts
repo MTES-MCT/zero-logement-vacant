@@ -1,7 +1,8 @@
 import { logger } from '~/infra/logger';
 import config from '~/infra/config';
-import { createQuery, DatafoncierHousing } from '@zerologementvacant/shared';
+import { DatafoncierHousing } from '@zerologementvacant/models';
 import { DatafoncierResultDTO } from '~/models/DatafoncierResultDTO';
+import { createQuery } from '@zerologementvacant/utils';
 
 const API = config.datafoncier.api;
 
@@ -20,12 +21,12 @@ const find = async (opts: FindOptions): Promise<DatafoncierHousing[]> => {
   const query = createQuery({
     fields: 'all',
     dteloc: '1,2',
-    code_insee: opts.filters.geoCode,
+    code_insee: opts.filters.geoCode
   });
   const response = await fetch(`${API}/ff/locaux${query}`, {
     headers: {
-      Authorization: `Token ${config.datafoncier.token}`,
-    },
+      Authorization: `Token ${config.datafoncier.token}`
+    }
   });
   if (!response.ok) {
     logger.error('Cannot fetch datafoncier housing', response.statusText);
@@ -42,14 +43,14 @@ interface FindOneOptions {
 }
 
 const findOne = async (
-  opts: FindOneOptions,
+  opts: FindOneOptions
 ): Promise<DatafoncierHousing | null> => {
   logger.debug('Find one datafoncier housing', opts);
 
   const response = await fetch(`${API}/ff/locaux/${opts.localId}`, {
     headers: {
-      Authorization: `Token ${config.datafoncier.token}`,
-    },
+      Authorization: `Token ${config.datafoncier.token}`
+    }
   });
 
   if (!response.ok) {
@@ -68,5 +69,5 @@ function isAllowed(housing: DatafoncierHousing): boolean {
 
 export default {
   find,
-  findOne,
+  findOne
 };

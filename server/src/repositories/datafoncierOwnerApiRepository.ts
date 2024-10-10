@@ -1,4 +1,5 @@
-import { createQuery, DatafoncierOwner } from '@zerologementvacant/shared';
+import { DatafoncierOwner } from '@zerologementvacant/models';
+import { createQuery } from '@zerologementvacant/utils';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 import { DatafoncierResultDTO } from '~/models/DatafoncierResultDTO';
@@ -19,14 +20,14 @@ const find = async (opts: FindOptions): Promise<DatafoncierOwner[]> => {
     fields: 'all',
     code_insee: opts.filters.geoCode,
     idprocpte: opts.filters?.idprocpte,
-    ordering: opts.filters?.idprocpte ? 'dnulp' : undefined,
+    ordering: opts.filters?.idprocpte ? 'dnulp' : undefined
   });
   logger.debug('Fetch datafoncier owners', query);
 
   const response = await fetch(`${API}/ff/proprios${query}`, {
     headers: {
-      Authorization: `Token ${config.datafoncier.token}`,
-    },
+      Authorization: `Token ${config.datafoncier.token}`
+    }
   });
   if (!response.ok) {
     logger.error('Cannot fetch datafoncier owners', response.statusText);
@@ -40,5 +41,5 @@ const find = async (opts: FindOptions): Promise<DatafoncierOwner[]> => {
 };
 
 export default {
-  find,
+  find
 };

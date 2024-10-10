@@ -3,14 +3,14 @@ import { query, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 
 import establishmentRepository from '~/repositories/establishmentRepository';
-import { EstablishmentKind } from '@zerologementvacant/shared';
+import { EstablishmentKind } from '@zerologementvacant/models';
 import { logger } from '~/infra/logger';
 import {
   every,
   hasKeys,
   isCommaDelimitedString,
   isGeoCode,
-  split,
+  split
 } from '~/utils/validators';
 
 const listValidators: ValidationChain[] = [
@@ -25,7 +25,7 @@ const listValidators: ValidationChain[] = [
     .bail()
     .customSanitizer(split(','))
     .custom(every(isGeoCode)),
-  query().isObject({ strict: true }).custom(hasKeys),
+  query().isObject({ strict: true }).custom(hasKeys)
 ];
 
 async function list(request: Request, response: Response) {
@@ -42,12 +42,12 @@ async function list(request: Request, response: Response) {
     query: searchQuery,
     geoCodes,
     kind,
-    name,
+    name
   });
   response.status(constants.HTTP_STATUS_OK).json(establishments);
 }
 
 export default {
   listValidators,
-  list,
+  list
 };

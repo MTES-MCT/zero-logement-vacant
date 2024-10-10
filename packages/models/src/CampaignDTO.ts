@@ -20,21 +20,23 @@ export interface CampaignDTO {
   groupId?: string;
 }
 
-export type CampaignStatus = 'draft' | 'sending' | 'in-progress' | 'archived';
-export const CAMPAIGN_STATUSES: CampaignStatus[] = [
+export const CAMPAIGN_STATUS_VALUES = [
   'draft',
   'sending',
   'in-progress',
   'archived'
-];
+] as const;
+
+export type CampaignStatus = (typeof CAMPAIGN_STATUS_VALUES)[number];
 export function nextStatus(current: CampaignStatus): CampaignStatus | null {
   if (current === 'archived') {
     return null;
   }
-  return CAMPAIGN_STATUSES[CAMPAIGN_STATUSES.indexOf(current) + 1];
+  return CAMPAIGN_STATUS_VALUES[CAMPAIGN_STATUS_VALUES.indexOf(current) + 1];
 }
 
-export interface CampaignCreationPayloadDTO extends Pick<CampaignDTO, 'title' | 'description'> {
+export interface CampaignCreationPayloadDTO
+  extends Pick<CampaignDTO, 'title' | 'description'> {
   housing: {
     all: boolean;
     ids: string[];

@@ -1,6 +1,6 @@
 import { dateSort } from '../utils/dateUtils';
 import { Sort } from './Sort';
-import { CampaignDTO, CampaignStatus } from '../../../shared';
+import { CampaignDTO, CampaignStatus } from '@zerologementvacant/models';
 
 export interface Campaign extends CampaignDTO {
   exportURL: string;
@@ -14,7 +14,7 @@ export enum CampaignSteps {
   Confirmation,
   InProgress,
   Outside,
-  Archived,
+  Archived
 }
 
 export function isBuilding(campaign: Campaign) {
@@ -26,14 +26,14 @@ export const campaignStep = (campaign: Campaign) => {
   return !campaign?.validatedAt
     ? CampaignSteps.OwnersValidation
     : !campaign?.exportedAt
-    ? CampaignSteps.Export
-    : !campaign?.sentAt
-    ? CampaignSteps.Sending
-    : campaign?.archivedAt
-    ? CampaignSteps.Archived
-    : !campaign?.confirmedAt
-    ? CampaignSteps.Confirmation
-    : CampaignSteps.InProgress;
+      ? CampaignSteps.Export
+      : !campaign?.sentAt
+        ? CampaignSteps.Sending
+        : campaign?.archivedAt
+          ? CampaignSteps.Archived
+          : !campaign?.confirmedAt
+            ? CampaignSteps.Confirmation
+            : CampaignSteps.InProgress;
 };
 
 export type CampaignSortable = Pick<Campaign, 'createdAt' | 'sentAt'> & {

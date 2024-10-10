@@ -5,7 +5,7 @@ import {
   EventCategory,
   EventKind,
   EventSection
-} from '@zerologementvacant/shared';
+} from '@zerologementvacant/models';
 import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';

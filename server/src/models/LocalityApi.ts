@@ -1,4 +1,4 @@
-import { LocalityKind } from '@zerologementvacant/shared';
+import { LocalityKind } from '@zerologementvacant/models';
 
 export interface LocalityApi {
   id: string;
@@ -12,5 +12,5 @@ export interface LocalityApi {
 export enum TaxKindsApi {
   TLV = 'TLV',
   THLV = 'THLV',
-  None = 'None',
+  None = 'None'
 }

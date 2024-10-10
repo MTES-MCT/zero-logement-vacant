@@ -30,7 +30,6 @@
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/queue": "workspace:*",
     "@zerologementvacant/schemas": "workspace:*",
-    "@zerologementvacant/shared": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
     "async": "^3.2.6",
     "bcryptjs": "^2.4.3",

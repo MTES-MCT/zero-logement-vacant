@@ -9,6 +9,7 @@ export * from './DatafoncierHousing';
 export * from './DatafoncierOwner';
 export * from './EnergyConsumption';
 export * from './EstablishmentKind';
+export * from './EstablishmentSource';
 export * from './EventCategory';
 export * from './EventDTO';
 export * from './EventKind';

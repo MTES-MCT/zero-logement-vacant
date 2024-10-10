@@ -11,7 +11,7 @@ import {
 } from '~/repositories/housingRepository';
 import db from '~/infra/database';
 import { AddressApi } from '~/models/AddressApi';
-import { AddressKinds } from '@zerologementvacant/shared';
+import { AddressKinds } from '@zerologementvacant/models';
 
 describe('BAN addresses repository', () => {
   describe('save', () => {

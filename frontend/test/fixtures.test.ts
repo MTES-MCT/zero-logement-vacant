@@ -10,8 +10,11 @@ import { SignupLink } from '../src/models/SignupLink';
 import { Prospect } from '../src/models/Prospect';
 import { LocalityKinds } from '../src/models/Locality';
 import { Group } from '../src/models/Group';
-import { DatafoncierHousing } from '../../shared';
-import { AddressKinds, HousingStatus } from '@zerologementvacant/models';
+import {
+  AddressKinds,
+  DatafoncierHousing,
+  HousingStatus
+} from '@zerologementvacant/models';
 import { genAddressDTO } from '@zerologementvacant/models/fixtures';
 
 import fp from 'lodash/fp';

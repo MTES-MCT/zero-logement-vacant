@@ -24,7 +24,7 @@ import {
   HousingOwnerConflictRecordDBO,
   HousingOwnerConflicts
 } from '~/repositories/conflict/housingOwnerConflictRepository';
-import { DatafoncierHousing } from '@zerologementvacant/shared';
+import { DatafoncierHousing } from '@zerologementvacant/models';
 import { HousingApi } from '~/models/HousingApi';
 import { DatafoncierOwner } from '../../shared';
 import { OwnerApi } from '~/models/OwnerApi';

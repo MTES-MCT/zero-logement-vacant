@@ -25,16 +25,14 @@ export const housingHandlers: RequestHandler[] = [
     async ({ request }) => {
       const url = new URL(request.url);
       const queryParams = url.searchParams;
-      const filters = queryParams.get('filters') ? JSON.parse(queryParams.get('filters') as string) : null;
+      const filters = queryParams.get('filters')
+        ? JSON.parse(queryParams.get('filters') as string)
+        : null;
 
       const subset = fp.pipe(
         filterByCampaign(filters?.campaignIds),
         filterByHousingKind(filters?.housingKinds),
-        filterByStatus(
-          filters?.status
-            ? [filters.status]
-            : filters?.statusList
-        )
+        filterByStatus(filters?.status ? [filters.status] : filters?.statusList)
       )(data.housings);
 
       return HttpResponse.json({
@@ -75,11 +73,17 @@ export const housingHandlers: RequestHandler[] = [
   http.get<HousingParams, never, HousingDTO | null>(
     `${config.apiEndpoint}/api/housing/:id`,
     ({ params }) => {
-      const housing = data.housings.find((housing) => housing.id === params.id);
+      const housing = data.housings.find((housing) =>
+        [housing.id, housing.localId].includes(params.id)
+      );
       if (!housing) {
-        throw HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        });
+        throw HttpResponse.json(
+          {
+            name: 'HousingMissingError',
+            message: `Housing ${params.id} missing`
+          },
+          { status: constants.HTTP_STATUS_NOT_FOUND }
+        );
       }
 
       const mainHousingOwner = data.housingOwners

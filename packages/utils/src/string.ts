@@ -1,3 +1,10 @@
+export function timestamp(date: Date = new Date()): string {
+  return date
+    .toJSON()
+    .substring(0, 'yyyy-mm-ddThh:mm:ss'.length)
+    .replace(/[-T:]/g, '');
+}
+
 export function slugify(text: string): string {
   return (
     text

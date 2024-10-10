@@ -7,10 +7,12 @@ import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
-import { HousingKind } from '@zerologementvacant/models';
+import { HousingDTO, HousingKind } from '@zerologementvacant/models';
 import {
   genDatafoncierHousingDTO,
   genGroupDTO,
+  genHousingDTO,
+  genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 
@@ -127,8 +129,23 @@ describe('Housing list view', () => {
     });
 
     it('should fail if the housing already exists in our database', async () => {
-      const localId = data.housings[0].localId;
-      expect(localId).toBeDefined();
+      const owner = genOwnerDTO();
+      const housing: HousingDTO = {
+        ...genHousingDTO(owner),
+        localId: datafoncierHousing.idlocal
+      };
+      data.housings.push(housing);
+      data.owners.push(owner);
+      data.housingOwners.set(housing.id, [
+        {
+          id: owner.id,
+          rank: 1,
+          locprop: null,
+          idprocpte: null,
+          idprodroit: null
+        }
+      ]);
+      expect(housing.localId).toBeDefined();
 
       render(
         <Provider store={store}>

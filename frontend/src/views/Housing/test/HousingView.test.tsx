@@ -5,13 +5,15 @@ import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
 import {
-  genHousingDTO,
-  genHousingOwnerDTO,
-  genOwnerDTO,
   HousingDTO,
   HousingOwnerDTO,
   OwnerDTO
 } from '@zerologementvacant/models';
+import {
+  genHousingDTO,
+  genHousingOwnerDTO,
+  genOwnerDTO
+} from '@zerologementvacant/models/fixtures';
 import configureTestStore from '../../../utils/test/storeUtils';
 import HousingView from '../HousingView';
 import data from '../../../mocks/handlers/data';

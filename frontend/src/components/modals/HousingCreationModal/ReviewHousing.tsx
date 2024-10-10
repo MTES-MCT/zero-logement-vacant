@@ -6,7 +6,7 @@ import { OccupancyKind } from '../../../models/Housing';
 import { Text } from '../../_dsfr';
 import { useCreateHousingMutation } from '../../../services/housing.service';
 import { datafoncierApi } from '../../../services/datafoncier.service';
-import { DatafoncierHousing } from '../../../../../shared';
+import { DatafoncierHousing } from '@zerologementvacant/models';
 import { useAppSelector } from '../../../hooks/useStore';
 import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
@@ -15,7 +15,7 @@ const ReviewHousing = forwardRef((props: StepProps, ref) => {
   const { localId } = creator;
   const { data: datafoncierHousing } = datafoncierApi.useFindOneHousingQuery(
     localId as string,
-    { skip: !localId },
+    { skip: !localId }
   );
 
   const address = datafoncierHousing
@@ -35,7 +35,7 @@ const ReviewHousing = forwardRef((props: StepProps, ref) => {
       } catch {
         return null;
       }
-    },
+    }
   }));
 
   return (
@@ -60,7 +60,7 @@ ReviewHousing.displayName = 'ReviewHousing';
 
 const step: Step = {
   id: 'review-housing',
-  Component: ReviewHousing,
+  Component: ReviewHousing
 };
 
 function toAddress(housing: DatafoncierHousing): string {

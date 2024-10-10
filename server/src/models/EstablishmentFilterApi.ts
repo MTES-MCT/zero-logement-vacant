@@ -1,4 +1,4 @@
-import { EstablishmentKind } from '@zerologementvacant/shared';
+import { EstablishmentKind } from '@zerologementvacant/models';
 
 export interface EstablishmentFilterApi {
   ids?: string[];

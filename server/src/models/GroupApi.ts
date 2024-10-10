@@ -1,5 +1,5 @@
 import { toUserDTO, UserApi } from './UserApi';
-import { GroupDTO } from '@zerologementvacant/shared';
+import { GroupDTO } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
 
 export interface GroupApi
@@ -19,10 +19,10 @@ export function toGroupDTO(group: GroupApi): GroupDTO {
   return {
     ...fp.pick(
       ['id', 'title', 'description', 'housingCount', 'ownerCount'],
-      group,
+      group
     ),
     createdAt: group.createdAt.toJSON(),
     createdBy: group.createdBy ? toUserDTO(group.createdBy) : undefined,
-    archivedAt: group.archivedAt?.toJSON() ?? null,
+    archivedAt: group.archivedAt?.toJSON() ?? null
   };
 }

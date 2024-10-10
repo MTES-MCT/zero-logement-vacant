@@ -30,7 +30,7 @@ import sortApi from '~/models/SortApi';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import { HousingEventApi } from '~/models/EventApi';
 import {
-  CAMPAIGN_STATUSES,
+  CAMPAIGN_STATUS_VALUES,
   CampaignCreationPayloadDTO,
   CampaignDTO,
   CampaignUpdatePayloadDTO,
@@ -288,7 +288,7 @@ const updateValidators: ValidationChain[] = [
   param('id').notEmpty().isUUID(),
   body('title').isString().notEmpty(),
   body('description').optional({ nullable: true }).isString(),
-  body('status').isString().isIn(CAMPAIGN_STATUSES),
+  body('status').isString().isIn(CAMPAIGN_STATUS_VALUES),
   body('sentAt')
     .if(body('status').equals('in-progress'))
     .isISO8601()

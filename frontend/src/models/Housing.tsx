@@ -5,6 +5,7 @@ import {
   EnergyConsumption,
   HousingDTO,
   HousingKind,
+  HousingSource,
   HousingStatus,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
@@ -16,7 +17,6 @@ import { Sort } from './Sort';
 import { LocalityKinds } from './Locality';
 import { Note } from './Note';
 import { Compare } from '../utils/compareUtils';
-import { HousingSource } from '../../../shared';
 
 export interface Housing {
   id: string;

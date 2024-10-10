@@ -5,11 +5,13 @@ import { toTitleCase } from '../utils/stringUtils';
 import { parseISO } from 'date-fns';
 import { SortOptions, toQuery } from '../models/Sort';
 import { AbortOptions, getURLQuery } from '../utils/fetchUtils';
-import { HousingPayloadDTO, PaginationOptions } from '../../../shared';
+import {
+  HousingFiltersDTO,
+  PaginationOptions
+} from '@zerologementvacant/models';
 import { parseOwner } from './owner.service';
 import { HousingCount } from '../models/HousingCount';
 import { zlvApi } from './api.service';
-import { HousingFiltersDTO } from '@zerologementvacant/models';
 
 export interface FindOptions
   extends PaginationOptions,
@@ -55,9 +57,11 @@ export const housingApi = zlvApi.injectEndpoints({
           filters: opts?.filters ? JSON.stringify(opts?.filters) : undefined,
           paginate: opts?.pagination?.paginate,
           page: opts?.pagination?.paginate ? opts.pagination.page : undefined,
-          perPage: opts?.pagination?.paginate ? opts.pagination.perPage : undefined
+          perPage: opts?.pagination?.paginate
+            ? opts.pagination.perPage
+            : undefined
         })}`,
-        method: 'GET',
+        method: 'GET'
       }),
       providesTags: (result, errors, args) => [
         {
@@ -89,7 +93,8 @@ export const housingApi = zlvApi.injectEndpoints({
         }
       ]
     }),
-    createHousing: builder.mutation<Housing, HousingPayloadDTO>({
+    // TODO: fix this any type
+    createHousing: builder.mutation<Housing, any>({
       query: (payload) => ({
         url: 'housing/creation',
         method: 'POST',

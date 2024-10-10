@@ -1,4 +1,4 @@
-import { isDefined, isUndefined } from '@zerologementvacant/shared';
+import { isDefined, isUndefined } from '@zerologementvacant/utils';
 import { OwnerApi, toOwnerDTO } from './OwnerApi';
 import { compare, includeSameMembers } from '~/utils/compareUtils';
 import { HousingRecordApi } from './HousingApi';

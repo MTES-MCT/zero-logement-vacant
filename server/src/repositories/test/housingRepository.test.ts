@@ -3,8 +3,7 @@ import * as turf from '@turf/turf';
 import { differenceInYears } from 'date-fns';
 import fp from 'lodash/fp';
 
-import { Predicate } from '@zerologementvacant/utils';
-import { isDefined } from '@zerologementvacant/shared';
+import { isDefined, Predicate } from '@zerologementvacant/utils';
 import housingRepository, {
   formatHousingRecordApi,
   Housing,

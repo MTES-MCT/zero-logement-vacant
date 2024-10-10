@@ -1,14 +1,4 @@
-export type EstablishmentKind =
-  | 'Commune'
-  | 'EPCI'
-  | 'DDT'
-  | 'DDTM'
-  | 'DREAL'
-  | 'DRIHL'
-  | 'DRIEAT'
-  | 'DTAM';
-
-export const ESTABLISHMENT_KINDS: EstablishmentKind[] = [
+export const ESTABLISHMENT_KIND_VALUES = [
   'Commune',
   'EPCI',
   'DDT',
@@ -16,5 +6,7 @@ export const ESTABLISHMENT_KINDS: EstablishmentKind[] = [
   'DREAL',
   'DRIHL',
   'DRIEAT',
-  'DTAM',
-];
+  'DTAM'
+] as const;
+
+export type EstablishmentKind = (typeof ESTABLISHMENT_KIND_VALUES)[number];

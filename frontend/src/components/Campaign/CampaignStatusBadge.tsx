@@ -1,5 +1,5 @@
 import AppBadge from '../_app/AppBadge/AppBadge';
-import { CampaignStatus } from '../../../../shared';
+import { CampaignStatus } from '@zerologementvacant/models';
 
 interface Props {
   status: CampaignStatus;

@@ -2,11 +2,11 @@ import { HousingFilters } from '../../models/HousingFilters';
 import config from '../../utils/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
+  DatafoncierHousing,
   HousingFiltersDTO,
   Occupancy,
   Pagination
 } from '@zerologementvacant/models';
-import { DatafoncierHousing } from '../../../../shared';
 
 export type ViewMode = 'list' | 'map';
 

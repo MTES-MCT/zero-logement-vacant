@@ -4,7 +4,7 @@ import CampaignInProgress from './CampaignInProgress';
 import { useCampaign } from '../../hooks/useCampaign';
 import CampaignDraft from './CampaignDraft';
 import CampaignSending from './CampaignSending';
-import { CampaignStatus } from '../../../../shared';
+import { CampaignStatus } from '@zerologementvacant/models';
 import NotFoundView from '../NotFoundView';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 

@@ -1,7 +1,7 @@
 import { OwnerProspect, OwnerProspectSortable } from '../models/OwnerProspect';
 import authService from './auth.service';
 import { PaginatedResult } from '../models/PaginatedResult';
-import { PaginationOptions } from '../../../shared';
+import { PaginationOptions } from '@zerologementvacant/models';
 import { SortOptions, toQuery } from '../models/Sort';
 import { getURLQuery } from '../utils/fetchUtils';
 import { zlvApi } from './api.service';
@@ -18,9 +18,9 @@ export const ownerProspectApi = zlvApi.injectEndpoints({
       query: (options) => {
         return {
           url: `owner-prospects${getURLQuery({
-            sort: toQuery(options.sort),
+            sort: toQuery(options.sort)
           })}`,
-          headers: authService.withAuthHeader(),
+          headers: authService.withAuthHeader()
         };
       },
       providesTags: (result) =>
@@ -28,18 +28,18 @@ export const ownerProspectApi = zlvApi.injectEndpoints({
           ? [
               ...result.entities.map(({ id }) => ({
                 type: 'OwnerProspect' as const,
-                id,
+                id
               })),
-              'OwnerProspect',
+              'OwnerProspect'
             ]
-          : ['OwnerProspect'],
+          : ['OwnerProspect']
     }),
     createOwnerProspect: builder.mutation<OwnerProspect, OwnerProspect>({
       query: (ownerProspect) => ({
         url: 'owner-prospects',
         method: 'POST',
-        body: ownerProspect,
-      }),
+        body: ownerProspect
+      })
     }),
     updateOwnerProspect: builder.mutation<void, OwnerProspect>({
       query: (ownerProspect) => {
@@ -48,18 +48,18 @@ export const ownerProspectApi = zlvApi.injectEndpoints({
           url: `owner-prospects/${id}`,
           method: 'PUT',
           body: op,
-          headers: authService.withAuthHeader(),
+          headers: authService.withAuthHeader()
         };
       },
       invalidatesTags: (result, error, { id }) => [
-        { type: 'OwnerProspect', id },
-      ],
-    }),
-  }),
+        { type: 'OwnerProspect', id }
+      ]
+    })
+  })
 });
 
 export const {
   useFindOwnerProspectsQuery,
   useCreateOwnerProspectMutation,
-  useUpdateOwnerProspectMutation,
+  useUpdateOwnerProspectMutation
 } = ownerProspectApi;

@@ -1,4 +1,4 @@
-import { ContactPoint } from '@zerologementvacant/shared';
+import { ContactPoint } from '@zerologementvacant/models';
 
 export interface ContactPointApi {
   id: string;
@@ -22,6 +22,6 @@ export function toContactPointDTO(contactPoint: ContactPointApi): ContactPoint {
     geoCodes: contactPoint.geoCodes,
     email: contactPoint.email,
     phone: contactPoint.phone,
-    notes: contactPoint.notes,
+    notes: contactPoint.notes
   };
 }

@@ -1,7 +1,7 @@
 import db from '~/infra/database';
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { logger } from '~/infra/logger';
-import { LocalityKind } from '@zerologementvacant/shared';
+import { LocalityKind } from '@zerologementvacant/models';
 import { establishmentsLocalitiesTable } from './establishmentLocalityRepository';
 
 export const localitiesTable = 'localities';
@@ -15,7 +15,7 @@ async function get(geoCode: string): Promise<LocalityApi | null> {
 }
 
 async function listByEstablishmentId(
-  establishmentId: string,
+  establishmentId: string
 ): Promise<LocalityApi[]> {
   return db(localitiesTable)
     .select(`${localitiesTable}.*`)
@@ -23,11 +23,11 @@ async function listByEstablishmentId(
       join
         .onVal(
           `${establishmentsLocalitiesTable}.establishment_id`,
-          establishmentId,
+          establishmentId
         )
         .andOn(
           `${establishmentsLocalitiesTable}.locality_id`,
-          `${localitiesTable}.id`,
+          `${localitiesTable}.id`
         );
     })
     .orderBy(`${localitiesTable}.name`)
@@ -60,7 +60,7 @@ export const formatLocalityApi = (localityApi: LocalityApi): LocalityDBO => ({
   name: localityApi.name,
   locality_kind: localityApi.kind,
   tax_kind: localityApi.taxKind,
-  tax_rate: localityApi.taxRate,
+  tax_rate: localityApi.taxRate
 });
 
 export const parseLocalityApi = (localityDbo: LocalityDBO): LocalityApi => ({
@@ -69,12 +69,12 @@ export const parseLocalityApi = (localityDbo: LocalityDBO): LocalityApi => ({
   name: localityDbo.name,
   kind: localityDbo.locality_kind as LocalityKind,
   taxKind: localityDbo.tax_kind as TaxKindsApi,
-  taxRate: localityDbo.tax_rate,
+  taxRate: localityDbo.tax_rate
 });
 
 export default {
   get,
   listByEstablishmentId,
   formatLocalityApi,
-  update,
+  update
 };

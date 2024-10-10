@@ -7,7 +7,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { ReferenceDataYear } from '~/repositories/housingRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { DatafoncierHousing, HousingSource } from '@zerologementvacant/shared';
+import { DatafoncierHousing, HousingSource } from '@zerologementvacant/models';
 import { parse } from 'date-fns';
 
 export const toHousingRecordApi = fp.curry(
@@ -39,7 +39,7 @@ export const toHousingRecordApi = fp.curry(
       occupancy: housing.ccthp as OccupancyKindApi,
       occupancyRegistered: housing.ccthp as OccupancyKindApi,
       source: additionalData.source,
-      mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
+      mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date())
     };
   }
 );

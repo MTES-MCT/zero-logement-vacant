@@ -23,7 +23,7 @@ import { param, ValidationChain } from 'express-validator';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import { OwnerApi } from '~/models/OwnerApi';
 import ownerRepository from '~/repositories/ownerRepository';
-import { AddressKinds } from '@zerologementvacant/shared';
+import { AddressKinds } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;

@@ -4,7 +4,7 @@ import {
   EventCategory,
   EventKind,
   EventSection
-} from '@zerologementvacant/shared';
+} from '@zerologementvacant/models';
 import { HousingApi } from './HousingApi';
 import { OwnerApi } from './OwnerApi';
 import { CampaignApi } from './CampaignApi';

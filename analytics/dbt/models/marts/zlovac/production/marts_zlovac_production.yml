@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: marts_zlovac_production_building
+  - name: marts_zlovac_production_owners
+  - name: marts_zlovac_production_owners_housing
+  - name: marts_zlovac_production_housing

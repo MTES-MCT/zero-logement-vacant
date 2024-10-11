@@ -3,7 +3,7 @@ WITH vacancies_2024 AS (
         geo_code,
         COUNT(CASE WHEN data_year = 2024 AND vacancy_start_year = 2023 THEN 1 END) AS vac_2024_1an,
         COUNT(CASE WHEN data_year = 2024 AND vacancy_start_year = 2022 THEN 1 END) AS vac_2024_2ans,
-        COUNT(CASE WHEN data_year = 2024 AND vacancy_start_year < 2022 THEN 1 END) AS vac_2024_plus_2ans,
+        COUNT(CASE WHEN data_year = 2024 AND vacancy_start_year <= 2021 THEN 1 END) AS vac_2024_plus_2ans,
         COUNT(CASE WHEN data_year = 2024 AND vacancy_start_year >= 2022 THEN 1 END) AS vac_2024_moins_2ans,
         COUNT(CASE WHEN data_year = 2024 AND vacancy_start_year = 2021 THEN 1 END) AS vac_2024_3ans,
         COUNT(CASE WHEN data_year = 2024 AND vacancy_start_year <= 2020 THEN 1 END) AS vac_2024_4ans_plus,

@@ -21,5 +21,4 @@ cleaned_data AS (
 SELECT * FROM cleaned_data
 QUALIFY 
     ROW_NUMBER() OVER (PARTITION BY local_id ORDER BY 1 DESC) = 1
-
 {% endmacro %}

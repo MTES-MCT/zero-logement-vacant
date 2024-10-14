@@ -9,6 +9,8 @@ fileignoreconfig:
   checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
 - filename: server/.env.example
   checksum: 4955533b2ba29ebc4a052e65ce2aab5b911ebf8e4b4eeecff50b5e83d1857c35
+- filename: server/src/controllers/housingExportController.ts
+  checksum: cb506387b49506b7ba0ed426001c221b80aff9f953e544d52c1c6d287741cf64
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
 - filename: server/src/services/ceremaService/ceremaService.ts

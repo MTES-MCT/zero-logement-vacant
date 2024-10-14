@@ -73,7 +73,7 @@ function AccountEmailCreationView() {
         whenValid="Email valide."
         placeholder="example@gmail.com"
         label="Adresse email (obligatoire)"
-        hintText="L’adresse mail doit être autorisée à accéder aux données LOVAC sur le <a href= 'https://datafoncier.cerema.fr/portail-des-donnees-foncieres'>portail Données Foncières du Cerema</a>."
+        hintText={<>L’adresse mail doit être autorisée à accéder aux données LOVAC sur le <a href='https://datafoncier.cerema.fr/portail-des-donnees-foncieres'>portail Données Foncières du Cerema</a>.</>}
         required
       />
       <Row alignItems="middle" className="justify-space-between">

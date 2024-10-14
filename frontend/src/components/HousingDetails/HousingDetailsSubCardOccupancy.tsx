@@ -96,7 +96,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
             <Text spacing="mb-1w">Non renseigné</Text>
           )}
         </Col>
-        { lastOccupancyEvent?.old && <Col n="4">
+        {lastOccupancyEvent?.old && <Col n="4">
           <Text size="sm" className="zlv-label">
             Ancien statut d’occupation
           </Text>

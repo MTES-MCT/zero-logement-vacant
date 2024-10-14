@@ -79,6 +79,7 @@ function OwnerCard(props: OwnerCardProps) {
                 severity="info"
                 classes={{ title: fr.cx('fr-mb-2w') }}
                 title="Adresse à vérifier"
+                as="h3"
                 description={
                   <>
                     <Typography>

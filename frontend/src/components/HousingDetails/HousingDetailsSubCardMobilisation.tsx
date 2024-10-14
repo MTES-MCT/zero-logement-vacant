@@ -1,7 +1,7 @@
 import Tag from '@codegouvfr/react-dsfr/Tag';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 
-import { Col, Row, Text } from '../_dsfr';
 import { Housing, lastUpdate } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
@@ -11,6 +11,7 @@ import { Campaign } from '../../models/Campaign';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { OptionTreeSeparator } from '../../models/HousingFilters';
+import LabelNext from '../Label/LabelNext';
 
 interface Props {
   housing: Housing;
@@ -19,26 +20,31 @@ interface Props {
 
 function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
   if (!housing) {
-    return <></>;
+    return null;
   }
 
   const campaignInProgress = campaigns.filter(
-    (campaign) => campaign?.status !== 'archived'
+    (campaign) => campaign.status !== 'archived'
   );
 
   return (
     <HousingDetailsSubCard
       title={
-        <>
+        <Grid
+          display="flex"
+          alignItems="flex-start"
+          flexDirection="row"
+          sx={{ mb: 1 }}
+        >
           <Typography
             component="h2"
             variant="h6"
-            mb={1}
             className={classNames(styles.title, 'd-inline-block')}
+            sx={{ mr: 1 }}
           >
             Mobilisation :
           </Typography>
-          <div className="fr-ml-1w d-inline-block">
+          <div className="d-inline-block">
             <HousingStatusBadge status={housing.status} inline />
             <HousingSubStatusBadge
               status={housing.status}
@@ -46,79 +52,70 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
               inline
             />
           </div>
-        </>
+        </Grid>
       }
       hasBorder
     >
-      <Row>
-        <Col n="8">
-          <Row>
-            <Col n="6">
-              <Text size="sm" className="zlv-label">
-                Dernière mise à jour
-              </Text>
-              <Text spacing="mb-1w">{lastUpdate(housing)}</Text>
-            </Col>
-            <Col n="6">
-              <Text size="sm" className="zlv-label">
-                Prise de contact
-              </Text>
-              <Text spacing="mb-1w">
-                {campaigns.length === 0
-                  ? 'Jamais contacté'
-                  : `Contacté ${campaigns.length} fois`}
-              </Text>
-            </Col>
-            <Col n="6">
-              <Text size="sm" className="zlv-label">
-                Dispositifs ({housing.precisions?.length ?? 0})
-              </Text>
-              <Text spacing="mb-1w">
-                {(housing.precisions?.length ?? 0) === 0 ? (
-                  <>Aucun dispositif indiqué</>
-                ) : (
-                  housing.precisions?.map((precision, index) => (
-                    <Tag
-                      key={'precision_' + index}
-                      className="d-block fr-mb-1w"
-                    >
-                      {precision.startsWith('Dispositif')
-                        ? precision.split(OptionTreeSeparator).reverse()[0]
-                        : precision
-                            .split(OptionTreeSeparator)
-                            .splice(1)
-                            .join(OptionTreeSeparator)}
-                    </Tag>
-                  ))
-                )}
-              </Text>
-            </Col>
-            <Col n="6">
-              <Text size="sm" className="zlv-label">
-                Points de blocage ({housing.vacancyReasons?.length ?? 0})
-              </Text>
-              <Text spacing="mb-1w">
-                {(housing.vacancyReasons?.length ?? 0) === 0 ? (
-                  <>Aucun blocage indiqué</>
-                ) : (
-                  housing.vacancyReasons?.map((vacancyReason, index) => (
-                    <Tag
-                      key={'vacancyReason_' + index}
-                      className="d-block fr-mb-1w"
-                    >
-                      {vacancyReason.split(OptionTreeSeparator).reverse()[0]}
-                    </Tag>
-                  ))
-                )}
-              </Text>
-            </Col>
-          </Row>
-        </Col>
-        <Col n="4">
-          <Text size="sm" className="zlv-label">
+      <Grid alignItems="flex-start" container xs>
+        <Grid container rowSpacing={2} xs={8}>
+          <Grid xs={6}>
+            <LabelNext component="h3">Dernière mise à jour</LabelNext>
+            <Typography>{lastUpdate(housing)}</Typography>
+          </Grid>
+          <Grid xs={6}>
+            <LabelNext component="h3">Prise de contact</LabelNext>
+            <Typography>
+              {campaigns.length === 0
+                ? 'Jamais contacté'
+                : `Contacté ${campaigns.length} fois`}
+            </Typography>
+          </Grid>
+          <Grid xs={6}>
+            <LabelNext>
+              Dispositifs ({housing.precisions?.length ?? 0})
+            </LabelNext>
+            <Typography>
+              {(housing.precisions?.length ?? 0) === 0 ? (
+                <>Aucun dispositif indiqué</>
+              ) : (
+                housing.precisions?.map((precision, index) => (
+                  <Tag key={'precision_' + index} className="d-block fr-mb-1w">
+                    {precision.startsWith('Dispositif')
+                      ? precision.split(OptionTreeSeparator).reverse()[0]
+                      : precision
+                          .split(OptionTreeSeparator)
+                          .splice(1)
+                          .join(OptionTreeSeparator)}
+                  </Tag>
+                ))
+              )}
+            </Typography>
+          </Grid>
+          <Grid xs={6}>
+            <LabelNext>
+              Points de blocage ({housing.vacancyReasons?.length ?? 0})
+            </LabelNext>
+            <Typography>
+              {(housing.vacancyReasons?.length ?? 0) === 0 ? (
+                <>Aucun blocage indiqué</>
+              ) : (
+                housing.vacancyReasons?.map((vacancyReason, index) => (
+                  <Tag
+                    key={'vacancyReason_' + index}
+                    className="d-block fr-mb-1w"
+                  >
+                    {vacancyReason.split(OptionTreeSeparator).reverse()[0]}
+                  </Tag>
+                ))
+              )}
+            </Typography>
+          </Grid>
+        </Grid>
+        <Grid xs={4}>
+          <LabelNext>
             Campagnes en cours ({campaignInProgress.length})
-          </Text>
-          <Text spacing="mb-1w">
+          </LabelNext>
+          <Typography>
             {campaignInProgress.length === 0 ? (
               <>Aucune campagne associée</>
             ) : (
@@ -137,9 +134,9 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
                 </div>
               ))
             )}
-          </Text>
-        </Col>
-      </Row>
+          </Typography>
+        </Grid>
+      </Grid>
     </HousingDetailsSubCard>
   );
 }

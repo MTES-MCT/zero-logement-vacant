@@ -1,3 +1,4 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Typography from '@mui/material/Typography';
@@ -45,8 +46,15 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
 
   return (
     <HousingDetailsSubCard
+      className={fr.cx('fr-mb-2w')}
       title={
-        <Grid container justifyContent="space-between" sx={{ mb: 1 }}>
+        <Grid
+          alignItems="center"
+          container
+          justifyContent="space-between"
+          sx={{ mb: 1 }}
+          xs
+        >
           <Grid>
             <Typography
               component="h2"
@@ -70,7 +78,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
       }
       hasBorder
     >
-      <Grid container rowSpacing={4}>
+      <Grid container rowSpacing={4} xs>
         <Grid xs={4}>
           <LabelNext component="h3">Dans cette situation depuis</LabelNext>
           <Typography>

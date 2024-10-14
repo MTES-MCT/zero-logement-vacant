@@ -23,11 +23,7 @@ function HousingDetailsSubCard(props: Props) {
     >
       <Grid component="header" container sx={{ mb: 1 }} xs>
         {typeof props.title === 'string' ? (
-          <Typography
-            component="h2"
-            variant="h6"
-            sx={{ fontSize: '1rem !important' }}
-          >
+          <Typography className={styles.title} component="h2" variant="h6">
             {props.title}
           </Typography>
         ) : (

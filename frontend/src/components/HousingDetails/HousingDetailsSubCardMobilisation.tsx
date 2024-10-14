@@ -66,7 +66,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
             </Typography>
           </Grid>
           <Grid xs={6}>
-            <LabelNext>
+            <LabelNext component="h3">
               Dispositifs ({housing.precisions?.length ?? 0})
             </LabelNext>
             <Typography>
@@ -87,7 +87,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
             </Typography>
           </Grid>
           <Grid xs={6}>
-            <LabelNext>
+            <LabelNext component="h3">
               Points de blocage ({housing.vacancyReasons?.length ?? 0})
             </LabelNext>
             <Typography>
@@ -107,7 +107,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
           </Grid>
         </Grid>
         <Grid xs={4}>
-          <LabelNext>
+          <LabelNext component="h3">
             Campagnes en cours ({campaignInProgress.length})
           </LabelNext>
           <Typography>

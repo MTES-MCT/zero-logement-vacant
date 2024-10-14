@@ -16,7 +16,11 @@ interface Props {
 
 function HousingDetailsSubCard(props: Props) {
   return (
-    <article className={classNames(styles.card, props.className)}>
+    <article
+      className={classNames(styles.card, props.className, {
+        [styles.fill]: props.isGrey
+      })}
+    >
       <Grid component="header" container sx={{ mb: 1 }} xs>
         {typeof props.title === 'string' ? (
           <Typography

@@ -236,27 +236,35 @@ export const getOccupancy = (
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
+
   const labels: Record<string, string> = {
-    lovac: 'LOVAC',
-    ff: 'Fichiers fonciers'
+    'lovac': 'LOVAC',
+    'ff': 'Fichiers fonciers',
+    'datafoncier-import': 'Fichiers fonciers',
+    'datafoncier-manual': 'Fichiers fonciers'
   };
 
   const aggregatedData: Record<string, string[]> = {};
 
-  housing.dataFileYears.forEach((item) => {
-    const [name, year] = item.split('-');
-    if (!aggregatedData[name]) {
-      aggregatedData[name] = [];
-    }
-    aggregatedData[name].push(year);
-  });
+  let result = null;
+  if(housing.dataFileYears.length > 0) {
+    housing.dataFileYears.forEach((item) => {
+      const [name, year] = item.split('-');
+      if (!aggregatedData[name]) {
+        aggregatedData[name] = [];
+      }
+      aggregatedData[name].push(year);
+    });
 
-  const result = Object.keys(aggregatedData)
-    .map((name) => {
-      const years = aggregatedData[name].join(', ');
-      return labels[name] + ' (' + years + ')';
-    })
-    .join(', ');
+    const result = Object.keys(aggregatedData)
+      .map((name) => {
+        const years = aggregatedData[name].join(', ');
+        return labels[name] + ' (' + years + ')';
+      })
+      .join(', ');
+  } else if (housing.source) {
+    result = labels[housing.source];
+  }
 
   return result || 'Inconnue';
 }

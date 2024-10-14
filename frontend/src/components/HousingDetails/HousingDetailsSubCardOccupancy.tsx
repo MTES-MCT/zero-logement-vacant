@@ -30,6 +30,20 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
       ? housing.vacancyStartYear
       : undefined;
 
+  function situationSince(occupancy: string, lastOccupancyChange: number | undefined): import("../_dsfr/components/foundation/typography/Text/Text").TextChildren {
+    if (lastOccupancyChange === undefined) {
+      return 'Inconnu';
+    }
+
+    const duration = getYear(new Date()) - lastOccupancyChange;
+    
+    if (duration === 0) {
+      return 'Moins d’un an';
+    }
+
+    return `${duration} an${duration > 1 ? 's' : ''} (${lastOccupancyChange})`;
+  }
+
   return (
     <HousingDetailsSubCard
       title={
@@ -63,11 +77,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
             Dans cette situation depuis
           </Text>
           <Text spacing="mb-1w">
-            {lastOccupancyChange
-              ? `${
-                  getYear(new Date()) - lastOccupancyChange
-                } ans (${lastOccupancyChange})`
-              : 'Inconnu'}
+            {situationSince(housing.occupancy, lastOccupancyChange)}
           </Text>
         </Col>
         <Col n="4">
@@ -86,7 +96,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
             <Text spacing="mb-1w">Non renseigné</Text>
           )}
         </Col>
-        <Col n="4">
+        { lastOccupancyEvent?.old && <Col n="4">
           <Text size="sm" className="zlv-label">
             Ancien statut d’occupation
           </Text>
@@ -95,7 +105,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
               lastOccupancyEvent?.old.occupancy as OccupancyKind
             ] ?? 'Inconnu'}
           </Text>
-        </Col>
+        </Col> }
         <Col n="4">
           {housing.occupancy === 'V' && (
             <Text size="sm" className="zlv-label">

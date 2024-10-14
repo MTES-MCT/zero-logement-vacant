@@ -120,13 +120,20 @@ function HousingDetailsCard({
         <>
           <HousingDetailsCardOccupancy
             housing={housing}
-            lastOccupancyEvent={housingEvents.find(
+            lastOccupancyEvent={housing.source !== 'datafoncier-import' ? housingEvents.find(
               (event) =>
                 event.category === 'Followup' &&
                 event.kind === 'Update' &&
                 event.section === 'Situation' &&
                 event.name === "Modification du statut d'occupation" &&
                 event.old.occupancy !== event.new.occupancy
+              ) :
+              housingEvents.find(
+              (event) =>
+                event.category === 'Group' &&
+                event.kind === 'Create' &&
+                event.section === 'Ajout d’un logement dans un groupe' &&
+                event.name === "Ajout dans un groupe"
             )}
           />
           <HousingDetailsCardMobilisation

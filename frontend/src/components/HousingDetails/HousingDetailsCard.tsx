@@ -97,7 +97,12 @@ function HousingDetailsCard({
           />
           {!isVisitor && (
             <Typography component="h1" variant="h4" mb={1}>
-              {housing.rawAddress.join(' - ')}
+              {housing.rawAddress.map((line) => (
+                <>
+                  {line}
+                  <br />
+                </>
+              ))}
               <AppLink
                 title="Voir sur la carte - nouvelle fenêtre"
                 to={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}

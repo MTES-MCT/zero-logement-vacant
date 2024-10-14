@@ -41,7 +41,7 @@ const AccountSideMenu = () => {
           iconId="fr-icon-group-fill"
           iconPosition="left"
         >
-          Gérer les utilisateurs via consultdf
+          Gérer les utilisateurs (portail DF)
         </AppLink>
       </div>
       <div className="fr-pb-2w">

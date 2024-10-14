@@ -100,7 +100,7 @@ const AccountForm = ({ user, userAccount }: Props) => {
             <AppHelp>
               Pour changer d’adresse mail de connexion, rattachez votre nouvelle adresse mail à votre structure via&nbsp;
               <a className="fr-link--sm" href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">le portail Données foncières du Cerema</a>
-              &nbsp;puis créez un nouveau compte ZLV depuis la page d'accueil avec votre nouvelle adresse mail.
+              &nbsp;puis créez un nouveau compte ZLV depuis la page d’accueil avec votre nouvelle adresse mail.
             </AppHelp>
           </Col>
         </Row>

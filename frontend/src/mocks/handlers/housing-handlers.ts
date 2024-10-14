@@ -26,7 +26,6 @@ type HousingPayload = {
 
 export const housingHandlers: RequestHandler[] = [
   http.get<Record<string, never>, HousingPayload, Paginated<HousingDTO>>(
-  http.get<Record<string, never>, HousingPayload, Paginated<HousingDTO>>(
     `${config.apiEndpoint}/api/housing`,
     async ({ request }) => {
       const url = new URL(request.url);

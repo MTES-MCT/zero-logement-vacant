@@ -1,44 +1,31 @@
-import Card from '@codegouvfr/react-dsfr/Card';
-import Typography from '@mui/material/Typography';
+import { fr } from '@codegouvfr/react-dsfr';
+import Grid from '@mui/material/Unstable_Grid2';
+import { ReactElement, ReactNode } from 'react';
 
-import { ReactElement } from 'react';
 import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
 
 interface Props {
-  title: string | ReactElement;
+  title: ReactNode;
+  className?: string;
   isGrey?: boolean;
   hasBorder?: boolean;
   children?: ReactElement | (ReactElement | undefined)[];
 }
 
-function HousingDetailsSubCard({ title, isGrey, hasBorder, children }: Props) {
+function HousingDetailsSubCard(props: Props) {
   return (
-    <Card
-      border={!!hasBorder}
-      size="small"
-      className={classNames(styles.subCard, 'app-card-xs', {
-        'bg-975': isGrey
-      })}
-      title={
-        <>
-          {typeof title === 'string' ? (
-            <Typography
-              component="h2"
-              variant="h6"
-              mb={1}
-              className={classNames(styles.title, styles.titleInline)}
-            >
-              {title}
-            </Typography>
-          ) : (
-            title
-          )}
-          <hr className="fr-py-1w" />
-        </>
-      }
-      desc={<div className={styles.content}>{children}</div>}
-    ></Card>
+    <article className={classNames(styles.card, props.className)}>
+      <Grid component="header" container xs>
+        {props.title}
+      </Grid>
+      <hr className={fr.cx('fr-py-1w')} />
+      {props.children ? (
+        <Grid component="section" container xs>
+          {props.children}
+        </Grid>
+      ) : null}
+    </article>
   );
 }
 

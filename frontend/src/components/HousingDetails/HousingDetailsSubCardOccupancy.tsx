@@ -30,7 +30,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
       ? housing.vacancyStartYear
       : undefined;
 
-  function situationSince(occupancy: string, lastOccupancyChange: number | undefined): import("../_dsfr/components/foundation/typography/Text/Text").TextChildren {
+  function situationSince(occupancy: string, lastOccupancyChange: number | undefined): string {
     if (lastOccupancyChange === undefined) {
       return 'Inconnu';
     }

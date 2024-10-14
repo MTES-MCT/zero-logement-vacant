@@ -1,9 +1,11 @@
-import { Text } from '../_dsfr';
+import Grid from '@mui/material/Unstable_Grid2';
 import { getBuildingLocation, Housing } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import { LocalityKindLabels } from '../../models/Locality';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import { useUser } from '../../hooks/useUser';
+import Typography from '@mui/material/Typography';
+import LabelNext from '../Label/LabelNext';
 
 interface Props {
   housing: Housing;
@@ -14,53 +16,45 @@ function HousingDetailsCardLocation({ housing }: Props) {
 
   return (
     <HousingDetailsSubCard title="Localisation" isGrey>
-      <div>
-        <Text size="sm" className="zlv-label">
-          Adresse postale
-        </Text>
-        <Text spacing="mb-1w">{housing.rawAddress.join(' - ')}</Text>
-      </div>
+      <Grid xs={12} sx={{ mb: 1 }}>
+        <LabelNext component="h3">Adresse postale</LabelNext>
+        {housing.rawAddress.map((line) => (
+          <Typography key={line}>{line}</Typography>
+        ))}
+      </Grid>
       {getBuildingLocation(housing) && (
-        <div>
-          <Text size="sm" className="zlv-label">
-            Complément d’adresse
-          </Text>
-          <Text>
+        <Grid xs={12} sx={{ mb: 1 }}>
+          <LabelNext component="h3">Complément d’adresse</LabelNext>
+          <Typography>
             {[
               getBuildingLocation(housing)?.building,
               getBuildingLocation(housing)?.entrance,
               getBuildingLocation(housing)?.level,
-              getBuildingLocation(housing)?.local,
+              getBuildingLocation(housing)?.local
             ].join(', ')}
-          </Text>
-        </div>
+          </Typography>
+        </Grid>
       )}
       {housing.localityKind && (
-        <div>
-          <Text size="sm" className="zlv-label">
-            Périmètres
-          </Text>
-          <Text spacing="mb-1w">
-            {LocalityKindLabels[housing.localityKind]}
-          </Text>
-        </div>
+        <Grid xs={12} sx={{ mb: 1 }}>
+          <LabelNext component="h3">Périmètres</LabelNext>
+          <Typography>{LocalityKindLabels[housing.localityKind]}</Typography>
+        </Grid>
       )}
-      <div>
-        <Text size="sm" className="zlv-label">
-          Référence cadastrale
-        </Text>
-        <Text spacing="mb-1w">
+      <Grid xs={12} sx={{ mb: 1 }}>
+        <LabelNext component="h3">Référence cadastrale</LabelNext>
+        <Typography>
           <span>{housing.cadastralReference}</span>
-        </Text>
-      </div>
-      <div>
-        <Text size="sm" className="zlv-label">
-          Périmètres associés
-        </Text>
-        <Text spacing="mb-1w">{housing.geoPerimeters?.join(', ')}</Text>
+        </Typography>
+      </Grid>
+      <Grid xs={12} sx={{ mb: 1 }}>
+        <LabelNext component="h3">Périmètres associés</LabelNext>
+        <Typography sx={{ mb: 1 }}>
+          {housing.geoPerimeters?.join(', ')}
+        </Typography>
 
-        {!isVisitor && <GeoPerimetersModalLink /> }
-      </div>
+        {!isVisitor && <GeoPerimetersModalLink />}
+      </Grid>
     </HousingDetailsSubCard>
   );
 }

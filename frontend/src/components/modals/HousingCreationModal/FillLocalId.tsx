@@ -1,5 +1,4 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import * as yup from 'yup';
@@ -91,9 +90,6 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
 
   return (
     <>
-      <Typography sx={{ fontSize: '1.125rem', mb: 2 }}>
-        Saisissez l’identifiant du logement à ajouter.
-      </Typography>
       <Alert
         className="fr-mb-2w"
         severity="info"
@@ -133,7 +129,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
             <AppTextInput<FormShape>
               inputForm={form}
               inputKey="localId"
-              label="Identifiant du logement (obligatoire)"
+              label="Saisissez l’identifiant du logement à ajouter (obligatoire)"
               required
               value={localId}
               state={state}

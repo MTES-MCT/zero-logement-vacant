@@ -72,7 +72,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
       }
       hasBorder
     >
-      <Grid container rowSpacing={4} xs>
+      <Grid container rowSpacing={3} xs>
         <Grid xs={4}>
           <LabelNext component="h3">Dans cette situation depuis</LabelNext>
           <Typography>

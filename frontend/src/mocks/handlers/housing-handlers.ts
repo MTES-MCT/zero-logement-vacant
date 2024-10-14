@@ -31,16 +31,14 @@ export const housingHandlers: RequestHandler[] = [
     async ({ request }) => {
       const url = new URL(request.url);
       const queryParams = url.searchParams;
-      const filters = queryParams.get('filters') ? JSON.parse(queryParams.get('filters') as string) : null;
+      const filters = queryParams.get('filters')
+        ? JSON.parse(queryParams.get('filters') as string)
+        : null;
 
       const subset = fp.pipe(
         filterByCampaign(filters?.campaignIds),
         filterByHousingKind(filters?.housingKinds),
-        filterByStatus(
-          filters?.status
-            ? [filters.status]
-            : filters?.statusList
-        )
+        filterByStatus(filters?.status ? [filters.status] : filters?.statusList)
       )(data.housings);
 
       return HttpResponse.json({

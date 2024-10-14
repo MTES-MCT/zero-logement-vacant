@@ -129,7 +129,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
             <AppTextInput<FormShape>
               inputForm={form}
               inputKey="localId"
-              label="Identifiant fiscal départemental (obligatoire)"
+              label="Saisissez l’identifiant du logement à ajouter (obligatoire)"
               required
               value={localId}
               state={state}

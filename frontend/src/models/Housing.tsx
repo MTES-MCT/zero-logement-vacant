@@ -256,7 +256,7 @@ export function getSource(housing: Housing): string {
       aggregatedData[name].push(year);
     });
 
-    const result = Object.keys(aggregatedData)
+    result = Object.keys(aggregatedData)
       .map((name) => {
         const years = aggregatedData[name].join(', ');
         return labels[name] + ' (' + years + ')';

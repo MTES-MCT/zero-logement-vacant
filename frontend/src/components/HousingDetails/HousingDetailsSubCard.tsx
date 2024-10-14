@@ -1,9 +1,10 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Grid from '@mui/material/Unstable_Grid2';
+import Typography from '@mui/material/Typography';
+import classNames from 'classnames';
 import { ReactElement, ReactNode } from 'react';
 
 import styles from './housing-details-card.module.scss';
-import classNames from 'classnames';
 
 interface Props {
   title: ReactNode;
@@ -16,8 +17,18 @@ interface Props {
 function HousingDetailsSubCard(props: Props) {
   return (
     <article className={classNames(styles.card, props.className)}>
-      <Grid component="header" container xs>
-        {props.title}
+      <Grid component="header" container sx={{ mb: 1 }} xs>
+        {typeof props.title === 'string' ? (
+          <Typography
+            component="h2"
+            variant="h6"
+            sx={{ fontSize: '1rem !important' }}
+          >
+            {props.title}
+          </Typography>
+        ) : (
+          props.title
+        )}
       </Grid>
       <hr className={fr.cx('fr-py-1w')} />
       {props.children ? (

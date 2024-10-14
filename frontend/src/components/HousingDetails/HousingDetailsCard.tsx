@@ -1,11 +1,13 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Unstable_Grid2';
 import classNames from 'classnames';
 import { useState } from 'react';
 
-import { Col, Row } from '../_dsfr';
 import styles from './housing-details-card.module.scss';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
@@ -21,14 +23,12 @@ import HousingDetailsCardOccupancy from './HousingDetailsSubCardOccupancy';
 import HousingDetailsCardMobilisation from './HousingDetailsSubCardMobilisation';
 import { Campaign } from '../../models/Campaign';
 import { useUpdateHousingMutation } from '../../services/housing.service';
-
 import AppLink from '../_app/AppLink/AppLink';
 import {
   TrackEventActions,
   TrackEventCategories
 } from '../../models/TrackEvent';
 import { useUser } from '../../hooks/useUser';
-import Typography from '@mui/material/Typography';
 
 interface Props {
   housing: Housing;
@@ -152,15 +152,18 @@ function HousingDetailsCard({
                 label: 'Caractéristiques',
                 content: (
                   <div className="fr-px-0">
-                    <Row gutters>
-                      <Col>
-                        <HousingDetailsSubCardProperties housing={housing} />
+                    <Grid container spacing={2}>
+                      <Grid xs>
+                        <HousingDetailsSubCardProperties
+                          className={fr.cx('fr-mb-2w')}
+                          housing={housing}
+                        />
                         <HousingDetailsSubCardLocation housing={housing} />
-                      </Col>
-                      <Col>
+                      </Grid>
+                      <Grid xs>
                         <HousingDetailsSubCardBuilding housing={housing} />
-                      </Col>
-                    </Row>
+                      </Grid>
+                    </Grid>
                   </div>
                 )
               },

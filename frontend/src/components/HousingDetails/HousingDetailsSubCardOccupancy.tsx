@@ -48,13 +48,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
     <HousingDetailsSubCard
       className={fr.cx('fr-mb-2w')}
       title={
-        <Grid
-          alignItems="center"
-          container
-          justifyContent="space-between"
-          sx={{ mb: 1 }}
-          xs
-        >
+        <Grid alignItems="center" container justifyContent="space-between" xs>
           <Grid>
             <Typography
               component="h2"

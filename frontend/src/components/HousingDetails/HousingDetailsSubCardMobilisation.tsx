@@ -30,12 +30,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
   return (
     <HousingDetailsSubCard
       title={
-        <Grid
-          display="flex"
-          alignItems="flex-start"
-          flexDirection="row"
-          sx={{ mb: 1 }}
-        >
+        <Grid display="flex" alignItems="flex-start" flexDirection="row">
           <Typography
             component="h2"
             variant="h6"

@@ -244,20 +244,20 @@ export const localityKindsOptions: SelectOption<LocalityKind>[] = [
 ];
 
 export const dataFileYearsIncludedOptions: SelectOption[] = [
-  { value: 'lovac-2019', label: 'LOVAC 2019', badgeLabel: 'LOVAC 2019' },
-  { value: 'lovac-2020', label: 'LOVAC 2020', badgeLabel: 'LOVAC 2020' },
-  { value: 'lovac-2021', label: 'LOVAC 2021', badgeLabel: 'LOVAC 2021' },
-  { value: 'lovac-2022', label: 'LOVAC 2022', badgeLabel: 'LOVAC 2022' },
-  { value: 'lovac-2023', label: 'LOVAC 2023', badgeLabel: 'LOVAC 2023' },
+  { value: 'lovac-2019', label: 'ZLV 2019', badgeLabel: 'ZLV 2019' },
+  { value: 'lovac-2020', label: 'ZLV 2020', badgeLabel: 'ZLV 2020' },
+  { value: 'lovac-2021', label: 'ZLV 2021', badgeLabel: 'ZLV 2021' },
+  { value: 'lovac-2022', label: 'ZLV 2022', badgeLabel: 'ZLV 2022' },
+  { value: 'lovac-2023', label: 'ZLV 2023', badgeLabel: 'ZLV 2023' },
   { value: 'lovac-2024', label: 'LOVAC 2024', badgeLabel: 'LOVAC 2024' }
 ].sort((optionA, optionB) => optionB.label.localeCompare(optionA.label));
 
 export const dataFileYearsExcludedOptions: SelectOption[] = [
-  { value: 'lovac-2019', label: 'LOVAC 2019', badgeLabel: 'LOVAC 2019 exclu' },
-  { value: 'lovac-2020', label: 'LOVAC 2020', badgeLabel: 'LOVAC 2020 exclu' },
-  { value: 'lovac-2021', label: 'LOVAC 2021', badgeLabel: 'LOVAC 2021 exclu' },
-  { value: 'lovac-2022', label: 'LOVAC 2022', badgeLabel: 'LOVAC 2022 exclu' },
-  { value: 'lovac-2023', label: 'LOVAC 2023', badgeLabel: 'LOVAC 2023 exclu' },
+  { value: 'lovac-2019', label: 'ZLV 2019', badgeLabel: 'ZLV 2019 exclu' },
+  { value: 'lovac-2020', label: 'ZLV 2020', badgeLabel: 'ZLV 2020 exclu' },
+  { value: 'lovac-2021', label: 'ZLV 2021', badgeLabel: 'ZLV 2021 exclu' },
+  { value: 'lovac-2022', label: 'ZLV 2022', badgeLabel: 'ZLV 2022 exclu' },
+  { value: 'lovac-2023', label: 'ZLV 2023', badgeLabel: 'ZLV 2023 exclu' },
   { value: 'lovac-2024', label: 'LOVAC 2024', badgeLabel: 'LOVAC 2024 exclu' }
 ].sort((optionA, optionB) => optionB.label.localeCompare(optionA.label));
 

@@ -7,10 +7,16 @@ import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
-import { HousingKind } from '@zerologementvacant/models';
+import {
+  DatafoncierHousing,
+  HousingDTO,
+  HousingKind
+} from '@zerologementvacant/models';
 import {
   genDatafoncierHousingDTO,
   genGroupDTO,
+  genHousingDTO,
+  genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 
@@ -93,44 +99,12 @@ describe('Housing list view', () => {
     expect(createCampaign).toBeVisible();
   });
 
-  // TODO: should be resolved by the relevant bug story
-  describe.skip('If the user does not know the local id', () => {
-    const datafoncierHousing = genDatafoncierHousingDTO();
-    data.datafoncierHousings.push(datafoncierHousing);
+  describe('Add a housing', () => {
+    let datafoncierHousing: DatafoncierHousing;
 
-    it('should add a housing', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
-
-      const button = await screen.findByRole('button', {
-        name: /^Ajouter un logement/
-      });
-      await user.click(button);
-      const modal = await screen.findByRole('dialog');
-      const input = await within(modal).findByLabelText(
-        /^Identifiant du logement/
-      );
-      await user.type(input, datafoncierHousing.idlocal);
-      await user.click(
-        within(modal).getByRole('button', { name: /^Confirmer/ })
-      );
-      await within(modal).findByText(
-        'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
-      );
-      await user.click(
-        within(modal).getByRole('button', { name: /^Confirmer/ })
-      );
-
-      expect(modal).not.toBeVisible();
-      const alert = await screen.findByText(
-        'Le logement sélectionné a bien été ajouté à votre parc de logements.'
-      );
-      expect(alert).toBeVisible();
+    beforeEach(() => {
+      datafoncierHousing = genDatafoncierHousingDTO();
+      data.datafoncierHousings.push(datafoncierHousing);
     });
 
     it('should fail if the housing was not found in datafoncier', async () => {
@@ -150,21 +124,36 @@ describe('Housing list view', () => {
       await user.click(button);
       const modal = await screen.findByRole('dialog');
       const input = await within(modal).findByLabelText(
-        /^Identifiant du logement/
+        /^Saisissez l’identifiant fiscal national/
       );
       await user.type(input, localId);
       await user.click(
         within(modal).getByRole('button', { name: /^Confirmer/ })
       );
-      const alert = await within(modal).findByText(
-        'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies.'
+      const error = await within(modal).findByText(
+        'Nous n’avons pas pu trouver de logement avec les informations que vous avez fournies. Vérifiez les informations saisies afin de vous assurer qu’elles soient correctes, puis réessayez en modifiant l’identifiant du logement.'
       );
-      expect(alert).toBeVisible();
+      expect(error).toBeVisible();
     });
 
     it('should fail if the housing already exists in our database', async () => {
-      const localId = data.housings[0].localId;
-      expect(localId).toBeDefined();
+      const owner = genOwnerDTO();
+      const housing: HousingDTO = {
+        ...genHousingDTO(owner),
+        localId: datafoncierHousing.idlocal
+      };
+      data.housings.push(housing);
+      data.owners.push(owner);
+      data.housingOwners.set(housing.id, [
+        {
+          id: owner.id,
+          rank: 1,
+          locprop: null,
+          idprocpte: null,
+          idprodroit: null
+        }
+      ]);
+      expect(housing.localId).toBeDefined();
 
       render(
         <Provider store={store}>
@@ -180,12 +169,47 @@ describe('Housing list view', () => {
       await user.click(button);
       const modal = await screen.findByRole('dialog');
       const input = await within(modal).findByLabelText(
-        /^Identifiant du logement/
+        /^Saisissez l’identifiant fiscal national/
       );
       await user.type(input, datafoncierHousing.idlocal);
       await user.click(within(modal).getByText('Confirmer'));
       const alert = await within(modal).findByText(
         'Ce logement existe déjà dans votre parc'
+      );
+      expect(alert).toBeVisible();
+    });
+
+    it('should succeed otherwise', async () => {
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const button = await screen.findByRole('button', {
+        name: /^Ajouter un logement/
+      });
+      await user.click(button);
+      const modal = await screen.findByRole('dialog');
+      const input = await within(modal).findByLabelText(
+        /^Saisissez l’identifiant fiscal national/
+      );
+      await user.type(input, datafoncierHousing.idlocal);
+      await user.click(
+        within(modal).getByRole('button', { name: /^Confirmer/ })
+      );
+      await within(modal).findByText(
+        'Voici le logement que nous avons trouvé à cette adresse/sur cette parcelle.'
+      );
+      await user.click(
+        within(modal).getByRole('button', { name: /^Confirmer/ })
+      );
+
+      expect(modal).not.toBeVisible();
+      const alert = await screen.findByText(
+        'Le logement sélectionné a bien été ajouté à votre parc de logements.'
       );
       expect(alert).toBeVisible();
     });

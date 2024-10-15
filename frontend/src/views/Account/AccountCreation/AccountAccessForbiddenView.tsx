@@ -12,74 +12,39 @@ function AccountAccessForbiddenView() {
         Ce mail n’est pas autorisé à accéder à Zéro Logement Vacant.
       </Typography>
       <Text className="color-grey-50">
-        Seuls les utilisateurs autorisés à accéder aux données LOVAC peuvent
-        créer un compte Zéro Logement Vacant. Vous êtes sans doute dans l’un des
-        cas suivants :
+        Seules les personnes membres des structures ayant droit d‘accéder aux données LOVAC - les collectivités territoriales, les EPCI à fiscalité propre et les services de l‘Etat, ainsi que leurs partenaires - peuvent créer un compte ZLV. Si vous êtes membre d‘une de ces structures mais que vous ne parvenez pas à créer votre compte, vous êtes donc sans doute dans l’un des cas suivants :
       </Text>
       <div className={classNames(fr.cx('fr-accordions-group'), 'fr-mb-2w')}>
-        <Accordion label="Votre structure n’est pas autorisée à accéder aux données LOVAC">
+        <Accordion label="Votre structure n'est pas enregistrée comme bénéficiaire des données LOVAC sur le portail Données Foncières">
           <Text className="color-grey-50" size="sm">
-            Pour pouvoir accéder à Zéro Logement Vacant, vous devez signer et
-            transmettre l’acte d’engagement permettant d’accéder aux données
-            LOVAC en suivant la procédure indiquée sur 
-            <AppLink
-              isSimple
-              to="https://datafoncier.cerema.fr/lovac"
-              size="sm"
-            >
-              le site du CEREMA
-            </AppLink>
-            .
-          </Text>
-          <Text className="subtitle fr-mb-0" size="sm">
-            Veuillez noter que l’acte d’engagement est valable un an. Si
-            celui-ci n’est plus valable, vous devez renouveler votre demande
-            d’accès aux données LOVAC.
+            Pour pouvoir accéder à Zéro Logement Vacant, vous devez effectuer une demande d‘accès aux données LOVAC via le&nbsp;
+            <a className="fr-link--sm" href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">portail Données Foncières du Cerema</a>
+             . Pour cela, créez votre compte sur ce portail et effectuez une demande d‘accès au niveau 3 - LOVAC. Si votre accès a expiré, demandez à prolonger votre accès sur le portail.
           </Text>
         </Accordion>
-        <Accordion label="Votre structure est autorisée à accéder aux données LOVAC mais votre mail ne correspond pas à celui qui a été utilisé pour effectuer la demande d’accès.">
+        <Accordion label="Votre structure est enregistrée comme bénéficiaire des données LOVAC mais votre mail n'est pas rattaché à la structure sur le portail Données Foncières">
           <Text className="color-grey-50 fr-mb-0" size="sm">
-            Dans ce cas, 
-            <AppLink isSimple to="/inscription/email" size="sm">
-              réessayez avec l’adresse mail utilisée sur Démarches Simplifiées
-            </AppLink>
-            . Si vous ne savez pas quelle adresse a été utilisée, veuillez vous
-            rendre sur 
-            <AppLink
-              isSimple
-              to="https://consultdf.cerema.fr/consultdf/parcours-utilisateur/structure/"
-              size="sm"
-            >
-              le gestionnaire de droits d’accès du Cerema pour soumettre votre
-              demande.
-            </AppLink>
+            Dans ce cas, créez votre compte sur le&nbsp;
+            <a className="fr-link--sm" href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">
+              portail Données Foncières du Cerema
+            </a>
+            &nbsp;et effectuez une demande de rattachement à votre structure. C‘est la personne gestionnaire de la structure qui pourra valider votre demande de rattachement via ce même portail.
           </Text>
         </Accordion>
-        <Accordion label="Une ou plusieurs personnes de votre structure ont déjà accès à la solution Zéro Logement Vacant mais vous n’avez pas été rattaché comme utilisateur">
+        <Accordion label="Votre mail est rattaché à la structure mais vous n'avez pas créé votre propre compte utilisateur sur le portail Données Foncières">
           <Text className="color-grey-50 fr-mb-0" size="sm">
-            Veuillez vous rendre sur le 
-            <AppLink
-              isSimple
-              to="https://consultdf.cerema.fr/consultdf/parcours-utilisateur/structure/"
-              size="sm"
-            >
-              gestionnaire de droits d’accès du Cerema
-            </AppLink>
-             pour soumettre votre demande d’accès aux données foncières avec
-            votre mail, puis demandez à l’administrateur de votre structure
-            d’accepter votre demande d’accès.
+            Vous devez impérativement avoir créé un compte sur le&nbsp;
+            <a className="fr-link--sm" href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">
+              portail Données Foncières du Cerema
+            </a>
+            &nbsp;pour pouvoir créer un compte ZLV. Validez les Conditions Générales d‘Utilisation pour finaliser la création de votre compte utilisateur et obtenir l‘autorisation de créer votre compte ZLV.
           </Text>
         </Accordion>
       </div>
       <Container as="section" fluid spacing="mb-4w">
-        <AppLink
-          to="https://zerologementvacant.crisp.help/fr/article/comment-creer-mon-compte-zlv-1bcsydq"
-          target="_blank"
-          isSimple
-          size="sm"
-        >
+        <a href="https://zerologementvacant.crisp.help/fr/article/comment-creer-mon-compte-zlv-1bcsydq">
           Besoin d’aide pour créer votre compte ?
-        </AppLink>
+        </a>
       </Container>
       <AppLink
         isSimple

@@ -7,6 +7,7 @@ import { HousingKind } from './HousingKind';
 // TODO: complete this type
 export interface HousingDTO {
   id: string;
+  invariant: string;
   localId: string;
   rawAddress: string[];
   geoCode: string;
@@ -41,6 +42,8 @@ export interface HousingDTO {
   source: HousingSource | null;
   owner: OwnerDTO;
 }
+
+export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;
 
 export interface HousingCountDTO {
   housing: number;

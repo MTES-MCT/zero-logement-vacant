@@ -25,21 +25,25 @@ import { OwnerApi } from '~/models/OwnerApi';
 import ownerRepository from '~/repositories/ownerRepository';
 import { AddressKinds } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
+import { slugify, timestamp } from '@zerologementvacant/utils';
 import Stream = Highland.Stream;
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
 
 const logger = createLogger('housingExportController');
+
+const MAX_TITLE_LENGTH = 100;
 
 export type OwnerExportStreamApi = OwnerApi & { housingList: HousingApi[] };
 
 const exportCampaignValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID')
 ];
-const exportCampaign = async (
+
+async function exportCampaign(
   request: Request,
   response: Response,
   next: NextFunction
-) => {
+) {
   const { auth, params } = request as AuthenticatedRequest;
 
   logger.info('Export campaign', {
@@ -56,9 +60,14 @@ const exportCampaign = async (
     throw new CampaignMissingError(params.id);
   }
 
-  logger.debug('Found campaign', { campaign: campaign.title });
-  const fileName = `${campaign.title}.xlsx`;
-  const workbook = excelUtils.initWorkbook(fileName, response);
+  const file = timestamp()
+    .concat('-', slugify(campaign.title))
+    .substring(0, MAX_TITLE_LENGTH);
+  logger.debug('Found campaign', {
+    campaign: campaign.title,
+    file
+  });
+  const workbook = excelUtils.initWorkbook(`${file}.xlsx`, response);
   const housingStream = housingRepository.stream({
     filters: {
       campaignIds: [campaign.id],
@@ -88,12 +97,12 @@ const exportCampaign = async (
       logger.info('Workbook committed');
       logger.info('Campaign exported', { campaign: campaign.id });
     });
-};
+}
 
-const exportGroup = async (request: Request, response: Response) => {
+async function exportGroup(request: Request, response: Response) {
   const { auth, params } = request as AuthenticatedRequest;
 
-  logger.info('Export group', {
+  logger.info('Exporting group...', {
     id: params.id
   });
 
@@ -108,12 +117,14 @@ const exportGroup = async (request: Request, response: Response) => {
       }
     })
   ]);
-
   if (!group) {
     throw new GroupMissingError(params.id);
   }
-  const fileName = `${group.title}.xlsx`;
-  const workbook = excelUtils.initWorkbook(fileName, response);
+
+  const file = timestamp()
+    .concat('-', slugify(group.title))
+    .substring(0, MAX_TITLE_LENGTH);
+  const workbook = excelUtils.initWorkbook(`${file}.xlsx`, response);
 
   const housingStream = housingRepository.stream({
     filters: {
@@ -143,7 +154,7 @@ const exportGroup = async (request: Request, response: Response) => {
       });
       logger.info('Exported group', { group: group.id });
     });
-};
+}
 
 const exportGroupValidators: ValidationChain[] = [
   param('id').isUUID().withMessage('Must be an UUID')
@@ -174,6 +185,7 @@ function writeHousingWorksheet(
           });
           const row = {
             invariant: housing.invariant,
+            localId: housing.localId,
             cadastralReference: housing.cadastralReference,
             geoCode: housing.geoCode,
             housingRawAddress: reduceStringArray(housing.rawAddress),
@@ -368,7 +380,8 @@ const addOwnerWorksheet = (
 };
 
 const housingWorksheetColumns = [
-  { header: 'Invariant', key: 'invariant' },
+  { header: 'Identifiant fiscal départemental', key: 'invariant' },
+  { header: 'Identifiant fiscal national', key: 'localId' },
   { header: 'Référence cadastrale', key: 'cadastralReference' },
   { header: 'Code INSEE commune du logement', key: 'geoCode' },
   { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },

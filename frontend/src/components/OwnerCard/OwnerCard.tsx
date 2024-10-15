@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { ReactNode } from 'react';
 
 import { HousingOwner, Owner } from '../../models/Owner';
-import { birthdate } from '../../utils/dateUtils';
+import { age, birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import styles from './owner-card.module.scss';
@@ -54,7 +54,7 @@ function OwnerCard(props: OwnerCardProps) {
               />
               <Label as="span">Date de naissance</Label>
               <Typography component="p">
-                {birthdate(props.owner.birthDate)}
+                {birthdate(props.owner.birthDate)} ({age(props.owner.birthDate)} ans)
               </Typography>
             </Typography>
           )}

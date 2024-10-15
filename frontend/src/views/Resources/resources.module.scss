@@ -17,7 +17,7 @@
 
 .iconResource {
   background-color: var(--grey-950);
-  color: var(--green-tilleul-verveine-850);
+  color: var(--green-tilleul-verveine-sun-418);
 }
 
 .iconCommunity {
@@ -27,10 +27,14 @@
 
 .iconHelp {
   background-color: var(--green-bourgeon-975);
-  color: var(--green-bourgeon-850-hover);
+  color: var(--green-bourgeon-sun-425);
 }
 
 .iconAgenda {
   background-color: var(--pink-macaron-975);
-  color: var(--pink-macaron-850-active);
+  color: var(--pink-macaron-sun-406);
+}
+
+.iconStep {
+  color: var(--grey-425);
 }

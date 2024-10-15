@@ -775,6 +775,7 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.where(function (whereBuilder: any) {
         // With more than 20 tokens, the query is likely nor a name neither an address
         if (query.replaceAll(' ', ',').split(',').length < 20) {
+          whereBuilder.orWhereRaw(`invariant = ?`, query);
           whereBuilder.orWhereRaw(`local_id = ?`, query);
           whereBuilder.orWhereRaw(
             `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
@@ -803,6 +804,13 @@ function filteredQuery(opts: ListQueryOptions) {
         }
         whereBuilder.orWhereIn(
           'invariant',
+          query
+            ?.replaceAll(' ', ',')
+            .split(',')
+            .map((_) => _.trim())
+        );
+        whereBuilder.orWhereIn(
+          'local_id',
           query
             ?.replaceAll(' ', ',')
             .split(',')

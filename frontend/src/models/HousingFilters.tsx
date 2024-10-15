@@ -250,7 +250,7 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
   { value: 'lovac-2022', label: 'ZLV 2022', badgeLabel: 'ZLV 2022' },
   { value: 'lovac-2023', label: 'ZLV 2023', badgeLabel: 'ZLV 2023' },
   { value: 'lovac-2024', label: 'LOVAC 2024', badgeLabel: 'LOVAC 2024' }
-].sort((optionA, optionB) => optionB.label.localeCompare(optionA.label));
+].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
 export const dataFileYearsExcludedOptions: SelectOption[] = [
   { value: 'lovac-2019', label: 'ZLV 2019', badgeLabel: 'ZLV 2019 exclu' },
@@ -259,7 +259,7 @@ export const dataFileYearsExcludedOptions: SelectOption[] = [
   { value: 'lovac-2022', label: 'ZLV 2022', badgeLabel: 'ZLV 2022 exclu' },
   { value: 'lovac-2023', label: 'ZLV 2023', badgeLabel: 'ZLV 2023 exclu' },
   { value: 'lovac-2024', label: 'LOVAC 2024', badgeLabel: 'LOVAC 2024 exclu' }
-].sort((optionA, optionB) => optionB.label.localeCompare(optionA.label));
+].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
 export const BlockingPointOptions: OptionTreeElement[] = [
   {

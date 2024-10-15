@@ -249,6 +249,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
       'datafoncier-manual'
     ]),
     localId: genLocalId(department, invariant),
+    invariant: genInvariant(locality),
     rawAddress: faker.location
       .streetAddress({ useFullAddress: true })
       .split(' '),

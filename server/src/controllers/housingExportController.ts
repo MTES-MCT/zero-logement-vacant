@@ -185,6 +185,7 @@ function writeHousingWorksheet(
           });
           const row = {
             invariant: housing.invariant,
+            localId: housing.localId,
             cadastralReference: housing.cadastralReference,
             geoCode: housing.geoCode,
             housingRawAddress: reduceStringArray(housing.rawAddress),
@@ -379,7 +380,8 @@ const addOwnerWorksheet = (
 };
 
 const housingWorksheetColumns = [
-  { header: 'Invariant', key: 'invariant' },
+  { header: 'Identifiant fiscal départemental', key: 'invariant' },
+  { header: 'Identifiant fiscal national', key: 'localId' },
   { header: 'Référence cadastrale', key: 'cadastralReference' },
   { header: 'Code INSEE commune du logement', key: 'geoCode' },
   { header: 'Adresse LOVAC du logement', key: 'housingRawAddress' },

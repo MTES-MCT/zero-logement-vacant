@@ -103,7 +103,7 @@ const HousingView = () => {
                       }
                     />
                   }
-                ></OwnerCard>
+                />
               </>
             )}
           </Col>

@@ -10,8 +10,12 @@ export const VARIABLE_OPTIONS: Variable[] = [
     value: '{{housing.rawAddress}}',
   },
   {
-    label: 'Identifiant logement',
+    label: 'Identifiant fiscal national',
     value: '{{housing.localId}}',
+  },
+  {
+    label: 'Identifiant fiscal départemental',
+    value: '{{housing.invariant}}',
   },
   {
     label: 'Référence cadastrale',

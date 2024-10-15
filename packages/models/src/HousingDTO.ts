@@ -7,6 +7,7 @@ import { HousingKind } from './HousingKind';
 // TODO: complete this type
 export interface HousingDTO {
   id: string;
+  invariant: string;
   localId: string;
   rawAddress: string[];
   geoCode: string;

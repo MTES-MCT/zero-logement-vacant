@@ -49,8 +49,8 @@ function HousingEditionSideMenu({ housing, expand, onSubmit, onClose }: Props) {
               </Container>
               <Container as="section" spacing="p-0 mb-3w">
                 <Text size="sm" spacing="m-0">
-                  <Label as="span">Invariant fiscal : </Label>
-                  {housing.invariant}
+                  <Label as="span">Identifiant fiscal national :</Label>
+                  {housing.localId}
                 </Text>
                 <AppLink
                   to={'/logements/' + housing.id}

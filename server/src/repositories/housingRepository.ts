@@ -855,9 +855,6 @@ async function fetchGeoCodes(establishmentIds: string[]): Promise<string[]> {
 
 export interface HousingRecordDBO {
   id: string;
-  /**
-   * @deprecated See {@link local_id}
-   */
   invariant: string;
   local_id: string;
   building_id?: string;
@@ -919,7 +916,7 @@ export interface HousingDBO extends HousingRecordDBO {
 
 export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   id: housing.id,
-  invariant: housing.local_id,
+  invariant: housing.invariant,
   localId: housing.local_id,
   plotId: housing.plot_id,
   buildingGroupId: housing.building_group_id,

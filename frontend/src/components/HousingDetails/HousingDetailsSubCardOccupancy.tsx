@@ -36,7 +36,6 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
     }
 
     const duration = getYear(new Date()) - lastOccupancyChange;
-
     if (duration === 0) {
       return 'Moins d’un an';
     }

@@ -1,8 +1,6 @@
 .coOwnerCard {
-
   width: 100% !important;
   margin-left: 0 !important;
-
 }
 
 .housingBouton {
@@ -11,4 +9,8 @@
   margin-top: 1rem;
 }
 
-
+.removeIcon {
+  a::after {
+    display: none !important;
+  }
+}

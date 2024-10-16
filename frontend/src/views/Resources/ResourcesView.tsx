@@ -59,7 +59,8 @@ const ResourcesView = () => {
               icon="fr-icon-folder-2-fill"
               iconStyle={styles.iconResource}
             >
-              Découvrez une sélection de ressources autour de la lutte contre la vacance.
+              Découvrez une sélection de ressources autour de la lutte contre la
+              vacance.
             </ResourceTile>
           </Col>
           <Col n="6">
@@ -69,7 +70,8 @@ const ResourcesView = () => {
               icon="fr-icon-group-fill"
               iconStyle={styles.iconCommunity}
             >
-              La plateforme d’échanges Rencontre des Territoires et les Clubs ZLV, c’est par ici !
+              La plateforme d’échanges Rencontre des Territoires et les Clubs
+              ZLV, c’est par ici !
             </ResourceTile>
           </Col>
           <Col n="6">
@@ -79,7 +81,8 @@ const ResourcesView = () => {
               icon="fr-icon-question-mark"
               iconStyle={styles.iconHelp}
             >
-              Une question sur ZLV ? La réponse est sûrement dans le centre d’aide.
+              Une question sur ZLV ? La réponse est sûrement dans le centre
+              d’aide.
             </ResourceTile>
           </Col>
           <Col n="6">
@@ -104,8 +107,10 @@ const ResourcesView = () => {
               title="Ajouter un filtre géographique"
               linkHref="https://zlv.notion.site/Int-grer-un-p-rim-tre-5c7cf0d51f20448bb1316405adbb4a37"
               icon="fr-icon-road-map-fill"
+              iconStyle={styles.iconStep}
             >
-              Découvrez comment cibler les logements au sein d’un périmètre géographique.
+              Découvrez comment cibler les logements au sein d’un périmètre
+              géographique.
             </ResourceTile>
           </Col>
           <Col n="4">
@@ -113,8 +118,10 @@ const ResourcesView = () => {
               title="Rédiger un courrier"
               linkHref="https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5"
               icon="fr-icon-mail-fill"
+              iconStyle={styles.iconStep}
             >
-              Accédez à des conseils pour écrire vos courriers et à des modèles déjà rédigés.
+              Accédez à des conseils pour écrire vos courriers et à des modèles
+              déjà rédigés.
             </ResourceTile>
           </Col>
           <Col n="4">
@@ -123,8 +130,10 @@ const ResourcesView = () => {
               linkHref="/ressources/statuts"
               linkHrefTarget="_self"
               icon="fr-icon-git-merge-line"
+              iconStyle={styles.iconStep}
             >
-              Consultez l’ensemble des statuts que vous pouvez appliquer aux logements.
+              Consultez l’ensemble des statuts que vous pouvez appliquer aux
+              logements.
             </ResourceTile>
           </Col>
         </Row>

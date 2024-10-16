@@ -244,21 +244,21 @@ export const localityKindsOptions: SelectOption<LocalityKind>[] = [
 ];
 
 export const dataFileYearsIncludedOptions: SelectOption[] = [
-  { value: 'lovac-2019', label: 'ZLV 2019', badgeLabel: 'ZLV 2019' },
-  { value: 'lovac-2020', label: 'ZLV 2020', badgeLabel: 'ZLV 2020' },
-  { value: 'lovac-2021', label: 'ZLV 2021', badgeLabel: 'ZLV 2021' },
-  { value: 'lovac-2022', label: 'ZLV 2022', badgeLabel: 'ZLV 2022' },
-  { value: 'lovac-2023', label: 'ZLV 2023', badgeLabel: 'ZLV 2023' },
-  { value: 'lovac-2024', label: 'LOVAC 2024', badgeLabel: 'LOVAC 2024' }
+  { value: 'lovac-2019', label: 'ZLV 2019 (>2 ans)', badgeLabel: 'ZLV 2019 (>2 ans)' },
+  { value: 'lovac-2020', label: 'ZLV 2020 (>2 ans)', badgeLabel: 'ZLV 2020 (>2 ans)' },
+  { value: 'lovac-2021', label: 'ZLV 2021 (>2 ans)', badgeLabel: 'ZLV 2021 (>2 ans)' },
+  { value: 'lovac-2022', label: 'ZLV 2022 (>2 ans)', badgeLabel: 'ZLV 2022 (>2 ans)' },
+  { value: 'lovac-2023', label: 'ZLV 2023 (>2 ans)', badgeLabel: 'ZLV 2023 (>2 ans)' },
+  { value: 'lovac-2024', label: 'LOVAC 2024 (>2 ans)', badgeLabel: 'LOVAC 2024 (>2 ans)' }
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
 export const dataFileYearsExcludedOptions: SelectOption[] = [
-  { value: 'lovac-2019', label: 'ZLV 2019', badgeLabel: 'ZLV 2019 exclu' },
-  { value: 'lovac-2020', label: 'ZLV 2020', badgeLabel: 'ZLV 2020 exclu' },
-  { value: 'lovac-2021', label: 'ZLV 2021', badgeLabel: 'ZLV 2021 exclu' },
-  { value: 'lovac-2022', label: 'ZLV 2022', badgeLabel: 'ZLV 2022 exclu' },
-  { value: 'lovac-2023', label: 'ZLV 2023', badgeLabel: 'ZLV 2023 exclu' },
-  { value: 'lovac-2024', label: 'LOVAC 2024', badgeLabel: 'LOVAC 2024 exclu' }
+  { value: 'lovac-2019', label: 'ZLV 2019 (>2 ans)', badgeLabel: 'ZLV 2019 (>2 ans) exclu' },
+  { value: 'lovac-2020', label: 'ZLV 2020 (>2 ans)', badgeLabel: 'ZLV 2020 (>2 ans) exclu' },
+  { value: 'lovac-2021', label: 'ZLV 2021 (>2 ans)', badgeLabel: 'ZLV 2021 (>2 ans) exclu' },
+  { value: 'lovac-2022', label: 'ZLV 2022 (>2 ans)', badgeLabel: 'ZLV 2022 (>2 ans) exclu' },
+  { value: 'lovac-2023', label: 'ZLV 2023 (>2 ans)', badgeLabel: 'ZLV 2023 (>2 ans) exclu' },
+  { value: 'lovac-2024', label: 'LOVAC 2024 (>2 ans)', badgeLabel: 'LOVAC 2024 (>2 ans) exclu' }
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
 export const BlockingPointOptions: OptionTreeElement[] = [

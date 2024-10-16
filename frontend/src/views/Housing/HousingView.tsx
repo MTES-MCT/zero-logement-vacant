@@ -1,5 +1,6 @@
+import Grid from '@mui/material/Unstable_Grid2';
+import async from 'async';
 import { useState } from 'react';
-import { Col, Row } from '../../components/_dsfr';
 import OwnerCard from '../../components/OwnerCard/OwnerCard';
 import { useHousing } from '../../hooks/useHousing';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
@@ -17,7 +18,6 @@ import {
 } from '../../services/owner.service';
 import { Campaign } from '../../models/Campaign';
 import MainContainer from '../../components/MainContainer/MainContainer';
-import async from 'async';
 
 const HousingView = () => {
   const {
@@ -82,46 +82,46 @@ const HousingView = () => {
   };
 
   return (
-    <>
-      <MainContainer grey>
-        <Row alignItems="top" gutters>
-          <Col n="4">
-            {mainHousingOwner && housingOwners && (
-              <>
-                <OwnerCard
-                  owner={mainHousingOwner}
-                  coOwners={coOwners}
-                  housingCount={housingCount}
-                  modify={
-                    <HousingOwnersModal
-                      housingId={housing.id}
-                      housingOwners={housingOwners}
-                      onSubmit={submitHousingOwnersUpdate}
-                      key={housingOwnersModalKey}
-                      onCancel={() =>
-                        setHousingOwnersModalKey(new Date().getTime())
-                      }
-                    />
-                  }
-                />
-              </>
-            )}
-          </Col>
-          <Col n="8">
-            {housing && (
-              <>
-                <HousingDetailsCard
-                  housing={housing}
-                  housingEvents={events ?? []}
-                  housingNotes={notes ?? []}
-                  housingCampaigns={(campaigns as Campaign[]) ?? []}
-                />
-              </>
-            )}
-          </Col>
-        </Row>
-      </MainContainer>
-    </>
+    <MainContainer grey>
+      <Grid container columnSpacing={3}>
+        {/* Set a custom order to facilitate accessibility:
+        housing first, owner second */}
+        <Grid xs={8} order={2}>
+          {housing && (
+            <>
+              <HousingDetailsCard
+                housing={housing}
+                housingEvents={events ?? []}
+                housingNotes={notes ?? []}
+                housingCampaigns={(campaigns as Campaign[]) ?? []}
+              />
+            </>
+          )}
+        </Grid>
+        <Grid xs={4} order={1}>
+          {mainHousingOwner && housingOwners && (
+            <>
+              <OwnerCard
+                owner={mainHousingOwner}
+                coOwners={coOwners}
+                housingCount={housingCount}
+                modify={
+                  <HousingOwnersModal
+                    housingId={housing.id}
+                    housingOwners={housingOwners}
+                    onSubmit={submitHousingOwnersUpdate}
+                    key={housingOwnersModalKey}
+                    onCancel={() =>
+                      setHousingOwnersModalKey(new Date().getTime())
+                    }
+                  />
+                }
+              />
+            </>
+          )}
+        </Grid>
+      </Grid>
+    </MainContainer>
   );
 };
 

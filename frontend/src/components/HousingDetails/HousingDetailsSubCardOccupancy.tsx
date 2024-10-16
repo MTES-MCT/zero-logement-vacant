@@ -1,8 +1,8 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Typography from '@mui/material/Typography';
-
-import { Col, Row, Text } from '../_dsfr';
+import Grid from '@mui/material/Unstable_Grid2';
 import {
   getOccupancy,
   getSource,
@@ -16,7 +16,7 @@ import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { Event } from '../../models/Event';
 import { getYear } from 'date-fns';
-import Label from '../Label/Label';
+import LabelNext from '../Label/LabelNext';
 
 interface Props {
   housing: Housing;
@@ -36,7 +36,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
     }
 
     const duration = getYear(new Date()) - lastOccupancyChange;
-    
+
     if (duration === 0) {
       return 'Moins d’un an';
     }
@@ -46,90 +46,83 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
 
   return (
     <HousingDetailsSubCard
+      className={fr.cx('fr-mb-2w')}
       title={
-        <>
-          <Typography
-            component="h2"
-            variant="h6"
-            mb={1}
-            className={classNames(styles.title, 'd-inline-block')}
-          >
-            Occupation :
-          </Typography>
-          <div className="fr-ml-1w d-inline-block">
+        <Grid alignItems="center" container justifyContent="space-between" xs>
+          <Grid>
+            <Typography
+              component="h2"
+              variant="h6"
+              sx={{ mr: 1 }}
+              className={classNames(styles.title, 'd-inline-block')}
+            >
+              Occupation :
+            </Typography>
             <Badge className="bg-975">
               {OccupancyKindLabels[getOccupancy(housing.occupancy)]}
             </Badge>
-          </div>
-          <div className="d-inline-block float-right">
-            <span className="zlv-label">Occupation prévisionnelle : </span>
+          </Grid>
+          <Grid>
+            <LabelNext component="h3">Occupation prévisionnelle :</LabelNext>
             <Badge className="bg-975 fr-ml-1w">
               {OccupancyKindLabels[getOccupancy(housing.occupancy)]}
             </Badge>
-          </div>
-        </>
+          </Grid>
+        </Grid>
       }
       hasBorder
     >
-      <Row>
-        <Col n="4">
-          <Text size="sm" className="zlv-label">
-            Dans cette situation depuis
-          </Text>
-          <Text spacing="mb-1w">
+      <Grid container rowSpacing={3} xs>
+        <Grid xs={4}>
+          <LabelNext component="h3">Dans cette situation depuis</LabelNext>
+          <Typography>
             {situationSince(housing.occupancy, lastOccupancyChange)}
-          </Text>
-        </Col>
-        <Col n="4">
-          <Label>Source</Label>
-          <p>{getSource(housing)}</p>
-        </Col>
-        <Col n="4">
-          <Text size="sm" className="zlv-label">
-            Logement passoire énergétique
-          </Text>
+          </Typography>
+        </Grid>
+        <Grid xs={4}>
+          <LabelNext component="h3">Source</LabelNext>
+          <Typography>{getSource(housing)}</Typography>
+        </Grid>
+        <Grid xs={4}>
+          <LabelNext component="h3">Logement passoire énergétique</LabelNext>
           {housing.energyConsumption ? (
             <Tag className="d-block">
               {['F', 'G'].includes(housing.energyConsumption) ? 'Oui' : 'Non'}
             </Tag>
           ) : (
-            <Text spacing="mb-1w">Non renseigné</Text>
+            <Typography>Non renseigné</Typography>
           )}
-        </Col>
-        {lastOccupancyEvent?.old && <Col n="4">
-          <Text size="sm" className="zlv-label">
-            Ancien statut d’occupation
-          </Text>
-          <Text spacing="mb-1w">
+        </Grid>
+        {lastOccupancyEvent?.old && <Grid xs={4}>
+          <LabelNext component="h3">Ancien statut d’occupation</LabelNext>
+          <Typography>
             {OccupancyKindLabels[
               lastOccupancyEvent?.old.occupancy as OccupancyKind
             ] ?? 'Inconnu'}
-          </Text>
-        </Col> }
-        <Col n="4">
+          </Typography>
+        </Grid> }
+        <Grid xs={4}>
           {housing.occupancy === 'V' && (
-            <Text size="sm" className="zlv-label">
-              Taxe sur la vacance
+            <>
+              <LabelNext component="h3">Taxe sur la vacance</LabelNext>
               <Tag className="d-block">{housing.taxed ? 'Oui' : 'Non'}</Tag>
-            </Text>
+            </>
           )}
-        </Col>
-        <Col n="4">
-          <div className="fr-mb-3w">
-            <Text size="sm" className="zlv-label">
-              Étiquette DPE représentatif (CSTB)
-            </Text>
-            {housing.energyConsumption ? (
-              <DPE
-                value={housing.energyConsumption}
-                madeAt={housing.energyConsumptionAt}
-              />
-            ) : (
-              <Text spacing="mb-1w">Non renseigné</Text>
-            )}
-          </div>
-        </Col>
-      </Row>
+        </Grid>
+        <Grid xs={4}>
+          <LabelNext component="h3">
+            Étiquette DPE représentatif (CSTB)
+          </LabelNext>
+          {housing.energyConsumption ? (
+            <DPE
+              value={housing.energyConsumption}
+              madeAt={housing.energyConsumptionAt}
+            />
+          ) : (
+            <Typography>Non renseigné</Typography>
+          )}
+        </Grid>
+      </Grid>
     </HousingDetailsSubCard>
   );
 }

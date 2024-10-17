@@ -39,8 +39,9 @@ router.post('/files', upload(), fileController.create);
 router.get(
   '/housing',
   validatorNext.validate({
-    body: schemas.housingFilters.concat(paginationSchema),
-    query: sortApi.sortSchema
+    query: schemas.housingFilters
+      .concat(sortApi.sortSchema)
+      .concat(paginationSchema)
   }),
   housingController.list
 );

@@ -24,7 +24,6 @@ import { HousingStatusApi } from '~/models/HousingStatusApi';
 import sortApi from '~/models/SortApi';
 import { HousingPaginatedResultApi } from '~/models/PaginatedResultApi';
 import { isArrayOf, isUUID } from '~/utils/validators';
-import paginationApi from '~/models/PaginationApi';
 import HousingMissingError from '~/errors/housingMissingError';
 import noteRepository from '~/repositories/noteRepository';
 import { NoteApi } from '~/models/NoteApi';
@@ -40,6 +39,7 @@ import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
 import { HousingEventApi } from '~/models/EventApi';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
+import fp from 'lodash/fp';
 
 const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
@@ -66,48 +66,47 @@ async function get(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(housing);
 }
 
-const listValidators: ValidationChain[] = [
-  ...housingFiltersApi.validators(),
-  ...sortApi.queryValidators,
-  ...paginationApi.queryValidators
-];
-
 type ListHousingPayload = Pagination & {
   filters?: HousingFiltersDTO;
 };
 
+type HousingQuery = HousingFiltersDTO &
+  Partial<Pagination> & { sort?: string[] };
+
 async function list(
-  request: Request<never, HousingPaginatedResultApi, ListHousingPayload>,
+  request: Request<
+    never,
+    HousingPaginatedResultApi,
+    ListHousingPayload,
+    HousingQuery
+  >,
   response: Response<HousingPaginatedResultApi>
 ) {
   const { auth, user, query } = request as AuthenticatedRequest<
     never,
     HousingPaginatedResultApi,
-    ListHousingPayload
+    ListHousingPayload,
+    HousingQuery
   >;
 
   const pagination: Pagination = {
-    paginate: query.paginate === 'true',
-    page: parseInt(query.page as string, 10),
-    perPage: parseInt(query.perPage as string, 10)
+    paginate: query.paginate,
+    page: query.page ?? 1,
+    perPage: query.perPage ?? 50
   };
-
   const role = user.role;
-  const sort = sortApi.parse<HousingSortableApi>(
-    request.query.sort as string[] | undefined
-  );
-  const rawFilters =
-    query.filters !== undefined ? JSON.parse(query.filters) : undefined;
+  const sort = sortApi.parse<HousingSortableApi>(query.sort);
+  const rawFilters = fp.omit(['paginate', 'page', 'perPage', 'sort'], query);
   const filters: HousingFiltersApi = {
     ...rawFilters,
-    multiOwners: rawFilters?.multiOwners?.map((value: string) =>
-      value === 'true' ? 'true' : 'false'
+    multiOwners: rawFilters?.multiOwners?.map((value: boolean) =>
+      value ? 'true' : 'false'
     ),
     roomsCounts: rawFilters?.roomsCounts?.map((value: string) =>
       value.toString()
     ),
-    isTaxedValues: rawFilters?.isTaxedValues?.map((value: string) =>
-      value === 'true' ? 'true' : 'false'
+    isTaxedValues: rawFilters?.isTaxedValues?.map((value: boolean) =>
+      value ? 'true' : 'false'
     ),
     energyConsumption:
       rawFilters?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
@@ -484,7 +483,6 @@ async function createHousingUpdateNote(
 const housingController = {
   getValidators,
   get,
-  listValidators,
   list,
   count,
   createValidators,

@@ -1,28 +1,44 @@
-import { faker } from '@faker-js/faker';
+import axios from 'axios';
 import nock from 'nock';
 import { constants } from 'node:http2';
+import qs from 'qs';
 
-import { createSDK } from '../sdk';
+import { Occupancy } from '@zerologementvacant/models';
+import {
+  genHousingDTO,
+  genOwnerDTO
+} from '@zerologementvacant/models/fixtures';
+import { createHousingAPI } from '../housing-api';
 
 describe('Housing API', () => {
-  const host = 'api.zerologementvacant.beta.gouv.fr';
-  const api = createSDK({
-    api: {
-      host,
-    },
-    auth: {
-      secret: 'secret',
-    },
-    establishment: faker.string.uuid(),
+  const host = 'https://api.zerologementvacant.beta.gouv.fr';
+  const http = axios.create({
+    baseURL: host,
+    paramsSerializer: (query) => qs.stringify(query, { arrayFormat: 'comma' })
   });
 
   describe('find', () => {
     it('should return a list of housing', async () => {
-      nock(host).post('/housing').reply(constants.HTTP_STATUS_OK, []);
+      const owner = genOwnerDTO();
+      const housings = Array.from({ length: 3 }, () => genHousingDTO(owner));
+      nock(host)
+        .get('/housing')
+        .query(
+          `occupancies=${Occupancy.VACANT}&dataFileYearsIncluded=lovac-2023,lovac-2024`
+        )
+        .reply(constants.HTTP_STATUS_OK, {
+          entities: housings
+        });
 
-      const actual = await api.housing.find();
+      const api = createHousingAPI(http);
+      const actual = await api.find({
+        filters: {
+          occupancies: [Occupancy.VACANT],
+          dataFileYearsIncluded: ['lovac-2023', 'lovac-2024']
+        }
+      });
 
-      expect(actual).toStrictEqual([]);
+      expect(actual).toStrictEqual(housings);
     });
   });
 });

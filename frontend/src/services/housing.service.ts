@@ -4,7 +4,7 @@ import { HousingPaginatedResult } from '../models/PaginatedResult';
 import { toTitleCase } from '../utils/stringUtils';
 import { parseISO } from 'date-fns';
 import { SortOptions, toQuery } from '../models/Sort';
-import { AbortOptions, getURLQuery } from '../utils/fetchUtils';
+import { AbortOptions } from '../utils/fetchUtils';
 import {
   HousingFiltersDTO,
   PaginationOptions
@@ -52,15 +52,12 @@ export const housingApi = zlvApi.injectEndpoints({
     }),
     findHousing: builder.query<HousingPaginatedResult, FindOptions>({
       query: (opts) => ({
-        url: `housing${getURLQuery({
-          sort: toQuery(opts?.sort),
-          filters: opts?.filters ? JSON.stringify(opts?.filters) : undefined,
-          paginate: opts?.pagination?.paginate,
-          page: opts?.pagination?.paginate ? opts.pagination.page : undefined,
-          perPage: opts?.pagination?.paginate
-            ? opts.pagination.perPage
-            : undefined
-        })}`,
+        url: '/housing',
+        params: {
+          ...opts?.filters,
+          ...opts?.pagination,
+          sort: toQuery(opts?.sort)
+        },
         method: 'GET'
       }),
       providesTags: (result, errors, args) => [

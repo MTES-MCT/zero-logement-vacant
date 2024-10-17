@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
-import { genGeoCode } from '@zerologementvacant/utils';
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import {
   HOUSING_KIND_VALUES,
   OWNERSHIP_KIND_VALUES

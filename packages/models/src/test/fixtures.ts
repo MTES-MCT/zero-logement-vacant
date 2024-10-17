@@ -1,6 +1,7 @@
 import { fakerFR as faker } from '@faker-js/faker';
 import fp from 'lodash/fp';
 
+import { compactUndefined } from '@zerologementvacant/utils';
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CampaignDTO } from '../CampaignDTO';
 import { DraftDTO } from '../DraftDTO';
@@ -283,7 +284,7 @@ export function genOwnerDTO(): OwnerDTO {
   const address = genAddressDTO(id, AddressKinds.Owner);
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
-  return {
+  return compactUndefined({
     id,
     rawAddress: [
       `${address.houseNumber} ${address.street}`,
@@ -302,7 +303,7 @@ export function genOwnerDTO(): OwnerDTO {
     }),
     phone: faker.phone.number(),
     kind: 'PERSONNE PHYSIQUE'
-  };
+  });
 }
 
 export function genSenderDTO(signature?: FileUploadDTO): SenderDTO {

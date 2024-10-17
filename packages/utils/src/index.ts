@@ -1,6 +1,5 @@
 export * from './async';
 export * from './compare';
-export * from './fixtures';
 export * from './http-request';
 export * from './log-level';
 export * from './logger';

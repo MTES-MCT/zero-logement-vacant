@@ -8,12 +8,11 @@ describe('Campaign API', () => {
   const host = 'api.zerologementvacant.beta.gouv.fr';
   const api = createSDK({
     api: {
-      host,
+      host
     },
     auth: {
-      secret: 'secret',
-    },
-    establishment: faker.string.uuid(),
+      secret: 'secret'
+    }
   });
 
   describe('get', () => {

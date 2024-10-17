@@ -13,7 +13,13 @@ export interface HousingAPI {
 export function createHousingAPI(http: AxiosInstance): HousingAPI {
   return {
     async find(opts?: FindOptions): Promise<HousingDTO[]> {
-      const response = await http.post('/housing', opts, {
+      const response = await http.get(`/housing`, {
+        params: {
+          ...opts?.filters,
+          paginate: opts?.paginate,
+          page: opts?.page,
+          perPage: opts?.perPage
+        },
         headers: {
           'Content-Type': 'application/json'
         }

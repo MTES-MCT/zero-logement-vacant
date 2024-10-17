@@ -18,7 +18,11 @@ import styles from './campaign.module.scss';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
-import { SenderPayload } from '../../models/Sender';
+import {
+  SenderPayload,
+  SignatoriesPayload,
+  SignatoryPayload
+} from '../../models/Sender';
 import SendButton from '../../components/Draft/SendButton';
 import SaveButton from '../../components/SaveButton/SaveButton';
 import DraftMailInfo, {
@@ -65,6 +69,7 @@ function CampaignDraft(props: Readonly<Props>) {
       address: '',
       email: '',
       phone: '',
+      signatories: [null, null],
       signatoryFirstName: '',
       signatoryLastName: '',
       signatoryRole: '',
@@ -89,6 +94,7 @@ function CampaignDraft(props: Readonly<Props>) {
           address: draft.sender?.address ?? '',
           email: draft.sender?.email ?? '',
           phone: draft.sender?.phone ?? '',
+          signatories: draft.sender.signatories ?? null,
           signatoryFirstName: draft.sender?.signatoryFirstName ?? '',
           signatoryLastName: draft.sender?.signatoryLastName ?? '',
           signatoryRole: draft.sender?.signatoryRole ?? '',
@@ -147,8 +153,8 @@ function CampaignDraft(props: Readonly<Props>) {
     setValues({ ...values, sender });
   }
 
-  function setSignature(sender: SenderPayload): void {
-    setSender(sender);
+  function setSignatories(signatories: SignatoriesPayload | null): void {
+    setSender({ ...values.sender, signatories });
   }
 
   function setWritten(written: Written): void {
@@ -189,10 +195,10 @@ function CampaignDraft(props: Readonly<Props>) {
             <CampaignCreatedFromGroup campaign={props.campaign} />
           </Grid>
           <CampaignTitle
-              as="h2"
-              campaign={props.campaign}
-              className="fr-mb-1w"
-            />
+            as="h2"
+            campaign={props.campaign}
+            className="fr-mb-1w"
+          />
           <Grid xs={6}>
             <CampaignCounts
               display="row"
@@ -277,15 +283,11 @@ function CampaignDraft(props: Readonly<Props>) {
                         />
                       </Col>
                     </Row>
-                    <Row>
-                      <Col n="7" offset="5">
-                        <DraftSignature
-                          form={form}
-                          value={values.sender}
-                          onChange={setSignature}
-                        />
-                      </Col>
-                    </Row>
+                    <DraftSignature
+                      form={form}
+                      value={values.sender.signatories}
+                      onChange={setSignatories}
+                    />
                   </Container>
                 </form>
               )

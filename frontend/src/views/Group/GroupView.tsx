@@ -86,7 +86,7 @@ function GroupView() {
 
   const [createCampaignFromGroup] = useCreateCampaignFromGroupMutation();
   async function onCampaignCreate(
-    campaign: Pick<Campaign, 'title' | 'description'>,
+    campaign: Pick<Campaign, 'title' | 'description'>
   ): Promise<void> {
     if (group) {
       const created = await createCampaignFromGroup({
@@ -139,7 +139,7 @@ function GroupView() {
         onClose={() => setExpand(false)}
       />
 
-      <Grid container flexDirection="column" px={3} py={4} xs>
+      <Grid display="flex" flexDirection="column" px={3} py={4} xs>
         <Group
           campaigns={campaigns}
           className="fr-mb-8w"

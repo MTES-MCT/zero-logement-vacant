@@ -1,3 +1,13 @@
+.card {
+  border: 1px solid var(--border-default-grey);
+  padding: 1rem;
+}
+
+.fill {
+  border: none;
+  background-color: var(--background-alt-grey)
+}
+
 .subCard {
   width: 100%;
   height: fit-content !important;

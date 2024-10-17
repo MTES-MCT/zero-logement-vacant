@@ -199,6 +199,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters({ subStatus: values }, 'Sous-statut')
               }
+              data-testid="filtre-sous-statut-suivi"
             />
           </Grid>
           {campaigns && (
@@ -213,6 +214,7 @@ function HousingListFiltersSidemenu(props: Props) {
                 onChange={(values) =>
                   onChangeFilters({ campaignIds: values }, 'Campagne')
                 }
+                data-testid="filtre-campagne"
               />
             </Grid>
           )}
@@ -224,6 +226,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters({ campaignsCounts: values }, 'Prise de contact')
               }
+              data-testid="filtre-prise-de-contact"
             />
           </Grid>
         </Accordion>
@@ -243,6 +246,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters({ occupancies: values }, 'Statut d’occupation')
               }
+              data-testid="filtre-statut-occupation"
             />
           </Grid>
         </Accordion>
@@ -264,6 +268,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   );
                 }
               }}
+              data-testid="filtre-commune"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -274,6 +279,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters({ localityKinds: values }, 'Type de commune')
               }
+              data-testid="filtre-type-de-commune"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -297,6 +303,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   );
                 }
               }}
+              data-testid="filtre-perimetre-inclus"
             />
           </Grid>
           <Grid component="article" mb={0} xs={12}>
@@ -320,6 +327,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   );
                 }
               }}
+              data-testid="filtre-perimetre-exclu"
             />
 
             {!isVisitor && <GeoPerimetersModalLink />}
@@ -342,6 +350,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Nombre de logements'
                 )
               }
+              data-testid="filtre-nombre-de-logements"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -352,6 +361,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters({ vacancyRates: values }, 'Taux de vacance')
               }
+              data-testid="filtre-taux-de-vacance"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -365,6 +375,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Étiquette DPE représentatif (CSTB)'
                 )
               }
+              data-testid="filtre-etiquette-dpe"
             />
           </Grid>
         </Accordion>
@@ -373,12 +384,13 @@ function HousingListFiltersSidemenu(props: Props) {
         >
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Type"
+              label="Type de logement"
               options={housingKindOptions}
               initialValues={filters.housingKinds}
               onChange={(values) =>
                 onChangeFilters({ housingKinds: values }, 'Type')
               }
+              data-testid="filtre-type-logement"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -392,6 +404,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Date de construction'
                 )
               }
+              data-testid="filtre-date-construction"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -402,6 +415,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters({ housingAreas: values }, 'Surface')
               }
+              data-testid="filtre-surface"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -412,6 +426,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters({ roomsCounts: values }, 'Nombre de pièces')
               }
+              data-testid="filtre-nombre-de-pieces"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -429,6 +444,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Taxé'
                 )
               }
+              data-testid="filtre-taxe"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -442,6 +458,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Classement cadastral'
                 )
               }
+              data-testid="filtre-classement-cadastral"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -452,6 +469,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters({ ownershipKinds: values }, 'Type de propriété')
               }
+              data-testid="filtre-type-propriete"
             />
           </Grid>
         </Accordion>
@@ -463,12 +481,13 @@ function HousingListFiltersSidemenu(props: Props) {
           <Grid component="article" mb={2} xs={12}>
             <div data-testid="ownerkind-filter">
               <AppMultiSelect
-                label="Type"
+                label="Type de propriétaire"
                 options={ownerKindOptions}
                 initialValues={filters.ownerKinds}
                 onChange={(values) =>
                   onChangeFilters({ ownerKinds: values }, 'Type')
                 }
+                data-testid="filtre-type-proprietaire"
               />
             </div>
           </Grid>
@@ -480,6 +499,7 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) =>
                 onChangeFilters({ ownerAges: values }, 'Âge')
               }
+              data-testid="filtre-age"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -495,6 +515,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Multi-propriétaire'
                 )
               }
+              data-testid="filtre-multi-propriétaire"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -508,6 +529,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Propriétaires secondaires'
                 )
               }
+              data-testid="filtre-proprietaires-secondaires"
             />
           </Grid>
         </Accordion>
@@ -527,6 +549,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Sources et Millésimes inclus'
                 )
               }
+              data-testid="filtre-sources-millesimes-inclus"
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -543,6 +566,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Sources et millésime exclus'
                 )
               }
+              data-testid="filtre-sources-millesimes-exclu"
             />
           </Grid>
         </Accordion>

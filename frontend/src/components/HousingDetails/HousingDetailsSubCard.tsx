@@ -1,44 +1,42 @@
-import Card from '@codegouvfr/react-dsfr/Card';
+import { fr } from '@codegouvfr/react-dsfr';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
-
-import { ReactElement } from 'react';
-import styles from './housing-details-card.module.scss';
 import classNames from 'classnames';
+import { ReactElement, ReactNode } from 'react';
+
+import styles from './housing-details-card.module.scss';
 
 interface Props {
-  title: string | ReactElement;
+  title: ReactNode;
+  className?: string;
   isGrey?: boolean;
   hasBorder?: boolean;
   children?: ReactElement | (ReactElement | undefined)[];
 }
 
-function HousingDetailsSubCard({ title, isGrey, hasBorder, children }: Props) {
+function HousingDetailsSubCard(props: Props) {
   return (
-    <Card
-      border={!!hasBorder}
-      size="small"
-      className={classNames(styles.subCard, 'app-card-xs', {
-        'bg-975': isGrey
+    <article
+      className={classNames(styles.card, props.className, {
+        [styles.fill]: props.isGrey
       })}
-      title={
-        <>
-          {typeof title === 'string' ? (
-            <Typography
-              component="h2"
-              variant="h6"
-              mb={1}
-              className={classNames(styles.title, styles.titleInline)}
-            >
-              {title}
-            </Typography>
-          ) : (
-            title
-          )}
-          <hr className="fr-py-1w" />
-        </>
-      }
-      desc={<div className={styles.content}>{children}</div>}
-    ></Card>
+    >
+      <Grid component="header" container sx={{ mb: 1 }} xs>
+        {typeof props.title === 'string' ? (
+          <Typography className={styles.title} component="h2" variant="h6">
+            {props.title}
+          </Typography>
+        ) : (
+          props.title
+        )}
+      </Grid>
+      <hr className={fr.cx('fr-py-1w')} />
+      {props.children ? (
+        <Grid component="section" container xs>
+          {props.children}
+        </Grid>
+      ) : null}
+    </article>
   );
 }
 

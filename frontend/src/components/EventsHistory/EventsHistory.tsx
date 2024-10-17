@@ -16,6 +16,7 @@ import AppLink from '../_app/AppLink/AppLink';
 import { Campaign } from '../../models/Campaign';
 import GroupEventContent from './GroupEventContent';
 import FollowupEventContent from './FollowupEventContent';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   events: Event[];
@@ -47,20 +48,28 @@ const EventsHistory = ({ events, notes }: Props) => {
         .map((eventOrNote, index) => (
           <div key={`event_note_${index}`} className="fr-mb-3w">
             <div className={styles.eventData}>
-              <span className={styles.eventDate}>
+              <Typography
+                component="h2"
+                variant="body2"
+                className={styles.eventDate}
+              >
                 {format(eventOrNote.createdAt, 'dd MMMM yyyy, HH:mm', {
                   locale: fr
                 })}
-              </span>
+              </Typography>
               <span className="fr-mx-1w">par</span>
               <EventUser userId={eventOrNote.createdBy} />
             </div>
             <div className={styles.event}>
               {isEvent(eventOrNote) ? (
                 <>
-                  <Text size="md" bold spacing="mb-0">
+                  <Typography
+                    component="h3"
+                    variant="body1"
+                    sx={{ fontWeight: 900, mb: 1 }}
+                  >
                     {eventOrNote.name}
-                  </Text>
+                  </Typography>
                   {eventOrNote.category === 'Followup' && (
                     <FollowupEventContent event={eventOrNote} />
                   )}

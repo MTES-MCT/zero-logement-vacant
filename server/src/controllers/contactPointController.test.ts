@@ -3,6 +3,7 @@ import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { tokenProvider } from '~/test/testUtils';
 import { createServer } from '~/infra/server';
 import {
@@ -12,7 +13,6 @@ import {
 import {
   genContactPointApi,
   genEstablishmentApi,
-  genGeoCode,
   genSettingsApi,
   genUserApi
 } from '~/test/testFixtures';

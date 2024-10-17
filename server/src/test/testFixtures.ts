@@ -78,8 +78,6 @@ import {
   UserAccountDTO
 } from '@zerologementvacant/models';
 
-export { genGeoCode } from '@zerologementvacant/utils';
-
 logger.debug(`Seed: ${faker.seed()}`);
 
 export const genEmail = () => faker.internet.email();

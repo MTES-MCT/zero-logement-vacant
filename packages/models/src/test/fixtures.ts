@@ -1,6 +1,7 @@
 import { fakerFR as faker } from '@faker-js/faker';
 import fp from 'lodash/fp';
 
+import { compactUndefined } from '@zerologementvacant/utils';
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CampaignDTO } from '../CampaignDTO';
 import { DraftDTO } from '../DraftDTO';
@@ -16,6 +17,20 @@ import { DatafoncierHousing } from '../DatafoncierHousing';
 import { HOUSING_STATUS_VALUES } from '../HousingStatus';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { HousingOwnerDTO } from '../HousingOwnerDTO';
+
+export function genGeoCode(): string {
+  const geoCode = faker.helpers.arrayElement([
+    faker.location.zipCode(),
+    faker.helpers.arrayElement(['2A', '2B']) +
+      faker.string.numeric({ length: 3 })
+  ]);
+  const needsReroll =
+    geoCode.startsWith('00') ||
+    geoCode.startsWith('20') ||
+    geoCode.startsWith('99') ||
+    geoCode.endsWith('999');
+  return needsReroll ? genGeoCode() : geoCode;
+}
 
 export function genAddressDTO(
   refId: string,
@@ -283,7 +298,7 @@ export function genOwnerDTO(): OwnerDTO {
   const address = genAddressDTO(id, AddressKinds.Owner);
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
-  return {
+  return compactUndefined({
     id,
     rawAddress: [
       `${address.houseNumber} ${address.street}`,
@@ -302,7 +317,7 @@ export function genOwnerDTO(): OwnerDTO {
     }),
     phone: faker.phone.number(),
     kind: 'PERSONNE PHYSIQUE'
-  };
+  });
 }
 
 export function genSenderDTO(signature?: FileUploadDTO): SenderDTO {

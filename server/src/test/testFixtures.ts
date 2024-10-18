@@ -7,7 +7,8 @@ import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 
-import { firstDefined, genGeoCode } from '@zerologementvacant/utils';
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
+import { firstDefined } from '@zerologementvacant/utils';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
@@ -76,8 +77,6 @@ import {
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
-
-export { genGeoCode } from '@zerologementvacant/utils';
 
 logger.debug(`Seed: ${faker.seed()}`);
 

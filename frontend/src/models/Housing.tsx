@@ -43,7 +43,7 @@ export interface Housing {
   taxed: boolean;
   ownershipKind: string;
   buildingHousingCount?: number;
-  buildingVacancyRate: number;
+  buildingVacancyRate?: number;
   dataFileYears: string[];
   campaignIds: string[];
   status: HousingStatus;

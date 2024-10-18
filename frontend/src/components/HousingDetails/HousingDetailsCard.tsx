@@ -1,11 +1,13 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Card from '@codegouvfr/react-dsfr/Card';
+import Paper from '@mui/material/Paper';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Unstable_Grid2';
 import classNames from 'classnames';
 import { useState } from 'react';
 
-import { Col, Row } from '../_dsfr';
 import styles from './housing-details-card.module.scss';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
@@ -21,14 +23,12 @@ import HousingDetailsCardOccupancy from './HousingDetailsSubCardOccupancy';
 import HousingDetailsCardMobilisation from './HousingDetailsSubCardMobilisation';
 import { Campaign } from '../../models/Campaign';
 import { useUpdateHousingMutation } from '../../services/housing.service';
-
 import AppLink from '../_app/AppLink/AppLink';
 import {
   TrackEventActions,
   TrackEventCategories
 } from '../../models/TrackEvent';
 import { useUser } from '../../hooks/useUser';
-import Typography from '@mui/material/Typography';
 
 interface Props {
   housing: Housing;
@@ -76,47 +76,48 @@ function HousingDetailsCard({
   };
 
   return (
-    <Card
-      border={false}
-      size="small"
-      title={
-        <>
+    <Paper component="article" elevation={0} sx={{ padding: 3 }}>
+      <Grid component="header" container sx={{ mb: 2 }}>
+        <Grid xs>
           {!isVisitor && (
-            <Button
-              onClick={() => setIsHousingListEditionExpand(true)}
-              className="fr-ml-1w float-right"
-            >
-              Mettre à jour / Ajouter une note
-            </Button>
-          )}
-          <HousingEditionSideMenu
-            housing={housing}
-            expand={isHousingListEditionExpand}
-            onSubmit={submitHousingUpdate}
-            onClose={() => setIsHousingListEditionExpand(false)}
-          />
-          {!isVisitor && (
-            <Typography component="h1" variant="h4" mb={1}>
-              {housing.rawAddress.join(' - ')}
+            <>
+              <Typography component="h1" variant="h4" mb={1}>
+                {housing.rawAddress.map((line) => (
+                  <>
+                    {line}
+                    <br />
+                  </>
+                ))}
+              </Typography>
               <AppLink
                 title="Voir sur la carte - nouvelle fenêtre"
                 to={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
                 target="_blank"
                 iconPosition="left"
-                className={classNames(
-                  styles.link,
-                  'fr-link',
-                  'fr-ml-3w',
-                  'float-right'
-                )}
+                className={classNames(styles.link, 'fr-link')}
               >
                 Voir sur la carte
               </AppLink>
-            </Typography>
+            </>
           )}
-        </>
-      }
-      desc={
+        </Grid>
+        <Grid xs="auto">
+          {!isVisitor && (
+            <>
+              <Button onClick={() => setIsHousingListEditionExpand(true)}>
+                Mettre à jour / Ajouter une note
+              </Button>
+              <HousingEditionSideMenu
+                housing={housing}
+                expand={isHousingListEditionExpand}
+                onSubmit={submitHousingUpdate}
+                onClose={() => setIsHousingListEditionExpand(false)}
+              />
+            </>
+          )}
+        </Grid>
+      </Grid>
+      <Grid component="section" container>
         <>
           <HousingDetailsCardOccupancy
             housing={housing}
@@ -147,15 +148,18 @@ function HousingDetailsCard({
                 label: 'Caractéristiques',
                 content: (
                   <div className="fr-px-0">
-                    <Row gutters>
-                      <Col>
-                        <HousingDetailsSubCardProperties housing={housing} />
+                    <Grid container spacing={2}>
+                      <Grid xs>
+                        <HousingDetailsSubCardProperties
+                          className={fr.cx('fr-mb-2w')}
+                          housing={housing}
+                        />
                         <HousingDetailsSubCardLocation housing={housing} />
-                      </Col>
-                      <Col>
+                      </Grid>
+                      <Grid xs>
                         <HousingDetailsSubCardBuilding housing={housing} />
-                      </Col>
-                    </Row>
+                      </Grid>
+                    </Grid>
                   </div>
                 )
               },
@@ -168,8 +172,8 @@ function HousingDetailsCard({
             ]}
           ></Tabs>
         </>
-      }
-    ></Card>
+      </Grid>
+    </Paper>
   );
 }
 

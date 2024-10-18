@@ -1,4 +1,4 @@
-import { genGeoCode } from '../fixtures';
+import { genGeoCode } from './fixtures';
 
 describe('Fixtures', () => {
   describe('genGeoCode', () => {

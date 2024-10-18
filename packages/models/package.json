@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@zerologementvacant/draft": "workspace:*",
+    "@zerologementvacant/utils": "workspace:*",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

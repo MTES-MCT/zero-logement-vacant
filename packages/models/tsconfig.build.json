@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.json",
-  "references": [{ "path": "../draft/tsconfig.build.json" }],
+  "references": [
+    { "path": "../draft/tsconfig.build.json" },
+    { "path": "../utils/tsconfig.build.json" }
+  ],
   "exclude": [
     "node_modules",
     "dist",

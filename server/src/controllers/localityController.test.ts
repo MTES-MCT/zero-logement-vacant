@@ -5,23 +5,23 @@ import { tokenProvider } from '~/test/testUtils';
 import { createServer } from '~/infra/server';
 import {
   genEstablishmentApi,
-  genGeoCode,
   genLocalityApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import localityRepository, {
   formatLocalityApi,
   Localities,
-  LocalityDBO,
+  LocalityDBO
 } from '~/repositories/localityRepository';
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 
 import { EstablishmentLocalities } from '~/repositories/establishmentLocalityRepository';
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
 
 describe('Locality API', () => {
   const { app } = createServer();
@@ -34,17 +34,17 @@ describe('Locality API', () => {
 
   beforeAll(async () => {
     await Localities().insert(
-      [locality, anotherLocality].map(formatLocalityApi),
+      [locality, anotherLocality].map(formatLocalityApi)
     );
     await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi),
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await EstablishmentLocalities().insert([
       { establishment_id: establishment.id, locality_id: locality.id },
       {
         establishment_id: anotherEstablishment.id,
-        locality_id: anotherLocality.id,
-      },
+        locality_id: anotherLocality.id
+      }
     ]);
     await Users().insert(formatUserApi(user));
   });
@@ -66,13 +66,13 @@ describe('Locality API', () => {
 
     it('should retrieve the locality', async () => {
       const { body, status } = await request(app).get(
-        testRoute(locality.geoCode),
+        testRoute(locality.geoCode)
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
         name: locality.name,
-        geoCode: locality.geoCode,
+        geoCode: locality.geoCode
       });
     });
   });
@@ -91,17 +91,17 @@ describe('Locality API', () => {
 
     it('should list the localities', async () => {
       const { body, status } = await request(app).get(
-        testRoute(establishment.id),
+        testRoute(establishment.id)
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toPartiallyContain({
         name: locality.name,
-        geoCode: locality.geoCode,
+        geoCode: locality.geoCode
       });
       expect(body).not.toPartiallyContain({
         name: anotherLocality.name,
-        geoCode: anotherLocality.geoCode,
+        geoCode: anotherLocality.geoCode
       });
     });
   });
@@ -189,7 +189,7 @@ describe('Locality API', () => {
       expect(body).toMatchObject<Partial<LocalityApi>>({
         geoCode: locality.geoCode,
         taxKind: TaxKindsApi.THLV,
-        taxRate: 10,
+        taxRate: 10
       });
 
       const actual = await Localities()
@@ -198,7 +198,7 @@ describe('Locality API', () => {
       expect(actual).toMatchObject<Partial<LocalityDBO>>({
         geo_code: locality.geoCode,
         tax_kind: TaxKindsApi.THLV,
-        tax_rate: 10,
+        tax_rate: 10
       });
     });
 
@@ -206,7 +206,7 @@ describe('Locality API', () => {
       await localityRepository.update({
         ...locality,
         taxRate: 10,
-        taxKind: TaxKindsApi.THLV,
+        taxKind: TaxKindsApi.THLV
       });
 
       const { body, status } = await request(app)
@@ -217,7 +217,7 @@ describe('Locality API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject<Partial<LocalityApi>>({
         geoCode: locality.geoCode,
-        taxKind: TaxKindsApi.None,
+        taxKind: TaxKindsApi.None
       });
 
       const actual = await Localities()
@@ -225,7 +225,7 @@ describe('Locality API', () => {
         .first();
       expect(actual).toMatchObject<Partial<LocalityDBO>>({
         geo_code: locality.geoCode,
-        tax_kind: TaxKindsApi.None,
+        tax_kind: TaxKindsApi.None
       });
     });
   });

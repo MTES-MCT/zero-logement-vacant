@@ -17,45 +17,98 @@ import {
   VACANCY_RATE_VALUES
 } from '@zerologementvacant/models';
 
+function split(separator = ',') {
+  return (value: unknown): string[] | unknown => {
+    return typeof value === 'string' ? value.split(separator) : value;
+  };
+}
+const commaSeparatedString = split(',');
+
 export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
-  housingIds: array().of(string().uuid().required()),
-  occupancies: array().of(string().oneOf(OCCUPANCY_VALUES).required()),
-  energyConsumption: array().of(
-    string().oneOf(ENERGY_CONSUMPTION_VALUES).required()
-  ),
-  establishmentIds: array().of(string().uuid().required()),
-  groupIds: array().of(string().uuid().required()),
-  campaignsCounts: array().of(string().oneOf(CAMPAIGN_COUNT_VALUES).required()),
-  campaignIds: array().of(string().uuid().required()),
-  ownerIds: array().of(string().uuid().required()),
-  ownerKinds: array().of(string().required()),
-  ownerAges: array().of(string().oneOf(OWNER_AGE_VALUES).required()),
-  multiOwners: array().of(boolean().required()),
-  beneficiaryCounts: array().of(
-    string().oneOf(BENEFIARY_COUNT_VALUES).required()
-  ),
-  housingKinds: array().of(string().oneOf(HOUSING_KIND_VALUES).required()),
-  housingAreas: array().of(string().oneOf(LIVING_AREA_VALUES).required()),
-  roomsCounts: array().of(string().oneOf(ROOM_COUNT_VALUES).required()),
-  cadastralClassifications: array().of(string().required()),
-  buildingPeriods: array().of(
-    string().oneOf(BUILDING_PERIOD_VALUES).required()
-  ),
-  vacancyDurations: array().of(string().required()),
-  isTaxedValues: array().of(boolean().required()),
-  ownershipKinds: array().of(string().oneOf(OWNERSHIP_KIND_VALUES).required()),
-  housingCounts: array().of(
-    string().oneOf(HOUSING_BY_BUILDING_VALUES).required()
-  ),
-  vacancyRates: array().of(string().oneOf(VACANCY_RATE_VALUES).required()),
-  localities: array().of(string().length(5).required()),
-  localityKinds: array().of(string().required()),
-  geoPerimetersIncluded: array().of(string().required()),
-  geoPerimetersExcluded: array().of(string().required()),
-  dataFileYearsIncluded: array().of(string().required()),
-  dataFileYearsExcluded: array().of(string().required()),
+  housingIds: array()
+    .transform(commaSeparatedString)
+    .of(string().uuid().required()),
+  occupancies: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(OCCUPANCY_VALUES).required()),
+  energyConsumption: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(ENERGY_CONSUMPTION_VALUES).required()),
+  establishmentIds: array()
+    .transform(commaSeparatedString)
+    .of(string().uuid().required()),
+  groupIds: array()
+    .transform(commaSeparatedString)
+    .of(string().uuid().required()),
+  campaignsCounts: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(CAMPAIGN_COUNT_VALUES).required()),
+  campaignIds: array()
+    .transform(commaSeparatedString)
+    .of(string().uuid().required()),
+  ownerIds: array()
+    .transform(commaSeparatedString)
+    .of(string().uuid().required()),
+  ownerKinds: array().transform(commaSeparatedString).of(string().required()),
+  ownerAges: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(OWNER_AGE_VALUES).required()),
+  multiOwners: array().transform(commaSeparatedString).of(boolean().required()),
+  beneficiaryCounts: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(BENEFIARY_COUNT_VALUES).required()),
+  housingKinds: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(HOUSING_KIND_VALUES).required()),
+  housingAreas: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(LIVING_AREA_VALUES).required()),
+  roomsCounts: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(ROOM_COUNT_VALUES).required()),
+  cadastralClassifications: array()
+    .transform(commaSeparatedString)
+    .of(string().required()),
+  buildingPeriods: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(BUILDING_PERIOD_VALUES).required()),
+  vacancyDurations: array()
+    .transform(commaSeparatedString)
+    .of(string().required()),
+  isTaxedValues: array()
+    .transform(commaSeparatedString)
+    .of(boolean().required()),
+  ownershipKinds: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(OWNERSHIP_KIND_VALUES).required()),
+  housingCounts: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(HOUSING_BY_BUILDING_VALUES).required()),
+  vacancyRates: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(VACANCY_RATE_VALUES).required()),
+  localities: array()
+    .transform(commaSeparatedString)
+    .of(string().length(5).required()),
+  localityKinds: array()
+    .transform(commaSeparatedString)
+    .of(string().required()),
+  geoPerimetersIncluded: array()
+    .transform(commaSeparatedString)
+    .of(string().required()),
+  geoPerimetersExcluded: array()
+    .transform(commaSeparatedString)
+    .of(string().required()),
+  dataFileYearsIncluded: array()
+    .transform(commaSeparatedString)
+    .of(string().required()),
+  dataFileYearsExcluded: array()
+    .transform(commaSeparatedString)
+    .of(string().required()),
   status: number().oneOf(HOUSING_STATUS_VALUES),
-  statusList: array().of(number().oneOf(HOUSING_STATUS_VALUES).required()),
-  subStatus: array().of(string().required()),
+  statusList: array()
+    .transform(commaSeparatedString)
+    .of(number().oneOf(HOUSING_STATUS_VALUES).required()),
+  subStatus: array().transform(commaSeparatedString).of(string().required()),
   query: string().optional()
 });

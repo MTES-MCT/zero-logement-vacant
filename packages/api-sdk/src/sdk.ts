@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { knex } from 'knex';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import qs from 'qs';
 
 import { Logger } from '@zerologementvacant/utils';
 import createErrorHandler from './infra/error-handler';
@@ -8,7 +10,6 @@ import { CampaignAPI, createCampaignAPI } from './campaign-api';
 import { createDraftAPI, DraftAPI } from './draft-api';
 import { createHousingAPI, HousingAPI } from './housing-api';
 import { createOwnerAPI, OwnerAPI } from './owner-api';
-import { AsyncLocalStorage } from 'node:async_hooks';
 
 interface SDK {
   campaign: CampaignAPI;
@@ -47,7 +48,8 @@ export function createSDK(opts: Options): SDK {
     baseURL: opts.api.host,
     headers: {
       'Content-Type': 'application/json'
-    }
+    },
+    paramsSerializer: (query) => qs.stringify(query, { arrayFormat: 'comma' })
   });
   http.interceptors.request.use(
     createTokenProvider({

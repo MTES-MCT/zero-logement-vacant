@@ -5,6 +5,7 @@ import {
   SenderPayloadDTO,
   SignatoryDTO
 } from '@zerologementvacant/models';
+import { dateString } from './date-string';
 import { fileUpload } from './file-upload';
 
 export const signatory: ObjectSchema<SignatoryDTO> = object({
@@ -37,6 +38,6 @@ export const draft: ObjectSchema<DraftCreationPayloadDTO> = object({
   body: string().nullable().defined(),
   logo: array().of(fileUpload).nullable().defined(),
   sender: sender,
-  writtenAt: string().nullable().defined(),
+  writtenAt: dateString.nullable().defined(),
   writtenFrom: string().nullable().defined()
 });

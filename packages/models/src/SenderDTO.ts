@@ -10,10 +10,6 @@ export interface SenderDTO {
   email: string | null;
   phone: string | null;
   signatories: SignatoriesDTO | null;
-  signatoryLastName: string | null;
-  signatoryFirstName: string | null;
-  signatoryRole: string | null;
-  signatoryFile: FileUploadDTO | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,8 +32,4 @@ export type SenderPayloadDTO = Pick<
   | 'email'
   | 'phone'
   | 'signatories'
-  | 'signatoryLastName'
-  | 'signatoryFirstName'
-  | 'signatoryRole'
-  | 'signatoryFile'
 >;

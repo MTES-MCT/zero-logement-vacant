@@ -75,6 +75,7 @@ import {
   HOUSING_SOURCE_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
+  SignatoryDTO,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
@@ -855,10 +856,31 @@ export function genSenderApi(establishment: EstablishmentApi): SenderApi {
     address: faker.location.streetAddress({ useFullAddress: true }),
     email: faker.internet.email({ firstName, lastName }),
     phone: faker.phone.number(),
-    signatoryFile: null,
-    signatoryRole: faker.person.jobTitle(),
-    signatoryFirstName: faker.person.firstName(),
-    signatoryLastName: faker.person.lastName(),
+    signatories:
+      faker.helpers.maybe(() => [
+        faker.helpers.maybe<SignatoryDTO>(() => ({
+          firstName: faker.person.firstName(),
+          lastName: faker.person.lastName(),
+          role: faker.person.jobTitle(),
+          file: {
+            id: faker.string.uuid(),
+            content: faker.image.dataUri(),
+            url: faker.image.url(),
+            type: faker.system.mimeType()
+          }
+        })) ?? null,
+        faker.helpers.maybe<SignatoryDTO>(() => ({
+          firstName: faker.person.firstName(),
+          lastName: faker.person.lastName(),
+          role: faker.person.jobTitle(),
+          file: {
+            id: faker.string.uuid(),
+            content: faker.image.dataUri(),
+            url: faker.image.url(),
+            type: faker.system.mimeType()
+          }
+        })) ?? null
+      ]) ?? null,
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment.id

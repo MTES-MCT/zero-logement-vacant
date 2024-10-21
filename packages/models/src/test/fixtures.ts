@@ -320,7 +320,7 @@ export function genOwnerDTO(): OwnerDTO {
   });
 }
 
-export function genSenderDTO(signature?: FileUploadDTO): SenderDTO {
+export function genSenderDTO(): SenderDTO {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
   return {
@@ -337,10 +337,6 @@ export function genSenderDTO(signature?: FileUploadDTO): SenderDTO {
         faker.helpers.maybe(genSignatoryDTO) ?? null,
         faker.helpers.maybe(genSignatoryDTO) ?? null
       ]) ?? null,
-    signatoryFile: signature ?? null,
-    signatoryRole: faker.person.jobTitle(),
-    signatoryFirstName: faker.person.firstName(),
-    signatoryLastName: faker.person.lastName(),
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON()
   };

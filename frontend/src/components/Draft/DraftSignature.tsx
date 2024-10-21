@@ -1,31 +1,19 @@
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
+import { ChangeEvent, ChangeEventHandler, useId } from 'react';
 import { match } from 'ts-pattern';
-import { ChangeEvent, ChangeEventHandler } from 'react';
-import { object, string } from 'yup';
 
-import { FileUploadDTO, SignatoriesDTO } from '@zerologementvacant/models';
+import { FileUploadDTO } from '@zerologementvacant/models';
 import { useForm } from '../../hooks/useForm';
-import {
-  Sender,
-  SenderPayload,
-  SignatoriesPayload,
-  SignatoryPayload
-} from '../../models/Sender';
+import { SignatoriesPayload, SignatoryPayload } from '../../models/Sender';
 import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import FileUpload from '../FileUpload/FileUpload';
 import LogoViewer from './LogoViewer';
 
-export const signatureSchema = object({
-  signatoryFirstName: string().optional().nullable(),
-  signatoryLastName: string().optional().nullable(),
-  signatoryRole: string().optional().nullable()
-});
-
 interface Props {
   form: ReturnType<typeof useForm>;
-  value: SignatoriesPayload;
+  value: SignatoriesPayload | null;
   onChange(value: SignatoriesPayload): void;
 }
 
@@ -61,15 +49,23 @@ function DraftSignature(props: Readonly<Props>) {
     props.onChange(signatories as SignatoriesPayload);
   }
 
-  function deleteFile() {
-    // props.value.signatoryFile = null;
-    // props.onChange(props.value);
-    // const elem = document.getElementById(
-    //   `fileUploadSignature-input`
-    // ) as HTMLInputElement;
-    // if (elem !== null) {
-    //   elem.value = '';
-    // }
+  const uploadIds = [useId(), useId()];
+
+  function onFileRemoval(index: number) {
+    const signatory: SignatoryPayload = props.value?.[index] ?? {
+      firstName: null,
+      lastName: null,
+      role: null,
+      file: null
+    };
+    const signatories = props?.value?.with(index, { ...signatory, file: null });
+    props.onChange(signatories as SignatoriesPayload);
+    const input = document.getElementById(
+      uploadIds[index]
+    ) as HTMLInputElement | null;
+    if (input !== null) {
+      input.value = '';
+    }
   }
 
   function title(index: number): string {
@@ -80,14 +76,28 @@ function DraftSignature(props: Readonly<Props>) {
   }
 
   return (
-    <Grid component="article" className={styles.article}>
+    <Grid
+      container
+      component="article"
+      xs={10}
+      xsOffset={2}
+      alignItems="flex-start"
+      justifyContent="flex-end"
+    >
       {props.value?.map((signatory, index) => (
-        <>
-          <Typography component="h4" variant="h6" mb={2}>
-            {title(index)}
-          </Typography>
-
-          <Grid className={styles.row} spacing={4}>
+        <Grid
+          container
+          key={index}
+          className={styles.article}
+          sx={{ ml: 2, p: 2 }}
+          xs
+        >
+          <Grid container spacing={2}>
+            <Grid xs={12}>
+              <Typography component="h4" variant="h6" mb={2}>
+                {title(index)}
+              </Typography>
+            </Grid>
             <Grid xs={6}>
               <AppTextInput
                 inputForm={props.form}
@@ -106,25 +116,31 @@ function DraftSignature(props: Readonly<Props>) {
                 onChange={onChange(index, 'lastName')}
               />
             </Grid>
-          </Grid>
-          <AppTextInput
-            inputForm={props.form}
-            inputKey="sender.signatoryRole"
-            label="Rôle du signataire"
-            value={signatory?.role ?? ''}
-            onChange={onChange(index, 'role')}
-          />
-          <FileUpload
-            id="fileUploadSignature"
-            onUpload={(file) => onFileUpload(index, file)}
-          />
 
-          <LogoViewer
-            index={0}
-            logo={signatory?.file ?? null}
-            onDelete={deleteFile}
-          />
-        </>
+            <Grid xs={12}>
+              <AppTextInput
+                inputForm={props.form}
+                inputKey="sender.signatoryRole"
+                label="Rôle du signataire"
+                value={signatory?.role ?? ''}
+                onChange={onChange(index, 'role')}
+              />
+            </Grid>
+
+            <Grid xs={12}>
+              <FileUpload
+                id={uploadIds[index]}
+                onUpload={(file) => onFileUpload(index, file)}
+              />
+
+              <LogoViewer
+                index={0}
+                logo={signatory?.file ?? null}
+                onDelete={() => onFileRemoval(index)}
+              />
+            </Grid>
+          </Grid>
+        </Grid>
       ))}
     </Grid>
   );

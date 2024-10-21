@@ -7,5 +7,5 @@
     (COUNT(DISTINCT CASE
         WHEN e.created_at < (pc.sent_at + INTERVAL '{{ n_month }} months')
         THEN pch.housing_id
-    END) * 100.0 / NULLIF(COUNT(DISTINCT pch.housing_id), 0)) AS return_rate_{{ n_month }}_months
+    END) * 100.0 / NULLIF(MAX(cc.count_housing), 0)) AS return_rate_{{ n_month }}_months
 {% endmacro %}

@@ -15,5 +15,5 @@
         WHEN e.created_at < (pc.sent_at + INTERVAL '{{ n_month }} months')
         AND (next_campaigns.next_sent_at IS NULL OR e.created_at < next_campaigns.next_sent_at)
         THEN pch.housing_id
-    END) * 100.0 / NULLIF(COUNT(DISTINCT pch.housing_id), 0)) AS return_rate_{{ n_month }}_months_before_next_campaign
+    END) * 100.0 / NULLIF(MAX(cc.count_housing), 0)) AS return_rate_{{ n_month }}_months_before_next_campaign
 {% endmacro %}

@@ -37,7 +37,7 @@ export const draft: ObjectSchema<DraftCreationPayloadDTO> = object({
   subject: string().nullable().defined(),
   body: string().nullable().defined(),
   logo: array().of(fileUpload).nullable().defined(),
-  sender: sender,
+  sender: sender.nullable().defined(),
   writtenAt: dateString.nullable().defined(),
   writtenFrom: string().nullable().defined()
 });

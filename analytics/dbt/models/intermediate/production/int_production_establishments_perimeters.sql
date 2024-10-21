@@ -1,5 +1,6 @@
 SELECT 
     pc.establishment_id,
+    TRUE as has_perimeters,
     COUNT(DISTINCT pc.name) as total_perimeters,
     COUNT(*) as total_shapes,
     COUNT(DISTINCT pc.kind) as total_kinds

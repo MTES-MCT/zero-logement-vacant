@@ -14,7 +14,18 @@ SELECT est.*,
         WHEN est.kind = 'SDER' THEN 'Service Déconcentré Régional'
         WHEN est.kind = 'ASSO' THEN 'Association'
         ELSE 'Autre'
-    END AS establishment_kind,
+    END AS establishment_kind_label,
+    CASE 
+        WHEN est.kind IN ('CA', 'CC', 'CU', 'ME') THEN 'Intercommunalité'
+        WHEN est.kind = 'Commune' THEN 'Commune'
+        WHEN est.kind = 'DEP' THEN 'Autre'
+        WHEN est.kind = 'PETR' THEN 'Autre'
+        WHEN est.kind = 'REG' THEN 'Autre'
+        WHEN est.kind = 'SDED' THEN 'DDT/M'
+        WHEN est.kind = 'SDER' THEN 'Autre'
+        WHEN est.kind = 'ASSO' THEN 'Autre'
+        ELSE 'Autre'
+    END AS establishment_synthetic_type_label,
     CASE 
         WHEN est.kind IN ('SDED', 'SDER') THEN TRUE
         ELSE FALSE

@@ -2,3 +2,32 @@ version: 2
 
 models:
   - name: marts_production_housing
+    tests:
+      - tests/utils/same_row_number.sql:
+          table_one: marts_production_housing
+          table_two: int_production_housing
+
+  - name: marts_production_campaigns
+    tests:
+      - tests/production/campaign/test_no_null_housing_number_sent.sql
+      - tests/utils/same_row_number.sql:
+          table_one: marts_production_campaigns
+          table_two: int_production_campaigns
+
+  - name: marts_production_establishments
+    tests:
+      - tests/utils/same_row_number.sql:
+          table_one: marts_production_establishments
+          table_two: int_production_establishments
+
+  - name: marts_production_owners
+    tests:
+      - tests/utils/same_row_number.sql:
+          table_one: marts_production_owners
+          table_two: int_production_owners
+
+  - name: marts_production_users
+    tests:
+      - tests/utils/same_row_number.sql:
+          table_one: marts_production_users
+          table_two: int_production_users

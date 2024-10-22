@@ -71,8 +71,8 @@
       </section>
     </main>
     <footer>
-      <section class="footer__signature">
-        {{#each sender.signatories}}
+      {{#each sender.signatories}}
+        <section class="footer__signature">
           {{#if this.file}}
             <p><img src="{{this.file}}" alt="Signature" class="footer__image" /></p>
           {{/if}}
@@ -84,8 +84,8 @@
           {{#if this.role}}
             <p>{{this.role}}</p>
           {{/if}}
-        {{/each}}
-      </section>
+        </section>
+      {{/each}}
     </footer>
   </body>
 </html>

@@ -176,10 +176,13 @@ async function preview(
       address: draft.sender.address,
       email: draft.sender.email,
       phone: draft.sender.phone,
-      signatoryLastName: draft.sender.signatories?.[0]?.lastName ?? null,
-      signatoryFirstName: draft.sender.signatories?.[0]?.firstName ?? null,
-      signatoryRole: draft.sender.signatories?.[0]?.role ?? null,
-      signatoryFile: draft.sender.signatories?.[0]?.file?.content ?? null
+      signatories:
+        draft.sender.signatories
+          ?.filter((signatory) => signatory !== null)
+          ?.map((signatory) => ({
+            ...signatory,
+            file: signatory.file?.content ?? null
+          })) ?? null
     },
     writtenAt: draft.writtenAt,
     writtenFrom: draft.writtenFrom,

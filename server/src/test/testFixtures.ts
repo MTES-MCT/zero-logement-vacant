@@ -75,7 +75,6 @@ import {
   HOUSING_SOURCE_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
-  SignatoryDTO,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
@@ -856,31 +855,20 @@ export function genSenderApi(establishment: EstablishmentApi): SenderApi {
     address: faker.location.streetAddress({ useFullAddress: true }),
     email: faker.internet.email({ firstName, lastName }),
     phone: faker.phone.number(),
-    signatories:
-      faker.helpers.maybe(() => [
-        faker.helpers.maybe<SignatoryDTO>(() => ({
-          firstName: faker.person.firstName(),
-          lastName: faker.person.lastName(),
-          role: faker.person.jobTitle(),
-          file: {
-            id: faker.string.uuid(),
-            content: faker.image.dataUri(),
-            url: faker.image.url(),
-            type: faker.system.mimeType()
-          }
-        })) ?? null,
-        faker.helpers.maybe<SignatoryDTO>(() => ({
-          firstName: faker.person.firstName(),
-          lastName: faker.person.lastName(),
-          role: faker.person.jobTitle(),
-          file: {
-            id: faker.string.uuid(),
-            content: faker.image.dataUri(),
-            url: faker.image.url(),
-            type: faker.system.mimeType()
-          }
-        })) ?? null
-      ]) ?? null,
+    signatories: [
+      {
+        firstName: faker.helpers.maybe(() => faker.person.firstName()) ?? null,
+        lastName: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
+        role: faker.helpers.maybe(() => faker.person.jobTitle()) ?? null,
+        file: null
+      },
+      {
+        firstName: faker.helpers.maybe(() => faker.person.firstName()) ?? null,
+        lastName: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
+        role: faker.helpers.maybe(() => faker.person.jobTitle()) ?? null,
+        file: null
+      }
+    ],
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment.id

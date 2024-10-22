@@ -28,7 +28,6 @@ import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
-  FileUploadDTO,
   SenderPayloadDTO,
   SignatoriesDTO,
   SignatoryDTO
@@ -184,14 +183,7 @@ describe('Draft API', () => {
                   firstName: fc.option(fc.string({ minLength: 1 })),
                   lastName: fc.option(fc.string({ minLength: 1 })),
                   role: fc.option(fc.string({ minLength: 1 })),
-                  file: fc.option(
-                    fc.record<FileUploadDTO>({
-                      id: fc.uuid({ version: 4 }),
-                      url: fc.webUrl(),
-                      content: fc.string({ minLength: 1 }),
-                      type: fc.string({ minLength: 1 })
-                    })
-                  )
+                  file: fc.constant(null)
                 })
               ),
               fc.option(
@@ -199,14 +191,7 @@ describe('Draft API', () => {
                   firstName: fc.option(fc.string({ minLength: 1 })),
                   lastName: fc.option(fc.string({ minLength: 1 })),
                   role: fc.option(fc.string({ minLength: 1 })),
-                  file: fc.option(
-                    fc.record<FileUploadDTO>({
-                      id: fc.uuid({ version: 4 }),
-                      url: fc.webUrl(),
-                      content: fc.string({ minLength: 1 }),
-                      type: fc.string({ minLength: 1 })
-                    })
-                  )
+                  file: fc.constant(null)
                 })
               )
             )

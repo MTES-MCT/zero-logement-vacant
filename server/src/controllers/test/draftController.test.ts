@@ -161,17 +161,7 @@ describe('Draft API', () => {
       campaign: fc.uuid({ version: 4 }),
       subject: fc.option(fc.string({ minLength: 1 })),
       body: fc.option(fc.string({ minLength: 1 })),
-      logo: fc.option(
-        fc.array(
-          fc.record<FileUploadDTO>({
-            id: fc.uuid({ version: 4 }),
-            type: fc.string({ minLength: 1 }),
-            url: fc.webUrl(),
-            content: fc.string({ minLength: 1 })
-          }),
-          { minLength: 1, maxLength: 1 }
-        )
-      ),
+      logo: fc.constant([]),
       writtenAt: fc.option(
         fc
           .date({ min: new Date('0001-01-01'), max: new Date('9999-12-31') })

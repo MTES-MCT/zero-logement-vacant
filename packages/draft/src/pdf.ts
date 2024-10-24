@@ -28,6 +28,10 @@ function createTransformer(opts: TransformerOptions) {
   const { logger } = opts;
   const cache = new Map<string, (data: unknown) => string>();
   const images: Image[] = [];
+  /**
+   * For each image, its position on each page of the PDF.
+   */
+  const imagePositions: Map<Image['id'], ReadonlyArray<Position>> = new Map();
 
   return {
     compile<T>(template: string, data?: T): string {
@@ -37,7 +41,8 @@ function createTransformer(opts: TransformerOptions) {
       }
       return render(data);
     },
-    async fromSingleHTML(html: string): Promise<PDFDocument> {
+
+    async fromHTML(html: string): Promise<PDFDocument> {
       // Launch the browser and open a new blank page
       const browser = await puppeteer.launch({
         args: ['--no-sandbox'],
@@ -66,22 +71,37 @@ function createTransformer(opts: TransformerOptions) {
         path: path.join(__dirname, 'templates', 'draft', 'draft.css')
       });
 
+      const elements = await tab.$$eval('img', (images) => {
+        return images.map((image) => {
+          const { x, y, width, height } = image.getBoundingClientRect();
+          return {
+            id: image.id,
+            content: image.src,
+            width: width,
+            height: height,
+            x: x,
+            y: y
+          };
+        });
+      });
       // Retrieve images from the HTML only once
       if (images.length === 0) {
-        const elements = await tab.$$eval('img', (images) => {
-          return images.map((image) => {
-            const { x, y, width, height } = image.getBoundingClientRect();
-            return {
-              content: image.src,
-              width: width,
-              height: height,
-              x: x,
-              y: y
-            };
-          });
-        });
         images.push(...elements);
       }
+      // Save image positions
+      elements.forEach((element) => {
+        const positions: ReadonlyArray<Position> = (
+          imagePositions.get(element.id) ?? []
+        ).concat({
+          x: element.x,
+          y: element.y
+        });
+        logger.debug('Saving image positions for later...', {
+          image: element.id,
+          positions
+        });
+        imagePositions.set(element.id, positions);
+      });
 
       // Remove images from the HTML
       await tab.$$eval('img', (images) => {
@@ -98,6 +118,7 @@ function createTransformer(opts: TransformerOptions) {
 
       return chunk;
     },
+
     async merge(pdf: PDFDocument, chunk: PDFDocument): Promise<PDFDocument> {
       const pages = await pdf.copyPages(chunk, chunk.getPageIndices());
       pages.forEach((page) => {
@@ -105,16 +126,21 @@ function createTransformer(opts: TransformerOptions) {
       });
       return pdf;
     },
+
     async save(pdf: PDFDocument): Promise<Buffer> {
       // Embed images into the PDF
       await async.forEach(images, async (image) => {
         const content = image.content.substring(image.content.indexOf('/9j/'));
         const embed = await pdf.embedJpg(content);
-        pdf.getPages().forEach((page) => {
+        pdf.getPages().forEach((page, i) => {
+          const position = imagePositions.get(image.id)?.at(i);
+          if (!position) {
+            throw new Error('Image position not found');
+          }
           page.drawImage(embed, {
-            x: toPoints(image.x),
+            x: toPoints(position.x),
             // The Y-axis is inverted in the PDF specification
-            y: page.getHeight() - toPoints(image.y) - toPoints(image.height),
+            y: page.getHeight() - toPoints(position.y) - toPoints(image.height),
             width: toPoints(image.width),
             height: toPoints(image.height)
           });
@@ -122,94 +148,6 @@ function createTransformer(opts: TransformerOptions) {
       });
       const final = await pdf.save();
       return Buffer.from(final);
-    },
-    async fromHTML(htmls: string[]): Promise<Buffer> {
-      let index = 1;
-      const pdf = await PDFDocument.create();
-
-      await async.forEachSeries(htmls, async (html) => {
-        // Launch the browser and open a new blank page
-        const browser = await puppeteer.launch({
-          args: ['--no-sandbox'],
-          defaultViewport: {
-            width: A4_WIDTH,
-            height: A4_HEIGHT
-          }
-        });
-
-        logger.debug(`Generating PDF page ${index} of ${htmls.length}...`);
-        index++;
-        const tab = await browser.newPage();
-        await tab.setContent(html, {
-          waitUntil: 'networkidle0'
-        });
-        await tab.addStyleTag({
-          path: path.join(
-            __dirname,
-            '..',
-            'node_modules',
-            '@codegouvfr',
-            'react-dsfr',
-            'dsfr',
-            'dsfr.min.css'
-          )
-        });
-        await tab.addStyleTag({
-          path: path.join(__dirname, 'templates', 'draft', 'draft.css')
-        });
-
-        // Retrieve images from the HTML only once
-        if (images.length === 0) {
-          const elements = await tab.$$eval('img', (images) => {
-            return images.map((image) => {
-              const { x, y, width, height } = image.getBoundingClientRect();
-              return {
-                content: image.src,
-                width: width,
-                height: height,
-                x: x,
-                y: y
-              };
-            });
-          });
-          images.push(...elements);
-        }
-
-        // Remove images from the HTML
-        await tab.$$eval('img', (images) => {
-          images.forEach((image) => {
-            image.remove();
-          });
-        });
-        const buffer = await tab.pdf({ format: 'A4' });
-        const chunk = await PDFDocument.load(buffer);
-        const pages = await pdf.copyPages(chunk, chunk.getPageIndices());
-        pages.forEach((page) => {
-          pdf.addPage(page);
-        });
-        // Clean up
-        await tab.close();
-        await browser.close();
-      });
-
-      // Embed images into the PDF
-      await async.forEach(images, async (image) => {
-        const content = image.content.substring(image.content.indexOf('/9j/'));
-        const embed = await pdf.embedJpg(content);
-        pdf.getPages().forEach((page) => {
-          page.drawImage(embed, {
-            x: toPoints(image.x),
-            // The Y-axis is inverted in the PDF specification
-            y: page.getHeight() - toPoints(image.y) - toPoints(image.height),
-            width: toPoints(image.width),
-            height: toPoints(image.height)
-          });
-        });
-      });
-
-      const mergedPDF = await pdf.save();
-      logger.info('Saved generated PDF');
-      return Buffer.from(mergedPDF);
     }
   };
 }
@@ -229,9 +167,13 @@ function toPixels(pt: number): number {
  * Also, the Y-axis is inverted in the PDF, so the Y-coordinate must be adjusted.
  */
 interface Image {
+  id: string;
   content: string;
   width: number;
   height: number;
+}
+
+interface Position {
   x: number;
   y: number;
 }

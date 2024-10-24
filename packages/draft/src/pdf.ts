@@ -43,6 +43,14 @@ function createTransformer(opts: TransformerOptions) {
       return render(data);
     },
 
+    /**
+     * Open a browser and render the HTML content using puppeteer.
+     * The images are extracted from the HTML and saved for later.
+     * The images are hidden in the HTML to avoid rendering them in the PDF.
+     * Transform HTML to PDF and return the result as a PDFDocument.
+     * Clean up the browser.
+     * @param html
+     */
     async fromHTML(html: string): Promise<PDFDocument> {
       // Launch the browser and open a new blank page
       const browser = await puppeteer.launch({
@@ -123,6 +131,11 @@ function createTransformer(opts: TransformerOptions) {
       return chunk;
     },
 
+    /**
+     * Merge two PDF documents, i.e., copy the chunk’s pages into the PDF.
+     * @param pdf
+     * @param chunk
+     */
     async merge(pdf: PDFDocument, chunk: PDFDocument): Promise<PDFDocument> {
       const pages = await pdf.copyPages(chunk, chunk.getPageIndices());
       pages.forEach((page) => {
@@ -131,6 +144,11 @@ function createTransformer(opts: TransformerOptions) {
       return pdf;
     },
 
+    /**
+     * Embed an image into the PDF.
+     * @param pdf
+     * @param image A JPEG or PNG image encoded in base64
+     */
     async embed(pdf: PDFDocument, image: Image): Promise<PDFImage> {
       return match(image)
         .when(
@@ -156,6 +174,11 @@ function createTransformer(opts: TransformerOptions) {
         });
     },
 
+    /**
+     * Draw images on each page of the PDF using their recorded positions.
+     * Save the final PDF and return it as a buffer.
+     * @param pdf
+     */
     async save(pdf: PDFDocument): Promise<Buffer> {
       // Embed images into the PDF
       await async.forEach(images, async (image) => {

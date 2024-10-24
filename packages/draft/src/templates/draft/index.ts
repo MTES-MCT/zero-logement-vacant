@@ -8,7 +8,7 @@ export interface DraftData {
   watermark?: boolean;
   subject: string | null;
   body: string | null;
-  logo: string[] | null;
+  logo: File[] | null;
   sender: {
     name: string | null;
     service: string | null;
@@ -31,5 +31,10 @@ interface Signatory {
   firstName: string | null;
   lastName: string | null;
   role: string | null;
-  file: string | null;
+  file: File | null;
+}
+
+interface File {
+  id: string;
+  content: string;
 }

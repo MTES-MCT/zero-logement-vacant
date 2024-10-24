@@ -59,7 +59,16 @@ describe('PDF', () => {
       document.body.innerHTML = compile({
         subject: null,
         body: null,
-        logo: ['data:image/png', 'data:image/jpg'],
+        logo: [
+          {
+            id: 'uuid1',
+            content: 'data:image/png'
+          },
+          {
+            id: 'uuid2',
+            content: 'data:image/jpg'
+          }
+        ],
         sender: null,
         writtenFrom: null,
         writtenAt: null,
@@ -118,13 +127,19 @@ describe('PDF', () => {
           firstName: 'Jean',
           lastName: 'Dujardin',
           role: 'Maire',
-          file: 'data:image/png'
+          file: {
+            id: 'uuid1',
+            content: 'data:image/png'
+          }
         },
         {
           firstName: 'Marc',
           lastName: 'Dujardin',
           role: 'Adjoint',
-          file: 'data:image/png'
+          file: {
+            id: 'uuid2',
+            content: 'data:image/png'
+          }
         }
       ];
 

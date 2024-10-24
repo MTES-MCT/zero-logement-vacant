@@ -104,10 +104,13 @@ function createTransformer(opts: TransformerOptions) {
         imagePositions.set(element.id, positions);
       });
 
-      // Remove images from the HTML
+      // Hide images to avoid rendering them in the PDF but keep their space
+      // so that the text is not shifted
       await tab.$$eval('img', (images) => {
         images.forEach((image) => {
-          image.remove();
+          const style = image.getAttribute('style') ?? '';
+          const styles = style.concat('visibility: hidden;');
+          image.setAttribute('style', styles);
         });
       });
       const buffer = await tab.pdf({ format: 'A4' });

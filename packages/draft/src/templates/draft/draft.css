@@ -65,20 +65,6 @@ p {
   margin: 0;
 }
 
-.watermark {
-  position: fixed;
-  top: 30%;
-  left: 25%;
-  width: 50%;
-  text-align: center;
-  opacity: 0.20;
-  font-size: 50px;
-  transform: rotate(-45deg);
-  transform-origin: 50% 50%;
-  z-index: -1;
-  pointer-events: none;
-}
-
 main {
   margin-bottom: 1rem;
 }

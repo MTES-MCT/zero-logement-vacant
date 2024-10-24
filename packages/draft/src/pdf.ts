@@ -2,8 +2,9 @@ import async from 'async';
 import { ReadableStream } from 'node:stream/web';
 import * as handlebars from 'handlebars';
 import path from 'node:path';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, PDFImage } from 'pdf-lib';
 import puppeteer from 'puppeteer';
+import { match } from 'ts-pattern';
 import { Logger } from '@zerologementvacant/utils';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -127,11 +128,35 @@ function createTransformer(opts: TransformerOptions) {
       return pdf;
     },
 
+    async embed(pdf: PDFDocument, image: Image): Promise<PDFImage> {
+      return match(image)
+        .when(
+          (image) => image.content.startsWith('data:image/jpeg'),
+          async (image) => {
+            const content = image.content.substring(
+              image.content.indexOf('/9j/')
+            );
+            return pdf.embedJpg(content);
+          }
+        )
+        .when(
+          (image) => image.content.startsWith('data:image/png'),
+          async (image) => {
+            const content = image.content.substring(
+              image.content.indexOf('iVBORw')
+            );
+            return pdf.embedPng(content);
+          }
+        )
+        .otherwise(() => {
+          throw new Error('Unsupported image format');
+        });
+    },
+
     async save(pdf: PDFDocument): Promise<Buffer> {
       // Embed images into the PDF
       await async.forEach(images, async (image) => {
-        const content = image.content.substring(image.content.indexOf('/9j/'));
-        const embed = await pdf.embedJpg(content);
+        const embed = await this.embed(pdf, image);
         pdf.getPages().forEach((page, i) => {
           const position = imagePositions.get(image.id)?.at(i);
           if (!position) {

@@ -31,6 +31,7 @@
     "async": "^3.2.6",
     "handlebars": "^4.7.8",
     "pdf-lib": "^1.17.1",
-    "puppeteer": "^22.15.0"
+    "puppeteer": "^22.15.0",
+    "ts-pattern": "^5.5.0"
   }
 }

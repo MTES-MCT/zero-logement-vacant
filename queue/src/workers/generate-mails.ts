@@ -162,7 +162,7 @@ export default function createWorker() {
                 );
               })
             )
-            .pipeThrough(map(transformer.fromSingleHTML))
+            .pipeThrough(map(transformer.fromHTML))
             .pipeThrough(reduce(transformer.merge))
             .pipeThrough(map((pdf) => transformer.save(pdf)))
             .getReader()

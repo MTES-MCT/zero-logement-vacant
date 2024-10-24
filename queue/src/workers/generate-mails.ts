@@ -63,13 +63,14 @@ export default function createWorker() {
     storage
   });
   logger.info('SDK created.');
-  const transformer = pdf.createTransformer({ logger });
 
   return new Worker<Args, Returned, Name>(
     'campaign-generate',
     async (job) => {
       return storage
         .run({ establishment: job.data.establishmentId }, async () => {
+          const transformer = pdf.createTransformer({ logger });
+
           const payload = job.data;
           logger.info('Generating mail for campaign', job.data);
 
@@ -112,7 +113,11 @@ export default function createWorker() {
 
                 return transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
                   subject: draft.subject ?? '',
-                  logo: draft.logo?.map((logo) => logo.content) ?? null,
+                  logo:
+                    draft.logo?.map((logo) => ({
+                      id: logo.id,
+                      content: logo.content
+                    })) ?? null,
                   watermark: false,
                   body: draft.body
                     ? replaceVariables(draft.body, {
@@ -133,7 +138,12 @@ export default function createWorker() {
                         ?.filter((signatory) => signatory !== null)
                         ?.map((signatory) => ({
                           ...signatory,
-                          file: signatory.file?.content ?? null
+                          file: signatory.file
+                            ? {
+                                id: signatory.file.id,
+                                content: signatory.file.content
+                              }
+                            : null
                         })) ?? null
                   },
                   writtenAt: draft.writtenAt,

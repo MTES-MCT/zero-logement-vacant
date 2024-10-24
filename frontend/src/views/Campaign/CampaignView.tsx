@@ -31,7 +31,7 @@ function CampaignView() {
   const CampaignComponent = steps[campaign.status] || <NotFoundView />;
 
   return (
-    <Grid container position="relative">
+    <Grid container position="relative" sx={{ mb: 2 }}>
       {CampaignComponent}
     </Grid>
   );

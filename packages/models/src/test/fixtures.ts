@@ -9,7 +9,7 @@ import { GroupDTO } from '../GroupDTO';
 import { HousingDTO } from '../HousingDTO';
 import { OwnerDTO } from '../OwnerDTO';
 import { RolesDTO } from '../RolesDTO';
-import { SenderDTO } from '../SenderDTO';
+import { SenderDTO, SignatoryDTO } from '../SenderDTO';
 import { UserDTO } from '../UserDTO';
 import { OCCUPANCY_VALUES } from '../Occupancy';
 import { HOUSING_KIND_VALUES } from '../HousingKind';
@@ -320,7 +320,7 @@ export function genOwnerDTO(): OwnerDTO {
   });
 }
 
-export function genSenderDTO(signature?: FileUploadDTO): SenderDTO {
+export function genSenderDTO(): SenderDTO {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
   return {
@@ -332,12 +332,22 @@ export function genSenderDTO(signature?: FileUploadDTO): SenderDTO {
     address: faker.location.streetAddress({ useFullAddress: true }),
     email: faker.internet.email({ firstName, lastName }),
     phone: faker.helpers.fromRegExp(/0[1-9][0-9]{8}/),
-    signatoryFile: signature ?? null,
-    signatoryRole: faker.person.jobTitle(),
-    signatoryFirstName: faker.person.firstName(),
-    signatoryLastName: faker.person.lastName(),
+    signatories:
+      faker.helpers.maybe(() => [
+        faker.helpers.maybe(genSignatoryDTO) ?? null,
+        faker.helpers.maybe(genSignatoryDTO) ?? null
+      ]) ?? null,
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON()
+  };
+}
+
+function genSignatoryDTO(signature?: FileUploadDTO): SignatoryDTO {
+  return {
+    file: signature ?? null,
+    role: faker.person.jobTitle(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName()
   };
 }
 

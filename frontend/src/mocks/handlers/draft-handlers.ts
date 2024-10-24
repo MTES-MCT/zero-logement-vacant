@@ -53,6 +53,7 @@ export const draftHandlers: RequestHandler[] = [
           phone: payload.sender?.phone ?? null,
           address: payload.sender?.address ?? null,
           service: payload.sender?.service ?? null,
+          signatories: payload.sender?.signatories ?? null,
           signatoryFile: payload.sender?.signatoryFile ?? null,
           signatoryFirstName: payload.sender?.signatoryFirstName ?? null,
           signatoryLastName: payload.sender?.signatoryLastName ?? null,

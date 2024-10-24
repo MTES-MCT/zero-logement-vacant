@@ -5,6 +5,8 @@ fileignoreconfig:
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
 - filename: frontend/src/components/Draft/DraftSender.tsx
   checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
+- filename: frontend/src/components/Draft/DraftSignature.tsx
+  checksum: 8abd2b819601d46cc6a3d0a61a60b76391601f2d89d9126f5167b684878bd2d1
 - filename: frontend/src/index.tsx
   checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
 - filename: packages/api-sdk/src/test/campaign-api.test.ts

@@ -14,10 +14,7 @@ export function toSenderDTO(sender: SenderApi): SenderDTO {
     address: sender.address,
     email: sender.email,
     phone: sender.phone,
-    signatoryLastName: sender.signatoryLastName,
-    signatoryFirstName: sender.signatoryFirstName,
-    signatoryRole: sender.signatoryRole,
-    signatoryFile: sender.signatoryFile,
+    signatories: sender.signatories,
     createdAt: sender.createdAt,
     updatedAt: sender.updatedAt
   };

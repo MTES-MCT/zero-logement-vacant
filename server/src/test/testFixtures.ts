@@ -855,10 +855,20 @@ export function genSenderApi(establishment: EstablishmentApi): SenderApi {
     address: faker.location.streetAddress({ useFullAddress: true }),
     email: faker.internet.email({ firstName, lastName }),
     phone: faker.phone.number(),
-    signatoryFile: null,
-    signatoryRole: faker.person.jobTitle(),
-    signatoryFirstName: faker.person.firstName(),
-    signatoryLastName: faker.person.lastName(),
+    signatories: [
+      {
+        firstName: faker.helpers.maybe(() => faker.person.firstName()) ?? null,
+        lastName: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
+        role: faker.helpers.maybe(() => faker.person.jobTitle()) ?? null,
+        file: null
+      },
+      {
+        firstName: faker.helpers.maybe(() => faker.person.firstName()) ?? null,
+        lastName: faker.helpers.maybe(() => faker.person.lastName()) ?? null,
+        role: faker.helpers.maybe(() => faker.person.jobTitle()) ?? null,
+        file: null
+      }
+    ],
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment.id

@@ -1,6 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import { constants } from 'http2';
-import { AnyObject, Maybe, object, ObjectSchema } from 'yup';
+import {
+  AnyObject,
+  Maybe,
+  object,
+  ObjectSchema,
+  ValidationError as YupValidationError
+} from 'yup';
+import { HttpError } from '~/errors/httpError';
 
 type RequestSchema = Partial<{
   body: ObjectSchema<Maybe<AnyObject>>;
@@ -21,9 +28,22 @@ function validate(schema: RequestSchema) {
       request.query = data.query as Record<string, string>;
       next();
     } catch (error) {
-      response.status(constants.HTTP_STATUS_BAD_REQUEST).json(error);
+      next(new ValidationError(error as YupValidationError));
     }
   };
+}
+
+class ValidationError extends HttpError implements HttpError {
+  constructor(error: YupValidationError) {
+    super({
+      name: error.name,
+      message: error.message,
+      status: constants.HTTP_STATUS_BAD_REQUEST,
+      data: {
+        ...error
+      }
+    });
+  }
 }
 
 export default {

@@ -17,10 +17,7 @@ export interface DraftData {
     address: string | null;
     email: string | null;
     phone: string | null;
-    signatoryFile: string | null;
-    signatoryFirstName: string | null;
-    signatoryLastName: string | null;
-    signatoryRole: string | null;
+    signatories: Signatory[] | null;
   } | null;
   writtenFrom: string | null;
   writtenAt: string | null;
@@ -28,4 +25,11 @@ export interface DraftData {
     fullName: string;
     address: string[];
   };
+}
+
+interface Signatory {
+  firstName: string | null;
+  lastName: string | null;
+  role: string | null;
+  file: string | null;
 }

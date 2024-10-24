@@ -5,7 +5,7 @@ import {
   genDraftApi,
   genEstablishmentApi,
   genSenderApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
 import { Campaigns, formatCampaignApi } from '../campaignRepository';
@@ -13,7 +13,7 @@ import { CampaignsDrafts } from '../campaignDraftRepository';
 import { DraftApi } from '~/models/DraftApi';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '../establishmentRepository';
 import { formatUserApi, Users } from '../userRepository';
 import { SenderApi } from '~/models/SenderApi';
@@ -26,7 +26,7 @@ describe('Draft repository', () => {
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi),
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
     await Users().insert(formatUserApi(user));
   });
@@ -34,7 +34,7 @@ describe('Draft repository', () => {
   describe('find', () => {
     const sender: SenderApi = genSenderApi(establishment);
     const drafts: DraftApi[] = Array.from({ length: 5 }, () =>
-      genDraftApi(establishment, sender),
+      genDraftApi(establishment, sender)
     );
 
     beforeAll(async () => {
@@ -43,23 +43,9 @@ describe('Draft repository', () => {
     });
 
     it('should list drafts', async () => {
-      let actual = await draftRepository.find();
+      const actual = await draftRepository.find();
 
-      actual = actual.map(actual => {
-        if(actual !== null && actual.sender?.signatoryFile !== null) {
-          actual.sender.signatoryFile.url = '';
-        }
-        return actual;
-      });
-
-      const draftsToCheck = drafts.map(draft => {
-        if(draft !== null && draft.sender?.signatoryFile !== null) {
-          draft.sender.signatoryFile.url = '';
-        }
-        return draft;
-      });
-
-      expect(actual).toIncludeAllMembers(draftsToCheck);
+      expect(actual).toIncludeAllPartialMembers(drafts);
     });
 
     it('should find drafts by campaign', async () => {
@@ -68,29 +54,17 @@ describe('Draft repository', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
-        draft_id: firstDraft.id,
+        draft_id: firstDraft.id
       });
 
-      let actual = await draftRepository.find({
+      const actual = await draftRepository.find({
         filters: {
-          campaign: campaign.id,
-        },
-      });
-
-
-      actual = actual.map(actual => {
-        if(actual !== null && actual.sender?.signatoryFile !== null) {
-          actual.sender.signatoryFile.url = '';
+          campaign: campaign.id
         }
-        return actual;
       });
-
-      if(firstDraft?.sender.signatoryFile !== null) {
-        firstDraft.sender.signatoryFile.url = '';
-      }
 
       expect(actual).toBeArrayOfSize(1);
-      expect(actual).toContainEqual(firstDraft);
+      expect(actual).toPartiallyContain<Partial<DraftApi>>(firstDraft);
     });
   });
 
@@ -106,7 +80,7 @@ describe('Draft repository', () => {
     it('should return null if the draft is missing', async () => {
       const actual = await draftRepository.findOne({
         id: faker.string.uuid(),
-        establishmentId: establishment.id,
+        establishmentId: establishment.id
       });
 
       expect(actual).toBeNull();
@@ -115,7 +89,7 @@ describe('Draft repository', () => {
     it('should return null if the draft belongs to another establishment', async () => {
       const actual = await draftRepository.findOne({
         id: draft.id,
-        establishmentId: anotherEstablishment.id,
+        establishmentId: anotherEstablishment.id
       });
 
       expect(actual).toBeNull();
@@ -124,16 +98,8 @@ describe('Draft repository', () => {
     it('should return the draft', async () => {
       const actual = await draftRepository.findOne({
         id: draft.id,
-        establishmentId: draft.establishmentId,
+        establishmentId: draft.establishmentId
       });
-
-      if(actual !== null && actual?.sender.signatoryFile !== null) {
-        actual.sender.signatoryFile.url = '';
-      }
-
-      if(draft?.sender.signatoryFile !== null) {
-        draft.sender.signatoryFile.url = '';
-      }
 
       expect(actual).toStrictEqual<DraftApi>(draft);
     });
@@ -163,7 +129,7 @@ describe('Draft repository', () => {
         body: payload.body,
         writtenAt: payload.writtenAt,
         writtenFrom: payload.writtenFrom,
-        updatedAt: new Date().toJSON(),
+        updatedAt: new Date().toJSON()
       };
 
       await draftRepository.save(updated);

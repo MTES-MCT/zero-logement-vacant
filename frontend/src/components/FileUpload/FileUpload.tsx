@@ -10,7 +10,7 @@ const DEFAULT_TYPES = ['pdf', 'jpg', 'png'];
 const MAX_SIZE = 5; // Mo
 
 interface Props {
-  id: string,
+  id: string;
   accept?: string[];
   hint?: string;
   label?: ReactNode;
@@ -33,7 +33,7 @@ function FileUpload(props: Readonly<Props>) {
     isError: mutation.isError,
     isLoading: mutation.isLoading,
     isSuccess: mutation.isSuccess,
-    toastId: 'file-upload',
+    toastId: 'file-upload'
   });
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>): void {
@@ -49,11 +49,10 @@ function FileUpload(props: Readonly<Props>) {
 
   return (
     <Upload
-      id={props.id}
       label={props.label}
       multiple={false}
       hint={hint}
-      nativeInputProps={{ accept, onChange }}
+      nativeInputProps={{ accept, id: props.id, onChange }}
     />
   );
 }

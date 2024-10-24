@@ -177,8 +177,9 @@ router.delete(
 router.get('/drafts', draftController.list);
 router.post(
   '/drafts',
-  draftController.createValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: schemas.draft
+  }),
   draftController.create
 );
 router.put(

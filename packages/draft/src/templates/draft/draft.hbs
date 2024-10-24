@@ -11,7 +11,7 @@
     <header class="header">
       <section class="header--left">
         {{#each logo}}
-          <img alt="logo" class="header__image" src="{{this}}" />
+          <img id="{{this.id}}" alt="logo" class="header__image" src="{{this.content}}" />
         {{/each}}
       </section>
       <section class="header--right">
@@ -81,7 +81,7 @@
             {{/if}}
           </div>
           {{#if this.file}}
-            <img src="{{this.file}}" alt="Signature" class="footer__image" />
+            <img id="{{this.file.id}}" src="{{this.file.content}}" alt="Signature" class="footer__image" />
           {{/if}}
         </section>
       {{/each}}

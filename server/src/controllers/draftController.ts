@@ -161,7 +161,7 @@ async function preview(
   const transformer = pdf.createTransformer({ logger });
   const html = transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
     subject: draft.subject,
-    logo: draft.logo?.map((logo) => logo.content) ?? null,
+    logo: draft.logo?.map(fp.pick(['id', 'content'])) ?? null,
     watermark: true,
     body: draft.body
       ? replaceVariables(draft.body, {
@@ -183,7 +183,9 @@ async function preview(
           ?.filter(not(isEmpty))
           ?.map((signatory) => ({
             ...signatory,
-            file: signatory.file?.content ?? null
+            file: signatory.file
+              ? { id: signatory.file.id, content: signatory.file.content }
+              : null
           })) ?? null
     },
     writtenAt: draft.writtenAt,
@@ -193,8 +195,9 @@ async function preview(
       address: getAddress(body.owner)
     }
   });
-  const finalPDF = await transformer.fromHTML([html]);
-  response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
+  const finalPDF = await transformer.fromHTML(html);
+  const buffer = await transformer.save(finalPDF);
+  response.status(constants.HTTP_STATUS_OK).type('pdf').send(buffer);
 }
 const previewValidators: ValidationChain[] = [
   isUUIDParam('id'),

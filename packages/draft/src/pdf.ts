@@ -21,6 +21,9 @@ interface TransformerOptions {
   logger: Logger;
 }
 
+const A4_WIDTH = Math.round(toPixels(595));
+const A4_HEIGHT = Math.round(toPixels(842));
+
 function createTransformer(opts: TransformerOptions) {
   const { logger } = opts;
   const cache = new Map<string, (data: unknown) => string>();
@@ -34,14 +37,21 @@ function createTransformer(opts: TransformerOptions) {
       return render(data);
     },
     async fromHTML(htmls: string[]): Promise<Buffer> {
-      // Launch the browser and open a new blank page
-      const browser = await puppeteer.launch({
-        args: ['--no-sandbox']
-      });
-
       let index = 1;
-      const document = await PDFDocument.create();
+      const pdf = await PDFDocument.create();
+
+      const images: Image[] = [];
+
       await async.forEachSeries(htmls, async (html) => {
+        // Launch the browser and open a new blank page
+        const browser = await puppeteer.launch({
+          args: ['--no-sandbox'],
+          defaultViewport: {
+            width: A4_WIDTH,
+            height: A4_HEIGHT
+          }
+        });
+
         logger.debug(`Generating PDF page ${index} of ${htmls.length}...`);
         index++;
         const tab = await browser.newPage();
@@ -62,20 +72,83 @@ function createTransformer(opts: TransformerOptions) {
         await tab.addStyleTag({
           path: path.join(__dirname, 'templates', 'draft', 'draft.css')
         });
+
+        // Retrieve images from the HTML only once
+        if (images.length === 0) {
+          const elements = await tab.$$eval('img', (images) => {
+            return images.map((image) => {
+              const { x, y, width, height } = image.getBoundingClientRect();
+              return {
+                content: image.src,
+                width: width,
+                height: height,
+                x: x,
+                y: y
+              };
+            });
+          });
+          images.push(...elements);
+        }
+
+        // Remove images from the HTML
+        await tab.$$eval('img', (images) => {
+          images.forEach((image) => {
+            image.remove();
+          });
+        });
         const buffer = await tab.pdf({ format: 'A4' });
-        await tab.close();
         const chunk = await PDFDocument.load(buffer);
-        const pages = await document.copyPages(chunk, chunk.getPageIndices());
+        const pages = await pdf.copyPages(chunk, chunk.getPageIndices());
         pages.forEach((page) => {
-          document.addPage(page);
+          pdf.addPage(page);
+        });
+        // Clean up
+        await tab.close();
+        await browser.close();
+      });
+
+      // Embed images into the PDF
+      await async.forEach(images, async (image) => {
+        const content = image.content.substring(image.content.indexOf('/9j/'));
+        const embed = await pdf.embedJpg(content);
+        pdf.getPages().forEach((page) => {
+          page.drawImage(embed, {
+            x: toPoints(image.x),
+            // The Y-axis is inverted in the PDF specification
+            y: page.getHeight() - toPoints(image.y) - toPoints(image.height),
+            width: toPoints(image.width),
+            height: toPoints(image.height)
+          });
         });
       });
 
-      const mergedPDF = await document.save();
+      const mergedPDF = await pdf.save();
       logger.info('Saved generated PDF');
       return Buffer.from(mergedPDF);
     }
   };
+}
+
+function toPoints(px: number): number {
+  return px * 0.75;
+}
+
+function toPixels(pt: number): number {
+  return (pt * 96) / 72;
+}
+
+/**
+ * An image extracted from the rendered HTML to be embedded into the PDF.
+ * All units are in pixels, and the origin is the top-left corner of the page.
+ * They shall be converted to points before being used in the PDF.
+ * Also, the Y-axis is inverted in the PDF, so the Y-coordinate must be adjusted.
+ */
+interface Image {
+  content: string;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
 }
 
 export default {

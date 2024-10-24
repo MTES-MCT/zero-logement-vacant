@@ -70,16 +70,18 @@
     <footer>
       {{#each sender.signatories}}
         <section class="footer__signature">
-          {{#if this.file}}
-            <p><img src="{{this.file}}" alt="Signature" class="footer__image" /></p>
-          {{/if}}
-          {{#if this.firstName}}
-            {{#if this.lastName}}
-              <p>{{this.firstName}} {{this.lastName}}</p>
+          <div class="fr-mb-2w">
+            {{#if this.firstName}}
+              {{#if this.lastName}}
+                <p class="fr-mb-1w">{{this.firstName}} {{this.lastName}}</p>
+              {{/if}}
             {{/if}}
-          {{/if}}
-          {{#if this.role}}
-            <p>{{this.role}}</p>
+            {{#if this.role}}
+              <p class="fr-mb-0">{{this.role}}</p>
+            {{/if}}
+          </div>
+          {{#if this.file}}
+            <img src="{{this.file}}" alt="Signature" class="footer__image" />
           {{/if}}
         </section>
       {{/each}}

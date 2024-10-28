@@ -108,10 +108,13 @@ export default function createWorker() {
                 email: draft.sender.email,
                 address: draft.sender.address,
                 phone: draft.sender.phone,
-                signatoryLastName: draft.sender.signatoryLastName,
-                signatoryFirstName: draft.sender.signatoryFirstName,
-                signatoryRole: draft.sender.signatoryRole,
-                signatoryFile: draft.sender.signatoryFile?.content ?? null
+                signatories:
+                  draft.sender.signatories
+                    ?.filter((signatory) => signatory !== null)
+                    ?.map((signatory) => ({
+                      ...signatory,
+                      file: signatory.file?.content ?? null
+                    })) ?? null
               },
               writtenAt: draft.writtenAt,
               writtenFrom: draft.writtenFrom,

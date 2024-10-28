@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { object, string } from 'yup';
 
 import validatorNext from '~/middlewares/validator-next';
+import errorHandler from '~/middlewares/error-handler';
 
 describe('ValidatorNext middleware', () => {
   describe('Integration test', () => {
@@ -22,6 +23,7 @@ describe('ValidatorNext middleware', () => {
         response.status(constants.HTTP_STATUS_OK).json(request.body);
       }
     );
+    app.use(errorHandler());
 
     const testRoute = `/validate/${uuidv4()}`;
 

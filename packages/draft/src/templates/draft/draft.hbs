@@ -7,9 +7,6 @@
     <title>Zéro Logement Vacant</title>
   </head>
   <body>
-    {{#if watermark}}
-    <div class="watermark">Prévisualisation</div>
-    {{/if}}
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <header class="header">
       <section class="header--left">
@@ -71,19 +68,23 @@
       </section>
     </main>
     <footer>
-      <section class="footer__signature">
-        {{#if sender.signatoryFile}}
-          <p><img src="{{sender.signatoryFile}}" alt="Signature" class="footer__image" /></p>
-        {{/if}}
-        {{#if sender.signatoryFirstName}}
-          {{#if sender.signatoryLastName}}
-            <p>{{sender.signatoryFirstName}} {{sender.signatoryLastName}}</p>
+      {{#each sender.signatories}}
+        <section class="footer__signature">
+          <div class="fr-mb-2w">
+            {{#if this.firstName}}
+              {{#if this.lastName}}
+                <p class="fr-mb-0">{{this.firstName}} {{this.lastName}}</p>
+              {{/if}}
+            {{/if}}
+            {{#if this.role}}
+              <p class="fr-mb-0">{{this.role}}</p>
+            {{/if}}
+          </div>
+          {{#if this.file}}
+            <img src="{{this.file}}" alt="Signature" class="footer__image" />
           {{/if}}
-        {{/if}}
-        {{#if sender.signatoryRole}}
-          <p>{{sender.signatoryRole}}</p>
-        {{/if}}
-      </section>
+        </section>
+      {{/each}}
     </footer>
   </body>
 </html>

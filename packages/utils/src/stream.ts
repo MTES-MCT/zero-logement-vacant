@@ -5,9 +5,9 @@ import {
   TransformStream,
   WritableStream
 } from 'node:stream/web';
-import { Promisable } from 'type-fest';
 
 import { Predicate } from './compare';
+import { AsyncOrSync } from 'ts-essentials';
 
 export async function countLines(file: ReadableStream): Promise<number> {
   return new Promise((resolve) => {
@@ -42,7 +42,7 @@ export async function count<A>(stream: ReadableStream<A>): Promise<number> {
   });
 }
 
-export function map<A, B>(f: (a: A) => Promisable<B>) {
+export function map<A, B>(f: (a: A) => AsyncOrSync<B>) {
   return new TransformStream<A, B>({
     async transform(a, controller) {
       controller.enqueue(await f(a));
@@ -50,7 +50,7 @@ export function map<A, B>(f: (a: A) => Promisable<B>) {
   });
 }
 
-export function tap<A>(f: (a: A, i: number) => Promisable<void>) {
+export function tap<A>(f: (a: A, i: number) => AsyncOrSync<void>) {
   let i = 0;
   return new TransformStream<A, A>({
     async transform(a, controller) {
@@ -61,7 +61,7 @@ export function tap<A>(f: (a: A, i: number) => Promisable<void>) {
   });
 }
 
-export function reduce<A>(f: (b: A, a: A) => Promisable<A>) {
+export function reduce<A>(f: (b: A, a: A) => AsyncOrSync<A>) {
   let b: A;
 
   return new TransformStream<A, A>({

@@ -9745,6 +9745,7 @@ __metadata:
     pino: "npm:^9.4.0"
     pino-pretty: "npm:^11.2.2"
     rimraf: "npm:^5.0.10"
+    ts-essentials: "npm:^10.0.2"
     ts-jest: "npm:^29.2.5"
     typescript: "npm:^5.6.2"
   languageName: unknown
@@ -26326,13 +26327,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^3.13.1":
-  version: 3.13.1
-  resolution: "type-fest@npm:3.13.1"
-  checksum: 10c0/547d22186f73a8c04590b70dcf63baff390078c75ea8acd366bbd510fd0646e348bd1970e47ecf795b7cff0b41d26e9c475c1fedd6ef5c45c82075fbf916b629
-  languageName: node
-  linkType: hard
-
 "type-fest@npm:^4.9.0":
   version: 4.26.1
   resolution: "type-fest@npm:4.26.1"
@@ -27893,7 +27887,6 @@ __metadata:
     node-talisman: "npm:^1.29.11"
     prettier: "npm:^3.3.3"
     ts-node: "npm:^10.9.2"
-    type-fest: "npm:^3.13.1"
     typescript: "npm:^5.6.2"
   languageName: unknown
   linkType: soft

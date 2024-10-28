@@ -1,3 +1,5 @@
+import fp from 'lodash/fp';
+
 import { FileUploadDTO } from './FileUploadDTO';
 
 export interface SenderDTO {
@@ -21,6 +23,10 @@ export interface SignatoryDTO {
   file: FileUploadDTO | null;
 }
 export type SignatoriesDTO = [SignatoryDTO | null, SignatoryDTO | null];
+
+export function isEmpty(signatory: SignatoryDTO): boolean {
+  return fp.every(fp.isNull, signatory);
+}
 
 export type SenderPayloadDTO = Pick<
   SenderDTO,

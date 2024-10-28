@@ -13,6 +13,7 @@ import {
   DraftUpdatePayloadDTO,
   getAddress,
   HOUSING_KIND_VALUES,
+  isEmpty,
   replaceVariables
 } from '@zerologementvacant/models';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
@@ -179,6 +180,7 @@ async function preview(
       signatories:
         draft.sender.signatories
           ?.filter((signatory) => signatory !== null)
+          ?.filter((signatory) => !isEmpty(signatory))
           ?.map((signatory) => ({
             ...signatory,
             file: signatory.file?.content ?? null

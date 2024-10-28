@@ -825,7 +825,7 @@ export const genHousingNoteApi = (
 });
 
 export function genDraftApi(
-  establishment: EstablishmentApi,
+  establishment: Pick<EstablishmentApi, 'id'>,
   sender: SenderApi
 ): DraftApi {
   return {
@@ -843,7 +843,9 @@ export function genDraftApi(
   };
 }
 
-export function genSenderApi(establishment: EstablishmentApi): SenderApi {
+export function genSenderApi(
+  establishment: Pick<EstablishmentApi, 'id'>
+): SenderApi {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
   return {

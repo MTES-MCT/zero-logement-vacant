@@ -11,6 +11,7 @@ import { EnergyConsumption } from './EnergyConsumption';
 import { HousingKind } from './HousingKind';
 import { CampaignCount } from './CampaignCount';
 import { RoomCount } from './RoomCount';
+import { LocalityKind } from './LocalityDTO';
 
 export interface HousingFiltersDTO {
   housingIds?: string[];
@@ -38,7 +39,7 @@ export interface HousingFiltersDTO {
   housingCounts?: HousingByBuilding[];
   vacancyRates?: VacancyRate[];
   localities?: string[];
-  localityKinds?: string[];
+  localityKinds?: ReadonlyArray<LocalityKind | null>;
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
   dataFileYearsIncluded?: string[];

@@ -10,6 +10,7 @@ import {
   HOUSING_STATUS_VALUES,
   HousingFiltersDTO,
   LIVING_AREA_VALUES,
+  LOCALITY_KIND_VALUES,
   OCCUPANCY_VALUES,
   OWNER_AGE_VALUES,
   OWNERSHIP_KIND_VALUES,
@@ -43,7 +44,9 @@ describe('Housing filters', () => {
     housingCounts: fc.array(fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)),
     vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
     localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
-    localityKinds: fc.array(fc.string({ minLength: 1 })),
+    localityKinds: fc.array(
+      fc.option(fc.constantFrom(...LOCALITY_KIND_VALUES))
+    ),
     geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
     geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
     dataFileYearsIncluded: fc.array(fc.string({ minLength: 1 })),

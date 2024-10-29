@@ -41,7 +41,11 @@ import {
   HousingApi,
   OccupancyKindApi
 } from '~/models/HousingApi';
-import { formatLocalityApi, Localities } from '../localityRepository';
+import {
+  formatLocalityApi,
+  Localities,
+  LocalityDBO
+} from '../localityRepository';
 import { LocalityApi } from '~/models/LocalityApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import {
@@ -69,6 +73,7 @@ import {
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   isSecondaryOwner,
+  LocalityKind,
   OwnershipKind,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
@@ -1252,6 +1257,58 @@ describe('Housing repository', () => {
             expect(actual).toSatisfyAll<HousingApi>(
               (housing) => housing.geoCode === geoCode
             );
+          }
+        );
+      });
+
+      describe('by locality kind', () => {
+        beforeEach(async () => {
+          const localities: ReadonlyArray<LocalityApi> = [
+            { ...genLocalityApi(), kind: 'ACV' },
+            { ...genLocalityApi(), kind: 'PVD' },
+            { ...genLocalityApi(), kind: undefined }
+          ];
+          await Localities().insert(localities.map(formatLocalityApi));
+        });
+
+        const tests: ReadonlyArray<{
+          filter: ReadonlyArray<LocalityKind | null>;
+        }> = [
+          { filter: ['ACV'] },
+          { filter: ['PVD'] },
+          { filter: ['ACV', 'PVD'] },
+          { filter: [null] },
+          { filter: ['ACV', null] }
+        ];
+
+        test.each(tests)(
+          'should keep housings that belong to the locality kind %s',
+          async ({ filter }) => {
+            const actual = await housingRepository.find({
+              filters: {
+                localityKinds: filter
+              }
+            });
+
+            expect(actual.length).toBeGreaterThan(0);
+            const geoCodes = actual.map((housing) => housing.geoCode);
+            const localities = await Localities().whereIn('geo_code', geoCodes);
+            const predicates: ReadonlyArray<Predicate<LocalityKind>> = [
+              (kind) => (filter.includes(null) ? !kind : true),
+              (locality) => filter.includes(locality.locality_kind)
+            ];
+
+            expect(localities).toSatisfyAll<LocalityDBO>((locality) => {
+              if (!filter) {
+                return false;
+              }
+
+              const predicates = [];
+              if (filter.includes(null)) {
+                return !locality.locality_kind;
+              }
+              return localityKinds.includes(locality.locality_kind);
+            });
           }
         );
       });

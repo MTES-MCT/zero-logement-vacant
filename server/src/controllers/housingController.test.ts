@@ -50,6 +50,8 @@ import {
   formatCampaignHousingApi
 } from '~/repositories/campaignHousingRepository';
 import { faker } from '@faker-js/faker/locale/fr';
+import { HousingDTO } from '@zerologementvacant/models';
+import { Localities, LocalityDBO } from '~/repositories/localityRepository';
 
 describe('Housing API', () => {
   const { app } = createServer();
@@ -171,6 +173,25 @@ describe('Housing API', () => {
         descending: true,
         compare: (a: string, b: string) =>
           a.toUpperCase().localeCompare(b.toUpperCase())
+      });
+    });
+
+    describe('Filters', () => {
+      it('should filter by locality kind', async () => {
+        const { body, status } = await request(app)
+          .get(testRoute)
+          .query('localityKinds=null')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.entities.length).toBeGreaterThan(0);
+        const codes = body.entities.map(
+          (housing: HousingDTO) => housing.geoCode
+        );
+        const localities = await Localities().whereIn('geo_code', codes);
+        expect(localities).toSatisfyAll<LocalityDBO>((locality) => {
+          return !locality.locality_kind;
+        });
       });
     });
   });

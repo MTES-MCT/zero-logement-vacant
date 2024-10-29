@@ -1,9 +1,10 @@
-import { OwnershipKind } from '@zerologementvacant/models';
+import { HousingFiltersDTO, OwnershipKind } from '@zerologementvacant/models';
 import { EnergyConsumptionGradesApi, OccupancyKindApi } from './HousingApi';
 import { body, ValidationChain } from 'express-validator';
 import { isArrayOf, isInteger, isString, isUUID } from '~/utils/validators';
 
-export interface HousingFiltersApi {
+export interface HousingFiltersApi
+  extends Pick<HousingFiltersDTO, 'localityKinds'> {
   housingIds?: string[];
   establishmentIds?: string[];
   groupIds?: string[];
@@ -30,7 +31,6 @@ export interface HousingFiltersApi {
   campaignIds?: string[];
   ownerIds?: string[];
   localities?: string[];
-  localityKinds?: string[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
   dataFileYearsIncluded?: string[];

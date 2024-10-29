@@ -107,7 +107,7 @@ function CampaignRecipients(props: Props) {
     <Grid container key={`${housing.id}-actions`}>
       <OwnerEditionSideMenu className="fr-mr-1w" owner={housing.owner} />
       <ConfirmationModal
-        modalId="campaign-recipient-removal"
+        modalId={`campaign-recipient-removal-${housing.id}`}
         openingButtonProps={{
           iconId: 'fr-icon-close-line',
           priority: 'tertiary',

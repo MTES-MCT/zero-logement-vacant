@@ -1,3 +1,4 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import fp from 'lodash/fp';
 
@@ -47,6 +48,9 @@ const HousingListTabs = ({
 
   return (
     <Tabs
+      classes={{
+        panel: fr.cx('fr-p-0')
+      }}
       className="tabs-no-border statusTabs"
       selectedTabId={activeTab}
       onTabChange={(tab: string) => setActiveTab(tab)}

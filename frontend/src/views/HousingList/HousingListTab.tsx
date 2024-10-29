@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
-import { Row, Text } from '../../components/_dsfr';
+import { Row } from '../../components/_dsfr';
 import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
@@ -33,6 +33,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCreateCampaignMutation } from '../../services/campaign.service';
 import fp from 'lodash/fp';
 import { HousingStatus } from '@zerologementvacant/models';
+import Typography from '@mui/material/Typography';
 
 export type HousingListTabProps = {
   isActive: boolean;
@@ -230,14 +231,14 @@ const HousingListTab = ({
       {(showCount ?? true) &&
         filteredHousingCount !== undefined &&
         filteredOwnerCount !== undefined && (
-          <Text spacing="mb-2w">
+          <Typography sx={{ padding: 2 }}>
             {displayHousingCount({
               filteredHousingCount,
               filteredOwnerCount,
               totalCount,
               status
             })}
-          </Text>
+          </Typography>
         )}
       <HousingList filters={filters} onSelectHousing={setSelected}>
         <SelectableListHeader entity="logement" default={<></>}>

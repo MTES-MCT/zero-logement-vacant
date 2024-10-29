@@ -8,7 +8,7 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 
 import {
   TrackEventActions,
-  TrackEventCategories,
+  TrackEventCategories
 } from '../../models/TrackEvent';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useFilters } from '../../hooks/useFilters';
@@ -32,7 +32,7 @@ const HousingListView = () => {
     onChangeFilters,
     onResetFilters,
     setExpand,
-    removeFilter,
+    removeFilter
   } = useFilters();
 
   const { view } = useAppSelector((state) => state.housing);
@@ -41,11 +41,11 @@ const HousingListView = () => {
     trackEvent({
       category: TrackEventCategories.HousingList,
       action: TrackEventActions.HousingList.Search,
-      name: query,
+      name: query
     });
     setFilters({
       ...filters,
-      query,
+      query
     });
   };
 
@@ -53,7 +53,7 @@ const HousingListView = () => {
   const [alert, setAlert] = useState(router.location.state?.alert ?? '');
   function onFinish() {
     setAlert(
-      'Le logement sélectionné a bien été ajouté à votre parc de logements.',
+      'Le logement sélectionné a bien été ajouté à votre parc de logements.'
     );
   }
 
@@ -93,7 +93,7 @@ const HousingListView = () => {
             <HousingDisplaySwitch />
           </Grid>
           <Grid xs="auto">
-            { !isVisitor && <HousingCreationModal onFinish={onFinish} /> }
+            {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
           </Grid>
         </Grid>
 
@@ -101,15 +101,17 @@ const HousingListView = () => {
           <HousingFiltersBadges filters={filters} onChange={removeFilter} />
         </Grid>
 
-        {view === 'map' ? (
-          <HousingListMap filters={filters} />
-        ) : (
-          <HousingListTabs
-            filters={filters}
-            showCreateCampaign
-            showCreateGroup
-          />
-        )}
+        <Grid mb={1} xs={12}>
+          {view === 'map' ? (
+            <HousingListMap filters={filters} />
+          ) : (
+            <HousingListTabs
+              filters={filters}
+              showCreateCampaign
+              showCreateGroup
+            />
+          )}
+        </Grid>
       </Grid>
     </Grid>
   );

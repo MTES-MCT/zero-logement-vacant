@@ -26,6 +26,7 @@ import { isUUIDParam } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
 import senderRepository from '~/repositories/senderRepository';
+import { not } from '@zerologementvacant/utils';
 
 export interface DraftParams extends Record<string, string> {
   id: string;
@@ -34,8 +35,6 @@ export interface DraftParams extends Record<string, string> {
 interface DraftQuery {
   campaign?: string;
 }
-
-const transformer = pdf.createTransformer({ logger });
 
 async function list(
   request: Request<never, DraftDTO[], never, DraftQuery>,
@@ -159,9 +158,10 @@ async function preview(
     throw new DraftMissingError(params.id);
   }
 
+  const transformer = pdf.createTransformer({ logger });
   const html = transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
     subject: draft.subject,
-    logo: draft.logo?.map((logo) => logo.content) ?? null,
+    logo: draft.logo?.map(fp.pick(['id', 'content'])) ?? null,
     watermark: true,
     body: draft.body
       ? replaceVariables(draft.body, {
@@ -180,10 +180,12 @@ async function preview(
       signatories:
         draft.sender.signatories
           ?.filter((signatory) => signatory !== null)
-          ?.filter((signatory) => !isEmpty(signatory))
+          ?.filter(not(isEmpty))
           ?.map((signatory) => ({
             ...signatory,
-            file: signatory.file?.content ?? null
+            file: signatory.file
+              ? { id: signatory.file.id, content: signatory.file.content }
+              : null
           })) ?? null
     },
     writtenAt: draft.writtenAt,
@@ -193,8 +195,9 @@ async function preview(
       address: getAddress(body.owner)
     }
   });
-  const finalPDF = await transformer.fromHTML([html]);
-  response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
+  const finalPDF = await transformer.fromHTML(html);
+  const buffer = await transformer.save(finalPDF);
+  response.status(constants.HTTP_STATUS_OK).type('pdf').send(buffer);
 }
 const previewValidators: ValidationChain[] = [
   isUUIDParam('id'),
@@ -280,7 +283,10 @@ async function update(request: Request, response: Response<DraftDTO>) {
   };
   await senderRepository.save(sender);
   await draftRepository.save(updated);
-  logger.info('Draft updated', updated);
+  logger.info('Draft updated', {
+    draft: draft.id,
+    establishment: auth.establishmentId
+  });
 
   response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
 }

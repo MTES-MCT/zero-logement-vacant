@@ -96,7 +96,7 @@ footer {
 
 .footer__signature {
   margin-left: 4rem;
-  max-width: 200px;
+  width: 200px;
 }
 
 .footer__signature p {

@@ -3,6 +3,7 @@ import * as turf from '@turf/turf';
 import async from 'async';
 import { Knex } from 'knex';
 
+import { AddressKinds } from '@zerologementvacant/models';
 import { Establishments } from '~/repositories/establishmentRepository';
 import { HousingApi } from '~/models/HousingApi';
 import { genHousingApi, genOwnerApi } from '~/test/testFixtures';
@@ -18,12 +19,22 @@ import {
   housingOwnersTable
 } from '~/repositories/housingOwnerRepository';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
+import { createBanAPI } from '~/services/ban/ban-api';
+import { MarkRequired } from 'ts-essentials';
+import {
+  banAddressesTable,
+  formatAddressApi
+} from '~/repositories/banAddressesRepository';
+import { AddressApi } from '~/models/AddressApi';
 
 export async function seed(knex: Knex): Promise<void> {
+  const ban = createBanAPI();
+
+  await knex.raw(`TRUNCATE TABLE ${housingOwnersTable} CASCADE`);
   await knex.raw(`TRUNCATE TABLE ${housingTable} CASCADE`);
+  await knex.raw(`TRUNCATE TABLE ${ownerTable} CASCADE`);
 
   const establishments = await Establishments(knex).where({ available: true });
-
   await async.forEachSeries(establishments, async (establishment) => {
     const id =
       establishment.kind === 'Commune'
@@ -42,7 +53,9 @@ export async function seed(knex: Knex): Promise<void> {
     const epci = await response.json();
     const contour = (epci as Feature<Polygon | MultiPolygon>).geometry;
 
-    const housings: ReadonlyArray<HousingApi> = faker.helpers
+    const baseHousings: ReadonlyArray<
+      MarkRequired<HousingApi, 'longitude' | 'latitude'>
+    > = faker.helpers
       .multiple(
         () =>
           genHousingApi(
@@ -65,7 +78,52 @@ export async function seed(knex: Knex): Promise<void> {
         };
       });
 
-    // TODO: Infer housing addresses using the generated coordinates
+    // Infer housing addresses using the generated coordinates
+    const points = baseHousings.map((housing) => ({
+      refId: housing.id,
+      geoCode: housing.geoCode,
+      longitude: housing.longitude,
+      latitude: housing.latitude
+    }));
+    const addresses = await ban.reverseMany(points).then((addresses) => {
+      return addresses.filter((address) => !!address.label);
+    });
+    const housings = baseHousings
+      .filter((housing) => {
+        return addresses.some(
+          (address) =>
+            address.refId === housing.id && address.geoCode === housing.geoCode
+        );
+      })
+      .map<HousingApi>((housing, i) => {
+        const address = addresses[i];
+        if (address.refId !== housing.id) {
+          throw new Error('Should never happen');
+        }
+        return {
+          ...housing,
+          rawAddress: [address.label]
+        };
+      });
+
+    // Insert housings
+    console.log(`Inserting ${housings.length} housings...`, {
+      establishment: establishment.name
+    });
+    await knex.batchInsert(housingTable, housings.map(formatHousingRecordApi));
+
+    // Insert BAN housing addresses
+    const housingAddresses: ReadonlyArray<AddressApi> = addresses.map(
+      (address) => ({ ...address, addressKind: AddressKinds.Housing })
+    );
+    console.log(
+      `Inserting ${housingAddresses.length} BAN housing addresses...`,
+      { establishment: establishment.name }
+    );
+    await knex.batchInsert(
+      banAddressesTable,
+      housingAddresses.map(formatAddressApi)
+    );
 
     const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(
       (housing) => {
@@ -89,9 +147,14 @@ export async function seed(knex: Knex): Promise<void> {
       }
     );
     const owners: ReadonlyArray<OwnerApi> = housingOwners.flat();
-
-    await knex.batchInsert(housingTable, housings.map(formatHousingRecordApi));
+    console.log(`Inserting ${owners.length} owners...`, {
+      establishment: establishment.name
+    });
     await knex.batchInsert(ownerTable, owners.map(formatOwnerApi));
+
+    console.log(`Inserting ${housingOwners.length} housing owners...`, {
+      establishment: establishment.name
+    });
     await knex.batchInsert(
       housingOwnersTable,
       housingOwners.map(formatHousingOwnerApi)

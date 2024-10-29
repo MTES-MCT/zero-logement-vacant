@@ -10639,6 +10639,7 @@ __metadata:
     "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:^3.2.6"
+    axios: "npm:^1.7.7"
     bcryptjs: "npm:^2.4.3"
     cli-progress: "npm:^3.12.0"
     commander: "npm:^12.1.0"
@@ -10670,7 +10671,6 @@ __metadata:
     jsonlines: "npm:^0.1.1"
     jsonwebtoken: "npm:^9.0.2"
     knex: "npm:^3.1.0"
-    ky: "npm:^1.7.2"
     lodash: "npm:^4.17.21"
     memoizee: "npm:^0.4.17"
     multer: "npm:^1.4.5-lts.1"
@@ -20524,13 +20524,6 @@ __metadata:
   bin:
     knex: bin/cli.js
   checksum: 10c0/d8a1f99fad143c6057e94759b2ae700ae661a0b0b2385f643011962ef501dcc7b32cfdb5bda66ef81283ca56f13630f47691c579ce66ad0e8128e209533c3785
-  languageName: node
-  linkType: hard
-
-"ky@npm:^1.7.2":
-  version: 1.7.2
-  resolution: "ky@npm:1.7.2"
-  checksum: 10c0/ce42c0c5eec839dd13fd14f0b60fb6f56c7c8a0df8e228597f5206b1db2f3608f3a0e477a4c002c838d21b8e65872632ef4655e9eb8508455b3c3b296af40ebc
   languageName: node
   linkType: hard
 

@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/jest';
 import { constants } from 'http2';
 import request from 'supertest';
 
@@ -27,7 +28,9 @@ import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
-  SenderPayloadDTO
+  SenderPayloadDTO,
+  SignatoriesDTO,
+  SignatoryDTO
 } from '@zerologementvacant/models';
 import {
   Establishments,
@@ -115,7 +118,11 @@ describe('Draft API', () => {
       const draftDTO = toDraftDTO(firstDraft);
       // Overwriting because S3 is not mocked, causing it to fail, and there is no logo available
       draftDTO.logo = [];
-      draftDTO.sender.signatoryFile = null;
+      draftDTO.sender.signatories?.forEach((signatory) => {
+        if (signatory) {
+          signatory.file = null;
+        }
+      });
 
       expect(body).toContainEqual(draftDTO);
     });
@@ -141,10 +148,7 @@ describe('Draft API', () => {
           'address',
           'email',
           'phone',
-          'signatoryFile',
-          'signatoryRole',
-          'signatoryFirstName',
-          'signatoryLastName'
+          'signatories'
         ],
         sender
       );
@@ -152,20 +156,55 @@ describe('Draft API', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
     });
 
-    it('should fail if the payload has a wrong format', async () => {
-      async function fail(
-        payload: Partial<DraftCreationPayloadDTO>
-      ): Promise<void> {
-        const { status } = await request(app)
-          .post(testRoute)
-          .send(payload)
-          .use(tokenProvider(user));
+    test.prop<DraftCreationPayloadDTO>({
+      campaign: fc.uuid({ version: 4 }),
+      subject: fc.option(fc.string({ minLength: 1 })),
+      body: fc.option(fc.string({ minLength: 1 })),
+      logo: fc.constant([]),
+      writtenAt: fc.option(
+        fc
+          .date({ min: new Date('0001-01-01'), max: new Date('9999-12-31') })
+          .map((date) => date.toJSON().substring(0, 10))
+      ),
+      writtenFrom: fc.option(fc.string({ minLength: 1 })),
+      sender: fc.option(
+        fc.record<SenderPayloadDTO>({
+          name: fc.option(fc.string({ minLength: 1 })),
+          service: fc.option(fc.string({ minLength: 1 })),
+          firstName: fc.option(fc.string({ minLength: 1 })),
+          lastName: fc.option(fc.string({ minLength: 1 })),
+          address: fc.option(fc.string({ minLength: 1 })),
+          email: fc.option(fc.string({ minLength: 1 })),
+          phone: fc.option(fc.string({ minLength: 1 })),
+          signatories: fc.option(
+            fc.tuple<SignatoriesDTO>(
+              fc.option<SignatoryDTO>(
+                fc.record<SignatoryDTO>({
+                  firstName: fc.option(fc.string({ minLength: 1 })),
+                  lastName: fc.option(fc.string({ minLength: 1 })),
+                  role: fc.option(fc.string({ minLength: 1 })),
+                  file: fc.constant(null)
+                })
+              ),
+              fc.option(
+                fc.record<SignatoryDTO>({
+                  firstName: fc.option(fc.string({ minLength: 1 })),
+                  lastName: fc.option(fc.string({ minLength: 1 })),
+                  role: fc.option(fc.string({ minLength: 1 })),
+                  file: fc.constant(null)
+                })
+              )
+            )
+          )
+        })
+      )
+    })('should validate inputs', async (payload) => {
+      const { status } = await request(app)
+        .post(testRoute)
+        .send({ ...payload, campaign: campaign.id })
+        .use(tokenProvider(user));
 
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      }
-
-      await fail({});
-      await fail({ body: 'body' });
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
     });
 
     it('should fail if the campaign to attach is missing', async () => {
@@ -217,10 +256,7 @@ describe('Draft API', () => {
           address: payload.sender?.address ?? null,
           email: payload.sender?.email ?? null,
           phone: payload.sender?.phone ?? null,
-          signatoryFile: payload.sender?.signatoryFile ?? null,
-          signatoryFirstName: payload.sender?.signatoryFirstName ?? null,
-          signatoryLastName: payload.sender?.signatoryLastName ?? null,
-          signatoryRole: payload.sender?.signatoryRole ?? null,
+          signatories: payload.sender?.signatories ?? null,
           createdAt: expect.any(String),
           updatedAt: expect.any(String)
         },
@@ -355,10 +391,7 @@ describe('Draft API', () => {
           address: sender.address,
           email: sender.email,
           phone: sender.phone,
-          signatoryFile: sender.signatoryFile ?? null,
-          signatoryFirstName: sender.signatoryFirstName,
-          signatoryLastName: sender.signatoryLastName,
-          signatoryRole: sender.signatoryRole,
+          signatories: sender.signatories ?? null,
           createdAt: expect.any(String),
           updatedAt: expect.any(String)
         },
@@ -414,10 +447,14 @@ describe('Draft API', () => {
         address: sender.address,
         email: sender.email,
         phone: sender.phone,
-        signatory_file: sender.signatoryFile?.id ?? null,
-        signatory_role: sender.signatoryRole,
-        signatory_first_name: sender.signatoryFirstName,
-        signatory_last_name: sender.signatoryLastName,
+        signatory_one_first_name: sender.signatories?.[0]?.firstName ?? null,
+        signatory_one_last_name: sender.signatories?.[0]?.lastName ?? null,
+        signatory_one_role: sender.signatories?.[0]?.role ?? null,
+        signatory_one_file: sender.signatories?.[0]?.file?.id ?? null,
+        signatory_two_first_name: sender.signatories?.[1]?.firstName ?? null,
+        signatory_two_last_name: sender.signatories?.[1]?.lastName ?? null,
+        signatory_two_role: sender.signatories?.[1]?.role ?? null,
+        signatory_two_file: sender.signatories?.[1]?.file?.id ?? null,
         created_at: expect.any(Date),
         updated_at: expect.any(Date),
         establishment_id: sender.establishmentId

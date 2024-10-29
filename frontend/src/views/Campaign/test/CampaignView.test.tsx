@@ -118,14 +118,17 @@ describe('Campaign view', () => {
   });
 
   it('should confirm a recipient removal', async () => {
+    const index = housings.length - 1;
+    const housing = housings[index];
+
     renderComponent();
 
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
-    const rowsBefore = screen.getAllByRole('row').slice(1); // Remove headers
-    expect(rowsBefore).toHaveLength(housings.length);
-    const row = rowsBefore[rowsBefore.length - 1];
-    const remove = within(row).getByTitle(/^Supprimer le propriétaire/);
+    const rowsBefore = screen.getAllByRole<HTMLTableRowElement>('row').slice(1); // Remove headers
+    const remove = screen.getAllByRole('button', {
+      name: /^Supprimer le propriétaire/
+    })[index];
     await user.click(remove);
     const dialog = await screen.findByRole('dialog');
     const confirm = within(dialog).getByRole('button', {
@@ -134,6 +137,12 @@ describe('Campaign view', () => {
     await user.click(confirm);
     const rowsAfter = screen.getAllByRole('row').slice(1);
     expect(rowsAfter).toHaveLength(rowsBefore.length - 1);
+    const row = screen.queryByRole('link', {
+      name: (accessibleName) =>
+        housing.rawAddress.join(' ').toLowerCase() ===
+        accessibleName.toLowerCase()
+    });
+    expect(row).not.toBeInTheDocument();
   });
 
   it('should save the draft if at least one field is filled', async () => {

@@ -13,6 +13,7 @@ import {
   DraftUpdatePayloadDTO,
   getAddress,
   HOUSING_KIND_VALUES,
+  isEmpty,
   replaceVariables
 } from '@zerologementvacant/models';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
@@ -25,6 +26,7 @@ import { isUUIDParam } from '~/utils/validators';
 import { logger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
 import senderRepository from '~/repositories/senderRepository';
+import { not } from '@zerologementvacant/utils';
 
 export interface DraftParams extends Record<string, string> {
   id: string;
@@ -33,8 +35,6 @@ export interface DraftParams extends Record<string, string> {
 interface DraftQuery {
   campaign?: string;
 }
-
-const transformer = pdf.createTransformer({ logger });
 
 async function list(
   request: Request<never, DraftDTO[], never, DraftQuery>,
@@ -117,10 +117,7 @@ async function create(
     address: body.sender?.address ?? null,
     email: body.sender?.email ?? null,
     phone: body.sender?.phone ?? null,
-    signatoryLastName: body.sender?.signatoryLastName ?? null,
-    signatoryFirstName: body.sender?.signatoryFirstName ?? null,
-    signatoryRole: body.sender?.signatoryRole ?? null,
-    signatoryFile: body.sender?.signatoryFile ?? null,
+    signatories: body.sender?.signatories ?? null,
     establishmentId: auth.establishmentId,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON()
@@ -143,33 +140,6 @@ async function create(
   await campaignDraftRepository.save(campaign, draft);
   response.status(constants.HTTP_STATUS_CREATED).json(toDraftDTO(draft));
 }
-const createValidators: ValidationChain[] = [
-  body('subject')
-    .optional({ nullable: true })
-    .isString()
-    .withMessage('subject must be a string'),
-  body('body')
-    .optional({ nullable: true })
-    .isString()
-    .withMessage('body must be a string'),
-  body('campaign').isUUID().withMessage('Must be an UUID'),
-  body('writtenAt')
-    .optional({ nullable: true })
-    .isString()
-    .withMessage('writtenAt must be a string')
-    .trim(),
-  body('writtenFrom')
-    .optional({ nullable: true })
-    .isString()
-    .withMessage('writtenFrom must be a string')
-    .trim(),
-  body('sender')
-    .optional({ nullable: true })
-    .isObject()
-    .withMessage('Sender must be an object'),
-  ...partialDraftValidators,
-  ...senderValidators
-];
 
 async function preview(
   request: Request<DraftParams, Buffer, DraftPreviewPayloadDTO>,
@@ -188,9 +158,10 @@ async function preview(
     throw new DraftMissingError(params.id);
   }
 
+  const transformer = pdf.createTransformer({ logger });
   const html = transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
     subject: draft.subject,
-    logo: draft.logo?.map((logo) => logo.content) ?? null,
+    logo: draft.logo?.map(fp.pick(['id', 'content'])) ?? null,
     watermark: true,
     body: draft.body
       ? replaceVariables(draft.body, {
@@ -206,10 +177,16 @@ async function preview(
       address: draft.sender.address,
       email: draft.sender.email,
       phone: draft.sender.phone,
-      signatoryLastName: draft.sender.signatoryLastName,
-      signatoryFirstName: draft.sender.signatoryFirstName,
-      signatoryRole: draft.sender.signatoryRole,
-      signatoryFile: draft.sender.signatoryFile?.content ?? null
+      signatories:
+        draft.sender.signatories
+          ?.filter((signatory) => signatory !== null)
+          ?.filter(not(isEmpty))
+          ?.map((signatory) => ({
+            ...signatory,
+            file: signatory.file
+              ? { id: signatory.file.id, content: signatory.file.content }
+              : null
+          })) ?? null
     },
     writtenAt: draft.writtenAt,
     writtenFrom: draft.writtenFrom,
@@ -218,8 +195,9 @@ async function preview(
       address: getAddress(body.owner)
     }
   });
-  const finalPDF = await transformer.fromHTML([html]);
-  response.status(constants.HTTP_STATUS_OK).type('pdf').send(finalPDF);
+  const finalPDF = await transformer.fromHTML(html);
+  const buffer = await transformer.save(finalPDF);
+  response.status(constants.HTTP_STATUS_OK).type('pdf').send(buffer);
 }
 const previewValidators: ValidationChain[] = [
   isUUIDParam('id'),
@@ -244,9 +222,11 @@ const previewValidators: ValidationChain[] = [
     .notEmpty()
     .withMessage('kind is required'),
   body('housing.livingArea').isInt().notEmpty(),
-  body('housing.buildingYear').optional({
-    nullable: true
-  }).isInt(),
+  body('housing.buildingYear')
+    .optional({
+      nullable: true
+    })
+    .isInt(),
   body('housing.energyConsumption')
     .optional({
       nullable: true
@@ -285,10 +265,7 @@ async function update(request: Request, response: Response<DraftDTO>) {
     address: body.sender.address,
     email: body.sender.email,
     phone: body.sender.phone,
-    signatoryLastName: body.sender.signatoryLastName,
-    signatoryFirstName: body.sender.signatoryFirstName,
-    signatoryRole: body.sender.signatoryRole,
-    signatoryFile: body.sender.signatoryFile ? body.sender.signatoryFile : null,
+    signatories: body.sender.signatories,
     createdAt: draft.sender.createdAt,
     updatedAt: new Date().toJSON(),
     establishmentId: draft.sender.establishmentId
@@ -306,7 +283,10 @@ async function update(request: Request, response: Response<DraftDTO>) {
   };
   await senderRepository.save(sender);
   await draftRepository.save(updated);
-  logger.info('Draft updated', updated);
+  logger.info('Draft updated', {
+    draft: draft.id,
+    establishment: auth.establishmentId
+  });
 
   response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
 }
@@ -341,7 +321,6 @@ const updateValidators: ValidationChain[] = [
 const draftController = {
   list,
   create,
-  createValidators,
   preview,
   previewValidators,
   update,

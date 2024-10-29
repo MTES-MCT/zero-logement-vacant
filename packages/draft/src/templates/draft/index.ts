@@ -8,7 +8,7 @@ export interface DraftData {
   watermark?: boolean;
   subject: string | null;
   body: string | null;
-  logo: string[] | null;
+  logo: File[] | null;
   sender: {
     name: string | null;
     service: string | null;
@@ -17,10 +17,7 @@ export interface DraftData {
     address: string | null;
     email: string | null;
     phone: string | null;
-    signatoryFile: string | null;
-    signatoryFirstName: string | null;
-    signatoryLastName: string | null;
-    signatoryRole: string | null;
+    signatories: Signatory[] | null;
   } | null;
   writtenFrom: string | null;
   writtenAt: string | null;
@@ -28,4 +25,16 @@ export interface DraftData {
     fullName: string;
     address: string[];
   };
+}
+
+interface Signatory {
+  firstName: string | null;
+  lastName: string | null;
+  role: string | null;
+  file: File | null;
+}
+
+interface File {
+  id: string;
+  content: string;
 }

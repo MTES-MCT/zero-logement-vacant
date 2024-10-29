@@ -1,13 +1,25 @@
 SELECT 
         CAST(h.id as VARCHAR) as housing_id,
-        h.* EXCLUDE (vacancy_reasons), 
-        hs.last_event_status_zlv,
-        hs.last_event_status_label_zlv,
-        hs.last_event_date_zlv,
-        hs.last_event_status_user,
-        hs.last_event_status_label_user,
-        hs.last_event_date_user,
-        CASE WHEN energy_consumption IN ('F', 'G') THEN TRUE ELSE FALSE END as energy_sieve, 
+        h.* EXCLUDE (vacancy_reasons, precisions), 
+        hs.last_event_status_zlv_followup,
+        hs.last_event_status_label_zlv_followup,
+        hs.last_event_date_zlv_followup,
+        hs.last_event_status_user_followup,
+        hs.last_event_status_label_user_followup,
+        hs.last_event_date_user_followup,
+        hs.last_event_status_followup,
+        hs.last_event_status_label_followup,
+        hs.last_event_date_followup,
+        hs.last_event_status_zlv_occupancy,
+        hs.last_event_status_label_zlv_occupancy,
+        hs.last_event_date_zlv_occupancy,
+        hs.last_event_status_user_occupancy,
+        hs.last_event_status_label_user_occupancy,
+        hs.last_event_date_user_occupancy,
+        hs.last_event_status_occupancy,
+        hs.last_event_status_label_occupancy,
+        hs.last_event_date_occupancy,
+        CASE WHEN energy_consumption_bdnb IN ('F', 'G') THEN TRUE ELSE FALSE END as energy_sieve, 
         CASE WHEN vacancy_start_year < DATE_PART('year', CURRENT_DATE) - 3 THEN TRUE ELSE FALSE END as vacant_two_years,
         CASE WHEN peugc.user_number IS NOT NULL THEN TRUE ELSE FALSE END as is_on_user_teritory, 
         CASE WHEN c.opah > 2 THEN TRUE ELSE FALSE END as is_in_opah_teritory,
@@ -28,8 +40,8 @@ SELECT
         phc.*, 
         phg.*
 FROM {{ ref('int_production_housing') }} h
-LEFT JOIN {{ ref('int_production_last_housing_status') }} hs ON h.id = hs.housing_id
-JOIN {{ ref('marts_common_cities') }} c ON h.city_code = c.city_code
+LEFT JOIN {{ ref('int_production_housing_last_status') }} hs ON h.id = hs.housing_id
+LEFT JOIN {{ ref('marts_common_cities') }} c ON h.city_code = c.city_code
 LEFT JOIN {{ ref('int_production_establishment_geo_code') }} peugc ON peugc.geo_code = h.geo_code AND user_number > 0
 LEFT JOIN {{ ref('int_production_housing_campaigns') }} phc ON phc.housing_id = h.id
 LEFT JOIN {{ ref('int_production_housing_groups') }} phg ON phg.housing_id = h.id

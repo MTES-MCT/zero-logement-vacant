@@ -7,8 +7,19 @@ import { Readable } from 'node:stream';
 
 import { createSDK } from '@zerologementvacant/api-sdk';
 import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
-import { getAddress, replaceVariables } from '@zerologementvacant/models';
-import { createS3, slugify, timestamp } from '@zerologementvacant/utils';
+import {
+  getAddress,
+  HousingDTO,
+  replaceVariables
+} from '@zerologementvacant/models';
+import {
+  createS3,
+  map,
+  reduce,
+  slugify,
+  tap,
+  timestamp
+} from '@zerologementvacant/utils';
 import { Jobs } from '../jobs';
 import config from '../config';
 import { createLogger } from '../logger';
@@ -52,13 +63,14 @@ export default function createWorker() {
     storage
   });
   logger.info('SDK created.');
-  const transformer = pdf.createTransformer({ logger });
 
   return new Worker<Args, Returned, Name>(
     'campaign-generate',
     async (job) => {
       return storage
         .run({ establishment: job.data.establishmentId }, async () => {
+          const transformer = pdf.createTransformer({ logger });
+
           const payload = job.data;
           logger.info('Generating mail for campaign', job.data);
 
@@ -87,42 +99,80 @@ export default function createWorker() {
           }
 
           logger.debug('Generating PDF...');
-          const htmls = housings.map((housing) => {
-            const address = getAddress(housing.owner);
+          const finalPDF = await new ReadableStream<HousingDTO>({
+            pull(controller) {
+              housings.forEach((housing) => {
+                controller.enqueue(housing);
+              });
+              controller.close();
+            }
+          })
+            .pipeThrough(
+              map((housing) => {
+                const address = getAddress(housing.owner);
 
-            return transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
-              subject: draft.subject ?? '',
-              logo: draft.logo?.map((logo) => logo.content) ?? null,
-              watermark: false,
-              body: draft.body
-                ? replaceVariables(draft.body, {
-                    housing,
-                    owner: housing.owner
-                  })
-                : '',
-              sender: {
-                name: draft.sender.name,
-                service: draft.sender.service,
-                firstName: draft.sender.firstName,
-                lastName: draft.sender.lastName,
-                email: draft.sender.email,
-                address: draft.sender.address,
-                phone: draft.sender.phone,
-                signatoryLastName: draft.sender.signatoryLastName,
-                signatoryFirstName: draft.sender.signatoryFirstName,
-                signatoryRole: draft.sender.signatoryRole,
-                signatoryFile: draft.sender.signatoryFile?.content ?? null
-              },
-              writtenAt: draft.writtenAt,
-              writtenFrom: draft.writtenFrom,
-              owner: {
-                fullName: housing.owner.fullName,
-                address: address
-              }
-            });
-          });
+                return transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
+                  subject: draft.subject ?? '',
+                  logo:
+                    draft.logo?.map((logo) => ({
+                      id: logo.id,
+                      content: logo.content
+                    })) ?? null,
+                  watermark: false,
+                  body: draft.body
+                    ? replaceVariables(draft.body, {
+                        housing,
+                        owner: housing.owner
+                      })
+                    : '',
+                  sender: {
+                    name: draft.sender.name,
+                    service: draft.sender.service,
+                    firstName: draft.sender.firstName,
+                    lastName: draft.sender.lastName,
+                    email: draft.sender.email,
+                    address: draft.sender.address,
+                    phone: draft.sender.phone,
+                    signatories:
+                      draft.sender.signatories
+                        ?.filter((signatory) => signatory !== null)
+                        ?.map((signatory) => ({
+                          ...signatory,
+                          file: signatory.file
+                            ? {
+                                id: signatory.file.id,
+                                content: signatory.file.content
+                              }
+                            : null
+                        })) ?? null
+                  },
+                  writtenAt: draft.writtenAt,
+                  writtenFrom: draft.writtenFrom,
+                  owner: {
+                    fullName: housing.owner.fullName,
+                    address: address
+                  }
+                });
+              })
+            )
+            .pipeThrough(
+              tap((_, i) => {
+                logger.debug(
+                  `Generating PDF page ${i + 1} of ${housings.length}...`
+                );
+              })
+            )
+            .pipeThrough(map(transformer.fromHTML))
+            .pipeThrough(reduce(transformer.merge))
+            .pipeThrough(map((pdf) => transformer.save(pdf)))
+            .getReader()
+            .read()
+            .then(({ value }) => value);
 
-          const finalPDF = await transformer.fromHTML(htmls);
+          if (!finalPDF) {
+            throw new Error('Should be defined');
+          }
+
           logger.debug('Done writing PDF');
           const name = timestamp().concat('-', slugify(campaign.title));
 

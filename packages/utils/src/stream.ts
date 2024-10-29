@@ -7,6 +7,7 @@ import {
 } from 'node:stream/web';
 
 import { Predicate } from './compare';
+import { AsyncOrSync } from 'ts-essentials';
 
 export async function countLines(file: ReadableStream): Promise<number> {
   return new Promise((resolve) => {
@@ -41,11 +42,48 @@ export async function count<A>(stream: ReadableStream<A>): Promise<number> {
   });
 }
 
+export function map<A, B>(f: (a: A) => AsyncOrSync<B>) {
+  return new TransformStream<A, B>({
+    async transform(a, controller) {
+      controller.enqueue(await f(a));
+    }
+  });
+}
+
+export function tap<A>(f: (a: A, i: number) => AsyncOrSync<void>) {
+  let i = 0;
+  return new TransformStream<A, A>({
+    async transform(a, controller) {
+      await f(a, i);
+      i++;
+      controller.enqueue(a);
+    }
+  });
+}
+
+export function reduce<A>(f: (b: A, a: A) => AsyncOrSync<A>) {
+  let b: A;
+
+  return new TransformStream<A, A>({
+    async transform(a) {
+      if (!b) {
+        b = a;
+        return;
+      }
+
+      b = await f(b, a);
+    },
+    flush(controller) {
+      controller.enqueue(b);
+    }
+  });
+}
+
 export function filter<A>(predicate: Predicate<A>): TransformStream<A, A> {
   return new TransformStream({
-    async transform(chunk, controller) {
-      if (predicate(chunk)) {
-        controller.enqueue(chunk);
+    async transform(a, controller) {
+      if (predicate(a)) {
+        controller.enqueue(a);
       }
     }
   });

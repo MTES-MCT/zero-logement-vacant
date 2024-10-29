@@ -4,7 +4,7 @@ WITH establishment_info AS (
         est.id AS establishment_id,
         est.name AS establishment_name,
         est.kind AS establishment_kind,
-        est.establishment_kind AS establishment_kind_label,
+        est.establishment_kind_label AS establishment_kind_label,
         est.covered_by_state_service AS covered_by_state_service
     FROM 
         {{ ref('int_production_establishments_localities') }} loc

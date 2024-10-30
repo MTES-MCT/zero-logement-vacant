@@ -34,6 +34,12 @@ export function nextStatus(current: CampaignStatus): CampaignStatus | null {
   }
   return CAMPAIGN_STATUS_VALUES[CAMPAIGN_STATUS_VALUES.indexOf(current) + 1];
 }
+export function isCampaignStatus(value: unknown): value is CampaignStatus {
+  return (
+    typeof value === 'string' &&
+    CAMPAIGN_STATUS_VALUES.includes(value as CampaignStatus)
+  );
+}
 
 export interface CampaignCreationPayloadDTO
   extends Pick<CampaignDTO, 'title' | 'description'> {

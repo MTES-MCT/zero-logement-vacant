@@ -51,6 +51,7 @@ import { useFindCampaignsQuery } from '../../services/campaign.service';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import { useUser } from '../../hooks/useUser';
 import { HousingStatus, Occupancy } from '@zerologementvacant/models';
+import CampaignFilter from './CampaignFilter';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -203,6 +204,11 @@ function HousingListFiltersSidemenu(props: Props) {
               data-testid="filtre-sous-statut-suivi"
             />
           </Grid>
+          {campaigns && (
+            <Grid component="article" mb={2} xs={12}>
+              <CampaignFilter campaigns={campaigns} />
+            </Grid>
+          )}
           {campaigns && (
             <Grid component="article" mb={2} xs={12}>
               <AppMultiSelect

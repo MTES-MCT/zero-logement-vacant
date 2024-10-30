@@ -12,7 +12,7 @@ function CampaignStatusBadge(props: Readonly<Props>) {
     'in-progress': 'green-bourgeon',
     archived: 'blue-cumulus'
   };
-  const texts = {
+  const texts: Record<CampaignStatus, string> = {
     draft: 'Envoi en attente',
     sending: 'En cours d’envoi',
     'in-progress': 'Envoyée',

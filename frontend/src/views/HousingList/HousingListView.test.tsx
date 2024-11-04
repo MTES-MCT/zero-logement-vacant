@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import async from 'async';
 import fp from 'lodash/fp';
 import { http, HttpResponse } from 'msw';
 import { constants } from 'node:http2';
@@ -8,18 +9,22 @@ import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
 import {
+  CAMPAIGN_STATUS_LABELS,
+  CAMPAIGN_STATUS_VALUES,
+  CampaignDTO,
+  CampaignStatus,
   DatafoncierHousing,
   HousingDTO,
   HousingKind
 } from '@zerologementvacant/models';
 import {
+  genCampaignDTO,
   genDatafoncierHousingDTO,
   genGroupDTO,
   genHousingDTO,
   genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
-
 import HousingListView from './HousingListView';
 import config from '../../utils/config';
 import configureTestStore from '../../utils/test/storeUtils';
@@ -327,6 +332,301 @@ describe('Housing list view', () => {
       });
       await user.click(tab);
       expect(tab).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
+  describe('Campaign filter', () => {
+    const campaigns: ReadonlyArray<CampaignDTO> = CAMPAIGN_STATUS_VALUES.map(
+      (status) => {
+        return Array.from({ length: 3 }, () => genCampaignDTO()).map(
+          (campaign) => ({ ...campaign, status })
+        );
+      }
+    ).flat();
+
+    beforeAll(() => {
+      data.campaigns.push(...campaigns);
+      const owner = genOwnerDTO();
+      data.owners.push(owner);
+      campaigns.forEach((campaign) => {
+        const housings = Array.from({ length: 3 }, () => genHousingDTO(owner));
+        data.housings.push(...housings);
+        housings.forEach((housing) => {
+          data.housingCampaigns.set(housing.id, [campaign]);
+          data.housingOwners.set(housing.id, [
+            {
+              id: owner.id,
+              rank: 1,
+              idprodroit: null,
+              idprocpte: null,
+              locprop: null
+            }
+          ]);
+        });
+        data.campaignHousings.set(campaign.id, housings);
+      });
+    });
+
+    it('should filter by a single campaign', async () => {
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const [campaign] = campaigns;
+      const filter = await screen.findByLabelText(/^Campagne/);
+      await user.click(filter);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText(campaign.title);
+      await user.click(option);
+      const housings = data.campaignHousings.get(campaign.id) ?? [];
+      const count = await screen.findByText(
+        new RegExp(`${housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+    });
+
+    it('should unselect a single campaign', async () => {
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      let count = await screen.findByText(
+        new RegExp(`${data.housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+      const [campaign] = campaigns;
+      const filter = await screen.findByLabelText(/^Campagne/);
+      await user.click(filter);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText(campaign.title);
+      await user.click(option);
+      const housings = data.campaignHousings.get(campaign.id) ?? [];
+      count = await screen.findByText(
+        new RegExp(`${housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+      // Click again
+      await user.click(option);
+      count = await screen.findByText(
+        new RegExp(`${data.housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+    });
+
+    it('should filter by several campaigns', async () => {
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const filter = await screen.findByLabelText(/^Campagne/);
+      await user.click(filter);
+      const options = await screen.findByRole('listbox');
+      const slice = campaigns.slice(0, 2);
+      await async.forEachSeries(slice as CampaignDTO[], async (campaign) => {
+        const option = await within(options).findByText(campaign.title);
+        await user.click(option);
+      });
+      const housings = slice.flatMap((campaign) => {
+        return data.campaignHousings.get(campaign.id);
+      });
+      const count = await screen.findByText(
+        new RegExp(`${housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+    });
+
+    it('should remove the filter by campaigns', async () => {
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const filter = await screen.findByLabelText(/^Campagne/);
+      await user.click(filter);
+      const options = await screen.findByRole('listbox');
+      const slice = campaigns.slice(0, 2);
+      await async.forEachSeries(slice as CampaignDTO[], async (campaign) => {
+        const option = await within(options).findByText(campaign.title);
+        await user.click(option);
+      });
+      const housings = slice.flatMap((campaign) => {
+        return data.campaignHousings.get(campaign.id);
+      });
+      let count = await screen.findByText(
+        new RegExp(`${housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+      await async.forEachSeries(slice as CampaignDTO[], async (campaign) => {
+        const option = await within(options).findByText(campaign.title);
+        await user.click(option);
+      });
+      count = await screen.findByText(
+        new RegExp(`${data.housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+    });
+
+    it('should filter by a status', async () => {
+      const status: CampaignStatus = 'draft';
+
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const filter = await screen.findByLabelText(/^Campagne/);
+      await user.click(filter);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText(
+        CAMPAIGN_STATUS_LABELS[status]
+      );
+      await user.click(option);
+      const housings = fp.uniqBy(
+        (housing) => housing.id,
+        data.campaigns
+          .filter((campaign) => campaign.status === status)
+          .map((campaign) => {
+            return data.campaignHousings.get(campaign.id) ?? [];
+          })
+          .flat()
+          .map(({ id }) => {
+            const housing = data.housings.find((housing) => housing.id === id);
+            if (!housing) {
+              throw new Error(`Housing ${id} not found`);
+            }
+            return housing;
+          })
+      );
+      const count = await screen.findByText(
+        new RegExp(`${housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+    });
+
+    it('should remove the filter by status', async () => {
+      const status: CampaignStatus = 'draft';
+
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const filter = await screen.findByLabelText(/^Campagne/);
+      await user.click(filter);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText(
+        CAMPAIGN_STATUS_LABELS[status]
+      );
+      await user.click(option);
+      const housings = fp.uniqBy(
+        (housing) => housing.id,
+        data.campaigns
+          .filter((campaign) => campaign.status === status)
+          .map((campaign) => {
+            return data.campaignHousings.get(campaign.id) ?? [];
+          })
+          .flat()
+          .map(({ id }) => {
+            const housing = data.housings.find((housing) => housing.id === id);
+            if (!housing) {
+              throw new Error(`Housing ${id} not found`);
+            }
+            return housing;
+          })
+      );
+      let count = await screen.findByText(
+        new RegExp(`${housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+      await user.click(option);
+      count = await screen.findByText(
+        new RegExp(`${data.housings.length} logements`)
+      );
+      expect(count).toBeVisible();
+    });
+
+    it('should select a status and its campaigns if at least one of the campaigns is not selected', async () => {
+      const status: CampaignStatus = 'draft';
+
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const filter = await screen.findByLabelText(/^Campagne/);
+      await user.click(filter);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText(
+        CAMPAIGN_STATUS_LABELS[status]
+      );
+      // Select the status
+      await user.click(option);
+      data.campaigns
+        .filter((campaign) => campaign.status === status)
+        .map((campaign) => {
+          return within(options).getByRole('checkbox', {
+            name: campaign.title
+          });
+        })
+        .forEach((checkbox) => {
+          expect(checkbox).toBeChecked();
+        });
+    });
+
+    it('should unselect a status and its campaigns if all the campaigns of this status are selected', async () => {
+      const status: CampaignStatus = 'draft';
+
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const filter = await screen.findByLabelText(/^Campagne/);
+      await user.click(filter);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText(
+        CAMPAIGN_STATUS_LABELS[status]
+      );
+      await user.click(option);
+      const checkboxes = data.campaigns
+        .filter((campaign) => campaign.status === status)
+        .map((campaign) => {
+          return within(options).getByRole('checkbox', {
+            name: campaign.title
+          });
+        });
+      // Unselect the status
+      await user.click(option);
+      checkboxes.forEach((checkbox) => {
+        expect(checkbox).not.toBeChecked();
+      });
     });
   });
 });

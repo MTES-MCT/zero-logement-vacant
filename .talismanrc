@@ -17,6 +17,8 @@ fileignoreconfig:
   checksum: 4955533b2ba29ebc4a052e65ce2aab5b911ebf8e4b4eeecff50b5e83d1857c35
 - filename: server/src/controllers/housingExportController.ts
   checksum: cb506387b49506b7ba0ed426001c221b80aff9f953e544d52c1c6d287741cf64
+- filename: server/src/infra/database/scripts/010-load-sder-sded.sql
+  checksum: 780da83bced54995ae72c9f963c8bdeea7217b22793fd33c966bd8b28073acad
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
 - filename: server/src/services/ceremaService/ceremaService.ts

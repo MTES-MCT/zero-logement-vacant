@@ -1,5 +1,8 @@
 import AppBadge from '../_app/AppBadge/AppBadge';
-import { CampaignStatus } from '@zerologementvacant/models';
+import {
+  CAMPAIGN_STATUS_LABELS,
+  CampaignStatus
+} from '@zerologementvacant/models';
 
 interface Props {
   status: CampaignStatus;
@@ -12,12 +15,7 @@ function CampaignStatusBadge(props: Readonly<Props>) {
     'in-progress': 'green-bourgeon',
     archived: 'blue-cumulus'
   };
-  const texts: Record<CampaignStatus, string> = {
-    draft: 'Envoi en attente',
-    sending: 'En cours d’envoi',
-    'in-progress': 'Envoyée',
-    archived: 'Archivée'
-  };
+  const texts: Record<CampaignStatus, string> = CAMPAIGN_STATUS_LABELS;
 
   const color = colors[props.status];
   const text = texts[props.status];

@@ -212,21 +212,6 @@ function HousingListFiltersSidemenu(props: Props) {
                 onChange={(values: string[]) =>
                   onChangeFilters({ campaignIds: values }, 'Campagne')
                 }
-              />
-            </Grid>
-          )}
-          {campaigns && (
-            <Grid component="article" mb={2} xs={12}>
-              <AppMultiSelect
-                label="Campagne"
-                options={campaigns.map((campaign) => ({
-                  value: campaign.id,
-                  label: campaign.title
-                }))}
-                initialValues={filters.campaignIds}
-                onChange={(values) =>
-                  onChangeFilters({ campaignIds: values }, 'Campagne')
-                }
                 data-testid="filtre-campagne"
               />
             </Grid>

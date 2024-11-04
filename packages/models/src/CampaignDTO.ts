@@ -26,6 +26,12 @@ export const CAMPAIGN_STATUS_VALUES = [
   'in-progress',
   'archived'
 ] as const;
+export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
+  draft: 'Envoi en attente',
+  sending: 'En cours d’envoi',
+  'in-progress': 'Envoyée',
+  archived: 'Archivée'
+};
 
 export type CampaignStatus = (typeof CAMPAIGN_STATUS_VALUES)[number];
 export function nextStatus(current: CampaignStatus): CampaignStatus | null {

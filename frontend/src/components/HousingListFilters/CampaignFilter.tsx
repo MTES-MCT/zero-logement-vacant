@@ -1,25 +1,32 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
-import { ChangeEvent, useId, useRef } from 'react';
-import { useList } from 'react-use';
-
-import { Campaign } from '../../models/Campaign';
-import { CampaignStatus, isCampaignStatus } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
+import { ChangeEvent, useId, useRef } from 'react';
+
+import { CampaignStatus, isCampaignStatus } from '@zerologementvacant/models';
+import { Campaign } from '../../models/Campaign';
 import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
 
 interface Props {
-  campaigns: ReadonlyArray<Campaign>;
+  options: ReadonlyArray<Campaign>;
+  values: ReadonlyArray<Campaign['id']>;
+  onChange?(campaigns: ReadonlyArray<Campaign['id']>): void;
 }
 
 function CampaignFilter(props: Props) {
   const ref = useRef<HTMLDivElement>(null);
-  const [values, { set: setValues, filter: filterValues }] =
-    useList<Campaign>();
 
   const labelId = `fr-label-${useId()}`;
   const selectId = `fr-select-${useId()}`;
+
+  const selected: ReadonlyArray<Campaign> = props.values.map((value) => {
+    const campaign = props.options.find((option) => option.id === value);
+    if (!campaign) {
+      throw new Error(`Campaign with id ${value} not found`);
+    }
+    return campaign;
+  });
 
   function onChange(
     event: SelectChangeEvent<ReadonlyArray<Campaign | CampaignStatus>>
@@ -30,23 +37,30 @@ function CampaignFilter(props: Props) {
 
       if (!isCampaignStatus(status)) {
         // Select a campaign
-        setValues(
-          event.target.value.filter((value) => !isCampaignStatus(value))
+        props.onChange?.(
+          event.target.value
+            .filter((value) => !isCampaignStatus(value))
+            .map((value) => value.id)
         );
         return;
       }
 
       if (allSelected(status)) {
         // Unselect everything
-        filterValues((value) => value.status !== status);
+        props.onChange?.(
+          selected
+            .filter((value) => value.status !== status)
+            .map((value) => value.id)
+        );
       } else {
         // Select everything
-        setValues(
-          values
+        props.onChange?.(
+          selected
             .filter((value) => value.status !== status)
             .concat(
-              props.campaigns.filter((campaign) => campaign.status === status)
+              props.options.filter((campaign) => campaign.status === status)
             )
+            .map((value) => value.id)
         );
       }
     }
@@ -54,8 +68,8 @@ function CampaignFilter(props: Props) {
 
   function allSelected(status: CampaignStatus): boolean {
     return (
-      values.filter((value) => value.status === status).length ===
-      props.campaigns.filter((campaign) => campaign.status === status).length
+      selected.filter((value) => value.status === status).length ===
+      props.options.filter((campaign) => campaign.status === status).length
     );
   }
 
@@ -63,7 +77,7 @@ function CampaignFilter(props: Props) {
     event.stopPropagation();
   }
 
-  const categories = groupByStatus(props.campaigns);
+  const categories = groupByStatus(props.options);
 
   return (
     <div className={fr.cx('fr-select-group')} ref={ref}>
@@ -105,7 +119,7 @@ function CampaignFilter(props: Props) {
             : 'Toutes'
         }
         sx={{ width: '100%' }}
-        value={values}
+        value={selected}
         variant="standard"
         onChange={onChange}
       >
@@ -157,7 +171,7 @@ function CampaignFilter(props: Props) {
                     {
                       label: campaign.title,
                       nativeInputProps: {
-                        checked: values.some(
+                        checked: selected.some(
                           (value) => value.id === campaign.id
                         ),
                         value: campaign,

@@ -206,7 +206,13 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
           {campaigns && (
             <Grid component="article" mb={2} xs={12}>
-              <CampaignFilter campaigns={campaigns} />
+              <CampaignFilter
+                options={campaigns}
+                values={filters.campaignIds ?? []}
+                onChange={(values: string[]) =>
+                  onChangeFilters({ campaignIds: values }, 'Campagne')
+                }
+              />
             </Grid>
           )}
           {campaigns && (

@@ -1,4 +1,4 @@
-import { count } from '@zerologementvacant/utils';
+import { count } from '@zerologementvacant/utils/node';
 import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import validator from '~/scripts/import-lovac/infra/validator';

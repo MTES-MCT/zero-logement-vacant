@@ -12,14 +12,8 @@ import {
   HousingDTO,
   replaceVariables
 } from '@zerologementvacant/models';
-import {
-  createS3,
-  map,
-  reduce,
-  slugify,
-  tap,
-  timestamp
-} from '@zerologementvacant/utils';
+import { createS3, slugify, timestamp } from '@zerologementvacant/utils';
+import { map, reduce, tap } from '@zerologementvacant/utils/node';
 import { Jobs } from '../jobs';
 import config from '../config';
 import { createLogger } from '../logger';

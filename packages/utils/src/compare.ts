@@ -1,17 +1,17 @@
 export const enum Comparison {
   A_GT_B = 1,
   A_EQ_B = 0,
-  B_GT_A = -1,
+  B_GT_A = -1
 }
 
 export type Ord<A> = (first: A, second: A) => Comparison;
 
 export const DEFAULT_ORDER = <A>(first: A, second: A): Comparison =>
   first < second
-    ? Comparison.A_GT_B
-    : first > second
     ? Comparison.B_GT_A
-    : Comparison.A_EQ_B;
+    : first > second
+      ? Comparison.A_GT_B
+      : Comparison.A_EQ_B;
 
 export function min<A>(ord: Ord<A> = DEFAULT_ORDER) {
   return (first: A, second: A): A =>

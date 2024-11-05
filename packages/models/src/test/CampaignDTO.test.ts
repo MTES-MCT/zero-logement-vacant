@@ -1,4 +1,4 @@
-import { compare } from '../CampaignDTO';
+import { byStatus } from '../CampaignDTO';
 import { Comparison } from '@zerologementvacant/utils';
 
 describe('CampaignDTO', () => {
@@ -13,7 +13,7 @@ describe('CampaignDTO', () => {
     `(
       'should compare $first and $second as $expected',
       ({ first, second, expected }) => {
-        const actual = compare(first, second);
+        const actual = byStatus(first, second);
 
         expect(actual).toBe(expected);
       }

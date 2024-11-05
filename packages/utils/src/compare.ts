@@ -13,6 +13,10 @@ export const DEFAULT_ORDER = <A>(first: A, second: A): Comparison =>
       ? Comparison.A_GT_B
       : Comparison.A_EQ_B;
 
+export function desc<A>(ord: Ord<A> = DEFAULT_ORDER): Ord<A> {
+  return (first, second) => ord(second, first);
+}
+
 export function min<A>(ord: Ord<A> = DEFAULT_ORDER) {
   return (first: A, second: A): A =>
     ord(first, second) === Comparison.B_GT_A ? second : first;

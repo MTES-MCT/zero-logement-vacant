@@ -9440,6 +9440,7 @@ __metadata:
     fetch-intercept: "npm:^2.4.0"
     history: "npm:^5.3.0"
     identity-obj-proxy: "npm:^3.0.0"
+    immutable: "npm:^5.0.0"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     jest-fetch-mock: "npm:^3.0.3"
@@ -9674,7 +9675,7 @@ __metadata:
     handlebars: "npm:^4.7.8"
     helmet: "npm:^7.2.0"
     highland: "npm:^2.13.5"
-    immutable: "npm:^5.0.0-rc.1"
+    immutable: "npm:^5.0.0"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     jest-fetch-mock: "npm:^3.0.3"
@@ -16414,10 +16415,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immutable@npm:^5.0.0-rc.1":
-  version: 5.0.0-rc.1
-  resolution: "immutable@npm:5.0.0-rc.1"
-  checksum: 10c0/7a2bb9062fe42756f75fd773e5aae8e372e29d02fd11b12a299b04eac689308818aec6cf38085a44f393631596d71a56749a09017d6ca6b6547366b77b1ed096
+"immutable@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "immutable@npm:5.0.0"
+  checksum: 10c0/2c5d8729c2468b351bce0bf092880b9168ca065e8d9ce4eb84de219828b4d792e7794cc8b1d8a6f5ee43f96896ff1e9df780e1b55d506a503d5ebda74d736da5
   languageName: node
   linkType: hard
 

@@ -1,14 +1,17 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
+import { List } from 'immutable';
 import fp from 'lodash/fp';
 import { ChangeEvent, useId, useRef } from 'react';
 
 import {
+  byCreatedAt,
+  byStatus,
   CampaignStatus,
-  compare,
   isCampaignStatus
 } from '@zerologementvacant/models';
+import { desc } from '@zerologementvacant/utils';
 import { Campaign } from '../../models/Campaign';
 import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
 
@@ -81,10 +84,11 @@ function CampaignFilter(props: Props) {
     event.stopPropagation();
   }
 
-  const categories = Object.entries(groupByStatus(props.options)).toSorted(
-    ([status1], [status2]) =>
-      compare(status1 as CampaignStatus, status2 as CampaignStatus)
-  );
+  const categories = List(props.options)
+    .groupBy((campaign) => campaign.status)
+    .map((campaigns) => campaigns.sort(desc(byCreatedAt)))
+    .sortBy((_, status) => status, byStatus)
+    .toArray();
 
   return (
     <div className={fr.cx('fr-select-group')} ref={ref}>
@@ -200,15 +204,6 @@ function CampaignFilter(props: Props) {
       </Select>
     </div>
   );
-}
-
-function groupByStatus(
-  campaigns: ReadonlyArray<Campaign>
-): Record<CampaignStatus, ReadonlyArray<Campaign>> {
-  return fp.groupBy((campaign) => campaign.status, campaigns) as Record<
-    CampaignStatus,
-    Campaign[]
-  >;
 }
 
 export default CampaignFilter;

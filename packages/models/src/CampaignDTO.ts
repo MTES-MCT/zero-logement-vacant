@@ -48,8 +48,12 @@ export function isCampaignStatus(value: unknown): value is CampaignStatus {
   );
 }
 
-export const compare: Ord<CampaignStatus> = contramap(
+export const byStatus: Ord<CampaignStatus> = contramap(
   (status: CampaignStatus) => CAMPAIGN_STATUS_VALUES.indexOf(status)
+)(DEFAULT_ORDER);
+
+export const byCreatedAt: Ord<CampaignDTO> = contramap(
+  (campaign: CampaignDTO) => campaign.createdAt
 )(DEFAULT_ORDER);
 
 export interface CampaignCreationPayloadDTO

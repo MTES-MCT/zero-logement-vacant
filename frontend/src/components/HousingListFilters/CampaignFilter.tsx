@@ -141,7 +141,7 @@ function CampaignFilter(props: Props) {
                   fr.colors.decisions.background.default.grey.default,
                 borderTop:
                   i > 0
-                    ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
+                    ? `1px solid ${fr.colors.decisions.border.disabled.grey.default}`
                     : undefined
               }}
               key={status}

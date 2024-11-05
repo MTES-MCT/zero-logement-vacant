@@ -130,7 +130,7 @@ function CampaignFilter(props: Props) {
         variant="standard"
         onChange={onChange}
       >
-        {Object.entries(categories).flatMap(([status, campaigns]) => {
+        {categories.flatMap(([status, campaigns], i) => {
           return [
             <MenuItem
               sx={{
@@ -138,7 +138,11 @@ function CampaignFilter(props: Props) {
                 top: 0,
                 zIndex: 1,
                 backgroundColor:
-                  fr.colors.decisions.background.default.grey.default
+                  fr.colors.decisions.background.default.grey.default,
+                borderTop:
+                  i > 0
+                    ? `1px solid ${fr.colors.decisions.border.default.grey.default}`
+                    : undefined
               }}
               key={status}
               value={status}

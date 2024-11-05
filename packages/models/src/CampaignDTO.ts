@@ -1,4 +1,5 @@
 import { HousingFiltersDTO } from './HousingFiltersDTO';
+import { contramap, DEFAULT_ORDER, Ord } from '@zerologementvacant/utils';
 
 export interface CampaignDTO {
   id: string;
@@ -46,6 +47,10 @@ export function isCampaignStatus(value: unknown): value is CampaignStatus {
     CAMPAIGN_STATUS_VALUES.includes(value as CampaignStatus)
   );
 }
+
+export const compare: Ord<CampaignStatus> = contramap(
+  (status: CampaignStatus) => CAMPAIGN_STATUS_VALUES.indexOf(status)
+)(DEFAULT_ORDER);
 
 export interface CampaignCreationPayloadDTO
   extends Pick<CampaignDTO, 'title' | 'description'> {

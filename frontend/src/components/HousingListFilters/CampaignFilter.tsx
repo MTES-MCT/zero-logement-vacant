@@ -4,7 +4,11 @@ import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import fp from 'lodash/fp';
 import { ChangeEvent, useId, useRef } from 'react';
 
-import { CampaignStatus, isCampaignStatus } from '@zerologementvacant/models';
+import {
+  CampaignStatus,
+  compare,
+  isCampaignStatus
+} from '@zerologementvacant/models';
 import { Campaign } from '../../models/Campaign';
 import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
 
@@ -77,7 +81,10 @@ function CampaignFilter(props: Props) {
     event.stopPropagation();
   }
 
-  const categories = groupByStatus(props.options);
+  const categories = Object.entries(groupByStatus(props.options)).toSorted(
+    ([status1], [status2]) =>
+      compare(status1 as CampaignStatus, status2 as CampaignStatus)
+  );
 
   return (
     <div className={fr.cx('fr-select-group')} ref={ref}>

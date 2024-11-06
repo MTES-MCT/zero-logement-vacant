@@ -843,12 +843,15 @@ describe('Housing repository', () => {
 
       describe('by vacancy duration', () => {
         beforeEach(async () => {
-          const housingList: HousingApi[] = new Array(12)
+          const housingList: HousingApi[] = new Array(16)
             .fill('0')
             .map((_, i) => ({
               ...genHousingApi(),
               vacancyStartYear: ReferenceDataYear - i
-            }));
+            })).concat([ {
+              ...genHousingApi(),
+              vacancyStartYear: 0
+            } ]);
           await Housing().insert(housingList.map(formatHousingRecordApi));
         });
 
@@ -876,7 +879,7 @@ describe('Housing repository', () => {
             filter: ['2018to2015'],
             predicate: (housing: HousingApi) => {
               const vacancyStartYear = housing.vacancyStartYear as number;
-              return vacancyStartYear > 2015 && vacancyStartYear < 2018;              
+              return vacancyStartYear >= 2015 && vacancyStartYear <= 2018;              
             }
           },
           {
@@ -884,7 +887,7 @@ describe('Housing repository', () => {
             filter: ['2014to2010'],
             predicate: (housing: HousingApi) => {
               const vacancyStartYear = housing.vacancyStartYear as number;
-              return vacancyStartYear > 2010 && vacancyStartYear < 2014;
+              return vacancyStartYear >= 2010 && vacancyStartYear < 2015;
             }
           },
           {
@@ -897,7 +900,7 @@ describe('Housing repository', () => {
             name: 'Pas d’information',
             filter: ['missingData'],
             predicate: (housing: HousingApi) =>
-              (housing.vacancyStartYear as number) === null
+              (housing.vacancyStartYear as number) === 0
           },
           {
             name: '2022 (incohérence donnée source)',

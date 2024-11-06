@@ -598,25 +598,25 @@ function filteredQuery(opts: ListQueryOptions) {
         }
         if (filters.vacancyDurations?.includes('2018to2015')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            2018,
-            2015
+            2015,
+            2018
           ]);
         }
         if (filters.vacancyDurations?.includes('2014to2010')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            2014,
-            2010
+            2010,
+            2014
           ]);
         }
         if (filters.vacancyDurations?.includes('before2010')) {
           whereBuilder.orWhere(
             'vacancy_start_year',
-            '<=',
+            '<',
             2010
           );
         }
         if (filters.vacancyDurations?.includes('missingData')) {
-          whereBuilder.orWhere('vacancy_start_year', null);
+          whereBuilder.orWhere('vacancy_start_year', 0);
         }
         if (filters.vacancyDurations?.includes('inconsistency2022')) {
           whereBuilder.orWhere('vacancy_start_year', 2022);

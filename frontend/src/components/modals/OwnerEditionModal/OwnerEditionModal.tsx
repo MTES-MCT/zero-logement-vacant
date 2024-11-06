@@ -80,7 +80,6 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
     <>
       {!isVisitor && (
         <Button
-          className="float-right fr-pr-0"
           iconId="fr-icon-edit-fill"
           priority="tertiary no outline"
           title="Modifier le propriétaire"

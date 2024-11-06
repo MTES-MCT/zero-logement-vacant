@@ -903,7 +903,7 @@ describe('Housing repository', () => {
             name: '2022 (incohérence donnée source)',
             filter: ['inconsistency2022'],
             predicate: (housing: HousingApi) =>
-              (housing.vacancyStartYear as number) == 2022
+              (housing.vacancyStartYear as number) === 2022
           }
         ];
 

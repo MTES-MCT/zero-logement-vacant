@@ -79,7 +79,6 @@ const guestRoutes: RouteProps[] = [
 function App() {
   const { pushInstruction } = useMatomo();
   const { isAuthenticated, user } = useUser();
-  const { isLoggedOut } = useAppSelector((state) => state.authentication);
   const dispatch = useAppDispatch();
   const isSomeQueryPending = useAppSelector((state) =>
     Object.values(state.api.queries).some(

@@ -14,7 +14,6 @@ export function brevoCheck(apiKey: string): Check {
         }
       };
       await fetch(url, options).then(res => {
-        console.log(apiKey, res.status, JSON.stringify(res.json()));
         if(res.status !== 200) {
           throw new Error('Brevo API is not available');
         }

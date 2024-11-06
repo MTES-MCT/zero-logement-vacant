@@ -5,7 +5,7 @@ export function brevoCheck(apiKey: string): Check {
     name: 'brevo',
     async test() {
       const url =
-        'https://api.breveo.com/v3/smtp/statistics/aggregatedReport';
+        'https://api.brevo.com/v3/smtp/statistics/aggregatedReport';
       const options = {
         method: 'GET',
         headers: {

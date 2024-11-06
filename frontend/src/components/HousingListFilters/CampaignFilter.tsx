@@ -1,8 +1,7 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
-import { List } from 'immutable';
-import fp from 'lodash/fp';
+import { List, Set } from 'immutable';
 import { ChangeEvent, useId, useRef } from 'react';
 
 import {
@@ -14,6 +13,7 @@ import {
 import { desc } from '@zerologementvacant/utils';
 import { Campaign } from '../../models/Campaign';
 import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
+import styles from './housing-list-filters.module.scss';
 
 interface Props {
   options: ReadonlyArray<Campaign>;
@@ -23,72 +23,64 @@ interface Props {
 
 function CampaignFilter(props: Props) {
   const ref = useRef<HTMLDivElement>(null);
-
   const labelId = `fr-label-${useId()}`;
   const selectId = `fr-select-${useId()}`;
 
-  const selected: ReadonlyArray<Campaign> = props.values.map((value) => {
-    const campaign = props.options.find((option) => option.id === value);
-    if (!campaign) {
-      throw new Error(`Campaign with id ${value} not found`);
+  const selectedCampaigns: ReadonlyArray<Campaign> = props.values.map(
+    (value) => props.options.find((option) => option.id === value) as Campaign
+  );
+  const selectedStatuses = groupByStatus(selectedCampaigns).filter(
+    (campaigns, status) => {
+      const optionsByStatus = props.options.filter(
+        (option) => option.status === status
+      );
+      return optionsByStatus.length === campaigns.size;
     }
-    return campaign;
-  });
+  );
+  const selected: ReadonlyArray<Campaign['id'] | CampaignStatus> =
+    props.values.concat(selectedStatuses.keySeq().toArray());
 
-  function onChange(
-    event: SelectChangeEvent<ReadonlyArray<Campaign | CampaignStatus>>
-  ): void {
+  function onChange(event: SelectChangeEvent<ReadonlyArray<string>>): void {
     if (Array.isArray(event.target.value)) {
-      const status: Campaign | CampaignStatus | null =
-        fp.last(event.target.value) ?? null;
+      const [ids, statuses] = Set<string>(event.target.value).partition(
+        isCampaignStatus
+      );
+      const diff = selected
+        .filter((selected) => {
+          return (
+            !ids.includes(selected) &&
+            !statuses.includes(selected as CampaignStatus)
+          );
+        })
+        .flatMap((selected) => {
+          return isCampaignStatus(selected)
+            ? props.options
+                .filter((option) => option.status === selected)
+                .map((option) => option.id)
+            : selected;
+        });
 
-      if (!isCampaignStatus(status)) {
-        // Select a campaign
-        props.onChange?.(
-          event.target.value
-            .filter((value) => !isCampaignStatus(value))
-            .map((value) => value.id)
-        );
-        return;
-      }
-
-      if (allSelected(status)) {
-        // Unselect everything
-        props.onChange?.(
-          selected
-            .filter((value) => value.status !== status)
-            .map((value) => value.id)
-        );
-      } else {
-        // Select everything
-        props.onChange?.(
-          selected
-            .filter((value) => value.status !== status)
-            .concat(
-              props.options.filter((campaign) => campaign.status === status)
+      props.onChange?.(
+        ids
+          .map(getCampaign(props.options))
+          .filter((campaign) => campaign !== null)
+          .union(
+            statuses.flatMap((status) =>
+              props.options.filter((option) => option.status === status)
             )
-            .map((value) => value.id)
-        );
-      }
+          )
+          .filter((campaign) => !diff.includes(campaign.id))
+          .map((campaign) => campaign.id)
+          .toArray()
+      );
     }
-  }
-
-  function allSelected(status: CampaignStatus): boolean {
-    return (
-      selected.filter((value) => value.status === status).length ===
-      props.options.filter((campaign) => campaign.status === status).length
-    );
   }
 
   function noop(event: ChangeEvent): void {
     event.stopPropagation();
   }
 
-  const categories = List(props.options)
-    .groupBy((campaign) => campaign.status)
-    .map((campaigns) => campaigns.sort(desc(byCreatedAt)))
-    .sortBy((_, status) => status, byStatus)
-    .toArray();
+  const categories = groupByStatus(props.options).toArray();
 
   return (
     <div className={fr.cx('fr-select-group')} ref={ref}>
@@ -126,7 +118,13 @@ function CampaignFilter(props: Props) {
         native={false}
         renderValue={(values) =>
           values.length > 0
-            ? values.map((value) => value.title).join(', ')
+            ? values
+                .map(
+                  (value) =>
+                    props.options.find((option) => option.id === value)
+                      ?.title ?? value
+                )
+                .join(', ')
             : 'Toutes'
         }
         sx={{ width: '100%' }}
@@ -137,6 +135,9 @@ function CampaignFilter(props: Props) {
         {categories.flatMap(([status, campaigns], i) => {
           return [
             <MenuItem
+              classes={{
+                selected: styles.selected
+              }}
               sx={{
                 position: 'sticky',
                 top: 0,
@@ -164,7 +165,7 @@ function CampaignFilter(props: Props) {
                       <CampaignStatusBadge status={status as CampaignStatus} />
                     ),
                     nativeInputProps: {
-                      checked: allSelected(status as CampaignStatus),
+                      checked: selected.some((value) => value === status),
                       value: status,
                       onClick: noop,
                       onChange: noop
@@ -175,8 +176,12 @@ function CampaignFilter(props: Props) {
             </MenuItem>,
 
             campaigns.map((campaign) => (
-              // @ts-expect-error: MenuItem expects a string value but it can be anything
-              <MenuItem key={campaign.id} value={campaign} disableRipple dense>
+              <MenuItem
+                key={campaign.id}
+                value={campaign.id}
+                disableRipple
+                dense
+              >
                 <Checkbox
                   classes={{
                     root: fr.cx('fr-mb-0'),
@@ -187,9 +192,9 @@ function CampaignFilter(props: Props) {
                       label: campaign.title,
                       nativeInputProps: {
                         checked: selected.some(
-                          (value) => value.id === campaign.id
+                          (value) => value === campaign.id
                         ),
-                        value: campaign,
+                        value: campaign.id,
                         onClick: noop,
                         onChange: noop
                       }
@@ -204,6 +209,19 @@ function CampaignFilter(props: Props) {
       </Select>
     </div>
   );
+}
+
+function getCampaign(options: ReadonlyArray<Campaign>) {
+  return (id: Campaign['id']): Campaign | null => {
+    return options.find((option) => option.id === id) ?? null;
+  };
+}
+
+function groupByStatus(campaigns: ReadonlyArray<Campaign>) {
+  return List(campaigns)
+    .groupBy((campaign) => campaign.status)
+    .map((campaigns) => campaigns.sort(desc(byCreatedAt)))
+    .sortBy((_, status) => status, byStatus);
 }
 
 export default CampaignFilter;

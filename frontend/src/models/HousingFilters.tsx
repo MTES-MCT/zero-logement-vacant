@@ -188,32 +188,44 @@ export const multiOwnerOptions: SelectOption[] = [
 
 export const vacancyDurationOptions: SelectOption[] = [
   {
-    value: 'lt2',
-    label: 'Vacance conjoncturelle (Moins de 2 ans)'
+    value: '2021',
+    label: '2021',
+    badgeLabel: 'Durée de vacance : depuis 2021'
   },
   {
-    value: '2',
-    label: '2 ans',
-    badgeLabel: 'Durée de vacance : 2 ans'
+    value: '2020',
+    label: '2020',
+    badgeLabel: 'Durée de vacance : depuis 2020'
   },
   {
-    value: 'gt2',
-    label: 'Vacance structurelle (2 ans et plus)'
+    value: '2019',
+    label: '2019',
+    badgeLabel: 'Durée de vacance : depuis 2019'
   },
   {
-    value: '3to4',
-    label: 'Entre 3 et 4 ans',
-    badgeLabel: 'Durée de vacance : entre 3 et 4 ans'
+    value: '2018to2015',
+    label: 'Entre 2018 et 2015',
+    badgeLabel: 'Durée de vacance : entre 2018 et 2015'
   },
   {
-    value: '5to9',
-    label: 'Entre 5 et 9 ans',
-    badgeLabel: 'Durée de vacance : entre 5 et 9 ans'
+    value: '2014to2010',
+    label: 'Entre 2014 et 2010',
+    badgeLabel: 'Durée de vacance : entre 2014 et 2010'
   },
   {
-    value: 'gte10',
-    label: '10 ans et plus',
-    badgeLabel: 'Durée de vacance : 10 ans et plus'
+    value: 'before2010',
+    label: 'Avant 2010',
+    badgeLabel: 'Durée de vacance : avant 2010'
+  },
+  {
+    value: 'missingData',
+    label: 'Pas d’information',
+    badgeLabel: 'Durée de vacance : pas d’information'
+  },
+  {
+    value: 'inconsistency2022',
+    label: '2022 (incohérence donnée source)',
+    badgeLabel: 'Durée de vacance : 2022 (incohérence donnée source)'
   }
 ];
 

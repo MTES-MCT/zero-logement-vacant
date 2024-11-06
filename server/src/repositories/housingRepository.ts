@@ -587,43 +587,39 @@ function filteredQuery(opts: ListQueryOptions) {
     }
     if (filters.vacancyDurations?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.vacancyDurations?.includes('lt2')) {
+        if (filters.vacancyDurations?.includes('2021')) {
+          whereBuilder.orWhere('vacancy_start_year', 2021);
+        }
+        if (filters.vacancyDurations?.includes('2020')) {
+          whereBuilder.orWhere('vacancy_start_year', 2020);
+        }
+        if (filters.vacancyDurations?.includes('2019')) {
+          whereBuilder.orWhere('vacancy_start_year', 2019);
+        }
+        if (filters.vacancyDurations?.includes('2018to2015')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            referenceDataYearFromFilters(filters) - 1,
-            referenceDataYearFromFilters(filters)
+            2018,
+            2015
           ]);
         }
-        if (filters.vacancyDurations?.includes('2')) {
-          whereBuilder.orWhere(
-            'vacancy_start_year',
-            referenceDataYearFromFilters(filters) - 2
-          );
-        }
-        if (filters.vacancyDurations?.includes('gt2')) {
-          whereBuilder.orWhere(
-            'vacancy_start_year',
-            '<',
-            referenceDataYearFromFilters(filters) - 2
-          );
-        }
-        if (filters.vacancyDurations?.includes('3to4')) {
+        if (filters.vacancyDurations?.includes('2014to2010')) {
           whereBuilder.orWhereBetween('vacancy_start_year', [
-            referenceDataYearFromFilters(filters) - 4,
-            referenceDataYearFromFilters(filters) - 3
+            2014,
+            2010
           ]);
         }
-        if (filters.vacancyDurations?.includes('5to9')) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [
-            referenceDataYearFromFilters(filters) - 9,
-            referenceDataYearFromFilters(filters) - 5
-          ]);
-        }
-        if (filters.vacancyDurations?.includes('gte10')) {
+        if (filters.vacancyDurations?.includes('before2010')) {
           whereBuilder.orWhere(
             'vacancy_start_year',
             '<=',
-            referenceDataYearFromFilters(filters) - 10
+            2010
           );
+        }
+        if (filters.vacancyDurations?.includes('missingData')) {
+          whereBuilder.orWhere('vacancy_start_year', null);
+        }
+        if (filters.vacancyDurations?.includes('inconsistency2022')) {
+          whereBuilder.orWhere('vacancy_start_year', 2022);
         }
       });
     }

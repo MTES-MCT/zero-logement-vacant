@@ -31,6 +31,7 @@ import {
   statusOptions,
   taxedOptions,
   unselectedOptions,
+  vacancyDurationOptions,
   vacancyRateOptions
 } from '../../models/HousingFilters';
 import styles from './housing-list-filters.module.scss';
@@ -49,7 +50,7 @@ import { useToggle } from '../../hooks/useToggle';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import { useUser } from '../../hooks/useUser';
-import { HousingStatus } from '@zerologementvacant/models';
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -249,6 +250,20 @@ function HousingListFiltersSidemenu(props: Props) {
               data-testid="filtre-statut-occupation"
             />
           </Grid>
+          { filters?.occupancies?.includes(Occupancy.VACANT) &&
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Durée de vacance"
+              options={vacancyDurationOptions}
+              initialValues={filters.vacancyDurations}
+              onChange={(values) =>
+                onChangeFilters(
+                  { vacancyDurations: values },
+                  'Durée de vacance'
+                )
+              }
+            />
+          </Grid> }
         </Accordion>
         <Accordion
           label={

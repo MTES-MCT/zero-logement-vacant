@@ -6,6 +6,12 @@ const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
   augmentMuiTheme({ nonAugmentedMuiTheme }): Theme {
     return {
       ...nonAugmentedMuiTheme,
+      zIndex: {
+        // Found in @codegouvfr/react-dsfr
+        drawer: 500,
+        appBar: 750,
+        modal: 1750
+      },
       components: {
         // Customize @mui/material components globally here
       }

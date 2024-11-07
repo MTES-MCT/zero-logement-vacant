@@ -30,7 +30,10 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
       ? housing.vacancyStartYear
       : undefined;
 
-  function situationSince(occupancy: string, lastOccupancyChange: number | undefined): string {
+  function situationSince(
+    occupancy: string,
+    lastOccupancyChange: number | undefined
+  ): string {
     if (lastOccupancyChange === undefined) {
       return 'Inconnu';
     }
@@ -64,7 +67,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
           <Grid>
             <LabelNext component="h3">Occupation prévisionnelle :</LabelNext>
             <Badge className="bg-975 fr-ml-1w">
-              {OccupancyKindLabels[getOccupancy(housing.occupancy)]}
+              {OccupancyKindLabels[getOccupancy(housing.occupancyIntended)]}
             </Badge>
           </Grid>
         </Grid>
@@ -92,14 +95,16 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
             <Typography>Non renseigné</Typography>
           )}
         </Grid>
-        {lastOccupancyEvent?.old && <Grid xs={4}>
-          <LabelNext component="h3">Ancien statut d’occupation</LabelNext>
-          <Typography>
-            {OccupancyKindLabels[
-              lastOccupancyEvent?.old.occupancy as OccupancyKind
-            ] ?? 'Inconnu'}
-          </Typography>
-        </Grid> }
+        {lastOccupancyEvent?.old && (
+          <Grid xs={4}>
+            <LabelNext component="h3">Ancien statut d’occupation</LabelNext>
+            <Typography>
+              {OccupancyKindLabels[
+                lastOccupancyEvent?.old.occupancy as OccupancyKind
+              ] ?? 'Inconnu'}
+            </Typography>
+          </Grid>
+        )}
         <Grid xs={4}>
           {housing.occupancy === 'V' && (
             <>

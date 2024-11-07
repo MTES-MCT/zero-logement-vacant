@@ -913,7 +913,7 @@ describe('Housing repository', () => {
         test.each(tests)('should keep $name', async ({ filter, predicate }) => {
           const actual = await housingRepository.find({
             filters: {
-              vacancyDurations: filter
+              vacancyYears: filter
             }
           });
 

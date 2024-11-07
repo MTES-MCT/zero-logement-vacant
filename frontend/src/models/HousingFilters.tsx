@@ -22,6 +22,7 @@ import { HousingStates } from './HousingState';
 import { OCCUPANCY_LABELS } from './Housing';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
+import { VacancyYear } from './VacancyYear';
 
 export interface HousingFilters extends HousingFiltersDTO {}
 
@@ -186,46 +187,46 @@ export const multiOwnerOptions: SelectOption[] = [
   { value: 'false', label: 'Non', badgeLabel: 'Mono-propriétaire' }
 ];
 
-export const vacancyDurationOptions: SelectOption[] = [
+export const vacancyYearOptions: SelectOption<VacancyYear>[] = [
   {
     value: '2021',
     label: '2021',
-    badgeLabel: 'Durée de vacance : depuis 2021'
+    badgeLabel: 'Année de vacance : depuis 2021'
   },
   {
     value: '2020',
     label: '2020',
-    badgeLabel: 'Durée de vacance : depuis 2020'
+    badgeLabel: 'Année de vacance : depuis 2020'
   },
   {
     value: '2019',
     label: '2019',
-    badgeLabel: 'Durée de vacance : depuis 2019'
+    badgeLabel: 'Année de vacance : depuis 2019'
   },
   {
     value: '2018to2015',
     label: 'Entre 2018 et 2015',
-    badgeLabel: 'Durée de vacance : entre 2018 et 2015'
+    badgeLabel: 'Année de vacance : entre 2018 et 2015'
   },
   {
     value: '2014to2010',
     label: 'Entre 2014 et 2010',
-    badgeLabel: 'Durée de vacance : entre 2014 et 2010'
+    badgeLabel: 'Année de vacance : entre 2014 et 2010'
   },
   {
     value: 'before2010',
     label: 'Avant 2010',
-    badgeLabel: 'Durée de vacance : avant 2010'
+    badgeLabel: 'Année de vacance : avant 2010'
   },
   {
     value: 'missingData',
     label: 'Pas d’information',
-    badgeLabel: 'Durée de vacance : pas d’information'
+    badgeLabel: 'Année de vacance : pas d’information'
   },
   {
     value: 'inconsistency2022',
     label: '2022 (incohérence donnée source)',
-    badgeLabel: 'Durée de vacance : 2022 (incohérence donnée source)'
+    badgeLabel: 'Année de vacance : 2022 (incohérence donnée source)'
   }
 ];
 

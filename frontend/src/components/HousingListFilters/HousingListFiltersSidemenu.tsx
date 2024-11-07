@@ -31,7 +31,7 @@ import {
   statusOptions,
   taxedOptions,
   unselectedOptions,
-  vacancyDurationOptions,
+  vacancyYearOptions,
   vacancyRateOptions
 } from '../../models/HousingFilters';
 import styles from './housing-list-filters.module.scss';
@@ -253,13 +253,13 @@ function HousingListFiltersSidemenu(props: Props) {
           { filters?.occupancies?.includes(Occupancy.VACANT) &&
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
-              label="Durée de vacance"
-              options={vacancyDurationOptions}
-              initialValues={filters.vacancyDurations}
+              label="Année de début de vacance"
+              options={vacancyYearOptions}
+              initialValues={filters.vacancyYears}
               onChange={(values) =>
                 onChangeFilters(
-                  { vacancyDurations: values },
-                  'Durée de vacance'
+                  { vacancyYears: values },
+                  'Année de début de vacance'
                 )
               }
             />

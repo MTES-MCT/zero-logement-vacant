@@ -72,7 +72,7 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   buildingPeriods: array()
     .transform(commaSeparatedString)
     .of(string().oneOf(BUILDING_PERIOD_VALUES).required()),
-  vacancyDurations: array()
+  vacancyYears: array()
     .transform(commaSeparatedString)
     .of(string().required()),
   isTaxedValues: array()

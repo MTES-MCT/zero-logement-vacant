@@ -19,7 +19,7 @@ import {
   roomsCountOptions,
   statusOptions,
   taxedOptions,
-  vacancyDurationOptions,
+  vacancyYearOptions,
   vacancyRateOptions
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -123,10 +123,10 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         onChange={(values) => onChange?.({ buildingPeriods: values })}
       />
       <FilterBadges
-        options={vacancyDurationOptions}
-        filters={filters.vacancyDurations}
+        options={vacancyYearOptions}
+        filters={filters.vacancyYears}
         small={small}
-        onChange={(values) => onChange?.({ vacancyDurations: values })}
+        onChange={(values) => onChange?.({ vacancyYears: values })}
       />
       <FilterBadges
         options={taxedOptions}

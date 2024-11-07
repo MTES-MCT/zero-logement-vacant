@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 
 const modal = createModal({
   id: 'precisions-modal',
-  isOpenedByDefault: true
+  isOpenedByDefault: false
 });
 
 interface Props {

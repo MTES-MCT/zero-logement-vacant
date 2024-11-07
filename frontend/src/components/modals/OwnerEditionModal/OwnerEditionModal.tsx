@@ -20,7 +20,7 @@ import { useUser } from '../../../hooks/useUser';
 
 const modal = createModal({
   id: 'owner-edition-modal',
-  isOpenedByDefault: true
+  isOpenedByDefault: false
 });
 
 interface Props {

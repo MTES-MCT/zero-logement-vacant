@@ -7,6 +7,7 @@ import util from 'node:util';
 
 import {
   healthcheck,
+  brevoCheck,
   postgresCheck,
   redisCheck,
   s3Check
@@ -121,6 +122,7 @@ export function createServer(): Server {
     '/',
     healthcheck({
       checks: [
+        brevoCheck(config.mailer.apiKey ?? ''),
         redisCheck(config.redis.url),
         postgresCheck(config.db.url),
         s3Check(config.s3)

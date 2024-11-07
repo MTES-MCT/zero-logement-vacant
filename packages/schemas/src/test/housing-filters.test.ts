@@ -37,7 +37,7 @@ describe('Housing filters', () => {
     roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
     cadastralClassifications: fc.array(fc.string({ minLength: 1 })),
     buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
-    vacancyDurations: fc.array(fc.string({ minLength: 1 })),
+    vacancyYears: fc.array(fc.string({ minLength: 1 })),
     isTaxedValues: fc.array(fc.boolean()),
     ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
     housingCounts: fc.array(fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)),

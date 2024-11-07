@@ -20,7 +20,7 @@ export interface HousingFiltersApi {
   housingAreas?: string[];
   roomsCounts?: string[];
   buildingPeriods?: string[];
-  vacancyDurations?: string[];
+  vacancyYears?: string[];
   isTaxedValues?: string[];
   ownershipKinds?: OwnershipKind[];
   housingCounts?: string[];
@@ -60,7 +60,7 @@ const validators = (property = 'filters'): ValidationChain[] => [
   body(`${property}.housingAreas`).custom(isArrayOf(isString)).optional(),
   body(`${property}.roomsCounts`).custom(isArrayOf(isString)).optional(),
   body(`${property}.buildingPeriods`).custom(isArrayOf(isString)).optional(),
-  body(`${property}.vacancyDurations`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.vacancyYears`).custom(isArrayOf(isString)).optional(),
   body(`${property}.isTaxedValues`).custom(isArrayOf(isString)).optional(),
   body(`${property}.ownershipKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.housingCounts`).custom(isArrayOf(isString)).optional(),

@@ -5,14 +5,18 @@ import HousingFiltersBadges from '../../HousingFiltersBadges/HousingFiltersBadge
 import * as yup from 'yup';
 import { hasFilters, HousingFilters } from '../../../models/HousingFilters';
 import { displayCount } from '../../../utils/stringUtils';
-import { campaignDescriptionValidator, campaignTitleValidator, useForm } from '../../../hooks/useForm';
+import {
+  campaignDescriptionValidator,
+  campaignTitleValidator,
+  useForm
+} from '../../../hooks/useForm';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 
 const modal = createModal({
   id: 'campaign-creation-modal',
-  isOpenedByDefault: true,
+  isOpenedByDefault: false
 });
 
 interface Props {
@@ -26,7 +30,7 @@ const CampaignCreationModal = ({
   housingCount,
   housingExcludedCount,
   filters,
-  onSubmit,
+  onSubmit
 }: Props) => {
   const [campaignTitle, setCampaignTitle] = useState('');
   const [campaignDescription, setCampaignDescription] = useState('');
@@ -74,14 +78,14 @@ const CampaignCreationModal = ({
             children: 'Annuler',
             priority: 'secondary',
             disabled: buttonsDisabled,
-            className: 'fr-mr-2w',
+            className: 'fr-mr-2w'
           },
           {
             children: 'Enregistrer',
             onClick: create,
             disabled: buttonsDisabled,
-            doClosesModal: false,
-          },
+            doClosesModal: false
+          }
         ]}
       >
         <Container as="section" fluid>

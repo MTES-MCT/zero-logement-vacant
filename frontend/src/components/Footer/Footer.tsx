@@ -11,7 +11,7 @@ function Footer() {
     <DSFRFooter
       accessibility="non compliant"
       accessibilityLinkProps={{
-        to: '/accessibilite'
+        to: 'https://zerologementvacant.beta.gouv.fr/accessibilite',
       }}
       brandTop={
         <>
@@ -30,7 +30,7 @@ function Footer() {
         title: 'Accueil - Zéro Logement Vacant'
       }}
       termsLinkProps={{
-        to: '/mentions-legales',
+        to: 'https://zerologementvacant.beta.gouv.fr/mentions-legales',
         content: 'Politique de confidentialité'
       }}
       contentDescription="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée."
@@ -64,13 +64,13 @@ function Footer() {
           links: [
             {
               linkProps: {
-                to: '/mentions-legales'
+                to: 'https://zerologementvacant.beta.gouv.fr/mentions-legales'
               },
               text: 'Mentions légales & CGU'
             },
             {
               linkProps: {
-                to: '/stats'
+                to: 'https://zerologementvacant.beta.gouv.fr/statistiques'
               },
               text: 'Statistiques'
             }

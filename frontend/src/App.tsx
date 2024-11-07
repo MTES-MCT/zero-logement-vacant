@@ -19,18 +19,14 @@ import CampaignsListView from './views/Campaign/CampaignListView';
 import CampaignView from './views/Campaign/CampaignView';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import AccountPasswordView from './views/Account/AccountPasswordView';
-import StatsView from './views/Stats/StatsView';
 import HousingView from './views/Housing/HousingView';
-import AccessibilityView from './views/Accessibility/AccessibilityView';
 import ResourcesView from './views/Resources/ResourcesView';
 import AccountCreationView from './views/Account/AccountCreationView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
 import { useUser } from './hooks/useUser';
-import EstablishmentHomeView from './views/Home/EstablishmentHomeView';
 import { useAppDispatch, useAppSelector } from './hooks/useStore';
 import StatusView from './views/Resources/StatusView';
-import LegalNoticesView from './views/LegalNotices/LegalNoticesView';
 import AccountView from './views/Account/AccountView';
 import GroupView from './views/Group/GroupView';
 import UsersView from './views/Users/UsersView';
@@ -38,11 +34,6 @@ import TerritoryEstablishmentsView from './views/TerritoryEstablishments/Territo
 import SmallHeader from './components/Header/SmallHeader';
 import Header from './components/Header/Header';
 
-const publicRoutes: RouteProps[] = [
-  { path: '/stats', component: StatsView },
-  { path: '/accessibilite', component: AccessibilityView },
-  { path: '/mentions-legales', component: LegalNoticesView }
-];
 const authenticatedRoutes: RouteProps[] = [
   {
     path: '/parc-de-logements',
@@ -82,14 +73,12 @@ const guestRoutes: RouteProps[] = [
     path: '/mot-de-passe/nouveau',
     component: ResetPasswordView
   },
-  { path: '/admin', component: LoginView },
-  { path: '/', component: EstablishmentHomeView }
+  { path: '/admin', component: LoginView }
 ];
 
 function App() {
   const { pushInstruction } = useMatomo();
   const { isAuthenticated, user } = useUser();
-  const { isLoggedOut } = useAppSelector((state) => state.authentication);
   const dispatch = useAppDispatch();
   const isSomeQueryPending = useAppSelector((state) =>
     Object.values(state.api.queries).some(
@@ -111,8 +100,7 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  const routes = publicRoutes
-    .concat(isAuthenticated ? authenticatedRoutes : guestRoutes)
+  const routes = (isAuthenticated ? authenticatedRoutes : guestRoutes)
     .map((route) => (
       <Route
         exact
@@ -122,11 +110,7 @@ function App() {
       />
     ));
 
-  const redirection = isAuthenticated
-    ? '/parc-de-logements'
-    : isLoggedOut
-      ? '/connexion'
-      : '/';
+  const redirection = isAuthenticated ? '/parc-de-logements' : '/connexion';
 
   return (
     <React.Suspense fallback={<></>}>
@@ -135,9 +119,6 @@ function App() {
         <ScrollToTop />
 
         <Switch>
-          <Route path="/stats" component={StatsView} />
-          <Route path="/accessibilite" component={AccessibilityView} />
-          <Route path="/mentions-legales" component={LegalNoticesView} />,
           {routes}
           <Route path="*">
             <Redirect to={redirection} />

@@ -1,5 +1,4 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useHistory, useParams } from 'react-router-dom';
 
@@ -10,12 +9,7 @@ import {
 } from '../../services/group.service';
 import Group from '../../components/Group/Group';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../models/TrackEvent';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
@@ -26,9 +20,13 @@ import authService from '../../services/auth.service';
 import { GroupPayload } from '../../models/GroupPayload';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
-import { useCampaignList } from '../../hooks/useCampaignList';
-import { useCreateCampaignFromGroupMutation } from '../../services/campaign.service';
+import {
+  useCreateCampaignFromGroupMutation,
+  useFindCampaignsQuery
+} from '../../services/campaign.service';
 import NotFoundView from '../NotFoundView';
+import { useFilters } from '../../hooks/useFiltersNext';
+import { useEffect } from 'react';
 
 interface RouterState {
   alert?: string;
@@ -40,35 +38,24 @@ function GroupView() {
 
   useDocumentTitle(group ? `Groupe - ${group?.title}` : 'Page non trouvée');
 
-  const { trackEvent } = useMatomo();
   const {
     filters,
-    setFilters,
     expand,
-    removeFilter,
+    removeFilters,
     setExpand,
-    onChangeFilters,
-    onResetFilters
+    setFilters: onChangeFilters,
+    resetFilters: onResetFilters
   } = useFilters({
-    storage: 'state',
-    initialState: {
+    initialFilters: {
       groupIds: [id]
     }
   });
 
-  const { view } = useAppSelector((state) => state.housing);
+  useEffect(() => {
+    onChangeFilters({ groupIds: [id] });
+  }, [id, onChangeFilters]);
 
-  function searchWithQuery(query: string): void {
-    trackEvent({
-      category: TrackEventCategories.Group,
-      action: TrackEventActions.HousingList.Search,
-      name: query
-    });
-    setFilters({
-      ...filters,
-      query
-    });
-  }
+  const { view } = useAppSelector((state) => state.housing);
 
   const router = useHistory<RouterState | undefined>();
   const alert = router.location.state?.alert ?? '';
@@ -115,14 +102,14 @@ function GroupView() {
     }
   }
 
-  const campaigns = useCampaignList({
+  const { data: campaigns } = useFindCampaignsQuery({
     filters: {
       groupIds: [id]
     }
   });
 
   if (isLoadingGroup) {
-    return <></>;
+    return null;
   }
 
   if (!group || !!group.archivedAt) {
@@ -163,7 +150,7 @@ function GroupView() {
         <Grid container mb={1} spacing={2} xs={12}>
           <Grid xs>
             <AppSearchBar
-              onSearch={searchWithQuery}
+              onSearch={(query) => onChangeFilters({ query })}
               initialQuery={filters.query}
               placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
             />
@@ -174,7 +161,7 @@ function GroupView() {
         </Grid>
 
         <Grid xs={12}>
-          <HousingFiltersBadges filters={filters} onChange={removeFilter} />
+          <HousingFiltersBadges filters={filters} onChange={removeFilters} />
         </Grid>
 
         {view === 'map' ? (

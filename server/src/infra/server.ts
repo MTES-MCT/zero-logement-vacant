@@ -21,6 +21,7 @@ import mockServices from '~/mocks';
 import unprotectedRouter from '~/routers/unprotected';
 import protectedRouter from '~/routers/protected';
 import errorHandler from '~/middlewares/error-handler';
+import { isProduction } from '@zerologementvacant/queue/dist/config';
 
 export interface Server {
   app: http.Server;
@@ -122,7 +123,9 @@ export function createServer(): Server {
     '/',
     healthcheck({
       checks: [
-        brevoCheck(config.mailer.apiKey ?? ''),
+        brevoCheck(config.mailer.apiKey ?? '', {
+          enable: isProduction
+        }),
         redisCheck(config.redis.url),
         postgresCheck(config.db.url),
         s3Check(config.s3)

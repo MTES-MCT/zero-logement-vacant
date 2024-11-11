@@ -1,20 +1,26 @@
 import { Check } from './check';
 
-export function brevoCheck(apiKey: string): Check {
+interface BrevoCheckOptions {
+  enable?: boolean;
+}
+
+export function brevoCheck(apiKey: string, options?: BrevoCheckOptions): Check {
   return {
     name: 'brevo',
     async test() {
-      const url =
-        'https://api.brevo.com/v3/smtp/statistics/aggregatedReport';
-      const options = {
+      if (options?.enable === false) {
+        // Pass through
+        return Promise.resolve();
+      }
+
+      await fetch('https://api.brevo.com/v3/smtp/statistics/aggregatedReport', {
         method: 'GET',
         headers: {
           accept: 'application/json',
           'api-key': apiKey
         }
-      };
-      await fetch(url, options).then(res => {
-        if(res.status !== 200) {
+      }).then((res) => {
+        if (res.status !== 200) {
           throw new Error('Brevo API is not available');
         }
       });

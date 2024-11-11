@@ -3,6 +3,7 @@ import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import { List, Set } from 'immutable';
 import { ChangeEvent, useId, useRef } from 'react';
+import { match } from 'ts-pattern';
 
 import {
   byCreatedAt,
@@ -14,11 +15,12 @@ import { desc } from '@zerologementvacant/utils';
 import { Campaign } from '../../models/Campaign';
 import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
 import styles from './housing-list-filters.module.scss';
+import { NoCampaign, noCampaignOption } from '../../models/HousingFilters';
 
 interface Props {
   options: ReadonlyArray<Campaign>;
-  values: ReadonlyArray<Campaign['id']>;
-  onChange?(campaigns: ReadonlyArray<Campaign['id']>): void;
+  values: ReadonlyArray<Campaign['id'] | null>;
+  onChange?(campaigns: ReadonlyArray<Campaign['id'] | null>): void;
 }
 
 function CampaignFilter(props: Props) {
@@ -26,9 +28,11 @@ function CampaignFilter(props: Props) {
   const labelId = `fr-label-${useId()}`;
   const selectId = `fr-select-${useId()}`;
 
-  const selectedCampaigns: ReadonlyArray<Campaign> = props.values.map(
-    (value) => props.options.find((option) => option.id === value) as Campaign
-  );
+  const selectedCampaigns: ReadonlyArray<Campaign> = props.values
+    .filter((value) => value !== null)
+    .map(
+      (value) => props.options.find((option) => option.id === value) as Campaign
+    );
   const selectedStatuses = groupByStatus(selectedCampaigns).filter(
     (campaigns, status) => {
       const optionsByStatus = props.options.filter(
@@ -37,14 +41,15 @@ function CampaignFilter(props: Props) {
       return optionsByStatus.length === campaigns.size;
     }
   );
-  const selected: ReadonlyArray<Campaign['id'] | CampaignStatus> =
-    props.values.concat(selectedStatuses.keySeq().toArray());
+  const selected: ReadonlyArray<Campaign['id'] | CampaignStatus | NoCampaign> =
+    props.values.concat(selectedStatuses.keySeq().toArray()).map((value) => {
+      return value === null ? (noCampaignOption.value as NoCampaign) : value;
+    });
 
   function onChange(event: SelectChangeEvent<ReadonlyArray<string>>): void {
     if (Array.isArray(event.target.value)) {
-      const [ids, statuses] = Set<string>(event.target.value).partition(
-        isCampaignStatus
-      );
+      const ids = Set<string>(event.target.value).filterNot(isCampaignStatus);
+      const statuses = Set<string>(event.target.value).filter(isCampaignStatus);
       const diff = selected
         .filter((selected) => {
           return (
@@ -62,6 +67,7 @@ function CampaignFilter(props: Props) {
 
       props.onChange?.(
         ids
+          .filter((value) => value !== noCampaignOption.value)
           .map(getCampaign(props.options))
           .filter((campaign) => campaign !== null)
           .union(
@@ -71,6 +77,7 @@ function CampaignFilter(props: Props) {
           )
           .filter((campaign) => !diff.includes(campaign.id))
           .map((campaign) => campaign.id)
+          .concat(ids.includes(noCampaignOption.value) ? [null] : [])
           .toArray()
       );
     }
@@ -116,22 +123,57 @@ function CampaignFilter(props: Props) {
         }}
         multiple
         native={false}
-        renderValue={(values) =>
-          values.length > 0
+        renderValue={(values) => {
+          return values.length > 0
             ? values
-                .map(
-                  (value) =>
-                    props.options.find((option) => option.id === value)
-                      ?.title ?? value
-                )
+                .filter((value) => !isCampaignStatus(value))
+                .map((value) => {
+                  return match(value)
+                    .returnType<string>()
+                    .with(noCampaignOption.value, () => noCampaignOption.label)
+                    .otherwise((value) => {
+                      return (
+                        props.options.find((option) => option.id === value)
+                          ?.title ?? value
+                      );
+                    });
+                })
                 .join(', ')
-            : 'Toutes'
-        }
+            : 'Toutes';
+        }}
         sx={{ width: '100%' }}
         value={selected}
         variant="standard"
         onChange={onChange}
       >
+        <MenuItem
+          key={noCampaignOption.value}
+          value={noCampaignOption.value}
+          disableRipple
+          dense
+        >
+          <Checkbox
+            classes={{
+              root: fr.cx('fr-mb-0'),
+              inputGroup: fr.cx('fr-mt-0')
+            }}
+            options={[
+              {
+                label: noCampaignOption.label,
+                nativeInputProps: {
+                  checked: selected.some(
+                    (value) => value === noCampaignOption.value
+                  ),
+                  value: noCampaignOption.value,
+                  onClick: noop,
+                  onChange: noop
+                }
+              }
+            ]}
+            orientation="vertical"
+          />
+        </MenuItem>
+
         {categories.flatMap(([status, campaigns], i) => {
           return [
             <MenuItem

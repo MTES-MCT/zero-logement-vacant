@@ -287,33 +287,25 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
             where ${housingTable}.id = ${housingEventsTable}.housing_id
           ) events on true`
       ),
-    campaigns: (query) =>
-      query
-        .select('campaigns.campaign_ids', 'campaigns.campaign_count')
-        .joinRaw(
-          `left join lateral (
-               select array_agg(distinct(campaign_id)) as campaign_ids,
-                      array_length(array_agg(distinct(campaign_id)), 1) AS campaign_count
-               from ${campaignsHousingTable}, ${campaignsTable}
-               where ${housingTable}.id = ${campaignsHousingTable}.housing_id
-                 and ${housingTable}.geo_code = ${campaignsHousingTable}.housing_geo_code
-                 and ${campaignsTable}.id = ${campaignsHousingTable}.campaign_id
-                 ${
-                   filters?.campaignIds?.length
-                     ? ` and campaign_id = any(:campaignIds)`
-                     : ''
-                 }
+    campaigns: (query) => {
+      query.select('campaigns.campaign_ids').joinRaw(
+        `LEFT JOIN LATERAL (
+               SELECT coalesce(array_agg(distinct(campaign_id)), ARRAY[]::UUID[]) AS campaign_ids
+               FROM ${campaignsHousingTable}, ${campaignsTable}
+               WHERE ${housingTable}.id = ${campaignsHousingTable}.housing_id
+                 AND ${housingTable}.geo_code = ${campaignsHousingTable}.housing_geo_code
+                 AND ${campaignsTable}.id = ${campaignsHousingTable}.campaign_id
                  ${
                    filters?.establishmentIds?.length
-                     ? ` and ${campaignsTable}.establishment_id = any(:establishmentIds)`
+                     ? ` AND ${campaignsTable}.establishment_id = ANY(:establishmentIds)`
                      : ''
                  }
              ) campaigns on true`,
-          {
-            campaignIds: filters?.campaignIds ?? [],
-            establishmentIds: filters?.establishmentIds ?? []
-          }
-        ),
+        {
+          establishmentIds: filters?.establishmentIds ?? []
+        }
+      );
+    },
     perimeters: (query) =>
       query.select('perimeters.perimeter_kind as geo_perimeters').joinRaw(
         `left join lateral (
@@ -434,26 +426,45 @@ function filteredQuery(opts: ListQueryOptions) {
       });
     }
     if (filters.campaignIds?.length) {
-      queryBuilder.whereRaw(`${campaignsTable}.campaign_ids && ?`, [
-        filters.campaignIds
-      ]);
+      queryBuilder.where((where) => {
+        if (filters.campaignIds?.includes(null)) {
+          where.orWhereRaw(`cardinality(${campaignsTable}.campaign_ids) = 0`);
+        }
+        const ids = filters.campaignIds?.filter((id) => id !== null);
+        if (ids?.length) {
+          where.orWhereRaw(`${campaignsTable}.campaign_ids && ?`, [ids]);
+        }
+      });
     }
     if (filters.campaignsCounts?.length) {
       queryBuilder.where(function (whereBuilder: any) {
-        if (filters.campaignsCounts?.indexOf('0') !== -1) {
-          whereBuilder.orWhereNull('campaigns.campaign_count');
+        if (filters.campaignsCounts?.includes('0')) {
+          whereBuilder.orWhereRaw(
+            `cardinality(${campaignsTable}.campaign_ids) = 0`
+          );
         }
-        if (filters.campaignsCounts?.indexOf('current') !== -1) {
-          whereBuilder.orWhereRaw('campaigns.campaign_count >= 1');
+        if (filters.campaignsCounts?.includes('current')) {
+          whereBuilder.orWhereRaw(
+            `cardinality(${campaignsTable}.campaign_ids) >= 1`
+          );
         }
         if (filters.campaignsCounts?.indexOf('1') !== -1) {
-          whereBuilder.orWhere('campaigns.campaign_count', 1);
+          whereBuilder.orWhereRaw(
+            `cardinality(${campaignsTable}.campaign_ids)`,
+            1
+          );
         }
         if (filters.campaignsCounts?.indexOf('2') !== -1) {
-          whereBuilder.orWhere('campaigns.campaign_count', 2);
+          whereBuilder.orWhereRaw(
+            `cardinality(${campaignsTable}.campaign_ids)`,
+            2
+          );
         }
         if (filters.campaignsCounts?.indexOf('gt3') !== -1) {
-          whereBuilder.orWhereRaw('campaigns.campaign_count >= ?', 3);
+          whereBuilder.orWhereRaw(
+            `cardinality(${campaignsTable}.campaign_ids) >= ?`,
+            3
+          );
         }
       });
     }

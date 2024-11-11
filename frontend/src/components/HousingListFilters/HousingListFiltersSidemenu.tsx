@@ -209,7 +209,7 @@ function HousingListFiltersSidemenu(props: Props) {
               <CampaignFilter
                 options={campaigns}
                 values={filters.campaignIds ?? []}
-                onChange={(values: string[]) =>
+                onChange={(values: Array<string | null>) =>
                   onChangeFilters({ campaignIds: values }, 'Campagne')
                 }
                 data-testid="filtre-campagne"

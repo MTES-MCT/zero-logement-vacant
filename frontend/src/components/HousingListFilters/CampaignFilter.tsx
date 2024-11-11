@@ -174,7 +174,7 @@ function CampaignFilter(props: Props) {
           />
         </MenuItem>
 
-        {categories.flatMap(([status, campaigns], i) => {
+        {categories.flatMap(([status, campaigns]) => {
           return [
             <MenuItem
               classes={{
@@ -186,10 +186,7 @@ function CampaignFilter(props: Props) {
                 zIndex: 1,
                 backgroundColor:
                   fr.colors.decisions.background.default.grey.default,
-                borderTop:
-                  i > 0
-                    ? `1px solid ${fr.colors.decisions.border.disabled.grey.default}`
-                    : undefined
+                borderTop: `1px solid ${fr.colors.decisions.border.disabled.grey.default}`
               }}
               key={status}
               value={status}

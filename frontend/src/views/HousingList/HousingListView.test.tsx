@@ -390,7 +390,7 @@ describe('Housing list view', () => {
     });
 
     // Fails on GitHub CI for some reason...
-    it.failing('should unselect a single campaign', async () => {
+    it('should unselect a single campaign', async () => {
       render(
         <Provider store={store}>
           <Router>

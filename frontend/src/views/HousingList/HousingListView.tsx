@@ -19,7 +19,7 @@ import HousingListMap from './HousingListMap';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
 import { useUser } from '../../hooks/useUser';
-import { useFilters } from '../../hooks/useFiltersNext';
+import { useFilters } from '../../hooks/useFilters';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
 
 const HousingListView = () => {
@@ -31,10 +31,10 @@ const HousingListView = () => {
     filters,
     setExpand,
     setFilters,
-    resetFilters: onResetFilters,
-    removeFilters: removeFilter
+    onResetFilters,
+    removeFilter
   } = useFilters({
-    initialFilters: initialHousingFilters
+    initialState: initialHousingFilters
   });
 
   const { view } = useAppSelector((state) => state.housing);

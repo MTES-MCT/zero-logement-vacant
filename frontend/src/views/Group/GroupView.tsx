@@ -1,5 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Grid from '@mui/material/Unstable_Grid2';
+import { useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 
 import {
@@ -26,14 +27,15 @@ import {
 } from '../../services/campaign.service';
 import NotFoundView from '../NotFoundView';
 import { useFilters } from '../../hooks/useFiltersNext';
-import { useEffect } from 'react';
 
 interface RouterState {
   alert?: string;
 }
 
 function GroupView() {
+  const router = useHistory<RouterState | undefined>();
   const { id } = useParams<{ id: string }>();
+
   const { data: group, isLoading: isLoadingGroup } = useGetGroupQuery(id);
 
   useDocumentTitle(group ? `Groupe - ${group?.title}` : 'Page non trouvée');
@@ -52,12 +54,13 @@ function GroupView() {
   });
 
   useEffect(() => {
-    onChangeFilters({ groupIds: [id] });
-  }, [id, onChangeFilters]);
+    onChangeFilters({
+      groupIds: [id]
+    });
+  }, [onChangeFilters, id]);
 
   const { view } = useAppSelector((state) => state.housing);
 
-  const router = useHistory<RouterState | undefined>();
   const alert = router.location.state?.alert ?? '';
   const [removeGroup] = useRemoveGroupMutation();
   async function onGroupRemove(): Promise<void> {

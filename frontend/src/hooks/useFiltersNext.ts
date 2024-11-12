@@ -1,4 +1,4 @@
-import { useMap } from 'react-use';
+import { useState } from 'react';
 
 import { HousingFiltersDTO } from '@zerologementvacant/models';
 import { useToggle } from './useToggle';
@@ -8,21 +8,23 @@ export interface UseFiltersOptions {
 }
 
 export function useFilters(options: UseFiltersOptions) {
-  const [filters, { setAll, remove, reset }] = useMap<HousingFiltersDTO>(
+  const [filters, setFilters] = useState<HousingFiltersDTO>(
     options.initialFilters
   );
+
+  function remove(key: keyof HousingFiltersDTO): void {
+    setFilters((filters: HousingFiltersDTO) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [key]: _, ...rest } = filters;
+      return rest;
+    });
+  }
+
   const {
     active: expand,
     setActive: setExpand,
     toggle: toggleExpand
   } = useToggle(false);
-
-  function setFilters(value: HousingFiltersDTO): void {
-    setAll({
-      ...filters,
-      ...value
-    });
-  }
 
   function removeFilters(value: HousingFiltersDTO): void {
     Object.keys(value).forEach((key) => {
@@ -31,7 +33,7 @@ export function useFilters(options: UseFiltersOptions) {
   }
 
   function resetFilters(): void {
-    reset();
+    setFilters(options.initialFilters);
   }
 
   return {

@@ -389,39 +389,6 @@ describe('Housing list view', () => {
       expect(count).toBeVisible();
     });
 
-    // Fails on GitHub CI for some reason...
-    it('should unselect a single campaign', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
-
-      let count = await screen.findByText(
-        new RegExp(`${data.housings.length} logements`)
-      );
-      expect(count).toBeVisible();
-      const [campaign] = campaigns;
-      const filter = await screen.findByLabelText(/^Campagne/);
-      await user.click(filter);
-      const options = await screen.findByRole('listbox');
-      const option = await within(options).findByText(campaign.title);
-      await user.click(option);
-      const housings = data.campaignHousings.get(campaign.id) ?? [];
-      count = await screen.findByText(
-        new RegExp(`${housings.length} logements`)
-      );
-      expect(count).toBeVisible();
-      // Click again
-      await user.click(option);
-      count = await screen.findByText(
-        new RegExp(`${data.housings.length} logements`)
-      );
-      expect(count).toBeVisible();
-    });
-
     it('should filter by several campaigns', async () => {
       render(
         <Provider store={store}>

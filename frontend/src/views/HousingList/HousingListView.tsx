@@ -31,9 +31,11 @@ const HousingListView = () => {
     filters,
     setExpand,
     setFilters,
+    onChangeFilters,
     onResetFilters,
     removeFilter
   } = useFilters({
+    storage: 'store',
     initialState: initialHousingFilters
   });
 
@@ -66,7 +68,7 @@ const HousingListView = () => {
       <HousingListFiltersSidemenu
         filters={filters}
         expand={expand}
-        onChange={setFilters}
+        onChange={onChangeFilters}
         onReset={onResetFilters}
         onClose={() => setExpand(false)}
       />

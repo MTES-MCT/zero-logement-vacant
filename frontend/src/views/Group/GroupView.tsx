@@ -26,14 +26,13 @@ import {
   useFindCampaignsQuery
 } from '../../services/campaign.service';
 import NotFoundView from '../NotFoundView';
-import { useFilters } from '../../hooks/useFiltersNext';
+import { useFilters } from '../../hooks/useFilters';
 
 interface RouterState {
   alert?: string;
 }
 
 function GroupView() {
-  const router = useHistory<RouterState | undefined>();
   const { id } = useParams<{ id: string }>();
 
   const { data: group, isLoading: isLoadingGroup } = useGetGroupQuery(id);
@@ -42,13 +41,14 @@ function GroupView() {
 
   const {
     filters,
-    expand,
-    removeFilters,
-    setExpand,
+    removeFilter: removeFilters,
     setFilters: onChangeFilters,
-    resetFilters: onResetFilters
+    onResetFilters,
+    expand,
+    setExpand
   } = useFilters({
-    initialFilters: {
+    storage: 'state',
+    initialState: {
       groupIds: [id]
     }
   });
@@ -61,6 +61,7 @@ function GroupView() {
 
   const { view } = useAppSelector((state) => state.housing);
 
+  const router = useHistory<RouterState | undefined>();
   const alert = router.location.state?.alert ?? '';
   const [removeGroup] = useRemoveGroupMutation();
   async function onGroupRemove(): Promise<void> {

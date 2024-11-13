@@ -3,41 +3,31 @@
 # Abort on error
 set -e
 
-if [ -z "$DATABASE_URL" ]; then
-  echo "Usage: DATABASE_URL=... bash setup.sh"
+if [ -z "$DEV_DB" ] || [ -z "$TEST_DB" ]; then
+  echo "Usage: DEV_DB=... TEST_DB=... bash setup.sh"
   exit 1
 fi
 
 # The default postgres user
 POSTGRES_USER=postgres
 
-docker-compose up -d
-echo "Postgres started."
-docker-compose exec -T db psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER"  <<-EOSQL
-  DROP DATABASE IF EXISTS zlv;
-  DROP DATABASE IF EXISTS test_zlv;
-  CREATE DATABASE zlv;
-  CREATE DATABASE test_zlv;
+dirname=$(dirname "$0")
+config="$dirname"/docker-compose.yml
+docker compose -f "$config" up -d
+
+dev=$(echo "$DEV_DB" | grep -o '[^/]*$')
+test=$(echo "$TEST_DB" | grep -o '[^/]*$')
+
+docker compose -f "$config" exec -T db psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER"  <<-EOSQL
+  DROP DATABASE IF EXISTS $dev;
+  DROP DATABASE IF EXISTS $test;
+  CREATE DATABASE $dev;
+  CREATE DATABASE $test;
 EOSQL
 echo "Databases created."
 
 # Create database structure
-cd ../server && yarn run migrate
-echo "Migrated."
-
-cd -
-docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/001-load-establishments_com_epci_reg_dep.sql -v filePath=data/common/com_epci_dep_reg.csv
-echo "EPCI loaded."
-docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/002-load-establishments_direction_territoriale.sql -v filePath=data/common/direction_territoriale.csv
-echo "Communes loaded."
-docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/003-load-establishment_kinds.sql -v filePath=data/common/nature_juridique.csv
-echo "Directions territoriales loaded."
-docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/004-load-data.sql -v filePath=data/dummy/dummy_data.csv -v dateFormat="'MM/DD/YY'"
-echo "Housings loaded."
-docker-compose exec -T -w /database db psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/006-load-locality-taxes.sql -v filePath=data/common/taxe.csv
-echo "Taxes loaded."
-
-cd ../server
-yarn seed
-echo "Data loaded."
-cd -
+echo "Migrating..."
+DATABASE_URL="$DEV_DB" yarn workspace @zerologementvacant/server migrate
+echo "Seeding..."
+DATABASE_URL="$DEV_DB" yarn workspace @zerologementvacant/server seed

@@ -67,7 +67,7 @@ jobs:
         run: yarn lint
 
       - name: Test
-        run: yarn test
+        run: yarn test --since --parallel --include-dependents
         env:
           LOG_LEVEL: fatal
           REACT_APP_API_URL: http://localhost:3001

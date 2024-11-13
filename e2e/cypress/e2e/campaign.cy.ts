@@ -117,15 +117,19 @@ describe('Campaign', () => {
       .should('be.visible');
 
     cy.get('a')
-      .contains(/^Télécharger les courriers/, { timeout: 10_000 })
-      .should('be.visible');
+      .contains(/^Télécharger les destinataires et vos courriers/, {
+        timeout: 10_000
+      })
+      // Avoid opening a new tab which would break the test
+      .invoke('removeAttr', 'href')
+      .click();
 
     cy.get('label')
       .contains(/^Date d’envoi de votre campagne/)
       .type(new Date().toJSON().slice(0, 'yyyy-mm-dd'.length));
 
     cy.get('button')
-      .contains(/^Confirmer et passer au suivi/)
+      .contains(/^Valider la date d’envoi de votre campagne/)
       .click();
 
     cy.get('dialog[open="true"]')

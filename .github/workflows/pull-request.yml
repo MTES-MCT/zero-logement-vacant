@@ -45,6 +45,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Allows lerna to compute which packages changed
+          fetch-depth: 0
 
       - name: Enable Corepack
         run: corepack enable

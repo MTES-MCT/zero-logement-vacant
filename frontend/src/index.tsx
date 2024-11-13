@@ -13,6 +13,10 @@ import config from './utils/config';
 import App from './App';
 import ThemeProvider from './theme';
 
+export interface Test {
+  test: string;
+}
+
 startReactDsfr({
   defaultColorScheme: 'light',
   Link

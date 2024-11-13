@@ -293,7 +293,7 @@ describe('Campaign view', () => {
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');
-    let [ ignoreButton ] = await within(aside).findAllByRole('button', {
+    const [ ignoreButton ] = await within(aside).findAllByRole('button', {
       name: /^Ignorer/
     });
     expect(ignoreButton).toBeInTheDocument();

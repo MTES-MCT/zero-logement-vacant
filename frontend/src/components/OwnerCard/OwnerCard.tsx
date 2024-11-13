@@ -98,10 +98,10 @@ function OwnerCard(props: OwnerCardProps) {
               description={
                 <>
                   <Typography>
-                    L'adresse Base Adresse Nationale ne correspond pas à celle de la DGFIP.
+                    L’adresse Base Adresse Nationale ne correspond pas à celle de la DGFIP.
                   </Typography>
                   <Typography>
-                    Nous vous recommandons de vérifier en cliquant sur "Modifier".
+                    Nous vous recommandons de vérifier en cliquant sur &quot;Modifier&quot;.
                   </Typography>
                 </>
               }

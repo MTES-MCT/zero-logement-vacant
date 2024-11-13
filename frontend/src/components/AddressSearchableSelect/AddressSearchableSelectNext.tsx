@@ -1,7 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
 import Autocomplete from '@mui/material/Autocomplete';
-import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useDebounce, useList, usePreviousDistinct } from 'react-use';
 import type { MarkOptional } from 'ts-essentials';

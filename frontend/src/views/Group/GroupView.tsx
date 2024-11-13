@@ -42,7 +42,8 @@ function GroupView() {
   const {
     filters,
     removeFilter: removeFilters,
-    setFilters: onChangeFilters,
+    setFilters,
+    onChangeFilters,
     onResetFilters,
     expand,
     setExpand
@@ -54,10 +55,10 @@ function GroupView() {
   });
 
   useEffect(() => {
-    onChangeFilters({
+    setFilters({
       groupIds: [id]
     });
-  }, [onChangeFilters, id]);
+  }, [setFilters, id]);
 
   const { view } = useAppSelector((state) => state.housing);
 

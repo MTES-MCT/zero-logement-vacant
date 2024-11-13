@@ -91,10 +91,16 @@ yarn test
 Lancer les tests d’un workspace en particulier :
 
 ```shell
+# Avec yarn
 yarn workspace <workspace> test
+# Avec lerna
+yarn lerna run test --scope <workspace> [--include-dependents]
 
 # Exemple
 yarn workspace @zerologementvacant/server test
+yarn lerna run test --scope @zerologementvacant/server --include-dependents
+yarn test --scope @zerologementvacant/server --include-dependents
+# yarn test == yarn lerna run test
 ```
 
 La commande échoue si le package ne comporte pas de commande `test`, ou si un

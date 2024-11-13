@@ -1,3 +1,4 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { FormEvent, useState } from 'react';
 import { object, string } from 'yup';
@@ -10,6 +11,8 @@ import { Owner } from '../../models/Owner';
 import { banAddressValidator, useForm } from '../../hooks/useForm';
 import { useUpdateOwnerMutation } from '../../services/owner.service';
 import { useNotification } from '../../hooks/useNotification';
+import { Grid, Typography } from '@mui/material';
+import LabelNext from '../Label/LabelNext';
 
 interface Props {
   className?: string;
@@ -19,15 +22,16 @@ interface Props {
 function OwnerEditionSideMenu(props: Props) {
   const { active, setActive, toggle } = useToggle();
 
+  const storedWarningVisible = localStorage.getItem('OwnerEdition.warningVisible');
+  const [warningVisible, setWarningVisible] = useState(storedWarningVisible === null || storedWarningVisible === 'true');
+
   const shape = {
-    fullName: string().optional(),
     address: banAddressValidator.optional(),
     additionalAddress: string().optional().nullable()
   };
   type FormShape = typeof shape;
   const schema = object(shape);
 
-  const [fullName, setFullName] = useState(props.owner.fullName);
   const [address, setAddress] = useState(props.owner.banAddress);
   const [additionalAddress, setAdditionalAddress] = useState(
     props.owner.additionalAddress ?? ''
@@ -35,8 +39,7 @@ function OwnerEditionSideMenu(props: Props) {
   const formId = 'owner-edition-form';
   const form = useForm(schema, {
     address,
-    additionalAddress,
-    fullName
+    additionalAddress
   });
 
   function open(): void {
@@ -50,11 +53,11 @@ function OwnerEditionSideMenu(props: Props) {
   const [updateOwner, mutation] = useUpdateOwnerMutation();
 
   async function save(event: FormEvent): Promise<void> {
+    localStorage.setItem('OwnerEditionSideMenu.warningVisible', warningVisible.toString());
     event.preventDefault();
     await form.validate(async () => {
       await updateOwner({
         ...props.owner,
-        fullName,
         banAddress: address,
         additionalAddress
       }).unwrap();
@@ -97,20 +100,43 @@ function OwnerEditionSideMenu(props: Props) {
         title="Modifier les informations du propriétaire"
         content={
           <form id={formId} className="fr-px-6w">
-            <AppTextInput<FormShape>
-              inputForm={form}
-              inputKey="fullName"
-              label="Nom prénom"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-            <section className="fr-mb-3w">
+            <Grid>
+              <LabelNext component="h3">
+                <span
+                  className={fr.cx(
+                    'fr-icon-bank-line',
+                    'fr-icon--sm',
+                    'fr-mr-1w'
+                  )}
+                  aria-hidden={true}
+                />
+                Adresse fiscale (source: DGFIP)
+              </LabelNext>
+              <Grid>
+                <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
+                <Typography>{props.owner.rawAddress ? props.owner.rawAddress : 'Inconnue'}</Typography>
+              </Grid>
+            </Grid>
+            <section className="fr-mb-3w fr-mt-3w">
+              <LabelNext component="h3">
+                <span
+                  className={fr.cx(
+                    'fr-icon-home-4-line',
+                    'fr-icon--sm',
+                    'fr-mr-1w'
+                  )}
+                  aria-hidden={true}
+                />
+                Adresse postale (source: Base Adresse Nationale)
+              </LabelNext>
               <OwnerAddressEdition
                 banAddress={address}
                 errorMessage={form.message('address')}
                 help={false}
                 rawAddress={props.owner.rawAddress}
                 onSelectAddress={(value) => setAddress(value ?? undefined)}
+                warningVisible={warningVisible}
+                setWarningVisible={setWarningVisible}
               />
             </section>
             <AppTextInput<FormShape>

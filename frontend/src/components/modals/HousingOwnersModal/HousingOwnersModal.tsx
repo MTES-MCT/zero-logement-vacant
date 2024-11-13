@@ -49,6 +49,9 @@ function HousingOwnersModal({
 }: Props) {
   const { isVisitor } = useUser();
 
+  const storedWarningVisible = localStorage.getItem('OwnerEdition.warningVisible');
+  const [warningVisible, setWarningVisible] = useState(storedWarningVisible === null || storedWarningVisible === 'true');
+
   const [modalMode, setModalMode] = useState<'list' | 'add'>('list');
   const [
     housingOwners,
@@ -224,7 +227,7 @@ function HousingOwnersModal({
             </Text>
             {!isBanEligible(housingOwner.banAddress) && (
               <Badge severity="info" className="fr-ml-1w">
-                ADRESSE À VÉRIFIER
+                ADRESSE AMÉLIORABLE
               </Badge>
             )}
           </div>
@@ -297,6 +300,8 @@ function HousingOwnersModal({
                 onSelectAddress(housingOwner, address ?? undefined)
               }
               errorMessage={message(`banAddress-${housingOwner.id}`)}
+              warningVisible={warningVisible}
+              setWarningVisible={setWarningVisible}
             />
           </Col>
           <Col n="12">

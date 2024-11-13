@@ -70,7 +70,7 @@ jobs:
         run: yarn lint
 
       - name: Test
-        run: yarn test --since ${GITHUB_BASE_REF} --parallel --include-dependents
+        run: yarn test --since ${{ github.base_ref }} --parallel --include-dependents
         env:
           LOG_LEVEL: fatal
           REACT_APP_API_URL: http://localhost:3001

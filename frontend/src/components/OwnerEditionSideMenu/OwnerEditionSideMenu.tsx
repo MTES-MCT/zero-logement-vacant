@@ -53,7 +53,7 @@ function OwnerEditionSideMenu(props: Props) {
   const [updateOwner, mutation] = useUpdateOwnerMutation();
 
   async function save(event: FormEvent): Promise<void> {
-    localStorage.setItem('OwnerEditionSideMenu.warningVisible', warningVisible.toString());
+    localStorage.setItem('OwnerEdition.warningVisible', warningVisible.toString());
     event.preventDefault();
     await form.validate(async () => {
       await updateOwner({

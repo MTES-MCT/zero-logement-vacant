@@ -39,6 +39,9 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
     owner?.additionalAddress
   );
 
+  const storedWarningVisible = localStorage.getItem('OwnerEdition.warningVisible');
+  const [warningVisible, setWarningVisible] = useState(storedWarningVisible === null || storedWarningVisible === 'true');
+
   const [updateOwner, { isError: isUpdateError }] = useUpdateOwnerMutation();
 
   const shape = {
@@ -133,6 +136,8 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
               rawAddress={owner.rawAddress}
               onSelectAddress={(a) => setBanAddress(a ?? undefined)}
               errorMessage={form.message('banAddress')}
+              warningVisible={warningVisible}
+              setWarningVisible={setWarningVisible}
             />
           </Col>
           <Col n="12">

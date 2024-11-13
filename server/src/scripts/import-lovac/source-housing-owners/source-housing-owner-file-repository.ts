@@ -1,6 +1,6 @@
 import { ReadableStream, TransformStream } from 'node:stream/web';
 
-import { filter } from '@zerologementvacant/utils';
+import { filter } from '@zerologementvacant/utils/node';
 import { SourceFileRepository } from '~/scripts/import-lovac/infra/source-file-repository';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { SourceRepository, StreamOptions } from '~/scripts/import-lovac/infra';

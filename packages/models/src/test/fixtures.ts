@@ -57,7 +57,7 @@ export function genAddressDTO(
 export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
   return {
     id: faker.string.uuid(),
-    title: faker.commerce.product(),
+    title: faker.commerce.productName(),
     description: faker.commerce.productDescription(),
     filters: {},
     status: 'draft',

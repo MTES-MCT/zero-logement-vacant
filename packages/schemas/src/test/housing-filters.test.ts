@@ -26,7 +26,7 @@ describe('Housing filters', () => {
     establishmentIds: fc.array(fc.uuid()),
     groupIds: fc.array(fc.uuid()),
     campaignsCounts: fc.array(fc.constantFrom(...CAMPAIGN_COUNT_VALUES)),
-    campaignIds: fc.array(fc.uuid()),
+    campaignIds: fc.array(fc.oneof(fc.constant(null), fc.uuid())),
     ownerIds: fc.array(fc.uuid()),
     ownerKinds: fc.array(fc.string({ minLength: 1 })),
     ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),

@@ -24,6 +24,14 @@ function split(separator = ',') {
 }
 const commaSeparatedString = split(',');
 
+function parseNull(value: unknown): string | null | typeof value {
+  if (Array.isArray(value)) {
+    return value.map((v) => (v === 'null' ? null : v));
+  }
+
+  return value;
+}
+
 export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   housingIds: array()
     .transform(commaSeparatedString)
@@ -45,7 +53,8 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().oneOf(CAMPAIGN_COUNT_VALUES).required()),
   campaignIds: array()
     .transform(commaSeparatedString)
-    .of(string().uuid().required()),
+    .transform(parseNull)
+    .of(string().defined().nullable().uuid()),
   ownerIds: array()
     .transform(commaSeparatedString)
     .of(string().uuid().required()),

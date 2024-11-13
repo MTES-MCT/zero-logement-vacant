@@ -3,7 +3,7 @@ import { ReadableStream, TransformStream } from 'node:stream/web';
 import { SourceFileRepository } from '~/scripts/import-lovac/infra/source-file-repository';
 import { SourceBuilding } from '~/scripts/import-lovac/source-buildings/source-building';
 import { SourceRepository, StreamOptions } from '~/scripts/import-lovac/infra';
-import { filter } from '@zerologementvacant/utils';
+import { filter } from '@zerologementvacant/utils/node';
 
 class SourceBuildingFileRepository
   extends SourceFileRepository<SourceBuilding>

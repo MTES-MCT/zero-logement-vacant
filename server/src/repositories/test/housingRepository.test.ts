@@ -83,6 +83,7 @@ import {
 } from '~/repositories/geoRepository';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
+import { CampaignApi } from '~/models/CampaignApi';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
@@ -304,34 +305,56 @@ describe('Housing repository', () => {
         });
       });
 
-      it('should filter by campaign id', async () => {
-        const campaigns = Array.from({ length: 3 }, () =>
-          genCampaignApi(establishment.id, user.id)
-        );
-        await Campaigns().insert(campaigns.map(formatCampaignApi));
-        const campaignHousings = campaigns.map((campaign) => {
-          return {
-            campaign: campaign,
-            housings: Array.from({ length: 3 }, () => genHousingApi())
-          };
-        });
-        const housings = campaignHousings.flatMap(({ housings }) => housings);
-        await Housing().insert(housings.map(formatHousingRecordApi));
-        await CampaignsHousing().insert(
-          campaignHousings.flatMap((ch) => {
-            return formatCampaignHousingApi(ch.campaign, ch.housings);
-          })
-        );
+      describe('by campaign id', () => {
+        let campaigns: ReadonlyArray<CampaignApi>;
 
-        const id = campaigns[0].id;
-        const actual = await housingRepository.find({
-          filters: {
-            campaignIds: [id]
-          }
+        beforeEach(async () => {
+          campaigns = Array.from({ length: 3 }, () =>
+            genCampaignApi(establishment.id, user.id)
+          );
+          await Campaigns().insert(campaigns.map(formatCampaignApi));
+          const campaignHousings = campaigns.map((campaign) => {
+            return {
+              campaign: campaign,
+              housings: Array.from({ length: 3 }, () => genHousingApi())
+            };
+          });
+          const housings = campaignHousings.flatMap(({ housings }) => housings);
+          await Housing().insert(housings.map(formatHousingRecordApi));
+          await CampaignsHousing().insert(
+            campaignHousings.flatMap((ch) => {
+              return formatCampaignHousingApi(ch.campaign, ch.housings);
+            })
+          );
         });
 
-        expect(actual).toSatisfyAll<HousingApi>((housing) => {
-          return housing.campaignIds?.includes(id) ?? false;
+        it('should keep housings that are not in a campaign', async () => {
+          const housing = genHousingApi();
+          await Housing().insert(formatHousingRecordApi(housing));
+
+          const actual = await housingRepository.find({
+            filters: {
+              campaignIds: [null]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.campaignIds?.length === 0;
+          });
+        });
+
+        it('should filter by campaign id', async () => {
+          const id = campaigns[0].id;
+          const actual = await housingRepository.find({
+            filters: {
+              campaignIds: [id]
+            }
+          });
+
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.campaignIds?.includes(id) ?? false;
+          });
         });
       });
 

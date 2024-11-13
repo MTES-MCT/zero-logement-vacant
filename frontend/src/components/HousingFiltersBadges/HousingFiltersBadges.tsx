@@ -13,6 +13,7 @@ import {
   housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
+  noCampaignOption,
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
@@ -45,7 +46,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   const establishment = useAppSelector(
     (state) => state.authentication.authUser?.establishment
   );
-  const campaignList = useCampaignList();
+  const campaigns = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
@@ -59,28 +60,26 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
     <div className="fr-tags-group">
       <FilterBadges
         options={allOccupancyOptions}
-        filters={filters.occupancies}
+        values={filters.occupancies}
         small={small}
         keepEmptyValue
         onChange={(values) => onChange?.({ occupancies: values })}
       />
       <FilterBadges
         options={ownerKindOptions}
-        filters={filters.ownerKinds}
+        values={filters.ownerKinds}
         small={small}
         onChange={(values) => onChange?.({ ownerKinds: values })}
       />
       <FilterBadges
         options={ownerAgeOptions}
-        filters={filters.ownerAges}
+        values={filters.ownerAges}
         small={small}
         onChange={(values) => onChange?.({ ownerAges: values })}
       />
       <FilterBadges
         options={multiOwnerOptions}
-        filters={filters.multiOwners?.map((value) =>
-          value ? 'true' : 'false'
-        )}
+        values={filters.multiOwners?.map((value) => (value ? 'true' : 'false'))}
         small={small}
         onChange={(values) =>
           onChange?.({ multiOwners: values.map((value) => value === 'true') })
@@ -88,49 +87,49 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       <FilterBadges
         options={beneficiaryCountOptions}
-        filters={filters.beneficiaryCounts}
+        values={filters.beneficiaryCounts}
         small={small}
         onChange={(values) => onChange?.({ beneficiaryCounts: values })}
       />
       <FilterBadges
         options={housingKindOptions}
-        filters={filters.housingKinds}
+        values={filters.housingKinds}
         small={small}
         onChange={(values) => onChange?.({ housingKinds: values })}
       />
       <FilterBadges
         options={housingAreaOptions}
-        filters={filters.housingAreas}
+        values={filters.housingAreas}
         small={small}
         onChange={(values) => onChange?.({ housingAreas: values })}
       />
       <FilterBadges
         options={roomsCountOptions}
-        filters={filters.roomsCounts}
+        values={filters.roomsCounts}
         small={small}
         onChange={(values) => onChange?.({ roomsCounts: values })}
       />
       <FilterBadges
         options={cadastralClassificationOptions}
-        filters={filters.cadastralClassifications}
+        values={filters.cadastralClassifications}
         small={small}
         onChange={(values) => onChange?.({ cadastralClassifications: values })}
       />
       <FilterBadges
         options={buildingPeriodOptions}
-        filters={filters.buildingPeriods}
+        values={filters.buildingPeriods}
         small={small}
         onChange={(values) => onChange?.({ buildingPeriods: values })}
       />
       <FilterBadges
         options={vacancyYearOptions}
-        filters={filters.vacancyYears}
+        values={filters.vacancyYears}
         small={small}
         onChange={(values) => onChange?.({ vacancyYears: values })}
       />
       <FilterBadges
         options={taxedOptions}
-        filters={filters.isTaxedValues?.map((value) =>
+        values={filters.isTaxedValues?.map((value) =>
           value ? 'true' : 'false'
         )}
         small={small}
@@ -140,38 +139,38 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       <FilterBadges
         options={ownershipKindsOptions}
-        filters={filters.ownershipKinds}
+        values={filters.ownershipKinds}
         small={small}
         onChange={(values) => onChange?.({ ownershipKinds: values })}
       />
       <FilterBadges
         options={housingCountOptions}
-        filters={filters.housingCounts}
+        values={filters.housingCounts}
         small={small}
         onChange={(values) => onChange?.({ housingCounts: values })}
       />
       <FilterBadges
         options={vacancyRateOptions}
-        filters={filters.vacancyRates}
+        values={filters.vacancyRates}
         small={small}
         onChange={(values) => onChange?.({ vacancyRates: values })}
       />
       <FilterBadges
         options={localitiesOptions}
-        filters={filters.localities}
+        values={filters.localities}
         small={small}
         onChange={(values) => onChange?.({ localities: values })}
       />
       <FilterBadges
         options={localityKindsOptions}
-        filters={filters.localityKinds}
+        values={filters.localityKinds}
         small={small}
         onChange={(values) => onChange?.({ localityKinds: values })}
       />
       {geoPerimeters && (
         <FilterBadges
           options={geoPerimeterOptions(geoPerimeters)}
-          filters={filters.geoPerimetersIncluded}
+          values={filters.geoPerimetersIncluded}
           small={small}
           onChange={(values) => onChange?.({ geoPerimetersIncluded: values })}
         />
@@ -182,20 +181,20 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
             ...option,
             badgeLabel: `${option.label} exclu`
           }))}
-          filters={filters.geoPerimetersExcluded}
+          values={filters.geoPerimetersExcluded}
           small={small}
           onChange={(values) => onChange?.({ geoPerimetersExcluded: values })}
         />
       )}
       <FilterBadges
         options={campaignsCountOptions}
-        filters={filters.campaignsCounts}
+        values={filters.campaignsCounts}
         small={small}
         onChange={(values) => onChange?.({ campaignsCounts: values })}
       />
       <FilterBadges
         options={statusOptions()}
-        filters={filters.statusList?.map(String)}
+        values={filters.statusList?.map(String)}
         small={small}
         onChange={(values) =>
           onChange?.({
@@ -208,42 +207,52 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       <FilterBadges
         options={getSubStatusListOptions(filters.statusList ?? [])}
-        filters={filters.subStatus}
+        values={filters.subStatus}
         small={small}
         onChange={(values) => onChange?.({ subStatus: values })}
       />
-      {campaignList && filters.campaignIds && (
+      {campaigns && filters.campaignIds && (
         <FilterBadges
-          options={campaignList.map((c) => ({
-            value: c.id,
-            label: c.title
-          }))}
-          filters={filters.campaignIds}
+          options={campaigns
+            .map((campaign) => ({
+              value: campaign.id,
+              label: campaign.title
+            }))
+            .concat(noCampaignOption)}
+          values={filters.campaignIds.map((id) =>
+            id === null ? noCampaignOption.value : id
+          )}
           small={small}
-          onChange={(values) => onChange?.({ campaignIds: values })}
+          onChange={(values) =>
+            onChange?.({
+              campaignIds: values.map((value) =>
+                value === noCampaignOption.value ? null : value
+              )
+            })
+          }
         />
       )}
       <FilterBadges
         options={dataFileYearsIncludedOptions}
-        filters={filters.dataFileYearsIncluded}
+        values={filters.dataFileYearsIncluded}
         small={small}
         onChange={(values) => onChange?.({ dataFileYearsIncluded: values })}
       />
       <FilterBadges
         options={dataFileYearsExcludedOptions}
-        filters={filters.dataFileYearsExcluded}
+        values={filters.dataFileYearsExcluded}
         small={small}
         onChange={(values) => onChange?.({ dataFileYearsExcluded: values })}
       />
       <FilterBadges
         options={energyConsumptionOptions}
-        filters={filters.energyConsumption}
+        values={filters.energyConsumption}
         small={small}
         onChange={(values) => onChange?.({ energyConsumption: values })}
       />
       <FilterBadges
         options={[{ value: filters.query ?? '', label: filters.query ?? '' }]}
-        filters={filters.query ? [filters.query] : []}
+        values={filters.query ? [filters.query] : []}
         small={small}
         onChange={() => onChange?.({ query: '' })}
       />

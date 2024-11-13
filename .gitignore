@@ -19,7 +19,7 @@ node_modules
 build
 coverage
 dist
-frontend-new/public/dsfr
+frontend/public/dsfr
 tsconfig.build.tsbuildinfo
 
 npm-debug.log*

@@ -1,4 +1,4 @@
-import { count } from '@zerologementvacant/utils';
+import { count } from '@zerologementvacant/utils/node';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { History } from '~/scripts/import-lovac/history/history';
 import { createLogger } from '~/infra/logger';

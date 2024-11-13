@@ -1,21 +1,18 @@
 import { SelectOption } from '../../models/SelectOption';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 
-interface FilterBadgeProps<Value extends string> {
+interface FilterBadgeProps<Value extends string | null> {
   option: SelectOption;
-  filters: Value[] | undefined;
+  values: Value[] | undefined;
   onChange?(value: Value[]): void;
   small?: boolean;
 }
 
-function FilterBadge<Value extends string>({
-  option,
-  filters = [],
-  onChange,
-  small
-}: FilterBadgeProps<Value>) {
+function FilterBadge<Value extends string>(props: FilterBadgeProps<Value>) {
   function onClose() {
-    onChange?.(filters.filter((v) => v !== option.value));
+    if (props.values) {
+      props.onChange?.(props.values.filter((v) => v !== props.option.value));
+    }
   }
 
   return (
@@ -23,17 +20,17 @@ function FilterBadge<Value extends string>({
       nativeButtonProps={{
         onClick: onClose
       }}
-      small={small}
-      dismissible={onChange !== undefined}
+      small={props.small}
+      dismissible={props.onChange !== undefined}
     >
-      {option.badgeLabel ?? option.label}
+      {props.option.badgeLabel ?? props.option.label}
     </Tag>
   );
 }
 
 interface FilterBadgesProps<Value extends string> {
   options: SelectOption<Value>[];
-  filters: Value[] | undefined;
+  values: Value[] | undefined;
   onChange?(value: Value[]): void;
   small?: boolean;
   keepEmptyValue?: boolean;
@@ -42,9 +39,9 @@ interface FilterBadgesProps<Value extends string> {
 function FilterBadges<Value extends string = string>(
   props: FilterBadgesProps<Value>
 ) {
-  const { filters, onChange, options, small }: FilterBadgesProps<Value> = {
+  const { values, onChange, options, small }: FilterBadgesProps<Value> = {
     ...props,
-    filters: props.filters ?? []
+    values: props.values ?? []
   };
   return (
     <>
@@ -52,26 +49,21 @@ function FilterBadges<Value extends string = string>(
         .filter(
           (option) =>
             (!!props.keepEmptyValue || !!option.value.length) &&
-            filters.includes(option.value)
+            values.includes(option.value)
+        )
+        .concat(
+          values
+            .filter(
+              (value) => !options.find((option) => option.value === value)
+            )
+            .map((value) => ({ value, label: value }))
         )
         .map((option, index) => (
           <FilterBadge
             option={option}
-            filters={filters}
+            values={values}
             onChange={onChange}
-            key={option + '-' + index}
-            small={small}
-          />
-        ))}
-
-      {filters
-        .filter((f) => !options.map((_) => _.value).includes(f))
-        .map((filter, index) => (
-          <FilterBadge
-            option={{ value: filter, label: filter }}
-            filters={filters}
-            onChange={onChange}
-            key={filter + '-' + index}
+            key={option.value + '-' + index}
             small={small}
           />
         ))}

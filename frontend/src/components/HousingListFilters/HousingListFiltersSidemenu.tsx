@@ -51,6 +51,7 @@ import { useFindCampaignsQuery } from '../../services/campaign.service';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import { useUser } from '../../hooks/useUser';
 import { HousingStatus, Occupancy } from '@zerologementvacant/models';
+import CampaignFilter from './CampaignFilter';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -205,14 +206,10 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
           {campaigns && (
             <Grid component="article" mb={2} xs={12}>
-              <AppMultiSelect
-                label="Campagne"
-                options={campaigns.map((campaign) => ({
-                  value: campaign.id,
-                  label: campaign.title
-                }))}
-                initialValues={filters.campaignIds}
-                onChange={(values) =>
+              <CampaignFilter
+                options={campaigns}
+                values={filters.campaignIds ?? []}
+                onChange={(values: Array<string | null>) =>
                   onChangeFilters({ campaignIds: values }, 'Campagne')
                 }
                 data-testid="filtre-campagne"

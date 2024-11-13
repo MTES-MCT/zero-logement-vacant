@@ -6,5 +6,4 @@ export * from './logger';
 export * from './merger';
 export * from './object';
 export * from './s3';
-export * from './stream';
 export * from './string';

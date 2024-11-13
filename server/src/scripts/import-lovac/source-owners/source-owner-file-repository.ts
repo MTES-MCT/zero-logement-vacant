@@ -1,6 +1,6 @@
 import { ReadableStream, TransformStream } from 'node:stream/web';
 
-import { filter } from '@zerologementvacant/utils';
+import { filter } from '@zerologementvacant/utils/node';
 import {
   SourceRepository,
   StreamOptions

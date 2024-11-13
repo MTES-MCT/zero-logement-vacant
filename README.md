@@ -1,5 +1,7 @@
 # zero-logement-vacant
 
+[![End-to-end tests](https://github.com/MTES-MCT/zero-logement-vacant/actions/workflows/e2e.yml/badge.svg?branch=main)](https://github.com/MTES-MCT/zero-logement-vacant/actions/workflows/e2e.yml)
+
 [Fiche produit](https://beta.gouv.fr/startups/zero-logement-vacant.html)
 
 ## Getting started en 5 minutes

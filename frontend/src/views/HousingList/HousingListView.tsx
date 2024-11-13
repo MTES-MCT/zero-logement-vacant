@@ -11,7 +11,6 @@ import {
   TrackEventCategories
 } from '../../models/TrackEvent';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
-import { useFilters } from '../../hooks/useFilters';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppSelector } from '../../hooks/useStore';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
@@ -20,20 +19,25 @@ import HousingListMap from './HousingListMap';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
 import { useUser } from '../../hooks/useUser';
+import { useFilters } from '../../hooks/useFilters';
+import { initialHousingFilters } from '../../store/reducers/housingReducer';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
   const { trackEvent } = useMatomo();
 
   const {
-    filters,
-    setFilters,
     expand,
+    filters,
+    setExpand,
+    setFilters,
     onChangeFilters,
     onResetFilters,
-    setExpand,
     removeFilter
-  } = useFilters();
+  } = useFilters({
+    storage: 'store',
+    initialState: initialHousingFilters
+  });
 
   const { view } = useAppSelector((state) => state.housing);
 

@@ -1,5 +1,6 @@
 {
   "name": "@zerologementvacant/e2e",
+  "version": "0.0.1",
   "scripts": {
     "dev": "dotenvx run -- cypress open",
     "start": "dotenvx run -- cypress run"

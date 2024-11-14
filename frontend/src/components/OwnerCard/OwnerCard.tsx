@@ -90,7 +90,7 @@ function OwnerCard(props: OwnerCardProps) {
         </Grid>
 
 
-        {props.owner.banAddress && !isBanEligible(props.owner.banAddress) && (
+        {!isBanEligible(props.owner.banAddress) && (
           <Grid xs={12}>
             <Alert
               severity="info"

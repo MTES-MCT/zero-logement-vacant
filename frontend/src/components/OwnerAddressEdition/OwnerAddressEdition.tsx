@@ -47,7 +47,7 @@ function OwnerAddressEdition(props: Props) {
         onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
       />
-      {props.banAddress && props.warningVisible && !isBanEligible(props.banAddress) && (
+      {props.warningVisible && !isBanEligible(props.banAddress) && (
         <CallOut
         className="fr-mt-3w"
         buttonProps={{

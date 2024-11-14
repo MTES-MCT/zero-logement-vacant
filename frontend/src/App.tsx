@@ -29,6 +29,7 @@ import LoginView from './views/Login/LoginView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
 import NotFoundView from './views/NotFoundView';
+import AnalysisView from './views/Analysis/AnalysisView';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -40,6 +41,7 @@ const router = createBrowserRouter(
           path="/parc-de-logements/campagnes/:id"
           element={<CampaignView />}
         />
+        <Route path="/analyses" element={<AnalysisView />} />
         <Route path="/groupes/:id" element={<GroupView />} />
         <Route path="/campagnes" element={<CampaignsListView />} />
         <Route path="/campagnes/:id" element={<CampaignView />} />

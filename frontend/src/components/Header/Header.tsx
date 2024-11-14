@@ -1,6 +1,4 @@
 import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
 
@@ -17,14 +15,9 @@ import { Container } from '../_dsfr';
 function Header() {
   const location = useLocation();
   const dispatch = useAppDispatch();
-  const { trackPageView } = useMatomo();
   const { isAdmin, isVisitor, isAuthenticated } = useUser();
 
   const { authUser } = useAppSelector((state) => state.authentication);
-
-  useEffect(() => {
-    trackPageView({});
-  }, [location]); //eslint-disable-line react-hooks/exhaustive-deps
 
   function displayName(): string {
     return authUser
@@ -120,6 +113,7 @@ function Header() {
           isAuthenticated
             ? [
                 getMainNavigationItem(UserNavItems.HousingList),
+                getMainNavigationItem(UserNavItems.Analysis),
                 getMainNavigationItem(UserNavItems.Campaign),
                 getMainNavigationItem(UserNavItems.Resources)
               ]

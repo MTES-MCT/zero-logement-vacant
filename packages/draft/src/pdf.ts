@@ -2,7 +2,7 @@ import async from 'async';
 import { ReadableStream } from 'node:stream/web';
 import * as handlebars from 'handlebars';
 import path from 'node:path';
-import { PDFDocument, PDFImage } from 'pdf-lib';
+import { PDFDocument, PDFEmbeddedPage, PDFImage } from 'pdf-lib';
 import puppeteer from 'puppeteer';
 import { match } from 'ts-pattern';
 import { Logger } from '@zerologementvacant/utils';
@@ -147,10 +147,29 @@ function createTransformer(opts: TransformerOptions) {
     /**
      * Embed an image into the PDF.
      * @param pdf
-     * @param image A JPEG or PNG image encoded in base64
+     * @param image A PDF, JPEG or PNG image encoded in base64
      */
-    async embed(pdf: PDFDocument, image: Image): Promise<PDFImage> {
+    async embed(pdf: PDFDocument, image: Image): Promise<PDFImage | PDFEmbeddedPage> {
       return match(image)
+        .when(
+          (image) => image.content.startsWith('data:application/pdf'),
+          async (image) => {
+            const content = image.content.substring(
+              image.content.indexOf('JVBER')
+            );
+
+            const binaryString = atob(content);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+          
+            for (let i = 0; i < len; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+
+            const [ embeddedPage ] = await pdf.embedPdf(bytes.buffer, [0]);
+            return embeddedPage;
+          }
+        )
         .when(
           (image) => image.content.startsWith('data:image/jpeg'),
           async (image) => {
@@ -180,22 +199,46 @@ function createTransformer(opts: TransformerOptions) {
      * @param pdf
      */
     async save(pdf: PDFDocument): Promise<Buffer> {
+      let firstImageHeight = 0;
+      let imageIdx = 0;
       // Embed images into the PDF
       await async.forEach(images, async (image) => {
         const embed = await this.embed(pdf, image);
+
+        let imageHeight = 0;
+        if (embed instanceof PDFImage) {
+          imageHeight = image.height;
+        } else if (embed instanceof PDFEmbeddedPage) {
+          // PDFs are vector images, so we use the max width defined for the header__image CSS class
+          imageHeight = 140 / (embed.width / embed.height); // Keep the aspect ratio as image.height is incorrect
+        }
+
         pdf.getPages().forEach((page, i) => {
           const position = imagePositions.get(image.id)?.at(i);
           if (!position) {
             throw new Error('Image position not found');
           }
-          page.drawImage(embed, {
-            x: toPoints(position.x),
-            // The Y-axis is inverted in the PDF specification
-            y: page.getHeight() - toPoints(position.y) - toPoints(image.height),
-            width: toPoints(image.width),
-            height: toPoints(image.height)
-          });
+          if (embed instanceof PDFImage) {
+            page.drawImage(embed, {
+              x: toPoints(position.x),
+              // The Y-axis is inverted in the PDF specification
+              y: page.getHeight() - toPoints(48) - toPoints(firstImageHeight) - toPoints(imageHeight),
+              width: toPoints(image.width),
+              height: toPoints(image.height)
+            });
+          } else if (embed instanceof PDFEmbeddedPage) {
+            page.drawPage(embed, {
+              x: toPoints(position.x),
+              // The Y-axis is inverted in the PDF specification
+              y: page.getHeight() - toPoints(48) - toPoints(firstImageHeight) - toPoints(imageHeight), // as defined in CSS image should start at 48px from the top
+              width: toPoints(140),
+              height: toPoints(imageHeight)
+            });
+
+          }
         });
+        firstImageHeight = imageIdx === 0 ? imageHeight : 0;
+        imageIdx++;
       });
       const final = await pdf.save();
       return Buffer.from(final);

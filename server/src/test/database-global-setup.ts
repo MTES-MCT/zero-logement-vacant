@@ -50,7 +50,10 @@ export default async function setup() {
   try {
     // Remove data from all tables
     await async.forEachSeries(tables, async (table) => {
-      await db.raw('TRUNCATE TABLE ?? CASCADE', [table]);
+      const hasTable = await db.schema.hasTable(table);
+      if (hasTable) {
+        await db.raw('TRUNCATE TABLE ?? CASCADE', [table]);
+      }
       console.log(`Truncated table ${table}.`);
     });
     console.log('The database is clean!');

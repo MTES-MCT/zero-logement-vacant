@@ -61,7 +61,7 @@ jobs:
       - name: Install
         run: yarn install --immutable
         env:
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+          CYPRESS_INSTALL_BINARY: 0
 
       - name: Build
         run: yarn build

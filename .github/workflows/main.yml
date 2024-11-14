@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - e2e/**
       - frontend/**
       - queue/**
       - server/**

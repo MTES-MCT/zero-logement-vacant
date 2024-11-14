@@ -8,6 +8,15 @@
   transition: opacity 0.4s var(--material-transition-curve);
 }
 
+.selected {
+  // Hack to avoid transparency issues with the selected item
+  background-color: #ebebf6 !important;
+
+  &:hover {
+    background-color: #e0e0f2 !important;
+  }
+}
+
 .icon {
   display: inline-flex;
   flex-direction: row;

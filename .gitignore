@@ -19,12 +19,14 @@ node_modules
 build
 coverage
 dist
-frontend-new/public/dsfr
+frontend/public/dsfr
 tsconfig.build.tsbuildinfo
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+lerna-debug.log
 
 # Misc
 .DS_Store

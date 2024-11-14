@@ -1,0 +1,82 @@
+name: Pull request
+
+on:
+  pull_request:
+    branches-ignore:
+      - prod
+    paths:
+      - frontend/**
+      - queue/**
+      - server/**
+      - packages/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+    services:
+      postgres:
+        image: postgis/postgis
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: zlv
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7.2.4-alpine
+        ports:
+          - 6379:6379
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      s3:
+        image: adobe/s3mock:3.5.2
+        ports:
+          - 9090:9090
+        env:
+          initialBuckets: "zerologementvacant"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Allows lerna to compute which packages changed
+          fetch-depth: 0
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+
+      - name: Install
+        run: yarn install --immutable
+        env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+
+      - name: Build
+        run: yarn build
+        env:
+          DISABLE_ESLINT_PLUGIN: true
+          METABASE_TOKEN: token
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
+        run: yarn test --since ${{ github.event.pull_request.base.sha }} --parallel --include-dependents
+        env:
+          LOG_LEVEL: fatal
+          REACT_APP_API_URL: http://localhost:3001
+
+      - name: Test database migrations
+        run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band

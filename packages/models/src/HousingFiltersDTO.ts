@@ -19,7 +19,7 @@ export interface HousingFiltersDTO {
   establishmentIds?: string[];
   groupIds?: string[];
   campaignsCounts?: CampaignCount[];
-  campaignIds?: string[];
+  campaignIds?: Array<string | null>;
   ownerIds?: string[];
   ownerKinds?: string[];
   ownerAges?: OwnerAge[];

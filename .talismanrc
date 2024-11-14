@@ -12,7 +12,7 @@ fileignoreconfig:
 - filename: packages/api-sdk/src/test/campaign-api.test.ts
   checksum: b200d9e1fec310660a91e99cd048b24cbe983e0f9f965861d061a7f0992af43e
 - filename: packages/healthcheck/src/checks/brevo.ts
-  checksum: a1fbeb01d83167b791eb8175eeb80178cc6da19bb83a6ba3cb2077ca96ebda5e
+  checksum: bf698fc5af96ed3a4b5f1dc466ccd11a0996c3ec60b1f8f456ef934c9cca0b7d
 - filename: packages/utils/src/object.ts
   checksum: 9893602dd7197e44a7c361e44c31b5fb86a025227af95c02998a6857bd1a694b
 - filename: server/.env.example
@@ -31,4 +31,5 @@ allowed_patterns:
 - keyof
 - \[key\]
 - key=
+- "key:"
 version: "1.0"

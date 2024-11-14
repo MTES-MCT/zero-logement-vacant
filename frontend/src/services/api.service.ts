@@ -3,12 +3,22 @@ import qs from 'qs';
 
 import config from '../utils/config';
 import authService from './auth.service';
+import fp from 'lodash/fp';
 
 export const zlvApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: `${config.apiEndpoint}/api`,
     prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
-    paramsSerializer: (query) => qs.stringify(query, { arrayFormat: 'comma' })
+    paramsSerializer: (query) =>
+      qs.stringify(
+        fp.mapValues((value) => {
+          if (Array.isArray(value)) {
+            return value.map((v) => (v === null ? 'null' : v));
+          }
+          return value;
+        }, query),
+        { arrayFormat: 'comma' }
+      )
   }),
   tagTypes: [
     'Account',

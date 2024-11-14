@@ -122,7 +122,11 @@ export function createServer(): Server {
     '/',
     healthcheck({
       checks: [
-        brevoCheck(config.mailer.apiKey ?? ''),
+        brevoCheck(config.mailer.apiKey ?? '', {
+          enable:
+            config.app.env === 'production' &&
+            config.mailer.provider === 'brevo'
+        }),
         redisCheck(config.redis.url),
         postgresCheck(config.db.url),
         s3Check(config.s3)

@@ -3,8 +3,38 @@ on:
   push:
     branches:
       - prod
+    paths:
+      - frontend/**
+      - queue/**
+      - server/**
+      - packages/**
 
 jobs:
+  deploy-front-production:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      app: Front production
+      alias: front-production
+      branch: prod
+      environment: Production
+    secrets: inherit
+
+  deploy-api-production:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      app: API production
+      alias: api-production
+      branch: prod
+    secrets: inherit
+
+  deploy-queue-production:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      app: Queue production
+      alias: queue-production
+      branch: prod
+    secrets: inherit
+
   release:
     runs-on: ubuntu-latest
     steps:

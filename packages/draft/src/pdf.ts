@@ -89,13 +89,17 @@ function createTransformer(opts: TransformerOptions) {
             width: width,
             height: height,
             x: x,
-            y: y
+            y: y,
+            type: (image as Element)?.classList.contains('header__image') ? 'logo' : 'signature'
           };
         });
       });
       // Retrieve images from the HTML only once
       if (images.length === 0) {
-        images.push(...elements);
+        images.push(...elements.map(element => ({
+          ...element,
+          type: element.type as 'logo' | 'signature'
+        })));
       }
       // Save image positions
       elements.forEach((element) => {
@@ -166,7 +170,7 @@ function createTransformer(opts: TransformerOptions) {
               bytes[i] = binaryString.charCodeAt(i);
             }
 
-            const [ embeddedPage ] = await pdf.embedPdf(bytes.buffer, [0]);
+            const [embeddedPage] = await pdf.embedPdf(bytes.buffer, [0]);
             return embeddedPage;
           }
         )
@@ -199,10 +203,12 @@ function createTransformer(opts: TransformerOptions) {
      * @param pdf
      */
     async save(pdf: PDFDocument): Promise<Buffer> {
-      let firstImageHeight = 0;
-      let imageIdx = 0;
+      let firstImageHeight = { 'logo': 0, 'signature': 0 };
+      let firstImageWidth = { 'logo': 0, 'signature': 0 };
+
       // Embed images into the PDF
       await async.forEach(images, async (image) => {
+        console.log(image.type);
         const embed = await this.embed(pdf, image);
 
         let imageHeight = 0;
@@ -222,23 +228,23 @@ function createTransformer(opts: TransformerOptions) {
             page.drawImage(embed, {
               x: toPoints(position.x),
               // The Y-axis is inverted in the PDF specification
-              y: page.getHeight() - toPoints(48) - toPoints(firstImageHeight) - toPoints(imageHeight),
+              y: page.getHeight() - toPoints(image.height) - (image.type === 'signature' ? toPoints(position.y) : toPoints(40) + toPoints(firstImageHeight[image.type])),
               width: toPoints(image.width),
               height: toPoints(image.height)
             });
           } else if (embed instanceof PDFEmbeddedPage) {
             page.drawPage(embed, {
-              x: toPoints(position.x),
+              x: toPoints(position.x) - (image.type === 'signature' ? toPoints(40) : 0),
               // The Y-axis is inverted in the PDF specification
-              y: page.getHeight() - toPoints(48) - toPoints(firstImageHeight) - toPoints(imageHeight), // as defined in CSS image should start at 48px from the top
+              y: page.getHeight() - toPoints(imageHeight) - (image.type === 'signature' ? toPoints(position.y) : toPoints(40) + toPoints(firstImageHeight[image.type])),
               width: toPoints(140),
               height: toPoints(imageHeight)
             });
 
           }
         });
-        firstImageHeight = imageIdx === 0 ? imageHeight : 0;
-        imageIdx++;
+        firstImageHeight[image.type] = firstImageHeight[image.type] == 0 ? imageHeight : 0;
+        firstImageWidth[image.type] = firstImageWidth[image.type] == 0 ? image.width : 0;
       });
       const final = await pdf.save();
       return Buffer.from(final);
@@ -265,6 +271,7 @@ interface Image {
   content: string;
   width: number;
   height: number;
+  type: 'logo' | 'signature';
 }
 
 interface Position {

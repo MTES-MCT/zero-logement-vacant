@@ -11,6 +11,7 @@ import {
   HousingDTO,
   NoteDTO,
   OwnerDTO,
+  SignupLinkDTO,
   UserDTO
 } from '@zerologementvacant/models';
 import {
@@ -110,6 +111,8 @@ const housingEvents = new Map<HousingDTO['id'], EventDTO<HousingDTO>[]>();
 
 const housingNotes = new Map<HousingDTO['id'], NoteDTO[]>();
 
+const signupLinks: SignupLinkDTO[] = [];
+
 const data = {
   campaigns,
   campaignDrafts,
@@ -125,6 +128,7 @@ const data = {
   housingNotes,
   housingOwners,
   owners,
+  signupLinks,
   users
 };
 

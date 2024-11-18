@@ -1,7 +1,7 @@
 import {
   ComponentPropsWithoutRef,
   InputHTMLAttributes,
-  TextareaHTMLAttributes,
+  TextareaHTMLAttributes
 } from 'react';
 import { ObjectShape } from 'yup/lib/object';
 import { useForm } from '../../../hooks/useForm';
@@ -21,6 +21,11 @@ type AppTextInputProps<T extends ObjectShape> = Partial<
     dataTestId?: string;
   };
 
+/**
+ * @deprecated See {@link AppTextInputNext}
+ * @param props
+ * @constructor
+ */
 function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
   const {
     textArea,
@@ -43,7 +48,7 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
           nativeTextAreaProps={{
             ...textInputProps,
             placeholder,
-            onBlur: () => inputForm.validateAt(String(inputKey)),
+            onBlur: () => inputForm.validateAt(String(inputKey))
           }}
           state={state ?? inputForm.messageType(String(inputKey))}
           stateRelatedMessage={
@@ -58,7 +63,7 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
           nativeInputProps={{
             ...textInputProps,
             placeholder,
-            onBlur: () => inputForm.validateAt(String(inputKey)),
+            onBlur: () => inputForm.validateAt(String(inputKey))
           }}
           state={state ?? inputForm.messageType(String(inputKey))}
           stateRelatedMessage={

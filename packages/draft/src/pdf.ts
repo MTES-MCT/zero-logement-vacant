@@ -208,7 +208,6 @@ function createTransformer(opts: TransformerOptions) {
 
       // Embed images into the PDF
       await async.forEach(images, async (image) => {
-        console.log(image.type);
         const embed = await this.embed(pdf, image);
 
         let imageHeight = 0;

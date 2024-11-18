@@ -1,107 +1,113 @@
-import { Container, Row, Text } from '../../../components/_dsfr';
-import { FormEvent, useState } from 'react';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Unstable_Grid2';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 
-import { emailValidator, useForm } from '../../../hooks/useForm';
-import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
-import styles from './account-email-creation-view.module.scss';
-import AppTextInput from '../../../components/_app/AppTextInput/AppTextInput';
-import Button from '@codegouvfr/react-dsfr/Button';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../../models/TrackEvent';
-import Typography from '@mui/material/Typography';
+import { emailValidator } from '../../../hooks/useForm';
+import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
+
+const schema = yup
+  .object({
+    email: emailValidator
+  })
+  .required();
 
 function AccountEmailCreationView() {
-  const [email, setEmail] = useState('');
   const navigate = useNavigate();
   const { send: sendActivationEmail } = useActivationEmail();
-  const { trackEvent } = useMatomo();
 
-  const shape = { email: emailValidator };
-  type FormShape = typeof shape;
-  const form = useForm(yup.object().shape(shape), { email });
+  const form = useForm<yup.InferType<typeof schema>>({
+    defaultValues: {
+      email: ''
+    },
+    mode: 'onSubmit',
+    resolver: yupResolver(schema)
+  });
 
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    await form.validate(async () => {
-      await sendActivationEmail(email);
-      trackEvent({
-        category: TrackEventCategories.AccountCreation,
-        action: TrackEventActions.AccountCreation.SendEmail
-      });
-      navigate('/inscription/activation', {
-        state: {
-          email
-        }
-      });
+  async function submit(values: yup.InferType<typeof schema>): Promise<void> {
+    await sendActivationEmail(values.email);
+    navigate('/inscription/activation', {
+      state: {
+        email: values.email
+      }
     });
   }
 
   return (
-    <form onSubmit={submit}>
-      <Typography variant="h2" mb={3}>
-        Créer votre compte
-      </Typography>
-      <Text size="lead">
-        Pour créer votre compte sur Zéro Logement Vacant, vous devez
-        impérativement avoir effectué votre demande d’accès aux données LOVAC
-        via le{' '}
-        <a href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">
-          portail Données Foncières du Cerema
-        </a>
-        .
-      </Text>
-      <Container as="section" fluid>
-        <Row justifyContent="right">
-          <AppLink
-            className={styles.help}
-            to="https://zerologementvacant.crisp.help/fr/article/comment-creer-mon-compte-zlv-1bcsydq"
-            isSimple
-            size="sm"
-            target="_blank"
-          >
-            Besoin d’aide pour créer votre compte ?
-          </AppLink>
-        </Row>
-      </Container>
-      <AppTextInput<FormShape>
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        inputForm={form}
-        inputKey="email"
-        whenValid="Email valide."
-        placeholder="example@gmail.com"
-        label="Adresse email (obligatoire)"
-        hintText={
-          <>
-            L’adresse mail doit être autorisée à accéder aux données LOVAC sur
-            le{' '}
-            <a href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">
-              portail Données Foncières du Cerema
-            </a>
-            .
-          </>
-        }
-        required
-      />
-      <Row alignItems="middle" className="justify-space-between">
-        <AppLink
-          iconId="fr-icon-arrow-left-line"
-          iconPosition="left"
-          isSimple
-          to="/"
-        >
-          Revenir à l’écran d’accueil
-        </AppLink>
-        <Button type="submit">Continuer</Button>
-      </Row>
-    </form>
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(submit)}>
+        <Grid container xs>
+          <Grid container xs={6}>
+            <Grid xs={12}>
+              <Stepper
+                currentStep={1}
+                stepCount={3}
+                title="Créez votre compte"
+                nextTitle="Définissez votre mot de passe"
+              />
+              <Typography
+                sx={{
+                  fontSize: '1.125rem',
+                  fontWeight: 700,
+                  lineHeight: '1.75rem',
+                  marginBottom: '0.75rem'
+                }}
+              >
+                Pour créer votre compte sur Zéro Logement Vacant, vous devez
+                déjà avoir effectué une demande d’accès au fichier LOVAC&nbsp;
+                <a
+                  href="https://datafoncier.cerema.fr/lovac"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  via la procédure indiquée sur le site du Cerema
+                </a>
+                .
+              </Typography>
+            </Grid>
+
+            <Grid xs={8} sx={{ mb: '2rem' }}>
+              <AppTextInputNext
+                hintText={
+                  <>
+                    L’adresse mail doit être autorisée à accéder aux données
+                    LOVAC sur le&nbsp;
+                    <a
+                      href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      portail Données Foncières du Cerema
+                    </a>
+                    .
+                  </>
+                }
+                label="Adresse e-mail (obligatoire)"
+                name="email"
+                nativeInputProps={{
+                  inputMode: 'email'
+                }}
+              />
+            </Grid>
+
+            <Grid xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button sx={{ alignSelf: 'flex-end' }} type="submit">
+                Vérifier mon adresse mail
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Grid xs={5} xsOffset={1}>
+            Image
+          </Grid>
+        </Grid>
+      </form>
+    </FormProvider>
   );
 }
 

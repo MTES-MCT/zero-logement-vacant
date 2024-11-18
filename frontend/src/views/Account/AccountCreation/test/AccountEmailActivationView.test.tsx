@@ -1,8 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import AccountEmailActivationView from '../AccountEmailActivationView';
 import { Provider } from 'react-redux';
+import { Link, MemoryRouter as Router, Route } from 'react-router-dom';
+import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
+
+import AccountEmailActivationView from '../AccountEmailActivationView';
 import { store } from '../../../../store/store';
 import { signupLinkApi } from '../../../../services/signup-link.service';
 
@@ -80,7 +83,7 @@ describe('AccountEmailActivationView', () => {
       );
       setup();
 
-      const sendAgain = screen.getByText(/renvoyer le mail/i);
+      const sendAgain = screen.getByText(/renvoyez un e-mail de vérification/i);
       await user.click(sendAgain);
 
       expect(sendActivationEmail).toHaveBeenCalledWith('ok@beta.gouv.fr', {
@@ -88,6 +91,21 @@ describe('AccountEmailActivationView', () => {
       });
       const sent = screen.getByText('Email envoyé.');
       expect(sent).toBeVisible();
+    });
+
+    it('should go back to /inscription/email', async () => {
+      // This is needed to inject `linkProps` into the `Button` component
+      startReactDsfr({
+        defaultColorScheme: 'light',
+        Link
+      });
+
+      setup();
+
+      const back = screen.getByText(/^Revenir à l’étape précédente/i);
+      await user.click(back);
+      const signUp = screen.getByText(/^Créer votre compte/);
+      expect(signUp).toBeVisible();
     });
   });
 });

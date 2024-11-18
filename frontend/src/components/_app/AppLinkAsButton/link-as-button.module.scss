@@ -1,5 +1,4 @@
 .buttonLink {
-  padding: 0 0 0.2rem 0;
   background-image: var(--underline-img),var(--underline-img);
   background-position: var(--underline-x) 100%,var(--underline-x) calc(100% - 0.0625em);
   background-repeat: no-repeat,no-repeat;
@@ -18,4 +17,8 @@
 
 .buttonLinkSm {
   font-size: 0.875rem;
+}
+
+.colorInherit {
+  color: inherit;
 }

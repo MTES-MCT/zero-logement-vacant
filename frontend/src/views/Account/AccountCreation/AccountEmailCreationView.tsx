@@ -10,6 +10,8 @@ import * as yup from 'yup';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
 import { emailValidator } from '../../../hooks/useForm';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
+import image from '../../../assets/images/fifty-hours.svg';
+import Image from '../../../components/Image/Image';
 
 const schema = yup
   .object({
@@ -102,8 +104,19 @@ function AccountEmailCreationView() {
             </Grid>
           </Grid>
 
-          <Grid xs={5} xsOffset={1}>
-            Image
+          <Grid
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}
+            xs={5}
+            xsOffset={1}
+          >
+            <Image
+              alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"
+              responsive="max-width"
+              src={image}
+            />
           </Grid>
         </Grid>
       </form>

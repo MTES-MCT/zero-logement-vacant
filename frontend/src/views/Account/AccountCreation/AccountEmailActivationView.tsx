@@ -1,11 +1,16 @@
+import { fr } from '@codegouvfr/react-dsfr';
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
-import { useMemo } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
-import { Text } from '../../../components/_dsfr';
 import styles from '../forgotten-password-view.module.scss';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
+import image from '../../../assets/images/fifty-hours.svg';
+import Image from '../../../components/Image/Image';
 
 interface State {
   email?: string;
@@ -15,7 +20,7 @@ function AccountEmailActivationView() {
   const location: { state?: State } = useLocation();
   const { error, hidden, send: sendActivationEmail } = useActivationEmail();
 
-  const status = useMemo(() => (error ? 'error' : 'valid'), [error]);
+  const status = error ? 'error' : 'valid';
 
   function send(): void {
     const { state } = location;
@@ -33,35 +38,83 @@ function AccountEmailActivationView() {
   });
 
   return (
-    <>
-      <Typography component="h2" variant="h4" mb={3}>
-        Vous devez confirmer votre adresse mail.
-      </Typography>
-      <Text>
-        Pour cela rendez vous sur votre boite mail, vous avez dû recevoir 
-        <b>un mail de vérification</b> pour vérifier votre identité.
-      </Text>
-      <Text size="sm" className="subtitle fr-mb-0">
-        Vous ne trouvez pas le mail ?
-      </Text>
-      <Text size="sm" className="subtitle">
-        Vérifiez qu’il ne s’est pas glissé dans vos spams ou 
-        <button
-          onClick={send}
-          className={classNames(
-            'fr-link',
-            styles.buttonLink,
-            styles.buttonLinkSm
-          )}
+    <Grid container>
+      <Grid xs={6}>
+        <Stepper
+          currentStep={1}
+          stepCount={3}
+          title="Créez votre compte"
+          nextTitle="Définissez votre mot de passe"
+          className={fr.cx('fr-mb-3w')}
+        />
+        <Typography
+          component="h2"
+          variant="body1"
+          sx={{
+            mb: fr.spacing('3v'),
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            lineHeight: '1.75rem'
+          }}
         >
-          renvoyer le mail
-        </button>
-        .
-      </Text>
-      <Text size="sm" className={confirmationClasses}>
-        {error ? error : 'Email envoyé.'}
-      </Text>
-    </>
+          Vous devez confirmer votre adresse mail.
+        </Typography>
+        <Typography sx={{ mb: fr.spacing('3w') }}>
+          Pour cela, rendez-vous dans votre boîte de réception, vous avez dû
+          recevoir un e-mail de vérification pour vérifier votre identité.
+        </Typography>
+        <Alert
+          className={fr.cx('fr-py-1w')}
+          closable={false}
+          severity="info"
+          small
+          description={
+            <Typography>
+              Si vous ne trouvez pas l’e-mail de validation dans votre boîte de
+              réception, vérifiez d’abord que celui-ci n’est pas dans vos spams.
+              Autrement,&nbsp;
+              <button
+                className={classNames(
+                  'fr-link',
+                  styles.buttonLink,
+                  styles.colorInherit
+                )}
+                onClick={send}
+              >
+                renvoyez un e-mail de vérification.
+              </button>
+            </Typography>
+          }
+        />
+        <Typography className={confirmationClasses} variant="body2">
+          {error ? error : 'Email envoyé.'}
+        </Typography>
+
+        <Button
+          className={fr.cx('fr-mt-2w')}
+          iconId="fr-icon-arrow-left-line"
+          linkProps={{ to: '/inscription/email' }}
+          priority="tertiary"
+        >
+          Revenir à l’étape précédente
+        </Button>
+      </Grid>
+
+      <Grid
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end'
+        }}
+        xs={5}
+        xsOffset={1}
+      >
+        <Image
+          alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"
+          responsive="max-width"
+          src={image}
+        />
+      </Grid>
+    </Grid>
   );
 }
 

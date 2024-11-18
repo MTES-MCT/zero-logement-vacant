@@ -203,8 +203,8 @@ function createTransformer(opts: TransformerOptions) {
      * @param pdf
      */
     async save(pdf: PDFDocument): Promise<Buffer> {
-      let firstImageHeight = { 'logo': 0, 'signature': 0 };
-      let firstImageWidth = { 'logo': 0, 'signature': 0 };
+      const firstImageHeight = { 'logo': 0, 'signature': 0 };
+      const firstImageWidth = { 'logo': 0, 'signature': 0 };
 
       // Embed images into the PDF
       await async.forEach(images, async (image) => {
@@ -243,8 +243,8 @@ function createTransformer(opts: TransformerOptions) {
 
           }
         });
-        firstImageHeight[image.type] = firstImageHeight[image.type] == 0 ? imageHeight : 0;
-        firstImageWidth[image.type] = firstImageWidth[image.type] == 0 ? image.width : 0;
+        firstImageHeight[image.type] = firstImageHeight[image.type] === 0 ? imageHeight : 0;
+        firstImageWidth[image.type] = firstImageWidth[image.type] === 0 ? image.width : 0;
       });
       const final = await pdf.save();
       return Buffer.from(final);

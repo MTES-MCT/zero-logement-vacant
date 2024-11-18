@@ -8,7 +8,7 @@ import fp from 'lodash/fp';
 export const emailValidator = yup
   .string()
   .required('Veuillez renseigner votre adresse email.')
-  .email("L'adresse doit être un email valide");
+  .email('L’adresse doit être un email valide');
 
 export const passwordFormatValidator = yup
   .string()

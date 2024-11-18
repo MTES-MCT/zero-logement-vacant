@@ -32,19 +32,19 @@ describe('AccountEmailCreationView', () => {
   it('should render', () => {
     setup();
 
-    const title = screen.getByText('Créer votre compte');
+    const title = screen.getByText('Créez votre compte');
     expect(title).toBeVisible();
   });
 
   it('should display an error if the email has a wrong format', async () => {
     setup();
 
-    const input = screen.getByPlaceholderText('example@gmail.com');
+    const input = screen.getByLabelText(/^Adresse e-mail/i);
     await user.type(input, 'invalid@email');
     await user.keyboard('{Enter}');
 
     const error = await screen.findByText(
-      "L'adresse doit être un email valide"
+      'L’adresse doit être un email valide'
     );
     expect(error).toBeVisible();
   });
@@ -53,7 +53,7 @@ describe('AccountEmailCreationView', () => {
     setup();
     const email = 'ok@beta.gouv.fr';
 
-    const input = screen.getByPlaceholderText('example@gmail.com');
+    const input = screen.getByLabelText(/^Adresse e-mail/i);
     await user.type(input, email);
     await user.keyboard('{Enter}');
 

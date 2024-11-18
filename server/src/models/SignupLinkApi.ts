@@ -1,11 +1,9 @@
 import { isPast } from 'date-fns';
+
+import { SignupLinkDTO } from '@zerologementvacant/models';
 import config from '~/infra/config';
 
-export interface SignupLinkApi {
-  id: string;
-  prospectEmail: string;
-  expiresAt: Date;
-}
+export type SignupLinkApi = SignupLinkDTO;
 
 /**
  * Expire in 7 days.

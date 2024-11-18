@@ -37,6 +37,7 @@ export * from './RolesDTO';
 export * from './RoomCount';
 export * from './SenderDTO';
 export * from './SettingsDTO';
+export * from './SignupLinkDTO';
 export * from './TimePerWeek';
 export * from './UserDTO';
 export * from './VacancyRate';

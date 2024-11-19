@@ -1,43 +1,60 @@
-import { Container, Text } from '../../../components/_dsfr';
-import AppLink from '../../../components/_app/AppLink/AppLink';
+import { fr } from '@codegouvfr/react-dsfr';
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
+
+import Image from '../../../components/Image/Image';
+import image from '../../../assets/images/fifty-hours.svg';
 
 function AccountAwaitingAccessView() {
   return (
-    <>
-      <Typography variant="h2" mb={3}>
-        Votre demande d’accès aux données LOVAC n’a pas encore été validée.
-      </Typography>
-      <Text>
-        Vous avez déjà signé et transmis l’acte d’engagement permettant
-        d’accéder aux données LOVAC via la plateforme Démarches Simplifiées.
-      </Text>
-      <Text>
-        Cependant, votre demande n’a pas encore été validée. Nous reviendrons
-        très prochainement vers vous pour finaliser la création de votre compte.
-      </Text>
-      <Text className="color-grey-625">
-        Attention, l’acte d’engagement n’est valable qu’un an à partir de la
-        date de signature.
-      </Text>
-      <Container as="section" fluid spacing="mb-4w">
-        <AppLink
-          to="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
-          isSimple
-          size="sm"
+    <Grid container>
+      <Grid xs={6}>
+        <Typography component="h1" variant="h6" sx={{ mb: 2 }}>
+          Votre demande d’accès aux données LOVAC n’a pas encore été validée
+        </Typography>
+        <Typography sx={{ mb: 2 }}>
+          Vous avez signé et transmis l’acte d’engagement permettant d’accéder
+          aux données LOVAC via la plateforme Démarche Simplifiées.
+        </Typography>
+        <Typography sx={{ mb: 3 }}>
+          Cependant, votre démarche n’a pas encore été validée. Nous reviendrons
+          vers vous le plus rapidement possible pour finaliser la création de
+          votre compte.
+        </Typography>
+
+        <Alert
+          description="L’acte d’engagement n’est valable qu’un an à partir de la date de signature."
+          severity="error"
+          small
+          className={fr.cx('fr-mb-4w')}
+        />
+
+        <Button
+          iconId="fr-icon-arrow-left-line"
+          linkProps={{ to: '/inscription/email' }}
+          priority="tertiary"
         >
-          Besoin d’aide pour créer votre compte ?
-        </AppLink>
-      </Container>
-      <AppLink
-        isSimple
-        to="/"
-        iconId="fr-icon-arrow-left-line"
-        iconPosition="left"
+          Revenir à l’étape précédente
+        </Button>
+      </Grid>
+
+      <Grid
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end'
+        }}
+        xs={5}
+        xsOffset={1}
       >
-        Revenir à l’écran d’accueil
-      </AppLink>
-    </>
+        <Image
+          alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"
+          responsive="max-width"
+          src={image}
+        />
+      </Grid>
+    </Grid>
   );
 }
 

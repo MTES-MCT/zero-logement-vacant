@@ -10,7 +10,7 @@ import image from '../../../assets/images/fifty-hours.svg';
 function AccountAwaitingAccessView() {
   return (
     <Grid container>
-      <Grid xs={6}>
+      <Grid xs={7}>
         <Typography component="h1" variant="h6" sx={{ mb: 2 }}>
           Votre demande d’accès aux données LOVAC n’a pas encore été validée
         </Typography>
@@ -45,7 +45,7 @@ function AccountAwaitingAccessView() {
           display: 'flex',
           justifyContent: 'flex-end'
         }}
-        xs={5}
+        xs={4}
         xsOffset={1}
       >
         <Image

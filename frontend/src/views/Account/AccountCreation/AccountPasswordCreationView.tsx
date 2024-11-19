@@ -72,7 +72,7 @@ function AccountPasswordCreationView() {
 
   return (
     <Grid container>
-      <Grid xs={6}>
+      <Grid xs={7}>
         <Stepper
           stepCount={3}
           currentStep={2}
@@ -131,7 +131,7 @@ function AccountPasswordCreationView() {
           display: 'flex',
           justifyContent: 'flex-end'
         }}
-        xs={5}
+        xs={4}
         xsOffset={1}
       >
         <Image

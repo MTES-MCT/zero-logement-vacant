@@ -1,5 +1,7 @@
 import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
+import { ReactNode } from 'react';
 import { useController } from 'react-hook-form';
+import { match, Pattern } from 'ts-pattern';
 
 export type AppTextInputNextProps = InputProps & {
   name: string;
@@ -48,7 +50,26 @@ function AppTextInputNext(props: AppTextInputNextProps) {
           : undefined
       }
       state={fieldState.invalid ? 'error' : undefined}
-      stateRelatedMessage={fieldState.error?.message}
+      stateRelatedMessage={
+        fieldState.invalid
+          ? match(fieldState.error?.types)
+              .returnType<ReactNode>()
+              .with(undefined, () => fieldState.error?.message)
+              .otherwise((errors) =>
+                Object.values(errors)
+                  .map((error) =>
+                    match(error)
+                      .returnType<ReactNode>()
+                      .with(Pattern.string, (value) => value)
+                      .with(Pattern.array(Pattern.string), (values) =>
+                        values.join(', ')
+                      )
+                      .otherwise(() => null)
+                  )
+                  .join(' ')
+              )
+          : undefined
+      }
     />
   );
 }

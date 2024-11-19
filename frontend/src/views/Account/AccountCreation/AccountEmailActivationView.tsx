@@ -39,7 +39,7 @@ function AccountEmailActivationView() {
 
   return (
     <Grid container>
-      <Grid xs={6}>
+      <Grid xs={7}>
         <Stepper
           currentStep={1}
           stepCount={3}
@@ -105,7 +105,7 @@ function AccountEmailActivationView() {
           display: 'flex',
           justifyContent: 'flex-end'
         }}
-        xs={5}
+        xs={4}
         xsOffset={1}
       >
         <Image

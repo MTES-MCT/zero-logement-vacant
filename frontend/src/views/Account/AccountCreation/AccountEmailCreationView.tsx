@@ -44,7 +44,7 @@ function AccountEmailCreationView() {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(submit)}>
         <Grid container xs>
-          <Grid container xs={6}>
+          <Grid container xs={7}>
             <Grid xs={12}>
               <Stepper
                 currentStep={1}
@@ -109,7 +109,7 @@ function AccountEmailCreationView() {
               display: 'flex',
               justifyContent: 'flex-end'
             }}
-            xs={5}
+            xs={4}
             xsOffset={1}
           >
             <Image

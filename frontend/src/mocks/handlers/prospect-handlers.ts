@@ -4,7 +4,6 @@ import { constants } from 'node:http2';
 import { ProspectDTO } from '@zerologementvacant/models';
 import config from '../../utils/config';
 import data from './data';
-import { faker } from '@faker-js/faker';
 
 interface SignupLinkParams {
   id: string;
@@ -30,14 +29,14 @@ export const prospectHandlers: RequestHandler[] = [
         });
       }
 
+      const existingProspect = data.prospects.find(
+        (prospect) => prospect.email === link.prospectEmail
+      );
       const prospect: ProspectDTO = {
         email: link.prospectEmail,
-        establishment: {
-          id: faker.string.uuid(),
-          siren: Number(faker.string.numeric(9))
-        },
-        hasAccount: true,
-        hasCommitment: true
+        establishment: existingProspect?.establishment,
+        hasAccount: existingProspect?.hasAccount ?? false,
+        hasCommitment: existingProspect?.hasCommitment ?? false
       };
       data.prospects = data.prospects.map((value) => {
         return value.email === prospect.email ? prospect : value;

@@ -1,83 +1,50 @@
-import { FormEvent, useEffect, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import { yupResolver } from '@hookform/resolvers/yup';
+import Grid from '@mui/material/Unstable_Grid2';
+import Typography from '@mui/material/Typography';
+import { FormProvider, useForm } from 'react-hook-form';
+import { Navigate, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
+
 import {
   passwordConfirmationValidator,
-  passwordFormatValidator,
-  useForm
+  passwordFormatValidator
 } from '../../../hooks/useForm';
 import { Row, Text } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
-import { Prospect } from '../../../models/Prospect';
-import AppTextInput from '../../../components/_app/AppTextInput/AppTextInput';
-import Button from '@codegouvfr/react-dsfr/Button';
-import Stepper from '@codegouvfr/react-dsfr/Stepper';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../../models/TrackEvent';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import Typography from '@mui/material/Typography';
+import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
+import image from '../../../assets/images/thousand-structures.svg';
+import Image from '../../../components/Image/Image';
 
-interface RouterState {
-  prospect?: Prospect | undefined;
-  password?: string;
-}
+const schema = yup
+  .object({
+    password: passwordFormatValidator,
+    confirmation: passwordConfirmationValidator
+  })
+  .required();
 
 function AccountPasswordCreationView() {
   const navigate = useNavigate();
-  const location: { state: RouterState } = useLocation();
-  const { trackEvent } = useMatomo();
+  const { linkExists, loading, prospect } = useProspect();
 
-  const { linkExists, loading, prospect } = useProspect(
-    location.state?.prospect
-  );
-
-  const [password, setPassword] = useState('');
-  const [confirmation, setConfirmation] = useState('');
-
-  useEffect(() => {
-    form.validate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [password]);
-
-  const shape = {
-    password: yup.string().required('Veuillez renseigner votre mot de passe.'),
-    passwordFormat: passwordFormatValidator,
-    confirmation: passwordConfirmationValidator
-  };
-  type FormShape = typeof shape;
-
-  const form = useForm(yup.object().shape(shape), {
-    password,
-    passwordFormat: password,
-    confirmation
+  const form = useForm<yup.InferType<typeof schema>>({
+    criteriaMode: 'all',
+    defaultValues: {
+      password: '',
+      confirmation: ''
+    },
+    mode: 'onSubmit',
+    resolver: yupResolver(schema)
   });
 
   if (loading) {
-    return null;
+    return <Loading />;
   }
 
   if (!linkExists) {
-    return (
-      <>
-        <Typography component="h1" variant="h4" mb={3}>
-          Ce lien n’existe pas ou est expiré !
-        </Typography>
-        <Text>Recommencez la procédure ou contactez le support.</Text>
-        <Row>
-          <AppLink
-            iconId="fr-icon-home-4-fill"
-            iconPosition="left"
-            isSimple
-            to="/"
-          >
-            Revenir à l’accueil
-          </AppLink>
-        </Row>
-      </>
-    );
+    return <LinkMissing />;
   }
 
   if (prospect) {
@@ -92,71 +59,112 @@ function AccountPasswordCreationView() {
     }
   }
 
-  async function next(e: FormEvent) {
-    e.preventDefault();
-    await form.validate(() => {
-      if (prospect) {
-        trackEvent({
-          category: TrackEventCategories.AccountCreation,
-          action: TrackEventActions.AccountCreation.SubmitPassword
-        });
-        navigate('/inscription/campagne', {
-          state: {
-            prospect,
-            password
-          }
-        });
-      }
-    });
+  async function submit() {
+    if (prospect) {
+      navigate('/inscription/campagne', {
+        state: {
+          prospect,
+          password: form.getValues('password')
+        }
+      });
+    }
   }
 
   return (
+    <Grid container>
+      <Grid xs={6}>
+        <Stepper
+          stepCount={3}
+          currentStep={2}
+          title="Définissez votre mot de passe"
+          nextTitle="Vos premiers pas accompagnés sur ZLV"
+        />
+
+        <FormProvider {...form}>
+          <form onSubmit={form.handleSubmit(submit)}>
+            <Grid container>
+              <Typography
+                sx={{
+                  fontSize: '1.125rem',
+                  fontWeight: 700,
+                  lineHeight: '1.75rem',
+                  marginBottom: '0.75rem'
+                }}
+              >
+                Définissez un mot de passe pour vous connecter à Zéro Logement
+                Vacant
+              </Typography>
+
+              <Grid sx={{ mb: 4 }} xs={8}>
+                <AppTextInputNext
+                  label="Définissez votre mot de passe (obligatoire)"
+                  name="password"
+                  nativeInputProps={{
+                    type: 'password'
+                  }}
+                />
+
+                <AppTextInputNext
+                  label="Confirmez votre mot de passe (obligatoire)"
+                  name="confirmation"
+                  nativeInputProps={{
+                    type: 'password'
+                  }}
+                />
+              </Grid>
+              <Grid
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'flex-end'
+                }}
+                xs={12}
+              >
+                <Button type="submit">Confirmer mon mot de passe</Button>
+              </Grid>
+            </Grid>
+          </form>
+        </FormProvider>
+      </Grid>
+
+      <Grid
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end'
+        }}
+        xs={5}
+        xsOffset={1}
+      >
+        <Image
+          alt="Environ 1000 structures inscrites sur Zéro Logement Vacant sur tout le territoire national"
+          responsive="max-width"
+          src={image}
+        />
+      </Grid>
+    </Grid>
+  );
+}
+
+function Loading() {
+  return null;
+}
+
+function LinkMissing() {
+  return (
     <>
-      <Stepper
-        stepCount={3}
-        currentStep={2}
-        title="Créer votre mot de passe"
-        nextTitle="Intentions opérationnelles"
-      />
-      <form onSubmit={next}>
-        <AppTextInput<FormShape>
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          inputForm={form}
-          inputKey="password"
-          label="Créer votre mot de passe (obligatoire)"
-          hintText="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
-          required
-        />
-        {form.messageList('passwordFormat')?.map((message, i) => (
-          <p className={`fr-${message.type}-text`} key={i}>
-            {message.text}
-          </p>
-        ))}
-        <AppTextInput<FormShape>
-          type="password"
-          className="fr-mt-3w"
-          value={confirmation}
-          onChange={(e) => setConfirmation(e.target.value)}
-          inputForm={form}
-          inputKey="confirmation"
-          whenValid="Mots de passe identiques."
-          label="Confirmer votre mot de passe (obligatoire)"
-          required
-        />
-        <Row alignItems="middle" className="justify-space-between">
-          <AppLink
-            isSimple
-            to="/inscription/email"
-            iconId="fr-icon-arrow-left-line"
-            iconPosition="left"
-          >
-            Revenir à l’étape précédente
-          </AppLink>
-          <Button type="submit">Continuer</Button>
-        </Row>
-      </form>
+      <Typography component="h1" variant="h4" mb={3}>
+        Ce lien n’existe pas ou est expiré !
+      </Typography>
+      <Text>Recommencez la procédure ou contactez le support.</Text>
+      <Row>
+        <AppLink
+          iconId="fr-icon-home-4-fill"
+          iconPosition="left"
+          isSimple
+          to="/"
+        >
+          Revenir à l’accueil
+        </AppLink>
+      </Row>
     </>
   );
 }

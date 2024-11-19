@@ -17,6 +17,11 @@ import { DatafoncierHousing } from '../DatafoncierHousing';
 import { HOUSING_STATUS_VALUES } from '../HousingStatus';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { HousingOwnerDTO } from '../HousingOwnerDTO';
+import { SignupLinkDTO } from '../SignupLinkDTO';
+import { ProspectDTO } from '../ProspectDTO';
+import { EstablishmentDTO } from '../EstablishmentDTO';
+import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
+import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -227,6 +232,22 @@ export function genDraftDTO(
   };
 }
 
+export function genEstablishmentDTO(): EstablishmentDTO {
+  const name = faker.location.city();
+  return {
+    id: faker.string.uuid(),
+    name,
+    shortName: name,
+    siren: Number(faker.string.numeric(9)),
+    geoCodes: faker.helpers.multiple(() => faker.location.zipCode(), {
+      count: { min: 1, max: 10 }
+    }),
+    available: true,
+    kind: faker.helpers.arrayElement(ESTABLISHMENT_KIND_VALUES),
+    source: faker.helpers.arrayElement(ESTABLISHMENT_SOURCE_VALUES)
+  };
+}
+
 export function genGroupDTO(
   creator: UserDTO,
   housings?: HousingDTO[]
@@ -325,6 +346,15 @@ export function genOwnerDTO(): OwnerDTO {
   });
 }
 
+export function genProspectDTO(establishment: EstablishmentDTO): ProspectDTO {
+  return {
+    email: faker.internet.email(),
+    establishment: fp.pick(['id', 'siren'], establishment),
+    hasAccount: true,
+    hasCommitment: true
+  };
+}
+
 export function genSenderDTO(): SenderDTO {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
@@ -353,6 +383,14 @@ function genSignatoryDTO(signature?: FileUploadDTO): SignatoryDTO {
     role: faker.person.jobTitle(),
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName()
+  };
+}
+
+export function genSignupLinkDTO(prospectEmail: string): SignupLinkDTO {
+  return {
+    id: faker.string.uuid(),
+    prospectEmail,
+    expiresAt: faker.date.soon({ days: 7 })
   };
 }
 

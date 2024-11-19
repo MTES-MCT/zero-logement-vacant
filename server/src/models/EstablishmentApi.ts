@@ -1,19 +1,8 @@
-import {
-  EstablishmentKind,
-  EstablishmentSource
-} from '@zerologementvacant/models';
+import { EstablishmentDTO } from '@zerologementvacant/models';
 
-export interface EstablishmentApi {
-  id: string;
-  name: string;
-  shortName: string;
-  siren: number;
-  available: boolean;
-  geoCodes: string[];
+export interface EstablishmentApi extends EstablishmentDTO {
   campaignIntent?: CampaignIntent;
   priority: EstablishmentPriority;
-  kind: EstablishmentKind;
-  source: EstablishmentSource;
 }
 
 export type EstablishmentPriority = 'standard' | 'high';

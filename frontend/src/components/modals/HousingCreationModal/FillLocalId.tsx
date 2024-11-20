@@ -93,7 +93,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
       <Alert
         className="fr-mb-2w"
         severity="info"
-        title="Comment trouver l’identifiant du logement que je souhaite ajouter ?"
+        title="Comment trouver l’identifiant fiscal national ?"
         description={
           <>
             <a
@@ -101,9 +101,9 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
               target="_blank"
               rel="noreferrer"
             >
-              L’identifiant du logement
+              L’identifiant fiscal national
             </a>
-            &nbsp;est une concaténation du&nbsp;
+            &nbsp;(12 chiffres), présent dans les Fichiers Fonciers, est une concaténation du&nbsp;
             <a
               href="https://doc-datafoncier.cerema.fr/doc/dv3f/local/coddep"
               target="_blank"
@@ -111,15 +111,15 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
             >
               &nbsp;code département
             </a>
-            &nbsp;du logement et de&nbsp;
+            &nbsp;(2 chiffres) et de&nbsp;
             <a
               href="https://doc-datafoncier.cerema.fr/doc/ff/pb0010_local/invar"
               target="_blank"
               rel="noreferrer"
             >
-              l’identifiant fiscal départemental
+              l’invariant fiscal départemental
             </a>
-            &nbsp;du logement, dans cet ordre-là.
+            &nbsp;(10 chiffres) du logement, dans cet ordre-là.
           </>
         }
       />

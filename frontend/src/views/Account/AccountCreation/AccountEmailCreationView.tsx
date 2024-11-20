@@ -114,8 +114,11 @@ function AccountEmailCreationView() {
             >
               <Button
                 iconId="fr-icon-arrow-go-back-line"
-                linkProps={{ to: '/connexion' }}
+                linkProps={{
+                  to: '/connexion'
+                }}
                 priority="tertiary"
+                role="link"
               >
                 Retour à la page d’accueil
               </Button>

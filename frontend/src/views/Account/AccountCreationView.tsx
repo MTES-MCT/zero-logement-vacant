@@ -6,7 +6,7 @@ import AccountEmailActivationView from './AccountCreation/AccountEmailActivation
 import AccountPasswordCreationView from './AccountCreation/AccountPasswordCreationView';
 import AccountAwaitingAccessView from './AccountCreation/AccountAwaitingAccessView';
 import AccountAccessForbiddenView from './AccountCreation/AccountAccessForbiddenView';
-import AccountCampaignIntentCreationView from './AccountCreation/AccountCampaignIntentCreationView';
+import AccountSupportRegistrationView from './AccountCreation/AccountSupportRegistrationView';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 function AccountCreationView() {
@@ -33,8 +33,8 @@ function AccountCreationView() {
           element={<AccountPasswordCreationView />}
         />
         <Route
-          path="campagne"
-          element={<AccountCampaignIntentCreationView />}
+          path="/inscription/prise-en-main"
+          element={AccountSupportRegistrationView}
         />
         <Route path="*" element={<Navigate replace to="../email" />} />
         </Routes>

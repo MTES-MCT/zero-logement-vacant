@@ -61,7 +61,7 @@ function AccountPasswordCreationView() {
 
   async function submit() {
     if (prospect) {
-      navigate('/inscription/campagne', {
+      navigate('/inscription/prise-en-main', {
         state: {
           prospect,
           password: form.getValues('password')

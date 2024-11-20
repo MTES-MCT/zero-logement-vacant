@@ -14,10 +14,8 @@ export function useProspect() {
   const link = location.hash.slice(1);
   const existingProspect = location.state?.prospect;
 
-  const [
-    saveProspect,
-    { data: prospect, error, isLoading: loading, isUninitialized }
-  ] = useSaveProspectMutation();
+  const [saveProspect, { data, error, isLoading: loading, isUninitialized }] =
+    useSaveProspectMutation();
 
   useEffect(() => {
     if (isUninitialized && !existingProspect) {
@@ -25,7 +23,11 @@ export function useProspect() {
     }
   }, [link, isUninitialized, saveProspect, existingProspect]);
 
+  // Get the prospect from the router state if it exists, or from the API
+  const prospect = existingProspect ?? data;
+
   const linkExists = !loading && !!prospect;
+  console.log('Link exists ?', linkExists, loading, prospect);
 
   return {
     error,

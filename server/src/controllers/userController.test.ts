@@ -81,14 +81,6 @@ describe('User API', () => {
           establishmentId: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
-
-      await request(app)
-        .post(testRoute)
-        .send({
-          ...prospect,
-          campaignIntent: '123'
-        })
-        .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should not actually create a user if it is a test account', async () => {

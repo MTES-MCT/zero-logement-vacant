@@ -11,12 +11,7 @@ async function get(email: string): Promise<ProspectApi | null> {
   logger.info('Get prospect by email', email);
 
   const prospect = await Prospects()
-    .select(
-      `${prospectsTable}.*`,
-      'e.id as establishment_id',
-      'e.siren as establishment_siren',
-      'e.campaign_intent as campaign_intent'
-    )
+    .select(`${prospectsTable}.*`)
     .where('email', email)
     // Unoptimized because siren is not a foreign key
     // but still more performant than listing all the establishments
@@ -25,6 +20,7 @@ async function get(email: string): Promise<ProspectApi | null> {
       'e.siren',
       `${prospectsTable}.establishment_siren`
     )
+    .select('e.id as establishment_id', 'e.siren as establishment_siren')
     .first();
 
   return prospect ? parseProspectApi(prospect) : null;

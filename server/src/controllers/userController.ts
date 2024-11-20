@@ -2,11 +2,6 @@ import { Request, Response } from 'express';
 import userRepository from '~/repositories/userRepository';
 import { SALT_LENGTH, toUserDTO, UserApi, UserRoles } from '~/models/UserApi';
 import { constants } from 'http2';
-import {
-  CampaignIntent,
-  hasPriority,
-  INTENTS,
-} from '~/models/EstablishmentApi';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import prospectRepository from '~/repositories/prospectRepository';
@@ -30,22 +25,20 @@ const createUserValidators = [
       minNumbers: 1,
       minUppercase: 1,
       minSymbols: 0,
-      minLowercase: 1,
+      minLowercase: 1
     })
     .withMessage(
-      'Must be at least 8 characters long, have 1 number, 1 uppercase, 1 lowercase',
+      'Must be at least 8 characters long, have 1 number, 1 uppercase, 1 lowercase'
     ),
-  body('campaignIntent').isString().isIn(INTENTS).optional(),
   body('establishmentId').isUUID(),
   body('firstName').isString().optional(),
-  body('lastName').isString().optional(),
+  body('lastName').isString().optional()
 ];
 
 interface CreateUserBody {
   email: string;
   password: string;
   establishmentId: string;
-  campaignIntent?: CampaignIntent;
   firstName?: string;
   lastName?: string;
 }
@@ -66,7 +59,7 @@ async function createUser(request: Request, response: Response) {
   }
 
   const userEstablishment = await establishmentRepository.get(
-    body.establishmentId,
+    body.establishmentId
   );
   if (!userEstablishment) {
     throw new EstablishmentMissingError(body.establishmentId);
@@ -79,25 +72,20 @@ async function createUser(request: Request, response: Response) {
     // TODO: should be optional in database
     firstName: body.firstName ?? '',
     lastName: body.lastName ?? '',
-    role: userEstablishment.geoCodes.length === 0 ? UserRoles.Visitor : UserRoles.Usual,
-    establishmentId: body.establishmentId,
+    role:
+      userEstablishment.geoCodes.length === 0
+        ? UserRoles.Visitor
+        : UserRoles.Usual,
+    establishmentId: body.establishmentId
   };
 
   logger.info('Create user', {
     id: user.id,
     email: user.email,
-    establishmentId: user.establishmentId,
+    establishmentId: user.establishmentId
   });
 
   const createdUser = await userRepository.insert(user);
-
-  if (!userEstablishment.campaignIntent && body.campaignIntent) {
-    userEstablishment.campaignIntent = body.campaignIntent;
-    userEstablishment.priority = hasPriority(userEstablishment)
-      ? 'high'
-      : 'standard';
-    await establishmentRepository.update(userEstablishment);
-  }
 
   if (!userEstablishment.available) {
     await establishmentRepository.setAvailable(userEstablishment);
@@ -107,7 +95,7 @@ async function createUser(request: Request, response: Response) {
 
   response.status(constants.HTTP_STATUS_CREATED).json(createdUser);
   mailService.emit('user:created', prospect.email, {
-    createdAt: new Date(),
+    createdAt: new Date()
   });
 }
 
@@ -130,7 +118,7 @@ const userController = {
   createUserValidators,
   createUser,
   get,
-  userIdValidator,
+  userIdValidator
 };
 
 export default userController;

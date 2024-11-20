@@ -6,30 +6,37 @@ import Typography from '@mui/material/Typography';
 
 import Image from '../../../components/Image/Image';
 import image from '../../../assets/images/fifty-hours.svg';
+import AppLink from '../../../components/_app/AppLink/AppLink';
 
 function AccountAccessForbiddenView() {
   return (
     <Grid container>
       <Grid xs={7}>
         <Typography component="h1" variant="h6" sx={{ mb: fr.spacing('3v') }}>
-          Votre adresse e-mail n’a pas été reconnue. Vous n’êtes pas autorisé à
-          accéder à Zéro Logement Vacant.
+          Ce mail n’est pas autorisé à accéder à Zéro Logement Vacant.
         </Typography>
         <Typography sx={{ mb: fr.spacing('3v') }}>
-          Seul les usagers autorisés à accéder aux données LOVAC peuvent créer
-          un compte Zéro Logement Vacant. Vous trouverez quelques informations
-          ci-dessous en fonction de votre situation.
+          Seules les personnes membres des structures ayant droit d’accéder aux
+          données LOVAC — les collectivités territoriales, les EPCI à fiscalité
+          propre et les services de l’Etat, ainsi que leurs partenaires —
+          peuvent créer un compte ZLV.
         </Typography>
 
-        <Accordion label="Votre structure n’est pas autorisée à accéder aux données LOVAC">
+        <Typography sx={{ mb: fr.spacing('3v') }}>
+          Si vous êtes membre d‘une de ces structures mais que vous ne parvenez
+          pas à créer votre compte, vous êtes donc sans doute dans l’un des cas
+          suivants :
+        </Typography>
+
+        <Accordion label="Votre structure n'est pas enregistrée comme bénéficiaire des données LOVAC sur le portail Données Foncières">
           <Typography variant="body2">
             Pour pouvoir accéder à Zéro Logement Vacant, vous devez effectuer
-            une demande d‘accès aux données LOVAC via le&nbsp;
+            une demande d‘accès aux données LOVAC via &nbsp;
             <a
               className="fr-link--sm"
               href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres"
             >
-              portail Données Foncières du Cerema
+              le portail Données Foncières du Cerema
             </a>
             . Pour cela, créez votre compte sur ce portail et effectuez une
             demande d‘accès au niveau 3 - LOVAC. Si votre accès a expiré,
@@ -37,7 +44,7 @@ function AccountAccessForbiddenView() {
           </Typography>
         </Accordion>
 
-        <Accordion label="Votre structure est autorisée à accéder aux données LOVAC mais votre e-mail ne correspond pas à celui qui a été utilisé pour effectuer la demande">
+        <Accordion label="Votre structure est enregistrée comme bénéficiaire des données LOVAC mais votre mail n'est pas rattaché à la structure sur le portail Données Foncières">
           <Typography variant="body2">
             Dans ce cas, créez votre compte sur le&nbsp;
             <a
@@ -52,7 +59,7 @@ function AccountAccessForbiddenView() {
           </Typography>
         </Accordion>
 
-        <Accordion label="Une ou plusieurs personnes de votre structure ont déjà des accès à Zéro Logement Vacant mais votre e-mail n’a pas été rattaché">
+        <Accordion label="Votre mail est rattaché à la structure mais vous n'avez pas créé votre propre compte utilisateur sur le portail Données Foncières">
           <Typography variant="body2">
             Vous devez impérativement avoir créé un compte sur le&nbsp;
             <a
@@ -67,13 +74,24 @@ function AccountAccessForbiddenView() {
           </Typography>
         </Accordion>
 
+        <AppLink
+          className={fr.cx('fr-mt-3w')}
+          isSimple
+          rel="noreferrer"
+          style={{ display: 'block' }}
+          target="_blank"
+          to="https://zerologementvacant.crisp.help/fr/article/comment-creer-mon-compte-zlv-1bcsydq/"
+        >
+          Besoin d’aide pour créer votre compte ?
+        </AppLink>
+
         <Button
           className={fr.cx('fr-mt-4w')}
-          iconId="fr-icon-arrow-left-line"
-          linkProps={{ to: '/inscription/email' }}
+          iconId="fr-icon-arrow-go-back-line"
+          linkProps={{ to: '/connexion' }}
           priority="tertiary"
         >
-          Revenir à l’étape précédente
+          Retour à la page d’accueil
         </Button>
       </Grid>
 

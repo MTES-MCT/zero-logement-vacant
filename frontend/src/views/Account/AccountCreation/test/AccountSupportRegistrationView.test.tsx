@@ -13,7 +13,7 @@ import AccountSupportRegistrationView from '../AccountSupportRegistrationView';
 import { Prospect } from '../../../../models/Prospect';
 import configureTestStore from '../../../../utils/test/storeUtils';
 
-describe('AccountCampaignIntentCreationView', () => {
+describe('AccountSupportRegistrationView', () => {
   const user = userEvent.setup();
   const establishment = genEstablishmentDTO();
 

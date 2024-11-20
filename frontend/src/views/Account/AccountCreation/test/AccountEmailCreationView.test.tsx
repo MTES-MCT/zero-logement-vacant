@@ -49,10 +49,19 @@ describe('AccountEmailCreationView', () => {
     expect(error).toBeVisible();
   });
 
-  it('should redirect to /inscription/activation', async () => {
+  it('should go back to /connexion', async () => {
     setup();
-    const email = 'ok@beta.gouv.fr';
 
+    const home = screen.getByRole('button', {
+      name: /Retour à la page d’accueil/i
+    });
+    await user.click(home);
+  });
+
+  it('should go on to /inscription/activation', async () => {
+    setup();
+
+    const email = 'ok@beta.gouv.fr';
     const input = screen.getByLabelText(/^Adresse e-mail/i);
     await user.type(input, email);
     await user.keyboard('{Enter}');

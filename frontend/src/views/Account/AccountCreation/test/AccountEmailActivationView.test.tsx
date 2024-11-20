@@ -69,11 +69,10 @@ describe('AccountEmailActivationView', () => {
     it('should render', async () => {
       setup();
 
-      const title = screen.getByText(
-        'Vous devez confirmer votre adresse mail.'
-      );
-
-      expect(title).toBeVisible();
+      const heading = screen.getByRole('heading', {
+        name: /Créez votre compte/i
+      });
+      expect(heading).toBeVisible();
     });
 
     it('should send an email again', async () => {

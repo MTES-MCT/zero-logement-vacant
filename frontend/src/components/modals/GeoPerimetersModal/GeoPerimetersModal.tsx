@@ -149,13 +149,13 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
         )}
         <AppHelp className={styles.help}>
           <Text>
-            Afin de pouvoir filtrer les logements d'un périmètre (OPAH, ORT, Permis de louer, etc.),
+            Afin de pouvoir filtrer les logements d’un périmètre (OPAH, ORT, Permis de louer, etc.),
             déposez un fichier géographique (SIG) au format .zip comprenant l’ensemble des
             extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).
           </Text>
           <Text spacing="mb-0" className="italic">
             Attention : votre périmètre doit comprendre au maximum 500 entités.
-            Vérifiez le format de votre périmètre avant de l'intégrer.
+            Vérifiez le format de votre périmètre avant de l’intégrer.
           </Text>
         </AppHelp>
         <Row className="fr-mt-3w fr-mb-1w">

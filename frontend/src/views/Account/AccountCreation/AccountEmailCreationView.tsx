@@ -12,6 +12,7 @@ import { emailValidator } from '../../../hooks/useForm';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
 import image from '../../../assets/images/fifty-hours.svg';
 import Image from '../../../components/Image/Image';
+import AppLink from '../../../components/_app/AppLink/AppLink';
 
 const schema = yup
   .object({
@@ -61,13 +62,14 @@ function AccountEmailCreationView() {
                 }}
               >
                 Pour créer votre compte sur Zéro Logement Vacant, vous devez
-                déjà avoir effectué une demande d’accès au fichier LOVAC&nbsp;
+                impérativement avoir effectué votre demande d’accès aux données
+                LOVAC via&nbsp;
                 <a
-                  href="https://datafoncier.cerema.fr/lovac"
+                  href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  via la procédure indiquée sur le site du Cerema
+                  le portail Données Foncières du Cerema
                 </a>
                 .
               </Typography>
@@ -78,13 +80,13 @@ function AccountEmailCreationView() {
                 hintText={
                   <>
                     L’adresse mail doit être autorisée à accéder aux données
-                    LOVAC sur le&nbsp;
+                    LOVAC sur&nbsp;
                     <a
                       href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres"
                       target="_blank"
                       rel="noreferrer"
                     >
-                      portail Données Foncières du Cerema
+                      le portail Données Foncières du Cerema
                     </a>
                     .
                   </>
@@ -95,9 +97,29 @@ function AccountEmailCreationView() {
                   inputMode: 'email'
                 }}
               />
+
+              <AppLink
+                isSimple
+                rel="noreferrer"
+                target="_blank"
+                to="https://zerologementvacant.crisp.help/fr/article/comment-creer-mon-compte-zlv-1bcsydq/"
+              >
+                Besoin d’aide pour créer votre compte ?
+              </AppLink>
             </Grid>
 
-            <Grid xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Grid
+              xs={12}
+              sx={{ display: 'flex', justifyContent: 'space-between' }}
+            >
+              <Button
+                iconId="fr-icon-arrow-go-back-line"
+                linkProps={{ to: '/connexion' }}
+                priority="tertiary"
+              >
+                Retour à la page d’accueil
+              </Button>
+
               <Button sx={{ alignSelf: 'flex-end' }} type="submit">
                 Vérifier mon adresse mail
               </Button>

@@ -1,11 +1,11 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 
 import Image from '../../../components/Image/Image';
 import image from '../../../assets/images/fifty-hours.svg';
+import AppLink from '../../../components/_app/AppLink/AppLink';
 
 function AccountAwaitingAccessView() {
   return (
@@ -15,28 +15,34 @@ function AccountAwaitingAccessView() {
           Votre demande d’accès aux données LOVAC n’a pas encore été validée
         </Typography>
         <Typography sx={{ mb: 2 }}>
-          Vous avez signé et transmis l’acte d’engagement permettant d’accéder
-          aux données LOVAC via la plateforme Démarche Simplifiées.
+          Vous avez effectué votre demande d’accès aux données LOVAC via&nbsp;
+          <a href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">
+            le portail données foncières du Cerema
+          </a>
+          &nbsp;mais votre demande n’a pas encore été validée.
         </Typography>
         <Typography sx={{ mb: 3 }}>
-          Cependant, votre démarche n’a pas encore été validée. Nous reviendrons
-          vers vous le plus rapidement possible pour finaliser la création de
-          votre compte.
+          Veuillez réessayer dès que vous aurez reçu le mail de validation de
+          votre demande de la part du Cerema.
         </Typography>
 
-        <Alert
-          description="L’acte d’engagement n’est valable qu’un an à partir de la date de signature."
-          severity="error"
-          small
-          className={fr.cx('fr-mb-4w')}
-        />
+        <AppLink
+          isSimple
+          rel="noreferrer"
+          style={{ display: 'block' }}
+          target="_blank"
+          to="https://zerologementvacant.crisp.help/fr/article/comment-creer-mon-compte-zlv-1bcsydq/"
+        >
+          Besoin d’aide pour créer votre compte ?
+        </AppLink>
 
         <Button
-          iconId="fr-icon-arrow-left-line"
-          linkProps={{ to: '/inscription/email' }}
+          className={fr.cx('fr-mt-4w')}
+          iconId="fr-icon-arrow-go-back-line"
+          linkProps={{ to: '/connexion' }}
           priority="tertiary"
         >
-          Revenir à l’étape précédente
+          Retour à la page d’accueil
         </Button>
       </Grid>
 

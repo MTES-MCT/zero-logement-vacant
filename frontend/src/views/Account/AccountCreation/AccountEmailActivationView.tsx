@@ -57,7 +57,7 @@ function AccountEmailActivationView() {
             lineHeight: '1.75rem'
           }}
         >
-          Vous devez confirmer votre adresse mail.
+          Vous devez désormais vérifier votre adresse e-mail.
         </Typography>
         <Typography sx={{ mb: fr.spacing('3w') }}>
           Pour cela, rendez-vous dans votre boîte de réception, vous avez dû

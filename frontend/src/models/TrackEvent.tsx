@@ -11,7 +11,7 @@ export const TrackEventCategories = {
   Campaigns: 'Campagnes',
   GeoPerimeters: 'Périmètres',
   ContactPoints: 'Guichet contacts',
-  LocalityTaxes: 'Taxes locales',
+  LocalityTaxes: 'Taxes locales'
 };
 
 export const TrackEventActions = {
@@ -21,15 +21,14 @@ export const TrackEventActions = {
     CreateAccount: 'Créer un compte',
     SelectAddress: "Sélection d'une adresse",
     Webinar: 'Redirection inscription webinaire',
-    Newsletter: 'Redirection inscription newsletter',
+    Newsletter: 'Redirection inscription newsletter'
   },
   AccountCreation: {
     SendEmail: 'Envoi mail',
-    SubmitPassword: 'Validation du mot de passe',
-    SubmitCampaignIntent: 'Validation des intentions',
+    SubmitPassword: 'Validation du mot de passe'
   },
   OwnerProspect: {
-    SubmitContact: 'Formulaire contact complété',
+    SubmitContact: 'Formulaire contact complété'
   },
   HousingList: {
     CreateCampaign: 'Créer la campagne',
@@ -39,36 +38,36 @@ export const TrackEventActions = {
     MapView: 'Affichage de la cartographie (via le bouton)',
     ListView: 'Affichage de la liste (via le bouton)',
     UpdateList: 'Mise à jour groupée (depuis parc de logements)',
-    Update: 'Mise à jour (depuis parc de logements)',
+    Update: 'Mise à jour (depuis parc de logements)'
   },
   Housing: {
-    Update: 'Mise à jour (depuis fiche logement)',
+    Update: 'Mise à jour (depuis fiche logement)'
   },
   Campaigns: {
     ValidStep: (step: CampaignSteps) =>
       step === CampaignSteps.Export
         ? 'Exporter la campagne'
         : step === CampaignSteps.Sending
-        ? 'Confirmer'
-        : `Valider étape ${step}`,
+          ? 'Confirmer'
+          : `Valider étape ${step}`,
     UpdateList: 'Mise à jour groupée (depuis campagne)',
     Update: 'Mise à jour (depuis campagne)',
     DisplayHousing: 'Afficher un logement',
     Rename: 'Renommer une campagne',
     Delete: 'Supprimer une campagne',
-    Archive: 'Archiver une campagne',
+    Archive: 'Archiver une campagne'
   },
   GeoPerimeters: {
     Upload: 'Déposer un fichier',
     Rename: 'Renommer un périmètre',
-    Delete: 'Supprimer un périmètre',
+    Delete: 'Supprimer un périmètre'
   },
   ContactPoints: {
     Create: 'Ajouter un guichet contact',
     Update: 'Modifier un guichet contact',
-    Delete: 'Supprimer un guichet contact',
+    Delete: 'Supprimer un guichet contact'
   },
   LocalityTaxes: {
-    Update: 'Modifier une taxe locale',
-  },
+    Update: 'Modifier une taxe locale'
+  }
 };

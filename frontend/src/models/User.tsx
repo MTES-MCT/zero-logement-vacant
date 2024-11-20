@@ -26,7 +26,7 @@ export const fromUserDTO = (user: UserDTO): User => ({
   establishmentId: user.establishmentId!,
   role: user.role,
   // TODO: avoid !
-  activatedAt: new Date(user.activatedAt!),
+  activatedAt: new Date(user.activatedAt!)
 });
 
 export interface UserAccount {
@@ -41,11 +41,10 @@ export interface DraftUser {
   email: string;
   password: string;
   establishmentId: string;
-  campaignIntent?: string;
 }
 
 export enum UserRoles {
   Usual,
   Admin,
-  Visitor,
+  Visitor
 }

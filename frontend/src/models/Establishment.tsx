@@ -8,7 +8,6 @@ export interface Establishment {
   siren: number;
   available: boolean;
   geoCodes: string[];
-  campaignIntent?: string;
   kind: EstablishmentKind;
 }
 

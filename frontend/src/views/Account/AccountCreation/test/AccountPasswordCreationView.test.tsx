@@ -11,7 +11,6 @@ import {
   genSignupLinkDTO
 } from '@zerologementvacant/models/fixtures';
 import AccountPasswordCreationView from '../AccountPasswordCreationView';
-import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
 import configureTestStore from '../../../../utils/test/storeUtils';
 import data from '../../../../mocks/handlers/data';
 
@@ -28,10 +27,6 @@ describe('AccountPasswordCreationView', () => {
         {
           path: '/inscription/mot-de-passe',
           element: <AccountPasswordCreationView />
-        },
-        {
-          path: '/inscription/campagne',
-          element: <AccountCampaignIntentCreationView />
         }
       ],
       {

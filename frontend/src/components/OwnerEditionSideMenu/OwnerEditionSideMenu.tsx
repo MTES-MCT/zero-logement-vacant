@@ -100,8 +100,8 @@ function OwnerEditionSideMenu(props: Props) {
         title="Modifier les informations du propriétaire"
         content={
           <form id={formId} className="fr-px-6w">
-            <Grid>
-              <Typography component="h3" color={'var(--black-50)'}>
+            <Grid container>
+              <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
                 <span
                   className={fr.cx(
                     'fr-icon-bank-line',
@@ -118,7 +118,7 @@ function OwnerEditionSideMenu(props: Props) {
               </Grid>
             </Grid>
             <section className="fr-mb-3w fr-mt-3w">
-              <Typography component="h3" color={'var(--black-50)'}>
+              <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
                 <span
                   className={fr.cx(
                     'fr-icon-home-4-line',

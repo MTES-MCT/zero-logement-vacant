@@ -134,7 +134,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
             />
           </Col>
           <Col n="12">
-            <Typography component="h3" color={'var(--black-50)'}>
+            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
               <span
                 className={fr.cx(
                   'fr-icon-bank-line',
@@ -149,7 +149,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
             <Typography color={fr.colors.decisions.text.default.grey.default}>{owner.rawAddress ? owner.rawAddress : 'Inconnue'}</Typography>
           </Col>
           <Col n="12">
-            <Typography component="h3" color={'var(--black-50)'}>
+            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
               <span
                 className={fr.cx(
                   'fr-icon-home-4-line',

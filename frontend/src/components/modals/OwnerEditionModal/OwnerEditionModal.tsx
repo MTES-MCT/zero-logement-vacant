@@ -17,6 +17,10 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
 import { useUser } from '../../../hooks/useUser';
+import { Typography } from '@mui/material';
+import LabelNext from '../../Label/LabelNext';
+import { fr } from '@codegouvfr/react-dsfr';
+import styles from './owner-edition-modal.module.scss';
 
 const modal = createModal({
   id: 'owner-edition-modal',
@@ -131,6 +135,32 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
             />
           </Col>
           <Col n="12">
+            <LabelNext component="h3">
+              <span
+                className={fr.cx(
+                  'fr-icon-bank-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Adresse fiscale (source: DGFIP)
+            </LabelNext>
+            <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
+            <Typography className={styles.dgfipAddress}>{owner.rawAddress ? owner.rawAddress : 'Inconnue'}</Typography>
+          </Col>
+          <Col n="12">
+            <LabelNext component="h3">
+              <span
+                className={fr.cx(
+                  'fr-icon-home-4-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Adresse postale (source: Base Adresse Nationale)
+            </LabelNext>
             <OwnerAddressEdition
               banAddress={owner.banAddress}
               rawAddress={owner.rawAddress}

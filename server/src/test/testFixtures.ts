@@ -11,12 +11,7 @@ import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { firstDefined } from '@zerologementvacant/utils';
 import { UserApi, UserRoles } from '~/models/UserApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import {
-  CampaignIntent,
-  EstablishmentApi,
-  hasPriority,
-  INTENTS
-} from '~/models/EstablishmentApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { ENERGY_CONSUMPTION_GRADES, HousingApi } from '~/models/HousingApi';
 import { CampaignApi } from '~/models/CampaignApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
@@ -122,7 +117,6 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
 export const genEstablishmentApi = (
   ...geoCodes: string[]
 ): EstablishmentApi => {
-  const campaignIntent = oneOf<CampaignIntent>(INTENTS);
   const city = faker.location.city();
   return {
     id: uuidv4(),
@@ -130,9 +124,7 @@ export const genEstablishmentApi = (
     shortName: city,
     siren: genSiren(),
     geoCodes: geoCodes.length > 0 ? geoCodes : [genGeoCode()],
-    campaignIntent,
     available: true,
-    priority: hasPriority({ campaignIntent }) ? 'high' : 'standard',
     kind: faker.helpers.arrayElement(ESTABLISHMENT_KIND_VALUES),
     source: 'seed'
   };
@@ -172,8 +164,7 @@ export const genProspectApi = (
     email: genEmail(),
     establishment: {
       id: establishment.id,
-      siren: establishment.siren,
-      campaignIntent: establishment.campaignIntent
+      siren: establishment.siren
     },
     hasAccount: true,
     hasCommitment: true,

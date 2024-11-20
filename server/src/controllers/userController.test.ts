@@ -18,11 +18,10 @@ import {
 } from '~/repositories/userRepository';
 import {
   Establishments,
-  establishmentsTable,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { createServer } from '~/infra/server';
-import { CampaignIntent, EstablishmentApi } from '~/models/EstablishmentApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {
   formatProspectApi,
@@ -167,28 +166,6 @@ describe('User API', () => {
         establishment_id: prospect.establishment?.id,
         role: UserRoles.Usual
       });
-    });
-
-    it('should save the establishment campaign intent if it was not provided yet', async () => {
-      const campaignIntent: CampaignIntent = '2-4';
-      await db(establishmentsTable).where('id', establishment.id).update({
-        campaign_intent: null
-      });
-
-      const { status } = await request(app)
-        .post(testRoute)
-        .send({
-          ...prospect,
-          establishmentId: prospect.establishment?.id,
-          password: validPassword,
-          campaignIntent
-        });
-
-      expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const actual = await Establishments()
-        .where('id', establishment.id)
-        .first();
-      expect(actual?.campaign_intent).toBe(campaignIntent);
     });
 
     it('should activate user establishment if needed', async () => {

@@ -1,6 +1,10 @@
 import highland from 'highland';
 import { Knex } from 'knex';
 
+import {
+  EstablishmentKind,
+  EstablishmentSource
+} from '@zerologementvacant/models';
 import db, { likeUnaccent } from '~/infra/database';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { EstablishmentFilterApi } from '~/models/EstablishmentFilterApi';
@@ -119,46 +123,39 @@ export interface EstablishmentDBO {
   siren: number;
   available: boolean;
   localities_geo_code: string[];
-  campaign_intent?: string;
-  priority?: string;
-  kind?: string;
-  source: string;
+  kind: EstablishmentKind;
+  source: EstablishmentSource;
   updated_at: Date;
 }
 
 export const formatEstablishmentApi = (
-  establishmentApi: EstablishmentApi
+  establishment: EstablishmentApi
 ): EstablishmentDBO => ({
-  id: establishmentApi.id,
-  name: establishmentApi.name,
-  siren: establishmentApi.siren,
-  available: establishmentApi.available,
-  localities_geo_code: establishmentApi.geoCodes,
-  campaign_intent: establishmentApi.campaignIntent,
-  priority: establishmentApi.priority,
-  kind: establishmentApi.kind,
+  id: establishment.id,
+  name: establishment.name,
+  siren: establishment.siren,
+  available: establishment.available,
+  localities_geo_code: establishment.geoCodes,
+  kind: establishment.kind,
   updated_at: new Date(),
-  source: establishmentApi.source
+  source: establishment.source
 });
 
 export const parseEstablishmentApi = (
-  establishmentDbo: EstablishmentDBO
-): EstablishmentApi =>
-  <EstablishmentApi>{
-    id: establishmentDbo.id,
-    name: establishmentDbo.name,
-    shortName:
-      establishmentDbo.kind === 'Commune'
-        ? establishmentDbo.name.replaceAll(/^Commune d(e\s|')/g, '')
-        : establishmentDbo.name,
-    siren: establishmentDbo.siren,
-    available: establishmentDbo.available,
-    geoCodes: establishmentDbo.localities_geo_code,
-    campaignIntent: establishmentDbo.campaign_intent,
-    priority: establishmentDbo.priority ?? 'standard',
-    kind: establishmentDbo.kind,
-    source: establishmentDbo.source
-  };
+  establishment: EstablishmentDBO
+): EstablishmentApi => ({
+  id: establishment.id,
+  name: establishment.name,
+  shortName:
+    establishment.kind === 'Commune'
+      ? establishment.name.replaceAll(/^Commune d(e\s|')/g, '')
+      : establishment.name,
+  siren: establishment.siren,
+  available: establishment.available,
+  geoCodes: establishment.localities_geo_code,
+  kind: establishment.kind,
+  source: establishment.source
+});
 
 export default {
   find,

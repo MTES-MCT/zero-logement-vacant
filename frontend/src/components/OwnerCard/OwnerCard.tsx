@@ -70,7 +70,7 @@ function OwnerCard(props: OwnerCardProps) {
             />
             Adresse fiscale (source: DGFIP)
           </LabelNext>
-          <Typography>{props.owner.rawAddress ? props.owner.rawAddress : 'Inconnue'}</Typography>
+          <Typography color={'var(--grey-200)'}>{props.owner.rawAddress ? props.owner.rawAddress : 'Inconnue'}</Typography>
         </Grid>
 
 
@@ -84,7 +84,7 @@ function OwnerCard(props: OwnerCardProps) {
               )}
               aria-hidden={true}
             />
-            Adresse postale (source: BAN)
+            Adresse postale (source: Base Adresse Nationale)
           </LabelNext>
           <Typography>{props.owner.banAddress ? formatAddress(props.owner.banAddress) :  'Inconnue'}</Typography>
         </Grid>

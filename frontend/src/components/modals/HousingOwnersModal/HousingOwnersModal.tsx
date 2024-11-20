@@ -292,6 +292,32 @@ function HousingOwnersModal({
             />
           </Col>
           <Col n="12">
+            <Typography component="h3" color={'var(--black-50)'}>
+              <span
+                className={fr.cx(
+                  'fr-icon-bank-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Adresse fiscale (source: DGFIP)
+            </Typography>
+            <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
+            <Typography color={'var(--grey-200)'}>{housingOwner.rawAddress ? housingOwner.rawAddress : 'Inconnue'}</Typography>
+          </Col>
+          <Col n="12">
+            <Typography component="h3" color={'var(--black-50)'}>
+              <span
+                className={fr.cx(
+                  'fr-icon-home-4-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Adresse postale (source: Base Adresse Nationale)
+            </Typography>
             <OwnerAddressEdition
               banAddress={housingOwner.banAddress}
               rawAddress={housingOwner.rawAddress}

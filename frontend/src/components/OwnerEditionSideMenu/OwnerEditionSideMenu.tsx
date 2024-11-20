@@ -101,7 +101,7 @@ function OwnerEditionSideMenu(props: Props) {
         content={
           <form id={formId} className="fr-px-6w">
             <Grid>
-              <LabelNext component="h3">
+              <Typography component="h3" color={'var(--black-50)'}>
                 <span
                   className={fr.cx(
                     'fr-icon-bank-line',
@@ -111,14 +111,14 @@ function OwnerEditionSideMenu(props: Props) {
                   aria-hidden={true}
                 />
                 Adresse fiscale (source: DGFIP)
-              </LabelNext>
+              </Typography>
               <Grid>
                 <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
-                <Typography>{props.owner.rawAddress ? props.owner.rawAddress : 'Inconnue'}</Typography>
+                <Typography color={'var(--grey-200)'}>{props.owner.rawAddress ? props.owner.rawAddress : 'Inconnue'}</Typography>
               </Grid>
             </Grid>
             <section className="fr-mb-3w fr-mt-3w">
-              <LabelNext component="h3">
+              <Typography component="h3" color={'var(--black-50)'}>
                 <span
                   className={fr.cx(
                     'fr-icon-home-4-line',
@@ -128,7 +128,7 @@ function OwnerEditionSideMenu(props: Props) {
                   aria-hidden={true}
                 />
                 Adresse postale (source: Base Adresse Nationale)
-              </LabelNext>
+              </Typography>
               <OwnerAddressEdition
                 banAddress={address}
                 errorMessage={form.message('address')}

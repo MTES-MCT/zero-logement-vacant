@@ -52,7 +52,7 @@ describe('AccountEmailCreationView', () => {
   it('should go back to /connexion', async () => {
     setup();
 
-    const home = screen.getByRole('button', {
+    const home = screen.getByRole('link', {
       name: /Retour à la page d’accueil/i
     });
     await user.click(home);

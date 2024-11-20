@@ -175,7 +175,9 @@ describe('AccountPasswordCreationView', () => {
     await user.type(confirmationInput, password);
     await user.keyboard('{Enter}');
 
-    const title = await screen.findByText(/^Vos intentions de campagne/);
+    const title = await screen.findByText(
+      /^Vos premiers pas accompagnés sur ZLV/
+    );
     expect(title).toBeVisible();
   });
 });

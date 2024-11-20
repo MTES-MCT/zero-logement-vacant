@@ -70,7 +70,7 @@ function OwnerCard(props: OwnerCardProps) {
             />
             Adresse fiscale (source: DGFIP)
           </LabelNext>
-          <Typography color={'var(--grey-200)'}>{props.owner.rawAddress ? props.owner.rawAddress : 'Inconnue'}</Typography>
+          <Typography color={fr.colors.decisions.text.default.grey.default}>{props.owner.rawAddress ? props.owner.rawAddress : 'Inconnue'}</Typography>
         </Grid>
 
 

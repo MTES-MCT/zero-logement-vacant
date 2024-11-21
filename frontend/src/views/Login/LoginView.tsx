@@ -48,8 +48,8 @@ const LoginView = () => {
 
   async function submitLoginForm(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
-    await form.validate(async () => {
-      await dispatch(
+    await form.validate(() => {
+      dispatch(
         logIn({
           email,
           password,

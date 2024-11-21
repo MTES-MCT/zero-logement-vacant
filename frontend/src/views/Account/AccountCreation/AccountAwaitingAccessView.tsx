@@ -39,7 +39,11 @@ function AccountAwaitingAccessView() {
         <Button
           className={fr.cx('fr-mt-4w')}
           iconId="fr-icon-arrow-go-back-line"
-          linkProps={{ to: '/connexion' }}
+          linkProps={{
+            to: {
+              pathname: 'https://zerologementvacant.beta.gouv.fr'
+            }
+          }}
           priority="tertiary"
         >
           Retour à la page d’accueil

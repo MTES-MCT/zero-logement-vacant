@@ -1,26 +1,23 @@
-import { useHide } from './useHide';
-import { useState } from 'react';
 import { useSendActivationEmailMutation } from '../services/signup-link.service';
+import { useNotification } from './useNotification';
 
 export function useActivationEmail() {
-  const [error, setError] = useState('');
-  const { hidden, setHidden } = useHide();
+  const [sendActivationEmail, { isError, isLoading, isSuccess }] =
+    useSendActivationEmailMutation();
 
-  const [sendActivationEmail] = useSendActivationEmailMutation();
-
-  async function send(email: string) {
-    try {
-      await sendActivationEmail(email);
-    } catch (error) {
-      setError((error as Error).message);
-    } finally {
-      setHidden(false);
-    }
-  }
+  useNotification({
+    isError,
+    isSuccess,
+    isLoading,
+    message: {
+      error: 'Erreur lors de l’envoi de l’e-mail',
+      loading: 'Envoi...',
+      success: 'Email envoyé'
+    },
+    toastId: 'send-activation-email'
+  });
 
   return {
-    error,
-    hidden,
-    send,
+    sendActivationEmail
   };
 }

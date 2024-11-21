@@ -28,7 +28,14 @@ function AccountAccessForbiddenView() {
           suivants :
         </Typography>
 
-        <Accordion label="Votre structure n'est pas enregistrée comme bénéficiaire des données LOVAC sur le portail Données Foncières">
+        <Accordion
+          label={
+            <span className={fr.cx('fr-mr-2w')}>
+              Votre structure n’est pas enregistrée comme bénéficiaire des
+              données LOVAC sur le portail Données Foncières
+            </span>
+          }
+        >
           <Typography variant="body2">
             Pour pouvoir accéder à Zéro Logement Vacant, vous devez effectuer
             une demande d‘accès aux données LOVAC via &nbsp;
@@ -44,7 +51,15 @@ function AccountAccessForbiddenView() {
           </Typography>
         </Accordion>
 
-        <Accordion label="Votre structure est enregistrée comme bénéficiaire des données LOVAC mais votre mail n'est pas rattaché à la structure sur le portail Données Foncières">
+        <Accordion
+          label={
+            <span className={fr.cx('fr-mr-2w')}>
+              Votre structure est enregistrée comme bénéficiaire des données
+              LOVAC mais votre mail n’est pas rattaché à la structure sur le
+              portail Données Foncières
+            </span>
+          }
+        >
           <Typography variant="body2">
             Dans ce cas, créez votre compte sur le&nbsp;
             <a
@@ -59,7 +74,14 @@ function AccountAccessForbiddenView() {
           </Typography>
         </Accordion>
 
-        <Accordion label="Votre mail est rattaché à la structure mais vous n'avez pas créé votre propre compte utilisateur sur le portail Données Foncières">
+        <Accordion
+          label={
+            <span className={fr.cx('fr-mr-2w')}>
+              Votre mail est rattaché à la structure mais vous n’avez pas créé
+              votre propre compte utilisateur sur le portail Données Foncières
+            </span>
+          }
+        >
           <Typography variant="body2">
             Vous devez impérativement avoir créé un compte sur le&nbsp;
             <a
@@ -88,7 +110,11 @@ function AccountAccessForbiddenView() {
         <Button
           className={fr.cx('fr-mt-4w')}
           iconId="fr-icon-arrow-go-back-line"
-          linkProps={{ to: '/connexion' }}
+          linkProps={{
+            to: {
+              pathname: 'https://zerologementvacant.beta.gouv.fr'
+            }
+          }}
           priority="tertiary"
         >
           Retour à la page d’accueil

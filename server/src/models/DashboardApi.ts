@@ -1,8 +1,6 @@
-export interface DashboardApi {
-  url: string;
-}
+import { Resource } from '@zerologementvacant/models';
 
-export type Resource = '6-utilisateurs-de-zlv-sur-votre-structure' | '7-autres-structures-de-votre-territoires-inscrites-sur-zlv';
+// No need for DashboardApi
 
 export function getResource(id: Resource): number {
   switch (id) {
@@ -10,6 +8,8 @@ export function getResource(id: Resource): number {
       return 6;
     case '7-autres-structures-de-votre-territoires-inscrites-sur-zlv':
       return 7;
+    case '13-analyses':
+      return 13;
   }
 }
 

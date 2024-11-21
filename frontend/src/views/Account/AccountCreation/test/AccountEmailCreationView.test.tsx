@@ -49,7 +49,7 @@ describe('AccountEmailCreationView', () => {
     expect(error).toBeVisible();
   });
 
-  it('should go back to /connexion', async () => {
+  it('should go back to the home website', async () => {
     setup();
 
     const home = screen.getByRole('link', {

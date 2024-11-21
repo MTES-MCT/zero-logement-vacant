@@ -130,10 +130,10 @@ describe('AccountPasswordCreationView', () => {
     });
     await user.click(confirm);
     const errors = [
-      screen.getByText(/Au moins 8 caractères/i),
-      screen.getByText(/Au moins une majuscule/i),
-      screen.getByText(/Au moins une minuscule/i),
-      screen.getByText(/Au moins un chiffre/i)
+      screen.getByText(/Au moins 8 caractères/),
+      screen.getByText(/Au moins une majuscule/),
+      screen.getByText(/Au moins une minuscule/),
+      screen.getByText(/Au moins un chiffre/)
     ];
     errors.forEach((error) => {
       expect(error).toBeVisible();

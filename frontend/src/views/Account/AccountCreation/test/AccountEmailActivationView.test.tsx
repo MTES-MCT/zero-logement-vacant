@@ -8,6 +8,7 @@ import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import AccountEmailActivationView from '../AccountEmailActivationView';
 import { store } from '../../../../store/store';
 import { signupLinkApi } from '../../../../services/signup-link.service';
+import Notification from '../../../../components/Notification/Notification';
 
 describe('AccountEmailActivationView', () => {
   const user = userEvent.setup();
@@ -28,6 +29,7 @@ describe('AccountEmailActivationView', () => {
       );
       render(
         <Provider store={store}>
+          <Notification />
           <RouterProvider router={router} />
         </Provider>
       );
@@ -61,6 +63,7 @@ describe('AccountEmailActivationView', () => {
       );
       render(
         <Provider store={store}>
+          <Notification />
           <RouterProvider router={router} />
         </Provider>
       );
@@ -88,7 +91,7 @@ describe('AccountEmailActivationView', () => {
       expect(sendActivationEmail).toHaveBeenCalledWith('ok@beta.gouv.fr', {
         fixedCacheKey: undefined
       });
-      const sent = screen.getByText('Email envoyé.');
+      const sent = await screen.findByText('Email envoyé');
       expect(sent).toBeVisible();
     });
 

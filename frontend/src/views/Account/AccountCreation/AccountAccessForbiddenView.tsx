@@ -111,9 +111,8 @@ function AccountAccessForbiddenView() {
           className={fr.cx('fr-mt-4w')}
           iconId="fr-icon-arrow-go-back-line"
           linkProps={{
-            to: {
-              pathname: 'https://zerologementvacant.beta.gouv.fr'
-            }
+            href: 'https://zerologementvacant.beta.gouv.fr',
+            target: '_self'
           }}
           priority="tertiary"
         >

@@ -18,9 +18,7 @@ interface State {
 
 function AccountEmailActivationView() {
   const location: { state?: State } = useLocation();
-  const { error, hidden, send: sendActivationEmail } = useActivationEmail();
-
-  const status = error ? 'error' : 'valid';
+  const { sendActivationEmail } = useActivationEmail();
 
   function send(): void {
     const { state } = location;
@@ -32,10 +30,6 @@ function AccountEmailActivationView() {
   if (!location.state?.email) {
     return <Navigate to="/inscription/email" />;
   }
-
-  const confirmationClasses = classNames(`fr-${status}-text`, {
-    [styles.hidden]: hidden
-  });
 
   return (
     <Grid container>
@@ -86,12 +80,9 @@ function AccountEmailActivationView() {
             </Typography>
           }
         />
-        <Typography className={confirmationClasses} variant="body2">
-          {error ? error : 'Email envoyé.'}
-        </Typography>
 
         <Button
-          className={fr.cx('fr-mt-2w')}
+          className={fr.cx('fr-mt-4w')}
           iconId="fr-icon-arrow-left-line"
           linkProps={{ to: '/inscription/email' }}
           priority="tertiary"

@@ -97,6 +97,7 @@ function AccountPasswordCreationView() {
 
               <Grid sx={{ mb: 4 }} xs={8}>
                 <AppTextInputNext
+                  hintText="Votre mot de passe doit contenir au moins 8 caractères, un chiffre, une majuscule et une minuscule."
                   label="Définissez votre mot de passe (obligatoire)"
                   name="password"
                   nativeInputProps={{

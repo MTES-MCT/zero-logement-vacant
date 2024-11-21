@@ -1,3 +1,4 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
@@ -13,7 +14,7 @@ function AccountCreationView() {
   useDocumentTitle('Créer un compte');
 
   return (
-    <Grid component="main" sx={{ padding: '5rem 10rem' }}>
+    <Grid className={fr.cx('fr-container', 'fr-py-4w')} component="main">
       <Routes>
         <Route path="email" element={<AccountEmailCreationView />} />
         <Route
@@ -33,11 +34,11 @@ function AccountCreationView() {
           element={<AccountPasswordCreationView />}
         />
         <Route
-          path="/inscription/prise-en-main"
+          path="prise-en-main"
           element={AccountSupportRegistrationView}
         />
         <Route path="*" element={<Navigate replace to="../email" />} />
-        </Routes>
+      </Routes>
     </Grid>
   );
 }

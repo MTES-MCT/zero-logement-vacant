@@ -5,14 +5,15 @@ import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import * as yup from 'yup';
 
-import { useActivationEmail } from '../../../hooks/useActivationEmail';
 import { emailValidator } from '../../../hooks/useForm';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
 import image from '../../../assets/images/fifty-hours.svg';
 import Image from '../../../components/Image/Image';
 import AppLink from '../../../components/_app/AppLink/AppLink';
+import { useSendActivationEmailMutation } from '../../../services/signup-link.service';
 
 const schema = yup
   .object({
@@ -22,7 +23,8 @@ const schema = yup
 
 function AccountEmailCreationView() {
   const navigate = useNavigate();
-  const { send: sendActivationEmail } = useActivationEmail();
+
+  const [sendActivationEmail] = useSendActivationEmailMutation();
 
   const form = useForm<yup.InferType<typeof schema>>({
     defaultValues: {
@@ -33,7 +35,8 @@ function AccountEmailCreationView() {
   });
 
   async function submit(values: yup.InferType<typeof schema>): Promise<void> {
-    await sendActivationEmail(values.email);
+    await sendActivationEmail(values.email).unwrap();
+    toast.success('Email envoyé');
     navigate('/inscription/activation', {
       state: {
         email: values.email
@@ -115,7 +118,9 @@ function AccountEmailCreationView() {
               <Button
                 iconId="fr-icon-arrow-go-back-line"
                 linkProps={{
-                  to: '/connexion'
+                  to: {
+                    pathname: 'https://zerologementvacant.beta.gouv.fr'
+                  }
                 }}
                 priority="tertiary"
                 role="link"

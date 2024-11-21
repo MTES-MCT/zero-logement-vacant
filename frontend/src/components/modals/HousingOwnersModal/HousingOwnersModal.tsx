@@ -304,7 +304,7 @@ function HousingOwnersModal({
               Adresse fiscale (source: DGFIP)
             </Typography>
             <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
-            <Typography color={fr.colors.decisions.text.default.grey.default}>{housingOwner.rawAddress ? housingOwner.rawAddress : 'Inconnue'}</Typography>
+            <Typography color={fr.colors.decisions.text.default.grey.default}>{housingOwner.rawAddress ? housingOwner.rawAddress.join(' ') : 'Inconnue'}</Typography>
           </Col>
           <Col n="12">
             <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>

@@ -114,7 +114,7 @@ function OwnerEditionSideMenu(props: Props) {
               </Typography>
               <Grid>
                 <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
-                <Typography color={fr.colors.decisions.text.default.grey.default}>{props.owner.rawAddress ? props.owner.rawAddress : 'Inconnue'}</Typography>
+                <Typography color={fr.colors.decisions.text.default.grey.default}>{props.owner.rawAddress ? props.owner.rawAddress.join(' ') : 'Inconnue'}</Typography>
               </Grid>
             </Grid>
             <section className="fr-mb-3w fr-mt-3w">

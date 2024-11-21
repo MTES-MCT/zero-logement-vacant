@@ -1,27 +1,18 @@
-import Skeleton from '@mui/material/Skeleton';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import MainContainer from '../../components/MainContainer/MainContainer';
+import { useFindOneDashboardQuery } from '../../services/dashboard.service';
 
 function AnalysisView() {
   useDocumentTitle('Analyse');
 
-  const isLoading = true;
+  const { data: dashboard } = useFindOneDashboardQuery({
+    id: '13-analyses'
+  });
 
   return (
     <MainContainer>
-      {isLoading ? <Loading /> : <Typography variant="h1">Analyse</Typography>}
+      <iframe src={dashboard?.url} width="100%" height={600} title="Analyses" />
     </MainContainer>
-  );
-}
-
-function Loading() {
-  return (
-    <Stack spacing={1} width="100%">
-      <Skeleton animation="wave" height={600} variant="rectangular" />
-    </Stack>
   );
 }
 

@@ -12,7 +12,6 @@ import { banAddressValidator, useForm } from '../../hooks/useForm';
 import { useUpdateOwnerMutation } from '../../services/owner.service';
 import { useNotification } from '../../hooks/useNotification';
 import { Grid, Typography } from '@mui/material';
-import LabelNext from '../Label/LabelNext';
 
 interface Props {
   className?: string;

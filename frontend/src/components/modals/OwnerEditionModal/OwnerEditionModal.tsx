@@ -18,7 +18,6 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
 import { useUser } from '../../../hooks/useUser';
 import { Typography } from '@mui/material';
-import LabelNext from '../../Label/LabelNext';
 import { fr } from '@codegouvfr/react-dsfr';
 
 const modal = createModal({

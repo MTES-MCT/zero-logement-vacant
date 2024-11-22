@@ -17,6 +17,8 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
 import { useUser } from '../../../hooks/useUser';
+import { Typography } from '@mui/material';
+import { fr } from '@codegouvfr/react-dsfr';
 
 const modal = createModal({
   id: 'owner-edition-modal',
@@ -38,6 +40,9 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
   const [additionalAddress, setAdditionalAddress] = useState(
     owner?.additionalAddress
   );
+
+  const storedWarningVisible = localStorage.getItem('OwnerEdition.warningVisible');
+  const [warningVisible, setWarningVisible] = useState(storedWarningVisible === null || storedWarningVisible === 'true');
 
   const [updateOwner, { isError: isUpdateError }] = useUpdateOwnerMutation();
 
@@ -128,11 +133,39 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
             />
           </Col>
           <Col n="12">
+            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+              <span
+                className={fr.cx(
+                  'fr-icon-bank-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Adresse fiscale (source: DGFIP)
+            </Typography>
+            <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
+            <Typography color={fr.colors.decisions.text.default.grey.default}>{owner.rawAddress ? owner.rawAddress.join(' ') : 'Inconnue'}</Typography>
+          </Col>
+          <Col n="12">
+            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+              <span
+                className={fr.cx(
+                  'fr-icon-home-4-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Adresse postale (source: Base Adresse Nationale)
+            </Typography>
             <OwnerAddressEdition
               banAddress={owner.banAddress}
               rawAddress={owner.rawAddress}
               onSelectAddress={(a) => setBanAddress(a ?? undefined)}
               errorMessage={form.message('banAddress')}
+              warningVisible={warningVisible}
+              setWarningVisible={setWarningVisible}
             />
           </Col>
           <Col n="12">

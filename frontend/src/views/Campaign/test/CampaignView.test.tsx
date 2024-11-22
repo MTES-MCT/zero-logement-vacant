@@ -9,6 +9,7 @@ import { AppStore } from '../../../store/store';
 import CampaignView from '../CampaignView';
 import Notification from '../../../components/Notification/Notification';
 import {
+  AddressKinds,
   CampaignDTO,
   DraftDTO,
   HousingDTO,
@@ -43,6 +44,17 @@ describe('Campaign view', () => {
     sender = genSenderDTO();
     draft = genDraftDTO(sender);
     owner = genOwnerDTO();
+
+    owner.banAddress = {
+      street: '1 rue de la vallée',
+      postalCode: '85130',
+      city: 'Tiffauges',
+      refId: faker.string.uuid(),
+      addressKind: AddressKinds.Owner,
+      label: 'Home Address',
+      score: 0.7
+    };
+
     housings = Array.from({ length: 3 }, () => genHousingDTO(owner));
 
     data.housings.push(...housings);
@@ -261,13 +273,39 @@ describe('Campaign view', () => {
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');
-    const fullName = await within(aside).findByLabelText('Nom prénom');
-    await user.clear(fullName);
-    await user.type(fullName, 'John Doe');
+    const address = await within(aside).findByPlaceholderText('Rechercher une adresse');
+    await user.clear(address);
+    await user.type(address, 'Rue de la vallée 85130 Tiffauges');
     const save = await within(aside).findByRole('button', {
       name: /^Enregistrer/
     });
     await user.click(save);
+  });
+
+  it('should dismiss the warning message when the user clicks the \'Ignore\' button while editing the recipient’s address', async () => {
+    renderComponent();
+    localStorage.clear();
+
+    const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
+    await user.click(tab);
+    const [edit] = await screen.findAllByRole('button', {
+      name: /^Éditer l’adresse/
+    });
+    await user.click(edit);
+    const [aside] = await screen.findAllByRole('complementary');
+    const [ ignoreButton ] = await within(aside).findAllByRole('button', {
+      name: /^Ignorer/
+    });
+    expect(ignoreButton).toBeInTheDocument();
+    await user.click(ignoreButton);
+    const save = await within(aside).findByRole('button', {
+      name: /^Enregistrer/
+    });
+    await user.click(save);
+
+    await user.click(edit);
+
+    expect(ignoreButton).not.toBeInTheDocument();
   });
 
   it('should update the page when the campaign has been generated', async () => {

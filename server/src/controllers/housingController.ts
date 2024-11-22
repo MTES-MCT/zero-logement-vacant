@@ -58,7 +58,7 @@ async function get(request: Request, response: Response) {
     id,
     localId,
     includes: ['events', 'owner', 'perimeters', 'campaigns']
-  });
+  });  
   if (!housing) {
     throw new HousingMissingError(params.id);
   }

@@ -175,9 +175,11 @@ const HousingList = ({
     name: 'address',
     headerRender: () => getSortButton('rawAddress', 'Adresse du logement'),
     render: ({ id, rawAddress }: Housing) => (
-      <AppLink className="capitalize" isSimple to={`/logements/${id}`}>
-        {rawAddress.map((line) => capitalize(line)).join('\n')}
-      </AppLink>
+      <>
+        <AppLink className="capitalize" isSimple to={`/logements/${id}`}>
+          {rawAddress.map((line) => capitalize(line)).join('\n')}
+        </AppLink>
+      </>
     )
   };
 

@@ -1,7 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
 import Autocomplete from '@mui/material/Autocomplete';
-import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useDebounce, useList, usePreviousDistinct } from 'react-use';
 import type { MarkOptional } from 'ts-essentials';
@@ -86,17 +85,6 @@ function AddressSearchableSelectNext(props: Props) {
                 justifyContent="space-between"
                 sm
               >
-                <Typography component="span">
-                  Adresse (source : 
-                  <a
-                    href="https://adresse.data.gouv.fr/base-adresse-nationale#4.4/46.9/1.7"
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    Base Adresse Nationale
-                  </a>
-                  )
-                </Typography>
                 <a
                   className={fr.cx('fr-link--sm')}
                   href="https://zerologementvacant.crisp.help/fr/article/comment-choisir-entre-ladresse-ban-et-ladresse-lovac-1ivvuep/?bust=1705403706774"
@@ -107,7 +95,7 @@ function AddressSearchableSelectNext(props: Props) {
                 </a>
               </Grid>
             }
-            hintText="Commencez à taper votre recherche dans le champ de saisi et choisissez une des options proposées dans la liste (exemple : 72 rue de Varenne, Paris)"
+            hintText="Cette adresse est la plus proche identifiée dans la Base Adresse Nationale. Ce format est recommandé pour vos courriers. Pour modifier l'adresse, commencez à saisir votre recherche et choisissez une des options dans la liste."
             nativeInputProps={{
               type: 'search',
               placeholder: 'Rechercher une adresse',

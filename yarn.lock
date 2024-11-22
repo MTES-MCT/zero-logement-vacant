@@ -10663,6 +10663,7 @@ __metadata:
     dotenv: "npm:^16.4.5"
     exceljs: "npm:^4.4.0"
     express: "npm:^4.21.0"
+    helmet: "npm:^8.0.0"
     http-auth: "npm:^4.2.0"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
@@ -17636,6 +17637,13 @@ __metadata:
   version: 7.2.0
   resolution: "helmet@npm:7.2.0"
   checksum: 10c0/7ba8503519cabc1d6410330b710da3ac01a4ff66e7e10cb68c4d73c96803a2e86ce45c71f3127dfb8ef3ea2e91c7b8316726191873f80d0572f8826878b2854e
+  languageName: node
+  linkType: hard
+
+"helmet@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "helmet@npm:8.0.0"
+  checksum: 10c0/c3d273df206cbb4e5e830ea68afdbd3d0f8e055b2707f67f651ebb4b679c7fd4d6ac77ce6188a2cee32e853d4e24aa00548f787989bbe6e5f98ebfb703855d09
   languageName: node
   linkType: hard
 

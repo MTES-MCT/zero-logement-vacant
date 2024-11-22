@@ -49,6 +49,9 @@ function HousingOwnersModal({
 }: Props) {
   const { isVisitor } = useUser();
 
+  const storedWarningVisible = localStorage.getItem('OwnerEdition.warningVisible');
+  const [warningVisible, setWarningVisible] = useState(storedWarningVisible === null || storedWarningVisible === 'true');
+
   const [modalMode, setModalMode] = useState<'list' | 'add'>('list');
   const [
     housingOwners,
@@ -224,7 +227,7 @@ function HousingOwnersModal({
             </Text>
             {!isBanEligible(housingOwner.banAddress) && (
               <Badge severity="info" className="fr-ml-1w">
-                ADRESSE À VÉRIFIER
+                ADRESSE AMÉLIORABLE
               </Badge>
             )}
           </div>
@@ -289,6 +292,32 @@ function HousingOwnersModal({
             />
           </Col>
           <Col n="12">
+            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+              <span
+                className={fr.cx(
+                  'fr-icon-bank-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Adresse fiscale (source: DGFIP)
+            </Typography>
+            <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
+            <Typography color={fr.colors.decisions.text.default.grey.default}>{housingOwner.rawAddress ? housingOwner.rawAddress.join(' ') : 'Inconnue'}</Typography>
+          </Col>
+          <Col n="12">
+            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+              <span
+                className={fr.cx(
+                  'fr-icon-home-4-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Adresse postale (source: Base Adresse Nationale)
+            </Typography>
             <OwnerAddressEdition
               banAddress={housingOwner.banAddress}
               rawAddress={housingOwner.rawAddress}
@@ -297,6 +326,8 @@ function HousingOwnersModal({
                 onSelectAddress(housingOwner, address ?? undefined)
               }
               errorMessage={message(`banAddress-${housingOwner.id}`)}
+              warningVisible={warningVisible}
+              setWarningVisible={setWarningVisible}
             />
           </Col>
           <Col n="12">

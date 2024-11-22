@@ -149,15 +149,13 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
         )}
         <AppHelp className={styles.help}>
           <Text>
-            Pour utiliser le filtre “Périmètre” dans la base de données, vous
-            pouvez déposer le ou les périmètres géographiques* qui vous
-            intéressent : il peut s’agir d’un périmètre correspondant à un
-            dispositif de type OPAH ou ORT, mais également d’un quartier en
-            particulier, selon vos besoins.
+            Afin de pouvoir filtrer les logements d’un périmètre (OPAH, ORT, Permis de louer, etc.),
+            déposez un fichier géographique (SIG) au format .zip comprenant l’ensemble des
+            extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).
           </Text>
           <Text spacing="mb-0" className="italic">
-            *fichier géographique (SIG) au format .zip comprenant l’ensemble des
-            extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”.
+            Attention : votre périmètre doit comprendre au maximum 500 entités.
+            Vérifiez le format de votre périmètre avant de l’intégrer.
           </Text>
         </AppHelp>
         <Row className="fr-mt-3w fr-mb-1w">
@@ -198,7 +196,7 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
         {isUploadSuccess && (
           <Alert
             severity="success"
-            description="Le fichier à été déposé avec succès ! "
+            description="Le fichier a été déposé avec succès ! "
             closable
             small
             className="fr-mb-2w"

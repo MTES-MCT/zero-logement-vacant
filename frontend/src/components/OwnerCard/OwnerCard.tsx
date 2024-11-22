@@ -29,12 +29,6 @@ function OwnerCard(props: OwnerCardProps) {
   const archivedOwners =
     props.coOwners?.filter((owner) => owner.rank <= 0) ?? [];
 
-  const address: ReadonlyArray<ReactNode> = (
-    props.owner.banAddress
-      ? formatAddress(props.owner.banAddress)
-      : props.owner.rawAddress
-  ).map((line: string) => <Typography key={line}>{line}</Typography>);
-
   return (
     <Paper component="article" elevation={0} sx={{ padding: 3 }}>
       <Grid component="header" container sx={{ mb: 1 }}>
@@ -68,33 +62,46 @@ function OwnerCard(props: OwnerCardProps) {
           <LabelNext component="h3">
             <span
               className={fr.cx(
+                'fr-icon-bank-line',
+                'fr-icon--sm',
+                'fr-mr-1w'
+              )}
+              aria-hidden={true}
+            />
+            Adresse fiscale (source: DGFIP)
+          </LabelNext>
+          <Typography color={fr.colors.decisions.text.default.grey.default}>{props.owner.rawAddress ? props.owner.rawAddress.join(' ') : 'Inconnue'}</Typography>
+        </Grid>
+
+
+        <Grid xs={12}>
+          <LabelNext component="h3">
+            <span
+              className={fr.cx(
                 'fr-icon-home-4-line',
                 'fr-icon--sm',
                 'fr-mr-1w'
               )}
               aria-hidden={true}
             />
-            Adresse postale
+            Adresse postale (source: Base Adresse Nationale)
           </LabelNext>
-          <Typography>{address}</Typography>
+          <Typography>{props.owner.banAddress ? formatAddress(props.owner.banAddress).join(' ') :  'Inconnue'}</Typography>
         </Grid>
+
 
         {!isBanEligible(props.owner.banAddress) && (
           <Grid xs={12}>
             <Alert
               severity="info"
               classes={{ title: fr.cx('fr-mb-2w') }}
-              title="Adresse à vérifier"
-              as="h3"
               description={
                 <>
                   <Typography>
-                    Cette adresse issue de la BAN est différente de l’adresse
-                    fiscale.
+                    L’adresse Base Adresse Nationale ne correspond pas à celle de la DGFIP.
                   </Typography>
                   <Typography>
-                    Cliquez sur “Modifier” pour valider l’adresse que vous
-                    souhaitez utiliser.
+                    Nous vous recommandons de vérifier en cliquant sur &quot;Modifier&quot;.
                   </Typography>
                 </>
               }

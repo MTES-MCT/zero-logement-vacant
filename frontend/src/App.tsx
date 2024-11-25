@@ -1,14 +1,8 @@
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import React, { useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { CompatRouter } from 'react-router-dom-v5-compat';
-import {
-  BrowserRouter,
-  Redirect,
-  Route,
-  RouteProps,
-  Switch
-} from 'react-router-dom';
+import { CompatRoute, CompatRouter } from 'react-router-dom-v5-compat';
+import { BrowserRouter, Redirect, RouteProps, Switch } from 'react-router-dom';
 
 import './App.scss';
 import Footer from './components/Footer/Footer';
@@ -64,7 +58,7 @@ const authenticatedRoutes: RouteProps[] = [
   { path: '/autres-etablissements', component: TerritoryEstablishmentsView }
 ];
 const guestRoutes: RouteProps[] = [
-  { path: '/inscription*', component: AccountCreationView },
+  { path: '/inscription/*', component: AccountCreationView },
   { path: '/connexion', component: LoginView },
   {
     path: '/mot-de-passe/oublie',
@@ -103,7 +97,7 @@ function App() {
 
   const routes = (isAuthenticated ? authenticatedRoutes : guestRoutes).map(
     (route) => (
-      <Route
+      <CompatRoute
         exact
         path={route.path}
         component={route.component}
@@ -123,9 +117,9 @@ function App() {
 
           <Switch>
             {routes}
-            <Route path="*">
+            <CompatRoute path="*">
               <Redirect to={redirection} />
-            </Route>
+            </CompatRoute>
           </Switch>
           <Footer />
         </CompatRouter>

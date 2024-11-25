@@ -1,4 +1,6 @@
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
+import { CompatRoute, Routes } from 'react-router-dom-v5-compat';
+
 import { Col, Container, Row } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
 import AccountEmailCreationView from './AccountCreation/AccountEmailCreationView';
@@ -15,35 +17,32 @@ function AccountCreationView() {
     <Container as="main" className="grow-container" spacing="py-4w">
       <Row gutters alignItems="middle">
         <Col n="6">
-          <Switch>
-            <Route
-              path="/inscription/email"
-              component={AccountEmailCreationView}
-            />
-            <Route
-              path="/inscription/activation"
+          <Routes>
+            <CompatRoute path="email" component={AccountEmailCreationView} />
+            <CompatRoute
+              path="activation"
               component={AccountEmailActivationView}
             />
-            <Route
-              path="/inscription/en-attente"
+            <CompatRoute
+              path="en-attente"
               component={AccountAwaitingAccessView}
             />
-            <Route
-              path="/inscription/impossible"
+            <CompatRoute
+              path="impossible"
               component={AccountAccessForbiddenView}
             />
-            <Route
-              path="/inscription/mot-de-passe"
+            <CompatRoute
+              path="mot-de-passe"
               component={AccountPasswordCreationView}
             />
-            <Route
-              path="/inscription/campagne"
+            <CompatRoute
+              path="campagne"
               component={AccountCampaignIntentCreationView}
             />
-            <Route path="*">
-              <Redirect to="/inscription/email" />
-            </Route>
-          </Switch>
+            <CompatRoute path="*">
+              <Redirect to="email" />
+            </CompatRoute>
+          </Routes>
         </Col>
         <Col n="5" offset="1" className="align-right">
           <img

@@ -1,6 +1,6 @@
 import { Container, Row, Text } from '../../../components/_dsfr';
 import { FormEvent, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import * as yup from 'yup';
 
 import { emailValidator, useForm } from '../../../hooks/useForm';
@@ -18,7 +18,7 @@ import Typography from '@mui/material/Typography';
 
 function AccountEmailCreationView() {
   const [email, setEmail] = useState('');
-  const router = useHistory();
+  const navigate = useNavigate();
   const { send: sendActivationEmail } = useActivationEmail();
   const { trackEvent } = useMatomo();
 
@@ -34,8 +34,7 @@ function AccountEmailCreationView() {
         category: TrackEventCategories.AccountCreation,
         action: TrackEventActions.AccountCreation.SendEmail
       });
-      return router.push({
-        pathname: '/inscription/activation',
+      navigate('activation', {
         state: {
           email
         }
@@ -49,7 +48,13 @@ function AccountEmailCreationView() {
         Créer votre compte
       </Typography>
       <Text size="lead">
-        Pour créer votre compte sur Zéro Logement Vacant, vous devez impérativement avoir effectué votre demande d’accès aux données LOVAC via le <a href= 'https://datafoncier.cerema.fr/portail-des-donnees-foncieres'>portail Données Foncières du Cerema</a>.
+        Pour créer votre compte sur Zéro Logement Vacant, vous devez
+        impérativement avoir effectué votre demande d’accès aux données LOVAC
+        via le{' '}
+        <a href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">
+          portail Données Foncières du Cerema
+        </a>
+        .
       </Text>
       <Container as="section" fluid>
         <Row justifyContent="right">
@@ -73,7 +78,16 @@ function AccountEmailCreationView() {
         whenValid="Email valide."
         placeholder="example@gmail.com"
         label="Adresse email (obligatoire)"
-        hintText={<>L’adresse mail doit être autorisée à accéder aux données LOVAC sur le <a href='https://datafoncier.cerema.fr/portail-des-donnees-foncieres'>portail Données Foncières du Cerema</a>.</>}
+        hintText={
+          <>
+            L’adresse mail doit être autorisée à accéder aux données LOVAC sur
+            le{' '}
+            <a href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">
+              portail Données Foncières du Cerema
+            </a>
+            .
+          </>
+        }
         required
       />
       <Row alignItems="middle" className="justify-space-between">

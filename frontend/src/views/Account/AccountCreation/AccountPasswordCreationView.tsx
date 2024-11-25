@@ -5,7 +5,7 @@ import {
   passwordFormatValidator,
   useForm
 } from '../../../hooks/useForm';
-import { Redirect, useHistory } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import { Row, Text } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
@@ -19,6 +19,7 @@ import {
 } from '../../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Typography from '@mui/material/Typography';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 
 interface RouterState {
   prospect?: Prospect | undefined;
@@ -26,8 +27,8 @@ interface RouterState {
 }
 
 function AccountPasswordCreationView() {
-  const router = useHistory<RouterState | undefined>();
-  const { location } = router;
+  const navigate = useNavigate();
+  const location = useLocation();
   const { trackEvent } = useMatomo();
 
   const { linkExists, loading, prospect } = useProspect(
@@ -100,8 +101,7 @@ function AccountPasswordCreationView() {
           category: TrackEventCategories.AccountCreation,
           action: TrackEventActions.AccountCreation.SubmitPassword
         });
-        router.push({
-          pathname: '/inscription/campagne',
+        navigate('/inscription/campagne', {
           state: {
             prospect,
             password

@@ -92,9 +92,7 @@ function ResetPasswordView() {
               Essayez de vous connecter en utilisant votre nouveau mot de passe.
             </Text>
             <Row justifyContent="right">
-              <Button onClick={() => router.push('/connexion')}>
-                Se connecter
-              </Button>
+              <Button linkProps={{ to: '/connexion' }}>Se connecter</Button>
             </Row>
           </Col>
           <Col n="5" offset="1" className="align-right">

@@ -1,7 +1,11 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useEffect } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import {
+  useLocation,
+  useNavigate,
+  useParams
+} from 'react-router-dom-v5-compat';
 
 import {
   useGetGroupQuery,
@@ -34,8 +38,11 @@ interface RouterState {
 
 function GroupView() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
-  const { data: group, isLoading: isLoadingGroup } = useGetGroupQuery(id);
+  const { data: group, isLoading: isLoadingGroup } = useGetGroupQuery(
+    id as string
+  );
 
   useDocumentTitle(group ? `Groupe - ${group?.title}` : 'Page non trouvée');
 
@@ -50,26 +57,26 @@ function GroupView() {
   } = useFilters({
     storage: 'state',
     initialState: {
-      groupIds: [id]
+      groupIds: [id as string]
     }
   });
 
   useEffect(() => {
     setFilters({
-      groupIds: [id]
+      groupIds: [id as string]
     });
   }, [setFilters, id]);
 
   const { view } = useAppSelector((state) => state.housing);
 
-  const router = useHistory<RouterState | undefined>();
-  const alert = router.location.state?.alert ?? '';
+  const location = useLocation();
+  const alert = location.state?.alert ?? '';
   const [removeGroup] = useRemoveGroupMutation();
   async function onGroupRemove(): Promise<void> {
     if (group) {
       try {
         await removeGroup(group).unwrap();
-        router.push('/parc-de-logements');
+        navigate('/parc-de-logements');
       } catch (error) {
         console.error(error);
       }
@@ -85,7 +92,7 @@ function GroupView() {
         campaign,
         group
       }).unwrap();
-      router.push(`/campagnes/${created.id}`);
+      navigate(`/campagnes/${created.id}`);
     }
   }
 
@@ -109,7 +116,7 @@ function GroupView() {
 
   const { data: campaigns } = useFindCampaignsQuery({
     filters: {
-      groupIds: [id]
+      groupIds: [id as string]
     }
   });
 

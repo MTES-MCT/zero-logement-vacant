@@ -1,7 +1,7 @@
 import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom-v5-compat';
+import { useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
 
 import styles from './header.module.scss';

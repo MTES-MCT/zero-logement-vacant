@@ -5,7 +5,7 @@ import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { MapProvider } from 'react-map-gl/maplibre';
 import { Provider as StoreProvider } from 'react-redux';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router-dom';
 
 import Notification from './components/Notification/Notification';
 import { store } from './store/store';

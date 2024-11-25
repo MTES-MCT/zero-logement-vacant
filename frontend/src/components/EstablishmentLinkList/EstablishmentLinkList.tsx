@@ -1,6 +1,6 @@
 import { Establishment, getEstablishmentUrl } from '../../models/Establishment';
 import styles from './establisment-link-list.module.scss';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 
 interface Props {

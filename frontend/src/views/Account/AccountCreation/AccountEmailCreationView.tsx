@@ -1,6 +1,6 @@
 import { Container, Row, Text } from '../../../components/_dsfr';
 import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 
 import { emailValidator, useForm } from '../../../hooks/useForm';

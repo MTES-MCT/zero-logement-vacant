@@ -1,11 +1,7 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useEffect } from 'react';
-import {
-  useLocation,
-  useNavigate,
-  useParams
-} from 'react-router-dom-v5-compat';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import {
   useGetGroupQuery,
@@ -69,7 +65,7 @@ function GroupView() {
 
   const { view } = useAppSelector((state) => state.housing);
 
-  const location = useLocation();
+  const location: { state?: RouterState } = useLocation();
   const alert = location.state?.alert ?? '';
   const [removeGroup] = useRemoveGroupMutation();
   async function onGroupRemove(): Promise<void> {

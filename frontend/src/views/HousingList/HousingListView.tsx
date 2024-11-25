@@ -2,7 +2,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom-v5-compat';
+import { useLocation } from 'react-router-dom';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
@@ -53,7 +53,7 @@ const HousingListView = () => {
     });
   };
 
-  const location = useLocation();
+  const location: { state?: RouterState } = useLocation();
   const [alert, setAlert] = useState(location.state?.alert ?? '');
   function onFinish() {
     setAlert(

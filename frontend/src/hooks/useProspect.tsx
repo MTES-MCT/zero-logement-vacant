@@ -1,7 +1,7 @@
 import prospectService from '../services/prospect.service';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Prospect } from '../models/Prospect';
-import { useLocation } from 'react-router-dom-v5-compat';
+import { useLocation } from 'react-router-dom';
 
 export function useProspect(initialValue?: Prospect) {
   // Get the hash value without "#"

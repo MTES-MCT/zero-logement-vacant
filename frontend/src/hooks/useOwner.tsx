@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router-dom';
 import { useFindEventsByOwnerQuery } from '../services/event.service';
 import { useGetOwnerQuery } from '../services/owner.service';
 import {

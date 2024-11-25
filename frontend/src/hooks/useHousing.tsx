@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom-v5-compat';
+import { useParams } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useFindEventsByHousingQuery } from '../services/event.service';
 import { useFindNotesByHousingQuery } from '../services/note.service';

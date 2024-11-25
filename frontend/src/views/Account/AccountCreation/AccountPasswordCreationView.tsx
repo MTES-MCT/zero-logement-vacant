@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom-v5-compat';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
@@ -27,7 +27,7 @@ interface RouterState {
 
 function AccountPasswordCreationView() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const location: { state: RouterState } = useLocation();
   const { trackEvent } = useMatomo();
 
   const { linkExists, loading, prospect } = useProspect(

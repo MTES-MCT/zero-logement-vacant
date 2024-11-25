@@ -1,6 +1,6 @@
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router-dom';
 
 import { Container } from '../_dsfr';
 import { Group } from '../../models/Group';

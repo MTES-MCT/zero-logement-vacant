@@ -1,7 +1,7 @@
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { useMemo } from 'react';
-import { Navigate, useLocation } from 'react-router-dom-v5-compat';
+import { Navigate, useLocation } from 'react-router-dom';
 
 import { Text } from '../../../components/_dsfr';
 import styles from '../forgotten-password-view.module.scss';
@@ -12,7 +12,7 @@ interface State {
 }
 
 function AccountEmailActivationView() {
-  const location = useLocation();
+  const location: { state?: State } = useLocation();
   const { error, hidden, send: sendActivationEmail } = useActivationEmail();
 
   const status = useMemo(() => (error ? 'error' : 'valid'), [error]);

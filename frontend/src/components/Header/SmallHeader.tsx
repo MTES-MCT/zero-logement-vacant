@@ -7,7 +7,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import LoadingBar from 'react-redux-loading-bar';
-import { Link, useLocation } from 'react-router-dom-v5-compat';
+import { Link, useLocation } from 'react-router-dom';
 
 import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
 import Collapse from '../Collapse/Collapse';

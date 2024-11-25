@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom-v5-compat';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { Col, Container, Row } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';

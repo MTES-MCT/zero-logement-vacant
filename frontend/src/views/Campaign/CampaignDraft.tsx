@@ -12,7 +12,7 @@ import {
   useCreateDraftMutation,
   useUpdateDraftMutation
 } from '../../services/draft.service';
-import UnsavedChanges from '../../components/UnsavedChanges/UnsavedChanges';
+import useUnsavedChanges from '../../hooks/useUnsavedChanges';
 import PreviewButton from '../../components/Draft/PreviewButton';
 import styles from './campaign.module.scss';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
@@ -103,6 +103,7 @@ function CampaignDraft(props: Readonly<Props>) {
   });
 
   const hasChanges = form.isDirty && !fp.equals(draft, values);
+  useUnsavedChanges({ when: hasChanges });
 
   const [createDraft, createDraftMutation] = useCreateDraftMutation();
   async function create(): Promise<void> {
@@ -215,7 +216,6 @@ function CampaignDraft(props: Readonly<Props>) {
               label: 'Courrier',
               content: (
                 <form id="draft" name="draft" className="fr-mt-2w">
-                  <UnsavedChanges when={hasChanges} />
                   <Alert
                     severity="info"
                     closable

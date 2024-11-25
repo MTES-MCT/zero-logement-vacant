@@ -3,7 +3,7 @@ import AppLink from '../../components/_app/AppLink/AppLink';
 import { useAppDispatch } from '../../hooks/useStore';
 import { logout } from '../../store/actions/authenticationAction';
 import { useUser } from '../../hooks/useUser';
-import { useLocation } from 'react-router-dom-v5-compat';
+import { useLocation } from 'react-router-dom';
 import classNames from 'classnames';
 
 const AccountSideMenu = () => {

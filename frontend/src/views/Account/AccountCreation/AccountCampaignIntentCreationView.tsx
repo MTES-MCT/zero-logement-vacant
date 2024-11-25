@@ -18,7 +18,7 @@ import {
   TrackEventCategories
 } from '../../../models/TrackEvent';
 import Typography from '@mui/material/Typography';
-import { Navigate, useLocation } from 'react-router-dom-v5-compat';
+import { Navigate, useLocation } from 'react-router-dom';
 
 interface State {
   prospect: Prospect;
@@ -27,7 +27,7 @@ interface State {
 
 function AccountCampaignIntentCreationView() {
   const dispatch = useAppDispatch();
-  const location = useLocation();
+  const location: { state?: State } = useLocation();
   const { trackEvent } = useMatomo();
   const prospect = location.state?.prospect;
   const password = location.state?.password;

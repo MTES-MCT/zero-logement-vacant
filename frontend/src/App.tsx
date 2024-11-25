@@ -1,6 +1,7 @@
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import React, { useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
+import { CompatRouter } from 'react-router-dom-v5-compat';
 import {
   BrowserRouter,
   Redirect,
@@ -100,31 +101,34 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  const routes = (isAuthenticated ? authenticatedRoutes : guestRoutes)
-    .map((route) => (
+  const routes = (isAuthenticated ? authenticatedRoutes : guestRoutes).map(
+    (route) => (
       <Route
         exact
         path={route.path}
         component={route.component}
         key={`route_${route.path}`}
       />
-    ));
+    )
+  );
 
   const redirection = isAuthenticated ? '/parc-de-logements' : '/connexion';
 
   return (
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
-        {isAuthenticated ? <SmallHeader /> : <Header />}
-        <ScrollToTop />
+        <CompatRouter>
+          {isAuthenticated ? <SmallHeader /> : <Header />}
+          <ScrollToTop />
 
-        <Switch>
-          {routes}
-          <Route path="*">
-            <Redirect to={redirection} />
-          </Route>
-        </Switch>
-        <Footer />
+          <Switch>
+            {routes}
+            <Route path="*">
+              <Redirect to={redirection} />
+            </Route>
+          </Switch>
+          <Footer />
+        </CompatRouter>
       </BrowserRouter>
     </React.Suspense>
   );

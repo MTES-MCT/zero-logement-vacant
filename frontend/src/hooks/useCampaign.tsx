@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom-v5-compat';
 import { useGetCampaignQuery } from '../services/campaign.service';
 import { useMemo } from 'react';
 import { campaignStep, CampaignSteps } from '../models/Campaign';
@@ -8,13 +8,14 @@ import { useCountHousingQuery } from '../services/housing.service';
 export function useCampaign() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: campaign, isLoading: isLoadingCampaign } =
-    useGetCampaignQuery(id);
+  const { data: campaign, isLoading: isLoadingCampaign } = useGetCampaignQuery(
+    id as string
+  );
   const { data: drafts, isLoading: isLoadingDraft } = useFindDraftsQuery({
-    campaign: id,
+    campaign: id
   });
   const { data: count } = useCountHousingQuery({
-    campaignIds: [id],
+    campaignIds: [id as string]
   });
 
   const step = useMemo<CampaignSteps | null>(() => {
@@ -27,6 +28,6 @@ export function useCampaign() {
     count,
     isLoadingCampaign,
     isLoadingDraft,
-    step,
+    step
   };
 }

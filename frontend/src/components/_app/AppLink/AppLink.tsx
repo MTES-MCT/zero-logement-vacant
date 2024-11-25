@@ -1,8 +1,8 @@
-import { Link, LinkProps } from 'react-router-dom';
+import { Link, LinkProps } from 'react-router-dom-v5-compat';
 import classNames from 'classnames';
 import {
   FrIconClassName,
-  RiIconClassName,
+  RiIconClassName
 } from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
 
 export type AppLinkProps = LinkProps & {
@@ -36,10 +36,10 @@ function AppLink({
           'fr-link': isSimple,
           [`fr-link--${size}`]: size,
           [`fr-link--icon-${iconPosition}`]: iconId
-            ? iconPosition ?? 'left'
-            : undefined,
+            ? (iconPosition ?? 'left')
+            : undefined
         },
-        iconId,
+        iconId
       )}
     />
   );

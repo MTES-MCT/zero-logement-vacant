@@ -1,5 +1,4 @@
-import { Redirect } from 'react-router-dom';
-import { CompatRoute, Routes } from 'react-router-dom-v5-compat';
+import { Navigate, Route, Routes } from 'react-router-dom-v5-compat';
 
 import { Col, Container, Row } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
@@ -18,30 +17,19 @@ function AccountCreationView() {
       <Row gutters alignItems="middle">
         <Col n="6">
           <Routes>
-            <CompatRoute path="email" component={AccountEmailCreationView} />
-            <CompatRoute
-              path="activation"
-              component={AccountEmailActivationView}
-            />
-            <CompatRoute
-              path="en-attente"
-              component={AccountAwaitingAccessView}
-            />
-            <CompatRoute
-              path="impossible"
-              component={AccountAccessForbiddenView}
-            />
-            <CompatRoute
+            <Route path="email" element={<AccountEmailCreationView />} />
+            <Route path="activation" element={<AccountEmailActivationView />} />
+            <Route path="en-attente" element={<AccountAwaitingAccessView />} />
+            <Route path="impossible" element={<AccountAccessForbiddenView />} />
+            <Route
               path="mot-de-passe"
-              component={AccountPasswordCreationView}
+              element={<AccountPasswordCreationView />}
             />
-            <CompatRoute
+            <Route
               path="campagne"
-              component={AccountCampaignIntentCreationView}
+              element={<AccountCampaignIntentCreationView />}
             />
-            <CompatRoute path="*">
-              <Redirect to="email" />
-            </CompatRoute>
+            <Route path="*" element={<Navigate replace to="email" />} />
           </Routes>
         </Col>
         <Col n="5" offset="1" className="align-right">

@@ -142,7 +142,7 @@ const AccountPasswordView = () => {
                       <Button
                         priority="secondary"
                         className="fr-mr-2w"
-                        onClick={() => history.push('/compte')}
+                        linkProps={{ to: '/compte' }}
                       >
                         Annuler
                       </Button>

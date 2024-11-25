@@ -1,8 +1,13 @@
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import React, { useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
-import { CompatRoute, CompatRouter } from 'react-router-dom-v5-compat';
-import { BrowserRouter, Redirect, RouteProps, Switch } from 'react-router-dom';
+import {
+  CompatRouter,
+  Route,
+  RouteProps,
+  Routes
+} from 'react-router-dom-v5-compat';
+import { BrowserRouter } from 'react-router-dom';
 
 import './App.scss';
 import Footer from './components/Footer/Footer';
@@ -12,7 +17,6 @@ import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
 import OwnerView from './views/Owner/OwnerView';
 import CampaignsListView from './views/Campaign/CampaignListView';
 import CampaignView from './views/Campaign/CampaignView';
-import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import AccountPasswordView from './views/Account/AccountPasswordView';
 import HousingView from './views/Housing/HousingView';
 import ResourcesView from './views/Resources/ResourcesView';
@@ -28,47 +32,48 @@ import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
 import SmallHeader from './components/Header/SmallHeader';
 import Header from './components/Header/Header';
+import NotFoundView from './views/NotFoundView';
 
 const authenticatedRoutes: RouteProps[] = [
   {
     path: '/parc-de-logements',
-    component: HousingListView
+    element: <HousingListView />
   },
   // TODO: remove this
-  { path: '/parc-de-logements/campagnes/:id', component: CampaignView },
-  { path: '/groupes/:id', component: GroupView },
-  { path: '/campagnes', component: CampaignsListView },
-  { path: '/campagnes/:id', component: CampaignView },
+  { path: '/parc-de-logements/campagnes/:id', element: <CampaignView /> },
+  { path: '/groupes/:id', element: <GroupView /> },
+  { path: '/campagnes', element: <CampaignsListView /> },
+  { path: '/campagnes/:id', element: <CampaignView /> },
   {
     path: '/proprietaires/:ownerId/logements/:housingId',
-    component: HousingView
+    element: <HousingView />
   },
-  { path: '/proprietaires/:ownerId', component: OwnerView },
+  { path: '/proprietaires/:ownerId', element: <OwnerView /> },
   {
     path: '/logements/:housingId/proprietaires/:ownerId',
-    component: OwnerView
+    element: <OwnerView />
   },
-  { path: '/logements/:housingId', component: HousingView },
-  { path: '/ressources/statuts', component: StatusView },
-  { path: '/ressources', component: ResourcesView },
+  { path: '/logements/:housingId', element: <HousingView /> },
+  { path: '/ressources/statuts', element: <StatusView /> },
+  { path: '/ressources', element: <ResourcesView /> },
 
-  { path: '/compte', component: AccountView },
-  { path: '/compte/mot-de-passe', component: AccountPasswordView },
-  { path: '/utilisateurs', component: UsersView },
-  { path: '/autres-etablissements', component: TerritoryEstablishmentsView }
+  { path: '/compte', element: <AccountView /> },
+  { path: '/compte/mot-de-passe', element: <AccountPasswordView /> },
+  { path: '/utilisateurs', element: <UsersView /> },
+  { path: '/autres-etablissements', element: <TerritoryEstablishmentsView /> }
 ];
 const guestRoutes: RouteProps[] = [
-  { path: '/inscription/*', component: AccountCreationView },
-  { path: '/connexion', component: LoginView },
+  { path: '/inscription/*', element: <AccountCreationView /> },
+  { path: '/connexion', element: <LoginView /> },
   {
     path: '/mot-de-passe/oublie',
-    component: ForgottenPasswordView
+    element: <ForgottenPasswordView />
   },
   {
     path: '/mot-de-passe/nouveau',
-    component: ResetPasswordView
+    element: <ResetPasswordView />
   },
-  { path: '/admin', component: LoginView }
+  { path: '/admin', element: <LoginView /> }
 ];
 
 function App() {
@@ -97,30 +102,24 @@ function App() {
 
   const routes = (isAuthenticated ? authenticatedRoutes : guestRoutes).map(
     (route) => (
-      <CompatRoute
-        exact
+      <Route
         path={route.path}
-        component={route.component}
+        element={route.element}
         key={`route_${route.path}`}
       />
     )
   );
-
-  const redirection = isAuthenticated ? '/parc-de-logements' : '/connexion';
 
   return (
     <React.Suspense fallback={<></>}>
       <BrowserRouter>
         <CompatRouter>
           {isAuthenticated ? <SmallHeader /> : <Header />}
-          <ScrollToTop />
 
-          <Switch>
+          <Routes>
             {routes}
-            <CompatRoute path="*">
-              <Redirect to={redirection} />
-            </CompatRoute>
-          </Switch>
+            <Route path="*" element={<NotFoundView />} />
+          </Routes>
           <Footer />
         </CompatRouter>
       </BrowserRouter>

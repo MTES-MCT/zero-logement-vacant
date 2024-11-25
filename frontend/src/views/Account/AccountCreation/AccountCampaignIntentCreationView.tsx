@@ -5,7 +5,6 @@ import { useForm } from '../../../hooks/useForm';
 import { Row } from '../../../components/_dsfr';
 import AppHelp from '../../../components/_app/AppHelp/AppHelp';
 import CampaignIntent from '../../../components/CampaignIntent/CampaignIntent';
-import { Redirect, useHistory } from 'react-router-dom';
 import { login } from '../../../store/actions/authenticationAction';
 import { Prospect } from '../../../models/Prospect';
 import AppLink from '../../../components/_app/AppLink/AppLink';
@@ -19,6 +18,7 @@ import {
   TrackEventCategories
 } from '../../../models/TrackEvent';
 import Typography from '@mui/material/Typography';
+import { Navigate, useLocation } from 'react-router-dom-v5-compat';
 
 interface State {
   prospect: Prospect;
@@ -27,8 +27,7 @@ interface State {
 
 function AccountCampaignIntentCreationView() {
   const dispatch = useAppDispatch();
-  const router = useHistory<State | undefined>();
-  const { location } = router;
+  const location = useLocation();
   const { trackEvent } = useMatomo();
   const prospect = location.state?.prospect;
   const password = location.state?.password;
@@ -82,7 +81,7 @@ function AccountCampaignIntentCreationView() {
   };
 
   if (!location.state || !prospect || !password) {
-    return <Redirect to="/inscription/email" />;
+    return <Navigate to="email" />;
   }
 
   return (

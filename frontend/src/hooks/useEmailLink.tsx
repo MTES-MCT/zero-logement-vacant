@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom-v5-compat';
 import { useEffect, useMemo, useState } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import { useAppDispatch } from './useStore';
@@ -43,6 +43,6 @@ export function useEmailLink<T>(options: EmailLinkOptions<T>) {
     exists,
     hash,
     link,
-    loading,
+    loading
   };
 }

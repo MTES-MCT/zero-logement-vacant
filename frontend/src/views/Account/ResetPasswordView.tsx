@@ -7,7 +7,6 @@ import {
   passwordFormatValidator,
   useForm
 } from '../../hooks/useForm';
-import { useHistory } from 'react-router-dom';
 import authService from '../../services/auth.service';
 import { useEmailLink } from '../../hooks/useEmailLink';
 import resetLinkService from '../../services/reset-link.service';
@@ -23,7 +22,6 @@ function ResetPasswordView() {
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [passwordReset, setPasswordReset] = useState(false);
   const [error, setError] = useState('');
-  const router = useHistory();
   const resetLink = useEmailLink({
     service: resetLinkService
   });
@@ -63,7 +61,7 @@ function ResetPasswordView() {
             </Typography>
             <Text>Recommencez la procédure ou contactez le support.</Text>
             <Row justifyContent="right">
-              <Button onClick={() => router.replace('/')}>
+              <Button linkProps={{ to: '/', replace: true }}>
                 Revenir à l’accueil
               </Button>
             </Row>

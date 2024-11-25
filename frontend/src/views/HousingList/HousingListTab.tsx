@@ -26,7 +26,7 @@ import {
   useRemoveGroupHousingMutation
 } from '../../services/group.service';
 import { Group } from '../../models/Group';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom-v5-compat';
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -34,7 +34,6 @@ import { useCreateCampaignMutation } from '../../services/campaign.service';
 import fp from 'lodash/fp';
 import { HousingStatus } from '@zerologementvacant/models';
 import Typography from '@mui/material/Typography';
-import { useNavigate } from 'react-router-dom-v5-compat';
 
 export type HousingListTabProps = {
   isActive: boolean;

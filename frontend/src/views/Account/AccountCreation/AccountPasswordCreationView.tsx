@@ -1,11 +1,11 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,
   useForm
 } from '../../../hooks/useForm';
-import { Redirect } from 'react-router-dom';
 import { Row, Text } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
@@ -19,7 +19,6 @@ import {
 } from '../../../models/TrackEvent';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Typography from '@mui/material/Typography';
-import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 
 interface RouterState {
   prospect?: Prospect | undefined;
@@ -83,13 +82,13 @@ function AccountPasswordCreationView() {
 
   if (prospect) {
     if (prospect.hasAccount && !prospect.hasCommitment) {
-      return <Redirect to="/inscription/en-attente" />;
+      return <Navigate to="en-attente" />;
     }
     if (
       !prospect.establishment ||
       (!prospect.hasAccount && !prospect.hasCommitment)
     ) {
-      return <Redirect to="/inscription/impossible" />;
+      return <Navigate to="impossible" />;
     }
   }
 

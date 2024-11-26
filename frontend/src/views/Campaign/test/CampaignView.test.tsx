@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import { Link, MemoryRouter as Router, Route } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import configureTestStore from '../../../utils/test/storeUtils';
 import { AppStore } from '../../../store/store';
@@ -73,13 +73,16 @@ describe('Campaign view', () => {
   });
 
   it('should display "Page non trouvée" if the campaign does not exist', async () => {
+    const router = createMemoryRouter(
+      [{ path: '/campagnes/:id', element: <CampaignView /> }],
+      {
+        initialEntries: [`/campagnes/${faker.string.uuid()}`]
+      }
+    );
     render(
       <Provider store={store}>
         <Notification />
-        <Router initialEntries={[`/campagnes/${faker.string.uuid()}`]}>
-          <Link to="/campagnes">Campagnes</Link>
-          <Route path="/campagnes/:id" component={CampaignView} />
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
 
@@ -88,13 +91,16 @@ describe('Campaign view', () => {
   });
 
   function renderComponent(): void {
+    const router = createMemoryRouter(
+      [{ path: '/campagnes/:id', element: <CampaignView /> }],
+      {
+        initialEntries: [`/campagnes/${campaign.id}`]
+      }
+    );
     render(
       <Provider store={store}>
         <Notification />
-        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
-          <Link to="/campagnes">Campagnes</Link>
-          <Route path="/campagnes/:id" component={CampaignView} />
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
   }
@@ -273,7 +279,9 @@ describe('Campaign view', () => {
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');
-    const address = await within(aside).findByPlaceholderText('Rechercher une adresse');
+    const address = await within(aside).findByPlaceholderText(
+      'Rechercher une adresse'
+    );
     await user.clear(address);
     await user.type(address, 'Rue de la vallée 85130 Tiffauges');
     const save = await within(aside).findByRole('button', {
@@ -282,7 +290,7 @@ describe('Campaign view', () => {
     await user.click(save);
   });
 
-  it('should dismiss the warning message when the user clicks the \'Ignore\' button while editing the recipient’s address', async () => {
+  it("should dismiss the warning message when the user clicks the 'Ignore' button while editing the recipient’s address", async () => {
     renderComponent();
     localStorage.clear();
 
@@ -293,7 +301,7 @@ describe('Campaign view', () => {
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');
-    const [ ignoreButton ] = await within(aside).findAllByRole('button', {
+    const [ignoreButton] = await within(aside).findAllByRole('button', {
       name: /^Ignorer/
     });
     expect(ignoreButton).toBeInTheDocument();
@@ -311,13 +319,17 @@ describe('Campaign view', () => {
   it('should update the page when the campaign has been generated', async () => {
     const campaign: CampaignDTO = { ...genCampaignDTO(), status: 'sending' };
     data.campaigns.push(campaign);
+    const router = createMemoryRouter(
+      [{ path: '/campagnes/:id', element: <CampaignView /> }],
+      {
+        initialEntries: [`/campagnes/${campaign.id}`]
+      }
+    );
 
     render(
       <Provider store={store}>
         <Notification />
-        <Router initialEntries={[`/campagnes/${campaign.id}`]}>
-          <Route path="/campagnes/:id" component={CampaignView} />
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
 

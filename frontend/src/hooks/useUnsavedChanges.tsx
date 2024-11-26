@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useBlocker } from 'react-router-dom';
 
 interface Props {
@@ -10,13 +11,13 @@ function useUnsavedChanges(props: Readonly<Props>) {
     props.message ??
     'Voulez-vous vraiment quitter cette page ? Les modifications non enregistrées seront perdues.';
 
-  useBlocker(() => {
-    if (props.when) {
-      return !window.confirm(message);
-    }
+  const blocker = useBlocker(props.when);
 
-    return true;
-  });
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      window.confirm(message) ? blocker.proceed() : blocker.reset();
+    }
+  }, [blocker, message]);
 }
 
 export default useUnsavedChanges;

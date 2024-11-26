@@ -1,4 +1,6 @@
 import { useParams } from 'react-router-dom';
+import { assert } from 'ts-essentials';
+
 import { useFindEventsByOwnerQuery } from '../services/event.service';
 import { useGetOwnerQuery } from '../services/owner.service';
 import {
@@ -12,6 +14,7 @@ interface UseOwnerOptions {
 
 export function useOwner(options?: UseOwnerOptions) {
   const { ownerId } = useParams<{ ownerId: string }>();
+  assert(ownerId !== undefined, 'ownerId is undefined');
 
   const { data: owner } = useGetOwnerQuery(ownerId);
 

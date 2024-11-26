@@ -7,19 +7,31 @@ interface TestStoreOptions {
 }
 
 function configureTestStore(opts?: TestStoreOptions) {
-  const preloadedState = opts?.withAuth
-    ? {
-        authentication: { authUser: genAuthUser() },
-      }
-    : {};
-
   return configureStore({
     reducer: applicationReducer,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
-        serializableCheck: false,
+        serializableCheck: false
       }).concat(applicationMiddlewares),
-    preloadedState,
+    preloadedState: opts?.withAuth
+      ? {
+          authentication: {
+            logIn: {
+              data: genAuthUser(),
+              isError: false,
+              isLoading: false,
+              isSuccess: true,
+              isUninitialized: false
+            },
+            changeEstablishment: {
+              isError: false,
+              isLoading: false,
+              isSuccess: false,
+              isUninitialized: true
+            }
+          }
+        }
+      : undefined
   });
 }
 

@@ -1,9 +1,11 @@
+import _ from 'lodash';
 import { useParams } from 'react-router-dom';
 import { useMemo } from 'react';
+import { assert } from 'ts-essentials';
+
 import { useFindEventsByHousingQuery } from '../services/event.service';
 import { useFindNotesByHousingQuery } from '../services/note.service';
 import { useFindOwnersByHousingQuery } from '../services/owner.service';
-import _ from 'lodash';
 import { useCampaignList } from './useCampaignList';
 import {
   useCountHousingQuery,
@@ -14,6 +16,7 @@ import { isDefined } from '../utils/compareUtils';
 
 export function useHousing() {
   const { housingId } = useParams<{ housingId: string }>();
+  assert(housingId !== undefined, 'housingId is undefined');
 
   const { data: housing } = useGetHousingQuery(housingId);
 

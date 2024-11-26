@@ -19,6 +19,7 @@ import { changeEstablishment } from '../../store/actions/authenticationAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import { useAppDispatch } from '../../hooks/useStore';
 import logo from '../../assets/images/zlv.svg';
+import { zlvApi } from '../../services/api.service';
 
 function SmallHeader() {
   const dispatch = useAppDispatch();
@@ -37,6 +38,12 @@ function SmallHeader() {
       text: link.label,
       isActive: location.pathname.startsWith(link.url)
     };
+  }
+
+  async function onChangeEstablishment(id: string): Promise<void> {
+    await dispatch(changeEstablishment(id));
+    // Reset all state instead of reloading the page
+    dispatch(zlvApi.util.resetApiState());
   }
 
   return (
@@ -94,9 +101,7 @@ function SmallHeader() {
                         }
                       : undefined
                   }
-                  onChange={(id: string) => {
-                    dispatch(changeEstablishment(id));
-                  }}
+                  onChange={onChangeEstablishment}
                 />
               ) : (
                 <Typography component="span" mr={2} variant="body2">

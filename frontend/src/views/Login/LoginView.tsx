@@ -1,10 +1,11 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Typography from '@mui/material/Typography';
 import { FormEvent, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import * as yup from 'yup';
 
 import { Col, Container, Row, Text } from '../../components/_dsfr';
-import { login } from '../../store/actions/authenticationAction';
-
-import * as yup from 'yup';
 import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
@@ -12,28 +13,20 @@ import { emailValidator, useForm } from '../../hooks/useForm';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import Button from '@codegouvfr/react-dsfr/Button';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../models/TrackEvent';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import Typography from '@mui/material/Typography';
+import { logIn } from '../../store/thunks/auth-thunks';
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
   const dispatch = useAppDispatch();
+
   const { pathname } = useLocation();
-  const { trackEvent } = useMatomo();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [establishmentId, setEstablishmentId] = useState<string>('');
 
-  const { loginError, isLoggedOut } = useAppSelector(
-    (state) => state.authentication
-  );
+  const auth = useAppSelector((state) => state.authentication);
 
   const shape = {
     isAdmin: yup.boolean(),
@@ -55,18 +48,15 @@ const LoginView = () => {
 
   async function submitLoginForm(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
-    await form.validate(() => {
-      trackEvent({
-        category: TrackEventCategories.Home,
-        action: TrackEventActions.Home.Connection
-      });
-      dispatch(
-        login(
+    await form.validate(async () => {
+      await dispatch(
+        logIn({
           email,
           password,
-          establishmentId.length ? establishmentId : undefined
-        )
-      );
+          establishmentId: establishmentId.length ? establishmentId : undefined
+        })
+      ).unwrap();
+      navigate('/parc-de-logements');
     });
   }
 
@@ -76,7 +66,7 @@ const LoginView = () => {
     <Container as="main" className="grow-container" spacing="py-4w">
       <Row gutters alignItems="middle">
         <Col>
-          {isLoggedOut && (
+          {auth.isLoggedOut && (
             <Col n="12">
               <Alert
                 title="Déconnexion"
@@ -87,17 +77,17 @@ const LoginView = () => {
               />
             </Col>
           )}
-          {loginError && (
+          {auth.logIn.isError ? (
             <Col n="12">
               <div data-testid="alert-error" className="fr-my-2w">
                 <Alert
                   title="Erreur"
-                  description={loginError}
+                  description="Échec de l’authentification"
                   severity="error"
                 />
               </div>
             </Col>
-          )}
+          ) : null}
           <Typography component="h1" variant="h2" mb={3}>
             Connexion
           </Typography>
@@ -138,7 +128,7 @@ const LoginView = () => {
             <Row alignItems="middle">
               <Col n="9">
                 <Text as="span" size="lg">
-                  Première visite ?{' '}
+                  Première visite ?&nbsp;
                 </Text>
                 <AppLink
                   to="/inscription"

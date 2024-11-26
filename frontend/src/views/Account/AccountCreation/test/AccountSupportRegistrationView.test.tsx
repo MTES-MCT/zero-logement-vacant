@@ -7,7 +7,8 @@ import { Link, MemoryRouter as Router, Route } from 'react-router-dom';
 
 import {
   genEstablishmentDTO,
-  genProspectDTO
+  genProspectDTO,
+  genSignupLinkDTO
 } from '@zerologementvacant/models/fixtures';
 import AccountSupportRegistrationView from '../AccountSupportRegistrationView';
 import { Prospect } from '../../../../models/Prospect';
@@ -18,6 +19,7 @@ describe('AccountSupportRegistrationView', () => {
   const establishment = genEstablishmentDTO();
 
   function setup(prospect: Prospect = genProspectDTO(establishment)) {
+    const link = genSignupLinkDTO(prospect.email);
     const store = configureTestStore({ withAuth: true });
     const password = randomstring.generate();
 
@@ -26,6 +28,10 @@ describe('AccountSupportRegistrationView', () => {
         <Router
           initialEntries={[
             {
+              pathname: '/inscription/mot-de-passe',
+              hash: link.id
+            },
+            {
               pathname: '/inscription/prise-en-main',
               state: {
                 prospect,
@@ -33,6 +39,7 @@ describe('AccountSupportRegistrationView', () => {
               }
             }
           ]}
+          initialIndex={1}
         >
           <Route path="/inscription/mot-de-passe">
             Définissez votre mot de passe

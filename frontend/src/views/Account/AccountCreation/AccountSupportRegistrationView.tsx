@@ -3,7 +3,6 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
-import { Location } from 'history';
 import { Redirect, useHistory } from 'react-router-dom';
 import { login } from '../../../store/actions/authenticationAction';
 import { Prospect } from '../../../models/Prospect';
@@ -47,13 +46,6 @@ function AccountSupportRegistrationView() {
       }
     }
   }
-
-  const back: Partial<Location> = {
-    pathname: '/inscription/mot-de-passe',
-    state: {
-      prospect
-    }
-  };
 
   if (!location.state || !prospect || !password) {
     return <Redirect to="/inscription/email" />;
@@ -102,9 +94,7 @@ function AccountSupportRegistrationView() {
         >
           <Button
             iconId="fr-icon-arrow-left-line"
-            linkProps={{
-              to: back
-            }}
+            onClick={() => router.goBack()}
             priority="tertiary"
           >
             Revenir à l’étape précédente

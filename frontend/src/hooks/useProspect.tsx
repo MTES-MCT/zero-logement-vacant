@@ -12,25 +12,22 @@ export function useProspect() {
   // Get the hash value without "#"
   const location = useLocation<RouterState | undefined>();
   const link = location.hash.slice(1);
-  const existingProspect = location.state?.prospect;
 
-  const [saveProspect, { data, error, isLoading, isUninitialized }] =
+  const [saveProspect, { data: prospect, error, isLoading, isUninitialized }] =
     useSaveProspectMutation();
   const isInitialized = !isUninitialized;
 
   useEffect(() => {
-    if (isUninitialized && !existingProspect) {
+    if (isUninitialized) {
       saveProspect({ id: link });
     }
-  }, [link, isUninitialized, saveProspect, existingProspect]);
-
-  // Get the prospect from the router state if it exists, or from the API
-  const prospect = existingProspect ?? data;
+  }, [link, isUninitialized, saveProspect]);
 
   const linkExists = isInitialized && !isLoading && !!prospect;
 
   return {
     error,
+    link,
     linkExists,
     loading: isUninitialized || isLoading,
     prospect

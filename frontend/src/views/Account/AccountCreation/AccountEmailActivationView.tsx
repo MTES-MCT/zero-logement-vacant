@@ -25,7 +25,7 @@ function AccountEmailActivationView() {
   }
 
   if (!location.state?.email) {
-    return <Navigate to="email" />;
+    return <Navigate to="/inscription/email" />;
   }
 
   const confirmationClasses = classNames(`fr-${status}-text`, {

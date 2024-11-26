@@ -34,7 +34,7 @@ function AccountEmailCreationView() {
         category: TrackEventCategories.AccountCreation,
         action: TrackEventActions.AccountCreation.SendEmail
       });
-      navigate('activation', {
+      navigate('/inscription/activation', {
         state: {
           email
         }

@@ -29,7 +29,7 @@ function AccountCreationView() {
               path="campagne"
               element={<AccountCampaignIntentCreationView />}
             />
-            <Route path="*" element={<Navigate replace to="email" />} />
+            <Route path="*" element={<Navigate replace to="../email" />} />
           </Routes>
         </Col>
         <Col n="5" offset="1" className="align-right">

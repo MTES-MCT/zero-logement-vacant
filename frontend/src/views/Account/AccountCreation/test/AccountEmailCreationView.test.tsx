@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
+import { createMemoryRouter, Outlet, RouterProvider } from 'react-router-dom';
 import AccountEmailCreationView from '../AccountEmailCreationView';
 import userEvent from '@testing-library/user-event';
 import { store } from '../../../../store/store';
@@ -9,19 +9,23 @@ describe('AccountEmailCreationView', () => {
   const user = userEvent.setup();
 
   function setup() {
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/inscription/*',
+          element: <Outlet />,
+          children: [
+            { path: 'email', element: <AccountEmailCreationView /> },
+            { path: 'activation', element: 'Activation' }
+          ]
+        }
+      ],
+      { initialEntries: ['/inscription/email'] }
+    );
     render(
       <Provider store={store}>
-        <Router initialEntries={['/inscription/email']}>
-          <Route
-            path="/inscription/email"
-            component={AccountEmailCreationView}
-          />
-          <Route path="/inscription/activation">Activation</Route>
-          <Route exact path="/">
-            Accueil
-          </Route>
-        </Router>
-      </Provider>,
+        <RouterProvider router={router} />
+      </Provider>
     );
   }
 
@@ -40,7 +44,7 @@ describe('AccountEmailCreationView', () => {
     await user.keyboard('{Enter}');
 
     const error = await screen.findByText(
-      "L'adresse doit être un email valide",
+      "L'adresse doit être un email valide"
     );
     expect(error).toBeVisible();
   });

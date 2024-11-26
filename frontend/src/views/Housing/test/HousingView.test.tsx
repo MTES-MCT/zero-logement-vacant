@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import {
   HousingDTO,
@@ -40,11 +40,15 @@ describe('Housing view', () => {
 
   function renderView(housing: HousingDTO) {
     const store = configureTestStore();
+    const router = createMemoryRouter(
+      [{ path: '/housing/:housingId', element: <HousingView /> }],
+      {
+        initialEntries: [`/housing/${housing.id}`]
+      }
+    );
     render(
       <Provider store={store}>
-        <Router initialEntries={[`/housing/${housing.id}`]}>
-          <Route path="/housing/:housingId" component={HousingView} />
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
   }

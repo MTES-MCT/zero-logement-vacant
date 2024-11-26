@@ -86,7 +86,7 @@ function AccountCampaignIntentCreationView() {
   };
 
   if (!location.state || !prospect || !password) {
-    return <Navigate to="email" />;
+    return <Navigate to="/inscription/email" />;
   }
 
   return (

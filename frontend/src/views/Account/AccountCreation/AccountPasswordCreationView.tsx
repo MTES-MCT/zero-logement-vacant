@@ -82,13 +82,13 @@ function AccountPasswordCreationView() {
 
   if (prospect) {
     if (prospect.hasAccount && !prospect.hasCommitment) {
-      return <Navigate to="en-attente" />;
+      return <Navigate to="/inscription/en-attente" />;
     }
     if (
       !prospect.establishment ||
       (!prospect.hasAccount && !prospect.hasCommitment)
     ) {
-      return <Navigate to="impossible" />;
+      return <Navigate to="/inscription/impossible" />;
     }
   }
 

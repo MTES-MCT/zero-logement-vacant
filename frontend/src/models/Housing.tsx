@@ -1,4 +1,5 @@
 import { differenceInDays, format } from 'date-fns';
+import { List } from 'immutable';
 import { match, Pattern } from 'ts-pattern';
 
 import {
@@ -236,37 +237,37 @@ export const getOccupancy = (
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
 export function getSource(housing: Housing): string {
-
   const labels: Record<string, string> = {
-    'lovac': 'LOVAC',
-    'ff': 'Fichiers fonciers',
+    lovac: 'LOVAC',
+    ff: 'Fichiers fonciers',
     'datafoncier-import': 'Fichiers fonciers',
     'datafoncier-manual': 'Fichiers fonciers'
   };
 
-  const aggregatedData: Record<string, string[]> = {};
+  const years = List(housing.dataFileYears)
+    .groupBy((dataFileYear) => dataFileYear.split('-').at(0) as string)
+    .map((dataFileYears) =>
+      dataFileYears.map(
+        (dataFileYear) => dataFileYear.split('-').at(1) as string
+      )
+    )
+    .filter((years) => !years.isEmpty())
+    .reduce((acc, years, source) => {
+      const label = labels[source] ?? source;
+      return acc.concat(`${label} (${years.join(', ')})`);
+    }, List<string>());
 
-  let result = null;
-  if(housing.dataFileYears.length > 0) {
-    housing.dataFileYears.forEach((item) => {
-      const [name, year] = item.split('-');
-      if (!aggregatedData[name]) {
-        aggregatedData[name] = [];
-      }
-      aggregatedData[name].push(year);
-    });
+  const source = housing.source ? labels[housing.source] : null;
 
-    result = Object.keys(aggregatedData)
-      .map((name) => {
-        const years = aggregatedData[name].join(', ');
-        return labels[name] + ' (' + years + ')';
-      })
-      .join(', ');
-  } else if (housing.source) {
-    result = labels[housing.source];
+  if (!years.isEmpty()) {
+    return years.join(', ');
   }
 
-  return result || 'Inconnue';
+  if (source) {
+    return source;
+  }
+
+  return 'Inconnue';
 }
 
 export function toHousingDTO(housing: Housing): HousingDTO {

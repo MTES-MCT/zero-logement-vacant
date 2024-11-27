@@ -7,7 +7,6 @@ import {
   passwordFormatValidator,
   useForm
 } from '../../hooks/useForm';
-import { useHistory } from 'react-router-dom';
 import authService from '../../services/auth.service';
 import { useEmailLink } from '../../hooks/useEmailLink';
 import resetLinkService from '../../services/reset-link.service';
@@ -23,7 +22,6 @@ function ResetPasswordView() {
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [passwordReset, setPasswordReset] = useState(false);
   const [error, setError] = useState('');
-  const router = useHistory();
   const resetLink = useEmailLink({
     service: resetLinkService
   });
@@ -63,7 +61,7 @@ function ResetPasswordView() {
             </Typography>
             <Text>Recommencez la procédure ou contactez le support.</Text>
             <Row justifyContent="right">
-              <Button onClick={() => router.replace('/')}>
+              <Button linkProps={{ to: '/', replace: true }}>
                 Revenir à l’accueil
               </Button>
             </Row>
@@ -92,9 +90,7 @@ function ResetPasswordView() {
               Essayez de vous connecter en utilisant votre nouveau mot de passe.
             </Text>
             <Row justifyContent="right">
-              <Button onClick={() => router.push('/connexion')}>
-                Se connecter
-              </Button>
+              <Button linkProps={{ to: '/connexion' }}>Se connecter</Button>
             </Row>
           </Col>
           <Col n="5" offset="1" className="align-right">

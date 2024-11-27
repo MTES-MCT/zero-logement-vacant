@@ -43,6 +43,6 @@ export function useEmailLink<T>(options: EmailLinkOptions<T>) {
     exists,
     hash,
     link,
-    loading,
+    loading
   };
 }

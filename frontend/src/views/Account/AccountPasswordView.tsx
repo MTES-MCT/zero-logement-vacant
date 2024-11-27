@@ -10,7 +10,6 @@ import {
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import AccountSideMenu from './AccountSideMenu';
 import { useUpdatePasswordMutation } from '../../services/user-account.service';
-import { useHistory } from 'react-router-dom';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -19,8 +18,6 @@ import Typography from '@mui/material/Typography';
 
 const AccountPasswordView = () => {
   useDocumentTitle('Votre mot de passe');
-
-  const history = useHistory();
 
   const [
     updateUserPassword,
@@ -142,7 +139,7 @@ const AccountPasswordView = () => {
                       <Button
                         priority="secondary"
                         className="fr-mr-2w"
-                        onClick={() => history.push('/compte')}
+                        linkProps={{ to: '/compte' }}
                       >
                         Annuler
                       </Button>

@@ -37,6 +37,6 @@ export function useProspect(initialValue?: Prospect) {
     error,
     linkExists,
     loading,
-    prospect,
+    prospect
   };
 }

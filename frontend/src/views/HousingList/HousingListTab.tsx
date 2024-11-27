@@ -26,7 +26,7 @@ import {
   useRemoveGroupHousingMutation
 } from '../../services/group.service';
 import { Group } from '../../models/Group';
-import { useHistory, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -60,7 +60,7 @@ const HousingListTab = ({
   onCountFilteredHousing
 }: HousingListTabProps) => {
   const { trackEvent } = useMatomo();
-  const router = useHistory();
+  const navigate = useNavigate();
   const [
     updateHousingList,
     { isSuccess: isUpdateSuccess, data: updatedCount }
@@ -112,9 +112,7 @@ const HousingListTab = ({
         action: TrackEventActions.HousingList.SaveCampaign,
         value: selectedCount
       });
-      router.push({
-        pathname: `/campagnes/${created.id}`
-      });
+      navigate(`/campagnes/${created.id}`);
     }
   };
 
@@ -151,8 +149,7 @@ const HousingListTab = ({
         ids: selected.ids,
         filters
       });
-      router.push({
-        pathname: `/groupes/${group.id}`,
+      navigate(`/groupes/${group.id}`, {
         state: {
           alert: 'Les logements sélectionnés ont bien été ajoutés à ce groupe.'
         }
@@ -174,8 +171,7 @@ const HousingListTab = ({
           filters
         }
       }).unwrap();
-      router.push({
-        pathname: `/groupes/${response.group.id}`,
+      navigate(`/groupes/${response.group.id}`, {
         state: {
           alert:
             response.status === 202

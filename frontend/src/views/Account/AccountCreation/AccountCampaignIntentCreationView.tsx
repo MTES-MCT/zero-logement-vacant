@@ -1,12 +1,9 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { Location } from 'history';
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
 import { Row } from '../../../components/_dsfr';
 import AppHelp from '../../../components/_app/AppHelp/AppHelp';
 import CampaignIntent from '../../../components/CampaignIntent/CampaignIntent';
-import { Redirect, useHistory } from 'react-router-dom';
-import { login } from '../../../store/actions/authenticationAction';
 import { Prospect } from '../../../models/Prospect';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useAppDispatch } from '../../../hooks/useStore';
@@ -19,6 +16,8 @@ import {
   TrackEventCategories
 } from '../../../models/TrackEvent';
 import Typography from '@mui/material/Typography';
+import { Location, Navigate, useLocation } from 'react-router-dom';
+import { logIn } from '../../../store/thunks/auth-thunks';
 
 interface State {
   prospect: Prospect;
@@ -27,8 +26,7 @@ interface State {
 
 function AccountCampaignIntentCreationView() {
   const dispatch = useAppDispatch();
-  const router = useHistory<State | undefined>();
-  const { location } = router;
+  const location: { state?: State } = useLocation();
   const { trackEvent } = useMatomo();
   const prospect = location.state?.prospect;
   const password = location.state?.password;
@@ -69,7 +67,13 @@ function AccountCampaignIntentCreationView() {
           category: TrackEventCategories.AccountCreation,
           action: TrackEventActions.AccountCreation.SubmitCampaignIntent
         });
-        dispatch(login(prospect.email, password, prospect.establishment.id));
+        await dispatch(
+          logIn({
+            email: prospect.email,
+            password: password,
+            establishmentId: prospect.establishment.id
+          })
+        );
       }
     });
   }
@@ -82,7 +86,7 @@ function AccountCampaignIntentCreationView() {
   };
 
   if (!location.state || !prospect || !password) {
-    return <Redirect to="/inscription/email" />;
+    return <Navigate to="/inscription/email" />;
   }
 
   return (

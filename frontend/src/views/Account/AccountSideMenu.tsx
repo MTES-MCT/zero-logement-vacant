@@ -1,7 +1,7 @@
 import { Text } from '../../components/_dsfr';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import { useAppDispatch } from '../../hooks/useStore';
-import { logout } from '../../store/actions/authenticationAction';
+import { logOut } from '../../store/actions/authenticationAction';
 import { useUser } from '../../hooks/useUser';
 import { useLocation } from 'react-router-dom';
 import classNames from 'classnames';
@@ -67,7 +67,7 @@ const AccountSideMenu = () => {
         to="#"
         iconId="fr-icon-logout-box-r-fill"
         iconPosition="left"
-        onClick={() => dispatch(logout())}
+        onClick={() => dispatch(logOut())}
         size="md"
       >
         Se déconnecter

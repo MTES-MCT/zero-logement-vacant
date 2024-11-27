@@ -2,7 +2,7 @@ import userEvent from '@testing-library/user-event';
 import { genProspect, genSiren } from '../../../../../test/fixtures.test';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import * as randomstring from 'randomstring';
 import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
 import { Prospect } from '../../../../models/Prospect';
@@ -14,27 +14,32 @@ describe('AccountCampaignIntentCreationView', () => {
   const password = randomstring.generate();
 
   function renderComponent(prospect: Prospect = genProspect()) {
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/inscription/mot-de-passe',
+          element: 'Créer votre mot de passe'
+        },
+        {
+          path: '/inscription/campagne',
+          element: <AccountCampaignIntentCreationView />
+        }
+      ],
+      {
+        initialEntries: [
+          {
+            pathname: '/inscription/campagne',
+            state: {
+              prospect,
+              password
+            }
+          }
+        ]
+      }
+    );
     render(
       <Provider store={store}>
-        <Router
-          initialEntries={[
-            {
-              pathname: '/inscription/campagne',
-              state: {
-                prospect,
-                password
-              }
-            }
-          ]}
-        >
-          <Route path="/inscription/mot-de-passe">
-            Créer votre mot de passe
-          </Route>
-          <Route
-            path="/inscription/campagne"
-            component={AccountCampaignIntentCreationView}
-          />
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
   }

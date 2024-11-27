@@ -2,7 +2,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
@@ -53,8 +53,8 @@ const HousingListView = () => {
     });
   };
 
-  const router = useHistory<RouterState | undefined>();
-  const [alert, setAlert] = useState(router.location.state?.alert ?? '');
+  const location: { state?: RouterState } = useLocation();
+  const [alert, setAlert] = useState(location.state?.alert ?? '');
   function onFinish() {
     setAlert(
       'Le logement sélectionné a bien été ajouté à votre parc de logements.'

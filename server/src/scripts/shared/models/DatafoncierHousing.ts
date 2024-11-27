@@ -1,7 +1,6 @@
 import fp from 'lodash/fp';
 import { HousingRecordApi, OwnershipKindsApi } from '~/models/HousingApi';
 import { v4 as uuidv4 } from 'uuid';
-import { ReferenceDataYear } from '~/repositories/housingRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
   DatafoncierHousing,
@@ -31,8 +30,11 @@ export const toHousingRecordApi = fp.curry(
       livingArea: housing.stoth,
       buildingYear: housing.jannath,
       taxed: false,
-      dataYears: [ReferenceDataYear + 1],
-      dataFileYears: [`${ReferenceDataYear + 1}`],
+      // The data in `df_housing_nat` and `df_owners_nat` is from 2023
+      dataYears: [2023],
+      dataFileYears: [
+        `${additionalData.source === 'lovac' ? 'lovac' : 'ff'}-2023`
+      ],
       buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
       ownershipKind: housing.ctpdl as OwnershipKindsApi,
       status: HousingStatusApi.NeverContacted,

@@ -6,7 +6,8 @@ import db from '~/infra/database';
 import { tokenProvider } from '~/test/testUtils';
 import {
   formatHousingRecordApi,
-  Housing
+  Housing,
+  housingTable
 } from '~/repositories/housingRepository';
 import {
   genCampaignApi,
@@ -18,7 +19,12 @@ import {
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
+import {
+  formatOwnerApi,
+  OwnerRecordDBO,
+  Owners,
+  ownerTable
+} from '~/repositories/ownerRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
   Events,
@@ -32,7 +38,8 @@ import { HousingUpdateBody } from './housingController';
 import { housingNotesTable, Notes } from '~/repositories/noteRepository';
 import {
   formatHousingOwnersApi,
-  HousingOwners
+  HousingOwners,
+  housingOwnersTable
 } from '~/repositories/housingOwnerRepository';
 import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
 import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
@@ -50,6 +57,7 @@ import {
   formatCampaignHousingApi
 } from '~/repositories/campaignHousingRepository';
 import { faker } from '@faker-js/faker/locale/fr';
+import { OwnerApi } from '~/models/OwnerApi';
 
 describe('Housing API', () => {
   const { app } = createServer();
@@ -175,8 +183,8 @@ describe('Housing API', () => {
     });
   });
 
-  describe('POST /housing/creation', () => {
-    const testRoute = '/api/housing/creation';
+  describe('POST /housing', () => {
+    const testRoute = '/api/housing';
 
     it('should be forbidden a non-authenticated user', async () => {
       const { status } = await request(app).post(testRoute);
@@ -231,6 +239,55 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject({
         localId: payload.localId
+      });
+    });
+
+    it('should ignore owners update if they already exist', async () => {
+      const datafoncierHousing = genDatafoncierHousing();
+      const datafoncierOwners = Array.from({ length: 3 }, () =>
+        genDatafoncierOwner(datafoncierHousing.idprocpte)
+      );
+      const existingOwners = datafoncierOwners.map<OwnerApi>(
+        (datafoncierOwner) => {
+          return {
+            ...genOwnerApi(),
+            idpersonne: datafoncierOwner.idpersonne
+          };
+        }
+      );
+      await Promise.all([
+        DatafoncierHouses().insert(datafoncierHousing),
+        DatafoncierOwners().insert(datafoncierOwners),
+        Owners().insert(existingOwners.map(formatOwnerApi))
+      ]);
+      const payload = {
+        localId: datafoncierHousing.idlocal
+      };
+
+      const { status } = await request(app)
+        .post(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const actualOwners = await Owners()
+        .select(`${ownerTable}.*`)
+        .join(
+          housingOwnersTable,
+          `${housingOwnersTable}.owner_id`,
+          `${ownerTable}.id`
+        )
+        .join(
+          housingTable,
+          `${housingTable}.id`,
+          `${housingOwnersTable}.housing_id`
+        )
+        .where(`${housingTable}.local_id`, datafoncierHousing.idlocal);
+      expect(actualOwners).toSatisfyAll<OwnerRecordDBO>((actualOwner) => {
+        return existingOwners.some((existingOwner) => {
+          return existingOwner.id === actualOwner.id;
+        });
       });
     });
 

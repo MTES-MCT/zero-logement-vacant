@@ -100,7 +100,10 @@ async function create(
     updatedAt: new Date().toJSON()
   };
 
-  await ownerRepository.betterSave(owner);
+  await ownerRepository.betterSave(owner, {
+    onConflict: ['id'],
+    merge: false
+  });
   await banAddressesRepository.markAddressToBeNormalized(
     owner.id,
     AddressKinds.Owner

@@ -58,7 +58,7 @@ async function get(request: Request, response: Response) {
     id,
     localId,
     includes: ['events', 'owner', 'perimeters', 'campaigns']
-  });  
+  });
   if (!housing) {
     throw new HousingMissingError(params.id);
   }
@@ -205,7 +205,8 @@ async function create(request: Request, response: Response) {
   await async.forEach(datafoncierOwners, async (datafoncierOwner) => {
     const owner = toOwnerApi(datafoncierOwner);
     await ownerRepository.betterSave(owner, {
-      onConflict: ['idpersonne']
+      onConflict: ['idpersonne'],
+      merge: false
     });
   });
   const owners = await ownerRepository.find({

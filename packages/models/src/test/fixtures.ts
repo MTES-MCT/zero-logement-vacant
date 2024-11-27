@@ -11,7 +11,7 @@ import { OwnerDTO } from '../OwnerDTO';
 import { RolesDTO } from '../RolesDTO';
 import { SenderDTO, SignatoryDTO } from '../SenderDTO';
 import { UserDTO } from '../UserDTO';
-import { OCCUPANCY_VALUES } from '../Occupancy';
+import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
 import { HOUSING_KIND_VALUES } from '../HousingKind';
 import { DatafoncierHousing } from '../DatafoncierHousing';
 import { HOUSING_STATUS_VALUES } from '../HousingStatus';
@@ -127,7 +127,12 @@ export function genDatafoncierHousingDTO(
     dloy48a: faker.number.int(99),
     top48a: faker.string.alphanumeric(1),
     dnatlc: faker.string.alphanumeric(1),
-    ccthp: faker.helpers.arrayElement(OCCUPANCY_VALUES),
+    ccthp: faker.helpers.arrayElement([
+      ...OCCUPANCY_VALUES.filter(
+        (occupancy) => occupancy !== Occupancy.UNKNOWN
+      ),
+      null
+    ]),
     proba_rprs: faker.string.alphanumeric(7),
     typeact: faker.string.alphanumeric(4),
     loghvac: faker.string.alphanumeric(1),

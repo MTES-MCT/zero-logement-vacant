@@ -695,7 +695,12 @@ export const genDatafoncierHousing = (
     dloy48a: genNumber(2),
     top48a: randomstring.generate(1),
     dnatlc: randomstring.generate(1),
-    ccthp: faker.helpers.arrayElement([...OCCUPANCY_VALUES, null]),
+    ccthp: faker.helpers.arrayElement([
+      ...OCCUPANCY_VALUES.filter(
+        (occupancy) => occupancy !== Occupancy.UNKNOWN
+      ),
+      null
+    ]),
     proba_rprs: randomstring.generate(7),
     typeact: randomstring.generate(4),
     loghvac: randomstring.generate(1),

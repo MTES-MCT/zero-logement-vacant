@@ -283,11 +283,16 @@ describe('Housing API', () => {
           `${housingOwnersTable}.housing_id`
         )
         .where(`${housingTable}.local_id`, datafoncierHousing.idlocal);
+      expect(actualOwners.length).toBe(datafoncierOwners.length);
       expect(actualOwners).toSatisfyAll<OwnerRecordDBO>((actualOwner) => {
         return existingOwners.some((existingOwner) => {
           return existingOwner.id === actualOwner.id;
         });
       });
+      const actualHousing = await Housing()
+        .where({ local_id: datafoncierHousing.idlocal })
+        .first();
+      expect(actualHousing).toBeDefined();
     });
 
     it('should assign its owners', async () => {

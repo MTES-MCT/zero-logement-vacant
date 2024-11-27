@@ -127,7 +127,7 @@ export function genDatafoncierHousingDTO(
     dloy48a: faker.number.int(99),
     top48a: faker.string.alphanumeric(1),
     dnatlc: faker.string.alphanumeric(1),
-    ccthp: faker.helpers.arrayElement(['L', 'V']),
+    ccthp: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     proba_rprs: faker.string.alphanumeric(7),
     typeact: faker.string.alphanumeric(4),
     loghvac: faker.string.alphanumeric(1),

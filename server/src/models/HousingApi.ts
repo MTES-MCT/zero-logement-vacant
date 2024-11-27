@@ -1,7 +1,7 @@
 import fp from 'lodash/fp';
 import { assert, MarkRequired } from 'ts-essentials';
 
-import { HousingSource } from '@zerologementvacant/models';
+import { HousingSource, Occupancy } from '@zerologementvacant/models';
 import { OwnerApi } from './OwnerApi';
 import { HousingStatusApi } from './HousingStatusApi';
 import { Sort } from './SortApi';
@@ -52,9 +52,9 @@ export interface HousingRecordApi {
   precisions?: string[];
   energyConsumption?: EnergyConsumptionGradesApi;
   energyConsumptionAt?: Date;
-  occupancy: OccupancyKindApi;
-  occupancyRegistered: OccupancyKindApi;
-  occupancyIntended?: OccupancyKindApi;
+  occupancy: Occupancy;
+  occupancyRegistered: Occupancy;
+  occupancyIntended?: Occupancy;
   source: HousingSource | null;
 }
 

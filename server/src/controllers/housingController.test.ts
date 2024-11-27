@@ -58,6 +58,7 @@ import {
 } from '~/repositories/campaignHousingRepository';
 import { faker } from '@faker-js/faker/locale/fr';
 import { OwnerApi } from '~/models/OwnerApi';
+import { Occupancy, OCCUPANCY_VALUES } from '@zerologementvacant/models';
 
 describe('Housing API', () => {
   const { app } = createServer();
@@ -151,12 +152,10 @@ describe('Housing API', () => {
     });
 
     it('should sort housings by occupancy', async () => {
-      const housings = Object.values(OccupancyKindApi).map<HousingApi>(
-        (occupancy) => ({
-          ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-          occupancy
-        })
-      );
+      const housings = OCCUPANCY_VALUES.map<HousingApi>((occupancy) => ({
+        ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+        occupancy
+      }));
       const owner = genOwnerApi();
       await Promise.all([
         Housing().insert(housings.map(formatHousingRecordApi)),
@@ -357,8 +356,8 @@ describe('Housing API', () => {
           vacancyReasons: [randomstring.generate()]
         },
         occupancyUpdate: {
-          occupancy: OccupancyKindApi.Vacant,
-          occupancyIntended: OccupancyKindApi.DemolishedOrDivided
+          occupancy: Occupancy.VACANT,
+          occupancyIntended: Occupancy.DEMOLISHED_OR_DIVIDED
         },
         note: {
           content: randomstring.generate(),

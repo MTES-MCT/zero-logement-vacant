@@ -1,5 +1,5 @@
-import { OwnershipKind } from '@zerologementvacant/models';
-import { EnergyConsumptionGradesApi, OccupancyKindApi } from './HousingApi';
+import { Occupancy, OwnershipKind } from '@zerologementvacant/models';
+import { EnergyConsumptionGradesApi } from './HousingApi';
 import { body, ValidationChain } from 'express-validator';
 import { isArrayOf, isInteger, isString, isUUID } from '~/utils/validators';
 
@@ -40,7 +40,7 @@ export interface HousingFiltersApi {
   subStatus?: string[];
   query?: string;
   energyConsumption?: EnergyConsumptionGradesApi[];
-  occupancies?: OccupancyKindApi[];
+  occupancies?: Occupancy[];
 }
 
 const validators = (property = 'filters'): ValidationChain[] => [

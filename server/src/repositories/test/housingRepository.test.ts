@@ -36,11 +36,7 @@ import {
   HousingOwnerDBO,
   HousingOwners
 } from '../housingOwnerRepository';
-import {
-  EnergyConsumptionGradesApi,
-  HousingApi,
-  OccupancyKindApi
-} from '~/models/HousingApi';
+import { EnergyConsumptionGradesApi, HousingApi } from '~/models/HousingApi';
 import { formatLocalityApi, Localities } from '../localityRepository';
 import { LocalityApi } from '~/models/LocalityApi';
 import { BuildingApi } from '~/models/BuildingApi';
@@ -69,6 +65,8 @@ import {
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   isSecondaryOwner,
+  Occupancy,
+  OCCUPANCY_VALUES,
   OwnershipKind,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
@@ -181,12 +179,10 @@ describe('Housing repository', () => {
 
       describe('by occupancy', () => {
         beforeEach(async () => {
-          const housings: HousingApi[] = Object.values(OccupancyKindApi).map(
-            (occupancy) => ({
-              ...genHousingApi(),
-              occupancy
-            })
-          );
+          const housings: HousingApi[] = OCCUPANCY_VALUES.map((occupancy) => ({
+            ...genHousingApi(),
+            occupancy
+          }));
           await Housing().insert(housings.map(formatHousingRecordApi));
           const owner = genOwnerApi();
           await Owners().insert(formatOwnerApi(owner));
@@ -197,7 +193,7 @@ describe('Housing repository', () => {
           );
         });
 
-        test.each(Object.values(OccupancyKindApi))(
+        test.each(OCCUPANCY_VALUES)(
           'should filter by %s',
           async (occupancy) => {
             const actual = await housingRepository.find({
@@ -871,10 +867,13 @@ describe('Housing repository', () => {
             .map((_, i) => ({
               ...genHousingApi(),
               vacancyStartYear: ReferenceDataYear - i
-            })).concat([ {
-              ...genHousingApi(),
-              vacancyStartYear: 0
-            } ]);
+            }))
+            .concat([
+              {
+                ...genHousingApi(),
+                vacancyStartYear: 0
+              }
+            ]);
           await Housing().insert(housingList.map(formatHousingRecordApi));
         });
 
@@ -902,7 +901,7 @@ describe('Housing repository', () => {
             filter: ['2018to2015'],
             predicate: (housing: HousingApi) => {
               const vacancyStartYear = housing.vacancyStartYear as number;
-              return vacancyStartYear >= 2015 && vacancyStartYear <= 2018;              
+              return vacancyStartYear >= 2015 && vacancyStartYear <= 2018;
             }
           },
           {
@@ -1177,8 +1176,7 @@ describe('Housing repository', () => {
           return new Array(vacant + other).fill('0').map((_, i) => ({
             ...genHousingApi(),
             buildingId,
-            occupancy:
-              i < vacant ? OccupancyKindApi.Vacant : OccupancyKindApi.Rent
+            occupancy: i < vacant ? Occupancy.VACANT : Occupancy.RENT
           }));
         }
 
@@ -1651,8 +1649,8 @@ describe('Housing repository', () => {
       await Housing().insert(formatHousingRecordApi(original));
       const update: HousingApi = {
         ...original,
-        occupancy: OccupancyKindApi.Rent,
-        occupancyIntended: OccupancyKindApi.CommercialOrOffice
+        occupancy: Occupancy.RENT,
+        occupancyIntended: Occupancy.COMMERCIAL_OR_OFFICE
       };
 
       await housingRepository.save(update, { onConflict: 'merge' });
@@ -1668,14 +1666,14 @@ describe('Housing repository', () => {
     it('should update specific fields of an existing housing', async () => {
       const original: HousingApi = {
         ...genHousingApi(oneOf(establishment.geoCodes)),
-        occupancy: OccupancyKindApi.Vacant,
-        occupancyIntended: OccupancyKindApi.Rent
+        occupancy: Occupancy.VACANT,
+        occupancyIntended: Occupancy.RENT
       };
       await Housing().insert(formatHousingRecordApi(original));
       const update: HousingApi = {
         ...original,
-        occupancy: OccupancyKindApi.Rent,
-        occupancyIntended: OccupancyKindApi.CommercialOrOffice
+        occupancy: Occupancy.RENT,
+        occupancyIntended: Occupancy.COMMERCIAL_OR_OFFICE
       };
 
       await housingRepository.save(update, {

@@ -110,7 +110,7 @@ async function list(
     ),
     energyConsumption:
       rawFilters?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
-    occupancies: rawFilters?.occupancies as unknown as OccupancyKindApi[],
+    occupancies: rawFilters?.occupancies,
     establishmentIds:
       [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
       rawFilters?.establishmentIds?.length

@@ -17,11 +17,7 @@ import {
   hasPriority,
   INTENTS
 } from '~/models/EstablishmentApi';
-import {
-  ENERGY_CONSUMPTION_GRADES,
-  HousingApi,
-  OccupancyKindApi
-} from '~/models/HousingApi';
+import { ENERGY_CONSUMPTION_GRADES, HousingApi } from '~/models/HousingApi';
 import { CampaignApi } from '~/models/CampaignApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { ProspectApi } from '~/models/ProspectApi';
@@ -75,6 +71,8 @@ import {
   HOUSING_SOURCE_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
+  Occupancy,
+  OCCUPANCY_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
@@ -283,10 +281,10 @@ export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
       uuidv4(),
     housingCount: housingList.length,
     vacantHousingCount: housingList.filter(
-      (housing) => housing.occupancy === OccupancyKindApi.Vacant
+      (housing) => housing.occupancy === Occupancy.VACANT
     ).length,
     rentHousingCount: housingList.filter(
-      (housing) => housing.occupancy === OccupancyKindApi.Rent
+      (housing) => housing.occupancy === Occupancy.RENT
     ).length
   };
 };
@@ -360,10 +358,8 @@ export const genHousingApi = (
       }))
     ]),
     energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_GRADES),
-    occupancy: faker.helpers.arrayElement(Object.values(OccupancyKindApi)),
-    occupancyRegistered: faker.helpers.arrayElement(
-      Object.values(OccupancyKindApi)
-    ),
+    occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
+    occupancyRegistered: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     buildingVacancyRate: faker.number.float(),
     campaignIds: [],
     contactCount: genNumber(1),

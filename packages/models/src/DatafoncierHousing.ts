@@ -1,5 +1,7 @@
 import fp from 'lodash/fp';
 
+import { Occupancy, OCCUPANCY_VALUES } from './Occupancy';
+
 /**
  * @see http://doc-datafoncier.cerema.fr/ff/doc_fftp/table/pb0010_local/last/
  */
@@ -57,7 +59,7 @@ export interface DatafoncierHousing {
   dloy48a: number | null;
   top48a: string;
   dnatlc: string;
-  ccthp: string;
+  ccthp: string | null;
   proba_rprs: string;
   typeact: string | null;
   loghvac: string | null;
@@ -139,4 +141,9 @@ export function toAddress(housing: DatafoncierHousing): string {
   const zipcode = housing.idcom;
   const city = housing.idcomtxt;
   return `${streetNumber}${repetition} ${street}, ${zipcode} ${city}`;
+}
+
+export function toOccupancy(ccthp: DatafoncierHousing['ccthp']): Occupancy {
+  const occupancy = OCCUPANCY_VALUES.find((occupancy) => occupancy === ccthp);
+  return occupancy ?? Occupancy.UNKNOWN;
 }

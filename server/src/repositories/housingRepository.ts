@@ -166,7 +166,7 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
 }
 
 interface FindOneOptions {
-  geoCode?: string | string[];
+  geoCode?: string | string[] | ReadonlyArray<string>;
   id?: string;
   localId?: string;
   includes?: HousingInclude[];
@@ -853,7 +853,9 @@ const housingSortQuery = (sort?: HousingSortApi) =>
  */
 async function fetchGeoCodes(establishmentIds: string[]): Promise<string[]> {
   const establishments = await establishmentRepository.find({
-    ids: establishmentIds
+    filters: {
+      id: establishmentIds
+    }
   });
   return establishments.flatMap((establishment) => establishment.geoCodes);
 }

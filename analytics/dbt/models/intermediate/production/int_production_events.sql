@@ -13,7 +13,8 @@ WITH all_events AS (
         occupancy_changed,
         new_occupancy,
         old_occupancy, 
-        version
+        version, 
+        category
 FROM {{ ref('int_production_events_old')}}
     UNION
     SELECT 
@@ -31,7 +32,8 @@ FROM {{ ref('int_production_events_old')}}
         occupancy_changed,
         new_occupancy,
         old_occupancy,
-        version
+        version,
+        category
  FROM {{ ref('int_production_events_new')}}
 )
 SELECT

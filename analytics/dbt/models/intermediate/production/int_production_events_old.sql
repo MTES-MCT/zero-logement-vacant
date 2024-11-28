@@ -48,10 +48,10 @@ WITH old_events AS (
         END AS new_sub_status,
         content as name,
         NULL as simple_name,
-        'old' as version
+        'old' as version, 
+        NULL as category,
     FROM {{ ref('stg_production_old_events') }} AS old_events
-    WHERE lower(content) LIKE '%passage à%'
-) 
+)
     SELECT *,
     CASE WHEN new_status IS NOT NULL THEN TRUE ELSE FALSE END AS status_changed, 
     CASE WHEN new_occupancy IS NOT NULL THEN TRUE ELSE FALSE END AS occupancy_changed

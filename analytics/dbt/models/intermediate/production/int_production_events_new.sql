@@ -27,9 +27,7 @@ SELECT
     CASE WHEN (e.new -> 'occupancy')::varchar != (e.old -> 'occupancy')::varchar THEN TRUE ELSE FALSE END AS occupancy_changed,
     replace((e.new -> 'occupancy')::varchar, '"', '') AS new_occupancy,
     replace((e.old -> 'occupancy')::varchar, '"', '') AS old_occupancy,
-    'new' AS version
+    'new' AS version, 
+    category
 FROM {{ ref('stg_production_events') }} e
 LEFT JOIN {{ ref('stg_production_housing_events') }} he ON e.id = he.event_id
-WHERE e.name IN ('Changement de statut de suivi',
-                    'Modification du statut',
-                    'Modification du statut d''occupation')

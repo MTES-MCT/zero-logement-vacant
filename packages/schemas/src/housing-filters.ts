@@ -16,21 +16,7 @@ import {
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES
 } from '@zerologementvacant/models';
-
-function split(separator = ',') {
-  return (value: unknown): string[] | unknown => {
-    return typeof value === 'string' ? value.split(separator) : value;
-  };
-}
-const commaSeparatedString = split(',');
-
-function parseNull(value: unknown): string | null | typeof value {
-  if (Array.isArray(value)) {
-    return value.map((v) => (v === 'null' ? null : v));
-  }
-
-  return value;
-}
+import { commaSeparatedString, parseNull } from './transforms';
 
 export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   housingIds: array()
@@ -81,9 +67,7 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   buildingPeriods: array()
     .transform(commaSeparatedString)
     .of(string().oneOf(BUILDING_PERIOD_VALUES).required()),
-  vacancyYears: array()
-    .transform(commaSeparatedString)
-    .of(string().required()),
+  vacancyYears: array().transform(commaSeparatedString).of(string().required()),
   isTaxedValues: array()
     .transform(commaSeparatedString)
     .of(boolean().required()),

@@ -38,6 +38,10 @@ export const VARIABLE_OPTIONS: Variable[] = [
     value: '{{housing.buildingYear}}',
   },
   {
+    label: 'Année de début de vacance',
+    value: '{{housing.vacancyStartYear}}',
+  },
+  {
     label: 'DPE',
     value: '{{housing.energyConsumption}}',
   },

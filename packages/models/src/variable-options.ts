@@ -8,6 +8,7 @@ export type VariableOption =
   | '{{housing.livingArea}}'
   | '{{housing.roomsCount}}'
   | '{{housing.buildingYear}}'
+  | '{{housing.vacancyStartYear}}'
   | '{{housing.energyConsumption}}';
 
 const VARIABLES_OPTIONS: VariableOption[] = [
@@ -20,6 +21,7 @@ const VARIABLES_OPTIONS: VariableOption[] = [
   '{{housing.livingArea}}',
   '{{housing.roomsCount}}',
   '{{housing.buildingYear}}',
+  '{{housing.vacancyStartYear}}',
   '{{housing.energyConsumption}}',
 ];
 
@@ -40,6 +42,7 @@ interface Replacement {
     livingArea?: number;
     roomsCount?: number;
     buildingYear?: number;
+    vacancyStartYear?: number;
     energyConsumption?: string;
   };
 }
@@ -75,6 +78,10 @@ export function replaceVariables(
     .replaceAll(
       '{{housing.buildingYear}}',
       replacement.housing.buildingYear?.toString() ?? '',
+    )
+    .replaceAll(
+      '{{housing.vacancyStartYear}}',
+      replacement.housing.vacancyStartYear?.toString() ?? '',
     )
     .replaceAll(
       '{{housing.energyConsumption}}',

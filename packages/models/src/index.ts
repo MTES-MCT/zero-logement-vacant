@@ -9,6 +9,8 @@ export * from './DashboardDTO';
 export * from './DatafoncierHousing';
 export * from './DatafoncierOwner';
 export * from './EnergyConsumption';
+export * from './EstablishmentDTO';
+export * from './EstablishmentFiltersDTO';
 export * from './EstablishmentKind';
 export * from './EstablishmentSource';
 export * from './EventCategory';

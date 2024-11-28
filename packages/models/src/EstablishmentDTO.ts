@@ -7,7 +7,7 @@ export interface EstablishmentDTO {
   shortName: string;
   siren: number;
   available: boolean;
-  geoCodes: string[];
+  geoCodes: ReadonlyArray<string>;
   kind: EstablishmentKind;
   source: EstablishmentSource;
 }

@@ -63,7 +63,7 @@ export async function seed(knex: Knex): Promise<void> {
       table.integer('dloy48a');
       table.string('top48a').notNullable();
       table.string('dnatlc').notNullable();
-      table.string('ccthp').notNullable();
+      table.string('ccthp');
       table.string('proba_rprs').notNullable();
       table.string('typeact');
       table.string('loghvac');

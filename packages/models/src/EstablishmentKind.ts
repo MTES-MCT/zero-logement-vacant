@@ -1,12 +1,19 @@
 export const ESTABLISHMENT_KIND_VALUES = [
-  'Commune',
+  "Service déconcentré de l'État à compétence (inter) départementale",
+  'CA',
+  'CC',
+  'CU',
+  'PETR',
+  'SDER',
+  'REG',
   'EPCI',
-  'DDT',
-  'DDTM',
-  'DREAL',
-  'DRIHL',
-  'DRIEAT',
-  'DTAM'
+  'ASSO',
+  'Commune',
+  'DEP',
+  'ME',
+  'SDED',
+  'SIVOM',
+  'CTU'
 ] as const;
 
 export type EstablishmentKind = (typeof ESTABLISHMENT_KIND_VALUES)[number];

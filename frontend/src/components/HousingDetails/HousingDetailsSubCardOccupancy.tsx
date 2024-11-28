@@ -30,10 +30,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
       ? housing.vacancyStartYear
       : undefined;
 
-  function situationSince(
-    occupancy: string,
-    lastOccupancyChange: number | undefined
-  ): string {
+  function situationSince(lastOccupancyChange: number | undefined): string {
     if (lastOccupancyChange === undefined) {
       return 'Inconnu';
     }
@@ -77,9 +74,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
       <Grid container rowSpacing={3} xs>
         <Grid xs={4}>
           <LabelNext component="h3">Dans cette situation depuis</LabelNext>
-          <Typography>
-            {situationSince(housing.occupancy, lastOccupancyChange)}
-          </Typography>
+          <Typography>{situationSince(lastOccupancyChange)}</Typography>
         </Grid>
         <Grid xs={4}>
           <LabelNext component="h3">Source</LabelNext>

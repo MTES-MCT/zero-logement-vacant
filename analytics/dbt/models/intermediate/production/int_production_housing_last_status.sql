@@ -23,6 +23,7 @@ SELECT
     hsuf.last_event_status_user_followup,
     hsuf.last_event_status_label_user_followup,
     hsuf.last_event_date_user_followup,
+    hsuf.last_event_sub_status_label_user_followup,
     hsf.last_event_status_followup,
     hsf.last_event_status_label_followup,
     hsf.last_event_date_followup,
@@ -32,6 +33,7 @@ SELECT
     hsuo.last_event_status_user_occupancy,
     hsuo.last_event_status_label_user_occupancy,
     hsuo.last_event_date_user_occupancy,
+    hsuo.last_event_sub_status_label_user_occupancy,
     hso.last_event_status_occupancy,
     hso.last_event_status_label_occupancy,
     hso.last_event_date_occupancy

@@ -38,7 +38,8 @@ export const establishmentApi = zlvApi.injectEndpoints({
   })
 });
 
-export const { useFindEstablishmentsQuery } = establishmentApi;
+export const { useFindEstablishmentsQuery, useLazyFindEstablishmentsQuery } =
+  establishmentApi;
 
 const quickSearch = async (query: string): Promise<Establishment[]> => {
   const params = new URLSearchParams({ query });

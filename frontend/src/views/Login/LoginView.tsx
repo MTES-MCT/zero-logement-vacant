@@ -1,3 +1,4 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
@@ -123,6 +124,7 @@ const LoginView = () => {
             />
             {isAdminView && (
               <EstablishmentSearchableSelect
+                className={fr.cx('fr-mb-2w')}
                 onChange={(id: string) => setEstablishmentId(id)}
               />
             )}

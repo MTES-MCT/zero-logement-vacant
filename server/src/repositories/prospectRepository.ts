@@ -16,7 +16,7 @@ async function get(email: string): Promise<ProspectApi | null> {
       `${prospectsTable}.*`,
       'e.id as establishment_id',
       'e.siren as establishment_siren',
-      'e.campaign_intent as campaign_intent',
+      'e.campaign_intent as campaign_intent'
     )
     .where('email', email)
     // Unoptimized because siren is not a foreign key
@@ -24,7 +24,7 @@ async function get(email: string): Promise<ProspectApi | null> {
     .leftJoin(
       { e: establishmentsTable },
       'e.siren',
-      `${prospectsTable}.establishment_siren`,
+      `${prospectsTable}.establishment_siren`
     )
     .first();
 
@@ -79,18 +79,20 @@ export const parseProspectApi = (prospect: ProspectDBO): ProspectApi => ({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     siren: prospect.establishment_siren,
-    campaignIntent: prospect.campaign_intent as CampaignIntent | undefined,
-  },
+    campaignIntent: prospect.campaign_intent as CampaignIntent | undefined
+  }
 });
 
 export const formatProspectApi = (
-  prospect: ProspectApi,
+  prospect: ProspectApi
 ): ProspectRecordDBO => ({
   email: prospect.email,
   has_account: prospect.hasAccount,
   has_commitment: prospect.hasCommitment,
   last_account_request_at: prospect.lastAccountRequestAt,
-  establishment_siren: prospect.establishment?.siren,
+  establishment_siren: prospect.establishment?.siren
+    ? Number(prospect.establishment.siren)
+    : undefined
 });
 
 export default {
@@ -99,5 +101,5 @@ export default {
   upsert,
   remove,
   formatProspectApi,
-  parseProspectApi,
+  parseProspectApi
 };

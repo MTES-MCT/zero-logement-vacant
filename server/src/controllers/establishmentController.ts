@@ -6,7 +6,9 @@ import {
   EstablishmentDTO,
   EstablishmentFiltersDTO
 } from '@zerologementvacant/models';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
+
+const logger = createLogger('establishmentController');
 
 async function list(
   request: Request<

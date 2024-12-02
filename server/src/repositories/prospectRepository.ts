@@ -85,6 +85,8 @@ export const formatProspectApi = (
   has_commitment: prospect.hasCommitment,
   last_account_request_at: prospect.lastAccountRequestAt,
   establishment_siren: prospect.establishment?.siren
+    ? Number(prospect.establishment.siren)
+    : undefined
 });
 
 export default {

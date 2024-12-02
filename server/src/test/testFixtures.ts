@@ -122,7 +122,7 @@ export const genEstablishmentApi = (
     id: uuidv4(),
     name: city,
     shortName: city,
-    siren: genSiren(),
+    siren: genSiren().toString(),
     geoCodes: geoCodes.length > 0 ? geoCodes : [genGeoCode()],
     available: true,
     kind: faker.helpers.arrayElement(ESTABLISHMENT_KIND_VALUES),

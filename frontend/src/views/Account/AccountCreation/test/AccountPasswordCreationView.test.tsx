@@ -126,7 +126,7 @@ describe('AccountPasswordCreationView', () => {
     setup(link);
 
     const confirm = await screen.findByRole('button', {
-      name: /^Confirmer mon mot de passe/i
+      name: /^Confirmer et créer mon compte/i
     });
     await user.click(confirm);
     const errors = [
@@ -149,7 +149,7 @@ describe('AccountPasswordCreationView', () => {
     setup(link);
 
     const confirm = await screen.findByRole('button', {
-      name: /^Confirmer mon mot de passe/i
+      name: /^Confirmer et créer mon compte/i
     });
     await user.click(confirm);
     const error = screen.getByText(/Veuillez confirmer votre mot de passe/i);

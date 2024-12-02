@@ -17,6 +17,9 @@ import { useProspect } from '../../../hooks/useProspect';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
 import image from '../../../assets/images/thousand-structures.svg';
 import Image from '../../../components/Image/Image';
+import { useCreateUserMutation } from '../../../services/user.service';
+import { login } from '../../../store/actions/authenticationAction';
+import { useAppDispatch } from '../../../hooks/useStore';
 
 const schema = yup
   .object({
@@ -26,6 +29,7 @@ const schema = yup
   .required();
 
 function AccountPasswordCreationView() {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { linkExists, loading, prospect } = useProspect();
 
@@ -38,6 +42,27 @@ function AccountPasswordCreationView() {
     mode: 'onSubmit',
     resolver: yupResolver(schema)
   });
+
+  const [createUser] = useCreateUserMutation();
+  async function submit() {
+    const password = form.getValues('password');
+    if (prospect && prospect.establishment && password) {
+      // Save user and remove prospect
+      await createUser({
+        email: prospect.email,
+        password: password,
+        establishmentId: prospect.establishment.id
+      });
+      await dispatch(
+        login(prospect.email, password, prospect.establishment.id)
+      );
+      navigate('/parc-de-logements', {
+        state: {
+          onboarding: true
+        }
+      });
+    }
+  }
 
   if (loading) {
     return <Loading />;
@@ -59,22 +84,11 @@ function AccountPasswordCreationView() {
     }
   }
 
-  async function submit() {
-    if (prospect) {
-      navigate('/inscription/prise-en-main', {
-        state: {
-          prospect,
-          password: form.getValues('password')
-        }
-      });
-    }
-  }
-
   return (
     <Grid container>
       <Grid xs={7}>
         <Stepper
-          stepCount={3}
+          stepCount={2}
           currentStep={2}
           title="Définissez votre mot de passe"
           nextTitle="Vos premiers pas accompagnés sur ZLV"
@@ -120,7 +134,7 @@ function AccountPasswordCreationView() {
                 }}
                 xs={12}
               >
-                <Button type="submit">Confirmer mon mot de passe</Button>
+                <Button type="submit">Confirmer et créer mon compte</Button>
               </Grid>
             </Grid>
           </form>

@@ -52,7 +52,7 @@ function AccountEmailCreationView() {
             <Grid xs={12}>
               <Stepper
                 currentStep={1}
-                stepCount={3}
+                stepCount={2}
                 title="Créez votre compte"
                 nextTitle="Définissez votre mot de passe"
               />

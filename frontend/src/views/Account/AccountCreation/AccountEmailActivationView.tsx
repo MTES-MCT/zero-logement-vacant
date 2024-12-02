@@ -36,7 +36,7 @@ function AccountEmailActivationView() {
       <Grid xs={7}>
         <Stepper
           currentStep={1}
-          stepCount={3}
+          stepCount={2}
           title="Créez votre compte"
           nextTitle="Définissez votre mot de passe"
           className={fr.cx('fr-mb-3w')}

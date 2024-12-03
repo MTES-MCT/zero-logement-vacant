@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, Link, RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { Link, MemoryRouter as Router, Route } from 'react-router-dom';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 
 import AccountEmailActivationView from '../AccountEmailActivationView';

@@ -18,8 +18,8 @@ import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInput
 import image from '../../../assets/images/thousand-structures.svg';
 import Image from '../../../components/Image/Image';
 import { useCreateUserMutation } from '../../../services/user.service';
-import { login } from '../../../store/actions/authenticationAction';
 import { useAppDispatch } from '../../../hooks/useStore';
+import { logIn } from '../../../store/actions/authenticationAction';
 
 const schema = yup
   .object({
@@ -54,9 +54,14 @@ function AccountPasswordCreationView() {
         establishmentId: prospect.establishment.id
       });
       await dispatch(
-        login(prospect.email, password, prospect.establishment.id)
+        logIn({
+          email: prospect.email,
+          password,
+          establishmentId: prospect.establishment.id
+        })
       );
       navigate('/parc-de-logements', {
+        replace: true,
         state: {
           onboarding: true
         }

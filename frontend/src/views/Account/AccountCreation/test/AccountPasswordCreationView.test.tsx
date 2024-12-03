@@ -13,6 +13,7 @@ import {
 import AccountPasswordCreationView from '../AccountPasswordCreationView';
 import configureTestStore from '../../../../utils/test/storeUtils';
 import data from '../../../../mocks/handlers/data';
+import OnboardingModal from '../../../../components/modals/OnboardingModal/OnboardingModal';
 
 describe('AccountPasswordCreationView', () => {
   const user = userEvent.setup();
@@ -27,6 +28,10 @@ describe('AccountPasswordCreationView', () => {
         {
           path: '/inscription/mot-de-passe',
           element: <AccountPasswordCreationView />
+        },
+        {
+          path: '/parc-de-logements',
+          element: <OnboardingModal />
         }
       ],
       {
@@ -176,7 +181,7 @@ describe('AccountPasswordCreationView', () => {
     await user.keyboard('{Enter}');
 
     const title = await screen.findByText(
-      /^Vos premiers pas accompagnés sur ZLV/
+      /^Bienvenue sur Zéro Logement Vacant !/
     );
     expect(title).toBeVisible();
   });

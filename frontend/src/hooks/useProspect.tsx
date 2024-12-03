@@ -2,15 +2,10 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { useSaveProspectMutation } from '../services/prospect.service';
-import { Prospect } from '../models/Prospect';
-
-interface RouterState {
-  prospect?: Prospect | undefined;
-}
 
 export function useProspect() {
   // Get the hash value without "#"
-  const location = useLocation<RouterState | undefined>();
+  const location = useLocation();
   const link = location.hash.slice(1);
 
   const [saveProspect, { data: prospect, error, isLoading, isUninitialized }] =

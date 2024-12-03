@@ -93,7 +93,7 @@ export const housingApi = zlvApi.injectEndpoints({
     // TODO: fix this any type
     createHousing: builder.mutation<Housing, any>({
       query: (payload) => ({
-        url: 'housing/creation',
+        url: 'housing',
         method: 'POST',
         body: payload
       }),

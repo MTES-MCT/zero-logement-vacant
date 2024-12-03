@@ -7,6 +7,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import {
   HousingDTO,
   HousingOwnerDTO,
+  Occupancy,
   OwnerDTO
 } from '@zerologementvacant/models';
 import {
@@ -60,6 +61,50 @@ describe('Housing view', () => {
       name: owner.fullName
     });
     expect(name).toBeVisible();
+  });
+
+  describe('Show housing details', () => {
+    describe('Vacancy start year', () => {
+      it('should be unknown', async () => {
+        housing.occupancy = Occupancy.RENT;
+        housing.vacancyStartYear = undefined;
+
+        renderView(housing);
+
+        const vacancyStartYear = await screen
+          .findByText(/^Dans cette situation depuis/)
+          // eslint-disable-next-line testing-library/no-node-access
+          .then((label) => label.nextElementSibling);
+        expect(vacancyStartYear).toHaveTextContent('Inconnu');
+      });
+
+      it('should be defined', async () => {
+        housing.occupancy = Occupancy.VACANT;
+        housing.vacancyStartYear = faker.date.past().getFullYear();
+
+        renderView(housing);
+
+        const vacancyStartYear = await screen
+          .findByText(/^Dans cette situation depuis/)
+          // eslint-disable-next-line testing-library/no-node-access
+          .then((label) => label.nextElementSibling);
+        expect(vacancyStartYear).toHaveTextContent('Moins d’un an');
+      });
+    });
+
+    describe('Source', () => {
+      it('should be "Fichiers fonciers (2023)"', async () => {
+        housing.dataFileYears = ['ff-2023'];
+
+        renderView(housing);
+
+        const source = await screen
+          .findByText(/^Source/)
+          // eslint-disable-next-line testing-library/no-node-access
+          .then((label) => label.nextElementSibling);
+        expect(source).toHaveTextContent('Fichiers fonciers (2023)');
+      });
+    });
   });
 
   describe('Update owner details', () => {

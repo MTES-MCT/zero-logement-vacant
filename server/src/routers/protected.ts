@@ -47,7 +47,7 @@ router.get(
 );
 // TODO: replace by POST /housing
 router.post(
-  '/housing/creation',
+  '/housing',
   housingController.createValidators,
   validator.validate,
   housingController.create

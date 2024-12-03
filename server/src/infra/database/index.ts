@@ -1,5 +1,6 @@
 import { Knex, knex } from 'knex';
 import fp from 'lodash/fp';
+import { match } from 'ts-pattern';
 
 import config from '~/infra/database/knexfile';
 import { compact } from '~/utils/object';
@@ -50,19 +51,22 @@ export function groupBy<T>(props?: Array<keyof T>) {
 }
 
 export interface ConflictOptions<T> {
-  onConflict?: ReadonlyArray<keyof T>;
-  merge?: ReadonlyArray<keyof T>;
+  onConflict: ReadonlyArray<keyof T>;
+  merge: boolean | ReadonlyArray<keyof T>;
 }
 
-export function onConflict<T extends object>(opts?: ConflictOptions<T>) {
+export function onConflict<T extends object>(opts: ConflictOptions<T>) {
   return (query: Knex.QueryBuilder): void => {
-    if (opts?.onConflict && opts.onConflict.length === 0) {
-      query.onConflict(opts.onConflict as any).ignore();
+    if (opts.onConflict.length === 0) {
+      throw new Error('onConflict must have at least one column');
     }
 
-    if (opts?.onConflict && opts.onConflict.length > 0) {
-      query.onConflict(opts.onConflict as any).merge(opts?.merge);
-    }
+    const onConflict = opts.onConflict as ReadonlyArray<string>;
+    match(opts.merge)
+      .returnType<void>()
+      .with(false, () => query.onConflict(onConflict).ignore())
+      .with(true, () => query.onConflict(onConflict).merge())
+      .otherwise((columns) => query.onConflict(onConflict).merge(columns));
   };
 }
 

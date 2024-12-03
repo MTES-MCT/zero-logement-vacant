@@ -8,6 +8,7 @@ import {
   HousingSource,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
+  Occupancy,
   PaginationOptions
 } from '@zerologementvacant/models';
 import db, { toRawArray, where } from '~/infra/database';
@@ -15,8 +16,7 @@ import {
   EnergyConsumptionGradesApi,
   HousingApi,
   HousingRecordApi,
-  HousingSortApi,
-  OccupancyKindApi
+  HousingSortApi
 } from '~/models/HousingApi';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
@@ -608,23 +608,13 @@ function filteredQuery(opts: ListQueryOptions) {
           whereBuilder.orWhere('vacancy_start_year', 2019);
         }
         if (filters.vacancyYears?.includes('2018to2015')) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [
-            2015,
-            2018
-          ]);
+          whereBuilder.orWhereBetween('vacancy_start_year', [2015, 2018]);
         }
         if (filters.vacancyYears?.includes('2014to2010')) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [
-            2010,
-            2014
-          ]);
+          whereBuilder.orWhereBetween('vacancy_start_year', [2010, 2014]);
         }
         if (filters.vacancyYears?.includes('before2010')) {
-          whereBuilder.orWhere(
-            'vacancy_start_year',
-            '<',
-            2010
-          );
+          whereBuilder.orWhere('vacancy_start_year', '<', 2010);
         }
         if (filters.vacancyYears?.includes('missingData')) {
           whereBuilder.orWhere('vacancy_start_year', 0);
@@ -907,9 +897,9 @@ export interface HousingRecordDBO {
   status: HousingStatusApi;
   sub_status?: string | null;
   precisions?: string[];
-  occupancy: OccupancyKindApi;
-  occupancy_source: OccupancyKindApi;
-  occupancy_intended?: OccupancyKindApi;
+  occupancy: Occupancy;
+  occupancy_source: Occupancy;
+  occupancy_intended?: Occupancy;
   energy_consumption_bdnb?: EnergyConsumptionGradesApi;
   energy_consumption_at_bdnb?: Date;
 }

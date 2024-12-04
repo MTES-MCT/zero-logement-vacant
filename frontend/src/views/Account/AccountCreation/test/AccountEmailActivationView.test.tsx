@@ -46,6 +46,7 @@ describe('AccountEmailActivationView', () => {
     function setup() {
       const router = createMemoryRouter(
         [
+          { path: '/inscription/email', element: 'Créer votre compte' },
           {
             path: '/inscription/activation',
             element: <AccountEmailActivationView />

@@ -125,7 +125,7 @@ function ResetPasswordView() {
             <AppTextInput<FormShape>
               value={password}
               type="password"
-              hintText="Le mot de passe doit contenir 8 caractères avec au moins une majuscule, une minuscule et un chiffre."
+              hintText="Votre mot de passe doit contenir au moins 12 caractères, un chiffre, une majuscule et une minuscule."
               onChange={(e) => setPassword(e.target.value)}
               inputForm={form}
               inputKey="password"

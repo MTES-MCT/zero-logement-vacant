@@ -21,14 +21,14 @@ const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),
   body('password')
     .isStrongPassword({
-      minLength: 8,
+      minLength: 12,
       minNumbers: 1,
       minUppercase: 1,
       minSymbols: 0,
       minLowercase: 1
     })
     .withMessage(
-      'Must be at least 8 characters long, have 1 number, 1 uppercase, 1 lowercase'
+      'Must be at least 12 characters long, have 1 number, 1 uppercase, 1 lowercase'
     ),
   body('establishmentId').isUUID(),
   body('firstName').isString().optional(),

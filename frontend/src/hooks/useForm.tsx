@@ -12,7 +12,7 @@ export const emailValidator = yup
 
 export const passwordFormatValidator = yup
   .string()
-  .min(8, 'Au moins 8 caractères.')
+  .min(12, 'Au moins 12 caractères.')
   .matches(/[A-Z]/g, {
     name: 'uppercase',
     message: 'Au moins une majuscule.'

@@ -1,13 +1,12 @@
 import fp from 'lodash/fp';
-import {
-  HousingRecordApi,
-  OccupancyKindApi,
-  OwnershipKindsApi
-} from '~/models/HousingApi';
+import { HousingRecordApi, OwnershipKindsApi } from '~/models/HousingApi';
 import { v4 as uuidv4 } from 'uuid';
-import { ReferenceDataYear } from '~/repositories/housingRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { DatafoncierHousing, HousingSource } from '@zerologementvacant/models';
+import {
+  DatafoncierHousing,
+  HousingSource,
+  toOccupancy
+} from '@zerologementvacant/models';
 import { parse } from 'date-fns';
 
 export const toHousingRecordApi = fp.curry(
@@ -31,13 +30,16 @@ export const toHousingRecordApi = fp.curry(
       livingArea: housing.stoth,
       buildingYear: housing.jannath,
       taxed: false,
-      dataYears: [ReferenceDataYear + 1],
-      dataFileYears: [`${ReferenceDataYear + 1}`],
+      // The data in `df_housing_nat` and `df_owners_nat` is from 2023
+      dataYears: [2023],
+      dataFileYears: [
+        `${additionalData.source === 'lovac' ? 'lovac' : 'ff'}-2023`
+      ],
       buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
       ownershipKind: housing.ctpdl as OwnershipKindsApi,
       status: HousingStatusApi.NeverContacted,
-      occupancy: housing.ccthp as OccupancyKindApi,
-      occupancyRegistered: housing.ccthp as OccupancyKindApi,
+      occupancy: toOccupancy(housing.ccthp),
+      occupancyRegistered: toOccupancy(housing.ccthp),
       source: additionalData.source,
       mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date())
     };

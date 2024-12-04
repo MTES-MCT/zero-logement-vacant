@@ -24,6 +24,8 @@ export const useUser = () => {
     [authUser, isAuthenticated]
   );
 
+  const isGuest = !isAuthenticated;
+
   const user = authUser?.user;
   const establishment = authUser?.establishment;
 
@@ -43,8 +45,9 @@ export const useUser = () => {
     displayName,
     establishment,
     isAdmin,
-    isVisitor,
     isAuthenticated,
-    user,
+    isGuest,
+    isVisitor,
+    user
   };
 };

@@ -1,58 +1,51 @@
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
-import {
-  genAuthUser,
-  genProspect,
-  genSignupLink,
-} from '../../../../../test/fixtures.test';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { genProspect, genSignupLink } from '../../../../../test/fixtures.test';
 import AccountPasswordCreationView from '../AccountPasswordCreationView';
 import { Provider } from 'react-redux';
 import prospectService from '../../../../services/prospect.service';
 import { Prospect } from '../../../../models/Prospect';
-import { configureStore } from '@reduxjs/toolkit';
-import { applicationReducer } from '../../../../store/store';
 import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
+import configureTestStore from '../../../../utils/test/storeUtils';
 
 describe('AccountPasswordCreationView', () => {
   const user = userEvent.setup();
-  const store = configureStore({
-    reducer: applicationReducer,
-    preloadedState: { authentication: { authUser: genAuthUser() } },
-  });
   const email = 'ok@beta.gouv.fr';
   const link = genSignupLink(email);
   const prospect: Prospect = {
     ...genProspect(),
     email,
     hasAccount: true,
-    hasCommitment: true,
+    hasCommitment: true
   };
 
   function setup() {
+    const router = createMemoryRouter(
+      [
+        { path: '/inscription/en-attente', element: 'En attente' },
+        { path: '/inscription/impossible', element: 'Impossible' },
+        { path: '/inscription/email', element: 'Email' },
+        {
+          path: '/inscription/mot-de-passe',
+          element: <AccountPasswordCreationView />
+        },
+        {
+          path: '/inscription/campagne',
+          element: <AccountCampaignIntentCreationView />
+        }
+      ],
+      {
+        initialEntries: [
+          { pathname: '/inscription/mot-de-passe', hash: `#${link.id}` }
+        ]
+      }
+    );
+    const store = configureTestStore();
     render(
       <Provider store={store}>
-        <Router
-          initialEntries={[
-            {
-              pathname: '/inscription/mot-de-passe',
-              hash: `#${link.id}`,
-            },
-          ]}
-        >
-          <Route path="/inscription/en-attente">En attente</Route>
-          <Route path="/inscription/impossible">Impossible</Route>
-          <Route path="/inscription/email">Email</Route>
-          <Route
-            path="/inscription/mot-de-passe"
-            component={AccountPasswordCreationView}
-          />
-          <Route
-            path="/inscription/campagne"
-            component={AccountCampaignIntentCreationView}
-          />
-        </Router>
-      </Provider>,
+        <RouterProvider router={router} />
+      </Provider>
     );
   }
 
@@ -81,7 +74,7 @@ describe('AccountPasswordCreationView', () => {
   it("should be forbidden if one's establishment does not exist in ZLV", async () => {
     mockProspectServicePass({
       ...prospect,
-      establishment: null,
+      establishment: null
     });
     setup();
 
@@ -93,7 +86,7 @@ describe('AccountPasswordCreationView', () => {
     mockProspectServicePass({
       ...prospect,
       hasAccount: true,
-      hasCommitment: false,
+      hasCommitment: false
     });
     setup();
 
@@ -105,7 +98,7 @@ describe('AccountPasswordCreationView', () => {
     mockProspectServicePass({
       ...prospect,
       hasAccount: false,
-      hasCommitment: false,
+      hasCommitment: false
     });
     setup();
 
@@ -130,11 +123,11 @@ describe('AccountPasswordCreationView', () => {
     const password = '123QWEasd';
 
     const passwordInput = await screen.findByLabelText(
-      /Créer votre mot de passe/,
+      /Créer votre mot de passe/
     );
     await user.type(passwordInput, password);
     const confirmationInput = await screen.findByLabelText(
-      /Confirmer votre mot de passe/,
+      /Confirmer votre mot de passe/
     );
     await user.type(confirmationInput, password);
     await user.keyboard('{Enter}');

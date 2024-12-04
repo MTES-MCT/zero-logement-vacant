@@ -5,7 +5,5 @@ FROM {{ ref('int_production_establishments') }} pe
 )
 SELECT 
     el.establishment_id, 
-    el.geo_code,
-    c.*
+    el.geo_code
 FROM establishment_localities el
-JOIN {{ ref('int_common_cities') }} c ON el.geo_code = c.insee_code

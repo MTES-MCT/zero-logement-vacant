@@ -1,4 +1,5 @@
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
+
 import { Col, Container, Row } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
 import AccountEmailCreationView from './AccountCreation/AccountEmailCreationView';
@@ -15,35 +16,21 @@ function AccountCreationView() {
     <Container as="main" className="grow-container" spacing="py-4w">
       <Row gutters alignItems="middle">
         <Col n="6">
-          <Switch>
+          <Routes>
+            <Route path="email" element={<AccountEmailCreationView />} />
+            <Route path="activation" element={<AccountEmailActivationView />} />
+            <Route path="en-attente" element={<AccountAwaitingAccessView />} />
+            <Route path="impossible" element={<AccountAccessForbiddenView />} />
             <Route
-              path="/inscription/email"
-              component={AccountEmailCreationView}
+              path="mot-de-passe"
+              element={<AccountPasswordCreationView />}
             />
             <Route
-              path="/inscription/activation"
-              component={AccountEmailActivationView}
+              path="campagne"
+              element={<AccountCampaignIntentCreationView />}
             />
-            <Route
-              path="/inscription/en-attente"
-              component={AccountAwaitingAccessView}
-            />
-            <Route
-              path="/inscription/impossible"
-              component={AccountAccessForbiddenView}
-            />
-            <Route
-              path="/inscription/mot-de-passe"
-              component={AccountPasswordCreationView}
-            />
-            <Route
-              path="/inscription/campagne"
-              component={AccountCampaignIntentCreationView}
-            />
-            <Route path="*">
-              <Redirect to="/inscription/email" />
-            </Route>
-          </Switch>
+            <Route path="*" element={<Navigate replace to="../email" />} />
+          </Routes>
         </Col>
         <Col n="5" offset="1" className="align-right">
           <img

@@ -1,30 +1,31 @@
-import { Text } from '../../../components/_dsfr';
-import { Redirect, useHistory } from 'react-router-dom';
-import { useMemo } from 'react';
+import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
+import { useMemo } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+
+import { Text } from '../../../components/_dsfr';
 import styles from '../forgotten-password-view.module.scss';
 import { useActivationEmail } from '../../../hooks/useActivationEmail';
-import Typography from '@mui/material/Typography';
 
 interface State {
   email?: string;
 }
 
 function AccountEmailActivationView() {
-  const router = useHistory<State | undefined>();
+  const location: { state?: State } = useLocation();
   const { error, hidden, send: sendActivationEmail } = useActivationEmail();
 
   const status = useMemo(() => (error ? 'error' : 'valid'), [error]);
 
   function send(): void {
-    const { state } = router.location;
+    const { state } = location;
     if (state?.email) {
       sendActivationEmail(state.email);
     }
   }
 
-  if (!router.location.state?.email) {
-    return <Redirect to="/inscription/email" />;
+  if (!location.state?.email) {
+    return <Navigate to="/inscription/email" />;
   }
 
   const confirmationClasses = classNames(`fr-${status}-text`, {

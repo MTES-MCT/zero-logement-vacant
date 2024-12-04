@@ -3,7 +3,13 @@ import { Store } from '@reduxjs/toolkit';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
+import {
+  createMemoryRouter,
+  MemoryRouter as Router,
+  Route,
+  RouterProvider,
+  Routes
+} from 'react-router-dom';
 
 import { GroupDTO } from '@zerologementvacant/models';
 import {
@@ -26,12 +32,18 @@ describe('Group view', () => {
   });
 
   it('should show NotFoundView if the group does not exist', async () => {
+    const router = createMemoryRouter(
+      [
+        { path: '/parc-de-logements', element: 'Parc de logements' },
+        { path: '/groupes/:id', element: <GroupView /> }
+      ],
+      {
+        initialEntries: [`/groupes/${faker.string.uuid()}`]
+      }
+    );
     render(
       <Provider store={store}>
-        <Router initialEntries={[`/groupes/${faker.string.uuid()}`]}>
-          <Route path="/parc-de-logements">Parc de logements</Route>
-          <Route path="/groupes/:id" component={GroupView} />
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
 
@@ -51,8 +63,10 @@ describe('Group view', () => {
     render(
       <Provider store={store}>
         <Router initialEntries={[`/groupes/${group.id}`]}>
-          <Route path="/parc-de-logements">Parc de logements</Route>
-          <Route path="/groupes/:id" component={GroupView} />
+          <Routes>
+            <Route path="/parc-de-logements">Parc de logements</Route>
+            <Route path="/groupes/:id" element={<GroupView />} />
+          </Routes>
         </Router>
       </Provider>
     );
@@ -68,12 +82,21 @@ describe('Group view', () => {
       const group = genGroupDTO(creator, housings);
       data.groups.push(group);
 
+      const router = createMemoryRouter(
+        [
+          { path: '/campagnes/:id', element: 'Campagne' },
+          {
+            path: '/groupes/:id',
+            element: <GroupView />
+          }
+        ],
+        {
+          initialEntries: [`/groupes/${group.id}`]
+        }
+      );
       render(
         <Provider store={store}>
-          <Router initialEntries={[`/groupes/${group.id}`]}>
-            <Route path="/campagnes/:id">Campagne</Route>
-            <Route path="/groupes/:id" component={GroupView} />
-          </Router>
+          <RouterProvider router={router} />
         </Provider>
       );
 
@@ -102,12 +125,16 @@ describe('Group view', () => {
       data.users.push(creator);
       data.groups.push(group);
 
+      const router = createMemoryRouter(
+        [
+          { path: '/parc-de-logements', element: 'Parc de logements' },
+          { path: '/groupes/:id', element: <GroupView /> }
+        ],
+        { initialEntries: [`/groupes/${group.id}`] }
+      );
       render(
         <Provider store={store}>
-          <Router initialEntries={[`/groupes/${group.id}`]}>
-            <Route path="/parc-de-logements">Parc de logements</Route>
-            <Route path="/groupes/:id" component={GroupView} />
-          </Router>
+          <RouterProvider router={router} />
         </Provider>
       );
 
@@ -127,11 +154,13 @@ describe('Group view', () => {
       data.users.push(creator);
       data.groups.push(group);
 
+      const router = createMemoryRouter(
+        [{ path: '/groupes/:id', element: <GroupView /> }],
+        { initialEntries: [`/groupes/${group.id}`] }
+      );
       render(
         <Provider store={store}>
-          <Router initialEntries={[`/groupes/${group.id}`]}>
-            <Route path="/groupes/:id" component={GroupView} />
-          </Router>
+          <RouterProvider router={router} />
         </Provider>
       );
 

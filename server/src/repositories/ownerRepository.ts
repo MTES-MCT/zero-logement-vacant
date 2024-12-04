@@ -291,7 +291,7 @@ type BetterSaveOptions = ConflictOptions<OwnerDBO>;
  */
 async function betterSave(
   owner: OwnerApi,
-  opts?: BetterSaveOptions
+  opts: BetterSaveOptions
 ): Promise<void> {
   logger.debug(`Saving owner...`, { owner });
   await Owners().insert(formatOwnerApi(owner)).modify(onConflict(opts));

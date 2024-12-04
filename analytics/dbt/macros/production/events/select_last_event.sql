@@ -4,6 +4,7 @@
         h.id AS housing_id,
         evt.status AS last_event_status_{{ column_suffix }},
         evt.status_label AS last_event_status_label_{{ column_suffix }},
+        evt.new_sub_status AS last_event_sub_status_label_{{ column_suffix }},
         evt.created_at AS last_event_date_{{ column_suffix }}
     FROM {{ housing_table }} AS h
     LEFT JOIN {{ event_table }} AS evt

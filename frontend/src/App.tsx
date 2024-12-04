@@ -1,96 +1,96 @@
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
-  BrowserRouter,
-  Redirect,
+  createBrowserRouter,
+  createRoutesFromElements,
+  Navigate,
   Route,
-  RouteProps,
-  Switch
+  RouterProvider
 } from 'react-router-dom';
 
 import './App.scss';
-import Footer from './components/Footer/Footer';
-import LoginView from './views/Login/LoginView';
-import HousingListView from './views/HousingList/HousingListView';
-import FetchInterceptor from './components/FetchInterceptor/FetchInterceptor';
-import OwnerView from './views/Owner/OwnerView';
-import CampaignsListView from './views/Campaign/CampaignListView';
-import CampaignView from './views/Campaign/CampaignView';
-import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-import AccountPasswordView from './views/Account/AccountPasswordView';
-import HousingView from './views/Housing/HousingView';
-import ResourcesView from './views/Resources/ResourcesView';
-import AccountCreationView from './views/Account/AccountCreationView';
-import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
-import ResetPasswordView from './views/Account/ResetPasswordView';
-import { useUser } from './hooks/useUser';
 import { useAppDispatch, useAppSelector } from './hooks/useStore';
-import StatusView from './views/Resources/StatusView';
-import AccountView from './views/Account/AccountView';
+import AuthenticatedLayout from './layouts/AuthenticatedLayout';
+import HousingListView from './views/HousingList/HousingListView';
+import CampaignView from './views/Campaign/CampaignView';
 import GroupView from './views/Group/GroupView';
+import CampaignsListView from './views/Campaign/CampaignListView';
+import HousingView from './views/Housing/HousingView';
+import OwnerView from './views/Owner/OwnerView';
+import StatusView from './views/Resources/StatusView';
+import ResourcesView from './views/Resources/ResourcesView';
+import AccountView from './views/Account/AccountView';
+import AccountPasswordView from './views/Account/AccountPasswordView';
 import UsersView from './views/Users/UsersView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
-import SmallHeader from './components/Header/SmallHeader';
-import Header from './components/Header/Header';
+import GuestLayout from './layouts/GuestLayout';
+import AccountCreationView from './views/Account/AccountCreationView';
+import LoginView from './views/Login/LoginView';
+import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
+import ResetPasswordView from './views/Account/ResetPasswordView';
+import NotFoundView from './views/NotFoundView';
+import AnalysisView from './views/Analysis/AnalysisView';
 
-const authenticatedRoutes: RouteProps[] = [
-  {
-    path: '/parc-de-logements',
-    component: HousingListView
-  },
-  // TODO: remove this
-  { path: '/parc-de-logements/campagnes/:id', component: CampaignView },
-  { path: '/groupes/:id', component: GroupView },
-  { path: '/campagnes', component: CampaignsListView },
-  { path: '/campagnes/:id', component: CampaignView },
-  {
-    path: '/proprietaires/:ownerId/logements/:housingId',
-    component: HousingView
-  },
-  { path: '/proprietaires/:ownerId', component: OwnerView },
-  {
-    path: '/logements/:housingId/proprietaires/:ownerId',
-    component: OwnerView
-  },
-  { path: '/logements/:housingId', component: HousingView },
-  { path: '/ressources/statuts', component: StatusView },
-  { path: '/ressources', component: ResourcesView },
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route>
+      <Route element={<AuthenticatedLayout />}>
+        <Route path="/" element={<Navigate to="/parc-de-logements" />} />
+        <Route path="/parc-de-logements" element={<HousingListView />} />
+        <Route
+          path="/parc-de-logements/campagnes/:id"
+          element={<CampaignView />}
+        />
+        <Route path="/analyses" element={<AnalysisView />} />
+        <Route path="/groupes/:id" element={<GroupView />} />
+        <Route path="/campagnes" element={<CampaignsListView />} />
+        <Route path="/campagnes/:id" element={<CampaignView />} />
+        <Route
+          path="/proprietaires/:ownerId/logements/:housingId"
+          element={<HousingView />}
+        />
+        <Route path="/proprietaires/:ownerId" element={<OwnerView />} />
+        <Route
+          path="/logements/:housingId/proprietaires/:ownerId"
+          element={<OwnerView />}
+        />
+        <Route path="/logements/:housingId" element={<HousingView />} />
+        <Route path="/ressources/statuts" element={<StatusView />} />
+        <Route path="/ressources" element={<ResourcesView />} />
 
-  { path: '/compte', component: AccountView },
-  { path: '/compte/mot-de-passe', component: AccountPasswordView },
-  { path: '/utilisateurs', component: UsersView },
-  { path: '/autres-etablissements', component: TerritoryEstablishmentsView }
-];
-const guestRoutes: RouteProps[] = [
-  { path: '/inscription*', component: AccountCreationView },
-  { path: '/connexion', component: LoginView },
-  {
-    path: '/mot-de-passe/oublie',
-    component: ForgottenPasswordView
-  },
-  {
-    path: '/mot-de-passe/nouveau',
-    component: ResetPasswordView
-  },
-  { path: '/admin', component: LoginView }
-];
+        <Route path="/compte" element={<AccountView />} />
+        <Route path="/compte/mot-de-passe" element={<AccountPasswordView />} />
+
+        <Route path="/utilisateurs" element={<UsersView />} />
+        <Route
+          path="/autres-etablissements"
+          element={<TerritoryEstablishmentsView />}
+        />
+      </Route>
+
+      <Route element={<GuestLayout />}>
+        <Route path="/inscription/*" element={<AccountCreationView />} />
+        <Route path="/connexion" element={<LoginView />} />
+        <Route
+          path="/mot-de-passe/oublie"
+          element={<ForgottenPasswordView />}
+        />
+        <Route path="/mot-de-passe/nouveau" element={<ResetPasswordView />} />
+        <Route path="/admin" element={<LoginView />} />
+      </Route>
+
+      <Route path="*" element={<NotFoundView />} />
+    </Route>
+  )
+);
 
 function App() {
-  const { pushInstruction } = useMatomo();
-  const { isAuthenticated, user } = useUser();
   const dispatch = useAppDispatch();
   const isSomeQueryPending = useAppSelector((state) =>
     Object.values(state.api.queries).some(
       (query) => query?.status === 'pending'
     )
   );
-
-  FetchInterceptor();
-
-  useEffect(() => {
-    pushInstruction('setUserId', user?.id);
-  }, [pushInstruction, user]);
 
   useEffect(() => {
     if (isSomeQueryPending) {
@@ -100,34 +100,7 @@ function App() {
     }
   }, [dispatch, isSomeQueryPending]);
 
-  const routes = (isAuthenticated ? authenticatedRoutes : guestRoutes)
-    .map((route) => (
-      <Route
-        exact
-        path={route.path}
-        component={route.component}
-        key={`route_${route.path}`}
-      />
-    ));
-
-  const redirection = isAuthenticated ? '/parc-de-logements' : '/connexion';
-
-  return (
-    <React.Suspense fallback={<></>}>
-      <BrowserRouter>
-        {isAuthenticated ? <SmallHeader /> : <Header />}
-        <ScrollToTop />
-
-        <Switch>
-          {routes}
-          <Route path="*">
-            <Redirect to={redirection} />
-          </Route>
-        </Switch>
-        <Footer />
-      </BrowserRouter>
-    </React.Suspense>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

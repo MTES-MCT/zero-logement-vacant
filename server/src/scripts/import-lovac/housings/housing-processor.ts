@@ -1,9 +1,10 @@
 import { WritableStream } from 'node:stream/web';
 import { v4 as uuidv4 } from 'uuid';
 
+import { Occupancy } from '@zerologementvacant/models';
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 import { createLogger } from '~/infra/logger';
-import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { HousingApi } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { UserApi } from '~/models/UserApi';
@@ -38,13 +39,13 @@ export function createHousingProcessor(opts: ProcessorOptions) {
         logger.debug('Processing housing...', { chunk });
 
         if (!chunk.dataFileYears.includes('lovac-2024')) {
-          if (chunk.occupancy === OccupancyKindApi.Vacant) {
+          if (chunk.occupancy === Occupancy.VACANT) {
             if (!isInProgress(chunk) && !isCompleted(chunk)) {
               await Promise.all([
                 housingRepository.update(
                   { geoCode: chunk.geoCode, id: chunk.id },
                   {
-                    occupancy: OccupancyKindApi.Unknown,
+                    occupancy: Occupancy.UNKNOWN,
                     status: HousingStatusApi.Completed,
                     subStatus: 'Sortie de la vacance'
                   }
@@ -57,7 +58,7 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                   section: 'Situation',
                   conflict: false,
                   old: chunk,
-                  new: { ...chunk, occupancy: OccupancyKindApi.Unknown },
+                  new: { ...chunk, occupancy: Occupancy.UNKNOWN },
                   createdAt: new Date(),
                   createdBy: auth.id,
                   housingId: chunk.id,
@@ -71,10 +72,10 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                   section: 'Situation',
                   conflict: false,
                   // This event should come after the above one
-                  old: { ...chunk, occupancy: OccupancyKindApi.Unknown },
+                  old: { ...chunk, occupancy: Occupancy.UNKNOWN },
                   new: {
                     ...chunk,
-                    occupancy: OccupancyKindApi.Unknown,
+                    occupancy: Occupancy.UNKNOWN,
                     status: HousingStatusApi.Completed,
                     subStatus: 'Sortie de la vacance'
                   },

@@ -6,7 +6,7 @@ import { http, HttpResponse } from 'msw';
 import { constants } from 'node:http2';
 import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
+import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
 
 import {
   CAMPAIGN_STATUS_LABELS,
@@ -224,8 +224,10 @@ describe('Housing list view', () => {
     render(
       <Provider store={store}>
         <Router initialEntries={['/parc-de-logements']}>
-          <Route path="/parc-de-logements" component={HousingListView} />
-          <Route path="/groupes/:id" component={GroupView} />
+          <Routes>
+            <Route path="/parc-de-logements" element={<HousingListView />} />
+            <Route path="/groupes/:id" element={<GroupView />} />
+          </Routes>
         </Router>
       </Provider>
     );
@@ -272,8 +274,10 @@ describe('Housing list view', () => {
     render(
       <Provider store={store}>
         <Router initialEntries={['/parc-de-logements']}>
-          <Route path="/parc-de-logements" component={HousingListView} />
-          <Route path="/groupes/:id" component={GroupView} />
+          <Routes>
+            <Route path="/parc-de-logements" element={<HousingListView />} />
+            <Route path="/groupes/:id" element={<GroupView />} />
+          </Routes>
         </Router>
       </Provider>
     );

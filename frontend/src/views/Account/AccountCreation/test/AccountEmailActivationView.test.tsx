@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import AccountEmailActivationView from '../AccountEmailActivationView';
 import { Provider } from 'react-redux';
 import { store } from '../../../../store/store';
@@ -11,16 +11,22 @@ describe('AccountEmailActivationView', () => {
 
   describe('Without passing an email in route state', () => {
     function setup() {
+      const router = createMemoryRouter(
+        [
+          { path: '/inscription/email', element: 'Créer votre compte' },
+          {
+            path: '/inscription/activation',
+            element: <AccountEmailActivationView />
+          }
+        ],
+        {
+          initialEntries: ['/inscription/activation']
+        }
+      );
       render(
         <Provider store={store}>
-          <Router initialEntries={['/inscription/activation']}>
-            <Route path="/inscription/email">Créer votre compte</Route>
-            <Route
-              path="/inscription/activation"
-              component={AccountEmailActivationView}
-            />
-          </Router>
-        </Provider>,
+          <RouterProvider router={router} />
+        </Provider>
       );
     }
 
@@ -34,24 +40,26 @@ describe('AccountEmailActivationView', () => {
 
   describe('With an email', () => {
     function setup() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/inscription/activation',
+            element: <AccountEmailActivationView />
+          }
+        ],
+        {
+          initialEntries: [
+            {
+              pathname: '/inscription/activation',
+              state: { email: 'ok@beta.gouv.fr' }
+            }
+          ]
+        }
+      );
       render(
         <Provider store={store}>
-          <Router
-            initialEntries={[
-              {
-                pathname: '/inscription/activation',
-                state: {
-                  email: 'ok@beta.gouv.fr',
-                },
-              },
-            ]}
-          >
-            <Route
-              path="/inscription/activation"
-              component={AccountEmailActivationView}
-            />
-          </Router>
-        </Provider>,
+          <RouterProvider router={router} />
+        </Provider>
       );
     }
 
@@ -59,7 +67,7 @@ describe('AccountEmailActivationView', () => {
       setup();
 
       const title = screen.getByText(
-        'Vous devez confirmer votre adresse mail.',
+        'Vous devez confirmer votre adresse mail.'
       );
 
       expect(title).toBeVisible();
@@ -68,7 +76,7 @@ describe('AccountEmailActivationView', () => {
     it('should send an email again', async () => {
       const sendActivationEmail = jest.spyOn(
         signupLinkApi.endpoints.sendActivationEmail,
-        'initiate',
+        'initiate'
       );
       setup();
 
@@ -76,7 +84,7 @@ describe('AccountEmailActivationView', () => {
       await user.click(sendAgain);
 
       expect(sendActivationEmail).toHaveBeenCalledWith('ok@beta.gouv.fr', {
-        fixedCacheKey: undefined,
+        fixedCacheKey: undefined
       });
       const sent = screen.getByText('Email envoyé.');
       expect(sent).toBeVisible();

@@ -1,6 +1,4 @@
 import { Header as DSFRHeader } from '@codegouvfr/react-dsfr/Header';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import LoadingBar from 'react-redux-loading-bar';
 
@@ -17,14 +15,9 @@ import { Container } from '../_dsfr';
 function Header() {
   const location = useLocation();
   const dispatch = useAppDispatch();
-  const { trackPageView } = useMatomo();
   const { isAdmin, isVisitor, isAuthenticated } = useUser();
 
   const { authUser } = useAppSelector((state) => state.authentication);
-
-  useEffect(() => {
-    trackPageView({});
-  }, [location]); //eslint-disable-line react-hooks/exhaustive-deps
 
   function displayName(): string {
     return authUser
@@ -40,11 +33,11 @@ function Header() {
     linkProps: {
       to: getUserNavItem(navItem).url,
       'data-testid': `fr-header-nav-item-${getUserNavItem(
-        navItem,
-      ).url.substring(1)}`,
+        navItem
+      ).url.substring(1)}`
     },
     text: getUserNavItem(navItem).label,
-    isActive: location.pathname.startsWith(getUserNavItem(navItem).url),
+    isActive: location.pathname.startsWith(getUserNavItem(navItem).url)
   });
 
   return (
@@ -55,23 +48,23 @@ function Header() {
             Ministère <br />
             du Logement <br />
             et de la Rénovation <br />
-            urbaine 
+            urbaine
           </>
         }
         homeLinkProps={{
           to: '/',
-          title: 'Accueil - Zéro Logement Vacant',
+          title: 'Accueil - Zéro Logement Vacant'
         }}
         serviceTitle="Zéro Logement Vacant"
         serviceTagline={
           isAuthenticated ? (
-            (isAdmin || isVisitor) ? (
+            isAdmin || isVisitor ? (
               <EstablishmentSearchableSelect
                 initialEstablishmentOption={
                   authUser
                     ? {
                         value: authUser.establishment.id,
-                        label: authUser.establishment.name,
+                        label: authUser.establishment.name
                       }
                     : undefined
                 }
@@ -104,24 +97,25 @@ function Header() {
                       <AccountSideMenu />
                     </Container>
                   }
-                />,
+                />
               ]
             : [
                 {
                   iconId: 'fr-icon-user-fill',
                   linkProps: {
-                    to: '/connexion',
+                    to: '/connexion'
                   },
-                  text: 'Connexion',
-                },
+                  text: 'Connexion'
+                }
               ]
         }
         navigation={
           isAuthenticated
             ? [
                 getMainNavigationItem(UserNavItems.HousingList),
+                getMainNavigationItem(UserNavItems.Analysis),
                 getMainNavigationItem(UserNavItems.Campaign),
-                getMainNavigationItem(UserNavItems.Resources),
+                getMainNavigationItem(UserNavItems.Resources)
               ]
             : withNavItems && []
         }

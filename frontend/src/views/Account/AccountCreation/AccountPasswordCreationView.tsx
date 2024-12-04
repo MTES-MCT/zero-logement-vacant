@@ -1,11 +1,11 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,
   useForm
 } from '../../../hooks/useForm';
-import { Redirect, useHistory } from 'react-router-dom';
 import { Row, Text } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
@@ -26,8 +26,8 @@ interface RouterState {
 }
 
 function AccountPasswordCreationView() {
-  const router = useHistory<RouterState | undefined>();
-  const { location } = router;
+  const navigate = useNavigate();
+  const location: { state: RouterState } = useLocation();
   const { trackEvent } = useMatomo();
 
   const { linkExists, loading, prospect } = useProspect(
@@ -82,13 +82,13 @@ function AccountPasswordCreationView() {
 
   if (prospect) {
     if (prospect.hasAccount && !prospect.hasCommitment) {
-      return <Redirect to="/inscription/en-attente" />;
+      return <Navigate to="/inscription/en-attente" />;
     }
     if (
       !prospect.establishment ||
       (!prospect.hasAccount && !prospect.hasCommitment)
     ) {
-      return <Redirect to="/inscription/impossible" />;
+      return <Navigate to="/inscription/impossible" />;
     }
   }
 
@@ -100,8 +100,7 @@ function AccountPasswordCreationView() {
           category: TrackEventCategories.AccountCreation,
           action: TrackEventActions.AccountCreation.SubmitPassword
         });
-        router.push({
-          pathname: '/inscription/campagne',
+        navigate('/inscription/campagne', {
           state: {
             prospect,
             password

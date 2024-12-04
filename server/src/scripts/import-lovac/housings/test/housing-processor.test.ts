@@ -1,4 +1,6 @@
 import { ReadableStream } from 'node:stream/web';
+
+import { Occupancy } from '@zerologementvacant/models';
 import { genHousingApi, genUserApi } from '~/test/testFixtures';
 import {
   createHousingProcessor,
@@ -7,7 +9,7 @@ import {
   ProcessorOptions
 } from '~/scripts/import-lovac/housings/housing-processor';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
-import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { HousingApi } from '~/models/HousingApi';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatusApi
@@ -67,7 +69,7 @@ describe('Housing processor', () => {
 
     describe('if it is vacant', () => {
       beforeEach(() => {
-        housing.occupancy = OccupancyKindApi.Vacant;
+        housing.occupancy = Occupancy.VACANT;
       });
 
       describe('if it is currently monitored', () => {
@@ -154,7 +156,7 @@ describe('Housing processor', () => {
           expect(housingRepository.update).toHaveBeenCalledWith(
             { id: housing.id, geoCode: housing.geoCode },
             expect.objectContaining({
-              occupancy: OccupancyKindApi.Unknown,
+              occupancy: Occupancy.UNKNOWN,
               status: HousingStatusApi.Completed,
               subStatus: 'Sortie de la vacance'
             })
@@ -190,7 +192,7 @@ describe('Housing processor', () => {
             section: 'Situation',
             conflict: false,
             old: housing,
-            new: { ...housing, occupancy: OccupancyKindApi.Unknown },
+            new: { ...housing, occupancy: Occupancy.UNKNOWN },
             createdAt: expect.any(Date),
             createdBy: expect.any(String),
             housingId: housing.id,
@@ -226,10 +228,10 @@ describe('Housing processor', () => {
             category: 'Followup',
             section: 'Situation',
             conflict: false,
-            old: { ...housing, occupancy: OccupancyKindApi.Unknown },
+            old: { ...housing, occupancy: Occupancy.UNKNOWN },
             new: {
               ...housing,
-              occupancy: OccupancyKindApi.Unknown,
+              occupancy: Occupancy.UNKNOWN,
               status: HousingStatusApi.Completed,
               subStatus: 'Sortie de la vacance'
             },

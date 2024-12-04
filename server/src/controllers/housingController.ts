@@ -58,7 +58,7 @@ async function get(request: Request, response: Response) {
     id,
     localId,
     includes: ['events', 'owner', 'perimeters', 'campaigns']
-  });  
+  });
   if (!housing) {
     throw new HousingMissingError(params.id);
   }
@@ -110,7 +110,7 @@ async function list(
     ),
     energyConsumption:
       rawFilters?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
-    occupancies: rawFilters?.occupancies as unknown as OccupancyKindApi[],
+    occupancies: rawFilters?.occupancies,
     establishmentIds:
       [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
       rawFilters?.establishmentIds?.length
@@ -205,7 +205,8 @@ async function create(request: Request, response: Response) {
   await async.forEach(datafoncierOwners, async (datafoncierOwner) => {
     const owner = toOwnerApi(datafoncierOwner);
     await ownerRepository.betterSave(owner, {
-      onConflict: ['idpersonne']
+      onConflict: ['idpersonne'],
+      merge: false
     });
   });
   const owners = await ownerRepository.find({

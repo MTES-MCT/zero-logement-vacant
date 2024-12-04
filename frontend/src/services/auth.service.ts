@@ -9,21 +9,14 @@ const login = async (
   return fetch(`${config.apiEndpoint}/api/authenticate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, establishmentId }),
-  })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        throw new Error('Authentication failed');
-      }
-    })
-    .then((authUser) => {
-      if (authUser.accessToken) {
-        localStorage.setItem('authUser', JSON.stringify(authUser));
-      }
-      return authUser;
-    });
+    body: JSON.stringify({ email, password, establishmentId })
+  }).then((response) => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('Authentication failed');
+    }
+  });
 };
 
 const logout = (): void => {
@@ -36,7 +29,7 @@ const resetPassword = async (key: string, password: string) => {
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, password }),
+      body: JSON.stringify({ key, password })
     }
   );
   if (!response.ok) {
@@ -51,23 +44,16 @@ const changeEstablishment = async (establishmentId: string) => {
       method: 'GET',
       headers: {
         ...authService.authHeader(),
-        'Content-Type': 'application/json',
-      },
+        'Content-Type': 'application/json'
+      }
     }
-  )
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        throw new Error('Authentication failed');
-      }
-    })
-    .then((authUser) => {
-      if (authUser.accessToken) {
-        localStorage.setItem('authUser', JSON.stringify(authUser));
-      }
-      return authUser;
-    });
+  ).then((response) => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('Authentication failed');
+    }
+  });
 };
 
 const authHeader = () => {
@@ -95,7 +81,7 @@ const authService = {
   resetPassword,
   authHeader,
   withAuthHeader,
-  changeEstablishment,
+  changeEstablishment
 };
 
 export default authService;

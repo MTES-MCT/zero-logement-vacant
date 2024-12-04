@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   MainNavigation,
-  MainNavigationProps,
+  MainNavigationProps
 } from '@codegouvfr/react-dsfr/MainNavigation';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -19,23 +19,31 @@ import { changeEstablishment } from '../../store/actions/authenticationAction';
 import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import { useAppDispatch } from '../../hooks/useStore';
 import logo from '../../assets/images/zlv.svg';
+import { zlvApi } from '../../services/api.service';
 
 function SmallHeader() {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { displayName, establishment, isAdmin, isVisitor, isAuthenticated } = useUser();
+  const { displayName, establishment, isAdmin, isVisitor, isAuthenticated } =
+    useUser();
 
   function getMainNavigationItem(
-    navItem: UserNavItems,
+    navItem: UserNavItems
   ): MainNavigationProps.Item {
     const link = getUserNavItem(navItem);
     return {
       linkProps: {
-        to: link.url,
+        to: link.url
       },
       text: link.label,
-      isActive: location.pathname.startsWith(link.url),
+      isActive: location.pathname.startsWith(link.url)
     };
+  }
+
+  async function onChangeEstablishment(id: string): Promise<void> {
+    await dispatch(changeEstablishment(id));
+    // Reset all state instead of reloading the page
+    dispatch(zlvApi.util.resetApiState());
   }
 
   return (
@@ -45,7 +53,7 @@ function SmallHeader() {
         square
         sx={(theme) => ({
           position: 'sticky',
-          zIndex: theme.zIndex.appBar,
+          zIndex: theme.zIndex.appBar
         })}
       >
         <Grid
@@ -69,33 +77,32 @@ function SmallHeader() {
             classes={{
               root: styles.root,
               list: styles.linkList,
-              link: styles.link,
+              link: styles.link
             }}
             items={
               isAuthenticated
                 ? [
                     getMainNavigationItem(UserNavItems.HousingList),
+                    getMainNavigationItem(UserNavItems.Analysis),
                     getMainNavigationItem(UserNavItems.Campaign),
-                    getMainNavigationItem(UserNavItems.Resources),
+                    getMainNavigationItem(UserNavItems.Resources)
                   ]
                 : []
             }
           />
           <Grid alignItems="center" display="flex" ml="auto">
             {isAuthenticated ? (
-              (isAdmin || isVisitor) ? (
+              isAdmin || isVisitor ? (
                 <EstablishmentSearchableSelect
                   initialEstablishmentOption={
                     establishment
                       ? {
                           value: establishment.id,
-                          label: establishment.name,
+                          label: establishment.name
                         }
                       : undefined
                   }
-                  onChange={(id: string) => {
-                    dispatch(changeEstablishment(id));
-                  }}
+                  onChange={onChangeEstablishment}
                 />
               ) : (
                 <Typography component="span" mr={2} variant="body2">
@@ -124,7 +131,7 @@ function SmallHeader() {
               <Button
                 iconId="fr-icon-user-fill"
                 linkProps={{
-                  to: '/connexion',
+                  to: '/connexion'
                 }}
                 priority="tertiary no outline"
                 size="small"

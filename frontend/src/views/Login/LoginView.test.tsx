@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { genUserDTO } from '@zerologementvacant/models/fixtures';
 import { store } from '../../store/store';
@@ -13,11 +13,13 @@ describe('login view', () => {
   const user = userEvent.setup();
 
   it('should render login form', () => {
+    const router = createMemoryRouter(
+      [{ path: '/connexion', element: <LoginView /> }],
+      { initialEntries: ['/connexion'] }
+    );
     render(
       <Provider store={store}>
-        <Router>
-          <LoginView />
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
 
@@ -32,12 +34,14 @@ describe('login view', () => {
   it('should display error message when login failed', async () => {
     const currentUser = genUserDTO();
     expect(data.users).toSatisfyAll((user) => user.email !== currentUser.email);
+    const router = createMemoryRouter(
+      [{ path: '/connexion', element: <LoginView /> }],
+      { initialEntries: ['/connexion'] }
+    );
 
     render(
       <Provider store={store}>
-        <Router>
-          <LoginView />
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
 
@@ -48,17 +52,24 @@ describe('login view', () => {
     const logIn = screen.getByRole('button', { name: /^Se connecter/ });
     await user.click(logIn);
 
-    const alert = await screen.findByText(/^Échec de l'authentification/);
+    const alert = await screen.findByText(/^Échec de l’authentification/);
     expect(alert).toBeVisible();
   });
 
   it('should redirect when "forgotten password" is clicked', async () => {
+    const router = createMemoryRouter(
+      [
+        { path: '/connexion', element: <LoginView /> },
+        {
+          path: '/mot-de-passe/oublie',
+          element: 'Mot de passe oublié'
+        }
+      ],
+      { initialEntries: ['/connexion'] }
+    );
     render(
       <Provider store={store}>
-        <Router initialEntries={['/connexion']}>
-          <Route path="/connexion" component={LoginView} />
-          <Route path="/mot-de-passe/oublie">Mot de passe oublié</Route>
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
 
@@ -72,12 +83,16 @@ describe('login view', () => {
   it('should succeed to log in', async () => {
     const currentUser = genUserDTO();
     data.users.push(currentUser);
+    const router = createMemoryRouter(
+      [{ path: '/connexion', element: <LoginView /> }],
+      {
+        initialEntries: ['/connexion']
+      }
+    );
 
     render(
       <Provider store={store}>
-        <Router initialEntries={['/connexion']}>
-          <LoginView />
-        </Router>
+        <RouterProvider router={router} />
       </Provider>
     );
 

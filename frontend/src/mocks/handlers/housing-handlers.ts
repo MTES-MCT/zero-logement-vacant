@@ -86,7 +86,7 @@ export const housingHandlers: RequestHandler[] = [
 
   // Add a housing
   http.post<never, HousingPayloadDTO, HousingDTO>(
-    `${config.apiEndpoint}/api/housing/creation`,
+    `${config.apiEndpoint}/api/housing`,
     async ({ request }) => {
       const payload = await request.json();
       const datafoncierHousing = data.datafoncierHousings.find(

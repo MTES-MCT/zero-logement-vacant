@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import util from 'node:util';
 
 import {
@@ -14,7 +15,8 @@ import { createBasicAuth } from './basic-auth';
 
 function createServer() {
   const app = express();
-
+  app.use(helmet());
+  
   const logger = createLogger('queue');
   app.set('trust proxy', 1);
 

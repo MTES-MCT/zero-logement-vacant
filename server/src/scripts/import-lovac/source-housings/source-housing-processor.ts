@@ -1,7 +1,7 @@
 import { WritableStream } from 'node:stream/web';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AddressKinds } from '@zerologementvacant/models';
+import { AddressKinds, Occupancy } from '@zerologementvacant/models';
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { createLogger } from '~/infra/logger';
@@ -9,7 +9,6 @@ import {
   HousingApi,
   HousingId,
   normalizeDataFileYears,
-  OccupancyKindApi,
   OwnershipKindsApi
 } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
@@ -95,8 +94,8 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             buildingLocation: chunk.location_detail,
             ownershipKind: chunk.condominium as OwnershipKindsApi,
             status: HousingStatusApi.NeverContacted,
-            occupancy: OccupancyKindApi.Vacant,
-            occupancyRegistered: OccupancyKindApi.Vacant,
+            occupancy: Occupancy.VACANT,
+            occupancyRegistered: Occupancy.VACANT,
             source: 'lovac'
           };
           await housingRepository.insert(housing);
@@ -231,7 +230,7 @@ function applyChanges(
 
   if (rules.some((rule) => rule())) {
     return {
-      occupancy: OccupancyKindApi.Vacant,
+      occupancy: Occupancy.VACANT,
       status: HousingStatusApi.NeverContacted,
       subStatus: null
     };

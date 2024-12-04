@@ -19,7 +19,7 @@ import {
   genHousingApi,
   genUserApi
 } from '~/test/testFixtures';
-import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { HousingApi } from '~/models/HousingApi';
 import {
   Establishments,
   formatEstablishmentApi
@@ -27,6 +27,7 @@ import {
 import { UserApi } from '~/models/UserApi';
 import config from '~/infra/config';
 import { formatUserApi, Users } from '~/repositories/userRepository';
+import { Occupancy } from '@zerologementvacant/models';
 
 describe('Source housing command', () => {
   const command = createSourceHousingCommand();
@@ -57,13 +58,13 @@ describe('Source housing command', () => {
         ...genHousingApi(),
         geoCode: sourceHousing.geo_code,
         localId: sourceHousing.local_id,
-        occupancy: OccupancyKindApi.Rent
+        occupancy: Occupancy.RENT
       })),
       ...vacantHousings.map<HousingApi>((sourceHousing) => ({
         ...genHousingApi(),
         geoCode: sourceHousing.geo_code,
         localId: sourceHousing.local_id,
-        occupancy: OccupancyKindApi.Vacant,
+        occupancy: Occupancy.VACANT,
         dataFileYears: ['lovac-2022']
       }))
     ];
@@ -83,7 +84,7 @@ describe('Source housing command', () => {
     );
     expect(actual).toHaveLength(missingSourceHousings.length);
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
-      return housing.occupancy === OccupancyKindApi.Vacant;
+      return housing.occupancy === Occupancy.VACANT;
     });
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
       return housing.status === HousingStatusApi.NeverContacted;
@@ -103,7 +104,7 @@ describe('Source housing command', () => {
       return housing.data_file_years?.includes('lovac-2024') ?? false;
     });
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
-      return housing.occupancy === OccupancyKindApi.Vacant;
+      return housing.occupancy === Occupancy.VACANT;
     });
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
       return housing.status === HousingStatusApi.NeverContacted;

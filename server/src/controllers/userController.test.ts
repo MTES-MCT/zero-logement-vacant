@@ -40,7 +40,7 @@ describe('User API', () => {
 
   describe('POST /users/creations', () => {
     const testRoute = '/api/users/creation';
-    const validPassword = '123QWEasd';
+    const validPassword = '1234QWERasdf';
 
     let prospect: ProspectApi;
 
@@ -111,7 +111,7 @@ describe('User API', () => {
     it('should fail if the prospect is missing', async () => {
       const { status } = await request(app).post(testRoute).send({
         email: 'missing@non.existing',
-        password: '123QWEasd',
+        password: '1234QWERasdf',
         establishmentId: prospect.establishment?.id
       });
 

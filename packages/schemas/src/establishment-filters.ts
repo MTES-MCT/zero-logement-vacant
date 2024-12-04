@@ -18,7 +18,5 @@ export const establishmentFilters: ObjectSchema<EstablishmentFiltersDTO> =
       .transform(commaSeparatedString)
       .of(string().oneOf(ESTABLISHMENT_KIND_VALUES).required()),
     siren: array().transform(commaSeparatedString).of(siren.required()),
-    query: string()
-      .trim()
-      .matches(/^[a-zA-Z0-9\s]*$/)
+    query: string().trim()
   });

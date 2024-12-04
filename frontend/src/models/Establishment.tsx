@@ -1,30 +1,29 @@
-import { EstablishmentKind } from '@zerologementvacant/models';
+import { EstablishmentDTO, EstablishmentKind } from '@zerologementvacant/models';
 import { normalizeUrlSegment } from '../utils/fetchUtils';
 
-export interface Establishment {
-  id: string;
-  name: string;
-  shortName: string;
+export interface Establishment extends Omit<EstablishmentDTO, 'siren'> {
   siren: number;
   available: boolean;
   geoCodes: string[];
   kind: EstablishmentKind;
 }
 
-export interface EstablishmentData {
-  id: string;
-  name: string;
-  housingCount: number;
-  firstActivatedAt: Date;
-  lastAuthenticatedAt: Date;
-  lastMonthUpdatesCount: number;
-  campaignsCount: number;
-  contactedHousingCount: number;
-  contactedHousingPerCampaign: number;
-  firstCampaignSendingDate: Date;
-  lastCampaignSendingDate: Date;
-  delayBetweenCampaigns: any;
-  firstCampaignSentDelay: number;
+export function fromEstablishmentDTO(
+  establishment: EstablishmentDTO
+): Establishment {
+  return {
+    ...establishment,
+    siren: Number(establishment.siren)
+  };
+}
+
+export function toEstablishmentDTO(
+  establishment: Establishment
+): EstablishmentDTO {
+  return {
+    ...establishment,
+    siren: String(establishment.siren)
+  };
 }
 
 export const getEstablishmentUrl = (establishment: Establishment) =>

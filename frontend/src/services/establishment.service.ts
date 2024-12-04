@@ -1,17 +1,8 @@
-import config from '../utils/config';
-import { Establishment } from '../models/Establishment';
-import { createHttpService } from '../utils/fetchUtils';
-import { zlvApi } from './api.service';
 import {
   EstablishmentDTO,
   EstablishmentFiltersDTO
 } from '@zerologementvacant/models';
-
-const http = createHttpService('establishment', {
-  host: config.apiEndpoint,
-  authenticated: true,
-  json: true
-});
+import { zlvApi } from './api.service';
 
 export const establishmentApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -40,15 +31,3 @@ export const establishmentApi = zlvApi.injectEndpoints({
 
 export const { useFindEstablishmentsQuery, useLazyFindEstablishmentsQuery } =
   establishmentApi;
-
-const quickSearch = async (query: string): Promise<Establishment[]> => {
-  const params = new URLSearchParams({ query });
-  const response = await http.get(`/api/establishments?${params}`, {
-    abortId: 'search-establishment'
-  });
-  return response.json();
-};
-
-export const establishmentService = {
-  quickSearch
-};

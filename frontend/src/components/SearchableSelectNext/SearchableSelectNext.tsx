@@ -1,14 +1,15 @@
 import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
 import { Autocomplete, AutocompleteProps, ChipTypeMap } from '@mui/material';
-import { AsyncOrSync, MarkOptional } from 'ts-essentials';
-import * as React from 'react';
+import { MarkOptional } from 'ts-essentials';
+import { ElementType, useState } from 'react';
+import { useDebounce } from 'react-use';
 
 interface Props<
   Value,
   Multiple extends boolean | undefined,
   DisableClearable extends boolean | undefined,
   FreeSolo extends boolean | undefined,
-  ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent']
+  ChipComponent extends ElementType = ChipTypeMap['defaultComponent']
 > {
   autocompleteProps?: MarkOptional<
     AutocompleteProps<
@@ -20,30 +21,41 @@ interface Props<
     >,
     'renderInput'
   >;
+  className?: string;
   /**
    * Debounce calls to {@link search} (in milliseconds).
    */
   debounce?: number;
-  isFetching?: boolean;
   inputProps?: MarkOptional<InputProps.RegularInput, 'label'>;
   search(query: string | undefined): Promise<void>;
 }
 
 function SearchableSelectNext<
   Value,
-  Multiple extends boolean | undefined,
-  DisableClearable extends boolean | undefined,
-  FreeSolo extends boolean | undefined,
-  ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent']
+  Multiple extends boolean | undefined = false,
+  DisableClearable extends boolean | undefined = false,
+  FreeSolo extends boolean | undefined = false,
+  ChipComponent extends ElementType = ChipTypeMap['defaultComponent']
 >(props: Props<Value, Multiple, DisableClearable, FreeSolo, ChipComponent>) {
-  function search(query: string | undefined): AsyncOrSync<void> {
+  async function search(query: string | undefined): Promise<void> {
     if (query) {
       props.search(query).catch(console.error);
     }
   }
 
+  const [inputChange, setInputChange] = useState('');
+
+  useDebounce(
+    () => {
+      search(inputChange);
+    },
+    props.debounce ?? 0,
+    [inputChange]
+  );
+
   return (
     <Autocomplete
+      className={props.className}
       options={props.autocompleteProps?.options ?? []}
       clearText="Supprimer"
       closeText="Fermer"
@@ -63,11 +75,12 @@ function SearchableSelectNext<
           {...props.inputProps}
         />
       )}
-      {...props.autocompleteProps}
+      inputValue={inputChange}
       onInputChange={(event, query, reason) => {
-        search(query);
+        setInputChange(query);
         props.autocompleteProps?.onInputChange?.(event, query, reason);
       }}
+      {...props.autocompleteProps}
     />
   );
 }

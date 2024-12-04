@@ -6,6 +6,7 @@ import { FormEvent, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 
+import { EstablishmentDTO } from '@zerologementvacant/models';
 import { Col, Container, Row, Text } from '../../components/_dsfr';
 import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import building from '../../assets/images/building.svg';
@@ -25,7 +26,9 @@ const LoginView = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [establishmentId, setEstablishmentId] = useState<string>('');
+  const [establishment, setEstablishment] = useState<EstablishmentDTO | null>(
+    null
+  );
 
   const auth = useAppSelector((state) => state.authentication);
 
@@ -44,7 +47,7 @@ const LoginView = () => {
     isAdmin: pathname === '/admin',
     email,
     password,
-    establishmentId
+    establishmentId: establishment?.id
   });
 
   async function submitLoginForm(e: FormEvent<HTMLFormElement>): Promise<void> {
@@ -55,9 +58,7 @@ const LoginView = () => {
           logIn({
             email,
             password,
-            establishmentId: establishmentId.length
-              ? establishmentId
-              : undefined
+            establishmentId: establishment ? establishment.id : undefined
           })
         ).unwrap();
         navigate('/parc-de-logements');
@@ -125,7 +126,12 @@ const LoginView = () => {
             {isAdminView && (
               <EstablishmentSearchableSelect
                 className={fr.cx('fr-mb-2w')}
-                onChange={(id: string) => setEstablishmentId(id)}
+                value={establishment}
+                onChange={(establishment) => {
+                  if (establishment) {
+                    setEstablishment(establishment);
+                  }
+                }}
               />
             )}
             <Row spacing="mb-4w">

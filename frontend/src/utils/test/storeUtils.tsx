@@ -2,7 +2,11 @@ import { configureStore } from '@reduxjs/toolkit';
 import { applicationMiddlewares, applicationReducer } from '../../store/store';
 import { genAuthUser } from '../../../test/fixtures.test';
 
-function configureTestStore() {
+interface Options {
+  withAuth?: boolean;
+}
+
+function configureTestStore(options?: Options) {
   return configureStore({
     reducer: applicationReducer,
     middleware: (getDefaultMiddleware) =>
@@ -14,13 +18,20 @@ function configureTestStore() {
         isDsfrReady: true
       },
       authentication: {
-        logIn: {
-          data: genAuthUser(),
-          isError: false,
-          isLoading: false,
-          isSuccess: true,
-          isUninitialized: false
-        },
+        logIn: options?.withAuth
+          ? {
+              data: genAuthUser(),
+              isError: false,
+              isLoading: false,
+              isSuccess: true,
+              isUninitialized: false
+            }
+          : {
+              isError: false,
+              isLoading: false,
+              isSuccess: false,
+              isUninitialized: true
+            },
         changeEstablishment: {
           isError: false,
           isLoading: false,

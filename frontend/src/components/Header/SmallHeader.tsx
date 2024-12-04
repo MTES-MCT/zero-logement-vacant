@@ -83,6 +83,7 @@ function SmallHeader() {
               isAuthenticated
                 ? [
                     getMainNavigationItem(UserNavItems.HousingList),
+                    getMainNavigationItem(UserNavItems.Analysis),
                     getMainNavigationItem(UserNavItems.Campaign),
                     getMainNavigationItem(UserNavItems.Resources)
                   ]

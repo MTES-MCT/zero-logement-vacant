@@ -2,6 +2,7 @@ export enum UserNavItems {
   Campaign,
   HousingList,
   Resources,
+  Analysis
 }
 
 export interface UserNavItem {
@@ -17,6 +18,8 @@ export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
       return { url: '/parc-de-logements', label: 'Parc de logements' };
     case UserNavItems.Resources:
       return { url: '/ressources', label: 'Ressources' };
+    case UserNavItems.Analysis:
+      return { url: '/analyses', label: 'Analyses' };
     default:
       return { url: '/', label: 'Accueil' };
   }

@@ -135,7 +135,7 @@ describe('AccountPasswordCreationView', () => {
     });
     await user.click(confirm);
     const errors = [
-      screen.getByText(/Au moins 8 caractères/),
+      screen.getByText(/Au moins 12 caractères/),
       screen.getByText(/Au moins une majuscule/),
       screen.getByText(/Au moins une minuscule/),
       screen.getByText(/Au moins un chiffre/)
@@ -169,7 +169,7 @@ describe('AccountPasswordCreationView', () => {
 
     setup(link);
 
-    const password = '123QWEasd';
+    const password = '1234QWERasdf';
     const passwordInput = await screen.findByLabelText(
       /^Définissez votre mot de passe/i
     );

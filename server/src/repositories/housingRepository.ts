@@ -840,7 +840,7 @@ const housingSortQuery = (sort?: HousingSortApi) =>
           );
       },
       occupancy: (query) =>
-        query.orderBy(`${housingTable}.occupancy`, sort?.occupancy),
+        query.orderByRaw(`LOWER(${housingTable}.occupancy) ${sort?.occupancy}`),
       status: (query) => query.orderBy(`${housingTable}.status`, sort?.status)
     },
     default: (query) => query.orderBy(['geo_code', 'id'])

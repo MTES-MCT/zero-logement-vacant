@@ -5,13 +5,14 @@ import { Establishments } from '~/repositories/establishmentRepository';
 
 export const SirenStrasbourg = '246700488';
 export const SirenSaintLo = '200066389';
+export const SirenBasRhin = '130010218';
 
 export const ZeroLogementVacantEstablishment =
   'Zéro Logement Vacant à Marseille';
 
 export async function seed(knex: Knex): Promise<void> {
   await Establishments(knex)
-    .whereIn('siren', [SirenStrasbourg, SirenSaintLo])
+    .whereIn('siren', [SirenStrasbourg, SirenSaintLo, SirenBasRhin])
     .update({ available: true });
 
   // End-to-end test establishment

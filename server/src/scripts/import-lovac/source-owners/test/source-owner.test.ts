@@ -41,6 +41,6 @@ describe('SourceOwner', () => {
       birth_date: '1947-11-11'
     });
 
-    expect(actual.birth_date?.toJSON()).toBe('1947-11-10T23:00:00.000Z');
+    expect(actual.birth_date?.toJSON()).toBe('1947-11-11T00:00:00.000Z');
   });
 });

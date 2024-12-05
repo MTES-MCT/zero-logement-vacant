@@ -92,3 +92,21 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
     font-size: 0.75rem !important;
   }
 }
+
+.fr-accordion {
+
+  .select-multi-input .select-multi-options {
+    padding: 1rem 0 0 1rem;
+  }
+
+  .select-multi-options, .select-single-options {
+
+    .fr-fieldset__content .fr-checkbox-group label {
+      padding: 0 0;
+    }
+
+    .fr-fieldset__content .fr-checkbox-group input[type="checkbox"] + label::before {
+      top: 0rem;
+    }
+  }
+}

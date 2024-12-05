@@ -49,14 +49,20 @@ const LoginView = () => {
   async function submitLoginForm(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     await form.validate(async () => {
-      await dispatch(
-        logIn({
-          email,
-          password,
-          establishmentId: establishmentId.length ? establishmentId : undefined
-        })
-      ).unwrap();
-      navigate('/parc-de-logements');
+      try {
+        await dispatch(
+          logIn({
+            email,
+            password,
+            establishmentId: establishmentId.length
+              ? establishmentId
+              : undefined
+          })
+        ).unwrap();
+        navigate('/parc-de-logements');
+      } catch (error) {
+        console.error(error);
+      }
     });
   }
 

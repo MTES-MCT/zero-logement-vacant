@@ -1,26 +1,25 @@
+import { faker } from '@faker-js/faker';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { genProspect, genSignupLink } from '../../../../../test/fixtures.test';
-import AccountPasswordCreationView from '../AccountPasswordCreationView';
 import { Provider } from 'react-redux';
-import prospectService from '../../../../services/prospect.service';
-import { Prospect } from '../../../../models/Prospect';
-import AccountCampaignIntentCreationView from '../AccountCampaignIntentCreationView';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+
+import { ProspectDTO, SignupLinkDTO } from '@zerologementvacant/models';
+import {
+  genEstablishmentDTO,
+  genProspectDTO,
+  genSignupLinkDTO
+} from '@zerologementvacant/models/fixtures';
+import AccountPasswordCreationView from '../AccountPasswordCreationView';
 import configureTestStore from '../../../../utils/test/storeUtils';
+import data from '../../../../mocks/handlers/data';
+import OnboardingModal from '../../../../components/modals/OnboardingModal/OnboardingModal';
 
 describe('AccountPasswordCreationView', () => {
   const user = userEvent.setup();
-  const email = 'ok@beta.gouv.fr';
-  const link = genSignupLink(email);
-  const prospect: Prospect = {
-    ...genProspect(),
-    email,
-    hasAccount: true,
-    hasCommitment: true
-  };
+  const establishment = genEstablishmentDTO();
 
-  function setup() {
+  function setup(link: SignupLinkDTO) {
     const router = createMemoryRouter(
       [
         { path: '/inscription/en-attente', element: 'En attente' },
@@ -31,8 +30,8 @@ describe('AccountPasswordCreationView', () => {
           element: <AccountPasswordCreationView />
         },
         {
-          path: '/inscription/campagne',
-          element: <AccountCampaignIntentCreationView />
+          path: '/parc-de-logements',
+          element: <OnboardingModal />
         }
       ],
       {
@@ -49,90 +48,141 @@ describe('AccountPasswordCreationView', () => {
     );
   }
 
-  function mockProspectServicePass(value: Prospect = prospect) {
-    jest.spyOn(prospectService, 'upsert').mockResolvedValue(value);
-  }
-
-  function mockProspectServiceFail() {
-    jest.spyOn(prospectService, 'upsert').mockRejectedValue(new Error());
-  }
-
   it('should render', async () => {
-    mockProspectServicePass();
-    setup();
+    const prospect = genProspectDTO(establishment);
+    data.prospects.push(prospect);
+    const link = genSignupLinkDTO(prospect.email);
+    data.signupLinks.push(link);
 
-    await screen.findAllByText('Créer votre mot de passe');
+    setup(link);
+
+    const step = await screen.findByRole('heading', {
+      name: /Définissez votre mot de passe/i
+    });
+    expect(step).toBeVisible();
   });
 
   it('should display an error if the link is expired', async () => {
-    mockProspectServiceFail();
-    setup();
+    const prospect = genProspectDTO(establishment);
+    data.prospects.push(prospect);
+    const link: SignupLinkDTO = {
+      ...genSignupLinkDTO(prospect.email),
+      expiresAt: faker.date.past()
+    };
+    data.signupLinks.push(link);
+
+    setup(link);
 
     await screen.findByText('Ce lien n’existe pas ou est expiré !');
   });
 
   it("should be forbidden if one's establishment does not exist in ZLV", async () => {
-    mockProspectServicePass({
-      ...prospect,
-      establishment: null
-    });
-    setup();
+    const prospect: ProspectDTO = {
+      ...genProspectDTO(establishment),
+      establishment: undefined
+    };
+    data.prospects.push(prospect);
+    const link = genSignupLinkDTO(prospect.email);
+    data.signupLinks.push(link);
+
+    setup(link);
 
     const title = await screen.findByText('Impossible');
     expect(title).toBeVisible();
   });
 
   it('should be forbidden if one has no account', async () => {
-    mockProspectServicePass({
-      ...prospect,
-      hasAccount: true,
+    const prospect: ProspectDTO = {
+      ...genProspectDTO(establishment),
       hasCommitment: false
-    });
-    setup();
+    };
+    data.prospects.push(prospect);
+    const link = genSignupLinkDTO(prospect.email);
+    data.signupLinks.push(link);
+
+    setup(link);
 
     const title = await screen.findByText('En attente');
     expect(title).toBeVisible();
   });
 
   it("should be forbidden if one's account is waiting for approval", async () => {
-    mockProspectServicePass({
-      ...prospect,
+    const prospect: ProspectDTO = {
+      ...genProspectDTO(establishment),
       hasAccount: false,
       hasCommitment: false
-    });
-    setup();
+    };
+    data.prospects.push(prospect);
+    const link = genSignupLinkDTO(prospect.email);
+    data.signupLinks.push(link);
+
+    setup(link);
 
     const title = await screen.findByText('Impossible');
     expect(title).toBeVisible();
   });
 
-  it('should go back to the previous step', async () => {
-    mockProspectServicePass();
-    setup();
+  it('should require a password of at least eight characters, one uppercase, one lowercase and one number', async () => {
+    const prospect = genProspectDTO(establishment);
+    data.prospects.push(prospect);
+    const link = genSignupLinkDTO(prospect.email);
+    data.signupLinks.push(link);
 
-    const previous = await screen.findByText('Revenir à l’étape précédente');
-    await user.click(previous);
+    setup(link);
 
-    const title = await screen.findByText('Email');
-    expect(title).toBeVisible();
+    const confirm = await screen.findByRole('button', {
+      name: /^Confirmer et créer mon compte/i
+    });
+    await user.click(confirm);
+    const errors = [
+      screen.getByText(/Au moins 12 caractères/),
+      screen.getByText(/Au moins une majuscule/),
+      screen.getByText(/Au moins une minuscule/),
+      screen.getByText(/Au moins un chiffre/)
+    ];
+    errors.forEach((error) => {
+      expect(error).toBeVisible();
+    });
+  });
+
+  it('should require to confirm the password', async () => {
+    const prospect = genProspectDTO(establishment);
+    data.prospects.push(prospect);
+    const link = genSignupLinkDTO(prospect.email);
+    data.signupLinks.push(link);
+
+    setup(link);
+
+    const confirm = await screen.findByRole('button', {
+      name: /^Confirmer et créer mon compte/i
+    });
+    await user.click(confirm);
+    const error = screen.getByText(/Veuillez confirmer votre mot de passe/i);
+    expect(error).toBeVisible();
   });
 
   it('should choose a password', async () => {
-    mockProspectServicePass();
-    setup();
-    const password = '123QWEasd';
+    const prospect = genProspectDTO(establishment);
+    data.prospects.push(prospect);
+    const link = genSignupLinkDTO(prospect.email);
+    data.signupLinks.push(link);
 
+    setup(link);
+
+    const password = '1234QWERasdf';
     const passwordInput = await screen.findByLabelText(
-      /Créer votre mot de passe/
+      /^Définissez votre mot de passe/i
     );
     await user.type(passwordInput, password);
     const confirmationInput = await screen.findByLabelText(
-      /Confirmer votre mot de passe/
+      /^Confirmez votre mot de passe/i
     );
     await user.type(confirmationInput, password);
     await user.keyboard('{Enter}');
 
-    const title = await screen.findByText(/^Vos intentions de campagne/);
+    const title = await screen.findByText(
+      /^Bienvenue sur Zéro Logement Vacant !/
+    );
     expect(title).toBeVisible();
   });
 });

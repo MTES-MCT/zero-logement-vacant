@@ -57,8 +57,7 @@ export function genAuthUser(): AuthUser {
       kind: 'Commune',
       available: genBoolean(),
       shortName: randomstring.generate(),
-      geoCodes: [faker.location.zipCode()],
-      campaignIntent: randomstring.generate()
+      geoCodes: [faker.location.zipCode()]
     }
   };
 }
@@ -131,8 +130,7 @@ export function genProspect(): Prospect {
     email: genEmail(),
     establishment: {
       id: randomstring.generate(),
-      siren: genSiren(),
-      campaignIntent: '0-2'
+      siren: genSiren()
     },
     hasAccount: genBoolean(),
     hasCommitment: genBoolean()

@@ -1,18 +1,18 @@
 import { ref, string } from 'yup';
 
 export const password = string()
-  .min(8, 'Au moins 8 caractères.')
+  .min(8, 'Au moins 12 caractères.')
   .matches(/[A-Z]/g, {
     name: 'uppercase',
-    message: 'Au moins une majuscule.',
+    message: 'Au moins une majuscule.'
   })
   .matches(/[a-z]/g, {
     name: 'lowercase',
-    message: 'Au moins une minuscule.',
+    message: 'Au moins une minuscule.'
   })
   .matches(/[0-9]/g, {
     name: 'number',
-    message: 'Au moins un chiffre.',
+    message: 'Au moins un chiffre.'
   });
 
 export const passwordConfirmation = string()

@@ -11,12 +11,11 @@ function Footer() {
     <DSFRFooter
       accessibility="non compliant"
       accessibilityLinkProps={{
-        to: 'https://zerologementvacant.beta.gouv.fr/accessibilite',
+        to: 'https://zerologementvacant.beta.gouv.fr/accessibilite'
       }}
       brandTop={
         <>
-          Ministère
-          du Logement <br />
+          Ministère du Logement <br />
           et de la Rénovation <br />
           urbaine
         </>
@@ -119,7 +118,7 @@ function Footer() {
       partnersLogos={{
         sub: [
           {
-            alt: 'Logo de l\'Agence nationale de l’habitat',
+            alt: "Logo de l'Agence nationale de l’habitat",
             imgUrl: anah,
             linkProps: {
               to: 'https://www.anah.gouv.fr/',

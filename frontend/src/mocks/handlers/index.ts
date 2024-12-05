@@ -8,9 +8,11 @@ import { eventHandlers } from './event-handlers';
 import { geoPerimeterHandlers } from './geo-perimeter-handlers';
 import { groupHandlers } from './group-handlers';
 import { housingHandlers } from './housing-handlers';
-import { ownerHandlers } from './owner-handlers';
 import { noteHandlers } from './note-handlers';
+import { ownerHandlers } from './owner-handlers';
+import { signupLinksHandlers } from './signup-links-handlers';
 import { userHandlers } from './user-handlers';
+import { prospectHandlers } from './prospect-handlers';
 
 export const handlers: RequestHandler[] = [
   ...authHandlers,
@@ -23,5 +25,7 @@ export const handlers: RequestHandler[] = [
   ...housingHandlers,
   ...noteHandlers,
   ...ownerHandlers,
+  ...prospectHandlers,
+  ...signupLinksHandlers,
   ...userHandlers
 ];

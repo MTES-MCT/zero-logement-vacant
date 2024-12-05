@@ -1,25 +1,22 @@
-import config from '../utils/config';
-import { Prospect } from '../models/Prospect';
+import { ProspectDTO, SignupLinkDTO } from '@zerologementvacant/models';
+import { zlvApi } from './api.service';
 
-async function upsert(signupLink: string): Promise<Prospect> {
-  const response = await fetch(
-    `${config.apiEndpoint}/api/signup-links/${signupLink}/prospect`,
-    { method: 'PUT' }
-  );
-  if (!response.ok) {
-    throw new Error('Une erreur s’est produite.');
-  }
-  return response.json();
-}
+export const prospectAPI = zlvApi.injectEndpoints({
+  endpoints: (builder) => ({
+    saveProspect: builder.mutation<ProspectDTO, Pick<SignupLinkDTO, 'id'>>({
+      query: (payload) => ({
+        url: `signup-links/${payload.id}/prospect`,
+        method: 'PUT'
+      }),
+      invalidatesTags: ['Prospect']
+    }),
 
-async function get(email: string): Promise<Prospect> {
-  const response = await fetch(`${config.apiEndpoint}/api/prospects/${email}`);
-  return response.json();
-}
+    getProspect: builder.query<ProspectDTO, ProspectDTO['email']>({
+      query: (email) => `prospects/${email}`,
+      providesTags: (prospect) =>
+        prospect ? [{ type: 'Prospect', id: prospect.email }] : []
+    })
+  })
+});
 
-const prospectService = {
-  upsert,
-  get,
-};
-
-export default prospectService;
+export const { useSaveProspectMutation, useGetProspectQuery } = prospectAPI;

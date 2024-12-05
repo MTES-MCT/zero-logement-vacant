@@ -8,11 +8,11 @@ import fp from 'lodash/fp';
 export const emailValidator = yup
   .string()
   .required('Veuillez renseigner votre adresse email.')
-  .email("L'adresse doit être un email valide");
+  .email('L’adresse doit être un email valide');
 
 export const passwordFormatValidator = yup
   .string()
-  .min(8, 'Au moins 8 caractères.')
+  .min(12, 'Au moins 12 caractères.')
   .matches(/[A-Z]/g, {
     name: 'uppercase',
     message: 'Au moins une majuscule.'

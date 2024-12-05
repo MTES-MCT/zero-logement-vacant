@@ -1,5 +1,3 @@
-export interface SignupLink {
-  id: string;
-  prospectEmail: string;
-  expiresAt: Date;
-}
+import { SignupLinkDTO } from '@zerologementvacant/models';
+
+export type SignupLink = SignupLinkDTO;

@@ -5,14 +5,12 @@ import {
   genOwnerApi,
 } from '../../../test/testFixtures';
 import housingOwnerConflictRepository, {
-  formatHousingOwnerConflictApi,
   HousingOwnerConflictRecordDBO,
   HousingOwnerConflicts,
 } from '../housingOwnerConflictRepository';
 import {
   ConflictDBO,
   Conflicts,
-  formatConflictApi,
 } from '../conflictRepository';
 import { formatOwnerApi, Owners } from '../../ownerRepository';
 import { formatHousingRecordApi, Housing } from '../../housingRepository';
@@ -26,17 +24,17 @@ import { HousingApi } from '~/models/HousingApi';
 
 describe('Housing owner conflict repository', () => {
   describe('find', () => {
-    const housing = genHousingApi();
-    const owner = housing.owner;
-    const conflicts = new Array(5)
-      .fill(0)
-      .map(() =>
-        genHousingOwnerConflictApi(
-          housing,
-          genHousingOwnerApi(housing, owner),
-          genHousingOwnerApi(housing, owner),
-        ),
-      );
+    // const housing = genHousingApi();
+    // const owner = housing.owner;
+    // const conflicts = new Array(5)
+    //   .fill(0)
+    //   .map(() =>
+    //     genHousingOwnerConflictApi(
+    //       housing,
+    //       genHousingOwnerApi(housing, owner),
+    //       genHousingOwnerApi(housing, owner),
+    //     ),
+    //   );
 
     // beforeEach(async () => {
     //   await Housing().insert(formatHousingRecordApi(housing));

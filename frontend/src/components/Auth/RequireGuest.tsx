@@ -2,6 +2,7 @@ import { PropsWithChildren } from 'react';
 
 import { useUser } from '../../hooks/useUser';
 import NotFoundView from '../../views/NotFoundView';
+import { Navigate } from 'react-router-dom';
 
 interface RequireGuestProps {}
 
@@ -12,7 +13,7 @@ function RequireGuest(props: PropsWithChildren<RequireGuestProps>) {
     return props.children;
   }
 
-  return <NotFoundView />;
+  return <Navigate to="/parc-de-logements" replace />;
 }
 
 export default RequireGuest;

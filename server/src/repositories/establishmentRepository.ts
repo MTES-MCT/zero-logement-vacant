@@ -7,10 +7,7 @@ import {
   EstablishmentSource
 } from '@zerologementvacant/models';
 import db, { likeUnaccent } from '~/infra/database';
-import {
-  EstablishmentApi,
-  EstablishmentPriority
-} from '~/models/EstablishmentApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { createLogger } from '~/infra/logger';
 
 export const establishmentsTable = 'establishments';

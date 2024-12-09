@@ -49,8 +49,10 @@ async function create(request: Request, response: Response) {
   try {
     // Optional steps
     const establishments = await establishmentRepository.find({
-      available: true,
-      geoCodes: [body.geoCode]
+      filters: {
+        available: true,
+        geoCodes: [body.geoCode]
+      }
     });
     if (establishments.length > 0) {
       const byEstablishment = {

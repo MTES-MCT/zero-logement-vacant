@@ -1,3 +1,4 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   MainNavigation,
@@ -20,6 +21,11 @@ import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/Esta
 import { useAppDispatch } from '../../hooks/useStore';
 import logo from '../../assets/images/zlv.svg';
 import { zlvApi } from '../../services/api.service';
+import {
+  Establishment,
+  fromEstablishmentDTO,
+  toEstablishmentDTO
+} from '../../models/Establishment';
 
 function SmallHeader() {
   const dispatch = useAppDispatch();
@@ -40,8 +46,10 @@ function SmallHeader() {
     };
   }
 
-  async function onChangeEstablishment(id: string): Promise<void> {
-    await dispatch(changeEstablishment(id));
+  async function onChangeEstablishment(
+    establishment: Establishment
+  ): Promise<void> {
+    await dispatch(changeEstablishment(establishment.id)).unwrap();
     // Reset all state instead of reloading the page
     dispatch(zlvApi.util.resetApiState());
   }
@@ -94,15 +102,17 @@ function SmallHeader() {
             {isAuthenticated ? (
               isAdmin || isVisitor ? (
                 <EstablishmentSearchableSelect
-                  initialEstablishmentOption={
-                    establishment
-                      ? {
-                          value: establishment.id,
-                          label: establishment.name
-                        }
-                      : undefined
+                  className={fr.cx('fr-mr-2w')}
+                  value={
+                    establishment ? toEstablishmentDTO(establishment) : null
                   }
-                  onChange={onChangeEstablishment}
+                  onChange={(establishment) => {
+                    if (establishment) {
+                      onChangeEstablishment(
+                        fromEstablishmentDTO(establishment)
+                      );
+                    }
+                  }}
                 />
               ) : (
                 <Typography component="span" mr={2} variant="body2">

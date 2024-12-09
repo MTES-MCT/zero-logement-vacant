@@ -20,7 +20,7 @@ function OnboardingModal() {
   const ready = useIsDsfrReady();
 
   useEffect(() => {
-    if (ready && !onboarding && modal) {
+    if (ready && onboarding && modal) {
       // Dirty hack to provide a larger modal
       document
         .getElementById(id)

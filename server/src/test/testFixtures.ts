@@ -97,7 +97,7 @@ export const genNumber = (length = 10) => {
 
 export const genBoolean = () => faker.datatype.boolean();
 
-export const genSiren = () => genNumber(9);
+export const genSiren = () => genNumber(9).toString();
 export function oneOf<T>(array: Array<T>): T {
   return faker.helpers.arrayElement(array);
 }

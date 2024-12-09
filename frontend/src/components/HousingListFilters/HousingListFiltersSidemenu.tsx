@@ -7,6 +7,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 
+import { isDefined } from '@zerologementvacant/utils';
 import { Icon, SearchableSelect, Text } from '../_dsfr';
 import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
 import {
@@ -31,8 +32,8 @@ import {
   statusOptions,
   taxedOptions,
   unselectedOptions,
-  vacancyYearOptions,
-  vacancyRateOptions
+  vacancyRateOptions,
+  vacancyYearOptions
 } from '../../models/HousingFilters';
 import styles from './housing-list-filters.module.scss';
 import {
@@ -52,6 +53,8 @@ import GroupHeader from '../GroupHeader/GroupHeader';
 import { useUser } from '../../hooks/useUser';
 import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import CampaignFilter from './CampaignFilter';
+import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
+import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -104,6 +107,8 @@ function HousingListFiltersSidemenu(props: Props) {
       'Statut'
     );
   }
+
+  const { data: intercommunalities, isFetching } = useIntercommunalities();
 
   const { isVisitor } = useUser();
 
@@ -247,26 +252,64 @@ function HousingListFiltersSidemenu(props: Props) {
               data-testid="filtre-statut-occupation"
             />
           </Grid>
-          { filters?.occupancies?.includes(Occupancy.VACANT) &&
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Année de début de vacance"
-              options={vacancyYearOptions}
-              initialValues={filters.vacancyYears}
-              onChange={(values) =>
-                onChangeFilters(
-                  { vacancyYears: values },
-                  'Année de début de vacance'
-                )
-              }
-            />
-          </Grid> }
+          {filters?.occupancies?.includes(Occupancy.VACANT) && (
+            <Grid component="article" mb={2} xs={12}>
+              <AppMultiSelect
+                label="Année de début de vacance"
+                options={vacancyYearOptions}
+                initialValues={filters.vacancyYears}
+                onChange={(values) =>
+                  onChangeFilters(
+                    { vacancyYears: values },
+                    'Année de début de vacance'
+                  )
+                }
+              />
+            </Grid>
+          )}
         </Accordion>
         <Accordion
           label={
             <TitleWithIcon icon="fr-icon-france-line" title="Localisation" />
           }
         >
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelectNext
+              autocompleteProps={{
+                autoHighlight: true,
+                options: intercommunalities ?? [],
+                loading: isFetching,
+                multiple: true,
+                openOnFocus: true,
+                getOptionKey: (option) => option.id,
+                getOptionLabel: (option) => option.name,
+                isOptionEqualToValue: (option, value) => option.id === value.id,
+                value:
+                  filters.intercommunalities
+                    ?.map((intercommunality) => {
+                      return intercommunalities?.find(
+                        (establishment) => establishment.id === intercommunality
+                      );
+                    })
+                    ?.filter(isDefined) ?? [],
+                onChange: (_, values) => {
+                  if (values) {
+                    onChangeFilters(
+                      { intercommunalities: values.map((value) => value.id) },
+                      'Intercommunalité'
+                    );
+                  }
+                }
+              }}
+              inputProps={{
+                label: 'Intercommunalités',
+                nativeInputProps: {
+                  placeholder: 'Rechercher une intercommunalité'
+                }
+              }}
+              data-testid="filtre-commune"
+            />
+          </Grid>
           <Grid component="article" mb={2} xs={12}>
             <SearchableSelect
               options={unselectedOptions(localitiesOptions, filters.localities)}

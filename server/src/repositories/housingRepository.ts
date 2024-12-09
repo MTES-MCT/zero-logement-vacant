@@ -59,14 +59,21 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
     fetchGeoCodes(opts.filters.establishmentIds ?? []),
     fetchGeoCodes(opts.filters.intercommunalities ?? [])
   ]);
-  const specificGeoCodes = Set(opts.filters.localities).union(
-    intercommunalities
-  );
-  const geoCodes = specificGeoCodes.isEmpty()
-    ? allowedGeoCodes
-    : allowedGeoCodes.length === 0
-      ? specificGeoCodes.toArray()
-      : specificGeoCodes.intersect(allowedGeoCodes).toArray();
+  const defaults = [
+    opts.filters.localities,
+    intercommunalities,
+    allowedGeoCodes
+  ].find((array) => array && array.length > 0);
+  const geoCodes = Set(defaults)
+    .withMutations((set) => {
+      if (intercommunalities.length > 0) {
+        set.intersect(intercommunalities);
+      }
+      if (allowedGeoCodes.length > 0) {
+        set.intersect(allowedGeoCodes);
+      }
+    })
+    .toArray();
 
   const housingList: HousingDBO[] = await fastListQuery({
     filters: {

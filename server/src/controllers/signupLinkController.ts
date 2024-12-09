@@ -4,7 +4,7 @@ import {
   hasExpired,
   SIGNUP_LINK_EXPIRATION,
   SIGNUP_LINK_LENGTH,
-  SignupLinkApi,
+  SignupLinkApi
 } from '~/models/SignupLinkApi';
 import randomstring from 'randomstring';
 import { addHours } from 'date-fns';
@@ -23,26 +23,26 @@ async function create(request: Request, response: Response) {
   if (user) {
     // Return a success code to avoid giving information to an attacker
     // that an account already exists with the given email
-    response.sendStatus(constants.HTTP_STATUS_CREATED);
+    response.status(constants.HTTP_STATUS_CREATED).json();
     return;
   }
 
   const link: SignupLinkApi = {
     id: randomstring.generate({
       charset: 'alphanumeric',
-      length: SIGNUP_LINK_LENGTH,
+      length: SIGNUP_LINK_LENGTH
     }),
     prospectEmail: email,
-    expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION),
+    expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION)
   };
   await signupLinkRepository.insert(link);
   await mailService.sendAccountActivationEmail(link.id, {
-    recipients: [email],
+    recipients: [email]
   });
   mailService.emit('prospect:initialized', email, {
-    link: getAccountActivationLink(link.id),
+    link: getAccountActivationLink(link.id)
   });
-  response.sendStatus(constants.HTTP_STATUS_CREATED);
+  response.status(constants.HTTP_STATUS_CREATED).json();
 }
 
 const createValidators: ValidationChain[] = [body('email').isEmail()];
@@ -66,7 +66,7 @@ const signupLinkController = {
   create,
   createValidators,
   show,
-  showValidators,
+  showValidators
 };
 
 export default signupLinkController;

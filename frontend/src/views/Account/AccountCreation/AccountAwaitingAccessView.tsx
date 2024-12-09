@@ -1,43 +1,69 @@
-import { Container, Text } from '../../../components/_dsfr';
-import AppLink from '../../../components/_app/AppLink/AppLink';
+import { fr } from '@codegouvfr/react-dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
+
+import Image from '../../../components/Image/Image';
+import image from '../../../assets/images/fifty-hours.svg';
+import AppLink from '../../../components/_app/AppLink/AppLink';
 
 function AccountAwaitingAccessView() {
   return (
-    <>
-      <Typography variant="h2" mb={3}>
-        Votre demande d’accès aux données LOVAC n’a pas encore été validée.
-      </Typography>
-      <Text>
-        Vous avez déjà signé et transmis l’acte d’engagement permettant
-        d’accéder aux données LOVAC via la plateforme Démarches Simplifiées.
-      </Text>
-      <Text>
-        Cependant, votre demande n’a pas encore été validée. Nous reviendrons
-        très prochainement vers vous pour finaliser la création de votre compte.
-      </Text>
-      <Text className="color-grey-625">
-        Attention, l’acte d’engagement n’est valable qu’un an à partir de la
-        date de signature.
-      </Text>
-      <Container as="section" fluid spacing="mb-4w">
+    <Grid container>
+      <Grid xs={7}>
+        <Typography component="h1" variant="h6" sx={{ mb: 2 }}>
+          Votre demande d’accès aux données LOVAC n’a pas encore été validée
+        </Typography>
+        <Typography sx={{ mb: 2 }}>
+          Vous avez effectué votre demande d’accès aux données LOVAC via&nbsp;
+          <a href="https://datafoncier.cerema.fr/portail-des-donnees-foncieres">
+            le portail données foncières du Cerema
+          </a>
+          &nbsp;mais votre demande n’a pas encore été validée.
+        </Typography>
+        <Typography sx={{ mb: 3 }}>
+          Veuillez réessayer dès que vous aurez reçu le mail de validation de
+          votre demande de la part du Cerema.
+        </Typography>
+
         <AppLink
-          to="https://zerologementvacant.crisp.help/fr/category/1-creer-et-gerer-un-compte-1nni4io/"
           isSimple
-          size="sm"
+          rel="noreferrer"
+          style={{ display: 'block' }}
+          target="_blank"
+          to="https://zerologementvacant.crisp.help/fr/article/comment-creer-mon-compte-zlv-1bcsydq/"
         >
           Besoin d’aide pour créer votre compte ?
         </AppLink>
-      </Container>
-      <AppLink
-        isSimple
-        to="/"
-        iconId="fr-icon-arrow-left-line"
-        iconPosition="left"
+
+        <Button
+          className={fr.cx('fr-mt-4w')}
+          iconId="fr-icon-arrow-go-back-line"
+          linkProps={{
+            href: 'https://zerologementvacant.beta.gouv.fr',
+            target: '_self'
+          }}
+          priority="tertiary"
+        >
+          Retour à la page d’accueil
+        </Button>
+      </Grid>
+
+      <Grid
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end'
+        }}
+        xs={4}
+        xsOffset={1}
       >
-        Revenir à l’écran d’accueil
-      </AppLink>
-    </>
+        <Image
+          alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"
+          responsive="max-width"
+          src={image}
+        />
+      </Grid>
+    </Grid>
   );
 }
 

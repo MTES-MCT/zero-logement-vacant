@@ -1,10 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import AccountEmailActivationView from '../AccountEmailActivationView';
+import { createMemoryRouter, Link, RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
+
+import AccountEmailActivationView from '../AccountEmailActivationView';
 import { store } from '../../../../store/store';
 import { signupLinkApi } from '../../../../services/signup-link.service';
+import Notification from '../../../../components/Notification/Notification';
 
 describe('AccountEmailActivationView', () => {
   const user = userEvent.setup();
@@ -25,6 +28,7 @@ describe('AccountEmailActivationView', () => {
       );
       render(
         <Provider store={store}>
+          <Notification />
           <RouterProvider router={router} />
         </Provider>
       );
@@ -42,6 +46,7 @@ describe('AccountEmailActivationView', () => {
     function setup() {
       const router = createMemoryRouter(
         [
+          { path: '/inscription/email', element: 'Créer votre compte' },
           {
             path: '/inscription/activation',
             element: <AccountEmailActivationView />
@@ -58,6 +63,7 @@ describe('AccountEmailActivationView', () => {
       );
       render(
         <Provider store={store}>
+          <Notification />
           <RouterProvider router={router} />
         </Provider>
       );
@@ -66,11 +72,10 @@ describe('AccountEmailActivationView', () => {
     it('should render', async () => {
       setup();
 
-      const title = screen.getByText(
-        'Vous devez confirmer votre adresse mail.'
-      );
-
-      expect(title).toBeVisible();
+      const heading = screen.getByRole('heading', {
+        name: /Créez votre compte/i
+      });
+      expect(heading).toBeVisible();
     });
 
     it('should send an email again', async () => {
@@ -80,14 +85,29 @@ describe('AccountEmailActivationView', () => {
       );
       setup();
 
-      const sendAgain = screen.getByText(/renvoyer le mail/i);
+      const sendAgain = screen.getByText(/renvoyez un e-mail de vérification/i);
       await user.click(sendAgain);
 
       expect(sendActivationEmail).toHaveBeenCalledWith('ok@beta.gouv.fr', {
         fixedCacheKey: undefined
       });
-      const sent = screen.getByText('Email envoyé.');
+      const sent = await screen.findByText('Email envoyé');
       expect(sent).toBeVisible();
+    });
+
+    it('should go back to /inscription/email', async () => {
+      // This is needed to inject `linkProps` into the `Button` component
+      startReactDsfr({
+        defaultColorScheme: 'light',
+        Link
+      });
+
+      setup();
+
+      const back = screen.getByText(/^Revenir à l’étape précédente/i);
+      await user.click(back);
+      const signUp = screen.getByText(/^Créer votre compte/);
+      expect(signUp).toBeVisible();
     });
   });
 });

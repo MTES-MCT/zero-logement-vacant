@@ -1,9 +1,6 @@
 import { EstablishmentApi } from './EstablishmentApi';
 
-type PartialEstablishment = Pick<
-  EstablishmentApi,
-  'id' | 'siren' | 'campaignIntent'
->;
+type PartialEstablishment = Pick<EstablishmentApi, 'id' | 'siren'>;
 
 export interface ProspectApi {
   email: string;

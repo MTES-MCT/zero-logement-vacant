@@ -6,13 +6,15 @@ import { loadingBarReducer } from 'react-redux-loading-bar';
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import fp from 'lodash/fp';
 import { zlvApi } from '../services/api.service';
+import appReducer from './reducers/appReducer';
 
 export const applicationReducer = {
+  app: appReducer.reducer,
   authentication: authenticationReducer.reducer,
   housing: housingReducer.reducer,
   ownerProspect: ownerProspectReducer.reducer,
   loadingBar: loadingBarReducer,
-  [zlvApi.reducerPath]: zlvApi.reducer,
+  [zlvApi.reducerPath]: zlvApi.reducer
 };
 
 export const applicationMiddlewares = [zlvApi.middleware];
@@ -21,8 +23,8 @@ export const store = configureStore({
   reducer: applicationReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
-    }).concat(applicationMiddlewares),
+      serializableCheck: false
+    }).concat(applicationMiddlewares)
 });
 
 export type AppState = ReturnType<typeof store.getState>;

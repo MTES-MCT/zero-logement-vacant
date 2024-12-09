@@ -20,7 +20,12 @@ function OnboardingModal() {
   const ready = useIsDsfrReady();
 
   useEffect(() => {
-    if (ready && onboarding && modal) {
+    if (ready && !onboarding && modal) {
+      // Dirty hack to provide a larger modal
+      document
+        .getElementById(id)
+        ?.querySelector('.fr-col-lg-8')
+        ?.classList?.remove('fr-col-lg-8');
       modal.open();
     }
   }, [onboarding, ready]);
@@ -45,7 +50,7 @@ function OnboardingModal() {
         >
           <iframe
             width="75%"
-            height="480"
+            height="600"
             src="https://app.livestorm.co/p/1b26afab-3332-4b6d-a9e4-3f38b4cc6c43/form"
           />
         </Grid>

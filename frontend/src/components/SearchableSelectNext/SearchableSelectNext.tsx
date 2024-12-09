@@ -27,7 +27,7 @@ interface Props<
    */
   debounce?: number;
   inputProps?: MarkOptional<InputProps.RegularInput, 'label'>;
-  search(query: string | undefined): Promise<void>;
+  search?(query: string | undefined): Promise<void>;
 }
 
 function SearchableSelectNext<
@@ -39,7 +39,7 @@ function SearchableSelectNext<
 >(props: Props<Value, Multiple, DisableClearable, FreeSolo, ChipComponent>) {
   async function search(query: string | undefined): Promise<void> {
     if (query) {
-      props.search(query).catch(console.error);
+      props.search?.(query).catch(console.error);
     }
   }
 
@@ -60,19 +60,18 @@ function SearchableSelectNext<
       clearText="Supprimer"
       closeText="Fermer"
       loadingText="Chargement..."
-      noOptionsText="Aucune option."
+      noOptionsText="Aucune option"
       openText="Ouvrir"
       renderInput={(params) => (
         <Input
+          {...props.inputProps}
           nativeInputProps={{
-            placeholder: 'Rechercher un établissement',
             ...props.inputProps?.nativeInputProps,
             ...params.inputProps,
             // Non-customizable props
             type: 'search'
           }}
           ref={params.InputProps.ref}
-          {...props.inputProps}
         />
       )}
       inputValue={inputChange}

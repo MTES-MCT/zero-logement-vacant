@@ -80,6 +80,9 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   vacancyRates: array()
     .transform(commaSeparatedString)
     .of(string().oneOf(VACANCY_RATE_VALUES).required()),
+  intercommunalities: array()
+    .transform(commaSeparatedString)
+    .of(string().uuid().required()),
   localities: array()
     .transform(commaSeparatedString)
     .of(string().length(5).required()),

@@ -12,6 +12,12 @@ export interface EstablishmentDTO {
   source: EstablishmentSource;
 }
 
+export function isChild(geoCodes: ReadonlySet<string>) {
+  return (establishment: EstablishmentDTO): boolean => {
+    return establishment.geoCodes.some((geoCode) => geoCodes.has(geoCode));
+  };
+}
+
 export function isDepartmentalEstablishment(
   establishment: Pick<EstablishmentDTO, 'kind'>
 ): boolean {

@@ -90,7 +90,7 @@ function HousingListFiltersSidemenu(props: Props) {
   const onResetFilters = props.onReset;
   const { data: campaigns } = useFindCampaignsQuery();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
-  const { localitiesOptions } = useLocalityList(establishment?.id);
+  const { localities } = useLocalityList(establishment?.id);
 
   function onChangeStatusFilter(status: HousingStatus, isChecked: boolean) {
     const statusList = [
@@ -109,6 +109,22 @@ function HousingListFiltersSidemenu(props: Props) {
   }
 
   const { data: intercommunalities, isFetching } = useIntercommunalities();
+  const localityOptions =
+    localities
+      ?.filter((locality) => {
+        const set = new Set(
+          intercommunalities
+            ?.filter((interco) =>
+              filters.intercommunalities?.includes(interco.id)
+            )
+            ?.flatMap((interco) => interco.geoCodes)
+        );
+        return set.has(locality.geoCode);
+      })
+      ?.map((locality) => ({
+        value: locality.geoCode,
+        label: locality.name
+      })) ?? [];
 
   const { isVisitor } = useUser();
 
@@ -312,7 +328,7 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
           <Grid component="article" mb={2} xs={12}>
             <SearchableSelect
-              options={unselectedOptions(localitiesOptions, filters.localities)}
+              options={unselectedOptions(localityOptions, filters.localities)}
               label="Commune"
               placeholder="Rechercher une commune"
               onChange={(value: string) => {

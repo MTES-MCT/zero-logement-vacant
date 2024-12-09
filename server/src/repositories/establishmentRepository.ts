@@ -114,7 +114,7 @@ function filter(filters?: EstablishmentFiltersDTO) {
       builder.whereRaw('? && localities_geo_code', [filters.geoCodes]);
     }
     if (filters?.kind) {
-      builder.where('kind', filters.kind);
+      builder.whereIn('kind', filters.kind);
     }
     if (filters?.name) {
       builder.whereRaw(

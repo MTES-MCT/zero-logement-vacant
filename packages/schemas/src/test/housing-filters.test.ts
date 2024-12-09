@@ -42,6 +42,7 @@ describe('Housing filters', () => {
     ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
     housingCounts: fc.array(fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)),
     vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
+    intercommunalities: fc.array(fc.uuid({ version: 4 })),
     localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
     localityKinds: fc.array(fc.string({ minLength: 1 })),
     geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),

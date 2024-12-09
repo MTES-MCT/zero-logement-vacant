@@ -1,7 +1,6 @@
 import { PropsWithChildren } from 'react';
 
 import { useUser } from '../../hooks/useUser';
-import NotFoundView from '../../views/NotFoundView';
 import { Navigate } from 'react-router-dom';
 
 interface RequireGuestProps {}

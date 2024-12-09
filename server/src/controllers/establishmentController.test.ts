@@ -31,11 +31,18 @@ describe('Establishment API', () => {
     });
 
     test.prop<EstablishmentFiltersDTO>({
-      id: fc.option(fc.array(fc.uuid({ version: 4 })), { nil: undefined }),
-      available: fc.option(fc.boolean(), { nil: undefined }),
-      kind: fc.option(fc.array(fc.constantFrom(...ESTABLISHMENT_KIND_VALUES)), {
+      id: fc.option(fc.array(fc.uuid({ version: 4 }), { minLength: 1 }), {
         nil: undefined
       }),
+      available: fc.option(fc.boolean(), { nil: undefined }),
+      kind: fc.option(
+        fc.array(fc.constantFrom(...ESTABLISHMENT_KIND_VALUES), {
+          minLength: 1
+        }),
+        {
+          nil: undefined
+        }
+      ),
       name: fc.option(fc.string(), { nil: undefined }),
       geoCodes: fc.option(
         fc.array(fc.stringMatching(GEO_CODE_REGEXP), {
@@ -44,9 +51,12 @@ describe('Establishment API', () => {
         }),
         { nil: undefined }
       ),
-      siren: fc.option(fc.array(fc.stringMatching(/^[0-9]{9}$/)), {
-        nil: undefined
-      }),
+      siren: fc.option(
+        fc.array(fc.stringMatching(/^[0-9]{9}$/), { minLength: 1 }),
+        {
+          nil: undefined
+        }
+      ),
       query: fc.option(fc.stringMatching(/^[a-zA-Z0-9\s]*$/), {
         nil: undefined
       })

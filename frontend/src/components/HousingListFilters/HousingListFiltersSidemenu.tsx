@@ -112,6 +112,10 @@ function HousingListFiltersSidemenu(props: Props) {
   const localityOptions =
     localities
       ?.filter((locality) => {
+        if (!filters.intercommunalities?.length) {
+          return true;
+        }
+
         const set = new Set(
           intercommunalities
             ?.filter((interco) =>
@@ -297,6 +301,7 @@ function HousingListFiltersSidemenu(props: Props) {
                 loading: isFetching,
                 multiple: true,
                 openOnFocus: true,
+                size: 'small',
                 getOptionKey: (option) => option.id,
                 getOptionLabel: (option) => option.name,
                 isOptionEqualToValue: (option, value) => option.id === value.id,

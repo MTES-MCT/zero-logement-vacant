@@ -71,10 +71,15 @@ jobs:
         run: yarn lint
 
       - name: Test
-        run: yarn test --parallel
+        run: yarn coverage --parallel
         env:
           LOG_LEVEL: fatal
           REACT_APP_API_URL: http://localhost:3001
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band

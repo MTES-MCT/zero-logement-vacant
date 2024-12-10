@@ -30,6 +30,7 @@ import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
 import NotFoundView from './views/NotFoundView';
 import AnalysisView from './views/Analysis/AnalysisView';
+import { useIsDsfrReady } from './hooks/useIsDsfrReady';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -91,6 +92,8 @@ function App() {
       (query) => query?.status === 'pending'
     )
   );
+
+  useIsDsfrReady();
 
   useEffect(() => {
     if (isSomeQueryPending) {

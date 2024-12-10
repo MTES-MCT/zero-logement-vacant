@@ -5,7 +5,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
-    "build": "tsc -b tsconfig.build.json"
+    "build": "tsc -b tsconfig.build.json",
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "dependencies": {
     "@zerologementvacant/models": "workspace:*",

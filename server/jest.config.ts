@@ -5,6 +5,15 @@ const tsconfig = require('./tsconfig.json');
 
 const config: JestConfigWithTsJest = {
   preset: 'ts-jest',
+  // These files are used if `jest --coverage` is run
+  collectCoverageFrom: [
+    '<rootDir>/src/**/*.ts',
+    '!<rootDir>/src/**/*.test.ts',
+    '!<rootDir>/src/infra/database/**',
+    '<rootDir>/src/infra/database/test/*.test.ts',
+    '!<rootDir>/src/**/index.ts',
+    '!<rootDir>/src/types'
+  ],
   testEnvironment: 'node',
   testTimeout: 30_000,
   forceExit: true,

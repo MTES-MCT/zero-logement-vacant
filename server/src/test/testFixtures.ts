@@ -145,7 +145,8 @@ export const genUserApi = (establishmentId: string): UserApi => {
     timePerWeek: randomstring.generate(),
     lastAuthenticatedAt: faker.date.recent(),
     updatedAt: faker.date.recent(),
-    deletedAt: undefined
+    deletedAt: undefined,
+    disabled: false
   };
 };
 

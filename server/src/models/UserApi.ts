@@ -18,6 +18,7 @@ export interface UserApi {
   phone?: string;
   position?: string;
   timePerWeek?: string;
+  disabled?: boolean;
 }
 
 export function toUserDTO(user: UserApi): UserDTO {

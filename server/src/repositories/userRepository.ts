@@ -107,6 +107,7 @@ export interface UserDBO {
   phone?: string;
   position?: string;
   time_per_week?: string;
+  disabled: boolean;
 }
 
 export const parseUserApi = (userDBO: UserDBO): UserApi => ({
@@ -128,6 +129,7 @@ export const parseUserApi = (userDBO: UserDBO): UserApi => ({
   phone: userDBO.phone,
   position: userDBO.position,
   timePerWeek: userDBO.time_per_week,
+  disabled: userDBO.disabled,
 });
 
 export const formatUserApi = (userApi: UserApi): UserDBO => ({
@@ -147,6 +149,7 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
   phone: userApi.phone,
   position: userApi.position,
   time_per_week: userApi.timePerWeek,
+  disabled: userApi?.disabled ?? false,
 });
 
 export default {

@@ -10,6 +10,8 @@ class MockCeremaService implements ConsultUserService {
         establishmentSiren: Establishment1.siren,
         hasAccount: true,
         hasCommitment: true,
+        cguValid: true,
+        isValid: true,
       },
     ];
   }

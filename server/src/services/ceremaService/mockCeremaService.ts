@@ -18,7 +18,9 @@ function defaultOK(email: string): CeremaUser {
     email,
     establishmentSiren: SirenStrasbourg,
     hasAccount: true,
-    hasCommitment: true
+    hasCommitment: true,
+    cguValid: true,
+    isValid: true,
   };
 }
 

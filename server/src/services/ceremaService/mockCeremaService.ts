@@ -20,6 +20,8 @@ function defaultOK(email: string): CeremaUser {
     establishmentSiren: Number(SirenStrasbourg),
     hasAccount: true,
     hasCommitment: true,
+    cguValid: true,
+    isValid: true,
   };
 }
 

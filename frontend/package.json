@@ -37,6 +37,7 @@
     "@mui/material": "^5.16.14",
     "@reduxjs/toolkit": "^1.9.7",
     "@sentry/react": "^9.2.0",
+    "@tanstack/react-table": "^8.20.5",
     "@turf/turf": "^7.1.0",
     "@typeform/embed-react": "^2.31.0",
     "@zerologementvacant/models": "workspace:*",

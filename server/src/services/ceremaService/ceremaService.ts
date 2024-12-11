@@ -61,6 +61,8 @@ export class CeremaService implements ConsultUserService {
               establishmentSiren: parseInt(establishmentContent.siret.substring(0, 9)),
               hasAccount: true,
               hasCommitment: establishmentContent.acces_lovac !== null,
+              cguValid: establishmentContent.cgu_valide !== null,
+              isValid: establishmentContent.acces_lovac !== null && establishmentContent.cgu_valide !== null,
             };
             return u;
         }));

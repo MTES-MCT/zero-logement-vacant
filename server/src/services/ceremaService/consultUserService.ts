@@ -5,6 +5,8 @@ export interface CeremaUser {
   establishmentSiren: string;
   hasAccount: boolean;
   hasCommitment: boolean;
+  cguValid: boolean;
+  isValid: boolean;
 }
 
 export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
@@ -12,20 +14,27 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
     email: 'ok@beta.gouv.fr',
     establishmentSiren: Establishment1.siren,
     hasAccount: true,
-    hasCommitment: true
+    hasCommitment: true,
+    cguValid: true,
+    isValid: true,
+
   },
   {
     email: 'lovac_ko@beta.gouv.fr',
     establishmentSiren: Establishment1.siren,
     hasAccount: true,
-    hasCommitment: false
+    hasCommitment: false,
+    cguValid: false,
+    isValid: false,
   },
   {
     email: 'account_ko@beta.gouv.fr',
     establishmentSiren: Establishment1.siren,
     hasAccount: false,
-    hasCommitment: false
-  }
+    hasCommitment: false,
+    cguValid: false,
+    isValid: false,
+  },
 ];
 
 export const getTestEmails = (): string[] => {

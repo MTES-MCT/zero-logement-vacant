@@ -264,6 +264,11 @@ export const localityKindsOptions: SelectOption<LocalityKind>[] = [
 
 export const dataFileYearsIncludedOptions: SelectOption[] = [
   {
+    value: 'ff-2023',
+    label: 'Fichiers fonciers 2023',
+    badgeLabel: 'Fichiers fonciers 2023 inclus'
+  },
+  {
     value: 'lovac-2019',
     label: 'ZLV 2019 (>2 ans)',
     badgeLabel: 'ZLV 2019 (>2 ans)'
@@ -296,6 +301,11 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
 export const dataFileYearsExcludedOptions: SelectOption[] = [
+  {
+    value: 'ff-2023',
+    label: 'Fichiers fonciers 2023',
+    badgeLabel: 'Fichiers fonciers 2023 exclus'
+  },
   {
     value: 'lovac-2019',
     label: 'ZLV 2019 (>2 ans)',

@@ -5,6 +5,8 @@ export interface CeremaUser {
   establishmentSiren: number;
   hasAccount: boolean;
   hasCommitment: boolean;
+  cguValid: boolean;
+  isValid: boolean;
 }
 
 export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
@@ -13,6 +15,8 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
     establishmentSiren: Establishment1.siren,
     hasAccount: true,
     hasCommitment: true,
+    cguValid: true,
+    isValid: true,
 
   },
   {
@@ -20,12 +24,16 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
     establishmentSiren: Establishment1.siren,
     hasAccount: true,
     hasCommitment: false,
+    cguValid: false,
+    isValid: false,
   },
   {
     email: 'account_ko@beta.gouv.fr',
     establishmentSiren: Establishment1.siren,
     hasAccount: false,
     hasCommitment: false,
+    cguValid: false,
+    isValid: false,
   },
 ];
 

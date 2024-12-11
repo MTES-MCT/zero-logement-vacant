@@ -401,6 +401,7 @@ export function genUserDTO(role = RolesDTO.Usual): UserDTO {
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     activatedAt: faker.date.recent().toJSON(),
-    role
+    role,
+    disabled: false,
   };
 }

@@ -1,6 +1,12 @@
 {
   "preset": "ts-jest",
   "testEnvironment": "node",
+  "collectCoverageFrom": [
+    "<rootDir>/**/*.ts",
+    "!<rootDir>/**/*.test.ts",
+    "!<rootDir>/index.ts",
+    "!<rootDir>/**/test/**"
+  ],
   "rootDir": "src",
   "setupFilesAfterEnv": ["jest-extended/all", "<rootDir>/test/setup-tests.ts"]
 }

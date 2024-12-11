@@ -71,10 +71,33 @@ jobs:
         run: yarn lint
 
       - name: Test
-        run: yarn test --parallel
+        run: yarn coverage --parallel
         env:
           LOG_LEVEL: fatal
           REACT_APP_API_URL: http://localhost:3001
+
+      - name: Upload frontend coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
+          files: ./frontend/coverage/coverage-final.json
+          flags: frontend
+
+      - name: Upload packages coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: packages
+          flags: packages
+
+      - name: Upload packages coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
+          files: ./server/coverage/coverage-final.json
+          flags: server
 
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band

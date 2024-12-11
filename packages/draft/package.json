@@ -8,7 +8,8 @@
     "copy": "copyfiles -V -u 1 'src/**/*.css' 'src/**/*.hbs' dist",
     "build": "tsc -b tsconfig.build.json && yarn copy",
     "dev": "nodemon --watch src -e ts --exec 'yarn build'",
-    "test": "jest"
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",

@@ -1,12 +1,27 @@
+import { Pagination as TablePagination } from '@codegouvfr/react-dsfr/Pagination';
+import { Table } from '@codegouvfr/react-dsfr/Table';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable
+} from '@tanstack/react-table';
+import _ from 'lodash';
 import {
   ChangeEvent,
   ReactElement,
   ReactNode,
   useEffect,
+  useMemo,
   useState
 } from 'react';
 
-import { Pagination as DSFRPagination, Table } from '../_dsfr';
+import {
+  Pagination as DSFRPagination,
+  Table as DeprecatedTable
+} from '../_dsfr';
 import {
   Housing,
   HousingSort,
@@ -19,12 +34,6 @@ import { capitalize } from '../../utils/stringUtils';
 import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import _ from 'lodash';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../models/TrackEvent';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
 import { findChild } from '../../utils/elementUtils';
@@ -34,7 +43,7 @@ import AppLink from '../_app/AppLink/AppLink';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import { useHousingList } from '../../hooks/useHousingList';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
-import { Pagination } from '@zerologementvacant/models';
+import { Occupancy, Pagination } from '@zerologementvacant/models';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import {
@@ -45,9 +54,11 @@ import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
-import { useLocation } from 'react-router-dom';
 import { campaignSort } from '../../models/Campaign';
 import { useUser } from '../../hooks/useUser';
+import OccupancyTag from '../OccupancyTag/OccupancyTag';
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
+import { TablePagination } from '@mui/material';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -56,17 +67,11 @@ export interface HousingListProps {
   onSelectHousing: (selectedHousing: SelectedHousing) => void;
 }
 
-const HousingList = ({
-  actions,
-  children,
-  filters,
-  onSelectHousing
-}: HousingListProps) => {
+function HousingList(props: HousingListProps) {
+  const { actions, children, filters, onSelectHousing } = props;
   const header = findChild(children, SelectableListHeader);
 
-  const location = useLocation();
   const campaignList = useCampaignList();
-  const { trackEvent } = useMatomo();
   const { isVisitor } = useUser();
 
   const [updateHousing] = useUpdateHousingMutation();
@@ -137,9 +142,137 @@ const HousingList = ({
     onSelectHousing?.({ all: false, ids: [] });
   }, [housingList]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!housingList) {
-    return <></>;
-  }
+  const columnHelper = createColumnHelper<Housing>();
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'check',
+        header: () => (
+          <Checkbox
+            options={[
+              {
+                nativeInputProps: {
+                  value: 'all'
+                  // TODO: checked, onChange
+                }
+              }
+            ]}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            options={[
+              {
+                nativeInputProps: {
+                  value: row.original
+                }
+              }
+            ]}
+          />
+        )
+      }),
+      columnHelper.accessor('rawAddress', {
+        header: 'Adresse logement',
+        cell: ({ cell, row }) => {
+          return (
+            <AppLink isSimple to={`/logements/${row.original.id}`}>
+              {cell.getValue()}
+            </AppLink>
+          );
+        }
+      }),
+      columnHelper.accessor('owner.fullName', {
+        header: 'Propriétaire principal',
+        cell: ({ cell, row }) => (
+          <>
+            <AppLink isSimple to={`/proprietaires/${row.original.id}`}>
+              {cell.getValue()}
+            </AppLink>
+            {row.original.owner.administrator && (
+              <Typography>{row.original.owner.administrator}</Typography>
+            )}
+          </>
+        )
+      }),
+      columnHelper.accessor('occupancy', {
+        header: 'Occupation',
+        cell: ({ cell }) => (
+          <OccupancyTag
+            occupancy={cell.getValue() as Occupancy}
+            tagProps={{
+              small: true
+            }}
+          />
+        )
+      }),
+      columnHelper.accessor('campaignIds', {
+        header: 'Campagnes',
+        cell: ({ cell }) => {
+          return cell
+            .getValue()
+            .map((id) => {
+              return campaignList?.find((campaign) => campaign.id === id);
+            })
+            .filter((campaign) => campaign !== undefined)
+            .map((campaign) => (
+              <AppLink
+                key={campaign.id}
+                isSimple
+                to={`/campagnes/${campaign.id}`}
+              >
+                {campaign.title}
+              </AppLink>
+            ));
+        }
+      }),
+      columnHelper.accessor(
+        (value) => ({ status: value.status, subStatus: value.subStatus }),
+        {
+          header: 'Statuts de suivi',
+          cell: ({ cell }) => {
+            const { status, subStatus } = cell.getValue();
+            return (
+              <Stack sx={{ alignItems: 'center' }}>
+                <HousingStatusBadge status={status} />
+                {subStatus && (
+                  <Typography align="center" variant="caption">
+                    {subStatus}
+                  </Typography>
+                )}
+              </Stack>
+            );
+          }
+        }
+      ),
+      columnHelper.display({
+        id: 'action',
+        header: 'Action',
+        cell: ({ row }) => {
+          if (actions) {
+            return <>{actions(row.original)}</>;
+          }
+
+          return (
+            <Button
+              title="Mettre à jour"
+              iconId="fr-icon-edit-line"
+              size="small"
+              priority="secondary"
+              onClick={() => setUpdatingHousing(row.original)}
+            />
+          );
+        },
+        maxSize: 20
+      })
+    ],
+    [campaignList, columnHelper, actions]
+  );
+
+  const table = useReactTable<Housing>({
+    data: housingList ?? [],
+    columns: columns,
+    getCoreRowModel: getCoreRowModel()
+  });
 
   const selectColumn = {
     name: 'select',
@@ -264,7 +397,7 @@ const HousingList = ({
       )
   };
 
-  let columns = [
+  let deprecatedColumns = [
     rowNumberColumn,
     addressColumn,
     ownerColumn,
@@ -274,22 +407,27 @@ const HousingList = ({
   ];
 
   if (!isVisitor) {
-    columns = [selectColumn, ...columns, actionColumn];
+    deprecatedColumns = [selectColumn, ...deprecatedColumns, actionColumn];
   }
+
+  const headers: ReadonlyArray<ReactNode> = table
+    .getFlatHeaders()
+    .map((header) =>
+      flexRender(header.column.columnDef.header, header.getContext())
+    );
+  const data: ReadonlyArray<ReadonlyArray<ReactNode>> = table
+    .getRowModel()
+    .rows.map((row) => row.getAllCells())
+    .map((cells) =>
+      cells.map((cell) =>
+        flexRender(cell.column.columnDef.cell, cell.getContext())
+      )
+    );
 
   const submitHousingUpdate = async (
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
-    trackEvent({
-      category: location.pathname.includes('parc-de-logements')
-        ? TrackEventCategories.HousingList
-        : TrackEventCategories.Campaigns,
-      action: location.pathname.includes('parc-de-logements')
-        ? TrackEventActions.HousingList.Update
-        : TrackEventActions.Campaigns.Update,
-      value: 1
-    });
     await updateHousing({
       housing,
       housingUpdate
@@ -297,8 +435,12 @@ const HousingList = ({
     setUpdatingHousing(undefined);
   };
 
+  if (!housingList) {
+    return null;
+  }
+
   return (
-    <div>
+    <Stack sx={{ alignItems: 'center' }}>
       <header>
         <SelectableListHeader
           selected={
@@ -310,9 +452,23 @@ const HousingList = ({
           {...header?.props}
         />
       </header>
+
+      <Table headers={headers} data={data} />
+      <TablePagination
+        count={pageCount}
+        defaultPage={1}
+        getPageLinkProps={(page: number) => ({
+          to: '.',
+          search: {
+            page: page
+          }
+        })}
+        showFirstLast
+      />
+
       {housingList.length > 0 && (
         <>
-          <Table
+          <DeprecatedTable
             caption="Logements"
             captionPosition="none"
             rowKey={(h: Housing) => `${h.id}_${h.owner.id}`}
@@ -320,7 +476,7 @@ const HousingList = ({
               ..._,
               rowNumber: rowNumber(index)
             }))}
-            columns={columns}
+            columns={deprecatedColumns}
             fixedLayout={true}
             className={classNames(
               'zlv-table',
@@ -376,8 +532,8 @@ const HousingList = ({
         onSubmit={submitHousingUpdate}
         onClose={() => setUpdatingHousing(undefined)}
       />
-    </div>
+    </Stack>
   );
-};
+}
 
 export default HousingList;

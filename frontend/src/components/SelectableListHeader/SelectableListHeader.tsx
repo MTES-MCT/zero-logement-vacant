@@ -1,14 +1,18 @@
+import { fr } from '@codegouvfr/react-dsfr';
+import Grid from '@mui/material/Unstable_Grid2';
+import classNames from 'classnames';
 import { ReactElement } from 'react';
-import { Col, Row } from '../_dsfr';
 import { pluralize } from '../../utils/stringUtils';
 import SelectableListHeaderActions from './SelectableListHeaderActions';
 import { findChild } from '../../utils/elementUtils';
-import classNames from 'classnames';
 import styles from './selectable-list-header.module.scss';
 
 export type SelectableEntity = 'logement' | 'périmètre';
 
 interface SelectableListHeaderProps {
+  /**
+   * @deprecated
+   */
   children?: ReactElement | ReactElement[];
   selected?: number;
   count?: number;
@@ -22,7 +26,7 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
 
   const { selected } = {
     selected: 0,
-    ...props,
+    ...props
   };
 
   const pluralizeMany = pluralize(selected);
@@ -43,22 +47,32 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
   );
 
   const classes = classNames(styles.selectableListHeader, {
-    [styles.selectableListHeaderInfo]: selected > 0,
+    [styles.selectableListHeaderInfo]: selected > 0
   });
 
+  if (!hasSelected() && props.default) {
+    return props.default;
+  }
+
   return (
-    <>
-      {!hasSelected() && props.default ? (
-        props.default
-      ) : (
-        <Row alignItems="middle" className={classes}>
-          <Col className={styles.col}>{selectedCount}</Col>
-          <Col className={styles.col}>
-            <SelectableListHeaderActions {...actions?.props} />
-          </Col>
-        </Row>
-      )}
-    </>
+    <Grid
+      container
+      xs={12}
+      sx={{
+        alignItems: 'center',
+        backgroundColor:
+          selected > 0
+            ? fr.colors.decisions.background.actionLow.blueCumulus.default
+            : undefined,
+        padding: '0.5rem 0.5rem 0.5rem 1rem',
+        margin: '1rem 0'
+      }}
+    >
+      <Grid xs="auto">{selectedCount}</Grid>
+      <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }} xs>
+        <SelectableListHeaderActions {...actions?.props} />
+      </Grid>
+    </Grid>
   );
 }
 

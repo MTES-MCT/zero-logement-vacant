@@ -40,6 +40,11 @@ export function useSelection(
     [selected.all, selected.ids, itemCount]
   );
 
+  const hasSelectedAll = useMemo<boolean>(
+    () => selected.all && selected.ids.length === 0,
+    [selected.all, selected.ids]
+  );
+
   const selectedCount = useMemo<number>(
     () =>
       selected.all ? itemCount - selected.ids.length : selected.ids.length,
@@ -63,14 +68,16 @@ export function useSelection(
   }
 
   function toggleSelectAll(forceValue?: boolean): void {
-    setSelected({
-      all:
-        forceValue !== undefined
-          ? forceValue
-          : selected.ids.length > 0 && selected.all
-            ? selected.all
-            : !selected.all,
-      ids: []
+    setSelected((state) => {
+      return {
+        all:
+          forceValue !== undefined
+            ? forceValue
+            : state.ids.length > 0 && state.all
+              ? state.all
+              : !state.all,
+        ids: []
+      };
     });
   }
 
@@ -78,6 +85,13 @@ export function useSelection(
     setSelected({
       all: selected.all,
       ids: selected.ids.filter((stateId) => stateId !== id)
+    });
+  }
+
+  function unselectAll(): void {
+    setSelected({
+      all: false,
+      ids: []
     });
   }
 
@@ -90,6 +104,7 @@ export function useSelection(
 
   return {
     hasSelected,
+    hasSelectedAll,
     selectedCount,
     isSelected,
     select,
@@ -97,6 +112,7 @@ export function useSelection(
     setSelected,
     toggleSelect,
     toggleSelectAll,
-    unselect
+    unselect,
+    unselectAll
   };
 }

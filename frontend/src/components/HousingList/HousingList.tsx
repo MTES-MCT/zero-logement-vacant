@@ -63,6 +63,8 @@ export interface HousingListProps {
   onSelectHousing: (selectedHousing: SelectedHousing) => void;
 }
 
+const MAX_CAMPAIGN_LENGTH = 17;
+
 function HousingList(props: HousingListProps) {
   const { actions, children, filters, onSelectHousing } = props;
   const header = findChild(children, SelectableListHeader);
@@ -214,7 +216,7 @@ function HousingList(props: HousingListProps) {
                 isSimple
                 to={`/campagnes/${campaign.id}`}
               >
-                {campaign.title}
+                {`${campaign.title.substring(0, MAX_CAMPAIGN_LENGTH)}${campaign.title.length > MAX_CAMPAIGN_LENGTH ? '...' : ''}`}
               </AppLink>
             ));
         }

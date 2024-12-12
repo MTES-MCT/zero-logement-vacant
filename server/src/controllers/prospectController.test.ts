@@ -7,12 +7,12 @@ import {
   genProspectApi,
   genSignupLinkApi,
   genSiren,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import { createServer } from '~/infra/server';
 import signupLinkRepository, {
   formatSignupLinkApi,
-  SignupLinks,
+  SignupLinks
 } from '~/repositories/signupLinkRepository';
 import { ProspectApi } from '~/models/ProspectApi';
 import ceremaService from '~/services/ceremaService';
@@ -20,12 +20,12 @@ import { SignupLinkApi } from '~/models/SignupLinkApi';
 import { subHours } from 'date-fns';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   formatProspectApi,
-  Prospects,
+  Prospects
 } from '~/repositories/prospectRepository';
 
 describe('Prospect API', () => {
@@ -36,7 +36,7 @@ describe('Prospect API', () => {
 
   beforeAll(async () => {
     await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi),
+      [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
   });
 
@@ -76,7 +76,7 @@ describe('Prospect API', () => {
       const email = genEmail();
       const link: SignupLinkApi = {
         ...genSignupLinkApi(email),
-        expiresAt: subHours(new Date(), 24),
+        expiresAt: subHours(new Date(), 24)
       };
       await signupLinkRepository.insert(link);
 
@@ -94,20 +94,20 @@ describe('Prospect API', () => {
           email,
           establishmentSiren: genSiren(),
           hasAccount: false,
-          hasCommitment: true,
+          hasCommitment: true
         },
         {
           email,
           establishmentSiren: establishment.siren,
           hasAccount: true,
-          hasCommitment: false,
+          hasCommitment: false
         },
         {
           email,
           establishmentSiren: anotherEstablishment.siren,
           hasAccount: true,
-          hasCommitment: true,
-        },
+          hasCommitment: true
+        }
       ]);
 
       const { body, status } = await request(app).put(testRoute(link.id));
@@ -118,7 +118,7 @@ describe('Prospect API', () => {
         establishment: anotherEstablishment,
         hasAccount: true,
         hasCommitment: true,
-        lastAccountRequestAt: expect.any(String),
+        lastAccountRequestAt: expect.any(String)
       });
     });
 
@@ -131,8 +131,8 @@ describe('Prospect API', () => {
           email,
           establishmentSiren: genSiren(),
           hasAccount: true,
-          hasCommitment: true,
-        },
+          hasCommitment: true
+        }
       ]);
 
       const { body, status } = await request(app).put(testRoute(link.id));
@@ -142,7 +142,7 @@ describe('Prospect API', () => {
         email,
         hasAccount: true,
         hasCommitment: true,
-        lastAccountRequestAt: expect.any(String),
+        lastAccountRequestAt: expect.any(String)
       });
     });
 
@@ -158,8 +158,8 @@ describe('Prospect API', () => {
           email,
           establishmentSiren: siren,
           hasAccount: true,
-          hasCommitment: true,
-        },
+          hasCommitment: true
+        }
       ]);
 
       const { body, status } = await request(app).put(testRoute(link.id));
@@ -170,7 +170,7 @@ describe('Prospect API', () => {
         establishment,
         hasAccount: true,
         hasCommitment: true,
-        lastAccountRequestAt: expect.any(String),
+        lastAccountRequestAt: expect.any(String)
       });
     });
   });
@@ -201,13 +201,13 @@ describe('Prospect API', () => {
       await Prospects().insert(formatProspectApi(prospect));
 
       const { body, status } = await request(app).get(
-        testRoute(prospect.email),
+        testRoute(prospect.email)
       );
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject<Partial<ProspectApi>>({
         ...prospect,
-        lastAccountRequestAt: expect.any(String),
+        lastAccountRequestAt: expect.any(String)
       });
     });
   });

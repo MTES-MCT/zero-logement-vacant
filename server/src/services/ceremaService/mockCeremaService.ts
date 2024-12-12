@@ -1,13 +1,12 @@
 import {
   CeremaUser,
   ConsultUserService,
-  getTestAccount,
+  getTestAccount
 } from './consultUserService';
 
 import { SirenStrasbourg } from '~/infra/database/seeds/development/20240404235442_establishments';
 
 export class MockCeremaService implements ConsultUserService {
-
   async consultUsers(email: string): Promise<CeremaUser[]> {
     const testAccount = getTestAccount(email);
     return [testAccount ?? defaultOK(email)];
@@ -17,9 +16,9 @@ export class MockCeremaService implements ConsultUserService {
 function defaultOK(email: string): CeremaUser {
   return {
     email,
-    establishmentSiren: Number(SirenStrasbourg),
+    establishmentSiren: SirenStrasbourg,
     hasAccount: true,
-    hasCommitment: true,
+    hasCommitment: true
   };
 }
 

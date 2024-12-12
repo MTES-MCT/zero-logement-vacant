@@ -28,7 +28,7 @@ import HousingMissingError from '~/errors/housingMissingError';
 import noteRepository from '~/repositories/noteRepository';
 import { NoteApi } from '~/models/NoteApi';
 import { logger } from '~/infra/logger';
-import { HousingFiltersDTO, OCCUPANCY_VALUES, Pagination } from '@zerologementvacant/models';
+import { HousingFiltersDTO, Pagination } from '@zerologementvacant/models';
 import { toHousingRecordApi, toOwnerApi } from '~/scripts/shared';
 import HousingExistsError from '~/errors/housingExistsError';
 import ownerRepository from '~/repositories/ownerRepository';

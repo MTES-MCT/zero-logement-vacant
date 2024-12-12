@@ -21,21 +21,23 @@ export function usePagination(opts: PaginationOptions) {
     opts.setPagination({
       ...opts.pagination,
       page: 1,
-      perPage,
+      perPage
     });
   };
 
   const changePage = (page: number) => {
     opts.setPagination({
       ...opts.pagination,
-      page,
+      page
     });
   };
   return {
     pageCount,
     rowNumber,
     hasPagination,
-    changePerPage,
+    page,
     changePage,
+    perPage,
+    changePerPage
   };
 }

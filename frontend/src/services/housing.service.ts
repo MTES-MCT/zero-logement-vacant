@@ -80,8 +80,10 @@ export const housingApi = zlvApi.injectEndpoints({
     countHousing: builder.query<HousingCount, HousingFilters>({
       query: (filters) => ({
         url: 'housing/count',
-        method: 'POST',
-        body: { filters }
+        method: 'GET',
+        params: {
+          ...filters
+        }
       }),
       providesTags: (result, errors, args) => [
         {

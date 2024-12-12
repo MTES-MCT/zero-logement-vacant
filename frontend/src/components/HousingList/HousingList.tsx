@@ -9,6 +9,7 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  RowSelectionState,
   useReactTable
 } from '@tanstack/react-table';
 import { Occupancy, Pagination } from '@zerologementvacant/models';
@@ -143,13 +144,14 @@ function HousingList(props: HousingListProps) {
     () => [
       columnHelper.display({
         id: 'check',
-        header: () => (
+        header: ({ table }) => (
           <Checkbox
             options={[
               {
                 nativeInputProps: {
-                  value: 'all'
-                  // TODO: checked, onChange
+                  value: 'all',
+                  checked: table.getIsAllRowsSelected(),
+                  onChange: table.getToggleAllRowsSelectedHandler()
                 }
               }
             ]}
@@ -160,7 +162,9 @@ function HousingList(props: HousingListProps) {
             options={[
               {
                 nativeInputProps: {
-                  value: row.original
+                  value: row.original,
+                  checked: row.getIsSelected(),
+                  onChange: row.getToggleSelectedHandler()
                 }
               }
             ]}
@@ -264,10 +268,17 @@ function HousingList(props: HousingListProps) {
     [campaignList, columnHelper, actions]
   );
 
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const table = useReactTable<Housing>({
     data: housingList ?? [],
     columns: columns,
-    getCoreRowModel: getCoreRowModel()
+    state: {
+      rowSelection
+    },
+    getRowId: (row) => row.id,
+    getCoreRowModel: getCoreRowModel(),
+    enableMultiRowSelection: true,
+    onRowSelectionChange: setRowSelection
   });
 
   const selectColumn = {

@@ -45,15 +45,19 @@ router.get(
   }),
   housingController.list
 );
-// TODO: replace by POST /housing
 router.post(
   '/housing',
   housingController.createValidators,
   validator.validate,
   housingController.create
 );
-// TODO: replace by GET /housing/count
-router.post('/housing/count', housingController.count);
+router.get('/housing/count',
+  validatorNext.validate({
+    query: schemas.housingFilters
+      .concat(sortApi.sortSchema)
+      .concat(paginationSchema)
+  }),
+housingController.count);
 router.get(
   '/housing/:id',
   housingController.getValidators,

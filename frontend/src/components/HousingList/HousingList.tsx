@@ -1,3 +1,4 @@
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { Pagination as TablePagination } from '@codegouvfr/react-dsfr/Pagination';
 import { Table } from '@codegouvfr/react-dsfr/Table';
 import Stack from '@mui/material/Stack';
@@ -53,7 +54,6 @@ import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
 import { campaignSort } from '../../models/Campaign';
 import { useUser } from '../../hooks/useUser';
 import OccupancyTag from '../OccupancyTag/OccupancyTag';
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { TablePagination } from '@mui/material';
 
 export interface HousingListProps {
@@ -62,6 +62,8 @@ export interface HousingListProps {
   filters: HousingFilters;
   onSelectHousing: (selectedHousing: SelectedHousing) => void;
 }
+
+const MAX_CAMPAIGN_LENGTH = 17;
 
 function HousingList(props: HousingListProps) {
   const { actions, children, filters, onSelectHousing } = props;
@@ -214,7 +216,7 @@ function HousingList(props: HousingListProps) {
                 isSimple
                 to={`/campagnes/${campaign.id}`}
               >
-                {campaign.title}
+                {`${campaign.title.substring(0, MAX_CAMPAIGN_LENGTH)}${campaign.title.length > MAX_CAMPAIGN_LENGTH ? '...' : ''}`}
               </AppLink>
             ));
         }

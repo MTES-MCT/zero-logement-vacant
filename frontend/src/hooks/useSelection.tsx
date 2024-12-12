@@ -8,7 +8,7 @@ export interface Selection {
 export function useSelection(itemCount: number = 0) {
   const [selected, setSelected] = useState<Selection>({
     all: false,
-    ids: [],
+    ids: []
   });
 
   const hasSelected = useMemo<boolean>(
@@ -16,6 +16,11 @@ export function useSelection(itemCount: number = 0) {
       (selected.all && selected.ids.length < itemCount) ||
       (!selected.all && selected.ids.length > 0),
     [selected.all, selected.ids, itemCount]
+  );
+
+  const hasSelectedAll = useMemo<boolean>(
+    () => selected.all && selected.ids.length === 0,
+    [selected.all, selected.ids]
   );
 
   const selectedCount = useMemo<number>(
@@ -27,7 +32,7 @@ export function useSelection(itemCount: number = 0) {
   function select(id: string): void {
     setSelected((state) => ({
       ...state,
-      ids: [...state.ids, id],
+      ids: [...state.ids, id]
     }));
   }
 
@@ -36,7 +41,7 @@ export function useSelection(itemCount: number = 0) {
       ...state,
       ids: state.ids.includes(id)
         ? state.ids.filter((_) => _ !== id)
-        : [...state.ids, id],
+        : [...state.ids, id]
     }));
   }
 
@@ -47,9 +52,9 @@ export function useSelection(itemCount: number = 0) {
           forceValue !== undefined
             ? forceValue
             : state.ids.length > 0 && state.all
-            ? state.all
-            : !state.all,
-        ids: [],
+              ? state.all
+              : !state.all,
+        ids: []
       };
     });
   }
@@ -57,8 +62,15 @@ export function useSelection(itemCount: number = 0) {
   function unselect(id: string): void {
     setSelected((state) => ({
       ...state,
-      ids: state.ids.filter((stateId) => stateId !== id),
+      ids: state.ids.filter((stateId) => stateId !== id)
     }));
+  }
+
+  function unselectAll(): void {
+    setSelected({
+      all: false,
+      ids: []
+    });
   }
 
   function isSelected(id: string): boolean {
@@ -70,6 +82,7 @@ export function useSelection(itemCount: number = 0) {
 
   return {
     hasSelected,
+    hasSelectedAll,
     selectedCount,
     isSelected,
     select,
@@ -78,5 +91,6 @@ export function useSelection(itemCount: number = 0) {
     toggleSelect,
     toggleSelectAll,
     unselect,
+    unselectAll
   };
 }

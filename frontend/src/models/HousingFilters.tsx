@@ -270,28 +270,28 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
   },
   {
     value: 'lovac-2019',
-    label: 'ZLV 2019 (>2 ans)',
-    badgeLabel: 'ZLV 2019 (>2 ans)'
+    label: 'LOVAC 2019 (>2 ans)',
+    badgeLabel: 'LOVAC 2019 (>2 ans)'
   },
   {
     value: 'lovac-2020',
-    label: 'ZLV 2020 (>2 ans)',
-    badgeLabel: 'ZLV 2020 (>2 ans)'
+    label: 'LOVAC 2020 (>2 ans)',
+    badgeLabel: 'LOVAC 2020 (>2 ans)'
   },
   {
     value: 'lovac-2021',
-    label: 'ZLV 2021 (>2 ans)',
-    badgeLabel: 'ZLV 2021 (>2 ans)'
+    label: 'LOVAC 2021 (>2 ans)',
+    badgeLabel: 'LOVAC 2021 (>2 ans)'
   },
   {
     value: 'lovac-2022',
-    label: 'ZLV 2022 (>2 ans)',
-    badgeLabel: 'ZLV 2022 (>2 ans)'
+    label: 'LOVAC 2022 (>2 ans)',
+    badgeLabel: 'LOVAC 2022 (>2 ans)'
   },
   {
     value: 'lovac-2023',
-    label: 'ZLV 2023 (>2 ans)',
-    badgeLabel: 'ZLV 2023 (>2 ans)'
+    label: 'LOVAC 2023 (>2 ans)',
+    badgeLabel: 'LOVAC 2023 (>2 ans)'
   },
   {
     value: 'lovac-2024',
@@ -308,28 +308,28 @@ export const dataFileYearsExcludedOptions: SelectOption[] = [
   },
   {
     value: 'lovac-2019',
-    label: 'ZLV 2019 (>2 ans)',
-    badgeLabel: 'ZLV 2019 (>2 ans) exclu'
+    label: 'LOVAC 2019 (>2 ans)',
+    badgeLabel: 'LOVAC 2019 (>2 ans) exclu'
   },
   {
     value: 'lovac-2020',
-    label: 'ZLV 2020 (>2 ans)',
-    badgeLabel: 'ZLV 2020 (>2 ans) exclu'
+    label: 'LOVAC 2020 (>2 ans)',
+    badgeLabel: 'LOVAC 2020 (>2 ans) exclu'
   },
   {
     value: 'lovac-2021',
-    label: 'ZLV 2021 (>2 ans)',
-    badgeLabel: 'ZLV 2021 (>2 ans) exclu'
+    label: 'LOVAC 2021 (>2 ans)',
+    badgeLabel: 'LOVAC 2021 (>2 ans) exclu'
   },
   {
     value: 'lovac-2022',
-    label: 'ZLV 2022 (>2 ans)',
-    badgeLabel: 'ZLV 2022 (>2 ans) exclu'
+    label: 'LOVAC 2022 (>2 ans)',
+    badgeLabel: 'LOVAC 2022 (>2 ans) exclu'
   },
   {
     value: 'lovac-2023',
-    label: 'ZLV 2023 (>2 ans)',
-    badgeLabel: 'ZLV 2023 (>2 ans) exclu'
+    label: 'LOVAC 2023 (>2 ans)',
+    badgeLabel: 'LOVAC 2023 (>2 ans) exclu'
   },
   {
     value: 'lovac-2024',

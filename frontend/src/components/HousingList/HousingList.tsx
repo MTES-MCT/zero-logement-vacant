@@ -119,8 +119,15 @@ function HousingList(props: HousingListProps) {
                   value: 'all',
                   checked: selection.hasSelectedAll,
                   onChange: () => {
+                    onSelectHousing({
+                      all:
+                        selection.selected.ids.length > 0 &&
+                        selection.selected.all
+                          ? selection.selected.all
+                          : !selection.selected.all,
+                      ids: []
+                    });
                     selection.toggleSelectAll();
-                    onSelectHousing(selection.selected);
                   }
                 }
               }
@@ -136,8 +143,15 @@ function HousingList(props: HousingListProps) {
                   value: row.original.id,
                   checked: selection.isSelected(row.original.id),
                   onChange: () => {
+                    onSelectHousing({
+                      ...selection.selected,
+                      ids: selection.selected.ids.includes(row.original.id)
+                        ? selection.selected.ids.filter(
+                            (id) => row.original.id !== id
+                          )
+                        : selection.selected.ids.concat(row.original.id)
+                    });
                     selection.toggleSelect(row.original.id);
-                    onSelectHousing(selection.selected);
                   }
                 }
               }

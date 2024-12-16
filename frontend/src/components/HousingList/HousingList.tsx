@@ -15,7 +15,13 @@ import {
 
 import { Occupancy, Pagination } from '@zerologementvacant/models';
 import { Set } from 'immutable';
-import { ReactElement, ReactNode, useMemo, useState } from 'react';
+import {
+  PropsWithChildren,
+  ReactElement,
+  ReactNode,
+  useMemo,
+  useState
+} from 'react';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useHousingList } from '../../hooks/useHousingList';
 import { usePagination } from '../../hooks/usePagination';
@@ -75,7 +81,7 @@ function HousingList(props: HousingListProps) {
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, hasPagination, perPage, changePerPage } = usePagination({
+  const { pageCount, perPage, changePerPage } = usePagination({
     pagination,
     setPagination,
     count: filteredCount
@@ -134,7 +140,12 @@ function HousingList(props: HousingListProps) {
         )
       }),
       columnHelper.accessor('rawAddress', {
-        header: 'Adresse logement',
+        header: () => (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <HeaderTitle>Adresse logement</HeaderTitle>
+            {getSortButton('rawAddress', 'Adresse logement')}
+          </Stack>
+        ),
         cell: ({ cell, row }) => {
           return (
             <AppLink isSimple to={`/logements/${row.original.id}`}>
@@ -147,7 +158,12 @@ function HousingList(props: HousingListProps) {
         }
       }),
       columnHelper.accessor('owner.fullName', {
-        header: 'Propriétaire principal',
+        header: () => (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <HeaderTitle>Propriétaire principal</HeaderTitle>
+            {getSortButton('owner', 'Propriétaire principal')}
+          </Stack>
+        ),
         cell: ({ cell, row }) => (
           <>
             <AppLink isSimple to={`/proprietaires/${row.original.id}`}>
@@ -160,7 +176,12 @@ function HousingList(props: HousingListProps) {
         )
       }),
       columnHelper.accessor('occupancy', {
-        header: 'Occupation',
+        header: () => (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <HeaderTitle>Occupation</HeaderTitle>
+            {getSortButton('occupancy', 'Occupation')}
+          </Stack>
+        ),
         cell: ({ cell }) => (
           <OccupancyTag
             occupancy={cell.getValue() as Occupancy}
@@ -192,7 +213,13 @@ function HousingList(props: HousingListProps) {
       columnHelper.accessor(
         (value) => ({ status: value.status, subStatus: value.subStatus }),
         {
-          header: 'Statuts de suivi',
+          id: 'status',
+          header: () => (
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <HeaderTitle>Statuts de suivi</HeaderTitle>
+              {getSortButton('status', 'Statuts de suivi')}
+            </Stack>
+          ),
           cell: ({ cell }) => {
             const { status, subStatus } = cell.getValue();
             return (
@@ -228,7 +255,14 @@ function HousingList(props: HousingListProps) {
         }
       })
     ],
-    [campaignList, columnHelper, actions, selection, onSelectHousing]
+    [
+      columnHelper,
+      selection,
+      onSelectHousing,
+      getSortButton,
+      campaignList,
+      actions
+    ]
   );
 
   const table = useReactTable<Housing>({
@@ -242,7 +276,10 @@ function HousingList(props: HousingListProps) {
     },
     getRowId: (row) => row.id,
     getCoreRowModel: getCoreRowModel(),
-    enableMultiRowSelection: true
+    enableMultiRowSelection: true,
+    // Let the API do these things
+    manualSorting: true,
+    manualPagination: true
   });
 
   const headers: ReadonlyArray<ReactNode> = table
@@ -310,6 +347,14 @@ function HousingList(props: HousingListProps) {
         }}
       />
     </Stack>
+  );
+}
+
+function HeaderTitle(props: PropsWithChildren) {
+  return (
+    <Typography sx={{ fontSize: '0.875rem', fontWeight: 700 }}>
+      {props.children}
+    </Typography>
   );
 }
 

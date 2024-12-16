@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
-import { Row } from '../../components/_dsfr';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import {
@@ -146,11 +145,12 @@ const HousingListTab = ({
             })}
           </Typography>
         )}
+
       <HousingList filters={filters} onSelectHousing={setSelected}>
         <SelectableListHeader entity="logement" default={<></>}>
           <SelectableListHeaderActions>
             {filteredHousingCount !== undefined && filteredHousingCount > 0 && (
-              <Row alignItems="middle" justifyContent="right">
+              <div>
                 {selectedCount > 1 && (
                   <Button
                     className="fr-mr-1w"
@@ -175,7 +175,7 @@ const HousingListTab = ({
                   onSubmit={submitSelectedHousingUpdate}
                   onClose={() => setUpdatingSelectedHousing(undefined)}
                 />
-              </Row>
+              </div>
             )}
           </SelectableListHeaderActions>
         </SelectableListHeader>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Direction, Sort } from '../models/Sort';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -49,27 +49,23 @@ export function useSort<Sortable extends object>(
     const next = nextDirection(key);
     if (!next) {
       // Filter out undefined values
-      setSort(
-        Object.keys(sort ?? {})
-          .filter((k) => k !== key)
-          .reduce<Sort<Sortable>>((acc, k) => {
-            return {
-              ...acc,
-              [k]: sort ? sort[k as keyof Sortable] : undefined
-            };
-          }, {})
-      );
+      const value = Object.keys(sort ?? {})
+        .filter((k) => k !== key)
+        .reduce<Sort<Sortable>>((acc, k) => {
+          return {
+            ...acc,
+            [k]: sort ? sort[k as keyof Sortable] : undefined
+          };
+        }, {});
+      setSort(value);
+      options?.onSort?.(value);
       return;
     }
-    setSort({ ...sort, [key]: next });
-  }
 
-  useEffect(() => {
-    if (sort) {
-      options?.onSort?.(sort);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sort]);
+    const value: Sort<Sortable> = { ...sort, [key]: next };
+    setSort(value);
+    options?.onSort?.(value);
+  }
 
   return {
     cycleSort,

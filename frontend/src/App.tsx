@@ -14,7 +14,7 @@ import AuthenticatedLayout from './layouts/AuthenticatedLayout';
 import HousingListView from './views/HousingList/HousingListView';
 import CampaignView from './views/Campaign/CampaignView';
 import GroupView from './views/Group/GroupView';
-import CampaignsListView from './views/Campaign/CampaignListView';
+import CampaignListView from './views/Campaign/CampaignListView';
 import HousingView from './views/Housing/HousingView';
 import OwnerView from './views/Owner/OwnerView';
 import StatusView from './views/Resources/StatusView';
@@ -44,7 +44,7 @@ const router = createBrowserRouter(
         />
         <Route path="/analyses" element={<AnalysisView />} />
         <Route path="/groupes/:id" element={<GroupView />} />
-        <Route path="/campagnes" element={<CampaignsListView />} />
+        <Route path="/campagnes" element={<CampaignListView />} />
         <Route path="/campagnes/:id" element={<CampaignView />} />
         <Route
           path="/proprietaires/:ownerId/logements/:housingId"

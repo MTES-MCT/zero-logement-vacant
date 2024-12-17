@@ -14,6 +14,7 @@ import {
 } from '@tanstack/react-table';
 import { Set } from 'immutable';
 import {
+  MouseEvent,
   PropsWithChildren,
   ReactElement,
   ReactNode,
@@ -87,7 +88,7 @@ function HousingList(props: HousingListProps) {
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, perPage, changePerPage } = usePagination({
+  const { pageCount, perPage, changePerPage, changePage } = usePagination({
     pagination,
     setPagination,
     count: filteredCount
@@ -301,15 +302,15 @@ function HousingList(props: HousingListProps) {
     manualSorting: true,
     manualPagination: true
   });
+  const rows = table.getRowModel().rows;
 
   const headers: ReadonlyArray<ReactNode> = table
     .getLeafHeaders()
     .map((header) =>
       flexRender(header.column.columnDef.header, header.getContext())
     );
-  const data: ReadonlyArray<ReadonlyArray<ReactNode>> = table
-    .getRowModel()
-    .rows.map((row) => row.getVisibleCells())
+  const data: ReadonlyArray<ReadonlyArray<ReactNode>> = rows
+    .map((row) => row.getVisibleCells())
     .map((cells) =>
       cells.map((cell) =>
         flexRender(cell.column.columnDef.cell, cell.getContext())
@@ -361,12 +362,13 @@ function HousingList(props: HousingListProps) {
         />
         <TablePagination
           count={pageCount}
-          defaultPage={1}
+          defaultPage={pagination.page}
           getPageLinkProps={(page: number) => ({
-            to: {
-              pathname: '.',
-              search: `?page=${page}`
-            }
+            onClick: (event: MouseEvent) => {
+              event.preventDefault();
+              changePage(page);
+            },
+            to: '#'
           })}
           showFirstLast
         />

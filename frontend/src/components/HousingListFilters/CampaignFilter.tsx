@@ -7,11 +7,11 @@ import { match } from 'ts-pattern';
 
 import {
   byCreatedAt,
-  byStatus,
+  CAMPAIGN_STATUS_VALUES,
   CampaignStatus,
   isCampaignStatus
 } from '@zerologementvacant/models';
-import { desc } from '@zerologementvacant/utils';
+import { DEFAULT_ORDER, desc } from '@zerologementvacant/utils';
 import { Campaign } from '../../models/Campaign';
 import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
 import styles from './housing-list-filters.module.scss';
@@ -260,7 +260,14 @@ function groupByStatus(campaigns: ReadonlyArray<Campaign>) {
   return List(campaigns)
     .groupBy((campaign) => campaign.status)
     .map((campaigns) => campaigns.sort(desc(byCreatedAt)))
-    .sortBy((_, status) => status, byStatus);
+    .sortBy(
+      (_, status) => status,
+      (first, second) =>
+        DEFAULT_ORDER(
+          CAMPAIGN_STATUS_VALUES.indexOf(first),
+          CAMPAIGN_STATUS_VALUES.indexOf(second)
+        )
+    );
 }
 
 export default CampaignFilter;

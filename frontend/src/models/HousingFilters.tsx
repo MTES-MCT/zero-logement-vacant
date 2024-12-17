@@ -265,33 +265,33 @@ export const localityKindsOptions: SelectOption<LocalityKind>[] = [
 export const dataFileYearsIncludedOptions: SelectOption[] = [
   {
     value: 'ff-2023',
-    label: 'Fichiers fonciers 2023',
-    badgeLabel: 'Fichiers fonciers 2023 inclus'
+    label: 'Fichiers fonciers 2023 (locatif)',
+    badgeLabel: 'Fichiers fonciers 2023 (locatif) inclus'
   },
   {
     value: 'lovac-2019',
-    label: 'ZLV 2019 (>2 ans)',
-    badgeLabel: 'ZLV 2019 (>2 ans)'
+    label: 'LOVAC 2019 (>2 ans)',
+    badgeLabel: 'LOVAC 2019 (>2 ans)'
   },
   {
     value: 'lovac-2020',
-    label: 'ZLV 2020 (>2 ans)',
-    badgeLabel: 'ZLV 2020 (>2 ans)'
+    label: 'LOVAC 2020 (>2 ans)',
+    badgeLabel: 'LOVAC 2020 (>2 ans)'
   },
   {
     value: 'lovac-2021',
-    label: 'ZLV 2021 (>2 ans)',
-    badgeLabel: 'ZLV 2021 (>2 ans)'
+    label: 'LOVAC 2021 (>2 ans)',
+    badgeLabel: 'LOVAC 2021 (>2 ans)'
   },
   {
     value: 'lovac-2022',
-    label: 'ZLV 2022 (>2 ans)',
-    badgeLabel: 'ZLV 2022 (>2 ans)'
+    label: 'LOVAC 2022 (>2 ans)',
+    badgeLabel: 'LOVAC 2022 (>2 ans)'
   },
   {
     value: 'lovac-2023',
-    label: 'ZLV 2023 (>2 ans)',
-    badgeLabel: 'ZLV 2023 (>2 ans)'
+    label: 'LOVAC 2023 (>2 ans)',
+    badgeLabel: 'LOVAC 2023 (>2 ans)'
   },
   {
     value: 'lovac-2024',
@@ -303,33 +303,33 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
 export const dataFileYearsExcludedOptions: SelectOption[] = [
   {
     value: 'ff-2023',
-    label: 'Fichiers fonciers 2023',
-    badgeLabel: 'Fichiers fonciers 2023 exclus'
+    label: 'Fichiers fonciers 2023 (locatif)',
+    badgeLabel: 'Fichiers fonciers 2023 (locatif) exclus'
   },
   {
     value: 'lovac-2019',
-    label: 'ZLV 2019 (>2 ans)',
-    badgeLabel: 'ZLV 2019 (>2 ans) exclu'
+    label: 'LOVAC 2019 (>2 ans)',
+    badgeLabel: 'LOVAC 2019 (>2 ans) exclu'
   },
   {
     value: 'lovac-2020',
-    label: 'ZLV 2020 (>2 ans)',
-    badgeLabel: 'ZLV 2020 (>2 ans) exclu'
+    label: 'LOVAC 2020 (>2 ans)',
+    badgeLabel: 'LOVAC 2020 (>2 ans) exclu'
   },
   {
     value: 'lovac-2021',
-    label: 'ZLV 2021 (>2 ans)',
-    badgeLabel: 'ZLV 2021 (>2 ans) exclu'
+    label: 'LOVAC 2021 (>2 ans)',
+    badgeLabel: 'LOVAC 2021 (>2 ans) exclu'
   },
   {
     value: 'lovac-2022',
-    label: 'ZLV 2022 (>2 ans)',
-    badgeLabel: 'ZLV 2022 (>2 ans) exclu'
+    label: 'LOVAC 2022 (>2 ans)',
+    badgeLabel: 'LOVAC 2022 (>2 ans) exclu'
   },
   {
     value: 'lovac-2023',
-    label: 'ZLV 2023 (>2 ans)',
-    badgeLabel: 'ZLV 2023 (>2 ans) exclu'
+    label: 'LOVAC 2023 (>2 ans)',
+    badgeLabel: 'LOVAC 2023 (>2 ans) exclu'
   },
   {
     value: 'lovac-2024',

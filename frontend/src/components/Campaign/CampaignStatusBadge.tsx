@@ -1,3 +1,5 @@
+import { BadgeProps } from '@codegouvfr/react-dsfr/Badge';
+
 import AppBadge from '../_app/AppBadge/AppBadge';
 import {
   CAMPAIGN_STATUS_LABELS,
@@ -6,6 +8,7 @@ import {
 
 interface Props {
   status: CampaignStatus;
+  badgeProps?: Omit<BadgeProps, 'children'>;
 }
 
 function CampaignStatusBadge(props: Readonly<Props>) {
@@ -20,7 +23,11 @@ function CampaignStatusBadge(props: Readonly<Props>) {
   const color = colors[props.status];
   const text = texts[props.status];
 
-  return <AppBadge colorFamily={color}>{text}</AppBadge>;
+  return (
+    <AppBadge {...props.badgeProps} colorFamily={color}>
+      {text}
+    </AppBadge>
+  );
 }
 
 export default CampaignStatusBadge;

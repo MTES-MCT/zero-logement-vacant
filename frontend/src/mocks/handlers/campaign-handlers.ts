@@ -1,17 +1,24 @@
 import { faker } from '@faker-js/faker';
 import { constants } from 'http2';
+import { List } from 'immutable';
 import fp from 'lodash/fp';
 import { http, HttpResponse, RequestHandler } from 'msw';
 
 import {
+  byCreatedAt,
+  bySentAt,
+  byStatus,
+  byTitle,
   CampaignCreationPayloadDTO,
   CampaignDTO,
   CampaignUpdatePayloadDTO,
   HousingDTO
 } from '@zerologementvacant/models';
+import { combineAll, desc, Ord } from '@zerologementvacant/utils';
 import data from './data';
 import config from '../../utils/config';
 import { isDefined } from '../../utils/compareUtils';
+import { CampaignSortable, isCampaignSortable } from '../../models/Campaign';
 
 type CampaignParams = {
   id: string;
@@ -23,8 +30,12 @@ export const campaignHandlers: RequestHandler[] = [
     ({ request }) => {
       const url = new URL(request.url);
       const groups = url.searchParams.get('groups')?.split(',');
+      const order = url.searchParams.get('sort')?.split(',');
 
-      const campaigns = fp.pipe(filter({ groups }))(data.campaigns);
+      const campaigns = fp.pipe(
+        filter({ groups }),
+        sort(order)
+      )(data.campaigns);
       return HttpResponse.json(campaigns);
     }
   ),
@@ -147,6 +158,22 @@ export const campaignHandlers: RequestHandler[] = [
         });
       }
 
+      data.campaigns = data.campaigns.filter(
+        (campaign) => campaign.id !== params.id
+      );
+      data.campaignDrafts.delete(params.id);
+      data.campaignHousings.delete(params.id);
+      data.draftCampaigns.forEach((campaign, draftId, map) => {
+        if (campaign.id === params.id) {
+          map.delete(draftId);
+        }
+      });
+      data.housingCampaigns.forEach((campaigns, housingId, map) => {
+        map.set(
+          housingId,
+          campaigns.filter((campaign) => campaign.id !== params.id)
+        );
+      });
       return HttpResponse.json(null, {
         status: constants.HTTP_STATUS_NO_CONTENT
       });
@@ -218,4 +245,29 @@ function filter(
         )
       : campaigns
   );
+}
+
+function sort(keys?: ReadonlyArray<string>) {
+  const ordering: Partial<Record<keyof CampaignSortable, Ord<CampaignDTO>>> = {
+    title: byTitle,
+    status: byStatus,
+    createdAt: byCreatedAt,
+    sentAt: bySentAt
+  };
+
+  const sortFns = List(keys)
+    .map((key) => {
+      const keyWithoutMinus = key.startsWith('-') ? key.slice(1) : key;
+      if (!isCampaignSortable(keyWithoutMinus)) {
+        return null;
+      }
+      return key.startsWith('-')
+        ? desc(ordering[keyWithoutMinus])
+        : ordering[keyWithoutMinus];
+    })
+    .filter((fn) => !!fn);
+  const sortFn = combineAll(sortFns.toArray());
+
+  return (campaigns: CampaignDTO[]): CampaignDTO[] =>
+    keys?.length ? campaigns.toSorted(sortFn) : campaigns;
 }

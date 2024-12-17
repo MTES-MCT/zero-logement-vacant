@@ -82,7 +82,7 @@ function OwnerEditionSideMenu(props: Props) {
     return (
       <Button
         className={props.className}
-        priority="tertiary"
+        priority="secondary"
         size="small"
         onClick={open}
       >
@@ -95,7 +95,7 @@ function OwnerEditionSideMenu(props: Props) {
     <>
       <Button
         className={props.className}
-        priority="tertiary"
+        priority="secondary"
         size="small"
         onClick={open}
       >

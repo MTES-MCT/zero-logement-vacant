@@ -71,7 +71,7 @@ function CampaignListView() {
     removeCampaignModal.open();
   }
 
-  async function confirmRemoval() {
+  function confirmRemoval() {
     if (selected) {
       removeCampaign(selected.id);
       removeCampaignModal.close();

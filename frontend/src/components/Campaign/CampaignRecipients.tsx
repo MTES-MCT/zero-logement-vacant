@@ -1,46 +1,56 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
 import Badge from '@codegouvfr/react-dsfr/Badge';
-import Table from '@codegouvfr/react-dsfr/Table';
-import { Pagination as DSFRPagination } from '../_dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
-import { ReactNode, useState } from 'react';
+import { createColumnHelper } from '@tanstack/react-table';
+import { ReactNode, useMemo, useState } from 'react';
 
 import {
   formatAddress as formatAddressDTO,
   Pagination
 } from '@zerologementvacant/models';
 import { Campaign } from '../../models/Campaign';
-import { useHousingList } from '../../hooks/useHousingList';
 import { Address, isBanEligible } from '../../models/Address';
-import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
 import AppLink from '../_app/AppLink/AppLink';
 import { Housing } from '../../models/Housing';
 import { useRemoveCampaignHousingMutation } from '../../services/campaign.service';
-import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { usePagination } from '../../hooks/usePagination';
-import Button from '@codegouvfr/react-dsfr/Button';
-import { useCountHousingQuery } from '../../services/housing.service';
-import Alert from '@codegouvfr/react-dsfr/Alert';
+import {
+  useCountHousingQuery,
+  useFindHousingQuery
+} from '../../services/housing.service';
+import AdvancedTable from '../AdvancedTable/AdvancedTable';
+import AdvancedTableHeader from '../AdvancedTable/AdvancedTableHeader';
+import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
+import { useNotification } from '../../hooks/useNotification';
 
 interface Props {
   campaign: Campaign;
 }
+
+const removeCampaignHousingModal = createModal({
+  id: 'remove-campaign-housing-modal',
+  isOpenedByDefault: false
+});
+const columnHelper = createColumnHelper<Housing>();
 
 function CampaignRecipients(props: Props) {
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const filters = {
     campaignIds: [props.campaign.id]
   };
-  const { housingList } = useHousingList({
+  const { data: housings, isLoading } = useFindHousingQuery({
     filters,
     pagination
   });
-
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, hasPagination, changePerPage, changePage } = usePagination(
+  const { page, perPage, pageCount, changePerPage, changePage } = usePagination(
     {
       pagination,
       setPagination,
@@ -48,81 +58,124 @@ function CampaignRecipients(props: Props) {
     }
   );
 
-  const [removeCampaignHousing] = useRemoveCampaignHousingMutation();
-  async function removeHousing(housing: Housing): Promise<void> {
-    await removeCampaignHousing({
-      campaignId: props.campaign.id,
-      all: false,
-      ids: [housing.id],
-      filters: {}
-    }).unwrap();
-  }
-
   function formatAddress(address: Address): ReactNode[] {
     return formatAddressDTO(address).map((line) => (
-      <Typography key={line}>{line}</Typography>
+      <Typography key={line} variant="body2">
+        {line}
+      </Typography>
     ));
   }
 
-  const headers: ReactNode[] = [
-    null,
-    'Adresse du logement',
-    'Propriétaire principal',
-    'Adresse BAN du propriétaire',
-    'Complément d’adresse',
-    null
-  ];
-  const data: ReactNode[][] = (housingList ?? []).map((housing, i) => [
-    `# ${i + 1 + (pagination.page - 1) * pagination.perPage}`,
-    <AppLink
-      isSimple
-      key={`${housing.id}-address`}
-      to={`/logements/${housing.id}`}
-    >
-      {housing.rawAddress.map((line) => (
-        <>
-          {line}
-          <br />
-        </>
-      ))}
-    </AppLink>,
-    <AppLink
-      isSimple
-      key={`${housing.id}-name`}
-      to={`/proprietaires/${housing.owner.id}`}
-    >
-      {housing.owner.fullName}
-    </AppLink>,
-    <>
-      {housing.owner.banAddress
-        ? formatAddress(housing.owner.banAddress)
-        : 'Non renseigné'}
-      {housing.owner.banAddress && !isBanEligible(housing.owner.banAddress) && (
-        <Badge severity="info" small>
-          Adresse améliorable
-        </Badge>
-      )}
-    </>,
-    housing.owner.additionalAddress,
-    <Grid container key={`${housing.id}-actions`}>
-      <OwnerEditionSideMenu className="fr-mr-1w" owner={housing.owner} />
-      <ConfirmationModal
-        modalId={`campaign-recipient-removal-${housing.id}`}
-        openingButtonProps={{
-          iconId: 'fr-icon-close-line',
-          priority: 'tertiary',
-          size: 'small',
-          title: 'Supprimer le propriétaire'
-        }}
-        title="Suppression d’un propriétaire"
-        onSubmit={() => removeHousing(housing)}
-      >
-        <Typography>
-          Vous êtes sur le point de supprimer ce destinataire de la campagne.
-        </Typography>
-      </ConfirmationModal>
-    </Grid>
-  ]);
+  const [selected, setSelected] = useState<Housing | null>(null);
+  function onRemove(housing: Housing): void {
+    setSelected(housing);
+    removeCampaignHousingModal.open();
+  }
+
+  const [removeCampaignHousing, removal] = useRemoveCampaignHousingMutation();
+  useNotification({
+    toastId: 'remove-campaign-housing-toast',
+    isError: removal.isError,
+    isLoading: removal.isLoading,
+    isSuccess: removal.isSuccess,
+    message: {
+      error: 'Erreur lors de la suppression du destinataire',
+      loading: 'Suppression du destinataire...',
+      success: 'Destinataire supprimé !'
+    }
+  });
+
+  async function confirmRemoval() {
+    if (selected) {
+      removeCampaignHousing({
+        campaignId: props.campaign.id,
+        all: false,
+        ids: [selected.id],
+        filters: {}
+      });
+      removeCampaignHousingModal.close();
+      setSelected(null);
+    }
+  }
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('rawAddress', {
+        header: () => <AdvancedTableHeader title="Adresse logement" />,
+        cell: ({ cell, row }) => {
+          return (
+            <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
+              {cell.getValue().map((line) => (
+                <>
+                  {line}
+                  <br />
+                </>
+              ))}
+            </AppLink>
+          );
+        }
+      }),
+      columnHelper.accessor('owner.fullName', {
+        header: () => <AdvancedTableHeader title="Propriétaire principal" />,
+        cell: ({ cell, row }) => (
+          <AppLink
+            isSimple
+            size="sm"
+            to={`/proprietaires/${row.original.owner.id}`}
+          >
+            {cell.getValue()}
+          </AppLink>
+        )
+      }),
+      columnHelper.accessor('owner.banAddress', {
+        header: () => (
+          <AdvancedTableHeader title="Adresse BAN du propriétaire" />
+        ),
+        cell: ({ cell }) => {
+          const address = cell.getValue();
+          return (
+            <Stack direction="column" spacing={1} sx={{ alignItems: 'center' }}>
+              {address ? formatAddress(address) : 'Non renseigné'}
+              {housing.owner.banAddress && !isBanEligible(address) ? (
+                <Badge severity="info" small>
+                  Adresse améliorable
+                </Badge>
+              ) : null}
+            </Stack>
+          );
+        }
+      }),
+      columnHelper.accessor('owner.additionalAddress', {
+        header: () => <AdvancedTableHeader title="Complément d’adresse" />,
+        cell: ({ cell }) => (
+          <Typography variant="body2">{cell.getValue()}</Typography>
+        )
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+          return (
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ justifyContent: 'flex-end' }}
+            >
+              <OwnerEditionSideMenu owner={row.original.owner} />
+              <Button
+                iconId="fr-icon-close-line"
+                priority="tertiary"
+                size="small"
+                title="Supprimer le destinataire"
+                onClick={() => onRemove(row.original)}
+              />
+            </Stack>
+          );
+        }
+      })
+    ],
+    []
+  );
 
   return (
     <Grid container>
@@ -134,45 +187,38 @@ function CampaignRecipients(props: Props) {
         }
         className="fr-mt-2w"
       />
-      <Table data={data} headers={headers} />
-      {hasPagination && (
-        <>
-          <div className="fr-react-table--pagination-center nav">
-            <DSFRPagination
-              onClick={changePage}
-              currentPage={pagination.page}
-              pageCount={pageCount}
-            />
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <Button
-              onClick={() => changePerPage(50)}
-              priority="secondary"
-              disabled={pagination.perPage === 50}
-              title="Afficher 50 résultats par page"
-            >
-              50 résultats par page
-            </Button>
-            <Button
-              onClick={() => changePerPage(200)}
-              className="fr-mx-3w"
-              priority="secondary"
-              disabled={pagination.perPage === 200}
-              title="Afficher 200 résultats par page"
-            >
-              200 résultats par page
-            </Button>
-            <Button
-              onClick={() => changePerPage(500)}
-              priority="secondary"
-              disabled={pagination.perPage === 500}
-              title="Afficher 500 résultats par page"
-            >
-              500 résultats par page
-            </Button>
-          </div>
-        </>
-      )}
+
+      <AdvancedTable
+        columns={columns}
+        data={housings?.entities}
+        isLoading={isLoading}
+        page={page}
+        pageCount={pageCount}
+        perPage={perPage}
+        tableProps={{ bordered: true, fixed: true, noCaption: true }}
+        onPageChange={changePage}
+        onPerPageChange={changePerPage}
+      />
+
+      <removeCampaignHousingModal.Component
+        title="Suppression d’un destinataire"
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+            className: 'fr-mr-2w'
+          },
+          {
+            children: 'Confirmer',
+            onClick: confirmRemoval,
+            doClosesModal: false
+          }
+        ]}
+      >
+        <Typography>
+          Vous êtes sur le point de supprimer ce destinataire de la campagne.
+        </Typography>
+      </removeCampaignHousingModal.Component>
     </Grid>
   );
 }

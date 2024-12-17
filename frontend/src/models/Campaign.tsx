@@ -36,10 +36,17 @@ export const campaignStep = (campaign: Campaign) => {
             : CampaignSteps.InProgress;
 };
 
-export type CampaignSortable = Pick<Campaign, 'createdAt' | 'sentAt'> & {
+export type CampaignSortable = Pick<
+  Campaign,
+  'title' | 'createdAt' | 'sentAt'
+> & {
   status: string;
 };
 export type CampaignSort = Sort<CampaignSortable>;
+
+export function isCampaignSortable(key: string): key is keyof CampaignSortable {
+  return ['title', 'status', 'createdAt', 'sentAt'].includes(key);
+}
 
 export const campaignSort = (c1: Campaign, c2: Campaign) =>
   dateSort(new Date(c2.createdAt), new Date(c1.createdAt));

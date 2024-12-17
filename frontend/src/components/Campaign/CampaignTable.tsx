@@ -1,0 +1,227 @@
+import { fr } from '@codegouvfr/react-dsfr';
+import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import { format } from 'date-fns';
+import { PropsWithChildren, useMemo, useState } from 'react';
+
+import AdvancedTable from '../AdvancedTable/AdvancedTable';
+import AppLink from '../_app/AppLink/AppLink';
+import CampaignStatusBadge from './CampaignStatusBadge';
+import { useUser } from '../../hooks/useUser';
+import { Campaign, CampaignSort } from '../../models/Campaign';
+import { createColumnHelper } from '@tanstack/react-table';
+import { DefaultPagination } from '../../store/reducers/housingReducer';
+import { usePagination } from '../../hooks/usePagination';
+import { useSort } from '../../hooks/useSort';
+import { useFindCampaignsQuery } from '../../services/campaign.service';
+import { displayCount } from '../../utils/stringUtils';
+
+interface CampaignTableProps {
+  onArchive?(campaign: Campaign): void;
+  onRemove?(campaign: Campaign): void;
+}
+
+const columnHelper = createColumnHelper<Campaign>();
+
+function CampaignTable(props: CampaignTableProps) {
+  const { onArchive, onRemove } = props;
+
+  const { isVisitor } = useUser();
+
+  const [pagination, setPagination] = useState(DefaultPagination);
+  const { page, pageCount, perPage, changePage, changePerPage } = usePagination(
+    {
+      pagination,
+      setPagination
+    }
+  );
+  const { sort, getSortButton } = useSort<CampaignSort>({
+    default: {
+      createdAt: 'desc'
+    }
+  });
+  const { data: campaigns, isLoading } = useFindCampaignsQuery({ sort });
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('title', {
+        header: () => (
+          <Stack
+            direction="row"
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+            spacing={1}
+          >
+            <HeaderTitle>Titre</HeaderTitle>
+            {getSortButton('title', 'Trier par titre')}
+          </Stack>
+        ),
+        cell: ({ row }) => {
+          const campaign = row.original;
+          return (
+            <AppLink
+              isSimple
+              to={`${
+                campaign.status === 'draft' || campaign.status === 'sending'
+                  ? ''
+                  : '/parc-de-logements'
+              }/campagnes/${campaign.id}`}
+            >
+              {campaign.title}
+            </AppLink>
+          );
+        }
+      }),
+      columnHelper.accessor('status', {
+        header: () => (
+          <Stack
+            direction="row"
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+            spacing={1}
+          >
+            <HeaderTitle>Statut</HeaderTitle>
+            {getSortButton('status', 'Trier par statut')}
+          </Stack>
+        ),
+        cell: ({ cell }) => (
+          <CampaignStatusBadge
+            badgeProps={{ small: true }}
+            status={cell.getValue()}
+          />
+        )
+      }),
+      columnHelper.accessor('createdAt', {
+        header: () => (
+          <Stack
+            direction="row"
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+            spacing={1}
+          >
+            <HeaderTitle>Date de création</HeaderTitle>
+            {getSortButton('createdAt', 'Trier par date de création')}
+          </Stack>
+        ),
+        cell: ({ cell }) => format(new Date(cell.getValue()), 'dd/MM/yyyy')
+      }),
+      columnHelper.accessor('sentAt', {
+        header: () => (
+          <Stack
+            direction="row"
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+            spacing={1}
+          >
+            <HeaderTitle>Date d’envoi</HeaderTitle>
+            {getSortButton('sentAt', 'Trier par date d’envoi')}
+          </Stack>
+        ),
+        cell: ({ cell }) => {
+          const value = cell.getValue();
+          return value ? format(new Date(value), 'dd/MM/yyyy') : null;
+        }
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+          const campaign = row.original;
+          const buttons: ButtonProps[] = [];
+
+          if (!['draft', 'sending'].includes(campaign.status)) {
+            buttons.push({
+              children: 'Suivre',
+              priority: 'secondary',
+              size: 'small',
+              linkProps: {
+                to: `/parc-de-logements/campagnes/${campaign.id}`
+              }
+            });
+          }
+          if (!isVisitor) {
+            if (['draft', 'sending'].includes(campaign.status)) {
+              buttons.push({
+                children: 'Accéder',
+                priority: 'secondary',
+                size: 'small',
+                linkProps: {
+                  to: `/campagnes/${campaign.id}`
+                }
+              });
+            }
+            if (campaign.status === 'in-progress') {
+              buttons.push({
+                title: 'Archiver la campagne',
+                priority: 'tertiary',
+                iconId: 'fr-icon-archive-line',
+                size: 'small',
+                onClick() {
+                  onArchive?.(campaign);
+                }
+              });
+            }
+            if (campaign.status !== 'archived') {
+              buttons.push({
+                title: 'Supprimer la campagne',
+                priority: 'tertiary',
+                iconId: 'fr-icon-delete-bin-line',
+                size: 'small',
+                onClick() {
+                  onRemove?.(campaign);
+                }
+              });
+            }
+          }
+
+          return (
+            <ButtonsGroup
+              alignment="right"
+              buttons={buttons}
+              buttonsIconPosition="center"
+              buttonsSize="small"
+              inlineLayoutWhen="always"
+            />
+          );
+        }
+      })
+    ],
+    [getSortButton, isVisitor, onArchive, onRemove]
+  );
+
+  return (
+    <>
+      {campaigns && (
+        <Typography
+          variant="body2"
+          sx={{ color: fr.colors.decisions.text.mention.grey.default }}
+        >
+          {displayCount(campaigns.length, 'campagne', {
+            capitalize: true,
+            feminine: true
+          })}
+        </Typography>
+      )}
+
+      <AdvancedTable
+        columns={columns}
+        data={campaigns}
+        isLoading={isLoading}
+        page={page}
+        pageCount={pageCount}
+        perPage={perPage}
+        tableProps={{ bordered: true, fixed: true, noCaption: true }}
+        onPageChange={changePage}
+        onPerPageChange={changePerPage}
+      />
+    </>
+  );
+}
+
+function HeaderTitle(props: PropsWithChildren) {
+  return (
+    <Typography sx={{ fontSize: '0.875rem', fontWeight: 700 }}>
+      {props.children}
+    </Typography>
+  );
+}
+
+export default CampaignTable;

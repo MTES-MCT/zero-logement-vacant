@@ -145,7 +145,7 @@ describe('Campaign view', () => {
     await user.click(tab);
     const rowsBefore = screen.getAllByRole<HTMLTableRowElement>('row').slice(1); // Remove headers
     const remove = screen.getAllByRole('button', {
-      name: /^Supprimer le propriétaire/
+      name: /^Supprimer le destinataire/
     })[index];
     await user.click(remove);
     const dialog = await screen.findByRole('dialog');
@@ -275,7 +275,7 @@ describe('Campaign view', () => {
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
     const [edit] = await screen.findAllByRole('button', {
-      name: /^Éditer l’adresse/
+      name: /^Éditer/
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');
@@ -297,7 +297,7 @@ describe('Campaign view', () => {
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
     const [edit] = await screen.findAllByRole('button', {
-      name: /^Éditer l’adresse/
+      name: /^Éditer/
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');

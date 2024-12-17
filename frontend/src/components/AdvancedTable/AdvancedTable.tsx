@@ -1,9 +1,12 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import {
   Pagination as TablePagination,
   PaginationProps as TablePaginationProps
 } from '@codegouvfr/react-dsfr/Pagination';
+import Select, { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { Table, TableProps } from '@codegouvfr/react-dsfr/Table';
 import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
 import {
   flexRender,
   getCoreRowModel,
@@ -11,11 +14,6 @@ import {
   useReactTable
 } from '@tanstack/react-table';
 import { MouseEvent, ReactNode } from 'react';
-import Stack from '@mui/material/Stack';
-import Select, {
-  SelectProps
-} from '.store/@codegouvfr-react-dsfr-virtual-ca7b1906b4/package/SelectNext';
-import { fr } from '.store/@codegouvfr-react-dsfr-virtual-ca7b1906b4/package';
 
 interface AdvancedTableProps<Data extends object>
   extends Omit<TableOptions<Data>, 'data' | 'getCoreRowModel'>,

@@ -1,55 +1,30 @@
-import { fr } from '@codegouvfr/react-dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Stack from '@mui/material/Stack';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Typography from '@mui/material/Typography';
-import { createColumnHelper } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { PropsWithChildren, useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import MainContainer from '../../components/MainContainer/MainContainer';
+import { Campaign } from '../../models/Campaign';
 import {
-  Campaign,
-  CampaignSort,
-  isCampaignDeletable
-} from '../../models/Campaign';
-import AppLink from '../../components/_app/AppLink/AppLink';
-import CampaignStatusBadge from '../../components/Campaign/CampaignStatusBadge';
-import { displayCount } from '../../utils/stringUtils';
-import { Text } from '../../components/_dsfr';
-import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import {
-  useFindCampaignsQuery,
   useRemoveCampaignMutation,
   useUpdateCampaignMutation
 } from '../../services/campaign.service';
-import { useSort } from '../../hooks/useSort';
-import { useUser } from '../../hooks/useUser';
-import AdvancedTable from '../../components/AdvancedTable/AdvancedTable';
 import { useNotification } from '../../hooks/useNotification';
-import { usePagination } from '../../hooks/usePagination';
-import { DefaultPagination } from '../../store/reducers/housingReducer';
+import CampaignTable from '../../components/Campaign/CampaignTable';
 
-const columnHelper = createColumnHelper<Campaign>();
+const archiveCampaignModal = createModal({
+  id: 'archive-campaign-modal',
+  isOpenedByDefault: false
+});
+const removeCampaignModal = createModal({
+  id: 'remove-campaign-modal',
+  isOpenedByDefault: false
+});
 
 function CampaignListView() {
   useDocumentTitle('Campagnes');
-  const { isVisitor } = useUser();
-
-  const [pagination, setPagination] = useState(DefaultPagination);
-  const { page, pageCount, perPage, changePage, changePerPage } = usePagination(
-    {
-      pagination,
-      setPagination
-    }
-  );
-  const { sort, getSortButton } = useSort<CampaignSort>({
-    default: {
-      createdAt: 'desc'
-    }
-  });
-  const { data: campaigns, isLoading } = useFindCampaignsQuery({ sort });
 
   const [removeCampaign, campaignRemovalMutation] = useRemoveCampaignMutation();
   const [updateCampaign, campaignUpdateMutation] = useUpdateCampaignMutation();
@@ -76,166 +51,33 @@ function CampaignListView() {
     }
   });
 
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor('title', {
-        header: () => (
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            spacing={1}
-          >
-            <HeaderTitle>Titre</HeaderTitle>
-            {getSortButton('title', 'Trier par titre')}
-          </Stack>
-        ),
-        cell: ({ row }) => {
-          const campaign = row.original;
-          return (
-            <AppLink
-              isSimple
-              to={`${
-                campaign.status === 'draft' || campaign.status === 'sending'
-                  ? ''
-                  : '/parc-de-logements'
-              }/campagnes/${campaign.id}`}
-            >
-              {campaign.title}
-            </AppLink>
-          );
-        }
-      }),
-      columnHelper.accessor('status', {
-        header: () => (
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            spacing={1}
-          >
-            <HeaderTitle>Statut</HeaderTitle>
-            {getSortButton('status', 'Trier par statut')}
-          </Stack>
-        ),
-        cell: ({ cell }) => (
-          <CampaignStatusBadge
-            badgeProps={{ small: true }}
-            status={cell.getValue()}
-          />
-        )
-      }),
-      columnHelper.accessor('createdAt', {
-        header: () => (
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            spacing={1}
-          >
-            <HeaderTitle>Date de création</HeaderTitle>
-            {getSortButton('createdAt', 'Trier par date de création')}
-          </Stack>
-        ),
-        cell: ({ cell }) => format(new Date(cell.getValue()), 'dd/MM/yyyy')
-      }),
-      columnHelper.accessor('sentAt', {
-        header: () => (
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            spacing={1}
-          >
-            <HeaderTitle>Date d’envoi</HeaderTitle>
-            {getSortButton('sentAt', 'Trier par date d’envoi')}
-          </Stack>
-        ),
-        cell: ({ cell }) => {
-          const value = cell.getValue();
-          return value ? format(new Date(value), 'dd/MM/yyyy') : null;
-        }
-      }),
-      columnHelper.display({
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => {
-          const campaign = row.original;
-          return (
-            <Stack
-              direction="row"
-              sx={{ justifyContent: 'flex-end' }}
-              spacing={1}
-            >
-              {!['draft', 'sending'].includes(campaign.status) && (
-                <Button
-                  priority="secondary"
-                  size="small"
-                  linkProps={{
-                    to: `/parc-de-logements/campagnes/${campaign.id}`
-                  }}
-                >
-                  Suivre
-                </Button>
-              )}
-              {!isVisitor && ['draft', 'sending'].includes(campaign.status) && (
-                <Button
-                  role="link"
-                  priority="secondary"
-                  size="small"
-                  linkProps={{
-                    to: `/campagnes/${campaign.id}`
-                  }}
-                >
-                  Accéder
-                </Button>
-              )}
-              {!isVisitor && campaign.status === 'in-progress' && (
-                <ConfirmationModal
-                  onSubmit={() => {
-                    updateCampaign({ ...campaign, status: 'archived' });
-                  }}
-                  modalId={`archive-${campaign.id}`}
-                  openingButtonProps={{
-                    title: 'Archiver la campagne',
-                    priority: 'tertiary',
-                    iconId: 'fr-icon-archive-line',
-                    size: 'small',
-                    type: 'button'
-                  }}
-                >
-                  <Typography>
-                    Êtes-vous sûr de vouloir archiver cette campagne ?
-                  </Typography>
-                </ConfirmationModal>
-              )}
-              {!isVisitor && isCampaignDeletable(campaign) && (
-                <ConfirmationModal
-                  onSubmit={() => {
-                    removeCampaign(campaign.id);
-                  }}
-                  modalId={`delete-${campaign.id}`}
-                  openingButtonProps={{
-                    title: 'Supprimer la campagne',
-                    priority: 'tertiary',
-                    iconId: 'fr-icon-delete-bin-line',
-                    size: 'small',
-                    type: 'button'
-                  }}
-                >
-                  <Text size="md">
-                    Êtes-vous sûr de vouloir supprimer cette campagne ?
-                  </Text>
-                  <Alert
-                    description='Les statuts des logements "En attente de retour" repasseront en "Non suivi". Les autres statuts mis à jour ne seront pas modifiés.'
-                    severity="info"
-                    small
-                  />
-                </ConfirmationModal>
-              )}
-            </Stack>
-          );
-        }
-      })
-    ],
-    [getSortButton, isVisitor, removeCampaign, updateCampaign]
-  );
+  const [selected, setSelected] = useState<Campaign | null>(null);
+
+  function onArchive(campaign: Campaign) {
+    setSelected(campaign);
+    archiveCampaignModal.open();
+  }
+
+  async function confirmArchiving() {
+    if (selected) {
+      updateCampaign({ ...selected, status: 'archived' });
+      archiveCampaignModal.close();
+      setSelected(null);
+    }
+  }
+
+  function onRemove(campaign: Campaign) {
+    setSelected(campaign);
+    removeCampaignModal.open();
+  }
+
+  async function confirmRemoval() {
+    if (selected) {
+      removeCampaign(selected.id);
+      removeCampaignModal.close();
+      setSelected(null);
+    }
+  }
 
   return (
     <MainContainer
@@ -255,37 +97,53 @@ function CampaignListView() {
         </>
       }
     >
-      {campaigns && (
-        <Typography
-          variant="body2"
-          sx={{ color: fr.colors.decisions.text.mention.grey.default }}
-        >
-          {displayCount(campaigns.length, 'campagne', {
-            capitalize: true,
-            feminine: true
-          })}
-        </Typography>
-      )}
-      <AdvancedTable
-        columns={columns}
-        data={campaigns}
-        isLoading={isLoading}
-        page={page}
-        pageCount={pageCount}
-        perPage={perPage}
-        tableProps={{ bordered: true, fixed: true, noCaption: true }}
-        onPageChange={changePage}
-        onPerPageChange={changePerPage}
-      />
-    </MainContainer>
-  );
-}
+      <CampaignTable onArchive={onArchive} onRemove={onRemove} />
 
-function HeaderTitle(props: PropsWithChildren) {
-  return (
-    <Typography sx={{ fontSize: '0.875rem', fontWeight: 700 }}>
-      {props.children}
-    </Typography>
+      <archiveCampaignModal.Component
+        title="Archiver la campagne"
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+            className: 'fr-mr-2w'
+          },
+          {
+            children: 'Confirmer',
+            onClick: confirmArchiving,
+            doClosesModal: false
+          }
+        ]}
+      >
+        <Typography>
+          Êtes-vous sûr de vouloir archiver cette campagne ?
+        </Typography>
+      </archiveCampaignModal.Component>
+
+      <removeCampaignModal.Component
+        title="Supprimer la campagne"
+        buttons={[
+          {
+            children: 'Annuler',
+            priority: 'secondary',
+            className: 'fr-mr-2w'
+          },
+          {
+            children: 'Confirmer',
+            onClick: confirmRemoval,
+            doClosesModal: false
+          }
+        ]}
+      >
+        <Typography>
+          Êtes-vous sûr de vouloir supprimer cette campagne ?
+        </Typography>
+        <Alert
+          description='Les statuts des logements "En attente de retour" repasseront en "Non suivi". Les autres statuts mis à jour ne seront pas modifiés.'
+          severity="info"
+          small
+        />
+      </removeCampaignModal.Component>
+    </MainContainer>
   );
 }
 

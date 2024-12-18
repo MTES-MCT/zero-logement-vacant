@@ -14,7 +14,7 @@ function AdvancedTableHeader(props: AdvancedTableHeaderProps) {
       sx={{ alignItems: 'center', justifyContent: 'space-between' }}
       spacing={1}
     >
-      <Typography sx={{ fontSize: '0.875rem', fontWeight: 700 }}>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
         {props.title}
       </Typography>
       {props.sort}

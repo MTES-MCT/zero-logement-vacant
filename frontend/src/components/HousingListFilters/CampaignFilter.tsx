@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import { List, Set } from 'immutable';
-import { ChangeEvent, useId, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { match } from 'ts-pattern';
 
 import {
@@ -83,7 +83,7 @@ function CampaignFilter(props: Props) {
     }
   }
 
-  function noop(event: ChangeEvent): void {
+  function noop(event: { stopPropagation(): void }): void {
     event.stopPropagation();
   }
 

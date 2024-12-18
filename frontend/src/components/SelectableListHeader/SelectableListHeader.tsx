@@ -46,10 +46,6 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
     </>
   );
 
-  const classes = classNames(styles.selectableListHeader, {
-    [styles.selectableListHeaderInfo]: selected > 0
-  });
-
   if (!hasSelected() && props.default) {
     return props.default;
   }
@@ -69,7 +65,14 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
       }}
     >
       <Grid xs="auto">{selectedCount}</Grid>
-      <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }} xs>
+      <Grid
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end'
+        }}
+        xs
+      >
         <SelectableListHeaderActions {...actions?.props} />
       </Grid>
     </Grid>

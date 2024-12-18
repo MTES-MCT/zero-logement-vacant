@@ -150,7 +150,7 @@ const HousingListTab = ({
         <SelectableListHeader entity="logement" default={<></>}>
           <SelectableListHeaderActions>
             {filteredHousingCount !== undefined && filteredHousingCount > 0 && (
-              <div>
+              <>
                 {selectedCount > 1 && (
                   <Button
                     className="fr-mr-1w"
@@ -175,7 +175,7 @@ const HousingListTab = ({
                   onSubmit={submitSelectedHousingUpdate}
                   onClose={() => setUpdatingSelectedHousing(undefined)}
                 />
-              </div>
+              </>
             )}
           </SelectableListHeaderActions>
         </SelectableListHeader>

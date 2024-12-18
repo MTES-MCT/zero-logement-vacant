@@ -1,6 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
-import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
+import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
@@ -62,6 +61,7 @@ function CampaignTable(props: CampaignTableProps) {
           return (
             <AppLink
               isSimple
+              size="sm"
               to={`${
                 campaign.status === 'draft' || campaign.status === 'sending'
                   ? ''
@@ -173,13 +173,15 @@ function CampaignTable(props: CampaignTableProps) {
           }
 
           return (
-            <ButtonsGroup
-              alignment="right"
-              buttons={buttons}
-              buttonsIconPosition="center"
-              buttonsSize="small"
-              inlineLayoutWhen="always"
-            />
+            <Stack
+              direction="row"
+              sx={{ justifyContent: 'flex-end' }}
+              spacing={1}
+            >
+              {buttons.map((buttonProps, i) => (
+                <Button {...buttonProps} key={i} />
+              ))}
+            </Stack>
           );
         }
       })

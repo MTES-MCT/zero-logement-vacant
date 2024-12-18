@@ -156,8 +156,24 @@ async function list(
 async function count(request: Request, response: Response): Promise<void> {
   logger.trace('Count housing');
 
-  const { establishmentId, role } = (request as AuthenticatedRequest).auth;
-  const filters = <HousingFiltersApi>request.body.filters ?? {};
+  const { auth, query } = request as AuthenticatedRequest;
+
+  const { establishmentId, role } = auth;
+
+  const filters: HousingFiltersApi = {
+    ...query,
+    multiOwners: query?.multiOwners?.map((value: boolean) =>
+      value ? 'true' : 'false'
+    ),
+    roomsCounts: query?.roomsCounts?.map((value: string) =>
+      value.toString()
+    ),
+    isTaxedValues: query?.isTaxedValues?.map((value: boolean) =>
+      value ? 'true' : 'false'
+    ),
+    energyConsumption:
+    query?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
+  };
 
   const count = await housingRepository.count({
     ...filters,

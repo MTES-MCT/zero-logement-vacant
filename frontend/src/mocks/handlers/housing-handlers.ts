@@ -57,19 +57,27 @@ export const housingHandlers: RequestHandler[] = [
       });
     }
   ),
-  http.post<Record<string, never>, HousingPayload, HousingCountDTO>(
+  http.get<Record<string, never>, HousingPayload, HousingCountDTO>(
     `${config.apiEndpoint}/api/housing/count`,
     async ({ request }) => {
-      const payload = await request.json();
+      const url = new URL(request.url);
+      const queryParams = url.searchParams;
+      const campaignIds =
+        queryParams.get('campaignIds')?.split(',') ?? undefined;
+      const housingKinds =
+        queryParams.get('housingKinds')?.split(',') ?? undefined;
+      const status = queryParams.get('status')
+        ? [Number(queryParams.get('status'))]
+        : undefined;
+      const statuses =
+        status ??
+        queryParams.get('statusList')?.split(',').map(Number) ??
+        undefined;
 
       const subset: HousingDTO[] = fp.pipe(
-        filterByCampaign(payload.filters?.campaignIds),
-        filterByHousingKind(payload.filters?.housingKinds),
-        filterByStatus(
-          payload.filters?.status
-            ? [payload.filters.status]
-            : payload.filters?.statusList
-        )
+        filterByCampaign(campaignIds),
+        filterByHousingKind(housingKinds),
+        filterByStatus(statuses)
       )(data.housings);
 
       const owners: number = fp.uniqBy(

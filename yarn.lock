@@ -30747,6 +30747,7 @@ __metadata:
     eslint-plugin-testing-library: "npm:^6.3.0"
     husky: "npm:^9.1.6"
     is-ci: "npm:^3.0.1"
+    jest: "npm:^29.7.0"
     lerna: "npm:^8.1.9"
     lint-staged: "npm:^13.3.0"
     madr: "npm:^3.0.0"

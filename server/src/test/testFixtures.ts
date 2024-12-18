@@ -287,13 +287,21 @@ export const genHousingApi = (
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);
-  const dataYears = faker.helpers
-    .arrayElements(fp.range(2019, new Date().getUTCFullYear() + 1), {
+  const dataYears = faker.helpers.arrayElements(
+    fp.range(2019, new Date().getUTCFullYear() + 1),
+    {
       min: 1,
       max: new Date().getUTCFullYear() + 1 - 2019
-    })
+    }
+  );
+  const dataFileYears = dataYears
+    .map((year) => `lovac-${year}`)
+    .concat(
+      faker.helpers.maybe(() => 'ff-2023', {
+        probability: 0.2
+      }) ?? []
+    )
     .toSorted();
-  const dataFileYears = dataYears.map((year) => `lovac-${year}`);
 
   return {
     id,

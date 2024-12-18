@@ -17,6 +17,7 @@
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "build": "tsc -b tsconfig.build.json",
     "test": "jest",
+    "coverage": "jest --coverage",
     "dev": "nodemon --watch src -e ts --exec 'yarn build'"
   },
   "dependencies": {

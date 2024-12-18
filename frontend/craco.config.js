@@ -24,6 +24,12 @@ module.exports = {
         'jest-extended/all',
         '<rootDir>/src/setupTests.ts'
       ];
+      config.collectCoverageFrom = [
+        'src/**/*.{ts,tsx}',
+        '!src/**/test/*',
+        '!src/components/_dsfr/*',
+        '!src/*'
+      ];
       config.testTimeout = 30_000;
       config.transformIgnorePatterns = [
         '<rootDir>/node_modules/(?!@codegouvfr)/.+\\.js$',

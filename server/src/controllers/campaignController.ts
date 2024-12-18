@@ -40,10 +40,10 @@ import {
 import CampaignStatusError from '~/errors/campaignStatusError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
 import draftRepository from '~/repositories/draftRepository';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '~/infra/config';
-import { createS3 } from '@zerologementvacant/utils';
+import { createS3, slugify, timestamp } from '@zerologementvacant/utils';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -325,12 +325,42 @@ async function update(request: Request, response: Response) {
     });
   }
 
+  const name = timestamp().concat('-', slugify(body.title));
+  const key = `${name}.zip`;
+
+  if(key !== campaign.file && campaign.file !== null) {
+    const s3 = createS3({
+      endpoint: config.s3.endpoint,
+      region: config.s3.region,
+      accessKeyId: config.s3.accessKeyId,
+      secretAccessKey: config.s3.secretAccessKey
+    });
+
+    const copyCommand = new CopyObjectCommand({
+      Bucket: config.s3.bucket,
+      CopySource: `${config.s3.bucket}/${campaign.file}`,
+      Key: key,
+      ContentLanguage: 'fr',
+      ContentType: 'application/x-zip',
+      ACL: 'authenticated-read'
+    });
+
+    await s3.send(copyCommand);
+
+    const deleteCommand = new DeleteObjectCommand({
+      Bucket: config.s3.bucket,
+      Key: campaign.file
+    });
+
+    await s3.send(deleteCommand);
+  }
+
   const updated: CampaignApi = {
     ...campaign,
     title: body.title,
     description: body.description,
     status: body.status,
-    file: body.file,
+    file: campaign.file != null ? key : body.file,
     validatedAt:
       campaign.status !== body.status && body.status === 'sending'
         ? new Date().toJSON()

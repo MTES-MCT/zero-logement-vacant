@@ -95,6 +95,7 @@ function HousingList(props: HousingListProps) {
             small
             options={[
               {
+                label: null,
                 nativeInputProps: {
                   value: 'all',
                   checked: selection.hasSelectedAll,
@@ -119,6 +120,7 @@ function HousingList(props: HousingListProps) {
             small
             options={[
               {
+                label: null,
                 nativeInputProps: {
                   value: row.original.id,
                   checked: selection.isSelected(row.original.id),

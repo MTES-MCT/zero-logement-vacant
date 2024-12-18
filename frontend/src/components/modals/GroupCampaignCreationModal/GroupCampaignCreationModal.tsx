@@ -3,18 +3,23 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import * as yup from 'yup';
 import { useState } from 'react';
-import { campaignDescriptionValidator, campaignTitleValidator, useForm } from '../../../hooks/useForm';
+import {
+  campaignDescriptionValidator,
+  campaignTitleValidator,
+  useForm
+} from '../../../hooks/useForm';
 import { Campaign } from '../../../models/Campaign';
 import { Group } from '../../../models/Group';
 import { Container, Text } from '../../_dsfr';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
-import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { displayCount } from '../../../utils/stringUtils';
 
 interface Props {
   group: Group;
   housingCount: number;
-  openingButtonProps?: Omit<ButtonProps, 'onClick'>;
+  openingButtonProps?: {
+    className?: string;
+  };
   onSubmit: (campaign: Pick<Campaign, 'title' | 'description'>) => void;
 }
 
@@ -23,19 +28,19 @@ function GroupCampaignCreationModal(props: Props) {
   const [description, setDescription] = useState('');
   const shape = {
     title: campaignTitleValidator,
-    description: campaignDescriptionValidator,
+    description: campaignDescriptionValidator
   };
   type FormShape = typeof shape;
   const form = useForm(yup.object().shape(shape), {
     title,
-    description,
+    description
   });
 
   async function submit(): Promise<void> {
     await form.validate(() =>
       props.onSubmit({
         title,
-        description,
+        description
       })
     );
   }
@@ -47,9 +52,9 @@ function GroupCampaignCreationModal(props: Props) {
       data-testid="group-campaign-creation-modal"
       size="large"
       openingButtonProps={{
-        children: 'Créer une campagne',
-        disabled: props.housingCount === 0,
         ...props.openingButtonProps,
+        children: 'Créer une campagne',
+        disabled: props.housingCount === 0
       }}
       onSubmit={submit}
     >

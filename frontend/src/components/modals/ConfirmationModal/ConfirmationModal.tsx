@@ -3,7 +3,7 @@ import { Container } from '../../_dsfr';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import AppLinkAsButton, {
-  AppLinkAsButtonProps,
+  AppLinkAsButtonProps
 } from '../../_app/AppLinkAsButton/AppLinkAsButton';
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
   onOpen?(openModal: () => void): Promise<void> | void;
   onSubmit(param?: any): Promise<void> | void;
   size?: 'small' | 'medium' | 'large';
-  openingButtonProps?: Omit<ButtonProps, 'onClick'>;
+  openingButtonProps?: Exclude<ButtonProps, ButtonProps.AsAnchor>;
   openingAppLinkAsButtonProps?: Omit<AppLinkAsButtonProps, 'onClick'>;
 }
 
@@ -25,15 +25,15 @@ function ConfirmationModal({
   onSubmit,
   size,
   openingButtonProps,
-  openingAppLinkAsButtonProps,
+  openingAppLinkAsButtonProps
 }: Props) {
   const modal = useMemo(
     () =>
       createModal({
         id: `confirmation-modal-${modalId}`,
-        isOpenedByDefault: false,
+        isOpenedByDefault: false
       }),
-    [modalId],
+    [modalId]
   );
 
   function open() {
@@ -52,9 +52,7 @@ function ConfirmationModal({
   return (
     <>
       {openingButtonProps !== undefined ? (
-        <Button {...openingButtonProps} onClick={open}>
-          {openingButtonProps.children}
-        </Button>
+        <Button {...openingButtonProps} onClick={open} />
       ) : openingAppLinkAsButtonProps !== undefined ? (
         <AppLinkAsButton {...openingAppLinkAsButtonProps} onClick={open}>
           {openingAppLinkAsButtonProps.children}
@@ -69,13 +67,13 @@ function ConfirmationModal({
           {
             children: 'Annuler',
             priority: 'secondary',
-            className: 'fr-mr-2w',
+            className: 'fr-mr-2w'
           },
           {
             children: 'Confirmer',
             onClick: onClick,
-            doClosesModal: false,
-          },
+            doClosesModal: false
+          }
         ]}
         style={{ textAlign: 'initial' }}
       >

@@ -56,12 +56,12 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
     data: props.data ?? [],
     getCoreRowModel: getCoreRowModel()
   });
-  const headers: ReadonlyArray<ReactNode> = table
+  const headers: ReactNode[] = table
     .getLeafHeaders()
     .map((header) =>
       flexRender(header.column.columnDef.header, header.getContext())
     );
-  const data: ReadonlyArray<ReadonlyArray<ReactNode>> = table
+  const data: ReactNode[][] = table
     .getRowModel()
     .rows.map((row) => row.getVisibleCells())
     .map((cells) =>
@@ -101,7 +101,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
           />
           <TablePagination
             {...props.paginationProps}
-            count={props.pageCount}
+            count={props.pageCount ?? 1}
             defaultPage={props.page}
             getPageLinkProps={(page: number) => ({
               to: '#',

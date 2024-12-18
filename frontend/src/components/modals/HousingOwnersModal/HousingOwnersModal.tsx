@@ -464,7 +464,7 @@ function HousingOwnersModal({
             {hasError('ownerRanks') && (
               <Alert
                 severity="warning"
-                description={message('ownerRanks')}
+                description={message('ownerRanks') ?? ''}
                 closable
                 small
               ></Alert>

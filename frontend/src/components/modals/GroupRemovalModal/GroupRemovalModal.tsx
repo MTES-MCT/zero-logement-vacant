@@ -5,7 +5,10 @@ import { Campaign } from '../../../models/Campaign';
 
 interface Props {
   campaigns?: Campaign[];
-  openingButtonProps?: Omit<ButtonProps, 'onClick'>;
+  openingButtonProps?: Omit<
+    Exclude<ButtonProps, ButtonProps.AsAnchor>,
+    'onClick'
+  >;
   onSubmit: () => Promise<void>;
   onClose?: () => void;
 }
@@ -24,7 +27,7 @@ function GroupRemovalModal(props: Props) {
         children: `${isRemoving ? 'Supprimer' : 'Archiver'} le groupe`,
         iconId: 'ri-delete-bin-line',
         priority: 'tertiary',
-        ...props.openingButtonProps,
+        ...props.openingButtonProps
       }}
       onSubmit={props.onSubmit}
     >

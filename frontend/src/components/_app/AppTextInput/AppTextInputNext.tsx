@@ -11,44 +11,43 @@ export type AppTextInputNextProps = InputProps & {
  * A text input to be used with react-hook-form and validated using yup.
  */
 function AppTextInputNext(props: AppTextInputNextProps) {
+  const { nativeInputProps, nativeTextAreaProps, textArea, ...rest } = props;
   const { field, fieldState } = useController({
     name: props.name,
     disabled: props.disabled
   });
 
-  const isTextArea = props.textArea === true;
+  const regularInputProps: Pick<InputProps.RegularInput, 'nativeInputProps'> = {
+    nativeInputProps: {
+      ...nativeInputProps,
+      // Avoid browser validation which prevents react-hook-form to work
+      formNoValidate: true,
+      name: field.name,
+      ref: field.ref,
+      value: field.value,
+      onBlur: field.onBlur,
+      onChange: field.onChange
+    }
+  };
+  const textAreaProps: Pick<
+    InputProps.TextArea,
+    'nativeTextAreaProps' | 'textArea'
+  > = {
+    textArea: true,
+    nativeTextAreaProps: {
+      ...nativeTextAreaProps,
+      name: field.name,
+      ref: field.ref,
+      value: field.value,
+      onBlur: field.onBlur,
+      onChange: field.onChange
+    }
+  };
 
   return (
     <Input
-      {...props}
-      textArea={isTextArea}
-      nativeInputProps={
-        !isTextArea
-          ? {
-              ...props.nativeInputProps,
-              // Avoid browser validation which prevents react-hook-form to work
-              formNoValidate: true,
-              name: field.name,
-              ref: field.ref,
-              value: field.value,
-              onBlur: field.onBlur,
-              onChange: field.onChange
-            }
-          : undefined
-      }
-      nativeTextAreaProps={
-        isTextArea
-          ? {
-              ...props.nativeTextAreaProps,
-              formNoValidate: true,
-              name: field.name,
-              ref: field.ref,
-              value: field.value,
-              onBlur: field.onBlur,
-              onChange: field.onChange
-            }
-          : undefined
-      }
+      {...rest}
+      {...(textArea ? textAreaProps : regularInputProps)}
       state={fieldState.invalid ? 'error' : undefined}
       stateRelatedMessage={
         fieldState.invalid

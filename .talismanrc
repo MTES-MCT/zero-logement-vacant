@@ -17,6 +17,8 @@ fileignoreconfig:
   checksum: 9893602dd7197e44a7c361e44c31b5fb86a025227af95c02998a6857bd1a694b
 - filename: server/.env.example
   checksum: 4955533b2ba29ebc4a052e65ce2aab5b911ebf8e4b4eeecff50b5e83d1857c35
+- filename: server/src/controllers/campaignController.ts
+  checksum: 73a5c525402f4354bc0ad41cf33aa17dadade2ba05608bfe9894b659b2a51246
 - filename: server/src/controllers/housingExportController.ts
   checksum: cb506387b49506b7ba0ed426001c221b80aff9f953e544d52c1c6d287741cf64
 - filename: server/src/infra/database/scripts/010-load-sder-sded.sql
@@ -31,5 +33,5 @@ allowed_patterns:
 - keyof
 - \[key\]
 - key=
-- "key:"
+- 'key:'
 version: "1.0"

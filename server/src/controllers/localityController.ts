@@ -9,7 +9,7 @@ import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { logger } from '~/infra/logger';
 
 const getLocalityValidators = [
-  param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 }),
+  param('geoCode').notEmpty().isAlphanumeric().isLength({ min: 5, max: 5 })
 ];
 
 async function getLocality(request: Request, response: Response) {
@@ -30,10 +30,12 @@ const listLocalitiesValidators = [query('establishmentId').notEmpty().isUUID()];
 async function listLocalities(request: Request, response: Response) {
   const establishmentId = request.query.establishmentId as string;
 
-  logger.info('List localities', establishmentId);
-
-  const localities =
-    await localityRepository.listByEstablishmentId(establishmentId);
+  logger.info('List localities', { establishment: establishmentId });
+  const localities = await localityRepository.find({
+    filters: {
+      establishmentId
+    }
+  });
   response.status(constants.HTTP_STATUS_OK).json(localities);
 }
 
@@ -44,7 +46,7 @@ const updateLocalityTaxValidators = [
     .if(body('taxKind').equals(TaxKindsApi.THLV))
     .isNumeric()
     .notEmpty(),
-  body('taxRate').if(body('taxKind').equals(TaxKindsApi.None)).not().exists(),
+  body('taxRate').if(body('taxKind').equals(TaxKindsApi.None)).not().exists()
 ];
 
 async function updateLocalityTax(request: Request, response: Response) {
@@ -56,7 +58,7 @@ async function updateLocalityTax(request: Request, response: Response) {
 
   logger.info('Update locality tax', {
     geoCode,
-    taxRate,
+    taxRate
   });
 
   const establishment = await establishmentRepository.get(establishmentId);
@@ -77,7 +79,7 @@ async function updateLocalityTax(request: Request, response: Response) {
   const updated: LocalityApi = {
     ...locality,
     taxRate,
-    taxKind,
+    taxKind
   };
   await localityRepository.update(updated);
   response.status(constants.HTTP_STATUS_OK).json(updated);
@@ -89,7 +91,7 @@ const localityController = {
   listLocalitiesValidators,
   listLocalities,
   updateLocalityTaxValidators,
-  updateLocalityTax,
+  updateLocalityTax
 };
 
 export default localityController;

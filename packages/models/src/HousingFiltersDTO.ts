@@ -37,6 +37,7 @@ export interface HousingFiltersDTO {
   ownershipKinds?: OwnershipKind[];
   housingCounts?: HousingByBuilding[];
   vacancyRates?: VacancyRate[];
+  intercommunalities?: string[];
   localities?: string[];
   localityKinds?: string[];
   geoPerimetersIncluded?: string[];

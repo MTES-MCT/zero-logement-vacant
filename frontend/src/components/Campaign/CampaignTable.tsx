@@ -163,7 +163,7 @@ function CampaignTable(props: CampaignTableProps) {
               buttons.push({
                 title: 'Supprimer la campagne',
                 priority: 'tertiary',
-                iconId: 'fr-icon-delete-bin-line',
+                iconId: 'ri-delete-bin-line',
                 size: 'small',
                 onClick() {
                   onRemove?.(campaign);

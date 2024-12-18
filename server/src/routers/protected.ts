@@ -326,6 +326,7 @@ router.get(
 
 // TODO: should be /geo-perimeters
 router.get('/geo/perimeters', geoController.listGeoPerimeters);
+// @ts-expect-error: should be fixed later
 router.post('/geo/perimeters', fileUpload(), geoController.createGeoPerimeter);
 router.put(
   '/geo/perimeters/:geoPerimeterId',

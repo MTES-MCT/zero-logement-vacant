@@ -221,6 +221,7 @@ function SearchableSelectNext<
       }}
       renderInput={(params) => (
         <Input
+          label={props.inputProps?.label ?? null}
           {...props.inputProps}
           classes={{
             nativeInputOrTextArea: classNames({

@@ -100,6 +100,7 @@ function OwnerCard(props: OwnerCardProps) {
             <Alert
               severity="info"
               classes={{ title: fr.cx('fr-mb-2w') }}
+              small
               description={
                 <>
                   <Typography>

@@ -98,7 +98,6 @@
     "@tsconfig/node20": "^20.1.4",
     "@turf/turf": "^7.1.0",
     "@types/async": "^3.2.24",
-    "@types/aws-sdk": "^2.7.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cli-progress": "^3.11.6",
     "@types/convict": "^6.1.6",

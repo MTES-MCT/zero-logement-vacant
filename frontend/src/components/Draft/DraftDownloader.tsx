@@ -20,19 +20,21 @@ function DraftDownloader(props: Readonly<Props>) {
     <Tile
       classes={{
         title: styles.title,
-        link: styles.link,
+        link: styles.link
       }}
       desc={description}
-      enlargeLink
-      horizontal
+      enlargeLinkOrButton
+      orientation="horizontal"
       imageAlt="Document"
       imageUrl="/dsfr/artwork/pictograms/document/document.svg"
       linkProps={{
         download: true,
         href: link,
+        onClick: () => {
+          props.setDownloaded(true);
+        }
       }}
       title="Télécharger les destinataires et vos courriers"
-      onClick={() => props.setDownloaded(true)}
     />
   );
 }

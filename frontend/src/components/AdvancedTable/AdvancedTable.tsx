@@ -39,6 +39,7 @@ interface PaginationProps {
   onPerPageChange?(perPage: number): void;
 }
 
+const ROW_SIZE = 64;
 const PER_PAGE_OPTIONS: SelectProps.Option[] = [
   '50',
   '200',
@@ -73,9 +74,12 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 
   if (props?.isLoading) {
     return (
-      <Skeleton animation="wave" variant="rectangular">
-        <Table {...props.tableProps} headers={headers} data={data} />
-      </Skeleton>
+      <Skeleton
+        animation="wave"
+        variant="rectangular"
+        width="100%"
+        height={ROW_SIZE * 6}
+      />
     );
   }
 

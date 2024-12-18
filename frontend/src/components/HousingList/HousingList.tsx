@@ -1,34 +1,16 @@
-import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import { Pagination as TablePagination } from '@codegouvfr/react-dsfr/Pagination';
-import Select, { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
-import { Table } from '@codegouvfr/react-dsfr/Table';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable
-} from '@tanstack/react-table';
+import { createColumnHelper } from '@tanstack/react-table';
 
 import { Occupancy, Pagination } from '@zerologementvacant/models';
 import { Set } from 'immutable';
-import {
-  MouseEvent,
-  PropsWithChildren,
-  ReactElement,
-  ReactNode,
-  useMemo,
-  useState
-} from 'react';
+import { ReactElement, ReactNode, useMemo, useState } from 'react';
 import { useCampaignList } from '../../hooks/useCampaignList';
-import { useHousingList } from '../../hooks/useHousingList';
 import { usePagination } from '../../hooks/usePagination';
 import { useSelection } from '../../hooks/useSelection';
 import { useSort } from '../../hooks/useSort';
-import { useUser } from '../../hooks/useUser';
 import {
   Housing,
   HousingSort,
@@ -36,11 +18,17 @@ import {
   SelectedHousing
 } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
-import { useCountHousingQuery } from '../../services/housing.service';
+import {
+  useCountHousingQuery,
+  useFindHousingQuery,
+  useUpdateHousingMutation
+} from '../../services/housing.service';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { findChild } from '../../utils/elementUtils';
 import { capitalize } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
+import AdvancedTable from '../AdvancedTable/AdvancedTable';
+import AdvancedTableHeader from '../AdvancedTable/AdvancedTableHeader';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import OccupancyTag from '../OccupancyTag/OccupancyTag';
@@ -54,39 +42,36 @@ export interface HousingListProps {
 }
 
 const MAX_CAMPAIGN_LENGTH = 17;
-const perPageOptions: SelectProps.Option[] = [
-  '50',
-  '200',
-  '500'
-].map<SelectProps.Option>((nb) => {
-  return { label: `${nb} résultats par page`, value: nb };
-});
 
 function HousingList(props: HousingListProps) {
   const { actions, children, filters, onSelectHousing } = props;
   const header = findChild(children, SelectableListHeader);
 
   const campaignList = useCampaignList();
-  const { isVisitor } = useUser();
+
+  const [updateHousing] = useUpdateHousingMutation();
 
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const [sort, setSort] = useState<HousingSort>();
-  const [updatingHousing, setUpdatingHousing] = useState<string | null>(null);
+  const [updatingHousing, setUpdatingHousing] = useState<Housing>();
 
-  const { housingList } = useHousingList({
+  const { data: housings, isLoading: isLoadingHousings } = useFindHousingQuery({
     filters,
     pagination,
     sort
   });
+  const housingList = housings?.entities;
 
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
-  const { pageCount, perPage, changePerPage, changePage } = usePagination({
-    pagination,
-    setPagination,
-    count: filteredCount
-  });
+  const { pageCount, page, perPage, changePerPage, changePage } = usePagination(
+    {
+      pagination,
+      setPagination,
+      count: filteredCount
+    }
+  );
 
   const selection = useSelection(filteredCount);
 
@@ -156,14 +141,14 @@ function HousingList(props: HousingListProps) {
       }),
       columnHelper.accessor('rawAddress', {
         header: () => (
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <HeaderTitle>Adresse logement</HeaderTitle>
-            {getSortButton('rawAddress', 'Adresse logement')}
-          </Stack>
+          <AdvancedTableHeader
+            title="Adresse logement"
+            sort={getSortButton('rawAddress', 'Adresse logement')}
+          />
         ),
         cell: ({ cell, row }) => {
           return (
-            <AppLink isSimple to={`/logements/${row.original.id}`}>
+            <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
               {cell
                 .getValue()
                 .map((line) => capitalize(line))
@@ -174,28 +159,34 @@ function HousingList(props: HousingListProps) {
       }),
       columnHelper.accessor('owner.fullName', {
         header: () => (
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <HeaderTitle>Propriétaire principal</HeaderTitle>
-            {getSortButton('owner', 'Propriétaire principal')}
-          </Stack>
+          <AdvancedTableHeader
+            title="Propriétaire principal"
+            sort={getSortButton('owner', 'Trier par propriétaire principal')}
+          />
         ),
         cell: ({ cell, row }) => (
           <>
-            <AppLink isSimple to={`/proprietaires/${row.original.id}`}>
+            <AppLink
+              isSimple
+              size="sm"
+              to={`/proprietaires/${row.original.id}`}
+            >
               {cell.getValue()}
             </AppLink>
             {row.original.owner.administrator && (
-              <Typography>{row.original.owner.administrator}</Typography>
+              <Typography variant="body2">
+                {row.original.owner.administrator}
+              </Typography>
             )}
           </>
         )
       }),
       columnHelper.accessor('occupancy', {
         header: () => (
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <HeaderTitle>Occupation</HeaderTitle>
-            {getSortButton('occupancy', 'Occupation')}
-          </Stack>
+          <AdvancedTableHeader
+            title="Occupation"
+            sort={getSortButton('occupancy', 'Trier par occupation')}
+          />
         ),
         cell: ({ cell }) => (
           <OccupancyTag
@@ -218,6 +209,7 @@ function HousingList(props: HousingListProps) {
               <AppLink
                 key={campaign.id}
                 isSimple
+                size="sm"
                 to={`/campagnes/${campaign.id}`}
               >
                 {`${campaign.title.substring(0, MAX_CAMPAIGN_LENGTH)}${campaign.title.length > MAX_CAMPAIGN_LENGTH ? '...' : ''}`}
@@ -230,16 +222,19 @@ function HousingList(props: HousingListProps) {
         {
           id: 'status',
           header: () => (
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <HeaderTitle>Statuts de suivi</HeaderTitle>
-              {getSortButton('status', 'Statuts de suivi')}
-            </Stack>
+            <AdvancedTableHeader
+              title="Statuts de suivi"
+              sort={getSortButton('status', 'Trier par statut de suivi')}
+            />
           ),
           cell: ({ cell }) => {
             const { status, subStatus } = cell.getValue();
             return (
               <Stack sx={{ alignItems: 'center' }}>
-                <HousingStatusBadge status={status} />
+                <HousingStatusBadge
+                  badgeProps={{ small: true }}
+                  status={status}
+                />
                 {subStatus && (
                   <Typography align="center" variant="caption">
                     {subStatus}
@@ -252,20 +247,26 @@ function HousingList(props: HousingListProps) {
       ),
       columnHelper.display({
         id: 'action',
-        header: 'Action',
+        header: () => <Typography variant="body2">Action</Typography>,
         cell: ({ row }) => {
           if (actions) {
             return <>{actions(row.original)}</>;
           }
 
           return (
-            <Button
-              title="Mettre à jour"
-              iconId="fr-icon-edit-line"
-              size="small"
-              priority="secondary"
-              onClick={() => setUpdatingHousing(row.original)}
-            />
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ justifyContent: 'flex-end' }}
+            >
+              <Button
+                title="Mettre à jour"
+                iconId="fr-icon-edit-line"
+                size="small"
+                priority="secondary"
+                onClick={() => setUpdatingHousing(row.original)}
+              />
+            </Stack>
           );
         }
       })
@@ -280,36 +281,16 @@ function HousingList(props: HousingListProps) {
     ]
   );
 
-  const table = useReactTable<Housing>({
-    data: housingList ?? [],
-    columns: columns,
-    state: {
-      columnVisibility: {
-        check: !isVisitor,
-        action: !isVisitor
-      }
-    },
-    getRowId: (row) => row.id,
-    getCoreRowModel: getCoreRowModel(),
-    enableMultiRowSelection: true,
-    // Let the API do these things
-    manualSorting: true,
-    manualPagination: true
-  });
-  const rows = table.getRowModel().rows;
-
-  const headers: ReadonlyArray<ReactNode> = table
-    .getLeafHeaders()
-    .map((header) =>
-      flexRender(header.column.columnDef.header, header.getContext())
-    );
-  const data: ReadonlyArray<ReadonlyArray<ReactNode>> = rows
-    .map((row) => row.getVisibleCells())
-    .map((cells) =>
-      cells.map((cell) =>
-        flexRender(cell.column.columnDef.cell, cell.getContext())
-      )
-    );
+  const submitHousingUpdate = async (
+    housing: Housing,
+    housingUpdate: HousingUpdate
+  ) => {
+    await updateHousing({
+      housing,
+      housingUpdate
+    });
+    setUpdatingHousing(undefined);
+  };
 
   return (
     <Stack sx={{ alignItems: 'center' }}>
@@ -321,56 +302,25 @@ function HousingList(props: HousingListProps) {
         {...header?.props}
       />
 
-      <Table
-        bordered
-        headers={headers}
-        data={data}
-        data-testid="housing-table"
+      <AdvancedTable
+        columns={columns}
+        data={housingList ?? []}
+        isLoading={isLoadingHousings}
+        page={page}
+        pageCount={pageCount}
+        perPage={perPage}
+        tableProps={{ bordered: true, noCaption: true }}
+        onPageChange={changePage}
+        onPerPageChange={changePerPage}
       />
-      <Stack direction="row">
-        <Select
-          className={fr.cx('fr-mr-2w')}
-          label={null}
-          nativeSelectProps={{
-            value: perPage.toString(),
-            onChange: (event) => {
-              changePerPage(Number(event.target.value));
-            }
-          }}
-          options={perPageOptions}
-        />
-        <TablePagination
-          count={pageCount}
-          defaultPage={pagination.page}
-          getPageLinkProps={(page: number) => ({
-            onClick: (event: MouseEvent) => {
-              event.preventDefault();
-              changePage(page);
-            },
-            to: '#'
-          })}
-          showFirstLast
-        />
-      </Stack>
 
       <HousingEditionSideMenu
-        housing={
-          housingList.find((housing) => housing.id === updatingHousing) ?? null
-        }
+        housing={updatingHousing}
         expand={!!updatingHousing}
-        onClose={() => {
-          setUpdatingHousing(null);
-        }}
+        onSubmit={submitHousingUpdate}
+        onClose={() => setUpdatingHousing(undefined)}
       />
     </Stack>
-  );
-}
-
-function HeaderTitle(props: PropsWithChildren) {
-  return (
-    <Typography sx={{ fontSize: '0.875rem', fontWeight: 700 }}>
-      {props.children}
-    </Typography>
   );
 }
 

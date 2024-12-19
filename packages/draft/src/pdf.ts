@@ -221,7 +221,7 @@ function createTransformer(opts: TransformerOptions) {
         pdf.getPages().forEach((page, i) => {
           const position = imagePositions.get(image.id)?.at(i);
           if (position) {
-            logger.error(`Image position not found for page ${i}`)
+            logger.error(`Image position not found for page ${i}`);
             if (embed instanceof PDFImage) {
               page.drawImage(embed, {
                 x: toPoints(position.x),

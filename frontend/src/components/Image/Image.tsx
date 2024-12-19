@@ -2,16 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import styled from '@emotion/styled';
 import classNames from 'classnames';
 
-const responsiveValues = [
-  '1x1',
-  '2x3',
-  '3x2',
-  '3x4',
-  '4x3',
-  '16x9',
-  '32x9'
-] as const;
-type Responsive = (typeof responsiveValues)[number];
+type Responsive = '1x1' | '2x3' | '3x2' | '3x4' | '4x3' | '16x9' | '32x9';
 
 interface Props {
   alt: string;

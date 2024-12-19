@@ -99,37 +99,49 @@ export const formatSenderApi = (sender: SenderApi): SenderDBO => ({
 
 export const parseSenderApi = async (
   sender: SenderDBO
-): Promise<SenderApi> => ({
-  id: sender.id,
-  name: sender.name,
-  service: sender.service,
-  firstName: sender.first_name,
-  lastName: sender.last_name,
-  address: sender.address,
-  email: sender.email,
-  phone: sender.phone,
-  signatories: [
-    {
-      firstName: sender.signatory_one_first_name,
-      lastName: sender.signatory_one_last_name,
-      role: sender.signatory_one_role,
-      file: sender.signatory_one_file
-        ? await download(sender.signatory_one_file)
-        : null
-    },
-    {
-      firstName: sender.signatory_two_first_name,
-      lastName: sender.signatory_two_last_name,
-      role: sender.signatory_two_role,
-      file: sender.signatory_two_file
-        ? await download(sender.signatory_two_file)
-        : null
-    }
-  ],
-  createdAt: new Date(sender.created_at).toJSON(),
-  updatedAt: new Date(sender.updated_at).toJSON(),
-  establishmentId: sender.establishment_id
-});
+): Promise<SenderApi> => {
+  let signatory_one_file;
+  try {
+    signatory_one_file = sender.signatory_one_file ? await download(sender.signatory_one_file) : null;
+  } catch (error) {
+    signatory_one_file = null;
+  }
+
+  let signatory_two_file;
+  try {
+    signatory_two_file = sender.signatory_two_file ? await download(sender.signatory_two_file) : null;
+  } catch (error) {
+    signatory_two_file = null;
+  }
+
+  return {
+    id: sender.id,
+    name: sender.name,
+    service: sender.service,
+    firstName: sender.first_name,
+    lastName: sender.last_name,
+    address: sender.address,
+    email: sender.email,
+    phone: sender.phone,
+    signatories: [
+      {
+        firstName: sender.signatory_one_first_name,
+        lastName: sender.signatory_one_last_name,
+        role: sender.signatory_one_role,
+        file: signatory_one_file
+      },
+      {
+        firstName: sender.signatory_two_first_name,
+        lastName: sender.signatory_two_last_name,
+        role: sender.signatory_two_role,
+        file: signatory_two_file
+      }
+    ],
+    createdAt: new Date(sender.created_at).toJSON(),
+    updatedAt: new Date(sender.updated_at).toJSON(),
+    establishmentId: sender.establishment_id
+  };
+};
 
 export default {
   findOne,

@@ -15,6 +15,8 @@ import config from '~/infra/config';
 import { noop } from '~/middlewares/noop';
 import validator from '~/middlewares/validator';
 import serverSentEventController from '~/controllers/serverSentEventController';
+import validatorNext from '~/middlewares/validator-next';
+import schemas from '@zerologementvacant/schemas';
 
 const router = Router();
 
@@ -26,7 +28,7 @@ function rateLimiter() {
         max: 10,
         message: 'Too many request from this address, try again later please.',
         standardHeaders: true,
-        legacyHeaders: false,
+        legacyHeaders: false
       })
     : noop();
 }
@@ -37,14 +39,14 @@ router.get(
   '/prospects/:email',
   prospectController.showProspectValidator,
   validator.validate,
-  prospectController.show,
+  prospectController.show
 );
 
 router.post(
   '/owner-prospects',
   ownerProspectController.createOwnerProspectValidators,
   validator.validate,
-  ownerProspectController.create,
+  ownerProspectController.create
 );
 
 router.post(
@@ -52,21 +54,21 @@ router.post(
   rateLimiter(),
   userController.createUserValidators,
   validator.validate,
-  userController.createUser,
+  userController.createUser
 );
 router.post(
   '/authenticate',
   rateLimiter(),
   accountController.signInValidators,
   validator.validate,
-  accountController.signIn,
+  accountController.signIn
 );
 router.post(
   '/account/reset-password',
   rateLimiter(),
   accountController.resetPasswordValidators,
   validator.validate,
-  accountController.resetPassword,
+  accountController.resetPassword
 );
 
 router.post(
@@ -74,14 +76,14 @@ router.post(
   rateLimiter(),
   resetLinkController.createValidators,
   validator.validate,
-  resetLinkController.create,
+  resetLinkController.create
 );
 router.get(
   '/reset-links/:id',
   rateLimiter(),
   resetLinkController.showValidators,
   validator.validate,
-  resetLinkController.show,
+  resetLinkController.show
 );
 
 router.post(
@@ -89,54 +91,55 @@ router.post(
   rateLimiter(),
   signupLinkController.createValidators,
   validator.validate,
-  signupLinkController.create,
+  signupLinkController.create
 );
 router.get(
   '/signup-links/:id',
   rateLimiter(),
   signupLinkController.showValidators,
   validator.validate,
-  signupLinkController.show,
+  signupLinkController.show
 );
 router.put(
   '/signup-links/:id/prospect',
   rateLimiter(),
   prospectController.createProspectValidator,
   validator.validate,
-  prospectController.upsert,
+  prospectController.upsert
 );
 
 router.get(
   '/establishments',
-  establishmentController.listValidators,
-  validator.validate,
-  establishmentController.list,
+  validatorNext.validate({
+    query: schemas.establishmentFilters
+  }),
+  establishmentController.list
 );
 router.get(
   '/establishments/:id/settings',
   settingsController.getSettingsValidators,
   validator.validate,
-  settingsController.getSettings,
+  settingsController.getSettings
 );
 
 router.get(
   '/localities',
   localityController.listLocalitiesValidators,
   validator.validate,
-  localityController.listLocalities,
+  localityController.listLocalities
 );
 router.get(
   '/localities/:geoCode',
   localityController.getLocalityValidators,
   validator.validate,
-  localityController.getLocality,
+  localityController.getLocality
 );
 
 router.get(
   '/contact-points/public',
   contactPointController.listContactPointsValidators,
   validator.validate,
-  contactPointController.listContactPoints(true),
+  contactPointController.listContactPoints(true)
 );
 
 export default router;

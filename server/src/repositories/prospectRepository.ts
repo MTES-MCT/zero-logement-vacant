@@ -71,9 +71,7 @@ export const parseProspectApi = (prospect: ProspectDBO): ProspectApi => ({
   lastAccountRequestAt: prospect.last_account_request_at,
   establishment: {
     id: prospect.establishment_id,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    siren: prospect.establishment_siren
+    siren: prospect.establishment_siren?.toString() ?? ''
   }
 });
 
@@ -85,6 +83,8 @@ export const formatProspectApi = (
   has_commitment: prospect.hasCommitment,
   last_account_request_at: prospect.lastAccountRequestAt,
   establishment_siren: prospect.establishment?.siren
+    ? Number(prospect.establishment.siren)
+    : undefined
 });
 
 export default {

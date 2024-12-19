@@ -2,6 +2,7 @@ import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import db from '~/infra/database';
 import { tokenProvider } from '~/test/testUtils';
 import {
@@ -59,6 +60,7 @@ import {
 import { faker } from '@faker-js/faker/locale/fr';
 import { OwnerApi } from '~/models/OwnerApi';
 import { Occupancy, OCCUPANCY_VALUES } from '@zerologementvacant/models';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 
 describe('Housing API', () => {
   const { app } = createServer();
@@ -96,6 +98,26 @@ describe('Housing API', () => {
   describe('GET /housing', () => {
     const testRoute = '/api/housing';
 
+    beforeAll(async () => {
+      const housings = [
+        ...Array.from({ length: 5 }, () =>
+          genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+        ),
+        ...Array.from({ length: 3 }, () =>
+          genHousingApi(
+            faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+          )
+        )
+      ];
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      const owners = housings.map((housing) => housing.owner);
+      await Owners().insert(owners.map(formatOwnerApi));
+      const housingOwners = housings.flatMap((housing) => {
+        return formatHousingOwnersApi(housing, [housing.owner]);
+      });
+      await HousingOwners().insert(housingOwners);
+    });
+
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(app).get(testRoute);
 
@@ -105,9 +127,6 @@ describe('Housing API', () => {
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
       const { body, status } = await request(app)
         .get(testRoute)
-        .query({
-          filters: JSON.stringify({})
-        })
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -122,6 +141,119 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    describe('Filters', () => {
+      const department: EstablishmentApi = {
+        ...genEstablishmentApi(),
+        geoCodes: faker.helpers.multiple(() => genGeoCode()),
+        kind: 'DEP'
+      };
+      const departmentUser = genUserApi(department.id);
+      const intercommunality: EstablishmentApi = {
+        ...genEstablishmentApi(
+          ...faker.helpers.arrayElements(department.geoCodes)
+        ),
+        kind: 'ME'
+      };
+      const intercommunalityUser = genUserApi(intercommunality.id);
+      const commune: EstablishmentApi = {
+        ...genEstablishmentApi(
+          faker.helpers.arrayElement(intercommunality.geoCodes)
+        ),
+        kind: 'Commune'
+      };
+      const communeUser = genUserApi(commune.id);
+
+      beforeAll(async () => {
+        await Establishments().insert(
+          [department, intercommunality, commune].map(formatEstablishmentApi)
+        );
+        await Users().insert(
+          [departmentUser, intercommunalityUser, communeUser].map(formatUserApi)
+        );
+
+        const housings = department.geoCodes
+          .concat(intercommunality.geoCodes)
+          .concat(commune.geoCodes)
+          .map((geoCode) => genHousingApi(geoCode));
+        await Housing().insert(housings.map(formatHousingRecordApi));
+        const owners = housings.map((housing) => housing.owner);
+        await Owners().insert(owners.map(formatOwnerApi));
+        const housingOwners = housings.flatMap((housing) => {
+          return formatHousingOwnersApi(housing, [housing.owner]);
+        });
+        await HousingOwners().insert(housingOwners);
+      });
+
+      it.each([
+        { user: departmentUser, establishment: department },
+        { user: intercommunalityUser, establishment: intercommunality },
+        { user: communeUser, establishment: commune }
+      ])(
+        'should use the authenticated user’s establishment to filter results',
+        async ({ establishment, user }) => {
+          const { body, status } = await request(app)
+            .get(testRoute)
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+          expect(body.entities.length).toBeGreaterThan(0);
+          expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
+            return establishment.geoCodes.includes(housing.geoCode);
+          });
+        }
+      );
+
+      it('should combine the authenticated user’s establishment with the intercommunalities filter', async () => {
+        const { body, status } = await request(app)
+          .get(testRoute)
+          .query({
+            intercommunalities: [intercommunality.id]
+          })
+          .use(tokenProvider(departmentUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.entities.length).toBeGreaterThan(0);
+        expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
+          return intercommunality.geoCodes.includes(housing.geoCode);
+        });
+        expect(body.entities).not.toSatisfyAny((housing: HousingApi) => {
+          return department.geoCodes
+            .filter((geoCode) => !intercommunality.geoCodes.includes(geoCode))
+            .includes(housing.geoCode);
+        });
+      });
+
+      it('should combine the authenticated user’s establishment with the localities filter', async () => {
+        const { body, status } = await request(app)
+          .get(testRoute)
+          .query({
+            localities: [commune.geoCodes[0]]
+          })
+          .use(tokenProvider(intercommunalityUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.entities.length).toBeGreaterThan(0);
+        expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
+          return commune.geoCodes.includes(housing.geoCode);
+        });
+      });
+
+      it('should remove the intercommunalities filter if the user’s establishment is not at the department level', async () => {
+        const { body, status } = await request(app)
+          .get(testRoute)
+          .query({
+            intercommunalities: [intercommunality.id]
+          })
+          .use(tokenProvider(communeUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.entities.length).toBeGreaterThan(0);
+        expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
+          return commune.geoCodes.includes(housing.geoCode);
+        });
+      });
     });
 
     it('should paginate the response', async () => {

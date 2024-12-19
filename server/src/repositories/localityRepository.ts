@@ -1,37 +1,58 @@
+import { Knex } from 'knex';
+
+import { LocalityKind } from '@zerologementvacant/models';
 import db from '~/infra/database';
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
-import { logger } from '~/infra/logger';
-import { LocalityKind } from '@zerologementvacant/models';
-import { establishmentsLocalitiesTable } from './establishmentLocalityRepository';
+import { createLogger } from '~/infra/logger';
+import {
+  Establishments,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
 
 export const localitiesTable = 'localities';
 export const Localities = (transaction = db) =>
   transaction<LocalityDBO>(localitiesTable);
 
+const logger = createLogger('localityRepository');
+
+interface LocalityFilters {
+  establishmentId?: string;
+}
+
+interface FindOptions {
+  filters?: LocalityFilters;
+}
+
+async function find(options: FindOptions): Promise<ReadonlyArray<LocalityApi>> {
+  const localities = await Localities()
+    .select(`${localitiesTable}.*`)
+    .modify(filterQuery(options?.filters))
+    .orderBy(`${localitiesTable}.name`);
+
+  return localities.map(parseLocalityApi);
+}
+
 async function get(geoCode: string): Promise<LocalityApi | null> {
-  logger.info('Get LocalityApi with geoCode', geoCode);
-  const locality = await db(localitiesTable).where('geo_code', geoCode).first();
+  logger.debug('Get locality', { geoCode });
+  const locality = await Localities().where({ geo_code: geoCode }).first();
   return locality ? parseLocalityApi(locality) : null;
 }
 
-async function listByEstablishmentId(
-  establishmentId: string
-): Promise<LocalityApi[]> {
-  return db(localitiesTable)
-    .select(`${localitiesTable}.*`)
-    .join(establishmentsLocalitiesTable, (join) => {
-      join
-        .onVal(
-          `${establishmentsLocalitiesTable}.establishment_id`,
-          establishmentId
-        )
-        .andOn(
-          `${establishmentsLocalitiesTable}.locality_id`,
-          `${localitiesTable}.id`
-        );
-    })
-    .orderBy(`${localitiesTable}.name`)
-    .then((_) => _.map((_: LocalityDBO) => parseLocalityApi(_)));
+function filterQuery(filters?: LocalityFilters) {
+  return (query: Knex.QueryBuilder<LocalityDBO>): void => {
+    if (filters?.establishmentId) {
+      query.whereIn(
+        'geo_code',
+        Establishments()
+          .select(
+            db.raw(
+              `UNNEST(${establishmentsTable}.localities_geo_code::varchar[])`
+            )
+          )
+          .where({ id: filters.establishmentId })
+      );
+    }
+  };
 }
 
 export interface LocalityDBO {
@@ -54,27 +75,27 @@ async function update(localityApi: LocalityApi): Promise<LocalityApi> {
     .then((_) => parseLocalityApi(_[0]));
 }
 
-export const formatLocalityApi = (localityApi: LocalityApi): LocalityDBO => ({
-  id: localityApi.id,
-  geo_code: localityApi.geoCode,
-  name: localityApi.name,
-  locality_kind: localityApi.kind,
-  tax_kind: localityApi.taxKind,
-  tax_rate: localityApi.taxRate
+export const formatLocalityApi = (locality: LocalityApi): LocalityDBO => ({
+  id: locality.id,
+  geo_code: locality.geoCode,
+  name: locality.name,
+  locality_kind: locality.kind,
+  tax_kind: locality.taxKind,
+  tax_rate: locality.taxRate
 });
 
-export const parseLocalityApi = (localityDbo: LocalityDBO): LocalityApi => ({
-  id: localityDbo.id,
-  geoCode: localityDbo.geo_code,
-  name: localityDbo.name,
-  kind: localityDbo.locality_kind as LocalityKind,
-  taxKind: localityDbo.tax_kind as TaxKindsApi,
-  taxRate: localityDbo.tax_rate
+export const parseLocalityApi = (locality: LocalityDBO): LocalityApi => ({
+  id: locality.id,
+  geoCode: locality.geo_code,
+  name: locality.name,
+  kind: locality.locality_kind as LocalityKind,
+  taxKind: locality.tax_kind as TaxKindsApi,
+  taxRate: locality.tax_rate
 });
 
 export default {
+  find,
   get,
-  listByEstablishmentId,
   formatLocalityApi,
   update
 };

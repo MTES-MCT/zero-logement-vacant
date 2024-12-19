@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
 import async from 'async';
 import { Knex } from 'knex';
+import { ElementOf, MarkRequired } from 'ts-essentials';
 
 import { AddressKinds } from '@zerologementvacant/models';
 import { Establishments } from '~/repositories/establishmentRepository';
@@ -20,12 +21,12 @@ import {
 } from '~/repositories/housingOwnerRepository';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
 import { createBanAPI } from '~/services/ban/ban-api';
-import { MarkRequired } from 'ts-essentials';
 import {
   banAddressesTable,
   formatAddressApi
 } from '~/repositories/banAddressesRepository';
 import { AddressApi } from '~/models/AddressApi';
+import fp from 'lodash/fp';
 
 export async function seed(knex: Knex): Promise<void> {
   const ban = createBanAPI();
@@ -36,50 +37,39 @@ export async function seed(knex: Knex): Promise<void> {
 
   const establishments = await Establishments(knex).where({ available: true });
   await async.forEachSeries(establishments, async (establishment) => {
-    const id =
-      establishment.kind === 'Commune'
-        ? establishment.localities_geo_code[0]
-        : establishment.siren;
-    const kind = establishment.kind === 'Commune' ? 'communes' : 'epcis';
-    const response = await fetch(
-      `https://geo.api.gouv.fr/${kind}/${id}?format=geojson&geometry=contour`
+    const geoCodes = faker.helpers.arrayElements(
+      establishment.localities_geo_code,
+      30
     );
-    if (!response.ok) {
-      const error = await response.json();
-      console.log(error);
-      throw new Error('Failed to fetch geojson');
-    }
-
-    const epci = await response.json();
-    const contour = (epci as Feature<Polygon | MultiPolygon>).geometry;
-
-    const baseHousings: ReadonlyArray<
-      MarkRequired<HousingApi, 'longitude' | 'latitude'>
-    > = faker.helpers
-      .multiple(
-        () =>
-          genHousingApi(
-            faker.helpers.arrayElement(establishment.localities_geo_code)
-          ),
-        {
-          count: {
-            min: 100,
-            max: 10000
-          }
+    const baseHousings: HousingApi[] = faker.helpers.multiple(
+      () => genHousingApi(faker.helpers.arrayElement(geoCodes)),
+      {
+        count: {
+          min: 100,
+          max: 10000
         }
-      )
-      // Put the housing inside the establishment perimeter
-      .map((housing) => {
+      }
+    );
+
+    const geolocatedHousings: ReadonlyArray<
+      MarkRequired<HousingApi, 'longitude' | 'latitude'>
+    > = await async.mapLimit(
+      baseHousings,
+      8,
+      async (housing: ElementOf<typeof baseHousings>) => {
+        const geojson = await fetchPerimeter(housing.geoCode);
+        const contour = geojson.geometry;
         const point = generatePointInside(contour);
         return {
           ...housing,
           longitude: point[0],
           latitude: point[1]
         };
-      });
+      }
+    );
 
     // Infer housing addresses using the generated coordinates
-    const points = baseHousings.map((housing) => ({
+    const points = geolocatedHousings.map((housing) => ({
       refId: housing.id,
       geoCode: housing.geoCode,
       longitude: housing.longitude,
@@ -88,7 +78,7 @@ export async function seed(knex: Knex): Promise<void> {
     const addresses = await ban.reverseMany(points).then((addresses) => {
       return addresses.filter((address) => !!address.label);
     });
-    const housings = baseHousings
+    const housings = geolocatedHousings
       .filter((housing) => {
         return addresses.some(
           (address) =>
@@ -102,6 +92,8 @@ export async function seed(knex: Knex): Promise<void> {
         }
         return {
           ...housing,
+          longitude: address.longitude,
+          latitude: address.latitude,
           rawAddress: [address.label]
         };
       });
@@ -161,6 +153,26 @@ export async function seed(knex: Knex): Promise<void> {
     );
   });
 }
+
+async function perimeter(
+  geoCode: string
+): Promise<Feature<Polygon | MultiPolygon>> {
+  const response = await fetch(
+    `https://geo.api.gouv.fr/communes/${geoCode}?format=geojson&geometry=contour`
+  );
+  if (!response.ok) {
+    const error = await response.json();
+    console.log(error);
+    throw new Error('Failed to fetch geojson');
+  }
+
+  const perimeter = await response.json();
+  return perimeter as Feature<Polygon | MultiPolygon>;
+}
+
+// Memoize this function to avoid fetching the same perimeter multiple times
+// and running out of requests on geo.api.gouv.fr
+const fetchPerimeter = fp.memoize(perimeter);
 
 function generatePointInside(perimeter: Polygon | MultiPolygon): Position {
   function generate(): Position {

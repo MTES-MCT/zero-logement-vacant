@@ -73,7 +73,6 @@ describe('Housing view', () => {
 
         const vacancyStartYear = await screen
           .findByText(/^Dans cette situation depuis/)
-          // eslint-disable-next-line testing-library/no-node-access
           .then((label) => label.nextElementSibling);
         expect(vacancyStartYear).toHaveTextContent('Inconnu');
       });
@@ -86,7 +85,6 @@ describe('Housing view', () => {
 
         const vacancyStartYear = await screen
           .findByText(/^Dans cette situation depuis/)
-          // eslint-disable-next-line testing-library/no-node-access
           .then((label) => label.nextElementSibling);
         expect(vacancyStartYear).toHaveTextContent('Moins d’un an');
       });
@@ -100,7 +98,6 @@ describe('Housing view', () => {
 
         const source = await screen
           .findByText(/^Source/)
-          // eslint-disable-next-line testing-library/no-node-access
           .then((label) => label.nextElementSibling);
         expect(source).toHaveTextContent('Fichiers fonciers (2023)');
       });

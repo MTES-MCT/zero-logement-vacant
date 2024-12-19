@@ -37,7 +37,7 @@ const processRow = async (dfHousing: any) => {
       owner = toOwnerApi(dfOwner.rows[0]);
       try {
         await ownerRepository.save(owner);
-      } catch (e) {
+      } catch {
         return;
       }
     }
@@ -53,7 +53,7 @@ const processRow = async (dfHousing: any) => {
           housing_geo_code: housing.geoCode,
           rank: 1
         });
-      } catch (e: any) {
+      } catch {
         return;
       }
     }

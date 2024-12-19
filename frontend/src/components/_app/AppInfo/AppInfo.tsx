@@ -4,6 +4,7 @@ import { PropsWithChildren } from 'react';
 import styles from './app-info.module.scss';
 import { fr } from '@codegouvfr/react-dsfr';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface Props {}
 
 function AppInfo(props: PropsWithChildren<Props>) {

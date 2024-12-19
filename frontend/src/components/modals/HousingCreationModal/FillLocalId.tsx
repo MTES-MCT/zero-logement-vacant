@@ -55,7 +55,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
         ]);
         dispatch(changeCreator({ localId }));
         return 'review-housing';
-      } catch (error) {
+      } catch {
         return null;
       }
     }

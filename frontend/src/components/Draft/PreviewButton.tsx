@@ -87,7 +87,7 @@ function PreviewButton(props: Readonly<Props>) {
           setIsSuccess(true);
         }
       }
-    } catch (error) {
+    } catch {
       setIsError(true);
     } finally {
       setIsLoading(false);

@@ -136,7 +136,7 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
 
   const [allowedGeoCodes, intercommunalities] = await Promise.all([
     fetchGeoCodes(filters.establishmentIds ?? []),
-    fetchGeoCodes(filters.intercommunalities ?? [])
+    fetchGeoCodes(Array.isArray(filters.intercommunalities) ? filters.intercommunalities : [])
   ]);
   const localities = filters.localities ?? [];
   const geoCodes = Set(allowedGeoCodes)
@@ -199,9 +199,11 @@ async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
     .where(whereOptions(opts))
     .modify((query) => {
       if (opts.geoCode) {
-        Array.isArray(opts.geoCode)
-          ? query.whereIn(`${housingTable}.geo_code`, opts.geoCode)
-          : query.where(`${housingTable}.geo_code`, opts.geoCode);
+        if (Array.isArray(opts.geoCode)) {
+          query.whereIn(`${housingTable}.geo_code`, opts.geoCode);
+        } else {
+          query.where(`${housingTable}.geo_code`, opts.geoCode);
+        }
       }
     })
     .modify(include(opts.includes ?? []))

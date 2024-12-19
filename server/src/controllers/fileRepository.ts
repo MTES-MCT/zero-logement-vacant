@@ -27,7 +27,7 @@ export async function download(logo: string): Promise<FileUploadDTO> {
       url: logo,
       type: response.ContentType ?? 'base64'
     };
-  } catch (error) {
+  } catch {
     throw new FileMissingError();
   }
 }

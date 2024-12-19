@@ -1,5 +1,6 @@
 import path from 'path';
 import { logger } from '~/infra/logger';
+import { exec } from 'child_process';
 import db from '~/infra/database/';
 import { housingTable } from '~/repositories/housingRepository';
 import downloader from './downloader';
@@ -22,7 +23,6 @@ const loadSchema = async (department: string): Promise<void> => {
     downloader.getArchiveDir(department),
     'bdnb.sql',
   )}`;
-  const exec = require('child_process').exec;
 
   return new Promise((resolve) => {
     exec(cmd, async (error: any, stdout: any, stderr: any) => {

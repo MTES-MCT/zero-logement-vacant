@@ -68,7 +68,11 @@ function ModalStepper(props: Props) {
       onClick: async () => {
         const next = (await ref.current?.onNext?.()) ?? true;
         if (next) {
-          stepper.isOver() ? modal.close() : stepper.next();
+          if (stepper.isOver()) {
+            modal.close();
+          } else {
+            stepper.next();
+          }
         }
       },
     },

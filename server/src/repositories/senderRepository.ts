@@ -103,14 +103,14 @@ export const parseSenderApi = async (
   let signatory_one_file;
   try {
     signatory_one_file = sender.signatory_one_file ? await download(sender.signatory_one_file) : null;
-  } catch (error) {
+  } catch {
     signatory_one_file = null;
   }
 
   let signatory_two_file;
   try {
     signatory_two_file = sender.signatory_two_file ? await download(sender.signatory_two_file) : null;
-  } catch (error) {
+  } catch {
     signatory_two_file = null;
   }
 

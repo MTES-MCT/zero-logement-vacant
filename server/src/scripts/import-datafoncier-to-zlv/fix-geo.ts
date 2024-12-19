@@ -3,6 +3,7 @@ import { parse } from 'csv-parse';
 import { Map } from 'immutable';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
+import stream from 'node:stream';
 
 import db from '~/infra/database';
 import { logger } from '~/infra/logger';
@@ -43,7 +44,7 @@ function transform(transformFunction: {
   (arg0: any, arg1: any): void;
 }) {
   let isFirstCol = true;
-  return require('stream').Transform({
+  return new stream.Transform({
     objectMode: true,
     transform: function (
       row: any,

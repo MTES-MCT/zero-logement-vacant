@@ -11,6 +11,7 @@ import {
 } from '~/repositories/senderRepository';
 import { download } from '~/controllers/fileRepository';
 import async from 'async';
+import { FileUploadDTO } from '@zerologementvacant/models';
 
 export const draftsTable = 'drafts';
 export const Drafts = (transaction: Knex<DraftRecordDBO> = db) =>
@@ -134,19 +135,31 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   updated_at: new Date(draft.updatedAt)
 });
 
-export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => ({
-  id: draft.id,
-  subject: draft.subject,
-  body: draft.body,
-  logo: await async.map(draft.logo ?? [], download),
-  writtenAt: draft.written_at,
-  writtenFrom: draft.written_from,
-  establishmentId: draft.establishment_id,
-  senderId: draft.sender_id,
-  sender: await parseSenderApi(draft.sender),
-  createdAt: draft.created_at.toJSON(),
-  updatedAt: draft.updated_at.toJSON()
-});
+export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
+  let logo: FileUploadDTO[] | null = null;
+
+  if (Array.isArray(draft.logo)) {
+    try {
+      logo = await Promise.all(draft.logo.map(download));
+    } catch (error) {
+      logo = null;
+    }
+  }
+
+  return {
+    id: draft.id,
+    subject: draft.subject,
+    body: draft.body,
+    logo: logo,
+    writtenAt: draft.written_at,
+    writtenFrom: draft.written_from,
+    establishmentId: draft.establishment_id,
+    senderId: draft.sender_id,
+    sender: await parseSenderApi(draft.sender),
+    createdAt: draft.created_at.toJSON(),
+    updatedAt: draft.updated_at.toJSON(),
+  };
+};
 
 export default {
   find,

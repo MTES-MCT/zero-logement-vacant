@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { Request, RequestHandler } from 'express';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,16 +6,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { createS3 } from '@zerologementvacant/utils';
 import config from '~/infra/config';
 
-export function upload() {
+export function upload(): RequestHandler {
   const upload = multer({
     limits: {
       files: 1,
-      fileSize: 1024 * 1024 * 5, // 5 MB
+      fileSize: 1024 * 1024 * 5 // 5 MB
     },
+    // @ts-expect-error: Due to express-server-static-core weird type augmentation
     fileFilter(
       request: Request,
       file: Express.Multer.File,
-      callback: multer.FileFilterCallback,
+      callback: multer.FileFilterCallback
     ) {
       // TODO: check file.mimetype
       return callback(null, true);
@@ -25,7 +26,7 @@ export function upload() {
         endpoint: config.s3.endpoint,
         region: config.s3.region,
         accessKeyId: config.s3.accessKeyId,
-        secretAccessKey: config.s3.secretAccessKey,
+        secretAccessKey: config.s3.secretAccessKey
       }),
       acl: 'authenticated-read',
       bucket: config.s3.bucket,
@@ -36,9 +37,10 @@ export function upload() {
       key: function (req, file, cb) {
         const id = uuidv4();
         cb(null, id);
-      },
-    }),
+      }
+    })
   });
 
+  // @ts-expect-error: Due to express-server-static-core weird type augmentation
   return upload.single('file');
 }

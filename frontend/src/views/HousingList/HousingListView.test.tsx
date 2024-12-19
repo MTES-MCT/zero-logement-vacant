@@ -101,9 +101,8 @@ describe('Housing list view', () => {
     it('should select all housings when the top checkbox gets checked', async () => {
       setup();
 
-      const checkboxes = await within(
-        await screen.findByRole('table')
-      ).findAllByRole('checkbox');
+      const [row] = await screen.findAllByRole('row');
+      const checkboxes = await within(row).findAllByRole('checkbox');
       const [checkAll] = checkboxes;
       await user.click(checkAll);
       checkboxes.forEach((checkbox) => {
@@ -114,9 +113,8 @@ describe('Housing list view', () => {
     it('should unselect all housings when the top checkbox is checked and clicked again', async () => {
       setup();
 
-      const checkboxes = await within(
-        await screen.findByRole('table')
-      ).findAllByRole('checkbox');
+      const [row] = await screen.findAllByRole('row');
+      const checkboxes = await within(row).findAllByRole('checkbox');
       const [checkAll] = checkboxes;
       await user.click(checkAll);
       await user.click(checkAll);
@@ -149,8 +147,9 @@ describe('Housing list view', () => {
         </Provider>
       );
 
-      const panel = await screen.findByRole('tabpanel');
-      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      const rows = await screen.findAllByRole('row');
+      const firstDataRow = rows[1]; // First row after the header row
+      const checkbox = await within(firstDataRow).findByRole('checkbox');
       await user.click(checkbox);
 
       const createCampaign = await screen.findByRole('button', {

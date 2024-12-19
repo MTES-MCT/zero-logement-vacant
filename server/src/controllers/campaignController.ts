@@ -360,7 +360,7 @@ async function update(request: Request, response: Response) {
     title: body.title,
     description: body.description,
     status: body.status,
-    file: campaign.file != null ? key : body.file,
+    file: campaign.file !== null ? key : body.file,
     validatedAt:
       campaign.status !== body.status && body.status === 'sending'
         ? new Date().toJSON()

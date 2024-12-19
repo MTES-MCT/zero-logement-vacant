@@ -20,8 +20,8 @@ import {
   roomsCountOptions,
   statusOptions,
   taxedOptions,
-  vacancyYearOptions,
-  vacancyRateOptions
+  vacancyRateOptions,
+  vacancyYearOptions
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
@@ -34,6 +34,8 @@ import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import fp from 'lodash/fp';
+import { useIntercommunalities } from '../../hooks/useIntercommunalities';
+import { SelectOption } from '../../models/SelectOption';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
@@ -48,6 +50,12 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   );
   const campaigns = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
+  const { data: intercommunalities } = useIntercommunalities();
+  const intercommunalityOptions =
+    intercommunalities?.map<SelectOption>((intercommunality) => ({
+      value: intercommunality.id,
+      label: intercommunality.name
+    })) ?? [];
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
   const hasFilters = fp.keys(fp.omit(['groupIds'], filters)).length > 0;
@@ -154,6 +162,12 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         values={filters.vacancyRates}
         small={small}
         onChange={(values) => onChange?.({ vacancyRates: values })}
+      />
+      <FilterBadges
+        options={intercommunalityOptions}
+        values={filters.intercommunalities}
+        small={small}
+        onChange={(value) => onChange?.({ intercommunalities: value })}
       />
       <FilterBadges
         options={localitiesOptions}

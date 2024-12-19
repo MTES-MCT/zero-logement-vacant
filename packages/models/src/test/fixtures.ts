@@ -238,7 +238,7 @@ export function genEstablishmentDTO(): EstablishmentDTO {
     id: faker.string.uuid(),
     name,
     shortName: name,
-    siren: Number(faker.string.numeric(9)),
+    siren: faker.string.numeric(9),
     geoCodes: faker.helpers.multiple(() => faker.location.zipCode(), {
       count: { min: 1, max: 10 }
     }),

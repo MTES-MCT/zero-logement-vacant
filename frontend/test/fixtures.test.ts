@@ -57,7 +57,8 @@ export function genAuthUser(): AuthUser {
       kind: 'Commune',
       available: genBoolean(),
       shortName: randomstring.generate(),
-      geoCodes: [faker.location.zipCode()]
+      geoCodes: [faker.location.zipCode()],
+      source: 'manual'
     }
   };
 }

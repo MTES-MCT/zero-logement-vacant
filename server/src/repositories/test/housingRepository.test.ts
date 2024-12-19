@@ -3,6 +3,7 @@ import * as turf from '@turf/turf';
 import { differenceInYears } from 'date-fns';
 import fp from 'lodash/fp';
 
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { isDefined, Predicate } from '@zerologementvacant/utils';
 import housingRepository, {
   formatHousingRecordApi,
@@ -82,6 +83,7 @@ import {
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
 import { CampaignApi } from '~/models/CampaignApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
@@ -174,6 +176,49 @@ describe('Housing repository', () => {
         expect(actual.length).toBeGreaterThanOrEqual(1);
         expect(actual).toSatisfyAll<HousingApi>((actualHousing) => {
           return houses.map((housing) => housing.id).includes(actualHousing.id);
+        });
+      });
+
+      describe('by intercommunality', () => {
+        let intercommunality: EstablishmentApi;
+
+        beforeEach(async () => {
+          const geoCodes = Array.from({ length: 3 }, () => genGeoCode());
+          intercommunality = {
+            ...genEstablishmentApi(...geoCodes),
+            name: 'Eurométropole de Strasbourg',
+            kind: 'ME'
+          };
+
+          await Establishments().insert(
+            formatEstablishmentApi(intercommunality)
+          );
+          const housings: HousingApi[] = [
+            ...Array.from({ length: 3 }, () =>
+              genHousingApi(faker.helpers.arrayElement(geoCodes))
+            ),
+            ...Array.from({ length: 3 }, () => genHousingApi())
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+          const owner = genOwnerApi();
+          await Owners().insert(formatOwnerApi(owner));
+          await HousingOwners().insert(
+            housings.flatMap((housing) =>
+              formatHousingOwnersApi(housing, [owner])
+            )
+          );
+        });
+
+        it('should filter by intercommunality', async () => {
+          const actual = await housingRepository.find({
+            filters: {
+              intercommunalities: [intercommunality.id]
+            }
+          });
+
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return intercommunality.geoCodes.includes(housing.geoCode);
+          });
         });
       });
 

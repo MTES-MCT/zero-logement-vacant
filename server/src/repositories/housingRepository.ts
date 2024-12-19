@@ -1,7 +1,10 @@
 import highland from 'highland';
+import { Set } from 'immutable';
 import { Knex } from 'knex';
 import _ from 'lodash';
 import fp from 'lodash/fp';
+import { ReadableStream } from 'node:stream/web';
+import { Readable } from 'node:stream';
 
 import {
   AddressKinds,
@@ -24,9 +27,7 @@ import { localitiesTable } from './localityRepository';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { eventsTable, housingEventsTable } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
-import establishmentRepository, {
-  establishmentsTable
-} from './establishmentRepository';
+import establishmentRepository from './establishmentRepository';
 import { AddressDBO, banAddressesTable } from './banAddressesRepository';
 import { logger } from '~/infra/logger';
 import { HousingCountApi } from '~/models/HousingCountApi';
@@ -36,8 +37,6 @@ import { groupsHousingTable } from './groupRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
-import { ReadableStream } from 'node:stream/web';
-import { Readable } from 'node:stream';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -46,28 +45,6 @@ export const Housing = (transaction = db) =>
   transaction<HousingDBO>(housingTable);
 
 export const ReferenceDataYear = 2023;
-
-export const referenceDataYearFromFilters = (filters: HousingFiltersApi) => {
-  const dataFileYearsIncluded: string[] =
-    filters.dataFileYearsIncluded && filters.dataFileYearsIncluded.length > 0
-      ? filters.dataFileYearsIncluded
-      : Array.from(Array(ReferenceDataYear + 2).keys()).map(
-          (value) => `lovac-${value}`
-        );
-  const maxDataFileYearIncluded = _.max(
-    _.without(
-      dataFileYearsIncluded.map((yearString) =>
-        parseInt(yearString.split('-')[1])
-      ),
-      ...(filters.dataFileYearsExcluded?.map((yearString) =>
-        parseInt(yearString.split('-')[1])
-      ) ?? [])
-    )
-  );
-  return maxDataFileYearIncluded
-    ? maxDataFileYearIncluded - 1
-    : ReferenceDataYear;
-};
 
 interface FindOptions extends PaginationOptions {
   filters: HousingFiltersApi;
@@ -78,14 +55,30 @@ interface FindOptions extends PaginationOptions {
 async function find(opts: FindOptions): Promise<HousingApi[]> {
   logger.debug('housingRepository.find', opts);
 
-  const geoCodes = await fetchGeoCodes(opts.filters.establishmentIds ?? []);
+  const [allowedGeoCodes, intercommunalities] = await Promise.all([
+    fetchGeoCodes(opts.filters.establishmentIds ?? []),
+    fetchGeoCodes(opts.filters.intercommunalities ?? [])
+  ]);
+  const defaults = [
+    opts.filters.localities,
+    intercommunalities,
+    allowedGeoCodes
+  ].find((array) => array && array.length > 0);
+  const geoCodes = Set(defaults)
+    .withMutations((set) => {
+      if (intercommunalities.length > 0) {
+        set.intersect(intercommunalities);
+      }
+      if (allowedGeoCodes.length > 0) {
+        set.intersect(allowedGeoCodes);
+      }
+    })
+    .toArray();
 
   const housingList: HousingDBO[] = await fastListQuery({
     filters: {
       ...opts.filters,
-      localities: opts.filters.localities?.length
-        ? opts.filters.localities
-        : geoCodes
+      localities: geoCodes
     },
     includes: opts.includes
   })
@@ -141,7 +134,20 @@ function betterStream(
 async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
   logger.debug('Count housing', filters);
 
-  const geoCodes = await fetchGeoCodes(filters.establishmentIds ?? []);
+  const [allowedGeoCodes, intercommunalities] = await Promise.all([
+    fetchGeoCodes(filters.establishmentIds ?? []),
+    fetchGeoCodes(filters.intercommunalities ?? [])
+  ]);
+  const localities = filters.localities ?? [];
+  const geoCodes = Set(allowedGeoCodes)
+    .withMutations((set) => {
+      return intercommunalities.length
+        ? set.intersect(intercommunalities)
+        : set;
+    })
+    .withMutations((set) => {
+      return localities.length ? set.intersect(localities) : set;
+    });
 
   const result = await db
     .with(
@@ -149,7 +155,7 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
       fastListQuery({
         filters: {
           ...filters,
-          localities: filters.localities?.length ? filters.localities : geoCodes
+          localities: geoCodes.toArray()
         },
         includes: ['owner']
       })
@@ -166,7 +172,7 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
 }
 
 interface FindOneOptions {
-  geoCode?: string | string[];
+  geoCode?: string | string[] | ReadonlyArray<string>;
   id?: string;
   localId?: string;
   includes?: HousingInclude[];
@@ -393,7 +399,12 @@ function fastListQuery(opts: ListQueryOptions) {
     );
 }
 
-function filteredQuery(opts: ListQueryOptions) {
+interface FilteredQueryOptions {
+  filters: Omit<HousingFiltersApi, 'establishmentIds'>;
+  includes?: HousingInclude[];
+}
+
+function filteredQuery(opts: FilteredQueryOptions) {
   const { filters } = opts;
   return (queryBuilder: Knex.QueryBuilder) => {
     if (filters.housingIds?.length) {
@@ -406,12 +417,6 @@ function filteredQuery(opts: ListQueryOptions) {
       queryBuilder.whereIn(
         'energy_consumption_bdnb',
         filters.energyConsumption
-      );
-    }
-    if (filters.establishmentIds?.length) {
-      queryBuilder.joinRaw(
-        `join ${establishmentsTable} e on geo_code = any(e.localities_geo_code) and e.id in (?)`,
-        filters.establishmentIds
       );
     }
     if (filters.groupIds?.length) {
@@ -853,7 +858,9 @@ const housingSortQuery = (sort?: HousingSortApi) =>
  */
 async function fetchGeoCodes(establishmentIds: string[]): Promise<string[]> {
   const establishments = await establishmentRepository.find({
-    ids: establishmentIds
+    filters: {
+      id: establishmentIds
+    }
   });
   return establishments.flatMap((establishment) => establishment.geoCodes);
 }

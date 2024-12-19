@@ -16,9 +16,11 @@ export function useClipboard(opts?: ClipboardOptions) {
   const [copied, setCopied] = useState(false);
 
   async function copy(data: ClipboardItems | string) {
-    typeof data === 'string'
-      ? await navigator.clipboard.writeText(data)
-      : await navigator.clipboard.write(data);
+    if (typeof data === 'string') {
+      await navigator.clipboard.writeText(data);
+    } else {
+      await navigator.clipboard.write(data);
+    }
 
     setCopied(true);
     delay(() => setCopied(false), options.timeout);

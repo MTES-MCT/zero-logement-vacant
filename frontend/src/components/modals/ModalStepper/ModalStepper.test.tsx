@@ -13,11 +13,11 @@ describe('Modal stepper', () => {
   const steps: Step[] = [
     {
       title: 'Title 1',
-      Component: forwardRef(() => <p>Step 1</p>),
+      Component: forwardRef(function Step1() { return <p>Step 1</p>; }),
     },
     {
       title: 'Title 2',
-      Component: forwardRef(() => <p>Step 2</p>),
+      Component: forwardRef(function Step2() { return <p>Step 2</p>; }),
     },
   ];
 

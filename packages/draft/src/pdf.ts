@@ -220,26 +220,26 @@ function createTransformer(opts: TransformerOptions) {
 
         pdf.getPages().forEach((page, i) => {
           const position = imagePositions.get(image.id)?.at(i);
-          if (!position) {
-            throw new Error('Image position not found');
-          }
-          if (embed instanceof PDFImage) {
-            page.drawImage(embed, {
-              x: toPoints(position.x),
-              // The Y-axis is inverted in the PDF specification
-              y: page.getHeight() - toPoints(image.height) - (image.type === 'signature' ? toPoints(position.y) : toPoints(40) + toPoints(firstImageHeight[image.type])),
-              width: toPoints(image.width),
-              height: toPoints(image.height)
-            });
-          } else if (embed instanceof PDFEmbeddedPage) {
-            page.drawPage(embed, {
-              x: toPoints(position.x) - (image.type === 'signature' ? toPoints(40) : 0),
-              // The Y-axis is inverted in the PDF specification
-              y: page.getHeight() - toPoints(imageHeight) - (image.type === 'signature' ? toPoints(position.y) : toPoints(40) + toPoints(firstImageHeight[image.type])),
-              width: toPoints(140),
-              height: toPoints(imageHeight)
-            });
+          if (position) {
+            logger.error(`Image position not found for page ${i}`);
+            if (embed instanceof PDFImage) {
+              page.drawImage(embed, {
+                x: toPoints(position.x),
+                // The Y-axis is inverted in the PDF specification
+                y: page.getHeight() - toPoints(image.height) - (image.type === 'signature' ? toPoints(position.y) : toPoints(40) + toPoints(firstImageHeight[image.type])),
+                width: toPoints(image.width),
+                height: toPoints(image.height)
+              });
+            } else if (embed instanceof PDFEmbeddedPage) {
+              page.drawPage(embed, {
+                x: toPoints(position.x) - (image.type === 'signature' ? toPoints(40) : 0),
+                // The Y-axis is inverted in the PDF specification
+                y: page.getHeight() - toPoints(imageHeight) - (image.type === 'signature' ? toPoints(position.y) : toPoints(40) + toPoints(firstImageHeight[image.type])),
+                width: toPoints(140),
+                height: toPoints(imageHeight)
+              });
 
+            }
           }
         });
         firstImageHeight[image.type] = firstImageHeight[image.type] === 0 ? imageHeight : 0;

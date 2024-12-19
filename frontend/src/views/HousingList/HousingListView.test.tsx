@@ -6,7 +6,13 @@ import { http, HttpResponse } from 'msw';
 import { constants } from 'node:http2';
 import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
+import {
+  createMemoryRouter,
+  MemoryRouter as Router,
+  Route,
+  RouterProvider,
+  Routes
+} from 'react-router-dom';
 
 import {
   CAMPAIGN_STATUS_LABELS,
@@ -43,6 +49,19 @@ describe('Housing list view', () => {
     store = configureTestStore();
   });
 
+  function setup(): void {
+    const store = configureTestStore();
+    const router = createMemoryRouter([
+      { path: '/', element: <HousingListView /> }
+    ]);
+
+    render(
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    );
+  }
+
   it('should filter by housing kind', async () => {
     const apartments = data.housings.filter(
       (housing) => housing.housingKind === HousingKind.APARTMENT
@@ -70,38 +89,66 @@ describe('Housing list view', () => {
     expect(label).toBeVisible();
   });
 
-  it('should hide the button to create campaign if no housing are selected', async () => {
-    render(
-      <Provider store={store}>
-        <Router>
-          <HousingListView />
-        </Router>
-      </Provider>
-    );
+  describe('Select housings', () => {
+    it('should select all housings when the top checkbox gets checked', async () => {
+      setup();
 
-    const createCampaign = screen.queryByRole('button', {
-      name: /^Créer une campagne/
+      const [row] = await screen.findAllByRole('row');
+      const checkboxes = await within(row).findAllByRole('checkbox');
+      const [checkAll] = checkboxes;
+      await user.click(checkAll);
+      checkboxes.forEach((checkbox) => {
+        expect(checkbox).toBeChecked();
+      });
     });
-    expect(createCampaign).not.toBeInTheDocument();
-  });
 
-  it('should enable the creation of the campaign when at least a housing is selected', async () => {
-    render(
-      <Provider store={store}>
-        <Router>
-          <HousingListView />
-        </Router>
-      </Provider>
-    );
+    it('should unselect all housings when the top checkbox is checked and clicked again', async () => {
+      setup();
 
-    const panel = await screen.findByRole('tabpanel');
-    const [checkbox] = await within(panel).findAllByRole('checkbox');
-    await user.click(checkbox);
-
-    const createCampaign = await screen.findByRole('button', {
-      name: /^Créer une campagne/
+      const [row] = await screen.findAllByRole('row');
+      const checkboxes = await within(row).findAllByRole('checkbox');
+      const [checkAll] = checkboxes;
+      await user.click(checkAll);
+      await user.click(checkAll);
+      checkboxes.forEach((checkbox) => {
+        expect(checkbox).not.toBeChecked();
+      });
     });
-    expect(createCampaign).toBeVisible();
+
+    it('should hide the button to create campaign if no housing are selected', async () => {
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const createCampaign = screen.queryByRole('button', {
+        name: /^Créer une campagne/
+      });
+      expect(createCampaign).not.toBeInTheDocument();
+    });
+
+    it('should enable the creation of the campaign when at least a housing is selected', async () => {
+      render(
+        <Provider store={store}>
+          <Router>
+            <HousingListView />
+          </Router>
+        </Provider>
+      );
+
+      const rows = await screen.findAllByRole('row');
+      const firstDataRow = rows[1]; // First row after the header row
+      const checkbox = await within(firstDataRow).findByRole('checkbox');
+      await user.click(checkbox);
+
+      const createCampaign = await screen.findByRole('button', {
+        name: /^Créer une campagne/
+      });
+      expect(createCampaign).toBeVisible();
+    });
   });
 
   describe('Add a housing', () => {
@@ -220,91 +267,95 @@ describe('Housing list view', () => {
     });
   });
 
-  it('should add all housing to a group immediately', async () => {
-    render(
-      <Provider store={store}>
-        <Router initialEntries={['/parc-de-logements']}>
-          <Routes>
-            <Route path="/parc-de-logements" element={<HousingListView />} />
-            <Route path="/groupes/:id" element={<GroupView />} />
-          </Routes>
-        </Router>
-      </Provider>
-    );
+  describe('Create a group', () => {
+    it('should add all housing to a group immediately', async () => {
+      render(
+        <Provider store={store}>
+          <Router initialEntries={['/parc-de-logements']}>
+            <Routes>
+              <Route path="/parc-de-logements" element={<HousingListView />} />
+              <Route path="/groupes/:id" element={<GroupView />} />
+            </Routes>
+          </Router>
+        </Provider>
+      );
 
-    const checkboxes = await within(
-      await screen.findByTestId('housing-table')
-    ).findAllByRole('checkbox');
-    const [checkAll] = checkboxes;
-    await user.click(checkAll);
-    const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
-    await user.click(addGroupHousing);
-    const modal = await screen.findByRole('dialog');
-    const createGroup = await within(modal).findByText(
-      /^Créer un nouveau groupe/
-    );
-    await user.click(createGroup);
-    const groupName = await within(modal).findByLabelText('Nom du groupe');
-    await user.type(groupName, 'My group');
-    const groupDescription = await within(modal).findByLabelText('Description');
-    await user.type(groupDescription, 'My group description');
-    const confirm = await within(modal).findByRole('button', {
-      name: /^Confirmer/
+      const checkboxes = await within(
+        await screen.findByRole('table')
+      ).findAllByRole('checkbox');
+      const [checkAll] = checkboxes;
+      await user.click(checkAll);
+      const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
+      await user.click(addGroupHousing);
+      const modal = await screen.findByRole('dialog');
+      const createGroup = await within(modal).findByText(
+        /^Créer un nouveau groupe/
+      );
+      await user.click(createGroup);
+      const groupName = await within(modal).findByLabelText('Nom du groupe');
+      await user.type(groupName, 'My group');
+      const groupDescription =
+        await within(modal).findByLabelText('Description');
+      await user.type(groupDescription, 'My group description');
+      const confirm = await within(modal).findByRole('button', {
+        name: /^Confirmer/
+      });
+      await user.click(confirm);
+
+      const alert = await screen.findByText(
+        'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
+      );
+      expect(alert).toBeVisible();
     });
-    await user.click(confirm);
 
-    const alert = await screen.findByText(
-      'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
-    );
-    expect(alert).toBeVisible();
-  });
+    it('should create the group immediately and add the housing later', async () => {
+      const creator = genUserDTO();
+      const group = genGroupDTO(creator);
+      mockAPI.use(
+        http.post(`${config.apiEndpoint}/api/groups`, () => {
+          data.groups.push(group);
+          return HttpResponse.json(group, {
+            status: constants.HTTP_STATUS_ACCEPTED
+          });
+        })
+      );
 
-  it('should create the group immediately and add the housing later', async () => {
-    const creator = genUserDTO();
-    const group = genGroupDTO(creator);
-    mockAPI.use(
-      http.post(`${config.apiEndpoint}/api/groups`, () => {
-        data.groups.push(group);
-        return HttpResponse.json(group, {
-          status: constants.HTTP_STATUS_ACCEPTED
-        });
-      })
-    );
+      render(
+        <Provider store={store}>
+          <Router initialEntries={['/parc-de-logements']}>
+            <Routes>
+              <Route path="/parc-de-logements" element={<HousingListView />} />
+              <Route path="/groupes/:id" element={<GroupView />} />
+            </Routes>
+          </Router>
+        </Provider>
+      );
 
-    render(
-      <Provider store={store}>
-        <Router initialEntries={['/parc-de-logements']}>
-          <Routes>
-            <Route path="/parc-de-logements" element={<HousingListView />} />
-            <Route path="/groupes/:id" element={<GroupView />} />
-          </Routes>
-        </Router>
-      </Provider>
-    );
+      const checkboxes = await within(
+        await screen.findByRole('table')
+      ).findAllByRole('checkbox');
+      const [checkAll] = checkboxes;
+      await user.click(checkAll);
+      const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
+      await user.click(addGroupHousing);
+      const modal = await screen.findByRole('dialog');
+      const createGroup = await within(modal).findByText(
+        /^Créer un nouveau groupe/
+      );
+      await user.click(createGroup);
+      const groupName = await within(modal).findByLabelText('Nom du groupe');
+      await user.type(groupName, 'My group');
+      const groupDescription =
+        await within(modal).findByLabelText('Description');
+      await user.type(groupDescription, 'My group description');
+      const confirm = await within(modal).findByText('Confirmer');
+      await user.click(confirm);
 
-    const checkboxes = await within(
-      await screen.findByTestId('housing-table')
-    ).findAllByRole('checkbox');
-    const [checkAll] = checkboxes;
-    await user.click(checkAll);
-    const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
-    await user.click(addGroupHousing);
-    const modal = await screen.findByRole('dialog');
-    const createGroup = await within(modal).findByText(
-      /^Créer un nouveau groupe/
-    );
-    await user.click(createGroup);
-    const groupName = await within(modal).findByLabelText('Nom du groupe');
-    await user.type(groupName, 'My group');
-    const groupDescription = await within(modal).findByLabelText('Description');
-    await user.type(groupDescription, 'My group description');
-    const confirm = await within(modal).findByText('Confirmer');
-    await user.click(confirm);
-
-    const alert = await screen.findByText(
-      'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
-    );
-    expect(alert).toBeVisible();
+      const alert = await screen.findByText(
+        'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
+      );
+      expect(alert).toBeVisible();
+    });
   });
 
   describe('Housing tabs', () => {

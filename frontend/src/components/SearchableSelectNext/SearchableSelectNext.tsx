@@ -64,6 +64,7 @@ function SearchableSelectNext<
       openText="Ouvrir"
       renderInput={(params) => (
         <Input
+          label={props.inputProps?.label ?? null}
           {...props.inputProps}
           nativeInputProps={{
             ...props.inputProps?.nativeInputProps,

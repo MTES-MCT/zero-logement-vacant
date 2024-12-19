@@ -1,3 +1,9 @@
+{{
+        config(
+            materialized='table',
+            unique_key='campaign_id',
+        )
+}}
 
 SELECT 
     CAST(pc.id as VARCHAR) as campaign_id,

@@ -62,8 +62,19 @@ WITH all_lovac AS (
            , SUM(IF(is_private = 1 AND is_rented = 1, 1, 0)) AS count_housing_private_rented
     FROM ff
     GROUP BY year, geo_code
+),
+production_2024 as 
+(
+    SELECT 
+    geo_code, 
+    date_part('year', current_date()) as year,
+    count_housing,
+    count_vacant_housing,
+    count_rented_housing
+    FROM {{ ref ('int_production_geo_code_housing')}}
 )
-SELECT year
+SELECT 
+        year
         , geo_code
         , city_code
         , lovac.count_vacant_premisses
@@ -74,6 +85,9 @@ SELECT year
         , ff.count_housing
         , ff.count_housing_private
         , ff.count_housing_private_rented
+        , prod.count_housing as current_production_count_housing
+        , prod.count_vacant_housing as current_production_count_vacant_housing
+        , prod.count_rented_housing as current_production_count_rented_housing
         , CASE WHEN(merged.geo_code_destination IS NOT NULL) THEN 1 ELSE 0 END AS merged_this_year
         , CASE WHEN(splited.geo_code_destination IS NOT NULL) THEN 1 ELSE 0 END AS split_this_year
         , merged.geo_code_destination as merged_destionation_geocode
@@ -89,6 +103,7 @@ SELECT year
         , epci_name as epci_label
     FROM lovac_geo_code_year lovac
     LEFT OUTER JOIN ff_geo_code_year ff USING(year, geo_code)
+    LEFT JOIN production_2024 prod USING(year, geo_code)
     LEFT JOIN {{ ref("int_common_cities_mapping")}} USING(geo_code)
     LEFT JOIN {{ ref("int_common_com_epci_dep_region")}} USING(geo_code)
     LEFT JOIN {{ ref("int_common_departements_france")}} ON code_departement = geo_code[1:2]

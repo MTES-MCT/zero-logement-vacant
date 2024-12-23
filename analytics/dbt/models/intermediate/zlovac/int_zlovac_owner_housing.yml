@@ -2,4 +2,5 @@ version: 2
 
 models:
   - name: int_zlovac_owner_housing
+    +enabled: false
     description: "Description de ce que fait le modèle lovac, par exemple, analyse des locaux vacants."

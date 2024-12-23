@@ -2,6 +2,6 @@ version: 2
 
 models:
   - name: int_zlovac_unique_owners
-    +enabled: true
+    +enabled: false
     config:
       materialized: table

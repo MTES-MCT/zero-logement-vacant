@@ -57,6 +57,28 @@ WITH base_data AS (
         'count_housing_private_rented' AS count_type,
         count_housing_private_rented AS count_value
     FROM base_data
+    --
+    UNION ALL
+    SELECT 
+        establishment_id,
+        year,
+        'current_production_count_housing' AS count_type,
+        current_production_count_housing AS count_value
+    FROM base_data
+        UNION ALL
+    SELECT 
+        establishment_id,
+        year,
+        'current_production_count_vacant_housing' AS count_type,
+        current_production_count_vacant_housing AS count_value
+    FROM base_data
+        UNION ALL
+    SELECT 
+        establishment_id,
+        year,
+        'current_production_count_rented_housing' AS count_type,
+        current_production_count_rented_housing AS count_value
+    FROM base_data
 )
 , pivoted_data AS (
     SELECT 
@@ -71,6 +93,9 @@ WITH base_data AS (
             WHEN count_type = 'count_housing' THEN 'Logements Totaux'
             WHEN count_type = 'count_housing_private' THEN 'Logements du Parc Privé'
             WHEN count_type = 'count_housing_private_rented' THEN 'Logements du Parc Privé Loués'
+            WHEN count_type = 'current_production_count_housing' THEN 'Logements Totaux (Production)'
+            WHEN count_type = 'current_production_count_vacant_housing' THEN 'Logements Vacants (Production)'
+            WHEN count_type = 'current_production_count_rented_housing' THEN 'Logements Loués (Production)'
         END AS count_label,
         MAX(CASE WHEN year = 2019 THEN count_value END) AS "2019",
         MAX(CASE WHEN year = 2020 THEN count_value END) AS "2020",
@@ -82,9 +107,9 @@ WITH base_data AS (
     GROUP BY establishment_id, count_type
 )
 SELECT 
-    establishment_id,
-    count_type,
-    count_label,
+    pivoted_data.establishment_id,
+    pivoted_data.count_type,
+    pivoted_data.count_label,
     "2019",
     "2020",
     "2021",
@@ -101,5 +126,5 @@ SELECT
     CASE WHEN "2020" != 0 THEN ROUND((("2021" - "2020") / "2020") * 100, 2) ELSE NULL END AS var_pct_2021_2020,
     ("2020" - "2019") AS var_2020_2019,
     CASE WHEN "2019" != 0 THEN ROUND((("2020" - "2019") / "2019") * 100, 2) ELSE NULL END AS var_pct_2020_2019
-FROM pivoted_data
-ORDER BY establishment_id, count_type
+FROM pivoted_data 
+ORDER BY pivoted_data.establishment_id, count_type

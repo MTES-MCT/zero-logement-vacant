@@ -122,14 +122,11 @@ function AccountEmailCreationView() {
                   target: '_self'
                 }}
                 priority="tertiary"
-                role="link"
               >
                 Retour à la page d’accueil
               </Button>
 
-              <Button sx={{ alignSelf: 'flex-end' }} type="submit">
-                Vérifier mon adresse mail
-              </Button>
+              <Button type="submit">Vérifier mon adresse mail</Button>
             </Grid>
           </Grid>
 

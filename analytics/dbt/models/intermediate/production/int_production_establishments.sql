@@ -31,4 +31,3 @@ SELECT est.*,
         ELSE FALSE
     END AS covered_by_state_service
 FROM {{ ref('stg_production_establishments') }} est
-

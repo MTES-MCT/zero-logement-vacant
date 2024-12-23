@@ -9,8 +9,12 @@ SELECT ff_owner_idpersonne,
         max(ff_owner_birth_date) as ff_owner_birth_date,
         max(ff_owner_lastname) as ff_owner_lastname,
         max(ff_owner_firstname) as ff_owner_firstname,
+        max(ff_owner_firstnames) as ff_owner_firstnames,
+        max(ff_owner_birth_lastname) as ff_owner_birth_lastname,
         max(ff_owner_city) as ff_owner_city,
         max(ff_owner_fullname) as ff_owner_fullname,
+        max(ff_locprop) as ff_locprop,
+        max(ff_locproptxt) as ff_locproptxt,
         max(ff_owner_category) as ff_owner_category,
         max(ff_owner_category_text) as ff_owner_category_text
 FROM {{ ref('stg_ff_owners') }}

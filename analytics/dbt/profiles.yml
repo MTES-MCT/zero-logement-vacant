@@ -8,6 +8,7 @@ duckdb_profile:
         - httpfs
         - parquet
         - s3
+        - spatial
       settings:
         s3_endpoint: "{{ env_var('S3_ENDPOINT_URL') }}" 
         s3_access_key_id: "{{ env_var('S3_ACCESS_KEY_ID') }}" 

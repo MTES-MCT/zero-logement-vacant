@@ -5,8 +5,16 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { createS3 } from '@zerologementvacant/utils';
 import config from '~/infra/config';
+import BadRequestError from '~/errors/badRequestError';
 
 export function upload() {
+
+  const ALLOWED_MIMES = [
+    'image/png',
+    'image/jpeg',
+    'application/pdf',
+  ];
+
   const upload = multer({
     limits: {
       files: 1,
@@ -17,7 +25,9 @@ export function upload() {
       file: Express.Multer.File,
       callback: multer.FileFilterCallback,
     ) {
-      // TODO: check file.mimetype
+      if (!ALLOWED_MIMES.includes(file.mimetype)) {
+        return callback(new BadRequestError());
+      }
       return callback(null, true);
     },
     storage: multerS3({

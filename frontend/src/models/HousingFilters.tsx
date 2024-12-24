@@ -24,6 +24,7 @@ import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import { VacancyYear } from './VacancyYear';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HousingFilters extends HousingFiltersDTO {}
 
 export const allOccupancyOptions: SelectOption<Occupancy>[] = [

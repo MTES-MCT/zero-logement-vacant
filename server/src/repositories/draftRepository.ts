@@ -141,7 +141,7 @@ export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
   if (Array.isArray(draft.logo)) {
     try {
       logo = await Promise.all(draft.logo.map(download));
-    } catch (error) {
+    } catch {
       logo = null;
     }
   }

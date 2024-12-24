@@ -1,3 +1,9 @@
+{{
+        config(
+            materialized='table',
+            unique_key='user_id',
+        )
+}}
 
 SELECT
     CAST(pu.id AS VARCHAR) user_id,

@@ -7,6 +7,7 @@ import {
 import { SenderPayload } from './Sender';
 import { DeepNonNullable } from 'ts-essentials';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Draft extends DraftDTO {}
 
 export interface DraftCreationPayload

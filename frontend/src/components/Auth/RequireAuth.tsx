@@ -4,6 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
 import { useFetchInterceptor } from '../../hooks/useFetchInterceptor';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RequireAuthProps {}
 
 function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {

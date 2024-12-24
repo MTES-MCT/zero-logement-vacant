@@ -203,27 +203,29 @@ const searchOwners = async (
   perPage?: number
 ): Promise<PaginatedResultApi<OwnerApi>> => {
   const filterQuery = db(ownerTable)
-    .whereRaw(
-      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q
-    )
-    .orWhereRaw(
-      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q?.split(' ').reverse().join(' ')
-    );
+  .select('*')
+  .whereRaw(
+    `immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`,
+    [`%${q}%`]
+  )
+  .orWhereRaw(
+    `immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`,
+    [`%${q.split(' ').reverse().join(' ')}%`]
+  )
+  .orderBy('id', 'desc');
 
-  const filteredCount: number = await db(ownerTable)
-    .whereRaw(
-      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q
-    )
-    .orWhereRaw(
-      `upper(unaccent(full_name)) like '%' || upper(unaccent(?)) || '%'`,
-      q?.split(' ').reverse().join(' ')
-    )
-    .count('id')
-    .first()
-    .then((_) => Number(_?.count));
+const filteredCount = await db(ownerTable)
+  .whereRaw(
+    `immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`,
+    [`%${q}%`]
+  )
+  .orWhereRaw(
+    `immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`,
+    [`%${q.split(' ').reverse().join(' ')}%`]
+  )
+  .count('id')
+  .first()
+  .then((row) => Number(row?.count));
 
   const totalCount = await db(ownerTable)
     .count('id')

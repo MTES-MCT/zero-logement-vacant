@@ -6,7 +6,7 @@ import { useUploadFileMutation } from '../../services/file.service';
 import { useNotification } from '../../hooks/useNotification';
 import { FileUploadDTO } from '@zerologementvacant/models';
 
-const DEFAULT_TYPES = ['pdf', 'jpg', 'png'];
+const DEFAULT_TYPES = ['pdf', 'jpg', 'png', 'gif'];
 const MAX_SIZE = 5; // Mo
 
 interface Props {
@@ -43,7 +43,7 @@ function FileUpload(props: Readonly<Props>) {
         .unwrap()
         .then((fileUpload) => {
           props.onUpload?.(fileUpload);
-        });
+        }).catch(() => {});
     }
   }
 

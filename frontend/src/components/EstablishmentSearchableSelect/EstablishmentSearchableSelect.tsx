@@ -26,7 +26,7 @@ function EstablishmentSearchableSelect(props: Props) {
 
   async function search(query: string | undefined): Promise<void> {
     if (query) {
-      await findEstablishments({ query, available: true }).unwrap();
+      await findEstablishments({ query }).unwrap();
     }
   }
 

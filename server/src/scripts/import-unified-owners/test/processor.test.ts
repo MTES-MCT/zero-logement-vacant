@@ -49,6 +49,7 @@ describe('Processor', () => {
     ]);
     const updateHousingOwner = jest.fn(async () => {});
     const removeHousingOwner = jest.fn(async () => {});
+    const removeEvents = jest.fn(async () => {});
 
     beforeAll(async () => {
       const stream = new ReadableStream<DepartmentalOwnerDBO>({
@@ -63,7 +64,8 @@ describe('Processor', () => {
       const processor = createProcessor({
         findHousingOwners,
         updateHousingOwner,
-        removeHousingOwner
+        removeHousingOwner,
+        removeEvents
       });
 
       await stream.pipeTo(processor);
@@ -82,7 +84,10 @@ describe('Processor', () => {
       expect(removeHousingOwner).toHaveBeenCalledWith(departmentalOwner);
     });
 
-    it.todo('should remove the events concerning a change of ownership');
+    it('should remove the events concerning a change of ownership', () => {
+      expect(removeEvents).toHaveBeenCalledOnce();
+      expect(removeEvents).toHaveBeenCalledWith({ housingId: housing.id });
+    });
   });
 
   describe('toPairs', () => {

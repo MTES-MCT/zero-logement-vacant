@@ -1,9 +1,10 @@
+import async from 'async';
+import { List, Map } from 'immutable';
 import { WritableStream } from 'node:stream/web';
+
 import { DepartmentalOwnerDBO } from '~/repositories/departmentalOwnersRepository';
 import { createLogger } from '~/infra/logger';
 import { AWAITING_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { List } from 'immutable';
-import async from 'async';
 
 const logger = createLogger('processor');
 
@@ -18,16 +19,26 @@ export interface FindHousingOwnersOptions {
   departmentalOwner: string;
 }
 
+export interface RemoveEventsOptions {
+  housingId: string;
+}
+
 export interface ProcessorOptions {
   findHousingOwners(
     options: FindHousingOwnersOptions
   ): Promise<ReadonlyArray<HousingOwnerApi>>;
   updateHousingOwner(housingOwner: HousingOwnerApi): Promise<void>;
   removeHousingOwner(housingOwner: HousingOwnerApi): Promise<void>;
+  removeEvents(options: RemoveEventsOptions): Promise<void>;
 }
 
 export function createProcessor(options: ProcessorOptions) {
-  const { findHousingOwners, updateHousingOwner, removeHousingOwner } = options;
+  const {
+    findHousingOwners,
+    updateHousingOwner,
+    removeHousingOwner,
+    removeEvents
+  } = options;
 
   return new WritableStream<DepartmentalOwnerDBO>({
     async write(chunk): Promise<void> {
@@ -39,8 +50,16 @@ export function createProcessor(options: ProcessorOptions) {
           departmentalOwner: chunk.owner_idpersonne
         });
         const pairs = toPairs(housingOwners);
+        // Remove the departmental housing owner
+        // Update the national housing owner
         await async.forEach(
-          pairs,
+          pairs
+            .toIndexedSeq()
+            .map(
+              (housingOwners) =>
+                housingOwners.toArray() as [HousingOwnerApi, HousingOwnerApi]
+            )
+            .toArray(),
           async ([nationalOwner, departmentalOwner]) => {
             await removeHousingOwner(departmentalOwner);
             await updateHousingOwner({
@@ -49,8 +68,13 @@ export function createProcessor(options: ProcessorOptions) {
             });
           }
         );
+        // Remove the associated events
+        await async.forEach(pairs.keys(), async (housingId) => {
+          await removeEvents({ housingId });
+        });
       } catch (error) {
-        // TODO
+        logger.error(error);
+        throw error;
       }
     }
   });
@@ -58,7 +82,7 @@ export function createProcessor(options: ProcessorOptions) {
 
 export function toPairs(
   housingOwners: ReadonlyArray<HousingOwnerApi>
-): [HousingOwnerApi, HousingOwnerApi][] {
+): Map<HousingOwnerApi['housingId'], List<HousingOwnerApi>> {
   return List(housingOwners)
     .groupBy((housingOwner) => housingOwner.housingId)
     .filter(
@@ -75,13 +99,7 @@ export function toPairs(
     )
     .map((housingOwners) =>
       housingOwners.sortBy((housingOwner) => housingOwner.rank)
-    )
-    .toIndexedSeq()
-    .map(
-      (housingOwners) =>
-        housingOwners.toArray() as [HousingOwnerApi, HousingOwnerApi]
-    )
-    .toArray();
+    );
 }
 
 export function isNationalOwner(housingOwner: HousingOwnerApi): boolean {

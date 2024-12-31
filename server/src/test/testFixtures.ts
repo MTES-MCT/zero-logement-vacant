@@ -15,7 +15,6 @@ import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { ENERGY_CONSUMPTION_GRADES, HousingApi } from '~/models/HousingApi';
 import { CampaignApi } from '~/models/CampaignApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
-import { ProspectApi } from '~/models/ProspectApi';
 import {
   RESET_LINK_EXPIRATION,
   RESET_LINK_LENGTH,
@@ -28,7 +27,6 @@ import {
   SignupLinkApi
 } from '~/models/SignupLinkApi';
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
-import { OwnerProspectApi } from '~/models/OwnerProspectApi';
 import { SettingsApi } from '~/models/SettingsApi';
 import {
   HOUSING_STATUS_VALUES,
@@ -158,37 +156,15 @@ export const genUserAccountDTO: UserAccountDTO = {
   timePerWeek: randomstring.generate()
 };
 
-export const genProspectApi = (
-  establishment: EstablishmentApi
-): ProspectApi => {
+export function genCreateUserBody() {
   return {
-    email: genEmail(),
-    establishment: {
-      id: establishment.id,
-      siren: establishment.siren
-    },
-    hasAccount: true,
-    hasCommitment: true,
-    lastAccountRequestAt: new Date()
-  };
-};
-
-export const genOwnerProspectApi = (geoCode?: string): OwnerProspectApi => {
-  return {
-    id: uuidv4(),
     email: genEmail(),
     firstName: randomstring.generate(),
     lastName: randomstring.generate(),
-    address: randomstring.generate(),
-    geoCode: geoCode ?? genGeoCode(),
-    notes: randomstring.generate(),
-    phone: randomstring.generate(),
-    invariant: randomstring.generate(),
-    callBack: true,
-    read: false,
-    createdAt: new Date()
+    password: randomstring.generate(),
+    establishmentId: faker.string.uuid(),
   };
-};
+}
 
 export const genOwnerApi = (): OwnerApi => {
   const id = uuidv4();

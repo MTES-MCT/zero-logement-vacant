@@ -9,7 +9,6 @@ import {
 import {
   genEmail,
   genEstablishmentApi,
-  genProspectApi,
   genSignupLinkApi,
   genUserApi,
 } from '~/test/testFixtures';
@@ -20,10 +19,6 @@ import {
   formatEstablishmentApi,
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
-import {
-  formatProspectApi,
-  Prospects,
-} from '~/repositories/prospectRepository';
 
 describe('Signup link API', () => {
   const { app } = createServer();
@@ -91,9 +86,8 @@ describe('Signup link API', () => {
     const testRoute = (id: string) => `/api/signup-links/${id}`;
 
     it('should get a signup link', async () => {
-      const prospect = genProspectApi(establishment);
-      await Prospects().insert(formatProspectApi(prospect));
-      const link = genSignupLinkApi(prospect.email);
+      const email = genEmail();
+      const link = genSignupLinkApi(email);
       await SignupLinks().insert(formatSignupLinkApi(link));
 
       const { body, status } = await request(app).get(testRoute(link.id));

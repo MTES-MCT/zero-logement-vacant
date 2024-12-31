@@ -25,7 +25,7 @@ async function used(id: string): Promise<void> {
 async function getByEmail(email: string): Promise<SignupLinkApi | null> {
   logger.debug('Get signupLinkApi by prospect_email', email);
 
-  const link = await SignupLinks().select().where('prospect_email', email).first();
+  const link = await SignupLinks().select().where('prospect_email', email).orderBy('expires_at', 'desc').first();
   return link ? parseSignupLinkApi(link) : null;
 }
 

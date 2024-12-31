@@ -9,6 +9,8 @@ fileignoreconfig:
   checksum: 8abd2b819601d46cc6a3d0a61a60b76391601f2d89d9126f5167b684878bd2d1
 - filename: frontend/src/index.tsx
   checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
+- filename: frontend/src/views/Account/AccountCreation/AccountPasswordCreationView.tsx
+  checksum: a80e1f108214c16e96a5c7eed234b6e54f048413e9f5ee52e06730b06e9d415c
 - filename: packages/api-sdk/src/test/campaign-api.test.ts
   checksum: b200d9e1fec310660a91e99cd048b24cbe983e0f9f965861d061a7f0992af43e
 - filename: packages/healthcheck/src/checks/brevo.ts
@@ -27,6 +29,8 @@ fileignoreconfig:
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
 - filename: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
+- filename: server/src/test/testFixtures.ts
+  checksum: 2e71680c14d925c4bb84b15262df05f4f588ee67976e144d5842a22337c0ba18
 scopeconfig:
 - scope: node
 allowed_patterns:

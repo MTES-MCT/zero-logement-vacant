@@ -1,18 +1,11 @@
 import { Establishment1 } from '~/infra/database/seeds/test/20240405011849_establishments';
-
-export interface CeremaUser {
-  email: string;
-  establishmentSiren: string;
-  hasAccount: boolean;
-  hasCommitment: boolean;
-  cguValid: boolean;
-  isValid: boolean;
-}
+import { CeremaUser } from '@zerologementvacant/models';
 
 export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
   {
     email: 'ok@beta.gouv.fr',
     establishmentSiren: Establishment1.siren,
+    establishmentId: Establishment1.id,
     hasAccount: true,
     hasCommitment: true,
     cguValid: true,
@@ -22,6 +15,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
   {
     email: 'lovac_ko@beta.gouv.fr',
     establishmentSiren: Establishment1.siren,
+    establishmentId: Establishment1.id,
     hasAccount: true,
     hasCommitment: false,
     cguValid: false,
@@ -30,6 +24,7 @@ export const TEST_ACCOUNTS: ReadonlyArray<CeremaUser> = [
   {
     email: 'account_ko@beta.gouv.fr',
     establishmentSiren: Establishment1.siren,
+    establishmentId: Establishment1.id,
     hasAccount: false,
     hasCommitment: false,
     cguValid: false,

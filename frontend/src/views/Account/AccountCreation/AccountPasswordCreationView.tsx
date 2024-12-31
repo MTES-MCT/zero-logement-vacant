@@ -4,7 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import { FormProvider, useForm } from 'react-hook-form';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 
 import {
@@ -13,13 +13,15 @@ import {
 } from '../../../hooks/useForm';
 import { Row, Text } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
-import { useProspect } from '../../../hooks/useProspect';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
 import image from '../../../assets/images/thousand-structures.svg';
 import Image from '../../../components/Image/Image';
 import { useCreateUserMutation } from '../../../services/user.service';
 import { useAppDispatch } from '../../../hooks/useStore';
 import { logIn } from '../../../store/actions/authenticationAction';
+import { useActivationEmailLink } from '../../../hooks/useActivationEmailLink';
+import { useUserAccess } from '../../../hooks/usePortailDFAccess';
+import { toast } from 'react-toastify';
 
 const schema = yup
   .object({
@@ -28,10 +30,15 @@ const schema = yup
   })
   .required();
 
-function AccountPasswordCreationView() {
+const AccountPasswordCreationView = () => {
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { linkExists, loading, prospect } = useProspect();
+  const [createUser] = useCreateUserMutation();
+
+  const location = useLocation();
+  const link = location.hash.slice(1);
+  const { isLoading, activationEmailLink } = useActivationEmailLink(link);
 
   const form = useForm<yup.InferType<typeof schema>>({
     criteriaMode: 'all',
@@ -43,49 +50,55 @@ function AccountPasswordCreationView() {
     resolver: yupResolver(schema)
   });
 
-  const [createUser] = useCreateUserMutation();
+  const { access } = useUserAccess(activationEmailLink);
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (!activationEmailLink) {
+    return <LinkMissing />;
+  }
+
+  if (access) {
+    if (access.hasAccount && !access.hasCommitment) {
+      return <Navigate to="/inscription/en-attente" />;
+    }
+    if (
+      !access.establishmentId ||
+      (!access.hasAccount && !access.hasCommitment)
+    ) {
+      return <Navigate to="/inscription/impossible" />;
+    }
+  }
+
   async function submit() {
     const password = form.getValues('password');
-    if (prospect && prospect.establishment && password) {
-      // Save user and remove prospect
+    if (password && activationEmailLink && activationEmailLink.prospectEmail) {
       await createUser({
-        email: prospect.email,
+        email: activationEmailLink.prospectEmail,
         password: password,
-        establishmentId: prospect.establishment.id
+        establishmentId: access?.establishmentId ?? ''
       });
       await dispatch(
         logIn({
-          email: prospect.email,
-          password,
-          establishmentId: prospect.establishment.id
+          email: activationEmailLink.prospectEmail,
+          password: password,
+          establishmentId: access?.establishmentId ?? ''
         })
       );
+
+      toast.success('Compte créé avec succès');
+
+      // hack to wait DSFR to be ready otherwise window.dsfr(...) is null
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       navigate('/parc-de-logements', {
         replace: true,
         state: {
           onboarding: true
         }
       });
-    }
-  }
-
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (!linkExists) {
-    return <LinkMissing />;
-  }
-
-  if (prospect) {
-    if (prospect.hasAccount && !prospect.hasCommitment) {
-      return <Navigate to="/inscription/en-attente" />;
-    }
-    if (
-      !prospect.establishment ||
-      (!prospect.hasAccount && !prospect.hasCommitment)
-    ) {
-      return <Navigate to="/inscription/impossible" />;
     }
   }
 
@@ -162,11 +175,7 @@ function AccountPasswordCreationView() {
       </Grid>
     </Grid>
   );
-}
-
-function Loading() {
-  return null;
-}
+};
 
 function LinkMissing() {
   return (

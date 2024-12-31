@@ -21,3 +21,4 @@ export function useActivationEmail() {
     sendActivationEmail
   };
 }
+

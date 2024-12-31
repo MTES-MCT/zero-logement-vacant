@@ -6,6 +6,7 @@ export interface UserDTO {
   establishmentId?: string;
   role: number;
   activatedAt?: string;
+  disabled?: boolean;
 }
 
 export interface UserAccountDTO {

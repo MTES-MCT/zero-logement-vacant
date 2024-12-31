@@ -49,6 +49,10 @@ async function signIn(request: Request, response: Response) {
     throw new AuthenticationFailedError();
   }
 
+  if (user.disabled) {
+    throw new AuthenticationFailedError();
+  }
+
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
   if (!isPasswordValid) {
     throw new AuthenticationFailedError();

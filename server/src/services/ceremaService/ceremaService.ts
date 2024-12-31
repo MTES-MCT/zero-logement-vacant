@@ -1,4 +1,5 @@
-import { CeremaUser, ConsultUserService } from './consultUserService';
+import { ConsultUserService } from './consultUserService';
+import { CeremaUser } from '@zerologementvacant/models';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
@@ -50,7 +51,7 @@ export class CeremaService implements ConsultUserService {
                 },
               },
             );
-            
+
             const establishmentContent: any = await establishmentResponse.json();
             if (establishmentResponse.status !== 200) {
               throw establishmentContent.detail;
@@ -61,6 +62,8 @@ export class CeremaService implements ConsultUserService {
               establishmentSiren: parseInt(establishmentContent.siret.substring(0, 9)),
               hasAccount: true,
               hasCommitment: establishmentContent.acces_lovac !== null,
+              cguValid: establishmentContent.cgu_valide !== null,
+              isValid: establishmentContent.acces_lovac !== null && establishmentContent.cgu_valide !== null,
             };
             return u;
         }));

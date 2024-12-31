@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import {
-  getAccountActivationLink,
   hasExpired,
   SIGNUP_LINK_EXPIRATION,
   SIGNUP_LINK_LENGTH,

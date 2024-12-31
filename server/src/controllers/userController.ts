@@ -7,7 +7,6 @@ import establishmentRepository from '~/repositories/establishmentRepository';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import TestAccountError from '~/errors/testAccountError';
-import mailService from '~/services/mailService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import UserMissingError from '~/errors/userMissingError';
 import { logger } from '~/infra/logger';

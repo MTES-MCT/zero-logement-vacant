@@ -39,9 +39,6 @@ async function create(request: Request, response: Response) {
   await mailService.sendAccountActivationEmail(link.id, {
     recipients: [email]
   });
-  mailService.emit('prospect:initialized', email, {
-    link: getAccountActivationLink(link.id)
-  });
   response.status(constants.HTTP_STATUS_CREATED).json();
 }
 

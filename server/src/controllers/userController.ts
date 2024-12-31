@@ -80,9 +80,6 @@ async function createUser(request: Request, response: Response) {
   }
 
   response.status(constants.HTTP_STATUS_CREATED).json(createdUser);
-  mailService.emit('user:created', body.email, {
-    createdAt: new Date()
-  });
 }
 
 async function get(request: Request, response: Response): Promise<Response> {

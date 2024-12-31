@@ -1,10 +1,5 @@
 import { useLocation } from 'react-router-dom';
 
-declare global {
-  interface Window {
-    dsfr: any;
-  }
-}
 import { useEffect } from 'react';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Grid from '@mui/material/Unstable_Grid2';

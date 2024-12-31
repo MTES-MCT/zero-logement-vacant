@@ -41,7 +41,7 @@ function SmallHeader() {
       linkProps: {
         to: link.url
       },
-      text: link.label,
+      text: <>{link.label} {link.showNewBadge && <p className="fr-badge fr-badge--success fr-badge--sm fr-badge--no-icon fr-ml-1w">Nouveau</p>}</>,
       isActive: location.pathname.startsWith(link.url)
     };
   }

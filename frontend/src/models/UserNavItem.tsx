@@ -8,6 +8,7 @@ export enum UserNavItems {
 export interface UserNavItem {
   url: string;
   label: string;
+  showNewBadge?: boolean;
 }
 
 export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
@@ -19,7 +20,7 @@ export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
     case UserNavItems.Resources:
       return { url: '/ressources', label: 'Ressources' };
     case UserNavItems.Analysis:
-      return { url: '/analyses', label: 'Analyses' };
+      return { url: '/analyses', label: 'Analyses', showNewBadge: true };
     default:
       return { url: '/', label: 'Accueil' };
   }

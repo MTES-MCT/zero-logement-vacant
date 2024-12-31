@@ -19,5 +19,5 @@ interface CreateURLOptions {
 }
 
 export function createURL(opts: CreateURLOptions): string {
-  return `${opts.domain}/embed/dashboard/${opts.token}#bordered=true&titled=true`;
+  return `${opts.domain}/embed/dashboard/${opts.token}#bordered=true&titled=false`;
 }

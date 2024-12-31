@@ -4,13 +4,9 @@ import { SALT_LENGTH, toUserDTO, UserApi, UserRoles } from '~/models/UserApi';
 import { constants } from 'http2';
 import { body, param, ValidationChain } from 'express-validator';
 import establishmentRepository from '~/repositories/establishmentRepository';
-import prospectRepository from '~/repositories/prospectRepository';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { isValid } from '~/models/ProspectApi';
 import TestAccountError from '~/errors/testAccountError';
-import ProspectInvalidError from '~/errors/prospectInvalidError';
-import ProspectMissingError from '~/errors/prospectMissingError';
 import mailService from '~/services/mailService';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import UserMissingError from '~/errors/userMissingError';
@@ -50,14 +46,6 @@ async function createUser(request: Request, response: Response) {
     throw new TestAccountError(body.email);
   }
 
-  const prospect = await prospectRepository.get(body.email);
-  if (!prospect) {
-    throw new ProspectMissingError(body.email);
-  }
-  if (!isValid(prospect)) {
-    throw new ProspectInvalidError(prospect);
-  }
-
   const userEstablishment = await establishmentRepository.get(
     body.establishmentId
   );
@@ -90,11 +78,9 @@ async function createUser(request: Request, response: Response) {
   if (!userEstablishment.available) {
     await establishmentRepository.setAvailable(userEstablishment);
   }
-  // Remove associated prospect
-  await prospectRepository.remove(prospect.email);
 
   response.status(constants.HTTP_STATUS_CREATED).json(createdUser);
-  mailService.emit('user:created', prospect.email, {
+  mailService.emit('user:created', body.email, {
     createdAt: new Date()
   });
 }

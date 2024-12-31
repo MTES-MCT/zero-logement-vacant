@@ -5,8 +5,6 @@ import accountController from '~/controllers/accountController';
 import contactPointController from '~/controllers/contactPointController';
 import establishmentController from '~/controllers/establishmentController';
 import localityController from '~/controllers/localityController';
-import ownerProspectController from '~/controllers/ownerProspectController';
-import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
 import settingsController from '~/controllers/settingsController';
 import signupLinkController from '~/controllers/signupLinkController';
@@ -17,6 +15,7 @@ import validator from '~/middlewares/validator';
 import serverSentEventController from '~/controllers/serverSentEventController';
 import validatorNext from '~/middlewares/validator-next';
 import schemas from '@zerologementvacant/schemas';
+import userAccessController from '~/controllers/userAccessController';
 
 const router = Router();
 
@@ -34,20 +33,6 @@ function rateLimiter() {
 }
 
 router.get('/sse', serverSentEventController.handle);
-
-router.get(
-  '/prospects/:email',
-  prospectController.showProspectValidator,
-  validator.validate,
-  prospectController.show
-);
-
-router.post(
-  '/owner-prospects',
-  ownerProspectController.createOwnerProspectValidators,
-  validator.validate,
-  ownerProspectController.create
-);
 
 router.post(
   '/users/creation',
@@ -100,12 +85,13 @@ router.get(
   validator.validate,
   signupLinkController.show
 );
-router.put(
-  '/signup-links/:id/prospect',
+
+router.get(
+  '/user-access',
   rateLimiter(),
-  prospectController.createProspectValidator,
+  userAccessController.getValidators,
   validator.validate,
-  prospectController.upsert
+  userAccessController.get
 );
 
 router.get(

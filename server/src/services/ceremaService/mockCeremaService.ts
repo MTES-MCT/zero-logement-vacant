@@ -1,8 +1,9 @@
 import {
-  CeremaUser,
   ConsultUserService,
   getTestAccount
 } from './consultUserService';
+
+import { CeremaUser } from '@zerologementvacant/models';
 
 import { SirenStrasbourg } from '~/infra/database/seeds/development/20240404235442_establishments';
 
@@ -17,6 +18,7 @@ function defaultOK(email: string): CeremaUser {
   return {
     email,
     establishmentSiren: SirenStrasbourg,
+    establishmentId: null,
     hasAccount: true,
     hasCommitment: true,
     cguValid: true,

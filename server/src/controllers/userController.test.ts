@@ -7,7 +7,7 @@ import db from '~/infra/database';
 import { tokenProvider } from '~/test/testUtils';
 import {
   genEstablishmentApi,
-  genProspectApi,
+  genCreateUserBody,
   genUserApi
 } from '~/test/testFixtures';
 import { UserApi, UserRoles } from '~/models/UserApi';
@@ -23,11 +23,6 @@ import {
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
-import {
-  formatProspectApi,
-  Prospects
-} from '~/repositories/prospectRepository';
-import { ProspectApi } from '~/models/ProspectApi';
 
 const { app } = createServer();
 
@@ -42,18 +37,13 @@ describe('User API', () => {
     const testRoute = '/api/users/creation';
     const validPassword = '1234QWERasdf';
 
-    let prospect: ProspectApi;
-
-    beforeEach(async () => {
-      prospect = genProspectApi(establishment);
-      await Prospects().insert(formatProspectApi(prospect));
-    });
-
     it('should received a valid draft user', async () => {
+      const user = genCreateUserBody();
+
       await request(app)
         .post(testRoute)
         .send({
-          ...prospect,
+          ...user,
           email: randomstring.generate()
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -61,7 +51,7 @@ describe('User API', () => {
       await request(app)
         .post(testRoute)
         .send({
-          ...prospect,
+          ...user,
           email: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -69,7 +59,7 @@ describe('User API', () => {
       await request(app)
         .post(testRoute)
         .send({
-          ...prospect,
+          ...user,
           establishmentId: randomstring.generate()
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -77,7 +67,7 @@ describe('User API', () => {
       await request(app)
         .post(testRoute)
         .send({
-          ...prospect,
+          ...user,
           establishmentId: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -85,15 +75,16 @@ describe('User API', () => {
 
     it('should not actually create a user if it is a test account', async () => {
       const emails = TEST_ACCOUNTS.map((account) => account.email);
+      const user = genCreateUserBody();
       const responses = await Promise.all(
         emails.map((email) =>
           request(app)
             .post(testRoute)
             .send({
-              ...prospect,
+              ...user,
               email,
               password: validPassword,
-              establishmentId: prospect.establishment?.id
+              establishmentId: user.establishmentId
             })
         )
       );
@@ -109,20 +100,22 @@ describe('User API', () => {
     });
 
     it('should fail if the prospect is missing', async () => {
+      const user = genCreateUserBody();
       const { status } = await request(app).post(testRoute).send({
         email: 'missing@non.existing',
         password: '1234QWERasdf',
-        establishmentId: prospect.establishment?.id
+        establishmentId: user.establishmentId
       });
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should be not found if the user establishment does not exist', async () => {
+      const user = genCreateUserBody();
       const { status } = await request(app)
         .post(testRoute)
         .send({
-          ...prospect,
+          ...user,
           password: validPassword,
           establishmentId: uuidv4()
         });
@@ -131,31 +124,33 @@ describe('User API', () => {
     });
 
     it('should create a new user with Usual role', async () => {
+      const user = genCreateUserBody();
+      user.establishmentId = establishment.id;
       const { body, status } = await request(app)
         .post(testRoute)
         .send({
-          ...prospect,
-          establishmentId: prospect.establishment?.id,
+          ...user,
+          establishmentId: user.establishmentId,
           password: validPassword,
           role: UserRoles.Admin
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject({
-        email: prospect.email,
-        establishmentId: prospect.establishment?.id,
+        email: user.email,
+        establishmentId: user.establishmentId,
         role: UserRoles.Usual
       });
 
-      const user = await Users()
+      const u = await Users()
         .where({
           establishment_id: establishment.id,
-          email: prospect.email
+          email: user.email
         })
         .first();
-      expect(user).toMatchObject({
-        email: prospect.email,
-        establishment_id: prospect.establishment?.id,
+      expect(u).toMatchObject({
+        email: user.email,
+        establishment_id: user.establishmentId,
         role: UserRoles.Usual
       });
     });
@@ -166,18 +161,19 @@ describe('User API', () => {
         available: false
       };
       await Establishments().insert(formatEstablishmentApi(establishment));
-
+      const user = genCreateUserBody();
+      user.establishmentId = establishment.id;
       const { body, status } = await request(app)
         .post(testRoute)
         .send({
-          ...prospect,
+          ...user,
           password: validPassword,
           establishmentId: establishment.id
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject({
-        email: prospect.email,
+        email: user.email,
         establishmentId: establishment.id,
         role: UserRoles.Usual
       });

@@ -46,3 +46,4 @@ export * from './TimePerWeek';
 export * from './UserDTO';
 export * from './VacancyRate';
 export * from './variable-options';
+export * from './CeremaUser';

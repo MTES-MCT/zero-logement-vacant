@@ -1,4 +1,5 @@
-import { CeremaUser, ConsultUserService } from './consultUserService';
+import { ConsultUserService } from './consultUserService';
+import { CeremaUser } from '@zerologementvacant/models';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
@@ -50,7 +51,7 @@ export class CeremaService implements ConsultUserService {
                 },
               },
             );
-            
+
             const establishmentContent: any = await establishmentResponse.json();
             if (establishmentResponse.status !== 200) {
               throw establishmentContent.detail;

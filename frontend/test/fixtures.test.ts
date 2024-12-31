@@ -7,7 +7,6 @@ import { Address } from '../src/models/Address';
 import { Housing, OccupancyKind } from '../src/models/Housing';
 import { AuthUser, User } from '../src/models/User';
 import { SignupLink } from '../src/models/SignupLink';
-import { Prospect } from '../src/models/Prospect';
 import { LocalityKinds } from '../src/models/Locality';
 import { Group } from '../src/models/Group';
 import {
@@ -123,18 +122,6 @@ export function genSignupLink(email: string): SignupLink {
     }),
     prospectEmail: email,
     expiresAt: addHours(new Date(), 24 * 7)
-  };
-}
-
-export function genProspect(): Prospect {
-  return {
-    email: genEmail(),
-    establishment: {
-      id: randomstring.generate(),
-      siren: genSiren()
-    },
-    hasAccount: genBoolean(),
-    hasCommitment: genBoolean()
   };
 }
 

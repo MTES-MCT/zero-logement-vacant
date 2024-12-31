@@ -1,3 +1,4 @@
+import { SignupLink } from '../models/SignupLink';
 import { zlvApi } from './api.service';
 
 export const signupLinkApi = zlvApi.injectEndpoints({
@@ -14,8 +15,16 @@ export const signupLinkApi = zlvApi.injectEndpoints({
         }
       },
       invalidatesTags: ['SignupLink']
-    })
+    }),
+    getActivationEmail: builder.query<SignupLink, string>({
+      query: (id) => `signup-links/${id}`,
+      transformErrorResponse: (response) => {
+        if (typeof response.status === 'number' && response.status === 404) {
+          throw new Error('Cannot find sign-up link');
+        }
+      },
+    }),
   })
 });
 
-export const { useSendActivationEmailMutation } = signupLinkApi;
+export const { useSendActivationEmailMutation, useGetActivationEmailQuery } = signupLinkApi;

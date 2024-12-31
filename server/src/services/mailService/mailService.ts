@@ -28,7 +28,4 @@ export interface MailService {
 
 export interface MailEvent {
   'housing:exported': Record<string, never>;
-  'owner-prospect:created': Record<string, never>;
-  'prospect:initialized': { link: string };
-  'user:created': { createdAt: Date };
 }

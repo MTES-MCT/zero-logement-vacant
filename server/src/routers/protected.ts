@@ -17,7 +17,6 @@ import housingExportController from '~/controllers/housingExportController';
 import localityController from '~/controllers/localityController';
 import noteController from '~/controllers/noteController';
 import ownerController from '~/controllers/ownerController';
-import ownerProspectController from '~/controllers/ownerProspectController';
 import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
 import { jwtCheck, userCheck } from '~/middlewares/auth';
@@ -215,19 +214,6 @@ router.put(
 );
 router.get('/owners/housing/:housingId', ownerController.listByHousing);
 router.put('/housing/:housingId/owners', ownerController.updateHousingOwners);
-
-router.get(
-  '/owner-prospects',
-  ownerProspectController.findOwnerProspectsValidators,
-  validator.validate,
-  ownerProspectController.find
-);
-router.put(
-  '/owner-prospects/:id',
-  ownerProspectController.updateOwnerProspectValidators,
-  validator.validate,
-  ownerProspectController.update
-);
 
 router.get(
   '/owners/:id/events',

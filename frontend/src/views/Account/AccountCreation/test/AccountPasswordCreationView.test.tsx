@@ -50,7 +50,6 @@ describe('AccountPasswordCreationView', () => {
 
   it('should render', async () => {
     const prospect = genProspectDTO(establishment);
-    data.prospects.push(prospect);
     const link = genSignupLinkDTO(prospect.email);
     data.signupLinks.push(link);
 
@@ -64,7 +63,6 @@ describe('AccountPasswordCreationView', () => {
 
   it('should display an error if the link is expired', async () => {
     const prospect = genProspectDTO(establishment);
-    data.prospects.push(prospect);
     const link: SignupLinkDTO = {
       ...genSignupLinkDTO(prospect.email),
       expiresAt: faker.date.past()
@@ -81,7 +79,6 @@ describe('AccountPasswordCreationView', () => {
       ...genProspectDTO(establishment),
       establishment: undefined
     };
-    data.prospects.push(prospect);
     const link = genSignupLinkDTO(prospect.email);
     data.signupLinks.push(link);
 
@@ -96,7 +93,6 @@ describe('AccountPasswordCreationView', () => {
       ...genProspectDTO(establishment),
       hasCommitment: false
     };
-    data.prospects.push(prospect);
     const link = genSignupLinkDTO(prospect.email);
     data.signupLinks.push(link);
 
@@ -112,7 +108,6 @@ describe('AccountPasswordCreationView', () => {
       hasAccount: false,
       hasCommitment: false
     };
-    data.prospects.push(prospect);
     const link = genSignupLinkDTO(prospect.email);
     data.signupLinks.push(link);
 
@@ -124,7 +119,6 @@ describe('AccountPasswordCreationView', () => {
 
   it('should require a password of at least eight characters, one uppercase, one lowercase and one number', async () => {
     const prospect = genProspectDTO(establishment);
-    data.prospects.push(prospect);
     const link = genSignupLinkDTO(prospect.email);
     data.signupLinks.push(link);
 
@@ -147,7 +141,6 @@ describe('AccountPasswordCreationView', () => {
 
   it('should require to confirm the password', async () => {
     const prospect = genProspectDTO(establishment);
-    data.prospects.push(prospect);
     const link = genSignupLinkDTO(prospect.email);
     data.signupLinks.push(link);
 
@@ -163,7 +156,6 @@ describe('AccountPasswordCreationView', () => {
 
   it('should choose a password', async () => {
     const prospect = genProspectDTO(establishment);
-    data.prospects.push(prospect);
     const link = genSignupLinkDTO(prospect.email);
     data.signupLinks.push(link);
 

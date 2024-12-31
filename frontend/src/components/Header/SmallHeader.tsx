@@ -26,6 +26,7 @@ import {
   fromEstablishmentDTO,
   toEstablishmentDTO
 } from '../../models/Establishment';
+import Badge from '@codegouvfr/react-dsfr/Badge';
 
 function SmallHeader() {
   const dispatch = useAppDispatch();
@@ -41,7 +42,7 @@ function SmallHeader() {
       linkProps: {
         to: link.url
       },
-      text: <>{link.label} {link.showNewBadge && <p className="fr-badge fr-badge--success fr-badge--sm fr-badge--no-icon fr-ml-1w">Nouveau</p>}</>,
+      text: <>{link.label} {link.showNewBadge && <Badge small={true} severity='success' noIcon={true} className="fr-ml-1w">Nouveau</Badge>}</>,
       isActive: location.pathname.startsWith(link.url)
     };
   }

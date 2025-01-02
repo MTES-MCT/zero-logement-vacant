@@ -17,6 +17,10 @@ import dagster
 from .project import dbt_project
 from .assets import production_dbt
 from .assets.notion import dagster_notion_assets
+from .assets import populate_owners_ban_addresses
+
+from .resources.ban_config import ban_config_resource
+from .jobs.owners_ban_addresses_job import owners_ban_addresses_job
 
 warnings.filterwarnings("ignore", category=dagster.ExperimentalWarning)
 
@@ -35,7 +39,7 @@ dbt_resource = DbtCliResource(
 # Define job for running all assets
 daily_refresh_job = define_asset_job(
     name="production_job",
-    #selection=[""] 
+    #selection=[""]
 )
 
 # Schedule the job to run daily at midnight
@@ -50,14 +54,16 @@ defs = Definitions(
         dagster_production_assets,
         dagster_notion_assets,
         # dagster_notion_assets,
-        *dbt_analytics_assets
+        *dbt_analytics_assets,
+        populate_owners_ban_addresses
     ],
     resources={
         "dlt": dlt_resource,
-        "dbt": dbt_resource
-
+        "dbt": dbt_resource,
+        "ban_config": ban_config_resource
     },
     schedules=[
         daily_refresh_schedule,
     ],
+    jobs=[owners_ban_addresses_job]
 )

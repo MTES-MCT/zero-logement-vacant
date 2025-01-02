@@ -3,6 +3,12 @@ fileignoreconfig:
   checksum: f7719ba0d36160d97e80ee15cb5415b601354576929e36df0596c7d192465cfb
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
+- filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py
+  checksum: 4c16939cca930517d45f30128d79332784cf09c933a1510f0f02e949b1eaac87
+- filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
+  checksum: b068d130431a26be58c78e4f14346be53d318110c4020c7f7212069cbd190bf2
+- filename: analytics/dagster/src/resources/ban_config.py
+  checksum: 034c6924978983da0ca5897bb06b64598a5a813dc93d1d9e8f8a62da952d4d22
 - filename: frontend/src/components/Draft/DraftSender.tsx
   checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: frontend/src/components/Draft/DraftSignature.tsx

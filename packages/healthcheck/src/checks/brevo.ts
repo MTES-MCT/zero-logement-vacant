@@ -13,17 +13,22 @@ export function brevoCheck(apiKey: string, options?: BrevoCheckOptions): Check {
         return Promise.resolve();
       }
 
-      await fetch('https://api.brevo.com/v3/smtp/statistics/aggregatedReport', {
-        method: 'GET',
-        headers: {
-          accept: 'application/json',
-          'api-key': apiKey
-        }
-      }).then((res) => {
-        if (res.status !== 200) {
-          throw new Error('Brevo API is not available');
-        }
-      });
+      try {
+        await fetch('https://api.brevo.com/v3/smtp/statistics/aggregatedReport', {
+          method: 'GET',
+          headers: {
+            accept: 'application/json',
+            'api-key': apiKey
+          },
+          signal: AbortSignal.timeout(2000),
+        }).then((res) => {
+          if (res.status !== 200) {
+            throw new Error('Brevo API is not available');
+          }
+        });
+      } catch {
+        throw new Error('Brevo API is not available');
+      }
     }
   };
 }

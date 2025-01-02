@@ -1,6 +1,6 @@
 from dagster import job
-from assets.populate_owners_ban_addresses import housings_without_address
-from resources.ban_config import ban_config_resource
+from dagster.src.assets.populate_owners_ban_addresses import housings_without_address
+from dagster.src.resources.ban_config import ban_config_resource
 
 @job(
     resource_defs={

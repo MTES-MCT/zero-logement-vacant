@@ -7,5 +7,5 @@ from resources.ban_config import ban_config_resource
         "ban_config": ban_config_resource,
     }
 )
-def ban_address_job():
+def owners_ban_addresses_job():
     housings_without_address()

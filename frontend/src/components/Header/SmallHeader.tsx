@@ -42,8 +42,8 @@ function SmallHeader() {
       linkProps: {
         to: link.url
       },
-      text: <>{link.label} {link.showNewBadge && <Badge small={true} severity='success' noIcon={true} className="fr-ml-1w">Nouveau</Badge>}</>,
-      isActive: location.pathname.startsWith(link.url)
+      text: <><span className={link.icon} aria-hidden="true"></span> {link.label} {link.showNewBadge && <Badge small={true} severity='success' noIcon={true} className="fr-ml-1w">Nouveau</Badge>}</>,
+      isActive: location.pathname.startsWith(link.url),
     };
   }
 

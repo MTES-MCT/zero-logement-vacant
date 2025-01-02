@@ -20,6 +20,7 @@ from .assets.notion import dagster_notion_assets
 from .assets import populate_owners_ban_addresses
 
 from .resources.ban_config import ban_config_resource
+from .jobs.owners_ban_addresses_job import owners_ban_addresses_job
 
 warnings.filterwarnings("ignore", category=dagster.ExperimentalWarning)
 
@@ -64,4 +65,5 @@ defs = Definitions(
     schedules=[
         daily_refresh_schedule,
     ],
+    jobs=[owners_ban_addresses_job]
 )

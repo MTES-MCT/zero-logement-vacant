@@ -7,5 +7,5 @@ matplotlib
 pandas
 requests
 dlt[duckdb]
-
-
+psycopg2
+pydantic_settings

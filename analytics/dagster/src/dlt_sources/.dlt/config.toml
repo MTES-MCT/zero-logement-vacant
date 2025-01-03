@@ -1,5 +1,8 @@
 [sources.filesystem]
-bucket_url = "bucket_url" # please set me up!
+bucket_url = "https://cellar-c2.services.clever-cloud.com/zlv-production"
 
 [runtime]
 dlthub_telemetry = true
+
+[pipeline] # in ./dlt/config.toml
+loader_file_format="csv"

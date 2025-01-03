@@ -9,3 +9,5 @@ models:
   - name: int_production_establishments_housing
   - name: int_production_establishments_localities
   - name: stg_production_housing_groups
+  - name: int_production_housing_users
+  - name: int_production_housing_establishments

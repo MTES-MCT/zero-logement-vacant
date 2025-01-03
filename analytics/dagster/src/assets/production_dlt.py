@@ -27,4 +27,4 @@ class CustomDagsterDltTranslator(DagsterDltTranslator):
     dagster_dlt_translator=CustomDagsterDltTranslator(),
 )
 def dagster_production_assets(context: AssetExecutionContext, dlt: DagsterDltResource):
-    yield from dlt.run(context=context)
+    yield from dlt.run(context=context, write_disposition="replace")

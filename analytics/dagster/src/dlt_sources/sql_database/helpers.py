@@ -255,7 +255,7 @@ def table_rows(
     )
     try:
         for row in loader.load_rows(backend_kwargs):
-            for column_name in row.column_names:
+            for column_name in row.columns:
                 value = row[column_name]
                 try:
                     # Attempt to process the value

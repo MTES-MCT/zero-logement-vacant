@@ -1,7 +1,7 @@
 WITH old_events AS (
-        SELECT
+    SELECT
         id,
-        created_at,
+        CAST(created_at AS DATE) AS created_at,
         created_by,
         old_events.housing_id,
         NULL AS old_status,
@@ -20,12 +20,17 @@ WITH old_events AS (
             ELSE NULL
         END AS new_status,
         CASE
-            WHEN lower(content) LIKE '%passage à non-vacant%' THEN 'V'    
+            WHEN lower(content) LIKE '%passage à non-vacant%' THEN 'V'
             ELSE NULL
         END AS old_occupancy,
         CASE
-            WHEN lower(content) LIKE '%passage à non-vacant%'  AND lower(content) LIKE '%propriétaire%' THEN 'P'
-            WHEN lower(content) LIKE '%passage à non-vacant%'  AND (lower(content) LIKE '%loué%' OR lower(content) LIKE '%location%') THEN 'L'
+            WHEN lower(content) LIKE '%passage à non-vacant%'
+            AND lower(content) LIKE '%propriétaire%' THEN 'P'
+            WHEN lower(content) LIKE '%passage à non-vacant%'
+            AND (
+                lower(content) LIKE '%loué%'
+                OR lower(content) LIKE '%location%'
+            ) THEN 'L'
             WHEN lower(content) LIKE '%passage à non-vacant%' THEN 'inconnu'
             ELSE NULL
         END AS new_occupancy,
@@ -48,11 +53,20 @@ WITH old_events AS (
         END AS new_sub_status,
         content as name,
         NULL as simple_name,
-        'old' as version, 
+        'old' as version,
         NULL as category,
-    FROM {{ ref('stg_production_old_events') }} AS old_events
+    FROM
+        {{ ref('stg_production_old_events') }} AS old_events
 )
-    SELECT *,
-    CASE WHEN new_status IS NOT NULL THEN TRUE ELSE FALSE END AS status_changed, 
-    CASE WHEN new_occupancy IS NOT NULL THEN TRUE ELSE FALSE END AS occupancy_changed
-    FROM old_events
+SELECT
+    *,
+    CASE
+        WHEN new_status IS NOT NULL THEN TRUE
+        ELSE FALSE
+    END AS status_changed,
+    CASE
+        WHEN new_occupancy IS NOT NULL THEN TRUE
+        ELSE FALSE
+    END AS occupancy_changed
+FROM
+    old_events

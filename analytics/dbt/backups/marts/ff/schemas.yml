@@ -1,0 +1,10 @@
+version: 2
+
+
+models:
+  - name: marts_ff_ext_2020_geo_code
+    enabled: false
+  - name: marts_ff_ext_2023_geo_code
+    enabled: false
+
+    

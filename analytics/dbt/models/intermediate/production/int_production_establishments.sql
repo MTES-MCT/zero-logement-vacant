@@ -29,5 +29,6 @@ SELECT est.*,
     CASE 
         WHEN est.kind IN ('SDED', 'SDER') THEN TRUE
         ELSE FALSE
-    END AS covered_by_state_service
+    END AS covered_by_state_service,
+    
 FROM {{ ref('stg_production_establishments') }} est

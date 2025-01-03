@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./dagster:/opt/dagster/dagster_home
-      - ./dbt_project:/opt/dagster/dbt_project
+      - ./dbt:/opt/dagster/dbt
     env_file:
       - .env
     expose: 

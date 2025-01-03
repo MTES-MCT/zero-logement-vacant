@@ -67,6 +67,7 @@ seeds:
       delimiter: ","
       +header: true
   - name: fusions
+    description: "Fusions de communes"
     config:
       delimiter: ","
       +header: true

@@ -46,10 +46,11 @@ SELECT
         phg.*, 
         phe.establishment_ids,
         phe.establishment_ids_array,
-        phe.has_users as is_on_user_teritory
+        phu.has_users as is_on_user_teritory
 FROM {{ ref('int_production_housing') }} h
 LEFT JOIN {{ ref('int_production_housing_last_status') }} hs ON h.id = hs.housing_id
 LEFT JOIN {{ ref('marts_common_cities') }} c ON h.city_code = c.city_code
 LEFT JOIN {{ ref('int_production_housing_campaigns') }} phc ON phc.housing_id = h.id
 LEFT JOIN {{ ref('int_production_housing_groups') }} phg ON phg.housing_id = h.id
 LEFT JOIN {{ ref('int_production_housing_establishments') }} phe ON phe.housing_id = h.id
+LEFT JOIN {{ ref('int_production_housing_users') }} phu ON phu.housing_id = h.id

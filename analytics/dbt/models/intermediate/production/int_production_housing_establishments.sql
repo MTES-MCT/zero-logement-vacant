@@ -1,13 +1,20 @@
-
+{{
+    config(
+        materialized='table'
+    )
+}}
+WITH deduplicated_pel AS (
+    SELECT DISTINCT geo_code, establishment_id
+    FROM {{ ref('int_production_establishments_localities') }}
+),
+filtered_ph AS (
+    SELECT id AS housing_id, geo_code
+    FROM {{ ref('int_production_housing') }}
+)
 SELECT
-    ph.id as housing_id,
-    STRING_AGG(DISTINCT pel.establishment_id, ' | ') as establishment_ids,
-    ARRAY_AGG(DISTINCT pel.establishment_id) as establishment_ids_array, 
-    CASE SUM(peu.user_number)
-        WHEN 0 THEN FALSE
-        ELSE TRUE
-    END as has_users
-FROM {{ ref('int_production_housing') }} as ph
-LEFT JOIN {{ ref('int_production_establishments_localities') }} as pel ON pel.geo_code = ph.geo_code
-LEFT JOIN {{ ref('int_production_establishments_users') }} as peu ON peu.establishment_id = pel.establishment_id
-GROUP BY housing_id
+    ph.housing_id,
+    STRING_AGG(pel.establishment_id, ' | ') AS establishment_ids,
+    ARRAY_AGG(pel.establishment_id) AS establishment_ids_array    
+FROM filtered_ph AS ph
+LEFT JOIN deduplicated_pel AS pel ON pel.geo_code = ph.geo_code
+GROUP BY ph.housing_id

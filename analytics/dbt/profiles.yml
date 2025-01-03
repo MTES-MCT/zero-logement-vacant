@@ -15,3 +15,12 @@ duckdb_profile:
         s3_secret_access_key: "{{ env_var('S3_SECRET_ACCESS_KEY') }}" 
       attach:
         - path: production.duckdb
+
+    prod:
+      type: duckdb
+      path: "/opt/dagster/dagster_home/db/dagster.duckdb"
+      extensions:
+        - httpfs
+        - parquet
+        - s3
+        - spatial

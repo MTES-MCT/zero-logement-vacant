@@ -1,32 +1,36 @@
 FROM python:3.10-slim
 
+# Installer les dépendances nécessaires
+RUN apt-get update && \
+    apt-get install -y nginx apache2-utils curl gnupg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Installer Clever Tools
+RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/bin
+
+# Installer les packages Python requis
 RUN pip install dagster-webserver dagster-postgres dagster-aws
 
-RUN apt-get update && apt-get install -y nginx apache2-utils
-
-RUN ls 
-# Install dependencies
+# Copier les fichiers de configuration et le code source
 COPY requirements.txt .
-
-
 RUN pip install -r requirements.txt
 
+# Définir la variable d'environnement pour Dagster
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
-
 RUN mkdir -p $DAGSTER_HOME
-
 COPY dagster.yaml workspace.yaml $DAGSTER_HOME
-
 COPY src/ $DAGSTER_HOME
 
+# Définir le répertoire de travail
 WORKDIR $DAGSTER_HOME
 
-# Setup Nginx configuration
+# Configurer l'authentification basique pour Nginx
 RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
 COPY docker/nginx/nginx.conf /etc/nginx/sites-available/default
 
-# Expose port 80 for the Nginx web server
+# Exposer le port 8080 pour le serveur web Nginx
 EXPOSE 8080
 
+# Définir la commande de démarrage
 CMD nginx -g 'daemon off;' & dagster-webserver -h 0.0.0.0 -p 3000
-

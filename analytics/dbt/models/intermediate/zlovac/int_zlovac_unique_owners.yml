@@ -1,7 +1,0 @@
-version: 2
-
-models:
-  - name: int_zlovac_unique_owners
-    +enabled: true
-    config:
-      materialized: table

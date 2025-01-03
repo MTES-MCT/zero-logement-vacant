@@ -1,11 +1,21 @@
-dagster<w
+dagster
 dagster-dbt
+dagster-duckdb
 dagster-embedded-elt
+GeoAlchemy2==0.16.0
 dbt-duckdb
 duckdb
 matplotlib
 pandas
 requests
 dlt[duckdb]
+dlt[filesystem]
+dlt[parquet]
+s3fs
+
+thefuzz==0.22.1
+
+
+
 
 

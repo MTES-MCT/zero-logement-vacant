@@ -25,13 +25,22 @@ function BuildingPoints(props: Props) {
         'icon-color': [
           'match',
           ['get', 'status', ['at', 0, ['get', 'housingList']]],
-          // Apply a text color depending on the housing status
-          ...statusColors.textColors.flat(),
+          // Apply a background color depending on the housing status
+          ...statusColors.backgroundColors.flat(),
           statusColors.defaultBackgroundColor
         ],
-        'icon-halo-color': statusColors.defaultTextColor,
+        // @ts-expect-error: match expects 4 starting arguments
+        'icon-halo-color': [
+          'match',
+          ['get', 'status', ['at', 0, ['get', 'housingList']]],
+          // Apply a stroke color to the circle
+          // depending on the housing status
+          ...statusColors.borderColors.flat(),
+          statusColors.defaultBorderColor
+        ],
         'icon-halo-width': 4,
-        'icon-halo-blur': 0
+        'icon-halo-blur': 0,
+        'text-opacity': 0
       }}
       source={props.source}
     />

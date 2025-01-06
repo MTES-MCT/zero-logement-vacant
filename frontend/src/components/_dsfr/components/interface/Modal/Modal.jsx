@@ -3,7 +3,7 @@ import React, {
   cloneElement,
   useEffect,
   useRef,
-  useState,
+  useState
 } from 'react';
 
 import ReactDOM from 'react-dom';

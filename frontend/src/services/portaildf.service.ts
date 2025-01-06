@@ -1,7 +1,7 @@
 import { CeremaUser } from '@zerologementvacant/models';
 import { zlvApi } from './api.service';
 
-export const signupLinkApi = zlvApi.injectEndpoints({
+export const portailDFApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     getUserAccess: builder.query<CeremaUser, string>({
       query: (email) => `user-access?email=${email}`,
@@ -14,4 +14,4 @@ export const signupLinkApi = zlvApi.injectEndpoints({
   })
 });
 
-export const { useGetUserAccessQuery } = signupLinkApi;
+export const { useGetUserAccessQuery } = portailDFApi;

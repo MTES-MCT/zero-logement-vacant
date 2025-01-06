@@ -11,6 +11,7 @@ import { EnergyConsumption } from './EnergyConsumption';
 import { HousingKind } from './HousingKind';
 import { CampaignCount } from './CampaignCount';
 import { RoomCount } from './RoomCount';
+import { OwnerKind } from './OwnerKind';
 
 export interface HousingFiltersDTO {
   housingIds?: string[];
@@ -21,7 +22,7 @@ export interface HousingFiltersDTO {
   campaignsCounts?: CampaignCount[];
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
-  ownerKinds?: string[];
+  ownerKinds?: OwnerKind[];
   ownerAges?: OwnerAge[];
   multiOwners?: boolean[];
   beneficiaryCounts?: BeneficiaryCount[];

@@ -2,11 +2,11 @@
 
 The `kind` column in the `establishments` table indicates the type of establishment. Below are the possible values and their meanings:
 
-| Value                                                               | Meaning                                                                          | Intercommunalities     | Exemple structures                     |
+| Value                                                               | Meaning                                                                          | Intercommunalities     | Examples                               |
 |---------------------------------------------------------------------|----------------------------------------------------------------------------------|------------------------|----------------------------------------|
 | `Service déconcentré de l'État à compétence (inter) départementale` |                                                                                  | NO                     |                                        |
 | `CA`                                                                | Communauté d’Agglomération                                                       | YES                    |                                        |
-| `DG`                                                                | Direction Générale, only one Only 1 for now: Cerema                              | NO                     |                                        |
+| `DG`                                                                | Direction Générale, only one for now: Cerema                                     | NO                     |                                        |
 | `CC`                                                                | Communauté de Communes                                                           | YES                    |                                        |
 | `CU`                                                                | Communauté Urbaine                                                               | YES                    |                                        |
 | `PETR`                                                              | Pôle d'Équilibre Territorial et Rural                                            | NO                     |                                        |

@@ -4,18 +4,6 @@ import pandas as pd
 import psycopg2
 from io import StringIO
 
-class BANConfig(Config):
-    db_name: str = "isoprod"
-    db_user: str = "postgres"
-    db_password: str = "postgres"
-    db_host: str = "localhost"
-    db_port: str = "5432"
-    api_url: str = "https://api-adresse.data.gouv.fr/search/csv/"
-    csv_file_path: str = "temp_csv"
-    chunk_size: int = 10000
-    max_files: int = 5
-    disable_max_files: bool = False
-
 @asset(description="Return owners with no BAN address or a non-validated BAN address (score < 1).", required_resource_keys={"ban_config"})
 def owners_without_address(context: AssetExecutionContext):
     config = context.resources.ban_config

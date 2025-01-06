@@ -8,18 +8,12 @@ import config from '~/infra/config';
 import BadRequestError from '~/errors/badRequestError';
 
 export function upload(): RequestHandler {
-
-  const ALLOWED_MIMES = [
-    'image/png',
-    'image/jpeg',
-    'application/pdf',
-  ];
+  const ALLOWED_MIMES = ['image/png', 'image/jpeg', 'application/pdf'];
   const upload = multer({
     limits: {
       files: 1,
       fileSize: 1024 * 1024 * 5 // 5 MB
     },
-    // @ts-expect-error: Due to express-server-static-core weird type augmentation
     fileFilter(
       request: Request,
       file: Express.Multer.File,
@@ -50,6 +44,5 @@ export function upload(): RequestHandler {
     })
   });
 
-  // @ts-expect-error: Due to express-server-static-core weird type augmentation
   return upload.single('file');
 }

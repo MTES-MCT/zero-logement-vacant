@@ -12,7 +12,9 @@ import {
   LocalityKind,
   Occupancy,
   OCCUPANCY_VALUES,
+  OWNER_KIND_VALUES,
   OwnerAge,
+  OwnerKind,
   OwnershipKind,
   RoomCount,
   VacancyRate
@@ -63,12 +65,11 @@ export const noCampaignOption: SelectOption = {
 };
 export type NoCampaign = typeof noCampaignOption.value;
 
-export const ownerKindOptions: SelectOption[] = [
-  { value: 'Particulier', label: 'Particulier' },
-  { value: 'Investisseur', label: 'Investisseur' },
-  { value: 'SCI', label: 'SCI' },
-  { value: 'Autre', label: 'Autres' }
-];
+export const ownerKindOptions: SelectOption<OwnerKind>[] =
+  OWNER_KIND_VALUES.map((kind) => ({
+    value: kind,
+    label: kind
+  }));
 
 export const campaignsCountOptions: SelectOption<CampaignCount>[] = [
   { value: '0', label: 'Dans aucune campagne en cours' },

@@ -19,3 +19,10 @@
   height: 2px;
   z-index: 1000;
 }
+
+.icon::before {
+  --icon-size: 1.25rem;
+  margin-right: 0.5rem;
+  position: relative;
+  top: -2px;
+}

@@ -21,7 +21,7 @@ export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
     case UserNavItems.Resources:
       return { url: '/ressources', label: 'Ressources', icon: 'fr-icon-information-line' };
     case UserNavItems.Analysis:
-      return { url: '/analyses', label: 'Analyses', showNewBadge: true, icon: 'fr-icon-bar-chart-box-line' };
+      return { url: '/analyses', label: 'Analyses', showNewBadge: true, icon: 'ri-bar-chart-2-line' };
     default:
       return { url: '/', label: 'Accueil', icon: 'fr-icon-building-line' };
   }

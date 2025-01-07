@@ -110,3 +110,7 @@ span.fr-icon-checkbox-circle-line.ds-fr-tag-icon {
     }
   }
 }
+
+.fr-nav__list > :first-child:nth-last-child(4) ~ * {
+  margin-left: 0px;
+}

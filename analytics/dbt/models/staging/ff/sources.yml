@@ -2,8 +2,7 @@ version: 2
 
 sources:
   - name: duckdb_raw
-    # schema: ff
-    schema: main
+    schema: ff
     tables:
       - name: raw_ff_owners
       - name: raw_ff_2023

@@ -18,7 +18,7 @@ const backgroundColors = fp.zip(statuses, [
   hex.decisions.background.contrast.greenBourgeon.default,
   hex.decisions.background.contrast.purpleGlycine.default
 ]) as NonEmptyArray<[HousingStatus, string]>;
-const textColors = fp.zip(statuses, [
+const borderColors = fp.zip(statuses, [
   hex.decisions.text.label.yellowTournesol.default,
   hex.decisions.text.label.blueCumulus.default,
   hex.decisions.text.label.orangeTerreBattue.default,
@@ -27,13 +27,13 @@ const textColors = fp.zip(statuses, [
 ]) as NonEmptyArray<[HousingStatus, string]>;
 const defaultBackgroundColor =
   hex.decisions.background.actionHigh.blueFrance.default;
-const defaultTextColor = hex.decisions.text.inverted.grey.default;
+const defaultBorderColor = hex.decisions.text.inverted.grey.default;
 
 const statusColors = {
   defaultBackgroundColor,
-  defaultTextColor,
+  defaultBorderColor,
   backgroundColors,
-  textColors
+  borderColors
 };
 
 export default statusColors;

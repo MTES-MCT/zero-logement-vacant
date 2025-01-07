@@ -22,7 +22,7 @@ import { GeoPerimeter } from '../../models/GeoPerimeter';
 import Perimeters from './Perimeters';
 import MapControls from './MapControls';
 import Points from './Points';
-import { BUILDING_DARK, loadIcon } from './Icon';
+import { useMapImage } from '../../hooks/useMapImage';
 
 const STYLE = {
   title: 'Carte',
@@ -86,11 +86,30 @@ function Map(props: MapProps) {
   const excludedPerimeters = props.perimetersExcluded ?? [];
   const [showPerimeters, setShowPerimeters] = useState(true);
 
-  useEffect(() => {
-    if (map && !map.hasImage(BUILDING_DARK)) {
-      loadIcon(map, '/map/square-fill.png', BUILDING_DARK).catch(console.error);
-    }
-  }, [map]);
+  useMapImage({
+    id: 'square-fill-0',
+    path: '/map/square-fill-0.png'
+  });
+  useMapImage({
+    id: 'square-fill-1',
+    path: '/map/square-fill-1.png'
+  });
+  useMapImage({
+    id: 'square-fill-2',
+    path: '/map/square-fill-2.png'
+  });
+  useMapImage({
+    id: 'square-fill-3',
+    path: '/map/square-fill-3.png'
+  });
+  useMapImage({
+    id: 'square-fill-4',
+    path: '/map/square-fill-4.png'
+  });
+  useMapImage({
+    id: 'square-fill-5',
+    path: '/map/square-fill-5.png'
+  });
 
   useEffect(() => {
     if (map && points.length > 0) {

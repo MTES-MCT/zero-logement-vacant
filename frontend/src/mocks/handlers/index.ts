@@ -11,6 +11,7 @@ import { housingHandlers } from './housing-handlers';
 import { noteHandlers } from './note-handlers';
 import { ownerHandlers } from './owner-handlers';
 import { signupLinksHandlers } from './signup-links-handlers';
+import { userAccessHandlers } from './user-access-handlers';
 import { userHandlers } from './user-handlers';
 
 export const handlers: RequestHandler[] = [
@@ -25,5 +26,6 @@ export const handlers: RequestHandler[] = [
   ...noteHandlers,
   ...ownerHandlers,
   ...signupLinksHandlers,
-  ...userHandlers
+  ...userHandlers,
+  ...userAccessHandlers
 ];

@@ -70,6 +70,8 @@ const AccountPasswordCreationView = () => {
     ) {
       return <Navigate to="/inscription/impossible" />;
     }
+  } else if(access === null) {
+    return <Navigate to="/inscription/impossible" />;
   }
 
   async function submit() {

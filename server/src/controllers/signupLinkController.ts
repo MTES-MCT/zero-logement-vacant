@@ -34,6 +34,7 @@ async function create(request: Request, response: Response) {
     prospectEmail: email,
     expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION)
   };
+
   await signupLinkRepository.insert(link);
   await mailService.sendAccountActivationEmail(link.id, {
     recipients: [email]

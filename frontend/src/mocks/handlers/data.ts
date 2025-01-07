@@ -12,7 +12,8 @@ import {
   NoteDTO,
   OwnerDTO,
   SignupLinkDTO,
-  UserDTO
+  UserDTO,
+  CeremaUser
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
@@ -22,7 +23,8 @@ import {
   genHousingDTO,
   genOwnerDTO,
   genSenderDTO,
-  genUserDTO
+  genUserDTO,
+  genCeremaUser
 } from '@zerologementvacant/models/fixtures';
 
 const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
@@ -37,6 +39,8 @@ const drafts: DraftDTO[] = campaigns.map<DraftDTO>(() =>
 );
 
 const users: UserDTO[] = Array.from({ length: 10 }, () => genUserDTO());
+
+const ceremaUsers: CeremaUser[] = Array.from({ length: 10 }, () => genCeremaUser());
 
 const groups: GroupDTO[] = Array.from({ length: 5 }, () =>
   genGroupDTO(faker.helpers.arrayElement(users))
@@ -129,7 +133,8 @@ const data = {
   housingOwners,
   owners,
   signupLinks,
-  users
+  users,
+  ceremaUsers,
 };
 
 export default data;

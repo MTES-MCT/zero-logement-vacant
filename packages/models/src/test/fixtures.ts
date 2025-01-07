@@ -11,6 +11,7 @@ import { OwnerDTO } from '../OwnerDTO';
 import { RolesDTO } from '../RolesDTO';
 import { SenderDTO, SignatoryDTO } from '../SenderDTO';
 import { UserDTO } from '../UserDTO';
+import { CeremaUser } from '../CeremaUser';
 import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
 import { HOUSING_KIND_VALUES } from '../HousingKind';
 import { DatafoncierHousing } from '../DatafoncierHousing';
@@ -18,7 +19,6 @@ import { HOUSING_STATUS_VALUES } from '../HousingStatus';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { HousingOwnerDTO } from '../HousingOwnerDTO';
 import { SignupLinkDTO } from '../SignupLinkDTO';
-import { ProspectDTO } from '../ProspectDTO';
 import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
@@ -346,15 +346,6 @@ export function genOwnerDTO(): OwnerDTO {
   });
 }
 
-export function genProspectDTO(establishment: EstablishmentDTO): ProspectDTO {
-  return {
-    email: faker.internet.email(),
-    establishment: fp.pick(['id', 'siren'], establishment),
-    hasAccount: true,
-    hasCommitment: true
-  };
-}
-
 export function genSenderDTO(): SenderDTO {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
@@ -403,5 +394,17 @@ export function genUserDTO(role = RolesDTO.Usual): UserDTO {
     activatedAt: faker.date.recent().toJSON(),
     role,
     disabled: false,
+  };
+}
+
+export function genCeremaUser(): CeremaUser {
+  return {
+    email: faker.internet.email(),
+    establishmentSiren: faker.string.numeric(9),
+    establishmentId: faker.string.uuid(),
+    cguValid: true,
+    hasAccount: true,
+    hasCommitment: true,
+    isValid: true,
   };
 }

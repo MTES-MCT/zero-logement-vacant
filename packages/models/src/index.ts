@@ -36,7 +36,6 @@ export * from './OwnerDTO';
 export * from './OwnerKind';
 export * from './OwnershipKind';
 export * from './Pagination';
-export * from './ProspectDTO';
 export * from './RolesDTO';
 export * from './RoomCount';
 export * from './SenderDTO';

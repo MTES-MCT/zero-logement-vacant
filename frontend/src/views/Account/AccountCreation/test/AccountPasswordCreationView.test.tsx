@@ -4,10 +4,9 @@ import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
-import { ProspectDTO, SignupLinkDTO } from '@zerologementvacant/models';
+import { SignupLinkDTO } from '@zerologementvacant/models';
 import {
-  genEstablishmentDTO,
-  genProspectDTO,
+  genCeremaUser,
   genSignupLinkDTO
 } from '@zerologementvacant/models/fixtures';
 import AccountPasswordCreationView from '../AccountPasswordCreationView';
@@ -17,7 +16,6 @@ import OnboardingModal from '../../../../components/modals/OnboardingModal/Onboa
 
 describe('AccountPasswordCreationView', () => {
   const user = userEvent.setup();
-  const establishment = genEstablishmentDTO();
 
   function setup(link: SignupLinkDTO) {
     const router = createMemoryRouter(
@@ -49,8 +47,9 @@ describe('AccountPasswordCreationView', () => {
   }
 
   it('should render', async () => {
-    const prospect = genProspectDTO(establishment);
-    const link = genSignupLinkDTO(prospect.email);
+    const ceremaUser = genCeremaUser();
+    data.ceremaUsers.push(ceremaUser);
+    const link = genSignupLinkDTO(ceremaUser.email);
     data.signupLinks.push(link);
 
     setup(link);
@@ -62,9 +61,10 @@ describe('AccountPasswordCreationView', () => {
   });
 
   it('should display an error if the link is expired', async () => {
-    const prospect = genProspectDTO(establishment);
+    const ceremaUser = genCeremaUser();
+    data.ceremaUsers.push(ceremaUser);
     const link: SignupLinkDTO = {
-      ...genSignupLinkDTO(prospect.email),
+      ...genSignupLinkDTO(ceremaUser.email),
       expiresAt: faker.date.past()
     };
     data.signupLinks.push(link);
@@ -75,11 +75,13 @@ describe('AccountPasswordCreationView', () => {
   });
 
   it("should be forbidden if one's establishment does not exist in ZLV", async () => {
-    const prospect: ProspectDTO = {
-      ...genProspectDTO(establishment),
-      establishment: undefined
-    };
-    const link = genSignupLinkDTO(prospect.email);
+    const ceremaUser = genCeremaUser();
+    data.ceremaUsers.push({
+      ...ceremaUser,
+      establishmentId: null
+    });
+
+    const link = genSignupLinkDTO(ceremaUser.email);
     data.signupLinks.push(link);
 
     setup(link);
@@ -89,11 +91,12 @@ describe('AccountPasswordCreationView', () => {
   });
 
   it('should be forbidden if one has no account', async () => {
-    const prospect: ProspectDTO = {
-      ...genProspectDTO(establishment),
+    const ceremaUser = genCeremaUser();
+    data.ceremaUsers.push({
+      ...ceremaUser,
       hasCommitment: false
-    };
-    const link = genSignupLinkDTO(prospect.email);
+    });
+    const link = genSignupLinkDTO(ceremaUser.email);
     data.signupLinks.push(link);
 
     setup(link);
@@ -103,12 +106,14 @@ describe('AccountPasswordCreationView', () => {
   });
 
   it("should be forbidden if one's account is waiting for approval", async () => {
-    const prospect: ProspectDTO = {
-      ...genProspectDTO(establishment),
+    const ceremaUser = genCeremaUser();
+    data.ceremaUsers.push({
+      ...ceremaUser,
       hasAccount: false,
       hasCommitment: false
-    };
-    const link = genSignupLinkDTO(prospect.email);
+    });
+
+    const link = genSignupLinkDTO(ceremaUser.email);
     data.signupLinks.push(link);
 
     setup(link);
@@ -118,8 +123,9 @@ describe('AccountPasswordCreationView', () => {
   });
 
   it('should require a password of at least eight characters, one uppercase, one lowercase and one number', async () => {
-    const prospect = genProspectDTO(establishment);
-    const link = genSignupLinkDTO(prospect.email);
+    const ceremaUser = genCeremaUser();
+    data.ceremaUsers.push(ceremaUser);
+    const link = genSignupLinkDTO(ceremaUser.email);
     data.signupLinks.push(link);
 
     setup(link);
@@ -140,8 +146,9 @@ describe('AccountPasswordCreationView', () => {
   });
 
   it('should require to confirm the password', async () => {
-    const prospect = genProspectDTO(establishment);
-    const link = genSignupLinkDTO(prospect.email);
+    const ceremaUser = genCeremaUser();
+    data.ceremaUsers.push(ceremaUser);
+    const link = genSignupLinkDTO(ceremaUser.email);
     data.signupLinks.push(link);
 
     setup(link);
@@ -155,8 +162,9 @@ describe('AccountPasswordCreationView', () => {
   });
 
   it('should choose a password', async () => {
-    const prospect = genProspectDTO(establishment);
-    const link = genSignupLinkDTO(prospect.email);
+    const ceremaUser = genCeremaUser();
+    data.ceremaUsers.push(ceremaUser);
+    const link = genSignupLinkDTO(ceremaUser.email);
     data.signupLinks.push(link);
 
     setup(link);
@@ -170,7 +178,13 @@ describe('AccountPasswordCreationView', () => {
       /^Confirmez votre mot de passe/i
     );
     await user.type(confirmationInput, password);
-    await user.keyboard('{Enter}');
+
+    const confirm = await screen.findByRole('button', {
+      name: /^Confirmer et créer mon compte/i
+    });
+    await user.click(confirm);
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     const title = await screen.findByText(
       /^Bienvenue sur Zéro Logement Vacant !/

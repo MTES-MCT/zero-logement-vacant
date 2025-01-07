@@ -9,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
       .inTable('owners')
       .onUpdate('CASCADE')
       .onDelete('CASCADE');
-    table.string('owner_idpersonne').notNullable().unique();
+    table.string('owner_idpersonne').notNullable();
   });
 }
 

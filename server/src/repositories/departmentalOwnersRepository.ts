@@ -15,7 +15,7 @@ export interface DepartmentalOwnerDBO {
 function stream(): ReadableStream<DepartmentalOwnerDBO> {
   const query = DepartmentalOwners()
     .select(`${departmentalOwnersTable}.*`)
-    .orderBy('owner_id')
+    .orderBy('owner_idpersonne')
     .stream();
 
   return Readable.toWeb(query);

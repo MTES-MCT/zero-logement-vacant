@@ -5,7 +5,7 @@ import sharp, { Color, OutputInfo } from 'sharp';
 import { HousingStatus } from '@zerologementvacant/models';
 import statusColors from '../components/Map/status-colors';
 
-const SIZE = 17;
+const SIZE = 15;
 const BORDER_SIZE = 1;
 
 interface CreateImageOptions {

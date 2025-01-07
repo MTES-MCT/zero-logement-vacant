@@ -1,1 +1,1 @@
-SELECT * FROM {{ ref('ngeo-anct-cog2023')}}
+SELECT * FROM {{ ref ('ngeo-anct-cog2023') }}

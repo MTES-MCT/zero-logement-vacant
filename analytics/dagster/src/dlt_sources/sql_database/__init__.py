@@ -9,13 +9,11 @@ from dlt.sources import DltResource
 
 
 from dlt.sources.credentials import ConnectionStringCredentials
-from dlt.common.configuration.specs.config_section_context import ConfigSectionContext
 
 from .helpers import (
     table_rows,
     engine_from_credentials,
     TableBackend,
-    SqlDatabaseTableConfiguration,
     SqlTableResourceConfiguration,
     _detect_precision_hints_deprecated,
     TQueryAdapter,

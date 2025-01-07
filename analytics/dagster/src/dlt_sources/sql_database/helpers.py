@@ -32,7 +32,7 @@ from .schema_types import (
     TTypeAdapter,
 )
 
-from sqlalchemy import Table, create_engine, select
+from sqlalchemy import Table, create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import CompileError
 
@@ -46,10 +46,8 @@ import logging
 
 logging.basicConfig(
     level=logging.DEBUG,  # Set to DEBUG to capture all log levels
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()  # Output to console
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],  # Output to console
 )
 
 # Create your logger
@@ -261,7 +259,9 @@ def table_rows(
                     # Attempt to process the value
                     yield row
                 except Exception as e:
-                    my_logger.error(f"Error in column '{column_name}' with value '{value}': {e}")
+                    my_logger.error(
+                        f"Error in column '{column_name}' with value '{value}': {e}"
+                    )
                     raise
     finally:
         # dispose the engine if created for this particular table

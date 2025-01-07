@@ -10,10 +10,11 @@ from dlt.sources.filesystem import FileItemDict, filesystem, readers, read_csv
 # where the test files are, those examples work with (url)
 TESTS_BUCKET_URL = "https://cellar-c2.services.clever-cloud.com/zlv-production/"
 
+
 def read_ff_csv_with_duckdb() -> None:
     pipeline = dlt.pipeline(
         pipeline_name="standard_filesystem",
-        destination='filesystem',
+        destination="filesystem",
         dataset_name="lake",
     )
 

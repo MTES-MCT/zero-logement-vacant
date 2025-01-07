@@ -1,3 +1,3 @@
 SELECT
     *
-FROM {{ ref('int_zlovac') }}
+FROM {{ ref ('int_zlovac') }}

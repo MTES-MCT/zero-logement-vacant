@@ -13,10 +13,8 @@ import logging
 
 logging.basicConfig(
     level=logging.DEBUG,  # Set to DEBUG to capture all log levels
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()  # Output to console
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],  # Output to console
 )
 
 # Create your logger
@@ -39,12 +37,14 @@ def table_adapter(table: sa.Table) -> None:
             my_logger.debug(f"Normalizing Geometry column: {column.name}")
             column.type = sa.Text()  # Optionally change to Text for WKT
 
+
 def type_adapter(sql_type: TypeEngine[Any]) -> TypeEngine[Any]:
     if isinstance(sql_type, Geometry):
         return Geometry()  # Handle the geometry type
     if isinstance(sql_type, sa.ARRAY):
         return sa.ARRAY(sa.VARCHAR)  # Gère un tableau de VARCHAR
     return sql_type
+
 
 def get_tables():
     return [
@@ -70,17 +70,31 @@ def get_tables():
 def handle_owners_dates(df):
     for col in ["updated_at", "created_at", "birth_date"]:
         if col in df.columns:
-            df[col] = pd.to_datetime(df[col], errors="coerce").dt.tz_localize(None)  # Convertit ou remplace les valeurs invalides par NaT
+            df[col] = pd.to_datetime(df[col], errors="coerce").dt.tz_localize(
+                None
+            )  # Convertit ou remplace les valeurs invalides par NaT
             # Vérifie et remplace les années invalides
-            df[col] = df[col].apply(lambda x: x if (pd.notnull(x) and x.year > 0) else pd.NaT)
+            df[col] = df[col].apply(
+                lambda x: x if (pd.notnull(x) and x.year > 0) else pd.NaT
+            )
     return df
 
+
 def handle_fast_housing_dates(df):
-    df["updated_at"] = pd.to_datetime(df["updated_at"], errors="coerce").dt.tz_localize(None)
-    df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce").dt.tz_localize(None)
-    df["mutation_date"] = pd.to_datetime(df["mutation_date"], errors="coerce").dt.tz_localize(None)
-    df["energy_consumption_at_bdnb"] = pd.to_datetime(df["energy_consumption_at_bdnb"], errors="coerce").dt.tz_localize(None)
+    df["updated_at"] = pd.to_datetime(df["updated_at"], errors="coerce").dt.tz_localize(
+        None
+    )
+    df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce").dt.tz_localize(
+        None
+    )
+    df["mutation_date"] = pd.to_datetime(
+        df["mutation_date"], errors="coerce"
+    ).dt.tz_localize(None)
+    df["energy_consumption_at_bdnb"] = pd.to_datetime(
+        df["energy_consumption_at_bdnb"], errors="coerce"
+    ).dt.tz_localize(None)
     return df
+
 
 def preprocess_text_array(data):
     if isinstance(data, list):
@@ -92,10 +106,13 @@ def handle_establishments(df):
     df["localities_geo_code"] = df["localities_geo_code"].apply(preprocess_text_array)
     return df
 
-@dlt.source(schema_contract={"tables": "evolve", "columns": "evolve", "data_type": "evolve"})
+
+@dlt.source(
+    schema_contract={"tables": "evolve", "columns": "evolve", "data_type": "evolve"}
+)
 def get_production_source():
     my_logger.debug("This is a debug message")
-    source = sql_database(    
+    source = sql_database(
         backend="pandas",
         type_adapter_callback=type_adapter,
         table_adapter_callback=table_adapter,

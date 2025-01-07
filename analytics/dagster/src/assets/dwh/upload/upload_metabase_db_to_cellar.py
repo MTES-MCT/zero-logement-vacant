@@ -7,7 +7,7 @@ import boto3
 # Asset for uploading the DuckDB metabase file to S3
 @asset(
     deps={AssetKey(f"copy_{table_name}") for table_name in RESULT_TABLES},
-    group_name="upload"
+    group_name="upload",
 )
 def upload_duckdb_to_s3(duckdb_metabase: DuckDBResource):
     s3_bucket = Config.CELLAR_METABASE_BUCKET_NAME
@@ -27,7 +27,7 @@ def upload_duckdb_to_s3(duckdb_metabase: DuckDBResource):
         region_name=Config.CELLAR_REGION,
         aws_access_key_id=Config.CELLAR_ACCESS_KEY_ID,
         aws_secret_access_key=Config.CELLAR_SECRET_ACCESS_KEY,
-        endpoint_url=Config.CELLAR_HTTP_HOST_URL
+        endpoint_url=Config.CELLAR_HTTP_HOST_URL,
     )
 
     # Upload the DuckDB metabase file to S3

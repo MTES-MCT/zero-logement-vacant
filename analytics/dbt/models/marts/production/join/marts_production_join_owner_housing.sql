@@ -1,4 +1,4 @@
 
-SELECT 
+SELECT
     *
-FROM {{ref('stg_production_owners_housing')}} pc 
+FROM {{ ref ('stg_production_owners_housing') }} pc

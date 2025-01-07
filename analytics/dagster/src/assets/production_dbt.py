@@ -1,4 +1,4 @@
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping
 from dagster import AssetExecutionContext, AssetKey
 from dagster_dbt import dbt_assets, DbtCliResource, DagsterDbtTranslator
 from ..project import dbt_project
@@ -12,7 +12,7 @@ class CustomizedDagsterDbtTranslator(DagsterDbtTranslator):
             return AssetKey(f"raw_{name}")
         else:
             return super().get_asset_key(dbt_resource_props)
-        
+
     def get_tags(self, dbt_resource_props: Mapping[str, Any]) -> Mapping[str, str]:
         if "marts" in dbt_resource_props["name"]:
             return {"layer": "marts", "kind": "gold"}
@@ -24,10 +24,10 @@ class CustomizedDagsterDbtTranslator(DagsterDbtTranslator):
             return {"layer": "common", "kind": "bronze"}
         else:
             return super().get_tags(dbt_resource_props)
-        
+
     def get_group_name(self, dbt_resource_props: Mapping[str, Any]) -> str:
         type = dbt_resource_props["resource_type"]
-        if type == 'seed':
+        if type == "seed":
             return "seeds"
 
         if "marts" in dbt_resource_props["name"]:

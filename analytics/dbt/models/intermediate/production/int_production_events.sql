@@ -17,8 +17,8 @@ WITH all_events AS (
         version,
         category
     FROM
-        {{ ref('int_production_events_old') }}
-    UNION
+    {{ ref ('int_production_events_old') }}
+    UNION DISTINCT
     SELECT
         id,
         created_at,
@@ -37,13 +37,14 @@ WITH all_events AS (
         version,
         category
     FROM
-        {{ ref('int_production_events_new') }}
+    {{ ref ('int_production_events_new') }}
 )
+
 SELECT
     ae.*,
     s.new AS event_status_label,
     coalesce(user_type, 'user') AS user_source
 FROM
     all_events ae
-    LEFT JOIN {{ ref('int_production_users') }} u ON ae.created_by = u.id
-    LEFT JOIN {{ ref('status') }} s ON s.status = ae.new_status
+LEFT JOIN {{ ref ('int_production_users') }} u ON ae.created_by = u.id
+LEFT JOIN {{ ref ('status') }} s ON s.status = ae.new_status

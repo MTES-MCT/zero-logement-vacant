@@ -1,20 +1,20 @@
-WITH fil_geo_code AS 
-(
-    SELECT 
+WITH fil_geo_code AS (
+    SELECT
         geo_code,
         COUNT(DISTINCT local_id) AS count_local_id
-    FROM {{ ref('int_lovac_fil_2020') }}
+    FROM {{ ref ('int_lovac_fil_2020') }}
     GROUP BY geo_code
-), 
-ex_geo_code AS 
-(
-    SELECT 
+),
+
+ex_geo_code AS (
+    SELECT
         geo_code,
         COUNT(DISTINCT local_id) AS count_local_id
-    FROM {{ ref('int_lovac_ex_2020') }}
+    FROM {{ ref ('int_lovac_ex_2020') }}
     GROUP BY geo_code
 )
-SELECT 
+
+SELECT
     fil_geo_code.geo_code,
     fil_geo_code.count_local_id AS count_fil,
     ex_geo_code.count_local_id AS count_ex

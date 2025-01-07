@@ -1,2 +1,2 @@
-SELECT * 
-FROM {{ ref('stg_production_groups_housing')}}
+SELECT *
+FROM {{ ref ('stg_production_groups_housing') }}

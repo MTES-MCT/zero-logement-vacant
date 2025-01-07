@@ -1,1 +1,1 @@
-SELECT * FROM  {{ source('duckdb_production_raw', 'campaigns')}}
+SELECT * FROM {{ source ('duckdb_production_raw', 'campaigns') }}

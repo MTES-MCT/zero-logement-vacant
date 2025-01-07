@@ -89,7 +89,9 @@ export async function removeEvents(
     .where({ housing_id: options.housingId })
     .join(eventsTable, `${eventsTable}.id`, `${housingEventsTable}.event_id`)
     .where({ name: 'Changement de propriétaires' })
-    .whereRaw(`${eventsTable}.created_at::date = '2024-09-08'`)
+    .whereRaw(
+      `${eventsTable}.created_at::date BETWEEN '2024-09-08' AND '2024-09-09'`
+    )
     .join(usersTable, `${usersTable}.id`, `${eventsTable}.created_by`)
     .where(`${usersTable}.email`, '=', 'admin@zerologementvacant.beta.gouv.fr')
     .delete();

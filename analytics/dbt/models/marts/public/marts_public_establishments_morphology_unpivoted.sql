@@ -57,6 +57,13 @@ WITH base_data AS (
         'count_housing_private_rented' AS count_type,
         count_housing_private_rented AS count_value
     FROM base_data
+    UNION ALL
+    SELECT 
+        establishment_id,
+        year,
+        'count_housing_production' AS count_type,
+        count_housing_production AS count_value
+    FROM base_data
 )
 , pivoted_data AS (
     SELECT 
@@ -71,6 +78,7 @@ WITH base_data AS (
             WHEN count_type = 'count_housing' THEN 'Logements Totaux'
             WHEN count_type = 'count_housing_private' THEN 'Logements du Parc Privé'
             WHEN count_type = 'count_housing_private_rented' THEN 'Logements du Parc Privé Loués'
+            WHEN count_type = 'count_housing_production' THEN 'Logements vacants >2 ans - ZLV'
         END AS count_label,
         MAX(CASE WHEN year = 2019 THEN count_value END) AS "2019",
         MAX(CASE WHEN year = 2020 THEN count_value END) AS "2020",

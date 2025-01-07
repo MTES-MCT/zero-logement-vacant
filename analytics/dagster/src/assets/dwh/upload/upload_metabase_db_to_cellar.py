@@ -14,13 +14,20 @@ def upload_duckdb_to_s3(duckdb_metabase: DuckDBResource):
     s3_key = Config.CELLAR_METABASE_KEY_PATH
     file_path = duckdb_metabase.database  # Path to the DuckDB metabase file
 
+    print(f"Uploading DuckDB metabase to s3://{s3_bucket}/{s3_key}")
+    print("Credentials, endpoint and region:")
+
+    print(f"Access key ID: {Config.CELLAR_ACCESS_KEY_ID}")
+    print(f"Secret access key: {Config.CELLAR_SECRET_ACCESS_KEY}")
+    print(f"Endpoint URL: {Config.CELLAR_HTTP_HOST_URL}")
+
     # Initialize S3 client
     s3_client = boto3.client(
         "s3",
+        region_name=Config.CELLAR_REGION,
         aws_access_key_id=Config.CELLAR_ACCESS_KEY_ID,
         aws_secret_access_key=Config.CELLAR_SECRET_ACCESS_KEY,
         endpoint_url=Config.CELLAR_HTTP_HOST_URL
-
     )
 
     # Upload the DuckDB metabase file to S3

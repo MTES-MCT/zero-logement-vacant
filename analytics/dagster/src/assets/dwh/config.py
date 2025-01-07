@@ -8,7 +8,7 @@ class Config:
     CELLAR_ACCESS_KEY_ID = os.environ.get("CELLAR_ACCESS_KEY_ID")
     CELLAR_SECRET_ACCESS_KEY = os.environ.get("CELLAR_SECRET_ACCESS_KEY")
     CELLAR_HOST_URL = os.environ.get("CELLAR_HOST_URL")
-    CELLAR_HTTP_HOST_URL = os.environ.get("CELLAR_HTTP_HOST_URL")
+    CELLAR_HTTP_HOST_URL = f"https://{CELLAR_HOST_URL}"
     CELLAR_REGION = os.environ.get("CELLAR_REGION")
 
     POSTGRES_PRODUCTION_DB = os.environ.get("POSTGRES_PRODUCTION_DB")

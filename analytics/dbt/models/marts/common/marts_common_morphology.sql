@@ -62,10 +62,19 @@ WITH all_lovac AS (
            , SUM(IF(is_private = 1 AND is_rented = 1, 1, 0)) AS count_housing_private_rented
     FROM ff
     GROUP BY year, geo_code
+), 
+production AS (
+    SELECT geo_code,
+            COUNT(h.id) as housing_count,
+            2024 as year 
+    FROM {{ ref("int_production_housing")}} as h
+    GROUP BY geo_code
 )
+
 SELECT year
         , geo_code
         , city_code
+        , production.housing_count as count_housing_production
         , lovac.count_vacant_premisses
         , lovac.count_vacant_housing
         , lovac.count_vacant_housing_private
@@ -89,6 +98,7 @@ SELECT year
         , epci_name as epci_label
     FROM lovac_geo_code_year lovac
     LEFT OUTER JOIN ff_geo_code_year ff USING(year, geo_code)
+    LEFT JOIN production USING(year, geo_code)
     LEFT JOIN {{ ref("int_common_cities_mapping")}} USING(geo_code)
     LEFT JOIN {{ ref("int_common_com_epci_dep_region")}} USING(geo_code)
     LEFT JOIN {{ ref("int_common_departements_france")}} ON code_departement = geo_code[1:2]

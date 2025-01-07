@@ -20,6 +20,17 @@ def setup_replica_db(context, duckdb: DuckDBResource):
         schema_query = "CREATE SCHEMA  IF NOT EXISTS production;"
         context.log.info(f"Executing SQL: {schema_query}")
         conn.execute(schema_query)
+        s3_query = f"""
+            CREATE OR REPLACE PERSISTENT SECRET SECRET (
+                TYPE S3,
+                KEY_ID '{Config.CELLAR_ACCESS_KEY_ID}',
+                SECRET '{Config.CELLAR_SECRET_ACCESS_KEY}',
+                ENDPOINT '{Config.CELLAR_HOST_URL}',
+                REGION '{Config.CELLAR_REGION}'
+            );
+        """
+        context.log.info(f"Executing SQL: {s3_query}")
+        conn.execute(s3_query)
 
 
 def process_subset(name: str, context: AssetExecutionContext, duckdb: DuckDBResource):

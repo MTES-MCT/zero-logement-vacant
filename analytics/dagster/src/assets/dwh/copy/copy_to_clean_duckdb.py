@@ -17,16 +17,14 @@ def process_specific_table(table_name: str, duckdb: DuckDBResource, duckdb_metab
     source_table_name = table_name
     destination_table_name = translate_table_name(table_name)
     with duckdb.get_connection() as conn:
-        # Attacher les bases de données source et destination
         conn.execute(f"ATTACH '{chemin_destination_db}' AS destination_db;")
-            # Copier la table du schéma source vers le schéma destination
         conn.execute(f"""
-            CREATE TABLE destination_db.{destination_schema}.{source_table_name} AS
-            SELECT * FROM {source_schema}.{destination_table_name};
+            CREATE OR REPLACE TABLE destination_db.{destination_schema}.{destination_table_name} AS
+            SELECT * FROM {source_schema}.{source_table_name};
         """)
 
-        # Détacher les bases de données
-        conn.execute("DETACH DATABASE source_db;")
+        # Detach the source database
+        #conn.execute("DETACH DATABASE source_db;")
         conn.execute("DETACH DATABASE destination_db;")
 
 

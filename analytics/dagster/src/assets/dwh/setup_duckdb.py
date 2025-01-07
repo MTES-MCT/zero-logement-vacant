@@ -10,7 +10,7 @@ from .queries.production import production_tables
 @asset(name="setup_duckdb",
         description="Setup Duckdb", group_name="setup", 
         compute_kind="duckdb")
-def setup_replica_db(context, duckdb: DuckDBResource):
+def setup_duckdb(context, duckdb: DuckDBResource):
     SETUP_QUERY = f"SET memory_limit = '{Config.DUCKDB_MEMORY_LIMIT}GB';"
 
     with duckdb.get_connection() as conn:

@@ -16,7 +16,7 @@ function Footer() {
       brandTop={
         <>
           Ministère <br />
-          de l'Aménagement <br />
+          de l’Aménagement <br />
           du territoire <br />
           et de la <br />
           Décentralisation

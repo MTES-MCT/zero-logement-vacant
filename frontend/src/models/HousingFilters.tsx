@@ -266,7 +266,7 @@ export const localityKindsOptions: SelectOption<LocalityKind>[] = [
 
 export const dataFileYearsIncludedOptions: SelectOption[] = [
   {
-    value: 'ff-2023',
+    value: 'ff-2023-locatif',
     label: 'Fichiers fonciers 2023 (locatif)',
     badgeLabel: 'Fichiers fonciers 2023 (locatif) inclus'
   },
@@ -304,7 +304,7 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
 
 export const dataFileYearsExcludedOptions: SelectOption[] = [
   {
-    value: 'ff-2023',
+    value: 'ff-2023-locatif',
     label: 'Fichiers fonciers 2023 (locatif)',
     badgeLabel: 'Fichiers fonciers 2023 (locatif) exclus'
   },

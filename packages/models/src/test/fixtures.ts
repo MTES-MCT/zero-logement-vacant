@@ -22,6 +22,7 @@ import { ProspectDTO } from '../ProspectDTO';
 import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
+import { OWNER_KIND_LABELS } from '../OwnerKind';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -342,7 +343,7 @@ export function genOwnerDTO(): OwnerDTO {
       lastName
     }),
     phone: faker.phone.number(),
-    kind: 'PERSONNE PHYSIQUE'
+    kind: faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS))
   });
 }
 

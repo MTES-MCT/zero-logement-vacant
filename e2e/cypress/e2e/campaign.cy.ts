@@ -2,9 +2,9 @@ describe('Campaign', () => {
   it('should create a campaign', () => {
     cy.intercept({
       method: 'GET',
-      url: Cypress.env('API') + '/housing?*'
+      url: Cypress.env('API') + '/housing*'
     }).as('findHousings');
-    cy.intercept('POST', Cypress.env('API') + '/housing/count').as(
+    cy.intercept('GET', Cypress.env('API') + '/housing/count*').as(
       'countHousings'
     );
     cy.intercept('POST', Cypress.env('API') + '/files').as('upload');

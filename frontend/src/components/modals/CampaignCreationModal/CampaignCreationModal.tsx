@@ -69,8 +69,7 @@ const CampaignCreationModal = ({
         size="large"
         title={
           <>
-            <span className="fr-icon-1x icon-left fr-icon-arrow-right-line ds-fr--v-middle" />
-            Créer la campagne
+            Créer une campagne
           </>
         }
         buttons={[

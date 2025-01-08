@@ -31,7 +31,7 @@ export const TrackEventActions = {
     SubmitContact: 'Formulaire contact complété'
   },
   HousingList: {
-    CreateCampaign: 'Créer la campagne',
+    CreateCampaign: 'Créer une campagne',
     SaveCampaign: 'Enregistrer la campagne',
     DisplayHousing: 'Afficher un logement',
     Search: 'Rechercher un logement',

@@ -1,26 +1,27 @@
 WITH establishment_info AS (
-    SELECT 
+    SELECT
         loc.geo_code,
         est.id AS establishment_id,
         est.name AS establishment_name,
         est.kind AS establishment_kind,
-        est.establishment_kind_label AS establishment_kind_label,
-        est.covered_by_state_service AS covered_by_state_service
-    FROM 
-        {{ ref('int_production_establishments_localities') }} loc
-    LEFT JOIN {{ ref('int_production_establishments') }} est 
-        ON loc.establishment_id = est.id
-    LEFT JOIN {{ ref('int_production_establishments_users') }} est_users 
-        ON est.id = est_users.establishment_id
+        est.establishment_kind_label,
+        est.covered_by_state_service
+    FROM
+    {{ ref ('int_production_establishments_localities') }} loc
+    LEFT JOIN {{ ref ('int_production_establishments') }} est
+    ON loc.establishment_id = est.id
+    LEFT JOIN {{ ref ('int_production_establishments_users') }} est_users
+    ON est.id = est_users.establishment_id
     WHERE user_number > 0
 )
-SELECT 
+
+SELECT
     geo_code,
-    MAX(CASE 
-        WHEN establishment_kind = 'Commune' THEN  TRUE
+    MAX(CASE
+        WHEN establishment_kind = 'Commune' THEN TRUE
         ELSE FALSE
     END) AS inscrit_zlv_direct,
-    MAX(CASE 
+    MAX(CASE
         WHEN establishment_kind IN ('CA', 'CC', 'CU', 'ME') THEN TRUE
         ELSE FALSE
     END) AS inscrit_zlv_via_intercommunalité,

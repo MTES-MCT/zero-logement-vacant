@@ -1,2 +1,2 @@
-SELECT  * 
-FROM {{ ref('cities')}}
+SELECT *
+FROM {{ ref ('cities') }}

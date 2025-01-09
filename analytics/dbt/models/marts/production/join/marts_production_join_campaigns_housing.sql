@@ -1,2 +1,2 @@
-SELECT * 
-FROM {{ ref('int_production_campaigns_housing')}}
+SELECT *
+FROM {{ ref ('int_production_campaigns_housing') }}

@@ -1,9 +1,11 @@
-WITH establishment_localities AS (SELECT 
-    pe.id as establishment_id,
-    UNNEST(pe.localities_geo_code) as geo_code
-FROM {{ ref('int_production_establishments') }} pe 
+WITH establishment_localities AS (
+    SELECT
+        pe.id AS establishment_id,
+        UNNEST(pe.localities_geo_code) AS geo_code
+    FROM {{ ref ('int_production_establishments') }} pe
 )
-SELECT 
-    el.establishment_id, 
+
+SELECT
+    el.establishment_id,
     el.geo_code
 FROM establishment_localities el

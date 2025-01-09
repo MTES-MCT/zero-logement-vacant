@@ -35,7 +35,7 @@ COPY analytics/dbt/ /opt/dagster/dbt/
 WORKDIR $DAGSTER_HOME
 
 # Setup Nginx configuration
-RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
+RUN htpasswd -cb /etc/nginx/.htpasswd $DAGSTER_USERNAME $DAGSTER_PASSWORD
 COPY .docker/dagster/nginx/nginx.conf /etc/nginx/sites-available/default
 
 EXPOSE 8080 3000

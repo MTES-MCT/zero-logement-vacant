@@ -45,7 +45,7 @@ dbt_resource = DbtCliResource(
 # Define job for running all assets
 daily_update_dwh_job = define_asset_job(
     name="datawarehouse_synchronize_and_build",
-    selection=AssetSelection.assets(*[*dwh_assets, *dbt_analytics_assets, *["clevercloud_login_and_restart"]])
+    selection=AssetSelection.assets(*[*dwh_assets, *dbt_analytics_assets, *["setup_duckdb", "clevercloud_login_and_restart"]])
     - AssetSelection.assets(
         *[  
             setup_s3_connection,
@@ -61,6 +61,7 @@ yearly_update_ff_dwh_job = define_asset_job(
     name="datawarehouse_build_ff_data",
     selection=AssetSelection.assets(
         *[
+            "setup_duckdb",
             setup_s3_connection,
             import_cerema_ff_lovac_data_from_s3_to_duckdb,
             upload_ff_to_s3

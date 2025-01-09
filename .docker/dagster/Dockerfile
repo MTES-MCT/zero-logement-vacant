@@ -30,7 +30,7 @@ COPY analytics/dagster/dagster.yaml analytics/dagster/workspace.yaml $DAGSTER_HO
 
 COPY analytics/dagster/src $DAGSTER_HOME/src
 
-COPY analytics/dbt/ /opt/dagster/dbt
+COPY analytics/dbt/ /opt/dagster/dbt/
 
 WORKDIR $DAGSTER_HOME
 

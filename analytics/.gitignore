@@ -1,0 +1,7 @@
+*.duckdb
+.duckdb
+*.db
+.ipynb_checkpoints/
+*.csv
+.tmp
+.log

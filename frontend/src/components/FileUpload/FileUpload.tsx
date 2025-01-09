@@ -43,7 +43,7 @@ function FileUpload(props: Readonly<Props>) {
         .unwrap()
         .then((fileUpload) => {
           props.onUpload?.(fileUpload);
-        });
+        }).catch(() => {});
     }
   }
 

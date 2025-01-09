@@ -68,6 +68,8 @@ import {
   isSecondaryOwner,
   Occupancy,
   OCCUPANCY_VALUES,
+  OWNER_KIND_LABELS,
+  OWNER_KIND_VALUES,
   OwnershipKind,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
@@ -528,16 +530,18 @@ describe('Housing repository', () => {
       });
 
       describe('by owner kind', () => {
-        const kinds = ['Particulier', 'Investisseur', 'SCI'];
+        const kinds = OWNER_KIND_VALUES;
 
         beforeEach(async () => {
           const housings = Array.from({ length: kinds.length }, () =>
             genHousingApi()
           );
           await Housing().insert(housings.map(formatHousingRecordApi));
-          const owners: OwnerApi[] = kinds.map((kind, i) => {
-            return { ...housings[i].owner, kind };
-          });
+          const owners: OwnerApi[] = Object.values(OWNER_KIND_LABELS).map(
+            (kind, i) => {
+              return { ...housings[i].owner, kind };
+            }
+          );
           await Owners().insert(owners.map(formatOwnerApi));
           await HousingOwners().insert(
             housings.flatMap((housing) =>
@@ -553,8 +557,9 @@ describe('Housing repository', () => {
             }
           });
 
+          expect(actual.length).toBeGreaterThan(0);
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
-            return housing.owner?.kind === kind;
+            return housing.owner?.kind === OWNER_KIND_LABELS[kind];
           });
         });
       });

@@ -12,7 +12,10 @@ import {
   LocalityKind,
   Occupancy,
   OCCUPANCY_VALUES,
+  OWNER_KIND_LABELS,
+  OWNER_KIND_VALUES,
   OwnerAge,
+  OwnerKind,
   OwnershipKind,
   RoomCount,
   VacancyRate
@@ -24,6 +27,7 @@ import { LocalityKindLabels, LocalityKinds } from './Locality';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import { VacancyYear } from './VacancyYear';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HousingFilters extends HousingFiltersDTO {}
 
 export const allOccupancyOptions: SelectOption<Occupancy>[] = [
@@ -62,12 +66,11 @@ export const noCampaignOption: SelectOption = {
 };
 export type NoCampaign = typeof noCampaignOption.value;
 
-export const ownerKindOptions: SelectOption[] = [
-  { value: 'Particulier', label: 'Particulier' },
-  { value: 'Investisseur', label: 'Investisseur' },
-  { value: 'SCI', label: 'SCI' },
-  { value: 'Autre', label: 'Autres' }
-];
+export const ownerKindOptions: SelectOption<OwnerKind>[] =
+  OWNER_KIND_VALUES.map((value) => ({
+    value: value,
+    label: OWNER_KIND_LABELS[value]
+  }));
 
 export const campaignsCountOptions: SelectOption<CampaignCount>[] = [
   { value: '0', label: 'Dans aucune campagne en cours' },
@@ -264,7 +267,7 @@ export const localityKindsOptions: SelectOption<LocalityKind>[] = [
 
 export const dataFileYearsIncludedOptions: SelectOption[] = [
   {
-    value: 'ff-2023',
+    value: 'ff-2023-locatif',
     label: 'Fichiers fonciers 2023 (locatif)',
     badgeLabel: 'Fichiers fonciers 2023 (locatif) inclus'
   },
@@ -302,7 +305,7 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
 
 export const dataFileYearsExcludedOptions: SelectOption[] = [
   {
-    value: 'ff-2023',
+    value: 'ff-2023-locatif',
     label: 'Fichiers fonciers 2023 (locatif)',
     badgeLabel: 'Fichiers fonciers 2023 (locatif) exclus'
   },

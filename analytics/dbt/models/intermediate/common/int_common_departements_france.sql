@@ -1,1 +1,1 @@
-SELECT * FROM {{ ref('stg_common_departements_france')}}
+SELECT * FROM {{ ref ('stg_common_departements_france') }}

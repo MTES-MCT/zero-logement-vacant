@@ -15,7 +15,11 @@ function useUnsavedChanges(props: Readonly<Props>) {
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
-      window.confirm(message) ? blocker.proceed() : blocker.reset();
+      if (window.confirm(message)) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
     }
   }, [blocker, message]);
 }

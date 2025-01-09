@@ -12,6 +12,7 @@ import {
   LIVING_AREA_VALUES,
   OCCUPANCY_VALUES,
   OWNER_AGE_VALUES,
+  OWNER_KIND_VALUES,
   OWNERSHIP_KIND_VALUES,
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES
@@ -28,7 +29,7 @@ describe('Housing filters', () => {
     campaignsCounts: fc.array(fc.constantFrom(...CAMPAIGN_COUNT_VALUES)),
     campaignIds: fc.array(fc.oneof(fc.constant(null), fc.uuid())),
     ownerIds: fc.array(fc.uuid()),
-    ownerKinds: fc.array(fc.string({ minLength: 1 })),
+    ownerKinds: fc.array(fc.constantFrom(...OWNER_KIND_VALUES)),
     ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
     multiOwners: fc.array(fc.boolean()),
     beneficiaryCounts: fc.array(fc.constantFrom(...BENEFIARY_COUNT_VALUES)),

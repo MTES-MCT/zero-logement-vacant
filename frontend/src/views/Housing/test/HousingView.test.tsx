@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { format, subYears } from 'date-fns';
 
 import {
   HousingDTO,
@@ -73,7 +74,6 @@ describe('Housing view', () => {
 
         const vacancyStartYear = await screen
           .findByText(/^Dans cette situation depuis/)
-          // eslint-disable-next-line testing-library/no-node-access
           .then((label) => label.nextElementSibling);
         expect(vacancyStartYear).toHaveTextContent('Inconnu');
       });
@@ -86,9 +86,8 @@ describe('Housing view', () => {
 
         const vacancyStartYear = await screen
           .findByText(/^Dans cette situation depuis/)
-          // eslint-disable-next-line testing-library/no-node-access
           .then((label) => label.nextElementSibling);
-        expect(vacancyStartYear).toHaveTextContent('Moins d’un an');
+        expect(vacancyStartYear).toHaveTextContent(`1 an (${format(subYears(new Date(), 1), 'yyyy')})`);
       });
     });
 
@@ -100,7 +99,6 @@ describe('Housing view', () => {
 
         const source = await screen
           .findByText(/^Source/)
-          // eslint-disable-next-line testing-library/no-node-access
           .then((label) => label.nextElementSibling);
         expect(source).toHaveTextContent('Fichiers fonciers (2023)');
       });

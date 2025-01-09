@@ -12,6 +12,7 @@ import {
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   Occupancy,
+  OWNER_KIND_LABELS,
   PaginationOptions
 } from '@zerologementvacant/models';
 import db, { toRawArray, where } from '~/infra/database';
@@ -136,7 +137,11 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
 
   const [allowedGeoCodes, intercommunalities] = await Promise.all([
     fetchGeoCodes(filters.establishmentIds ?? []),
-    fetchGeoCodes(filters.intercommunalities ?? [])
+    fetchGeoCodes(
+      Array.isArray(filters.intercommunalities)
+        ? filters.intercommunalities
+        : []
+    )
   ]);
   const localities = filters.localities ?? [];
   const geoCodes = Set(allowedGeoCodes)
@@ -199,9 +204,11 @@ async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
     .where(whereOptions(opts))
     .modify((query) => {
       if (opts.geoCode) {
-        Array.isArray(opts.geoCode)
-          ? query.whereIn(`${housingTable}.geo_code`, opts.geoCode)
-          : query.where(`${housingTable}.geo_code`, opts.geoCode);
+        if (Array.isArray(opts.geoCode)) {
+          query.whereIn(`${housingTable}.geo_code`, opts.geoCode);
+        } else {
+          query.where(`${housingTable}.geo_code`, opts.geoCode);
+        }
       }
     })
     .modify(include(opts.includes ?? []))
@@ -478,7 +485,10 @@ function filteredQuery(opts: FilteredQueryOptions) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }
     if (filters.ownerKinds?.length) {
-      queryBuilder.whereIn(`${ownerTable}.kind_class`, filters.ownerKinds);
+      const ownerKinds = filters.ownerKinds.map(
+        (kind) => OWNER_KIND_LABELS[kind]
+      );
+      queryBuilder.whereIn(`${ownerTable}.kind_class`, ownerKinds);
     }
     if (filters.ownerAges?.length) {
       queryBuilder.where((whereBuilder) => {

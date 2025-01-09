@@ -8,9 +8,11 @@ function Header() {
     <DSFRHeader
       brandTop={
         <>
-          Ministère du Logement <br />
-          et de la Rénovation <br />
-          urbaine
+          Ministère <br />
+          de l’Aménagement <br />
+          du territoire <br />
+          et de la <br />
+          Décentralisation
         </>
       }
       className={styles.shadowless}

@@ -9,7 +9,7 @@ from .queries.ff import ff_tables_sql
 all_tables_sql = {**lovac_tables_sql, **ff_tables_sql}
 
 
-@asset(name="setup_s3_connection", description="Load all tables into DuckDB")
+@asset(name="setup_s3_connection", deps=["setup_duckdb"], description="Load all tables into DuckDB")
 def setup_s3_connection(context, duckdb: DuckDBResource):
     query = f"""
         CREATE OR REPLACE PERSISTENT SECRET SECRET (

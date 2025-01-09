@@ -9,7 +9,7 @@ jobs:
     with:
       app: Dagster (Production)
       alias: dagster-production
-      branch: feat/data-*
+      branch: main
     secrets: inherit
 
   deploy-metabase:
@@ -17,5 +17,5 @@ jobs:
     with:
       app: Production - Metabase
       alias: metabase-production
-      branch: feat/data-*
+      branch: main
     secrets: inherit

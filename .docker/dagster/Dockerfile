@@ -1,12 +1,19 @@
 FROM python:3.10-slim
 
-# ARG DAGSTER_PASSWORD=zlv
-# ARG DAGSTER_USERNAME=zlv
+ARG DAGSTER_PASSWORD
+ARG DAGSTER_USERNAME
 
-# ENV DAGSTER_PASSWORD=$DAGSTER_PASSWORD
-# ENV DAGSTER_USERNAME=$DAGSTER_USERNAME
+ENV DAGSTER_PASSWORD=$DAGSTER_PASSWORD
+ENV DAGSTER_USERNAME=$DAGSTER_USERNAME
 
-RUN apt-get update && apt-get install -y nginx apache2-utils
+COPY --from=clevercloud/clever-tools /bin/clever /usr/local/bin/clever
+
+RUN apt-get update && \
+    apt-get install -y nginx apache2-utils curl gnupg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/bin
 
 RUN pip install dagster-webserver dagster-postgres dagster-aws
 
@@ -22,6 +29,8 @@ RUN mkdir -p $DAGSTER_HOME
 COPY analytics/dagster/dagster.yaml analytics/dagster/workspace.yaml $DAGSTER_HOME
 
 COPY analytics/dagster/src $DAGSTER_HOME/src
+
+COPY analytics/dbt/ /opt/dagster/dbt
 
 WORKDIR $DAGSTER_HOME
 

@@ -1,4 +1,4 @@
-from ...config import Config
+from .....config import Config
 
 SCHEMA = "lovac"
 
@@ -21,7 +21,7 @@ lovac_tables_sql = {
         'ff_ccogrm_6': 'VARCHAR',
     }}));""",
     "raw_lovac_2023": f"""
-        CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2024 AS (
+        CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2023 AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/lovac/2023/raw.csv', auto_detect = TRUE,
         types = {{
         'ff_jdatnss_6': 'VARCHAR',

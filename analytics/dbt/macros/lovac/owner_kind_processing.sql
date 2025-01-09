@@ -1,4 +1,4 @@
-{ % macro process_owner_kind (catpro_3) % }
+{% macro process_owner_kind (catpro_3) %}
 CASE
 WHEN {{ catpro_3 }} IN ('P1a',
 'P1b',
@@ -99,4 +99,4 @@ WHEN {{ catpro_3 }} = 'X1a' THEN 'Particulier'
 WHEN {{ catpro_3 }} = '999' THEN 'Absence de propriétaire'
 ELSE 'Non classifié'
 END
-{ % endmacro % }
+{% endmacro %}

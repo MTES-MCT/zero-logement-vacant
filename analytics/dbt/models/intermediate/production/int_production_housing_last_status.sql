@@ -1,37 +1,19 @@
 WITH
 housing_status_zlv_followup AS {{ get_last_event_status ('zlv', 'suivi') }},
 housing_status_user_followup AS {{ get_last_event_status ('user', 'suivi') }},
-housing_status_all_followup AS {{ get_last_event_status (None,
-'suivi',
-true) }},
-housing_status_zlv_occupancy AS {{ get_last_event_status ('zlv',
-"occupation") }},
-housing_status_user_occupancy AS {{ get_last_event_status ('user',
-"occupation") }},
-housing_status_all_occupancy AS {{ get_last_event_status (None,
-"occupation",
-true) }},
+housing_status_all_followup AS {{ get_last_event_status (None,'suivi',true) }},
+housing_status_zlv_occupancy AS {{ get_last_event_status ('zlv',"occupation") }},
+housing_status_user_occupancy AS {{ get_last_event_status ('user',"occupation") }},
+housing_status_all_occupancy AS {{ get_last_event_status (None,"occupation",true) }},
 
 -- Application de la macro pour sélectionner la dernière ligne pour chaque catégorie
 
-last_housing_status_zlv_followup AS {{ select_last_event (ref ('int_production_housing'),
-'housing_status_zlv_followup',
-'zlv_followup') }},
-last_housing_status_user_followup AS {{ select_last_event (ref ('int_production_housing'),
-'housing_status_user_followup',
-'user_followup') }},
-last_housing_status_all_followup AS {{ select_last_event (ref ('int_production_housing'),
-'housing_status_all_followup',
-'followup') }},
-last_housing_status_zlv_occupancy AS {{ select_last_event (ref ('int_production_housing'),
-'housing_status_zlv_occupancy',
-'zlv_occupancy') }},
-last_housing_status_user_occupancy AS {{ select_last_event (ref ('int_production_housing'),
-'housing_status_user_occupancy',
-'user_occupancy') }},
-last_housing_status_all_occupancy AS {{ select_last_event (ref ('int_production_housing'),
-'housing_status_all_occupancy',
-'occupancy') }}
+last_housing_status_zlv_followup AS {{ select_last_event (ref('int_production_housing'),'housing_status_zlv_followup','zlv_followup') }},
+last_housing_status_user_followup AS {{ select_last_event (ref('int_production_housing'),'housing_status_user_followup','user_followup') }},
+last_housing_status_all_followup AS {{ select_last_event (ref('int_production_housing'),'housing_status_all_followup','followup') }},
+last_housing_status_zlv_occupancy AS {{ select_last_event (ref('int_production_housing'),'housing_status_zlv_occupancy','zlv_occupancy') }},
+last_housing_status_user_occupancy AS {{ select_last_event (ref('int_production_housing'),'housing_status_user_occupancy','user_occupancy') }},
+last_housing_status_all_occupancy AS {{ select_last_event (ref('int_production_housing'),'housing_status_all_occupancy','occupancy') }}
 
 SELECT
 h.id AS housing_id,

@@ -124,7 +124,7 @@ invariant,
 ff_idlocal AS local_id,
 ff_idbat AS building9_id,
 ARRAY_CONSTRUCT (ltrim (trim (libvoie), '0'), trim (libcom)) AS raw_address,
-lpad (ccodep, 2, '0') | | lpad (commune, 3, '0') AS geo_code,
+lpad (ccodep, 2, '0') || lpad (commune, 3, '0') AS geo_code,
 TRY_CAST (REPLACE (ff_y_4326, ',', '.') AS DOUBLE) AS latitude,
 TRY_CAST (REPLACE (ff_x_4326, ',', '.') AS DOUBLE) AS longitude,
 ff_dcapec2 AS cadastral_classification,
@@ -286,13 +286,13 @@ TRY_TO_DATE (ff_jdatnss_5, '{{ var("dateFormat") }}') AS birth_date5,
 TRY_TO_DATE (ff_jdatnss_6, '{{ var("dateFormat") }}') AS birth_date6,
 CASE
 WHEN TRIM (groupe::TEXT) = '' THEN 'Particulier'
-WHEN NOT (owner LIKE '%' | | SPLIT_PART (TRIM (ff_ddenom_1),
+WHEN NOT (owner LIKE '%' || SPLIT_PART (TRIM (ff_ddenom_1),
 '/',
-1) | | '%') AND NOT (owner LIKE '%' | | SPLIT_PART (SPLIT_PART (TRIM (ff_ddenom_1),
+1) || '%') AND NOT (owner LIKE '%' || SPLIT_PART (SPLIT_PART (TRIM (ff_ddenom_1),
 '/',
 2),
 ' ',
-1) | | '%') THEN 'Autre'
+1) || '%') THEN 'Autre'
 WHEN ff_catpro2txt = 'INVESTISSEUR PROFESSIONNEL' THEN 'Investisseur'
 WHEN ff_catpro2txt = 'SOCIETE CIVILE A VOCATION IMMOBILIERE' THEN 'SCI'
 ELSE ff_catpro2txt

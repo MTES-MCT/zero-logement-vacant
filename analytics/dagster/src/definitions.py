@@ -19,10 +19,16 @@ import dagster
 
 from .project import dbt_project
 from .assets import production_dbt
+from .assets import clever
+
 from .assets.dwh.ingest.ingest_lovac_ff_s3_asset import (
     import_cerema_ff_lovac_data_from_s3_to_duckdb,
 )
+from .assets.dwh.checks.ff_table_exists import check_ff_lovac_on_duckdb
 from .assets.dwh.ingest.ingest_lovac_ff_s3_asset import setup_s3_connection
+from .assets.dwh.upload.upload_ff_db_to_cellar import upload_ff_to_s3
+
+clever_assets_assets = load_assets_from_modules(modules=[clever])
 
 warnings.filterwarnings("ignore", category=dagster.ExperimentalWarning)
 
@@ -39,21 +45,31 @@ dbt_resource = DbtCliResource(
 # Define job for running all assets
 daily_update_dwh_job = define_asset_job(
     name="datawarehouse_synchronize_and_build",
-    selection=AssetSelection.assets(*[*dwh_assets, *dbt_analytics_assets])
+    selection=AssetSelection.assets(*[*dwh_assets, *dbt_analytics_assets, *["clevercloud_login_and_restart"]])
     - AssetSelection.assets(
-        *[setup_s3_connection, import_cerema_ff_lovac_data_from_s3_to_duckdb]
+        *[  
+            setup_s3_connection,
+            check_ff_lovac_on_duckdb,
+            import_cerema_ff_lovac_data_from_s3_to_duckdb,
+            "upload_ff_to_s3",
+            "download_ff_from_s3",
+            ]
     ),
 )
 
 yearly_update_ff_dwh_job = define_asset_job(
     name="datawarehouse_build_ff_data",
     selection=AssetSelection.assets(
-        *[setup_s3_connection, import_cerema_ff_lovac_data_from_s3_to_duckdb]
+        *[
+            setup_s3_connection,
+            import_cerema_ff_lovac_data_from_s3_to_duckdb,
+            upload_ff_to_s3
+        ]
     ),
 )
 
 daily_refresh_schedule = ScheduleDefinition(
-    job=daily_update_dwh_job, cron_schedule="0 0 * * *"
+    job=daily_update_dwh_job, cron_schedule="@daily"
 )
 
 yearly_ff_refresh_schedule = ScheduleDefinition(
@@ -68,6 +84,7 @@ defs = Definitions(
         # dagster_notion_assets,
         *dwh_assets,
         *dbt_analytics_assets,
+        *clever_assets_assets
     ],
     resources={
         # "dlt": dlt_resource,

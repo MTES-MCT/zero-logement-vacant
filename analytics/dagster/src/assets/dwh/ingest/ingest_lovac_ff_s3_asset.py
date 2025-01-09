@@ -1,7 +1,7 @@
 from dagster import AssetKey, asset
 from dagster_duckdb import DuckDBResource
 from dagster import AssetExecutionContext, AssetSpec, MaterializeResult, multi_asset
-from ..config import Config
+from ....config import Config
 from .queries.lovac import lovac_tables_sql
 from .queries.ff import ff_tables_sql
 
@@ -9,7 +9,7 @@ from .queries.ff import ff_tables_sql
 all_tables_sql = {**lovac_tables_sql, **ff_tables_sql}
 
 
-@asset(name="setup_connection_s3", description="Load all tables into DuckDB")
+@asset(name="setup_s3_connection", description="Load all tables into DuckDB")
 def setup_s3_connection(context, duckdb: DuckDBResource):
     query = f"""
         CREATE OR REPLACE PERSISTENT SECRET SECRET (
@@ -23,7 +23,10 @@ def setup_s3_connection(context, duckdb: DuckDBResource):
     with duckdb.get_connection() as conn:
         context.log.info(f"Executing SQL: {query}")
         conn.execute(query)
-        schema_query = "CREATE SCHEMA IF NOT EXISTS ff;"
+        schema_query = """
+            CREATE SCHEMA IF NOT EXISTS ff;
+            CREATE SCHEMA IF NOT EXISTS lovac;
+        """
         context.log.info(f"Executing SQL: {schema_query}")
         conn.execute(schema_query)
 
@@ -40,7 +43,7 @@ def process_subset(name: str, context: AssetExecutionContext, duckdb: DuckDBReso
 @multi_asset(
     specs=[
         AssetSpec(
-            f"raw_{name}",
+            f"build_{name}",
             deps=["setup_s3_connection"],
             kinds={"duckdb", "s3"},
             group_name="lovac" if "lovac" in name else "ff",
@@ -55,9 +58,9 @@ def import_cerema_ff_lovac_data_from_s3_to_duckdb(
     context.log.info("Importing data from replica to DuckDB")
     context.log.info("duckdb: " + duckdb.__str__())
     for name in all_tables_sql:
-        if AssetKey(f"raw_{name}") in context.op_execution_context.selected_asset_keys:
+        if AssetKey(f"build_{name}") in context.op_execution_context.selected_asset_keys:
             context.log.info(f"Found {name} in selected_asset_keys")
             process_subset(name, context, duckdb)
-            yield MaterializeResult(asset_key=f"raw_{name}")
+            yield MaterializeResult(asset_key=f"build_{name}")
         else:
             pass

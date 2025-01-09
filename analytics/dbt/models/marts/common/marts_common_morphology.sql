@@ -191,9 +191,9 @@ production AS (
         COUNT(h.id) AS housing_count,
         2024 AS year
     FROM {{ ref ("int_production_housing") }} as h
+    WHERE list_contains(data_file_years, 'lovac-2024')
     GROUP BY geo_code
 )
-
 SELECT
     year
     , geo_code

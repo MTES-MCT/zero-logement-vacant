@@ -1,11 +1,11 @@
-from ...config import Config
+from .....config import Config
 
 SCHEMA = "ff"
 
 ff_tables_sql = {
     "raw_ff_2023": f"""
             CREATE OR REPLACE TABLE {SCHEMA}.raw_ff_2023 AS (
-        SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/ff/2023/raw.csv',
+        SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/ff/2023/raw.csv',
                             auto_detect = TRUE,
         ignore_errors = false, types = {{'ff_ccogrm': 'VARCHAR',}}
         )

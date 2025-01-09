@@ -1,4 +1,4 @@
-{ % macro process_owner_code_droit (ff_ccodro) % }
+{% macro process_owner_code_droit (ff_ccodro) %}
 CASE
 WHEN {{ ff_ccodro }} = 'P' THEN 'PROPRIETAIRE'
 WHEN {{ ff_ccodro }} = 'U' THEN 'USUFRUITIER'
@@ -27,4 +27,4 @@ WHEN {{ ff_ccodro }} = 'Z' THEN 'GESTIONNAIRE D UN BIEN DE L ETAT'
 WHEN {{ ff_ccodro }} = 'B' THEN 'BAILLEUR A CONSTRUCTION'
 ELSE 'NON SPECIFIE'
 END
-{ % endmacro % }
+{% endmacro %}

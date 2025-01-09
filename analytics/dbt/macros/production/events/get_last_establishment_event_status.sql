@@ -1,6 +1,6 @@
-{ % macro get_last_establishment_event_status (user_source,
+{% macro get_last_establishment_event_status (user_source,
 event_name,
-all_users = false) % }
+all_users = false) %}
 (
 SELECT
 u.establishment_id,
@@ -14,14 +14,14 @@ FROM {{ ref ('int_production_events') }} AS events
 LEFT JOIN {{ ref ('int_production_users') }} AS u ON events.created_by = u.id
 WHERE
 1 = 1
-{ % if event_name = = 'suivi' % }
+{% if event_name == 'suivi' %}
 AND events.status_changed = TRUE
-{ % elif event_name = = 'occupation' % }
+{% elif event_name == 'occupation' %}
 AND events.occupancy_changed = TRUE
-{ % else % }
-{ % endif % }
-{ % if not all_users % }
+{% else %}
+{% endif %}
+{% if not all_users %}
 AND events.user_source = '{{ user_source }}'
-{ % endif % }
+{% endif %}
 )
-{ % endmacro % }
+{% endmacro %}

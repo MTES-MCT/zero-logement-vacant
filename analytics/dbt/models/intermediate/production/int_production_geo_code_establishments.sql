@@ -24,8 +24,7 @@ SELECT
     MAX(CASE
         WHEN establishment_kind IN ('CA', 'CC', 'CU', 'ME') THEN TRUE
         ELSE FALSE
-    END) AS inscrit_zlv_via_intercommunalit
-é,
+    END) AS inscrit_zlv_via_intercommunalité,
     MAX(CASE 
         WHEN establishment_kind IN ('CA', 'CC', 'CU', 'ME') THEN establishment_name
         ELSE NULL

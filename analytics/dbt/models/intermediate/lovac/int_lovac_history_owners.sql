@@ -9,7 +9,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2024
+    FROM {{ ref ('int_lovac_ex_2024') }}
     UNION ALL
     SELECT
         ff_idprodroit_2 AS idprodroit,
@@ -21,7 +21,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2024
+    FROM {{ ref ('int_lovac_ex_2024') }}
     UNION ALL
     SELECT
         ff_idprodroit_3 AS idprodroit,
@@ -33,7 +33,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2024
+    FROM {{ ref ('int_lovac_ex_2024') }}
     UNION ALL
     SELECT
         ff_idprodroit_4 AS idprodroit,
@@ -45,7 +45,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2024
+    FROM {{ ref ('int_lovac_ex_2024') }}
     UNION ALL
     SELECT
         ff_idprodroit_5 AS idprodroit,
@@ -57,7 +57,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2024
+    FROM {{ ref ('int_lovac_ex_2024') }}
     UNION ALL
     SELECT
         ff_idprodroit_6 AS idprodroit,
@@ -69,7 +69,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2024
+    FROM {{ ref ('int_lovac_ex_2024') }}
     UNION ALL
     SELECT
         ff_idprodroit_1 AS idprodroit,
@@ -81,7 +81,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2023
+    FROM {{ ref ('int_lovac_ex_2023') }}
     UNION ALL
     SELECT
         ff_idprodroit_2 AS idprodroit,
@@ -93,7 +93,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2023
+    FROM {{ ref ('int_lovac_ex_2023') }}
     UNION ALL
     SELECT
         ff_idprodroit_3 AS idprodroit,
@@ -105,7 +105,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2023
+    FROM {{ ref ('int_lovac_ex_2023') }}
     UNION ALL
     SELECT
         ff_idprodroit_4 AS idprodroit,
@@ -117,7 +117,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2023
+    FROM {{ ref ('int_lovac_ex_2023') }}
     UNION ALL
     SELECT
         ff_idprodroit_5 AS idprodroit,
@@ -129,7 +129,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2023
+    FROM {{ ref ('int_lovac_ex_2023') }}
     UNION ALL
     SELECT
         ff_idprodroit_6 AS idprodroit,
@@ -141,7 +141,7 @@ WITH lovac_history AS (
         ff_ccthp,
         TRY_CAST(debutvacance AS INTEGER) AS debutvacance,
         ccodep
-    FROM raw_lovac_2023
+    FROM {{ ref ('int_lovac_ex_2023') }}
 )
 
 SELECT idprodroit, LISTAGG(file_year, ',') AS file_years

@@ -1,5 +1,13 @@
 FROM python:3.10-slim
 
+ARG ZLV_HTTP_USERNAME=zlv
+ARG ZLV_HTTP_PASSWORD=zlv
+
+ENV ZLV_HTTP_USERNAME=$ZLV_HTTP_USERNAME
+ENV ZLV_HTTP_PASSWORD=$ZLV_HTTP_PASSWORD
+
+COPY --from=clevercloud/clever-tools /bin/clever /usr/local/bin/clever
+
 # Installer les dépendances nécessaires
 RUN apt-get update && \
     apt-get install -y nginx apache2-utils curl gnupg && \
@@ -26,7 +34,7 @@ COPY src/ $DAGSTER_HOME
 WORKDIR $DAGSTER_HOME
 
 # Configurer l'authentification basique pour Nginx
-RUN htpasswd -cb /etc/nginx/.htpasswd zlv zlv
+RUN htpasswd -cb /etc/nginx/.htpasswd $ZLV_HTTP_USERNAME $ZLV_HTTP_PASSWORD
 COPY docker/nginx/nginx.conf /etc/nginx/sites-available/default
 
 # Exposer le port 8080 pour le serveur web Nginx

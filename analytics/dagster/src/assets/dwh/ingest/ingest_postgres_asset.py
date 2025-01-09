@@ -1,7 +1,7 @@
 from dagster import AssetKey, asset
 from dagster_duckdb import DuckDBResource
 from dagster import AssetExecutionContext, AssetSpec, MaterializeResult, multi_asset
-from ..config import Config
+from ....config import Config
 from .queries.production import production_tables
 
 

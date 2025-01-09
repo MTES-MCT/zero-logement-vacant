@@ -1,9 +1,9 @@
 SELECT
     pc.id,
-    {{ process_return_rate_without_next_campaign (3) }},
-    {{ process_return_rate_without_next_campaign (6) }},
-    {{ process_return_rate_without_next_campaign (9) }},
-    {{ process_return_rate_without_next_campaign (36) }}
+    {{ process_return_rate_without_next_campaign(3) }},
+    {{ process_return_rate_without_next_campaign(6) }},
+    {{ process_return_rate_without_next_campaign(9) }},
+    {{ process_return_rate_without_next_campaign(36) }}
 FROM {{ ref ('int_production_campaigns') }} pc
 LEFT JOIN {{ ref ('int_production_campaigns_housing_count') }} cc ON cc.campaign_id = pc.id
 JOIN {{ ref ('int_production_campaigns_housing') }} pch ON pch.campaign_id = pc.id

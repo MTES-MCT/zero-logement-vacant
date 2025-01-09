@@ -1,5 +1,5 @@
 from dagster import AssetKey
-from ..config import RESULT_TABLES, translate_table_name
+from ....config import RESULT_TABLES, translate_table_name
 from dagster_duckdb import DuckDBResource
 from dagster import AssetExecutionContext, AssetSpec, MaterializeResult, multi_asset
 

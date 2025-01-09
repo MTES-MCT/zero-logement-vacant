@@ -1,6 +1,6 @@
 from dagster import asset
 from dagster_duckdb import DuckDBResource
-from .config import Config
+from ...config import Config
 
 
 @asset(

@@ -45,10 +45,6 @@ models:
       schema: marts
       +materialized: table
 
-  elementary:
-    +schema: "elementary"
-    enabled: "{{ target.name in ['prod'] }}"
-
 flags:
   require_explicit_package_overrides_for_builtin_materializations: False
   source_freshness_run_project_hooks: True

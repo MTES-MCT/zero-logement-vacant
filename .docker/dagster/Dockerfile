@@ -1,10 +1,10 @@
 FROM python:3.10-slim
 
-ARG DAGSTER_PASSWORD
-ARG DAGSTER_USERNAME
+ARG ZLV_HTTP_USERNAME
+ARG ZLV_HTTP_PASSWORD
 
-ENV DAGSTER_PASSWORD=$DAGSTER_PASSWORD
-ENV DAGSTER_USERNAME=$DAGSTER_USERNAME
+ENV ZLV_HTTP_USERNAME=$ZLV_HTTP_USERNAME
+ENV ZLV_HTTP_PASSWORD=$ZLV_HTTP_PASSWORD
 
 COPY --from=clevercloud/clever-tools /bin/clever /usr/local/bin/clever
 
@@ -35,7 +35,7 @@ COPY analytics/dbt/ /opt/dagster/dbt/
 WORKDIR $DAGSTER_HOME
 
 # Setup Nginx configuration
-RUN htpasswd -cb /etc/nginx/.htpasswd $DAGSTER_USERNAME $DAGSTER_PASSWORD
+RUN htpasswd -cb /etc/nginx/.htpasswd $ZLV_HTTP_USERNAME $ZLV_HTTP_PASSWORD
 COPY .docker/dagster/nginx/nginx.conf /etc/nginx/sites-available/default
 
 EXPOSE 8080 3000

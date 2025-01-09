@@ -39,6 +39,7 @@ function SmallHeader() {
   ): MainNavigationProps.Item {
     const link = getUserNavItem(navItem);
     return {
+      className: styles.mainNavigationItem,
       linkProps: {
         to: link.url
       },
@@ -116,7 +117,7 @@ function SmallHeader() {
                   }}
                 />
               ) : (
-                <Typography component="span" mr={2} variant="body2">
+                <Typography className={styles.establishmentName} component="span" mr={2} variant="body2">
                   {establishment?.name}
                 </Typography>
               )

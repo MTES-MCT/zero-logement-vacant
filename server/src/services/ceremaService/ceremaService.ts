@@ -1,8 +1,10 @@
+import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import { ConsultUserService } from './consultUserService';
 import { CeremaUser } from '@zerologementvacant/models';
 
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
+import establishmentRepository from '~/repositories/establishmentRepository';
 
 export class CeremaService implements ConsultUserService {
 
@@ -52,20 +54,52 @@ export class CeremaService implements ConsultUserService {
               },
             );
 
+            // TODO vérifier les droits au niveau structure
+
             const establishmentContent: any = await establishmentResponse.json();
             if (establishmentResponse.status !== 200) {
               throw establishmentContent.detail;
             }
 
-            const u = {
+            const permissionResponse = await fetch(
+              `${config.cerema.api}/api/permissions?email=${email}`,
+              {
+                method: 'GET',
+                headers: {
+                  Authorization: `Token ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              },
+            );
+
+            const permissionContent: any = await permissionResponse.json();
+            if (permissionResponse.status !== 200) {
+              throw permissionContent.detail;
+            }
+
+            let siren;
+            try {
+              siren = establishmentContent.siret.substring(0, 9);
+            } catch {
+                throw new EstablishmentMissingError(establishmentContent.id_structure);
+            }
+
+            const establishment = await establishmentRepository.findOne({siren: Number(siren)});
+            if(establishment === null) {
+              throw new EstablishmentMissingError(siren);
+            }
+            const franceEntiere = establishment.geoCodes.length === 0;
+            const hasCommitment = franceEntiere ? permissionContent.lovac.fr_entiere : establishment.geoCodes.every(element => permissionContent.lovac.comm.includes(element));
+            const cguValid = permissionContent.cgu_valide !== null;
+
+            return {
               email: user.email,
-              establishmentSiren: parseInt(establishmentContent.siret.substring(0, 9)),
+              establishmentSiren: siren,
               hasAccount: true,
-              hasCommitment: establishmentContent.acces_lovac !== null,
-              cguValid: establishmentContent.cgu_valide !== null,
-              isValid: establishmentContent.acces_lovac !== null && establishmentContent.cgu_valide !== null,
+              hasCommitment,
+              cguValid,
+              isValid: cguValid && hasCommitment,
             };
-            return u;
         }));
         return users;
       }

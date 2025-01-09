@@ -74,6 +74,9 @@ function filter(filters?: UserFiltersApi) {
     if (filters?.establishmentIds?.length) {
       builder.whereIn('establishment_id', filters.establishmentIds);
     }
+    if (filters?.disabled !== undefined) {
+      builder.where('disabled', filters.disabled);
+    }
   };
 }
 

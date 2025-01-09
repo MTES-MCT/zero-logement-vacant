@@ -11,7 +11,7 @@ function AnalysisView() {
 
   return (
     <MainContainer>
-      <iframe src={dashboard?.url} width="100%" height={600} title="Analyses" />
+      <iframe src={dashboard?.url} width="100%" height="850" title="Analyses" />
     </MainContainer>
   );
 }

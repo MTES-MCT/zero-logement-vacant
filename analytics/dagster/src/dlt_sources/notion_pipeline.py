@@ -9,7 +9,7 @@ def load_databases() -> None:
     """
     pipeline = dlt.pipeline(
         pipeline_name="notion",
-        destination='duckdb',
+        destination="duckdb",
         dataset_name="notion_data",
     )
 

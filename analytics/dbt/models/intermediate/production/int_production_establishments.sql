@@ -1,7 +1,8 @@
 
 
-SELECT est.*,
-    CASE 
+SELECT
+    est.*,
+    CASE
         WHEN est.kind = 'CA' THEN 'Communauté d''Agglomération'
         WHEN est.kind = 'CC' THEN 'Communauté des Communes'
         WHEN est.kind = 'CU' THEN 'Communauté Urbaine'
@@ -15,7 +16,7 @@ SELECT est.*,
         WHEN est.kind = 'ASSO' THEN 'Association'
         ELSE 'Autre'
     END AS establishment_kind_label,
-    CASE 
+    CASE
         WHEN est.kind IN ('CA', 'CC', 'CU', 'ME') THEN 'Intercommunalité'
         WHEN est.kind = 'Commune' THEN 'Commune'
         WHEN est.kind = 'DEP' THEN 'Autre'
@@ -26,8 +27,9 @@ SELECT est.*,
         WHEN est.kind = 'ASSO' THEN 'Autre'
         ELSE 'Autre'
     END AS establishment_synthetic_type_label,
-    CASE 
+    CASE
         WHEN est.kind IN ('SDED', 'SDER') THEN TRUE
         ELSE FALSE
     END AS covered_by_state_service
-FROM {{ ref('stg_production_establishments') }} est
+
+FROM {{ ref ('stg_production_establishments') }} est

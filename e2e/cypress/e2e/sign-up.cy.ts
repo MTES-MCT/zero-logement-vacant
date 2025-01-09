@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+const VALID_PASSWORD = '1234QWERasdf';
+
 describe('Sign up', () => {
   it('should sign up', () => {
     cy.visit('/connexion');
@@ -38,11 +40,11 @@ describe('Sign up', () => {
     cy.get('label')
       .contains(/Définissez votre mot de passe/i)
       .next()
-      .type('123QWEasd');
+      .type(VALID_PASSWORD);
     cy.get('label')
       .contains(/Confirmez votre mot de passe/i)
       .next()
-      .type('123QWEasd{enter}');
+      .type(`${VALID_PASSWORD}{enter}`);
 
     cy.get('button')
       .contains(/Créer mon compte/i)

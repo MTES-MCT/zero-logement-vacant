@@ -1,7 +1,7 @@
 SELECT
-CODGEO as geo_code,
-UU_code,
-UU_name,
-EPCI_code,
-EPCI_name
-FROM {{ ref('table_appartenance_geo_communes_2024')}}
+    CODGEO AS GEO_CODE,
+    UU_CODE,
+    UU_NAME,
+    EPCI_CODE,
+    EPCI_NAME
+FROM {{ ref ('table_appartenance_geo_communes_2024') }}

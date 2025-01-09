@@ -1,8 +1,7 @@
+import { FilterSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { Layer } from 'react-map-gl/maplibre';
 
-import { BUILDING_DARK } from './Icon';
-import statusColors from './status-colors';
-import { FilterSpecification } from '@maplibre/maplibre-gl-style-spec';
+import { HousingStatus } from '../../models/HousingState';
 
 interface Props {
   filter?: FilterSpecification;
@@ -17,21 +16,23 @@ function BuildingPoints(props: Props) {
       filter={props.filter}
       layout={{
         'icon-allow-overlap': true,
-        'icon-image': BUILDING_DARK,
-        'icon-size': 0.75
-      }}
-      paint={{
-        // @ts-expect-error: match expects 4 starting arguments
-        'icon-color': [
+        'icon-image': [
           'match',
           ['get', 'status', ['at', 0, ['get', 'housingList']]],
-          // Apply a text color depending on the housing status
-          ...statusColors.textColors.flat(),
-          statusColors.defaultBackgroundColor
+          HousingStatus.Waiting,
+          `square-fill-${HousingStatus.Waiting}`,
+          HousingStatus.FirstContact,
+          `square-fill-${HousingStatus.FirstContact}`,
+          HousingStatus.InProgress,
+          `square-fill-${HousingStatus.InProgress}`,
+          HousingStatus.Completed,
+          `square-fill-${HousingStatus.Completed}`,
+          HousingStatus.Blocked,
+          `square-fill-${HousingStatus.Blocked}`,
+          // Default value
+          `square-fill-${HousingStatus.NeverContacted}`
         ],
-        'icon-halo-color': statusColors.defaultTextColor,
-        'icon-halo-width': 4,
-        'icon-halo-blur': 0
+        'icon-size': 1
       }}
       source={props.source}
     />

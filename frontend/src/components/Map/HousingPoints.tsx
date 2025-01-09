@@ -35,8 +35,8 @@ function HousingPoints(props: Props) {
           ['get', 'status', ['at', 0, ['get', 'housingList']]],
           // Apply a stroke color to the circle
           // depending on the housing status
-          ...statusColors.textColors.flat(),
-          statusColors.defaultTextColor
+          ...statusColors.borderColors.flat(),
+          statusColors.defaultBorderColor
         ]
       }}
       source={props.source}

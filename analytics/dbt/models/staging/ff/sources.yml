@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: duckdb_raw
+    schema: ff
+    tables:
+      - name: raw_ff_owners
+      - name: raw_ff_2023
+      - name: raw_ff_2022
+      - name: raw_ff_2021
+      - name: raw_ff_2020
+      - name: raw_ff_2019

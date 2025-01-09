@@ -6,3 +6,9 @@ models:
   - name: stg_common_article_232_2
   - name: stg_common_ngeo_anct_cog_2023
   - name: stg_common_opah
+  - name: stg_common_ort
+  - name: stg_common_com_epci_dep_region
+  - name: stg_common_departements_france
+  - name: stg_common_fusions
+  - name: stg_common_scissions
+  - name: stg_common_table_appartenance

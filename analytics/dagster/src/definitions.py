@@ -8,7 +8,7 @@ from dagster import (
 
 # from .assets import dagster_production_assets
 from .assets import dwh
-
+from .config import Config
 
 # from dagster_embedded_elt.dlt import DagsterDltResource
 from dagster_dbt import DbtCliResource
@@ -91,10 +91,10 @@ defs = Definitions(
         # "dlt": dlt_resource,
         "dbt": dbt_resource,
         "duckdb": DuckDBResource(
-            database="db/dagster.duckdb",  # required
+            database=f"md:dwh?motherduck_token={Config.MD_TOKEN}" if Config.USE_MOTHER_DUCK else "db/dagster.duckdb",
         ),
         "duckdb_metabase": DuckDBResource(
-            database="db/duckdb_metabase.duckdb",  # required
+            database=f"md:metabase?motherduck_token={Config.MD_TOKEN} " if Config.USE_MOTHER_DUCK_FOR_METABASE else "db/metabase.duckdb",
         ),
     },
     schedules=[daily_refresh_schedule, yearly_ff_refresh_schedule],

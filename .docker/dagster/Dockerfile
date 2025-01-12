@@ -34,9 +34,9 @@ COPY analytics/dbt /opt/dagster/dbt
 COPY analytics/dbt/target/manifest.json /opt/dagster/dbt/target/manifest.json
 
 WORKDIR $DAGSTER_HOME
+RUN dbt deps --profiles-dir /opt/dagster/dbt
 
 RUN mkdir -p db/
-RUN dbt deps
 
 # Setup Nginx configuration
 RUN htpasswd -cb /etc/nginx/.htpasswd $ZLV_HTTP_USERNAME $ZLV_HTTP_PASSWORD

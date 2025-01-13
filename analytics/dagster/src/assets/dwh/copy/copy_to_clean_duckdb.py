@@ -1,5 +1,5 @@
 from dagster import AssetKey
-from ....config import RESULT_TABLES, translate_table_name
+from ....config import RESULT_TABLES, Config, translate_table_name
 from dagster_duckdb import DuckDBResource
 from dagster import AssetExecutionContext, AssetSpec, MaterializeResult, multi_asset
 import tempfile
@@ -32,6 +32,13 @@ def process_specific_table(context, table_name: str, duckdb: DuckDBResource, duc
 
         # Import data from the Parquet file into the destination DuckDB database
         with duckdb_metabase.get_connection() as destination_conn:
+            SETUP_QUERY = f"""
+            SET memory_limit = '{Config.DUCKDB_MEMORY_LIMIT}GB';
+            SET threads TO {Config.DUCKDB_THREAD_NUMBER};
+            """
+            context.log.info(f"Executing SQL on destination: {SETUP_QUERY}")
+            destination_conn.execute(SETUP_QUERY)
+
             LOAD_QUERY = f"CREATE OR REPLACE TABLE {destination_schema}.{destination_table_name} AS SELECT * FROM parquet_scan('{temp_file_path}');"
             context.log.info(f"Executing SQL on destination: {LOAD_QUERY}")
             destination_conn.execute(LOAD_QUERY)

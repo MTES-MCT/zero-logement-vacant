@@ -32,10 +32,12 @@ COPY analytics/dagster/src $DAGSTER_HOME/src
 
 COPY analytics/dbt /opt/dagster/dbt
 COPY analytics/dbt/target/manifest.json /opt/dagster/dbt/target/manifest.json
-COPY analytics/dbt/dbt_project.yml $DAGSTER_HOME/dbt_project.yml
+
+WORKDIR /opt/dagster/dbt
+
+RUN dbt deps
 
 WORKDIR $DAGSTER_HOME
-RUN dbt deps --profiles-dir /opt/dagster/dbt
 
 RUN mkdir -p db/
 

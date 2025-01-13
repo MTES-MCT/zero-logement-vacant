@@ -8,7 +8,7 @@ from dagster import (
 
 # from .assets import dagster_production_assets
 from .assets import dwh
-
+from .config import Config
 
 # from dagster_embedded_elt.dlt import DagsterDltResource
 from dagster_dbt import DbtCliResource
@@ -45,7 +45,7 @@ dbt_resource = DbtCliResource(
 # Define job for running all assets
 daily_update_dwh_job = define_asset_job(
     name="datawarehouse_synchronize_and_build",
-    selection=AssetSelection.assets(*[*dwh_assets, *dbt_analytics_assets, *["clevercloud_login_and_restart"]])
+    selection=AssetSelection.assets(*[*dwh_assets, *dbt_analytics_assets, *["setup_duckdb", "clevercloud_login_and_restart"]])
     - AssetSelection.assets(
         *[  
             setup_s3_connection,
@@ -61,6 +61,7 @@ yearly_update_ff_dwh_job = define_asset_job(
     name="datawarehouse_build_ff_data",
     selection=AssetSelection.assets(
         *[
+            "setup_duckdb",
             setup_s3_connection,
             import_cerema_ff_lovac_data_from_s3_to_duckdb,
             upload_ff_to_s3
@@ -90,10 +91,10 @@ defs = Definitions(
         # "dlt": dlt_resource,
         "dbt": dbt_resource,
         "duckdb": DuckDBResource(
-            database="db/dagster.duckdb",  # required
+            database=f"md:dwh?motherduck_token={Config.MD_TOKEN}" if Config.USE_MOTHER_DUCK else "db/dagster.duckdb",
         ),
         "duckdb_metabase": DuckDBResource(
-            database="db/duckdb_metabase.duckdb",  # required
+            database=f"md:metabase?motherduck_token={Config.MD_TOKEN} " if Config.USE_MOTHER_DUCK_FOR_METABASE else "db/metabase.duckdb",
         ),
     },
     schedules=[daily_refresh_schedule, yearly_ff_refresh_schedule],

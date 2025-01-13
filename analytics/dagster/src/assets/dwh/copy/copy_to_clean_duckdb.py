@@ -11,24 +11,20 @@ destination_schema = "main"
 def process_specific_table(
     table_name: str, duckdb: DuckDBResource, duckdb_metabase: DuckDBResource
 ):
-    chemin_destination_db = (
-        duckdb_metabase.database
-    )  # Assurez-vous que ce chemin est correct
+    source_db = duckdb.database
+    chemin_destination_db = duckdb_metabase.database
 
     source_table_name = table_name
     destination_table_name = translate_table_name(table_name)
-    with duckdb.get_connection() as conn:
-        conn.execute(f"ATTACH '{chemin_destination_db}' AS destination_db;")
+    with duckdb_metabase.get_connection() as conn:
+        conn.execute(f"ATTACH '{source_db}' AS source_db;")
         conn.execute(
             f"""
-            CREATE OR REPLACE TABLE destination_db.{destination_schema}.{destination_table_name} AS
+            CREATE OR REPLACE TABLE {chemin_destination_db}.{destination_schema}.{destination_table_name} AS
             SELECT * FROM {source_schema}.{source_table_name};
         """
         )
-
-        # Detach the source database
-        # conn.execute("DETACH DATABASE source_db;")
-        conn.execute("DETACH DATABASE destination_db;")
+        conn.execute("DETACH DATABASE source_db;")
 
 
 @multi_asset(

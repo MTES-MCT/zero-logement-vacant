@@ -19,3 +19,47 @@
   height: 2px;
   z-index: 1000;
 }
+
+.icon::before {
+  --icon-size: 1.25rem;
+  margin-right: 0.5rem;
+  position: relative;
+  top: -2px;
+}
+
+.mainNavigationItem {
+  margin-left: 0px !important;
+}
+
+@media screen and (max-width: 1484px) {
+  .establishmentName {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media screen and (max-width: 1412px) {
+  .establishmentName {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media screen and (max-width: 1362px) {
+  .establishmentName {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media screen and (max-width: 1312px) {
+  .establishmentName {
+    display: none;
+  }
+}

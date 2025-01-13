@@ -30,9 +30,16 @@ COPY analytics/dagster/dagster.yaml analytics/dagster/workspace.yaml $DAGSTER_HO
 
 COPY analytics/dagster/src $DAGSTER_HOME/src
 
-COPY analytics/dbt/ /opt/dagster/dbt/
+COPY analytics/dbt /opt/dagster/dbt
+COPY analytics/dbt/target/manifest.json /opt/dagster/dbt/target/manifest.json
+
+WORKDIR /opt/dagster/dbt
+
+RUN dbt deps
 
 WORKDIR $DAGSTER_HOME
+
+RUN mkdir -p db/
 
 # Setup Nginx configuration
 RUN htpasswd -cb /etc/nginx/.htpasswd $ZLV_HTTP_USERNAME $ZLV_HTTP_PASSWORD

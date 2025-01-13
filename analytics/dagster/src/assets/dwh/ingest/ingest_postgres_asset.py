@@ -13,6 +13,7 @@ from .queries.production import production_tables
     description="Load all tables into DuckDB",
     group_name="sync_production",
     compute_kind="duckdb",
+    deps=["setup_duckdb"],
 )
 def setup_replica_db(context, duckdb: DuckDBResource):
     attach_query = f"ATTACH 'dbname={Config.POSTGRES_PRODUCTION_DB_NAME} user={Config.POSTGRES_PRODUCTION_USER} password={Config.POSTGRES_PRODUCTION_PASSWORD} host={Config.POSTGRES_PRODUCTION_DB} port={Config.POSTGRES_PRODUCTION_PORT}' AS zlv_replication_db (TYPE POSTGRES, READ_ONLY);"

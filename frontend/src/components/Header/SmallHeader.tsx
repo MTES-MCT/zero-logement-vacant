@@ -39,10 +39,11 @@ function SmallHeader() {
   ): MainNavigationProps.Item {
     const link = getUserNavItem(navItem);
     return {
+      className: styles.mainNavigationItem,
       linkProps: {
         to: link.url
       },
-      text: <><span className={link.icon} aria-hidden="true"></span> {link.label} {link.showNewBadge && <Badge small={true} severity='success' noIcon={true} className="fr-ml-1w">Nouveau</Badge>}</>,
+      text: <><span className={`${link.icon} ${styles.icon}`} aria-hidden="true"></span>{link.label}{link.showNewBadge && <Badge small={true} severity='success' noIcon={true} className="fr-ml-1w fr-mr-0w">Nouveau</Badge>}</>,
       isActive: location.pathname.startsWith(link.url),
     };
   }
@@ -116,7 +117,7 @@ function SmallHeader() {
                   }}
                 />
               ) : (
-                <Typography component="span" mr={2} variant="body2">
+                <Typography className={styles.establishmentName} component="span" mr={2} variant="body2">
                   {establishment?.name}
                 </Typography>
               )

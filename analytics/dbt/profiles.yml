@@ -18,7 +18,7 @@ duckdb_profile:
 
     prod:
       type: duckdb
-      path: "/opt/dagster/dagster_home/db/dagster.duckdb"
+      path: "md:dwh?motherduck_token={{env_var('MD_TOKEN')}}"
       extensions:
         - httpfs
         - parquet

@@ -23,8 +23,15 @@ class Config:
     CLEVER_SECRET = os.environ.get("CLEVER_SECRET")
 
     DUCKDB_MEMORY_LIMIT = os.environ.get("DUCKDB_MEMORY_LIMIT")
-
+    DUCKDB_THREAD_NUMBER = os.environ.get("DUCKDB_THREAD_NUMBER", 4)
     METABASE_APP_ID = os.environ.get("METABASE_APP_ID")
+
+    MD_TOKEN = os.environ.get("MD_TOKEN")
+    USE_MOTHER_DUCK = os.environ.get("USE_MOTHER_DUCK", True)
+    USE_MOTHER_DUCK_FOR_METABASE = os.environ.get("USE_MOTHER_DUCK_FOR_METABASE", False)
+
+    
+
 
 
 public_tables = [

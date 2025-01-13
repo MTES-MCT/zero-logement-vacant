@@ -7,8 +7,8 @@ export const PRECISION_CATEGORY_VALUES = [
   'immeuble-environnement',
   'tiers-en-cause',
   'travaux',
-  'location-ou-autre-occupation',
-  'vente-ou-autre-mutation'
+  'occupation',
+  'mutation'
 ] as const;
 
 export type PrecisionCategory = (typeof PRECISION_CATEGORY_VALUES)[number];

@@ -12,11 +12,14 @@ import boto3
     deps={AssetKey(f"copy_{table_name}") for table_name in RESULT_TABLES},
     group_name="upload",
 )
-def upload_duckdb_to_s3(duckdb_metabase: DuckDBResource):
+def upload_duckdb_to_s3(context, duckdb_metabase: DuckDBResource):
     s3_bucket = Config.CELLAR_METABASE_BUCKET_NAME
     s3_key = Config.CELLAR_METABASE_KEY_PATH
     file_path = duckdb_metabase.database  # Path to the DuckDB metabase file
-
-    upload(file_path, s3_bucket, s3_key)
+    if Config.USE_MOTHER_DUCK_FOR_METABASE:
+        context.log.info("Not uploading local because we use MotherDuck")
+    else:
+        context.log.info(f"Start uploading local duckdb {file_path} to metabase s3 on {s3_key}")
+        upload(file_path, s3_bucket, s3_key)
 
     return f"Uploaded DuckDB metabase to s3://{s3_bucket}/{s3_key}"

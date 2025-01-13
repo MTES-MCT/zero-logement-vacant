@@ -27,8 +27,8 @@ class Config:
     METABASE_APP_ID = os.environ.get("METABASE_APP_ID")
 
     MD_TOKEN = os.environ.get("MD_TOKEN")
-    USE_MOTHER_DUCK = os.environ.get("USE_MOTHER_DUCK", True)
-    USE_MOTHER_DUCK_FOR_METABASE = os.environ.get("USE_MOTHER_DUCK_FOR_METABASE", False)
+    USE_MOTHER_DUCK = os.environ.get("USE_MOTHER_DUCK", "True") == "True"
+    USE_MOTHER_DUCK_FOR_METABASE = os.environ.get("USE_MOTHER_DUCK_FOR_METABASE", "False") == "True"
 
     
 

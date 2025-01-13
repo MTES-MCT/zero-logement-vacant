@@ -94,7 +94,10 @@ defs = Definitions(
             database=f"md:dwh?motherduck_token={Config.MD_TOKEN}" if Config.USE_MOTHER_DUCK else "db/dagster.duckdb",
         ),
         "duckdb_metabase": DuckDBResource(
-            database=f"md:metabase?motherduck_token={Config.MD_TOKEN} " if Config.USE_MOTHER_DUCK_FOR_METABASE else "db/metabase.duckdb",
+            database=f"md:metabase?motherduck_token={Config.MD_TOKEN}",
+        ),
+        "duckdb_local_metabase": DuckDBResource(
+            database="db/metabase.duckdb",
         ),
     },
     schedules=[daily_refresh_schedule, yearly_ff_refresh_schedule],

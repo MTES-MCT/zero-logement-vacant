@@ -1,9 +1,8 @@
 from dagster import AssetKey
-from ....config import RESULT_TABLES, Config, translate_table_name
+from ....config import RESULT_TABLES, translate_table_name
 from dagster_duckdb import DuckDBResource
 from dagster import AssetExecutionContext, AssetSpec, MaterializeResult, multi_asset
-import tempfile
-import os
+
 
 source_schema = "main_marts"
 destination_schema = "main"
@@ -18,38 +17,15 @@ def process_specific_table(context, table_name: str, duckdb: DuckDBResource, duc
 
     source_table_name = table_name
     destination_table_name = translate_table_name(table_name)
-
-    # Create a temporary file for the Parquet file
-    with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as temp_parquet_file:
-        temp_file_path = temp_parquet_file.name
-
-    try:
-        # Export data from the source DuckDB database to a Parquet file
-        with duckdb.get_connection() as source_conn:
-            SOURCE_QUERY = f"COPY (SELECT * FROM {source_schema}.{source_table_name}) TO '{temp_file_path}' (FORMAT PARQUET);"
-            context.log.info(f"Executing SQL on source: {SOURCE_QUERY}")
-            source_conn.execute(SOURCE_QUERY)
-
-        # Import data from the Parquet file into the destination DuckDB database
-        with duckdb_metabase.get_connection() as destination_conn:
-            SETUP_QUERY = f"""
-            SET memory_limit = '{Config.DUCKDB_MEMORY_LIMIT}GB';
-            SET threads TO {Config.DUCKDB_THREAD_NUMBER};
-            """
-            context.log.info(f"Executing SQL on destination: {SETUP_QUERY}")
-            destination_conn.execute(SETUP_QUERY)
-
-            LOAD_QUERY = f"CREATE OR REPLACE TABLE {destination_schema}.{destination_table_name} AS SELECT * FROM parquet_scan('{temp_file_path}');"
-            context.log.info(f"Executing SQL on destination: {LOAD_QUERY}")
-            destination_conn.execute(LOAD_QUERY)
-
-        context.log.info(f"Data successfully transferred to table: {destination_table_name}")
-
-    finally:
-        # Ensure the temporary file is deleted
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-            context.log.info(f"Temporary file deleted: {temp_file_path}")
+    with duckdb.get_connection() as source_conn:
+        SOURCE_QUERY = f"SELECT * FROM {source_schema}.{source_table_name}"
+        context.log.info(f"Executing SQL: {SOURCE_QUERY}")
+        data = source_conn.execute(SOURCE_QUERY).fetchdf()
+        print(data.head())
+        with duckdb_metabase.get_connection() as conn:
+            LOAD_QUERY = f"CREATE OR REPLACE TABLE {destination_table_name} AS SELECT * FROM data"
+            context.log.info(f"Executing SQL: {LOAD_QUERY}")
+            conn.execute(LOAD_QUERY)
 
 
 @multi_asset(

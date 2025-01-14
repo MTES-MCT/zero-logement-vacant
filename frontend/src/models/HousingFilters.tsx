@@ -72,13 +72,6 @@ export const ownerKindOptions: SelectOption<OwnerKind>[] =
     label: OWNER_KIND_LABELS[value]
   }));
 
-export const campaignsCountOptions: SelectOption<CampaignCount>[] = [
-  { value: '0', label: 'Dans aucune campagne en cours' },
-  { value: '1', label: 'Déjà contacté 1 fois' },
-  { value: '2', label: 'Déjà contacté 2 fois' },
-  { value: 'gt2', label: 'Déjà contacté 3 fois et plus' }
-];
-
 export const statusOptions = (
   statusExcluded?: HousingStatus[]
 ): SelectOption[] => [

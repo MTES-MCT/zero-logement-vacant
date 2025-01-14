@@ -5,7 +5,7 @@ import tempfile
 from ..ingest.queries.lovac import lovac_tables_sql
 from ..ingest.queries.ff import ff_tables_sql
 import os 
-import psutil
+#import psutil
 import shutil
 
 
@@ -21,7 +21,7 @@ def log_system_resources(context):
     context.log.info(f"Disk Space - Total: {total / (1024**3):.2f} GB, Used: {used / (1024**3):.2f} GB, Free: {free / (1024**3):.2f} GB")
 
     # Get memory statistics
-    memory_info = psutil.virtual_memory()
+    memory_info = "" #psutil.virtual_memory()
     context.log.info(f"Memory - Total: {memory_info.total / (1024**3):.2f} GB, "
                      f"Used: {memory_info.used / (1024**3):.2f} GB, "
                      f"Available: {memory_info.available / (1024**3):.2f} GB")

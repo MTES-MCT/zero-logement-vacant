@@ -9,7 +9,8 @@ import boto3
 # Asset for uploading the DuckDB metabase file to S3
 @asset(
     name="upload_duckdb_to_s3",
-    deps=[AssetKey("export_mother_duck_local_duckdb")],
+    #deps=[AssetKey("export_mother_duck_local_duckdb")],
+    deps=[AssetKey(f"copy_through_s3_{table_name}") for table_name in RESULT_TABLES],
     group_name="upload",
 )
 def upload_duckdb_to_s3(context, duckdb_local_metabase: DuckDBResource):

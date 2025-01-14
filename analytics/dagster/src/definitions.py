@@ -6,6 +6,9 @@ from dagster import (
     load_assets_from_modules,
 )
 
+from .assets.dwh.copy.copy_to_clean_duckdb import copy_dagster_duckdb_to_metabase_duckdb
+from .assets.dwh.copy.transfer_database import export_mother_duck_local_duckdb
+
 # from .assets import dagster_production_assets
 from .assets import dwh
 from .config import Config
@@ -51,6 +54,8 @@ daily_update_dwh_job = define_asset_job(
             setup_s3_connection,
             check_ff_lovac_on_duckdb,
             import_cerema_ff_lovac_data_from_s3_to_duckdb,
+            copy_dagster_duckdb_to_metabase_duckdb,
+            export_mother_duck_local_duckdb,
             "upload_ff_to_s3",
             "download_ff_from_s3",
             ]

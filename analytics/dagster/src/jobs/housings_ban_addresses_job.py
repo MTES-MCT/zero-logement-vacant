@@ -1,5 +1,5 @@
 from dagster import job
-from dagster.src.assets.populate_owners_ban_addresses import owners_without_address
+from dagster.src.assets.populate_owners_ban_addresses import housings_without_address
 from dagster.src.resources.ban_config import ban_config_resource
 
 @job(
@@ -7,5 +7,5 @@ from dagster.src.resources.ban_config import ban_config_resource
         "ban_config": ban_config_resource,
     }
 )
-def owners_ban_addresses_job():
-    owners_without_address()
+def housings_ban_addresses_job():
+    housings_without_address()

@@ -50,7 +50,7 @@ def export_mother_duck_local_duckdb(context, duckdb_metabase: DuckDBResource, du
     with tempfile.TemporaryDirectory() as temp_dir:
         try:
             with duckdb_metabase.get_connection() as source_conn:
-                EXPORT_QUERY = f"EXPORT DATABASE '{temp_dir}' (ROW_GROUP_SIZE 100_000);"
+                EXPORT_QUERY = f"EXPORT DATABASE '{temp_dir}';"
                 context.log.info(f"Executing SQL on source: {EXPORT_QUERY}")
                 source_conn.execute(EXPORT_QUERY)
             

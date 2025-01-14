@@ -4,8 +4,11 @@ from dlt import pipeline
 
 from ..dlt_sources.notion import notion_databases
 
+
 @dlt_assets(
-    dlt_source=notion_databases(database_ids=[{"id": "a57fc47a6e3b4ebd835cf0d7a5460e29"}]),
+    dlt_source=notion_databases(
+        database_ids=[{"id": "a57fc47a6e3b4ebd835cf0d7a5460e29"}]
+    ),
     dlt_pipeline=pipeline(
         pipeline_name="notion",
         dataset_name="notion_dataset",

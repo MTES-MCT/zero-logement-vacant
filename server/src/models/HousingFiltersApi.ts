@@ -1,6 +1,7 @@
 import {
   HousingFiltersDTO,
   Occupancy,
+  OwnerKind,
   OwnershipKind
 } from '@zerologementvacant/models';
 import { EnergyConsumptionGradesApi } from './HousingApi';
@@ -12,7 +13,7 @@ export interface HousingFiltersApi
   housingIds?: string[];
   establishmentIds?: string[];
   groupIds?: string[];
-  ownerKinds?: string[];
+  ownerKinds?: OwnerKind[];
   ownerAges?: string[];
   multiOwners?: string[];
   /**

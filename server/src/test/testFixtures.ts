@@ -68,6 +68,7 @@ import {
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   Occupancy,
   OCCUPANCY_VALUES,
+  OWNER_KIND_LABELS,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
@@ -206,16 +207,7 @@ export const genOwnerApi = (): OwnerApi => {
     email: genEmail(),
     phone: faker.phone.number(),
     kind: faker.helpers.maybe(
-      () =>
-        faker.helpers.arrayElement([
-          'Particulier',
-          'Investisseur',
-          'Promoteur, Investisseur privé',
-          'SCI',
-          'SCI, Copropriété, Autres personnes morales',
-          'Autres',
-          'Etat et collectivité territoriale'
-        ]),
+      () => faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS)),
       { probability: 0.8 }
     ),
     kindDetail: randomstring.generate(),

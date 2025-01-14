@@ -15,3 +15,12 @@ duckdb_profile:
         s3_secret_access_key: "{{ env_var('S3_SECRET_ACCESS_KEY') }}" 
       attach:
         - path: production.duckdb
+
+    prod:
+      type: duckdb
+      path: "md:dwh?motherduck_token={{env_var('MD_TOKEN')}}"
+      extensions:
+        - httpfs
+        - parquet
+        - s3
+        - spatial

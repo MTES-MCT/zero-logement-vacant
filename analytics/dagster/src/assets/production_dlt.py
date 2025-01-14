@@ -1,10 +1,15 @@
 from typing import Iterable
 from dagster import AssetExecutionContext, AssetKey
-from dagster_embedded_elt.dlt import DagsterDltResource, dlt_assets, DagsterDltTranslator
+from dagster_embedded_elt.dlt import (
+    DagsterDltResource,
+    dlt_assets,
+    DagsterDltTranslator,
+)
 from dlt import pipeline
 from dlt.extract.resource import DltResource
 
 from ..dlt_sources.sources import get_production_source
+
 
 class CustomDagsterDltTranslator(DagsterDltTranslator):
     def get_asset_key(self, resource: DagsterDltResource) -> AssetKey:
@@ -13,6 +18,7 @@ class CustomDagsterDltTranslator(DagsterDltTranslator):
 
     def get_deps_asset_keys(self, resource: DltResource) -> Iterable[AssetKey]:
         return AssetKey(f"raw_{resource.name}")
+
 
 @dlt_assets(
     dlt_source=get_production_source(),
@@ -27,4 +33,4 @@ class CustomDagsterDltTranslator(DagsterDltTranslator):
     dagster_dlt_translator=CustomDagsterDltTranslator(),
 )
 def dagster_production_assets(context: AssetExecutionContext, dlt: DagsterDltResource):
-    yield from dlt.run(context=context)
+    yield from dlt.run(context=context, write_disposition="replace")

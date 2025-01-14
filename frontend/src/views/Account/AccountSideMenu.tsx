@@ -5,6 +5,7 @@ import { logOut } from '../../store/actions/authenticationAction';
 import { useUser } from '../../hooks/useUser';
 import { useLocation } from 'react-router-dom';
 import classNames from 'classnames';
+import styles from './account-side-menu.module.scss';
 
 const AccountSideMenu = () => {
   const location = useLocation();
@@ -31,7 +32,7 @@ const AccountSideMenu = () => {
         </AppLink>
       </div>
       <hr className="fr-py-1w" />
-      <Text className="color-grey-625" size="sm" bold spacing="mb-0">
+      <Text className={`color-grey-625 ${styles.establishmentName}`} size="sm" bold spacing="mb-0">
         {establishment?.name}
       </Text>
       <div className="fr-py-2w">

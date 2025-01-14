@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import {
-  getAccountActivationLink,
   hasExpired,
   SIGNUP_LINK_EXPIRATION,
   SIGNUP_LINK_LENGTH,
@@ -35,12 +34,10 @@ async function create(request: Request, response: Response) {
     prospectEmail: email,
     expiresAt: addHours(new Date(), SIGNUP_LINK_EXPIRATION)
   };
+
   await signupLinkRepository.insert(link);
   await mailService.sendAccountActivationEmail(link.id, {
     recipients: [email]
-  });
-  mailService.emit('prospect:initialized', email, {
-    link: getAccountActivationLink(link.id)
   });
   response.status(constants.HTTP_STATUS_CREATED).json();
 }

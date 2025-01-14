@@ -1,7 +1,6 @@
 import {
   BeneficiaryCount,
   BuildingPeriod,
-  CampaignCount,
   ENERGY_CONSUMPTION_VALUES,
   EnergyConsumption,
   HousingByBuilding,

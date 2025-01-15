@@ -340,10 +340,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
     includes.push('owner');
   }
 
-  const filterByCampaign = [
-    filters?.campaignIds,
-    filters?.campaignsCounts
-  ].some((filter) => filter?.length);
+  const filterByCampaign = (filters?.campaignIds ?? []).length > 0;
   if (filterByCampaign) {
     includes.push('campaigns');
   }
@@ -445,38 +442,6 @@ function filteredQuery(opts: FilteredQueryOptions) {
         const ids = filters.campaignIds?.filter((id) => id !== null);
         if (ids?.length) {
           where.orWhereRaw(`${campaignsTable}.campaign_ids && ?`, [ids]);
-        }
-      });
-    }
-    if (filters.campaignsCounts?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.campaignsCounts?.includes('0')) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids) = 0`
-          );
-        }
-        if (filters.campaignsCounts?.includes('current')) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids) >= 1`
-          );
-        }
-        if (filters.campaignsCounts?.indexOf('1') !== -1) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids)`,
-            1
-          );
-        }
-        if (filters.campaignsCounts?.indexOf('2') !== -1) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids)`,
-            2
-          );
-        }
-        if (filters.campaignsCounts?.indexOf('gt3') !== -1) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids) >= ?`,
-            3
-          );
         }
       });
     }

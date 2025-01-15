@@ -122,7 +122,11 @@ function CampaignTable(props: CampaignTableProps) {
       }),
       columnHelper.display({
         id: 'actions',
-        header: 'Actions',
+        header: () => (
+          <Typography variant="body2" sx={{ textAlign: 'end' }}>
+            Actions
+          </Typography>
+        ),
         cell: ({ row }) => {
           const campaign = row.original;
           const buttons: ButtonProps[] = [];

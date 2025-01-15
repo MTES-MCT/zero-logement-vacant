@@ -202,21 +202,25 @@ function HousingList(props: HousingListProps) {
       columnHelper.accessor('campaignIds', {
         header: 'Campagnes',
         cell: ({ cell }) => {
-          return Set(cell.getValue())
-            .map((id) => {
-              return campaignList?.find((campaign) => campaign.id === id);
-            })
-            .filter((campaign) => campaign !== undefined)
-            .map((campaign) => (
-              <AppLink
-                key={campaign.id}
-                isSimple
-                size="sm"
-                to={`/campagnes/${campaign.id}`}
-              >
-                {`${campaign.title.substring(0, MAX_CAMPAIGN_LENGTH)}${campaign.title.length > MAX_CAMPAIGN_LENGTH ? '...' : ''}`}
-              </AppLink>
-            ));
+          return (
+            <Stack>
+              {Set(cell.getValue())
+                .map((id) => {
+                  return campaignList?.find((campaign) => campaign.id === id);
+                })
+                .filter((campaign) => campaign !== undefined)
+                .map((campaign) => (
+                  <AppLink
+                    key={campaign.id}
+                    isSimple
+                    size="sm"
+                    to={`/campagnes/${campaign.id}`}
+                  >
+                    {`${campaign.title.substring(0, MAX_CAMPAIGN_LENGTH)}${campaign.title.length > MAX_CAMPAIGN_LENGTH ? '...' : ''}`}
+                  </AppLink>
+                ))}
+            </Stack>
+          );
         }
       }),
       columnHelper.accessor(

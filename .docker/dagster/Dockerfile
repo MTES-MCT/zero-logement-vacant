@@ -47,4 +47,4 @@ COPY .docker/dagster/nginx/nginx.conf /etc/nginx/sites-available/default
 
 EXPOSE 8080 3000
 
-CMD service nginx start && dagster-webserver -h 0.0.0.0 -p 3000
+CMD service nginx start && dagster dev -h 0.0.0.0 -p 3000

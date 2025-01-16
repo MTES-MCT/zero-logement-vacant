@@ -11,8 +11,8 @@ requests
 dlt[duckdb]
 dlt[filesystem]
 dlt[parquet]
-s3fs
-
+s3fs==2024.12.0
+boto3==1.36.0
 thefuzz==0.22.1
 psutil
 

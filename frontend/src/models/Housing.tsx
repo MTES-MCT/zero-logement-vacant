@@ -21,7 +21,9 @@ import { Compare } from '../utils/compareUtils';
 
 export interface Housing {
   id: string;
+  // Identifiant fiscal départemental
   invariant: string;
+  // Identifiant fiscal national
   localId: string;
   geoCode: string;
   cadastralReference: string;

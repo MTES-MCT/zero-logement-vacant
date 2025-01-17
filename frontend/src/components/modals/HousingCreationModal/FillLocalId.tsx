@@ -1,4 +1,5 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
+import { InputProps } from '@codegouvfr/react-dsfr/Input';
 import Grid from '@mui/material/Unstable_Grid2';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import * as yup from 'yup';
@@ -61,7 +62,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
     }
   }));
 
-  function inputState(): { state: string; stateRelatedMessage?: string } {
+  function inputState(): Pick<InputProps, 'state' | 'stateRelatedMessage'> {
     if (housing) {
       return {
         state: 'error',
@@ -103,7 +104,8 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
             >
               L’identifiant fiscal national
             </a>
-            &nbsp;(12 chiffres), présent dans les Fichiers Fonciers, est une concaténation du&nbsp;
+            &nbsp;(12 chiffres), présent dans les Fichiers Fonciers, est une
+            concaténation du&nbsp;
             <a
               href="https://doc-datafoncier.cerema.fr/doc/dv3f/local/coddep"
               target="_blank"

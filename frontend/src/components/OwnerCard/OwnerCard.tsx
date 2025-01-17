@@ -54,25 +54,27 @@ function OwnerCard(props: OwnerCardProps) {
               />
               Date de naissance
             </LabelNext>
-            <Typography>{birthdate(props.owner.birthDate)} ({age(props.owner.birthDate)} ans)</Typography>
+            <Typography>
+              {birthdate(props.owner.birthDate)} ({age(props.owner.birthDate)}{' '}
+              ans)
+            </Typography>
           </Grid>
         ) : null}
 
         <Grid xs={12}>
           <LabelNext component="h3">
             <span
-              className={fr.cx(
-                'fr-icon-bank-line',
-                'fr-icon--sm',
-                'fr-mr-1w'
-              )}
+              className={fr.cx('fr-icon-bank-line', 'fr-icon--sm', 'fr-mr-1w')}
               aria-hidden={true}
             />
             Adresse fiscale (source: DGFIP)
           </LabelNext>
-          <Typography color={fr.colors.decisions.text.default.grey.default}>{props.owner.rawAddress ? props.owner.rawAddress.join(' ') : 'Inconnue'}</Typography>
+          <Typography color={fr.colors.decisions.text.default.grey.default}>
+            {props.owner.rawAddress
+              ? props.owner.rawAddress.join(' ')
+              : 'Inconnue'}
+          </Typography>
         </Grid>
-
 
         <Grid xs={12}>
           <LabelNext component="h3">
@@ -86,22 +88,28 @@ function OwnerCard(props: OwnerCardProps) {
             />
             Adresse postale (source: Base Adresse Nationale)
           </LabelNext>
-          <Typography>{props.owner.banAddress ? formatAddress(props.owner.banAddress).join(' ') :  'Inconnue'}</Typography>
+          <Typography>
+            {props.owner.banAddress
+              ? formatAddress(props.owner.banAddress).join(' ')
+              : 'Inconnue'}
+          </Typography>
         </Grid>
-
 
         {!isBanEligible(props.owner.banAddress) && (
           <Grid xs={12}>
+            {/* @ts-expect-error: will be fixed by upgrading the DSFR */}
             <Alert
               severity="info"
               classes={{ title: fr.cx('fr-mb-2w') }}
               description={
                 <>
                   <Typography>
-                    L’adresse Base Adresse Nationale ne correspond pas à celle de la DGFIP.
+                    L’adresse Base Adresse Nationale ne correspond pas à celle
+                    de la DGFIP.
                   </Typography>
                   <Typography>
-                    Nous vous recommandons de vérifier en cliquant sur &quot;Modifier&quot;.
+                    Nous vous recommandons de vérifier en cliquant sur
+                    &quot;Modifier&quot;.
                   </Typography>
                 </>
               }

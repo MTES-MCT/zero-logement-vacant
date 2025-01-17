@@ -49,8 +49,12 @@ function HousingOwnersModal({
 }: Props) {
   const { isVisitor } = useUser();
 
-  const storedWarningVisible = localStorage.getItem('OwnerEdition.warningVisible');
-  const [warningVisible, setWarningVisible] = useState(storedWarningVisible === null || storedWarningVisible === 'true');
+  const storedWarningVisible = localStorage.getItem(
+    'OwnerEdition.warningVisible'
+  );
+  const [warningVisible, setWarningVisible] = useState(
+    storedWarningVisible === null || storedWarningVisible === 'true'
+  );
 
   const [modalMode, setModalMode] = useState<'list' | 'add'>('list');
   const [
@@ -292,7 +296,10 @@ function HousingOwnersModal({
             />
           </Col>
           <Col n="12">
-            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+            <Typography
+              component="h3"
+              color={fr.colors.decisions.text.active.grey.default}
+            >
               <span
                 className={fr.cx(
                   'fr-icon-bank-line',
@@ -303,11 +310,21 @@ function HousingOwnersModal({
               />
               Adresse fiscale (source: DGFIP)
             </Typography>
-            <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
-            <Typography color={fr.colors.decisions.text.default.grey.default}>{housingOwner.rawAddress ? housingOwner.rawAddress.join(' ') : 'Inconnue'}</Typography>
+            <span className="fr-hint-text">
+              Cette adresse est issue du fichier LOVAC, récupérée via le fichier
+              1767BIS-COM. Celle-ci n’est pas modifiable.
+            </span>
+            <Typography color={fr.colors.decisions.text.default.grey.default}>
+              {housingOwner.rawAddress
+                ? housingOwner.rawAddress.join(' ')
+                : 'Inconnue'}
+            </Typography>
           </Col>
           <Col n="12">
-            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+            <Typography
+              component="h3"
+              color={fr.colors.decisions.text.active.grey.default}
+            >
               <span
                 className={fr.cx(
                   'fr-icon-home-4-line',
@@ -447,7 +464,7 @@ function HousingOwnersModal({
             {hasError('ownerRanks') && (
               <Alert
                 severity="warning"
-                description={message('ownerRanks')}
+                description={message('ownerRanks') ?? ''}
                 closable
                 small
               ></Alert>

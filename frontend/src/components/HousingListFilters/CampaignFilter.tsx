@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import { List, Set } from 'immutable';
-import { ChangeEvent, useId, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { match } from 'ts-pattern';
 
 import {
@@ -83,10 +83,6 @@ function CampaignFilter(props: Props) {
     }
   }
 
-  function noop(event: ChangeEvent): void {
-    event.stopPropagation();
-  }
-
   const categories = groupByStatus(props.options).toArray();
 
   return (
@@ -165,8 +161,8 @@ function CampaignFilter(props: Props) {
                     (value) => value === noCampaignOption.value
                   ),
                   value: noCampaignOption.value,
-                  onClick: noop,
-                  onChange: noop
+                  onClick: (event) => event.stopPropagation(),
+                  onChange: (event) => event.stopPropagation()
                 }
               }
             ]}
@@ -206,8 +202,8 @@ function CampaignFilter(props: Props) {
                     nativeInputProps: {
                       checked: selected.some((value) => value === status),
                       value: status,
-                      onClick: noop,
-                      onChange: noop
+                      onClick: (event) => event.stopPropagation(),
+                      onChange: (event) => event.stopPropagation()
                     }
                   }
                 ]}
@@ -234,8 +230,8 @@ function CampaignFilter(props: Props) {
                           (value) => value === campaign.id
                         ),
                         value: campaign.id,
-                        onClick: noop,
-                        onChange: noop
+                        onClick: (event) => event.stopPropagation(),
+                        onChange: (event) => event.stopPropagation()
                       }
                     }
                   ]}

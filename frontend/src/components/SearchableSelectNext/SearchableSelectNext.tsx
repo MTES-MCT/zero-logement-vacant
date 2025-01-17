@@ -65,6 +65,7 @@ function SearchableSelectNext<
       renderInput={(params) => (
         <Input
           {...props.inputProps}
+          label={props.inputProps?.label ?? 'Rechercher'}
           nativeInputProps={{
             ...props.inputProps?.nativeInputProps,
             ...params.inputProps,

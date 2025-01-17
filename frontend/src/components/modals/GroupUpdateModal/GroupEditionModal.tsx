@@ -15,7 +15,10 @@ interface Props {
   title: string;
   housingCount?: number;
   modalId?: string;
-  openingButtonProps?: Omit<ButtonProps, 'onClick'>;
+  openingButtonProps?: Omit<
+    Exclude<ButtonProps, ButtonProps.AsAnchor>,
+    'onClick'
+  >;
   group?: Partial<
     Pick<Group, 'title' | 'description' | 'housingCount' | 'ownerCount'>
   >;
@@ -24,17 +27,9 @@ interface Props {
 
 function GroupEditionModal(props: Props) {
   const modalId = props.modalId ?? 'group-edition-modal';
-  const openingButtonProps: Omit<ButtonProps, 'onClick'> = {
-    children: 'Créer un nouveau groupe',
-    iconId: 'fr-icon-add-line',
-    iconPosition: 'left',
-    size: 'small',
-    priority: 'secondary',
-    ...props.openingButtonProps,
-  };
   const [title, setTitle] = useState(props.group?.title ?? '');
   const [description, setDescription] = useState(
-    props.group?.description ?? '',
+    props.group?.description ?? ''
   );
 
   useEffect(() => {
@@ -53,21 +48,24 @@ function GroupEditionModal(props: Props) {
       .required('Veuillez donner un nom au groupe pour confirmer'),
     description: yup
       .string()
-      .max(1000, 'La longueur maximale de la description du groupe est de 1000 caractères.')
-      .required('Veuillez donner une description au groupe pour confirmer'),
+      .max(
+        1000,
+        'La longueur maximale de la description du groupe est de 1000 caractères.'
+      )
+      .required('Veuillez donner une description au groupe pour confirmer')
   };
   type FormShape = typeof shape;
 
   const form = useForm(yup.object().shape(shape), {
     title,
-    description,
+    description
   });
 
   async function onSubmit(): Promise<void> {
     await form.validate(() =>
       props.onSubmit({
         title,
-        description,
+        description
       })
     );
   }
@@ -78,7 +76,14 @@ function GroupEditionModal(props: Props) {
   return (
     <ConfirmationModal
       modalId={modalId}
-      openingButtonProps={openingButtonProps}
+      openingButtonProps={{
+        children: 'Créer un nouveau groupe',
+        iconId: 'fr-icon-add-line',
+        iconPosition: 'left',
+        size: 'small',
+        priority: 'secondary',
+        ...props.openingButtonProps
+      }}
       size="large"
       title={props.title}
       onSubmit={onSubmit}

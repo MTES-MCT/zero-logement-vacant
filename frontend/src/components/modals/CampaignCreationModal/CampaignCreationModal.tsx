@@ -60,18 +60,12 @@ const CampaignCreationModal = ({
         onClick={modal.open}
         data-testid="create-campaign-button"
         size="small"
-        role="button"
-        name="Créer une campagne"
       >
         Créer une campagne
       </Button>
       <modal.Component
         size="large"
-        title={
-          <>
-            Créer une campagne
-          </>
-        }
+        title={<>Créer une campagne</>}
         buttons={[
           {
             children: 'Annuler',

@@ -2,6 +2,7 @@ import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
 import fp from 'lodash/fp';
 import { ForwardRefExoticComponent, RefAttributes, useRef } from 'react';
+import { MarkOptional } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useStepper } from '../../../hooks/useStepper';
@@ -18,13 +19,16 @@ interface Props
   > {
   title: string;
   steps: Step[];
-  openingButtonProps?: ButtonProps;
+  openingButtonProps: MarkOptional<
+    Exclude<ButtonProps, ButtonProps.AsAnchor>,
+    'onClick'
+  >;
   onFinish?: () => void;
 }
 
 const modal = createModal({
   id: uuidv4(),
-  isOpenedByDefault: false,
+  isOpenedByDefault: false
 });
 
 /**
@@ -60,7 +64,7 @@ function ModalStepper(props: Props) {
         }
         stepper.forceStep(0);
         modal.close();
-      },
+      }
     },
     {
       children: 'Confirmer',
@@ -74,8 +78,8 @@ function ModalStepper(props: Props) {
             stepper.next();
           }
         }
-      },
-    },
+      }
+    }
   ];
 
   return (

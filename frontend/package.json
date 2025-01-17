@@ -29,7 +29,7 @@
     "@hookform/resolvers": "^3.9.1",
     "@jonkoops/matomo-tracker-react": "^0.7.0",
     "@lexical/html": "^0.20.0",
-    "@lexical/list": "^0.20.0",
+    "@lexical/list": "^0.22.0",
     "@lexical/react": "^0.20.0",
     "@lexical/text": "^0.20.0",
     "@lexical/utils": "^0.20.0",

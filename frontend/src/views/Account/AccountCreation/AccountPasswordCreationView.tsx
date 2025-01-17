@@ -5,12 +5,9 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Navigate, useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
+import yup from 'yup-next';
 
-import {
-  passwordConfirmationValidator,
-  passwordFormatValidator
-} from '../../../hooks/useForm';
+import schemas from '@zerologementvacant/schemas';
 import { Row, Text } from '../../../components/_dsfr';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import { useProspect } from '../../../hooks/useProspect';
@@ -23,8 +20,8 @@ import { logIn } from '../../../store/actions/authenticationAction';
 
 const schema = yup
   .object({
-    password: passwordFormatValidator,
-    confirmation: passwordConfirmationValidator
+    password: schemas.password,
+    confirmation: schemas.passwordConfirmation
   })
   .required();
 

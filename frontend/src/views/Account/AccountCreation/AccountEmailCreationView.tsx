@@ -6,9 +6,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import * as yup from 'yup';
+import yup from 'yup-next';
 
-import { emailValidator } from '../../../hooks/useForm';
+import schemas from '@zerologementvacant/schemas';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
 import image from '../../../assets/images/fifty-hours.svg';
 import Image from '../../../components/Image/Image';
@@ -17,7 +17,7 @@ import { useSendActivationEmailMutation } from '../../../services/signup-link.se
 
 const schema = yup
   .object({
-    email: emailValidator
+    email: schemas.email
   })
   .required();
 
@@ -122,14 +122,11 @@ function AccountEmailCreationView() {
                   target: '_self'
                 }}
                 priority="tertiary"
-                role="link"
               >
                 Retour à la page d’accueil
               </Button>
 
-              <Button sx={{ alignSelf: 'flex-end' }} type="submit">
-                Vérifier mon adresse mail
-              </Button>
+              <Button type="submit">Vérifier mon adresse mail</Button>
             </Grid>
           </Grid>
 

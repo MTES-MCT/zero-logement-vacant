@@ -79,7 +79,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(submit)}>
+      <form id="aside-form" onSubmit={form.handleSubmit(submit)}>
         <AsideNext
           drawerProps={{
             sx: (theme) => ({
@@ -112,6 +112,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           main={<Tabs tabs={[OccupationTab()]} />}
           open={expand}
           onClose={onClose}
+          onSave={form.handleSubmit(submit)}
         />
       </form>
     </FormProvider>

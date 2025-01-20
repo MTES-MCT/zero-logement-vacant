@@ -1,4 +1,6 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
+import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Drawer, { DrawerProps } from '@mui/material/Drawer';
 import Grid from '@mui/material/Unstable_Grid2';
 import { ReactNode } from 'react';
@@ -10,6 +12,7 @@ interface AsideProps {
   footer?: ReactNode;
   open: boolean;
   onClose(): void;
+  onSave(): void;
 }
 
 function Aside(props: AsideProps) {
@@ -20,7 +23,7 @@ function Aside(props: AsideProps) {
       onClose={props.onClose}
       {...props.drawerProps}
     >
-      <Grid container sx={{ flexDirection: 'column' }}>
+      <Grid container sx={{ flexDirection: 'column' }} xs>
         <Grid container sx={{ justifyContent: 'space-between', mb: 3 }}>
           {props.header && <Grid xs>{props.header}</Grid>}
 
@@ -35,10 +38,27 @@ function Aside(props: AsideProps) {
           </Grid>
         </Grid>
 
-        {props.main}
+        <Grid xs>{props.main}</Grid>
 
-        <Grid>
-          {props.footer ?? <Button priority="secondary">Annuler</Button>}
+        <Grid className={fr.cx('fr-mt-3w', 'fr-mb-1w')}>
+          <hr style={{ margin: `0 -${fr.spacing('3w')}` }} />
+          {props.footer ?? (
+            <ButtonsGroup
+              buttons={[
+                {
+                  priority: 'secondary',
+                  children: 'Annuler',
+                  onClick: props.onClose
+                },
+                {
+                  priority: 'primary',
+                  children: 'Enregistrer',
+                  onClick: props.onSave
+                }
+              ]}
+              inlineLayoutWhen="always"
+            />
+          )}
         </Grid>
       </Grid>
     </Drawer>

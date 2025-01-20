@@ -51,13 +51,15 @@ router.post(
   validator.validate,
   housingController.create
 );
-router.get('/housing/count',
+router.get(
+  '/housing/count',
   validatorNext.validate({
     query: schemas.housingFilters
       .concat(sortApi.sortSchema)
       .concat(paginationSchema)
   }),
-housingController.count);
+  housingController.count
+);
 router.get(
   '/housing/:id',
   housingController.getValidators,

@@ -13,6 +13,10 @@ interface Props {
   messageType?: string;
   message?: string;
 }
+
+/**
+ * @deprecated Will be replaced by a custom AppSelectNext
+ */
 const HousingStatusSelect = ({
   selected,
   options,

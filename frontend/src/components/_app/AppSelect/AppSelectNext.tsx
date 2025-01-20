@@ -53,6 +53,7 @@ function AppSelectNext<
           select: fr.cx('fr-select', 'fr-pt-1w', 'fr-pr-5w'),
           icon: fr.cx('fr-hidden')
         }}
+        disabled={props.disabled}
         sx={{ width: '100%' }}
         displayEmpty
         label={props.label}

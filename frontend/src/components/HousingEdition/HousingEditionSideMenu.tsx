@@ -29,6 +29,7 @@ import {
 } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
 import { getSubStatusOptions } from '../../models/HousingState';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 
 interface HousingEditionSideMenuProps {
   housing?: Housing;
@@ -51,7 +52,9 @@ const schema = yup.object({
   status: yup
     .number()
     .required('Veuillez renseigner le statut de suivi')
-    .oneOf(HOUSING_STATUS_VALUES)
+    .oneOf(HOUSING_STATUS_VALUES),
+  subStatus: yup.string(),
+  note: yup.string()
 });
 
 function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
@@ -59,7 +62,9 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     values: {
       occupancy: props.housing?.occupancy ?? Occupancy.UNKNOWN,
       occupancyIntented: props.housing?.occupancyIntended ?? Occupancy.UNKNOWN,
-      status: props.housing?.status ?? HousingStatus.NEVER_CONTACTED
+      status: props.housing?.status ?? HousingStatus.NEVER_CONTACTED,
+      subStatus: props.housing?.subStatus ?? '',
+      note: ''
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)
@@ -232,6 +237,20 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     };
   }
 
+  function NoteTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
+    return {
+      content: (
+        <AppTextInputNext
+          label="Nouvelle note"
+          name="note"
+          nativeTextAreaProps={{ rows: 8 }}
+          textArea
+        />
+      ),
+      label: 'Note'
+    };
+  }
+
   return (
     <AsideNext
       drawerProps={{
@@ -264,7 +283,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       }
       main={
         <FormProvider {...form}>
-          <Tabs tabs={[OccupationTab(), MobilisationTab()]} />
+          <Tabs tabs={[OccupationTab(), MobilisationTab(), NoteTab()]} />
         </FormProvider>
       }
       open={expand}

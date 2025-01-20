@@ -1,10 +1,14 @@
 from dagster import (
     AssetSelection,
     Definitions,
+    RetryPolicy,
     ScheduleDefinition,
     define_asset_job,
     load_assets_from_modules,
 )
+
+from .assets.dwh.copy.copy_to_clean_duckdb import copy_dagster_duckdb_to_metabase_duckdb
+from .assets.dwh.copy.transfer_database import export_mother_duck_local_duckdb
 
 # from .assets import dagster_production_assets
 from .assets import dwh
@@ -51,6 +55,8 @@ daily_update_dwh_job = define_asset_job(
             setup_s3_connection,
             check_ff_lovac_on_duckdb,
             import_cerema_ff_lovac_data_from_s3_to_duckdb,
+            copy_dagster_duckdb_to_metabase_duckdb,
+            export_mother_duck_local_duckdb,
             "upload_ff_to_s3",
             "download_ff_from_s3",
             ]
@@ -74,7 +80,7 @@ daily_refresh_schedule = ScheduleDefinition(
 )
 
 yearly_ff_refresh_schedule = ScheduleDefinition(
-    job=yearly_update_ff_dwh_job, cron_schedule="0 0 1 1 *"
+    job=yearly_update_ff_dwh_job, cron_schedule="@yearly"
 )
 
 # Load definitions with assets, resources, and schedule
@@ -94,7 +100,10 @@ defs = Definitions(
             database=f"md:dwh?motherduck_token={Config.MD_TOKEN}" if Config.USE_MOTHER_DUCK else "db/dagster.duckdb",
         ),
         "duckdb_metabase": DuckDBResource(
-            database=f"md:metabase?motherduck_token={Config.MD_TOKEN} " if Config.USE_MOTHER_DUCK_FOR_METABASE else "db/metabase.duckdb",
+            database=f"md:metabase?motherduck_token={Config.MD_TOKEN}",
+        ),
+        "duckdb_local_metabase": DuckDBResource(
+            database="db/metabase.duckdb",
         ),
     },
     schedules=[daily_refresh_schedule, yearly_ff_refresh_schedule],

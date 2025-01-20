@@ -8,23 +8,24 @@ source_schema = "main_marts"
 destination_schema = "main"
 
 
-def process_specific_table(
-    table_name: str, duckdb: DuckDBResource, duckdb_metabase: DuckDBResource
-):
+def process_specific_table(context, table_name: str, duckdb: DuckDBResource, duckdb_metabase: DuckDBResource):
     source_db = duckdb.database
     chemin_destination_db = duckdb_metabase.database
 
+    context.log.info(f"source_db: {source_db}")
+    context.log.info(f"chemin_destination_db: {chemin_destination_db}")
+
     source_table_name = table_name
     destination_table_name = translate_table_name(table_name)
-    with duckdb_metabase.get_connection() as conn:
-        conn.execute(f"ATTACH '{source_db}' AS source_db;")
-        conn.execute(
-            f"""
-            CREATE OR REPLACE TABLE {chemin_destination_db}.{destination_schema}.{destination_table_name} AS
-            SELECT * FROM {source_schema}.{source_table_name};
-        """
-        )
-        conn.execute("DETACH DATABASE source_db;")
+    with duckdb.get_connection() as source_conn:
+        SOURCE_QUERY = f"SELECT * FROM {source_schema}.{source_table_name}"
+        context.log.info(f"Executing SQL: {SOURCE_QUERY}")
+        data = source_conn.execute(SOURCE_QUERY).fetchdf()
+        print(data.head())
+        with duckdb_metabase.get_connection() as conn:
+            LOAD_QUERY = f"CREATE OR REPLACE TABLE {destination_table_name} AS SELECT * FROM data"
+            context.log.info(f"Executing SQL: {LOAD_QUERY}")
+            conn.execute(LOAD_QUERY)
 
 
 @multi_asset(
@@ -51,7 +52,10 @@ def copy_dagster_duckdb_to_metabase_duckdb(
             in context.op_execution_context.selected_asset_keys
         ):
             process_specific_table(
-                table_name=table_name, duckdb=duckdb, duckdb_metabase=duckdb_metabase
+                context=context, 
+                table_name=table_name,
+                duckdb=duckdb,
+                duckdb_metabase=duckdb_metabase
             )
             yield MaterializeResult(asset_key=f"copy_{table_name}")
         else:

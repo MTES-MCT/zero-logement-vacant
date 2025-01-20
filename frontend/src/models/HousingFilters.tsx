@@ -268,8 +268,8 @@ export const localityKindsOptions: SelectOption<LocalityKind>[] = [
 export const dataFileYearsIncludedOptions: SelectOption[] = [
   {
     value: 'ff-2023-locatif',
-    label: 'Fichiers fonciers 2023 (locatif)',
-    badgeLabel: 'Fichiers fonciers 2023 (locatif) inclus'
+    label: 'Fichiers fonciers 2023 (parc locatif privé)',
+    badgeLabel: 'Fichiers fonciers 2023 (parc locatif privé) inclus'
   },
   {
     value: 'lovac-2019',
@@ -306,8 +306,8 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
 export const dataFileYearsExcludedOptions: SelectOption[] = [
   {
     value: 'ff-2023-locatif',
-    label: 'Fichiers fonciers 2023 (locatif)',
-    badgeLabel: 'Fichiers fonciers 2023 (locatif) exclus'
+    label: 'Fichiers fonciers 2023 (parc locatif privé)',
+    badgeLabel: 'Fichiers fonciers 2023 (parc locatif privé) exclus'
   },
   {
     value: 'lovac-2019',

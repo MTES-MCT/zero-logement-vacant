@@ -1,8 +1,7 @@
 import 'express';
-import 'express-serve-static-core';
 
-declare module 'express-serve-static-core' {
+declare module 'express' {
   interface Request {
-    file?: Express.MulterS3.File | undefined;
+    file?: Express.Multer.File | undefined;
   }
 }

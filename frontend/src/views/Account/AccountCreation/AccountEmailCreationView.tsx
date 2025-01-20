@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import yup from 'yup-next';
+import * as yup from 'yup-next';
 
 import schemas from '@zerologementvacant/schemas';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';

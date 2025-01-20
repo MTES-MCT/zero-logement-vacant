@@ -1,7 +1,6 @@
 import {
   BeneficiaryCount,
   BuildingPeriod,
-  CampaignCount,
   ENERGY_CONSUMPTION_VALUES,
   EnergyConsumption,
   HousingByBuilding,
@@ -71,13 +70,6 @@ export const ownerKindOptions: SelectOption<OwnerKind>[] =
     value: value,
     label: OWNER_KIND_LABELS[value]
   }));
-
-export const campaignsCountOptions: SelectOption<CampaignCount>[] = [
-  { value: '0', label: 'Dans aucune campagne en cours' },
-  { value: '1', label: 'Déjà contacté 1 fois' },
-  { value: '2', label: 'Déjà contacté 2 fois' },
-  { value: 'gt2', label: 'Déjà contacté 3 fois et plus' }
-];
 
 export const statusOptions = (
   statusExcluded?: HousingStatus[]

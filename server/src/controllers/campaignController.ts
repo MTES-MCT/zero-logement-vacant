@@ -479,7 +479,6 @@ async function resetHousingWithoutCampaigns(establishmentId: string) {
     .find({
       filters: {
         establishmentIds: [establishmentId],
-        campaignsCounts: ['0'],
         statusList: [HousingStatusApi.Waiting]
       },
       pagination: { paginate: false }

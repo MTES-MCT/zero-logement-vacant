@@ -32,7 +32,6 @@ export interface HousingFiltersApi
   housingCounts?: string[];
   // TODO: type there based on housing repository values
   vacancyRates?: string[];
-  campaignsCounts?: string[];
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
   localities?: string[];
@@ -71,7 +70,6 @@ const validators = (property = 'filters'): ValidationChain[] => [
   body(`${property}.ownershipKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.housingCounts`).custom(isArrayOf(isString)).optional(),
   body(`${property}.vacancyRates`).custom(isArrayOf(isString)).optional(),
-  body(`${property}.campaignsCounts`).custom(isArrayOf(isString)).optional(),
   body(`${property}.campaignIds`).custom(isArrayOf(isUUID)).optional(),
   body(`${property}.ownerIds`).custom(isArrayOf(isUUID)).optional(),
   body(`${property}.localities`).custom(isArrayOf(isString)).optional(),

@@ -3,7 +3,6 @@ import {
   beneficiaryCountOptions,
   buildingPeriodOptions,
   cadastralClassificationOptions,
-  campaignsCountOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
   energyConsumptionOptions,
@@ -200,12 +199,6 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
           onChange={(values) => onChange?.({ geoPerimetersExcluded: values })}
         />
       )}
-      <FilterBadges
-        options={campaignsCountOptions}
-        values={filters.campaignsCounts}
-        small={small}
-        onChange={(values) => onChange?.({ campaignsCounts: values })}
-      />
       <FilterBadges
         options={statusOptions()}
         values={filters.statusList?.map(String)}

@@ -33,7 +33,7 @@ function AppSelectNext<
   const multiple = props.multiple ?? false;
 
   // Form handling
-  const { field, fieldState } = useController({
+  const { field } = useController({
     name: props.name,
     disabled: props.disabled
   });

@@ -7,5 +7,5 @@
     { "path": "../packages/utils/tsconfig.build.json" },
     { "path": "../queue/tsconfig.build.json" }
   ],
-  "exclude": ["node_modules", "dist", "src/test", "src/**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
 }

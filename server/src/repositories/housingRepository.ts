@@ -445,7 +445,15 @@ function filteredQuery(opts: FilteredQueryOptions) {
         }
       });
     }
-
+    if (filters.campaignsCounts?.length) {
+      queryBuilder.where(function (whereBuilder: any) {
+        if (filters.campaignsCounts?.includes('0')) {
+          whereBuilder.orWhereRaw(
+            `cardinality(${campaignsTable}.campaign_ids) = 0`
+          );
+        }
+      });
+    }
     if (filters.ownerIds?.length) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }

@@ -32,6 +32,7 @@ export interface HousingFiltersApi
   housingCounts?: string[];
   // TODO: type there based on housing repository values
   vacancyRates?: string[];
+  campaignsCounts?: string[];
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
   localities?: string[];

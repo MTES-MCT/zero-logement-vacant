@@ -340,7 +340,10 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
     includes.push('owner');
   }
 
-  const filterByCampaign = (filters?.campaignIds ?? []).length > 0;
+  const filterByCampaign = [
+    filters?.campaignIds,
+    filters?.campaignsCounts
+  ].some((filter) => filter?.length);
   if (filterByCampaign) {
     includes.push('campaigns');
   }

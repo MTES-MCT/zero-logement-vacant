@@ -3,12 +3,16 @@ fileignoreconfig:
   checksum: f7719ba0d36160d97e80ee15cb5415b601354576929e36df0596c7d192465cfb
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
+- filename: frontend/.env.example
+  checksum: 7e2a5ff197c49ff9f715b3d189da7282bdb40de53ea49735e9f183ece19168fc
 - filename: frontend/src/components/Draft/DraftSender.tsx
   checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: frontend/src/components/Draft/DraftSignature.tsx
   checksum: 8abd2b819601d46cc6a3d0a61a60b76391601f2d89d9126f5167b684878bd2d1
 - filename: frontend/src/index.tsx
   checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
+- filename: frontend/src/utils/config.ts
+  checksum: 2916d5a89dbd4b6425e9b6980e235007cb0f09a3dd0f2cc8b49f43c0e79d5d5f
 - filename: packages/api-sdk/src/test/campaign-api.test.ts
   checksum: b200d9e1fec310660a91e99cd048b24cbe983e0f9f965861d061a7f0992af43e
 - filename: packages/healthcheck/src/checks/brevo.ts

@@ -8,6 +8,7 @@ import { tokenProvider } from '~/test/testUtils';
 import {
   formatHousingRecordApi,
   Housing,
+  HousingRecordDBO,
   housingTable
 } from '~/repositories/housingRepository';
 import {
@@ -59,7 +60,13 @@ import {
 } from '~/repositories/campaignHousingRepository';
 import { faker } from '@faker-js/faker/locale/fr';
 import { OwnerApi } from '~/models/OwnerApi';
-import { Occupancy, OCCUPANCY_VALUES } from '@zerologementvacant/models';
+import {
+  HousingDTO,
+  HousingStatus,
+  HousingUpdatePayloadDTO,
+  Occupancy,
+  OCCUPANCY_VALUES
+} from '@zerologementvacant/models';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 
 describe('Housing API', () => {
@@ -527,6 +534,82 @@ describe('Housing API', () => {
     });
 
     // All the others tests are covered by updateHousingList one's
+  });
+
+  describe('PUT /housing/{id}', () => {
+    const testRoute = (id: string) => `/api/housing/${id}`;
+
+    let housing: HousingApi;
+    let owner: OwnerApi;
+    let payload: HousingUpdatePayloadDTO;
+
+    beforeEach(async () => {
+      housing = genHousingApi(oneOf(establishment.geoCodes));
+      owner = genOwnerApi();
+      payload = {
+        status: HousingStatus.BLOCKED,
+        subStatus: null,
+        precisions: null,
+        vacancyReasons: null,
+        occupancy: Occupancy.DEPENDENCY,
+        occupancyIntended: null
+      };
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+      await HousingOwners().insert(formatHousingOwnersApi(housing, [owner]));
+    });
+
+    it('should throw if the housing was not found', async () => {
+      const { status } = await request(app)
+        .put(testRoute(faker.string.uuid()))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it.todo('should throw if the user is a visitor');
+
+    it('should return the housing', async () => {
+      const { body, status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<HousingDTO>>({
+        id: housing.id,
+        status: payload.status,
+        subStatus: null,
+        precisions: payload.precisions,
+        vacancyReasons: payload.vacancyReasons,
+        occupancy: payload.occupancy,
+        occupancyIntended: payload.occupancyIntended
+      });
+    });
+
+    it('should update the housing', async () => {
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await Housing().where('id', housing.id).first();
+      expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
+        id: housing.id,
+        status: payload.status as unknown as HousingStatusApi.Blocked,
+        sub_status: null,
+        precisions: payload.precisions,
+        vacancy_reasons: payload.vacancyReasons,
+        occupancy: payload.occupancy,
+        occupancy_intended: payload.occupancyIntended
+      });
+    });
   });
 
   describe('POST /housing/list', () => {

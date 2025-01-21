@@ -296,9 +296,13 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
       .streetAddress({ useFullAddress: true })
       .split(' '),
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
+    occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
-    owner
+    subStatus: null,
+    owner,
+    precisions: null,
+    vacancyReasons: null
   };
 }
 

@@ -11,11 +11,6 @@ import {
   useUpdateHousingListMutation
 } from '../../services/housing.service';
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../models/TrackEvent';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount, HousingCount } from '../../models/HousingCount';
 import GroupAddHousingModal from '../../components/modals/GroupAddHousingModal/GroupAddHousingModal';
@@ -59,7 +54,6 @@ const HousingListTab = ({
   status,
   onCountFilteredHousing
 }: HousingListTabProps) => {
-  const { trackEvent } = useMatomo();
   const navigate = useNavigate();
   const [
     updateHousingList,
@@ -107,21 +101,11 @@ const HousingListTab = ({
           ids: selected.ids
         }
       }).unwrap();
-      trackEvent({
-        category: TrackEventCategories.HousingList,
-        action: TrackEventActions.HousingList.SaveCampaign,
-        value: selectedCount
-      });
       navigate(`/campagnes/${created.id}`);
     }
   };
 
   const submitSelectedHousingUpdate = async (housingUpdate: HousingUpdate) => {
-    trackEvent({
-      category: TrackEventCategories.HousingList,
-      action: TrackEventActions.HousingList.UpdateList,
-      value: selectedCount
-    });
     try {
       await updateHousingList({
         housingUpdate,

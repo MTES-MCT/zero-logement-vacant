@@ -1,6 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import classNames from 'classnames';
 import { FormEvent, useState } from 'react';
 import { InferType, object } from 'yup';
@@ -10,10 +9,6 @@ import { Campaign } from '../../models/Campaign';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import styles from './campaign.module.scss';
 import { campaignTitleValidator, campaignDescriptionValidator, useForm } from '../../hooks/useForm';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../models/TrackEvent';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import Typography from '@mui/material/Typography';
 
@@ -38,8 +33,6 @@ interface Props {
 }
 
 function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
-  const { trackEvent } = useMatomo();
-
   const [updateCampaign] = useUpdateCampaignMutation();
 
   const [title, setTitle] = useState(campaign.title);
@@ -58,10 +51,6 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
         title,
         description,
       }).unwrap();
-      trackEvent({
-        category: TrackEventCategories.Campaigns,
-        action: TrackEventActions.Campaigns.Rename
-      });
       modal.close();
     });
   }

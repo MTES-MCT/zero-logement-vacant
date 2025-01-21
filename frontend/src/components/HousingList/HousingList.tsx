@@ -20,11 +20,6 @@ import { HousingFilters } from '../../models/HousingFilters';
 import classNames from 'classnames';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import _ from 'lodash';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../models/TrackEvent';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
 import { findChild } from '../../utils/elementUtils';
@@ -45,7 +40,6 @@ import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
-import { useLocation } from 'react-router-dom';
 import { campaignSort } from '../../models/Campaign';
 import { useUser } from '../../hooks/useUser';
 
@@ -64,9 +58,8 @@ const HousingList = ({
 }: HousingListProps) => {
   const header = findChild(children, SelectableListHeader);
 
-  const location = useLocation();
   const campaignList = useCampaignList();
-  const { trackEvent } = useMatomo();
+
   const { isVisitor } = useUser();
 
   const [updateHousing] = useUpdateHousingMutation();
@@ -281,15 +274,6 @@ const HousingList = ({
     housing: Housing,
     housingUpdate: HousingUpdate
   ) => {
-    trackEvent({
-      category: location.pathname.includes('parc-de-logements')
-        ? TrackEventCategories.HousingList
-        : TrackEventCategories.Campaigns,
-      action: location.pathname.includes('parc-de-logements')
-        ? TrackEventActions.HousingList.Update
-        : TrackEventActions.Campaigns.Update,
-      value: 1
-    });
     await updateHousing({
       housing,
       housingUpdate

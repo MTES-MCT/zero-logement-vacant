@@ -23,7 +23,8 @@
   "dependencies": {
     "@zerologementvacant/draft": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "ts-essentials": "^10.0.2"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

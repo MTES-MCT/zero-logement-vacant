@@ -12,7 +12,8 @@ import {
   HousingApi,
   HousingRecordApi,
   HousingSortableApi,
-  OccupancyKindApi
+  OccupancyKindApi,
+  toHousingDTO
 } from '~/models/HousingApi';
 import housingFiltersApi, {
   HousingFiltersApi
@@ -20,7 +21,7 @@ import housingFiltersApi, {
 import { UserRoles } from '~/models/UserApi';
 import eventRepository from '~/repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { fromHousingStatus, HousingStatusApi } from '~/models/HousingStatusApi';
 import sortApi from '~/models/SortApi';
 import { HousingPaginatedResultApi } from '~/models/PaginatedResultApi';
 import { isArrayOf, isUUID } from '~/utils/validators';
@@ -28,7 +29,12 @@ import HousingMissingError from '~/errors/housingMissingError';
 import noteRepository from '~/repositories/noteRepository';
 import { NoteApi } from '~/models/NoteApi';
 import { logger } from '~/infra/logger';
-import { HousingFiltersDTO, Pagination } from '@zerologementvacant/models';
+import {
+  HousingDTO,
+  HousingFiltersDTO,
+  HousingUpdatePayloadDTO,
+  Pagination
+} from '@zerologementvacant/models';
 import { toHousingRecordApi, toOwnerApi } from '~/scripts/shared';
 import HousingExistsError from '~/errors/housingExistsError';
 import ownerRepository from '~/repositories/ownerRepository';
@@ -40,6 +46,11 @@ import { HousingEventApi } from '~/models/EventApi';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import fp from 'lodash/fp';
+import { startTransaction } from '~/infra/database/transaction';
+
+interface HousingPathParams extends Record<string, string> {
+  id: string;
+}
 
 const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
@@ -165,14 +176,12 @@ async function count(request: Request, response: Response): Promise<void> {
     multiOwners: query?.multiOwners?.map((value: boolean) =>
       value ? 'true' : 'false'
     ),
-    roomsCounts: query?.roomsCounts?.map((value: string) =>
-      value.toString()
-    ),
+    roomsCounts: query?.roomsCounts?.map((value: string) => value.toString()),
     isTaxedValues: query?.isTaxedValues?.map((value: boolean) =>
       value ? 'true' : 'false'
     ),
     energyConsumption:
-    query?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
+      query?.energyConsumption as unknown as EnergyConsumptionGradesApi[]
   };
 
   const count = await housingRepository.count({
@@ -307,6 +316,41 @@ async function update(request: Request, response: Response) {
   );
 
   response.status(constants.HTTP_STATUS_OK).json(updatedHousing);
+}
+
+async function updateNext(
+  request: Request<HousingPathParams, HousingDTO, HousingUpdatePayloadDTO>,
+  response: Response
+): Promise<void> {
+  const { body, establishment, params } = request as AuthenticatedRequest<
+    HousingPathParams,
+    HousingDTO,
+    HousingUpdatePayloadDTO
+  >;
+
+  const housing = await housingRepository.findOne({
+    id: params.id,
+    geoCode: establishment.geoCodes,
+    includes: ['owner']
+  });
+  if (!housing) {
+    throw new HousingMissingError(params.id);
+  }
+
+  const updated: HousingApi = {
+    ...housing,
+    status: fromHousingStatus(body.status),
+    subStatus: body.subStatus,
+    precisions: body.precisions ?? undefined,
+    vacancyReasons: body.vacancyReasons ?? undefined,
+    occupancy: body.occupancy,
+    occupancyIntended: body.occupancyIntended ?? undefined
+  };
+  await startTransaction(async () => {
+    await housingRepository.update(updated);
+  });
+
+  response.status(constants.HTTP_STATUS_OK).json(toHousingDTO(updated));
 }
 
 const updateHousing = async (
@@ -506,6 +550,7 @@ const housingController = {
   create,
   updateValidators,
   update,
+  updateNext,
   updateListValidators,
   updateList
 };

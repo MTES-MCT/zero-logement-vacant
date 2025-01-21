@@ -22,7 +22,7 @@ export interface HousingDTO {
   cadastralReference?: string;
   buildingYear?: number;
   taxed?: boolean;
-  vacancyReasons?: string[];
+  vacancyReasons: string[] | null;
   /**
    * @deprecated See {@link dataFileYears}
    */
@@ -33,12 +33,12 @@ export interface HousingDTO {
   rentalValue?: number;
   ownershipKind?: string;
   status: HousingStatus;
-  subStatus?: string;
-  precisions?: string[];
+  subStatus: string | null;
+  precisions: string[] | null;
   energyConsumption?: EnergyConsumption;
   energyConsumptionAt?: Date;
   occupancy: Occupancy;
-  occupancyIntended?: Occupancy;
+  occupancyIntended: Occupancy | null;
   source: HousingSource | null;
   owner: OwnerDTO;
 }

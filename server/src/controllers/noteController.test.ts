@@ -49,7 +49,7 @@ describe('Note API', () => {
   });
 
   describe('listByHousingId', () => {
-    const testRoute = (housingId: string) => `/api/notes/housing/${housingId}`;
+    const testRoute = (housingId: string) => `/api/housing/${housingId}/notes`;
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(app).get(testRoute(housing.id));

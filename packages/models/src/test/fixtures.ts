@@ -23,6 +23,7 @@ import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
 import { OWNER_KIND_LABELS } from '../OwnerKind';
+import { NoteDTO } from '../NoteDTO';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -322,6 +323,17 @@ export function genInvariant(locality: string): string {
 
 export function genLocalId(department: string, invariant: string): string {
   return department + invariant;
+}
+
+export function genNoteDTO(creator: UserDTO): NoteDTO {
+  return {
+    id: faker.string.uuid(),
+    content: faker.lorem.paragraph(),
+    noteKind: 'Note courante',
+    createdBy: creator.id,
+    createdAt: new Date().toJSON(),
+    creator
+  };
 }
 
 export function genOwnerDTO(): OwnerDTO {

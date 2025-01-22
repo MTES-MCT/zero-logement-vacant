@@ -11,9 +11,9 @@ import { zlvApi } from './api.service';
 export const noteApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findNotesByHousing: builder.query<Note[], string>({
-      query: (housingId) => `notes/housing/${housingId}`,
+      query: (id) => `housing/${id}/notes`,
       providesTags: () => ['Note'],
-      transformResponse: (response: any[]) => response.map((_) => parseNote(_))
+      transformResponse: (notes: ReadonlyArray<NoteDTO>) => notes.map(parseNote)
     }),
     createNoteByHousing: builder.mutation<
       NoteDTO,

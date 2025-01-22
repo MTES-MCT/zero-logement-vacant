@@ -141,7 +141,7 @@ describe('Note API', () => {
       expect(body).toStrictEqual<NoteDTO>({
         id: expect.any(String),
         content: payload.content,
-        noteKind: 'Note',
+        noteKind: 'Note courante',
         createdBy: user.id,
         createdAt: expect.any(String)
       });

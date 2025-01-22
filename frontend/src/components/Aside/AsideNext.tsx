@@ -43,7 +43,9 @@ function Aside(props: AsideProps) {
           </Grid>
         </Grid>
 
-        <Grid xs>{props.main}</Grid>
+        <Grid sx={{ overflowY: 'auto' }} xs>
+          {props.main}
+        </Grid>
 
         <Grid className={fr.cx('fr-mt-3w', 'fr-mb-1w')}>
           <hr style={{ margin: `0 -${fr.spacing('3w')}` }} />

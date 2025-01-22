@@ -62,3 +62,5 @@ jobs:
           DBT_DOC_BUCKET_NAME:  ${{ vars.DBT_DOC_BUCKET_NAME }}
         run: |
           aws s3 cp analytics/dbt_docs/index.html s3://$DBT_DOC_BUCKET_NAME/index.html --acl public-read --endpoint-url https://cellar-c2.services.clever-cloud.com
+          aws s3 cp analytics/dbt_docs/manifest.json s3://$DBT_DOC_BUCKET_NAME/manifest.json --acl public-read --endpoint-url https://cellar-c2.services.clever-cloud.com
+          aws s3 cp analytics/dbt_docs/catalog.json s3://$DBT_DOC_BUCKET_NAME/catalog.json --acl public-read --endpoint-url https://cellar-c2.services.clever-cloud.com

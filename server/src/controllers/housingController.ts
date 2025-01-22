@@ -530,7 +530,7 @@ async function createHousingUpdateNote(
   geoCode: string
 ) {
   if (housingUpdate.note) {
-    await noteRepository.insertHousingNote({
+    await noteRepository.createByHousing({
       id: uuidv4(),
       ...housingUpdate.note,
       createdBy: userId,

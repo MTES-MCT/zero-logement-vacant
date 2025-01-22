@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/jest';
 import { constants } from 'http2';
 import request from 'supertest';
@@ -111,7 +112,21 @@ describe('Note API', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
     });
 
-    it('should create a note', async () => {
+    it('should fail if the housing was not found', async () => {
+      const payload: NotePayloadDTO = {
+        content: 'Nouvelle note'
+      };
+
+      const { status } = await request(app)
+        .post(testRoute(faker.string.uuid()))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should create the note', async () => {
       const payload: NotePayloadDTO = {
         content: 'This is a test note'
       };
@@ -130,6 +145,16 @@ describe('Note API', () => {
         createdBy: user.id,
         createdAt: expect.any(String)
       });
+      const actualNote = await Notes().where({ id: body.id }).first();
+      expect(actualNote).toBeDefined();
+      const actualHousingNote = await HousingNotes()
+        .where({
+          note_id: body.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        })
+        .first();
+      expect(actualHousingNote).toBeDefined();
     });
   });
 });

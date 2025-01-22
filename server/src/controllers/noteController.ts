@@ -5,8 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { NoteDTO, NotePayloadDTO } from '@zerologementvacant/models';
 import noteRepository from '~/repositories/noteRepository';
 import { logger } from '~/infra/logger';
-import { NoteApi, toNoteDTO } from '~/models/NoteApi';
+import { HousingNoteApi, toNoteDTO } from '~/models/NoteApi';
 import { AuthenticatedRequest } from 'express-jwt';
+import housingRepository from '~/repositories/housingRepository';
+import HousingMissingError from '~/errors/housingMissingError';
 
 async function listByOwnerId(request: Request, response: Response) {
   const ownerId = request.params.ownerId;
@@ -34,19 +36,30 @@ async function createByHousing(
   request: Request<PathParams, NoteDTO, NotePayloadDTO, never>,
   response: Response<NoteDTO>
 ) {
-  const { auth, body } = request as AuthenticatedRequest<
+  const { auth, body, establishment, params } = request as AuthenticatedRequest<
     PathParams,
     NoteDTO,
     NotePayloadDTO,
     never
   >;
-  const note: NoteApi = {
+  const housing = await housingRepository.findOne({
+    geoCode: establishment.geoCodes,
+    id: params.id
+  });
+  if (!housing) {
+    throw new HousingMissingError(params.id);
+  }
+
+  const note: HousingNoteApi = {
     id: uuidv4(),
     content: body.content,
     noteKind: 'Note',
     createdBy: auth.userId,
-    createdAt: new Date()
+    createdAt: new Date(),
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode
   };
+  await noteRepository.createByHousing(note);
   response.status(constants.HTTP_STATUS_CREATED).json(toNoteDTO(note));
 }
 

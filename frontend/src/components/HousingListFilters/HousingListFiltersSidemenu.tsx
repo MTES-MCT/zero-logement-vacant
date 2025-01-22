@@ -249,7 +249,7 @@ function HousingListFiltersSidemenu(props: Props) {
               initialValues={filters.campaignsCounts}
               onChange={(values) => {
                 onChangeFilters({ campaignsCounts: values }, 'Prise de contact');
-                posthog.capture('filtre-sources-millesimes-exclu');
+                posthog.capture('filtre-prise-de-contact');
               }}
             />
           </Grid>
@@ -320,7 +320,7 @@ function HousingListFiltersSidemenu(props: Props) {
                       { intercommunalities: values.map((value) => value.id) },
                       'Intercommunalité'
                     );
-                    posthog.capture('filtre-commune');
+                    posthog.capture('filtre-intercommunalite');
                   }
                 }
               }}
@@ -591,7 +591,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   { multiOwners: values?.map((value) => value === 'true') },
                   'Multi-propriétaire'
                 );
-                posthog.capture('filtre-multi-propriétaire');
+                posthog.capture('filtre-multi-proprietaire');
               }}
             />
           </Grid>
@@ -642,7 +642,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   { dataFileYearsExcluded: values },
                   'Sources et millésime exclus'
                 );
-                posthog.capture('filtre-sources-millesimes-exclu');
+                posthog.capture('filtre-sources-millesimes-exclus');
               }}
             />
           </Grid>

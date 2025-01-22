@@ -85,7 +85,8 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
           transformOrigin: {
             vertical: 'top',
             horizontal: 'left'
-          }
+          },
+          transitionDuration: 0
         }}
         native={false}
         renderValue={(values) => {

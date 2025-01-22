@@ -79,6 +79,14 @@ export interface NoteRecordDBO {
   note_kind: string;
   created_by: string;
   created_at: Date;
+  /**
+   * @deprecated
+   */
+  contact_kind_deprecated: string | null;
+  /**
+   * @deprecated
+   */
+  title_deprecated: string | null;
 }
 
 export interface NoteDBO extends NoteRecordDBO {
@@ -96,7 +104,9 @@ export const formatNoteApi = (noteApi: NoteApi): NoteRecordDBO => ({
   created_by: noteApi.createdBy,
   created_at: noteApi.createdAt,
   note_kind: noteApi.noteKind,
-  content: noteApi.content
+  content: noteApi.content,
+  contact_kind_deprecated: null,
+  title_deprecated: null
 });
 
 export const formatHousingNoteApi = (note: HousingNoteApi): HousingNoteDBO => ({

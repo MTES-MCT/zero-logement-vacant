@@ -37,6 +37,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install dbt-core dbt-postgres dbt-duckdb
 
+      - name: Install dbt dependencies
+        working-directory: analytics/dbt
+        run: |
+          dbt deps
+
       - name: Build DBT Docs
         working-directory: analytics/dbt
         run: |

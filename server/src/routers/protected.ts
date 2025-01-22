@@ -247,10 +247,10 @@ router.get(
 );
 
 router.get(
-  '/notes/housing/:housingId',
-  [isUUIDParam('housingId')],
+  '/housing/:id/notes',
+  [isUUIDParam('id')],
   validator.validate,
-  noteController.listByHousingId
+  noteController.findByHousing
 );
 router.post(
   '/housing/:id/notes',

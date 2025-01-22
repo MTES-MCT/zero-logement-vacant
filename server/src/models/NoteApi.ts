@@ -1,11 +1,11 @@
 import { assert } from 'ts-essentials';
 
 import { NoteDTO } from '@zerologementvacant/models';
-import { UserApi } from '~/models/UserApi';
+import { toUserDTO, UserApi } from '~/models/UserApi';
 
-export interface NoteApi extends Omit<NoteDTO, 'createdAt'> {
-  creator?: UserApi;
+export interface NoteApi extends Omit<NoteDTO, 'creator' | 'createdAt'> {
   createdAt: Date;
+  creator?: UserApi;
 }
 
 export function toNoteDTO(note: NoteApi): NoteDTO {
@@ -14,7 +14,8 @@ export function toNoteDTO(note: NoteApi): NoteDTO {
     content: note.content,
     noteKind: note.noteKind,
     createdBy: note.createdBy,
-    createdAt: note.createdAt.toJSON()
+    createdAt: note.createdAt.toJSON(),
+    creator: note.creator ? toUserDTO(note.creator) : undefined
   };
 }
 

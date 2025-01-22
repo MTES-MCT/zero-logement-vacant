@@ -21,6 +21,11 @@ function Aside(props: AsideProps) {
       anchor="right"
       open={props.open}
       onClose={props.onClose}
+      slotProps={{
+        backdrop: {
+          invisible: true
+        }
+      }}
       {...props.drawerProps}
     >
       <Grid container sx={{ flexDirection: 'column' }} xs>

@@ -27,8 +27,9 @@ import {
   Owners,
   ownerTable
 } from '~/repositories/ownerRepository';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { HousingStatusApi, toHousingStatus } from '~/models/HousingStatusApi';
 import {
+  EventRecordDBO,
   Events,
   eventsTable,
   HousingEvents,
@@ -68,12 +69,17 @@ import {
   OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi, UserRoles } from '~/models/UserApi';
 
 describe('Housing API', () => {
   const { app } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
+  const visitor: UserApi = {
+    ...genUserApi(establishment.id),
+    role: UserRoles.Visitor
+  };
   const anotherEstablishment = genEstablishmentApi();
   const anotherUser = genUserApi(anotherEstablishment.id);
 
@@ -81,7 +87,7 @@ describe('Housing API', () => {
     await Establishments().insert(
       [establishment, anotherEstablishment].map(formatEstablishmentApi)
     );
-    await Users().insert([user, anotherUser].map(formatUserApi));
+    await Users().insert([user, visitor, anotherUser].map(formatUserApi));
   });
 
   describe('GET /housing/{id}', () => {
@@ -570,7 +576,15 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
-    it.todo('should throw if the user is a visitor');
+    it('should throw if the user is a visitor', async () => {
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(visitor));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
 
     it('should return the housing', async () => {
       const { body, status } = await request(app)
@@ -608,6 +622,73 @@ describe('Housing API', () => {
         vacancy_reasons: payload.vacancyReasons,
         occupancy: payload.occupancy,
         occupancy_intended: payload.occupancyIntended
+      });
+    });
+
+    it('should not create events if there is no change', async () => {
+      const payload: HousingUpdatePayloadDTO = {
+        status: toHousingStatus(housing.status),
+        subStatus: housing.subStatus,
+        occupancy: housing.occupancy,
+        occupancyIntended: housing.occupancyIntended,
+        precisions: housing.precisions,
+        vacancyReasons: housing.vacancyReasons
+      };
+
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const events = await HousingEvents().where({
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+      expect(events).toHaveLength(0);
+    });
+
+    it('should create an event related to the status change', async () => {
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const event = await Events()
+        .join(housingEventsTable, 'event_id', 'id')
+        .where({
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode,
+          name: 'Changement de statut de suivi'
+        })
+        .first();
+      expect(event).toMatchObject<Partial<EventRecordDBO<any>>>({
+        name: 'Changement de statut de suivi',
+        created_by: user.id
+      });
+    });
+
+    it('should create an event related to the occupancy change', async () => {
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const event = await Events()
+        .join(housingEventsTable, 'event_id', 'id')
+        .where({
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id,
+          name: "Modification du statut d'occupation"
+        })
+        .first();
+      expect(event).toMatchObject<Partial<EventRecordDBO<any>>>({
+        name: "Modification du statut d'occupation",
+        created_by: user.id
       });
     });
   });

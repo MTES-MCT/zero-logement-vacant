@@ -1,11 +1,6 @@
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useFilters } from '../../hooks/useFilters';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../models/TrackEvent';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
@@ -19,7 +14,6 @@ interface Props {
 }
 
 function CampaignInProgress(props: Readonly<Props>) {
-  const { trackEvent } = useMatomo();
   const {
     filters,
     setFilters,
@@ -38,11 +32,6 @@ function CampaignInProgress(props: Readonly<Props>) {
   const { view } = useAppSelector((state) => state.housing);
 
   function searchWithQuery(query: string): void {
-    trackEvent({
-      category: TrackEventCategories.Campaigns,
-      action: TrackEventActions.HousingList.Search,
-      name: query
-    });
     setFilters({
       ...filters,
       query

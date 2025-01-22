@@ -4687,24 +4687,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jonkoops/matomo-tracker-react@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@jonkoops/matomo-tracker-react@npm:0.7.0"
-  dependencies:
-    "@jonkoops/matomo-tracker": "npm:^0.7.0"
-  peerDependencies:
-    react: ">= 16.8.0"
-  checksum: 10c0/85297a0b8739532a67eb7bfb5cecdfda1d2de89fdcf2727fdc3658167600b98c48e3a904e891b651ed7b24743f07e1e1bd56f1ac8fb5ad04fab34b81fdbff7be
-  languageName: node
-  linkType: hard
-
-"@jonkoops/matomo-tracker@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@jonkoops/matomo-tracker@npm:0.7.0"
-  checksum: 10c0/9e9d4e85f1617c5f3c5c1aa8e3308cd410bc7ff98147f5d2c33743d22a7cbdf8bf75cb73a8538869b865de317757f065d1f7eab209e3a8868028c62d22ef6a32
-  languageName: node
-  linkType: hard
-
 "@jridgewell/gen-mapping@npm:^0.3.2, @jridgewell/gen-mapping@npm:^0.3.5":
   version: 0.3.5
   resolution: "@jridgewell/gen-mapping@npm:0.3.5"
@@ -10753,7 +10735,6 @@ __metadata:
     "@emotion/styled": "npm:^11.13.0"
     "@faker-js/faker": "npm:^8.4.1"
     "@hookform/resolvers": "npm:^3.9.1"
-    "@jonkoops/matomo-tracker-react": "npm:^0.7.0"
     "@lexical/html": "npm:^0.20.0"
     "@lexical/list": "npm:^0.20.0"
     "@lexical/react": "npm:^0.20.0"

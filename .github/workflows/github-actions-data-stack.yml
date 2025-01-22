@@ -38,10 +38,11 @@ jobs:
           pip install dbt-core dbt-postgres
 
       - name: Build DBT Docs
+        working-directory: analytics/dbt
         run: |
           dbt docs generate
-          mkdir -p dbt_docs
-          mv target/* dbt_docs/
+          mkdir -p ../dbt_docs
+          mv target/* ../dbt_docs/
 
       - name: Configure AWS CLI
         env:
@@ -55,4 +56,4 @@ jobs:
         env:
           DBT_DOC_BUCKET_NAME: ${{ secrets.DBT_DOC_BUCKET_NAME }}
         run: |
-          aws s3 sync dbt_docs/ s3://$DBT_DOC_BUCKET_NAME --acl public-read --endpoint-url https://cellar-c2.services.clever-cloud.com
+          aws s3 sync analytics/dbt_docs/ s3://$DBT_DOC_BUCKET_NAME --acl public-read --endpoint-url https://cellar-c2.services.clever-cloud.com

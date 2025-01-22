@@ -11,7 +11,6 @@ import {
   Housing,
   HousingSort,
   HousingSortable,
-  HousingUpdate,
   OccupancyKindLabels,
   SelectedHousing
 } from '../../models/Housing';
@@ -32,10 +31,7 @@ import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { Pagination } from '@zerologementvacant/models';
 import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
-import {
-  useCountHousingQuery,
-  useUpdateHousingMutation
-} from '../../services/housing.service';
+import { useCountHousingQuery } from '../../services/housing.service';
 import { isDefined } from '../../utils/compareUtils';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
@@ -59,14 +55,11 @@ const HousingList = ({
   const header = findChild(children, SelectableListHeader);
 
   const campaignList = useCampaignList();
-
   const { isVisitor } = useUser();
-
-  const [updateHousing] = useUpdateHousingMutation();
 
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const [sort, setSort] = useState<HousingSort>();
-  const [updatingHousing, setUpdatingHousing] = useState<Housing>();
+  const [updatingHousing, setUpdatingHousing] = useState<Housing | null>(null);
 
   const { housingList } = useHousingList({
     filters,
@@ -270,17 +263,6 @@ const HousingList = ({
     columns = [selectColumn, ...columns, actionColumn];
   }
 
-  const submitHousingUpdate = async (
-    housing: Housing,
-    housingUpdate: HousingUpdate
-  ) => {
-    await updateHousing({
-      housing,
-      housingUpdate
-    });
-    setUpdatingHousing(undefined);
-  };
-
   return (
     <div>
       <header>
@@ -357,8 +339,9 @@ const HousingList = ({
       <HousingEditionSideMenu
         housing={updatingHousing}
         expand={!!updatingHousing}
-        onSubmit={submitHousingUpdate}
-        onClose={() => setUpdatingHousing(undefined)}
+        onClose={() => {
+          setUpdatingHousing(null);
+        }}
       />
     </div>
   );

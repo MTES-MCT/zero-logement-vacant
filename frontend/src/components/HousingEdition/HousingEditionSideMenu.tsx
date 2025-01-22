@@ -6,7 +6,8 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Unstable_Grid2';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { FormProvider, useForm } from 'react-hook-form';
+import { fromJS } from 'immutable';
+import { FormProvider, useController, useForm } from 'react-hook-form';
 import { ElementOf } from 'ts-essentials';
 import * as yup from 'yup';
 
@@ -30,11 +31,14 @@ import {
 import HousingStatusSelect from './HousingStatusSelect';
 import { getSubStatusOptions } from '../../models/HousingState';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+import { useCreateNoteByHousingMutation } from '../../services/note.service';
+import { useUpdateHousingNextMutation } from '../../services/housing.service';
+import { useNotification } from '../../hooks/useNotification';
 
 interface HousingEditionSideMenuProps {
-  housing?: Housing;
+  housing: Housing | null;
   expand: boolean;
-  onSubmit: (housing: Housing, housingUpdate: HousingUpdate) => void;
+  onSubmit?: (housing: Housing, housingUpdate: HousingUpdate) => void;
   onClose: () => void;
 }
 
@@ -45,23 +49,28 @@ const schema = yup.object({
     .string()
     .required('Veuillez renseigner l’occupation actuelle')
     .oneOf(OCCUPANCY_VALUES),
-  occupancyIntented: yup
+  occupancyIntended: yup
     .string()
-    .required('Veuillez renseigner l’occupation prévisionnelle')
-    .oneOf(OCCUPANCY_VALUES),
+    .oneOf(OCCUPANCY_VALUES)
+    .nullable()
+    .optional()
+    .default(null),
   status: yup
     .number()
     .required('Veuillez renseigner le statut de suivi')
     .oneOf(HOUSING_STATUS_VALUES),
-  subStatus: yup.string(),
+  subStatus: yup.string().trim().nullable().optional().default(null),
   note: yup.string()
 });
 
+type FormSchema = yup.InferType<typeof schema>;
+
 function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
-  const form = useForm<yup.InferType<typeof schema>>({
+  const { housing, expand, onClose } = props;
+  const form = useForm<FormSchema>({
     values: {
       occupancy: props.housing?.occupancy ?? Occupancy.UNKNOWN,
-      occupancyIntented: props.housing?.occupancyIntended ?? Occupancy.UNKNOWN,
+      occupancyIntended: props.housing?.occupancyIntended ?? Occupancy.UNKNOWN,
       status: props.housing?.status ?? HousingStatus.NEVER_CONTACTED,
       subStatus: props.housing?.subStatus ?? '',
       note: ''
@@ -70,13 +79,60 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     resolver: yupResolver(schema)
   });
 
-  const { housing, expand, onSubmit, onClose } = props;
+  const [createNote, noteCreationMutation] = useCreateNoteByHousingMutation();
+  const [updateHousing, housingUpdateMutation] = useUpdateHousingNextMutation();
 
-  // TODO
+  useNotification({
+    toastId: 'note-creation',
+    isError: noteCreationMutation.isError,
+    isLoading: noteCreationMutation.isLoading,
+    isSuccess: noteCreationMutation.isSuccess,
+    message: {
+      error: 'Impossible de créer la note',
+      loading: 'Création de la note...',
+      success: 'Note créée !'
+    }
+  });
+  useNotification({
+    toastId: 'housing-update',
+    isError: housingUpdateMutation.isError,
+    isLoading: housingUpdateMutation.isLoading,
+    isSuccess: housingUpdateMutation.isSuccess,
+    message: {
+      error: 'Impossible de mettre à jour le logement',
+      loading: 'Mise à jour du logement...',
+      success: 'Logement mis à jour !'
+    }
+  });
+
   function submit() {
     if (housing) {
-      onSubmit(housing, form.getValues() as HousingUpdate);
+      const { note, ...payload } = form.getValues();
+
+      const hasChanges = fromJS(form.formState.dirtyFields)
+        .filterNot((_, key) => key === 'note')
+        .some((value) => !!value);
+      if (hasChanges) {
+        updateHousing({
+          ...housing,
+          // TODO: directly pass payload whenever
+          //  Housing and HousingDTO are aligned
+          occupancy: payload.occupancy as Occupancy,
+          occupancyIntended: payload.occupancyIntended as Occupancy | null,
+          status: payload.status as HousingStatus,
+          subStatus: payload.subStatus
+        });
+      }
+
+      if (note) {
+        createNote({
+          id: housing.id,
+          content: note
+        });
+      }
     }
+
+    onClose();
   }
 
   function OccupationTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
@@ -103,12 +159,17 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   }
 
   function MobilisationTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
-    const status = form.watch('status');
     // TODO: fetch `GET /precisions`
     const precisions: ReadonlyArray<PrecisionCategory> = [];
     const mechanisms = precisions.filter((precision) =>
       PRECISION_MECHANISM_CATEGORY_VALUES.includes(precision)
     );
+
+    const { field: statusField, fieldState: statusFieldState } =
+      useController<FormSchema>({
+        name: 'status',
+        control: form.control
+      });
 
     return {
       content: (
@@ -125,22 +186,25 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
               Statut de suivi
             </Typography>
             <HousingStatusSelect
-              selected={status}
-              message={form.getFieldState('status').error?.message}
-              messageType={
-                form.getFieldState('status').invalid ? 'error' : 'default'
-              }
+              selected={statusField.value as HousingStatus}
+              message={statusFieldState.error?.message}
+              messageType={statusFieldState.invalid ? 'error' : 'default'}
               options={statusOptions()}
               onChange={(status) => {
-                form.setValue('status', status);
+                statusField.onChange(status);
               }}
             />
             <AppSelectNext
-              disabled={getSubStatusOptions(status) === undefined}
+              disabled={
+                getSubStatusOptions(statusField.value as HousingStatus) ===
+                undefined
+              }
               label="Sous-statut de suivi"
               name="subStatus"
               multiple={false}
-              options={getSubStatusOptions(status) ?? []}
+              options={
+                getSubStatusOptions(statusField.value as HousingStatus) ?? []
+              }
             />
           </Grid>
 

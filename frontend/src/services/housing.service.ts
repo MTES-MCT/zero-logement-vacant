@@ -144,7 +144,8 @@ export const housingApi = zlvApi.injectEndpoints({
       invalidatesTags: (result, error, payload) => [
         { type: 'Housing', id: payload.id },
         'HousingByStatus',
-        'HousingCountByStatus'
+        'HousingCountByStatus',
+        'Event'
       ]
     }),
     updateHousingList: builder.mutation<

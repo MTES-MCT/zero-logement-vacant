@@ -6,7 +6,7 @@ import {
   MenuItem,
   Select as MuiSelect
 } from '@mui/material';
-import { ReactNode, useId } from 'react';
+import { useId } from 'react';
 import { noop } from 'ts-essentials';
 import { match, Pattern } from 'ts-pattern';
 import { useController } from 'react-hook-form';
@@ -17,16 +17,25 @@ interface Option<Value> {
   value: Value;
 }
 
-type AppSelectNextProps<Value> = BaseSelectProps<Value> & {
+type AppSelectNextProps<Value, Multiple extends boolean | undefined> = Omit<
+  BaseSelectProps<SelectValue<Value, Multiple>>,
+  'multiple' | 'value'
+> & {
   disabled?: boolean;
   name: string;
   options: ReadonlyArray<Option<Value>>;
+  // Keep this until upgrading to MUI v6
+  multiple?: Multiple;
+  value?: SelectValue<Value, Multiple>;
 };
 
-function AppSelectNext<
-  Multiple extends boolean = false,
-  Value extends string | string[] = Multiple extends true ? string[] : string
->(props: AppSelectNextProps<Value>) {
+type SelectValue<Value, Multiple> = Multiple extends true
+  ? ReadonlyArray<Value>
+  : Value | null;
+
+function AppSelectNext<Value extends string, Multiple extends boolean = false>(
+  props: AppSelectNextProps<Value, Multiple>
+) {
   const labelId = `fr-label-${useId()}`;
   const selectId = `fr-select-${useId()}`;
 
@@ -39,7 +48,9 @@ function AppSelectNext<
   });
 
   const isControlled = props.value !== undefined;
-  const value: Value | null = isControlled ? props.value : field.value;
+  const value: SelectValue<Value, Multiple> = isControlled
+    ? props.value
+    : field.value;
   const onChange = isControlled ? props.onChange : field.onChange;
 
   return (
@@ -54,7 +65,6 @@ function AppSelectNext<
           icon: fr.cx('fr-hidden')
         }}
         disabled={props.disabled}
-        sx={{ width: '100%' }}
         displayEmpty
         label={props.label}
         id={selectId}
@@ -80,27 +90,28 @@ function AppSelectNext<
         native={false}
         renderValue={(values) => {
           return match(values)
-            .returnType<ReactNode>()
             .with(Pattern.string, (value) => {
               return props.options.find((option) => option.value === value)
                 ?.label;
             })
             .with(Pattern.array(Pattern.string), (values) => {
-              match(values.length).with(1, () => 'Une valeur sélectionnée');
+              return match((values as string[]).length)
+                .with(1, () => '1 option sélectionnée')
+                .with(
+                  Pattern.number.int().gte(2),
+                  (nb) => `${nb} options sélectionnées`
+                )
+                .otherwise(() => '');
             })
             .otherwise(() => '');
         }}
+        sx={{ width: '100%' }}
         value={value ?? ''}
         variant="standard"
         onChange={onChange}
       >
         {props.options.map((option) => (
-          <MenuItem
-            disableRipple
-            dense
-            key={option.value as Value}
-            value={option.value}
-          >
+          <MenuItem disableRipple key={option.value} value={option.value}>
             {!props.multiple ? (
               option.label
             ) : (

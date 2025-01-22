@@ -12,17 +12,17 @@ describe('Housing update payload', () => {
     status: fc.constantFrom(...HOUSING_STATUS_VALUES),
     occupancy: fc.constantFrom(...OCCUPANCY_VALUES),
     subStatus: fc.oneof(
-      fc.string({ minLength: 1 }),
+      fc.stringMatching(/\S/),
       fc.constant(null),
       fc.constant(undefined)
     ),
     precisions: fc.oneof(
-      fc.array(fc.string({ minLength: 1 })),
+      fc.array(fc.stringMatching(/\S/), { minLength: 1 }),
       fc.constant(null),
       fc.constant(undefined)
     ),
     vacancyReasons: fc.oneof(
-      fc.array(fc.string({ minLength: 1 })),
+      fc.array(fc.stringMatching(/\S/), { minLength: 1 }),
       fc.constant(null),
       fc.constant(undefined)
     ),

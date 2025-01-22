@@ -74,7 +74,15 @@ router.post(
   validator.validate,
   housingController.updateList
 );
-router.put('/housing/:id', housingController.updateNext);
+router.put(
+  '/housing/:id',
+  hasRole([UserRoles.Usual, UserRoles.Admin]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.housingUpdatePayload
+  }),
+  housingController.updateNext
+);
 router.post(
   '/housing/:housingId',
   [param('housingId').isUUID(), ...housingController.updateValidators],

@@ -1,6 +1,7 @@
 import fileUpload from 'express-fileupload';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
+import { object } from 'yup';
 
 import schemas from '@zerologementvacant/schemas';
 import accountController from '~/controllers/accountController';
@@ -20,7 +21,7 @@ import ownerController from '~/controllers/ownerController';
 import ownerProspectController from '~/controllers/ownerProspectController';
 import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
-import { jwtCheck, userCheck } from '~/middlewares/auth';
+import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
 import { upload } from '~/middlewares/upload';
 import validator from '~/middlewares/validator';
 import { isUUIDParam } from '~/utils/validators';
@@ -28,6 +29,7 @@ import draftController from '~/controllers/draftController';
 import validatorNext from '~/middlewares/validator-next';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
+import { UserRoles } from '~/models/UserApi';
 
 const router = Router();
 
@@ -249,6 +251,15 @@ router.get(
   [isUUIDParam('housingId')],
   validator.validate,
   noteController.listByHousingId
+);
+router.post(
+  '/housing/:id/notes',
+  hasRole([UserRoles.Usual, UserRoles.Admin]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.notePayload
+  }),
+  noteController.createByHousing
 );
 
 // TODO: rework and merge this API with the User API

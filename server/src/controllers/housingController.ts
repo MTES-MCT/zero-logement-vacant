@@ -322,7 +322,7 @@ async function updateNext(
   request: Request<HousingPathParams, HousingDTO, HousingUpdatePayloadDTO>,
   response: Response
 ): Promise<void> {
-  const { body, establishment, params } = request as AuthenticatedRequest<
+  const { auth, body, establishment, params } = request as AuthenticatedRequest<
     HousingPathParams,
     HousingDTO,
     HousingUpdatePayloadDTO
@@ -348,6 +348,22 @@ async function updateNext(
   };
   await startTransaction(async () => {
     await housingRepository.update(updated);
+    await createHousingUpdateEvents(
+      housing,
+      {
+        statusUpdate: {
+          status: fromHousingStatus(body.status),
+          subStatus: body.subStatus,
+          precisions: body.precisions,
+          vacancyReasons: body.vacancyReasons
+        },
+        occupancyUpdate: {
+          occupancy: body.occupancy,
+          occupancyIntended: body.occupancyIntended
+        }
+      },
+      auth.userId
+    );
   });
 
   response.status(constants.HTTP_STATUS_OK).json(toHousingDTO(updated));
@@ -477,8 +493,14 @@ async function createHousingUpdateEvents(
     statusUpdate &&
     (housingApi.status !== statusUpdate.status ||
       housingApi.subStatus !== statusUpdate.subStatus ||
-      !_.isEqual(housingApi.precisions, statusUpdate.precisions) ||
-      !_.isEqual(housingApi.vacancyReasons, statusUpdate.vacancyReasons))
+      !_.isEqual(
+        housingApi.precisions ?? null,
+        statusUpdate.precisions ?? null
+      ) ||
+      !_.isEqual(
+        housingApi.vacancyReasons ?? null,
+        statusUpdate.vacancyReasons ?? null
+      ))
   ) {
     await eventRepository.insertHousingEvent({
       id: uuidv4(),

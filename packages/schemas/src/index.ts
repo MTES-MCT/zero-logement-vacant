@@ -5,6 +5,7 @@ import { establishmentFilters } from './establishment-filters';
 import { geoCode } from './geo-code';
 import { housingFilters } from './housing-filters';
 import { housingUpdatePayload } from './housing-update-payload';
+import { id } from './id';
 import { notePayload } from './note-payload';
 import { password, passwordConfirmation } from './password';
 import { siren } from './siren';
@@ -20,6 +21,7 @@ export const schemas = {
   geoCode,
   housingFilters,
   housingUpdatePayload,
+  id,
   notePayload,
   password,
   passwordConfirmation,

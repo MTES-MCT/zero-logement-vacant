@@ -26,11 +26,11 @@ async function insertOwnerNote(ownerNoteApi: OwnerNoteApi): Promise<void> {
   });
 }
 
-async function insertHousingNote(housingNote: HousingNoteApi): Promise<void> {
-  await insertManyHousingNotes([housingNote]);
+async function createByHousing(housingNote: HousingNoteApi): Promise<void> {
+  await createManyByHousing([housingNote]);
 }
 
-async function insertManyHousingNotes(
+async function createManyByHousing(
   housingNotes: HousingNoteApi[]
 ): Promise<void> {
   logger.info('Insert %d HousingNoteApi', housingNotes.length);
@@ -73,7 +73,7 @@ async function findHousingNotes(housingId: string): Promise<NoteApi[]> {
   return findNotes(housingNotesTable, 'housing_id', housingId);
 }
 
-interface NoteRecordDBO {
+export interface NoteRecordDBO {
   id: string;
   content: string;
   note_kind: string;
@@ -81,11 +81,11 @@ interface NoteRecordDBO {
   created_at: Date;
 }
 
-interface NoteDBO extends NoteRecordDBO {
+export interface NoteDBO extends NoteRecordDBO {
   creator?: UserDBO;
 }
 
-interface HousingNoteDBO {
+export interface HousingNoteDBO {
   note_id: string;
   housing_id: string;
   housing_geo_code: string;
@@ -116,9 +116,8 @@ export const parseNoteApi = (noteDbo: NoteDBO): NoteApi => ({
 
 export default {
   insertOwnerNote,
-  insertHousingNote,
-  insertManyHousingNotes,
+  createByHousing,
+  createManyByHousing,
   findHousingNotes,
-  findOwnerNotes,
-  formatNoteApi
+  findOwnerNotes
 };

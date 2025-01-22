@@ -4,6 +4,7 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 import 'jest-extended';
+import 'jest-sorted';
 
 import { mockAPI } from './mocks/mock-api';
 import EventSourceMock from '../test/event-source-mock';

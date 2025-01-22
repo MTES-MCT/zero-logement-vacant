@@ -16,17 +16,23 @@ export const housingUpdatePayload: ObjectSchema<HousingUpdatePayloadDTO> =
       .required('Veuillez renseigner l’occupation actuelle')
       .oneOf(OCCUPANCY_VALUES),
     // Optional, nullable keys
-    subStatus: string().trim().nullable().optional().default(null),
+    subStatus: string().trim().min(1).nullable().optional().default(null),
     precisions: array()
       .of(string().trim().required())
       .nullable()
       .optional()
-      .default(null),
+      .default(null)
+      .transform((value) =>
+        Array.isArray(value) && value.length === 0 ? null : value
+      ),
     vacancyReasons: array()
       .of(string().trim().required())
       .nullable()
       .optional()
-      .default(null),
+      .default(null)
+      .transform((value) =>
+        Array.isArray(value) && value.length === 0 ? null : value
+      ),
     occupancyIntended: string()
       .oneOf(OCCUPANCY_VALUES)
       .nullable()

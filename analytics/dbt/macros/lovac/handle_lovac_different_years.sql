@@ -31,7 +31,7 @@ TRY_CAST(ff_stoth AS NUMERIC) as living_area,
     TRY_CAST(ff_jdatnss_6 AS DATE) AS ff_jdatnss_6,
 
 {% else %}
-    0 as plot_area,
+    NULL as plot_area,
     NULL AS ff_jdatnss_1,
     NULL AS ff_jdatnss_2,
     NULL AS ff_jdatnss_3,

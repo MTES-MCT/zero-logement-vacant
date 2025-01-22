@@ -8,7 +8,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe, 
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2024") }}
     UNION ALL
     SELECT
@@ -20,7 +22,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2023") }}
     UNION ALL
     SELECT
@@ -32,7 +36,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2022") }}
     UNION ALL
     SELECT
@@ -44,7 +50,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2021") }}
     UNION ALL
     SELECT
@@ -56,7 +64,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2020") }}
     UNION ALL
     SELECT
@@ -68,7 +78,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2019") }}
 ),
 
@@ -103,6 +115,8 @@ lovac AS (
         local_id
         , year
         , geo_code
+        , plot_area
+        , living_area
         , CASE
             WHEN
                 (housing_kind IN ('APPART', 'MAISON') AND aff = 'H')
@@ -152,6 +166,23 @@ lovac_geo_code_year AS (
                 ELSE 0
             END
         ) AS count_vacant_housing_private_fil_ccthp
+        , SUM(CASE
+                WHEN
+                    is_housing = 1
+                    AND is_private = 1
+                    AND is_vacant_fil_ccthp = 1
+                    THEN living_area
+                ELSE 0
+            END
+            ) as sum_living_area_vacant_housing_private_fil_ccthp
+        , SUM(CASE
+                WHEN
+                    is_housing = 1
+                    AND is_private = 1
+                    AND is_vacant_fil_ccthp = 1
+                    THEN plot_area
+                ELSE 0
+            END) as sum_plot_area_vacant_housing_private_fil_ccthp
     FROM lovac
     GROUP BY year, geo_code
 ),
@@ -204,6 +235,8 @@ SELECT
     , lovac.count_vacant_housing_private
     , lovac.count_vacant_housing_private_fil
     , lovac.count_vacant_housing_private_fil_ccthp
+    , lovac.sum_living_area_vacant_housing_private_fil_ccthp
+    , lovac.sum_plot_area_vacant_housing_private_fil_ccthp
     , ff.count_housing
     , ff.count_housing_private
     , ff.count_housing_private_rented

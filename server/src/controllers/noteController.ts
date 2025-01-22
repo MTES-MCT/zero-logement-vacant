@@ -53,7 +53,7 @@ async function createByHousing(
   const note: HousingNoteApi = {
     id: uuidv4(),
     content: body.content,
-    noteKind: 'Note',
+    noteKind: 'Note courante',
     createdBy: auth.userId,
     createdAt: new Date(),
     housingId: housing.id,

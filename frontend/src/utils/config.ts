@@ -12,7 +12,8 @@ const config = {
     enabled:
       process.env.REACT_APP_POSTHOG_ENABLED !== undefined
         ? process.env.REACT_APP_POSTHOG_ENABLED === 'true'
-        : process.env.NODE_ENV === 'production'
+        : process.env.NODE_ENV === 'production',
+    apiKey: process.env.REACT_APP_POSTHOG_API_KEY ?? ''
   },
   dataYear: 2023,
   banEligibleScore: 0.8,

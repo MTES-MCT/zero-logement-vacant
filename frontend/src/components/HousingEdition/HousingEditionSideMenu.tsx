@@ -14,10 +14,12 @@ import * as yup from 'yup';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
+  isPrecisionBlockingPointCategory,
+  isPrecisionEvolutionCategory,
+  isPrecisionMechanismCategory,
   Occupancy,
   OCCUPANCY_VALUES,
-  Precision,
-  PRECISION_MECHANISM_CATEGORY_VALUES
+  Precision
 } from '@zerologementvacant/models';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
@@ -36,6 +38,8 @@ import { useUpdateHousingNextMutation } from '../../services/housing.service';
 import { useNotification } from '../../hooks/useNotification';
 import { toNewPrecision } from '../../models/Precision';
 import createPrecisionModalNext from '../Precision/PrecisionModalNext';
+import { useState } from 'react';
+import { PrecisionTabId } from '../Precision/PrecisionTabs';
 
 interface HousingEditionSideMenuProps {
   housing: Housing | null;
@@ -434,12 +438,19 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       }
     ];
     const precisions =
-      housing?.precisions?.map((precision) =>
-        toNewPrecision(precisionOptions, precision)
-      ) ?? [];
-    const mechanisms = precisions.filter((precision) => {
-      return PRECISION_MECHANISM_CATEGORY_VALUES.includes(precision.category);
-    });
+      housing?.precisions
+        ?.concat(housing?.vacancyReasons ?? [])
+        ?.map((precision) => toNewPrecision(precisionOptions, precision)) ?? [];
+    const mechanisms = precisions.filter((precision) =>
+      isPrecisionMechanismCategory(precision.category)
+    );
+    const blockingPoints = precisions.filter((precision) =>
+      isPrecisionBlockingPointCategory(precision.category)
+    );
+    const evolutions = precisions.filter((precision) =>
+      isPrecisionEvolutionCategory(precision.category)
+    );
+    const [tab, setTab] = useState<PrecisionTabId>('dispositifs');
 
     const { field: statusField, fieldState: statusFieldState } =
       useController<FormSchema>({
@@ -520,6 +531,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
                 priority="secondary"
                 title="Modifier les dispositifs"
                 onClick={() => {
+                  setTab('dispositifs');
                   precisionModal.open();
                 }}
               >
@@ -551,16 +563,24 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
                   fontWeight: 700
                 }}
               >
-                Points de blocages (0)
+                Points de blocages ({blockingPoints.length})
               </Typography>
               <Button
                 priority="secondary"
                 title="Modifier les points de blocage"
+                onClick={() => {
+                  setTab('points-de-blocage');
+                  precisionModal.open();
+                }}
               >
                 Modifier
               </Button>
             </Grid>
-            <Grid>Badges</Grid>
+            <Grid>
+              {blockingPoints.map((precision) => (
+                <Tag key={precision.id}>{precision.label}</Tag>
+              ))}
+            </Grid>
           </Grid>
 
           <Grid
@@ -577,24 +597,32 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
                 component="h3"
                 sx={{ fontSize: '1.125rem', fontWeight: 700 }}
               >
-                Évolutions du logement (1)
+                Évolutions du logement ({evolutions.length})
               </Typography>
               <Button
                 priority="secondary"
                 title="Modifier les évolutions du logement"
+                onClick={() => {
+                  setTab('evolutions');
+                  precisionModal.open();
+                }}
               >
                 Modifier
               </Button>
             </Grid>
             <Grid>
-              <Tag>Travaux : en cours</Tag>
+              {evolutions.map((precision) => (
+                <Tag key={precision.id}>{precision.label}</Tag>
+              ))}
             </Grid>
           </Grid>
 
           <precisionModal.Component
+            tab={tab}
             options={precisionOptions}
             value={precisions}
             onSubmit={savePrecisions}
+            onTabChange={setTab}
           />
         </Grid>
       ),

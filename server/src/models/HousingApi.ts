@@ -55,6 +55,10 @@ export interface HousingRecordApi {
   ownershipKind?: string;
   status: HousingStatusApi;
   subStatus?: string | null;
+  /**
+   * @deprecated To be replaced by the `precisions`
+   * and the `housing_precisions` tables
+   */
   precisions?: string[] | null;
   energyConsumption?: EnergyConsumptionGradesApi;
   energyConsumptionAt?: Date;

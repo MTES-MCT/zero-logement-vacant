@@ -10,11 +10,12 @@ import PrecisionTabs from './PrecisionTabs';
 export type PrecisionModalProps = Omit<
   ConfirmationModalProps,
   'children' | 'size' | 'title' | 'onSubmit'
-> & {
-  options: Precision[];
-  value: Precision[];
-  onSubmit(value: Precision[]): void;
-};
+> &
+  Pick<PrecisionTabs, 'tab' | 'onTabChange'> & {
+    options: Precision[];
+    value: Precision[];
+    onSubmit(value: Precision[]): void;
+  };
 
 function createPrecisionModalNext() {
   const confirmationModal = createConfirmationModal({
@@ -25,7 +26,7 @@ function createPrecisionModalNext() {
   return {
     ...confirmationModal,
     Component(props: PrecisionModalProps) {
-      const { options, value, onSubmit, ...rest } = props;
+      const { tab, options, value, onSubmit, onTabChange, ...rest } = props;
       const [internalValue, setInternalValue] = useState<Precision[]>(value);
 
       return (
@@ -38,9 +39,11 @@ function createPrecisionModalNext() {
           }}
         >
           <PrecisionTabs
+            tab={tab}
             options={options}
             value={internalValue}
             onChange={setInternalValue}
+            onTabChange={onTabChange}
           />
         </confirmationModal.Component>
       );

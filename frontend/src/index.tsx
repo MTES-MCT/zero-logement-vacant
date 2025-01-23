@@ -24,7 +24,7 @@ declare module '@codegouvfr/react-dsfr/spa' {
 }
 
 if (config.posthog.enabled) {
-  posthog.init('phc_Thondx9VvGONN5SZK0OuDttJDIorIANsudwCL2gU3O7', {
+  posthog.init(config.posthog.apiKey, {
     api_host: 'https://eu.i.posthog.com',
     person_profiles: 'identified_only'
   });

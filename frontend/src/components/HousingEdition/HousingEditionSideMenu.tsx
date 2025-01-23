@@ -133,6 +133,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     }
 
     onClose();
+    form.reset();
   }
 
   function OccupationTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {

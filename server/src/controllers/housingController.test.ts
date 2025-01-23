@@ -62,8 +62,8 @@ import {
 import { faker } from '@faker-js/faker/locale/fr';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
+  HOUSING_STATUS_VALUES,
   HousingDTO,
-  HousingStatus,
   HousingUpdatePayloadDTO,
   Occupancy,
   OCCUPANCY_VALUES
@@ -553,11 +553,19 @@ describe('Housing API', () => {
       housing = genHousingApi(oneOf(establishment.geoCodes));
       owner = genOwnerApi();
       payload = {
-        status: HousingStatus.BLOCKED,
+        status: faker.helpers.arrayElement(
+          HOUSING_STATUS_VALUES.filter(
+            (status) => status !== toHousingStatus(housing.status)
+          )
+        ),
         subStatus: null,
         precisions: null,
         vacancyReasons: null,
-        occupancy: Occupancy.DEPENDENCY,
+        occupancy: faker.helpers.arrayElement(
+          OCCUPANCY_VALUES.filter(
+            (occupancy) => occupancy !== housing.occupancy
+          )
+        ),
         occupancyIntended: null
       };
 

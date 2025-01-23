@@ -1,15 +1,10 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../models/TrackEvent';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useAppSelector } from '../../hooks/useStore';
@@ -24,7 +19,6 @@ import { initialHousingFilters } from '../../store/reducers/housingReducer';
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
-  const { trackEvent } = useMatomo();
 
   const {
     expand,
@@ -42,11 +36,6 @@ const HousingListView = () => {
   const { view } = useAppSelector((state) => state.housing);
 
   const searchWithQuery = (query: string) => {
-    trackEvent({
-      category: TrackEventCategories.HousingList,
-      action: TrackEventActions.HousingList.Search,
-      name: query
-    });
     setFilters({
       ...filters,
       query

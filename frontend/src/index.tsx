@@ -1,5 +1,4 @@
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
-import { createInstance, MatomoProvider } from '@jonkoops/matomo-tracker-react';
 import posthog from 'posthog-js';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
@@ -24,13 +23,8 @@ declare module '@codegouvfr/react-dsfr/spa' {
   }
 }
 
-const matomo = createInstance({
-  ...config.matomo,
-  disabled: !config.matomo.enabled
-});
-
 if (config.posthog.enabled) {
-  posthog.init('phc_Thondx9VvGONN5SZK0OuDttJDIorIANsudwCL2gU3O7', {
+  posthog.init(config.posthog.apiKey, {
     api_host: 'https://eu.i.posthog.com',
     person_profiles: 'identified_only'
   });
@@ -43,12 +37,10 @@ root.render(
   <StrictMode>
     <ThemeProvider>
       <MapProvider>
-        <MatomoProvider value={matomo}>
-          <StoreProvider store={store}>
-            <Notification />
-            <App />
-          </StoreProvider>
-        </MatomoProvider>
+        <StoreProvider store={store}>
+          <Notification />
+          <App />
+        </StoreProvider>
       </MapProvider>
     </ThemeProvider>
   </StrictMode>

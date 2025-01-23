@@ -39,8 +39,8 @@ function customizer(a?: any, b?: any) {
   }
   if (Array.isArray(a) && Array.isArray(b)) {
     return fp.isEqual(
-      a.map((_) => _.toUpperCase()),
-      b.map((_) => _.toUpperCase())
+      a.map((_) => _?.toUpperCase()),
+      b.map((_) => _?.toUpperCase())
     );
   }
   return fp.isEqual(a, b);

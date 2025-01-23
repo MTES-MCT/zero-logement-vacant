@@ -455,32 +455,8 @@ function filteredQuery(opts: FilteredQueryOptions) {
             `cardinality(${campaignsTable}.campaign_ids) = 0`
           );
         }
-        if (filters.campaignsCounts?.includes('current')) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids) >= 1`
-          );
-        }
-        if (filters.campaignsCounts?.indexOf('1') !== -1) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids)`,
-            1
-          );
-        }
-        if (filters.campaignsCounts?.indexOf('2') !== -1) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids)`,
-            2
-          );
-        }
-        if (filters.campaignsCounts?.indexOf('gt3') !== -1) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids) >= ?`,
-            3
-          );
-        }
       });
     }
-
     if (filters.ownerIds?.length) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }

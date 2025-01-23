@@ -58,14 +58,6 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
             <Typography>{lastUpdate(housing)}</Typography>
           </Grid>
           <Grid xs={6}>
-            <LabelNext component="h3">Prise de contact</LabelNext>
-            <Typography>
-              {campaigns.length === 0
-                ? 'Jamais contacté'
-                : `Contacté ${campaigns.length} fois`}
-            </Typography>
-          </Grid>
-          <Grid xs={6}>
             <LabelNext component="h3">
               Dispositifs ({housing.precisions?.length ?? 0})
             </LabelNext>

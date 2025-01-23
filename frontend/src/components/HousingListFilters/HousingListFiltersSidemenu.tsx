@@ -16,7 +16,6 @@ import {
   beneficiaryCountOptions,
   buildingPeriodOptions,
   cadastralClassificationOptions,
-  campaignsCountOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
   energyConsumptionOptions,
@@ -242,17 +241,6 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
           )}
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Prise de contact"
-              options={campaignsCountOptions}
-              initialValues={filters.campaignsCounts}
-              onChange={(values) => {
-                onChangeFilters({ campaignsCounts: values }, 'Prise de contact');
-                posthog.capture('filtre-prise-de-contact');
-              }}
-            />
-          </Grid>
         </Accordion>
         <Accordion
           label={

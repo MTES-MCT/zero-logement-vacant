@@ -71,7 +71,6 @@ const validators = (property = 'filters'): ValidationChain[] => [
   body(`${property}.ownershipKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.housingCounts`).custom(isArrayOf(isString)).optional(),
   body(`${property}.vacancyRates`).custom(isArrayOf(isString)).optional(),
-  body(`${property}.campaignsCounts`).custom(isArrayOf(isString)).optional(),
   body(`${property}.campaignIds`).custom(isArrayOf(isUUID)).optional(),
   body(`${property}.ownerIds`).custom(isArrayOf(isUUID)).optional(),
   body(`${property}.localities`).custom(isArrayOf(isString)).optional(),

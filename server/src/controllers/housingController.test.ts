@@ -66,10 +66,18 @@ import {
   HousingDTO,
   HousingUpdatePayloadDTO,
   Occupancy,
-  OCCUPANCY_VALUES
+  OCCUPANCY_VALUES,
+  PRECISION_CATEGORY_VALUES
 } from '@zerologementvacant/models';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { UserApi, UserRoles } from '~/models/UserApi';
+import {
+  HousingPrecisionDBO,
+  HousingPrecisions,
+  PrecisionDBO,
+  Precisions
+} from '~/repositories/precisionRepository';
+import { wasPrecision, wasVacancyReason } from '~/models/PrecisionApi';
 
 describe('Housing API', () => {
   const { app } = createServer();
@@ -584,6 +592,18 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
+    it('should throw if one of the precisions was not found', async () => {
+      payload.precisions = [faker.string.uuid()];
+
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
     it('should throw if the user is a visitor', async () => {
       const { status } = await request(app)
         .put(testRoute(housing.id))
@@ -631,6 +651,109 @@ describe('Housing API', () => {
         occupancy: payload.occupancy,
         occupancy_intended: payload.occupancyIntended
       });
+    });
+
+    it('should update the old precisions', async () => {
+      const referential = await Precisions();
+      // Send one precision from each category
+      const precisions = PRECISION_CATEGORY_VALUES.map((category) => {
+        return referential.find(
+          (precision) => precision.category === category
+        ) as PrecisionDBO;
+      });
+      payload.precisions = precisions.map((precision) => precision.id);
+
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actualHousing = await Housing()
+        .where({
+          geo_code: housing.geoCode,
+          id: housing.id
+        })
+        .first();
+      const precisionsBefore = precisions.filter((precision) =>
+        wasPrecision(precision.category)
+      );
+      expect(actualHousing?.precisions).toHaveLength(precisionsBefore.length);
+      expect(actualHousing?.precisions).toSatisfyAll<string>(
+        (actualPrecision) => {
+          const label = actualPrecision.split(' > ').at(-1);
+          return precisions.some((precision) => precision.label === label);
+        }
+      );
+    });
+
+    it('should update the old vacancy reasons', async () => {
+      const referential = await Precisions();
+      // Send one precision from each category
+      const precisions = PRECISION_CATEGORY_VALUES.map((category) => {
+        return referential.find(
+          (precision) => precision.category === category
+        ) as PrecisionDBO;
+      });
+      payload.precisions = precisions.map((precision) => precision.id);
+
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actualHousing = await Housing()
+        .where({
+          geo_code: housing.geoCode,
+          id: housing.id
+        })
+        .first();
+      const vacancyReasonsBefore = precisions.filter((precision) =>
+        wasVacancyReason(precision.category)
+      );
+      expect(actualHousing?.vacancy_reasons).toHaveLength(
+        vacancyReasonsBefore.length
+      );
+      expect(actualHousing?.vacancy_reasons).toSatisfyAll<string>(
+        (actualPrecision) => {
+          const label = actualPrecision.split(' > ').at(-1);
+          return precisions.some((precision) => precision.label === label);
+        }
+      );
+    });
+
+    it('should update the new precisions', async () => {
+      const referential = await Precisions();
+      // Send one precision from each category
+      const precisions = PRECISION_CATEGORY_VALUES.map((category) => {
+        return referential.find(
+          (precision) => precision.category === category
+        ) as PrecisionDBO;
+      });
+      payload.precisions = precisions.map((precision) => precision.id);
+
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actualPrecisions = await HousingPrecisions().where({
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+      expect(actualPrecisions).toIncludeSameMembers<HousingPrecisionDBO>(
+        precisions.map<HousingPrecisionDBO>((precision) => ({
+          precision_id: precision.id,
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        }))
+      );
     });
 
     it('should not create events if there is no change', async () => {

@@ -47,6 +47,15 @@ import createDatafoncierHousingRepository from '~/repositories/datafoncierHousin
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import fp from 'lodash/fp';
 import { startTransaction } from '~/infra/database/transaction';
+import precisionRepository, {
+  Precisions
+} from '~/repositories/precisionRepository';
+import PrecisionMissingError from '~/errors/precisionMissingError';
+import {
+  toOldPrecision,
+  wasPrecision,
+  wasVacancyReason
+} from '~/models/PrecisionApi';
 
 interface HousingPathParams extends Record<string, string> {
   id: string;
@@ -328,42 +337,67 @@ async function updateNext(
     HousingUpdatePayloadDTO
   >;
 
-  const housing = await housingRepository.findOne({
-    id: params.id,
-    geoCode: establishment.geoCodes,
-    includes: ['owner']
-  });
+  const precisionIds = (body.precisions ?? []).concat(
+    body.vacancyReasons ?? []
+  );
+  const [housing, precisions] = await Promise.all([
+    housingRepository.findOne({
+      id: params.id,
+      geoCode: establishment.geoCodes,
+      includes: ['owner']
+    }),
+    Precisions().whereIn('id', precisionIds)
+  ]);
   if (!housing) {
     throw new HousingMissingError(params.id);
   }
+  if (precisions.length < precisionIds.length) {
+    throw new PrecisionMissingError(...precisionIds);
+  }
 
+  const deprecatedPrecisions: string[] = precisions
+    .filter((precision) => wasPrecision(precision.category))
+    .map(toOldPrecision);
+  const deprecatedVacancyReasons: string[] = precisions
+    .filter((precision) => wasVacancyReason(precision.category))
+    .map(toOldPrecision);
   const updated: HousingApi = {
     ...housing,
     status: fromHousingStatus(body.status),
     subStatus: body.subStatus,
-    precisions: body.precisions ?? undefined,
-    vacancyReasons: body.vacancyReasons ?? undefined,
+    precisions: deprecatedPrecisions?.length ? deprecatedPrecisions : null,
+    vacancyReasons: deprecatedVacancyReasons?.length
+      ? deprecatedVacancyReasons
+      : null,
     occupancy: body.occupancy,
     occupancyIntended: body.occupancyIntended ?? undefined
   };
+
   await startTransaction(async () => {
-    await housingRepository.update(updated);
-    await createHousingUpdateEvents(
-      housing,
-      {
-        statusUpdate: {
-          status: fromHousingStatus(body.status),
-          subStatus: body.subStatus,
-          precisions: body.precisions,
-          vacancyReasons: body.vacancyReasons
+    await Promise.all([
+      housingRepository.update(updated),
+      precisionRepository.link(housing, precisions),
+      createHousingUpdateEvents(
+        housing,
+        {
+          statusUpdate: {
+            status: fromHousingStatus(body.status),
+            subStatus: body.subStatus,
+            precisions: deprecatedPrecisions?.length
+              ? deprecatedPrecisions
+              : null,
+            vacancyReasons: deprecatedVacancyReasons?.length
+              ? deprecatedVacancyReasons
+              : null
+          },
+          occupancyUpdate: {
+            occupancy: body.occupancy,
+            occupancyIntended: body.occupancyIntended
+          }
         },
-        occupancyUpdate: {
-          occupancy: body.occupancy,
-          occupancyIntended: body.occupancyIntended
-        }
-      },
-      auth.userId
-    );
+        auth.userId
+      )
+    ]);
   });
 
   response.status(constants.HTTP_STATUS_OK).json(toHousingDTO(updated));

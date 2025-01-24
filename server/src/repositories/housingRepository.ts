@@ -371,8 +371,10 @@ async function update(housing: HousingApi): Promise<void> {
       occupancy_intended: housing.occupancyIntended ?? null,
       status: housing.status,
       sub_status: housing.subStatus ?? null,
-      precisions: housing.precisions ?? null,
-      vacancy_reasons: housing.vacancyReasons ?? null
+      precisions: housing.precisions?.length ? housing.precisions : null,
+      vacancy_reasons: housing.vacancyReasons?.length
+        ? housing.vacancyReasons
+        : null
     });
 }
 

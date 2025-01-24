@@ -146,8 +146,7 @@ export const housingApi = zlvApi.injectEndpoints({
             'occupancyIntended',
             'status',
             'subStatus',
-            'precisions',
-            'vacancyReasons'
+            'precisions'
           ],
           payload
         )

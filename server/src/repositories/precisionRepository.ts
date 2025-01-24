@@ -21,6 +21,11 @@ export type HousingPrecisionDBO = {
   precision_id: string;
 };
 
+async function find(): Promise<PrecisionDBO[]> {
+  const precisions = await Precisions().select().orderBy(['category', 'order']);
+  return precisions;
+}
+
 async function link(
   housing: HousingApi,
   precisions: ReadonlyArray<PrecisionApi>
@@ -45,6 +50,7 @@ async function link(
 }
 
 const precisionRepository = {
+  find,
   link
 };
 

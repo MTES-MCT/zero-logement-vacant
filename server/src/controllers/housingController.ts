@@ -528,12 +528,12 @@ async function createHousingUpdateEvents(
     (housingApi.status !== statusUpdate.status ||
       housingApi.subStatus !== statusUpdate.subStatus ||
       !_.isEqual(
-        housingApi.precisions ?? null,
-        statusUpdate.precisions ?? null
+        housingApi.precisions?.length ? housingApi.precisions : null,
+        statusUpdate.precisions?.length ? statusUpdate.precisions : null
       ) ||
       !_.isEqual(
-        housingApi.vacancyReasons ?? null,
-        statusUpdate.vacancyReasons ?? null
+        housingApi.vacancyReasons?.length ? housingApi.vacancyReasons : null,
+        statusUpdate.vacancyReasons?.length ? statusUpdate.vacancyReasons : null
       ))
   ) {
     await eventRepository.insertHousingEvent({

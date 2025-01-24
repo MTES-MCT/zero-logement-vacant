@@ -1,3 +1,9 @@
+export interface Precision {
+  id: string;
+  category: PrecisionCategory;
+  label: string;
+}
+
 export const PRECISION_CATEGORY_VALUES = [
   'dispositifs-incitatifs',
   'dispositifs-coercitifs',
@@ -45,10 +51,4 @@ export function isPrecisionEvolutionCategory(
   category: PrecisionCategory
 ): category is (typeof PRECISION_EVOLUTION_CATEGORY_VALUES)[number] {
   return PRECISION_EVOLUTION_CATEGORY_VALUES.includes(category);
-}
-
-export interface Precision {
-  id: string;
-  category: PrecisionCategory;
-  label: string;
 }

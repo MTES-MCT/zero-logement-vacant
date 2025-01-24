@@ -30,6 +30,7 @@ import validatorNext from '~/middlewares/validator-next';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
 import { UserRoles } from '~/models/UserApi';
+import precisionController from '~/repositories/precisionController';
 
 const router = Router();
 
@@ -89,6 +90,8 @@ router.post(
   validator.validate,
   housingController.update
 );
+
+router.get('/precisions', precisionController.find);
 
 router.get('/groups', groupController.list);
 router.post(

@@ -6,6 +6,14 @@ export interface PrecisionApi extends Precision {
   order: number;
 }
 
+export function toPrecisionDTO(precision: PrecisionApi): Precision {
+  return {
+    id: precision.id,
+    label: precision.label,
+    category: precision.category
+  };
+}
+
 export const PRECISION_TREE_VALUES: OrderedMap<
   string,
   ReadonlyArray<Precision['label']>

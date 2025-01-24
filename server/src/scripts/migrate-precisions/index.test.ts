@@ -1,11 +1,13 @@
-import { parse } from 'jsonlines';
+import { parse, stringify } from 'jsonlines';
 import fs from 'node:fs';
 import path from 'node:path';
-import { Readable, Transform } from 'node:stream';
+import { Readable, Transform, Writable } from 'node:stream';
 import { run } from '~/scripts/migrate-precisions/index';
 import { WritableStream } from 'node:stream/web';
 import { PrecisionDBO, Precisions } from '~/repositories/precisionRepository';
 import { List } from 'immutable';
+import { faker } from '@faker-js/faker/locale/fr';
+import { unlink } from 'node:fs/promises';
 
 describe('Migrate precisions', () => {
   const input = path.join(__dirname, 'input.jsonl');
@@ -138,218 +140,205 @@ describe('Migrate precisions', () => {
     },
 
     {
-      from: 'Points de blocage > Blocage involontaire > Mise en location ou vente infructueuse',
+      from: 'Liés au propriétaire > Blocage involontaire > Mise en location ou vente infructueuse',
       to: {
         category: 'blocage-involontaire',
         label: 'Mise en location ou vente infructueuse'
       }
     },
     {
-      from: 'Points de blocage > Blocage involontaire > Succession difficile, indivision en désaccord',
+      from: 'Liés au propriétaire > Blocage involontaire > Succession difficile, indivision en désaccord',
       to: {
         category: 'blocage-involontaire',
         label: 'Succession difficile, indivision en désaccord'
       }
     },
     {
-      from: 'Points de blocage > Blocage involontaire > Défaut d’entretien / Nécessité de travaux',
+      from: 'Liés au propriétaire > Blocage involontaire > Défaut d’entretien / Nécessité de travaux',
       to: {
         category: 'blocage-involontaire',
         label: 'Défaut d’entretien / Nécessité de travaux'
       }
     },
     {
-      from: 'Points de blocage > Blocage involontaire > Problème de financement / Dossier non-éligible',
+      from: 'Liés au propriétaire > Blocage involontaire > Problème de financement / Dossier non-éligible',
       to: {
         category: 'blocage-involontaire',
         label: 'Problème de financement / Dossier non-éligible'
       }
     },
     {
-      from: 'Points de blocage > Blocage involontaire > Manque de conseils en amont de l’achat',
+      from: 'Liés au propriétaire > Blocage involontaire > Manque de conseils en amont de l’achat',
       to: {
         category: 'blocage-involontaire',
         label: 'Manque de conseils en amont de l’achat'
       }
     },
     {
-      from: 'Points de blocage > Blocage involontaire > En incapacité (âge, handicap, précarité ...)',
+      from: 'Liés au propriétaire > Blocage involontaire > En incapacité (âge, handicap, précarité ...)',
       to: {
         category: 'blocage-involontaire',
         label: 'En incapacité (âge, handicap, précarité ...)'
       }
     },
     {
-      from: 'Points de blocage > Blocage volontaire > Réserve personnelle ou pour une autre personne',
+      from: 'Liés au propriétaire > Blocage volontaire > Réserve personnelle ou pour une autre personne',
       to: {
         category: 'blocage-volontaire',
         label: 'Réserve personnelle ou pour une autre personne'
       }
     },
     {
-      from: 'Points de blocage > Blocage volontaire > Stratégie de gestion',
+      from: 'Liés au propriétaire > Blocage volontaire > Stratégie de gestion',
       to: { category: 'blocage-volontaire', label: 'Stratégie de gestion' }
     },
     {
-      from: 'Points de blocage > Blocage volontaire > Mauvaise expérience locative',
+      from: 'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative',
       to: {
         category: 'blocage-volontaire',
         label: 'Mauvaise expérience locative'
       }
     },
     {
-      from: 'Points de blocage > Blocage volontaire > Montants des travaux perçus comme trop importants',
+      from: 'Liés au propriétaire > Blocage volontaire > Montants des travaux perçus comme trop importants',
       to: {
         category: 'blocage-volontaire',
         label: 'Montants des travaux perçus comme trop importants'
       }
     },
     {
-      from: 'Points de blocage > Blocage volontaire > Refus catégorique, sans raison',
+      from: 'Liés au propriétaire > Blocage volontaire > Refus catégorique, sans raison',
       to: {
         category: 'blocage-volontaire',
         label: 'Refus catégorique, sans raison'
       }
     },
     {
-      from: 'Points de blocage > Immeuble / Environnement > Pas d’accès indépendant',
+      from: 'Extérieurs au propriétaire > Immeuble / Environnement > Pas d’accès indépendant',
       to: {
         category: 'immeuble-environnement',
         label: 'Pas d’accès indépendant'
       }
     },
     {
-      from: 'Points de blocage > Immeuble / Environnement > Immeuble dégradé',
+      from: 'Extérieurs au propriétaire > Immeuble / Environnement > Immeuble dégradé',
       to: { category: 'immeuble-environnement', label: 'Immeuble dégradé' }
     },
     {
-      from: 'Points de blocage > Immeuble / Environnement > Ruine / Immeuble à démolir',
+      from: 'Extérieurs au propriétaire > Immeuble / Environnement > Ruine / Immeuble à démolir',
       to: {
         category: 'immeuble-environnement',
         label: 'Ruine / Immeuble à démolir'
       }
     },
     {
-      from: 'Points de blocage > Immeuble / Environnement > Nuisances à proximité',
+      from: 'Extérieurs au propriétaire > Immeuble / Environnement > Nuisances à proximité',
       to: { category: 'immeuble-environnement', label: 'Nuisances à proximité' }
     },
     {
-      from: 'Points de blocage > Immeuble / Environnement > Risques Naturels / Technologiques',
+      from: 'Extérieurs au propriétaire > Immeuble / Environnement > Risques Naturels / Technologiques',
       to: {
         category: 'immeuble-environnement',
         label: 'Risques Naturels / Technologiques'
       }
     },
     {
-      from: 'Points de blocage > Tiers en cause > Entreprise(s) en défaut',
+      from: 'Extérieurs au propriétaire > Tiers en cause > Entreprise(s) en défaut',
       to: { category: 'tiers-en-cause', label: 'Entreprise(s) en défaut' }
     },
     {
-      from: 'Points de blocage > Tiers en cause > Copropriété en désaccord',
+      from: 'Extérieurs au propriétaire > Tiers en cause > Copropriété en désaccord',
       to: { category: 'tiers-en-cause', label: 'Copropriété en désaccord' }
     },
     {
-      from: 'Points de blocage > Tiers en cause > Expertise judiciaire',
+      from: 'Extérieurs au propriétaire > Tiers en cause > Expertise judiciaire',
       to: { category: 'tiers-en-cause', label: 'Expertise judiciaire' }
     },
     {
-      from: 'Points de blocage > Tiers en cause > Autorisation d’urbanisme refusée / Blocage ABF',
+      from: 'Extérieurs au propriétaire > Tiers en cause > Autorisation d’urbanisme refusée / Blocage ABF',
       to: {
         category: 'tiers-en-cause',
         label: 'Autorisation d’urbanisme refusée / Blocage ABF'
       }
     },
     {
-      from: 'Points de blocage > Tiers en cause > Interdiction de location',
+      from: 'Extérieurs au propriétaire > Tiers en cause > Interdiction de location',
       to: { category: 'tiers-en-cause', label: 'Interdiction de location' }
     },
 
     {
-      from: 'Évolutions du logement > Travaux > À venir',
+      from: 'Mode opératoire > Travaux > À venir',
       to: { category: 'travaux', label: 'À venir' }
     },
     {
-      from: 'Évolutions du logement > Travaux > En cours',
+      from: 'Mode opératoire > Travaux > En cours',
       to: { category: 'travaux', label: 'En cours' }
     },
     {
-      from: 'Évolutions du logement > Travaux > Terminés',
+      from: 'Mode opératoire > Travaux > Terminés',
       to: { category: 'travaux', label: 'Terminés' }
     },
     {
-      from: 'Évolutions du logement > Occupation > À venir',
+      from: 'Mode opératoire > Occupation > À venir',
       to: { category: 'occupation', label: 'À venir' }
     },
     {
-      from: 'Évolutions du logement > Occupation > En cours',
+      from: 'Mode opératoire > Occupation > En cours',
       to: { category: 'occupation', label: 'En cours' }
     },
     {
-      from: 'Évolutions du logement > Occupation > Nouvelle occupation',
+      from: 'Mode opératoire > Occupation > Nouvelle occupation',
       to: { category: 'occupation', label: 'Nouvelle occupation' }
     },
     {
-      from: 'Évolutions du logement > Mutation > À venir',
+      from: 'Mode opératoire > Mutation > À venir',
       to: { category: 'mutation', label: 'À venir' }
     },
     {
-      from: 'Évolutions du logement > Mutation > En cours',
+      from: 'Mode opératoire > Mutation > En cours',
       to: { category: 'mutation', label: 'En cours' }
     },
     {
-      from: 'Évolutions du logement > Mutation > Effectuée',
+      from: 'Mode opératoire > Mutation > Effectuée',
       to: { category: 'mutation', label: 'Effectuée' }
     }
   ];
 
-  let housings: ReadonlyArray<{
-    geo_code: string;
-    id: string;
-    precisions: string[];
-  }>;
-  // const housings = Array.from(
-  //   {
-  //     length: faker.number.int({ min: 1_000, max: 10_000 })
-  //   },
-  //   () => {
-  //     const precisions = faker.helpers
-  //       .arrayElements(faker.helpers.arrayElements(mapping, { min: 1, max: 4 }))
-  //       .map((precision) => precision.from);
-  //     return {
-  //       geo_code: faker.location.zipCode(),
-  //       id: faker.string.uuid(),
-  //       precisions: precisions
-  //     };
-  //   }
-  // ).concat({
-  //   geo_code: faker.location.zipCode(),
-  //   id: faker.string.uuid(),
-  //   precisions: [
-  //     'Étude faisabilité',
-  //     'Demande de pièces',
-  //     'Informations transmises - Encore à convaincre',
-  //     'Informations transmises - rendez-vous à fixer',
-  //     "N'est plus un logement"
-  //   ]
-  // });
+  const housings = Array.from(
+    {
+      length: faker.number.int({ min: 1_000, max: 10_000 })
+    },
+    () => {
+      const precisions = faker.helpers
+        .arrayElements(faker.helpers.arrayElements(mapping, { min: 1, max: 4 }))
+        .map((precision) => precision.from);
+      return {
+        geo_code: faker.location.zipCode(),
+        id: faker.string.uuid(),
+        precisions: precisions
+      };
+    }
+  ).concat({
+    geo_code: faker.location.zipCode(),
+    id: faker.string.uuid(),
+    precisions: [
+      'Étude faisabilité',
+      'Demande de pièces',
+      'Informations transmises - Encore à convaincre',
+      'Informations transmises - rendez-vous à fixer',
+      "N'est plus un logement"
+    ]
+  });
 
   beforeAll(async () => {
-    housings = (await fs
-      .createReadStream(input, 'utf8')
-      .pipe(parse())
-      .toArray()) as ReadonlyArray<{
-      geo_code: string;
-      id: string;
-      precisions: string[];
-    }>;
-    // await ReadableStream.from(housings)
-    //   .pipeThrough(Transform.toWeb(stringify()))
-    //   .pipeTo(Writable.toWeb(fs.createWriteStream(input, 'utf8')));
+    await ReadableStream.from(housings)
+      .pipeThrough(Transform.toWeb(stringify()))
+      .pipeTo(Writable.toWeb(fs.createWriteStream(input, 'utf8')));
   });
 
   afterAll(async () => {
     try {
-      // await Promise.all([unlink(input), unlink(output)]);
+      await Promise.all([unlink(input), unlink(output)]);
     } catch {
       console.log(`No file ${input} found. Skipping clean up...`);
     }

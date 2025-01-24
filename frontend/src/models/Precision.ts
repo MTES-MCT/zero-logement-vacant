@@ -15,10 +15,11 @@ export const PRECISION_TRANSITION_MAPPING: Map<string, PrecisionCategory> = Map(
 
 export const VACANCY_REASON_TRANSITION_MAPPING: Map<string, PrecisionCategory> =
   Map({
-    'Blocage > Blocage involontaire': 'blocage-involontaire',
-    'Blocage > Blocage volontaire': 'blocage-volontaire',
-    'Blocage > Immeuble / Environnement': 'immeuble-environnement',
-    'Blocage > Tiers en cause': 'tiers-en-cause'
+    'Liés au propriétaire > Blocage involontaire': 'blocage-involontaire',
+    'Liés au propriétaire > Blocage volontaire': 'blocage-volontaire',
+    'Extérieurs au propriétaire > Immeuble / Environnement':
+      'immeuble-environnement',
+    'Extérieurs au propriétaire > Tiers en cause': 'tiers-en-cause'
   });
 
 /**

@@ -57,10 +57,12 @@ function mapFilter(precisions: ReadonlyArray<PrecisionDBO>) {
             'Mode opératoire > Travaux': 'travaux',
             'Mode opératoire > Occupation': 'occupation',
             'Mode opératoire > Mutation': 'mutation',
-            'Blocage > Blocage involontaire': 'blocage-involontaire',
-            'Blocage > Blocage volontaire': 'blocage-volontaire',
-            'Blocage > Immeuble / Environnement': 'immeuble-environnement',
-            'Blocage > Tiers en cause': 'tiers-en-cause'
+            'Liés au propriétaire > Blocage involontaire':
+              'blocage-involontaire',
+            'Liés au propriétaire > Blocage volontaire': 'blocage-volontaire',
+            'Extérieurs au propriétaire > Immeuble / Environnement':
+              'immeuble-environnement',
+            'Extérieurs au propriétaire > Tiers en cause': 'tiers-en-cause'
           });
           const categoryAfter = mapping.get(categoryBefore);
           if (!categoryAfter) {
@@ -104,9 +106,7 @@ class PrecisionNotFoundError extends Error {
   }
 }
 
-run()
-  // .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+run().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

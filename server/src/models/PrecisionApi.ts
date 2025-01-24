@@ -102,10 +102,13 @@ export const VACANCY_REASON_TRANSITION_MAPPING: Map<
   PrecisionCategory,
   ReadonlyArray<string>
 > = Map({
-  'blocage-involontaire': ['Blocage', 'Blocage involontaire'],
-  'blocage-volontaire': ['Blocage', 'Blocage volontaire'],
-  'immeuble-environnement': ['Blocage', 'Immeuble / Environnement'],
-  'tiers-en-cause': ['Blocage', 'Tiers en cause']
+  'blocage-involontaire': ['Liés au propriétaire', 'Blocage involontaire'],
+  'blocage-volontaire': ['Liés au propriétaire', 'Blocage volontaire'],
+  'immeuble-environnement': [
+    'Extérieurs au propriétaire',
+    'Immeuble / Environnement'
+  ],
+  'tiers-en-cause': ['Extérieurs au propriétaire', 'Tiers en cause']
 });
 
 export function wasPrecision(category: PrecisionCategory): boolean {

@@ -1,5 +1,5 @@
 import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
-import { JSX } from 'react';
+import { JSX, useEffect } from 'react';
 
 export type ConfirmationModalOptions = {
   id: string;
@@ -9,7 +9,8 @@ export type ConfirmationModalOptions = {
   isOpenedByDefault?: boolean;
 };
 
-export interface ConfirmationModalProps extends ModalProps {
+export interface ConfirmationModalProps extends Omit<ModalProps, 'size'> {
+  size?: ModalProps['size'] | 'extra-large';
   onSubmit?(): void;
 }
 
@@ -22,6 +23,17 @@ export function createConfirmationModal(options: ConfirmationModalOptions) {
   return {
     ...modal,
     Component(props: ConfirmationModalProps): JSX.Element {
+      const { size, onSubmit, ...rest } = props;
+
+      useEffect(() => {
+        if (size === 'extra-large') {
+          const container = document
+            .getElementById(options.id)
+            ?.querySelector('.fr-col-12');
+          container?.classList?.remove('fr-col-md-10', 'fr-col-lg-8');
+        }
+      }, [size]);
+
       return (
         <modal.Component
           buttons={[
@@ -32,11 +44,12 @@ export function createConfirmationModal(options: ConfirmationModalOptions) {
             },
             {
               children: 'Confirmer',
-              onClick: props.onSubmit,
+              onClick: onSubmit,
               doClosesModal: true
             }
           ]}
-          {...props}
+          size={size === 'extra-large' ? 'large' : size}
+          {...rest}
         />
       );
     }

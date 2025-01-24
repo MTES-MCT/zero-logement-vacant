@@ -440,6 +440,9 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     const precisions =
       housing?.precisions
         ?.concat(housing?.vacancyReasons ?? [])
+        // Only keep the well formed precisions and vacancy reasons
+        // like `Dispositifs > Dispositifs incitatifs > Réserve personnelle ou pour une autre personne`
+        ?.filter((precision) => precision.split(' > ').length === 3)
         ?.map((precision) => toNewPrecision(precisionOptions, precision)) ?? [];
     const mechanisms = precisions.filter((precision) =>
       isPrecisionMechanismCategory(precision.category)

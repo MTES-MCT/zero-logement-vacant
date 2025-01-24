@@ -81,7 +81,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       occupancy: props.housing?.occupancy ?? Occupancy.UNKNOWN,
       occupancyIntended: props.housing?.occupancyIntended ?? Occupancy.UNKNOWN,
       status: props.housing?.status ?? HousingStatus.NEVER_CONTACTED,
-      subStatus: props.housing?.subStatus ?? '',
+      subStatus: props.housing?.subStatus ?? null,
       note: ''
     },
     mode: 'onSubmit',
@@ -114,6 +114,18 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     }
   });
 
+  const { data } = useFindPrecisionsQuery();
+  const precisionOptions = data ?? [];
+  const precisions =
+    housing?.precisions?.length && precisionOptions.length
+      ? housing.precisions
+          .concat(housing?.vacancyReasons ?? [])
+          // Only keep the well formed precisions and vacancy reasons
+          // like `Dispositifs > Dispositifs incitatifs > Réserve personnelle ou pour une autre personne`
+          .filter((precision) => precision.split(' > ').length === 3)
+          .map((precision) => toNewPrecision(precisionOptions, precision))
+      : [];
+
   function submit() {
     if (housing) {
       const { note, ...payload } = form.getValues();
@@ -129,7 +141,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           occupancy: payload.occupancy as Occupancy,
           occupancyIntended: payload.occupancyIntended as Occupancy | null,
           status: payload.status as HousingStatus,
-          subStatus: payload.subStatus
+          subStatus: payload.subStatus,
+          precisions: precisions.map((p) => p.id)
         });
       }
 
@@ -169,18 +182,6 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   }
 
   function MobilisationTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
-    const { data } = useFindPrecisionsQuery();
-
-    const precisionOptions = data ?? [];
-    const precisions =
-      housing?.precisions?.length && precisionOptions.length
-        ? housing.precisions
-            .concat(housing?.vacancyReasons ?? [])
-            // Only keep the well formed precisions and vacancy reasons
-            // like `Dispositifs > Dispositifs incitatifs > Réserve personnelle ou pour une autre personne`
-            .filter((precision) => precision.split(' > ').length === 3)
-            .map((precision) => toNewPrecision(precisionOptions, precision))
-        : [];
     const mechanisms = precisions.filter((precision) =>
       isPrecisionMechanismCategory(precision.category)
     );

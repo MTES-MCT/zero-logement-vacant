@@ -568,7 +568,6 @@ describe('Housing API', () => {
         ),
         subStatus: null,
         precisions: null,
-        vacancyReasons: null,
         occupancy: faker.helpers.arrayElement(
           OCCUPANCY_VALUES.filter(
             (occupancy) => occupancy !== housing.occupancy
@@ -627,7 +626,6 @@ describe('Housing API', () => {
         status: payload.status,
         subStatus: null,
         precisions: payload.precisions,
-        vacancyReasons: payload.vacancyReasons,
         occupancy: payload.occupancy,
         occupancyIntended: payload.occupancyIntended
       });
@@ -647,7 +645,6 @@ describe('Housing API', () => {
         status: payload.status as unknown as HousingStatusApi.Blocked,
         sub_status: null,
         precisions: payload.precisions,
-        vacancy_reasons: payload.vacancyReasons,
         occupancy: payload.occupancy,
         occupancy_intended: payload.occupancyIntended
       });
@@ -762,8 +759,7 @@ describe('Housing API', () => {
         subStatus: housing.subStatus,
         occupancy: housing.occupancy,
         occupancyIntended: housing.occupancyIntended,
-        precisions: housing.precisions,
-        vacancyReasons: housing.vacancyReasons
+        precisions: housing.precisions
       };
 
       const { status } = await request(app)

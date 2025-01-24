@@ -337,9 +337,7 @@ async function updateNext(
     HousingUpdatePayloadDTO
   >;
 
-  const precisionIds = (body.precisions ?? []).concat(
-    body.vacancyReasons ?? []
-  );
+  const precisionIds = body.precisions ?? [];
   const [housing, precisions] = await Promise.all([
     housingRepository.findOne({
       id: params.id,

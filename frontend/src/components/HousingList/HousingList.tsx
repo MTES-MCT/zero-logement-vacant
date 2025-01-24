@@ -59,7 +59,7 @@ const HousingList = ({
 
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const [sort, setSort] = useState<HousingSort>();
-  const [updatingHousing, setUpdatingHousing] = useState<Housing | null>(null);
+  const [updatingHousing, setUpdatingHousing] = useState<string | null>(null);
 
   const { housingList } = useHousingList({
     filters,
@@ -243,7 +243,7 @@ const HousingList = ({
           title="Mettre à jour"
           size="small"
           priority="secondary"
-          onClick={() => setUpdatingHousing(housing)}
+          onClick={() => setUpdatingHousing(housing.id)}
         >
           Mettre à jour
         </Button>
@@ -337,7 +337,9 @@ const HousingList = ({
         </>
       )}
       <HousingEditionSideMenu
-        housing={updatingHousing}
+        housing={
+          housingList.find((housing) => housing.id === updatingHousing) ?? null
+        }
         expand={!!updatingHousing}
         onClose={() => {
           setUpdatingHousing(null);

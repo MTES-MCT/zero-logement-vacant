@@ -25,14 +25,6 @@ export const housingUpdatePayload: ObjectSchema<HousingUpdatePayloadDTO> =
       .transform((value) =>
         Array.isArray(value) && value.length === 0 ? null : value
       ),
-    vacancyReasons: array()
-      .of(string().trim().required())
-      .nullable()
-      .optional()
-      .default(null)
-      .transform((value) =>
-        Array.isArray(value) && value.length === 0 ? null : value
-      ),
     occupancyIntended: string()
       .oneOf(OCCUPANCY_VALUES)
       .nullable()

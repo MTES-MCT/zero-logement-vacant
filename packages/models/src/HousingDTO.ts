@@ -51,7 +51,6 @@ export type HousingUpdatePayloadDTO =
     // Optional, nullable keys
     subStatus?: string | null;
     precisions?: string[] | null;
-    vacancyReasons?: string[] | null;
     occupancyIntended?: Occupancy | null;
   };
 

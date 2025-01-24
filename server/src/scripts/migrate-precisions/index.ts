@@ -1,14 +1,13 @@
 import { parse as parseJSONL, stringify as writeJSONL } from 'jsonlines';
-import { List } from 'immutable';
+import { List, Map } from 'immutable';
 import fp from 'lodash/fp';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Readable, Transform, Writable } from 'node:stream';
 import { ReadableStream, TransformStream } from 'node:stream/web';
-import { match, P } from 'ts-pattern';
 
 import { PrecisionCategory } from '@zerologementvacant/models';
-import { isNotNull, slugify } from '@zerologementvacant/utils';
+import { isNotNull } from '@zerologementvacant/utils';
 import { HousingRecordDBO } from '~/repositories/housingRepository';
 import { PrecisionDBO, Precisions } from '~/repositories/precisionRepository';
 
@@ -41,58 +40,43 @@ function mapFilter(precisions: ReadonlyArray<PrecisionDBO>) {
 
   return new TransformStream<MapInput, MapOutput>({
     async transform(chunk, controller) {
-      const matched = chunk.precisions
+      const matched: ReadonlyArray<PrecisionDBO['id']> = (
+        chunk.precisions ?? []
+      )
         .filter(isNotNull)
-        .map((precision) => {
-          const array = precision.split(' > ').slice(-2);
-          const category = array.at(0);
-          const label = array.at(1);
+        .filter((precision) => precision.split(' > ').length === 3)
+        .map((precisionBefore) => {
+          const array = precisionBefore.split(' > ');
+          const categoryBefore = array.slice(0, 2).join(' > ');
+          const label = array.at(-1) as string;
 
-          return match({
-            category: category ? slugify(category) : null,
-            label: label ?? null
-          })
-            .returnType<PrecisionDBO['id'] | null>()
-            .when(
-              ({ category, label }) => {
-                return (
-                  category &&
-                  label &&
-                  precisionsByCategory
-                    .get(category as PrecisionCategory)
-                    ?.some((p) => p.label === label)
-                );
-              },
-              ({ category, label }) => {
-                const precision = precisionsByCategory
-                  .get(category as PrecisionCategory)
-                  ?.find((p) => p.label === label);
-                if (!precision) {
-                  throw new PrecisionNotFoundError(
-                    category as PrecisionCategory,
-                    label as string
-                  );
-                }
+          const mapping: Map<string, PrecisionCategory> = Map({
+            'Dispositifs > Dispositifs incitatifs': 'dispositifs-incitatifs',
+            'Dispositifs > Dispositifs coercitifs': 'dispositifs-coercitifs',
+            'Dispositifs > Hors dispositif public': 'hors-dispositif-public',
+            'Mode opératoire > Travaux': 'travaux',
+            'Mode opératoire > Occupation': 'occupation',
+            'Mode opératoire > Mutation': 'mutation',
+            'Blocage > Blocage involontaire': 'blocage-involontaire',
+            'Blocage > Blocage volontaire': 'blocage-volontaire',
+            'Blocage > Immeuble / Environnement': 'immeuble-environnement',
+            'Blocage > Tiers en cause': 'tiers-en-cause'
+          });
+          const categoryAfter = mapping.get(categoryBefore);
+          if (!categoryAfter) {
+            throw new Error(`Category missing to map from ${categoryBefore}`);
+          }
 
-                return precision.id;
-              }
-            )
-            .with(
-              { category: 'location-occupation', label: P.string },
-              ({ label }) => {
-                const precision = precisionsByCategory
-                  .get('occupation')
-                  ?.find((p) => p.label === label);
-                if (!precision) {
-                  throw new PrecisionNotFoundError('occupation', label);
-                }
+          const precisionAfter = precisionsByCategory
+            .get(categoryAfter)
+            ?.find((precision) => precision.label === label);
+          if (!precisionAfter) {
+            throw new PrecisionNotFoundError(categoryAfter, label);
+          }
 
-                return precision.id;
-              }
-            )
-            .otherwise(() => null);
+          return precisionAfter;
         })
-        .filter(isNotNull);
+        .map((precision) => precision.id);
 
       if (matched.length > 0) {
         controller.enqueue({

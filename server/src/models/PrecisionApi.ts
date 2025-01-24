@@ -100,6 +100,14 @@ export const VACANCY_REASON_TRANSITION_MAPPING: Map<
   'tiers-en-cause': ['Blocage', 'Tiers en cause']
 });
 
+export function wasPrecision(category: PrecisionCategory): boolean {
+  return PRECISION_TRANSITION_MAPPING.has(category);
+}
+
+export function wasVacancyReason(category: PrecisionCategory): boolean {
+  return VACANCY_REASON_TRANSITION_MAPPING.has(category);
+}
+
 export function toOldPrecision(precision: PrecisionApi): string {
   const mapping =
     PRECISION_TRANSITION_MAPPING.get(precision.category) ??

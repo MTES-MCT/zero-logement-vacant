@@ -14,7 +14,6 @@ import {
 import { parseOwner } from './owner.service';
 import { HousingCount } from '../models/HousingCount';
 import { zlvApi } from './api.service';
-import fp from 'lodash/fp';
 
 export interface FindOptions
   extends PaginationOptions,
@@ -140,16 +139,13 @@ export const housingApi = zlvApi.injectEndpoints({
       query: ({ id, ...payload }) => ({
         url: `housing/${id}`,
         method: 'PUT',
-        body: fp.pick(
-          [
-            'occupancy',
-            'occupancyIntended',
-            'status',
-            'subStatus',
-            'precisions'
-          ],
-          payload
-        )
+        body: {
+          occupancy: payload.occupancy,
+          occupancyIntended: payload.occupancyIntended ?? null,
+          status: payload.status,
+          subStatus: payload.subStatus?.length ? payload.subStatus : null,
+          precisions: payload.precisions?.length ? payload.precisions : null
+        } satisfies HousingUpdatePayloadDTO
       }),
       invalidatesTags: (result, error, payload) => [
         { type: 'Housing', id: payload.id },

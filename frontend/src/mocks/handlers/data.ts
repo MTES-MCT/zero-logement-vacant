@@ -11,6 +11,8 @@ import {
   HousingDTO,
   NoteDTO,
   OwnerDTO,
+  Precision,
+  PRECISION_CATEGORY_VALUES,
   ProspectDTO,
   SignupLinkDTO,
   UserDTO
@@ -108,6 +110,12 @@ const housingOwners = new Map<
   })
 );
 
+const precisions: Precision[] = PRECISION_CATEGORY_VALUES.map((category) => ({
+  id: faker.string.uuid(),
+  category: category,
+  label: faker.word.sample()
+}));
+
 const housingEvents = new Map<HousingDTO['id'], EventDTO<HousingDTO>[]>();
 
 const housingNotes = new Map<HousingDTO['id'], NoteDTO[]>();
@@ -131,6 +139,7 @@ const data = {
   housingNotes,
   housingOwners,
   owners,
+  precisions,
   prospects,
   signupLinks,
   users

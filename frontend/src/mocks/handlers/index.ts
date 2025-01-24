@@ -10,9 +10,10 @@ import { groupHandlers } from './group-handlers';
 import { housingHandlers } from './housing-handlers';
 import { noteHandlers } from './note-handlers';
 import { ownerHandlers } from './owner-handlers';
+import { precisionHandlers } from './precision-handlers';
+import { prospectHandlers } from './prospect-handlers';
 import { signupLinksHandlers } from './signup-links-handlers';
 import { userHandlers } from './user-handlers';
-import { prospectHandlers } from './prospect-handlers';
 
 export const handlers: RequestHandler[] = [
   ...authHandlers,
@@ -25,6 +26,7 @@ export const handlers: RequestHandler[] = [
   ...housingHandlers,
   ...noteHandlers,
   ...ownerHandlers,
+  ...precisionHandlers,
   ...prospectHandlers,
   ...signupLinksHandlers,
   ...userHandlers

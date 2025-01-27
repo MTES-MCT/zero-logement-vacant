@@ -94,11 +94,6 @@ def parse_api_response_and_insert_owners_addresses(context: AssetExecutionContex
 
     api_df = pd.read_csv(send_csv_chunks_to_api)
 
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.width', None)
-    context.log.info(f"Preview of the aggregated CSV file:\n{api_df.head()}")
-
     conn = psycopg2.connect(
         dbname=config.db_name,
         user=config.db_user,

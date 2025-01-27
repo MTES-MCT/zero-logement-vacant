@@ -7,4 +7,14 @@ export const PRECISION_TABLE = 'precisions';
 export const Precisions = (transaction: Knex<PrecisionDBO> = db) =>
   transaction(PRECISION_TABLE);
 
+async function find(): Promise<PrecisionDBO[]> {
+  const precisions = await Precisions()
+    .select(`${PRECISION_TABLE}.*`);
+  return precisions;
+}
+
 export type PrecisionDBO = PrecisionApi;
+
+export default {
+  find
+};

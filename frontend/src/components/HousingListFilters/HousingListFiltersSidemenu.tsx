@@ -243,6 +243,17 @@ function HousingListFiltersSidemenu(props: Props) {
           )}
           <Grid component="article" mb={2} xs={12}>
             <AppMultiSelect
+              label="Dispositifs"
+              options={getSubStatusListOptions(filters.statusList ?? [])}
+              initialValues={filters.subStatus}
+              onChange={(values) =>
+                onChangeFilters({ subStatus: values }, 'Sous-statut')
+              }
+              data-testid="filtre-sous-statut-suivi"
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
               label="Prise de contact"
               options={campaignsCountOptions}
               initialValues={filters.campaignsCounts}

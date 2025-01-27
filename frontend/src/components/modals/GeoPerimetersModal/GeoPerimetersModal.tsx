@@ -13,11 +13,6 @@ import {
 import { displayCount } from '../../../utils/stringUtils';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';
 import GeoPerimeterEditionModal from '../GeoPerimeterEditionModal/GeoPerimeterEditionModal';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../../models/TrackEvent';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 import GeoPerimeterUploadingModal from '../GeoPerimeterUploadingModal/GeoPerimeterUploadingModal';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';
 import AppHelp from '../../_app/AppHelp/AppHelp';
@@ -39,7 +34,6 @@ interface Props {
 }
 
 const GeoPerimetersModal = ({ onClose }: Props) => {
-  const { trackEvent } = useMatomo();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const [isUploadingModalOpen, setIsUploadingModalOpen] =
     useState<boolean>(false);
@@ -65,10 +59,6 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
   ] = useDeleteGeoPerimetersMutation();
 
   const onSubmitUploadingGeoPerimeter = (file: File) => {
-    trackEvent({
-      category: TrackEventCategories.GeoPerimeters,
-      action: TrackEventActions.GeoPerimeters.Upload,
-    });
     uploadGeoPerimeterFile(file).finally(() => {
       setIsUploadingModalOpen(false);
     });
@@ -76,10 +66,6 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
 
   const onSubmitUpdatingGeoPerimeter = (kind: string, name?: string) => {
     if (geoPerimetersToUpdate) {
-      trackEvent({
-        category: TrackEventCategories.GeoPerimeters,
-        action: TrackEventActions.GeoPerimeters.Rename,
-      });
       updateGeoPerimeter({
         geoPerimeterId: geoPerimetersToUpdate.id,
         kind,
@@ -91,10 +77,6 @@ const GeoPerimetersModal = ({ onClose }: Props) => {
   };
 
   const onSubmitRemovingGeoPerimeter = async (geoPerimeters: GeoPerimeter[]): Promise<void> => {
-    trackEvent({
-      category: TrackEventCategories.GeoPerimeters,
-      action: TrackEventActions.GeoPerimeters.Delete,
-    });
     await deleteGeoPerimeters(geoPerimeters.map((_) => _.id));
   };
 

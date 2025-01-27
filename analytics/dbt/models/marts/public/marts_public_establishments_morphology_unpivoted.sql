@@ -40,6 +40,20 @@ WITH base_data AS (
     SELECT
         establishment_id,
         year,
+        'sum_living_area_vacant_housing_private_fil_ccthp' AS count_type,
+        sum_living_area_vacant_housing_private_fil_ccthp AS count_value
+    FROM base_data
+    UNION ALL
+    SELECT
+        establishment_id,
+        year,
+        'sum_plot_area_vacant_housing_private_fil_ccthp' AS count_type,
+        sum_plot_area_vacant_housing_private_fil_ccthp AS count_value
+    FROM base_data
+    UNION ALL
+    SELECT
+        establishment_id,
+        year,
         'count_housing' AS count_type,
         count_housing AS count_value
     FROM base_data
@@ -78,6 +92,12 @@ WITH base_data AS (
             WHEN
                 count_type = 'count_vacant_housing_private_fil'
                 THEN 'Logements Vacants du Parc Privé (FIL)'
+            WHEN
+                count_type = 'sum_living_area_vacant_housing_private_fil_ccthp'
+                THEN 'Somme des surfaces habitables Vacants du Parc Privé (FIL+CCTHP)'
+            WHEN
+                count_type = 'sum_plot_area_vacant_housing_private_fil_ccthp'
+                THEN 'Somme des surfaces foncières Vacants du Parc Privé (FIL+CCTHP)'
             WHEN
                 count_type = 'count_vacant_housing_private_fil_ccthp'
                 THEN 'Logements Vacants du Parc Privé (FIL+CCTHP)'

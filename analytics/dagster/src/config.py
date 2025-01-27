@@ -30,8 +30,8 @@ class Config:
     USE_MOTHER_DUCK = os.environ.get("USE_MOTHER_DUCK", "True") == "True"
     USE_MOTHER_DUCK_FOR_METABASE = os.environ.get("USE_MOTHER_DUCK_FOR_METABASE", "False") == "True"
 
-    
-
+    DAGSTER_RETRY_DELAY = 10 * 60 # 10 minutes
+    DAGSTER_RETRY_MAX_ATTEMPS = 3
 
 
 public_tables = [

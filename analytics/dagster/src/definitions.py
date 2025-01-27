@@ -1,6 +1,7 @@
 from dagster import (
     AssetSelection,
     Definitions,
+    RetryPolicy,
     ScheduleDefinition,
     define_asset_job,
     load_assets_from_modules,
@@ -84,7 +85,7 @@ daily_refresh_schedule = ScheduleDefinition(
 )
 
 yearly_ff_refresh_schedule = ScheduleDefinition(
-    job=yearly_update_ff_dwh_job, cron_schedule="0 0 1 1 *"
+    job=yearly_update_ff_dwh_job, cron_schedule="@yearly"
 )
 
 # Load definitions with assets, resources, and schedule

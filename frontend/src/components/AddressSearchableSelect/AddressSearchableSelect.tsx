@@ -3,11 +3,6 @@ import { SearchableSelect } from '../_dsfr';
 import addressService, {
   AddressSearchResult
 } from '../../services/address.service';
-import {
-  TrackEventActions,
-  TrackEventCategories
-} from '../../models/TrackEvent';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
 
 interface Props {
   onSelectAddress(addressSearchResult?: AddressSearchResult): void;
@@ -22,16 +17,9 @@ const AddressSearchableSelect = ({ onSelectAddress }: Props) => {
   const [addressOptions, setAddressOptions] = useState<
     { value: string; label: string }[]
   >([]);
-  const { trackEvent } = useMatomo();
-
   const onChange = (value?: string) => {
     if (value) {
       const addressSearchResult = JSON.parse(value);
-      trackEvent({
-        category: TrackEventCategories.Home,
-        action: TrackEventActions.Home.SelectAddress,
-        name: addressSearchResult.label
-      });
       onSelectAddress(addressSearchResult);
     }
   };

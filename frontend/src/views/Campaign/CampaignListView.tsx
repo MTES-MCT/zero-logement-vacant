@@ -16,11 +16,6 @@ import CampaignStatusBadge from '../../components/Campaign/CampaignStatusBadge';
 import { displayCount } from '../../utils/stringUtils';
 import { Text } from '../../components/_dsfr';
 import ConfirmationModal from '../../components/modals/ConfirmationModal/ConfirmationModal';
-import { useMatomo } from '@jonkoops/matomo-tracker-react';
-import {
-  TrackEventActions,
-  TrackEventCategories,
-} from '../../models/TrackEvent';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import styles from './campaign.module.scss';
 import {
@@ -32,7 +27,6 @@ import { useUser } from '../../hooks/useUser';
 
 const CampaignsListView = () => {
   useDocumentTitle('Campagnes');
-  const { trackEvent } = useMatomo();
   const { isVisitor } = useUser();
 
   const [sort, setSort] = useState<CampaignSort>({ createdAt: 'desc' });
@@ -41,19 +35,11 @@ const CampaignsListView = () => {
   const [removeCampaign] = useRemoveCampaignMutation();
   const onDeleteCampaign = async (campaignId: string): Promise<void> => {
     await removeCampaign(campaignId).unwrap();
-    trackEvent({
-      category: TrackEventCategories.Campaigns,
-      action: TrackEventActions.Campaigns.Delete,
-    });
   };
 
   const [updateCampaign] = useUpdateCampaignMutation();
   const onArchiveCampaign = async (campaign: Campaign): Promise<void> => {
     await updateCampaign({ ...campaign, status: 'archived' }).unwrap();
-    trackEvent({
-      category: TrackEventCategories.Campaigns,
-      action: TrackEventActions.Campaigns.Archive,
-    });
   };
 
   const { getSortButton } = useSort<CampaignSortable>({

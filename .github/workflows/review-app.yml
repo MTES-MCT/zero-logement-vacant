@@ -233,9 +233,6 @@ jobs:
           clever env set CC_PRE_BUILD_HOOK 'corepack enable && corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build' -a $APP_ALIAS
           clever env set CC_WEBROOT "/frontend/build" -a $APP_ALIAS
           clever env set REACT_APP_API_URL https://$PR_NAME-api.cleverapps.io -a $APP_ALIAS
-          clever env set REACT_APP_MATOMO_ENABLED "false" -a $APP_ALIAS
-          clever env set REACT_APP_MATOMO_SITE_ID "42" -a $APP_ALIAS
-          clever env set REACT_APP_MATOMO_URL_BASE "unused" -a $APP_ALIAS
           clever env set WORKSPACE "@zerologementvacant/front" -a $APP_ALIAS
 
       - name: Scale up for deployment

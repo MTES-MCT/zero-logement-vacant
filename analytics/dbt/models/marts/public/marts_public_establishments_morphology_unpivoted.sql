@@ -36,12 +36,14 @@ WITH base_data AS (
         'count_vacant_housing_private_fil_ccthp' AS count_type,
         count_vacant_housing_private_fil_ccthp AS count_value
     FROM base_data
+    UNION ALL
     SELECT
         establishment_id,
         year,
         'sum_living_area_vacant_housing_private_fil_ccthp' AS count_type,
         sum_living_area_vacant_housing_private_fil_ccthp AS count_value
     FROM base_data
+    UNION ALL
     SELECT
         establishment_id,
         year,

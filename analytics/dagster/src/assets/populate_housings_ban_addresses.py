@@ -36,12 +36,6 @@ def create_csv_from_housings(context: AssetExecutionContext, housings_without_ad
 
     context.log.info(f"CSV file created at: {csv_file_path}")
 
-    df = pd.read_csv(csv_file_path)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.width', None)
-    context.log.info(f"Preview of the CSV file:\n{df.head()}")
-
     return {
         "metadata": {"file_path": MetadataValue.text(csv_file_path)}
     }

@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import psycopg2
 from io import StringIO
-
+from sqlalchemy import create_engine
 
 @asset(description="Return housing records from `fast_housing` that have no matching entry in `ban_addresses`.", required_resource_keys={"ban_config"})
 def housings_without_address(context: AssetExecutionContext):
@@ -71,47 +71,46 @@ def parse_api_response_and_insert_housing_addresses(context: AssetExecutionConte
 
     api_df = pd.read_csv(StringIO(send_csv_to_api))
 
-    conn = psycopg2.connect(
-        dbname=config.db_name,
-        user=config.db_user,
-        password=config.db_password,
-        host=config.db_host,
-        port=config.db_port,
-    )
-    cursor = conn.cursor()
-
     filtered_df = api_df[api_df['result_status'] == 'ok']
     failed_rows = api_df[api_df['result_status'] != 'ok']
     context.log.warning(f"Number of housings with failed API results: {len(failed_rows)}")
 
-    for _, row in filtered_df.iterrows():
+    filtered_df = filtered_df.applymap(lambda x: None if pd.isna(x) else x)
 
-        # L'API BAN renvoie des valeurs NaN pour les champs vides. Par exemple pour les lieux-dits il n'y a pas de numéro de rue ni de rue
-        row = row.apply(lambda x: None if pd.isna(x) else x)
+    engine = create_engine(f'postgresql://{config.db_user}:{config.db_password}@{config.db_host}:{config.db_port}/{config.db_name}')
 
-        cursor.execute(
-            """
-            INSERT INTO ban_addresses (ref_id, house_number, address, street, postal_code, city, latitude, longitude, score, ban_id, address_kind)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                row['housing_id'],
-                row['result_housenumber'],
-                row['result_label'],
-                row['result_street'],
-                row['result_postcode'],
-                row['result_city'],
-                row['latitude'],
-                row['longitude'],
-                row['result_score'],
-                row['result_id'],
-                "Housing"
-            ),
-        )
-
-    conn.commit()
-    cursor.close()
-    conn.close()
+    filtered_df.to_sql(
+        'ban_addresses',
+        engine,
+        if_exists='append',
+        index=False,
+        columns=[
+            'housing_id',
+            'result_housenumber',
+            'result_label',
+            'result_street',
+            'result_postcode',
+            'result_city',
+            'latitude',
+            'longitude',
+            'result_score',
+            'result_id',
+            'address_kind'
+        ],
+        dtype={
+            'housing_id': 'INTEGER',
+            'result_housenumber': 'TEXT',
+            'result_label': 'TEXT',
+            'result_street': 'TEXT',
+            'result_postcode': 'TEXT',
+            'result_city': 'TEXT',
+            'latitude': 'FLOAT',
+            'longitude': 'FLOAT',
+            'result_score': 'FLOAT',
+            'result_id': 'TEXT',
+            'address_kind': 'TEXT'
+        }
+    )
 
     context.log.info(f"{len(api_df)} records inserted successfully.")
 

@@ -23,6 +23,11 @@ import dagster
 
 from .project import dbt_project
 from .assets import production_dbt
+
+from .assets import populate_owners_ban_addresses
+from .assets import populate_housings_ban_addresses
+from .resources.ban_config import ban_config_resource
+
 from .assets import clever
 
 from .assets.dwh.ingest.ingest_lovac_ff_s3_asset import (
@@ -51,7 +56,7 @@ daily_update_dwh_job = define_asset_job(
     name="datawarehouse_synchronize_and_build",
     selection=AssetSelection.assets(*[*dwh_assets, *dbt_analytics_assets, *["setup_duckdb", "clevercloud_login_and_restart"]])
     - AssetSelection.assets(
-        *[  
+        *[
             setup_s3_connection,
             check_ff_lovac_on_duckdb,
             import_cerema_ff_lovac_data_from_s3_to_duckdb,
@@ -89,6 +94,8 @@ defs = Definitions(
         # dagster_production_assets,
         # dagster_notion_assets,
         # dagster_notion_assets,
+        populate_owners_ban_addresses,
+        populate_housings_ban_addresses,
         *dwh_assets,
         *dbt_analytics_assets,
         *clever_assets_assets
@@ -105,6 +112,7 @@ defs = Definitions(
         "duckdb_local_metabase": DuckDBResource(
             database="db/metabase.duckdb",
         ),
+        "ban_config": ban_config_resource
     },
     schedules=[daily_refresh_schedule, yearly_ff_refresh_schedule],
 )

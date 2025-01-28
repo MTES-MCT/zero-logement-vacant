@@ -9,6 +9,8 @@ matplotlib
 pandas
 requests
 dlt[duckdb]
+psycopg2
+pydantic_settings
 dlt[filesystem]
 dlt[parquet]
 s3fs==2024.12.0

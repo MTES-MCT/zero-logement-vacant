@@ -9,7 +9,7 @@ matplotlib
 pandas
 requests
 dlt[duckdb]
-psycopg2
+psycopg2-binary
 pydantic_settings
 dlt[filesystem]
 dlt[parquet]

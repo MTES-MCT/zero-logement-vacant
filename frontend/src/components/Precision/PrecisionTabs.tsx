@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography';
 import { List } from 'immutable';
 import { ChangeEvent, ReactElement, useMemo } from 'react';
 import { ElementOf } from 'ts-essentials';
+import styles from './precision-modal.module.scss';
 
 import { Precision, PrecisionCategory } from '@zerologementvacant/models';
 
@@ -53,10 +54,11 @@ function PrecisionTabs(props: PrecisionTabs) {
     return (
       <>
         <Typography sx={{ fontWeight: 700, lineHeight: '1.5rem', mb: 2 }}>
-          <span className={fr.cx(columnProps.icon, 'fr-mr-1w')} />
+          <span className={`${fr.cx(columnProps.icon, 'fr-mr-1w')} ${styles.icon}`} />
           {columnProps.title}
         </Typography>
         <Checkbox
+
           options={optionsByCategory.get(columnProps.category)?.map(
             (option): ElementOf<CheckboxProps['options']> => ({
               label: option.label,

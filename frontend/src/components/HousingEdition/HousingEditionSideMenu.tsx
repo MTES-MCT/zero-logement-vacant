@@ -10,6 +10,7 @@ import { fromJS } from 'immutable';
 import { FormProvider, useController, useForm } from 'react-hook-form';
 import { ElementOf } from 'ts-essentials';
 import * as yup from 'yup';
+import styles from './housing-edition.module.scss';
 
 import {
   HOUSING_STATUS_VALUES,
@@ -50,6 +51,7 @@ interface HousingEditionSideMenuProps {
 }
 
 const WIDTH = '700px';
+const DISPLAY_TAGS = 6;
 
 const schema = yup.object({
   occupancy: yup
@@ -76,6 +78,10 @@ const precisionModal = createPrecisionModalNext();
 
 function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   const { housing, expand, onClose } = props;
+  const [showAllMechanisms, setShowAllMechanisms] = useState(false);
+  const [showAllBlockingPoints, setShowAllBlockingPoints] = useState(false);
+  const [showAllEvolutions, setShowAllEvolutions] = useState(false);
+
   const form = useForm<FormSchema>({
     values: {
       occupancy: props.housing?.occupancy ?? Occupancy.UNKNOWN,
@@ -158,6 +164,27 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     form.reset();
   }
 
+  interface UseFilteredPrecisionsResult {
+    totalCount: number;
+    filteredItems: Precision[];
+    remainingCount: number;
+  }
+
+  function useFilteredPrecisions(
+      categoryFilter: (category: "dispositifs-incitatifs" | "dispositifs-coercitifs" | "hors-dispositif-public" | "blocage-involontaire" | "blocage-volontaire" | "immeuble-environnement" | "tiers-en-cause" | "travaux" | "occupation" | "mutation") => boolean,
+      showAll: boolean
+    ): UseFilteredPrecisionsResult {
+    const allItems = precisions.filter((precision) =>
+      categoryFilter(precision.category)
+    );
+
+    return {
+      totalCount: allItems.length,
+      filteredItems: allItems.slice(0, showAll ? allItems.length : DISPLAY_TAGS),
+      remainingCount: Math.max(0, allItems.length - DISPLAY_TAGS),
+    };
+  }
+
   function OccupationTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
     return {
       content: (
@@ -182,15 +209,33 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   }
 
   function MobilisationTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
-    const mechanisms = precisions.filter((precision) =>
-      isPrecisionMechanismCategory(precision.category)
-    );
-    const blockingPoints = precisions.filter((precision) =>
-      isPrecisionBlockingPointCategory(precision.category)
-    );
-    const evolutions = precisions.filter((precision) =>
-      isPrecisionEvolutionCategory(precision.category)
-    );
+
+    const {
+      totalCount: totalMechanisms,
+      filteredItems: filteredMechanisms,
+      remainingCount: moreMechanisms,
+    } = useFilteredPrecisions(isPrecisionMechanismCategory, showAllMechanisms);
+
+    const {
+      totalCount: totalBlockingPoints,
+      filteredItems: filteredBlockingPoints,
+      remainingCount: moreBlockingPoints,
+    } = useFilteredPrecisions(isPrecisionBlockingPointCategory, showAllBlockingPoints);
+
+    const {
+      totalCount: totalEvolutions,
+      filteredItems: filteredEvolutions,
+      remainingCount: moreEvolutions,
+    } = useFilteredPrecisions(isPrecisionEvolutionCategory, showAllEvolutions);
+
+    interface ToggleShowAllProps {
+      setShowAll: React.Dispatch<React.SetStateAction<boolean>>;
+    }
+
+    function toggleShowAll({ setShowAll }: ToggleShowAllProps): void {
+      setShowAll((prev) => !prev);
+    }
+
     const [tab, setTab] = useState<PrecisionTabId>('dispositifs');
 
     const { field: statusField, fieldState: statusFieldState } =
@@ -210,6 +255,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
         });
       }
     }
+
+    const subStatusDisabled = getSubStatusOptions(statusField.value as HousingStatus) === undefined;
 
     return {
       content: (
@@ -235,13 +282,11 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
               }}
             />
             <AppSelectNext
-              disabled={
-                getSubStatusOptions(statusField.value as HousingStatus) ===
-                undefined
-              }
+              disabled={subStatusDisabled}
               label="Sous-statut de suivi"
               name="subStatus"
               multiple={false}
+              value={subStatusDisabled ? null : form.getValues().subStatus}
               options={
                 getSubStatusOptions(statusField.value as HousingStatus) ?? []
               }
@@ -266,7 +311,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
                   fontWeight: 700
                 }}
               >
-                Dispositifs ({mechanisms.length})
+                Dispositifs ({totalMechanisms})
               </Typography>
               <Button
                 priority="secondary"
@@ -280,10 +325,17 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
               </Button>
             </Grid>
             <Grid>
-              {mechanisms.map((precision) => (
-                <Tag key={precision.id}>{precision.label}</Tag>
+              {filteredMechanisms.map((precision) => (
+                <Tag key={precision.id} className={styles.tag}>{precision.label}</Tag>
               ))}
             </Grid>
+            {moreMechanisms > 0 && (
+              <Grid component="footer">
+                <Button priority="tertiary" onClick={() => toggleShowAll({ setShowAll: setShowAllMechanisms })}>
+                  {showAllMechanisms ? 'Afficher moins' : `Afficher plus (${moreMechanisms})`}
+                </Button>
+              </Grid>
+            )}
           </Grid>
 
           <Grid
@@ -304,7 +356,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
                   fontWeight: 700
                 }}
               >
-                Points de blocages ({blockingPoints.length})
+                Points de blocages ({totalBlockingPoints})
               </Typography>
               <Button
                 priority="secondary"
@@ -318,10 +370,17 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
               </Button>
             </Grid>
             <Grid>
-              {blockingPoints.map((precision) => (
-                <Tag key={precision.id}>{precision.label}</Tag>
+              {filteredBlockingPoints.map((precision) => (
+                <Tag key={precision.id} className={styles.tag}>{precision.label}</Tag>
               ))}
             </Grid>
+            {moreBlockingPoints > 0 && (
+              <Grid component="footer">
+                <Button priority="tertiary" onClick={() => toggleShowAll({ setShowAll: setShowAllBlockingPoints })}>
+                  {showAllBlockingPoints ? 'Afficher moins' : `Afficher plus (${moreBlockingPoints})`}
+                </Button>
+              </Grid>
+            )}
           </Grid>
 
           <Grid
@@ -338,7 +397,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
                 component="h3"
                 sx={{ fontSize: '1.125rem', fontWeight: 700 }}
               >
-                Évolutions du logement ({evolutions.length})
+                Évolutions du logement ({totalEvolutions})
               </Typography>
               <Button
                 priority="secondary"
@@ -352,10 +411,17 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
               </Button>
             </Grid>
             <Grid>
-              {evolutions.map((precision) => (
-                <Tag key={precision.id}>{precision.label}</Tag>
+              {filteredEvolutions.map((precision) => (
+                <Tag key={precision.id} className={styles.tag}>{precision.label}</Tag>
               ))}
             </Grid>
+            {moreEvolutions > 0 && (
+              <Grid component="footer">
+                <Button priority="tertiary" onClick={() => toggleShowAll({ setShowAll: setShowAllEvolutions })}>
+                  {showAllEvolutions ? 'Afficher moins' : `Afficher plus (${moreEvolutions})`}
+                </Button>
+              </Grid>
+            )}
           </Grid>
 
           <precisionModal.Component

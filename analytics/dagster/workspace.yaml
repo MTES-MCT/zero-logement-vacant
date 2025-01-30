@@ -1,8 +1,2 @@
 load_from:
   - python_module: src
-  - python_file:
-      relative_path: jobs/ban_address_jobs.py
-
-resources:
-  ban_config:
-    config: {}

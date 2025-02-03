@@ -7,6 +7,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { fromJS } from 'immutable';
+import fp from 'lodash/fp';
 import { FormProvider, useController, useForm } from 'react-hook-form';
 import { ElementOf } from 'ts-essentials';
 import * as yup from 'yup';
@@ -411,7 +412,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           <Grid
             component="article"
             container
-            sx={{ alignItems: 'center', columnGap: 2 }}
+            sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
             xs={12}
           >
             <Grid
@@ -438,7 +439,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
             <Grid>
               {filteredEvolutions.map((precision) => (
                 <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
+                  {fp.startCase(precision.category.replace('-', ' '))} :&nbsp;
+                  {precision.label.toLowerCase()}
                 </Tag>
               ))}
             </Grid>

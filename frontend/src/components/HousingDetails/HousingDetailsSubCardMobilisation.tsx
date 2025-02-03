@@ -66,7 +66,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
                 <>Aucun dispositif indiqué</>
               ) : (
                 housing.precisions?.map((precision, index) => (
-                  <Tag key={'precision_' + index} className={`${styles.tag} "d-block fr-mb-1w"`}>
+                  <Tag key={'precision_' + index} className="d-block fr-m-1w">
                     {precision.startsWith('Dispositif')
                       ? precision.split(OptionTreeSeparator).reverse()[0]
                       : precision
@@ -89,7 +89,7 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
                 housing.vacancyReasons?.map((vacancyReason, index) => (
                   <Tag
                     key={'vacancyReason_' + index}
-                    className={`${styles.tag} "d-block fr-mb-1w"`}
+                    className="d-block fr-m-1w"
                   >
                     {vacancyReason.split(OptionTreeSeparator).reverse()[0]}
                   </Tag>

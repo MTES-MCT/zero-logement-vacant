@@ -1,13 +1,15 @@
-from dagster import resource
+from dagster import resource, Field, String
 from sqlalchemy import create_engine
 import psycopg2
 
+from ..config import Config
+
 @resource(config_schema={
-    "db_name": str,
-    "db_user": str,
-    "db_password": str,
-    "db_host": str,
-    "db_port": int,
+    "db_name": Field(String, default_value=Config.POSTGRES_PRODUCTION_DB_NAME),
+    "db_user": Field(String, default_value=Config.POSTGRES_PRODUCTION_USER),
+    "db_password": Field(String, default_value=Config.POSTGRES_PRODUCTION_PASSWORD),
+    "db_host": Field(String, default_value=Config.POSTGRES_PRODUCTION_DB),
+    "db_port": Field(String, default_value=Config.POSTGRES_PRODUCTION_PORT),
 })
 def psycopg2_connection_resource(init_context):
     config = init_context.resource_config
@@ -24,11 +26,11 @@ def psycopg2_connection_resource(init_context):
         conn.close()
 
 @resource(config_schema={
-    "db_name": str,
-    "db_user": str,
-    "db_password": str,
-    "db_host": str,
-    "db_port": int,
+    "db_name": Field(String, default_value=Config.POSTGRES_PRODUCTION_DB_NAME),
+    "db_user": Field(String, default_value=Config.POSTGRES_PRODUCTION_USER),
+    "db_password": Field(String, default_value=Config.POSTGRES_PRODUCTION_PASSWORD),
+    "db_host": Field(String, default_value=Config.POSTGRES_PRODUCTION_DB),
+    "db_port": Field(String, default_value=Config.POSTGRES_PRODUCTION_PORT),
 })
 def sqlalchemy_engine_resource(init_context):
     config = init_context.resource_config

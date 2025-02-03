@@ -1,14 +1,16 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field, field_validator
-from dagster import resource
+import dagster
+from dagster import resource, String, Int, Bool
+from ..config import Config
 
 class BANConfig(BaseSettings):
-    api_url: str = Field("https://api-adresse.data.gouv.fr/search/csv/", env="BAN_API_URL")
-    csv_file_path: str = Field("temp_csv", env="CSV_FILE_PATH")
+    api_url: str = Field(Config.BAN_API_URL)
+    csv_file_path: str = Field(Config.CSV_FILE_PATH)
 
-    chunk_size: int = Field(10000, env="CHUNK_SIZE")
-    max_files: int = Field(5, env="MAX_FILES")
-    disable_max_files: bool = Field(False, env="DISABLE_MAX_FILES")
+    chunk_size: int = Field(Config.CHUNK_SIZE)
+    max_files: int = Field(Config.MAX_FILES)
+    disable_max_files: bool = Field(Config.DISABLE_MAX_FILES)
 
     @field_validator("chunk_size")
     def chunk_size_positive(cls, v):
@@ -22,11 +24,11 @@ class BANConfig(BaseSettings):
 
 @resource(
     config_schema={
-        "api_url": str,
-        "csv_file_path": str,
-        "chunk_size": int,
-        "max_files": int,
-        "disable_max_files": bool,
+        "api_url": dagster.Field(String, default_value=Config.BAN_API_URL),
+        "csv_file_path": dagster.Field(String, default_value=Config.CSV_FILE_PATH),
+        "chunk_size": dagster.Field(Int, default_value=Config.CHUNK_SIZE),
+        "max_files": dagster.Field(Int, default_value=Config.MAX_FILES),
+        "disable_max_files": dagster.Field(Bool, default_value=Config.DISABLE_MAX_FILES),
     }
 )
 def ban_config_resource(init_context):

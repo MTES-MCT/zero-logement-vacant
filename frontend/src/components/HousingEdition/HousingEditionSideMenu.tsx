@@ -20,7 +20,8 @@ import {
   isPrecisionMechanismCategory,
   Occupancy,
   OCCUPANCY_VALUES,
-  Precision
+  Precision,
+  PrecisionCategory
 } from '@zerologementvacant/models';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import AppLink from '../_app/AppLink/AppLink';
@@ -39,7 +40,7 @@ import { useUpdateHousingNextMutation } from '../../services/housing.service';
 import { useNotification } from '../../hooks/useNotification';
 import { toNewPrecision } from '../../models/Precision';
 import createPrecisionModalNext from '../Precision/PrecisionModalNext';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { PrecisionTabId } from '../Precision/PrecisionTabs';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
 
@@ -171,17 +172,20 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   }
 
   function useFilteredPrecisions(
-      categoryFilter: (category: "dispositifs-incitatifs" | "dispositifs-coercitifs" | "hors-dispositif-public" | "blocage-involontaire" | "blocage-volontaire" | "immeuble-environnement" | "tiers-en-cause" | "travaux" | "occupation" | "mutation") => boolean,
-      showAll: boolean
-    ): UseFilteredPrecisionsResult {
+    categoryFilter: (category: PrecisionCategory) => boolean,
+    showAll: boolean
+  ): UseFilteredPrecisionsResult {
     const allItems = precisions.filter((precision) =>
       categoryFilter(precision.category)
     );
 
     return {
       totalCount: allItems.length,
-      filteredItems: allItems.slice(0, showAll ? allItems.length : DISPLAY_TAGS),
-      remainingCount: Math.max(0, allItems.length - DISPLAY_TAGS),
+      filteredItems: allItems.slice(
+        0,
+        showAll ? allItems.length : DISPLAY_TAGS
+      ),
+      remainingCount: Math.max(0, allItems.length - DISPLAY_TAGS)
     };
   }
 
@@ -209,23 +213,25 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   }
 
   function MobilisationTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
-
     const {
       totalCount: totalMechanisms,
       filteredItems: filteredMechanisms,
-      remainingCount: moreMechanisms,
+      remainingCount: moreMechanisms
     } = useFilteredPrecisions(isPrecisionMechanismCategory, showAllMechanisms);
 
     const {
       totalCount: totalBlockingPoints,
       filteredItems: filteredBlockingPoints,
-      remainingCount: moreBlockingPoints,
-    } = useFilteredPrecisions(isPrecisionBlockingPointCategory, showAllBlockingPoints);
+      remainingCount: moreBlockingPoints
+    } = useFilteredPrecisions(
+      isPrecisionBlockingPointCategory,
+      showAllBlockingPoints
+    );
 
     const {
       totalCount: totalEvolutions,
       filteredItems: filteredEvolutions,
-      remainingCount: moreEvolutions,
+      remainingCount: moreEvolutions
     } = useFilteredPrecisions(isPrecisionEvolutionCategory, showAllEvolutions);
 
     interface ToggleShowAllProps {
@@ -256,7 +262,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       }
     }
 
-    const subStatusDisabled = getSubStatusOptions(statusField.value as HousingStatus) === undefined;
+    const subStatusDisabled =
+      getSubStatusOptions(statusField.value as HousingStatus) === undefined;
 
     return {
       content: (
@@ -326,13 +333,22 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
             </Grid>
             <Grid>
               {filteredMechanisms.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>{precision.label}</Tag>
+                <Tag key={precision.id} className={styles.tag}>
+                  {precision.label}
+                </Tag>
               ))}
             </Grid>
             {moreMechanisms > 0 && (
               <Grid component="footer">
-                <Button priority="tertiary" onClick={() => toggleShowAll({ setShowAll: setShowAllMechanisms })}>
-                  {showAllMechanisms ? 'Afficher moins' : `Afficher plus (${moreMechanisms})`}
+                <Button
+                  priority="tertiary"
+                  onClick={() =>
+                    toggleShowAll({ setShowAll: setShowAllMechanisms })
+                  }
+                >
+                  {showAllMechanisms
+                    ? 'Afficher moins'
+                    : `Afficher plus (${moreMechanisms})`}
                 </Button>
               </Grid>
             )}
@@ -371,13 +387,22 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
             </Grid>
             <Grid>
               {filteredBlockingPoints.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>{precision.label}</Tag>
+                <Tag key={precision.id} className={styles.tag}>
+                  {precision.label}
+                </Tag>
               ))}
             </Grid>
             {moreBlockingPoints > 0 && (
               <Grid component="footer">
-                <Button priority="tertiary" onClick={() => toggleShowAll({ setShowAll: setShowAllBlockingPoints })}>
-                  {showAllBlockingPoints ? 'Afficher moins' : `Afficher plus (${moreBlockingPoints})`}
+                <Button
+                  priority="tertiary"
+                  onClick={() =>
+                    toggleShowAll({ setShowAll: setShowAllBlockingPoints })
+                  }
+                >
+                  {showAllBlockingPoints
+                    ? 'Afficher moins'
+                    : `Afficher plus (${moreBlockingPoints})`}
                 </Button>
               </Grid>
             )}
@@ -412,13 +437,22 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
             </Grid>
             <Grid>
               {filteredEvolutions.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>{precision.label}</Tag>
+                <Tag key={precision.id} className={styles.tag}>
+                  {precision.label}
+                </Tag>
               ))}
             </Grid>
             {moreEvolutions > 0 && (
               <Grid component="footer">
-                <Button priority="tertiary" onClick={() => toggleShowAll({ setShowAll: setShowAllEvolutions })}>
-                  {showAllEvolutions ? 'Afficher moins' : `Afficher plus (${moreEvolutions})`}
+                <Button
+                  priority="tertiary"
+                  onClick={() =>
+                    toggleShowAll({ setShowAll: setShowAllEvolutions })
+                  }
+                >
+                  {showAllEvolutions
+                    ? 'Afficher moins'
+                    : `Afficher plus (${moreEvolutions})`}
                 </Button>
               </Grid>
             )}

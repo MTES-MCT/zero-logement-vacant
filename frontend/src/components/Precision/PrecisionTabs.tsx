@@ -9,6 +9,7 @@ import { ElementOf } from 'ts-essentials';
 import styles from './precision-modal.module.scss';
 
 import { Precision, PrecisionCategory } from '@zerologementvacant/models';
+import classNames from 'classnames';
 
 interface PrecisionTabs {
   tab: PrecisionTabId;
@@ -54,11 +55,15 @@ function PrecisionTabs(props: PrecisionTabs) {
     return (
       <>
         <Typography sx={{ fontWeight: 700, lineHeight: '1.5rem', mb: 2 }}>
-          <span className={`${fr.cx(columnProps.icon, 'fr-mr-1w')} ${styles.icon}`} />
+          <span
+            className={classNames(
+              fr.cx(columnProps.icon, 'fr-mr-1w'),
+              styles.icon
+            )}
+          />
           {columnProps.title}
         </Typography>
         <Checkbox
-
           options={optionsByCategory.get(columnProps.category)?.map(
             (option): ElementOf<CheckboxProps['options']> => ({
               label: option.label,

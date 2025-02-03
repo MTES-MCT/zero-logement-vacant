@@ -1,5 +1,6 @@
 import { fr, FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import Checkbox, { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
+import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
@@ -34,10 +35,20 @@ function PrecisionTabs(props: PrecisionTabs) {
 
   function onChange(event: ChangeEvent<HTMLInputElement>) {
     if (event.target.checked) {
-      const precision = props.options.find(
+      const option = props.options.find(
         (option) => option.id === event.target.value
-      );
-      props.onChange([...props.value, precision as Precision]);
+      ) as Precision;
+
+      if (event.target.type === 'radio') {
+        props.onChange(
+          props.value
+            // Remove mutually exclusive options
+            .filter((selected) => selected.category !== option.category)
+            .concat(option)
+        );
+      } else {
+        props.onChange([...props.value, option as Precision]);
+      }
     } else {
       props.onChange(
         props.value.filter((precision) => precision.id !== event.target.value)
@@ -49,9 +60,15 @@ function PrecisionTabs(props: PrecisionTabs) {
     category: PrecisionCategory;
     icon: FrIconClassName | RiIconClassName;
     title: string;
+    /**
+     * @default 'checkbox'
+     */
+    input?: 'checkbox' | 'radio';
   }
 
   function PrecisionColumn(columnProps: PrecisionColumnProps) {
+    const Fieldset = columnProps.input === 'radio' ? RadioButtons : Checkbox;
+
     return (
       <>
         <Typography sx={{ fontWeight: 700, lineHeight: '1.5rem', mb: 2 }}>
@@ -63,7 +80,7 @@ function PrecisionTabs(props: PrecisionTabs) {
           />
           {columnProps.title}
         </Typography>
-        <Checkbox
+        <Fieldset
           options={optionsByCategory.get(columnProps.category)?.map(
             (option): ElementOf<CheckboxProps['options']> => ({
               label: option.label,
@@ -165,6 +182,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             <PrecisionColumn
               category="travaux"
               icon="ri-barricade-line"
+              input="radio"
               title="Travaux"
             />
           </Grid>
@@ -173,6 +191,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             <PrecisionColumn
               category="occupation"
               icon="ri-user-location-line"
+              input="radio"
               title="Location ou autre occupation"
             />
           </Grid>
@@ -181,6 +200,7 @@ function PrecisionTabs(props: PrecisionTabs) {
             <PrecisionColumn
               category="mutation"
               icon="ri-user-shared-line"
+              input="radio"
               title="Vente ou autre mutation"
             />
           </Grid>

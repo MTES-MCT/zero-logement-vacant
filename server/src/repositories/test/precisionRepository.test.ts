@@ -10,12 +10,14 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
+import { HousingApi } from '~/models/HousingApi';
 
 describe('Precision repository', () => {
   describe('link', () => {
-    const housing = genHousingApi();
+    let housing: HousingApi;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+      housing = genHousingApi();
       await Housing().insert(formatHousingRecordApi(housing));
     });
 

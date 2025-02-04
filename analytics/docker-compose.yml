@@ -9,9 +9,9 @@ services:
     env_file:
       - .env
     expose:
-      - 3000
+      - 3002
     ports:
-      - 3000:3000
+      - 3002:3000
 
   postgres:
     image: postgres:latest

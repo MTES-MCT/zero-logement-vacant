@@ -97,14 +97,12 @@ def send_csv_chunks_to_api(context: AssetExecutionContext, create_csv_chunks_fro
 def parse_api_response_and_insert_owners_addresses(context, send_csv_chunks_to_api):
     api_df = pd.read_csv(send_csv_chunks_to_api)
 
-    # Filtrage des résultats valides
     filtered_df = api_df[api_df['result_status'] == 'ok'][['owner_id', 'result_id']].dropna()
 
     failed_count = len(api_df) - len(filtered_df)
     if failed_count > 0:
         context.log.warning(f"Number of owners with failed API results: {failed_count}")
 
-    # Utilisation d'une table temporaire pour la mise à jour
     with context.resources.psycopg2_connection as conn, conn.cursor() as cursor:
         cursor.execute("""
             CREATE TEMP TABLE temp_update_ban (
@@ -116,8 +114,6 @@ def parse_api_response_and_insert_owners_addresses(context, send_csv_chunks_to_a
         buffer = StringIO()
         filtered_df.to_csv(buffer, sep='\t', header=False, index=False)
         buffer.seek(0)
-
-
 
         cursor.copy_from(buffer, 'temp_update_ban', sep='\t', columns=['ref_id', 'ban_id'])
 

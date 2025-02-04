@@ -94,52 +94,44 @@ def send_csv_chunks_to_api(context: AssetExecutionContext, create_csv_chunks_fro
   description="Parse the aggregated CSV from the BAN address API, insert valid owners' addresses into `ban_addresses`, and return the count of processed records.",
   required_resource_keys={"psycopg2_connection"}
 )
-def parse_api_response_and_insert_owners_addresses(context: AssetExecutionContext, send_csv_chunks_to_api):
+def parse_api_response_and_insert_owners_addresses(context, send_csv_chunks_to_api):
     api_df = pd.read_csv(send_csv_chunks_to_api)
 
-    filtered_df = api_df[api_df['result_status'] == 'ok']
-    failed_rows = api_df[api_df['result_status'] != 'ok']
-    context.log.warning(f"Number of owners with failed API results: {len(failed_rows)}")
+    # Filtrage des résultats valides
+    filtered_df = api_df[api_df['result_status'] == 'ok'][['owner_id', 'result_id']].dropna()
 
-    filtered_df = filtered_df.applymap(lambda x: None if pd.isna(x) else x)
-    filtered_df['address_kind'] = "Owner"
+    failed_count = len(api_df) - len(filtered_df)
+    if failed_count > 0:
+        context.log.warning(f"Number of owners with failed API results: {failed_count}")
 
-    with context.resources.psycopg2_connection as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-            CREATE TEMP TABLE temp_ban_addresses (
+    # Utilisation d'une table temporaire pour la mise à jour
+    with context.resources.psycopg2_connection as conn, conn.cursor() as cursor:
+        cursor.execute("""
+            CREATE TEMP TABLE temp_update_ban (
                 ref_id TEXT,
-                house_number TEXT,
-                address TEXT,
-                street TEXT,
-                postal_code TEXT,
-                city TEXT,
-                latitude FLOAT,
-                longitude FLOAT,
-                score FLOAT,
-                ban_id TEXT,
-                address_kind TEXT
-            );
-            """)
+                ban_id TEXT
+            ) ON COMMIT DROP;
+        """)
 
-            buffer = StringIO()
-            filtered_df.to_csv(buffer, sep='\t', header=False, index=False)
-            buffer.seek(0)
-            cursor.copy_from(buffer, 'temp_ban_addresses', sep='\t')
+        buffer = StringIO()
+        filtered_df.to_csv(buffer, sep='\t', header=False, index=False)
+        buffer.seek(0)
 
-            cursor.execute("""
+
+
+        cursor.copy_from(buffer, 'temp_update_ban', sep='\t', columns=['ref_id', 'ban_id'])
+
+        cursor.execute("""
             UPDATE ban_addresses AS ba
             SET ban_id = tba.ban_id
-            FROM temp_ban_addresses AS tba
-            WHERE ba.ref_id = tba.ref_id
-            AND ba.address_kind = tba.address_kind;
-            """)
-            cursor.execute("DROP TABLE temp_ban_addresses;")
+            FROM pg_temp.temp_update_ban AS tba
+            WHERE ba.ref_id = tba.ref_id::uuid;
+        """)
 
         conn.commit()
 
-    context.log.info(f"{len(filtered_df)} valid records inserted successfully.")
+    updated_count = len(filtered_df)
+    context.log.info(f"{updated_count} records updated successfully.")
 
-    return {
-        "metadata": {"num_records": MetadataValue.text(f"{len(filtered_df)} records inserted")}
-    }
+    return {"metadata": {"num_records": MetadataValue.text(f"{updated_count} records updated")}}
+

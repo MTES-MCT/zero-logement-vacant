@@ -71,7 +71,7 @@
     "web-vitals": "^1.1.2",
     "whatwg-fetch": "^3.6.20",
     "yup": "^0.32.11",
-    "yup-next": "npm:yup@^1.4.0"
+    "yup-next": "npm:yup@1.4.0"
   },
   "devDependencies": {
     "@craco/craco": "^7.1.0",

@@ -5,6 +5,8 @@ fileignoreconfig:
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
 - filename: analytics/.env.example
   checksum: 8b09617118ef02245d361673d661fdee62b71a683a58d344dd09354f9c144c37
+- filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
+  checksum: c3a27f2457d2c1cd5f01ef1940c78bc40f8dedb0aff7a5edbc0d1b1e5000f5d3
 - filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py
   checksum: 66b41821bccc209598ed3d082e5666102edf52ae854b41db3f0b3fe3640657b7
 - filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py

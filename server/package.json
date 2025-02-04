@@ -84,7 +84,7 @@
     "uuid": "^9.0.1",
     "validator": "^13.12.0",
     "wuzzy": "^0.1.8",
-    "yup": "^1.4.0"
+    "yup": "1.4.0"
   },
   "devDependencies": {
     "@fast-check/jest": "^1.8.2",

@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
+import jwt from 'jsonwebtoken';
 
 dotenv.config({
   path: path.join(__dirname, '..', '..', '.env')
@@ -42,7 +43,7 @@ interface Config {
   };
   auth: {
     secret: string;
-    expiresIn: string;
+    expiresIn: NonNullable<jwt.SignOptions['expiresIn']>;
   };
   ban: {
     api: {

@@ -10671,7 +10671,7 @@ __metadata:
     web-vitals: "npm:^1.1.2"
     whatwg-fetch: "npm:^3.6.20"
     yup: "npm:^0.32.11"
-    yup-next: "npm:yup@^1.4.0"
+    yup-next: "npm:yup@1.4.0"
   languageName: unknown
   linkType: soft
 
@@ -31727,15 +31727,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yup-next@npm:yup@^1.4.0":
-  version: 1.6.1
-  resolution: "yup@npm:1.6.1"
+"yup-next@npm:yup@1.4.0, yup@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "yup@npm:1.4.0"
   dependencies:
     property-expr: "npm:^2.0.5"
     tiny-case: "npm:^1.0.3"
     toposort: "npm:^2.0.2"
     type-fest: "npm:^2.19.0"
-  checksum: 10c0/84c2b53996e8001041239cf2719851719f67063ec7cd843067df73562353216f5ad4f8a222319696882d5a6058e528fade1e463c59d70cbffb41b99cd0d7571b
+  checksum: 10c0/fe142141365eed0f78fb2e18bdd2f10bf101385dae12a5f9de14884448067bdca16a54b547fc0bffec04a098dd70b4519ff366422f3da006fd11a0717a7863ac
   languageName: node
   linkType: hard
 
@@ -31751,18 +31751,6 @@ __metadata:
     property-expr: "npm:^2.0.4"
     toposort: "npm:^2.0.2"
   checksum: 10c0/f0802798dc64b49f313886b983a9bea5f283e2094ee2aa1197587b84f50ac5b5d03af99857c313139e63dc02558fac3aaa343503bdbffa96f70006b39d1f59c9
-  languageName: node
-  linkType: hard
-
-"yup@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "yup@npm:1.4.0"
-  dependencies:
-    property-expr: "npm:^2.0.5"
-    tiny-case: "npm:^1.0.3"
-    toposort: "npm:^2.0.2"
-    type-fest: "npm:^2.19.0"
-  checksum: 10c0/fe142141365eed0f78fb2e18bdd2f10bf101385dae12a5f9de14884448067bdca16a54b547fc0bffec04a098dd70b4519ff366422f3da006fd11a0717a7863ac
   languageName: node
   linkType: hard
 

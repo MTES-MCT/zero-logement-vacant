@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import classNames from 'classnames';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { SelectOption } from '../../models/SelectOption';
@@ -34,6 +34,8 @@ const HousingStatusSelect = ({
     setShowOptions(false);
   };
 
+  const inputId = useId();
+
   return (
     <div className="select-single-input" ref={wrapperRef}>
       <div
@@ -41,9 +43,12 @@ const HousingStatusSelect = ({
           [`fr-select-group--${messageType}`]: messageType
         })}
       >
-        <label className="fr-label">Statut de suivi</label>
+        <label className="fr-label" htmlFor={inputId}>
+          Statut de suivi
+        </label>
         <button
           className="fr-select"
+          id={inputId}
           title={showOptions ? 'Masquer les options' : 'Afficher les options'}
           onClick={() => setShowOptions(!showOptions)}
         >

@@ -6,10 +6,13 @@ import {
   MenuItem,
   Select as MuiSelect
 } from '@mui/material';
+import classNames from 'classnames';
 import { useId } from 'react';
+import { useController } from 'react-hook-form';
 import { noop } from 'ts-essentials';
 import { match, Pattern } from 'ts-pattern';
-import { useController } from 'react-hook-form';
+
+import styles from './app-select-next.module.scss';
 
 interface Option<Value> {
   id?: string;
@@ -48,26 +51,36 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
   });
 
   const isControlled = props.value !== undefined;
-  const value: SelectValue<Value, Multiple> = isControlled
-    ? props.value
-    : field.value;
+  const value: SelectValue<Value, Multiple> =
+    props.options.length === 0 ? '' : isControlled ? props.value : field.value;
   const onChange = isControlled ? props.onChange : field.onChange;
 
   return (
-    <Box>
+    <Box
+      className={classNames(
+        fr.cx('fr-select-group', {
+          [fr.cx('fr-select-group--disabled')]: props.disabled
+        })
+      )}
+    >
       <label className="fr-label" id={labelId}>
         {props.label}
       </label>
       <MuiSelect
         classes={{
           root: fr.cx('fr-mt-1w'),
-          select: fr.cx('fr-select', 'fr-pt-1w', 'fr-pr-5w'),
+          select: classNames(
+            fr.cx('fr-select', 'fr-pt-1w', 'fr-pr-5w', {
+              [styles.selectDisabled]: props.disabled
+            })
+          ),
           icon: fr.cx('fr-hidden')
         }}
         disabled={props.disabled}
+        disableUnderline
         displayEmpty
-        label={props.label}
         id={selectId}
+        fullWidth
         labelId={labelId}
         multiple={multiple}
         MenuProps={{
@@ -78,9 +91,13 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
           elevation: 0,
           marginThreshold: null,
           disableScrollLock: true,
-          sx: {
-            filter: 'drop-shadow(var(--raised-shadow))',
-            maxHeight: '40rem'
+          slotProps: {
+            paper: {
+              sx: {
+                filter: 'drop-shadow(var(--raised-shadow))',
+                maxHeight: '13.125rem'
+              }
+            }
           },
           transformOrigin: {
             vertical: 'top',
@@ -90,6 +107,10 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
         }}
         native={false}
         renderValue={(values) => {
+          if (values === '') {
+            return 'Sélectionnez une option';
+          }
+
           return match(values)
             .with(Pattern.string, (value) => {
               return props.options.find((option) => option.value === value)
@@ -106,7 +127,6 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
             })
             .otherwise(() => '');
         }}
-        sx={{ width: '100%' }}
         value={value ?? ''}
         variant="standard"
         onChange={onChange}

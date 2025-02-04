@@ -294,7 +294,6 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
               label="Sous-statut de suivi"
               name="subStatus"
               multiple={false}
-              value={subStatusDisabled ? null : form.getValues().subStatus}
               options={
                 getSubStatusOptions(statusField.value as HousingStatus) ?? []
               }

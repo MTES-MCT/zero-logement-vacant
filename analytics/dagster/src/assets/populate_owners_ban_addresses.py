@@ -6,6 +6,7 @@ import pyarrow.parquet as pq
 import pyarrow as pa
 import os
 from datetime import datetime
+import time
 
 @asset(
   description="Return owners with no BAN address or a non-validated BAN address (score < 1).",
@@ -98,7 +99,6 @@ def process_parquet_chunks_with_api(context: AssetExecutionContext, split_parque
     aggregated_file_path = "owners_without_address_aggregated.parquet"
     parquet_writer = None
 
-
     for file_path in split_parquet_owners_without_address:
         try:
             table = pq.read_table(file_path)
@@ -111,6 +111,7 @@ def process_parquet_chunks_with_api(context: AssetExecutionContext, split_parque
             files = {'data': ('chunk.csv', csv_buffer, 'text/csv')}
             data = {'columns': 'address_dgfip', 'citycode': 'geo_code'}
             response = requests.post(config.api_url, files=files, data=data)
+            time.sleep(5)
 
             if response.status_code == 200:
                 api_data = pd.read_csv(BytesIO(response.content))

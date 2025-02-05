@@ -287,6 +287,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
               options={statusOptions()}
               onChange={(status) => {
                 statusField.onChange(status);
+                form.setValue('subStatus', null);
               }}
             />
             <AppSelectNext

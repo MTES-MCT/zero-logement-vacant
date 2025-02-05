@@ -6,3 +6,4 @@
 .tmp
 .log
 dagster/logs/event.log
+*.parquet

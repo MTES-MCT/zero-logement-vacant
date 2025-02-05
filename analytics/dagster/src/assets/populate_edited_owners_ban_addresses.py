@@ -30,7 +30,7 @@ def owners_with_edited_address(context: AssetExecutionContext):
   description="Split the owners DataFrame into multiple CSV files (chunks), store them to disk, and return the file paths as metadata.",
   required_resource_keys={"ban_config"}
 )
-def create_csv_chunks_from_owners(context: AssetExecutionContext, owners_with_edited_address):
+def create_csv_chunks_from_edited_owners(context: AssetExecutionContext, owners_with_edited_address):
     config = context.resources.ban_config
 
     chunk_size = config.chunk_size
@@ -65,7 +65,7 @@ def create_csv_chunks_from_owners(context: AssetExecutionContext, owners_with_ed
   description="Send each CSV chunk to the BAN address API, aggregate valid responses into a single CSV, and return the path to the aggregated CSV file.",
   required_resource_keys={"ban_config"}
 )
-def send_csv_chunks_to_api(context: AssetExecutionContext, create_csv_chunks_from_owners):
+def send_csv_chunks_to_api(context: AssetExecutionContext, create_csv_chunks_from_edited_owners):
     config = context.resources.ban_config
 
     aggregated_file_path = f"{config.csv_file_path}_aggregated.csv"
@@ -73,7 +73,7 @@ def send_csv_chunks_to_api(context: AssetExecutionContext, create_csv_chunks_fro
     with open(aggregated_file_path, 'w') as aggregated_file:
         first_file = True
 
-        for file_path in create_csv_chunks_from_owners:
+        for file_path in create_csv_chunks_from_edited_owners:
             files = {'data': open(file_path, 'rb')}
             data = {'columns': 'address_dgfip', 'citycode': 'geo_code'}
 
@@ -94,7 +94,7 @@ def send_csv_chunks_to_api(context: AssetExecutionContext, create_csv_chunks_fro
   description="Parse the aggregated CSV from the BAN address API, insert valid owners' addresses into `ban_addresses`, and return the count of processed records.",
   required_resource_keys={"psycopg2_connection"}
 )
-def parse_api_response_and_insert_owners_addresses(context, send_csv_chunks_to_api):
+def parse_api_response_and_insert_edited_owners_addresses(context, send_csv_chunks_to_api):
     api_df = pd.read_csv(send_csv_chunks_to_api)
 
     filtered_df = api_df[api_df['result_status'] == 'ok'][['owner_id', 'result_id']].dropna()

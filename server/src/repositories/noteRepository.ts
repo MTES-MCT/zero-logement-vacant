@@ -26,11 +26,11 @@ async function insertOwnerNote(ownerNoteApi: OwnerNoteApi): Promise<void> {
   });
 }
 
-async function insertHousingNote(housingNote: HousingNoteApi): Promise<void> {
-  await insertManyHousingNotes([housingNote]);
+async function createByHousing(housingNote: HousingNoteApi): Promise<void> {
+  await createManyByHousing([housingNote]);
 }
 
-async function insertManyHousingNotes(
+async function createManyByHousing(
   housingNotes: HousingNoteApi[]
 ): Promise<void> {
   logger.info('Insert %d HousingNoteApi', housingNotes.length);
@@ -73,19 +73,27 @@ async function findHousingNotes(housingId: string): Promise<NoteApi[]> {
   return findNotes(housingNotesTable, 'housing_id', housingId);
 }
 
-interface NoteRecordDBO {
+export interface NoteRecordDBO {
   id: string;
   content: string;
   note_kind: string;
   created_by: string;
   created_at: Date;
+  /**
+   * @deprecated
+   */
+  contact_kind_deprecated: string | null;
+  /**
+   * @deprecated
+   */
+  title_deprecated: string | null;
 }
 
-interface NoteDBO extends NoteRecordDBO {
+export interface NoteDBO extends NoteRecordDBO {
   creator?: UserDBO;
 }
 
-interface HousingNoteDBO {
+export interface HousingNoteDBO {
   note_id: string;
   housing_id: string;
   housing_geo_code: string;
@@ -96,7 +104,9 @@ export const formatNoteApi = (noteApi: NoteApi): NoteRecordDBO => ({
   created_by: noteApi.createdBy,
   created_at: noteApi.createdAt,
   note_kind: noteApi.noteKind,
-  content: noteApi.content
+  content: noteApi.content,
+  contact_kind_deprecated: null,
+  title_deprecated: null
 });
 
 export const formatHousingNoteApi = (note: HousingNoteApi): HousingNoteDBO => ({
@@ -116,9 +126,8 @@ export const parseNoteApi = (noteDbo: NoteDBO): NoteApi => ({
 
 export default {
   insertOwnerNote,
-  insertHousingNote,
-  insertManyHousingNotes,
+  createByHousing,
+  createManyByHousing,
   findHousingNotes,
-  findOwnerNotes,
-  formatNoteApi
+  findOwnerNotes
 };

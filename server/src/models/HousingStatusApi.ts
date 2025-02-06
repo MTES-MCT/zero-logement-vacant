@@ -1,3 +1,5 @@
+import { HousingStatus } from '@zerologementvacant/models';
+
 export enum HousingStatusApi {
   NeverContacted,
   Waiting,
@@ -5,6 +7,14 @@ export enum HousingStatusApi {
   InProgress,
   Completed,
   Blocked
+}
+
+export function fromHousingStatus(status: HousingStatus): HousingStatusApi {
+  return status as unknown as HousingStatusApi;
+}
+
+export function toHousingStatus(status: HousingStatusApi): HousingStatus {
+  return status as unknown as HousingStatus;
 }
 
 export const HOUSING_STATUS_VALUES = Object.values(HousingStatusApi).filter(

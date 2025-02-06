@@ -1,14 +1,22 @@
 import { assert } from 'ts-essentials';
 
-import { UserApi } from '~/models/UserApi';
+import { NoteDTO } from '@zerologementvacant/models';
+import { toUserDTO, UserApi } from '~/models/UserApi';
 
-export interface NoteApi {
-  id: string;
-  content: string;
-  noteKind: string;
-  createdBy: string;
-  creator?: UserApi;
+export interface NoteApi extends Omit<NoteDTO, 'creator' | 'createdAt'> {
   createdAt: Date;
+  creator?: UserApi;
+}
+
+export function toNoteDTO(note: NoteApi): NoteDTO {
+  return {
+    id: note.id,
+    content: note.content,
+    noteKind: note.noteKind,
+    createdBy: note.createdBy,
+    createdAt: note.createdAt.toJSON(),
+    creator: note.creator ? toUserDTO(note.creator) : undefined
+  };
 }
 
 export interface OwnerNoteApi extends NoteApi {

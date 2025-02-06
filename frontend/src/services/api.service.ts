@@ -38,6 +38,7 @@ export const zlvApi = createApi({
     'Note',
     'Owner',
     'OwnerProspect',
+    'Precision',
     'Prospect',
     'Settings',
     'Stats',

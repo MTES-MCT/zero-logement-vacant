@@ -8,20 +8,17 @@ import classNames from 'classnames';
 import { useState } from 'react';
 
 import styles from './housing-details-card.module.scss';
-import { Housing, HousingUpdate } from '../../models/Housing';
+import { Housing } from '../../models/Housing';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
 import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
 import HousingDetailsSubCardLocation from './HousingDetailsSubCardLocation';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import { Event } from '../../models/Event';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
-import { useFindNotesByHousingQuery } from '../../services/note.service';
-import { useFindEventsByHousingQuery } from '../../services/event.service';
 import { Note } from '../../models/Note';
 import HousingDetailsCardOccupancy from './HousingDetailsSubCardOccupancy';
 import HousingDetailsCardMobilisation from './HousingDetailsSubCardMobilisation';
 import { Campaign } from '../../models/Campaign';
-import { useUpdateHousingMutation } from '../../services/housing.service';
 import AppLink from '../_app/AppLink/AppLink';
 import { useUser } from '../../hooks/useUser';
 
@@ -39,31 +36,8 @@ function HousingDetailsCard({
   housingCampaigns
 }: Props) {
   const { isVisitor } = useUser();
-  const [updateHousing] = useUpdateHousingMutation();
-
   const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
     useState(false);
-
-  const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
-    housing.id
-  );
-  const { refetch: refetchHousingNotes } = useFindNotesByHousingQuery(
-    housing.id
-  );
-
-  const submitHousingUpdate = async (
-    housing: Housing,
-    housingUpdate: HousingUpdate
-  ) => {
-    await updateHousing({
-      housing,
-      housingUpdate
-    });
-    await refetchHousingEvents();
-    await refetchHousingNotes();
-
-    setIsHousingListEditionExpand(false);
-  };
 
   return (
     <Paper component="article" elevation={0} sx={{ padding: 3 }}>
@@ -100,7 +74,6 @@ function HousingDetailsCard({
               <HousingEditionSideMenu
                 housing={housing}
                 expand={isHousingListEditionExpand}
-                onSubmit={submitHousingUpdate}
                 onClose={() => setIsHousingListEditionExpand(false)}
               />
             </>
@@ -111,21 +84,24 @@ function HousingDetailsCard({
         <>
           <HousingDetailsCardOccupancy
             housing={housing}
-            lastOccupancyEvent={housing.source !== 'datafoncier-import' ? housingEvents.find(
-              (event) =>
-                event.category === 'Followup' &&
-                event.kind === 'Update' &&
-                event.section === 'Situation' &&
-                event.name === "Modification du statut d'occupation" &&
-                event.old.occupancy !== event.new.occupancy
-              ) :
-              housingEvents.find(
-              (event) =>
-                event.category === 'Group' &&
-                event.kind === 'Create' &&
-                event.section === 'Ajout d’un logement dans un groupe' &&
-                event.name === "Ajout dans un groupe"
-            )}
+            lastOccupancyEvent={
+              housing.source !== 'datafoncier-import'
+                ? housingEvents.find(
+                    (event) =>
+                      event.category === 'Followup' &&
+                      event.kind === 'Update' &&
+                      event.section === 'Situation' &&
+                      event.name === "Modification du statut d'occupation" &&
+                      event.old.occupancy !== event.new.occupancy
+                  )
+                : housingEvents.find(
+                    (event) =>
+                      event.category === 'Group' &&
+                      event.kind === 'Create' &&
+                      event.section === 'Ajout d’un logement dans un groupe' &&
+                      event.name === 'Ajout dans un groupe'
+                  )
+            }
           />
           <HousingDetailsCardMobilisation
             housing={housing}

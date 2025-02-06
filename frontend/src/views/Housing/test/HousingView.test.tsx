@@ -87,7 +87,9 @@ describe('Housing view', () => {
         const vacancyStartYear = await screen
           .findByText(/^Dans cette situation depuis/)
           .then((label) => label.nextElementSibling);
-        expect(vacancyStartYear).toHaveTextContent(`1 an (${format(subYears(new Date(), 1), 'yyyy')})`);
+        expect(vacancyStartYear).toHaveTextContent(
+          `1 an (${format(subYears(new Date(), 1), 'yyyy')})`
+        );
       });
     });
 
@@ -225,6 +227,96 @@ describe('Housing view', () => {
         name: newOwner.fullName
       });
       expect(link).toBeVisible();
+    });
+  });
+
+  describe('Update the housing', () => {
+    it('should update the occupancy', async () => {
+      renderView(housing);
+
+      const [update] = await screen.findAllByRole('button', {
+        name: /Mettre à jour/
+      });
+      await user.click(update);
+      const occupancy = await screen.findByLabelText('Occupation actuelle');
+      await user.click(occupancy);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByRole('option', {
+        name: 'En location'
+      });
+      await user.click(option);
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(save);
+      const newOccupancy = await screen.findByLabelText('Occupation');
+      expect(newOccupancy).toHaveTextContent(/En location/i);
+    });
+
+    it('should update the status', async () => {
+      renderView(housing);
+
+      const [update] = await screen.findAllByRole('button', {
+        name: /Mettre à jour/
+      });
+      await user.click(update);
+      const mobilizationTab = await screen.findByRole('tab', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilizationTab);
+      const mobilizationPanel = await screen.findByRole('tabpanel', {
+        name: 'Mobilisation'
+      });
+      const status =
+        await within(mobilizationPanel).findByLabelText(/Statut de suivi/);
+      await user.click(status);
+      const statusOption = await screen.findByLabelText(/Premier contact/);
+      await user.click(statusOption);
+      const subStatus =
+        await within(mobilizationPanel).findByLabelText(/Sous-statut/);
+      await user.click(subStatus);
+      screen.logTestingPlaygroundURL();
+      const subStatusOption = await screen.findByRole('option', {
+        name: 'En pré-accompagnement'
+      });
+      await user.click(subStatusOption);
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(save);
+      const mobilization = await screen.findByText('Premier contact');
+      expect(mobilization).toBeVisible();
+    });
+
+    it('should create a note', async () => {
+      renderView(housing);
+
+      const [update] = await screen.findAllByRole('button', {
+        name: /Mettre à jour/
+      });
+      await user.click(update);
+      const noteTab = await screen.findByRole('tab', {
+        name: 'Note'
+      });
+      await user.click(noteTab);
+      const notePanel = await screen.findByRole('tabpanel', {
+        name: 'Note'
+      });
+      const textbox = await within(notePanel).findByLabelText('Nouvelle note');
+      await user.type(textbox, faker.lorem.paragraph());
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(save);
+      const history = await screen.findByRole('tab', {
+        name: 'Historique de suivi'
+      });
+      await user.click(history);
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Historique de suivi'
+      });
+      const note = await within(panel).findByText('Note');
+      expect(note).toBeVisible();
     });
   });
 });

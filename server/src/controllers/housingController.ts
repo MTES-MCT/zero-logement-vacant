@@ -12,7 +12,8 @@ import {
   HousingApi,
   HousingRecordApi,
   HousingSortableApi,
-  OccupancyKindApi
+  OccupancyKindApi,
+  toHousingDTO
 } from '~/models/HousingApi';
 import housingFiltersApi, {
   HousingFiltersApi
@@ -20,7 +21,7 @@ import housingFiltersApi, {
 import { UserRoles } from '~/models/UserApi';
 import eventRepository from '~/repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { fromHousingStatus, HousingStatusApi } from '~/models/HousingStatusApi';
 import sortApi from '~/models/SortApi';
 import { HousingPaginatedResultApi } from '~/models/PaginatedResultApi';
 import { isArrayOf, isUUID } from '~/utils/validators';
@@ -28,7 +29,12 @@ import HousingMissingError from '~/errors/housingMissingError';
 import noteRepository from '~/repositories/noteRepository';
 import { NoteApi } from '~/models/NoteApi';
 import { logger } from '~/infra/logger';
-import { HousingFiltersDTO, Pagination } from '@zerologementvacant/models';
+import {
+  HousingDTO,
+  HousingFiltersDTO,
+  HousingUpdatePayloadDTO,
+  Pagination
+} from '@zerologementvacant/models';
 import { toHousingRecordApi, toOwnerApi } from '~/scripts/shared';
 import HousingExistsError from '~/errors/housingExistsError';
 import ownerRepository from '~/repositories/ownerRepository';
@@ -40,6 +46,20 @@ import { HousingEventApi } from '~/models/EventApi';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import fp from 'lodash/fp';
+import { startTransaction } from '~/infra/database/transaction';
+import precisionRepository, {
+  Precisions
+} from '~/repositories/precisionRepository';
+import PrecisionMissingError from '~/errors/precisionMissingError';
+import {
+  toOldPrecision,
+  wasPrecision,
+  wasVacancyReason
+} from '~/models/PrecisionApi';
+
+interface HousingPathParams extends Record<string, string> {
+  id: string;
+}
 
 const getValidators = oneOf([
   param('id').isString().isLength({ min: 12, max: 12 }), // localId
@@ -165,14 +185,12 @@ async function count(request: Request, response: Response): Promise<void> {
     multiOwners: query?.multiOwners?.map((value: boolean) =>
       value ? 'true' : 'false'
     ),
-    roomsCounts: query?.roomsCounts?.map((value: string) =>
-      value.toString()
-    ),
+    roomsCounts: query?.roomsCounts?.map((value: string) => value.toString()),
     isTaxedValues: query?.isTaxedValues?.map((value: boolean) =>
       value ? 'true' : 'false'
     ),
     energyConsumption:
-    query?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
+      query?.energyConsumption as unknown as EnergyConsumptionGradesApi[]
   };
 
   const count = await housingRepository.count({
@@ -309,6 +327,80 @@ async function update(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(updatedHousing);
 }
 
+async function updateNext(
+  request: Request<HousingPathParams, HousingDTO, HousingUpdatePayloadDTO>,
+  response: Response
+): Promise<void> {
+  const { auth, body, establishment, params } = request as AuthenticatedRequest<
+    HousingPathParams,
+    HousingDTO,
+    HousingUpdatePayloadDTO
+  >;
+
+  const precisionIds = body.precisions ?? [];
+  const [housing, precisions] = await Promise.all([
+    housingRepository.findOne({
+      id: params.id,
+      geoCode: establishment.geoCodes,
+      includes: ['owner']
+    }),
+    Precisions().whereIn('id', precisionIds)
+  ]);
+  if (!housing) {
+    throw new HousingMissingError(params.id);
+  }
+  if (precisions.length < precisionIds.length) {
+    throw new PrecisionMissingError(...precisionIds);
+  }
+
+  const deprecatedPrecisions: string[] = precisions
+    .filter((precision) => wasPrecision(precision.category))
+    .map(toOldPrecision);
+  const deprecatedVacancyReasons: string[] = precisions
+    .filter((precision) => wasVacancyReason(precision.category))
+    .map(toOldPrecision);
+  const updated: HousingApi = {
+    ...housing,
+    status: fromHousingStatus(body.status),
+    subStatus: body.subStatus,
+    precisions: deprecatedPrecisions?.length ? deprecatedPrecisions : null,
+    vacancyReasons: deprecatedVacancyReasons?.length
+      ? deprecatedVacancyReasons
+      : null,
+    occupancy: body.occupancy,
+    occupancyIntended: body.occupancyIntended ?? undefined
+  };
+
+  await startTransaction(async () => {
+    await Promise.all([
+      housingRepository.update(updated),
+      precisionRepository.link(housing, precisions),
+      createHousingUpdateEvents(
+        housing,
+        {
+          statusUpdate: {
+            status: fromHousingStatus(body.status),
+            subStatus: body.subStatus,
+            precisions: deprecatedPrecisions?.length
+              ? deprecatedPrecisions
+              : null,
+            vacancyReasons: deprecatedVacancyReasons?.length
+              ? deprecatedVacancyReasons
+              : null
+          },
+          occupancyUpdate: {
+            occupancy: body.occupancy,
+            occupancyIntended: body.occupancyIntended
+          }
+        },
+        auth.userId
+      )
+    ]);
+  });
+
+  response.status(constants.HTTP_STATUS_OK).json(toHousingDTO(updated));
+}
+
 const updateHousing = async (
   housingId: string,
   housingUpdate: HousingUpdateBody,
@@ -433,8 +525,14 @@ async function createHousingUpdateEvents(
     statusUpdate &&
     (housingApi.status !== statusUpdate.status ||
       housingApi.subStatus !== statusUpdate.subStatus ||
-      !_.isEqual(housingApi.precisions, statusUpdate.precisions) ||
-      !_.isEqual(housingApi.vacancyReasons, statusUpdate.vacancyReasons))
+      !_.isEqual(
+        housingApi.precisions?.length ? housingApi.precisions : null,
+        statusUpdate.precisions?.length ? statusUpdate.precisions : null
+      ) ||
+      !_.isEqual(
+        housingApi.vacancyReasons?.length ? housingApi.vacancyReasons : null,
+        statusUpdate.vacancyReasons?.length ? statusUpdate.vacancyReasons : null
+      ))
   ) {
     await eventRepository.insertHousingEvent({
       id: uuidv4(),
@@ -486,7 +584,7 @@ async function createHousingUpdateNote(
   geoCode: string
 ) {
   if (housingUpdate.note) {
-    await noteRepository.insertHousingNote({
+    await noteRepository.createByHousing({
       id: uuidv4(),
       ...housingUpdate.note,
       createdBy: userId,
@@ -506,6 +604,7 @@ const housingController = {
   create,
   updateValidators,
   update,
+  updateNext,
   updateListValidators,
   updateList
 };

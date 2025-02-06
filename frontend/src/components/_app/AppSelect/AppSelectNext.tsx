@@ -6,6 +6,7 @@ import {
   MenuItem,
   Select as MuiSelect
 } from '@mui/material';
+import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { useId } from 'react';
 import { useController } from 'react-hook-form';
@@ -45,7 +46,7 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
   const multiple = props.multiple ?? false;
 
   // Form handling
-  const { field } = useController({
+  const { field, fieldState } = useController({
     name: props.name,
     disabled: props.disabled
   });
@@ -59,7 +60,8 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
     <Box
       className={classNames(
         fr.cx('fr-select-group', {
-          [fr.cx('fr-select-group--disabled')]: props.disabled
+          [fr.cx('fr-select-group--disabled')]: field.disabled,
+          [fr.cx('fr-select-group--error')]: fieldState.invalid
         })
       )}
     >
@@ -161,6 +163,11 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
           </MenuItem>
         ))}
       </MuiSelect>
+      {fieldState.error?.message ? (
+        <Typography className={fr.cx('fr-error-text')}>
+          {fieldState.error?.message}
+        </Typography>
+      ) : null}
     </Box>
   );
 }

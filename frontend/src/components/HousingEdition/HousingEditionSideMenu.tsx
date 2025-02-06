@@ -34,7 +34,7 @@ import {
   statusOptions
 } from '../../models/HousingFilters';
 import HousingStatusSelect from './HousingStatusSelect';
-import { getSubStatusOptions } from '../../models/HousingState';
+import { getSubStatusOptions, HousingStates } from '../../models/HousingState';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import { useCreateNoteByHousingMutation } from '../../services/note.service';
 import { useUpdateHousingNextMutation } from '../../services/housing.service';
@@ -70,7 +70,18 @@ const schema = yup.object({
     .number()
     .required('Veuillez renseigner le statut de suivi')
     .oneOf(HOUSING_STATUS_VALUES),
-  subStatus: yup.string().trim().nullable().optional().default(null),
+  subStatus: yup
+    .string()
+    .trim()
+    .nullable()
+    .when('status', {
+      is: (status: HousingStatus) =>
+        HousingStates.find((state) => state.status === status)?.subStatusList
+          ?.length,
+      then: (schema) =>
+        schema.required('Veuillez renseigner le sous-statut de suivi'),
+      otherwise: (schema) => schema.nullable().optional().default(null)
+    }),
   note: yup.string()
 });
 
@@ -288,6 +299,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
               onChange={(status) => {
                 statusField.onChange(status);
                 form.setValue('subStatus', null);
+                form.clearErrors('subStatus');
               }}
             />
             <AppSelectNext

@@ -6,7 +6,13 @@ import {
 } from '@zerologementvacant/models';
 import { EnergyConsumptionGradesApi } from './HousingApi';
 import { body, ValidationChain } from 'express-validator';
-import { isArrayOf, isInteger, isString, isUUID } from '~/utils/validators';
+import {
+  isArrayOf,
+  isBoolean,
+  isInteger,
+  isString,
+  isUUID
+} from '~/utils/validators';
 
 export interface HousingFiltersApi
   extends Pick<HousingFiltersDTO, 'intercommunalities'> {
@@ -57,7 +63,7 @@ const validators = (property = 'filters'): ValidationChain[] => [
     .optional(),
   body(`${property}.ownerKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.ownerAges`).custom(isArrayOf(isString)).optional(),
-  body(`${property}.multiOwners`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.multiOwners`).custom(isArrayOf(isBoolean)).optional(),
   body(`${property}.beneficiaryCounts`).custom(isArrayOf(isString)).optional(),
   body(`${property}.housingKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.cadastralClassificiations`)

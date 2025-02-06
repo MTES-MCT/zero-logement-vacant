@@ -72,12 +72,37 @@ WITH base_data AS (
         count_housing_private_rented AS count_value
     FROM base_data
     UNION ALL
+    -- Production 
     SELECT
         establishment_id,
         year,
-        'count_housing_production' AS count_type,
-        count_housing_production AS count_value
-    FROM base_data
+        'count_housing_last_lovac_production' AS count_type,
+        count_housing_last_lovac_production AS count_value
+    FROM base_data,
+    SELECT
+        establishment_id,
+        year,
+        'count_housing_last_ff_production' AS count_type,
+        count_housing_last_ff_production AS count_value
+    FROM base_data,
+    SELECT
+        establishment_id,
+        year,
+        'count_housing_rented_production' AS count_type,
+        count_housing_rented_production AS count_value
+    FROM base_data,
+    SELECT
+        establishment_id,
+        year,
+        'count_housing_vacant_production' AS count_type,
+        count_housing_vacant_production AS count_value
+    FROM base_data,
+    SELECT
+        establishment_id,
+        year,
+        'count_housing_energy_sieve_production' AS count_type,
+        count_housing_energy_sieve_production AS count_value
+    FROM base_data,
 )
 , pivoted_data AS (
     SELECT
@@ -109,8 +134,20 @@ WITH base_data AS (
                 count_type = 'count_housing_private_rented'
                 THEN 'Logements du Parc Privé Loués'
             WHEN
-                count_type = 'count_housing_production'
-                THEN 'Logements vacants >2 ans - ZLV'
+                count_type = 'count_housing_last_lovac_production'
+                THEN 'LOVAC 2024 (>2 ans) - ZLV'
+            WHEN
+                count_type = 'count_housing_last_ff_production'
+                THEN 'FF 2023 (parc privé locatif) - ZLV'
+            WHEN
+                count_type = 'count_housing_rented_production'
+                THEN 'Loué - ZLV'
+            WHEN
+                count_type = 'count_housing_vacant_production'
+                THEN 'Vacant - ZLV'
+            WHEN
+                count_type = 'count_housing_energy_sieve_production'
+                THEN 'Passoire énergétique - ZLV'
         END AS count_label,
         MAX(CASE WHEN year = 2019 THEN count_value END) AS "2019",
         MAX(CASE WHEN year = 2020 THEN count_value END) AS "2020",

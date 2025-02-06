@@ -219,7 +219,11 @@ ff_geo_code_year AS (
 production AS (
     SELECT
         geo_code,
-        COUNT(h.id) AS housing_count,
+        SUM(CASE WHEN list_contains(data_file_years, 'lovac-2024') THEN 1 ELSE 0 END) AS housing_last_lovac_count,
+        SUM(CASE WHEN list_contains(data_file_years, 'ff-2023-locatif') THEN 1 ELSE 0 END) AS housing_last_ff_count,
+        SUM(CASE WHEN occupancy = 'L' THEN 1 ELSE 0 END) AS housing_rented_count,
+        SUM(CASE WHEN occupancy = 'V' THEN 1 ELSE 0 END) AS housing_vacant_count,
+        SUM(CASE WHEN energy_consumption_bdnb IN ('G', 'F') THEN 1 ELSE 0 END) AS housing_energy_sieve_count,
         2024 AS year
     FROM {{ ref ("int_production_housing") }} as h
     WHERE list_contains(data_file_years, 'lovac-2024')
@@ -229,7 +233,11 @@ SELECT
     year
     , geo_code
     , city_code
-    , production.housing_count AS count_housing_production
+    , production.housing_last_lovac_count AS count_housing_last_lovac_production
+    , production.housing_last_ff_count AS count_housing_last_ff_production
+    , production.housing_rented_count AS count_housing_rented_production
+    , production.housing_vacant_count AS count_housing_vacant_production
+    , production.housing_energy_sieve_count AS count_housing_energy_sieve_production
     , lovac.count_vacant_premisses
     , lovac.count_vacant_housing
     , lovac.count_vacant_housing_private

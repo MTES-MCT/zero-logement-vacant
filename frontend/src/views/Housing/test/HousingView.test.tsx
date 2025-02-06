@@ -8,6 +8,7 @@ import { format, subYears } from 'date-fns';
 import {
   HousingDTO,
   HousingOwnerDTO,
+  HousingStatus,
   Occupancy,
   OwnerDTO
 } from '@zerologementvacant/models';
@@ -31,7 +32,13 @@ describe('Housing view', () => {
     owner = genOwnerDTO();
     const secondaryOwners = Array.from({ length: 3 }, genOwnerDTO);
     data.owners.push(owner, ...secondaryOwners);
-    housing = genHousingDTO(owner);
+    housing = {
+      ...genHousingDTO(owner),
+      status: HousingStatus.NEVER_CONTACTED,
+      subStatus: null,
+      occupancy: Occupancy.VACANT,
+      occupancyIntended: null
+    };
     data.housings.push(housing);
     housingOwners = [owner, ...secondaryOwners].map((owner, i) => ({
       ...genHousingOwnerDTO(owner),

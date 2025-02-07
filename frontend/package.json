@@ -29,7 +29,7 @@
     "@hookform/resolvers": "^3.9.1",
     "@lexical/html": "^0.20.0",
     "@lexical/list": "^0.20.0",
-    "@lexical/react": "^0.20.0",
+    "@lexical/react": "^0.23.1",
     "@lexical/text": "^0.20.0",
     "@lexical/utils": "^0.20.0",
     "@maplibre/maplibre-gl-style-spec": "^20.3.1",

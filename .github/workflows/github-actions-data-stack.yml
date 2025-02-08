@@ -58,6 +58,7 @@ jobs:
           aws configure set aws_secret_access_key $CELLAR_KEY_SECRET
 
       - name: Upload DBT Docs to Cellar
+        if: false
         env:
           DBT_DOC_BUCKET_NAME:  ${{ vars.DBT_DOC_BUCKET_NAME }}
         run: |

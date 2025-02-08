@@ -50,6 +50,7 @@ class Config:
 public_tables = [
     "marts_public_establishments_morphology",
     "marts_public_establishments_morphology_unpivoted",
+    "marts_public_establishments_hierarchy",
 ]
 
 analysis_tables = ["marts_analysis_exit_flow_ff23_lovac"]

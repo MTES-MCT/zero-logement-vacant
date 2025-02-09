@@ -35,7 +35,7 @@ COPY analytics/dbt/target/manifest.json /opt/dagster/dbt/target/manifest.json
 
 WORKDIR /opt/dagster/dbt
 
-RUN dbt deps
+RUN dbt deps && dbt parse
 
 WORKDIR $DAGSTER_HOME
 

@@ -4,6 +4,10 @@ seeds:
   - name: com_epci_dep_reg
     config:
       delimiter: ";"
+      +quote: '"'  # Add this to handle quoted fields
+      column_types:
+        reg_siren: varchar  # Change from INTEGER to varchar to handle empty strings
+        
   - name: taxe
     config:
       delimiter: ";"
@@ -54,6 +58,9 @@ seeds:
   - name: opah
     config:
       +header: true
+      delimiter: ","
+      +quote: '"'  # Add this to handle quoted fields in the name
+      strict_mode: false  # Add this to handle potential CSV format issues
 
   - name: ort
     delimiter: ","
@@ -66,6 +73,10 @@ seeds:
     config:
       delimiter: ","
       +header: true
+      +quote: '"'
+      strict_mode: false
+      ignore_errors: false
+  
   - name: fusions
     description: "Fusions de communes"
     config:

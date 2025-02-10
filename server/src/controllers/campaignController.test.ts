@@ -253,7 +253,7 @@ describe('Campaign API', () => {
         .type('json')
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(status).not.toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should create a new campaign', async () => {

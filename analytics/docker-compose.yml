@@ -8,14 +8,14 @@ services:
       - ./dbt:/opt/dagster/dbt
     env_file:
       - .env
-    expose: 
-      - 3000
+    expose:
+      - 3002
     ports:
-      - 3000:3000
-    
+      - 3002:3000
+
   postgres:
     image: postgres:latest
-    expose: 
+    expose:
       - 54322
     ports:
       - 54322:5432

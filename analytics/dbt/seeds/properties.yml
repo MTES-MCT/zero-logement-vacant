@@ -4,6 +4,10 @@ seeds:
   - name: com_epci_dep_reg
     config:
       delimiter: ";"
+      +quote: '"'
+      column_types:
+        reg_siren: varchar
+        
   - name: taxe
     config:
       delimiter: ";"
@@ -54,6 +58,9 @@ seeds:
   - name: opah
     config:
       +header: true
+      delimiter: ","
+      +quote: '"'
+      strict_mode: false
 
   - name: ort
     delimiter: ","
@@ -66,6 +73,10 @@ seeds:
     config:
       delimiter: ","
       +header: true
+      +quote: '"'
+      strict_mode: false
+      ignore_errors: false
+  
   - name: fusions
     description: "Fusions de communes"
     config:

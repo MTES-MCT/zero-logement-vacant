@@ -1,6 +1,7 @@
 import fileUpload from 'express-fileupload';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
+import { object } from 'yup';
 
 import schemas from '@zerologementvacant/schemas';
 import accountController from '~/controllers/accountController';
@@ -20,7 +21,7 @@ import ownerController from '~/controllers/ownerController';
 import ownerProspectController from '~/controllers/ownerProspectController';
 import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
-import { jwtCheck, userCheck } from '~/middlewares/auth';
+import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
 import { upload } from '~/middlewares/upload';
 import validator from '~/middlewares/validator';
 import { isUUIDParam } from '~/utils/validators';
@@ -28,6 +29,8 @@ import draftController from '~/controllers/draftController';
 import validatorNext from '~/middlewares/validator-next';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
+import { UserRoles } from '~/models/UserApi';
+import precisionController from '~/repositories/precisionController';
 
 const router = Router();
 
@@ -51,13 +54,15 @@ router.post(
   validator.validate,
   housingController.create
 );
-router.get('/housing/count',
+router.get(
+  '/housing/count',
   validatorNext.validate({
     query: schemas.housingFilters
       .concat(sortApi.sortSchema)
       .concat(paginationSchema)
   }),
-housingController.count);
+  housingController.count
+);
 router.get(
   '/housing/:id',
   housingController.getValidators,
@@ -70,13 +75,23 @@ router.post(
   validator.validate,
   housingController.updateList
 );
-// TODO: replace by PUT /housing/:id
+router.put(
+  '/housing/:id',
+  hasRole([UserRoles.Usual, UserRoles.Admin]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.housingUpdatePayload
+  }),
+  housingController.updateNext
+);
 router.post(
   '/housing/:housingId',
   [param('housingId').isUUID(), ...housingController.updateValidators],
   validator.validate,
   housingController.update
 );
+
+router.get('/precisions', precisionController.find);
 
 router.get('/groups', groupController.list);
 router.post(
@@ -243,10 +258,19 @@ router.get(
 );
 
 router.get(
-  '/notes/housing/:housingId',
-  [isUUIDParam('housingId')],
+  '/housing/:id/notes',
+  [isUUIDParam('id')],
   validator.validate,
-  noteController.listByHousingId
+  noteController.findByHousing
+);
+router.post(
+  '/housing/:id/notes',
+  hasRole([UserRoles.Usual, UserRoles.Admin]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.notePayload
+  }),
+  noteController.createByHousing
 );
 
 // TODO: rework and merge this API with the User API

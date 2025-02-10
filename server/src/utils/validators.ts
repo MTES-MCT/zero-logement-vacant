@@ -30,6 +30,10 @@ export function isString(value: unknown): value is string {
   return typeof value === 'string';
 }
 
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
+}
+
 export function isCommaDelimitedString(value: unknown): value is string {
   const pattern = /^[-\w]+(,[-\w]+)*$/;
   return isString(value) && validator.matches(value, pattern);

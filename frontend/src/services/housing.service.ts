@@ -6,7 +6,9 @@ import { parseISO } from 'date-fns';
 import { SortOptions, toQuery } from '../models/Sort';
 import { AbortOptions } from '../utils/fetchUtils';
 import {
+  HousingDTO,
   HousingFiltersDTO,
+  HousingUpdatePayloadDTO,
   PaginationOptions
 } from '@zerologementvacant/models';
 import { parseOwner } from './owner.service';
@@ -130,6 +132,28 @@ export const housingApi = zlvApi.injectEndpoints({
         }
       ]
     }),
+    updateHousingNext: builder.mutation<
+      HousingDTO,
+      HousingUpdatePayloadDTO & Pick<Housing, 'id'>
+    >({
+      query: ({ id, ...payload }) => ({
+        url: `housing/${id}`,
+        method: 'PUT',
+        body: {
+          occupancy: payload.occupancy,
+          occupancyIntended: payload.occupancyIntended ?? null,
+          status: payload.status,
+          subStatus: payload.subStatus?.length ? payload.subStatus : null,
+          precisions: payload.precisions?.length ? payload.precisions : null
+        } satisfies HousingUpdatePayloadDTO
+      }),
+      invalidatesTags: (result, error, payload) => [
+        { type: 'Housing', id: payload.id },
+        'HousingByStatus',
+        'HousingCountByStatus',
+        'Event'
+      ]
+    }),
     updateHousingList: builder.mutation<
       number,
       {
@@ -185,5 +209,6 @@ export const {
   useCountHousingQuery,
   useCreateHousingMutation,
   useUpdateHousingMutation,
+  useUpdateHousingNextMutation,
   useUpdateHousingListMutation
 } = housingApi;

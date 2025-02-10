@@ -21,7 +21,9 @@ import { Compare } from '../utils/compareUtils';
 
 export interface Housing {
   id: string;
+  // Identifiant fiscal départemental
   invariant: string;
+  // Identifiant fiscal national
   localId: string;
   geoCode: string;
   cadastralReference: string;
@@ -297,8 +299,8 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     // TODO: fix this by making Housing extend HousingDTO
     ownershipKind: housing.ownershipKind,
     status: housing.status as unknown as HousingStatus,
-    subStatus: housing.subStatus,
-    precisions: housing.precisions,
+    subStatus: housing.subStatus ?? null,
+    precisions: housing.precisions ?? null,
     energyConsumption:
       housing.energyConsumption as unknown as EnergyConsumption,
     energyConsumptionAt: housing.energyConsumptionAt,

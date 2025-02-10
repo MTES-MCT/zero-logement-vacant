@@ -1,11 +1,17 @@
 import fp from 'lodash/fp';
 import { assert, MarkRequired } from 'ts-essentials';
 
-import { HousingSource, Occupancy } from '@zerologementvacant/models';
-import { OwnerApi } from './OwnerApi';
-import { HousingStatusApi } from './HousingStatusApi';
+import {
+  HousingDTO,
+  HousingKind,
+  HousingSource,
+  Occupancy
+} from '@zerologementvacant/models';
+import { OwnerApi, toOwnerDTO } from './OwnerApi';
+import { HousingStatusApi, toHousingStatus } from './HousingStatusApi';
 import { Sort } from './SortApi';
 import { HousingEventApi, isUserModified } from '~/models/EventApi';
+import OwnerMissingError from '~/errors/ownerMissingError';
 
 export type HousingId = Pick<HousingRecordApi, 'geoCode' | 'id'>;
 
@@ -36,7 +42,7 @@ export interface HousingRecordApi {
   buildingYear?: number;
   mutationDate: Date | null;
   taxed?: boolean;
-  vacancyReasons?: string[];
+  vacancyReasons?: string[] | null;
   /**
    * @deprecated See {@link dataFileYears}
    */
@@ -49,12 +55,16 @@ export interface HousingRecordApi {
   ownershipKind?: string;
   status: HousingStatusApi;
   subStatus?: string | null;
-  precisions?: string[];
+  /**
+   * @deprecated To be replaced by the `precisions`
+   * and the `housing_precisions` tables
+   */
+  precisions?: string[] | null;
   energyConsumption?: EnergyConsumptionGradesApi;
   energyConsumptionAt?: Date;
   occupancy: Occupancy;
   occupancyRegistered: Occupancy;
-  occupancyIntended?: Occupancy;
+  occupancyIntended?: Occupancy | null;
   source: HousingSource | null;
 }
 
@@ -67,6 +77,47 @@ export interface HousingApi extends HousingRecordApi {
   campaignIds?: string[];
   contactCount?: number;
   lastContact?: Date;
+}
+
+export function toHousingDTO(housing: HousingApi): HousingDTO {
+  if (!housing.owner) {
+    throw new OwnerMissingError();
+  }
+
+  return {
+    id: housing.id,
+    invariant: housing.invariant,
+    localId: housing.localId,
+    rawAddress: housing.rawAddress,
+    geoCode: housing.geoCode,
+    longitude: housing.longitude,
+    latitude: housing.latitude,
+    cadastralClassification: housing.cadastralClassification,
+    uncomfortable: housing.uncomfortable,
+    vacancyStartYear: housing.vacancyStartYear,
+    housingKind: housing.housingKind as HousingKind,
+    roomsCount: housing.roomsCount,
+    livingArea: housing.livingArea,
+    cadastralReference: housing.cadastralReference,
+    buildingYear: housing.buildingYear,
+    taxed: housing.taxed,
+    vacancyReasons: housing.vacancyReasons ?? null,
+    dataYears: housing.dataYears,
+    dataFileYears: housing.dataFileYears,
+    beneficiaryCount: housing.beneficiaryCount,
+    buildingLocation: housing.buildingLocation,
+    rentalValue: housing.rentalValue,
+    ownershipKind: housing.ownershipKind,
+    status: toHousingStatus(housing.status),
+    subStatus: housing.subStatus ?? null,
+    precisions: housing.precisions ?? null,
+    energyConsumption: housing.energyConsumption,
+    energyConsumptionAt: housing.energyConsumptionAt,
+    occupancy: housing.occupancy,
+    occupancyIntended: housing.occupancyIntended ?? null,
+    source: housing.source,
+    owner: toOwnerDTO(housing.owner)
+  };
 }
 
 export function assertOwner<T extends HousingApi>(

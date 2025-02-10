@@ -46,7 +46,7 @@ export async function seed(knex: Knex): Promise<void> {
       {
         count: {
           min: 100,
-          max: 10000
+          max: 5000
         }
       }
     );
@@ -117,17 +117,48 @@ export async function seed(knex: Knex): Promise<void> {
       housingAddresses.map(formatAddressApi)
     );
 
+    // Insert owners
+    const owners: ReadonlyArray<OwnerApi> = faker.helpers.multiple(
+      () => genOwnerApi(),
+      {
+        count: {
+          min: 100,
+          max: 5000
+        }
+      }
+    );
+    console.log(`Inserting ${owners.length} owners...`, {
+      establishment: establishment.name
+    });
+    await knex.batchInsert(ownerTable, owners.map(formatOwnerApi));
+
+    // Link owners to housings
     const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(
       (housing) => {
-        const owners = faker.helpers.multiple(() => genOwnerApi(), {
-          count: {
-            min: 1,
-            max: 6
-          }
+        const activeOwners = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: 6
         });
-        const archivedOwners: ReadonlyArray<HousingOwnerApi> = [];
+        const archivedOwners: ReadonlyArray<HousingOwnerApi> = faker.helpers
+          .arrayElements(
+            owners.filter(
+              (owner) =>
+                !activeOwners.some((activeOwner) => activeOwner.id === owner.id)
+            ),
+            {
+              min: 1,
+              max: 2
+            }
+          )
+          .map((archivedOwner) => ({
+            ...archivedOwner,
+            ownerId: archivedOwner.id,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id,
+            rank: -2
+          }));
 
-        return owners
+        return activeOwners
           .map<HousingOwnerApi>((owner, index) => ({
             ...owner,
             ownerId: owner.id,
@@ -138,12 +169,6 @@ export async function seed(knex: Knex): Promise<void> {
           .concat(archivedOwners);
       }
     );
-    const owners: ReadonlyArray<OwnerApi> = housingOwners.flat();
-    console.log(`Inserting ${owners.length} owners...`, {
-      establishment: establishment.name
-    });
-    await knex.batchInsert(ownerTable, owners.map(formatOwnerApi));
-
     console.log(`Inserting ${housingOwners.length} housing owners...`, {
       establishment: establishment.name
     });

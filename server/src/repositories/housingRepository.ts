@@ -38,6 +38,7 @@ import { groupsHousingTable } from './groupRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
+import { getTransaction } from '~/infra/database/transaction';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -358,7 +359,8 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
 async function update(housing: HousingApi): Promise<void> {
   logger.debug('Update housing', housing.id);
 
-  return db(housingTable)
+  const transaction = getTransaction();
+  return Housing(transaction)
     .where({
       // Use the index on the partitioned table
       geo_code: housing.geoCode,
@@ -369,8 +371,10 @@ async function update(housing: HousingApi): Promise<void> {
       occupancy_intended: housing.occupancyIntended ?? null,
       status: housing.status,
       sub_status: housing.subStatus ?? null,
-      precisions: housing.precisions ?? null,
-      vacancy_reasons: housing.vacancyReasons ?? null
+      precisions: housing.precisions?.length ? housing.precisions : null,
+      vacancy_reasons: housing.vacancyReasons?.length
+        ? housing.vacancyReasons
+        : null
     });
 }
 
@@ -873,7 +877,7 @@ export interface HousingRecordDBO {
   building_year?: number;
   mutation_date?: Date;
   taxed?: boolean;
-  vacancy_reasons?: string[];
+  vacancy_reasons: string[] | null;
   /**
    * @deprecated See {@link data_file_years}
    */
@@ -888,11 +892,11 @@ export interface HousingRecordDBO {
   rental_value?: number;
   condominium?: string;
   status: HousingStatusApi;
-  sub_status?: string | null;
-  precisions?: string[];
+  sub_status: string | null;
+  precisions: string[] | null;
   occupancy: Occupancy;
   occupancy_source: Occupancy;
-  occupancy_intended?: Occupancy;
+  occupancy_intended: Occupancy | null;
   energy_consumption_bdnb?: EnergyConsumptionGradesApi;
   energy_consumption_at_bdnb?: Date;
 }
@@ -947,8 +951,8 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   dataFileYears: housing.data_file_years ?? [],
   ownershipKind: housing.condominium,
   status: housing.status,
-  subStatus: housing.sub_status ?? undefined,
-  precisions: housing.precisions ?? undefined,
+  subStatus: housing.sub_status,
+  precisions: housing.precisions,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb,
   occupancy: housing.occupancy,
@@ -998,19 +1002,23 @@ export const formatHousingRecordApi = (
   rooms_count: housingRecordApi.roomsCount,
   living_area: housingRecordApi.livingArea,
   cadastral_reference: housingRecordApi.cadastralReference,
-  vacancy_reasons: housingRecordApi.vacancyReasons,
+  vacancy_reasons: !housingRecordApi.vacancyReasons?.length
+    ? null
+    : housingRecordApi.vacancyReasons,
   taxed: housingRecordApi.taxed,
   condominium: housingRecordApi.ownershipKind,
   data_years: housingRecordApi.dataYears,
   data_file_years: housingRecordApi.dataFileYears,
   status: housingRecordApi.status,
-  sub_status: housingRecordApi.subStatus,
-  precisions: housingRecordApi.precisions,
+  sub_status: housingRecordApi.subStatus ?? null,
+  precisions: !housingRecordApi.precisions?.length
+    ? null
+    : housingRecordApi.precisions,
   energy_consumption_bdnb: housingRecordApi.energyConsumption,
   energy_consumption_at_bdnb: housingRecordApi.energyConsumptionAt,
   occupancy: housingRecordApi.occupancy,
   occupancy_source: housingRecordApi.occupancyRegistered,
-  occupancy_intended: housingRecordApi.occupancyIntended,
+  occupancy_intended: housingRecordApi.occupancyIntended ?? null,
   data_source: housingRecordApi.source
 });
 

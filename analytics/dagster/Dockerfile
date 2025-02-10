@@ -33,7 +33,7 @@ COPY src/ $DAGSTER_HOME
 # Définir le répertoire de travail
 WORKDIR $DAGSTER_HOME
 
-RUN dbt deps
+# RUN dbt deps
 
 # Configurer l'authentification basique pour Nginx
 RUN htpasswd -cb /etc/nginx/.htpasswd $ZLV_HTTP_USERNAME $ZLV_HTTP_PASSWORD

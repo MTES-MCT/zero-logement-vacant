@@ -66,7 +66,7 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().oneOf(ROOM_COUNT_VALUES).required()),
   cadastralClassifications: array()
     .transform(commaSeparatedString)
-    .of(string().required()),
+    .of(number().integer().min(0).required()),
   buildingPeriods: array()
     .transform(commaSeparatedString)
     .of(string().oneOf(BUILDING_PERIOD_VALUES).required()),

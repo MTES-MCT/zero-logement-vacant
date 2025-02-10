@@ -96,8 +96,9 @@ router.get('/precisions', precisionController.find);
 router.get('/groups', groupController.list);
 router.post(
   '/groups',
-  groupController.createValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: schemas.groupCreationPayload
+  }),
   groupController.create
 );
 router.get(
@@ -145,8 +146,9 @@ router.get(
 );
 router.post(
   '/campaigns',
-  campaignController.createValidators,
-  validator.validate,
+  validatorNext.validate({
+    body: schemas.campaignCreationPayload
+  }),
   campaignController.create
 );
 router.get(

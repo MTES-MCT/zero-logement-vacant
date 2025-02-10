@@ -58,7 +58,7 @@ function HousingDetailsCardOccupancy({ housing, lastOccupancyEvent }: Props) {
             >
               Occupation :
             </Typography>
-            <Badge aria-label="Occupation" className="bg-975">
+            <Badge className="bg-975">
               {OccupancyKindLabels[getOccupancy(housing.occupancy)]}
             </Badge>
           </Grid>

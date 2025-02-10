@@ -118,9 +118,11 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       <FilterBadges
         options={cadastralClassificationOptions}
-        values={filters.cadastralClassifications}
+        values={filters.cadastralClassifications?.map(String)}
         small={small}
-        onChange={(values) => onChange?.({ cadastralClassifications: values })}
+        onChange={(values) =>
+          onChange?.({ cadastralClassifications: values.map(Number) })
+        }
       />
       <FilterBadges
         options={buildingPeriodOptions}

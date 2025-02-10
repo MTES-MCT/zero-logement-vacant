@@ -3,7 +3,25 @@ import { constants } from 'http2';
 import fp from 'lodash/fp';
 import request from 'supertest';
 
-import { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/models';
+import {
+  BENEFIARY_COUNT_VALUES,
+  BUILDING_PERIOD_VALUES,
+  CAMPAIGN_COUNT_VALUES,
+  ENERGY_CONSUMPTION_VALUES,
+  GroupDTO,
+  GroupPayloadDTO,
+  HOUSING_BY_BUILDING_VALUES,
+  HOUSING_KIND_VALUES,
+  HOUSING_STATUS_VALUES,
+  HousingStatus,
+  LIVING_AREA_VALUES,
+  OCCUPANCY_VALUES,
+  OWNER_AGE_VALUES,
+  OWNER_KIND_VALUES,
+  OWNERSHIP_KIND_VALUES,
+  ROOM_COUNT_VALUES,
+  VACANCY_RATE_VALUES
+} from '@zerologementvacant/models';
 import { wait } from '@zerologementvacant/utils';
 import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
@@ -60,6 +78,7 @@ import {
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { OwnerApi } from '~/models/OwnerApi';
 import db from '~/infra/database';
+import { fc, test } from '@fast-check/jest';
 
 describe('Group API', () => {
   const { app } = createServer();
@@ -202,16 +221,59 @@ describe('Group API', () => {
       });
     });
 
-    it('should validate the request payload', async () => {
+    test.prop<GroupPayloadDTO>({
+      title: fc.stringMatching(/\S/),
+      description: fc.stringMatching(/\S/),
+      housing: fc.record({
+        all: fc.boolean(),
+        ids: fc.array(fc.uuid()),
+        filters: fc.record({
+          housingIds: fc.array(fc.uuid()),
+          occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
+          energyConsumption: fc.array(
+            fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)
+          ),
+          establishmentIds: fc.array(fc.uuid()),
+          groupIds: fc.array(fc.uuid()),
+          campaignsCounts: fc.array(fc.constantFrom(...CAMPAIGN_COUNT_VALUES)),
+          campaignIds: fc.array(fc.oneof(fc.constant(null), fc.uuid())),
+          ownerIds: fc.array(fc.uuid()),
+          ownerKinds: fc.array(fc.constantFrom(...OWNER_KIND_VALUES)),
+          ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
+          multiOwners: fc.array(fc.boolean()),
+          beneficiaryCounts: fc.array(
+            fc.constantFrom(...BENEFIARY_COUNT_VALUES)
+          ),
+          housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
+          housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
+          roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
+          cadastralClassifications: fc.array(fc.integer({ min: 0 })),
+          buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
+          vacancyYears: fc.array(fc.string({ minLength: 1 })),
+          isTaxedValues: fc.array(fc.boolean()),
+          ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
+          housingCounts: fc.array(
+            fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)
+          ),
+          vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
+          intercommunalities: fc.array(fc.uuid({ version: 4 })),
+          localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
+          localityKinds: fc.array(fc.string({ minLength: 1 })),
+          geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
+          geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
+          dataFileYearsIncluded: fc.array(fc.string({ minLength: 1 })),
+          dataFileYearsExcluded: fc.array(fc.string({ minLength: 1 })),
+          status: fc.constantFrom(...HOUSING_STATUS_VALUES),
+          statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
+          subStatus: fc.array(fc.string({ minLength: 1 })),
+          query: fc.string()
+        })
+      })
+    })('should validate the request payload', async (payload) => {
       const { status } = await request(app)
         .post(testRoute)
-        .send({
-          title: 'Logements prioritaires',
-          description: 'Logements les plus énergivores'
-        })
-        .set({
-          'Content-Type': 'application/json'
-        })
+        .send(payload)
+        .type('json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
@@ -226,7 +288,7 @@ describe('Group API', () => {
             all: true,
             ids: [],
             filters: {
-              status: HousingStatusApi.FirstContact
+              status: HousingStatus.FIRST_CONTACT
             }
           }
         } as GroupPayloadDTO)

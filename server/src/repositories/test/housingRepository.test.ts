@@ -599,12 +599,12 @@ describe('Housing repository', () => {
         const tests = [
           {
             name: 'housings belonging to owners who have many properties',
-            filter: ['true'],
+            filter: [true],
             predicate: countOwners((count) => count > 1)
           },
           {
             name: 'housings belonging to owners who have only one property',
-            filter: ['false'],
+            filter: [false],
             predicate: countOwners((count) => count === 1)
           }
         ];
@@ -816,7 +816,7 @@ describe('Housing repository', () => {
           const cadastralClassifications = housings
             .slice(0, 3)
             .map((housing) => housing.cadastralClassification)
-            .map(String);
+            .filter(isDefined);
 
           const actual = await housingRepository.find({
             filters: {
@@ -1007,12 +1007,12 @@ describe('Housing repository', () => {
         const tests = [
           {
             name: 'housings that get taxed',
-            filter: ['true'],
+            filter: [true],
             predicate: (housing: HousingApi) => !!housing.taxed
           },
           {
             name: 'housings that do not get taxed',
-            filter: ['false'],
+            filter: [false],
             predicate: (housing: HousingApi) => !housing.taxed
           }
         ];

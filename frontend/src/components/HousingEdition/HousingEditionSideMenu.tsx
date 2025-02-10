@@ -44,6 +44,7 @@ import createPrecisionModalNext from '../Precision/PrecisionModalNext';
 import React, { useState } from 'react';
 import { PrecisionTabId } from '../Precision/PrecisionTabs';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
+import { isNotNull } from '@zerologementvacant/utils';
 
 interface HousingEditionSideMenuProps {
   housing: Housing | null;
@@ -143,6 +144,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           // like `Dispositifs > Dispositifs incitatifs > Réserve personnelle ou pour une autre personne`
           .filter((precision) => precision.split(' > ').length === 3)
           .map((precision) => toNewPrecision(precisionOptions, precision))
+          .filter(isNotNull)
       : [];
 
   function submit() {

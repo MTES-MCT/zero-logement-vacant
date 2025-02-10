@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, RequestHandler, Response } from 'express';
 import { body, oneOf, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import _ from 'lodash';
@@ -7,7 +7,6 @@ import validator from 'validator';
 
 import housingRepository from '~/repositories/housingRepository';
 import {
-  EnergyConsumptionGradesApi,
   hasCampaigns,
   HousingApi,
   HousingRecordApi,
@@ -56,6 +55,7 @@ import {
   wasPrecision,
   wasVacancyReason
 } from '~/models/PrecisionApi';
+import { HousingCountApi } from '~/models/HousingCountApi';
 
 interface HousingPathParams extends Record<string, string> {
   id: string;
@@ -93,15 +93,12 @@ type ListHousingPayload = Pagination & {
 type HousingQuery = HousingFiltersDTO &
   Partial<Pagination> & { sort?: string[] };
 
-async function list(
-  request: Request<
-    never,
-    HousingPaginatedResultApi,
-    ListHousingPayload,
-    HousingQuery
-  >,
-  response: Response<HousingPaginatedResultApi>
-) {
+const list: RequestHandler<
+  never,
+  HousingPaginatedResultApi,
+  ListHousingPayload,
+  HousingQuery
+> = async (request, response): Promise<void> => {
   const { auth, user, query } = request as AuthenticatedRequest<
     never,
     HousingPaginatedResultApi,
@@ -119,18 +116,6 @@ async function list(
   const rawFilters = fp.omit(['paginate', 'page', 'perPage', 'sort'], query);
   const filters: HousingFiltersApi = {
     ...rawFilters,
-    multiOwners: rawFilters?.multiOwners?.map((value: boolean) =>
-      value ? 'true' : 'false'
-    ),
-    roomsCounts: rawFilters?.roomsCounts?.map((value: string) =>
-      value.toString()
-    ),
-    isTaxedValues: rawFilters?.isTaxedValues?.map((value: boolean) =>
-      value ? 'true' : 'false'
-    ),
-    energyConsumption:
-      rawFilters?.energyConsumption as unknown as EnergyConsumptionGradesApi[],
-    occupancies: rawFilters?.occupancies,
     establishmentIds:
       [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
       rawFilters?.establishmentIds?.length
@@ -171,38 +156,32 @@ async function list(
       perPage: pagination.perPage,
       totalCount: 0
     });
-}
+};
 
-async function count(request: Request, response: Response): Promise<void> {
-  logger.trace('Count housing');
-
-  const { auth, query } = request as AuthenticatedRequest;
-
-  const { establishmentId, role } = auth;
-
-  const filters: HousingFiltersApi = {
-    ...query,
-    multiOwners: query?.multiOwners?.map((value: boolean) =>
-      value ? 'true' : 'false'
-    ),
-    roomsCounts: query?.roomsCounts?.map((value: string) => value.toString()),
-    isTaxedValues: query?.isTaxedValues?.map((value: boolean) =>
-      value ? 'true' : 'false'
-    ),
-    energyConsumption:
-      query?.energyConsumption as unknown as EnergyConsumptionGradesApi[]
-  };
+const count: RequestHandler<
+  never,
+  HousingCountApi,
+  never,
+  HousingFiltersDTO
+> = async (request, response): Promise<void> => {
+  const { auth, query } = request as AuthenticatedRequest<
+    never,
+    HousingCountApi,
+    never,
+    HousingFiltersDTO
+  >;
+  logger.debug('Count housings', { query });
 
   const count = await housingRepository.count({
-    ...filters,
+    ...query,
     establishmentIds:
-      [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
-      filters.establishmentIds?.length
-        ? filters.establishmentIds
-        : [establishmentId]
+      [UserRoles.Admin, UserRoles.Visitor].includes(auth.role) &&
+      query.establishmentIds?.length
+        ? query.establishmentIds
+        : [auth.establishmentId]
   });
   response.status(constants.HTTP_STATUS_OK).json(count);
-}
+};
 
 const datafoncierHousingRepository = createDatafoncierHousingRepository();
 const datafoncierOwnerRepository = createDatafoncierOwnersRepository();

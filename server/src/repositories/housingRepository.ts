@@ -497,12 +497,12 @@ function filteredQuery(opts: FilteredQueryOptions) {
     }
     if (filters.multiOwners?.length) {
       queryBuilder.where((where) => {
-        if (filters.multiOwners?.includes('true')) {
+        if (filters.multiOwners?.includes(true)) {
           where.orWhereRaw(
             `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
           );
         }
-        if (filters.multiOwners?.includes('false')) {
+        if (filters.multiOwners?.includes(false)) {
           where.orWhereRaw(
             `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
           );
@@ -621,10 +621,10 @@ function filteredQuery(opts: FilteredQueryOptions) {
     }
     if (filters.isTaxedValues?.length) {
       queryBuilder.where((where) => {
-        if (filters.isTaxedValues?.includes('true')) {
+        if (filters.isTaxedValues?.includes(true)) {
           where.orWhereRaw('taxed');
         }
-        if (filters.isTaxedValues?.includes('false')) {
+        if (filters.isTaxedValues?.includes(false)) {
           where.orWhereNull('taxed').orWhereRaw('not(taxed)');
         }
       });

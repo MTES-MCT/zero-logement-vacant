@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@zerologementvacant/models": "workspace:*",
-    "yup": "^1.4.0"
+    "yup": "1.4.0"
   },
   "devDependencies": {
     "@fast-check/jest": "^1.8.2",

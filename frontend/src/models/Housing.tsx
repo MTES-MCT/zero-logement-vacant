@@ -40,7 +40,6 @@ export interface Housing {
   roomsCount: number;
   buildingYear?: number;
   vacancyStartYear: number;
-  vacancyReasons: string[];
   uncomfortable: boolean;
   cadastralClassification: number;
   taxed: boolean;
@@ -66,10 +65,7 @@ export interface SelectedHousing {
 }
 
 export interface HousingUpdate {
-  statusUpdate?: Pick<
-    Housing,
-    'status' | 'subStatus' | 'precisions' | 'vacancyReasons'
-  >;
+  statusUpdate?: Pick<Housing, 'status' | 'subStatus'>;
   occupancyUpdate?: Pick<Housing, 'occupancy' | 'occupancyIntended'>;
   note?: Pick<Note, 'content' | 'noteKind'>;
 }
@@ -290,7 +286,6 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     cadastralReference: housing.cadastralReference,
     buildingYear: housing.buildingYear,
     taxed: housing.taxed,
-    vacancyReasons: housing.vacancyReasons,
     dataYears: housing.dataFileYears
       .map((dataFileYear) => dataFileYear.split('-')[1])
       .map(Number),

@@ -6,7 +6,13 @@ import { http, HttpResponse } from 'msw';
 import { constants } from 'node:http2';
 import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
+import {
+  createMemoryRouter,
+  MemoryRouter as Router,
+  Route,
+  RouterProvider,
+  Routes
+} from 'react-router-dom';
 
 import {
   CAMPAIGN_STATUS_LABELS,
@@ -305,6 +311,46 @@ describe('Housing list view', () => {
       'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
     );
     expect(alert).toBeVisible();
+  });
+
+  describe('Group creation', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [{ path: '/parc-de-logements', element: <HousingListView /> }],
+        {
+          initialEntries: ['/parc-de-logements']
+        }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
+    }
+
+    it('should add housings to an existing group', async () => {
+      renderView();
+
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const exportOrContactModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      expect(exportOrContactModal).toBeVisible();
+      const addToGroup = await within(exportOrContactModal).findByRole(
+        'button',
+        { name: 'Ajouter dans un groupe' }
+      );
+      await user.click(addToGroup);
+      const groupModal = await screen.findByRole('dialog', {
+        name: 'Ajouter dans un groupe de logements'
+      });
+      expect(groupModal).toBeVisible();
+    });
+
+    it.todo('should add housings to a new group');
   });
 
   describe('Housing tabs', () => {

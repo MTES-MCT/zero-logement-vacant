@@ -1,4 +1,5 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -16,6 +17,11 @@ import HousingCreationModal from '../../components/modals/HousingCreationModal/H
 import { useUser } from '../../hooks/useUser';
 import { useFilters } from '../../hooks/useFilters';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
+import createGroupOrCampaignCreationModal from '../../components/Group/GroupOrCampaignCreationModal';
+import createGroupAddHousingModal from '../../components/Group/GroupAddHousingModal';
+
+const groupOrCampaignCreationModal = createGroupOrCampaignCreationModal();
+const groupAddHousingModal = createGroupAddHousingModal();
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -87,6 +93,26 @@ const HousingListView = () => {
           </Grid>
           <Grid xs="auto">
             {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
+          </Grid>
+          <Grid xs="auto">
+            <Button
+              priority="primary"
+              onClick={groupOrCampaignCreationModal.open}
+            >
+              Exporter ou contacter
+            </Button>
+            <groupOrCampaignCreationModal.Component
+              onGroup={() => {
+                groupOrCampaignCreationModal.close();
+                groupAddHousingModal.open();
+              }}
+            />
+            <groupAddHousingModal.Component
+              onNewGroup={() => {
+                groupAddHousingModal.close();
+                // TODO: open the modal to create a new group
+              }}
+            />
           </Grid>
         </Grid>
 

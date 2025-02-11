@@ -11,14 +11,15 @@ interface Props {
 
 const modal = createModal({
   id: 'housing-creation-modal',
-  isOpenedByDefault: false,
+  isOpenedByDefault: false
 });
 
 function HousingCreationModal(props: Props) {
   const openingButtonProps: ButtonProps = {
     iconId: 'fr-icon-add-line',
     children: 'Ajouter un logement',
-    onClick: modal.open,
+    priority: 'secondary',
+    onClick: modal.open
   };
 
   const steps: Step[] = [fillLocalId, reviewHousing];

@@ -29,7 +29,7 @@ export interface HousingFiltersDTO {
   housingKinds?: HousingKind[];
   housingAreas?: LivingArea[];
   roomsCounts?: RoomCount[];
-  cadastralClassifications?: string[];
+  cadastralClassifications?: number[];
   buildingPeriods?: BuildingPeriod[];
   vacancyYears?: string[];
   // TODO: make it an exclusive boolean ?

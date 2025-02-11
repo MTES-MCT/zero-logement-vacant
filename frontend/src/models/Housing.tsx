@@ -50,7 +50,6 @@ export interface Housing {
   campaignIds: string[];
   status: HousingStatus;
   subStatus?: string;
-  precisions?: string[];
   lastContact?: Date;
   energyConsumption?: string;
   energyConsumptionAt?: Date;
@@ -295,7 +294,6 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     ownershipKind: housing.ownershipKind,
     status: housing.status as unknown as HousingStatus,
     subStatus: housing.subStatus ?? null,
-    precisions: housing.precisions ?? null,
     energyConsumption:
       housing.energyConsumption as unknown as EnergyConsumption,
     energyConsumptionAt: housing.energyConsumptionAt,

@@ -12,8 +12,6 @@ import {
 import HousingStatusSelect from './HousingStatusSelect';
 import { useForm } from '../../hooks/useForm';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
-import _ from 'lodash';
-import PrecisionsModal from '../modals/PrecisionsModal/PrecisionsModal';
 import { pluralize } from '../../utils/stringUtils';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import AppSelect from '../_app/AppSelect/AppSelect';
@@ -45,8 +43,6 @@ const HousingEditionForm = (
   );
   const [status, setStatus] = useState<HousingStatus>();
   const [subStatus, setSubStatus] = useState(housing?.subStatus);
-  const [precisions, setPrecisions] = useState(housing?.precisions);
-  const [vacancyReasons, setVacancyReasons] = useState(housing?.vacancyReasons);
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
   const [comment, setComment] = useState<string>();
   const [noteKind, setNoteKind] = useState<string>();
@@ -98,10 +94,7 @@ const HousingEditionForm = (
   type FormShape = typeof shape;
 
   const isStatusUpdate =
-    housing?.status !== status ||
-    housing?.subStatus !== subStatus ||
-    !_.isEqual(housing?.precisions, precisions) ||
-    !_.isEqual(housing?.vacancyReasons, vacancyReasons);
+    housing?.status !== status || housing?.subStatus !== subStatus;
 
   const isOccupancyUpdate = () => {
     if (housing) {
@@ -147,9 +140,7 @@ const HousingEditionForm = (
       statusUpdate: isStatusUpdate
         ? {
             status: +(status ?? HousingStatus.WAITING),
-            subStatus,
-            precisions,
-            vacancyReasons: vacancyReasons ?? []
+            subStatus
           }
         : undefined,
       occupancyUpdate: isOccupancyUpdate()
@@ -230,24 +221,6 @@ const HousingEditionForm = (
             inputKey="subStatus"
             options={subStatusOptions}
           />
-        )}
-        {housing && (
-          <>
-            <Text className="fr-mb-0">
-              <b>Précisions</b>
-              <br />
-              Dispositifs ({(precisions ?? []).length}) / Points de blocage (
-              {(vacancyReasons ?? []).length})
-            </Text>
-            <PrecisionsModal
-              currentPrecisions={precisions ?? []}
-              currentVacancyReasons={vacancyReasons ?? []}
-              onSubmit={(precisions, vacancyReasons) => {
-                setVacancyReasons(vacancyReasons);
-                setPrecisions(precisions);
-              }}
-            />
-          </>
         )}
       </div>
       <div className="bg-white fr-py-2w fr-px-3w fr-my-1w">

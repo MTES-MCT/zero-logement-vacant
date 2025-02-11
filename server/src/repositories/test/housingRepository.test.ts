@@ -71,6 +71,7 @@ import {
   OWNER_KIND_LABELS,
   OWNER_KIND_VALUES,
   OwnershipKind,
+  Precision,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 import {
@@ -86,6 +87,11 @@ import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
 import { CampaignApi } from '~/models/CampaignApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
+import {
+  HousingPrecisionDBO,
+  HousingPrecisions,
+  Precisions
+} from '~/repositories/precisionRepository';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
@@ -157,6 +163,35 @@ describe('Housing repository', () => {
       expect(actual).toSatisfyAll<HousingApi>(
         (housing) => housing.owner?.id === owner.id
       );
+    });
+
+    it('should include precisions on demand', async () => {
+      const precisions: Precision[] = await Precisions().limit(3);
+      const housings: HousingApi[] = Array.from({ length: 3 }, () =>
+        genHousingApi()
+      );
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      const housingPrecisions: HousingPrecisionDBO[] = precisions.flatMap(
+        (precision) => {
+          return housings.map((housing) => ({
+            housing_geo_code: housing.geoCode,
+            housing_id: housing.id,
+            precision_id: precision.id
+          }));
+        }
+      );
+      await HousingPrecisions().insert(housingPrecisions);
+
+      const actual = await housingRepository.find({
+        filters: {
+          housingIds: housings.map((housing) => housing.id)
+        },
+        includes: ['precisions']
+      });
+
+      expect(actual).toSatisfyAll<HousingApi>((housing) => {
+        return housing.precisions ? housing.precisions.length > 0 : false;
+      });
     });
 
     describe('Filters', () => {

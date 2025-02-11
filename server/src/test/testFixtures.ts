@@ -326,7 +326,7 @@ export const genHousingApi = (
     cadastralReference: randomstring.generate(),
     buildingYear: faker.date.past({ years: 100 }).getUTCFullYear(),
     taxed: faker.datatype.boolean(),
-    vacancyReasons: [],
+    deprecatedVacancyReasons: [],
     dataYears,
     dataFileYears,
     buildingLocation: randomstring.generate(),

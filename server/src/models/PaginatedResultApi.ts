@@ -1,3 +1,4 @@
+import { HousingDTO } from '@zerologementvacant/models';
 import { HousingApi } from './HousingApi';
 
 export interface PaginatedResultApi<T> {
@@ -13,5 +14,9 @@ export function isPartial(page: PaginatedResultApi<any>): boolean {
 }
 
 export type HousingPaginatedResultApi = PaginatedResultApi<HousingApi> & {
+  filteredOwnerCount: number;
+};
+
+export type HousingPaginatedDTO = PaginatedResultApi<HousingDTO> & {
   filteredOwnerCount: number;
 };

@@ -21,19 +21,6 @@ const EventPartialHousingContent = ({ partialHousing }: Props) => {
           {partialHousing.subStatus}
         </>
       )}
-      {partialHousing.precisions && partialHousing.precisions.length > 0 && (
-        <>
-          <span className="color-grey-625">Précisions</span>
-          {partialHousing.precisions?.join(' - ')}
-        </>
-      )}
-      {partialHousing.vacancyReasons &&
-        partialHousing.vacancyReasons.length > 0 && (
-          <>
-            <span className="color-grey-625">Causes de la vacance</span>
-            {partialHousing.vacancyReasons?.join(' - ')}
-          </>
-        )}
       {partialHousing.occupancy && (
         <>
           <span className="color-grey-625">Occupation</span>

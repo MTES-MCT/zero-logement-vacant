@@ -301,9 +301,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
     subStatus: null,
-    owner,
-    precisions: null,
-    vacancyReasons: null
+    owner
   };
 }
 

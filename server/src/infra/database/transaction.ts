@@ -19,8 +19,9 @@ export async function startTransaction(
   try {
     await storage.run({ transaction }, cb);
     await transaction.commit();
-  } catch {
+  } catch (error) {
     await transaction.rollback();
+    throw error;
   }
 }
 

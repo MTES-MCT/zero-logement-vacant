@@ -5,7 +5,8 @@ import {
   HousingDTO,
   HousingKind,
   HousingSource,
-  Occupancy
+  Occupancy,
+  Precision
 } from '@zerologementvacant/models';
 import { OwnerApi, toOwnerDTO } from './OwnerApi';
 import { HousingStatusApi, toHousingStatus } from './HousingStatusApi';
@@ -42,7 +43,6 @@ export interface HousingRecordApi {
   buildingYear?: number;
   mutationDate: Date | null;
   taxed?: boolean;
-  vacancyReasons?: string[] | null;
   /**
    * @deprecated See {@link dataFileYears}
    */
@@ -56,10 +56,13 @@ export interface HousingRecordApi {
   status: HousingStatusApi;
   subStatus?: string | null;
   /**
-   * @deprecated To be replaced by the `precisions`
-   * and the `housing_precisions` tables
+   * @deprecated See {@link precisions}
    */
-  precisions?: string[] | null;
+  deprecatedVacancyReasons?: string[] | null;
+  /**
+   * @deprecated See {@link precisions}
+   */
+  deprecatedPrecisions?: string[] | null;
   energyConsumption?: EnergyConsumptionGradesApi;
   energyConsumptionAt?: Date;
   occupancy: Occupancy;
@@ -77,6 +80,10 @@ export interface HousingApi extends HousingRecordApi {
   campaignIds?: string[];
   contactCount?: number;
   lastContact?: Date;
+  /**
+   * Added by joining with the `housing_precisions` and `precisions` tables
+   */
+  precisions?: Precision[];
 }
 
 export function toHousingDTO(housing: HousingApi): HousingDTO {
@@ -101,7 +108,6 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     cadastralReference: housing.cadastralReference,
     buildingYear: housing.buildingYear,
     taxed: housing.taxed,
-    vacancyReasons: housing.vacancyReasons ?? null,
     dataYears: housing.dataYears,
     dataFileYears: housing.dataFileYears,
     beneficiaryCount: housing.beneficiaryCount,
@@ -110,7 +116,6 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     ownershipKind: housing.ownershipKind,
     status: toHousingStatus(housing.status),
     subStatus: housing.subStatus ?? null,
-    precisions: housing.precisions ?? null,
     energyConsumption: housing.energyConsumption,
     energyConsumptionAt: housing.energyConsumptionAt,
     occupancy: housing.occupancy,

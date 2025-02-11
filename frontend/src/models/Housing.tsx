@@ -40,7 +40,6 @@ export interface Housing {
   roomsCount: number;
   buildingYear?: number;
   vacancyStartYear: number;
-  vacancyReasons: string[];
   uncomfortable: boolean;
   cadastralClassification: number;
   taxed: boolean;
@@ -51,7 +50,6 @@ export interface Housing {
   campaignIds: string[];
   status: HousingStatus;
   subStatus?: string;
-  precisions?: string[];
   lastContact?: Date;
   energyConsumption?: string;
   energyConsumptionAt?: Date;
@@ -66,10 +64,7 @@ export interface SelectedHousing {
 }
 
 export interface HousingUpdate {
-  statusUpdate?: Pick<
-    Housing,
-    'status' | 'subStatus' | 'precisions' | 'vacancyReasons'
-  >;
+  statusUpdate?: Pick<Housing, 'status' | 'subStatus'>;
   occupancyUpdate?: Pick<Housing, 'occupancy' | 'occupancyIntended'>;
   note?: Pick<Note, 'content' | 'noteKind'>;
 }
@@ -290,7 +285,6 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     cadastralReference: housing.cadastralReference,
     buildingYear: housing.buildingYear,
     taxed: housing.taxed,
-    vacancyReasons: housing.vacancyReasons,
     dataYears: housing.dataFileYears
       .map((dataFileYear) => dataFileYear.split('-')[1])
       .map(Number),
@@ -300,7 +294,6 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     ownershipKind: housing.ownershipKind,
     status: housing.status as unknown as HousingStatus,
     subStatus: housing.subStatus ?? null,
-    precisions: housing.precisions ?? null,
     energyConsumption:
       housing.energyConsumption as unknown as EnergyConsumption,
     energyConsumptionAt: housing.energyConsumptionAt,

@@ -100,7 +100,6 @@ export function genHousing(): Housing {
     dataFileYears: ['2021'],
     campaignIds: [],
     cadastralReference: '',
-    vacancyReasons: [],
     uncomfortable: false,
     cadastralClassification: genNumber(1),
     taxed: false,

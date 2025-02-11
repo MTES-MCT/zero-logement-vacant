@@ -22,7 +22,6 @@ export interface HousingDTO {
   cadastralReference?: string;
   buildingYear?: number;
   taxed?: boolean;
-  vacancyReasons: string[] | null;
   /**
    * @deprecated See {@link dataFileYears}
    */
@@ -34,7 +33,6 @@ export interface HousingDTO {
   ownershipKind?: string;
   status: HousingStatus;
   subStatus: string | null;
-  precisions: string[] | null;
   energyConsumption?: EnergyConsumption;
   energyConsumptionAt?: Date;
   occupancy: Occupancy;
@@ -50,7 +48,6 @@ export type HousingUpdatePayloadDTO =
   Pick<HousingDTO, 'status' | 'occupancy'> & {
     // Optional, nullable keys
     subStatus?: string | null;
-    precisions?: string[] | null;
     occupancyIntended?: Occupancy | null;
   };
 

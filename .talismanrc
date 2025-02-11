@@ -8,9 +8,9 @@ fileignoreconfig:
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
   checksum: c3a27f2457d2c1cd5f01ef1940c78bc40f8dedb0aff7a5edbc0d1b1e5000f5d3
 - filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py
-  checksum: 66b41821bccc209598ed3d082e5666102edf52ae854b41db3f0b3fe3640657b7
+  checksum: 395de97f41bbcfaa83d31c238f68d9d0f74b903de410dad1d6c0a673d3cb1efd
 - filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
-  checksum: 6d33b062918f2957e659ddf9f63413fe273ab88b34ba31932d8b9cfda996a1f1
+  checksum: 44ff3bd94c3f4abdd1a9b190eb107e6d2613b6597e9591905344e427412df389
 - filename: analytics/dagster/src/resources/ban_config.py
   checksum: 034c6924978983da0ca5897bb06b64598a5a813dc93d1d9e8f8a62da952d4d22
 - filename: analytics/dagster/src/resources/database_resources.py

@@ -2,6 +2,10 @@ from dagster import asset, MetadataValue, AssetExecutionContext, resource, op
 import requests
 import pandas as pd
 from io import StringIO
+import os
+from datetime import datetime
+
+CSV_FILE_NAME = "search_housings.csv"
 
 @asset(
   description="Return housing records from `fast_housing` that have no matching entry in `ban_addresses`.",
@@ -31,7 +35,10 @@ def housings_without_address(context: AssetExecutionContext):
 def create_csv_from_housings(context: AssetExecutionContext, housings_without_address):
     config = context.resources.ban_config
 
-    csv_file_path = f"{config.csv_file_path}/search.csv"
+    csv_dir = config.csv_file_path
+    csv_file_path = os.path.join(csv_dir, CSV_FILE_NAME)
+    os.makedirs(csv_dir, exist_ok=True)
+
     housings_without_address.to_csv(csv_file_path, index=False, columns=["housing_id","address_dgfip", "geo_code"])
 
     context.log.info(f"CSV file created at: {csv_file_path}")
@@ -47,7 +54,8 @@ def create_csv_from_housings(context: AssetExecutionContext, housings_without_ad
 def send_csv_to_api(context: AssetExecutionContext):
     config = context.resources.ban_config
 
-    files = {'data': open(f"{config.csv_file_path}/search.csv", 'rb')}
+    csv_file_path = os.path.join(config.csv_file_path, CSV_FILE_NAME)
+    files = {'data': open(csv_file_path, 'rb')}
 
     data = {'columns': 'address_dgfip', 'citycode': 'geo_code'}
 
@@ -61,7 +69,7 @@ def send_csv_to_api(context: AssetExecutionContext):
 
 @asset(
   description="Parse the CSV response from the BAN address API, insert valid addresses into the `ban_addresses` table, log a preview and any failed results, then return the total number of inserted records as metadata.",
-  required_resource_keys={"sqlalchemy_engine"}
+  required_resource_keys={"psycopg2_connection"}
 )
 def parse_api_response_and_insert_housing_addresses(context: AssetExecutionContext, send_csv_to_api):
     api_df = pd.read_csv(StringIO(send_csv_to_api))
@@ -74,41 +82,39 @@ def parse_api_response_and_insert_housing_addresses(context: AssetExecutionConte
 
     filtered_df = filtered_df.applymap(lambda x: None if pd.isna(x) else x)
     filtered_df['address_kind'] = "Housing"
-    engine = context.resources.sqlalchemy_engine
 
-    with engine.begin() as connection:
-        filtered_df.to_sql(
-            'ban_addresses',
-            connection,
-            if_exists='append',
-            index=False,
-            columns=[
-                'housing_id',
-                'result_housenumber',
-                'result_label',
-                'result_street',
-                'result_postcode',
-                'result_city',
-                'latitude',
-                'longitude',
-                'result_score',
-                'result_id',
-                'address_kind'
-            ],
-            dtype={
-                'housing_id': 'INTEGER',
-                'result_housenumber': 'TEXT',
-                'result_label': 'TEXT',
-                'result_street': 'TEXT',
-                'result_postcode': 'TEXT',
-                'result_city': 'TEXT',
-                'latitude': 'FLOAT',
-                'longitude': 'FLOAT',
-                'result_score': 'FLOAT',
-                'result_id': 'TEXT',
-                'address_kind': 'TEXT'
-            }
-        )
+    context.log.info(filtered_df.columns)
+
+    filtered_df = filtered_df.rename(columns={
+        'housing_id': 'ref_id',
+        'result_housenumber': 'house_number',
+        'result_label': 'address',
+        'result_street': 'street',
+        'result_postcode': 'postal_code',
+        'result_city': 'city',
+        'latitude': 'latitude',
+        'longitude': 'longitude',
+        'result_score': 'score',
+        'result_id': 'ban_id',
+        'address_kind': 'address_kind'
+    })
+    filtered_df['last_updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    columns = [
+        'ref_id', 'house_number', 'address', 'street', 'postal_code', 'city',
+        'latitude', 'longitude', 'score', 'ban_id', 'address_kind', 'last_updated_at'
+    ]
+
+    filtered_df = filtered_df[columns]
+
+    with context.resources.psycopg2_connection as conn, conn.cursor() as cursor:
+        buffer = StringIO()
+        filtered_df.to_csv(buffer, sep='\t', header=False, index=False)
+        buffer.seek(0)
+
+        cursor.copy_from(buffer, 'ban_addresses', sep='\t', columns=columns)
+
+        conn.commit()
 
     context.log.info(f"{len(filtered_df)} valid records inserted successfully.")
 

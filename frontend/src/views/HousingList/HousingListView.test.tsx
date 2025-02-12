@@ -363,7 +363,7 @@ describe('Housing list view', () => {
 
     it.todo('should add housings to a new group');
 
-    it('should go back to the previous step', async () => {
+    it('should go back to the first step', async () => {
       renderView();
 
       const exportOrContact = await screen.findByRole('button', {
@@ -383,6 +383,63 @@ describe('Housing list view', () => {
       });
       expect(modal).toBeVisible();
     });
+
+    it('should go back to the previous step', async () => {
+      renderView();
+
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const addToGroup = await screen.findByRole('button', {
+        name: 'Ajouter dans un groupe'
+      });
+      await user.click(addToGroup);
+      const newGroup = await screen.findByRole('button', {
+        name: 'Créer un nouveau groupe'
+      });
+      await user.click(newGroup);
+      const back = await screen.findByRole('button', {
+        name: 'Revenir en arrière'
+      });
+      await user.click(back);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Ajouter dans un groupe de logements'
+      });
+      expect(modal).toBeVisible();
+    });
+
+    it('should create a new group', async () => {
+      renderView();
+
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const addToGroup = await screen.findByRole('button', {
+        name: 'Ajouter dans un groupe'
+      });
+      await user.click(addToGroup);
+      const createGroup = await screen.findByRole('button', {
+        name: 'Créer un nouveau groupe'
+      });
+      await user.click(createGroup);
+      const groupName = await screen.findByRole('textbox', {
+        name: /Nom du groupe/
+      });
+      await user.type(groupName, 'Logements vacants');
+      const groupDescription = await screen.findByRole('textbox', {
+        name: /Description/
+      });
+      await user.type(groupDescription, 'Tous les logements vacants');
+      const confirm = await screen.findByRole('button', {
+        name: /Créer un groupe/
+      });
+      await user.click(confirm);
+      expect(window.location.pathname).toStartWith('/groupes');
+    });
+
+    it.todo('should require a title and a description');
   });
 
   describe('Housing tabs', () => {

@@ -19,9 +19,11 @@ import { useFilters } from '../../hooks/useFilters';
 import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import createGroupOrCampaignCreationModal from '../../components/Group/GroupOrCampaignCreationModal';
 import createGroupAddHousingModal from '../../components/Group/GroupAddHousingModal';
+import createGroupCreationModal from '../../components/Group/GroupCreationModal';
 
 const groupOrCampaignCreationModal = createGroupOrCampaignCreationModal();
 const groupAddHousingModal = createGroupAddHousingModal();
+const groupCreationModal = createGroupCreationModal();
 
 const HousingListView = () => {
   useDocumentTitle('Parc de logements');
@@ -117,7 +119,17 @@ const HousingListView = () => {
               }}
               onNewGroup={() => {
                 groupAddHousingModal.close();
-                // TODO: open the modal to create a new group
+                groupCreationModal.open();
+              }}
+            />
+            <groupCreationModal.Component
+              onBack={() => {
+                groupCreationModal.close();
+                groupAddHousingModal.open();
+              }}
+              onConfirm={({ title, description }) => {
+                console.log(title, description);
+                groupCreationModal.close();
               }}
             />
           </Grid>

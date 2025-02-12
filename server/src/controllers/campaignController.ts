@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, RequestHandler, Response } from 'express';
 import campaignRepository from '~/repositories/campaignRepository';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
 import {
@@ -40,10 +40,15 @@ import {
 import CampaignStatusError from '~/errors/campaignStatusError';
 import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
 import draftRepository from '~/repositories/draftRepository';
-import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import {
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '~/infra/config';
 import { createS3, slugify, timestamp } from '@zerologementvacant/utils';
+import CampaignEmptyError from '~/errors/campaignEmptyError';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -150,11 +155,19 @@ const createValidators: ValidationChain[] = [
     .withMessage('Must be an array of UUID'),
   ...housingFiltersApi.validators('housing.filters')
 ];
-async function create(request: Request, response: Response<CampaignDTO>) {
-  logger.info('Create campaign');
-
-  const { auth } = request as AuthenticatedRequest;
-  const body = request.body as CampaignCreationPayloadDTO;
+const create: RequestHandler<
+  never,
+  CampaignDTO,
+  CampaignCreationPayloadDTO,
+  never
+> = async (request, response): Promise<void> => {
+  const { auth, body } = request as AuthenticatedRequest<
+    never,
+    CampaignDTO,
+    CampaignCreationPayloadDTO,
+    never
+  >;
+  logger.info('Create campaign', { body });
 
   const filters: HousingFiltersDTO = {
     ...body.housing.filters,
@@ -175,8 +188,6 @@ async function create(request: Request, response: Response<CampaignDTO>) {
     body.housing.all !== undefined
       ? await housingRepository
           .find({
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             filters,
             pagination: { paginate: false }
           })
@@ -187,6 +198,10 @@ async function create(request: Request, response: Response<CampaignDTO>) {
             );
           })
       : [];
+
+  if (houses.length === 0) {
+    throw new CampaignEmptyError(filters);
+  }
 
   await campaignRepository.save(campaign);
   await campaignHousingRepository.insertHousingList(campaign.id, houses);
@@ -215,7 +230,7 @@ async function create(request: Request, response: Response<CampaignDTO>) {
     .catch((error) =>
       logger.error('Error while inserting housing events', error)
     );
-}
+};
 
 async function createCampaignFromGroup(request: Request, response: Response) {
   const { auth, body, params } = request as AuthenticatedRequest;
@@ -328,7 +343,7 @@ async function update(request: Request, response: Response) {
   const name = timestamp().concat('-', slugify(body.title));
   const key = `${name}.zip`;
 
-  if(key !== campaign.file && campaign.file !== null) {
+  if (key !== campaign.file && campaign.file !== null) {
     const s3 = createS3({
       endpoint: config.s3.endpoint,
       region: config.s3.region,

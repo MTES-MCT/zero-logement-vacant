@@ -21,7 +21,7 @@ function compare<T>(a: T, b: T, props: Array<keyof T>): Partial<T> {
 function getDiff<T>(a: T, b: T, props: Array<keyof T>): Diff<T> {
   return {
     old: compare(a, b, props),
-    new: compare(b, a, props),
+    new: compare(b, a, props)
   };
 }
 
@@ -54,21 +54,14 @@ export const getHousingDiff = (
     {
       ...oldHousing,
       occupancy: getOccupancy(oldHousing.occupancy),
-      occupancyIntended: getOccupancy(oldHousing.occupancyIntended),
+      occupancyIntended: getOccupancy(oldHousing.occupancyIntended)
     },
     {
       ...newHousing,
       occupancy: getOccupancy(newHousing.occupancy),
-      occupancyIntended: getOccupancy(newHousing.occupancyIntended),
+      occupancyIntended: getOccupancy(newHousing.occupancyIntended)
     },
-    [
-      'status',
-      'subStatus',
-      'precisions',
-      'vacancyReasons',
-      'occupancy',
-      'occupancyIntended',
-    ]
+    ['status', 'subStatus', 'occupancy', 'occupancyIntended']
   );
 
 export const getOwnerDiff = (oldOwner: Owner, newOwner: Owner): Diff<Owner> =>
@@ -79,5 +72,5 @@ export const getOwnerDiff = (oldOwner: Owner, newOwner: Owner): Diff<Owner> =>
     'email',
     'phone',
     'banAddress',
-    'additionalAddress',
+    'additionalAddress'
   ]);

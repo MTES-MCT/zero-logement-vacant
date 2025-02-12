@@ -1,6 +1,9 @@
+import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/jest';
 import { constants } from 'http2';
 import request from 'supertest';
 
+import { NoteDTO, NotePayloadDTO } from '@zerologementvacant/models';
 import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
 import {
@@ -8,40 +11,45 @@ import {
   genHousingApi,
   genHousingNoteApi,
   genUserApi,
-  oneOf,
+  oneOf
 } from '~/test/testFixtures';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   formatHousingRecordApi,
-  Housing,
+  Housing
 } from '~/repositories/housingRepository';
 import {
   formatHousingNoteApi,
   formatNoteApi,
   HousingNotes,
-  Notes,
+  Notes
 } from '~/repositories/noteRepository';
 import { NoteApi } from '~/models/NoteApi';
+import { UserApi, UserRoles } from '~/models/UserApi';
 
 describe('Note API', () => {
   const { app } = createServer();
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
+  const visitor: UserApi = {
+    ...genUserApi(establishment.id),
+    role: UserRoles.Visitor
+  };
   const housing = genHousingApi(oneOf(establishment.geoCodes));
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(formatUserApi(user));
+    await Users().insert([user, visitor].map(formatUserApi));
     await Housing().insert(formatHousingRecordApi(housing));
   });
 
   describe('listByHousingId', () => {
-    const testRoute = (housingId: string) => `/api/notes/housing/${housingId}`;
+    const testRoute = (housingId: string) => `/api/housing/${housingId}/notes`;
 
     it('should be forbidden for a non-authenticated user', async () => {
       const { status } = await request(app).get(testRoute(housing.id));
@@ -59,7 +67,7 @@ describe('Note API', () => {
 
     it('should list the housing notes', async () => {
       const notes = Array.from({ length: 3 }, () =>
-        genHousingNoteApi(user, housing),
+        genHousingNoteApi(user, housing)
       );
       await Notes().insert(notes.map(formatNoteApi));
       await HousingNotes().insert(notes.map(formatHousingNoteApi));
@@ -72,6 +80,81 @@ describe('Note API', () => {
       expect(body).toSatisfyAll<NoteApi>((actual) => {
         return notes.map((note) => note.id).includes(actual.id);
       });
+    });
+  });
+
+  describe('createByHousing', () => {
+    const testRoute = (id: string) => `/api/housing/${id}/notes`;
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).post(testRoute(housing.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should be forbidden for a visitor', async () => {
+      const { status } = await request(app)
+        .post(testRoute(housing.id))
+        .use(tokenProvider(visitor));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    test.prop<NotePayloadDTO>({
+      content: fc.string({ minLength: 1 })
+    })('should validate inputs', async (payload) => {
+      const { status } = await request(app)
+        .post(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+    });
+
+    it('should fail if the housing was not found', async () => {
+      const payload: NotePayloadDTO = {
+        content: 'Nouvelle note'
+      };
+
+      const { status } = await request(app)
+        .post(testRoute(faker.string.uuid()))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should create the note', async () => {
+      const payload: NotePayloadDTO = {
+        content: 'This is a test note'
+      };
+
+      const { body, status } = await request(app)
+        .post(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      expect(body).toStrictEqual<NoteDTO>({
+        id: expect.any(String),
+        content: payload.content,
+        noteKind: 'Note courante',
+        createdBy: user.id,
+        createdAt: expect.any(String)
+      });
+      const actualNote = await Notes().where({ id: body.id }).first();
+      expect(actualNote).toBeDefined();
+      const actualHousingNote = await HousingNotes()
+        .where({
+          note_id: body.id,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        })
+        .first();
+      expect(actualHousingNote).toBeDefined();
     });
   });
 });

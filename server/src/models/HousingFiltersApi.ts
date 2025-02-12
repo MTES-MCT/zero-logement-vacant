@@ -1,12 +1,19 @@
+import { body, ValidationChain } from 'express-validator';
+
 import {
+  EnergyConsumption,
   HousingFiltersDTO,
   Occupancy,
   OwnerKind,
   OwnershipKind
 } from '@zerologementvacant/models';
-import { EnergyConsumptionGradesApi } from './HousingApi';
-import { body, ValidationChain } from 'express-validator';
-import { isArrayOf, isInteger, isString, isUUID } from '~/utils/validators';
+import {
+  isArrayOf,
+  isBoolean,
+  isInteger,
+  isString,
+  isUUID
+} from '~/utils/validators';
 
 export interface HousingFiltersApi
   extends Pick<HousingFiltersDTO, 'intercommunalities'> {
@@ -15,19 +22,19 @@ export interface HousingFiltersApi
   groupIds?: string[];
   ownerKinds?: OwnerKind[];
   ownerAges?: string[];
-  multiOwners?: string[];
+  multiOwners?: boolean[];
   /**
    * The secondary owners
    * @todo Rename this to secondaryOwners
    */
   beneficiaryCounts?: string[];
   housingKinds?: string[];
-  cadastralClassifications?: string[];
+  cadastralClassifications?: number[];
   housingAreas?: string[];
   roomsCounts?: string[];
   buildingPeriods?: string[];
   vacancyYears?: string[];
-  isTaxedValues?: string[];
+  isTaxedValues?: boolean[];
   ownershipKinds?: OwnershipKind[];
   housingCounts?: string[];
   // TODO: type there based on housing repository values
@@ -45,7 +52,7 @@ export interface HousingFiltersApi
   statusList?: number[];
   subStatus?: string[];
   query?: string;
-  energyConsumption?: EnergyConsumptionGradesApi[];
+  energyConsumption?: EnergyConsumption[];
   occupancies?: Occupancy[];
 }
 
@@ -57,7 +64,7 @@ const validators = (property = 'filters'): ValidationChain[] => [
     .optional(),
   body(`${property}.ownerKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.ownerAges`).custom(isArrayOf(isString)).optional(),
-  body(`${property}.multiOwners`).custom(isArrayOf(isString)).optional(),
+  body(`${property}.multiOwners`).custom(isArrayOf(isBoolean)).optional(),
   body(`${property}.beneficiaryCounts`).custom(isArrayOf(isString)).optional(),
   body(`${property}.housingKinds`).custom(isArrayOf(isString)).optional(),
   body(`${property}.cadastralClassificiations`)

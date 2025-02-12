@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { expressjwt } from 'express-jwt';
+import { AuthenticatedRequest, expressjwt } from 'express-jwt';
 import memoize from 'memoizee';
 
 import config from '~/infra/config';
@@ -8,6 +8,7 @@ import UserMissingError from '~/errors/userMissingError';
 import AuthenticationMissingError from '~/errors/authenticationMissingError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import establishmentRepository from '~/repositories/establishmentRepository';
+import { UserRoles } from '~/models/UserApi';
 
 export const jwtCheck = (credentialsRequired: boolean) =>
   expressjwt({
@@ -16,23 +17,23 @@ export const jwtCheck = (credentialsRequired: boolean) =>
     credentialsRequired,
     getToken: (request: Request) =>
       (request.headers['x-access-token'] ??
-        request.query['x-access-token']) as string,
+        request.query['x-access-token']) as string
   });
 
 export const userCheck = () => {
   const getUser = memoize(userRepository.get, {
     promise: true,
-    primitive: true,
+    primitive: true
   });
   const getEstablishment = memoize(establishmentRepository.get, {
     promise: true,
-    primitive: true,
+    primitive: true
   });
 
   return async function (
     request: Request,
     response: Response,
-    next: NextFunction,
+    next: NextFunction
   ) {
     if (!request.auth || !request.auth.userId) {
       throw new AuthenticationMissingError();
@@ -40,7 +41,7 @@ export const userCheck = () => {
 
     const [user, establishment] = await Promise.all([
       getUser(request.auth.userId),
-      getEstablishment(request.auth.establishmentId),
+      getEstablishment(request.auth.establishmentId)
     ]);
     if (!user) {
       // Should never happen
@@ -56,3 +57,13 @@ export const userCheck = () => {
     next();
   };
 };
+
+export function hasRole(roles: UserRoles[]) {
+  return (request: Request, response: Response, next: NextFunction) => {
+    const { user } = request as AuthenticatedRequest;
+    if (!roles.includes(user.role)) {
+      throw new AuthenticationMissingError();
+    }
+    next();
+  };
+}

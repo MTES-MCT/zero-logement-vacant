@@ -7,6 +7,7 @@ import {
   HousingDTO,
   HousingFiltersDTO,
   HousingPayloadDTO,
+  HousingUpdatePayloadDTO,
   Paginated
 } from '@zerologementvacant/models';
 import {
@@ -134,6 +135,7 @@ export const housingHandlers: RequestHandler[] = [
     }
   ),
 
+  // Get a housing by id
   http.get<HousingParams, never, HousingDTO | null>(
     `${config.apiEndpoint}/api/housing/:id`,
     ({ params }) => {
@@ -182,6 +184,34 @@ export const housingHandlers: RequestHandler[] = [
           owner
         )
       });
+    }
+  ),
+
+  // Update a housing
+  http.put<HousingParams, HousingUpdatePayloadDTO, HousingDTO>(
+    `${config.apiEndpoint}/api/housing/:id`,
+    async ({ params, request }) => {
+      const payload = await request.json();
+      const housing = data.housings.find((housing) => housing.id === params.id);
+      if (!housing) {
+        throw HttpResponse.json(
+          {
+            name: 'HousingMissingError',
+            message: `Housing ${params.id} missing`
+          },
+          { status: constants.HTTP_STATUS_NOT_FOUND }
+        );
+      }
+
+      const updated: HousingDTO = {
+        ...housing,
+        ...payload
+      };
+      data.housings = data.housings.map((housing) => {
+        return housing.id === updated.id ? updated : housing;
+      });
+
+      return HttpResponse.json(updated);
     }
   )
 ];

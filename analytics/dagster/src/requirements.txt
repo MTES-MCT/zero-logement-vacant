@@ -3,4 +3,4 @@ dlt[duckdb]>=0.4.11
 dlt[filesystem]
 dlt[parquet]
 s3fs
-
+pyarrow

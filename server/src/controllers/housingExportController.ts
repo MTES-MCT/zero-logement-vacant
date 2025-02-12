@@ -214,8 +214,12 @@ function writeHousingWorksheet(
             vacancyStartYear: housing.vacancyStartYear,
             status: getHousingStatusApiLabel(housing.status),
             subStatus: housing.subStatus,
-            vacancyReasons: reduceStringArray(housing.vacancyReasons),
-            precisions: reduceStringArray(housing.precisions),
+            vacancyReasons: reduceStringArray(
+              housing.deprecatedVacancyReasons ?? undefined
+            ),
+            precisions: reduceStringArray(
+              housing.deprecatedPrecisions ?? undefined
+            ),
             campaigns: reduceStringArray(
               housing.campaignIds?.map(
                 (campaignId) =>

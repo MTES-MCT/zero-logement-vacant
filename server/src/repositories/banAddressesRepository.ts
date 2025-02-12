@@ -1,9 +1,7 @@
 import { AddressKinds } from '@zerologementvacant/models';
-import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
-import { AddressApi, AddressToNormalize } from '~/models/AddressApi';
-import { Housing, housingTable } from './housingRepository';
+import { AddressApi } from '~/models/AddressApi';
 
 export const banAddressesTable = 'ban_addresses';
 export const Addresses = (transaction = db) =>
@@ -77,87 +75,6 @@ const getByRefId = async (
   return address ? parseAddressApi(address) : null;
 };
 
-async function listAddressesToNormalize(): Promise<AddressToNormalize[]> {
-  const housings = await Housing()
-    .select(
-      `${housingTable}.id`,
-      `${housingTable}.address_dgfip`,
-      `${housingTable}.geo_code`
-    )
-    .leftJoin<AddressDBO>(banAddressesTable, (join) => {
-      join
-        .on(`${housingTable}.id`, `${banAddressesTable}.ref_id`)
-        .andOnVal('address_kind', AddressKinds.Housing);
-    })
-    .where((where) => {
-      where
-        .whereNull('last_updated_at')
-        .orWhere(
-          'last_updated_at',
-          '<',
-          db.raw(`current_timestamp  - interval '${config.ban.update.delay}'`)
-        );
-    })
-    .orderBy([{ column: 'last_updated_at', order: 'asc', nulls: 'first' }])
-    .limit(config.ban.update.pageSize);
-
-  return housings.map<AddressToNormalize>((housing) => ({
-    refId: housing.id,
-    addressKind: AddressKinds.Housing,
-    label: housing.address_dgfip.join(' '),
-    geoCode: housing.geo_code
-  }));
-}
-
-const upsertList = async (addresses: AddressApi[]): Promise<AddressApi[]> => {
-  logger.info('Upsert address list', addresses.length);
-
-  const upsertedAddresses = addresses
-    .filter((_) => _.refId)
-    .filter(
-      (value, index, self) =>
-        self.findIndex((_) => _.refId === value.refId) === index
-    )
-    .map((addressApi) => ({
-      ...formatAddressApi(addressApi),
-      last_updated_at: new Date()
-    }));
-
-  if (!upsertedAddresses.length) {
-    return [];
-  }
-
-  try {
-    return db(banAddressesTable)
-      .insert(upsertedAddresses)
-      .onConflict(['ref_id', 'address_kind'])
-      .merge([
-        'house_number',
-        'street',
-        'postal_code',
-        'city',
-        'latitude',
-        'longitude',
-        'score',
-        'last_updated_at'
-      ])
-      .returning('*');
-  } catch (err) {
-    console.error('Upserting addresses failed', err, addresses.length);
-    throw new Error('Upserting addresses failed');
-  }
-};
-
-const markAddressToBeNormalized = async (
-  addressId: string,
-  addressKind: AddressKinds
-) => {
-  db(banAddressesTable)
-    .where('ref_id', addressId)
-    .andWhere('address_kind', addressKind)
-    .update({ last_updated_at: null });
-};
-
 export const parseAddressApi = (address: AddressDBO): AddressApi => ({
   refId: address.ref_id,
   addressKind: address.address_kind,
@@ -196,7 +113,4 @@ export default {
   save,
   saveMany,
   getByRefId,
-  listAddressesToNormalize,
-  markAddressToBeNormalized,
-  upsertList
 };

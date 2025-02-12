@@ -104,10 +104,7 @@ async function create(
     onConflict: ['id'],
     merge: false
   });
-  await banAddressesRepository.markAddressToBeNormalized(
-    owner.id,
-    AddressKinds.Owner
-  );
+
   await eventRepository.insertOwnerEvent({
     id: uuidv4(),
     name: "Création d'un nouveau propriétaire",

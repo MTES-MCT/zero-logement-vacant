@@ -516,10 +516,10 @@ function HousingListFiltersSidemenu(props: Props) {
             <AppMultiSelect
               label="Classement cadastral"
               options={cadastralClassificationOptions}
-              initialValues={filters.cadastralClassifications}
+              initialValues={filters.cadastralClassifications?.map(String)}
               onChange={(values) => {
                 onChangeFilters(
-                  { cadastralClassifications: values },
+                  { cadastralClassifications: values.map(Number) },
                   'Classement cadastral'
                 );
                 posthog.capture('filtre-classement-cadastral');
@@ -532,7 +532,10 @@ function HousingListFiltersSidemenu(props: Props) {
               options={ownershipKindsOptions}
               initialValues={filters.ownershipKinds}
               onChange={(values) => {
-                onChangeFilters({ ownershipKinds: values }, 'Type de propriété');
+                onChangeFilters(
+                  { ownershipKinds: values },
+                  'Type de propriété'
+                );
                 posthog.capture('filtre-type-propriete');
               }}
             />

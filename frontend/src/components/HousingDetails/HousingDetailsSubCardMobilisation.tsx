@@ -10,8 +10,8 @@ import AppLink from '../_app/AppLink/AppLink';
 import { Campaign } from '../../models/Campaign';
 import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
-import { OptionTreeSeparator } from '../../models/HousingFilters';
 import LabelNext from '../Label/LabelNext';
+import { useFindPrecisionsByHousingQuery } from '../../services/precision.service';
 
 interface Props {
   housing: Housing;
@@ -19,6 +19,10 @@ interface Props {
 }
 
 function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
+  const { data: precisions } = useFindPrecisionsByHousingQuery({
+    housingId: housing.id
+  });
+
   if (!housing) {
     return null;
   }
@@ -51,74 +55,53 @@ function HousingDetailsCardMobilisation({ housing, campaigns }: Props) {
       }
       hasBorder
     >
-      <Grid alignItems="flex-start" container xs>
-        <Grid container rowSpacing={2} xs={8}>
-          <Grid xs={6}>
+      <Grid alignItems="flex-start" container xs={12} rowSpacing={2}>
+        <Grid container rowSpacing={2} xs={122}>
+          <Grid xs={8}>
             <LabelNext component="h3">Dernière mise à jour</LabelNext>
             <Typography>{lastUpdate(housing)}</Typography>
           </Grid>
-          <Grid xs={6}>
+
+          <Grid xs={4}>
             <LabelNext component="h3">
-              Dispositifs ({housing.precisions?.length ?? 0})
+              Campagnes en cours ({campaignInProgress.length})
             </LabelNext>
             <Typography>
-              {(housing.precisions?.length ?? 0) === 0 ? (
-                <>Aucun dispositif indiqué</>
+              {campaignInProgress.length === 0 ? (
+                <>Aucune campagne associée</>
               ) : (
-                housing.precisions?.map((precision, index) => (
-                  <Tag key={'precision_' + index} className="d-block fr-mb-1w">
-                    {precision.startsWith('Dispositif')
-                      ? precision.split(OptionTreeSeparator).reverse()[0]
-                      : precision
-                          .split(OptionTreeSeparator)
-                          .splice(1)
-                          .join(OptionTreeSeparator)}
-                  </Tag>
-                ))
-              )}
-            </Typography>
-          </Grid>
-          <Grid xs={6}>
-            <LabelNext component="h3">
-              Points de blocage ({housing.vacancyReasons?.length ?? 0})
-            </LabelNext>
-            <Typography>
-              {(housing.vacancyReasons?.length ?? 0) === 0 ? (
-                <>Aucun blocage indiqué</>
-              ) : (
-                housing.vacancyReasons?.map((vacancyReason, index) => (
-                  <Tag
-                    key={'vacancyReason_' + index}
-                    className="d-block fr-mb-1w"
-                  >
-                    {vacancyReason.split(OptionTreeSeparator).reverse()[0]}
-                  </Tag>
+                campaignInProgress.map((campaign) => (
+                  <div key={campaign.id}>
+                    <AppLink
+                      title={campaign?.title}
+                      key={campaign?.id}
+                      isSimple
+                      to={`/campagnes/${campaign?.id}`}
+                      iconId="fr-icon-mail-fill"
+                      iconPosition="left"
+                    >
+                      {campaign?.title}
+                    </AppLink>
+                  </div>
                 ))
               )}
             </Typography>
           </Grid>
         </Grid>
-        <Grid xs={4}>
+
+        <Grid xs={12}>
           <LabelNext component="h3">
-            Campagnes en cours ({campaignInProgress.length})
+            Dispositifs, points de blocage, évolutions du logement (
+            {precisions?.length ?? 0})
           </LabelNext>
           <Typography>
-            {campaignInProgress.length === 0 ? (
-              <>Aucune campagne associée</>
+            {(precisions?.length ?? 0) === 0 ? (
+              <>Aucun dispositif indiqué</>
             ) : (
-              campaignInProgress.map((campaign) => (
-                <div key={campaign.id}>
-                  <AppLink
-                    title={campaign?.title}
-                    key={campaign?.id}
-                    isSimple
-                    to={`/campagnes/${campaign?.id}`}
-                    iconId="fr-icon-mail-fill"
-                    iconPosition="left"
-                  >
-                    {campaign?.title}
-                  </AppLink>
-                </div>
+              precisions?.map((precision, index) => (
+                <Tag key={'precision_' + index} className="fr-m-1w">
+                  {precision.label}
+                </Tag>
               ))
             )}
           </Typography>

@@ -1,8 +1,8 @@
-import { OwnerDTO } from './OwnerDTO';
-import { HousingStatus } from './HousingStatus';
 import { EnergyConsumption } from './EnergyConsumption';
-import { Occupancy } from './Occupancy';
 import { HousingKind } from './HousingKind';
+import { HousingStatus } from './HousingStatus';
+import { Occupancy } from './Occupancy';
+import { OwnerDTO } from './OwnerDTO';
 
 // TODO: complete this type
 export interface HousingDTO {
@@ -22,7 +22,6 @@ export interface HousingDTO {
   cadastralReference?: string;
   buildingYear?: number;
   taxed?: boolean;
-  vacancyReasons?: string[];
   /**
    * @deprecated See {@link dataFileYears}
    */
@@ -33,17 +32,24 @@ export interface HousingDTO {
   rentalValue?: number;
   ownershipKind?: string;
   status: HousingStatus;
-  subStatus?: string;
-  precisions?: string[];
+  subStatus: string | null;
   energyConsumption?: EnergyConsumption;
   energyConsumptionAt?: Date;
   occupancy: Occupancy;
-  occupancyIntended?: Occupancy;
+  occupancyIntended: Occupancy | null;
   source: HousingSource | null;
   owner: OwnerDTO;
 }
 
 export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;
+
+export type HousingUpdatePayloadDTO =
+  // Required keys
+  Pick<HousingDTO, 'status' | 'occupancy'> & {
+    // Optional, nullable keys
+    subStatus?: string | null;
+    occupancyIntended?: Occupancy | null;
+  };
 
 export interface HousingCountDTO {
   housing: number;

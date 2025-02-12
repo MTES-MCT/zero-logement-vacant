@@ -6,11 +6,6 @@ export interface AddressApi extends AddressDTO {
   lastUpdatedAt?: string;
 }
 
-export interface AddressToNormalize
-  extends Pick<AddressApi, 'label' | 'refId' | 'addressKind'> {
-  geoCode: string;
-}
-
 export const formatAddressApi = (
   addressApi?: AddressApi | null | undefined
 ) => {

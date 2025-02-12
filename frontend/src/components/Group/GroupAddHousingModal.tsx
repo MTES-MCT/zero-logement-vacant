@@ -7,11 +7,12 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { FormProvider, useController, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
-import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import { useFindGroupsQuery } from '../../services/group.service';
 import { Group } from '../../models/Group';
+import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
 
 interface GroupAddHousingModalProps {
+  onBack(): void;
   onExistingGroup(group: Group): void;
   onNewGroup(): void;
 }
@@ -26,7 +27,7 @@ const schema = yup.object({
 });
 
 function createGroupAddHousingModal() {
-  const modal = createConfirmationModal({
+  const modal = createExtendedModal({
     id: 'group-add-housing',
     isOpenedByDefault: false
   });
@@ -66,9 +67,22 @@ function createGroupAddHousingModal() {
       return (
         <FormProvider {...form}>
           <modal.Component
+            buttons={[
+              {
+                children: 'Revenir en arrière',
+                className: 'fr-mr-2w',
+                priority: 'secondary',
+                doClosesModal: false,
+                onClick: props.onBack
+              },
+              {
+                children: 'Confirmer',
+                doClosesModal: false,
+                onClick: form.handleSubmit(submit)
+              }
+            ]}
             size="extra-extra-large"
             title="Ajouter dans un groupe de logements"
-            onSubmit={form.handleSubmit(submit)}
           >
             {/*<HousingCount housingCount={selection.housingCount} ownerCount={selection.ownerCount} />*/}
             <Grid container sx={{ justifyContent: 'center' }}>

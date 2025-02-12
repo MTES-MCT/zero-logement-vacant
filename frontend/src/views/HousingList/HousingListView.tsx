@@ -108,6 +108,10 @@ const HousingListView = () => {
               }}
             />
             <groupAddHousingModal.Component
+              onBack={() => {
+                groupAddHousingModal.close();
+                groupOrCampaignCreationModal.open();
+              }}
               onExistingGroup={() => {
                 groupAddHousingModal.close();
               }}

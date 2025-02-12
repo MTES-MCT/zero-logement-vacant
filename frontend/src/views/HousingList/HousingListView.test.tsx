@@ -362,6 +362,27 @@ describe('Housing list view', () => {
     });
 
     it.todo('should add housings to a new group');
+
+    it('should go back to the previous step', async () => {
+      renderView();
+
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const addToGroup = await screen.findByRole('button', {
+        name: 'Ajouter dans un groupe'
+      });
+      await user.click(addToGroup);
+      const back = await screen.findByRole('button', {
+        name: 'Revenir en arrière'
+      });
+      await user.click(back);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      expect(modal).toBeVisible();
+    });
   });
 
   describe('Housing tabs', () => {

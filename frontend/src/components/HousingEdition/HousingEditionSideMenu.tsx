@@ -6,13 +6,14 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Unstable_Grid2';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { fromJS } from 'immutable';
 import fp from 'lodash/fp';
 import { FormProvider, useController, useForm } from 'react-hook-form';
 import { ElementOf } from 'ts-essentials';
 import * as yup from 'yup';
-import styles from './housing-edition.module.scss';
 
+import styles from './housing-edition.module.scss';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
@@ -39,12 +40,14 @@ import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import { useCreateNoteByHousingMutation } from '../../services/note.service';
 import { useUpdateHousingNextMutation } from '../../services/housing.service';
 import { useNotification } from '../../hooks/useNotification';
-import { toNewPrecision } from '../../models/Precision';
 import createPrecisionModalNext from '../Precision/PrecisionModalNext';
 import React, { useState } from 'react';
 import { PrecisionTabId } from '../Precision/PrecisionTabs';
-import { useFindPrecisionsQuery } from '../../services/precision.service';
-import { isNotNull } from '@zerologementvacant/utils';
+import {
+  useFindPrecisionsByHousingQuery,
+  useFindPrecisionsQuery,
+  useSaveHousingPrecisionsMutation
+} from '../../services/precision.service';
 
 interface HousingEditionSideMenuProps {
   housing: Housing | null;
@@ -135,17 +138,25 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   });
 
   const { data } = useFindPrecisionsQuery();
+  const { data: housingPrecisions } = useFindPrecisionsByHousingQuery(
+    housing?.id ? { housingId: housing.id } : skipToken
+  );
   const precisionOptions = data ?? [];
-  const precisions =
-    housing?.precisions?.length && precisionOptions.length
-      ? housing.precisions
-          .concat(housing?.vacancyReasons ?? [])
-          // Only keep the well formed precisions and vacancy reasons
-          // like `Dispositifs > Dispositifs incitatifs > Réserve personnelle ou pour une autre personne`
-          .filter((precision) => precision.split(' > ').length === 3)
-          .map((precision) => toNewPrecision(precisionOptions, precision))
-          .filter(isNotNull)
-      : [];
+  const precisions = housingPrecisions ?? [];
+
+  const [saveHousingPrecisions, saveHousingPrecisionsMutation] =
+    useSaveHousingPrecisionsMutation();
+  useNotification({
+    toastId: 'housing-precisions-update',
+    isError: saveHousingPrecisionsMutation.isError,
+    isLoading: saveHousingPrecisionsMutation.isLoading,
+    isSuccess: saveHousingPrecisionsMutation.isSuccess,
+    message: {
+      error: 'Impossible de mettre à jour les précisions du logement',
+      loading: 'Mise à jour des précisions du logement...',
+      success: 'Précisions mises à jour !'
+    }
+  });
 
   function submit() {
     if (housing) {
@@ -162,8 +173,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           occupancy: payload.occupancy as Occupancy,
           occupancyIntended: payload.occupancyIntended as Occupancy | null,
           status: payload.status as HousingStatus,
-          subStatus: payload.subStatus,
-          precisions: precisions.map((p) => p.id)
+          subStatus: payload.subStatus
         });
       }
 
@@ -267,10 +277,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     // Immediately save the selected precisions
     function savePrecisions(precisions: Precision[]) {
       if (housing) {
-        updateHousing({
-          ...housing,
-          occupancy: housing.occupancy as Occupancy,
-          occupancyIntended: housing.occupancyIntended as Occupancy,
+        saveHousingPrecisions({
+          housing: housing.id,
           precisions: precisions.map((p) => p.id)
         });
       }

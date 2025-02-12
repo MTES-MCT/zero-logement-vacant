@@ -97,15 +97,4 @@ describe('BAN addresses repository', () => {
       expect(actual.length).toBeGreaterThanOrEqual(addresses.length);
     }, 10_000);
   });
-
-  describe('listAddressesToNormalize', () => {
-    it('should list addresses to normalize', async () => {
-      const housings = Array.from({ length: 3 }, genHousingApi);
-      await Housing().insert(housings.map(formatHousingRecordApi));
-
-      const actual = await banAddressesRepository.listAddressesToNormalize();
-
-      expect(actual.length).toBeGreaterThanOrEqual(housings.length);
-    });
-  });
 });

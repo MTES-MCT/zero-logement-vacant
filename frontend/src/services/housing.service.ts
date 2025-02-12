@@ -143,15 +143,15 @@ export const housingApi = zlvApi.injectEndpoints({
           occupancy: payload.occupancy,
           occupancyIntended: payload.occupancyIntended ?? null,
           status: payload.status,
-          subStatus: payload.subStatus?.length ? payload.subStatus : null,
-          precisions: payload.precisions?.length ? payload.precisions : null
+          subStatus: payload.subStatus?.length ? payload.subStatus : null
         } satisfies HousingUpdatePayloadDTO
       }),
       invalidatesTags: (result, error, payload) => [
         { type: 'Housing', id: payload.id },
         'HousingByStatus',
         'HousingCountByStatus',
-        'Event'
+        'Event',
+        { type: 'Precision', id: payload.id }
       ]
     }),
     updateHousingList: builder.mutation<

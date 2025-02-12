@@ -4,17 +4,19 @@ fileignoreconfig:
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
 - filename: analytics/.env.example
-  checksum: 8b09617118ef02245d361673d661fdee62b71a683a58d344dd09354f9c144c37
+  checksum: 917ebeff9022b2a0a1a916ceab18ce47a7fe04ebdbcdeadb62f49167b15b2bde
+- filename: analytics/dagster/src/assets/dwh/ingest/ingest_postgres_asset.py
+  checksum: b379fbb88e46511c62682abf4cb422e730c4210f6dadc9d5ca648dfd68ff8f88
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
   checksum: c3a27f2457d2c1cd5f01ef1940c78bc40f8dedb0aff7a5edbc0d1b1e5000f5d3
 - filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py
-  checksum: 66b41821bccc209598ed3d082e5666102edf52ae854b41db3f0b3fe3640657b7
+  checksum: 395de97f41bbcfaa83d31c238f68d9d0f74b903de410dad1d6c0a673d3cb1efd
 - filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
-  checksum: 6d33b062918f2957e659ddf9f63413fe273ab88b34ba31932d8b9cfda996a1f1
+  checksum: 44ff3bd94c3f4abdd1a9b190eb107e6d2613b6597e9591905344e427412df389
 - filename: analytics/dagster/src/resources/ban_config.py
   checksum: 034c6924978983da0ca5897bb06b64598a5a813dc93d1d9e8f8a62da952d4d22
 - filename: analytics/dagster/src/resources/database_resources.py
-  checksum: 37520a27778a7a89bedb5b4cf45dbc8361f02d78e02fa10e29ed8fc4ae312db5
+  checksum: 7e069553595840740111497cb6dccf89f13f07a224c0e1cf439882a43fe03d51
 - filename: frontend/.env.example
   checksum: 7e2a5ff197c49ff9f715b3d189da7282bdb40de53ea49735e9f183ece19168fc
 - filename: frontend/src/components/Draft/DraftSender.tsx

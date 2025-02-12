@@ -78,31 +78,37 @@ WITH base_data AS (
         year,
         'count_housing_last_lovac_production' AS count_type,
         count_housing_last_lovac_production AS count_value
-    FROM base_data,
+    FROM base_data
+    UNION ALL
+
     SELECT
         establishment_id,
         year,
         'count_housing_last_ff_production' AS count_type,
         count_housing_last_ff_production AS count_value
-    FROM base_data,
+    FROM base_data
+    UNION ALL
     SELECT
         establishment_id,
         year,
         'count_housing_rented_production' AS count_type,
         count_housing_rented_production AS count_value
-    FROM base_data,
+    FROM base_data
+    UNION ALL
+
     SELECT
         establishment_id,
         year,
         'count_housing_vacant_production' AS count_type,
         count_housing_vacant_production AS count_value
-    FROM base_data,
+    FROM base_data
+    UNION ALL
     SELECT
         establishment_id,
         year,
         'count_housing_energy_sieve_production' AS count_type,
         count_housing_energy_sieve_production AS count_value
-    FROM base_data,
+    FROM base_data
 )
 , pivoted_data AS (
     SELECT

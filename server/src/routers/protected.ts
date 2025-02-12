@@ -30,7 +30,7 @@ import validatorNext from '~/middlewares/validator-next';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
 import { UserRoles } from '~/models/UserApi';
-import precisionController from '~/repositories/precisionController';
+import precisionController from '~/controllers/precisionController';
 
 const router = Router();
 
@@ -92,6 +92,11 @@ router.post(
 );
 
 router.get('/precisions', precisionController.find);
+router.get('/housing/:id/precisions', precisionController.findByHousing);
+router.put(
+  '/housing/:id/precisions',
+  precisionController.updatePrecisionsByHousing
+);
 
 router.get('/groups', groupController.list);
 router.post(

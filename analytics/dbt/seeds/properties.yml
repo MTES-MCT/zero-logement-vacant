@@ -3,8 +3,10 @@ version: 2
 seeds:
       - name: com_epci_dep_reg
         config:
+          header: true
           delimiter: ";"
           quote: '"'
+          enable: true
           column_types:
             com_code: varchar(5)
             com_siren: varchar(9)
@@ -17,6 +19,7 @@ seeds:
             reg_name: varchar(100)
             ept_siren: varchar(9)
             ept_name: varchar(100)
+
       - name: taxe
         config:
           delimiter: ";"
@@ -31,6 +34,13 @@ seeds:
           header: true
           enabled: false
 
+      - name: departements_france
+        config:
+          delimiter: ","
+          quote: '"'
+          header: true
+          enabled: true
+
       - name: direction_territoriale
         config:
           delimiter: ";"
@@ -44,10 +54,6 @@ seeds:
           delimiter: ";"
           header: true
 
-      - name: departement_france
-        config:
-          delimiter: ","
-          header: true
 
       - name: cities
         config:

@@ -108,6 +108,9 @@ const HousingListView = () => {
               }}
             />
             <groupAddHousingModal.Component
+              onExistingGroup={() => {
+                groupAddHousingModal.close();
+              }}
               onNewGroup={() => {
                 groupAddHousingModal.close();
                 // TODO: open the modal to create a new group

@@ -348,6 +348,17 @@ describe('Housing list view', () => {
         name: 'Ajouter dans un groupe de logements'
       });
       expect(groupModal).toBeVisible();
+      const select = await within(groupModal).findByLabelText(
+        /Ajoutez votre sélection à un groupe existant/
+      );
+      await user.click(select);
+      const [option] = await within(groupModal).findAllByRole('option');
+      await user.click(option);
+      const confirm = await within(groupModal).findByRole('button', {
+        name: /^Confirmer/
+      });
+      await user.click(confirm);
+      expect(window.location.pathname).toStartWith('/groupes/');
     });
 
     it.todo('should add housings to a new group');

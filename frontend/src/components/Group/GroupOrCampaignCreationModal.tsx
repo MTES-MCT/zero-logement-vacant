@@ -1,17 +1,16 @@
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Grid from '@mui/material/Unstable_Grid2';
 
 import conclusion from '../../assets/images/conclusion.svg';
 import documentDownload from '../../assets/images/document-download.svg';
-
 import GroupOrCampaignCard from './GroupOrCampaignCard';
+import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
 
 interface GroupOrCampaignCreationModalProps {
   onGroup(): void;
 }
 
 function createGroupOrCampaignCreationModal() {
-  const modal = createModal({
+  const modal = createExtendedModal({
     id: 'group-or-campaign-creation-modal',
     isOpenedByDefault: false
   });

@@ -33,7 +33,7 @@ export function createConfirmationModal(options: ConfirmationModalOptions) {
             {
               children: 'Confirmer',
               onClick: onSubmit,
-              doClosesModal: true
+              doClosesModal: false
             }
           ]}
         />

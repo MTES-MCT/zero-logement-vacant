@@ -1,21 +1,28 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Select, { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material/styles';
-import { FormProvider, useForm } from 'react-hook-form';
+import Grid from '@mui/material/Unstable_Grid2';
+import { FormProvider, useController, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
 import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import { useFindGroupsQuery } from '../../services/group.service';
-import AppSelectNext, { Option } from '../_app/AppSelect/AppSelectNext';
 import { Group } from '../../models/Group';
 
 interface GroupAddHousingModalProps {
+  onExistingGroup(group: Group): void;
   onNewGroup(): void;
 }
 
 const schema = yup.object({
-  group: yup.string().uuid().nullable()
+  group: yup
+    .string()
+    .required(
+      'Veuillez sélectionner un groupe existant ou créer un nouveau groupe'
+    )
+    .uuid()
 });
 
 function createGroupAddHousingModal() {
@@ -28,7 +35,7 @@ function createGroupAddHousingModal() {
     ...modal,
     Component(props: GroupAddHousingModalProps) {
       const { data } = useFindGroupsQuery();
-      const options: ReadonlyArray<Option<Group['id']>> =
+      const options: Array<SelectProps.Option<Group['id']>> =
         data
           ?.filter((group) => !group.archivedAt)
           ?.map((group) => ({
@@ -38,34 +45,66 @@ function createGroupAddHousingModal() {
 
       const form = useForm<yup.InferType<typeof schema>>({
         defaultValues: {
-          group: null
+          group: ''
         },
         mode: 'onSubmit',
         resolver: yupResolver(schema)
       });
+      const { field: groupField, fieldState: groupFieldState } = useController({
+        name: 'group',
+        control: form.control
+      });
+
+      function submit(): void {
+        const id = form.getValues('group');
+        const group = data?.find((group) => group.id === id);
+        if (group) {
+          props.onExistingGroup(group);
+        }
+      }
 
       return (
-        <modal.Component
-          size="large"
-          title="Ajouter dans un groupe de logements"
-        >
-          <FormProvider {...form}>
-            Ajoutez votre sélection à un groupe existant
-            <AppSelectNext name="groups" options={options} />
-          </FormProvider>
-          <Divider>OU</Divider>
-          <Button
-            iconId="fr-icon-add-line"
-            priority="secondary"
-            size="small"
-            onClick={() => {
-              props.onNewGroup();
-            }}
-            data-testid="create-new-group"
+        <FormProvider {...form}>
+          <modal.Component
+            size="extra-extra-large"
+            title="Ajouter dans un groupe de logements"
+            onSubmit={form.handleSubmit(submit)}
           >
-            Créer un nouveau groupe
-          </Button>
-        </modal.Component>
+            {/*<HousingCount housingCount={selection.housingCount} ownerCount={selection.ownerCount} />*/}
+            <Grid container sx={{ justifyContent: 'center' }}>
+              <Grid sx={{ display: 'flex', flexDirection: 'column' }} xs={8}>
+                {/* Shall be replaced by <AppSelectNext>
+            whenever we upgrade the DSFR to v1.13.0.
+            A [bug](https://github.com/GouvernementFR/dsfr/pull/992)
+            is present in the focus trap of the DSFR modal */}
+                <Select
+                  className="fr-mb-2w"
+                  label="Ajoutez votre sélection à un groupe existant"
+                  placeholder="Sélectionnez un groupe existant"
+                  options={options}
+                  state={groupFieldState.invalid ? 'error' : 'default'}
+                  stateRelatedMessage={groupFieldState.error?.message}
+                  nativeSelectProps={groupField}
+                />
+                <Divider>OU</Divider>
+                <Button
+                  className="fr-mt-2w"
+                  iconId="fr-icon-add-line"
+                  priority="secondary"
+                  size="small"
+                  style={{
+                    alignSelf: 'center'
+                  }}
+                  onClick={() => {
+                    props.onNewGroup();
+                  }}
+                >
+                  Créer un nouveau groupe
+                </Button>
+              </Grid>
+            </Grid>
+          </modal.Component>
+        </FormProvider>
       );
     }
   };

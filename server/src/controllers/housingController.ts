@@ -1,7 +1,6 @@
 import { Request, RequestHandler, Response } from 'express';
 import { body, oneOf, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
-import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 
@@ -22,7 +21,10 @@ import eventRepository from '~/repositories/eventRepository';
 import { AuthenticatedRequest } from 'express-jwt';
 import { fromHousingStatus, HousingStatusApi } from '~/models/HousingStatusApi';
 import sortApi from '~/models/SortApi';
-import { HousingPaginatedResultApi } from '~/models/PaginatedResultApi';
+import {
+  HousingPaginatedDTO,
+  HousingPaginatedResultApi
+} from '~/models/PaginatedResultApi';
 import { isArrayOf, isUUID } from '~/utils/validators';
 import HousingMissingError from '~/errors/housingMissingError';
 import noteRepository from '~/repositories/noteRepository';
@@ -46,15 +48,6 @@ import createDatafoncierHousingRepository from '~/repositories/datafoncierHousin
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import fp from 'lodash/fp';
 import { startTransaction } from '~/infra/database/transaction';
-import precisionRepository, {
-  Precisions
-} from '~/repositories/precisionRepository';
-import PrecisionMissingError from '~/errors/precisionMissingError';
-import {
-  toOldPrecision,
-  wasPrecision,
-  wasVacancyReason
-} from '~/models/PrecisionApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
 
 interface HousingPathParams extends Record<string, string> {
@@ -95,7 +88,7 @@ type HousingQuery = HousingFiltersDTO &
 
 const list: RequestHandler<
   never,
-  HousingPaginatedResultApi,
+  HousingPaginatedDTO,
   ListHousingPayload,
   HousingQuery
 > = async (request, response): Promise<void> => {
@@ -129,7 +122,7 @@ const list: RequestHandler<
     sort
   });
 
-  const [housing, count] = await Promise.all([
+  const [housings, count] = await Promise.all([
     housingRepository.find({
       filters,
       pagination,
@@ -146,10 +139,10 @@ const list: RequestHandler<
     .status(constants.HTTP_STATUS_OK)
     .setHeader(
       'Content-Range',
-      `housing ${offset}-${offset + housing.length - 1}/${count.housing}`
+      `housing ${offset}-${offset + housings.length - 1}/${count.housing}`
     )
     .json({
-      entities: housing,
+      entities: housings.map(toHousingDTO),
       filteredCount: count.housing,
       filteredOwnerCount: count.owners,
       page: pagination.page,
@@ -262,7 +255,7 @@ async function create(request: Request, response: Response) {
 export interface HousingUpdateBody {
   statusUpdate?: Pick<
     HousingApi,
-    'status' | 'subStatus' | 'precisions' | 'vacancyReasons'
+    'status' | 'subStatus' | 'deprecatedPrecisions' | 'deprecatedVacancyReasons'
   >;
   occupancyUpdate?: Pick<HousingApi, 'occupancy' | 'occupancyIntended'>;
   note?: Pick<NoteApi, 'content' | 'noteKind'>;
@@ -316,36 +309,19 @@ async function updateNext(
     HousingUpdatePayloadDTO
   >;
 
-  const precisionIds = body.precisions ?? [];
-  const [housing, precisions] = await Promise.all([
-    housingRepository.findOne({
-      id: params.id,
-      geoCode: establishment.geoCodes,
-      includes: ['owner']
-    }),
-    Precisions().whereIn('id', precisionIds)
-  ]);
+  const housing = await housingRepository.findOne({
+    id: params.id,
+    geoCode: establishment.geoCodes,
+    includes: ['owner']
+  });
   if (!housing) {
     throw new HousingMissingError(params.id);
   }
-  if (precisions.length < precisionIds.length) {
-    throw new PrecisionMissingError(...precisionIds);
-  }
 
-  const deprecatedPrecisions: string[] = precisions
-    .filter((precision) => wasPrecision(precision.category))
-    .map(toOldPrecision);
-  const deprecatedVacancyReasons: string[] = precisions
-    .filter((precision) => wasVacancyReason(precision.category))
-    .map(toOldPrecision);
   const updated: HousingApi = {
     ...housing,
     status: fromHousingStatus(body.status),
     subStatus: body.subStatus,
-    precisions: deprecatedPrecisions?.length ? deprecatedPrecisions : null,
-    vacancyReasons: deprecatedVacancyReasons?.length
-      ? deprecatedVacancyReasons
-      : null,
     occupancy: body.occupancy,
     occupancyIntended: body.occupancyIntended ?? undefined
   };
@@ -353,19 +329,12 @@ async function updateNext(
   await startTransaction(async () => {
     await Promise.all([
       housingRepository.update(updated),
-      precisionRepository.link(housing, precisions),
       createHousingUpdateEvents(
         housing,
         {
           statusUpdate: {
             status: fromHousingStatus(body.status),
-            subStatus: body.subStatus,
-            precisions: deprecatedPrecisions?.length
-              ? deprecatedPrecisions
-              : null,
-            vacancyReasons: deprecatedVacancyReasons?.length
-              ? deprecatedVacancyReasons
-              : null
+            subStatus: body.subStatus
           },
           occupancyUpdate: {
             occupancy: body.occupancy,
@@ -412,8 +381,9 @@ const updateHousing = async (
       ? {
           status: housingUpdate.statusUpdate.status,
           subStatus: housingUpdate.statusUpdate.subStatus,
-          vacancyReasons: housingUpdate.statusUpdate.vacancyReasons,
-          precisions: housingUpdate.statusUpdate.precisions
+          deprecatedVacancyReasons:
+            housingUpdate.statusUpdate.deprecatedVacancyReasons,
+          deprecatedPrecisions: housingUpdate.statusUpdate.deprecatedPrecisions
         }
       : {})
   };
@@ -503,15 +473,7 @@ async function createHousingUpdateEvents(
   if (
     statusUpdate &&
     (housingApi.status !== statusUpdate.status ||
-      housingApi.subStatus !== statusUpdate.subStatus ||
-      !_.isEqual(
-        housingApi.precisions?.length ? housingApi.precisions : null,
-        statusUpdate.precisions?.length ? statusUpdate.precisions : null
-      ) ||
-      !_.isEqual(
-        housingApi.vacancyReasons?.length ? housingApi.vacancyReasons : null,
-        statusUpdate.vacancyReasons?.length ? statusUpdate.vacancyReasons : null
-      ))
+      housingApi.subStatus !== statusUpdate.subStatus)
   ) {
     await eventRepository.insertHousingEvent({
       id: uuidv4(),

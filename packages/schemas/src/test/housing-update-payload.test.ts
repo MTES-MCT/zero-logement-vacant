@@ -16,11 +16,6 @@ describe('Housing update payload', () => {
       fc.constant(null),
       fc.constant(undefined)
     ),
-    precisions: fc.oneof(
-      fc.array(fc.stringMatching(/\S/), { minLength: 1 }),
-      fc.constant(null),
-      fc.constant(undefined)
-    ),
     occupancyIntended: fc.oneof(
       fc.constantFrom(...OCCUPANCY_VALUES),
       fc.constant(null),

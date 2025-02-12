@@ -16,7 +16,7 @@ from .queries.production import production_tables
     deps=["setup_duckdb"],
 )
 def setup_replica_db(context, duckdb: DuckDBResource):
-    attach_query = f"ATTACH 'dbname={Config.POSTGRES_PRODUCTION_DB_NAME} user={Config.POSTGRES_PRODUCTION_USER} password={Config.POSTGRES_PRODUCTION_PASSWORD} host={Config.POSTGRES_PRODUCTION_DB} port={Config.POSTGRES_PRODUCTION_PORT}' AS zlv_replication_db (TYPE POSTGRES, READ_ONLY);"
+    attach_query = f"ATTACH 'dbname={Config.POSTGRES_PRODUCTION_DB_NAME} user={Config.POSTGRES_PRODUCTION_READONLY_USER} password={Config.POSTGRES_PRODUCTION_READONLY_PASSWORD} host={Config.POSTGRES_PRODUCTION_DB} port={Config.POSTGRES_PRODUCTION_PORT}' AS zlv_replication_db (TYPE POSTGRES, READ_ONLY);"
 
     with duckdb.get_connection() as conn:
         context.log.info(f"Executing SQL: {attach_query}")
@@ -39,7 +39,7 @@ def setup_replica_db(context, duckdb: DuckDBResource):
 
 def process_subset(name: str, context: AssetExecutionContext, duckdb: DuckDBResource):
     with duckdb.get_connection() as conn:
-        attach_query = f"ATTACH 'dbname={Config.POSTGRES_PRODUCTION_DB_NAME} user={Config.POSTGRES_PRODUCTION_USER} password={Config.POSTGRES_PRODUCTION_PASSWORD} host={Config.POSTGRES_PRODUCTION_DB} port={Config.POSTGRES_PRODUCTION_PORT}' AS zlv_replication_db (TYPE POSTGRES, READ_ONLY);"
+        attach_query = f"ATTACH 'dbname={Config.POSTGRES_PRODUCTION_DB_NAME} user={Config.POSTGRES_PRODUCTION_READONLY_USER} password={Config.POSTGRES_PRODUCTION_READONLY_PASSWORD} host={Config.POSTGRES_PRODUCTION_DB} port={Config.POSTGRES_PRODUCTION_PORT}' AS zlv_replication_db (TYPE POSTGRES, READ_ONLY);"
         context.log.info(f"Executing SQL: {attach_query}")
         conn.execute(attach_query)
         command = production_tables[name]

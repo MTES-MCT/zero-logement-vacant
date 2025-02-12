@@ -6,8 +6,8 @@ from ..config import Config
 
 @resource(config_schema={
     "db_name": Field(String, default_value=Config.POSTGRES_PRODUCTION_DB_NAME),
-    "db_user": Field(String, default_value=Config.POSTGRES_PRODUCTION_USER),
-    "db_password": Field(String, default_value=Config.POSTGRES_PRODUCTION_PASSWORD),
+    "db_user": Field(String, default_value=Config.POSTGRES_PRODUCTION_READONLY_USER),
+    "db_password": Field(String, default_value=Config.POSTGRES_PRODUCTION_READONLY_PASSWORD),
     "db_host": Field(String, default_value=Config.POSTGRES_PRODUCTION_DB),
     "db_port": Field(String, default_value=Config.POSTGRES_PRODUCTION_PORT),
 })
@@ -27,8 +27,8 @@ def psycopg2_connection_resource(init_context):
 
 @resource(config_schema={
     "db_name": Field(String, default_value=Config.POSTGRES_PRODUCTION_DB_NAME),
-    "db_user": Field(String, default_value=Config.POSTGRES_PRODUCTION_USER),
-    "db_password": Field(String, default_value=Config.POSTGRES_PRODUCTION_PASSWORD),
+    "db_user": Field(String, default_value=Config.POSTGRES_PRODUCTION_WRITE_ACCESS_USER),
+    "db_password": Field(String, default_value=Config.POSTGRES_PRODUCTION_WRITE_ACCESS_PASSWORD),
     "db_host": Field(String, default_value=Config.POSTGRES_PRODUCTION_DB),
     "db_port": Field(String, default_value=Config.POSTGRES_PRODUCTION_PORT),
 })

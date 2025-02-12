@@ -1,41 +1,29 @@
-import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
-import { JSX, useEffect } from 'react';
+import { JSX } from 'react';
 
-export type ConfirmationModalOptions = {
-  id: string;
-  /**
-   * @default false
-   */
-  isOpenedByDefault?: boolean;
-};
+import {
+  createExtendedModal,
+  ExtendedModalOptions,
+  ExtendedModalProps
+} from './ExtendedModal';
 
-export interface ConfirmationModalProps extends Omit<ModalProps, 'size'> {
-  size?: ModalProps['size'] | 'extra-large';
+export type ConfirmationModalOptions = ExtendedModalOptions;
+
+export interface ConfirmationModalProps
+  extends Omit<ExtendedModalProps, 'buttons'> {
   onSubmit?(): void;
 }
 
 export function createConfirmationModal(options: ConfirmationModalOptions) {
-  const modal = createModal({
-    id: options.id,
-    isOpenedByDefault: options.isOpenedByDefault ?? false
-  });
+  const modal = createExtendedModal(options);
 
   return {
     ...modal,
     Component(props: ConfirmationModalProps): JSX.Element {
-      const { size, onSubmit, ...rest } = props;
-
-      useEffect(() => {
-        if (size === 'extra-large') {
-          const container = document
-            .getElementById(options.id)
-            ?.querySelector('.fr-col-12');
-          container?.classList?.remove('fr-col-md-10', 'fr-col-lg-8');
-        }
-      }, [size]);
+      const { onSubmit, ...rest } = props;
 
       return (
         <modal.Component
+          {...rest}
           buttons={[
             {
               children: 'Annuler',
@@ -48,8 +36,6 @@ export function createConfirmationModal(options: ConfirmationModalOptions) {
               doClosesModal: true
             }
           ]}
-          size={size === 'extra-large' ? 'large' : size}
-          {...rest}
         />
       );
     }

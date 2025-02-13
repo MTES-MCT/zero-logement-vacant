@@ -15,8 +15,7 @@ seeds:
             epci_name: varchar(100)
             dep_siren: varchar(9)
             dep_name: varchar(100)
-            reg_siren: varchar(9)
-            reg_name: varchar(100)
+            "reg_siren": varchar(100)
             ept_siren: varchar(9)
             ept_name: varchar(100)
 
@@ -78,7 +77,7 @@ seeds:
           delimiter: ","
           quote: '"'
           strict_mode: false
-          ignore_errors: false
+          null_padding: true
           column_types:
             insee_code: varchar(5)
             code: varchar(9)
@@ -98,7 +97,6 @@ seeds:
           delimiter: ","
           header: true
           quote: '"'
-          escape: '"'
           column_types:
             CODGEO: varchar(5)
             UU2020: varchar(5)

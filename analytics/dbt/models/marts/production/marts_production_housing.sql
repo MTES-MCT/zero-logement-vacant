@@ -6,7 +6,7 @@ unique_key = 'housing_id',
 }}
 SELECT
 CAST (h.id as VARCHAR) as housing_id,
-h.* EXCLUDE (vacancy_reasons, precisions),
+h.* EXCLUDE (vacancy_reasons),
 hs.last_event_status_zlv_followup,
 hs.last_event_status_label_zlv_followup,
 hs.last_event_date_zlv_followup,

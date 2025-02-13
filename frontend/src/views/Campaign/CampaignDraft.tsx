@@ -165,7 +165,7 @@ function CampaignDraft(props: Readonly<Props>) {
           <Grid xs={11}>
             <Stepper
               currentStep={1}
-              nextTitle="Téléchargement du fichier de publipostage (XLSX) et/ou de vos courriers rédigés (PDF)."
+              nextTitle="Téléchargement des fichiers et validation de la date d’envoi"
               stepCount={2}
               title="Vérification des adresses propriétaires et édition de votre courrier"
             />

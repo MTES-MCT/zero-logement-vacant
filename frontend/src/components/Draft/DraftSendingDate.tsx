@@ -24,18 +24,17 @@ function DraftSendingDate(props: Readonly<Props>) {
 
   return (
     <Container as="section" className={props.className} fluid>
-      <Typography variant="h5" mb={2}>Votre date d’envoi de campagne</Typography>
+      <Typography variant="h5" mb={2}>2. Indiquez la date d’envoi de la campagne</Typography>
       <AppTextInput
         disabled={props.disabled}
         inputForm={props.form}
         inputKey="sentAt"
-        label="Date d’envoi de votre campagne (obligatoire)"
+        label="Date d’envoi (obligatoire)"
         type="date"
         value={value}
         onChange={(e) => props.onChange(e.target.value)}
         className="fr-mb-2w"
       />
-      <p className={`fr-info-text ${styles.info}`}>Après avoir téléchargé vos documents, indiquez la date d’envoi de votre campagne. Le statut des logements &quot;Non suivi&quot; passera automatiquement au statut &quot;En attente de retour&quot;. Les autres statuts ne seront pas modifiés.</p>
     </Container>
   );
 }

@@ -54,7 +54,7 @@ seeds:
           header: true
 
 
-      - name: cities
+      - name: cog_20240101
         config:
           delimiter: ","
           header: true

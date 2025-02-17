@@ -199,6 +199,7 @@ const HousingListView = () => {
               count={count}
               onBack={() => {
                 campaignCreationInfoModal.close();
+                groupOrCampaignCreationModal.open();
               }}
               onConfirm={() => {
                 campaignCreationInfoModal.close();

@@ -1,4 +1,4 @@
-from dagster import asset, MetadataValue, AssetExecutionContext, Output, op
+from dagster import asset, MetadataValue, AssetExecutionContext, Output
 import requests
 import pandas as pd
 from io import StringIO, BytesIO

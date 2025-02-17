@@ -27,6 +27,7 @@ import {
 } from '../../services/campaign.service';
 import NotFoundView from '../NotFoundView';
 import { useFilters } from '../../hooks/useFilters';
+import HousingListTabsProvider from '../HousingList/HousingListTabsProvider';
 
 interface RouterState {
   alert?: string;
@@ -125,64 +126,66 @@ function GroupView() {
   }
 
   return (
-    <Grid container position="relative">
-      <HousingListFiltersSidemenu
-        filters={filters}
-        expand={expand}
-        onChange={onChangeFilters}
-        onReset={onResetFilters}
-        onClose={() => setExpand(false)}
-      />
-
-      <Grid display="flex" flexDirection="column" px={3} py={4} xs>
-        <Group
-          campaigns={campaigns}
-          className="fr-mb-8w"
-          group={group}
-          onCampaignCreate={onCampaignCreate}
-          onExport={onGroupExport}
-          onUpdate={onGroupUpdate}
-          onRemove={onGroupRemove}
+    <HousingListTabsProvider>
+      <Grid container position="relative">
+        <HousingListFiltersSidemenu
+          filters={filters}
+          expand={expand}
+          onChange={onChangeFilters}
+          onReset={onResetFilters}
+          onClose={() => setExpand(false)}
         />
 
-        <Alert
-          severity="success"
-          description={alert}
-          closable
-          small
-          isClosed={!alert.length}
-          onClose={() => {}}
-          className="fr-mb-5w"
-        />
-
-        <Grid container mb={1} spacing={2} xs={12}>
-          <Grid xs>
-            <AppSearchBar
-              onSearch={(query) => onChangeFilters({ query })}
-              initialQuery={filters.query}
-              placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-            />
-          </Grid>
-          <Grid xs="auto">
-            <HousingDisplaySwitch />
-          </Grid>
-        </Grid>
-
-        <Grid xs={12}>
-          <HousingFiltersBadges filters={filters} onChange={removeFilters} />
-        </Grid>
-
-        {view === 'map' ? (
-          <HousingListMap filters={filters} />
-        ) : (
-          <HousingListTabs
-            filters={filters}
-            showCount={false}
-            showRemoveGroupHousing
+        <Grid display="flex" flexDirection="column" px={3} py={4} xs>
+          <Group
+            campaigns={campaigns}
+            className="fr-mb-8w"
+            group={group}
+            onCampaignCreate={onCampaignCreate}
+            onExport={onGroupExport}
+            onUpdate={onGroupUpdate}
+            onRemove={onGroupRemove}
           />
-        )}
+
+          <Alert
+            severity="success"
+            description={alert}
+            closable
+            small
+            isClosed={!alert.length}
+            onClose={() => {}}
+            className="fr-mb-5w"
+          />
+
+          <Grid container mb={1} spacing={2} xs={12}>
+            <Grid xs>
+              <AppSearchBar
+                onSearch={(query) => onChangeFilters({ query })}
+                initialQuery={filters.query}
+                placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+              />
+            </Grid>
+            <Grid xs="auto">
+              <HousingDisplaySwitch />
+            </Grid>
+          </Grid>
+
+          <Grid xs={12}>
+            <HousingFiltersBadges filters={filters} onChange={removeFilters} />
+          </Grid>
+
+          {view === 'map' ? (
+            <HousingListMap filters={filters} />
+          ) : (
+            <HousingListTabs
+              filters={filters}
+              showCount={false}
+              showRemoveGroupHousing
+            />
+          )}
+        </Grid>
       </Grid>
-    </Grid>
+    </HousingListTabsProvider>
   );
 }
 

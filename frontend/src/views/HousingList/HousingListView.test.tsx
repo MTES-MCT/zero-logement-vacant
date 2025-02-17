@@ -316,7 +316,10 @@ describe('Housing list view', () => {
   describe('Group creation', () => {
     function renderView() {
       const router = createMemoryRouter(
-        [{ path: '/parc-de-logements', element: <HousingListView /> }],
+        [
+          { path: '/parc-de-logements', element: <HousingListView /> },
+          { path: '/groupes/:id', element: <GroupView /> }
+        ],
         {
           initialEntries: ['/parc-de-logements']
         }
@@ -326,10 +329,19 @@ describe('Housing list view', () => {
           <RouterProvider router={router} />
         </Provider>
       );
+
+      return {
+        router
+      };
     }
 
     it('should add housings to an existing group', async () => {
-      renderView();
+      const creator = genUserDTO();
+      data.users.push(creator);
+      const group = genGroupDTO(creator);
+      data.groups.push(group);
+
+      const { router } = renderView();
 
       const exportOrContact = await screen.findByRole('button', {
         name: 'Exporter ou contacter'
@@ -348,17 +360,21 @@ describe('Housing list view', () => {
         name: 'Ajouter dans un groupe de logements'
       });
       expect(groupModal).toBeVisible();
-      const select = await within(groupModal).findByLabelText(
-        /Ajoutez votre sélection à un groupe existant/
-      );
-      await user.click(select);
-      const [option] = await within(groupModal).findAllByRole('option');
-      await user.click(option);
+      const select = await within(groupModal).findByRole('combobox', {
+        name: /Ajoutez votre sélection à un groupe existant/
+      });
+      await user.selectOptions(select, group.id);
+      const option: HTMLOptionElement = await screen.findByRole('option', {
+        name: group.title
+      });
+      expect(option.selected).toBe(true);
       const confirm = await within(groupModal).findByRole('button', {
         name: /^Confirmer/
       });
       await user.click(confirm);
-      expect(window.location.pathname).toStartWith('/groupes/');
+
+      screen.logTestingPlaygroundURL();
+      expect(router.state.location.pathname).toStartWith('/groupes/');
     });
 
     it.todo('should add housings to a new group');
@@ -410,7 +426,7 @@ describe('Housing list view', () => {
     });
 
     it('should create a new group', async () => {
-      renderView();
+      const { router } = renderView();
 
       const exportOrContact = await screen.findByRole('button', {
         name: 'Exporter ou contacter'
@@ -436,7 +452,7 @@ describe('Housing list view', () => {
         name: /Créer un groupe/
       });
       await user.click(confirm);
-      expect(window.location.pathname).toStartWith('/groupes');
+      expect(router.state.location.pathname).toStartWith('/groupes');
     });
 
     it.todo('should require a title and a description');

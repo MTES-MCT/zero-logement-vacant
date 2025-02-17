@@ -2,7 +2,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 
@@ -20,6 +20,14 @@ import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import createGroupOrCampaignCreationModal from '../../components/Group/GroupOrCampaignCreationModal';
 import createGroupAddHousingModal from '../../components/Group/GroupAddHousingModal';
 import createGroupCreationModal from '../../components/Group/GroupCreationModal';
+import {
+  useAddGroupHousingMutation,
+  useCreateGroupMutation
+} from '../../services/group.service';
+import { useNotification } from '../../hooks/useNotification';
+import { useSelection } from '../../hooks/useSelection';
+import { useHousingListTabs } from './HousingListTabsProvider';
+import { useCountHousingQuery } from '../../services/housing.service';
 
 const groupOrCampaignCreationModal = createGroupOrCampaignCreationModal();
 const groupAddHousingModal = createGroupAddHousingModal();
@@ -51,6 +59,7 @@ const HousingListView = () => {
   };
 
   const location: { state?: RouterState } = useLocation();
+  const navigate = useNavigate();
   const [alert, setAlert] = useState(location.state?.alert ?? '');
   function onFinish() {
     setAlert(
@@ -59,6 +68,44 @@ const HousingListView = () => {
   }
 
   const { isVisitor } = useUser();
+
+  const [createGroup, createGroupMutation] = useCreateGroupMutation();
+  useNotification({
+    toastId: 'create-group',
+    isError: createGroupMutation.isError,
+    isLoading: createGroupMutation.isLoading,
+    isSuccess: createGroupMutation.isSuccess,
+    message: {
+      error: 'Impossible de créer le groupe',
+      loading: 'Création du groupe...',
+      success: 'Groupe créé !'
+    }
+  });
+
+  const { selected } = useSelection(0, {
+    storage: 'store'
+  });
+  const { activeStatus } = useHousingListTabs();
+  const { data: count, isLoading: isCounting } = useCountHousingQuery({
+    ...filters,
+    all: selected.all,
+    housingIds: selected.ids,
+    status: activeStatus.value
+  });
+
+  const [addGroupHousing, addGroupHousingMutation] =
+    useAddGroupHousingMutation();
+  useNotification({
+    toastId: 'add-group-housing',
+    isError: addGroupHousingMutation.isError,
+    isLoading: addGroupHousingMutation.isLoading,
+    isSuccess: addGroupHousingMutation.isSuccess,
+    message: {
+      error: 'Impossible d’ajouter ces logements au groupe',
+      loading: 'Ajout des logements au groupe...',
+      success: 'Logements ajoutés au groupe !'
+    }
+  });
 
   return (
     <Grid container position="relative">
@@ -104,18 +151,32 @@ const HousingListView = () => {
               Exporter ou contacter
             </Button>
             <groupOrCampaignCreationModal.Component
+              count={count}
+              isCounting={isCounting}
               onGroup={() => {
                 groupOrCampaignCreationModal.close();
                 groupAddHousingModal.open();
               }}
             />
             <groupAddHousingModal.Component
+              count={count}
+              isCounting={isCounting}
               onBack={() => {
                 groupAddHousingModal.close();
                 groupOrCampaignCreationModal.open();
               }}
-              onExistingGroup={() => {
-                groupAddHousingModal.close();
+              onExistingGroup={(group) => {
+                addGroupHousing({
+                  id: group.id,
+                  all: selected.all,
+                  ids: selected.ids,
+                  filters: filters
+                })
+                  .unwrap()
+                  .then(() => {
+                    groupAddHousingModal.close();
+                    navigate(`/groupes/${group.id}`);
+                  });
               }}
               onNewGroup={() => {
                 groupAddHousingModal.close();
@@ -123,13 +184,34 @@ const HousingListView = () => {
               }}
             />
             <groupCreationModal.Component
+              count={count}
+              isCounting={isCounting}
               onBack={() => {
                 groupCreationModal.close();
                 groupAddHousingModal.open();
               }}
               onConfirm={({ title, description }) => {
-                console.log(title, description);
-                groupCreationModal.close();
+                createGroup({
+                  title,
+                  description,
+                  housing: {
+                    all: selected.all,
+                    ids: selected.ids,
+                    filters
+                  }
+                })
+                  .unwrap()
+                  .then(({ group, status }) => {
+                    groupCreationModal.close();
+                    navigate(`/groupes/${group.id}`, {
+                      state: {
+                        alert:
+                          status === 202
+                            ? 'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
+                            : 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
+                      }
+                    });
+                  });
               }}
             />
           </Grid>

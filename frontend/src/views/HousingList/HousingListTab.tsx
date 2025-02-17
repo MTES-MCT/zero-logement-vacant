@@ -75,7 +75,8 @@ const HousingListTab = ({
   const filteredCount = count;
 
   const { selectedCount, selected, setSelected } = useSelection(
-    filteredCount?.housing
+    filteredCount?.housing,
+    { storage: 'store' }
   );
   const filteredHousingCount = filteredCount?.housing;
   const filteredOwnerCount = filteredCount?.owners;

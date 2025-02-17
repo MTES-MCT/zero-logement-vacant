@@ -218,7 +218,10 @@ const HousingListView = () => {
                   housing: {
                     all: selected.all,
                     ids: selected.ids,
-                    filters: filters
+                    filters: {
+                      ...filters,
+                      status: activeStatus.value
+                    }
                   }
                 })
                   .unwrap()
@@ -240,7 +243,10 @@ const HousingListView = () => {
                   id: group.id,
                   all: selected.all,
                   ids: selected.ids,
-                  filters: filters
+                  filters: {
+                    ...filters,
+                    status: activeStatus.value
+                  }
                 })
                   .unwrap()
                   .then(() => {
@@ -267,7 +273,10 @@ const HousingListView = () => {
                   housing: {
                     all: selected.all,
                     ids: selected.ids,
-                    filters
+                    filters: {
+                      ...filters,
+                      status: activeStatus.value
+                    }
                   }
                 })
                   .unwrap()

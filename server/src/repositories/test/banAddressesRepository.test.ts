@@ -6,8 +6,7 @@ import banAddressesRepository, {
 } from '~/repositories/banAddressesRepository';
 import { genAddressApi, genHousingApi } from '~/test/testFixtures';
 import {
-  formatHousingRecordApi,
-  Housing
+  formatHousingRecordApi
 } from '~/repositories/housingRepository';
 import db from '~/infra/database';
 import { AddressApi } from '~/models/AddressApi';

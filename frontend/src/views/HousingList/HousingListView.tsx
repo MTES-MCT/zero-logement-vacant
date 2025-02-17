@@ -82,10 +82,14 @@ const HousingListView = () => {
     }
   });
 
-  const { selected } = useSelection(0, {
+  const { activeStatus } = useHousingListTabs();
+  const { data: totalCount } = useCountHousingQuery({
+    ...filters,
+    status: activeStatus.value
+  });
+  const { selected, hasSelected } = useSelection(totalCount?.housing ?? 0, {
     storage: 'store'
   });
-  const { activeStatus } = useHousingListTabs();
   const { data: count, isLoading: isCounting } = useCountHousingQuery({
     ...filters,
     all: selected.all,
@@ -106,6 +110,8 @@ const HousingListView = () => {
       success: 'Logements ajoutés au groupe !'
     }
   });
+
+  const [showExportAlert, setShowExportAlert] = useState(false);
 
   return (
     <Grid container position="relative">
@@ -146,7 +152,16 @@ const HousingListView = () => {
           <Grid xs="auto">
             <Button
               priority="primary"
-              onClick={groupOrCampaignCreationModal.open}
+              onClick={() => {
+                if (hasSelected) {
+                  groupOrCampaignCreationModal.open();
+                  if (showExportAlert) {
+                    setShowExportAlert(false);
+                  }
+                } else {
+                  setShowExportAlert(true);
+                }
+              }}
             >
               Exporter ou contacter
             </Button>
@@ -220,6 +235,16 @@ const HousingListView = () => {
         <Grid mb={3} xs={12}>
           <HousingFiltersBadges filters={filters} onChange={removeFilter} />
         </Grid>
+
+        {showExportAlert ? (
+          <Grid sx={{ mb: 2 }} xs={12}>
+            <Alert
+              description="Veuillez sélectionner les logements à exporter et/ou à contacter en cochant les cases correspondantes ci-dessous avant de cliquer sur le bouton."
+              severity="error"
+              title="Exporter ou contacter"
+            />
+          </Grid>
+        ) : null}
 
         <Grid mb={1} xs={12}>
           {view === 'map' ? (

@@ -28,7 +28,12 @@ import { useNotification } from '../../hooks/useNotification';
 import { useSelection } from '../../hooks/useSelection';
 import { useHousingListTabs } from './HousingListTabsProvider';
 import { useCountHousingQuery } from '../../services/housing.service';
+import createCampaignCreationModal from '../../components/Campaign/CampaignCreationModal';
+import createCampaignCreationInfoModal from '../../components/Campaign/CampaignCreationInfoModal';
+import { useCreateCampaignMutation } from '../../services/campaign.service';
 
+const campaignCreationInfoModal = createCampaignCreationInfoModal();
+const campaignCreationModal = createCampaignCreationModal();
 const groupOrCampaignCreationModal = createGroupOrCampaignCreationModal();
 const groupAddHousingModal = createGroupAddHousingModal();
 const groupCreationModal = createGroupCreationModal();
@@ -111,6 +116,19 @@ const HousingListView = () => {
     }
   });
 
+  const [createCampaign, createCampaignMutation] = useCreateCampaignMutation();
+  useNotification({
+    toastId: 'create-campaign',
+    isError: createCampaignMutation.isError,
+    isLoading: createCampaignMutation.isLoading,
+    isSuccess: createCampaignMutation.isSuccess,
+    message: {
+      error: 'Impossible de créer la campagne',
+      loading: 'Création de la campagne...',
+      success: 'Campagne créée !'
+    }
+  });
+
   const [showExportAlert, setShowExportAlert] = useState(false);
 
   return (
@@ -168,9 +186,45 @@ const HousingListView = () => {
             <groupOrCampaignCreationModal.Component
               count={count}
               isCounting={isCounting}
+              onCampaign={() => {
+                groupOrCampaignCreationModal.close();
+                campaignCreationInfoModal.open();
+              }}
               onGroup={() => {
                 groupOrCampaignCreationModal.close();
                 groupAddHousingModal.open();
+              }}
+            />
+            <campaignCreationInfoModal.Component
+              count={count}
+              onBack={() => {
+                campaignCreationInfoModal.close();
+              }}
+              onConfirm={() => {
+                campaignCreationInfoModal.close();
+                campaignCreationModal.open();
+              }}
+            />
+            <campaignCreationModal.Component
+              count={count}
+              onBack={() => {
+                campaignCreationModal.close();
+                campaignCreationInfoModal.open();
+              }}
+              onConfirm={(payload) => {
+                createCampaign({
+                  ...payload,
+                  housing: {
+                    all: selected.all,
+                    ids: selected.ids,
+                    filters: filters
+                  }
+                })
+                  .unwrap()
+                  .then((campaign) => {
+                    campaignCreationModal.close();
+                    navigate(`/campagnes/${campaign.id}`);
+                  });
               }}
             />
             <groupAddHousingModal.Component

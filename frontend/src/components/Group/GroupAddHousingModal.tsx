@@ -87,7 +87,7 @@ function createGroupAddHousingModal() {
                 onClick: form.handleSubmit(submit)
               }
             ]}
-            size="extra-extra-large"
+            size="extra-large"
             title="Ajouter dans un groupe de logements"
           >
             {props.isCounting && (

@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import async from 'async';
@@ -33,6 +34,7 @@ import { AppStore } from '../../store/store';
 import GroupView from '../Group/GroupView';
 import data from '../../mocks/handlers/data';
 import HousingListTabsProvider from './HousingListTabsProvider';
+import CampaignView from '../Campaign/CampaignView';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -413,6 +415,279 @@ describe('Housing list view', () => {
         name: 'Exporter ou contacter'
       });
       expect(alert).toBeVisible();
+    });
+  });
+
+  describe('Campaign creation', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          },
+          { path: '/campagnes/:id', element: <CampaignView /> }
+        ],
+        { initialEntries: ['/parc-de-logements'] }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
+
+      return {
+        router
+      };
+    }
+
+    it('should create a campaign', async () => {
+      const { router } = renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', { name: 'Créer une campagne' });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const title = await within(campaignCreationModal).findByRole('textbox', {
+        name: /^Titre de la campagne/
+      });
+      await user.type(title, 'Tous les logements');
+      const description = await within(campaignCreationModal).findByRole(
+        'textbox',
+        {
+          name: /^Description/
+        }
+      );
+      await user.type(description, 'Tous les logements disponibles');
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(confirm);
+      expect(router.state.location.pathname).toStartWith('/campagnes/');
+    });
+
+    it('should require a title', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(confirm);
+      const error = await within(campaignCreationModal).findByText(
+        'Veuillez donner un nom à la campagne pour confirmer.'
+      );
+      expect(error).toBeVisible();
+    });
+
+    it('should restrict require the description', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const title = await within(campaignCreationModal).findByRole('textbox', {
+        name: /^Titre de la campagne/
+      });
+      await user.type(title, 'Tous les logements');
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(confirm);
+      const error = await within(campaignCreationModal).findByText(
+        'Veuillez donner une description à la campagne pour confirmer.'
+      );
+      expect(error).toBeVisible();
+    });
+
+    it('should restrict the title to 64 characters', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const title = await within(campaignCreationModal).findByRole('textbox', {
+        name: /^Titre de la campagne/
+      });
+      await user.type(title, faker.string.alpha({ length: 65 }));
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(confirm);
+      const error = await within(campaignCreationModal).findByText(
+        'La longueur maximale du titre est de 64 caractères.'
+      );
+      expect(error).toBeVisible();
+    });
+
+    it('should restrict the description to 1000 characters', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const title = await within(campaignCreationModal).findByRole('textbox', {
+        name: /^Titre de la campagne/
+      });
+      await user.type(title, 'Tous les logements');
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      const description = await within(campaignCreationModal).findByRole(
+        'textbox',
+        {
+          name: /^Description/
+        }
+      );
+      await user.type(description, faker.string.alpha({ length: 1001 }));
+      await user.click(confirm);
+      const error = await within(campaignCreationModal).findByText(
+        'La longueur maximale de la description est de 1000 caractères.'
+      );
+      expect(error).toBeVisible();
     });
   });
 

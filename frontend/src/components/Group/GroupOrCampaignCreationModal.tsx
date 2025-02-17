@@ -11,6 +11,7 @@ import HousingCount from '../HousingCount/HousingCount';
 interface GroupOrCampaignCreationModalProps {
   count?: HousingCountDTO;
   isCounting: boolean;
+  onCampaign(): void;
   onGroup(): void;
 }
 
@@ -54,7 +55,7 @@ function createGroupOrCampaignCreationModal() {
                 image={documentDownload}
                 button="Ajouter dans un groupe"
                 buttonProps={{
-                  onClick: () => {
+                  onClick() {
                     props.onGroup();
                   }
                 }}
@@ -67,6 +68,11 @@ function createGroupOrCampaignCreationModal() {
                 description="Une campagne vous permet d'accéder à la liste des destinataires, de rédiger votre courrier et d'enregistrer vos prises de contact avec les propriétaires."
                 image={conclusion}
                 button="Créer une campagne"
+                buttonProps={{
+                  onClick() {
+                    props.onCampaign();
+                  }
+                }}
               />
             </Grid>
           </Grid>

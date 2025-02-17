@@ -13,17 +13,13 @@ import { HousingUpdate, SelectedHousing } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount, HousingCount } from '../../models/HousingCount';
 import {
-  useAddGroupHousingMutation,
-  useCreateGroupMutation,
   useGetGroupQuery,
   useRemoveGroupHousingMutation
 } from '../../services/group.service';
-import { Group } from '../../models/Group';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useCreateCampaignMutation } from '../../services/campaign.service';
 import fp from 'lodash/fp';
 import { HousingStatus } from '@zerologementvacant/models';
 import Typography from '@mui/material/Typography';
@@ -48,7 +44,6 @@ const HousingListTab = ({
   status,
   onCountFilteredHousing
 }: HousingListTabProps) => {
-  const navigate = useNavigate();
   const [
     updateHousingList,
     { isSuccess: isUpdateSuccess, data: updatedCount }
@@ -81,25 +76,6 @@ const HousingListTab = ({
     }
   }, [filteredCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const [createCampaign] = useCreateCampaignMutation();
-  const onSubmitCampaignCreation = async (
-    title: string,
-    description: string
-  ) => {
-    if (title) {
-      const created = await createCampaign({
-        title,
-        description,
-        housing: {
-          filters,
-          all: selected.all,
-          ids: selected.ids
-        }
-      }).unwrap();
-      navigate(`/campagnes/${created.id}`);
-    }
-  };
-
   const submitSelectedHousingUpdate = async (housingUpdate: HousingUpdate) => {
     try {
       await updateHousingList({
@@ -117,51 +93,6 @@ const HousingListTab = ({
     }
     setUpdatingSelectedHousing(undefined);
   };
-
-  const [addGroupHousing] = useAddGroupHousingMutation();
-
-  function selectGroup(group: Group): void {
-    if (selected) {
-      addGroupHousing({
-        id: group.id,
-        all: selected.all,
-        ids: selected.ids,
-        filters
-      });
-      navigate(`/groupes/${group.id}`, {
-        state: {
-          alert: 'Les logements sélectionnés ont bien été ajoutés à ce groupe.'
-        }
-      });
-    }
-  }
-
-  const [createGroup] = useCreateGroupMutation();
-  async function doCreateGroup(
-    group: Pick<Group, 'title' | 'description'>
-  ): Promise<void> {
-    try {
-      const response = await createGroup({
-        title: group.title,
-        description: group.description,
-        housing: {
-          all: selected.all,
-          ids: selected.ids,
-          filters
-        }
-      }).unwrap();
-      navigate(`/groupes/${response.group.id}`, {
-        state: {
-          alert:
-            response.status === 202
-              ? 'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
-              : 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
-        }
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
   const params = useParams<{ id?: string }>();
   const { data: group } = useGetGroupQuery(params?.id ?? '', {

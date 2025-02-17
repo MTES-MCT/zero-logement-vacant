@@ -14,17 +14,13 @@ interface Props {
    * @default true
    */
   showCount?: boolean;
-  showCreateGroup?: boolean;
   showRemoveGroupHousing?: boolean;
-  showCreateCampaign?: boolean;
 }
 
 const HousingListTabs = ({
   filters,
   showCount,
-  showCreateGroup,
-  showRemoveGroupHousing,
-  showCreateCampaign
+  showRemoveGroupHousing
 }: Props) => {
   const statuses = [
     { id: 'all', label: 'Tous', value: undefined },
@@ -62,9 +58,7 @@ const HousingListTabs = ({
           isActive={isActive(status)}
           key={`status-tab-${status.id}`}
           showCount={showCount}
-          showCreateGroup={showCreateGroup}
           showRemoveGroupHousing={showRemoveGroupHousing}
-          showCreateCampaign={showCreateCampaign}
           status={status.value}
           onCountFilteredHousing={setStatusCount(status)}
         />

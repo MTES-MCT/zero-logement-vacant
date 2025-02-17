@@ -3,7 +3,6 @@ import { useSelection } from '../../hooks/useSelection';
 import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import { Row } from '../../components/_dsfr';
-import CampaignCreationModal from '../../components/modals/CampaignCreationModal/CampaignCreationModal';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import {
@@ -13,7 +12,6 @@ import {
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount, HousingCount } from '../../models/HousingCount';
-import GroupAddHousingModal from '../../components/modals/GroupAddHousingModal/GroupAddHousingModal';
 import {
   useAddGroupHousingMutation,
   useCreateGroupMutation,
@@ -36,9 +34,7 @@ export type HousingListTabProps = {
    * @default true
    */
   showCount?: boolean;
-  showCreateGroup?: boolean;
   showRemoveGroupHousing?: boolean;
-  showCreateCampaign?: boolean;
   filters: HousingFilters;
   status?: HousingStatus;
   onCountFilteredHousing?: (count: HousingCount) => void;
@@ -48,9 +44,7 @@ const HousingListTab = ({
   filters,
   isActive,
   showCount,
-  showCreateGroup,
   showRemoveGroupHousing,
-  showCreateCampaign,
   status,
   onCountFilteredHousing
 }: HousingListTabProps) => {
@@ -236,26 +230,11 @@ const HousingListTab = ({
                     Mise à jour groupée
                   </Button>
                 )}
-                {showCreateGroup && (
-                  <GroupAddHousingModal
-                    className="fr-mr-1w"
-                    housingCount={selectedCount}
-                    onGroupSelect={selectGroup}
-                    onGroupCreate={doCreateGroup}
-                  />
-                )}
+
                 {showRemoveGroupHousing && (
                   <GroupRemoveHousingModal
                     housingCount={selectedCount}
                     onSubmit={doRemoveGroupHousing}
-                  />
-                )}
-                {showCreateCampaign && (
-                  <CampaignCreationModal
-                    housingCount={selectedCount}
-                    filters={filters}
-                    housingExcludedCount={filteredHousingCount - selectedCount}
-                    onSubmit={onSubmitCampaignCreation}
                   />
                 )}
 

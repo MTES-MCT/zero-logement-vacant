@@ -2,16 +2,12 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import async from 'async';
 import fp from 'lodash/fp';
-import { http, HttpResponse } from 'msw';
-import { constants } from 'node:http2';
 import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
 import {
   createMemoryRouter,
   MemoryRouter as Router,
-  Route,
-  RouterProvider,
-  Routes
+  RouterProvider
 } from 'react-router-dom';
 
 import {
@@ -32,12 +28,11 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import HousingListView from './HousingListView';
-import config from '../../utils/config';
 import configureTestStore from '../../utils/test/storeUtils';
 import { AppStore } from '../../store/store';
 import GroupView from '../Group/GroupView';
 import data from '../../mocks/handlers/data';
-import { mockAPI } from '../../mocks/mock-api';
+import HousingListTabsProvider from './HousingListTabsProvider';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -60,7 +55,9 @@ describe('Housing list view', () => {
     render(
       <Provider store={store}>
         <Router>
-          <HousingListView />
+          <HousingListTabsProvider>
+            <HousingListView />
+          </HousingListTabsProvider>
         </Router>
       </Provider>
     );
@@ -80,7 +77,9 @@ describe('Housing list view', () => {
     render(
       <Provider store={store}>
         <Router>
-          <HousingListView />
+          <HousingListTabsProvider>
+            <HousingListView />
+          </HousingListTabsProvider>
         </Router>
       </Provider>
     );
@@ -95,7 +94,9 @@ describe('Housing list view', () => {
     render(
       <Provider store={store}>
         <Router>
-          <HousingListView />
+          <HousingListTabsProvider>
+            <HousingListView />
+          </HousingListTabsProvider>
         </Router>
       </Provider>
     );
@@ -124,7 +125,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -169,7 +172,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -194,7 +199,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -226,98 +233,18 @@ describe('Housing list view', () => {
     });
   });
 
-  it('should add all housing to a group immediately', async () => {
-    render(
-      <Provider store={store}>
-        <Router initialEntries={['/parc-de-logements']}>
-          <Routes>
-            <Route path="/parc-de-logements" element={<HousingListView />} />
-            <Route path="/groupes/:id" element={<GroupView />} />
-          </Routes>
-        </Router>
-      </Provider>
-    );
-
-    const checkboxes = await within(
-      await screen.findByTestId('housing-table')
-    ).findAllByRole('checkbox');
-    const [checkAll] = checkboxes;
-    await user.click(checkAll);
-    const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
-    await user.click(addGroupHousing);
-    const modal = await screen.findByRole('dialog');
-    const createGroup = await within(modal).findByText(
-      /^Créer un nouveau groupe/
-    );
-    await user.click(createGroup);
-    const groupName = await within(modal).findByLabelText('Nom du groupe');
-    await user.type(groupName, 'My group');
-    const groupDescription = await within(modal).findByLabelText('Description');
-    await user.type(groupDescription, 'My group description');
-    const confirm = await within(modal).findByRole('button', {
-      name: /^Confirmer/
-    });
-    await user.click(confirm);
-
-    const alert = await screen.findByText(
-      'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
-    );
-    expect(alert).toBeVisible();
-  });
-
-  it('should create the group immediately and add the housing later', async () => {
-    const creator = genUserDTO();
-    const group = genGroupDTO(creator);
-    mockAPI.use(
-      http.post(`${config.apiEndpoint}/api/groups`, () => {
-        data.groups.push(group);
-        return HttpResponse.json(group, {
-          status: constants.HTTP_STATUS_ACCEPTED
-        });
-      })
-    );
-
-    render(
-      <Provider store={store}>
-        <Router initialEntries={['/parc-de-logements']}>
-          <Routes>
-            <Route path="/parc-de-logements" element={<HousingListView />} />
-            <Route path="/groupes/:id" element={<GroupView />} />
-          </Routes>
-        </Router>
-      </Provider>
-    );
-
-    const checkboxes = await within(
-      await screen.findByTestId('housing-table')
-    ).findAllByRole('checkbox');
-    const [checkAll] = checkboxes;
-    await user.click(checkAll);
-    const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
-    await user.click(addGroupHousing);
-    const modal = await screen.findByRole('dialog');
-    const createGroup = await within(modal).findByText(
-      /^Créer un nouveau groupe/
-    );
-    await user.click(createGroup);
-    const groupName = await within(modal).findByLabelText('Nom du groupe');
-    await user.type(groupName, 'My group');
-    const groupDescription = await within(modal).findByLabelText('Description');
-    await user.type(groupDescription, 'My group description');
-    const confirm = await within(modal).findByText('Confirmer');
-    await user.click(confirm);
-
-    const alert = await screen.findByText(
-      'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
-    );
-    expect(alert).toBeVisible();
-  });
-
   describe('Group creation', () => {
     function renderView() {
       const router = createMemoryRouter(
         [
-          { path: '/parc-de-logements', element: <HousingListView /> },
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          },
           { path: '/groupes/:id', element: <GroupView /> }
         ],
         {
@@ -343,6 +270,11 @@ describe('Housing list view', () => {
 
       const { router } = renderView();
 
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
       const exportOrContact = await screen.findByRole('button', {
         name: 'Exporter ou contacter'
       });
@@ -372,8 +304,6 @@ describe('Housing list view', () => {
         name: /^Confirmer/
       });
       await user.click(confirm);
-
-      screen.logTestingPlaygroundURL();
       expect(router.state.location.pathname).toStartWith('/groupes/');
     });
 
@@ -382,6 +312,11 @@ describe('Housing list view', () => {
     it('should go back to the first step', async () => {
       renderView();
 
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
       const exportOrContact = await screen.findByRole('button', {
         name: 'Exporter ou contacter'
       });
@@ -403,6 +338,11 @@ describe('Housing list view', () => {
     it('should go back to the previous step', async () => {
       renderView();
 
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
       const exportOrContact = await screen.findByRole('button', {
         name: 'Exporter ou contacter'
       });
@@ -428,6 +368,11 @@ describe('Housing list view', () => {
     it('should create a new group', async () => {
       const { router } = renderView();
 
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
       const exportOrContact = await screen.findByRole('button', {
         name: 'Exporter ou contacter'
       });
@@ -456,6 +401,19 @@ describe('Housing list view', () => {
     });
 
     it.todo('should require a title and a description');
+
+    it('should display an alert if trying to export without selecting housings', async () => {
+      renderView();
+
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const alert = await screen.findByRole('alert', {
+        name: 'Exporter ou contacter'
+      });
+      expect(alert).toBeVisible();
+    });
   });
 
   describe('Housing tabs', () => {
@@ -463,7 +421,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -476,7 +436,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -522,14 +484,20 @@ describe('Housing list view', () => {
       });
     });
 
-    it('should filter by a single campaign', async () => {
+    function renderView() {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
+    }
+
+    it('should filter by a single campaign', async () => {
+      renderView();
 
       const [campaign] = campaigns;
       const filter = await screen.findByLabelText(/^Campagne/);
@@ -537,21 +505,19 @@ describe('Housing list view', () => {
       const options = await screen.findByRole('listbox');
       const option = await within(options).findByText(campaign.title);
       await user.click(option);
+      await user.keyboard('{Escape}');
       const housings = data.campaignHousings.get(campaign.id) ?? [];
-      const count = await screen.findByText(
+      const panel = await screen.findByRole('tabpanel', {
+        name: /^Tous/
+      });
+      const count = await within(panel).findByText(
         new RegExp(`${housings.length} logements`)
       );
       expect(count).toBeVisible();
     });
 
     it('should filter by several campaigns', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
@@ -561,23 +527,21 @@ describe('Housing list view', () => {
         const option = await within(options).findByText(campaign.title);
         await user.click(option);
       });
+      await user.keyboard('{Escape}');
       const housings = slice.flatMap((campaign) => {
         return data.campaignHousings.get(campaign.id);
       });
-      const count = await screen.findByText(
+      const panel = await screen.findByRole('tabpanel', {
+        name: /^Tous/
+      });
+      const count = await within(panel).findByText(
         new RegExp(`${housings.length} logements`)
       );
       expect(count).toBeVisible();
     });
 
     it('should remove the filter by campaigns', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
@@ -590,7 +554,10 @@ describe('Housing list view', () => {
       const housings = slice.flatMap((campaign) => {
         return data.campaignHousings.get(campaign.id);
       });
-      let count = await screen.findByText(
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      let count = await within(panel).findByText(
         new RegExp(`${housings.length} logements`)
       );
       expect(count).toBeVisible();
@@ -598,7 +565,7 @@ describe('Housing list view', () => {
         const option = await within(options).findByText(campaign.title);
         await user.click(option);
       });
-      count = await screen.findByText(
+      count = await within(panel).findByText(
         new RegExp(`${data.housings.length} logements`)
       );
       expect(count).toBeVisible();
@@ -607,13 +574,7 @@ describe('Housing list view', () => {
     it('should filter by a status', async () => {
       const status: CampaignStatus = 'draft';
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
@@ -622,6 +583,7 @@ describe('Housing list view', () => {
         CAMPAIGN_STATUS_LABELS[status]
       );
       await user.click(option);
+      await user.keyboard('{Escape}');
       const housings = fp.uniqBy(
         (housing) => housing.id,
         data.campaigns
@@ -638,7 +600,10 @@ describe('Housing list view', () => {
             return housing;
           })
       );
-      const count = await screen.findByText(
+      const panel = await screen.findByRole('tabpanel', {
+        name: /^Tous/
+      });
+      const count = await within(panel).findByText(
         new RegExp(`${housings.length} logements`)
       );
       expect(count).toBeVisible();
@@ -647,13 +612,7 @@ describe('Housing list view', () => {
     it('should remove the filter by status', async () => {
       const status: CampaignStatus = 'draft';
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
@@ -662,6 +621,7 @@ describe('Housing list view', () => {
         CAMPAIGN_STATUS_LABELS[status]
       );
       await user.click(option);
+      await user.keyboard('{Escape}');
       const housings = fp.uniqBy(
         (housing) => housing.id,
         data.campaigns
@@ -678,12 +638,15 @@ describe('Housing list view', () => {
             return housing;
           })
       );
-      let count = await screen.findByText(
+      const panel = await screen.findByRole('tabpanel', {
+        name: /^Tous/
+      });
+      let count = await within(panel).findByText(
         new RegExp(`${housings.length} logements`)
       );
       expect(count).toBeVisible();
       await user.click(option);
-      count = await screen.findByText(
+      count = await within(panel).findByText(
         new RegExp(`${data.housings.length} logements`)
       );
       expect(count).toBeVisible();
@@ -692,14 +655,12 @@ describe('Housing list view', () => {
     it('should select a status and its campaigns if at least one of the campaigns is not selected', async () => {
       const status: CampaignStatus = 'draft';
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
+      const mobilization = await screen.findByRole('button', {
+        name: /^Mobilisation/
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
       const options = await screen.findByRole('listbox');
@@ -723,13 +684,7 @@ describe('Housing list view', () => {
     it('should unselect a status and its campaigns if all the campaigns of this status are selected', async () => {
       const status: CampaignStatus = 'draft';
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);

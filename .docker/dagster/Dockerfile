@@ -34,7 +34,7 @@ COPY analytics/dbt /opt/dagster/dbt
 
 WORKDIR /opt/dagster/dbt
 
-RUN dbt deps && dbt parse
+RUN dbt deps && dbt parse && dbt compile
 
 WORKDIR $DAGSTER_HOME
 

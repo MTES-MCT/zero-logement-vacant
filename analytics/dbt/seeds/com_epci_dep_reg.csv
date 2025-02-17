@@ -1,16 +1,16 @@
 com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;reg_name;ept_siren;ept_name
-97614;200008852;Ouangani;200059871;CC du Centre-Ouest;229850003;Mayotte;"";Mayotte;;
-97610;200008811;Koungou;200060465;CA du Grand Nord de Mayotte;229850003;Mayotte;"";Mayotte;;
-97603;200008738;Bandrele;200060473;CC du Sud;229850003;Mayotte;"";Mayotte;;
-97612;200008845;Mtsamboro;200060465;CA du Grand Nord de Mayotte;229850003;Mayotte;"";Mayotte;;
-97611;200008837;Mamoudzou;200060457;CA de Dembeni / Mamoudzou;229850003;Mayotte;"";Mayotte;;
-97607;200008787;Dembeni;200060457;CA de Dembeni / Mamoudzou;229850003;Mayotte;"";Mayotte;;
-97608;200008795;Dzaoudzi;200050532;CC de Petite-Terre;229850003;Mayotte;"";Mayotte;;
-97615;200008860;Pamandzi;200050532;CC de Petite-Terre;229850003;Mayotte;"";Mayotte;;
-97605;200008753;Chiconi;200059871;CC du Centre-Ouest;229850003;Mayotte;"";Mayotte;;
-97604;200008746;Bouéni;200060473;CC du Sud;229850003;Mayotte;"";Mayotte;;
-97602;200008720;Bandraboua;200060465;CA du Grand Nord de Mayotte;229850003;Mayotte;"";Mayotte;;
-97613;200008829;M'Tsangamouji;200059871;CC du Centre-Ouest;229850003;Mayotte;"";Mayotte;;
+97614;200008852;Ouangani;200059871;CC du Centre-Ouest;229850003;Mayotte;;Mayotte;;
+97610;200008811;Koungou;200060465;CA du Grand Nord de Mayotte;229850003;Mayotte;;Mayotte;;
+97603;200008738;Bandrele;200060473;CC du Sud;229850003;Mayotte;;Mayotte;;
+97612;200008845;Mtsamboro;200060465;CA du Grand Nord de Mayotte;229850003;Mayotte;;Mayotte;;
+97611;200008837;Mamoudzou;200060457;CA de Dembeni / Mamoudzou;229850003;Mayotte;;Mayotte;;
+97607;200008787;Dembeni;200060457;CA de Dembeni / Mamoudzou;229850003;Mayotte;;Mayotte;;
+97608;200008795;Dzaoudzi;200050532;CC de Petite-Terre;229850003;Mayotte;;Mayotte;;
+97615;200008860;Pamandzi;200050532;CC de Petite-Terre;229850003;Mayotte;;Mayotte;;
+97605;200008753;Chiconi;200059871;CC du Centre-Ouest;229850003;Mayotte;;Mayotte;;
+97604;200008746;Bouéni;200060473;CC du Sud;229850003;Mayotte;;Mayotte;;
+97602;200008720;Bandraboua;200060465;CA du Grand Nord de Mayotte;229850003;Mayotte;;Mayotte;;
+97613;200008829;M'Tsangamouji;200059871;CC du Centre-Ouest;229850003;Mayotte;;Mayotte;;
 97415;219740156;Saint-Paul;249740101;CA Territoire de la Côte Ouest (TCO);229740014;La Réunion;239740012;La Réunion;;
 97416;219740164;Saint-Pierre;249740077;CA CIVIS (Communauté Intercommunale des Villes Solidaires);229740014;La Réunion;239740012;La Réunion;;
 97417;219740172;Saint-Philippe;249740085;CA du Sud;229740014;La Réunion;239740012;La Réunion;;
@@ -663,7 +663,7 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 59654;215906546;Waziers;200044618;CA Douaisis Agglo;225900018;Nord;200053742;Hauts-de-France;;
 59002;215900028;Abscon;200042190;CA de la Porte du Hainaut;225900018;Nord;200053742;Hauts-de-France;;
 60071;216000711;Biermont;246000855;CC du Pays des Sources;226000016;Oise;200053742;Hauts-de-France;;
-97606;200008779;Chirongui;200060473;CC du Sud;229850003;Mayotte;"";Mayotte;;
+97606;200008779;Chirongui;200060473;CC du Sud;229850003;Mayotte;;Mayotte;;
 60339;216003368;Lafraye;200067999;CA du Beauvaisis;226000016;Oise;200053742;Hauts-de-France;;
 60461;216004564;Nivillers;200067999;CA du Beauvaisis;226000016;Oise;200053742;Hauts-de-France;;
 59466;215904665;Pont-à-Marcq;200041960;CC Pévèle-Carembault;225900018;Nord;200053742;Hauts-de-France;;
@@ -763,7 +763,7 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 09007;210900072;Allières;200067940;CC Couserans-Pyrénées;220900013;Ariège;200053791;Occitanie;;
 07145;210701454;Lussas;240700815;CC Berg et Coiron;220700017;Ardèche;200053767;Auvergne-Rhône-Alpes;;
 82186;218201861;Valence;248200016;CC des Deux Rives;228200010;Tarn-et-Garonne;200053791;Occitanie;;
-97601;200008712;Acoua;200060465;CA du Grand Nord de Mayotte;229850003;Mayotte;"";Mayotte;;
+97601;200008712;Acoua;200060465;CA du Grand Nord de Mayotte;229850003;Mayotte;;Mayotte;;
 02549;210205266;Neuville-Saint-Amand;200071892;CA du Saint-Quentinois;220200026;Aisne;200053742;Hauts-de-France;;
 02550;210205274;Neuville-sur-Ailette;240200592;CC du Chemin des Dames;220200026;Aisne;200053742;Hauts-de-France;;
 02551;210205282;Neuville-sur-Margival;240200501;CC du Val de l'Aisne;220200026;Aisne;200053742;Hauts-de-France;;
@@ -3032,7 +3032,7 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 95627;219506276;Vallangoujard;249500430;CC Sausseron Impressionnistes;229501275;Val-d'Oise;237500079;Île-de-France;;
 01309;210103099;Pouillat;200071751;CA du Bassin de Bourg-en-Bresse;220100010;Ain;200053767;Auvergne-Rhône-Alpes;;
 01310;210103107;Prémeyzel;200040350;CC Bugey Sud;220100010;Ain;200053767;Auvergne-Rhône-Alpes;;
-97617;200008886;Tsingoni;200059871;CC du Centre-Ouest;229850003;Mayotte;"";Mayotte;;
+97617;200008886;Tsingoni;200059871;CC du Centre-Ouest;229850003;Mayotte;;Mayotte;;
 02525;210205027;Morcourt;200071892;CA du Saint-Quentinois;220200026;Aisne;200053742;Hauts-de-France;;
 02526;210205035;Morgny-en-Thiérache;240200634;CC des Portes de la Thiérache;220200026;Aisne;200053742;Hauts-de-France;;
 02527;210205043;Morsain;200071991;CC Retz-en-Valois;220200026;Aisne;200053742;Hauts-de-France;;
@@ -3065,7 +3065,7 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 03241;210302410;Saint-Léopardin-d'Augy;200071140;CA Moulins Communauté;220300016;Allier;200053767;Auvergne-Rhône-Alpes;;
 59224;215902248;Féchain;200044618;CA Douaisis Agglo;225900018;Nord;200053742;Hauts-de-France;;
 05117;210501177;Ribeyret;200068765;CC du Sisteronais-Buëch;220500011;Hautes-Alpes;231300021;Provence-Alpes-Côte d'Azur;;
-97609;200008803;Kani-Kéli;200060473;CC du Sud;229850003;Mayotte;"";Mayotte;;
+97609;200008803;Kani-Kéli;200060473;CC du Sud;229850003;Mayotte;;Mayotte;;
 06135;210601357;Sigale;200039931;CC Alpes d'Azur;220600019;Alpes-Maritimes;231300021;Provence-Alpes-Côte d'Azur;;
 07140;210701405;Lemps;200073096;CA Arche Agglo;220700017;Ardèche;200053767;Auvergne-Rhône-Alpes;;
 08077;210800710;Bourcq;240800920;CC de l'Argonne Ardennaise;220800049;Ardennes;200052264;Grand Est;;
@@ -3277,7 +3277,7 @@ com_code;com_siren;com_name;epci_siren;epci_name;dep_siren;dep_name;reg_siren;re
 82106;218201069;Maubec;248200065;CC de la Lomagne Tarn-et-Garonnaise;228200010;Tarn-et-Garonne;200053791;Occitanie;;
 82107;218201077;Maumusson;248200065;CC de la Lomagne Tarn-et-Garonnaise;228200010;Tarn-et-Garonne;200053791;Occitanie;;
 82108;218201085;Meauzac;200067122;CC du Pays de Lafrançaise;228200010;Tarn-et-Garonne;200053791;Occitanie;;
-97616;200008878;Sada;200059871;CC du Centre-Ouest;229850003;Mayotte;"";Mayotte;;
+97616;200008878;Sada;200059871;CC du Centre-Ouest;229850003;Mayotte;;Mayotte;;
 82162;218201622;Saint-Georges;248200057;CC du Quercy Caussadais;228200010;Tarn-et-Garonne;200053791;Occitanie;;
 82163;218201630;Saint-Jean-du-Bouzet;248200065;CC de la Lomagne Tarn-et-Garonnaise;228200010;Tarn-et-Garonne;200053791;Occitanie;;
 82164;218201648;Sainte-Juliette;200040418;CC du Pays de Serres en Quercy;228200010;Tarn-et-Garonne;200053791;Occitanie;;

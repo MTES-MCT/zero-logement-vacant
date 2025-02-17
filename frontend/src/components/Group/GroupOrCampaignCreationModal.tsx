@@ -1,19 +1,25 @@
 import Grid from '@mui/material/Unstable_Grid2';
+import Skeleton from '@mui/material/Skeleton';
 
+import { HousingCountDTO } from '@zerologementvacant/models';
 import conclusion from '../../assets/images/conclusion.svg';
 import documentDownload from '../../assets/images/document-download.svg';
 import GroupOrCampaignCard from './GroupOrCampaignCard';
 import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
+import HousingCount from '../HousingCount/HousingCount';
 
 interface GroupOrCampaignCreationModalProps {
+  count?: HousingCountDTO;
+  isCounting: boolean;
   onGroup(): void;
 }
 
 function createGroupOrCampaignCreationModal() {
-  const modal = createExtendedModal({
+  const options = {
     id: 'group-or-campaign-creation-modal',
     isOpenedByDefault: false
-  });
+  };
+  const modal = createExtendedModal(options);
 
   return {
     ...modal,
@@ -28,6 +34,19 @@ function createGroupOrCampaignCreationModal() {
               justifyContent: 'stretch'
             }}
           >
+            <Grid xs={12}>
+              {props.isCounting && (
+                <Skeleton animation="wave" height="1.5rem" width="20rem" />
+              )}
+              {props.count && (
+                <HousingCount
+                  housingCount={props.count.housing}
+                  ownerCount={props.count.owners}
+                  suffix
+                />
+              )}
+            </Grid>
+
             <Grid xs={6}>
               <GroupOrCampaignCard
                 title="Analyser et exporter une liste de logements"

@@ -3,15 +3,20 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Select, { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material/styles';
+import Skeleton from '@mui/material/Skeleton';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FormProvider, useController, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
+import { HousingCountDTO } from '@zerologementvacant/models';
 import { useFindGroupsQuery } from '../../services/group.service';
 import { Group } from '../../models/Group';
 import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
+import HousingCount from '../HousingCount/HousingCount';
 
 interface GroupAddHousingModalProps {
+  count?: HousingCountDTO;
+  isCounting: boolean;
   onBack(): void;
   onExistingGroup(group: Group): void;
   onNewGroup(): void;
@@ -27,10 +32,11 @@ const schema = yup.object({
 });
 
 function createGroupAddHousingModal() {
-  const modal = createExtendedModal({
+  const modalOptions = {
     id: 'group-add-housing',
     isOpenedByDefault: false
-  });
+  };
+  const modal = createExtendedModal(modalOptions);
 
   return {
     ...modal,
@@ -84,7 +90,17 @@ function createGroupAddHousingModal() {
             size="extra-extra-large"
             title="Ajouter dans un groupe de logements"
           >
-            {/*<HousingCount housingCount={selection.housingCount} ownerCount={selection.ownerCount} />*/}
+            {props.isCounting && (
+              <Skeleton animation="wave" height="1.5rem" width="20rem" />
+            )}
+            {props.count && (
+              <HousingCount
+                housingCount={props.count.housing}
+                ownerCount={props.count.owners}
+                suffix
+              />
+            )}
+
             <Grid container sx={{ justifyContent: 'center' }}>
               <Grid sx={{ display: 'flex', flexDirection: 'column' }} xs={8}>
                 {/* Shall be replaced by <AppSelectNext>

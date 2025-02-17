@@ -3,15 +3,18 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
+import { HousingCountDTO } from '@zerologementvacant/models';
 import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+import { Group } from '../../models/Group';
+import Skeleton from '.store/@mui-material-virtual-9eed31e1f3/package/Skeleton';
+import HousingCount from '../HousingCount/HousingCount';
 
-interface Payload {
-  title: string;
-  description: string;
-}
+type Payload = Pick<Group, 'title' | 'description'>;
 
 export interface GroupCreationModalProps {
+  count?: HousingCountDTO;
+  isCounting: boolean;
   onBack(): void;
   onConfirm(payload: Payload): void;
 }
@@ -75,6 +78,19 @@ function createGroupCreationModal() {
             size="extra-large"
             title="Créer un nouveau groupe de logements"
           >
+            <Grid xs={12} sx={{ mb: 2 }}>
+              {props.isCounting && (
+                <Skeleton animation="wave" height="1.5rem" width="20rem" />
+              )}
+              {props.count && (
+                <HousingCount
+                  housingCount={props.count.housing}
+                  ownerCount={props.count.owners}
+                  suffix
+                />
+              )}
+            </Grid>
+
             <Grid container sx={{ mb: 2 }}>
               <Grid xs={5}>
                 <AppTextInputNext

@@ -13,6 +13,9 @@ fileignoreconfig:
   checksum: 249b0bbdbabcb31a1b1c28e45bb2633b809fcb0a66e2b582843e124e33a53c85
 - filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
   checksum: 38152c001d15c8cc29aadb2fec78522d0913f0f1724b460cc22a9254bce531cc
+  checksum: d556ad85427e5e9449f62706d4a659fedc15b7e49b37b1e895bfdccef7a53eec
+- filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
+  checksum: 54f8ccc9115fd975ec41d6d43d3bc0f4deef78862ab9d10b077be993e128d1ca
 - filename: analytics/dagster/src/resources/ban_config.py
   checksum: 034c6924978983da0ca5897bb06b64598a5a813dc93d1d9e8f8a62da952d4d22
 - filename: analytics/dagster/src/resources/database_resources.py

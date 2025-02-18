@@ -12,8 +12,7 @@ CSV_FILE_NAME = "search_housings.csv"
 
 @asset(
   description="Return housing records from `fast_housing` that have no matching entry in `ban_addresses`.",
-  required_resource_keys={"psycopg2_connection"},
-  required_resource_keys={"ban_config"}
+  required_resource_keys={"psycopg2_connection", "ban_config"}
 )
 def housings_without_address(context: AssetExecutionContext):
   config = context.resources.ban_config

@@ -300,15 +300,15 @@ const HousingListView = () => {
           <HousingFiltersBadges filters={filters} onChange={removeFilter} />
         </Grid>
 
-        {showExportAlert ? (
-          <Grid sx={{ mb: 2 }} xs={12}>
-            <Alert
-              description="Veuillez sélectionner les logements à exporter et/ou à contacter en cochant les cases correspondantes ci-dessous avant de cliquer sur le bouton."
-              severity="error"
-              title="Exporter ou contacter"
-            />
-          </Grid>
-        ) : null}
+        <Alert
+          className="fr-mb-2w"
+          closable
+          isClosed={!showExportAlert}
+          severity="error"
+          title="Aucun logement sélectionné"
+          description="Sélectionnez les logements à exporter ou contacter dans le tableau ci-dessous puis cliquez sur le bouton “Exporter ou contacter”."
+          onClose={() => setShowExportAlert(false)}
+        />
 
         <Grid mb={1} xs={12}>
           {view === 'map' ? (

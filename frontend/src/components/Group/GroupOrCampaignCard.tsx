@@ -2,9 +2,10 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { ReactNode } from 'react';
 
 interface GroupOrCampaignCardProps {
-  title: string;
+  title: ReactNode;
   description: string;
   image: string;
   button: string;
@@ -16,7 +17,6 @@ function GroupOrCampaignCard(props: GroupOrCampaignCardProps) {
     <Stack
       component="article"
       direction="column"
-      spacing="1.5rem"
       sx={{
         alignItems: 'center',
         background: fr.colors.decisions.background.default.grey,
@@ -28,12 +28,12 @@ function GroupOrCampaignCard(props: GroupOrCampaignCardProps) {
         textAlign: 'center'
       }}
     >
-      <Typography component="h2" variant="h4">
+      <Typography component="h2" sx={{ mb: 1 }} variant="h6">
         {props.title}
       </Typography>
-      <img src={props.image} alt="" />
       <Typography variant="body2">{props.description}</Typography>
-      <Button {...props.buttonProps} priority="secondary">
+      <img src={props.image} alt="" width={120} height={120} />
+      <Button className="fr-mt-3w" {...props.buttonProps} priority="secondary">
         {props.button}
       </Button>
     </Stack>

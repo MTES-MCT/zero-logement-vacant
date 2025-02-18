@@ -73,7 +73,7 @@ function createCampaignCreationModal() {
             size="extra-large"
             title="Créer une campagne"
           >
-            <Grid xs={12} sx={{ mb: 2 }}>
+            <Grid xs={12} sx={{ mt: -1, mb: 2 }}>
               {props.count && (
                 <HousingCount
                   housingCount={props.count.housing}

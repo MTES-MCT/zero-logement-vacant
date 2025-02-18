@@ -29,13 +29,13 @@ function createGroupOrCampaignCreationModal() {
         <modal.Component size="extra-large" title="Que souhaitez-vous faire ?">
           <Grid
             container
-            spacing={2}
+            columnSpacing={2}
             sx={{
               alignItems: 'stretch',
               justifyContent: 'stretch'
             }}
           >
-            <Grid xs={12}>
+            <Grid sx={{ mt: -1, mb: 2 }} xs={12}>
               {props.isCounting && (
                 <Skeleton animation="wave" height="1.5rem" width="20rem" />
               )}
@@ -50,7 +50,13 @@ function createGroupOrCampaignCreationModal() {
 
             <Grid xs={6}>
               <GroupOrCampaignCard
-                title="Analyser et exporter une liste de logements"
+                title={
+                  <>
+                    Analyser et exporter
+                    <br />
+                    une liste de logements
+                  </>
+                }
                 description="Un groupe vous permet de créer une liste de logements que vous pourrez analyser ou exporter au format excel."
                 image={documentDownload}
                 button="Ajouter dans un groupe"

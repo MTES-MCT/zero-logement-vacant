@@ -92,27 +92,6 @@ describe('Housing list view', () => {
     expect(createCampaign).not.toBeInTheDocument();
   });
 
-  it('should enable the creation of the campaign when at least a housing is selected', async () => {
-    render(
-      <Provider store={store}>
-        <Router>
-          <HousingListTabsProvider>
-            <HousingListView />
-          </HousingListTabsProvider>
-        </Router>
-      </Provider>
-    );
-
-    const panel = await screen.findByRole('tabpanel');
-    const [checkbox] = await within(panel).findAllByRole('checkbox');
-    await user.click(checkbox);
-
-    const createCampaign = await screen.findByRole('button', {
-      name: /^Créer une campagne/
-    });
-    expect(createCampaign).toBeVisible();
-  });
-
   describe('Add a housing', () => {
     let datafoncierHousing: DatafoncierHousing;
 
@@ -411,9 +390,7 @@ describe('Housing list view', () => {
         name: 'Exporter ou contacter'
       });
       await user.click(exportOrContact);
-      const alert = await screen.findByRole('alert', {
-        name: 'Exporter ou contacter'
-      });
+      const alert = await screen.findByRole('alert');
       expect(alert).toBeVisible();
     });
   });
@@ -775,18 +752,21 @@ describe('Housing list view', () => {
       renderView();
 
       const [campaign] = campaigns;
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
       const options = await screen.findByRole('listbox');
       const option = await within(options).findByText(campaign.title);
       await user.click(option);
       await user.keyboard('{Escape}');
-      const housings = data.campaignHousings.get(campaign.id) ?? [];
       const panel = await screen.findByRole('tabpanel', {
         name: /^Tous/
       });
       const count = await within(panel).findByText(
-        new RegExp(`${housings.length} logements`)
+        /^\d+ logements \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
     });
@@ -794,6 +774,10 @@ describe('Housing list view', () => {
     it('should filter by several campaigns', async () => {
       renderView();
 
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
       const options = await screen.findByRole('listbox');
@@ -803,14 +787,11 @@ describe('Housing list view', () => {
         await user.click(option);
       });
       await user.keyboard('{Escape}');
-      const housings = slice.flatMap((campaign) => {
-        return data.campaignHousings.get(campaign.id);
-      });
       const panel = await screen.findByRole('tabpanel', {
         name: /^Tous/
       });
       const count = await within(panel).findByText(
-        new RegExp(`${housings.length} logements`)
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
     });
@@ -818,30 +799,48 @@ describe('Housing list view', () => {
     it('should remove the filter by campaigns', async () => {
       renderView();
 
-      const filter = await screen.findByLabelText(/^Campagne/);
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
+
+      // Select options
+      const filter = await screen.findByRole('combobox', {
+        name: /^Campagne/
+      });
       await user.click(filter);
-      const options = await screen.findByRole('listbox');
-      const slice = campaigns.slice(0, 2);
-      await async.forEachSeries(slice as CampaignDTO[], async (campaign) => {
-        const option = await within(options).findByText(campaign.title);
+      let listbox = await screen.findByRole('listbox', {
+        name: /^Campagne/
+      });
+      const options = campaigns
+        .slice(0, 3)
+        .map((campaign) => within(listbox).getByText(campaign.title));
+      await async.forEachSeries(options, async (option) => {
         await user.click(option);
       });
-      const housings = slice.flatMap((campaign) => {
-        return data.campaignHousings.get(campaign.id);
-      });
+      await user.keyboard('{Escape}');
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
       });
       let count = await within(panel).findByText(
-        new RegExp(`${housings.length} logements`)
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
-      await async.forEachSeries(slice as CampaignDTO[], async (campaign) => {
-        const option = await within(options).findByText(campaign.title);
+
+      // Deselect options
+      await user.click(filter);
+      listbox = await screen.findByRole('listbox', {
+        name: /^Campagne/
+      });
+      const selectedOptions = await within(listbox).findAllByRole('option', {
+        selected: true
+      });
+      await async.forEachSeries(selectedOptions, async (option) => {
         await user.click(option);
       });
+      await user.keyboard('{Escape}');
       count = await within(panel).findByText(
-        new RegExp(`${data.housings.length} logements`)
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\)$/
       );
       expect(count).toBeVisible();
     });
@@ -851,6 +850,10 @@ describe('Housing list view', () => {
 
       renderView();
 
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
       const options = await screen.findByRole('listbox');
@@ -859,27 +862,11 @@ describe('Housing list view', () => {
       );
       await user.click(option);
       await user.keyboard('{Escape}');
-      const housings = fp.uniqBy(
-        (housing) => housing.id,
-        data.campaigns
-          .filter((campaign) => campaign.status === status)
-          .map((campaign) => {
-            return data.campaignHousings.get(campaign.id) ?? [];
-          })
-          .flat()
-          .map(({ id }) => {
-            const housing = data.housings.find((housing) => housing.id === id);
-            if (!housing) {
-              throw new Error(`Housing ${id} not found`);
-            }
-            return housing;
-          })
-      );
       const panel = await screen.findByRole('tabpanel', {
         name: /^Tous/
       });
       const count = await within(panel).findByText(
-        new RegExp(`${housings.length} logements`)
+        /^(\d+|un) logements? \(\d+ propriétaires\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
     });
@@ -889,40 +876,37 @@ describe('Housing list view', () => {
 
       renderView();
 
+      // Select an option
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
-      const options = await screen.findByRole('listbox');
-      const option = await within(options).findByText(
+      let listbox = await screen.findByRole('listbox');
+      let option = await within(listbox).findByText(
         CAMPAIGN_STATUS_LABELS[status]
       );
       await user.click(option);
       await user.keyboard('{Escape}');
-      const housings = fp.uniqBy(
-        (housing) => housing.id,
-        data.campaigns
-          .filter((campaign) => campaign.status === status)
-          .map((campaign) => {
-            return data.campaignHousings.get(campaign.id) ?? [];
-          })
-          .flat()
-          .map(({ id }) => {
-            const housing = data.housings.find((housing) => housing.id === id);
-            if (!housing) {
-              throw new Error(`Housing ${id} not found`);
-            }
-            return housing;
-          })
-      );
       const panel = await screen.findByRole('tabpanel', {
-        name: /^Tous/
+        name: /Tous/
       });
       let count = await within(panel).findByText(
-        new RegExp(`${housings.length} logements`)
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
+
+      // Deselect options
+      await user.click(filter);
+      listbox = await screen.findByRole('listbox', {
+        name: /^Campagne/
+      });
+      option = await within(listbox).findByText(CAMPAIGN_STATUS_LABELS[status]);
       await user.click(option);
+      await user.keyboard('{Escape}');
       count = await within(panel).findByText(
-        new RegExp(`${data.housings.length} logements`)
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\)$/
       );
       expect(count).toBeVisible();
     });

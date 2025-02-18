@@ -2,9 +2,10 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Select, { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { yupResolver } from '@hookform/resolvers/yup';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Unstable_Grid2';
 import { styled } from '@mui/material/styles';
 import Skeleton from '@mui/material/Skeleton';
-import Grid from '@mui/material/Unstable_Grid2';
 import { FormProvider, useController, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
@@ -90,16 +91,18 @@ function createGroupAddHousingModal() {
             size="extra-large"
             title="Ajouter dans un groupe de logements"
           >
-            {props.isCounting && (
-              <Skeleton animation="wave" height="1.5rem" width="20rem" />
-            )}
-            {props.count && (
-              <HousingCount
-                housingCount={props.count.housing}
-                ownerCount={props.count.owners}
-                suffix
-              />
-            )}
+            <Box sx={{ mt: -1, mb: 2 }}>
+              {props.isCounting && (
+                <Skeleton animation="wave" height="1.5rem" width="20rem" />
+              )}
+              {props.count && (
+                <HousingCount
+                  housingCount={props.count.housing}
+                  ownerCount={props.count.owners}
+                  suffix
+                />
+              )}
+            </Box>
 
             <Grid container sx={{ justifyContent: 'center' }}>
               <Grid sx={{ display: 'flex', flexDirection: 'column' }} xs={8}>

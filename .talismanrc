@@ -10,7 +10,7 @@ fileignoreconfig:
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
   checksum: c3a27f2457d2c1cd5f01ef1940c78bc40f8dedb0aff7a5edbc0d1b1e5000f5d3
 - filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py
-  checksum: 5b3aefb3ad225b8bd1f325f5f25505a06ba935c0545cdb80f487eecf6a993b19
+  checksum: eaec36a7c15ba00739499d3bc6c922c1bbaa265046d544260a868706c8be8fde
 - filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
   checksum: 091c5619a7dcc7dd702fd2120ce937cf1c5ee123c1a15d2d775b9ba936bccbfa
 - filename: analytics/dagster/src/resources/ban_config.py

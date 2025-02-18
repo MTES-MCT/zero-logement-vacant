@@ -19,7 +19,7 @@ const config: JestConfigWithTsJest = {
   forceExit: true,
   rootDir: '.',
   roots: ['<rootDir>'],
-  moduleDirectories: ['node_modules', '<rootDir>'],
+  modulePaths: [tsconfig.compilerOptions.baseUrl],
   moduleNameMapper: pathsToModuleNameMapper(tsconfig.compilerOptions.paths),
   modulePathIgnorePatterns: [
     '<rootDir>/dist/',

@@ -317,6 +317,7 @@ function ownerRowData(
     ownerAddress: formatAddressApi(ownerAddress),
     ownerAddressHouseNumber: ownerAddress?.houseNumber,
     ownerAddressStreet: ownerAddress?.street,
+    ownerAdditionalAddress: owner?.additionalAddress,
     ownerAddressPostalCode: ownerAddress?.postalCode,
     ownerAddressCity: ownerAddress?.city,
     ownerAddressScore: ownerAddress?.score
@@ -356,7 +357,8 @@ const ownerWorksheetColumns = [
   {
     header: 'Adresse BAN du propriétaire - Fiabilité',
     key: 'ownerAddressScore'
-  }
+  },
+  { header: 'Complément d\'adresse du propriétaire', key: 'ownerAdditionalAddress' }
 ];
 
 const addOwnerWorksheet = (

@@ -15,6 +15,7 @@ CSV_FILE_NAME = "search_housings.csv"
   required_resource_keys={"psycopg2_connection"}
 )
 def housings_without_address(context: AssetExecutionContext):
+  config = context.resources.ban_config
   output_file = "housings_without_address.parquet"
   query = """
   SELECT fh.id as housing_id, array_to_string(fh.address_dgfip, ' ') as address_dgfip, fh.geo_code
@@ -26,7 +27,7 @@ def housings_without_address(context: AssetExecutionContext):
   try:
       with context.resources.psycopg2_connection as conn:
           parquet_writer = None
-          chunksize = 1_000
+          chunksize = config.chunk_size
 
           for chunk in pd.read_sql_query(query, conn, chunksize=chunksize):
               table = pa.Table.from_pandas(chunk)

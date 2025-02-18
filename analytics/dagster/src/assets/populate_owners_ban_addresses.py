@@ -13,6 +13,7 @@ import time
   required_resource_keys={"psycopg2_connection"}
 )
 def owners_without_address(context: AssetExecutionContext):
+    config = context.resources.ban_config
     output_file="owners_without_address.parquet"
     query = """
     SELECT
@@ -27,7 +28,7 @@ def owners_without_address(context: AssetExecutionContext):
     try:
         with context.resources.psycopg2_connection as conn:
             parquet_writer = None
-            chunksize = 1_000
+            chunksize = config.chunk_size
 
             for chunk in pd.read_sql_query(query, conn, chunksize=chunksize):
                 table = pa.Table.from_pandas(chunk)

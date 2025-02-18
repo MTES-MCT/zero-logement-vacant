@@ -10,7 +10,7 @@ import time
 
 @asset(
   description="Return owners with no BAN address or a non-validated BAN address (score < 1).",
-  required_resource_keys={"psycopg2_connection"}
+  required_resource_keys={"psycopg2_connection"},
   required_resource_keys={"ban_config"}
 )
 def owners_without_address(context: AssetExecutionContext):

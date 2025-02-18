@@ -138,9 +138,10 @@ def process_parquet_housings_chunks_with_api(context: AssetExecutionContext, spl
 
 @asset(
     description="Parse the aggregated Parquet file from the BAN address API, insert valid housings' addresses into `ban_addresses`, and return the count of processed records.",
-    required_resource_keys={"psycopg2_connection"}
+    required_resource_keys={"psycopg2_connection", "ban_config"}
 )
 def parse_api_response_and_insert_housing_addresses(context: AssetExecutionContext, process_parquet_housings_chunks_with_api: str):
+    config = context.resources.ban_config
     if not os.path.exists(process_parquet_housings_chunks_with_api):
         context.log.error(f"File not found: {process_parquet_housings_chunks_with_api}")
         raise FileNotFoundError(f"File not found: {process_parquet_housings_chunks_with_api}")
@@ -168,7 +169,7 @@ def parse_api_response_and_insert_housing_addresses(context: AssetExecutionConte
             """)
 
             parquet_file = pq.ParquetFile(process_parquet_housings_chunks_with_api)
-            for batch in parquet_file.iter_batches(batch_size=1000):
+            for batch in parquet_file.iter_batches(batch_size=config.batch_size):
                 chunk_df = pa.Table.from_batches([batch]).to_pandas()
 
                 valid_df = chunk_df[chunk_df['result_status'] == 'ok'].copy()

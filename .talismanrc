@@ -1,14 +1,94 @@
 fileignoreconfig:
+- filename: .github/workflows/github-actions-data-stack.yml
+  checksum: 1e50d522aa6e4d17dc01dd877c9ce035721c84a06b137a71c69bc8d4e3572303
 - filename: .github/workflows/review-app.yml
   checksum: f7719ba0d36160d97e80ee15cb5415b601354576929e36df0596c7d192465cfb
 - filename: README.md
   checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
+- filename: analytics/.env.example
+  checksum: 917ebeff9022b2a0a1a916ceab18ce47a7fe04ebdbcdeadb62f49167b15b2bde
+- filename: analytics/dagster/src/assets/dwh/ingest/ingest_postgres_asset.py
+  checksum: b379fbb88e46511c62682abf4cb422e730c4210f6dadc9d5ca648dfd68ff8f88
+- filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
+  checksum: ff0b302b5ebe44841183288327b44a69ce2965f1605dc5e13136439b655f06e5
+- filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py
+  checksum: 6066273930e2143da0a410d9a22f1c386358cf7346e683daffaa4a1d63903ec9
+- filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
+  checksum: 5ac20d96eb4ac636cfa631ed1a67fb891533c169806a87d06e0c1f166eec9891
+- filename: analytics/dagster/src/config.py
+  checksum: e5aaff4523db28f59dd6fbbf2d3c582f25ae7de2a32572575367c19dc455f7e3
+- filename: analytics/dagster/src/resources/ban_config.py
+  checksum: 034c6924978983da0ca5897bb06b64598a5a813dc93d1d9e8f8a62da952d4d22
+- filename: analytics/dagster/src/resources/database_resources.py
+  checksum: af2527ab1c956b331e3b0f58912db9265958d1f77045f52f40c64b6283f1e38d
+- filename: analytics/dbt/macros/geo/get_hierarchy.sql
+  checksum: 6453962465e12f5edb3be7266f36951f8db1d81b45b787fb77af2b9f9bb0465e
+- filename: analytics/dbt/macros/lovac/deduplicate_lovac.sql
+  checksum: 518014fc2ee211b2205ef067c148e36d931885d67decc634718c9029eaf0439c
+- filename: analytics/dbt/macros/lovac/handle_lovac_different_years.sql
+  checksum: 502f6510d9558464dba635f0d46d3fa9e1d50a3eb6780d51a62af43617c69a0a
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_ex_2019.sql
+  checksum: 87e8e8e90961b9c724d32b58ef2e6b20c7f412439f0a1e50b4e6d0cbc9d10a0f
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_ex_2020.sql
+  checksum: 5bf1a5aa31010672cd34806a5dafa200a827ecba2043c1317ac084a283d8977d
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_ex_2021.sql
+  checksum: 0612c4f03d3dd0802d66c3ce8d65bf516361b188b64c3ebd287f338e23e5d259
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_ex_2022.sql
+  checksum: 10f909fa14f5ffca86b8efdfc9342ef2991bb72a34b997e37ad2b4f2ab492250
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_ex_2023.sql
+  checksum: 7ee0db98772016e6ca6939df318fe18c9fa193ab9c8dec3df1fcdd803efe6695
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_ex_2024.sql
+  checksum: 2cd6b48a43c2fb2afdca5d55fdc6a89005aa32ea95a39f7fd38ab8c92d5afab0
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_fil_2019.sql
+  checksum: aa256c70927a3348bcaf707b8db64f7ad23d4fd5ab7f39d873072b0ee40ba7a1
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_fil_2020.sql
+  checksum: 056f20e6c475bf423259d65425ad389c3585644fe890fbca3147b8f37357ff2d
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_fil_2021.sql
+  checksum: 7b630808d2ab3297a084300bf4c7c975034b26dba74d96ae5fc85177c7a58dce
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_fil_2022.sql
+  checksum: 771b21a2c7c396237469e4b9e6f5707b7fe4642113976a2ae4eedf0681f5c351
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_fil_2023.sql
+  checksum: e49d4046b3daef53dee0f875c60a470a7cba1baef40c68be938d3d5a0536226f
+- filename: analytics/dbt/models/intermediate/lovac/int_lovac_fil_2024.sql
+  checksum: cd359f5b0d30ac3ed38b301d6825dd53290f9db6ab4f30c0309b5f15b36287a1
+- filename: analytics/dbt/models/marts/common/marts_common_morphology.sql
+  checksum: 4a76dc5d570d91d0c3e6b449b50628de43b69cbaa97cae4220b3acf4847ee3a8
+- filename: analytics/dbt/models/marts/production/marts_production_housing.sql
+  checksum: 27fb5774326eca4ab310381a6b128d8f61464684423bc2c597ab18c378282e55
+- filename: analytics/dbt/models/marts/public/marts_public_establishments_hierarchy.sql
+  checksum: 054370874ccb5cd9ffc32e9e09dc37422f77b44296acdc9dce58fb21c7a23106
+- filename: analytics/dbt/models/marts/public/marts_public_establishments_morphology.sql
+  checksum: ca09a1137d0f0e0b226e02272dfe1eaa4d7aa1759409351d10a745c54608da1f
+- filename: analytics/dbt/models/marts/public/marts_public_establishments_morphology_unpivoted.sql
+  checksum: d6724d7943f26d35719b8ae51c342b464bcf97c420f7805221a7fff1d252da24
+- filename: analytics/dbt/models/staging/common/stg_common_cities.sql
+  checksum: 3271d0c36c37cda335511a6b54dcabed0db2642ef4c97a80f7732a112d49256e
+- filename: analytics/dbt/models/staging/lovac/stg_lovac_2019.sql
+  checksum: c0b891be4f0e2c6c3b1ce337d5712d006b92566bb3e7147f1a243d2811b9aeeb
+- filename: analytics/dbt/models/staging/lovac/stg_lovac_2020.sql
+  checksum: 86f5f3a02d75350fb576831b62d59388b34af4d6fb8f3af29cc827426d48d014
+- filename: analytics/dbt/models/staging/lovac/stg_lovac_2021.sql
+  checksum: b29ca813be06b01d393dc43cb1abbde2c3152a72a397b135c5adfe6250c26c09
+- filename: analytics/dbt/models/staging/lovac/stg_lovac_2022.sql
+  checksum: 163e876e86cd4c8fa3311ba8aa849cf06347d8dd7e7fc7f3bf7eebcbcd265486
+- filename: analytics/dbt/models/staging/lovac/stg_lovac_2023.sql
+  checksum: 6ad1a43fbc39e771203d0c8476c051e95a305632859156b90177fcf1c7b43d48
+- filename: analytics/dbt/models/staging/lovac/stg_lovac_2024.sql
+  checksum: dbe5fdd76631a0cb051e6653c6759c8ac96388a64c0ed2c54984cfe6858e6a23
+- filename: analytics/dbt/seeds/cog_20240101.csv
+  checksum: e101d3be0be3b337f377945ce588ac12b4ff81f0047e49480175fe7c01ae2ad1
+- filename: frontend/.env.example
+  checksum: d37994cd473655105e001b68055f9202514225f48553dd3df8ed07c2e1015acc
 - filename: frontend/src/components/Draft/DraftSender.tsx
   checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: frontend/src/components/Draft/DraftSignature.tsx
   checksum: 8abd2b819601d46cc6a3d0a61a60b76391601f2d89d9126f5167b684878bd2d1
+- filename: frontend/src/components/HousingEdition/HousingEditionSideMenu.tsx
+  checksum: de5ce393023c6f206488b02a8044e0188b71e729ba8aaab378e2af9207ee1dd5
 - filename: frontend/src/index.tsx
   checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
+- filename: frontend/src/utils/config.ts
+  checksum: 0cf141dbd9c1d224bda59a45217209074c2b510b5af2948540773b381b28804e
 - filename: packages/api-sdk/src/test/campaign-api.test.ts
   checksum: b200d9e1fec310660a91e99cd048b24cbe983e0f9f965861d061a7f0992af43e
 - filename: packages/healthcheck/src/checks/brevo.ts
@@ -18,7 +98,7 @@ fileignoreconfig:
 - filename: server/.env.example
   checksum: 4955533b2ba29ebc4a052e65ce2aab5b911ebf8e4b4eeecff50b5e83d1857c35
 - filename: server/src/controllers/campaignController.ts
-  checksum: 73a5c525402f4354bc0ad41cf33aa17dadade2ba05608bfe9894b659b2a51246
+  checksum: c3b0d1c8a8f3b31c787b0d21a93e0e738317bf0e029c1aeb01ae175ea2885e02
 - filename: server/src/controllers/housingExportController.ts
   checksum: cb506387b49506b7ba0ed426001c221b80aff9f953e544d52c1c6d287741cf64
 - filename: server/src/infra/database/scripts/010-load-sder-sded.sql

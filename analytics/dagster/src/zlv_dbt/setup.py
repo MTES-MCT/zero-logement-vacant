@@ -8,7 +8,6 @@ setup(
         "dagster",
         "dagster-cloud",
         "dagster-dbt",
-        "dbt-snowflake<1.9",
     ],
     extras_require={
         "dev": [

@@ -214,8 +214,12 @@ function writeHousingWorksheet(
             vacancyStartYear: housing.vacancyStartYear,
             status: getHousingStatusApiLabel(housing.status),
             subStatus: housing.subStatus,
-            vacancyReasons: reduceStringArray(housing.vacancyReasons),
-            precisions: reduceStringArray(housing.precisions),
+            vacancyReasons: reduceStringArray(
+              housing.deprecatedVacancyReasons ?? undefined
+            ),
+            precisions: reduceStringArray(
+              housing.deprecatedPrecisions ?? undefined
+            ),
             campaigns: reduceStringArray(
               housing.campaignIds?.map(
                 (campaignId) =>
@@ -313,6 +317,7 @@ function ownerRowData(
     ownerAddress: formatAddressApi(ownerAddress),
     ownerAddressHouseNumber: ownerAddress?.houseNumber,
     ownerAddressStreet: ownerAddress?.street,
+    ownerAdditionalAddress: owner?.additionalAddress,
     ownerAddressPostalCode: ownerAddress?.postalCode,
     ownerAddressCity: ownerAddress?.city,
     ownerAddressScore: ownerAddress?.score
@@ -352,7 +357,8 @@ const ownerWorksheetColumns = [
   {
     header: 'Adresse BAN du propriétaire - Fiabilité',
     key: 'ownerAddressScore'
-  }
+  },
+  { header: 'Complément d\'adresse du propriétaire', key: 'ownerAdditionalAddress' }
 ];
 
 const addOwnerWorksheet = (

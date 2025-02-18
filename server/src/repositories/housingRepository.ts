@@ -13,7 +13,8 @@ import {
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   Occupancy,
   OWNER_KIND_LABELS,
-  PaginationOptions
+  PaginationOptions,
+  Precision
 } from '@zerologementvacant/models';
 import db, { toRawArray, where } from '~/infra/database';
 import {
@@ -38,6 +39,11 @@ import { groupsHousingTable } from './groupRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
+import { getTransaction } from '~/infra/database/transaction';
+import {
+  HOUSING_PRECISION_TABLE,
+  PRECISION_TABLE
+} from '~/repositories/precisionRepository';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -269,7 +275,12 @@ async function saveMany(
     });
 }
 
-type HousingInclude = 'owner' | 'events' | 'campaigns' | 'perimeters';
+type HousingInclude =
+  | 'owner'
+  | 'events'
+  | 'campaigns'
+  | 'perimeters'
+  | 'precisions';
 
 interface ListQueryOptions {
   filters: HousingFiltersApi;
@@ -326,7 +337,21 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
          from ${geoPerimetersTable} perimeter
          where st_contains(perimeter.geom, ST_SetSRID(ST_Point(${housingTable}.longitude_dgfip, ${housingTable}.latitude_dgfip), 4326))
        ) perimeters on true`
-      )
+      ),
+    precisions: (query) => {
+      query
+        .joinRaw(
+          `LEFT JOIN LATERAL (
+          SELECT json_agg(${PRECISION_TABLE}.*) AS precisions
+          FROM ${HOUSING_PRECISION_TABLE}
+          LEFT JOIN ${PRECISION_TABLE}
+            ON ${PRECISION_TABLE}.id = ${HOUSING_PRECISION_TABLE}.precision_id
+          WHERE ${housingTable}.geo_code = ${HOUSING_PRECISION_TABLE}.housing_geo_code
+            AND ${housingTable}.id = ${HOUSING_PRECISION_TABLE}.housing_id
+        ) hp ON true`
+        )
+        .select('hp.precisions');
+    }
   };
 
   const filterByOwner = [
@@ -358,7 +383,8 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
 async function update(housing: HousingApi): Promise<void> {
   logger.debug('Update housing', housing.id);
 
-  return db(housingTable)
+  const transaction = getTransaction();
+  await Housing(transaction)
     .where({
       // Use the index on the partitioned table
       geo_code: housing.geoCode,
@@ -369,8 +395,12 @@ async function update(housing: HousingApi): Promise<void> {
       occupancy_intended: housing.occupancyIntended ?? null,
       status: housing.status,
       sub_status: housing.subStatus ?? null,
-      precisions: housing.precisions ?? null,
-      vacancy_reasons: housing.vacancyReasons ?? null
+      deprecated_precisions: housing.deprecatedPrecisions?.length
+        ? housing.deprecatedPrecisions
+        : null,
+      deprecated_vacancy_reasons: housing.deprecatedVacancyReasons?.length
+        ? housing.deprecatedVacancyReasons
+        : null
     });
 }
 
@@ -455,32 +485,8 @@ function filteredQuery(opts: FilteredQueryOptions) {
             `cardinality(${campaignsTable}.campaign_ids) = 0`
           );
         }
-        if (filters.campaignsCounts?.includes('current')) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids) >= 1`
-          );
-        }
-        if (filters.campaignsCounts?.indexOf('1') !== -1) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids)`,
-            1
-          );
-        }
-        if (filters.campaignsCounts?.indexOf('2') !== -1) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids)`,
-            2
-          );
-        }
-        if (filters.campaignsCounts?.indexOf('gt3') !== -1) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids) >= ?`,
-            3
-          );
-        }
       });
     }
-
     if (filters.ownerIds?.length) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }
@@ -517,12 +523,12 @@ function filteredQuery(opts: FilteredQueryOptions) {
     }
     if (filters.multiOwners?.length) {
       queryBuilder.where((where) => {
-        if (filters.multiOwners?.includes('true')) {
+        if (filters.multiOwners?.includes(true)) {
           where.orWhereRaw(
             `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) > 1`
           );
         }
-        if (filters.multiOwners?.includes('false')) {
+        if (filters.multiOwners?.includes(false)) {
           where.orWhereRaw(
             `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
           );
@@ -641,10 +647,10 @@ function filteredQuery(opts: FilteredQueryOptions) {
     }
     if (filters.isTaxedValues?.length) {
       queryBuilder.where((where) => {
-        if (filters.isTaxedValues?.includes('true')) {
+        if (filters.isTaxedValues?.includes(true)) {
           where.orWhereRaw('taxed');
         }
-        if (filters.isTaxedValues?.includes('false')) {
+        if (filters.isTaxedValues?.includes(false)) {
           where.orWhereNull('taxed').orWhereRaw('not(taxed)');
         }
       });
@@ -858,7 +864,8 @@ const housingSortQuery = (sort?: HousingSortApi) =>
         query.orderByRaw(`LOWER(${housingTable}.occupancy) ${sort?.occupancy}`),
       status: (query) => query.orderBy(`${housingTable}.status`, sort?.status)
     },
-    default: (query) => query.orderBy(['geo_code', 'id'])
+    default: (query) =>
+      query.orderBy([`${housingTable}.geo_code`, `${housingTable}.id`])
   });
 
 /**
@@ -897,7 +904,10 @@ export interface HousingRecordDBO {
   building_year?: number;
   mutation_date?: Date;
   taxed?: boolean;
-  vacancy_reasons?: string[];
+  /**
+   * @deprecated See the tables `precisions` and `housing_precisions`
+   */
+  deprecated_vacancy_reasons: string[] | null;
   /**
    * @deprecated See {@link data_file_years}
    */
@@ -912,11 +922,14 @@ export interface HousingRecordDBO {
   rental_value?: number;
   condominium?: string;
   status: HousingStatusApi;
-  sub_status?: string | null;
-  precisions?: string[];
+  sub_status: string | null;
+  /**
+   * @deprecated See {@link HousingDBO.precisions}
+   */
+  deprecated_precisions: string[] | null;
   occupancy: Occupancy;
   occupancy_source: Occupancy;
-  occupancy_intended?: Occupancy;
+  occupancy_intended: Occupancy | null;
   energy_consumption_bdnb?: EnergyConsumptionGradesApi;
   energy_consumption_at_bdnb?: Date;
 }
@@ -933,6 +946,7 @@ export interface HousingDBO extends HousingRecordDBO {
   campaign_ids?: string[];
   contact_count?: number;
   last_contact?: Date | string;
+  precisions?: Precision[];
   // TODO: fix and fill this type
 }
 
@@ -966,13 +980,14 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   livingArea: housing.living_area,
   cadastralReference: housing.cadastral_reference,
   taxed: housing.taxed,
-  vacancyReasons: housing.vacancy_reasons ?? undefined,
   dataYears: housing.data_years,
   dataFileYears: housing.data_file_years ?? [],
   ownershipKind: housing.condominium,
   status: housing.status,
-  subStatus: housing.sub_status ?? undefined,
-  precisions: housing.precisions ?? undefined,
+  subStatus: housing.sub_status,
+  deprecatedVacancyReasons: housing.deprecated_vacancy_reasons ?? undefined,
+  deprecatedPrecisions: housing.deprecated_precisions,
+  precisions: housing.precisions,
   energyConsumption: housing.energy_consumption_bdnb,
   energyConsumptionAt: housing.energy_consumption_at_bdnb,
   occupancy: housing.occupancy,
@@ -997,45 +1012,49 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
 });
 
 export const formatHousingRecordApi = (
-  housingRecordApi: HousingRecordApi
+  housing: HousingRecordApi
 ): HousingRecordDBO => ({
-  id: housingRecordApi.id,
-  invariant: housingRecordApi.invariant,
-  local_id: housingRecordApi.localId,
-  plot_id: housingRecordApi.plotId,
-  building_id: housingRecordApi.buildingId,
-  building_group_id: housingRecordApi.buildingGroupId,
-  building_location: housingRecordApi.buildingLocation,
-  building_year: housingRecordApi.buildingYear,
-  address_dgfip: housingRecordApi.rawAddress,
-  longitude_dgfip: housingRecordApi.longitude,
-  latitude_dgfip: housingRecordApi.latitude,
-  rental_value: housingRecordApi.rentalValue,
-  beneficiary_count: housingRecordApi.beneficiaryCount,
-  geolocation: housingRecordApi.geolocation,
-  mutation_date: housingRecordApi.mutationDate ?? undefined,
-  geo_code: housingRecordApi.geoCode,
-  cadastral_classification: housingRecordApi.cadastralClassification,
-  uncomfortable: housingRecordApi.uncomfortable,
-  vacancy_start_year: housingRecordApi.vacancyStartYear,
-  housing_kind: housingRecordApi.housingKind,
-  rooms_count: housingRecordApi.roomsCount,
-  living_area: housingRecordApi.livingArea,
-  cadastral_reference: housingRecordApi.cadastralReference,
-  vacancy_reasons: housingRecordApi.vacancyReasons,
-  taxed: housingRecordApi.taxed,
-  condominium: housingRecordApi.ownershipKind,
-  data_years: housingRecordApi.dataYears,
-  data_file_years: housingRecordApi.dataFileYears,
-  status: housingRecordApi.status,
-  sub_status: housingRecordApi.subStatus,
-  precisions: housingRecordApi.precisions,
-  energy_consumption_bdnb: housingRecordApi.energyConsumption,
-  energy_consumption_at_bdnb: housingRecordApi.energyConsumptionAt,
-  occupancy: housingRecordApi.occupancy,
-  occupancy_source: housingRecordApi.occupancyRegistered,
-  occupancy_intended: housingRecordApi.occupancyIntended,
-  data_source: housingRecordApi.source
+  id: housing.id,
+  invariant: housing.invariant,
+  local_id: housing.localId,
+  plot_id: housing.plotId,
+  building_id: housing.buildingId,
+  building_group_id: housing.buildingGroupId,
+  building_location: housing.buildingLocation,
+  building_year: housing.buildingYear,
+  address_dgfip: housing.rawAddress,
+  longitude_dgfip: housing.longitude,
+  latitude_dgfip: housing.latitude,
+  rental_value: housing.rentalValue,
+  beneficiary_count: housing.beneficiaryCount,
+  geolocation: housing.geolocation,
+  mutation_date: housing.mutationDate ?? undefined,
+  geo_code: housing.geoCode,
+  cadastral_classification: housing.cadastralClassification,
+  uncomfortable: housing.uncomfortable,
+  vacancy_start_year: housing.vacancyStartYear,
+  housing_kind: housing.housingKind,
+  rooms_count: housing.roomsCount,
+  living_area: housing.livingArea,
+  cadastral_reference: housing.cadastralReference,
+  deprecated_vacancy_reasons: !housing.deprecatedVacancyReasons?.length
+    ? null
+    : housing.deprecatedVacancyReasons,
+  deprecated_precisions: housing.deprecatedPrecisions?.length
+    ? housing.deprecatedPrecisions
+    : null,
+  taxed: housing.taxed,
+  condominium: housing.ownershipKind,
+  data_years: housing.dataYears,
+  data_file_years: housing.dataFileYears,
+  status: housing.status,
+  sub_status: housing.subStatus ?? null,
+  energy_consumption_bdnb: housing.energyConsumption,
+  energy_consumption_at_bdnb: housing.energyConsumptionAt,
+  occupancy: housing.occupancy,
+  occupancy_source: housing.occupancyRegistered,
+  occupancy_intended: housing.occupancyIntended ?? null,
+  data_source: housing.source
 });
 
 export default {

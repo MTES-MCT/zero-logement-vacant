@@ -8,7 +8,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe, 
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2024") }}
     UNION ALL
     SELECT
@@ -20,7 +22,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2023") }}
     UNION ALL
     SELECT
@@ -32,7 +36,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2022") }}
     UNION ALL
     SELECT
@@ -44,7 +50,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2021") }}
     UNION ALL
     SELECT
@@ -56,7 +64,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2020") }}
     UNION ALL
     SELECT
@@ -68,7 +78,9 @@ WITH all_lovac AS (
         ff_ccthp,
         housing_kind,
         aff,
-        groupe
+        groupe,
+        plot_area, 
+        living_area
     FROM {{ ref ("stg_lovac_2019") }}
 ),
 
@@ -103,6 +115,8 @@ lovac AS (
         local_id
         , year
         , geo_code
+        , plot_area
+        , living_area
         , CASE
             WHEN
                 (housing_kind IN ('APPART', 'MAISON') AND aff = 'H')
@@ -152,6 +166,23 @@ lovac_geo_code_year AS (
                 ELSE 0
             END
         ) AS count_vacant_housing_private_fil_ccthp
+        , SUM(CASE
+                WHEN
+                    is_housing = 1
+                    AND is_private = 1
+                    AND is_vacant_fil_ccthp = 1
+                    THEN living_area
+                ELSE 0
+            END
+            ) as sum_living_area_vacant_housing_private_fil_ccthp
+        , SUM(CASE
+                WHEN
+                    is_housing = 1
+                    AND is_private = 1
+                    AND is_vacant_fil_ccthp = 1
+                    THEN plot_area
+                ELSE 0
+            END) as sum_plot_area_vacant_housing_private_fil_ccthp
     FROM lovac
     GROUP BY year, geo_code
 ),
@@ -188,7 +219,11 @@ ff_geo_code_year AS (
 production AS (
     SELECT
         geo_code,
-        COUNT(h.id) AS housing_count,
+        SUM(CASE WHEN list_contains(data_file_years, 'lovac-2024') THEN 1 ELSE 0 END) AS housing_last_lovac_count,
+        SUM(CASE WHEN list_contains(data_file_years, 'ff-2023-locatif') THEN 1 ELSE 0 END) AS housing_last_ff_count,
+        SUM(CASE WHEN occupancy = 'L' THEN 1 ELSE 0 END) AS housing_rented_count,
+        SUM(CASE WHEN occupancy = 'V' THEN 1 ELSE 0 END) AS housing_vacant_count,
+        SUM(CASE WHEN energy_consumption_bdnb IN ('G', 'F') THEN 1 ELSE 0 END) AS housing_energy_sieve_count,
         2024 AS year
     FROM {{ ref ("int_production_housing") }} as h
     WHERE list_contains(data_file_years, 'lovac-2024')
@@ -198,12 +233,18 @@ SELECT
     year
     , geo_code
     , city_code
-    , production.housing_count AS count_housing_production
+    , production.housing_last_lovac_count AS count_housing_last_lovac_production
+    , production.housing_last_ff_count AS count_housing_last_ff_production
+    , production.housing_rented_count AS count_housing_rented_production
+    , production.housing_vacant_count AS count_housing_vacant_production
+    , production.housing_energy_sieve_count AS count_housing_energy_sieve_production
     , lovac.count_vacant_premisses
     , lovac.count_vacant_housing
     , lovac.count_vacant_housing_private
     , lovac.count_vacant_housing_private_fil
     , lovac.count_vacant_housing_private_fil_ccthp
+    , lovac.sum_living_area_vacant_housing_private_fil_ccthp
+    , lovac.sum_plot_area_vacant_housing_private_fil_ccthp
     , ff.count_housing
     , ff.count_housing_private
     , ff.count_housing_private_rented

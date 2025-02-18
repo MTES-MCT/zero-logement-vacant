@@ -31,11 +31,10 @@ COPY analytics/dagster/dagster.yaml analytics/dagster/workspace.yaml $DAGSTER_HO
 COPY analytics/dagster/src $DAGSTER_HOME/src
 
 COPY analytics/dbt /opt/dagster/dbt
-COPY analytics/dbt/target/manifest.json /opt/dagster/dbt/target/manifest.json
 
 WORKDIR /opt/dagster/dbt
 
-RUN dbt deps
+RUN dbt deps && dbt parse && dbt compile
 
 WORKDIR $DAGSTER_HOME
 

@@ -1,3 +1,4 @@
+import { HousingFiltersDTO } from './HousingFiltersDTO';
 import { UserDTO } from './UserDTO';
 
 export interface GroupDTO {
@@ -16,7 +17,6 @@ export interface GroupPayloadDTO
   housing: {
     all: boolean;
     ids: string[];
-    // TODO: should be HousingFiltersDTO
-    filters: any;
+    filters: HousingFiltersDTO;
   };
 }

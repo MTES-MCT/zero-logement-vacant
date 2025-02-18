@@ -15,9 +15,11 @@ class Config:
 
     POSTGRES_PRODUCTION_DB = os.environ.get("POSTGRES_PRODUCTION_DB")
     POSTGRES_PRODUCTION_PORT = os.environ.get("POSTGRES_PRODUCTION_PORT")
-    POSTGRES_PRODUCTION_USER = os.environ.get("POSTGRES_PRODUCTION_USER")
-    POSTGRES_PRODUCTION_PASSWORD = os.environ.get("POSTGRES_PRODUCTION_PASSWORD")
     POSTGRES_PRODUCTION_DB_NAME = os.environ.get("POSTGRES_PRODUCTION_DB_NAME")
+    POSTGRES_PRODUCTION_WRITE_ACCESS_PASSWORD = os.environ.get("POSTGRES_PRODUCTION_WRITE_ACCESS_PASSWORD")
+    POSTGRES_PRODUCTION_WRITE_ACCESS_USER = os.environ.get("POSTGRES_PRODUCTION_WRITE_ACCESS_USER")
+    POSTGRES_PRODUCTION_READONLY_PASSWORD = os.environ.get("POSTGRES_PRODUCTION_READONLY_PASSWORD")
+    POSTGRES_PRODUCTION_READONLY_USER = os.environ.get("POSTGRES_PRODUCTION_READONLY_USER")
 
     CLEVER_TOKEN = os.environ.get("CLEVER_TOKEN")
     CLEVER_SECRET = os.environ.get("CLEVER_SECRET")
@@ -33,10 +35,24 @@ class Config:
     DAGSTER_RETRY_DELAY = 10 * 60 # 10 minutes
     DAGSTER_RETRY_MAX_ATTEMPS = 3
 
+    BAN_API_URL = os.environ.get("BAN_API_URL")
+    CSV_FILE_PATH = os.environ.get("CSV_FILE_PATH")
+    try:
+        CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "10000"))
+    except ValueError:
+        raise ValueError("The environment variable CHUNK_SIZE must be an integer.")
+
+    try:
+        MAX_FILES = int(os.environ.get("MAX_FILES", "5"))
+    except ValueError:
+        raise ValueError("The environment variable MAX_FILES must be an integer.")
+
+    DISABLE_MAX_FILES = os.environ.get("DISABLE_MAX_FILES", "True") == "True"
 
 public_tables = [
     "marts_public_establishments_morphology",
     "marts_public_establishments_morphology_unpivoted",
+    "marts_public_establishments_hierarchy",
 ]
 
 analysis_tables = ["marts_analysis_exit_flow_ff23_lovac"]

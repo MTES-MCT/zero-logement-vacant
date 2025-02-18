@@ -1,78 +1,118 @@
 version: 2
 
 seeds:
-  - name: com_epci_dep_reg
-    config:
-      delimiter: ";"
-  - name: taxe
-    config:
-      delimiter: ";"
-      +quote: '"'
-      +header: true
-      enabled: false
-  - name: nature_juridique
-    config:
-      delimiter: ";"
-      +quote: '"'
-      +header: true
-      enabled: false
-  - name: direction_territoriale
-    config:
-      delimiter: ";"
-  - name: prenom
-    config:
-      delimiter: ","
+      - name: com_epci_dep_reg
+        config:
+          header: true
+          delimiter: ";"
+          quote: '"'
+          enable: true
+          column_types:
+            com_code: varchar(5)
+            com_siren: varchar(9)
+            com_name: varchar(100)
+            epci_siren: varchar(9)
+            epci_name: varchar(100)
+            dep_siren: varchar(9)
+            dep_name: varchar(100)
+            "reg_siren": varchar(100)
+            ept_siren: varchar(9)
+            ept_name: varchar(100)
 
-  - name: tlv_cities
-    config:
-      delimiter: ";"
-      +header: true
+      - name: taxe
+        config:
+          delimiter: ";"
+          quote: '"'
+          header: true
+          enabled: false
 
-  - name: departement_france
-    config:
-      delimiter: ","
-      +header: true
+      - name: nature_juridique
+        config:
+          delimiter: ";"
+          quote: '"'
+          header: true
+          enabled: false
 
-  - name: cities
-    config:
-      delimiter: ","
-      +header: true
+      - name: departements_france
+        config:
+          delimiter: ","
+          quote: '"'
+          header: true
+          enabled: true
 
-  - name: article_232_1
-    config:
-      +header: true
+      - name: direction_territoriale
+        config:
+          delimiter: ";"
 
-  - name: article_232_2
-    config:
-      +header: true
+      - name: prenom
+        config:
+          delimiter: ","
+
+      - name: tlv_cities
+        config:
+          delimiter: ";"
+          header: true
 
 
-  - name: ngeo-anct-cog2023
-    config:
-      +header: true
+      - name: cog_20240101
+        config:
+          delimiter: ","
+          header: true
 
-  - name: opah
-    config:
-      +header: true
+      - name: article_232_1
+        config:
+          header: true
 
-  - name: ort
-    delimiter: ","
-    config:
-      +header: true
-      column_types:
-          "Si signée, date de signature": varchar(5)
+      - name: article_232_2
+        config:
+          header: true
 
-  - name: table_appartenance_geo_communes_2024
-    config:
-      delimiter: ","
-      +header: true
-  - name: fusions
-    description: "Fusions de communes"
-    config:
-      delimiter: ","
-      +header: true
+      - name: ngeo-anct-cog2023
+        config:
+          header: true
 
-  - name: scissions
-    config:
-      delimiter: ","
-      +header: true
+      - name: opah
+        config:
+          header: true
+          delimiter: ","
+          quote: '"'
+          strict_mode: false
+          null_padding: true
+          column_types:
+            insee_code: varchar(5)
+            code: varchar(9)
+            nom: varchar(255)
+            typeprogramme: varchar(50)
+            datesignature: timestamp
+
+      - name: ort
+        config:
+          delimiter: ","
+          header: true
+          column_types:
+            "Si signée, date de signature": varchar(5)
+
+      - name: table_appartenance_geo_communes_2024
+        config:
+          delimiter: ","
+          header: true
+          quote: '"'
+          column_types:
+            CODGEO: varchar(5)
+            UU2020: varchar(5)
+            EPCI: varchar(9)
+            UU_code: varchar(5)
+            UU_name: varchar(255)
+            EPCI_code: varchar(9)
+            EPCI_name: varchar(255)
+    
+      - name: fusions
+        description: "Fusions de communes"
+        config:
+          delimiter: ","
+          header: true
+
+      - name: scissions
+        config:
+          delimiter: ","
+          header: true

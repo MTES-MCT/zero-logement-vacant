@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 
 import { $createVariableNode, VariableNode } from './nodes/VariableNode';
 import { Variable } from './Variable';
+import { $getNodeByKey } from 'lexical';
 
 interface Props {
   editor: LexicalEditor;
@@ -21,56 +22,86 @@ interface Props {
 
 export const INSERT_VARIABLE_COMMAND: LexicalCommand<Variable> =
   createCommand();
+  export function useVariablePlugin(props: Props) {
+    const { editor } = props;
 
-export function useVariablePlugin(props: Props) {
-  const { editor } = props;
+    useEffect(() => {
+      return editor.registerCommand(
+        INSERT_VARIABLE_COMMAND,
+        (variable): boolean => {
+          const selection = $getSelection();
+          if (selection && $isNodeSelection(selection)) {
+            return false;
+          }
 
-  useEffect(() => {
-    return editor.registerCommand(
-      INSERT_VARIABLE_COMMAND,
-      (variable): boolean => {
-        const selection = $getSelection();
-        if (selection && $isNodeSelection(selection)) {
-          return false;
-        }
+          const node = $createVariableNode(variable);
+          const selectionNode = selection?.getNodes()[0];
 
-        const node = $createVariableNode(variable);
-        $insertNodes([node]);
+          if (!isWhitespaceBefore(selectionNode ?? null)) {
+            $insertNodes([$createTextNode(' ')]);
+          }
 
-        return true;
-      },
-      COMMAND_PRIORITY_EDITOR
-    );
-  }, [editor]);
+          $insertNodes([node]);
 
-  useEffect(() => {
-    return editor.registerNodeTransform(VariableNode, (node) => {
-      const before = node.getPreviousSibling();
+          const after = node.getNextSibling();
+          if (!isWhitespaceAfter(after)) {
+            node.insertAfter($createTextNode(' '));
+          }
 
-      if (!isWhitespaceBefore(before)) {
-        node.insertBefore($createTextNode(' '));
-      }
+          return true;
+        },
+        COMMAND_PRIORITY_EDITOR
+      );
+    }, [editor]);
 
-      const after = node.getNextSibling();
-      if (!isWhitespaceAfter(after)) {
-        node.insertAfter($createTextNode(' '));
-      }
-    });
-  }, [editor]);
+    useEffect(() => {
+      return editor.registerMutationListener(VariableNode, (nodes) => {
+        editor.update(() => {
+          nodes.forEach((mutation, nodeKey) => {
+            const node = editor.getEditorState().read(() => $getNodeByKey(nodeKey));
+            if (node instanceof VariableNode && !node.isAttached()) {
+              cleanUpWhitespace(node);
+            }
+          });
+        });
+      });
+    }, [editor]);
 
-  function insertVariable(variable: Variable): void {
-    editor.dispatchCommand(INSERT_VARIABLE_COMMAND, variable);
+
+    function insertVariable(variable: Variable): void {
+      editor.dispatchCommand(INSERT_VARIABLE_COMMAND, variable);
+    }
+
+    return {
+      insertVariable,
+    };
   }
 
-  return {
-    insertVariable,
-  };
-}
+  function isWhitespaceBefore(node: LexicalNode | null): boolean {
+    return !node || ($isTextNode(node) && /\s$/.test(node.getTextContent()));
+  }
 
-function isWhitespaceBefore(node: LexicalNode | null): boolean {
-  return $isTextNode(node) && node.getTextContent().endsWith(' ');
-}
+  function isWhitespaceAfter(node: LexicalNode | null): boolean {
+    return !node || ($isTextNode(node) && /^\s/.test(node.getTextContent()));
+  }
 
-function isWhitespaceAfter(node: LexicalNode | null): boolean {
-  return $isTextNode(node) && node.getTextContent().startsWith(' ');
-}
+  function cleanUpWhitespace(node: VariableNode) {
+    const prev = node.getPreviousSibling();
+    const next = node.getNextSibling();
+
+    if ($isTextNode(prev) && $isTextNode(next)) {
+      const prevText = prev.getTextContent().trimEnd();
+      const nextText = next.getTextContent().trimStart();
+
+      prev.setTextContent(`${prevText} ${nextText}`);
+      next.remove();
+    }
+
+    if ($isTextNode(prev) && prev.getTextContent().trim() === '') {
+      prev.remove();
+    }
+
+    if ($isTextNode(next) && next.getTextContent().trim() === '') {
+      next.remove();
+    }
+  }

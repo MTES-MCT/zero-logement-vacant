@@ -23,6 +23,13 @@ import dagster
 
 from .project import dbt_project
 from .assets import production_dbt
+
+from .assets.populate_owners_ban_addresses import owners_without_address, split_parquet_owners_without_address, process_parquet_chunks_with_api, parse_api_response_and_insert_owners_addresses
+from .assets.populate_edited_owners_ban_addresses import owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses
+from .assets.populate_housings_ban_addresses import housings_without_address, split_parquet_housings_without_address, process_parquet_housings_chunks_with_api, parse_api_response_and_insert_housing_addresses
+from .resources.ban_config import ban_config_resource
+from .resources.database_resources import psycopg2_connection_resource
+
 from .assets import clever
 
 from .assets.dwh.ingest.ingest_lovac_ff_s3_asset import (
@@ -51,7 +58,7 @@ daily_update_dwh_job = define_asset_job(
     name="datawarehouse_synchronize_and_build",
     selection=AssetSelection.assets(*[*dwh_assets, *dbt_analytics_assets, *["setup_duckdb", "clevercloud_login_and_restart"]])
     - AssetSelection.assets(
-        *[  
+        *[
             setup_s3_connection,
             check_ff_lovac_on_duckdb,
             import_cerema_ff_lovac_data_from_s3_to_duckdb,
@@ -83,12 +90,45 @@ yearly_ff_refresh_schedule = ScheduleDefinition(
     job=yearly_update_ff_dwh_job, cron_schedule="@yearly"
 )
 
+owners_asset_job = define_asset_job(
+    name="populate_owners_addresses",
+    selection=AssetSelection.assets(
+        "owners_without_address",
+        "split_parquet_owners_without_address",
+        "process_parquet_chunks_with_api",
+        "parse_api_response_and_insert_owners_addresses",
+    ),
+)
+
+edited_owners_asset_job = define_asset_job(
+    name="populate_edited_owners_addresses",
+    selection=AssetSelection.assets(
+        "owners_with_edited_address",
+        "split_parquet_owners_without_address",
+        "process_parquet_chunks_with_api",
+        "parse_api_response_and_insert_owners_addresses",
+    ),
+)
+
+housings_asset_job = define_asset_job(
+    name="populate_housings_addresses",
+    selection=AssetSelection.assets(
+        "housings_without_address",
+        "split_parquet_housings_without_address",
+        "process_parquet_housings_chunks_with_api",
+        "parse_api_response_and_insert_housing_addresses",
+    ),
+)
+
 # Load definitions with assets, resources, and schedule
 defs = Definitions(
     assets=[
         # dagster_production_assets,
         # dagster_notion_assets,
         # dagster_notion_assets,
+        owners_without_address, split_parquet_owners_without_address, process_parquet_chunks_with_api, parse_api_response_and_insert_owners_addresses,
+        owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses,
+        housings_without_address, split_parquet_housings_without_address, process_parquet_housings_chunks_with_api, parse_api_response_and_insert_housing_addresses,
         *dwh_assets,
         *dbt_analytics_assets,
         *clever_assets_assets
@@ -105,6 +145,9 @@ defs = Definitions(
         "duckdb_local_metabase": DuckDBResource(
             database="db/metabase.duckdb",
         ),
+        "ban_config": ban_config_resource,
+        "psycopg2_connection": psycopg2_connection_resource,
     },
     schedules=[daily_refresh_schedule, yearly_ff_refresh_schedule],
+    jobs=[owners_asset_job, edited_owners_asset_job, housings_asset_job],
 )

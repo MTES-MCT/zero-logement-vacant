@@ -3,6 +3,9 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
+import classNames from 'classnames';
+import { getYear } from 'date-fns';
+
 import {
   getOccupancy,
   getSource,
@@ -12,10 +15,8 @@ import {
 } from '../../models/Housing';
 import HousingDetailsSubCard from './HousingDetailsSubCard';
 import DPE from '../DPE/DPE';
-import classNames from 'classnames';
 import styles from './housing-details-card.module.scss';
 import { Event } from '../../models/Event';
-import { getYear } from 'date-fns';
 import LabelNext from '../Label/LabelNext';
 
 interface Props {

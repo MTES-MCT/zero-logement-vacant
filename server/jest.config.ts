@@ -4,7 +4,9 @@ import { JestConfigWithTsJest, pathsToModuleNameMapper } from 'ts-jest';
 const tsconfig = require('./tsconfig.json');
 
 const config: JestConfigWithTsJest = {
-  preset: 'ts-jest',
+  transform: {
+    '^.+\\.tsx?$': '@swc/jest'
+  },
   // These files are used if `jest --coverage` is run
   collectCoverageFrom: [
     '<rootDir>/src/**/*.ts',

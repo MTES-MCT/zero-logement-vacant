@@ -10,10 +10,7 @@ fileignoreconfig:
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
   checksum: c3a27f2457d2c1cd5f01ef1940c78bc40f8dedb0aff7a5edbc0d1b1e5000f5d3
 - filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py
-  checksum: eaec36a7c15ba00739499d3bc6c922c1bbaa265046d544260a868706c8be8fde
-- filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
-  checksum: 38152c001d15c8cc29aadb2fec78522d0913f0f1724b460cc22a9254bce531cc
-  checksum: d556ad85427e5e9449f62706d4a659fedc15b7e49b37b1e895bfdccef7a53eec
+  checksum: d720c5bcf0d67c24b2aa74d821061ecbbec3a4b234a12cc7a465e5bb147aac37
 - filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
   checksum: 54f8ccc9115fd975ec41d6d43d3bc0f4deef78862ab9d10b077be993e128d1ca
 - filename: analytics/dagster/src/resources/ban_config.py
@@ -47,6 +44,16 @@ fileignoreconfig:
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
 - filename: server/src/services/ceremaService/ceremaService.ts
+  checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
+scopeconfig:
+- scope: node
+allowed_patterns:
+- keyof
+- \[key\]
+- key=
+- 'key:'
+version: "1.0"
+name: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
 scopeconfig:
 - scope: node

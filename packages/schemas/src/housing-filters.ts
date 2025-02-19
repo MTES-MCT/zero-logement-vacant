@@ -109,5 +109,6 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .transform(commaSeparatedString)
     .of(number().oneOf(HOUSING_STATUS_VALUES).required()),
   subStatus: array().transform(commaSeparatedString).of(string().required()),
-  query: string().optional()
+  query: string().optional(),
+  precisions: array().transform(commaSeparatedString).of(string().required())
 });

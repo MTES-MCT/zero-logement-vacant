@@ -55,6 +55,7 @@ import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import CampaignFilter from './CampaignFilter';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
+import { useFindPrecisionsQuery } from '../../services/precision.service';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -90,6 +91,119 @@ function HousingListFiltersSidemenu(props: Props) {
   const onResetFilters = props.onReset;
   const { data: campaigns } = useFindCampaignsQuery();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
+  const { data: precisions } = useFindPrecisionsQuery();
+  const blocagesCategory = ["blocage-volontaire", "blocage-involontaire", "immeuble-environnement", "tiers-en-cause"];
+  const dispositifsCategory = ["dispositifs-coercitifs", "dispositifs-incitatifs", "hors-dispositif-public"];
+  const evolutionsCategory = ["mutation", "occupation", "travaux"];
+
+  const precisionsGroupedByCategory = precisions?.reduce((acc: Record<string, typeof precisions>, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+
+  interface GroupedDataItem {
+    id: string;
+    label: string;
+  }
+
+  interface FlattenedDataItem {
+    value: string;
+    label: string;
+    parent?: string;
+  }
+
+  interface CategoryLabels {
+    [key: string]: {
+      label: string;
+      icon: string;
+    };
+  }
+
+  const flattenGroupedData = (
+    groupedData: Record<string, GroupedDataItem[]>,
+    categories: CategoryLabels
+  ): FlattenedDataItem[] => {
+    return Object.entries(groupedData).flatMap(([category, items]) => [
+      {
+        value: category,
+        label: categories[category].label || category,
+        icon: `${categories[category].icon} color-bf113 fr-mx-1w`
+      },
+      ...items.map(({ id, label }) => ({ value: id, label, parent: category }))
+    ]);
+  };
+
+  const categories = {
+    "blocage-volontaire": {
+      label: "Blocage volontaire",
+      icon: "fr-icon-close-circle-fill"
+    },
+    "blocage-involontaire": {
+      label: "Blocage involontaire",
+      icon: "fr-icon-close-circle-line"
+    },
+    "dispositifs-coercitifs": {
+      label: "Dispositifs coercitifs",
+      icon: "fr-icon-scales-3-line"
+    },
+    "dispositifs-incitatifs": {
+      label: "Dispositifs incitatifs",
+      icon: "fr-icon-money-euro-circle-line"
+    },
+    "hors-dispositif-public": {
+      label: "Hors dispositif public",
+      icon: "fr-icon-more-line"
+    },
+    "immeuble-environnement": {
+      label: "Immeuble / Environnement",
+      icon: "fr-icon-building-line"
+    },
+    "tiers-en-cause": {
+      label: "Tiers en cause",
+      icon: "ri-exchange-2-line"
+    },
+    "mutation": {
+      label: "Mutation",
+      icon: "ri-user-shared-line"
+    },
+    "occupation": {
+      label: "Occupation",
+      icon: "ri-user-location-line"
+    },
+    "travaux": {
+      label: "Travaux",
+      icon: "ri-barricade-line"
+    }
+  };
+
+  interface GroupedData {
+    [key: string]: GroupedDataItem[];
+  }
+
+  const filterAndFlatten = (
+    groupedData: GroupedData | undefined,
+    categories: string[],
+    categoryLabels: CategoryLabels
+  ): FlattenedDataItem[] => {
+    return groupedData
+      ? flattenGroupedData(
+          Object.fromEntries(
+            Object.entries(groupedData).filter(([key]) =>
+              categories.includes(key)
+            )
+          ) as GroupedData,
+          categoryLabels
+        )
+      : [];
+  };
+
+  const blocages = filterAndFlatten(precisionsGroupedByCategory, blocagesCategory, categories);
+  const dispositifs = filterAndFlatten(precisionsGroupedByCategory, dispositifsCategory, categories);
+  const evolutions = filterAndFlatten(precisionsGroupedByCategory, evolutionsCategory, categories);
+
   const { localities } = useLocalityList(establishment?.id);
 
   function onChangeStatusFilter(status: HousingStatus, isChecked: boolean) {
@@ -241,19 +355,122 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
           )}
-        </Accordion>
-
-        {/* <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Dispositifs"
-              options={getSubStatusListOptions(filters.statusList ?? [])}
-              initialValues={filters.subStatus}
-              onChange={(values) =>
-                onChangeFilters({ subStatus: values }, 'Sous-statut')
-              }
-              data-testid="filtre-sous-statut-suivi"
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelectNext
+                autocompleteProps={{
+                  autoHighlight: true,
+                  options: dispositifs ?? [],
+                  loading: isFetching,
+                  openOnFocus: true,
+                  size: 'small',
+                  multiple: true,
+                  getOptionKey: (option) => option.value,
+                  getOptionLabel: (option) => option.label,
+                  isOptionEqualToValue: (option, value) => option.value === value.value,
+                  value:
+                    filters.precisions
+                      ?.map((precision) => {
+                        return dispositifs?.find(
+                          (dispositif) => dispositif.value === precision
+                        );
+                      })
+                      ?.filter(isDefined) ?? [],
+                  onChange: (_, values) => {
+                    console.log(values.filter(precision => precision.parent !== undefined));
+                    if (values) {
+                      onChangeFilters(
+                        { precisions: values.filter(precision => precision.parent !== undefined).map((precision) => precision.value) },
+                        'Dispositif'
+                      );
+                      posthog.capture('filtre-dispositif');
+                    }
+                  }
+                }}
+                inputProps={{
+                  label: 'Dispositifs',
+                  nativeInputProps: {
+                    placeholder: 'Rechercher un dispositif'
+                  }
+                }}
+              />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelectNext
+              autocompleteProps={{
+                autoHighlight: true,
+                options: blocages ?? [],
+                loading: isFetching,
+                openOnFocus: true,
+                size: 'small',
+                multiple: true,
+                getOptionKey: (option) => option.value,
+                getOptionLabel: (option) => option.label,
+                isOptionEqualToValue: (option, value) => option.value === value.value,
+                // value:
+                //   filters.intercommunalities
+                //     ?.map((intercommunality) => {
+                //       return intercommunalities?.find(
+                //         (establishment) => establishment.id === intercommunality
+                //       );
+                //     })
+                //     ?.filter(isDefined) ?? [],
+                // onChange: (_, values) => {
+                //   if (values) {
+                //     onChangeFilters(
+                //       { intercommunalities: values.map((value) => value.id) },
+                //       'Intercommunalité'
+                //     );
+                //     posthog.capture('filtre-intercommunalite');
+                //   }
+                // }
+              }}
+              inputProps={{
+                label: 'Poins de blocage',
+                nativeInputProps: {
+                  placeholder: 'Rechercher un point de blocage'
+                }
+              }}
             />
-          </Grid> */}
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelectNext
+              autocompleteProps={{
+                autoHighlight: true,
+                options: evolutions ?? [],
+                loading: isFetching,
+                openOnFocus: true,
+                size: 'small',
+                multiple: true,
+                getOptionKey: (option) => option.value,
+                getOptionLabel: (option) => option.label,
+                isOptionEqualToValue: (option, value) => option.value === value.value,
+                // value:
+                //   filters.intercommunalities
+                //     ?.map((intercommunality) => {
+                //       return intercommunalities?.find(
+                //         (establishment) => establishment.id === intercommunality
+                //       );
+                //     })
+                //     ?.filter(isDefined) ?? [],
+                // onChange: (_, values) => {
+                //   if (values) {
+                //     onChangeFilters(
+                //       { intercommunalities: values.map((value) => value.id) },
+                //       'Intercommunalité'
+                //     );
+                //     posthog.capture('filtre-intercommunalite');
+                //   }
+                // }
+              }}
+              inputProps={{
+                label: 'Évolution du logement',
+                nativeInputProps: {
+                  placeholder: 'Rechercher une évolution du logement'
+                }
+              }}
+            />
+          </Grid>
+        </Accordion>
 
         <Accordion
           label={

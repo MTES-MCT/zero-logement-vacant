@@ -85,6 +85,8 @@ fileignoreconfig:
   checksum: 8abd2b819601d46cc6a3d0a61a60b76391601f2d89d9126f5167b684878bd2d1
 - filename: frontend/src/components/HousingEdition/HousingEditionSideMenu.tsx
   checksum: de5ce393023c6f206488b02a8044e0188b71e729ba8aaab378e2af9207ee1dd5
+- filename: frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx
+  checksum: 55f9af021ee84cd0cc0ca5b480fdb5add317f28ca84e92cde1d0310fcb979c2d
 - filename: frontend/src/index.tsx
   checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
 - filename: frontend/src/utils/config.ts

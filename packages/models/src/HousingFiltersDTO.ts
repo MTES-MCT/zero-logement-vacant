@@ -49,4 +49,5 @@ export interface HousingFiltersDTO {
   statusList?: HousingStatus[];
   subStatus?: string[];
   query?: string;
+  precisions?: string[];
 }

@@ -20,7 +20,7 @@ import {
   statusOptions,
   taxedOptions,
   vacancyRateOptions,
-  vacancyYearOptions
+  vacancyYearOptions,
 } from '../../models/HousingFilters';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
@@ -264,6 +264,15 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         values={filters.query ? [filters.query] : []}
         small={small}
         onChange={() => onChange?.({ query: '' })}
+      />
+      <FilterBadges
+        options={(filters.precisions ?? []).map((precision) => ({
+          value: precision,
+          label: precision
+        }))}
+        values={filters.precisions}
+        small={small}
+        onChange={(values) => onChange?.({ precisions: values })}
       />
     </div>
   );

@@ -169,7 +169,7 @@ def parse_api_response_and_insert_housing_addresses(context: AssetExecutionConte
             """)
 
             parquet_file = pq.ParquetFile(process_parquet_housings_chunks_with_api)
-            for batch in parquet_file.iter_batches(batch_size=config.batch_size):
+            for batch in parquet_file.iter_batches(batch_size=config.chunk_size):
                 chunk_df = pa.Table.from_batches([batch]).to_pandas()
 
                 valid_df = chunk_df[chunk_df['result_status'] == 'ok'].copy()

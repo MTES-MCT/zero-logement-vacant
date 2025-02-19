@@ -4,13 +4,13 @@ import {
   AutocompleteProps,
   ChipTypeMap,
   ListItem,
-  ListItemIcon,
   ListItemText,
   Checkbox,
-  AutocompleteValue
+  AutocompleteValue,
+  AutocompleteChangeReason
 } from '@mui/material';
 import { MarkOptional } from 'ts-essentials';
-import { ElementType, useState } from 'react';
+import { ElementType, useEffect, useState } from 'react';
 import { useDebounce } from 'react-use';
 
 interface Option {
@@ -32,23 +32,29 @@ interface Props<
     'renderInput'
   >;
   className?: string;
-  multiple?: Multiple; // Optionnel, false par défaut
+  multiple?: Multiple;
   debounce?: number;
   inputProps?: MarkOptional<InputProps.RegularInput, 'label'>;
   search?(query: string | undefined): Promise<void>;
 }
 
 function SearchableSelectNext<
-  Value,
+  Value extends Option,
   Multiple extends boolean | undefined = false,
   DisableClearable extends boolean | undefined = false,
   FreeSolo extends boolean | undefined = false,
   ChipComponent extends ElementType = ChipTypeMap['defaultComponent']
 >(props: Props<Value, Multiple, DisableClearable, FreeSolo, ChipComponent>) {
-  const isMultiple: boolean = props.autocompleteProps?.multiple ?? false; // Défaut : false
+  const isMultiple: boolean = props.autocompleteProps?.multiple ?? false;
 
-  const [selectedValues, setSelectedValues] = useState<Option[]>(isMultiple ? [] : []);
+  const [selectedValues, setSelectedValues] = useState<Option[]>(
+    (props.autocompleteProps?.value as Option[]) ?? []
+  );
   const [inputChange, setInputChange] = useState('');
+
+  useEffect(() => {
+    setSelectedValues((props.autocompleteProps?.value as Option[]) ?? []);
+  }, [props.autocompleteProps?.value]);
 
   async function search(query: string | undefined): Promise<void> {
     if (query) {
@@ -62,7 +68,7 @@ function SearchableSelectNext<
 
   const handleChange = (
     event: React.SyntheticEvent,
-    newValue: AutocompleteValue<Value, Multiple, DisableClearable, FreeSolo>
+    newValue: AutocompleteValue<Value, Multiple, DisableClearable, FreeSolo>,
   ) => {
     let updatedSelection = Array.isArray(newValue) ? [...newValue] : [];
 
@@ -73,46 +79,55 @@ function SearchableSelectNext<
 
     const clickedItem = props.autocompleteProps?.options?.find(
       (opt) => (opt as Option).value === clickedValue
-    ) as Option | undefined;
+    );
 
     if (!clickedItem) return;
 
-    if (!((clickedItem as unknown) as Option).parent) {
-      // ✅ Sélection d'un parent → Ajouter tous ses enfants
-      const children = props.autocompleteProps?.options?.filter((opt) => (opt as Option).parent === clickedItem.value);
-      if (!updatedSelection.some((o) => (o as Option).value === clickedItem.value)) {
+    if (!clickedItem.parent) {
+      const children = props.autocompleteProps?.options?.filter(
+        (opt) => (opt as Option).parent === clickedItem.value
+      );
+
+      if (!updatedSelection.some((o) => o.value === clickedItem.value)) {
         updatedSelection.push(clickedItem);
         children?.forEach((child) => {
           if (!updatedSelection.some((o) => (o as Option).value === (child as Option).value)) {
-            updatedSelection.push(child);
+            updatedSelection.push((child as Option));
           }
         });
       } else {
-        // ❌ Désélection d'un parent → Retirer aussi tous ses enfants
         updatedSelection = updatedSelection.filter(
-          (o) => (o as Option).value !== clickedItem.value && !children?.some((child) => (child as Option).value === (o as Option).value)
+          (o) => (o as Option).value !== clickedItem.value && !(children?.some((child) => (child as Option).value === (o as Option).value) ?? false)
         );
       }
     } else {
-      // ✅ Sélection ou désélection d'un enfant normalement
-      if (updatedSelection.some((o) => (o as Option).value === clickedItem.value)) {
-        updatedSelection = updatedSelection.filter((o) => (o as unknown as Option).value !== (clickedItem as unknown as Option).value);
+      if (updatedSelection.some((o) => o.value === clickedItem.value)) {
+        updatedSelection = updatedSelection.filter((o) => o.value !== clickedItem.value);
       } else {
         updatedSelection.push(clickedItem);
       }
 
-      // ❌ Vérifier si tous les enfants d'un parent sont supprimés → Retirer aussi le parent
-      const parent = props.autocompleteProps?.options?.find((opt) => (opt as Option).value === (clickedItem as unknown as Option).parent);
-
+      const parent = props.autocompleteProps?.options?.find((opt) => (opt as Option).value === clickedItem.parent);
       if (parent) {
-        const hasChildrenSelected = updatedSelection.some((o) => (o as unknown as Option).parent === (clickedItem as unknown as Option).parent);
-        if (!hasChildrenSelected) {
-          updatedSelection = updatedSelection.filter((o) => (o as unknown as Option).value !== (parent as unknown as Option).value);
+        const allChildren = props.autocompleteProps?.options?.filter((opt) => (opt as Option).parent === clickedItem.parent);
+        const allChildrenSelected = allChildren?.every((child) =>
+          updatedSelection.some((o) => o.value === (child as Option).value)
+        );
+
+        if (allChildrenSelected) {
+          if (!updatedSelection.some((o) => o.value === parent.value)) {
+            updatedSelection.push(parent);
+          }
+        } else {
+          const parentIndex = updatedSelection.findIndex((o) => o.value === parent.value);
+          if (parentIndex !== -1) {
+            updatedSelection.splice(parentIndex, 1);
+          }
         }
       }
     }
 
-    props.autocompleteProps?.onChange?.(event, updatedSelection as AutocompleteValue<Value, Multiple, DisableClearable, FreeSolo>, 'select-option');
+    props.autocompleteProps?.onChange?.(event, updatedSelection as AutocompleteValue<Value, Multiple, DisableClearable, FreeSolo>, 'select-option' as AutocompleteChangeReason);
     setSelectedValues(updatedSelection);
   };
 
@@ -126,34 +141,34 @@ function SearchableSelectNext<
       isOptionEqualToValue={(option, value) => (option as Option).value === (value as Option).value}
       loadingText="Chargement..."
       noOptionsText="Aucune option"
-      openText="Ouvrir"
-      onChange={handleChange}
+      onChange={(event, value) => handleChange(event, value as AutocompleteValue<Value, Multiple, DisableClearable, FreeSolo>)}
       onInputChange={(event, query, reason) => {
         setInputChange(query);
         props.autocompleteProps?.onInputChange?.(event, query, reason);
       }}
       renderOption={(props, option) => {
-        const isSelected = selectedValues.some((o) => o.value === (option as Option).value);
+        const isSelected = selectedValues.some((o) => (o as Option).value === (option as Option).value);
+        const isParent = !(option as Option).parent;
         return (
           <ListItem
             {...props}
-            data-value={(option as Option).value} // ✅ Permet d'identifier l'élément cliqué
+            data-value={(option as Option).value}
             onClick={(event) => {
-              event.preventDefault(); // ✅ Empêche la fermeture
+              event.preventDefault();
               handleChange(event, selectedValues as AutocompleteValue<Value, Multiple, DisableClearable, FreeSolo>);
             }}
           >
-            <ListItemIcon>
-              {(option as Option).parent ? (
-                <Checkbox className='color-bf113' checked={isSelected} /> // ✅ Case à cocher pour les enfants
-              ) : (
+            <>
+              {isParent ? (
                 <>
-                  <Checkbox className='color-bf113' checked={isSelected} /> {/* ✅ Case à cocher pour les parents */}
-                  <span className={(option as Option).icon}></span> {/* ✅ Icône pour les parents */}
+                  <Checkbox disableRipple size="small" checked={isSelected} />
+                  <span style={{display: 'flex', alignItems: 'center'}} className={`fr-mr-1w fr-icon-1x ${(option as Option).icon}}`}></span>
                 </>
+              ) : (
+                <Checkbox disableRipple size="small" checked={isSelected} />
               )}
-            </ListItemIcon>
-            <ListItemText primary={!(option as Option).parent ? (<strong>{(option as Option).label}</strong>) : <>{(option as Option).label}</>} />
+            </>
+            <ListItemText primary={isParent ? <strong className='fr-text--sm'>{(option as Option).label}</strong> : <span className='fr-text--sm'>{(option as Option).label}</span>} />
           </ListItem>
         );
       }}

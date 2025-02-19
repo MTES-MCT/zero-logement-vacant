@@ -32,6 +32,7 @@ import {
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
+import { useFindPrecisionsQuery } from '../../services/precision.service';
 import fp from 'lodash/fp';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { SelectOption } from '../../models/SelectOption';
@@ -50,6 +51,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   const campaigns = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { data: intercommunalities } = useIntercommunalities();
+  const { data: precisions } = useFindPrecisionsQuery();
   const intercommunalityOptions =
     intercommunalities?.map<SelectOption>((intercommunality) => ({
       value: intercommunality.id,
@@ -62,6 +64,12 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   if (!hasFilters) {
     return null;
   }
+
+  // TODO: refactor
+  const blocagesCategory = ["blocage-volontaire", "blocage-involontaire", "immeuble-environnement", "tiers-en-cause"];
+  const dispositifsCategory = ["dispositifs-incitatifs", "dispositifs-coercitifs", "hors-dispositif-public"];
+  const evolutionsCategory = ["mutation", "occupation", "travaux"];
+  const disabledFilters = [ ...blocagesCategory, ...dispositifsCategory, ...evolutionsCategory ];
 
   return (
     <div className="fr-tags-group">
@@ -265,12 +273,15 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         small={small}
         onChange={() => onChange?.({ query: '' })}
       />
+
       <FilterBadges
-        options={(filters.precisions ?? []).map((precision) => ({
-          value: precision,
-          label: precision
-        }))}
-        values={filters.precisions}
+        options={(precisions ?? [])
+          .map((precision) => ({
+            value: precision.id,
+            label: precision.label
+          }))
+          .concat(noCampaignOption)}
+        values={filters.precisions?.filter((precision) => !disabledFilters.includes(precision))}
         small={small}
         onChange={(values) => onChange?.({ precisions: values })}
       />

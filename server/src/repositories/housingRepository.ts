@@ -535,7 +535,14 @@ function filteredQuery(opts: FilteredQueryOptions) {
         }
       });
     }
-
+    if (filters.precisions?.length) {
+      queryBuilder.whereIn(`${housingTable}.id`, (subquery) => {
+        subquery
+          .select(`${HOUSING_PRECISION_TABLE}.housing_id`)
+          .from(HOUSING_PRECISION_TABLE)
+          .whereIn(`${HOUSING_PRECISION_TABLE}.precision_id`, filters.precisions ?? []);
+      });
+    }
     if (filters.beneficiaryCounts?.length) {
       // Count secondary owners, e.g., those who have a rank >= 2
       queryBuilder.whereIn(`${housingTable}.id`, (subquery) => {

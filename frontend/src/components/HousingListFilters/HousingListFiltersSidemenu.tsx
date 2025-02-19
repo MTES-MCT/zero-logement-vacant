@@ -93,7 +93,7 @@ function HousingListFiltersSidemenu(props: Props) {
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { data: precisions } = useFindPrecisionsQuery();
   const blocagesCategory = ["blocage-volontaire", "blocage-involontaire", "immeuble-environnement", "tiers-en-cause"];
-  const dispositifsCategory = ["dispositifs-coercitifs", "dispositifs-incitatifs", "hors-dispositif-public"];
+  const dispositifsCategory = ["dispositifs-incitatifs", "dispositifs-coercitifs", "hors-dispositif-public"];
   const evolutionsCategory = ["mutation", "occupation", "travaux"];
 
   const precisionsGroupedByCategory = precisions?.reduce((acc: Record<string, typeof precisions>, item) => {
@@ -200,9 +200,44 @@ function HousingListFiltersSidemenu(props: Props) {
       : [];
   };
 
-  const blocages = filterAndFlatten(precisionsGroupedByCategory, blocagesCategory, categories);
-  const dispositifs = filterAndFlatten(precisionsGroupedByCategory, dispositifsCategory, categories);
-  const evolutions = filterAndFlatten(precisionsGroupedByCategory, evolutionsCategory, categories);
+  type Item = { id?: number; parent?: string; value?: string; label: string };
+
+  const sortDispositifs = (dispositifs: Item[], categories: string[]): Item[] => {
+    const parents: Item[] = [];
+    const childrenMap = new Map<string, Item[]>();
+
+    dispositifs.forEach((item) => {
+      if (!item.parent) {
+        parents.push(item);
+      } else {
+        if (!childrenMap.has(item.parent)) {
+          childrenMap.set(item.parent, []);
+        }
+        childrenMap.get(item.parent)!.push(item);
+      }
+    });
+
+    parents.sort((a, b) => {
+      const indexA = categories.indexOf(a.value!);
+      const indexB = categories.indexOf(b.value!);
+      return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+    });
+
+    const sortedItems: Item[] = [];
+
+    parents.forEach((parent) => {
+      sortedItems.push(parent);
+      if (childrenMap.has(parent.value!)) {
+        sortedItems.push(...childrenMap.get(parent.value!)!.sort((a, b) => (a.id! - b.id!)));
+      }
+    });
+
+    return sortedItems;
+  };
+
+  const blocages = sortDispositifs(filterAndFlatten(precisionsGroupedByCategory, blocagesCategory, categories), blocagesCategory);
+  const dispositifs = sortDispositifs(filterAndFlatten(precisionsGroupedByCategory, dispositifsCategory, categories), dispositifsCategory);
+  const evolutions = sortDispositifs(filterAndFlatten(precisionsGroupedByCategory, evolutionsCategory, categories), evolutionsCategory);
 
   const { localities } = useLocalityList(establishment?.id);
 
@@ -359,7 +394,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <SearchableSelectNext
                 autocompleteProps={{
                   autoHighlight: true,
-                  options: dispositifs ?? [],
+                  options: dispositifs?.filter((item) => item.value !== undefined) as FlattenedDataItem[] ?? [],
                   loading: isFetching,
                   openOnFocus: true,
                   size: 'small',
@@ -371,15 +406,14 @@ function HousingListFiltersSidemenu(props: Props) {
                     filters.precisions
                       ?.map((precision) => {
                         return dispositifs?.find(
-                          (dispositif) => dispositif.value === precision
+                          (dispositif) => (dispositif.value === precision)
                         );
                       })
-                      ?.filter(isDefined) ?? [],
+                      ?.filter((item): item is FlattenedDataItem => isDefined(item) && item.value !== undefined && item.value !== '') as FlattenedDataItem[] ?? [],
                   onChange: (_, values) => {
-                    console.log(values.filter(precision => precision.parent !== undefined));
                     if (values) {
                       onChangeFilters(
-                        { precisions: values.filter(precision => precision.parent !== undefined).map((precision) => precision.value) },
+                        { precisions: values.map((precision) => precision.value) },
                         'Dispositif'
                       );
                       posthog.capture('filtre-dispositif');
@@ -398,7 +432,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <SearchableSelectNext
               autocompleteProps={{
                 autoHighlight: true,
-                options: blocages ?? [],
+                options: blocages?.filter((item): item is FlattenedDataItem => item.value !== undefined) ?? [],
                 loading: isFetching,
                 openOnFocus: true,
                 size: 'small',
@@ -406,23 +440,23 @@ function HousingListFiltersSidemenu(props: Props) {
                 getOptionKey: (option) => option.value,
                 getOptionLabel: (option) => option.label,
                 isOptionEqualToValue: (option, value) => option.value === value.value,
-                // value:
-                //   filters.intercommunalities
-                //     ?.map((intercommunality) => {
-                //       return intercommunalities?.find(
-                //         (establishment) => establishment.id === intercommunality
-                //       );
-                //     })
-                //     ?.filter(isDefined) ?? [],
-                // onChange: (_, values) => {
-                //   if (values) {
-                //     onChangeFilters(
-                //       { intercommunalities: values.map((value) => value.id) },
-                //       'Intercommunalité'
-                //     );
-                //     posthog.capture('filtre-intercommunalite');
-                //   }
-                // }
+                value:
+                  filters.precisions
+                  ?.map((precision) => {
+                    return blocages?.find(
+                      (blocage) => blocage.value === precision
+                    );
+                  })
+                  ?.filter((item): item is FlattenedDataItem => isDefined(item) && item.value !== undefined && item.value !== '') as FlattenedDataItem[] ?? [],
+                onChange: (_, values) => {
+                  if (values) {
+                    onChangeFilters(
+                      { precisions: values.map((precision) => precision.value) },
+                      'Points de blocage'
+                    );
+                    posthog.capture('filtre-points-blocage');
+                  }
+                }
               }}
               inputProps={{
                 label: 'Poins de blocage',
@@ -436,7 +470,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <SearchableSelectNext
               autocompleteProps={{
                 autoHighlight: true,
-                options: evolutions ?? [],
+                options: evolutions?.filter((item): item is FlattenedDataItem => item.value !== undefined) ?? [],
                 loading: isFetching,
                 openOnFocus: true,
                 size: 'small',
@@ -444,23 +478,23 @@ function HousingListFiltersSidemenu(props: Props) {
                 getOptionKey: (option) => option.value,
                 getOptionLabel: (option) => option.label,
                 isOptionEqualToValue: (option, value) => option.value === value.value,
-                // value:
-                //   filters.intercommunalities
-                //     ?.map((intercommunality) => {
-                //       return intercommunalities?.find(
-                //         (establishment) => establishment.id === intercommunality
-                //       );
-                //     })
-                //     ?.filter(isDefined) ?? [],
-                // onChange: (_, values) => {
-                //   if (values) {
-                //     onChangeFilters(
-                //       { intercommunalities: values.map((value) => value.id) },
-                //       'Intercommunalité'
-                //     );
-                //     posthog.capture('filtre-intercommunalite');
-                //   }
-                // }
+                value:
+                  filters.precisions
+                  ?.map((precision) => {
+                    return evolutions?.find(
+                      (evolution) => evolution.value === precision
+                    );
+                  })
+                  ?.filter((item): item is FlattenedDataItem => isDefined(item) && item.value !== undefined && item.value !== '') as FlattenedDataItem[] ?? [],
+                onChange: (_, values) => {
+                  if (values) {
+                    onChangeFilters(
+                      { precisions: values.map((precision) => precision.value) },
+                      'Évolution du logement'
+                    );
+                    posthog.capture('filtre-evolutions-logement');
+                  }
+                }
               }}
               inputProps={{
                 label: 'Évolution du logement',
@@ -516,26 +550,30 @@ function HousingListFiltersSidemenu(props: Props) {
             <SearchableSelectNext
               autocompleteProps={{
                 autoHighlight: true,
-                options: intercommunalities ?? [],
+                options: (intercommunalities ?? []).map((ic) => ({
+                  label: ic.name,
+                  value: ic.id
+                })),
                 loading: isFetching,
                 multiple: true,
                 openOnFocus: true,
                 size: 'small',
-                getOptionKey: (option) => option.id,
-                getOptionLabel: (option) => option.name,
-                isOptionEqualToValue: (option, value) => option.id === value.id,
+                getOptionKey: (option) => option.value,
+                getOptionLabel: (option) => option.label,
+                isOptionEqualToValue: (option, value) => option.value === value.value,
                 value:
                   filters.intercommunalities
                     ?.map((intercommunality) => {
-                      return intercommunalities?.find(
+                      const match = intercommunalities?.find(
                         (establishment) => establishment.id === intercommunality
                       );
+                      return match ? { label: match.name, value: match.id } : null;
                     })
-                    ?.filter(isDefined) ?? [],
+                    ?.filter((item): item is { label: string; value: string } => !!item) ?? [],
                 onChange: (_, values) => {
                   if (values) {
                     onChangeFilters(
-                      { intercommunalities: values.map((value) => value.id) },
+                      { intercommunalities: values.map((value) => value.value) },
                       'Intercommunalité'
                     );
                     posthog.capture('filtre-intercommunalite');

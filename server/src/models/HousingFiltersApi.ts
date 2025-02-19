@@ -54,6 +54,7 @@ export interface HousingFiltersApi
   query?: string;
   energyConsumption?: EnergyConsumption[];
   occupancies?: Occupancy[];
+  precisions?: string[];
 }
 
 const validators = (property = 'filters'): ValidationChain[] => [

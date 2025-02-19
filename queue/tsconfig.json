@@ -8,8 +8,7 @@
     "sourceMap": true,
     "outDir": "dist",
     "resolveJsonModule": true,
-    "rootDir": "src",
-    "typeRoots": ["node_modules/@types", "src/types"]
+    "rootDir": "src"
   },
   "include": ["src"]
 }

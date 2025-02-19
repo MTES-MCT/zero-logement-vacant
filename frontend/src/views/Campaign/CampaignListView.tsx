@@ -9,7 +9,7 @@ import {
   Campaign,
   CampaignSort,
   CampaignSortable,
-  isCampaignDeletable,
+  isCampaignDeletable
 } from '../../models/Campaign';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import CampaignStatusBadge from '../../components/Campaign/CampaignStatusBadge';
@@ -20,7 +20,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import styles from './campaign.module.scss';
 import {
   useRemoveCampaignMutation,
-  useUpdateCampaignMutation,
+  useUpdateCampaignMutation
 } from '../../services/campaign.service';
 import { useSort } from '../../hooks/useSort';
 import { useUser } from '../../hooks/useUser';
@@ -44,7 +44,7 @@ const CampaignsListView = () => {
 
   const { getSortButton } = useSort<CampaignSortable>({
     onSort: setSort,
-    default: sort,
+    default: sort
   });
 
   return (
@@ -56,7 +56,7 @@ const CampaignsListView = () => {
             priority="secondary"
             linkProps={{
               to: 'https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5',
-              target: '_blank',
+              target: '_blank'
             }}
             className="float-right"
           >
@@ -70,7 +70,7 @@ const CampaignsListView = () => {
           <div className="fr-mb-2w">
             {displayCount(campaigns.length, 'campagne', {
               capitalize: true,
-              feminine: true,
+              feminine: true
             })}
           </div>
           <Table
@@ -83,8 +83,8 @@ const CampaignsListView = () => {
               'Titre',
               getSortButton('status', 'Statut'),
               getSortButton('createdAt', 'Date de création'),
-              getSortButton('sentAt', "Date d’envoi"),
-              '',
+              getSortButton('sentAt', 'Date d’envoi'),
+              ''
             ]}
             data={campaigns.map((campaign, index) => [
               `#${index + 1}`,
@@ -111,36 +111,41 @@ const CampaignsListView = () => {
                 className="fr-btns-group fr-btns-group--sm fr-btns-group--right fr-btns-group--inline fr-pr-2w"
                 key={`${campaign.id}-actions`}
               >
-                { !(campaign.status === 'draft' || campaign.status === 'sending') && (
+                {!(
+                  campaign.status === 'draft' || campaign.status === 'sending'
+                ) && (
                   <Button
                     priority="tertiary"
                     linkProps={{
-                      to: `/parc-de-logements/campagnes/${campaign.id}`,
+                      to: `/parc-de-logements/campagnes/${campaign.id}`
                     }}
                     className={styles.buttonInGroup}
                   >
                     Suivre
                   </Button>
                 )}
-                { (!isVisitor && (campaign.status === 'draft' || campaign.status === 'sending')) && (
-                  <Button
-                    priority="tertiary"
-                    linkProps={{
-                      to: `/campagnes/${campaign.id}`,
-                    }}
-                    className={styles.buttonInGroup}
-                  >
-                    Accéder
-                  </Button>
-                )}
-                { !isVisitor && campaign.status === 'in-progress' && (
+                {!isVisitor &&
+                  (campaign.status === 'draft' ||
+                    campaign.status === 'sending') && (
+                    <Button
+                      priority="tertiary"
+                      linkProps={{
+                        to: `/campagnes/${campaign.id}`
+                      }}
+                      className={styles.buttonInGroup}
+                    >
+                      Accéder
+                    </Button>
+                  )}
+                {!isVisitor && campaign.status === 'in-progress' && (
                   <ConfirmationModal
                     onSubmit={() => onArchiveCampaign(campaign)}
                     modalId={`archive-${campaign.id}`}
                     openingButtonProps={{
+                      title: 'Archiver la campagne',
                       priority: 'tertiary',
                       iconId: 'fr-icon-archive-fill',
-                      className: styles.buttonInGroup,
+                      className: styles.buttonInGroup
                     }}
                   >
                     <Text size="md">
@@ -148,14 +153,15 @@ const CampaignsListView = () => {
                     </Text>
                   </ConfirmationModal>
                 )}
-                { !isVisitor && isCampaignDeletable(campaign) && (
+                {!isVisitor && isCampaignDeletable(campaign) && (
                   <ConfirmationModal
                     onSubmit={() => onDeleteCampaign(campaign.id)}
                     modalId={`delete-${campaign.id}`}
                     openingButtonProps={{
+                      title: 'Supprimer la campagne',
                       priority: 'tertiary',
                       iconId: 'fr-icon-delete-bin-fill',
-                      className: styles.buttonInGroup,
+                      className: styles.buttonInGroup
                     }}
                   >
                     <Text size="md">
@@ -168,7 +174,7 @@ const CampaignsListView = () => {
                     />
                   </ConfirmationModal>
                 )}
-              </div>,
+              </div>
             ])}
           />
         </>

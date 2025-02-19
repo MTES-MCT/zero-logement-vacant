@@ -33,6 +33,10 @@ export function createLogger(name: string, opts: LoggerOptions): Logger {
     level
   });
 
+  process.once('exit', () => {
+    logger.flush();
+  });
+
   return {
     trace: toPinoLogFn(logger.trace.bind(logger)),
     debug: toPinoLogFn(logger.debug.bind(logger)),

@@ -170,6 +170,10 @@ def process_housings_with_api(context: AssetExecutionContext, housings_without_a
                       last_updated_at = EXCLUDED.last_updated_at;
                 """
               )
+
+              cursor.execute("""
+                  DELETE FROM temp_ban_addresses;
+              """)
               total_inserted += len(valid_df)
           batch_number += 1
         conn.commit()

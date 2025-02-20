@@ -4,43 +4,38 @@ import {
   BaseSelectProps,
   Box,
   MenuItem,
-  Select as MuiSelect
+  Select as MuiSelect,
+  SelectChangeEvent
 } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
-import { useId } from 'react';
+import { ChangeEvent, Key, useId } from 'react';
 import { useController } from 'react-hook-form';
-import { noop } from 'ts-essentials';
 import { match, Pattern } from 'ts-pattern';
 
 import styles from './app-select-next.module.scss';
 
-export interface Option<Value> {
-  id?: string;
-  label: string;
-  value: Value;
-}
-
-export type AppSelectNextProps<
-  Value,
-  Multiple extends boolean | undefined
-> = Omit<
+export type AppSelectNextProps<Value, Multiple extends boolean> = Omit<
   BaseSelectProps<SelectValue<Value, Multiple>>,
   'multiple' | 'value'
 > & {
   disabled?: boolean;
-  name: string;
-  options: ReadonlyArray<Option<Value>>;
+  getOptionKey?(value: Value): Key;
+  getOptionLabel?(value: Value): string;
+  getOptionValue?(value: Value): string;
+  groupBy?(value: Value): string;
+  isOptionEqualToValue?(option: Value, value: Value): boolean;
   // Keep this until upgrading to MUI v6
   multiple?: Multiple;
-  value?: SelectValue<Value, Multiple>;
+  name: string;
+  options: ReadonlyArray<Value>;
 };
 
-type SelectValue<Value, Multiple> = Multiple extends true
+type SelectValue<Value, Multiple extends boolean> = Multiple extends true
   ? ReadonlyArray<Value>
   : Value | null;
 
-function AppSelectNext<Value extends string, Multiple extends boolean = false>(
+function AppSelectNext<Value, Multiple extends boolean = false>(
   props: AppSelectNextProps<Value, Multiple>
 ) {
   const labelId = `fr-label-${useId()}`;
@@ -54,10 +49,78 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
     disabled: props.disabled
   });
 
-  const isControlled = props.value !== undefined;
-  const value: SelectValue<Value, Multiple> =
-    props.options.length === 0 ? '' : isControlled ? props.value : field.value;
-  const onChange = isControlled ? props.onChange : field.onChange;
+  const value =
+    props.options.length === 0
+      ? ''
+      : multiple
+        ? (field.value as ReadonlyArray<Value>).map(getOptionValue)
+        : getOptionValue(field.value as Value);
+
+  function onChange(
+    event: SelectChangeEvent<string | ReadonlyArray<string>>
+  ): void {
+    const eventValue = event.target.value;
+    const value = (
+      typeof eventValue === 'string' ? eventValue.split(',') : eventValue
+    ).map(getOption);
+
+    field.onChange({
+      ...event,
+      target: {
+        ...event.target,
+        value: value
+      }
+    });
+  }
+
+  function noop(event: ChangeEvent): void {
+    event.stopPropagation();
+  }
+
+  function getOptionKey(option: Value): Key {
+    return props.getOptionKey?.(option) ?? getOptionLabel(option);
+  }
+
+  function getOptionLabel(option: Value): string {
+    if (props.getOptionLabel) {
+      return props.getOptionLabel(option);
+    }
+
+    if (
+      option !== null &&
+      typeof option === 'object' &&
+      'label' in option &&
+      typeof option.label === 'string'
+    ) {
+      return option.label;
+    }
+
+    throw new Error(
+      'You should provide the `getOptionLabel` prop or make sure your options are objects with a `label` property'
+    );
+  }
+
+  function getOption(value: string): Value {
+    const option = props.options.find(
+      (option) => getOptionValue(option) === value
+    );
+    if (!option) {
+      throw new Error(`Option with value ${value} not found`);
+    }
+
+    return option;
+  }
+
+  function getOptionValue(option: Value): string {
+    return props.getOptionValue?.(option) ?? getOptionKey(option).toString();
+  }
+
+  function isOptionEqualToValue(option: Value, value: Value): boolean {
+    return (
+      props.isOptionEqualToValue?.(option, value) ??
+      getOptionKey(option) === getOptionKey(value)
+    );
+  }
 
   return (
     <Box
@@ -116,30 +179,32 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
             return 'Sélectionnez une option';
           }
 
-          return match(values)
-            .with(Pattern.string, (value) => {
-              return props.options.find((option) => option.value === value)
-                ?.label;
-            })
-            .with(Pattern.array(Pattern.string), (values) => {
-              return match((values as string[]).length)
-                .with(1, () => '1 option sélectionnée')
-                .with(
-                  Pattern.number.int().gte(2),
-                  (nb) => `${nb} options sélectionnées`
-                )
-                .otherwise(() => '');
-            })
-            .otherwise(() => '');
+          if (Array.isArray(values)) {
+            return match(values.length)
+              .with(1, () => '1 option sélectionnée')
+              .with(
+                Pattern.number.int().gte(2),
+                (nb) => `${nb} options sélectionnées`
+              )
+              .otherwise(() => '');
+          }
+
+          return '';
         }}
-        value={value ?? ''}
+        sx={{ width: '100%' }}
+        value={value}
         variant="standard"
         onChange={onChange}
       >
         {props.options.map((option) => (
-          <MenuItem disableRipple key={option.value} value={option.value}>
+          <MenuItem
+            dense
+            disableRipple
+            key={getOptionKey(option)}
+            value={getOptionValue(option)}
+          >
             {!props.multiple ? (
-              option.label
+              getOptionLabel(option)
             ) : (
               <Checkbox
                 classes={{
@@ -148,12 +213,13 @@ function AppSelectNext<Value extends string, Multiple extends boolean = false>(
                 }}
                 options={[
                   {
-                    label: 'Vacant',
+                    label: getOptionLabel(option),
                     nativeInputProps: {
-                      checked: (value as Value[]).some(
-                        (value) => value === option.value
+                      checked: (value as ReadonlyArray<string>).some(
+                        (value) => {
+                          return isOptionEqualToValue(option, getOption(value));
+                        }
                       ),
-                      value: 'vacant',
                       onClick: noop,
                       onChange: noop
                     }

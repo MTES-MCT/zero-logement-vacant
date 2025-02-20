@@ -52,6 +52,7 @@ allowed_patterns:
 - \[key\]
 - key=
 - 'key:'
+- .keys()
 version: "1.0"
 name: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8

@@ -14,6 +14,7 @@ import housingRepository from '~/repositories/housingRepository';
 import HousingMissingError from '~/errors/housingMissingError';
 import PrecisionMissingError from '~/errors/precisionMissingError';
 import { startTransaction } from '~/infra/database/transaction';
+import { Request, Response } from 'express';
 
 const find: RequestHandler<never, Precision[]> = async (
   _,
@@ -27,6 +28,11 @@ const find: RequestHandler<never, Precision[]> = async (
 
 interface PathParams extends Record<string, string> {
   id: string;
+}
+
+async function listPrecisions(request: Request, response: Response) {
+  const precisions = await precisionRepository.find();
+  response.status(constants.HTTP_STATUS_OK).json(precisions);
 }
 
 const findByHousing: RequestHandler<PathParams, Precision[]> = async (
@@ -110,6 +116,7 @@ const updatePrecisionsByHousing: RequestHandler<
 };
 
 const precisionController = {
+  listPrecisions,
   find,
   findByHousing,
   updatePrecisionsByHousing

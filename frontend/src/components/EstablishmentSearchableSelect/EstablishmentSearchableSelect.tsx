@@ -40,14 +40,18 @@ function EstablishmentSearchableSelect(props: Props) {
         clearIcon: null,
         freeSolo: true,
         getOptionKey: (option) =>
-          typeof option === 'string' ? option : option.id,
+          typeof option === 'string' ? option : (option as unknown as EstablishmentDTO).id,
         getOptionLabel: (option) =>
-          typeof option === 'string' ? option : option.name,
-        isOptionEqualToValue: (option, value) => option.id === value.id,
-        options: establishments ?? [],
+          typeof option === 'string' ? option : (option as unknown as EstablishmentDTO).name,
+        isOptionEqualToValue: (option, value) => (option as unknown as EstablishmentDTO).id === (value as unknown as EstablishmentDTO).id,
+        options: (establishments ?? []).map(establishment => ({
+          label: establishment.name,
+          value: establishment.id,
+          ...establishment
+        })),
         loading: isFetching,
         openOnFocus: true,
-        value: value,
+        value: value ? { label: value.name, value: value.id, ...value } : null,
         onChange: (_, establishment) => {
           match(establishment)
             .with(Pattern.string, () => {})

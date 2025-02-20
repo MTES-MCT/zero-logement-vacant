@@ -52,3 +52,15 @@ export function isPrecisionEvolutionCategory(
 ): category is (typeof PRECISION_EVOLUTION_CATEGORY_VALUES)[number] {
   return PRECISION_EVOLUTION_CATEGORY_VALUES.includes(category);
 }
+
+type Kind = 'mechanism' | 'blockingPoint' | 'evolution';
+
+const kinds: Record<Kind, readonly PrecisionCategory[]> = {
+  mechanism: PRECISION_MECHANISM_CATEGORY_VALUES,
+  blockingPoint: PRECISION_BLOCKING_POINT_CATEGORY_VALUES,
+  evolution: PRECISION_EVOLUTION_CATEGORY_VALUES,
+};
+
+export function filterByKind(precisions: Precision[], kind: Kind): Precision[] {
+  return precisions.filter(precision => kinds[kind].includes(precision.category));
+}

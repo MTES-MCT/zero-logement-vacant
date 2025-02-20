@@ -55,6 +55,7 @@ import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import CampaignFilter from './CampaignFilter';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
+import { useFindPrecisionsQuery } from '../../services/precision.service';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -90,6 +91,154 @@ function HousingListFiltersSidemenu(props: Props) {
   const onResetFilters = props.onReset;
   const { data: campaigns } = useFindCampaignsQuery();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
+  const { data: precisions } = useFindPrecisionsQuery();
+  const blocagesCategory = ["blocage-volontaire", "blocage-involontaire", "immeuble-environnement", "tiers-en-cause"];
+  const dispositifsCategory = ["dispositifs-incitatifs", "dispositifs-coercitifs", "hors-dispositif-public"];
+  const evolutionsCategory = ["mutation", "occupation", "travaux"];
+
+  const precisionsGroupedByCategory = precisions?.reduce((acc: Record<string, typeof precisions>, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+
+  interface GroupedDataItem {
+    id: string;
+    label: string;
+  }
+
+  interface FlattenedDataItem {
+    value: string;
+    label: string;
+    parent?: string;
+  }
+
+  interface CategoryLabels {
+    [key: string]: {
+      label: string;
+      icon: string;
+    };
+  }
+
+  const flattenGroupedData = (
+    groupedData: Record<string, GroupedDataItem[]>,
+    categories: CategoryLabels
+  ): FlattenedDataItem[] => {
+    return Object.entries(groupedData).flatMap(([category, items]) => [
+      {
+        value: category,
+        label: categories[category].label || category,
+        icon: `${categories[category].icon} color-bf113 fr-mx-1w`
+      },
+      ...items.map(({ id, label }) => ({ value: id, label, parent: category }))
+    ]);
+  };
+
+  const categories = {
+    "blocage-volontaire": {
+      label: "Blocage volontaire",
+      icon: "fr-icon-close-circle-fill"
+    },
+    "blocage-involontaire": {
+      label: "Blocage involontaire",
+      icon: "fr-icon-close-circle-line"
+    },
+    "dispositifs-coercitifs": {
+      label: "Dispositifs coercitifs",
+      icon: "fr-icon-scales-3-line"
+    },
+    "dispositifs-incitatifs": {
+      label: "Dispositifs incitatifs",
+      icon: "fr-icon-money-euro-circle-line"
+    },
+    "hors-dispositif-public": {
+      label: "Hors dispositif public",
+      icon: "fr-icon-more-line"
+    },
+    "immeuble-environnement": {
+      label: "Immeuble / Environnement",
+      icon: "fr-icon-building-line"
+    },
+    "tiers-en-cause": {
+      label: "Tiers en cause",
+      icon: "ri-exchange-2-line"
+    },
+    "mutation": {
+      label: "Mutation",
+      icon: "ri-user-shared-line"
+    },
+    "occupation": {
+      label: "Occupation",
+      icon: "ri-user-location-line"
+    },
+    "travaux": {
+      label: "Travaux",
+      icon: "ri-barricade-line"
+    }
+  };
+
+  interface GroupedData {
+    [key: string]: GroupedDataItem[];
+  }
+
+  const filterAndFlatten = (
+    groupedData: GroupedData | undefined,
+    categories: string[],
+    categoryLabels: CategoryLabels
+  ): FlattenedDataItem[] => {
+    return groupedData
+      ? flattenGroupedData(
+          Object.fromEntries(
+            Object.entries(groupedData).filter(([key]) =>
+              categories.includes(key)
+            )
+          ) as GroupedData,
+          categoryLabels
+        )
+      : [];
+  };
+
+  type Item = { id?: number; parent?: string; value?: string; label: string };
+
+  const sortDispositifs = (dispositifs: Item[], categories: string[]): Item[] => {
+    const parents: Item[] = [];
+    const childrenMap = new Map<string, Item[]>();
+
+    dispositifs.forEach((item) => {
+      if (!item.parent) {
+        parents.push(item);
+      } else {
+        if (!childrenMap.has(item.parent)) {
+          childrenMap.set(item.parent, []);
+        }
+        childrenMap.get(item.parent)!.push(item);
+      }
+    });
+
+    parents.sort((a, b) => {
+      const indexA = categories.indexOf(a.value!);
+      const indexB = categories.indexOf(b.value!);
+      return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+    });
+
+    const sortedItems: Item[] = [];
+
+    parents.forEach((parent) => {
+      sortedItems.push(parent);
+      if (childrenMap.has(parent.value!)) {
+        sortedItems.push(...childrenMap.get(parent.value!)!.sort((a, b) => (a.id! - b.id!)));
+      }
+    });
+
+    return sortedItems;
+  };
+
+  const blocages = sortDispositifs(filterAndFlatten(precisionsGroupedByCategory, blocagesCategory, categories), blocagesCategory);
+  const dispositifs = sortDispositifs(filterAndFlatten(precisionsGroupedByCategory, dispositifsCategory, categories), dispositifsCategory);
+  const evolutions = sortDispositifs(filterAndFlatten(precisionsGroupedByCategory, evolutionsCategory, categories), evolutionsCategory);
+
   const { localities } = useLocalityList(establishment?.id);
 
   function onChangeStatusFilter(status: HousingStatus, isChecked: boolean) {
@@ -241,7 +390,122 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
           )}
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelectNext
+                autocompleteProps={{
+                  autoHighlight: true,
+                  options: dispositifs?.filter((item) => item.value !== undefined) as FlattenedDataItem[] ?? [],
+                  loading: isFetching,
+                  openOnFocus: true,
+                  size: 'small',
+                  multiple: true,
+                  getOptionKey: (option) => option.value,
+                  getOptionLabel: (option) => option.label,
+                  isOptionEqualToValue: (option, value) => option.value === value.value,
+                  value:
+                    filters.precisions
+                      ?.map((precision) => {
+                        return dispositifs?.find(
+                          (dispositif) => (dispositif.value === precision)
+                        );
+                      })
+                      ?.filter((item): item is FlattenedDataItem => isDefined(item) && item.value !== undefined && item.value !== '') as FlattenedDataItem[] ?? [],
+                  onChange: (_, values) => {
+                    if (values) {
+                      onChangeFilters(
+                        { precisions: values.map((precision) => precision.value) },
+                        'Dispositif'
+                      );
+                      posthog.capture('filtre-dispositif');
+                    }
+                  }
+                }}
+                inputProps={{
+                  label: 'Dispositifs',
+                  nativeInputProps: {
+                    placeholder: 'Rechercher un dispositif'
+                  }
+                }}
+              />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelectNext
+              autocompleteProps={{
+                autoHighlight: true,
+                options: blocages?.filter((item): item is FlattenedDataItem => item.value !== undefined) ?? [],
+                loading: isFetching,
+                openOnFocus: true,
+                size: 'small',
+                multiple: true,
+                getOptionKey: (option) => option.value,
+                getOptionLabel: (option) => option.label,
+                isOptionEqualToValue: (option, value) => option.value === value.value,
+                value:
+                  filters.precisions
+                  ?.map((precision) => {
+                    return blocages?.find(
+                      (blocage) => blocage.value === precision
+                    );
+                  })
+                  ?.filter((item): item is FlattenedDataItem => isDefined(item) && item.value !== undefined && item.value !== '') as FlattenedDataItem[] ?? [],
+                onChange: (_, values) => {
+                  if (values) {
+                    onChangeFilters(
+                      { precisions: values.map((precision) => precision.value) },
+                      'Points de blocage'
+                    );
+                    posthog.capture('filtre-points-blocage');
+                  }
+                }
+              }}
+              inputProps={{
+                label: 'Poins de blocage',
+                nativeInputProps: {
+                  placeholder: 'Rechercher un point de blocage'
+                }
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <SearchableSelectNext
+              autocompleteProps={{
+                autoHighlight: true,
+                options: evolutions?.filter((item): item is FlattenedDataItem => item.value !== undefined) ?? [],
+                loading: isFetching,
+                openOnFocus: true,
+                size: 'small',
+                multiple: true,
+                getOptionKey: (option) => option.value,
+                getOptionLabel: (option) => option.label,
+                isOptionEqualToValue: (option, value) => option.value === value.value,
+                value:
+                  filters.precisions
+                  ?.map((precision) => {
+                    return evolutions?.find(
+                      (evolution) => evolution.value === precision
+                    );
+                  })
+                  ?.filter((item): item is FlattenedDataItem => isDefined(item) && item.value !== undefined && item.value !== '') as FlattenedDataItem[] ?? [],
+                onChange: (_, values) => {
+                  if (values) {
+                    onChangeFilters(
+                      { precisions: values.map((precision) => precision.value) },
+                      'Évolution du logement'
+                    );
+                    posthog.capture('filtre-evolutions-logement');
+                  }
+                }
+              }}
+              inputProps={{
+                label: 'Évolution du logement',
+                nativeInputProps: {
+                  placeholder: 'Rechercher une évolution du logement'
+                }
+              }}
+            />
+          </Grid>
         </Accordion>
+
         <Accordion
           label={
             <TitleWithIcon
@@ -286,26 +550,30 @@ function HousingListFiltersSidemenu(props: Props) {
             <SearchableSelectNext
               autocompleteProps={{
                 autoHighlight: true,
-                options: intercommunalities ?? [],
+                options: (intercommunalities ?? []).map((ic) => ({
+                  label: ic.name,
+                  value: ic.id
+                })),
                 loading: isFetching,
                 multiple: true,
                 openOnFocus: true,
                 size: 'small',
-                getOptionKey: (option) => option.id,
-                getOptionLabel: (option) => option.name,
-                isOptionEqualToValue: (option, value) => option.id === value.id,
+                getOptionKey: (option) => option.value,
+                getOptionLabel: (option) => option.label,
+                isOptionEqualToValue: (option, value) => option.value === value.value,
                 value:
                   filters.intercommunalities
                     ?.map((intercommunality) => {
-                      return intercommunalities?.find(
+                      const match = intercommunalities?.find(
                         (establishment) => establishment.id === intercommunality
                       );
+                      return match ? { label: match.name, value: match.id } : null;
                     })
-                    ?.filter(isDefined) ?? [],
+                    ?.filter((item): item is { label: string; value: string } => !!item) ?? [],
                 onChange: (_, values) => {
                   if (values) {
                     onChangeFilters(
-                      { intercommunalities: values.map((value) => value.id) },
+                      { intercommunalities: values.map((value) => value.value) },
                       'Intercommunalité'
                     );
                     posthog.capture('filtre-intercommunalite');

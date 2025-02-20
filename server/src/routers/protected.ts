@@ -20,6 +20,7 @@ import noteController from '~/controllers/noteController';
 import ownerController from '~/controllers/ownerController';
 import ownerProspectController from '~/controllers/ownerProspectController';
 import settingsController from '~/controllers/settingsController';
+import precisionController from '~/controllers/precisionController';
 import userController from '~/controllers/userController';
 import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
 import { upload } from '~/middlewares/upload';
@@ -30,7 +31,6 @@ import validatorNext from '~/middlewares/validator-next';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
 import { UserRoles } from '~/models/UserApi';
-import precisionController from '~/controllers/precisionController';
 
 const router = Router();
 
@@ -371,5 +371,11 @@ router.get(
 );
 
 router.get('/datafoncier/housing/:localId', datafoncierController.findOne);
+
+router.get(
+  '/precisions',
+  validator.validate,
+  precisionController.listPrecisions
+);
 
 export default router;

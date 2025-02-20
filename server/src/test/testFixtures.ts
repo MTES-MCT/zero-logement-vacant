@@ -44,6 +44,7 @@ import { GroupApi } from '~/models/GroupApi';
 import { DatafoncierOwner } from '~/scripts/shared';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
+import { PrecisionDBO } from '~/repositories/precisionRepository';
 import {
   ConflictApi,
   HousingOwnerConflictApi,
@@ -69,8 +70,10 @@ import {
   Occupancy,
   OCCUPANCY_VALUES,
   OWNER_KIND_LABELS,
+  PrecisionCategory,
   UserAccountDTO
 } from '@zerologementvacant/models';
+import { PRECISION_TREE_VALUES, PrecisionApi } from '~/models/PrecisionApi';
 
 logger.debug(`Seed: ${faker.seed()}`);
 
@@ -866,5 +869,31 @@ export function genSenderApi(
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment.id
+  };
+}
+
+
+export function genPrecisions(): PrecisionDBO {
+
+  const referential = PRECISION_TREE_VALUES.mapEntries(([category, labels]) => [
+    category,
+    labels.map<PrecisionApi>((label, index) => ({
+      id: uuidv4(),
+      category: category as PrecisionCategory,
+      label: label,
+      order: index + 1
+    }))
+  ])
+    .toList()
+    .flatMap((_) => _)
+    .toArray();
+
+  const randomElement = faker.helpers.arrayElement(referential);
+
+  return {
+    id: uuidv4(),
+    order: faker.number.int({ min: 0, max: 5 }),
+    category: randomElement.category,
+    label: randomElement.label
   };
 }

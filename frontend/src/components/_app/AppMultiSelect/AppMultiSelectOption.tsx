@@ -21,7 +21,7 @@ function AppMultiSelectOption<Value extends string = string>(
     <AppCheckbox
       checked={props.checked}
       disabled={props.disabled}
-      label={props.label}
+      label={<><span className={props.icon}></span>{props.label}</>}
       onChange={(e: ChangeEvent<HTMLInputElement>) =>
         props.onChangeValue?.(props.value, e.target.checked)
       }

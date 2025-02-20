@@ -1,3 +1,12 @@
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import fp from 'lodash/fp';
+import { useCampaignList } from '../../hooks/useCampaignList';
+import { useIntercommunalities } from '../../hooks/useIntercommunalities';
+import { useLocalityList } from '../../hooks/useLocalityList';
+import { useAppSelector } from '../../hooks/useStore';
+import { geoPerimeterOptions } from '../../models/GeoPerimeter';
+
 import {
   allOccupancyOptions,
   beneficiaryCountOptions,
@@ -22,19 +31,13 @@ import {
   vacancyRateOptions,
   vacancyYearOptions
 } from '../../models/HousingFilters';
-import { useCampaignList } from '../../hooks/useCampaignList';
-import FilterBadges from '../FiltersBadges/FiltersBadges';
-import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   getSubStatusList,
   getSubStatusListOptions
 } from '../../models/HousingState';
-import { useLocalityList } from '../../hooks/useLocalityList';
-import { useAppSelector } from '../../hooks/useStore';
-import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import fp from 'lodash/fp';
-import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { SelectOption } from '../../models/SelectOption';
+import { useListGeoPerimetersQuery } from '../../services/geo.service';
+import FilterBadges from '../FiltersBadges/FiltersBadges';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
@@ -64,7 +67,13 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   }
 
   return (
-    <div className="fr-tags-group">
+    <Box
+      className="fr-tags-group"
+      sx={{ alignItems: 'baseline', margin: '0 !important' }}
+    >
+      <Typography sx={{ fontWeight: 700, mr: 1 }}>
+        Filtre(s) sélectionné(s) :
+      </Typography>
       <FilterBadges
         options={allOccupancyOptions}
         values={filters.occupancies}
@@ -265,7 +274,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         small={small}
         onChange={() => onChange?.({ query: '' })}
       />
-    </div>
+    </Box>
   );
 }
 

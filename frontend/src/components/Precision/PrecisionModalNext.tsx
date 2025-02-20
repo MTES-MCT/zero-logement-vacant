@@ -41,7 +41,7 @@ function createPrecisionModalNext() {
         <confirmationModal.Component
           {...rest}
           title="Précisez la situation du logement"
-          size="extra-large"
+          size="extra-extra-large"
           onSubmit={() => {
             onSubmit(internalValue);
           }}

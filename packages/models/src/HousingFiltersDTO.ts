@@ -14,6 +14,10 @@ import { RoomCount } from './RoomCount';
 import { OwnerKind } from './OwnerKind';
 
 export interface HousingFiltersDTO {
+  /**
+   * If `true`, make `housingIds` exclusive. Otherwise, make it inclusive.
+   */
+  all?: boolean;
   housingIds?: string[];
   occupancies?: Occupancy[];
   energyConsumption?: EnergyConsumption[];

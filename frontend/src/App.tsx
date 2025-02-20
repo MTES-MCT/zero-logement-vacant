@@ -31,13 +31,21 @@ import ResetPasswordView from './views/Account/ResetPasswordView';
 import NotFoundView from './views/NotFoundView';
 import AnalysisView from './views/Analysis/AnalysisView';
 import { useIsDsfrReady } from './hooks/useIsDsfrReady';
+import HousingListTabsProvider from './views/HousingList/HousingListTabsProvider';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
       <Route element={<AuthenticatedLayout />}>
         <Route path="/" element={<Navigate to="/parc-de-logements" />} />
-        <Route path="/parc-de-logements" element={<HousingListView />} />
+        <Route
+          path="/parc-de-logements"
+          element={
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
+          }
+        />
         <Route
           path="/parc-de-logements/campagnes/:id"
           element={<CampaignView />}

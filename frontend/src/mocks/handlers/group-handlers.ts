@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import fp from 'lodash/fp';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 
@@ -13,12 +14,15 @@ type GroupParams = {
 };
 
 export const groupHandlers: RequestHandler[] = [
+  // List groups
   http.get<Record<string, never>, never, GroupDTO[]>(
     `${config.apiEndpoint}/api/groups`,
     () => {
       return HttpResponse.json(data.groups);
     }
   ),
+
+  // Create a group
   http.post<Record<string, never>, GroupPayloadDTO, GroupDTO>(
     `${config.apiEndpoint}/api/groups`,
     () => {
@@ -34,6 +38,8 @@ export const groupHandlers: RequestHandler[] = [
       });
     }
   ),
+
+  // Get a group
   http.get<GroupParams, never, GroupDTO | null>(
     `${config.apiEndpoint}/api/groups/:id`,
     ({ params }) => {
@@ -47,6 +53,8 @@ export const groupHandlers: RequestHandler[] = [
       return HttpResponse.json(group);
     }
   ),
+
+  // Update a group
   http.put<GroupParams, GroupPayloadDTO, GroupDTO>(
     `${config.apiEndpoint}/api/groups/:id`,
     async ({ params, request }) => {
@@ -68,6 +76,30 @@ export const groupHandlers: RequestHandler[] = [
       return HttpResponse.json(updated);
     }
   ),
+
+  // Add housings to an existing group
+  http.post<GroupParams, GroupPayloadDTO['housing']>(
+    `${config.apiEndpoint}/api/groups/:id/housing`,
+    async ({ params }) => {
+      const group = data.groups.find((group) => group.id === params.id);
+      if (!group) {
+        throw HttpResponse.json({
+          name: 'GroupMissingError',
+          message: 'Group not found'
+        });
+      }
+
+      const groupHousings = data.groupHousings.get(group.id) ?? [];
+      data.groupHousings.set(group.id, [
+        ...fp.uniq([...groupHousings, ...data.housings])
+      ]);
+      return HttpResponse.json(null, {
+        status: constants.HTTP_STATUS_OK
+      });
+    }
+  ),
+
+  // Delete a group
   http.delete<GroupParams, never, never>(
     `${config.apiEndpoint}/api/groups/:id`,
     ({ params }) => {

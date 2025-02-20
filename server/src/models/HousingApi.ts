@@ -99,6 +99,7 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     geoCode: housing.geoCode,
     longitude: housing.longitude,
     latitude: housing.latitude,
+    campaignIds: housing.campaignIds,
     cadastralClassification: housing.cadastralClassification,
     uncomfortable: housing.uncomfortable,
     vacancyStartYear: housing.vacancyStartYear,

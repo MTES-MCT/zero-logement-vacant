@@ -1,13 +1,23 @@
-import { Text } from '../_dsfr';
-import styles from './housing-count.module.scss';
 import { fr } from '@codegouvfr/react-dsfr';
+
+import styles from './housing-count.module.scss';
+import { pluralize } from '../../utils/stringUtils';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   housingCount: number;
   ownerCount: number;
+  suffix?: boolean;
 }
 
 function HousingCount(props: Props) {
+  const housingCount = props.suffix
+    ? `${props.housingCount} ${pluralize(props.housingCount)('logement')}`
+    : props.housingCount;
+  const ownerCount = props.suffix
+    ? `${props.ownerCount} ${pluralize(props.ownerCount)('propriétaire')}`
+    : props.ownerCount;
+
   return (
     <section className={styles.counts}>
       <span
@@ -15,17 +25,17 @@ function HousingCount(props: Props) {
         aria-hidden={true}
         title="Logements"
       />
-      <Text as="span" spacing="mr-1w mb-0" size="sm">
-        {props.housingCount}
-      </Text>
+      <Typography component="span" sx={{ fontSize: '0.875rem', mr: 1, mb: 0 }}>
+        {housingCount}
+      </Typography>
       <span
         className={fr.cx('ri-user-fill', 'fr-icon--sm', 'fr-mr-1v')}
         aria-hidden={true}
         title="Propriétaires"
       />
-      <Text as="span" spacing="mb-0" size="sm">
-        {props.ownerCount}
-      </Text>
+      <Typography component="span" sx={{ fontSize: '0.875rem', mb: 0 }}>
+        {ownerCount}
+      </Typography>
     </section>
   );
 }

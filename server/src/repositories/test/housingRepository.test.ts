@@ -216,6 +216,32 @@ describe('Housing repository', () => {
         });
       });
 
+      it('should exclude housing ids', async () => {
+        const housings: HousingApi[] = Array.from({ length: 4 }, () =>
+          genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+        );
+        const includedHousings = housings.slice(0, 1);
+        const excludedHousings = housings.slice(1);
+        await Housing().insert(housings.map(formatHousingRecordApi));
+
+        const actual = await housingRepository.find({
+          filters: {
+            all: true,
+            housingIds: excludedHousings.map((housing) => housing.id)
+          }
+        });
+
+        const actualIds = actual.map((actual) => actual.id);
+        const includedHousingIds = includedHousings.map(
+          (housing) => housing.id
+        );
+        const excludedHousingIds = excludedHousings.map(
+          (housing) => housing.id
+        );
+        expect(actualIds).toIncludeAllMembers(includedHousingIds);
+        expect(actualIds).not.toIncludeAnyMembers(excludedHousingIds);
+      });
+
       describe('by intercommunality', () => {
         let intercommunality: EstablishmentApi;
 

@@ -1,3 +1,9 @@
+import fp from 'lodash/fp';
+import { useCampaignList } from '../../hooks/useCampaignList';
+import { useIntercommunalities } from '../../hooks/useIntercommunalities';
+import { useLocalityList } from '../../hooks/useLocalityList';
+import { useAppSelector } from '../../hooks/useStore';
+import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   allOccupancyOptions,
   beneficiaryCountOptions,
@@ -6,6 +12,8 @@ import {
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
   energyConsumptionOptions,
+  getCampaignOptions,
+  getIntercommunalityOptions,
   housingAreaOptions,
   housingCountOptions,
   HousingFilters,
@@ -22,19 +30,12 @@ import {
   vacancyRateOptions,
   vacancyYearOptions
 } from '../../models/HousingFilters';
-import { useCampaignList } from '../../hooks/useCampaignList';
-import FilterBadges from '../FiltersBadges/FiltersBadges';
-import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   getSubStatusList,
   getSubStatusListOptions
 } from '../../models/HousingState';
-import { useLocalityList } from '../../hooks/useLocalityList';
-import { useAppSelector } from '../../hooks/useStore';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import fp from 'lodash/fp';
-import { useIntercommunalities } from '../../hooks/useIntercommunalities';
-import { SelectOption } from '../../models/SelectOption';
+import FilterBadges from '../FiltersBadges/FiltersBadges';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
@@ -50,11 +51,9 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   const campaigns = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { data: intercommunalities } = useIntercommunalities();
-  const intercommunalityOptions =
-    intercommunalities?.map<SelectOption>((intercommunality) => ({
-      value: intercommunality.id,
-      label: intercommunality.name
-    })) ?? [];
+  const intercommunalityOptions = intercommunalities?.length
+    ? getIntercommunalityOptions(intercommunalities)
+    : [];
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
   const hasFilters = fp.keys(fp.omit(['groupIds'], filters)).length > 0;
@@ -184,7 +183,10 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       {geoPerimeters && (
         <FilterBadges
-          options={geoPerimeterOptions(geoPerimeters)}
+          options={geoPerimeterOptions(geoPerimeters).map((option) => ({
+            ...option,
+            badgeLabel: `Périmètre inclus : ${option.label}`
+          }))}
           values={filters.geoPerimetersIncluded}
           small={small}
           onChange={(values) => onChange?.({ geoPerimetersIncluded: values })}
@@ -194,7 +196,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         <FilterBadges
           options={geoPerimeterOptions(geoPerimeters).map((option) => ({
             ...option,
-            badgeLabel: `${option.label} exclu`
+            badgeLabel: `Périmètre exclus : ${option.label}`
           }))}
           values={filters.geoPerimetersExcluded}
           small={small}
@@ -222,12 +224,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       {campaigns && filters.campaignIds && (
         <FilterBadges
-          options={campaigns
-            .map((campaign) => ({
-              value: campaign.id,
-              label: campaign.title
-            }))
-            .concat(noCampaignOption)}
+          options={getCampaignOptions(campaigns)}
           values={filters.campaignIds.map((id) =>
             id === null ? noCampaignOption.value : id
           )}

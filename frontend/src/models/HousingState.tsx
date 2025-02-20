@@ -1,10 +1,9 @@
-import { ReactElement } from 'react';
-
 import { HousingStatus as HousingStatusDTO } from '@zerologementvacant/models';
-import { DefaultOption, SelectOption } from './SelectOption';
-import { Housing } from './Housing';
+import { ReactElement } from 'react';
 import { Text } from '../components/_dsfr';
 import { isDefined } from '../utils/compareUtils';
+import { Housing } from './Housing';
+import { DefaultOption, SelectOption } from './SelectOption';
 
 export interface HousingState {
   status: HousingStatusDTO;
@@ -173,7 +172,8 @@ export function getSubStatusListOptions(
       const substatuses: SelectOption[] =
         state.subStatusList?.map((substatus) => ({
           value: substatus.title,
-          label: substatus.title
+          label: substatus.title,
+          badgeLabel: `Sous-statut de suivi : ${substatus.title}`
         })) ?? [];
       return [
         { value: state.title, label: state.title, disabled: true },

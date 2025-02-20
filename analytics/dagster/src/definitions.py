@@ -26,7 +26,7 @@ from .assets import production_dbt
 
 from .assets.populate_owners_ban_addresses import owners_without_address, split_parquet_owners_without_address, process_parquet_chunks_with_api, parse_api_response_and_insert_owners_addresses
 from .assets.populate_edited_owners_ban_addresses import owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses
-from .assets.populate_housings_ban_addresses import housings_without_address, split_parquet_housings_without_address, process_parquet_housings_chunks_with_api, parse_api_response_and_insert_housing_addresses
+from .assets.populate_housings_ban_addresses import housings_without_address_csv, process_housings_with_api
 from .resources.ban_config import ban_config_resource
 from .resources.database_resources import psycopg2_connection_resource
 
@@ -113,10 +113,8 @@ edited_owners_asset_job = define_asset_job(
 housings_asset_job = define_asset_job(
     name="populate_housings_addresses",
     selection=AssetSelection.assets(
-        "housings_without_address",
-        "split_parquet_housings_without_address",
-        "process_parquet_housings_chunks_with_api",
-        "parse_api_response_and_insert_housing_addresses",
+        "housings_without_address_csv",
+        "process_housings_with_api",
     ),
 )
 
@@ -128,7 +126,7 @@ defs = Definitions(
         # dagster_notion_assets,
         owners_without_address, split_parquet_owners_without_address, process_parquet_chunks_with_api, parse_api_response_and_insert_owners_addresses,
         owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses,
-        housings_without_address, split_parquet_housings_without_address, process_parquet_housings_chunks_with_api, parse_api_response_and_insert_housing_addresses,
+        housings_without_address_csv, process_housings_with_api,
         *dwh_assets,
         *dbt_analytics_assets,
         *clever_assets_assets

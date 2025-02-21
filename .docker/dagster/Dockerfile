@@ -15,8 +15,6 @@ RUN apt-get update && \
 
 RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/bin
 
-RUN pip install dagster-webserver dagster-postgres dagster-aws
-
 COPY analytics/dagster/requirements.txt .
 
 

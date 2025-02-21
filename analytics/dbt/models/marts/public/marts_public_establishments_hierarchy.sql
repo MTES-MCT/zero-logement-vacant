@@ -1,32 +1,32 @@
 WITH 
+-- Définir les groupes de types pour chaque niveau
+{% set niveau_1 = "'Commune'" %}
+{% set niveau_2 = "'CA', 'CC', 'CU', 'EPCI', 'ME'" %}
+{% set niveau_3 = "'SDED', 'DEP'" %}
+{% set niveau_4 = "'REG', 'SDER'" %}
 
 -- Toutes les relations possibles
 all_relations AS (
-    -- Commune -> EPCI (profondeur 1)
-    {{ generate_hierarchy_relations('Commune', 'CA', 1) }}
+    -- Niveau 1 -> Niveau 2 (profondeur 1)
+    {{ generate_hierarchy_relations(niveau_1, niveau_2, 1) }}
     UNION ALL
-    {{ generate_hierarchy_relations('Commune', 'CC', 1) }}
+    -- Niveau 1 -> Niveau 3 (profondeur 2)
+    {{ generate_hierarchy_relations(niveau_1, niveau_3, 2) }}
     UNION ALL
-    -- Commune -> Département (profondeur 2)
-    {{ generate_hierarchy_relations('Commune', 'DEP', 2) }}
+    -- Niveau 1 -> Niveau 4 (profondeur 3)
+    {{ generate_hierarchy_relations(niveau_1, niveau_4, 3) }}
     UNION ALL
-    -- Commune -> Région (profondeur 3)
-    {{ generate_hierarchy_relations('Commune', 'REG', 3) }}
+    -- Niveau 2 -> Niveau 3 (profondeur 1)
+    {{ generate_hierarchy_relations(niveau_2, niveau_3, 1) }}
     UNION ALL
-    -- EPCI -> Département (profondeur 1)
-    {{ generate_hierarchy_relations('CA', 'DEP', 1) }}
+    -- Niveau 2 -> Niveau 4 (profondeur 2)
+    {{ generate_hierarchy_relations(niveau_2, niveau_4, 2) }}
     UNION ALL
-    {{ generate_hierarchy_relations('CC', 'DEP', 1) }}
-    UNION ALL
-    -- EPCI -> Région (profondeur 2)
-    {{ generate_hierarchy_relations('CA', 'REG', 2) }}
-    UNION ALL
-    {{ generate_hierarchy_relations('CC', 'REG', 2) }}
-    UNION ALL
-    -- Département -> Région (profondeur 1)
-    {{ generate_hierarchy_relations('DEP', 'REG', 1) }}
+    -- Niveau 3 -> Niveau 4 (profondeur 1)
+    {{ generate_hierarchy_relations(niveau_3, niveau_4, 1) }}
 )
 
+-- Table finale de hiérarchie
 SELECT DISTINCT
     ancestor_id,
     descendant_id,

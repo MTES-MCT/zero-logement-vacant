@@ -7,6 +7,7 @@ import {
   Occupancy,
   Pagination
 } from '@zerologementvacant/models';
+import { Selection } from '../../hooks/useSelection';
 
 export type ViewMode = 'list' | 'map';
 
@@ -17,6 +18,7 @@ export const DefaultPagination: Pagination = {
 };
 
 export interface HousingState {
+  selected: Selection;
   totalCount: number;
   totalOwnerCount: number;
   filters: HousingFilters;
@@ -40,6 +42,10 @@ export const initialHousingFilters: HousingFiltersDTO = {
 };
 
 const initialState: HousingState = {
+  selected: {
+    all: false,
+    ids: []
+  },
   totalCount: 0,
   totalOwnerCount: 0,
   filters: initialHousingFilters,
@@ -52,6 +58,10 @@ const housingSlice = createSlice({
   name: 'housing',
   initialState,
   reducers: {
+    setSelected(state: HousingState, action: PayloadAction<Selection>) {
+      state.selected = action.payload;
+    },
+
     expandFilters: (state: HousingState, action: PayloadAction<boolean>) => {
       state.filtersExpanded = action.payload;
     },

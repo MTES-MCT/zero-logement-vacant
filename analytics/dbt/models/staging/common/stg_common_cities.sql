@@ -1,7 +1,7 @@
 SELECT 
 TYPECOM as city_kind, 
 COM as geo_code, 
-REG	as region,
+REG	as region_code,
 DEP	as department_code, 
 CTCD as ctcd,
 ARR as arr, 

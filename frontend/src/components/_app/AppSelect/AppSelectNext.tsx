@@ -15,13 +15,16 @@ import { match, Pattern } from 'ts-pattern';
 
 import styles from './app-select-next.module.scss';
 
-interface Option<Value> {
+export interface Option<Value> {
   id?: string;
   label: string;
   value: Value;
 }
 
-type AppSelectNextProps<Value, Multiple extends boolean | undefined> = Omit<
+export type AppSelectNextProps<
+  Value,
+  Multiple extends boolean | undefined
+> = Omit<
   BaseSelectProps<SelectValue<Value, Multiple>>,
   'multiple' | 'value'
 > & {

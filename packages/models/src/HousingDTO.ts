@@ -11,6 +11,7 @@ export interface HousingDTO {
   localId: string;
   rawAddress: string[];
   geoCode: string;
+  campaignIds?: string[];
   longitude?: number;
   latitude?: number;
   cadastralClassification?: number;

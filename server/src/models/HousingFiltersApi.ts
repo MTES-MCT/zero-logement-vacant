@@ -16,7 +16,7 @@ import {
 } from '~/utils/validators';
 
 export interface HousingFiltersApi
-  extends Pick<HousingFiltersDTO, 'intercommunalities'> {
+  extends Pick<HousingFiltersDTO, 'all' | 'intercommunalities'> {
   housingIds?: string[];
   establishmentIds?: string[];
   groupIds?: string[];

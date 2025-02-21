@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { HousingStatus } from '@zerologementvacant/models';
 import { HousingCount } from '../models/HousingCount';
+import { useHousingListTabs } from '../views/HousingList/HousingListTabsProvider';
 
 interface Status {
   id: string;
@@ -10,7 +11,7 @@ interface Status {
 }
 
 export function useStatusTabs(statuses: Status[]) {
-  const [activeTab, setActiveTab] = useState(statuses[0].id);
+  const { activeTab, setActiveTab } = useHousingListTabs();
 
   const [statusCounts, setStatusCounts] = useState<
     (HousingCount | undefined)[]

@@ -8,6 +8,7 @@ import { useAppSelector } from '../../hooks/useStore';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import { Campaign } from '../../models/Campaign';
+import HousingListTabsProvider from '../HousingList/HousingListTabsProvider';
 
 interface Props {
   campaign: Campaign;
@@ -39,7 +40,7 @@ function CampaignInProgress(props: Readonly<Props>) {
   }
 
   return (
-    <>
+    <HousingListTabsProvider>
       <HousingListFiltersSidemenu
         filters={filters}
         expand={expand}
@@ -71,7 +72,7 @@ function CampaignInProgress(props: Readonly<Props>) {
           <HousingListTabs filters={filters} showCount={false} />
         )}
       </Grid>
-    </>
+    </HousingListTabsProvider>
   );
 }
 

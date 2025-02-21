@@ -1,15 +1,37 @@
 import { useMemo, useState } from 'react';
+import { useAppDispatch, useAppSelector } from './useStore';
+import housingSlice from '../store/reducers/housingReducer';
 
 export interface Selection {
   all: boolean;
   ids: string[];
 }
 
-export function useSelection(itemCount: number = 0) {
-  const [selected, setSelected] = useState<Selection>({
+export interface UseSelectionOptions {
+  /**
+   * @default 'state'
+   */
+  storage?: 'store' | 'state';
+}
+
+export function useSelection(
+  itemCount: number = 0,
+  options?: UseSelectionOptions
+) {
+  const storage = options?.storage ?? 'state';
+  const store = useAppSelector((state) => state.housing);
+  const dispatch = useAppDispatch();
+
+  function changeSelected(selection: Selection) {
+    dispatch(housingSlice.actions.setSelected(selection));
+  }
+
+  const state = useState<Selection>({
     all: false,
-    ids: [],
+    ids: []
   });
+  const [selected, setSelected] =
+    storage === 'store' ? [store.selected, changeSelected] : state;
 
   const hasSelected = useMemo<boolean>(
     () =>
@@ -25,40 +47,38 @@ export function useSelection(itemCount: number = 0) {
   );
 
   function select(id: string): void {
-    setSelected((state) => ({
-      ...state,
-      ids: [...state.ids, id],
-    }));
+    setSelected({
+      all: selected.all,
+      ids: [...selected.ids, id]
+    });
   }
 
   function toggleSelect(id: string): void {
-    setSelected((state) => ({
-      ...state,
-      ids: state.ids.includes(id)
-        ? state.ids.filter((_) => _ !== id)
-        : [...state.ids, id],
-    }));
+    setSelected({
+      all: selected.all,
+      ids: selected.ids.includes(id)
+        ? selected.ids.filter((_) => _ !== id)
+        : [...selected.ids, id]
+    });
   }
 
   function toggleSelectAll(forceValue?: boolean): void {
-    setSelected((state) => {
-      return {
-        all:
-          forceValue !== undefined
-            ? forceValue
-            : state.ids.length > 0 && state.all
-            ? state.all
-            : !state.all,
-        ids: [],
-      };
+    setSelected({
+      all:
+        forceValue !== undefined
+          ? forceValue
+          : selected.ids.length > 0 && selected.all
+            ? selected.all
+            : !selected.all,
+      ids: []
     });
   }
 
   function unselect(id: string): void {
-    setSelected((state) => ({
-      ...state,
-      ids: state.ids.filter((stateId) => stateId !== id),
-    }));
+    setSelected({
+      all: selected.all,
+      ids: selected.ids.filter((stateId) => stateId !== id)
+    });
   }
 
   function isSelected(id: string): boolean {
@@ -77,6 +97,6 @@ export function useSelection(itemCount: number = 0) {
     setSelected,
     toggleSelect,
     toggleSelectAll,
-    unselect,
+    unselect
   };
 }

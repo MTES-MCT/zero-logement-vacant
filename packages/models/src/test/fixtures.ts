@@ -280,6 +280,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     uncomfortable: faker.datatype.boolean(),
     roomsCount: faker.number.int({ min: 1, max: 10 }),
     livingArea: faker.number.int({ min: 8 }),
+    campaignIds: [],
     dataYears: [
       faker.number.int({
         min: 2020,

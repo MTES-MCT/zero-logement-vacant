@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: stg_admin_communes
+  - name: stg_admin_epci
+  - name: stg_admin_departements
+  - name: stg_admin_regions

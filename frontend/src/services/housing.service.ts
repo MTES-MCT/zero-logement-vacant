@@ -207,6 +207,7 @@ export const {
   useFindHousingQuery,
   useLazyFindHousingQuery,
   useCountHousingQuery,
+  useLazyCountHousingQuery,
   useCreateHousingMutation,
   useUpdateHousingMutation,
   useUpdateHousingNextMutation,

@@ -216,7 +216,29 @@ export const housingHandlers: RequestHandler[] = [
   )
 ];
 
-function filterByCampaign(campaigns?: string[]) {
+export function filterByHousingIds(
+  filters: Pick<HousingFiltersDTO, 'all' | 'housingIds'>
+) {
+  return (housings: HousingDTO[]): HousingDTO[] => {
+    if (filters.all && filters.housingIds?.length) {
+      return housings.filter(
+        (housing) => !filters.housingIds?.includes(housing.id)
+      );
+    }
+
+    if (!filters.housingIds?.length) {
+      return housings;
+    }
+
+    return housings.filter((housing) => {
+      return filters.all
+        ? !filters.housingIds?.includes(housing.id)
+        : filters.housingIds?.includes(housing.id);
+    });
+  };
+}
+
+export function filterByCampaign(campaigns?: Array<string | null>) {
   return (housings: HousingDTO[]): HousingDTO[] => {
     if (!campaigns || campaigns.length === 0) {
       return housings;
@@ -230,7 +252,7 @@ function filterByCampaign(campaigns?: string[]) {
   };
 }
 
-function filterByHousingKind(kinds?: string[]) {
+export function filterByHousingKind(kinds?: string[]) {
   return (housings: HousingDTO[]): HousingDTO[] => {
     if (!kinds || kinds.length === 0) {
       return housings;
@@ -242,7 +264,7 @@ function filterByHousingKind(kinds?: string[]) {
   };
 }
 
-function filterByStatus(statuses?: number[]) {
+export function filterByStatus(statuses?: number[]) {
   return (housings: HousingDTO[]): HousingDTO[] => {
     if (!statuses || statuses.length === 0) {
       return housings;

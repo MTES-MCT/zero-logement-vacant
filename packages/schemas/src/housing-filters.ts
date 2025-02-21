@@ -20,6 +20,7 @@ import {
 import { commaSeparatedString, parseNull } from './transforms';
 
 export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
+  all: boolean().optional(),
   housingIds: array()
     .transform(commaSeparatedString)
     .of(string().uuid().required()),

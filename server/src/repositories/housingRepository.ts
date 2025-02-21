@@ -445,7 +445,11 @@ function filteredQuery(opts: FilteredQueryOptions) {
   const { filters } = opts;
   return (queryBuilder: Knex.QueryBuilder) => {
     if (filters.housingIds?.length) {
-      queryBuilder.whereIn(`${housingTable}.id`, filters.housingIds);
+      if (filters.all) {
+        queryBuilder.whereNotIn(`${housingTable}.id`, filters.housingIds);
+      } else {
+        queryBuilder.whereIn(`${housingTable}.id`, filters.housingIds);
+      }
     }
     if (filters.occupancies?.length) {
       queryBuilder.whereIn('occupancy', filters.occupancies);

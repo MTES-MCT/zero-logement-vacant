@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: duckdb_raw
+    schema: external
+    tables:
+      - name: communes
+      - name: epci
+      - name: departements
+      - name: regions

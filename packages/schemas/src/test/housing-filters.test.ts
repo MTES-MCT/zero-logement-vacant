@@ -21,6 +21,7 @@ import { housingFilters } from '../housing-filters';
 
 describe('Housing filters', () => {
   test.prop<HousingFiltersDTO>({
+    all: fc.boolean(),
     housingIds: fc.array(fc.uuid()),
     occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
     energyConsumption: fc.array(fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)),

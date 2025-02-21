@@ -1,12 +1,15 @@
+import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import async from 'async';
 import fp from 'lodash/fp';
-import { http, HttpResponse } from 'msw';
-import { constants } from 'node:http2';
 import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
-import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
+import {
+  createMemoryRouter,
+  MemoryRouter as Router,
+  RouterProvider
+} from 'react-router-dom';
 
 import {
   CAMPAIGN_STATUS_LABELS,
@@ -26,12 +29,12 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import HousingListView from './HousingListView';
-import config from '../../utils/config';
 import configureTestStore from '../../utils/test/storeUtils';
 import { AppStore } from '../../store/store';
 import GroupView from '../Group/GroupView';
 import data from '../../mocks/handlers/data';
-import { mockAPI } from '../../mocks/mock-api';
+import HousingListTabsProvider from './HousingListTabsProvider';
+import CampaignView from '../Campaign/CampaignView';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -54,7 +57,9 @@ describe('Housing list view', () => {
     render(
       <Provider store={store}>
         <Router>
-          <HousingListView />
+          <HousingListTabsProvider>
+            <HousingListView />
+          </HousingListTabsProvider>
         </Router>
       </Provider>
     );
@@ -74,7 +79,9 @@ describe('Housing list view', () => {
     render(
       <Provider store={store}>
         <Router>
-          <HousingListView />
+          <HousingListTabsProvider>
+            <HousingListView />
+          </HousingListTabsProvider>
         </Router>
       </Provider>
     );
@@ -83,25 +90,6 @@ describe('Housing list view', () => {
       name: /^Créer une campagne/
     });
     expect(createCampaign).not.toBeInTheDocument();
-  });
-
-  it('should enable the creation of the campaign when at least a housing is selected', async () => {
-    render(
-      <Provider store={store}>
-        <Router>
-          <HousingListView />
-        </Router>
-      </Provider>
-    );
-
-    const panel = await screen.findByRole('tabpanel');
-    const [checkbox] = await within(panel).findAllByRole('checkbox');
-    await user.click(checkbox);
-
-    const createCampaign = await screen.findByRole('button', {
-      name: /^Créer une campagne/
-    });
-    expect(createCampaign).toBeVisible();
   });
 
   describe('Add a housing', () => {
@@ -118,7 +106,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -163,7 +153,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -188,7 +180,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -220,91 +214,458 @@ describe('Housing list view', () => {
     });
   });
 
-  it('should add all housing to a group immediately', async () => {
-    render(
-      <Provider store={store}>
-        <Router initialEntries={['/parc-de-logements']}>
-          <Routes>
-            <Route path="/parc-de-logements" element={<HousingListView />} />
-            <Route path="/groupes/:id" element={<GroupView />} />
-          </Routes>
-        </Router>
-      </Provider>
-    );
+  describe('Group creation', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          },
+          { path: '/groupes/:id', element: <GroupView /> }
+        ],
+        {
+          initialEntries: ['/parc-de-logements']
+        }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
 
-    const checkboxes = await within(
-      await screen.findByTestId('housing-table')
-    ).findAllByRole('checkbox');
-    const [checkAll] = checkboxes;
-    await user.click(checkAll);
-    const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
-    await user.click(addGroupHousing);
-    const modal = await screen.findByRole('dialog');
-    const createGroup = await within(modal).findByText(
-      /^Créer un nouveau groupe/
-    );
-    await user.click(createGroup);
-    const groupName = await within(modal).findByLabelText('Nom du groupe');
-    await user.type(groupName, 'My group');
-    const groupDescription = await within(modal).findByLabelText('Description');
-    await user.type(groupDescription, 'My group description');
-    const confirm = await within(modal).findByRole('button', {
-      name: /^Confirmer/
+      return {
+        router
+      };
+    }
+
+    it('should add housings to an existing group', async () => {
+      const creator = genUserDTO();
+      data.users.push(creator);
+      const group = genGroupDTO(creator);
+      data.groups.push(group);
+
+      const { router } = renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const exportOrContactModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      expect(exportOrContactModal).toBeVisible();
+      const addToGroup = await within(exportOrContactModal).findByRole(
+        'button',
+        { name: 'Ajouter dans un groupe' }
+      );
+      await user.click(addToGroup);
+      const groupModal = await screen.findByRole('dialog', {
+        name: 'Ajouter dans un groupe de logements'
+      });
+      expect(groupModal).toBeVisible();
+      const select = await within(groupModal).findByRole('combobox', {
+        name: /Ajoutez votre sélection à un groupe existant/
+      });
+      await user.selectOptions(select, group.id);
+      const option: HTMLOptionElement = await screen.findByRole('option', {
+        name: group.title
+      });
+      expect(option.selected).toBe(true);
+      const confirm = await within(groupModal).findByRole('button', {
+        name: /^Confirmer/
+      });
+      await user.click(confirm);
+      expect(router.state.location.pathname).toStartWith('/groupes/');
     });
-    await user.click(confirm);
 
-    const alert = await screen.findByText(
-      'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
-    );
-    expect(alert).toBeVisible();
+    it.todo('should add housings to a new group');
+
+    it('should go back to the first step', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const addToGroup = await screen.findByRole('button', {
+        name: 'Ajouter dans un groupe'
+      });
+      await user.click(addToGroup);
+      const back = await screen.findByRole('button', {
+        name: 'Revenir en arrière'
+      });
+      await user.click(back);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      expect(modal).toBeVisible();
+    });
+
+    it('should go back to the previous step', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const addToGroup = await screen.findByRole('button', {
+        name: 'Ajouter dans un groupe'
+      });
+      await user.click(addToGroup);
+      const newGroup = await screen.findByRole('button', {
+        name: 'Créer un nouveau groupe'
+      });
+      await user.click(newGroup);
+      const back = await screen.findByRole('button', {
+        name: 'Revenir en arrière'
+      });
+      await user.click(back);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Ajouter dans un groupe de logements'
+      });
+      expect(modal).toBeVisible();
+    });
+
+    it('should create a new group', async () => {
+      const { router } = renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const addToGroup = await screen.findByRole('button', {
+        name: 'Ajouter dans un groupe'
+      });
+      await user.click(addToGroup);
+      const createGroup = await screen.findByRole('button', {
+        name: 'Créer un nouveau groupe'
+      });
+      await user.click(createGroup);
+      const groupName = await screen.findByRole('textbox', {
+        name: /Nom du groupe/
+      });
+      await user.type(groupName, 'Logements vacants');
+      const groupDescription = await screen.findByRole('textbox', {
+        name: /Description/
+      });
+      await user.type(groupDescription, 'Tous les logements vacants');
+      const confirm = await screen.findByRole('button', {
+        name: /Créer un groupe/
+      });
+      await user.click(confirm);
+      expect(router.state.location.pathname).toStartWith('/groupes');
+    });
+
+    it.todo('should require a title and a description');
+
+    it('should display an alert if trying to export without selecting housings', async () => {
+      renderView();
+
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const alert = await screen.findByRole('alert');
+      expect(alert).toBeVisible();
+    });
   });
 
-  it('should create the group immediately and add the housing later', async () => {
-    const creator = genUserDTO();
-    const group = genGroupDTO(creator);
-    mockAPI.use(
-      http.post(`${config.apiEndpoint}/api/groups`, () => {
-        data.groups.push(group);
-        return HttpResponse.json(group, {
-          status: constants.HTTP_STATUS_ACCEPTED
-        });
-      })
-    );
+  describe('Campaign creation', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          },
+          { path: '/campagnes/:id', element: <CampaignView /> }
+        ],
+        { initialEntries: ['/parc-de-logements'] }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
 
-    render(
-      <Provider store={store}>
-        <Router initialEntries={['/parc-de-logements']}>
-          <Routes>
-            <Route path="/parc-de-logements" element={<HousingListView />} />
-            <Route path="/groupes/:id" element={<GroupView />} />
-          </Routes>
-        </Router>
-      </Provider>
-    );
+      return {
+        router
+      };
+    }
 
-    const checkboxes = await within(
-      await screen.findByTestId('housing-table')
-    ).findAllByRole('checkbox');
-    const [checkAll] = checkboxes;
-    await user.click(checkAll);
-    const addGroupHousing = await screen.findByText('Ajouter dans un groupe');
-    await user.click(addGroupHousing);
-    const modal = await screen.findByRole('dialog');
-    const createGroup = await within(modal).findByText(
-      /^Créer un nouveau groupe/
-    );
-    await user.click(createGroup);
-    const groupName = await within(modal).findByLabelText('Nom du groupe');
-    await user.type(groupName, 'My group');
-    const groupDescription = await within(modal).findByLabelText('Description');
-    await user.type(groupDescription, 'My group description');
-    const confirm = await within(modal).findByText('Confirmer');
-    await user.click(confirm);
+    it('should create a campaign', async () => {
+      const { router } = renderView();
 
-    const alert = await screen.findByText(
-      'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
-    );
-    expect(alert).toBeVisible();
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', { name: 'Créer une campagne' });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const title = await within(campaignCreationModal).findByRole('textbox', {
+        name: /^Titre de la campagne/
+      });
+      await user.type(title, 'Tous les logements');
+      const description = await within(campaignCreationModal).findByRole(
+        'textbox',
+        {
+          name: /^Description/
+        }
+      );
+      await user.type(description, 'Tous les logements disponibles');
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(confirm);
+      expect(router.state.location.pathname).toStartWith('/campagnes/');
+    });
+
+    it('should require a title', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(confirm);
+      const error = await within(campaignCreationModal).findByText(
+        'Veuillez donner un nom à la campagne pour confirmer.'
+      );
+      expect(error).toBeVisible();
+    });
+
+    it('should restrict require the description', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const title = await within(campaignCreationModal).findByRole('textbox', {
+        name: /^Titre de la campagne/
+      });
+      await user.type(title, 'Tous les logements');
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(confirm);
+      const error = await within(campaignCreationModal).findByText(
+        'Veuillez donner une description à la campagne pour confirmer.'
+      );
+      expect(error).toBeVisible();
+    });
+
+    it('should restrict the title to 64 characters', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const title = await within(campaignCreationModal).findByRole('textbox', {
+        name: /^Titre de la campagne/
+      });
+      await user.type(title, faker.string.alpha({ length: 65 }));
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(confirm);
+      const error = await within(campaignCreationModal).findByText(
+        'La longueur maximale du titre est de 64 caractères.'
+      );
+      expect(error).toBeVisible();
+    });
+
+    it('should restrict the description to 1000 characters', async () => {
+      renderView();
+
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      const [checkbox] = await within(panel).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const exportOrContact = await screen.findByRole('button', {
+        name: 'Exporter ou contacter'
+      });
+      await user.click(exportOrContact);
+      const groupOrCampaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Que souhaitez-vous faire ?'
+      });
+      const createCampaign = await within(
+        groupOrCampaignCreationModal
+      ).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      await user.click(createCampaign);
+      const campaignCreationInfoModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const skip = await within(campaignCreationInfoModal).findByRole(
+        'button',
+        {
+          name: 'Créer une campagne'
+        }
+      );
+      await user.click(skip);
+      const campaignCreationModal = await screen.findByRole('dialog', {
+        name: 'Créer une campagne'
+      });
+      const title = await within(campaignCreationModal).findByRole('textbox', {
+        name: /^Titre de la campagne/
+      });
+      await user.type(title, 'Tous les logements');
+      const confirm = await within(campaignCreationModal).findByRole('button', {
+        name: 'Créer une campagne'
+      });
+      const description = await within(campaignCreationModal).findByRole(
+        'textbox',
+        {
+          name: /^Description/
+        }
+      );
+      await user.type(description, faker.string.alpha({ length: 1001 }));
+      await user.click(confirm);
+      const error = await within(campaignCreationModal).findByText(
+        'La longueur maximale de la description est de 1000 caractères.'
+      );
+      expect(error).toBeVisible();
+    });
   });
 
   describe('Housing tabs', () => {
@@ -312,7 +673,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -325,7 +688,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -371,37 +736,48 @@ describe('Housing list view', () => {
       });
     });
 
-    it('should filter by a single campaign', async () => {
+    function renderView() {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
+    }
+
+    it('should filter by a single campaign', async () => {
+      renderView();
 
       const [campaign] = campaigns;
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
       const options = await screen.findByRole('listbox');
       const option = await within(options).findByText(campaign.title);
       await user.click(option);
-      const housings = data.campaignHousings.get(campaign.id) ?? [];
-      const count = await screen.findByText(
-        new RegExp(`${housings.length} logements`)
+      await user.keyboard('{Escape}');
+      const panel = await screen.findByRole('tabpanel', {
+        name: /^Tous/
+      });
+      const count = await within(panel).findByText(
+        /^\d+ logements \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
     });
 
     it('should filter by several campaigns', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
       const options = await screen.findByRole('listbox');
@@ -410,45 +786,61 @@ describe('Housing list view', () => {
         const option = await within(options).findByText(campaign.title);
         await user.click(option);
       });
-      const housings = slice.flatMap((campaign) => {
-        return data.campaignHousings.get(campaign.id);
+      await user.keyboard('{Escape}');
+      const panel = await screen.findByRole('tabpanel', {
+        name: /^Tous/
       });
-      const count = await screen.findByText(
-        new RegExp(`${housings.length} logements`)
+      const count = await within(panel).findByText(
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
     });
 
     it('should remove the filter by campaigns', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
-      const filter = await screen.findByLabelText(/^Campagne/);
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
+
+      // Select options
+      const filter = await screen.findByRole('combobox', {
+        name: /^Campagne/
+      });
       await user.click(filter);
-      const options = await screen.findByRole('listbox');
-      const slice = campaigns.slice(0, 2);
-      await async.forEachSeries(slice as CampaignDTO[], async (campaign) => {
-        const option = await within(options).findByText(campaign.title);
+      let listbox = await screen.findByRole('listbox', {
+        name: /^Campagne/
+      });
+      const options = campaigns
+        .slice(0, 3)
+        .map((campaign) => within(listbox).getByText(campaign.title));
+      await async.forEachSeries(options, async (option) => {
         await user.click(option);
       });
-      const housings = slice.flatMap((campaign) => {
-        return data.campaignHousings.get(campaign.id);
+      await user.keyboard('{Escape}');
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
       });
-      let count = await screen.findByText(
-        new RegExp(`${housings.length} logements`)
+      let count = await within(panel).findByText(
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
-      await async.forEachSeries(slice as CampaignDTO[], async (campaign) => {
-        const option = await within(options).findByText(campaign.title);
+
+      // Deselect options
+      await user.click(filter);
+      listbox = await screen.findByRole('listbox', {
+        name: /^Campagne/
+      });
+      const selectedOptions = await within(listbox).findAllByRole('option', {
+        selected: true
+      });
+      await async.forEachSeries(selectedOptions, async (option) => {
         await user.click(option);
       });
-      count = await screen.findByText(
-        new RegExp(`${data.housings.length} logements`)
+      await user.keyboard('{Escape}');
+      count = await within(panel).findByText(
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\)$/
       );
       expect(count).toBeVisible();
     });
@@ -456,14 +848,12 @@ describe('Housing list view', () => {
     it('should filter by a status', async () => {
       const status: CampaignStatus = 'draft';
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
       const options = await screen.findByRole('listbox');
@@ -471,24 +861,12 @@ describe('Housing list view', () => {
         CAMPAIGN_STATUS_LABELS[status]
       );
       await user.click(option);
-      const housings = fp.uniqBy(
-        (housing) => housing.id,
-        data.campaigns
-          .filter((campaign) => campaign.status === status)
-          .map((campaign) => {
-            return data.campaignHousings.get(campaign.id) ?? [];
-          })
-          .flat()
-          .map(({ id }) => {
-            const housing = data.housings.find((housing) => housing.id === id);
-            if (!housing) {
-              throw new Error(`Housing ${id} not found`);
-            }
-            return housing;
-          })
-      );
-      const count = await screen.findByText(
-        new RegExp(`${housings.length} logements`)
+      await user.keyboard('{Escape}');
+      const panel = await screen.findByRole('tabpanel', {
+        name: /^Tous/
+      });
+      const count = await within(panel).findByText(
+        /^(\d+|un) logements? \(\d+ propriétaires\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
     });
@@ -496,44 +874,39 @@ describe('Housing list view', () => {
     it('should remove the filter by status', async () => {
       const status: CampaignStatus = 'draft';
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
+      // Select an option
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
-      const options = await screen.findByRole('listbox');
-      const option = await within(options).findByText(
+      let listbox = await screen.findByRole('listbox');
+      let option = await within(listbox).findByText(
         CAMPAIGN_STATUS_LABELS[status]
       );
       await user.click(option);
-      const housings = fp.uniqBy(
-        (housing) => housing.id,
-        data.campaigns
-          .filter((campaign) => campaign.status === status)
-          .map((campaign) => {
-            return data.campaignHousings.get(campaign.id) ?? [];
-          })
-          .flat()
-          .map(({ id }) => {
-            const housing = data.housings.find((housing) => housing.id === id);
-            if (!housing) {
-              throw new Error(`Housing ${id} not found`);
-            }
-            return housing;
-          })
-      );
-      let count = await screen.findByText(
-        new RegExp(`${housings.length} logements`)
+      await user.keyboard('{Escape}');
+      const panel = await screen.findByRole('tabpanel', {
+        name: /Tous/
+      });
+      let count = await within(panel).findByText(
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
       );
       expect(count).toBeVisible();
+
+      // Deselect options
+      await user.click(filter);
+      listbox = await screen.findByRole('listbox', {
+        name: /^Campagne/
+      });
+      option = await within(listbox).findByText(CAMPAIGN_STATUS_LABELS[status]);
       await user.click(option);
-      count = await screen.findByText(
-        new RegExp(`${data.housings.length} logements`)
+      await user.keyboard('{Escape}');
+      count = await within(panel).findByText(
+        /^(\d+|un) logements? \((\d+|un) propriétaires?\)$/
       );
       expect(count).toBeVisible();
     });
@@ -541,14 +914,12 @@ describe('Housing list view', () => {
     it('should select a status and its campaigns if at least one of the campaigns is not selected', async () => {
       const status: CampaignStatus = 'draft';
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
+      const mobilization = await screen.findByRole('button', {
+        name: /^Mobilisation/
+      });
+      await user.click(mobilization);
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);
       const options = await screen.findByRole('listbox');
@@ -572,13 +943,7 @@ describe('Housing list view', () => {
     it('should unselect a status and its campaigns if all the campaigns of this status are selected', async () => {
       const status: CampaignStatus = 'draft';
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListView />
-          </Router>
-        </Provider>
-      );
+      renderView();
 
       const filter = await screen.findByLabelText(/^Campagne/);
       await user.click(filter);

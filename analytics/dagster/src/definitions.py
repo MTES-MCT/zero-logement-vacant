@@ -41,8 +41,6 @@ from .assets.dwh.upload.upload_ff_db_to_cellar import upload_ff_to_s3
 
 clever_assets_assets = load_assets_from_modules(modules=[clever])
 
-warnings.filterwarnings("ignore", category=dagster.ExperimentalWarning)
-
 dbt_analytics_assets = load_assets_from_modules(
     modules=[production_dbt]
 )  # Load the assets from the file

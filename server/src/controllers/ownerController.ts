@@ -176,7 +176,7 @@ async function update(
         'updated_at'
       ]
     }),
-    banAddress ? banAddressesRepository.save(banAddress) : Promise.resolve(),
+    banAddress ? banAddressesRepository.save(banAddress) : banAddressesRepository.remove(existingOwner.id, AddressKinds.Owner),
     hasIdentityChanges(existingOwner, owner)
       ? eventRepository.insertOwnerEvent({
           id: uuidv4(),

@@ -5,17 +5,23 @@ from io import StringIO
 
 @asset(
   description="Return edited owners (score = 1).",
-  required_resource_keys={"psycopg2_connection"}
+  required_resource_keys={"psycopg2_connection", "ban_config"}
 )
 def owners_with_edited_address(context: AssetExecutionContext):
-    query = """
+    config = context.resources.ban_config
+    chunk_size = config.chunk_size
+    max_files = config.max_files
+    disable_max_files = config.disable_max_files
+    query = f"""
     SELECT
         o.id as owner_id,
         array_to_string(o.address_dgfip, ' ') as address_dgfip
     FROM owners o
     LEFT JOIN ban_addresses ba ON o.id = ba.ref_id
-    WHERE ba.ref_id IS NOT NULL AND ba.score = 1;  -- Propriétaires avec adresse éditée par Stéphanie
+    WHERE ba.ref_id IS NOT NULL AND ba.score = 1  -- Propriétaires avec adresse éditée par Stéphanie
+    {"LIMIT " + str(max_files * chunk_size) if not disable_max_files else ""}
     """
+    context.log.info(f"Limit applied: {'LIMIT ' + str(max_files * chunk_size) if not disable_max_files else 'No limit'}")
 
     try:
         with context.resources.psycopg2_connection as conn:

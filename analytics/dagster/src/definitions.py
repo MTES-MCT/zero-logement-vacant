@@ -24,7 +24,7 @@ import dagster
 from .project import dbt_project
 from .assets import production_dbt
 
-from .assets.populate_owners_ban_addresses import owners_without_address, split_parquet_owners_without_address, process_parquet_chunks_with_api, parse_api_response_and_insert_owners_addresses
+from .assets.populate_owners_ban_addresses import process_owners_chunks, process_and_insert_owners
 from .assets.populate_edited_owners_ban_addresses import owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses
 from .assets.populate_housings_ban_addresses import housings_without_address_csv, process_housings_with_api
 from .resources.ban_config import ban_config_resource
@@ -91,10 +91,8 @@ yearly_ff_refresh_schedule = ScheduleDefinition(
 owners_asset_job = define_asset_job(
     name="populate_owners_addresses",
     selection=AssetSelection.assets(
-        "owners_without_address",
-        "split_parquet_owners_without_address",
-        "process_parquet_chunks_with_api",
-        "parse_api_response_and_insert_owners_addresses",
+        "process_owners_chunks",
+        "process_and_insert_owners",
     ),
 )
 
@@ -102,9 +100,9 @@ edited_owners_asset_job = define_asset_job(
     name="populate_edited_owners_addresses",
     selection=AssetSelection.assets(
         "owners_with_edited_address",
-        "split_parquet_owners_without_address",
-        "process_parquet_chunks_with_api",
-        "parse_api_response_and_insert_owners_addresses",
+        "create_csv_chunks_from_edited_owners",
+        "send_csv_chunks_to_api",
+        "parse_api_response_and_insert_edited_owners_addresses",
     ),
 )
 
@@ -122,7 +120,7 @@ defs = Definitions(
         # dagster_production_assets,
         # dagster_notion_assets,
         # dagster_notion_assets,
-        owners_without_address, split_parquet_owners_without_address, process_parquet_chunks_with_api, parse_api_response_and_insert_owners_addresses,
+        process_owners_chunks, process_and_insert_owners,
         owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses,
         housings_without_address_csv, process_housings_with_api,
         *dwh_assets,

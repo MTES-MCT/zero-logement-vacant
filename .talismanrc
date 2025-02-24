@@ -1,10 +1,10 @@
 fileignoreconfig:
-- filename: .github/workflows/review-app.yml
-  checksum: f7719ba0d36160d97e80ee15cb5415b601354576929e36df0596c7d192465cfb
-- filename: README.md
-  checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
-- filename: analytics/.env.example
-  checksum: 917ebeff9022b2a0a1a916ceab18ce47a7fe04ebdbcdeadb62f49167b15b2bde
+- filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
+  checksum: a8d5d783384c35462f4d2bb022976c9476cf23effc720ba3ecf46d08bae07387
+- filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
+  checksum: 98cbd0849c6325704a4105e764c79b622c228bbbcd010fb0a554948ab1832fa4
+version: ""
+167b15b2bde
 - filename: analytics/dagster/src/assets/dwh/ingest/ingest_postgres_asset.py
   checksum: b379fbb88e46511c62682abf4cb422e730c4210f6dadc9d5ca648dfd68ff8f88
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py

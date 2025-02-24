@@ -21,7 +21,6 @@ def process_owners_chunks(context: AssetExecutionContext):
     FROM owners o
     LEFT JOIN ban_addresses ba ON o.id = ba.ref_id
     WHERE (ba.ref_id IS NULL)  -- Propriétaires sans adresse
-       OR (ba.ref_id IS NOT NULL AND ba.address_kind = 'Owner' AND ba.score < 1)  -- Propriétaires avec adresse non validée
     {"LIMIT " + str(max_files * chunk_size) if not disable_max_files else ""}
     """
     context.log.info(f"Limit applied: {'LIMIT ' + str(max_files * chunk_size) if not disable_max_files else 'No limit'}")

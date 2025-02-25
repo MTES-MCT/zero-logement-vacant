@@ -1,5 +1,3 @@
-import { body, ValidationChain } from 'express-validator';
-
 import {
   EnergyConsumption,
   HousingFiltersDTO,
@@ -7,6 +5,7 @@ import {
   OwnerKind,
   OwnershipKind
 } from '@zerologementvacant/models';
+import { body, ValidationChain } from 'express-validator';
 import {
   isArrayOf,
   isBoolean,
@@ -16,7 +15,7 @@ import {
 } from '~/utils/validators';
 
 export interface HousingFiltersApi
-  extends Pick<HousingFiltersDTO, 'all' | 'intercommunalities'> {
+  extends Pick<HousingFiltersDTO, 'all' | 'intercommunalities' | 'precisions'> {
   housingIds?: string[];
   establishmentIds?: string[];
   groupIds?: string[];

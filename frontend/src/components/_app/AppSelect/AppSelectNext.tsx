@@ -83,7 +83,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
   ): void {
     if (!multiple) {
       const nextValue = event.target.value as string;
-      props.onChange(getOption(nextValue));
+      props.onChange(getOption(nextValue) as SelectValue<Value, Multiple>);
       return;
     }
 
@@ -100,12 +100,12 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
           : selected;
       });
 
-    const nextValue: Value[] = options
+    const nextValue = options
       .union(groups.flatMap(getGroup).map(getOptionValue))
       .filter((option) => !diff.includes(option))
       .map(getOption)
       .toArray();
-    props.onChange(nextValue as SelectValue<Value, true>);
+    props.onChange(nextValue as SelectValue<Value, Multiple>);
   }
 
   function noop(event: ChangeEvent): void {
@@ -261,7 +261,9 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                 .otherwise(() => emptyValue)
             : match(values)
                 .with('', () => emptyValue)
-                .otherwise((value) => getOptionLabel(value as string));
+                .otherwise((value) =>
+                  getOptionLabel(getOption(value as string))
+                );
         }}
         value={selected ?? ''}
         variant="standard"

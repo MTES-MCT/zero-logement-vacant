@@ -12,23 +12,23 @@ function init(app: Express): void {
   if (config.sentry.enabled && config.sentry.dsn) {
     logger.info('Init sentry', {
       level: 'error',
-      dsn: config.sentry.dsn,
+      dsn: config.sentry.dsn
     });
 
     Sentry.init({
       dsn: config.sentry.dsn,
       environment:
         config.app.env === 'production' ? 'production' : 'development',
-      tracesSampleRate: 1.0,
+      tracesSampleRate: 0.2,
       integrations: [
         new Sentry.Integrations.Http({
-          tracing: true,
+          tracing: true
         }),
         new Sentry.Integrations.Express({
-          app,
+          app
         }),
-        new Sentry.Integrations.Postgres(),
-      ],
+        new Sentry.Integrations.Postgres()
+      ]
     });
 
     // RequestHandler creates a separate execution context using domains, so that every
@@ -52,5 +52,5 @@ function errorHandler(app: Express): void {
 
 export default {
   init,
-  errorHandler,
+  errorHandler
 };

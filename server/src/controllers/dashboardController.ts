@@ -22,9 +22,7 @@ async function findOne(
     resource: {
       dashboard: getResource(params.id)
     },
-    params: {
-      id: auth.establishmentId
-    }
+    params: {}
   };
   const token = await sign(payload);
   const dashboard = {

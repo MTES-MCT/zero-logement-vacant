@@ -9,17 +9,19 @@ import {
 } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
-import { ChangeEvent, Key, useId } from 'react';
-import { useController } from 'react-hook-form';
+import { List, Set } from 'immutable';
+import { ChangeEvent, Key, ReactNode, useId, useRef } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import styles from './app-select-next.module.scss';
 
 export type AppSelectNextProps<Value, Multiple extends boolean> = Omit<
   BaseSelectProps<SelectValue<Value, Multiple>>,
-  'multiple' | 'value'
+  'error' | 'multiple' | 'value' | 'onChange'
 > & {
   disabled?: boolean;
+  error?: string;
+  invalid?: boolean;
   getOptionKey?(value: Value): Key;
   getOptionLabel?(value: Value): string;
   getOptionValue?(value: Value): string;
@@ -27,50 +29,83 @@ export type AppSelectNextProps<Value, Multiple extends boolean> = Omit<
   isOptionEqualToValue?(option: Value, value: Value): boolean;
   // Keep this until upgrading to MUI v6
   multiple?: Multiple;
-  name: string;
   options: ReadonlyArray<Value>;
+  renderGroup?(group: string): ReactNode;
+  value: SelectValue<Value, Multiple>;
+  onChange(value: SelectValue<Value, Multiple>): void;
 };
 
 type SelectValue<Value, Multiple extends boolean> = Multiple extends true
-  ? ReadonlyArray<Value>
+  ? Array<Value>
   : Value | null;
 
 function AppSelectNext<Value, Multiple extends boolean = false>(
   props: AppSelectNextProps<Value, Multiple>
 ) {
+  const ref = useRef<HTMLDivElement>(null);
   const labelId = `fr-label-${useId()}`;
   const selectId = `fr-select-${useId()}`;
 
   const multiple = props.multiple ?? false;
 
-  // Form handling
-  const { field, fieldState } = useController({
-    name: props.name,
-    disabled: props.disabled
-  });
+  const emptyValue = multiple ? 'Tous' : '';
 
-  const value =
-    props.options.length === 0
-      ? ''
+  const value: SelectValue<Value, any> =
+    props.options.length === 0 ? null : props.value;
+  const groups = props.groupBy
+    ? List(props.options).groupBy((option) => props.groupBy!(option))
+    : null;
+
+  const selectedOptions: ReadonlyArray<Value> = multiple
+    ? (value as ReadonlyArray<Value>)
+    : [];
+  const selectedGroups: ReadonlyArray<string> = groups
+    ? groups
+        .filter((group) => {
+          return group.every((option) => {
+            return selectedOptions.some((selectedOption) =>
+              isOptionEqualToValue(option, selectedOption)
+            );
+          });
+        })
+        .keySeq()
+        .toArray()
+    : [];
+  const selected: ReadonlyArray<string> | string | null =
+    value === null
+      ? null
       : multiple
-        ? (field.value as ReadonlyArray<Value>).map(getOptionValue)
-        : getOptionValue(field.value as Value);
+        ? selectedOptions.map(getOptionValue).concat(selectedGroups)
+        : getOptionValue(value as Value);
 
   function onChange(
     event: SelectChangeEvent<string | ReadonlyArray<string>>
   ): void {
-    const eventValue = event.target.value;
-    const value = (
-      typeof eventValue === 'string' ? eventValue.split(',') : eventValue
-    ).map(getOption);
+    if (!multiple) {
+      const nextValue = event.target.value as string;
+      props.onChange(getOption(nextValue));
+      return;
+    }
 
-    field.onChange({
-      ...event,
-      target: {
-        ...event.target,
-        value: value
-      }
-    });
+    const [groups, options] = Set<string>(
+      event.target.value as ReadonlyArray<string>
+    ).partition((value) => isOption(value));
+    const diff: ReadonlyArray<string> = (selected as ReadonlyArray<string>)
+      .filter((selected) => {
+        return !groups.includes(selected) && !options.includes(selected);
+      })
+      .flatMap((selected) => {
+        return isGroup(selected)
+          ? getGroup(selected).map(getOptionValue).toArray()
+          : selected;
+      });
+
+    const nextValue: Value[] = options
+      .union(groups.flatMap(getGroup).map(getOptionValue))
+      .filter((option) => !diff.includes(option))
+      .map(getOption)
+      .toArray();
+    props.onChange(nextValue as SelectValue<Value, true>);
   }
 
   function noop(event: ChangeEvent): void {
@@ -78,7 +113,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
   }
 
   function getOptionKey(option: Value): Key {
-    return props.getOptionKey?.(option) ?? getOptionLabel(option);
+    return props.getOptionKey?.(option) ?? String(option);
   }
 
   function getOptionLabel(option: Value): string {
@@ -93,6 +128,10 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
       typeof option.label === 'string'
     ) {
       return option.label;
+    }
+
+    if (typeof option === 'string') {
+      return option;
     }
 
     throw new Error(
@@ -112,7 +151,17 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
   }
 
   function getOptionValue(option: Value): string {
-    return props.getOptionValue?.(option) ?? getOptionKey(option).toString();
+    return props.getOptionValue?.(option) ?? String(getOptionKey(option));
+  }
+
+  function isOption(value: string): boolean {
+    return props.options.some((option) => getOptionValue(option) === value);
+  }
+
+  function isOptionSelected(option: Value): boolean {
+    return selectedOptions.some((selectedOption) =>
+      isOptionEqualToValue(option, selectedOption)
+    );
   }
 
   function isOptionEqualToValue(option: Value, value: Value): boolean {
@@ -122,12 +171,37 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
     );
   }
 
+  function getGroup(value: string): List<Value> {
+    const group = groups?.get(value) ?? null;
+    if (!group) {
+      throw new Error(`Group ${value} not found`);
+    }
+
+    return group;
+  }
+
+  function isGroup(value: string): boolean {
+    return !!groups && groups.has(value);
+  }
+
+  function withoutGroups(values: ReadonlyArray<string>): ReadonlyArray<string> {
+    return values.filter((value) => !isGroup(value));
+  }
+
+  function isGroupSelected(group: string): boolean {
+    return selectedGroups.includes(group);
+  }
+
+  function renderGroup(group: string) {
+    return props.renderGroup?.(group) ?? group;
+  }
+
   return (
     <Box
       className={classNames(
         fr.cx('fr-select-group', {
-          [fr.cx('fr-select-group--disabled')]: field.disabled,
-          [fr.cx('fr-select-group--error')]: fieldState.invalid
+          [fr.cx('fr-select-group--disabled')]: props.disabled,
+          [fr.cx('fr-select-group--error')]: props.invalid
         })
       )}
     >
@@ -163,7 +237,8 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
             paper: {
               sx: {
                 filter: 'drop-shadow(var(--raised-shadow))',
-                maxHeight: '13.125rem'
+                maxHeight: '13.125rem',
+                maxWidth: ref.current?.clientWidth
               }
             }
           },
@@ -174,67 +249,139 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
           transitionDuration: 0
         }}
         native={false}
+        ref={ref}
         renderValue={(values) => {
-          if (values === '') {
-            return 'Sélectionnez une option';
-          }
-
-          if (Array.isArray(values)) {
-            return match(values.length)
-              .with(1, () => '1 option sélectionnée')
-              .with(
-                Pattern.number.int().gte(2),
-                (nb) => `${nb} options sélectionnées`
-              )
-              .otherwise(() => '');
-          }
-
-          return '';
+          return multiple && typeof values !== 'string'
+            ? match(withoutGroups(values).length)
+                .with(1, () => '1 option sélectionnée')
+                .with(
+                  Pattern.number.int().gte(2),
+                  (nb) => `${nb} options sélectionnées`
+                )
+                .otherwise(() => emptyValue)
+            : match(values)
+                .with('', () => emptyValue)
+                .otherwise((value) => getOptionLabel(value as string));
         }}
-        sx={{ width: '100%' }}
-        value={value}
+        value={selected ?? ''}
         variant="standard"
         onChange={onChange}
       >
-        {props.options.map((option) => (
-          <MenuItem
-            dense
-            disableRipple
-            key={getOptionKey(option)}
-            value={getOptionValue(option)}
-          >
-            {!props.multiple ? (
-              getOptionLabel(option)
-            ) : (
-              <Checkbox
-                classes={{
-                  root: fr.cx('fr-mb-0'),
-                  inputGroup: fr.cx('fr-mt-0')
-                }}
-                options={[
-                  {
-                    label: getOptionLabel(option),
-                    nativeInputProps: {
-                      checked: (value as ReadonlyArray<string>).some(
-                        (value) => {
-                          return isOptionEqualToValue(option, getOption(value));
+        {groups
+          ? groups.map((options, group) =>
+              [
+                <MenuItem
+                  key={group}
+                  value={group}
+                  dense
+                  disableRipple
+                  classes={{
+                    selected: styles.selected
+                  }}
+                  sx={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
+                    backgroundColor:
+                      fr.colors.decisions.background.default.grey.default
+                  }}
+                >
+                  <Checkbox
+                    classes={{
+                      root: fr.cx('fr-mb-0'),
+                      inputGroup: fr.cx('fr-mt-0')
+                    }}
+                    options={[
+                      {
+                        label: renderGroup(group),
+                        nativeInputProps: {
+                          checked: isGroupSelected(group),
+                          onClick: noop,
+                          onChange: noop
                         }
-                      ),
-                      onClick: noop,
-                      onChange: noop
-                    }
-                  }
-                ]}
-                orientation="vertical"
-                small
-              />
-            )}
-          </MenuItem>
-        ))}
+                      }
+                    ]}
+                    orientation="vertical"
+                    small
+                  />
+                </MenuItem>
+              ].concat(
+                ...options.map((option) => (
+                  <MenuItem
+                    dense
+                    disableRipple
+                    key={getOptionKey(option)}
+                    value={getOptionValue(option)}
+                  >
+                    {!props.multiple ? (
+                      <Typography variant="body2">
+                        {getOptionLabel(option)}
+                      </Typography>
+                    ) : (
+                      <Checkbox
+                        classes={{
+                          root: fr.cx('fr-mb-0'),
+                          inputGroup: fr.cx('fr-mt-0')
+                        }}
+                        options={[
+                          {
+                            label: (
+                              <Typography variant="body2">
+                                {getOptionLabel(option)}
+                              </Typography>
+                            ),
+                            nativeInputProps: {
+                              checked: isOptionSelected(option),
+                              onClick: noop,
+                              onChange: noop
+                            }
+                          }
+                        ]}
+                        orientation="vertical"
+                        small
+                      />
+                    )}
+                  </MenuItem>
+                ))
+              )
+            )
+          : props.options.map((option) => (
+              <MenuItem
+                dense
+                disableRipple
+                key={getOptionKey(option)}
+                value={getOptionValue(option)}
+              >
+                {!props.multiple ? (
+                  <Typography variant="body2">
+                    {getOptionLabel(option)}
+                  </Typography>
+                ) : (
+                  <Checkbox
+                    classes={{
+                      root: fr.cx('fr-mb-0'),
+                      inputGroup: fr.cx('fr-mt-0')
+                    }}
+                    options={[
+                      {
+                        label: getOptionLabel(option),
+                        nativeInputProps: {
+                          checked: isOptionSelected(option),
+                          onClick: noop,
+                          onChange: noop
+                        }
+                      }
+                    ]}
+                    orientation="vertical"
+                    small
+                  />
+                )}
+              </MenuItem>
+            ))}
       </MuiSelect>
-      {fieldState.error?.message ? (
+      {props.error ? (
         <Typography className={fr.cx('fr-error-text')}>
-          {fieldState.error?.message}
+          {props.error}
         </Typography>
       ) : null}
     </Box>

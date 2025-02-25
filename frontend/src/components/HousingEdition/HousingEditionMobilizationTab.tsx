@@ -1,11 +1,8 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Unstable_Grid2';
 import { skipToken } from '@reduxjs/toolkit/query';
-import fp from 'lodash/fp';
-import { Dispatch, SetStateAction, useState } from 'react';
-import { useController, useFormContext } from 'react-hook-form';
 
 import {
   HousingStatus,
@@ -14,22 +11,25 @@ import {
   isPrecisionMechanismCategory,
   Precision
 } from '@zerologementvacant/models';
-import { useFilteredPrecisions } from '../Precision/useFilteredPrecisions';
-import HousingStatusSelect from './HousingStatusSelect';
+import fp from 'lodash/fp';
+import { Dispatch, SetStateAction, useState } from 'react';
+import { useController, useFormContext } from 'react-hook-form';
+import { useNotification } from '../../hooks/useNotification';
+import { Housing } from '../../models/Housing';
 import { statusOptions } from '../../models/HousingFilters';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 import { getSubStatusOptions } from '../../models/HousingState';
-import styles from './housing-edition.module.scss';
-import { PrecisionTabId } from '../Precision/PrecisionTabs';
-import createPrecisionModalNext from '../Precision/PrecisionModalNext';
-import { HousingEditionFormSchema } from './HousingEditionSideMenu';
 import {
   useFindPrecisionsByHousingQuery,
   useFindPrecisionsQuery,
   useSaveHousingPrecisionsMutation
 } from '../../services/precision.service';
-import { useNotification } from '../../hooks/useNotification';
-import { Housing } from '../../models/Housing';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import createPrecisionModalNext from '../Precision/PrecisionModalNext';
+import { PrecisionTabId } from '../Precision/PrecisionTabs';
+import { useFilteredPrecisions } from '../Precision/useFilteredPrecisions';
+import styles from './housing-edition.module.scss';
+import { HousingEditionFormSchema } from './HousingEditionSideMenu';
+import HousingStatusSelect from './HousingStatusSelect';
 
 interface Props {
   housingId: Housing['id'] | null;
@@ -96,9 +96,15 @@ function HousingEditionMobilizationTab(props: Props) {
   }
 
   const form = useFormContext();
-  const { field: statusField, fieldState: statusFieldState } =
-    useController<HousingEditionFormSchema>({
-      name: 'status'
+  const { field: statusField, fieldState: statusFieldState } = useController<
+    HousingEditionFormSchema,
+    'status'
+  >({
+    name: 'status'
+  });
+  const { field: subStatusField, fieldState: subStatusFieldState } =
+    useController<HousingEditionFormSchema, 'subStatus'>({
+      name: 'subStatus'
     });
 
   const subStatusDisabled =
@@ -109,6 +115,8 @@ function HousingEditionMobilizationTab(props: Props) {
       saveHousingPrecisions({
         housing: props.housingId,
         precisions: precisions.map((p) => p.id)
+      }).then(() => {
+        precisionModal.close();
       });
     }
   }
@@ -140,11 +148,19 @@ function HousingEditionMobilizationTab(props: Props) {
         <AppSelectNext
           disabled={subStatusDisabled}
           label="Sous-statut de suivi"
-          name="subStatus"
+          name={subStatusField.name}
           multiple={false}
           options={
-            getSubStatusOptions(statusField.value as HousingStatus) ?? []
+            getSubStatusOptions(statusField.value as HousingStatus)?.map(
+              (option) => option.value
+            ) ?? []
           }
+          error={subStatusFieldState.error?.message}
+          invalid={subStatusFieldState.invalid}
+          ref={subStatusField.ref}
+          value={subStatusField.value}
+          onBlur={subStatusField.onBlur}
+          onChange={subStatusField.onChange}
         />
       </Grid>
 

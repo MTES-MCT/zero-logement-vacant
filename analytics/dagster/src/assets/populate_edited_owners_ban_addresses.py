@@ -18,7 +18,7 @@ def process_and_update_edited_owners(context: AssetExecutionContext):
     SELECT o.id as owner_id, array_to_string(o.address_dgfip, ' ') as address_dgfip
     FROM owners o
     LEFT JOIN ban_addresses ba ON o.id = ba.ref_id
-    WHERE ba.ban_id IS NULL AND ba.score = 1;
+    WHERE (ba.address_kind = 'Owner' AND ba.ban_id IS NULL AND ba.score = 1);
     """
 
     try:

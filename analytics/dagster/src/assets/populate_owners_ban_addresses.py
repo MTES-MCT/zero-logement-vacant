@@ -18,7 +18,7 @@ def process_and_insert_owners(context: AssetExecutionContext):
     query_count = """
     SELECT COUNT(*) FROM owners o
     LEFT JOIN ban_addresses ba ON o.id = ba.ref_id
-    WHERE (ba.address_kind = 'Owner' AND ba.ban_id IS NULL);
+    WHERE (ba.address_kind = 'Owner' AND ba.ban_id IS NULL AND ba.score < 1);
     """
 
     try:

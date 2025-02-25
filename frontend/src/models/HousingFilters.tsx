@@ -25,8 +25,8 @@ import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyCon
 import { OCCUPANCY_LABELS } from './Housing';
 import { HousingStates } from './HousingState';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
-import { SelectOption } from './SelectOption';
 import { VacancyYear } from './VacancyYear';
+import { SelectOption } from './SelectOption';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HousingFilters extends HousingFiltersDTO {}

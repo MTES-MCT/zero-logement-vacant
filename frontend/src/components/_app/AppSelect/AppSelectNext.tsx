@@ -328,7 +328,10 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                         options={[
                           {
                             label: (
-                              <Typography variant="body2">
+                              <Typography
+                                sx={{ mt: '0.125rem' }}
+                                variant="body2"
+                              >
                                 {getOptionLabel(option)}
                               </Typography>
                             ),
@@ -366,7 +369,11 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                     }}
                     options={[
                       {
-                        label: getOptionLabel(option),
+                        label: (
+                          <Typography sx={{ mt: '0.125rem' }} variant="body2">
+                            {getOptionLabel(option)}
+                          </Typography>
+                        ),
                         nativeInputProps: {
                           checked: isOptionSelected(option),
                           onClick: noop,

@@ -214,7 +214,8 @@ describe('Precision API', () => {
           .map((precision) => ({
             housing_geo_code: housing.geoCode,
             housing_id: housing.id,
-            precision_id: precision.id
+            precision_id: precision.id,
+            created_at: new Date()
           }));
       await HousingPrecisions().insert(housingPrecisions);
 

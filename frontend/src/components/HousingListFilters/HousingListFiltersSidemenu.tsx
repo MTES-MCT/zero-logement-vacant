@@ -317,7 +317,7 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
           <Grid component="article" mb={2} xs={12}>
             <PrecisionSelect
-              label="Évolutions"
+              label="Évolutions du logement"
               options={precisionOptions.filter((precision) =>
                 isPrecisionEvolutionCategory(precision.category)
               )}

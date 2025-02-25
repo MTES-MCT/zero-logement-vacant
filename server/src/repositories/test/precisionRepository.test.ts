@@ -1,4 +1,9 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { HousingApi } from '~/models/HousingApi';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
 
 import precisionRepository, {
   HousingPrecisionDBO,
@@ -6,11 +11,6 @@ import precisionRepository, {
   Precisions
 } from '~/repositories/precisionRepository';
 import { genHousingApi } from '~/test/testFixtures';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { HousingApi } from '~/models/HousingApi';
 
 describe('Precision repository', () => {
   describe('link', () => {
@@ -31,8 +31,8 @@ describe('Precision repository', () => {
         housing_geo_code: housing.geoCode,
         housing_id: housing.id
       });
-      expect(actual).toIncludeSameMembers(
-        precisions.map<HousingPrecisionDBO>((precision) => ({
+      expect(actual).toIncludeAllPartialMembers(
+        precisions.map((precision) => ({
           housing_geo_code: housing.geoCode,
           housing_id: housing.id,
           precision_id: precision.id
@@ -44,13 +44,11 @@ describe('Precision repository', () => {
       const referential = await Precisions();
       const precisionsBefore = faker.helpers.arrayElements(referential, 3);
       const precisionsAfter = faker.helpers.arrayElements(referential, 2);
-      const housingPrecisions = precisionsBefore.map<HousingPrecisionDBO>(
-        (precision) => ({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          precision_id: precision.id
-        })
-      );
+      const housingPrecisions = precisionsBefore.map((precision) => ({
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id,
+        precision_id: precision.id
+      }));
       await HousingPrecisions().insert(housingPrecisions);
 
       await precisionRepository.link(housing, precisionsAfter);
@@ -59,8 +57,8 @@ describe('Precision repository', () => {
         housing_geo_code: housing.geoCode,
         housing_id: housing.id
       });
-      expect(actual).toIncludeSameMembers(
-        precisionsAfter.map<HousingPrecisionDBO>((precision) => ({
+      expect(actual).toIncludeAllPartialMembers(
+        precisionsAfter.map((precision) => ({
           housing_geo_code: housing.geoCode,
           housing_id: housing.id,
           precision_id: precision.id
@@ -75,7 +73,8 @@ describe('Precision repository', () => {
         (precision) => ({
           housing_geo_code: housing.geoCode,
           housing_id: housing.id,
-          precision_id: precision.id
+          precision_id: precision.id,
+          created_at: new Date()
         })
       );
       await HousingPrecisions().insert(housingPrecisions);

@@ -1,10 +1,10 @@
 import { Knex } from 'knex';
 
 import db from '~/infra/database';
-import { PrecisionApi } from '~/models/PrecisionApi';
-import { HousingApi } from '~/models/HousingApi';
 import { getTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
+import { HousingApi } from '~/models/HousingApi';
+import { PrecisionApi } from '~/models/PrecisionApi';
 
 export const PRECISION_TABLE = 'precisions';
 export const Precisions = (transaction: Knex<PrecisionDBO> = db) =>
@@ -20,6 +20,7 @@ export type HousingPrecisionDBO = {
   housing_geo_code: string;
   housing_id: string;
   precision_id: string;
+  created_at: Date | string;
 };
 
 interface FindOptions {
@@ -78,7 +79,8 @@ async function link(
       precisions.map((precision) => ({
         housing_geo_code: housing.geoCode,
         housing_id: housing.id,
-        precision_id: precision.id
+        precision_id: precision.id,
+        created_at: new Date()
       }));
     await HousingPrecisions(transaction).insert(housingPrecisions);
   }

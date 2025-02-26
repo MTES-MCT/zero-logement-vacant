@@ -1,5 +1,5 @@
-import nock from 'nock';
 import axios from 'axios';
+import nock from 'nock';
 import { constants } from 'node:http2';
 
 import createErrorHandler from '../error-handler';
@@ -7,11 +7,22 @@ import createErrorHandler from '../error-handler';
 describe('Error handler', () => {
   const host = 'https://api.example.com';
   const http = axios.create({
-    baseURL: host,
+    baseURL: host
   });
 
   beforeAll(() => {
-    http.interceptors.response.use(undefined, createErrorHandler());
+    http.interceptors.response.use(
+      undefined,
+      createErrorHandler({
+        logger: {
+          trace: jest.fn(),
+          debug: jest.fn(),
+          info: jest.fn(),
+          warn: jest.fn(),
+          error: jest.fn()
+        }
+      })
+    );
   });
 
   it('should return null if the request status is 404 Not found', async () => {

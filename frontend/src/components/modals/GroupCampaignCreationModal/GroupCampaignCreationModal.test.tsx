@@ -1,43 +1,40 @@
-import { render, screen, within } from '@testing-library/react';
-import GroupCampaignCreationModal from './GroupCampaignCreationModal';
-import { Provider } from 'react-redux';
-import { genAuthUser } from '../../../../test/fixtures.test';
-import { configureStore } from '@reduxjs/toolkit';
-import { applicationReducer } from '../../../store/store';
-import userEvent from '@testing-library/user-event';
 import { faker } from '@faker-js/faker';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Provider } from 'react-redux';
 import { Group } from '../../../models/Group';
 import { UserRoles } from '../../../models/User';
+import configureTestStore from '../../../utils/test/storeUtils';
+import GroupCampaignCreationModal from './GroupCampaignCreationModal';
 
 const createGroup = (): Group => {
-    return {
+  return {
+    id: faker.string.uuid(),
+    title: faker.lorem.words(3),
+    description: faker.lorem.paragraph(),
+    housingCount: faker.number.int({ min: 0, max: 100 }),
+    ownerCount: faker.number.int({ min: 0, max: 50 }),
+    createdAt: faker.date.past(),
+    createdBy: {
       id: faker.string.uuid(),
-      title: faker.lorem.words(3),
-      description: faker.lorem.paragraph(),
-      housingCount: faker.number.int({ min: 0, max: 100 }),
-      ownerCount: faker.number.int({ min: 0, max: 50 }),
-      createdAt: faker.date.past(),
-      createdBy: {
-        id: faker.string.uuid(),
-        email: faker.internet.email(),
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        role: UserRoles.Usual,
-        activatedAt: faker.date.past(),
-        establishmentId: faker.string.uuid(),
-      },
-      archivedAt: faker.datatype.boolean() ? faker.date.past() : null,
-    };
+      email: faker.internet.email(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      role: UserRoles.Usual,
+      activatedAt: faker.date.past(),
+      establishmentId: faker.string.uuid()
+    },
+    archivedAt: faker.datatype.boolean() ? faker.date.past() : null
   };
+};
 
 describe('Group campaign creation modal', () => {
   const user = userEvent.setup();
   let store: any;
 
   beforeEach(() => {
-    store = configureStore({
-      reducer: applicationReducer,
-      preloadedState: { authentication: { authUser: genAuthUser() } }
+    store = configureTestStore({
+      withAuth: true
     });
   });
 
@@ -54,8 +51,12 @@ describe('Group campaign creation modal', () => {
     );
 
     const housingInfosTextElement = screen.getByTestId('housing-infos');
-    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
-    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
+    const campaignTitleInputElement = screen.getByLabelText(
+      /^Titre de la campagne/
+    );
+    const createButton = screen.getByRole('button', {
+      name: /^Créer une campagne/
+    });
     expect(housingInfosTextElement).toBeInTheDocument();
     expect(housingInfosTextElement.textContent).toBe(
       'Vous êtes sur le point de créer une campagne comportant 2 logements.'
@@ -76,12 +77,16 @@ describe('Group campaign creation modal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
+    const createButton = screen.getByRole('button', {
+      name: /^Créer une campagne/
+    });
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
     const modal = screen.getByRole('dialog');
-    const save = await within(modal).findByRole('button', { name: /^Confirmer/ });
+    const save = await within(modal).findByRole('button', {
+      name: /^Confirmer/
+    });
     await user.click(save);
 
     const error = await screen.findByText(
@@ -102,16 +107,22 @@ describe('Group campaign creation modal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
+    const createButton = screen.getByRole('button', {
+      name: /^Créer une campagne/
+    });
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
+    const campaignTitleInputElement = screen.getByLabelText(
+      /^Titre de la campagne/
+    );
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.paragraph());
 
     const modal = screen.getByRole('dialog');
-    const save = await within(modal).findByRole('button', { name: /^Confirmer/ });
+    const save = await within(modal).findByRole('button', {
+      name: /^Confirmer/
+    });
     await user.click(save);
 
     const error = await screen.findByText(
@@ -132,20 +143,31 @@ describe('Group campaign creation modal', () => {
       </Provider>
     );
 
-    const createButton = screen.getByRole('button', { name: /^Créer une campagne/ });
+    const createButton = screen.getByRole('button', {
+      name: /^Créer une campagne/
+    });
     expect(createButton).toBeVisible();
     await user.click(createButton);
 
-    const campaignTitleInputElement = screen.getByLabelText(/^Titre de la campagne/);
+    const campaignTitleInputElement = screen.getByLabelText(
+      /^Titre de la campagne/
+    );
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.words(3));
 
-    const campaignDescriptionInputElement = screen.getByLabelText(/^Description de la campagne/);
+    const campaignDescriptionInputElement = screen.getByLabelText(
+      /^Description de la campagne/
+    );
 
-    await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
+    await userEvent.type(
+      campaignDescriptionInputElement,
+      faker.lorem.sentences(50)
+    );
 
     const modal = screen.getByRole('dialog');
-    const save = await within(modal).findByRole('button', { name: /^Confirmer/ });
+    const save = await within(modal).findByRole('button', {
+      name: /^Confirmer/
+    });
     await user.click(save);
 
     const error = await screen.findByText(
@@ -153,5 +175,4 @@ describe('Group campaign creation modal', () => {
     );
     expect(error).toBeInTheDocument();
   });
-
 });

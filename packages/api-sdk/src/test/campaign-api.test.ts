@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import nock from 'nock';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { constants } from 'node:http2';
 
 import { createSDK } from '../sdk';
@@ -12,7 +13,18 @@ describe('Campaign API', () => {
     },
     auth: {
       secret: 'secret'
-    }
+    },
+    db: {
+      url: 'postgres://localhost:5432'
+    },
+    logger: {
+      error: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      trace: jest.fn()
+    },
+    storage: new AsyncLocalStorage<{ establishment: string }>()
   });
 
   describe('get', () => {

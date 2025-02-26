@@ -7,7 +7,9 @@
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "typecheck": "tsc --noEmit",
     "build": "tsc -b tsconfig.build.json",
-    "dev": "nodemon --watch src -e ts --exec 'yarn build'"
+    "dev": "nodemon --watch src -e ts --exec 'yarn build'",
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

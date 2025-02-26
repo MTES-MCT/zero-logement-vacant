@@ -1,15 +1,11 @@
-import { configureStore, Store } from '@reduxjs/toolkit';
+import { faker } from '@faker-js/faker';
+import { Store } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Provider } from 'react-redux';
+import configureTestStore from '../../../utils/test/storeUtils';
 
 import GroupAddHousingModal from './GroupAddHousingModal';
-import {
-  applicationMiddlewares,
-  applicationReducer
-} from '../../../store/store';
-import { genAuthUser } from '../../../../test/fixtures.test';
-import { Provider } from 'react-redux';
-import { faker } from '@faker-js/faker';
 
 describe('GroupHousingModal', () => {
   const user = userEvent.setup();
@@ -17,15 +13,8 @@ describe('GroupHousingModal', () => {
   let store: Store;
 
   beforeEach(() => {
-    store = configureStore({
-      reducer: applicationReducer,
-      middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
-          serializableCheck: false
-        }).concat(applicationMiddlewares),
-      preloadedState: {
-        authentication: { authUser: genAuthUser() }
-      }
+    store = configureTestStore({
+      withAuth: true
     });
   });
 
@@ -57,11 +46,11 @@ describe('GroupHousingModal', () => {
         />
       </Provider>
     );
-    
+
     const createButton = await screen.findByText('Créer un nouveau groupe');
     await user.click(createButton);
 
-    const save =  await screen.findByText('Confirmer');
+    const save = await screen.findByText('Confirmer');
     await user.click(save);
 
     const error = await screen.findByText(
@@ -113,9 +102,13 @@ describe('GroupHousingModal', () => {
 
     await userEvent.type(campaignTitleInputElement, faker.lorem.words(3));
 
-    const campaignDescriptionInputElement = screen.getByLabelText(/^Description/);
+    const campaignDescriptionInputElement =
+      screen.getByLabelText(/^Description/);
 
-    await userEvent.type(campaignDescriptionInputElement, faker.lorem.sentences(50));
+    await userEvent.type(
+      campaignDescriptionInputElement,
+      faker.lorem.sentences(50)
+    );
 
     const save = await screen.findByText('Confirmer');
     await user.click(save);

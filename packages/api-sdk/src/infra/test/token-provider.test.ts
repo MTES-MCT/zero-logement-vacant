@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import axios from 'axios';
 import { knex } from 'knex';
 import nock from 'nock';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { constants } from 'node:http2';
 
 import createTokenProvider from '../token-provider';
@@ -15,7 +16,7 @@ describe('Token provider', () => {
 
   it('should provide a token', async () => {
     const http = axios.create({
-      baseURL: host,
+      baseURL: host
     });
     // Axios interceptors order is reversed.
     // See https://github.com/axios/axios/pull/1041
@@ -24,17 +25,18 @@ describe('Token provider', () => {
       return config;
     });
     http.interceptors.request.use(
-      createTokenProvider(faker.string.uuid(), {
+      createTokenProvider({
         auth: {
-          secret: faker.string.uuid(),
+          secret: faker.string.uuid()
         },
         db: knex({
           client: 'pg',
-          connection: 'postgres://postgres:postgres@localhost:5432/zlv',
+          connection: 'postgres://postgres:postgres@localhost:5432/zlv'
         }),
         logger: console,
         serviceAccount: faker.internet.email(),
-      }),
+        storage: new AsyncLocalStorage<{ establishment: string }>()
+      })
     );
 
     await http.get('/');

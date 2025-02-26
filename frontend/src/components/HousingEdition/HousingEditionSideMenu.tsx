@@ -3,10 +3,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { fromJS } from 'immutable';
-import { FormProvider, useForm } from 'react-hook-form';
-import { ElementOf } from 'ts-essentials';
-import * as yup from 'yup';
 
 import {
   HOUSING_STATUS_VALUES,
@@ -14,17 +10,21 @@ import {
   Occupancy,
   OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
+import { fromJS } from 'immutable';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { ElementOf } from 'ts-essentials';
+import * as yup from 'yup';
+import { useNotification } from '../../hooks/useNotification';
 import { Housing, HousingUpdate } from '../../models/Housing';
-import AppLink from '../_app/AppLink/AppLink';
-import AsideNext from '../Aside/AsideNext';
-import LabelNext from '../Label/LabelNext';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 import { allOccupancyOptions } from '../../models/HousingFilters';
 import { HousingStates } from '../../models/HousingState';
-import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
-import { useCreateNoteByHousingMutation } from '../../services/note.service';
 import { useUpdateHousingNextMutation } from '../../services/housing.service';
-import { useNotification } from '../../hooks/useNotification';
+import { useCreateNoteByHousingMutation } from '../../services/note.service';
+import AppLink from '../_app/AppLink/AppLink';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+import AsideNext from '../Aside/AsideNext';
+import LabelNext from '../Label/LabelNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
 
 interface HousingEditionSideMenuProps {
@@ -65,6 +65,8 @@ const schema = yup.object({
     }),
   note: yup.string()
 });
+
+const occupancyOptions = allOccupancyOptions.map((option) => option.value);
 
 export type HousingEditionFormSchema = yup.InferType<typeof schema>;
 
@@ -145,17 +147,53 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     isDefault: true,
     content: (
       <Stack rowGap={2}>
-        <AppSelectNext
-          label="Occupation actuelle"
-          multiple={false}
+        <Controller<HousingEditionFormSchema, 'occupancy'>
           name="occupancy"
-          options={allOccupancyOptions}
+          render={({ field, fieldState }) => (
+            <AppSelectNext
+              {...field}
+              label="Occupation actuelle"
+              invalid={fieldState.invalid}
+              error={fieldState.error?.message}
+              multiple={false}
+              getOptionKey={(option) => option}
+              getOptionLabel={(value) => {
+                const option = allOccupancyOptions.find(
+                  (option) => option.value === value
+                );
+                if (!option) {
+                  throw new Error(`Occupancy with value ${value} not found`);
+                }
+                return option.label;
+              }}
+              getOptionValue={(option) => option}
+              options={occupancyOptions}
+            />
+          )}
         />
-        <AppSelectNext
-          label="Occupation prévisionnelle"
-          multiple={false}
+        <Controller<HousingEditionFormSchema, 'occupancyIntended'>
           name="occupancyIntended"
-          options={allOccupancyOptions}
+          render={({ field, fieldState }) => (
+            <AppSelectNext
+              {...field}
+              label="Occupation prévisionnelle"
+              invalid={fieldState.invalid}
+              error={fieldState.error?.message}
+              multiple={false}
+              getOptionKey={(option) => option}
+              getOptionLabel={(value) => {
+                const option = allOccupancyOptions.find(
+                  (option) => option.value === value
+                );
+                if (!option) {
+                  throw new Error(`Occupancy with value ${value} not found`);
+                }
+                return option.label;
+              }}
+              getOptionValue={(option) => option}
+              options={occupancyOptions}
+            />
+          )}
         />
       </Stack>
     )

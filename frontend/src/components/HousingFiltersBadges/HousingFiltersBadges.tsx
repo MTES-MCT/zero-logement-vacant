@@ -1,12 +1,19 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import {
+  isPrecisionBlockingPointCategory,
+  isPrecisionEvolutionCategory,
+  isPrecisionMechanismCategory,
+  Precision
+} from '@zerologementvacant/models';
 import fp from 'lodash/fp';
+import { match, Pattern } from 'ts-pattern';
+
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-
 import {
   allOccupancyOptions,
   beneficiaryCountOptions,
@@ -37,7 +44,9 @@ import {
   getSubStatusList,
   getSubStatusListOptions
 } from '../../models/HousingState';
+import { getPrecision } from '../../models/Precision';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
+import { useFindPrecisionsQuery } from '../../services/precision.service';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
 
 interface HousingFiltersBadgesProps {
@@ -58,6 +67,9 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
     ? getIntercommunalityOptions(intercommunalities)
     : [];
   const { localitiesOptions } = useLocalityList(establishment?.id);
+
+  const { data: precisions } = useFindPrecisionsQuery();
+  const precisionOptions = precisions ?? [];
 
   const hasFilters = fp.keys(fp.omit(['groupIds'], filters)).length > 0;
 
@@ -271,8 +283,112 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         small={small}
         onChange={() => onChange?.({ query: '' })}
       />
+      <FilterBadges
+        options={precisionOptions.map((precision) => ({
+          value: precision.id,
+          label: precision.label,
+          badgeLabel: `Dispositif : ${precision.label}`
+        }))}
+        values={
+          filters.precisions
+            ? filters.precisions
+                .map(getPrecision(precisionOptions))
+                .filter((precision) =>
+                  isPrecisionMechanismCategory(precision.category)
+                )
+                .map((precision) => precision.id)
+            : []
+        }
+        small={small}
+        onChange={(values) => {
+          const otherPrecisions = filters.precisions
+            ?.map(getPrecision(precisionOptions))
+            ?.filter(
+              (precision) => !isPrecisionMechanismCategory(precision.category)
+            );
+          onChange?.({
+            precisions: values
+              .map(getPrecision(precisionOptions))
+              .concat(otherPrecisions ?? [])
+              .map((precision) => precision.id)
+          });
+        }}
+      />
+      <FilterBadges
+        options={precisionOptions.map((precision) => ({
+          value: precision.id,
+          label: precision.label,
+          badgeLabel: `Point de blocage : ${precision.label}`
+        }))}
+        values={
+          filters.precisions
+            ? filters.precisions
+                .map(getPrecision(precisionOptions))
+                .filter((precision) =>
+                  isPrecisionBlockingPointCategory(precision.category)
+                )
+                .map((precision) => precision.id)
+            : []
+        }
+        small={small}
+        onChange={(values) => {
+          const otherPrecisions = filters.precisions
+            ?.map(getPrecision(precisionOptions))
+            ?.filter(
+              (precision) =>
+                !isPrecisionBlockingPointCategory(precision.category)
+            );
+          onChange?.({
+            precisions: values
+              .map(getPrecision(precisionOptions))
+              .concat(otherPrecisions ?? [])
+              .map((precision) => precision.id)
+          });
+        }}
+      />
+      <FilterBadges
+        options={precisionOptions.map((precision) => ({
+          value: precision.id,
+          label: precision.label,
+          badgeLabel: `Évolution : ${mapPrecisionLabel(precision)}`
+        }))}
+        values={
+          filters.precisions
+            ? filters.precisions
+                .map(getPrecision(precisionOptions))
+                .filter((precision) =>
+                  isPrecisionEvolutionCategory(precision.category)
+                )
+                .map((precision) => precision.id)
+            : []
+        }
+        small={small}
+        onChange={(values) => {
+          const otherPrecisions = filters.precisions
+            ?.map(getPrecision(precisionOptions))
+            ?.filter(
+              (precision) => !isPrecisionEvolutionCategory(precision.category)
+            );
+          onChange?.({
+            precisions: values
+              .map(getPrecision(precisionOptions))
+              .concat(otherPrecisions ?? [])
+              .map((precision) => precision.id)
+          });
+        }}
+      />
     </Box>
   );
+}
+
+function mapPrecisionLabel(precision: Precision): string {
+  return match(precision)
+    .returnType<string>()
+    .with(
+      { label: Pattern.union('À venir', 'En cours', 'Effectuée', 'Terminés') },
+      (precision) => `${precision.category} ${precision.label.toLowerCase()}`
+    )
+    .otherwise((precision) => precision.label.toLowerCase());
 }
 
 export default HousingFiltersBadges;

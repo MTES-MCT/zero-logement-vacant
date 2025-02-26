@@ -3,7 +3,7 @@ import { ReactElement } from 'react';
 import { Text } from '../components/_dsfr';
 import { isDefined } from '../utils/compareUtils';
 import { Housing } from './Housing';
-import { DefaultOption, SelectOption } from './SelectOption';
+import { SelectOption } from './SelectOption';
 
 export interface HousingState {
   status: HousingStatusDTO;
@@ -139,10 +139,6 @@ export function getSubStatusOptions(status: HousingStatusDTO) {
   const housingState = getHousingState(status);
   return housingState.subStatusList
     ? [
-        {
-          ...DefaultOption,
-          label: 'Sélectionnez un sous-statut de suivi'
-        },
         ...housingState.subStatusList.map((subStatus) => ({
           value: subStatus.title,
           label: subStatus.title

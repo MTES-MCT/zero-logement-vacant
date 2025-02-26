@@ -3,14 +3,25 @@ import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import Button from '@codegouvfr/react-dsfr/Button';
 import MuiDrawer from '@mui/material/Drawer';
 import { CSSObject, styled, Theme } from '@mui/material/styles';
-import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
-import classNames from 'classnames';
-import posthog from 'posthog-js';
+import Grid from '@mui/material/Unstable_Grid2';
+import {
+  HousingStatus,
+  isPrecisionBlockingPointCategory,
+  isPrecisionEvolutionCategory,
+  isPrecisionMechanismCategory,
+  Occupancy
+} from '@zerologementvacant/models';
 
 import { isDefined } from '@zerologementvacant/utils';
-import { Icon, SearchableSelect, Text } from '../_dsfr';
-import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
+import classNames from 'classnames';
+import posthog from 'posthog-js';
+import { useIntercommunalities } from '../../hooks/useIntercommunalities';
+import { useLocalityList } from '../../hooks/useLocalityList';
+import { useAppSelector } from '../../hooks/useStore';
+import { useToggle } from '../../hooks/useToggle';
+import { useUser } from '../../hooks/useUser';
+import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   allOccupancyOptions,
   beneficiaryCountOptions,
@@ -35,26 +46,24 @@ import {
   vacancyRateOptions,
   vacancyYearOptions
 } from '../../models/HousingFilters';
-import styles from './housing-list-filters.module.scss';
 import {
   getSubStatusList,
   getSubStatusListOptions
 } from '../../models/HousingState';
-import { useLocalityList } from '../../hooks/useLocalityList';
-import { useAppSelector } from '../../hooks/useStore';
-import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import { concat } from '../../utils/arrayUtils';
-import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
-import HousingStatusMultiSelect from './HousingStatusMultiSelect';
-import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-import { useToggle } from '../../hooks/useToggle';
+import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
+import { useListGeoPerimetersQuery } from '../../services/geo.service';
+import { useFindPrecisionsQuery } from '../../services/precision.service';
+import { concat } from '../../utils/arrayUtils';
+import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
+import { Icon, SearchableSelect, Text } from '../_dsfr';
 import GroupHeader from '../GroupHeader/GroupHeader';
-import { useUser } from '../../hooks/useUser';
-import { HousingStatus, Occupancy } from '@zerologementvacant/models';
-import CampaignFilter from './CampaignFilter';
+import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
+import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
-import { useIntercommunalities } from '../../hooks/useIntercommunalities';
+import CampaignFilter from './CampaignFilter';
+import styles from './housing-list-filters.module.scss';
+import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -129,6 +138,9 @@ function HousingListFiltersSidemenu(props: Props) {
         value: locality.geoCode,
         label: locality.name
       })) ?? [];
+
+  const { data: precisions } = useFindPrecisionsQuery();
+  const precisionOptions = precisions ?? [];
 
   const { isVisitor } = useUser();
 
@@ -241,7 +253,101 @@ function HousingListFiltersSidemenu(props: Props) {
               />
             </Grid>
           )}
+          <Grid component="article" mb={2} xs={12}>
+            <PrecisionSelect
+              label="Dispositifs"
+              options={precisionOptions.filter((precision) =>
+                isPrecisionMechanismCategory(precision.category)
+              )}
+              values={
+                filters.precisions
+                  ? filters.precisions
+                      .map(getPrecision(precisionOptions))
+                      .filter((precision) =>
+                        isPrecisionMechanismCategory(precision.category)
+                      )
+                  : []
+              }
+              onChange={(values) => {
+                const otherPrecisions = filters.precisions
+                  ?.map(getPrecision(precisionOptions))
+                  ?.filter(
+                    (precision) =>
+                      !isPrecisionMechanismCategory(precision.category)
+                  );
+                onChangeFilters({
+                  precisions: values
+                    .concat(otherPrecisions ?? [])
+                    .map((precision) => precision.id)
+                });
+                posthog.capture('filtre-dispositifs');
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <PrecisionSelect
+              label="Points de blocage"
+              options={precisionOptions.filter((precision) =>
+                isPrecisionBlockingPointCategory(precision.category)
+              )}
+              values={
+                filters.precisions
+                  ? filters.precisions
+                      .map(getPrecision(precisionOptions))
+                      .filter((precision) =>
+                        isPrecisionBlockingPointCategory(precision.category)
+                      )
+                  : []
+              }
+              onChange={(values) => {
+                const otherPrecisions = filters.precisions
+                  ?.map(getPrecision(precisionOptions))
+                  ?.filter(
+                    (precision) =>
+                      !isPrecisionBlockingPointCategory(precision.category)
+                  );
+                onChangeFilters({
+                  precisions: values
+                    .concat(otherPrecisions ?? [])
+                    .map((precision) => precision.id)
+                });
+                posthog.capture('filtre-points-de-blocage');
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <PrecisionSelect
+              label="Évolutions du logement"
+              options={precisionOptions.filter((precision) =>
+                isPrecisionEvolutionCategory(precision.category)
+              )}
+              values={
+                filters.precisions
+                  ? filters.precisions
+                      .map(getPrecision(precisionOptions))
+                      .filter((precision) =>
+                        isPrecisionEvolutionCategory(precision.category)
+                      )
+                  : []
+              }
+              onChange={(values) => {
+                const otherPrecisions = filters.precisions
+                  ?.map(getPrecision(precisionOptions))
+                  ?.filter(
+                    (precision) =>
+                      !isPrecisionEvolutionCategory(precision.category)
+                  );
+                onChangeFilters({
+                  precisions: values
+                    .concat(otherPrecisions ?? [])
+                    .map((precision) => precision.id)
+                });
+                posthog.capture('filtre-evolutions');
+              }}
+            />
+          </Grid>
         </Accordion>
+
         <Accordion
           label={
             <TitleWithIcon

@@ -1,11 +1,6 @@
 fileignoreconfig:
 - filename: frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx
   checksum: a28fb2302d2d59d11ca517bc6d01ea8ab7b0c68a86bf1db14abc0735a90e8e8e
-version: ""
-tics/dagster/src/assets/populate_owners_ban_addresses.py
-  checksum: 98cbd0849c6325704a4105e764c79b622c228bbbcd010fb0a554948ab1832fa4
-version: ""
-167b15b2bde
 - filename: analytics/dagster/src/assets/dwh/ingest/ingest_postgres_asset.py
   checksum: b379fbb88e46511c62682abf4cb422e730c4210f6dadc9d5ca648dfd68ff8f88
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
@@ -45,16 +40,6 @@ version: ""
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts
   checksum: 459ad7c52a09b1a5d885f0e13acd68a894b862470125529ecc28a4116c737df7
 - filename: server/src/services/ceremaService/ceremaService.ts
-  checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
-scopeconfig:
-- scope: node
-allowed_patterns:
-- keyof
-- \[key\]
-- key=
-- 'key:'
-version: "1.0"
-name: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
 scopeconfig:
 - scope: node

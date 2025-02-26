@@ -15,6 +15,7 @@
     "typeRoots": ["node_modules/@types", "src/types"]
   },
   "ts-node": {
+    "swc": true,
     "require": ["tsconfig-paths/register"]
   },
   "include": ["src"]

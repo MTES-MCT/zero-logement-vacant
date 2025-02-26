@@ -11,5 +11,8 @@
     "rootDir": "src",
     "typeRoots": ["node_modules/@types", "src/types"]
   },
+  "ts-node": {
+    "swc": true
+  },
   "include": ["src"]
 }

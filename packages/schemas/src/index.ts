@@ -15,7 +15,7 @@ import { siren } from './siren';
 export { GEO_CODE_REGEXP } from './geo-code';
 export { SIREN_REGEXP } from './siren';
 
-export const schemas = {
+const schemas = {
   campaignCreationPayload,
   dateString,
   draft,

@@ -5,6 +5,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
+    "typecheck": "tsc --noEmit",
     "build": "tsc -b tsconfig.build.json && tsc-alias",
     "dev": "nodemon --watch src src/index.ts",
     "start": "node dist/index.js",
@@ -89,6 +90,8 @@
   "devDependencies": {
     "@fast-check/jest": "^1.8.2",
     "@jest/globals": "^29.7.0",
+    "@swc/core": "^1.11.1",
+    "@swc/jest": "^0.2.37",
     "@tsconfig/node20": "^20.1.4",
     "@turf/turf": "^7.1.0",
     "@types/async": "^3.2.24",

@@ -1,13 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "references": [
-    { "path": "../packages/models/tsconfig.build.json" },
-    { "path": "../packages/utils/tsconfig.build.json" },
-    { "path": "../queue/tsconfig.build.json" }
-  ],
   "exclude": [
-    "node_modules",
-    "build",
     "src/mocks/**/*.ts",
     "src/setupTests.ts",
     "src/**/*.test.ts",

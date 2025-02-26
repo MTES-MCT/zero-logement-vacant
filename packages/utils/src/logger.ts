@@ -20,6 +20,8 @@ export interface Logger {
   error: LogFn;
 }
 
+let baseLogger: ReturnType<typeof pino>;
+
 export function createLogger(name: string, opts: LoggerOptions): Logger {
   const level = opts.level ?? LogLevel.DEBUG;
   const developmentOptions: PinoLoggerOptions = {
@@ -27,12 +29,16 @@ export function createLogger(name: string, opts: LoggerOptions): Logger {
       target: 'pino-pretty'
     }
   };
-  const logger = pino({
-    ...(opts.isProduction ? {} : developmentOptions),
-    name,
-    level
-  });
+  // Late init the parent logger
+  baseLogger =
+    baseLogger ??
+    pino({
+      ...(opts.isProduction ? {} : developmentOptions),
+      level: LogLevel.DEBUG
+    });
 
+  // Provide a child logger to avoid overhead
+  const logger = baseLogger.child({ name }, { level });
   return {
     trace: toPinoLogFn(logger.trace.bind(logger)),
     debug: toPinoLogFn(logger.debug.bind(logger)),

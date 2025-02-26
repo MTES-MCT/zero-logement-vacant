@@ -1,40 +1,30 @@
 import { faker } from '@faker-js/faker';
+import axios from 'axios';
 import nock from 'nock';
-import { AsyncLocalStorage } from 'node:async_hooks';
 import { constants } from 'node:http2';
+import qs from 'qs';
 
-import { createSDK } from '../sdk';
+import { createCampaignAPI } from '../campaign-api';
 
 describe('Campaign API', () => {
-  const host = 'api.zerologementvacant.beta.gouv.fr';
-  const api = createSDK({
-    api: {
-      host
+  const host = 'https://api.zerologementvacant.beta.gouv.fr';
+  const http = axios.create({
+    baseURL: host,
+    headers: {
+      'Content-Type': 'application/json'
     },
-    auth: {
-      secret: 'secret'
-    },
-    db: {
-      url: 'postgres://localhost:5432'
-    },
-    logger: {
-      error: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-      trace: jest.fn()
-    },
-    storage: new AsyncLocalStorage<{ establishment: string }>()
+    paramsSerializer: (query) => qs.stringify(query, { arrayFormat: 'comma' })
   });
+  const api = createCampaignAPI(http);
 
   describe('get', () => {
     it('should return null if the campaign is missing', async () => {
       const id = faker.string.uuid();
       nock(host).get(`/campaigns/${id}`).reply(constants.HTTP_STATUS_NOT_FOUND);
 
-      const actual = await api.campaign.get(id);
+      const get = () => api.get(id);
 
-      expect(actual).toBeNull();
+      await expect(get()).toReject();
     });
 
     it('should return the campaign if it exists', async () => {
@@ -44,7 +34,7 @@ describe('Campaign API', () => {
         .get(`/campaigns/${id}`)
         .reply(constants.HTTP_STATUS_OK, campaign);
 
-      const actual = await api.campaign.get(id);
+      const actual = await api.get(id);
 
       expect(actual).toStrictEqual(campaign);
     });

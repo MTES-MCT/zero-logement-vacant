@@ -15,8 +15,7 @@
     "typeRoots": ["node_modules/@types", "src/types"]
   },
   "ts-node": {
-    "require": ["tsconfig-paths/register"],
-    "transpileOnly": true
+    "require": ["tsconfig-paths/register"]
   },
   "include": ["src"]
 }

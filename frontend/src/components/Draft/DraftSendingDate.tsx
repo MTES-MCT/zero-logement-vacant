@@ -5,7 +5,6 @@ import { Container } from '../_dsfr';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { DATE_REGEXP } from '../../utils/dateUtils';
 import { Typography } from '@mui/material';
-import styles from './draft.module.scss';
 
 export const sentAtSchema = string()
   .required('Veuillez renseigner une date d’envoi')
@@ -24,7 +23,9 @@ function DraftSendingDate(props: Readonly<Props>) {
 
   return (
     <Container as="section" className={props.className} fluid>
-      <Typography variant="h5" mb={2}>2. Indiquez la date d’envoi de la campagne</Typography>
+      <Typography variant="h5" mb={2}>
+        2. Indiquez la date d’envoi de la campagne
+      </Typography>
       <AppTextInput
         disabled={props.disabled}
         inputForm={props.form}

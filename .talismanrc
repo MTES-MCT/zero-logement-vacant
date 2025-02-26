@@ -1,7 +1,8 @@
 fileignoreconfig:
-- filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
-  checksum: a8d5d783384c35462f4d2bb022976c9476cf23effc720ba3ecf46d08bae07387
-- filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
+- filename: frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx
+  checksum: a28fb2302d2d59d11ca517bc6d01ea8ab7b0c68a86bf1db14abc0735a90e8e8e
+version: ""
+tics/dagster/src/assets/populate_owners_ban_addresses.py
   checksum: 98cbd0849c6325704a4105e764c79b622c228bbbcd010fb0a554948ab1832fa4
 version: ""
 167b15b2bde

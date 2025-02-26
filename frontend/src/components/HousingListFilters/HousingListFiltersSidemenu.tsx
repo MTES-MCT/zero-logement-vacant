@@ -55,6 +55,7 @@ import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import CampaignFilter from './CampaignFilter';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
+import { citiesWithDistricts } from '../../models/Locality';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -327,8 +328,10 @@ function HousingListFiltersSidemenu(props: Props) {
               placeholder="Rechercher une commune"
               onChange={(value: string) => {
                 if (value) {
+                  let cities = concat(filters.localities, value);
+                  cities = (cities ?? [] as Array<keyof typeof citiesWithDistricts>).flatMap(code => citiesWithDistricts[code as keyof typeof citiesWithDistricts] ?? [code]);
                   onChangeFilters(
-                    { localities: concat(filters.localities, value) },
+                    { localities: cities },
                     'Commune'
                   );
                   posthog.capture('filtre-commune');

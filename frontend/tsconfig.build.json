@@ -6,8 +6,6 @@
     { "path": "../queue/tsconfig.build.json" }
   ],
   "exclude": [
-    "node_modules",
-    "build",
     "src/mocks/**/*.ts",
     "src/setupTests.ts",
     "src/**/*.test.ts",

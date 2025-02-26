@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import axios from 'axios';
-import { knex } from 'knex';
+import { Knex } from 'knex';
 import nock from 'nock';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { constants } from 'node:http2';
@@ -15,13 +15,15 @@ describe('Token provider', () => {
   });
 
   it('should provide a token', async () => {
+    const db = mockDB();
+    const storage = new AsyncLocalStorage<{ establishment: string }>();
     const http = axios.create({
       baseURL: host
     });
     // Axios interceptors order is reversed.
     // See https://github.com/axios/axios/pull/1041
     http.interceptors.request.use((config) => {
-      expect(config.headers).toHaveProperty('Authorization');
+      expect(config.headers).toHaveProperty('x-access-token');
       return config;
     });
     http.interceptors.request.use(
@@ -29,16 +31,26 @@ describe('Token provider', () => {
         auth: {
           secret: faker.string.uuid()
         },
-        db: knex({
-          client: 'pg',
-          connection: 'postgres://postgres:postgres@localhost:5432/zlv'
-        }),
+        db: db,
         logger: console,
         serviceAccount: faker.internet.email(),
-        storage: new AsyncLocalStorage<{ establishment: string }>()
+        storage: storage
       })
     );
 
-    await http.get('/');
+    await storage.run({ establishment: faker.string.uuid() }, async () => {
+      await http.get('/');
+    });
   });
 });
+
+function mockDB(): Knex {
+  const user = {
+    id: faker.string.uuid()
+  };
+  return jest.fn().mockReturnValue({
+    where: jest.fn().mockReturnValue({
+      first: jest.fn().mockResolvedValue(user)
+    })
+  }) as unknown as Knex;
+}

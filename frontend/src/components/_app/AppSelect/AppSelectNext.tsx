@@ -230,6 +230,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
             vertical: 'bottom',
             horizontal: 'left'
           },
+          variant: 'menu',
           elevation: 0,
           marginThreshold: null,
           disableScrollLock: true,

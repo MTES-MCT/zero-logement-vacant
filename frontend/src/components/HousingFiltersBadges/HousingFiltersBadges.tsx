@@ -3,9 +3,11 @@ import Typography from '@mui/material/Typography';
 import {
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
-  isPrecisionMechanismCategory
+  isPrecisionMechanismCategory,
+  Precision
 } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
+import { match, Pattern } from 'ts-pattern';
 
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
@@ -348,7 +350,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         options={precisionOptions.map((precision) => ({
           value: precision.id,
           label: precision.label,
-          badgeLabel: `Évolution : ${precision.label}`
+          badgeLabel: `Évolution : ${mapPrecisionLabel(precision)}`
         }))}
         values={
           filters.precisions
@@ -377,6 +379,16 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
     </Box>
   );
+}
+
+function mapPrecisionLabel(precision: Precision): string {
+  return match(precision)
+    .returnType<string>()
+    .with(
+      { label: Pattern.union('À venir', 'En cours', 'Effectuée', 'Terminés') },
+      (precision) => `${precision.category} ${precision.label.toLowerCase()}`
+    )
+    .otherwise((precision) => precision.label.toLowerCase());
 }
 
 export default HousingFiltersBadges;

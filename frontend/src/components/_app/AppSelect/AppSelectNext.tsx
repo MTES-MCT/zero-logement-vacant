@@ -285,7 +285,8 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                     top: 0,
                     zIndex: 1,
                     backgroundColor:
-                      fr.colors.decisions.background.default.grey.default
+                      fr.colors.decisions.background.default.grey.default,
+                    whiteSpace: 'normal'
                   }}
                 >
                   <Checkbox
@@ -314,6 +315,9 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                     disableRipple
                     key={getOptionKey(option)}
                     value={getOptionValue(option)}
+                    sx={{
+                      whiteSpace: 'normal'
+                    }}
                   >
                     {!props.multiple ? (
                       <Typography variant="body2">
@@ -356,6 +360,9 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                 disableRipple
                 key={getOptionKey(option)}
                 value={getOptionValue(option)}
+                sx={{
+                  whiteSpace: 'normal'
+                }}
               >
                 {!props.multiple ? (
                   <Typography variant="body2">

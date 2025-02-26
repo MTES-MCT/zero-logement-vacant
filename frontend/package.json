@@ -4,6 +4,7 @@
   "scripts": {
     "clean": "rimraf build",
     "icons": "only-include-used-icons && tsx src/scripts/generate-building-images.ts",
+    "typecheck": "tsc --noEmit",
     "build": "yarn clean && yarn icons && tsc -b tsconfig.build.json && DISABLE_ESLINT_PLUGIN=true craco build",
     "dev": "yarn icons && DISABLE_ESLINT_PLUGIN=true craco start",
     "test": "DISABLE_ESLINT_PLUGIN=true craco test",

@@ -24,8 +24,8 @@ import dagster
 from .project import dbt_project
 from .assets import production_dbt
 
-from .assets.populate_owners_ban_addresses import process_owners_chunks, process_and_insert_owners
-from .assets.populate_edited_owners_ban_addresses import owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses
+from .assets.populate_owners_ban_addresses import process_and_insert_owners
+from .assets.populate_edited_owners_ban_addresses import process_and_update_edited_owners
 from .assets.populate_housings_ban_addresses import housings_without_address_csv, process_housings_with_api
 from .resources.ban_config import ban_config_resource
 from .resources.database_resources import psycopg2_connection_resource
@@ -91,7 +91,6 @@ yearly_ff_refresh_schedule = ScheduleDefinition(
 owners_asset_job = define_asset_job(
     name="populate_owners_addresses",
     selection=AssetSelection.assets(
-        "process_owners_chunks",
         "process_and_insert_owners",
     ),
 )
@@ -99,10 +98,7 @@ owners_asset_job = define_asset_job(
 edited_owners_asset_job = define_asset_job(
     name="populate_edited_owners_addresses",
     selection=AssetSelection.assets(
-        "owners_with_edited_address",
-        "create_csv_chunks_from_edited_owners",
-        "send_csv_chunks_to_api",
-        "parse_api_response_and_insert_edited_owners_addresses",
+        "process_and_update_edited_owners",
     ),
 )
 
@@ -120,8 +116,8 @@ defs = Definitions(
         # dagster_production_assets,
         # dagster_notion_assets,
         # dagster_notion_assets,
-        process_owners_chunks, process_and_insert_owners,
-        owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses,
+        process_and_insert_owners,
+        process_and_update_edited_owners,
         housings_without_address_csv, process_housings_with_api,
         *dwh_assets,
         *dbt_analytics_assets,

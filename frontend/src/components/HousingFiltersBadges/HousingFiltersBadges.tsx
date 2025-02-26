@@ -15,6 +15,8 @@ import {
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
   energyConsumptionOptions,
+  getCampaignOptions,
+  getIntercommunalityOptions,
   housingAreaOptions,
   housingCountOptions,
   HousingFilters,
@@ -35,7 +37,6 @@ import {
   getSubStatusList,
   getSubStatusListOptions
 } from '../../models/HousingState';
-import { SelectOption } from '../../models/SelectOption';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import FilterBadges from '../FiltersBadges/FiltersBadges';
 
@@ -53,11 +54,9 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   const campaigns = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { data: intercommunalities } = useIntercommunalities();
-  const intercommunalityOptions =
-    intercommunalities?.map<SelectOption>((intercommunality) => ({
-      value: intercommunality.id,
-      label: intercommunality.name
-    })) ?? [];
+  const intercommunalityOptions = intercommunalities?.length
+    ? getIntercommunalityOptions(intercommunalities)
+    : [];
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
   const hasFilters = fp.keys(fp.omit(['groupIds'], filters)).length > 0;
@@ -193,7 +192,10 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       {geoPerimeters && (
         <FilterBadges
-          options={geoPerimeterOptions(geoPerimeters)}
+          options={geoPerimeterOptions(geoPerimeters).map((option) => ({
+            ...option,
+            badgeLabel: `Périmètre inclus : ${option.label}`
+          }))}
           values={filters.geoPerimetersIncluded}
           small={small}
           onChange={(values) => onChange?.({ geoPerimetersIncluded: values })}
@@ -203,7 +205,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         <FilterBadges
           options={geoPerimeterOptions(geoPerimeters).map((option) => ({
             ...option,
-            badgeLabel: `${option.label} exclu`
+            badgeLabel: `Périmètre exclus : ${option.label}`
           }))}
           values={filters.geoPerimetersExcluded}
           small={small}
@@ -231,12 +233,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       {campaigns && filters.campaignIds && (
         <FilterBadges
-          options={campaigns
-            .map((campaign) => ({
-              value: campaign.id,
-              label: campaign.title
-            }))
-            .concat(noCampaignOption)}
+          options={getCampaignOptions(campaigns)}
           values={filters.campaignIds.map((id) =>
             id === null ? noCampaignOption.value : id
           )}

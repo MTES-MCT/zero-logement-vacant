@@ -1,19 +1,24 @@
 import { BeneficiaryCount } from './BeneficiaryCount';
 import { BuildingPeriod } from './BuildingPeriod';
-import { OwnershipKind } from './OwnershipKind';
-import { OwnerAge } from './OwnerAge';
-import { LivingArea } from './LivingArea';
-import { HousingByBuilding } from './HousingByBuilding';
-import { VacancyRate } from './VacancyRate';
-import { Occupancy } from './Occupancy';
-import { HousingStatus } from './HousingStatus';
-import { EnergyConsumption } from './EnergyConsumption';
-import { HousingKind } from './HousingKind';
 import { CampaignCount } from './CampaignCount';
-import { RoomCount } from './RoomCount';
+import { EnergyConsumption } from './EnergyConsumption';
+import { HousingByBuilding } from './HousingByBuilding';
+import { HousingKind } from './HousingKind';
+import { HousingStatus } from './HousingStatus';
+import { LivingArea } from './LivingArea';
+import { Occupancy } from './Occupancy';
+import { OwnerAge } from './OwnerAge';
 import { OwnerKind } from './OwnerKind';
+import { OwnershipKind } from './OwnershipKind';
+import { Precision } from './Precision';
+import { RoomCount } from './RoomCount';
+import { VacancyRate } from './VacancyRate';
 
 export interface HousingFiltersDTO {
+  /**
+   * If `true`, make `housingIds` exclusive. Otherwise, make it inclusive.
+   */
+  all?: boolean;
   housingIds?: string[];
   occupancies?: Occupancy[];
   energyConsumption?: EnergyConsumption[];
@@ -49,4 +54,5 @@ export interface HousingFiltersDTO {
   statusList?: HousingStatus[];
   subStatus?: string[];
   query?: string;
+  precisions?: Array<Precision['id']>;
 }

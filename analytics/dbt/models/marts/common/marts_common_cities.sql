@@ -1,13 +1,8 @@
 SELECT
     ccm.city_code,
-    MIN(label) AS label,  -- Si le label est le même pour tous les arrondissements, sinon utiliser GROUP_CONCAT
-    MIN(zip_code) AS zip_code,  -- Pour prendre un code postal représentatif, sinon utiliser GROUP_CONCAT
-    AVG(latitude) AS avg_latitude,
-    AVG(longitude) AS avg_longitude,
-    MIN(department_name) AS department_name,  -- Même remarque que pour le label
-    MIN(department_number) AS department_number,
-    MIN(region_name) AS region_name,
-    MIN(region_geojson_name) AS region_geojson_name,
+    MIN(cc.libelle) AS label,
+    MIN(cc.department_code) AS department_code,
+    MIN(cc.region_code) AS region_code,
     MAX(ca1.is_in) AS tlv1,  -- Prend 1 s'il y a au moins un arrondissement où la valeur est 1
     MAX(ca2.is_in) AS tlv2,  -- Idem
     MAX(action_coeur_de_ville) AS action_coeur_de_ville,
@@ -20,9 +15,9 @@ SELECT
     MAX(cort.signed) as ort_signed,
     MAX(cort.signed_at) as ort_signed_at,
     MAX(UU_name) as uu_name,
-    MAX(UU_code) as uu_code,
-    MAX(EPCI_code) as epci_code,
-    MAX(EPCI_name) as epci_name, 
+    MAX(cta.UU_code) as uu_code,
+    MAX(cta.EPCI_code) as epci_code,
+    MAX(cta.EPCI_name) as epci_name, 
     MAX(inscrit_zlv_direct) AS inscrit_zlv_direct,
     MAX(inscrit_zlv_via_intercommunalité) AS inscrit_zlv_via_intercommunalité,
     MAX(nom_intercommunalité) AS nom_intercommunalité,

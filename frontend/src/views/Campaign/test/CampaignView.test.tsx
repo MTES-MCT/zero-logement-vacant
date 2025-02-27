@@ -1,13 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-
-import configureTestStore from '../../../utils/test/storeUtils';
-import { AppStore } from '../../../store/store';
-import CampaignView from '../CampaignView';
-import Notification from '../../../components/Notification/Notification';
 import {
   AddressKinds,
   CampaignDTO,
@@ -23,10 +16,17 @@ import {
   genOwnerDTO,
   genSenderDTO
 } from '@zerologementvacant/models/fixtures';
+import { Provider } from 'react-redux';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { sources } from '../../../../test/event-source-mock';
+import Notification from '../../../components/Notification/Notification';
 
 import data from '../../../mocks/handlers/data';
-import { sources } from '../../../../test/event-source-mock';
+import { AppStore } from '../../../store/store';
 import config from '../../../utils/config';
+
+import configureTestStore from '../../../utils/test/storeUtils';
+import CampaignView from '../CampaignView';
 
 describe('Campaign view', () => {
   const user = userEvent.setup();
@@ -334,7 +334,7 @@ describe('Campaign view', () => {
     );
 
     await screen.findByRole('heading', {
-      name: /^Vos fichiers à télécharger pour lancer votre campagne/
+      name: /Téléchargez vos fichiers/
     });
     campaign.file = faker.image.url();
     const event = new MessageEvent('campaign-generate', {

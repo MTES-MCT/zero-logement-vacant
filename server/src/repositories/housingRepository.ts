@@ -1,11 +1,3 @@
-import highland from 'highland';
-import { Set } from 'immutable';
-import { Knex } from 'knex';
-import _ from 'lodash';
-import fp from 'lodash/fp';
-import { ReadableStream } from 'node:stream/web';
-import { Readable } from 'node:stream';
-
 import {
   AddressKinds,
   HousingSource,
@@ -16,34 +8,41 @@ import {
   PaginationOptions,
   Precision
 } from '@zerologementvacant/models';
+import highland from 'highland';
+import { Set } from 'immutable';
+import { Knex } from 'knex';
+import _ from 'lodash';
+import fp from 'lodash/fp';
+import { Readable } from 'node:stream';
+import { ReadableStream } from 'node:stream/web';
 import db, { toRawArray, where } from '~/infra/database';
+import { getTransaction } from '~/infra/database/transaction';
+import { logger } from '~/infra/logger';
 import {
   EnergyConsumptionGradesApi,
   HousingApi,
   HousingRecordApi,
   HousingSortApi
 } from '~/models/HousingApi';
-import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
-import { HousingFiltersApi } from '~/models/HousingFiltersApi';
-import { localitiesTable } from './localityRepository';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { eventsTable, housingEventsTable } from './eventRepository';
-import { geoPerimetersTable } from './geoRepository';
-import establishmentRepository from './establishmentRepository';
-import { AddressDBO, banAddressesTable } from './banAddressesRepository';
-import { logger } from '~/infra/logger';
 import { HousingCountApi } from '~/models/HousingCountApi';
+import { HousingFiltersApi } from '~/models/HousingFiltersApi';
+import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { sortQuery } from '~/models/SortApi';
-import { groupsHousingTable } from './groupRepository';
-import { housingOwnersTable } from './housingOwnerRepository';
-import { campaignsHousingTable } from './campaignHousingRepository';
-import { campaignsTable } from './campaignRepository';
-import { getTransaction } from '~/infra/database/transaction';
 import {
   HOUSING_PRECISION_TABLE,
   PRECISION_TABLE
 } from '~/repositories/precisionRepository';
+import { AddressDBO, banAddressesTable } from './banAddressesRepository';
+import { campaignsHousingTable } from './campaignHousingRepository';
+import { campaignsTable } from './campaignRepository';
+import establishmentRepository from './establishmentRepository';
+import { eventsTable, housingEventsTable } from './eventRepository';
+import { geoPerimetersTable } from './geoRepository';
+import { groupsHousingTable } from './groupRepository';
+import { housingOwnersTable } from './housingOwnerRepository';
+import { localitiesTable } from './localityRepository';
+import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -445,7 +444,11 @@ function filteredQuery(opts: FilteredQueryOptions) {
   const { filters } = opts;
   return (queryBuilder: Knex.QueryBuilder) => {
     if (filters.housingIds?.length) {
-      queryBuilder.whereIn(`${housingTable}.id`, filters.housingIds);
+      if (filters.all) {
+        queryBuilder.whereNotIn(`${housingTable}.id`, filters.housingIds);
+      } else {
+        queryBuilder.whereIn(`${housingTable}.id`, filters.housingIds);
+      }
     }
     if (filters.occupancies?.length) {
       queryBuilder.whereIn('occupancy', filters.occupancies);
@@ -533,6 +536,18 @@ function filteredQuery(opts: FilteredQueryOptions) {
             `(select count(*) from ${housingOwnersTable} oht where rank=1 and ${ownerTable}.id = oht.owner_id) = 1`
           );
         }
+      });
+    }
+
+    if (filters.precisions?.length) {
+      queryBuilder.whereIn(`${housingTable}.id`, (subquery) => {
+        subquery
+          .select(`${HOUSING_PRECISION_TABLE}.housing_id`)
+          .from(HOUSING_PRECISION_TABLE)
+          .whereIn(
+            `${HOUSING_PRECISION_TABLE}.precision_id`,
+            filters.precisions ?? []
+          );
       });
     }
 

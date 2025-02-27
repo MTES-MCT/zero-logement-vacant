@@ -1,53 +1,31 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import Tabs, { TabsProps } from '@codegouvfr/react-dsfr/Tabs';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Unstable_Grid2';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { skipToken } from '@reduxjs/toolkit/query';
-import { fromJS } from 'immutable';
-import fp from 'lodash/fp';
-import { FormProvider, useController, useForm } from 'react-hook-form';
-import { ElementOf } from 'ts-essentials';
-import * as yup from 'yup';
 
-import styles from './housing-edition.module.scss';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
-  isPrecisionBlockingPointCategory,
-  isPrecisionEvolutionCategory,
-  isPrecisionMechanismCategory,
   Occupancy,
-  OCCUPANCY_VALUES,
-  Precision,
-  PrecisionCategory
+  OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
+import { fromJS } from 'immutable';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { ElementOf } from 'ts-essentials';
+import * as yup from 'yup';
+import { useNotification } from '../../hooks/useNotification';
 import { Housing, HousingUpdate } from '../../models/Housing';
+import { allOccupancyOptions } from '../../models/HousingFilters';
+import { HousingStates } from '../../models/HousingState';
+import { useUpdateHousingNextMutation } from '../../services/housing.service';
+import { useCreateNoteByHousingMutation } from '../../services/note.service';
 import AppLink from '../_app/AppLink/AppLink';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import AsideNext from '../Aside/AsideNext';
 import LabelNext from '../Label/LabelNext';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import {
-  allOccupancyOptions,
-  statusOptions
-} from '../../models/HousingFilters';
-import HousingStatusSelect from './HousingStatusSelect';
-import { getSubStatusOptions, HousingStates } from '../../models/HousingState';
-import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
-import { useCreateNoteByHousingMutation } from '../../services/note.service';
-import { useUpdateHousingNextMutation } from '../../services/housing.service';
-import { useNotification } from '../../hooks/useNotification';
-import createPrecisionModalNext from '../Precision/PrecisionModalNext';
-import React, { useState } from 'react';
-import { PrecisionTabId } from '../Precision/PrecisionTabs';
-import {
-  useFindPrecisionsByHousingQuery,
-  useFindPrecisionsQuery,
-  useSaveHousingPrecisionsMutation
-} from '../../services/precision.service';
+import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
 
 interface HousingEditionSideMenuProps {
   housing: Housing | null;
@@ -57,7 +35,6 @@ interface HousingEditionSideMenuProps {
 }
 
 const WIDTH = '700px';
-const DISPLAY_TAGS = 6;
 
 const schema = yup.object({
   occupancy: yup
@@ -89,17 +66,14 @@ const schema = yup.object({
   note: yup.string()
 });
 
-type FormSchema = yup.InferType<typeof schema>;
+const occupancyOptions = allOccupancyOptions.map((option) => option.value);
 
-const precisionModal = createPrecisionModalNext();
+export type HousingEditionFormSchema = yup.InferType<typeof schema>;
 
 function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   const { housing, expand, onClose } = props;
-  const [showAllMechanisms, setShowAllMechanisms] = useState(false);
-  const [showAllBlockingPoints, setShowAllBlockingPoints] = useState(false);
-  const [showAllEvolutions, setShowAllEvolutions] = useState(false);
 
-  const form = useForm<FormSchema>({
+  const form = useForm<HousingEditionFormSchema>({
     values: {
       occupancy: props.housing?.occupancy ?? Occupancy.UNKNOWN,
       occupancyIntended: props.housing?.occupancyIntended ?? Occupancy.UNKNOWN,
@@ -137,27 +111,6 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     }
   });
 
-  const { data } = useFindPrecisionsQuery();
-  const { data: housingPrecisions } = useFindPrecisionsByHousingQuery(
-    housing?.id ? { housingId: housing.id } : skipToken
-  );
-  const precisionOptions = data ?? [];
-  const precisions = housingPrecisions ?? [];
-
-  const [saveHousingPrecisions, saveHousingPrecisionsMutation] =
-    useSaveHousingPrecisionsMutation();
-  useNotification({
-    toastId: 'housing-precisions-update',
-    isError: saveHousingPrecisionsMutation.isError,
-    isLoading: saveHousingPrecisionsMutation.isLoading,
-    isSuccess: saveHousingPrecisionsMutation.isSuccess,
-    message: {
-      error: 'Impossible de mettre à jour les précisions du logement',
-      loading: 'Mise à jour des précisions du logement...',
-      success: 'Précisions mises à jour !'
-    }
-  });
-
   function submit() {
     if (housing) {
       const { note, ...payload } = form.getValues();
@@ -189,325 +142,79 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     form.reset();
   }
 
-  interface UseFilteredPrecisionsResult {
-    totalCount: number;
-    filteredItems: Precision[];
-    remainingCount: number;
-  }
-
-  function useFilteredPrecisions(
-    categoryFilter: (category: PrecisionCategory) => boolean,
-    showAll: boolean
-  ): UseFilteredPrecisionsResult {
-    const allItems = precisions.filter((precision) =>
-      categoryFilter(precision.category)
-    );
-
-    return {
-      totalCount: allItems.length,
-      filteredItems: allItems.slice(
-        0,
-        showAll ? allItems.length : DISPLAY_TAGS
-      ),
-      remainingCount: Math.max(0, allItems.length - DISPLAY_TAGS)
-    };
-  }
-
-  function OccupationTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
-    return {
-      content: (
-        <Stack rowGap={2}>
-          <AppSelectNext
-            label="Occupation actuelle"
-            multiple={false}
-            name="occupancy"
-            options={allOccupancyOptions}
-          />
-          <AppSelectNext
-            label="Occupation prévisionnelle"
-            multiple={false}
-            name="occupancyIntended"
-            options={allOccupancyOptions}
-          />
-        </Stack>
-      ),
-      isDefault: true,
-      label: 'Occupation'
-    };
-  }
-
-  function MobilisationTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
-    const {
-      totalCount: totalMechanisms,
-      filteredItems: filteredMechanisms,
-      remainingCount: moreMechanisms
-    } = useFilteredPrecisions(isPrecisionMechanismCategory, showAllMechanisms);
-
-    const {
-      totalCount: totalBlockingPoints,
-      filteredItems: filteredBlockingPoints,
-      remainingCount: moreBlockingPoints
-    } = useFilteredPrecisions(
-      isPrecisionBlockingPointCategory,
-      showAllBlockingPoints
-    );
-
-    const {
-      totalCount: totalEvolutions,
-      filteredItems: filteredEvolutions,
-      remainingCount: moreEvolutions
-    } = useFilteredPrecisions(isPrecisionEvolutionCategory, showAllEvolutions);
-
-    interface ToggleShowAllProps {
-      setShowAll: React.Dispatch<React.SetStateAction<boolean>>;
-    }
-
-    function toggleShowAll({ setShowAll }: ToggleShowAllProps): void {
-      setShowAll((prev) => !prev);
-    }
-
-    const [tab, setTab] = useState<PrecisionTabId>('dispositifs');
-
-    const { field: statusField, fieldState: statusFieldState } =
-      useController<FormSchema>({
-        name: 'status',
-        control: form.control
-      });
-
-    // Immediately save the selected precisions
-    function savePrecisions(precisions: Precision[]) {
-      if (housing) {
-        saveHousingPrecisions({
-          housing: housing.id,
-          precisions: precisions.map((p) => p.id)
-        });
-      }
-    }
-
-    const subStatusDisabled =
-      getSubStatusOptions(statusField.value as HousingStatus) === undefined;
-
-    return {
-      content: (
-        <Grid component="section" container sx={{ rowGap: 2 }}>
-          <Grid
-            component="article"
-            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-            xs={12}
-          >
-            <Typography
-              component="h3"
-              sx={{ fontSize: '1.125rem', fontWeight: 700 }}
-            >
-              Statut de suivi
-            </Typography>
-            <HousingStatusSelect
-              selected={statusField.value as HousingStatus}
-              message={statusFieldState.error?.message}
-              messageType={statusFieldState.invalid ? 'error' : 'default'}
-              options={statusOptions()}
-              onChange={(status) => {
-                statusField.onChange(status);
-                form.setValue('subStatus', null);
-                form.clearErrors('subStatus');
-              }}
-            />
+  const OccupationTab: ElementOf<TabsProps.Uncontrolled['tabs']> = {
+    label: 'Occupation',
+    isDefault: true,
+    content: (
+      <Stack rowGap={2}>
+        <Controller<HousingEditionFormSchema, 'occupancy'>
+          name="occupancy"
+          render={({ field, fieldState }) => (
             <AppSelectNext
-              disabled={subStatusDisabled}
-              label="Sous-statut de suivi"
-              name="subStatus"
+              {...field}
+              label="Occupation actuelle"
+              invalid={fieldState.invalid}
+              error={fieldState.error?.message}
               multiple={false}
-              options={
-                getSubStatusOptions(statusField.value as HousingStatus) ?? []
-              }
+              getOptionKey={(option) => option}
+              getOptionLabel={(value) => {
+                const option = allOccupancyOptions.find(
+                  (option) => option.value === value
+                );
+                if (!option) {
+                  throw new Error(`Occupancy with value ${value} not found`);
+                }
+                return option.label;
+              }}
+              getOptionValue={(option) => option}
+              options={occupancyOptions}
             />
-          </Grid>
-
-          <Grid
-            component="article"
-            container
-            sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-            xs={12}
-          >
-            <Grid
-              sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-              xs={12}
-            >
-              <Typography
-                component="h3"
-                sx={{
-                  display: 'inline-block',
-                  fontSize: '1.125rem',
-                  fontWeight: 700
-                }}
-              >
-                Dispositifs ({totalMechanisms})
-              </Typography>
-              <Button
-                priority="secondary"
-                title="Modifier les dispositifs"
-                onClick={() => {
-                  setTab('dispositifs');
-                  precisionModal.open();
-                }}
-              >
-                Modifier
-              </Button>
-            </Grid>
-            <Grid>
-              {filteredMechanisms.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))}
-            </Grid>
-            {moreMechanisms > 0 && (
-              <Grid component="footer">
-                <Button
-                  priority="tertiary"
-                  onClick={() =>
-                    toggleShowAll({ setShowAll: setShowAllMechanisms })
-                  }
-                >
-                  {showAllMechanisms
-                    ? 'Afficher moins'
-                    : `Afficher plus (${moreMechanisms})`}
-                </Button>
-              </Grid>
-            )}
-          </Grid>
-
-          <Grid
-            component="article"
-            container
-            sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-            xs={12}
-          >
-            <Grid
-              sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-              xs={12}
-            >
-              <Typography
-                component="h3"
-                sx={{
-                  display: 'inline-block',
-                  fontSize: '1.125rem',
-                  fontWeight: 700
-                }}
-              >
-                Points de blocages ({totalBlockingPoints})
-              </Typography>
-              <Button
-                priority="secondary"
-                title="Modifier les points de blocage"
-                onClick={() => {
-                  setTab('points-de-blocage');
-                  precisionModal.open();
-                }}
-              >
-                Modifier
-              </Button>
-            </Grid>
-            <Grid>
-              {filteredBlockingPoints.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {precision.label}
-                </Tag>
-              ))}
-            </Grid>
-            {moreBlockingPoints > 0 && (
-              <Grid component="footer">
-                <Button
-                  priority="tertiary"
-                  onClick={() =>
-                    toggleShowAll({ setShowAll: setShowAllBlockingPoints })
-                  }
-                >
-                  {showAllBlockingPoints
-                    ? 'Afficher moins'
-                    : `Afficher plus (${moreBlockingPoints})`}
-                </Button>
-              </Grid>
-            )}
-          </Grid>
-
-          <Grid
-            component="article"
-            container
-            sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-            xs={12}
-          >
-            <Grid
-              sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-              xs={12}
-            >
-              <Typography
-                component="h3"
-                sx={{ fontSize: '1.125rem', fontWeight: 700 }}
-              >
-                Évolutions du logement ({totalEvolutions})
-              </Typography>
-              <Button
-                priority="secondary"
-                title="Modifier les évolutions du logement"
-                onClick={() => {
-                  setTab('evolutions');
-                  precisionModal.open();
-                }}
-              >
-                Modifier
-              </Button>
-            </Grid>
-            <Grid>
-              {filteredEvolutions.map((precision) => (
-                <Tag key={precision.id} className={styles.tag}>
-                  {fp.startCase(precision.category.replace('-', ' '))} :&nbsp;
-                  {precision.label.toLowerCase()}
-                </Tag>
-              ))}
-            </Grid>
-            {moreEvolutions > 0 && (
-              <Grid component="footer">
-                <Button
-                  priority="tertiary"
-                  onClick={() =>
-                    toggleShowAll({ setShowAll: setShowAllEvolutions })
-                  }
-                >
-                  {showAllEvolutions
-                    ? 'Afficher moins'
-                    : `Afficher plus (${moreEvolutions})`}
-                </Button>
-              </Grid>
-            )}
-          </Grid>
-
-          <precisionModal.Component
-            tab={tab}
-            options={precisionOptions}
-            value={precisions}
-            onSubmit={savePrecisions}
-            onTabChange={setTab}
-          />
-        </Grid>
-      ),
-      label: 'Mobilisation'
-    };
-  }
-
-  function NoteTab(): ElementOf<TabsProps.Uncontrolled['tabs']> {
-    return {
-      content: (
-        <AppTextInputNext
-          label="Nouvelle note"
-          name="note"
-          nativeTextAreaProps={{ rows: 8 }}
-          textArea
+          )}
         />
-      ),
-      label: 'Note'
-    };
-  }
+        <Controller<HousingEditionFormSchema, 'occupancyIntended'>
+          name="occupancyIntended"
+          render={({ field, fieldState }) => (
+            <AppSelectNext
+              {...field}
+              label="Occupation prévisionnelle"
+              invalid={fieldState.invalid}
+              error={fieldState.error?.message}
+              multiple={false}
+              getOptionKey={(option) => option}
+              getOptionLabel={(value) => {
+                const option = allOccupancyOptions.find(
+                  (option) => option.value === value
+                );
+                if (!option) {
+                  throw new Error(`Occupancy with value ${value} not found`);
+                }
+                return option.label;
+              }}
+              getOptionValue={(option) => option}
+              options={occupancyOptions}
+            />
+          )}
+        />
+      </Stack>
+    )
+  };
+
+  const MobilizationTab: ElementOf<TabsProps.Uncontrolled['tabs']> = {
+    label: 'Mobilisation',
+    content: <HousingEditionMobilizationTab housingId={housing?.id ?? null} />
+  };
+
+  const NoteTab: ElementOf<TabsProps.Uncontrolled['tabs']> = {
+    label: 'Note',
+    content: (
+      <AppTextInputNext
+        label="Nouvelle note"
+        name="note"
+        nativeTextAreaProps={{ rows: 8 }}
+        textArea
+      />
+    )
+  };
 
   return (
     <AsideNext
@@ -541,7 +248,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       }
       main={
         <FormProvider {...form}>
-          <Tabs tabs={[OccupationTab(), MobilisationTab(), NoteTab()]} />
+          <Tabs tabs={[OccupationTab, MobilizationTab, NoteTab]} />
         </FormProvider>
       }
       open={expand}

@@ -1,64 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
-import { differenceInYears } from 'date-fns';
-import fp from 'lodash/fp';
-
-import { genGeoCode } from '@zerologementvacant/models/fixtures';
-import { isDefined, Predicate } from '@zerologementvacant/utils';
-import housingRepository, {
-  formatHousingRecordApi,
-  Housing,
-  ReferenceDataYear
-} from '../housingRepository';
-import {
-  genAddressApi,
-  genBuildingApi,
-  genCampaignApi,
-  genEstablishmentApi,
-  genGeoPerimeterApi,
-  genGroupApi,
-  genHousingApi,
-  genLocalityApi,
-  genOwnerApi,
-  genUserApi,
-  manyOf,
-  oneOf
-} from '~/test/testFixtures';
-import {
-  formatGroupApi,
-  formatGroupHousingApi,
-  Groups,
-  GroupsHousing
-} from '../groupRepository';
-import { formatOwnerApi, Owners } from '../ownerRepository';
-import {
-  formatHousingOwnerApi,
-  formatHousingOwnersApi,
-  HousingOwnerDBO,
-  HousingOwners
-} from '../housingOwnerRepository';
-import { EnergyConsumptionGradesApi, HousingApi } from '~/models/HousingApi';
-import { formatLocalityApi, Localities } from '../localityRepository';
-import { LocalityApi } from '~/models/LocalityApi';
-import { BuildingApi } from '~/models/BuildingApi';
-import {
-  Buildings,
-  formatBuildingApi,
-  parseBuildingApi
-} from '../buildingRepository';
-import async from 'async';
-import { OwnerApi } from '~/models/OwnerApi';
-import {
-  CampaignsHousing,
-  formatCampaignHousingApi
-} from '../campaignHousingRepository';
-import { Campaigns, formatCampaignApi } from '../campaignRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../establishmentRepository';
-import { formatUserApi, Users } from '../userRepository';
-import { AddressApi } from '~/models/AddressApi';
 import {
   AddressKinds,
   BENEFIARY_COUNT_VALUES,
@@ -74,24 +15,83 @@ import {
   Precision,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
+
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
+import { isDefined, Predicate } from '@zerologementvacant/utils';
+import async from 'async';
+import { differenceInYears } from 'date-fns';
+import fp from 'lodash/fp';
+import { AddressApi } from '~/models/AddressApi';
+import { BuildingApi } from '~/models/BuildingApi';
+import { CampaignApi } from '~/models/CampaignApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
+import { EnergyConsumptionGradesApi, HousingApi } from '~/models/HousingApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
+import { LocalityApi } from '~/models/LocalityApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import {
   Addresses,
   formatAddressApi
 } from '~/repositories/banAddressesRepository';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import {
   formatGeoPerimeterApi,
   GeoPerimeters
 } from '~/repositories/geoRepository';
-import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
-import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
-import { CampaignApi } from '~/models/CampaignApi';
-import { EstablishmentApi } from '~/models/EstablishmentApi';
 import {
   HousingPrecisionDBO,
   HousingPrecisions,
   Precisions
 } from '~/repositories/precisionRepository';
+import {
+  genAddressApi,
+  genBuildingApi,
+  genCampaignApi,
+  genEstablishmentApi,
+  genGeoPerimeterApi,
+  genGroupApi,
+  genHousingApi,
+  genLocalityApi,
+  genOwnerApi,
+  genUserApi,
+  manyOf,
+  oneOf
+} from '~/test/testFixtures';
+import {
+  Buildings,
+  formatBuildingApi,
+  parseBuildingApi
+} from '../buildingRepository';
+import {
+  CampaignsHousing,
+  formatCampaignHousingApi
+} from '../campaignHousingRepository';
+import { Campaigns, formatCampaignApi } from '../campaignRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '../establishmentRepository';
+import {
+  formatGroupApi,
+  formatGroupHousingApi,
+  Groups,
+  GroupsHousing
+} from '../groupRepository';
+import {
+  formatHousingOwnerApi,
+  formatHousingOwnersApi,
+  HousingOwnerDBO,
+  HousingOwners
+} from '../housingOwnerRepository';
+import housingRepository, {
+  formatHousingRecordApi,
+  Housing,
+  ReferenceDataYear
+} from '../housingRepository';
+import { formatLocalityApi, Localities } from '../localityRepository';
+import { formatOwnerApi, Owners } from '../ownerRepository';
+import { formatUserApi, Users } from '../userRepository';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
@@ -176,7 +176,8 @@ describe('Housing repository', () => {
           return housings.map((housing) => ({
             housing_geo_code: housing.geoCode,
             housing_id: housing.id,
-            precision_id: precision.id
+            precision_id: precision.id,
+            created_at: new Date()
           }));
         }
       );
@@ -214,6 +215,32 @@ describe('Housing repository', () => {
         expect(actual).toSatisfyAll<HousingApi>((actualHousing) => {
           return houses.map((housing) => housing.id).includes(actualHousing.id);
         });
+      });
+
+      it('should exclude housing ids', async () => {
+        const housings: HousingApi[] = Array.from({ length: 4 }, () =>
+          genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+        );
+        const includedHousings = housings.slice(0, 1);
+        const excludedHousings = housings.slice(1);
+        await Housing().insert(housings.map(formatHousingRecordApi));
+
+        const actual = await housingRepository.find({
+          filters: {
+            all: true,
+            housingIds: excludedHousings.map((housing) => housing.id)
+          }
+        });
+
+        const actualIds = actual.map((actual) => actual.id);
+        const includedHousingIds = includedHousings.map(
+          (housing) => housing.id
+        );
+        const excludedHousingIds = excludedHousings.map(
+          (housing) => housing.id
+        );
+        expect(actualIds).toIncludeAllMembers(includedHousingIds);
+        expect(actualIds).not.toIncludeAnyMembers(excludedHousingIds);
       });
 
       describe('by intercommunality', () => {

@@ -24,9 +24,9 @@ import dagster
 from .project import dbt_project
 from .assets import production_dbt
 
-from .assets.populate_owners_ban_addresses import owners_without_address, split_parquet_owners_without_address, process_parquet_chunks_with_api, parse_api_response_and_insert_owners_addresses
-from .assets.populate_edited_owners_ban_addresses import owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses
-from .assets.populate_housings_ban_addresses import housings_without_address, split_parquet_housings_without_address, process_parquet_housings_chunks_with_api, parse_api_response_and_insert_housing_addresses
+from .assets.populate_owners_ban_addresses import process_and_insert_owners
+from .assets.populate_edited_owners_ban_addresses import process_and_update_edited_owners
+from .assets.populate_housings_ban_addresses import housings_without_address_csv, process_housings_with_api
 from .resources.ban_config import ban_config_resource
 from .resources.database_resources import psycopg2_connection_resource
 
@@ -40,8 +40,6 @@ from .assets.dwh.ingest.ingest_lovac_ff_s3_asset import setup_s3_connection
 from .assets.dwh.upload.upload_ff_db_to_cellar import upload_ff_to_s3
 
 clever_assets_assets = load_assets_from_modules(modules=[clever])
-
-warnings.filterwarnings("ignore", category=dagster.ExperimentalWarning)
 
 dbt_analytics_assets = load_assets_from_modules(
     modules=[production_dbt]
@@ -93,30 +91,22 @@ yearly_ff_refresh_schedule = ScheduleDefinition(
 owners_asset_job = define_asset_job(
     name="populate_owners_addresses",
     selection=AssetSelection.assets(
-        "owners_without_address",
-        "split_parquet_owners_without_address",
-        "process_parquet_chunks_with_api",
-        "parse_api_response_and_insert_owners_addresses",
+        "process_and_insert_owners",
     ),
 )
 
 edited_owners_asset_job = define_asset_job(
     name="populate_edited_owners_addresses",
     selection=AssetSelection.assets(
-        "owners_with_edited_address",
-        "split_parquet_owners_without_address",
-        "process_parquet_chunks_with_api",
-        "parse_api_response_and_insert_owners_addresses",
+        "process_and_update_edited_owners",
     ),
 )
 
 housings_asset_job = define_asset_job(
     name="populate_housings_addresses",
     selection=AssetSelection.assets(
-        "housings_without_address",
-        "split_parquet_housings_without_address",
-        "process_parquet_housings_chunks_with_api",
-        "parse_api_response_and_insert_housing_addresses",
+        "housings_without_address_csv",
+        "process_housings_with_api",
     ),
 )
 
@@ -126,9 +116,9 @@ defs = Definitions(
         # dagster_production_assets,
         # dagster_notion_assets,
         # dagster_notion_assets,
-        owners_without_address, split_parquet_owners_without_address, process_parquet_chunks_with_api, parse_api_response_and_insert_owners_addresses,
-        owners_with_edited_address, create_csv_chunks_from_edited_owners, send_csv_chunks_to_api, parse_api_response_and_insert_edited_owners_addresses,
-        housings_without_address, split_parquet_housings_without_address, process_parquet_housings_chunks_with_api, parse_api_response_and_insert_housing_addresses,
+        process_and_insert_owners,
+        process_and_update_edited_owners,
+        housings_without_address_csv, process_housings_with_api,
         *dwh_assets,
         *dbt_analytics_assets,
         *clever_assets_assets

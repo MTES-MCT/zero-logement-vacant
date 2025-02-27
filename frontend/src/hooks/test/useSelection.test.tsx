@@ -1,11 +1,26 @@
 import { act, renderHook } from '@testing-library/react';
+import { PropsWithChildren } from 'react';
+import { Provider as StoreProvider } from 'react-redux';
+
 import { useSelection } from '../useSelection';
 import { genNumber } from '../../../test/fixtures.test';
+import configureTestStore from '../../utils/test/storeUtils';
 
 describe('useSelection', () => {
   const itemCount = Number(genNumber(3));
+
+  function createWrapper() {
+    const store = configureTestStore();
+    // eslint-disable-next-line react/display-name
+    return ({ children }: PropsWithChildren) => (
+      <StoreProvider store={store}>{children}</StoreProvider>
+    );
+  }
+
   it('should have a default state', () => {
-    const { result } = renderHook(() => useSelection(itemCount));
+    const { result } = renderHook(() => useSelection(itemCount), {
+      wrapper: createWrapper()
+    });
 
     expect(result.current.selected.ids).toHaveLength(0);
     expect(result.current.selected.all).toBe(false);
@@ -13,7 +28,9 @@ describe('useSelection', () => {
   });
 
   it('should select and unselect one item', () => {
-    const { result } = renderHook(() => useSelection(genNumber(3)));
+    const { result } = renderHook(() => useSelection(genNumber(3)), {
+      wrapper: createWrapper()
+    });
 
     act(() => {
       result.current.toggleSelect('123');
@@ -21,7 +38,7 @@ describe('useSelection', () => {
 
     expect(result.current.selected).toStrictEqual({
       all: false,
-      ids: ['123'],
+      ids: ['123']
     });
     expect(result.current.isSelected('123')).toBe(true);
     expect(result.current.hasSelected).toBe(true);
@@ -33,7 +50,7 @@ describe('useSelection', () => {
 
     expect(result.current.selected).toStrictEqual({
       all: false,
-      ids: [],
+      ids: []
     });
     expect(result.current.isSelected('123')).toBe(false);
     expect(result.current.hasSelected).toBe(false);
@@ -41,7 +58,9 @@ describe('useSelection', () => {
   });
 
   it('should select and unselect all items', () => {
-    const { result } = renderHook(() => useSelection(itemCount));
+    const { result } = renderHook(() => useSelection(itemCount), {
+      wrapper: createWrapper()
+    });
 
     act(() => {
       result.current.toggleSelectAll();
@@ -49,7 +68,7 @@ describe('useSelection', () => {
 
     expect(result.current.selected).toStrictEqual({
       all: true,
-      ids: [],
+      ids: []
     });
     expect(result.current.hasSelected).toBe(true);
     expect(result.current.selectedCount).toEqual(itemCount);
@@ -60,14 +79,16 @@ describe('useSelection', () => {
 
     expect(result.current.selected).toStrictEqual({
       all: false,
-      ids: [],
+      ids: []
     });
     expect(result.current.hasSelected).toBe(false);
     expect(result.current.selectedCount).toBe(0);
   });
 
   it('should unselect all items only if all items are selected', () => {
-    const { result } = renderHook(() => useSelection(itemCount));
+    const { result } = renderHook(() => useSelection(itemCount), {
+      wrapper: createWrapper()
+    });
 
     act(() => {
       result.current.toggleSelect('123');
@@ -76,7 +97,7 @@ describe('useSelection', () => {
 
     expect(result.current.selected).toStrictEqual({
       all: true,
-      ids: [],
+      ids: []
     });
     expect(result.current.hasSelected).toBe(true);
     expect(result.current.selectedCount).toBe(itemCount);
@@ -87,23 +108,27 @@ describe('useSelection', () => {
 
     expect(result.current.selected).toStrictEqual({
       all: false,
-      ids: [],
+      ids: []
     });
     expect(result.current.hasSelected).toBe(false);
     expect(result.current.selectedCount).toBe(0);
   });
 
   it('should select all items and unselect one item', () => {
-    const { result } = renderHook(() => useSelection(itemCount));
+    const { result } = renderHook(() => useSelection(itemCount), {
+      wrapper: createWrapper()
+    });
 
     act(() => {
       result.current.toggleSelectAll();
+    });
+    act(() => {
       result.current.toggleSelect('123');
     });
 
     expect(result.current.selected).toStrictEqual({
       all: true,
-      ids: ['123'],
+      ids: ['123']
     });
     expect(result.current.isSelected('123')).toBe(false);
     expect(result.current.hasSelected).toBe(true);

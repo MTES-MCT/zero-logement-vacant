@@ -96,8 +96,8 @@ function CampaignRecipients(props: Props) {
     <>
       {housing.owner.banAddress
         ? formatAddress(housing.owner.banAddress)
-        : null}
-      {!isBanEligible(housing.owner.banAddress) && (
+        : 'Non renseigné'}
+      {housing.owner.banAddress && !isBanEligible(housing.owner.banAddress) && (
         <Badge severity="info" small>
           Adresse améliorable
         </Badge>

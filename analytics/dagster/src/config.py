@@ -55,6 +55,13 @@ public_tables = [
     "marts_public_establishments_hierarchy",
 ]
 
+admin_tables = [
+    "marts_admin_epci",
+    "marts_admin_communes",
+    "marts_admin_departements",
+    "marts_admin_regions",
+]
+
 analysis_tables = ["marts_analysis_exit_flow_ff23_lovac"]
 
 common_tables = ["marts_common_cities", "marts_common_morphology"]
@@ -84,6 +91,10 @@ translation_mapping = {
     "marts_production_join_owner_housing": "join_owner_housing",
     "marts_production_join_establishment_housing": "join_establishment_housing",
     "marts_common_cities": "cities_zonage_2024",
+    "marts_admin_epci": "admin_epci",
+    "marts_admin_communes": "admin_communes",
+    "marts_admin_departements": "admin_departements",
+    "marts_admin_regions": "admin_regions",
     # "marts_common_morphology": "infra_municipalities_morphology",
     # "marts_production_campaigns": "prod_campaigns",
     # "marts_production_establishments": "prod_establishments",
@@ -96,7 +107,7 @@ translation_mapping = {
     # "marts_stats_monthly_global": "stats_activity_monthly",
 }
 
-RESULT_TABLES = production_tables + join_tables + common_tables + public_tables
+RESULT_TABLES = production_tables + join_tables + common_tables + public_tables + admin_tables
 
 
 def translate_table_name(table_name):

@@ -21,6 +21,7 @@ import { housingFilters } from '../housing-filters';
 
 describe('Housing filters', () => {
   test.prop<HousingFiltersDTO>({
+    all: fc.boolean(),
     housingIds: fc.array(fc.uuid()),
     occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
     energyConsumption: fc.array(fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)),
@@ -53,7 +54,8 @@ describe('Housing filters', () => {
     status: fc.constantFrom(...HOUSING_STATUS_VALUES),
     statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
     subStatus: fc.array(fc.string({ minLength: 1 })),
-    query: fc.string()
+    query: fc.string(),
+    precisions: fc.array(fc.string({ minLength: 1 }))
   })('should validate inputs', (filters) => {
     const actual = housingFilters.validateSync(filters);
 

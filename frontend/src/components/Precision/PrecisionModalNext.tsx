@@ -6,6 +6,7 @@ import {
   createConfirmationModal
 } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import PrecisionTabs from './PrecisionTabs';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 
 export type PrecisionModalProps = Omit<
   ConfirmationModalProps,
@@ -18,22 +19,29 @@ export type PrecisionModalProps = Omit<
   };
 
 function createPrecisionModalNext() {
-  const confirmationModal = createConfirmationModal({
+  const precisionModalOptions = {
     id: 'precision-modal',
     isOpenedByDefault: false
-  });
+  };
+  const confirmationModal = createConfirmationModal(precisionModalOptions);
 
   return {
     ...confirmationModal,
     Component(props: PrecisionModalProps) {
       const { tab, options, value, onSubmit, onTabChange, ...rest } = props;
-      const [internalValue, setInternalValue] = useState<Precision[]>(value);
+      const [internalValue, setInternalValue] = useState<Precision[]>([]);
+
+      useIsModalOpen(precisionModalOptions, {
+        onDisclose() {
+          setInternalValue(value);
+        }
+      });
 
       return (
         <confirmationModal.Component
           {...rest}
           title="Précisez la situation du logement"
-          size="extra-large"
+          size="extra-extra-large"
           onSubmit={() => {
             onSubmit(internalValue);
           }}

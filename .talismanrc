@@ -1,18 +1,18 @@
 fileignoreconfig:
-- filename: .github/workflows/review-app.yml
-  checksum: f7719ba0d36160d97e80ee15cb5415b601354576929e36df0596c7d192465cfb
-- filename: README.md
-  checksum: df312ccb4c75fc4c2441a1f7f2c7817ee98ffb3065c78d5d7d6addf6ab129176
-- filename: analytics/.env.example
-  checksum: 917ebeff9022b2a0a1a916ceab18ce47a7fe04ebdbcdeadb62f49167b15b2bde
+- filename: frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx
+  checksum: a28fb2302d2d59d11ca517bc6d01ea8ab7b0c68a86bf1db14abc0735a90e8e8e
+- filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
+  checksum: 807543f1702293bc91e3d6c0646f74d1686b824cbbf87ae6bf007e3aa9b8d74a
+- filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
+  checksum: 98cbd0849c6325704a4105e764c79b622c228bbbcd010fb0a554948ab1832fa4
 - filename: analytics/dagster/src/assets/dwh/ingest/ingest_postgres_asset.py
   checksum: b379fbb88e46511c62682abf4cb422e730c4210f6dadc9d5ca648dfd68ff8f88
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
   checksum: c3a27f2457d2c1cd5f01ef1940c78bc40f8dedb0aff7a5edbc0d1b1e5000f5d3
 - filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py
-  checksum: b8bbe86ad9b5660f545bc3f10d1e6df590e28389d9197e51543ba36d468c3f78
+  checksum: d720c5bcf0d67c24b2aa74d821061ecbbec3a4b234a12cc7a465e5bb147aac37
 - filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
-  checksum: 44ff3bd94c3f4abdd1a9b190eb107e6d2613b6597e9591905344e427412df389
+  checksum: 54f8ccc9115fd975ec41d6d43d3bc0f4deef78862ab9d10b077be993e128d1ca
 - filename: analytics/dagster/src/resources/ban_config.py
   checksum: 034c6924978983da0ca5897bb06b64598a5a813dc93d1d9e8f8a62da952d4d22
 - filename: analytics/dagster/src/resources/database_resources.py
@@ -23,6 +23,8 @@ fileignoreconfig:
   checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: frontend/src/components/Draft/DraftSignature.tsx
   checksum: 8abd2b819601d46cc6a3d0a61a60b76391601f2d89d9126f5167b684878bd2d1
+- filename: frontend/src/components/Precision/PrecisionSelect.tsx
+  checksum: 87f64313946005d36c5d112df8c63ef628138b591bd24dfceec0b8bbc7110899
 - filename: frontend/src/index.tsx
   checksum: 25a58ba4ecfb8606daf5efbae6a1f0f2efe4e87a4a8a18e745712b39198d93a5
 - filename: frontend/src/utils/config.ts

@@ -1,3 +1,19 @@
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import {
+  isPrecisionBlockingPointCategory,
+  isPrecisionEvolutionCategory,
+  isPrecisionMechanismCategory,
+  Precision
+} from '@zerologementvacant/models';
+import fp from 'lodash/fp';
+import { match, Pattern } from 'ts-pattern';
+
+import { useCampaignList } from '../../hooks/useCampaignList';
+import { useIntercommunalities } from '../../hooks/useIntercommunalities';
+import { useLocalityList } from '../../hooks/useLocalityList';
+import { useAppSelector } from '../../hooks/useStore';
+import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   allOccupancyOptions,
   beneficiaryCountOptions,
@@ -6,6 +22,8 @@ import {
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
   energyConsumptionOptions,
+  getCampaignOptions,
+  getIntercommunalityOptions,
   housingAreaOptions,
   housingCountOptions,
   HousingFilters,
@@ -22,19 +40,16 @@ import {
   vacancyRateOptions,
   vacancyYearOptions
 } from '../../models/HousingFilters';
-import { useCampaignList } from '../../hooks/useCampaignList';
-import FilterBadges from '../FiltersBadges/FiltersBadges';
-import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   getSubStatusList,
   getSubStatusListOptions
 } from '../../models/HousingState';
-import { useLocalityList } from '../../hooks/useLocalityList';
-import { useAppSelector } from '../../hooks/useStore';
+
+import { citiesWithDistricts } from '../../models/Locality';
+import { getPrecision } from '../../models/Precision';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import fp from 'lodash/fp';
-import { useIntercommunalities } from '../../hooks/useIntercommunalities';
-import { SelectOption } from '../../models/SelectOption';
+import { useFindPrecisionsQuery } from '../../services/precision.service';
+import FilterBadges from '../FiltersBadges/FiltersBadges';
 
 interface HousingFiltersBadgesProps {
   filters: HousingFilters;
@@ -50,12 +65,27 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   const campaigns = useCampaignList();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { data: intercommunalities } = useIntercommunalities();
-  const intercommunalityOptions =
-    intercommunalities?.map<SelectOption>((intercommunality) => ({
-      value: intercommunality.id,
-      label: intercommunality.name
-    })) ?? [];
+  const intercommunalityOptions = intercommunalities?.length
+    ? getIntercommunalityOptions(intercommunalities)
+    : [];
+
+  function mergeDistricts(localities: string[]): string[] {
+    const setGeoCodes = new Set(localities);
+    for (const [city, districts] of Object.entries(citiesWithDistricts)) {
+      if (districts.every(d => setGeoCodes.has(d))) {
+        districts.forEach(d => {
+            setGeoCodes.delete(d);
+          });
+          setGeoCodes.add(city);
+      }
+    }
+    return Array.from(setGeoCodes);
+  }
+
   const { localitiesOptions } = useLocalityList(establishment?.id);
+
+  const { data: precisions } = useFindPrecisionsQuery();
+  const precisionOptions = precisions ?? [];
 
   const hasFilters = fp.keys(fp.omit(['groupIds'], filters)).length > 0;
 
@@ -64,7 +94,13 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   }
 
   return (
-    <div className="fr-tags-group">
+    <Box
+      className="fr-tags-group"
+      sx={{ alignItems: 'baseline', margin: '0 !important' }}
+    >
+      <Typography sx={{ fontWeight: 700, mr: 1 }}>
+        Filtre(s) sélectionné(s) :
+      </Typography>
       <FilterBadges
         options={allOccupancyOptions}
         values={filters.occupancies}
@@ -172,7 +208,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       <FilterBadges
         options={localitiesOptions}
-        values={filters.localities}
+        values={mergeDistricts(filters.localities ?? [])}
         small={small}
         onChange={(values) => onChange?.({ localities: values })}
       />
@@ -184,7 +220,10 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       {geoPerimeters && (
         <FilterBadges
-          options={geoPerimeterOptions(geoPerimeters)}
+          options={geoPerimeterOptions(geoPerimeters).map((option) => ({
+            ...option,
+            badgeLabel: `Périmètre inclus : ${option.label}`
+          }))}
           values={filters.geoPerimetersIncluded}
           small={small}
           onChange={(values) => onChange?.({ geoPerimetersIncluded: values })}
@@ -194,7 +233,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         <FilterBadges
           options={geoPerimeterOptions(geoPerimeters).map((option) => ({
             ...option,
-            badgeLabel: `${option.label} exclu`
+            badgeLabel: `Périmètre exclus : ${option.label}`
           }))}
           values={filters.geoPerimetersExcluded}
           small={small}
@@ -222,12 +261,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       {campaigns && filters.campaignIds && (
         <FilterBadges
-          options={campaigns
-            .map((campaign) => ({
-              value: campaign.id,
-              label: campaign.title
-            }))
-            .concat(noCampaignOption)}
+          options={getCampaignOptions(campaigns)}
           values={filters.campaignIds.map((id) =>
             id === null ? noCampaignOption.value : id
           )}
@@ -265,8 +299,112 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         small={small}
         onChange={() => onChange?.({ query: '' })}
       />
-    </div>
+      <FilterBadges
+        options={precisionOptions.map((precision) => ({
+          value: precision.id,
+          label: precision.label,
+          badgeLabel: `Dispositif : ${precision.label}`
+        }))}
+        values={
+          filters.precisions
+            ? filters.precisions
+                .map(getPrecision(precisionOptions))
+                .filter((precision) =>
+                  isPrecisionMechanismCategory(precision.category)
+                )
+                .map((precision) => precision.id)
+            : []
+        }
+        small={small}
+        onChange={(values) => {
+          const otherPrecisions = filters.precisions
+            ?.map(getPrecision(precisionOptions))
+            ?.filter(
+              (precision) => !isPrecisionMechanismCategory(precision.category)
+            );
+          onChange?.({
+            precisions: values
+              .map(getPrecision(precisionOptions))
+              .concat(otherPrecisions ?? [])
+              .map((precision) => precision.id)
+          });
+        }}
+      />
+      <FilterBadges
+        options={precisionOptions.map((precision) => ({
+          value: precision.id,
+          label: precision.label,
+          badgeLabel: `Point de blocage : ${precision.label}`
+        }))}
+        values={
+          filters.precisions
+            ? filters.precisions
+                .map(getPrecision(precisionOptions))
+                .filter((precision) =>
+                  isPrecisionBlockingPointCategory(precision.category)
+                )
+                .map((precision) => precision.id)
+            : []
+        }
+        small={small}
+        onChange={(values) => {
+          const otherPrecisions = filters.precisions
+            ?.map(getPrecision(precisionOptions))
+            ?.filter(
+              (precision) =>
+                !isPrecisionBlockingPointCategory(precision.category)
+            );
+          onChange?.({
+            precisions: values
+              .map(getPrecision(precisionOptions))
+              .concat(otherPrecisions ?? [])
+              .map((precision) => precision.id)
+          });
+        }}
+      />
+      <FilterBadges
+        options={precisionOptions.map((precision) => ({
+          value: precision.id,
+          label: precision.label,
+          badgeLabel: `Évolution : ${mapPrecisionLabel(precision)}`
+        }))}
+        values={
+          filters.precisions
+            ? filters.precisions
+                .map(getPrecision(precisionOptions))
+                .filter((precision) =>
+                  isPrecisionEvolutionCategory(precision.category)
+                )
+                .map((precision) => precision.id)
+            : []
+        }
+        small={small}
+        onChange={(values) => {
+          const otherPrecisions = filters.precisions
+            ?.map(getPrecision(precisionOptions))
+            ?.filter(
+              (precision) => !isPrecisionEvolutionCategory(precision.category)
+            );
+          onChange?.({
+            precisions: values
+              .map(getPrecision(precisionOptions))
+              .concat(otherPrecisions ?? [])
+              .map((precision) => precision.id)
+          });
+        }}
+      />
+    </Box>
   );
+}
+
+function mapPrecisionLabel(precision: Precision): string {
+  return match(precision)
+    .returnType<string>()
+    .with(
+      { label: Pattern.union('À venir', 'En cours', 'Effectuée', 'Terminés') },
+      (precision) => `${precision.category} ${precision.label.toLowerCase()}`
+    )
+    .otherwise((precision) => precision.label.toLowerCase());
 }
 
 export default HousingFiltersBadges;

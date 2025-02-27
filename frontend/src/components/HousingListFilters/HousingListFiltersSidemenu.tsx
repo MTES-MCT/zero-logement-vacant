@@ -61,6 +61,7 @@ import GroupHeader from '../GroupHeader/GroupHeader';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
+import { citiesWithDistricts } from '../../models/Locality';
 import CampaignFilter from './CampaignFilter';
 import styles from './housing-list-filters.module.scss';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
@@ -433,8 +434,10 @@ function HousingListFiltersSidemenu(props: Props) {
               placeholder="Rechercher une commune"
               onChange={(value: string) => {
                 if (value) {
+                  let cities = concat(filters.localities, value);
+                  cities = (cities ?? [] as Array<keyof typeof citiesWithDistricts>).flatMap(code => citiesWithDistricts[code as keyof typeof citiesWithDistricts] ?? [code]);
                   onChangeFilters(
-                    { localities: concat(filters.localities, value) },
+                    { localities: cities },
                     'Commune'
                   );
                   posthog.capture('filtre-commune');

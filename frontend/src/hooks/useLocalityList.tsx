@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { Locality } from '../models/Locality';
+import {  Locality } from '../models/Locality';
 import { useListLocalitiesQuery } from '../services/locality.service';
+
 
 export const useLocalityList = (establishmentId?: string) => {
   const { data: localities } = useListLocalitiesQuery(establishmentId!, {

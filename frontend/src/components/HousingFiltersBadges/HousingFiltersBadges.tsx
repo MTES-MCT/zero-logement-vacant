@@ -44,6 +44,8 @@ import {
   getSubStatusList,
   getSubStatusListOptions
 } from '../../models/HousingState';
+
+import { citiesWithDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
@@ -66,6 +68,20 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   const intercommunalityOptions = intercommunalities?.length
     ? getIntercommunalityOptions(intercommunalities)
     : [];
+
+  function mergeDistricts(localities: string[]): string[] {
+    const setGeoCodes = new Set(localities);
+    for (const [city, districts] of Object.entries(citiesWithDistricts)) {
+      if (districts.every(d => setGeoCodes.has(d))) {
+        districts.forEach(d => {
+            setGeoCodes.delete(d);
+          });
+          setGeoCodes.add(city);
+      }
+    }
+    return Array.from(setGeoCodes);
+  }
+
   const { localitiesOptions } = useLocalityList(establishment?.id);
 
   const { data: precisions } = useFindPrecisionsQuery();
@@ -192,7 +208,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
       />
       <FilterBadges
         options={localitiesOptions}
-        values={filters.localities}
+        values={mergeDistricts(filters.localities ?? [])}
         small={small}
         onChange={(values) => onChange?.({ localities: values })}
       />

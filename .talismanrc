@@ -1,4 +1,6 @@
 fileignoreconfig:
+- filename: frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx
+  checksum: a28fb2302d2d59d11ca517bc6d01ea8ab7b0c68a86bf1db14abc0735a90e8e8e
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
   checksum: 807543f1702293bc91e3d6c0646f74d1686b824cbbf87ae6bf007e3aa9b8d74a
 - filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py

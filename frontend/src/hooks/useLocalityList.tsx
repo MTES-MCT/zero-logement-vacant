@@ -5,7 +5,7 @@ import { useListLocalitiesQuery } from '../services/locality.service';
 
 export const useLocalityList = (establishmentId?: string) => {
   const { data: localities } = useListLocalitiesQuery(establishmentId!, {
-    skip: !establishmentId,
+    skip: !establishmentId
   });
 
   const localitiesOptions = useMemo(
@@ -13,6 +13,7 @@ export const useLocalityList = (establishmentId?: string) => {
       (localities ?? []).map((l) => ({
         value: l.geoCode,
         label: l.name,
+        badgeLabel: `Commune : ${l.name}`
       })),
     [localities]
   );
@@ -29,6 +30,6 @@ export const useLocalityList = (establishmentId?: string) => {
     localities,
     localitiesOptions,
     localitiesGeoCodes,
-    filterCount,
+    filterCount
   };
 };

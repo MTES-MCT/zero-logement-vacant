@@ -109,8 +109,25 @@ export const formatAddressApi = (address: AddressApi): AddressDBO => ({
     : undefined
 });
 
+export const remove = async (
+  refId: string,
+  addressKind: AddressKinds
+) => {
+  logger.debug('Get ban adresse with ref id', {
+    ref: refId,
+    addressKind
+  });
+  await db(banAddressesTable)
+    .where('ref_id', refId)
+    .andWhere('address_kind', addressKind)
+    .delete();
+
+    logger.debug(`Deleted ${addressKind} refId=${refId} address.`);
+};
+
 export default {
   save,
   saveMany,
   getByRefId,
+  remove,
 };

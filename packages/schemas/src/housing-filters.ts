@@ -1,5 +1,3 @@
-import { array, boolean, number, object, ObjectSchema, string } from 'yup';
-
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
@@ -17,6 +15,7 @@ import {
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES
 } from '@zerologementvacant/models';
+import { array, boolean, number, object, ObjectSchema, string } from 'yup';
 import { commaSeparatedString, parseNull } from './transforms';
 
 export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
@@ -110,5 +109,6 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .transform(commaSeparatedString)
     .of(number().oneOf(HOUSING_STATUS_VALUES).required()),
   subStatus: array().transform(commaSeparatedString).of(string().required()),
-  query: string().optional()
+  query: string().optional(),
+  precisions: array().transform(commaSeparatedString).of(string().required())
 });

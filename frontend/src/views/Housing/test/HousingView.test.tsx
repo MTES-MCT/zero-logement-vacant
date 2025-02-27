@@ -282,7 +282,6 @@ describe('Housing view', () => {
       const subStatus =
         await within(mobilizationPanel).findByLabelText(/Sous-statut/);
       await user.click(subStatus);
-      screen.logTestingPlaygroundURL();
       const subStatusOption = await screen.findByRole('option', {
         name: 'En pré-accompagnement'
       });

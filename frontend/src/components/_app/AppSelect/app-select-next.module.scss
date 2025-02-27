@@ -5,3 +5,12 @@
   --data-uri-svg: url(data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='0 0 24 24' ><path fill='%23929292' d='M12,13.1l5-4.9l1.4,1.4L12,15.9L5.6,9.5l1.4-1.4L12,13.1z'/></svg>);
   background-image: var(--data-uri-svg);
 }
+
+.selected {
+  // Hack to avoid transparency issues with the selected item
+  background-color: #ebebf6 !important;
+
+  &:hover {
+    background-color: #e0e0f2 !important;
+  }
+}

@@ -98,7 +98,7 @@ function CampaignSending(props: Readonly<Props>) {
             <Stepper
                 currentStep={2}
                 stepCount={2}
-                title="Téléchargement du fichier de publipostage (XLSX) et/ou de vos courriers rédigés (PDF)"
+                title="Téléchargement des fichiers et validation de la date d’envoi"
               />
               <p className={`fr-stepper__details ${styles.lastStep}`}>
                 <span className="fr-text--bold">
@@ -115,7 +115,7 @@ function CampaignSending(props: Readonly<Props>) {
                 disabled={disabled}
                 onClick={handleFormSubmit}
               >
-                Valider la date d’envoi de votre campagne
+                Enregistrer et passer au suivi
               </Button>
             </div>
           </Grid>
@@ -150,7 +150,7 @@ function CampaignSending(props: Readonly<Props>) {
           {!hasFile ? (
             <Grid xs={6}>
               <Typography variant="h5" mb={2}>
-                Vos fichiers à télécharger pour lancer votre campagne
+                1. Téléchargez vos fichiers
               </Typography>
               <Box sx={{ width: '100%' }}>
                 <LinearProgress color="info" />
@@ -166,7 +166,7 @@ function CampaignSending(props: Readonly<Props>) {
             <Grid container mb={5} xs={6}>
               <Grid xs={12}>
                 <Typography variant="h5" mb={2}>
-                  Vos fichiers à télécharger pour lancer votre campagne
+                  1. Téléchargez vos fichiers
                 </Typography>
               </Grid>
               <Grid xs={8}>
@@ -179,7 +179,7 @@ function CampaignSending(props: Readonly<Props>) {
           )}
           <Grid container xs={6} px={4}>
             <modal.Component
-              title="Confirmation de la date d’envoi"
+              title="Enregistrer et passer au suivi"
               buttons={[
                 {
                   children: 'Annuler',

@@ -35,7 +35,7 @@ export const PRECISION_TREE_VALUES: OrderedMap<
     'Autre'
   ],
   'dispositifs-coercitifs': [
-    'ORI - TIRORI',
+    'ORI - THIRORI',
     'Bien sans maître',
     'Abandon manifeste',
     'DIA - préemption',

@@ -1,6 +1,6 @@
 import async from 'async';
 import { ReadableStream } from 'node:stream/web';
-import * as handlebars from 'handlebars';
+import handlebars from 'handlebars';
 import path from 'node:path';
 import { PDFDocument, PDFEmbeddedPage, PDFImage } from 'pdf-lib';
 import puppeteer from 'puppeteer';
@@ -90,16 +90,20 @@ function createTransformer(opts: TransformerOptions) {
             height: height,
             x: x,
             y: y,
-            type: (image as Element)?.classList.contains('header__image') ? 'logo' : 'signature'
+            type: (image as Element)?.classList.contains('header__image')
+              ? 'logo'
+              : 'signature'
           };
         });
       });
       // Retrieve images from the HTML only once
       if (images.length === 0) {
-        images.push(...elements.map(element => ({
-          ...element,
-          type: element.type as 'logo' | 'signature'
-        })));
+        images.push(
+          ...elements.map((element) => ({
+            ...element,
+            type: element.type as 'logo' | 'signature'
+          }))
+        );
       }
       // Save image positions
       elements.forEach((element) => {
@@ -153,7 +157,10 @@ function createTransformer(opts: TransformerOptions) {
      * @param pdf
      * @param image A PDF, JPEG or PNG image encoded in base64
      */
-    async embed(pdf: PDFDocument, image: Image): Promise<PDFImage | PDFEmbeddedPage> {
+    async embed(
+      pdf: PDFDocument,
+      image: Image
+    ): Promise<PDFImage | PDFEmbeddedPage> {
       return match(image)
         .when(
           (image) => image.content.startsWith('data:application/pdf'),
@@ -203,8 +210,8 @@ function createTransformer(opts: TransformerOptions) {
      * @param pdf
      */
     async save(pdf: PDFDocument): Promise<Buffer> {
-      const firstImageHeight = { 'logo': 0, 'signature': 0 };
-      const firstImageWidth = { 'logo': 0, 'signature': 0 };
+      const firstImageHeight = { logo: 0, signature: 0 };
+      const firstImageWidth = { logo: 0, signature: 0 };
 
       // Embed images into the PDF
       await async.forEach(images, async (image) => {
@@ -226,24 +233,37 @@ function createTransformer(opts: TransformerOptions) {
               page.drawImage(embed, {
                 x: toPoints(position.x),
                 // The Y-axis is inverted in the PDF specification
-                y: page.getHeight() - toPoints(image.height) - (image.type === 'signature' ? toPoints(position.y) : toPoints(40) + toPoints(firstImageHeight[image.type])),
+                y:
+                  page.getHeight() -
+                  toPoints(image.height) -
+                  (image.type === 'signature'
+                    ? toPoints(position.y)
+                    : toPoints(40) + toPoints(firstImageHeight[image.type])),
                 width: toPoints(image.width),
                 height: toPoints(image.height)
               });
             } else if (embed instanceof PDFEmbeddedPage) {
               page.drawPage(embed, {
-                x: toPoints(position.x) - (image.type === 'signature' ? toPoints(40) : 0),
+                x:
+                  toPoints(position.x) -
+                  (image.type === 'signature' ? toPoints(40) : 0),
                 // The Y-axis is inverted in the PDF specification
-                y: page.getHeight() - toPoints(imageHeight) - (image.type === 'signature' ? toPoints(position.y) : toPoints(40) + toPoints(firstImageHeight[image.type])),
+                y:
+                  page.getHeight() -
+                  toPoints(imageHeight) -
+                  (image.type === 'signature'
+                    ? toPoints(position.y)
+                    : toPoints(40) + toPoints(firstImageHeight[image.type])),
                 width: toPoints(140),
                 height: toPoints(imageHeight)
               });
-
             }
           }
         });
-        firstImageHeight[image.type] = firstImageHeight[image.type] === 0 ? imageHeight : 0;
-        firstImageWidth[image.type] = firstImageWidth[image.type] === 0 ? image.width : 0;
+        firstImageHeight[image.type] =
+          firstImageHeight[image.type] === 0 ? imageHeight : 0;
+        firstImageWidth[image.type] =
+          firstImageWidth[image.type] === 0 ? image.width : 0;
       });
       const final = await pdf.save();
       return Buffer.from(final);

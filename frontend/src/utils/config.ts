@@ -27,7 +27,13 @@ const config = {
         ? process.env.REACT_APP_SENTRY_ENV
         : process.env.NODE_ENV === 'production'
           ? 'production'
-          : 'development'
+          : 'development',
+    sampleRate: process.env.REACT_APP_SAMPLE_RATE
+      ? Number(process.env.REACT_APP_SAMPLE_RATE)
+      : 0.2,
+    tracesSampleRate: process.env.REACT_APP_TRACES_SAMPLE_RATE
+      ? Number(process.env.REACT_APP_TRACES_SAMPLE_RATE)
+      : 0.2
   },
   dataYear: 2023,
   banEligibleScore: 0.8,

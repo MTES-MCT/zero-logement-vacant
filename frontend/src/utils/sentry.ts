@@ -28,8 +28,8 @@ function init(): void {
           matchRoutes
         })
       ],
-      sampleRate: 0.2,
-      tracesSampleRate: 0.2,
+      sampleRate: config.sentry.sampleRate,
+      tracesSampleRate: config.sentry.tracesSampleRate,
       tracePropagationTargets: ['localhost', config.apiEndpoint]
     });
   }

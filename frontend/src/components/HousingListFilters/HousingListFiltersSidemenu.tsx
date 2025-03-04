@@ -25,7 +25,6 @@ import { useUser } from '../../hooks/useUser';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   beneficiaryCountOptions,
-  buildingPeriodOptions,
   cadastralClassificationOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
@@ -52,6 +51,7 @@ import GroupHeader from '../GroupHeader/GroupHeader';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
+import BuildingPeriodSelect from './BuildingPeriodSelect';
 import CampaignFilter from './CampaignFilter';
 import EnergyConsumptionSelect from './EnergyConsumptionSelect';
 import styles from './housing-list-filters.module.scss';
@@ -543,15 +543,11 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Date de construction"
-              options={buildingPeriodOptions}
-              initialValues={filters.buildingPeriods}
+            <BuildingPeriodSelect
+              multiple
+              value={filters.buildingPeriods ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { buildingPeriods: values },
-                  'Date de construction'
-                );
+                onChangeFilters({ buildingPeriods: values });
                 posthog.capture('filtre-date-construction');
               }}
             />

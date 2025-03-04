@@ -29,7 +29,6 @@ import {
   cadastralClassificationOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
-  energyConsumptionOptions,
   housingAreaOptions,
   HousingFilters,
   multiOwnerOptions,
@@ -54,6 +53,7 @@ import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersMo
 import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 import CampaignFilter from './CampaignFilter';
+import EnergyConsumptionSelect from './EnergyConsumptionSelect';
 import styles from './housing-list-filters.module.scss';
 import HousingCountSelect from './HousingCountSelect';
 import HousingKindSelect from './HousingKindSelect';
@@ -518,16 +518,12 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Étiquette DPE représentatif (CSTB)"
-              options={energyConsumptionOptions}
-              initialValues={filters.energyConsumption}
+            <EnergyConsumptionSelect
+              multiple
+              value={filters.energyConsumption ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { energyConsumption: values },
-                  'Étiquette DPE représentatif (CSTB)'
-                );
-                posthog.capture('filtre-etiquette-dpe');
+                onChangeFilters({ energyConsumption: values });
+                posthog.capture('filtre-taux-de-vacance');
               }}
             />
           </Grid>

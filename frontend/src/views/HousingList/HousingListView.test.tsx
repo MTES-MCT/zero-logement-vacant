@@ -8,8 +8,7 @@ import {
   CampaignDTO,
   CampaignStatus,
   DatafoncierHousing,
-  HousingDTO,
-  HousingKind
+  HousingDTO
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
@@ -20,7 +19,6 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import async from 'async';
-import fp from 'lodash/fp';
 import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
 import {
@@ -44,35 +42,6 @@ describe('Housing list view', () => {
 
   beforeEach(() => {
     store = configureTestStore();
-  });
-
-  it('should filter by housing kind', async () => {
-    const apartments = data.housings.filter(
-      (housing) => housing.housingKind === HousingKind.APARTMENT
-    );
-    const owners = fp.uniqBy(
-      'id',
-      apartments.map((housing) => housing.owner)
-    );
-    render(
-      <Provider store={store}>
-        <Router>
-          <HousingListTabsProvider>
-            <HousingListView />
-          </HousingListTabsProvider>
-        </Router>
-      </Provider>
-    );
-
-    const accordion = await screen.findByRole('button', { name: /^Logement/ });
-    await user.click(accordion);
-    const checkbox = await screen.findByRole('checkbox', {
-      name: /^Appartement/
-    });
-    await user.click(checkbox);
-    const text = `${apartments.length} logements (${owners.length} propriétaires) filtrés sur un total de ${data.housings.length} logements`;
-    const label = await screen.findByText(text);
-    expect(label).toBeVisible();
   });
 
   it('should hide the button to create campaign if no housing are selected', async () => {
@@ -786,196 +755,6 @@ describe('Housing list view', () => {
       });
     });
 
-    describe('Vacancy year filter', () => {
-      it('should disable the input if `Vacant` is not selected', async () => {
-        renderView();
-
-        const badge = await screen.findByRole('button', {
-          name: /^Occupation : vacant/i
-        });
-        await user.click(badge);
-
-        const accordion = await screen.findByRole('button', {
-          name: /^Occupation$/,
-          expanded: false
-        });
-        await user.click(accordion);
-        const vacancyYear = await screen.findByRole('combobox', {
-          name: 'Année de début de vacance'
-        });
-        expect(vacancyYear).toHaveAttribute('aria-disabled', 'true');
-      });
-
-      it('should display a badge', async () => {
-        renderView();
-
-        const accordion = await screen.findByRole('button', {
-          name: 'Occupation'
-        });
-        await user.click(accordion);
-
-        const vacancyYear = await screen.findByRole('combobox', {
-          name: 'Année de début de vacance'
-        });
-        await user.click(vacancyYear);
-        const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText('2021');
-        await user.click(option);
-        await user.keyboard('{Escape}');
-
-        const badge = await screen.findByRole('button', {
-          name: /^Début de vacance : depuis 2021/
-        });
-        expect(badge).toBeVisible();
-      });
-    });
-
-    describe('Housing kind filter', () => {
-      it('should display a badge', async () => {
-        renderView();
-
-        const accordion = await screen.findByRole('button', {
-          name: /^Logement/
-        });
-        await user.click(accordion);
-        const kind = await screen.findByRole('combobox', {
-          name: /^Type de logement/
-        });
-        await user.click(kind);
-        const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText('Appartement');
-        await user.click(option);
-        const badge = await screen.findByText('Type de logement : appartement');
-        expect(badge).toBeVisible();
-      });
-    });
-
-    describe('Locality kind filter', () => {
-      it('should display a badge', async () => {
-        renderView();
-
-        const accordion = await screen.findByRole('button', {
-          name: 'Localisation'
-        });
-        await user.click(accordion);
-
-        const localityKind = await screen.findByRole('combobox', {
-          name: 'Type de commune'
-        });
-        await user.click(localityKind);
-        const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText(
-          /^Petites villes de demain$/i
-        );
-        await user.click(option);
-        await user.keyboard('{Escape}');
-
-        const badge = await screen.findByText(
-          /^Type de commune : petites villes de demain$/i
-        );
-        expect(badge).toBeVisible();
-      });
-    });
-
-    describe('Housing count filter', () => {
-      it('should display a badge', async () => {
-        renderView();
-
-        const accordion = await screen.findByRole('button', {
-          name: 'Bâtiment/DPE'
-        });
-        await user.click(accordion);
-
-        const housingCount = await screen.findByRole('combobox', {
-          name: 'Nombre de logements'
-        });
-        await user.click(housingCount);
-        const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText('Moins de 5');
-        await user.click(option);
-        await user.keyboard('{Escape}');
-
-        const badge = await screen.findByText(
-          'Nombre de logements : moins de 5'
-        );
-        expect(badge).toBeVisible();
-      });
-    });
-
-    describe('Vacancy rate filter', () => {
-      it('should display a badge', async () => {
-        renderView();
-
-        const accordion = await screen.findByRole('button', {
-          name: 'Bâtiment/DPE'
-        });
-        await user.click(accordion);
-
-        const vacancyRate = await screen.findByRole('combobox', {
-          name: 'Taux de vacance'
-        });
-        await user.click(vacancyRate);
-        const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText('Moins de 20%');
-        await user.click(option);
-
-        const badge = await screen.findByText('Taux de vacance : moins de 20%');
-        expect(badge).toBeVisible();
-      });
-    });
-
-    describe('Energy consumption filter', () => {
-      it('should display a badge', async () => {
-        renderView();
-
-        const accordion = await screen.findByRole('button', {
-          name: 'Bâtiment/DPE'
-        });
-        await user.click(accordion);
-
-        const dpe = await screen.findByRole('combobox', {
-          name: 'Étiquette DPE représentatif (CSTB)'
-        });
-        await user.click(dpe);
-        const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText('A');
-        await user.click(option);
-        await user.keyboard('{Escape}');
-
-        const badge = await screen.findByText('DPE représentatif (CSTB) A');
-        expect(badge).toBeVisible();
-      });
-    });
-
-    describe('Building period filter', () => {
-      it('should display a badge', async () => {
-        renderView();
-
-        const accordion = await screen.findByRole('button', {
-          name: 'Logement'
-        });
-        await user.click(accordion);
-
-        const dpe = await screen.findByRole('combobox', {
-          name: 'Date de construction'
-        });
-        await user.click(dpe);
-        const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText('Avant 1919');
-        await user.click(option);
-        await user.keyboard('{Escape}');
-
-        const badge = await screen.findByText(
-          'Date de construction : avant 1919'
-        );
-        expect(badge).toBeVisible();
-      });
-    });
-
-    describe('Surface filter', () => {
-      // TODO
-    });
-
     describe('Campaign filter', () => {
       const campaigns: ReadonlyArray<CampaignDTO> = CAMPAIGN_STATUS_VALUES.map(
         (status) => {
@@ -1228,6 +1007,215 @@ describe('Housing list view', () => {
         checkboxes.forEach((checkbox) => {
           expect(checkbox).not.toBeChecked();
         });
+      });
+    });
+
+    describe('Vacancy year filter', () => {
+      it('should disable the input if `Vacant` is not selected', async () => {
+        renderView();
+
+        const badge = await screen.findByRole('button', {
+          name: /^Occupation : vacant/i
+        });
+        await user.click(badge);
+
+        const accordion = await screen.findByRole('button', {
+          name: /^Occupation$/,
+          expanded: false
+        });
+        await user.click(accordion);
+        const vacancyYear = await screen.findByRole('combobox', {
+          name: 'Année de début de vacance'
+        });
+        expect(vacancyYear).toHaveAttribute('aria-disabled', 'true');
+      });
+
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Occupation'
+        });
+        await user.click(accordion);
+
+        const vacancyYear = await screen.findByRole('combobox', {
+          name: 'Année de début de vacance'
+        });
+        await user.click(vacancyYear);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('2021');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByRole('button', {
+          name: /^Début de vacance : depuis 2021/
+        });
+        expect(badge).toBeVisible();
+      });
+    });
+
+    describe('Housing kind filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: /^Logement/
+        });
+        await user.click(accordion);
+        const kind = await screen.findByRole('combobox', {
+          name: /^Type de logement/
+        });
+        await user.click(kind);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Appartement');
+        await user.click(option);
+        const badge = await screen.findByText('Type de logement : appartement');
+        expect(badge).toBeVisible();
+      });
+    });
+
+    describe('Locality kind filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Localisation'
+        });
+        await user.click(accordion);
+
+        const localityKind = await screen.findByRole('combobox', {
+          name: 'Type de commune'
+        });
+        await user.click(localityKind);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText(
+          /^Petites villes de demain$/i
+        );
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText(
+          /^Type de commune : petites villes de demain$/i
+        );
+        expect(badge).toBeVisible();
+      });
+    });
+
+    describe('Housing count filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Bâtiment/DPE'
+        });
+        await user.click(accordion);
+
+        const housingCount = await screen.findByRole('combobox', {
+          name: 'Nombre de logements'
+        });
+        await user.click(housingCount);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Moins de 5');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText(
+          'Nombre de logements : moins de 5'
+        );
+        expect(badge).toBeVisible();
+      });
+    });
+
+    describe('Vacancy rate filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Bâtiment/DPE'
+        });
+        await user.click(accordion);
+
+        const vacancyRate = await screen.findByRole('combobox', {
+          name: 'Taux de vacance'
+        });
+        await user.click(vacancyRate);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Moins de 20%');
+        await user.click(option);
+
+        const badge = await screen.findByText('Taux de vacance : moins de 20%');
+        expect(badge).toBeVisible();
+      });
+    });
+
+    describe('Energy consumption filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Bâtiment/DPE'
+        });
+        await user.click(accordion);
+
+        const dpe = await screen.findByRole('combobox', {
+          name: 'Étiquette DPE représentatif (CSTB)'
+        });
+        await user.click(dpe);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('A');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText('DPE représentatif (CSTB) A');
+        expect(badge).toBeVisible();
+      });
+    });
+
+    describe('Building period filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Logement'
+        });
+        await user.click(accordion);
+
+        const dpe = await screen.findByRole('combobox', {
+          name: 'Date de construction'
+        });
+        await user.click(dpe);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Avant 1919');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText(
+          'Date de construction : avant 1919'
+        );
+        expect(badge).toBeVisible();
+      });
+    });
+
+    describe('Surface filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Logement'
+        });
+        await user.click(accordion);
+
+        const surface = await screen.findByRole('combobox', {
+          name: 'Surface'
+        });
+        await user.click(surface);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Moins de 35 m²');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText('Surface : moins de 35 m²');
+        expect(badge).toBeVisible();
       });
     });
   });

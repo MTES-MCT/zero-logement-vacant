@@ -340,6 +340,9 @@ export const cadastralClassificationOptions: SelectOption[] = [
   }
 ];
 
+/**
+ * @deprecated Use {@link BUILDING_PERIOD_OPTIONS} instead.
+ */
 export const buildingPeriodOptions: SelectOption<BuildingPeriod>[] = [
   {
     value: 'lt1919',
@@ -362,6 +365,30 @@ export const buildingPeriodOptions: SelectOption<BuildingPeriod>[] = [
     badgeLabel: 'Date de construction : 1991 ou après'
   }
 ];
+export const BUILDING_PERIOD_OPTIONS: Record<
+  BuildingPeriod,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  lt1919: {
+    label: 'Avant 1919',
+    badgeLabel: 'Date de construction : avant 1919'
+  },
+  '1919to1945': {
+    label: 'Entre 1919 et 1945',
+    badgeLabel: 'Date de construction : entre 1919 et 1945'
+  },
+  '1946to1990': {
+    label: 'Entre 1946 et 1990',
+    badgeLabel: 'Date de construction : entre 1946 et 1990'
+  },
+  gte1991: {
+    label: '1991 ou après',
+    badgeLabel: 'Date de construction : 1991 ou après'
+  }
+};
 
 export const multiOwnerOptions: SelectOption[] = [
   { value: 'true', label: 'Oui', badgeLabel: 'Multi-propriétaire : oui' },

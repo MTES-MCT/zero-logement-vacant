@@ -1218,5 +1218,28 @@ describe('Housing list view', () => {
         expect(badge).toBeVisible();
       });
     });
+
+    describe('Room count filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Logement'
+        });
+        await user.click(accordion);
+
+        const roomCount = await screen.findByRole('combobox', {
+          name: 'Nombre de pièces'
+        });
+        await user.click(roomCount);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('1 pièce');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText('Nombre de pièces : 1');
+        expect(badge).toBeVisible();
+      });
+    });
   });
 });

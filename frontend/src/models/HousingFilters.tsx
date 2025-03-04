@@ -262,6 +262,9 @@ export const housingKindOptions: SelectOption<HousingKind>[] = [
   }
 ];
 
+/**
+ * @deprecated Use {@link LIVING_AREA_OPTIONS} instead.
+ */
 export const housingAreaOptions: SelectOption<LivingArea>[] = [
   {
     value: 'lt35',
@@ -284,6 +287,27 @@ export const housingAreaOptions: SelectOption<LivingArea>[] = [
     badgeLabel: 'Surface : 100 m² et plus'
   }
 ];
+export const LIVING_AREA_OPTIONS: Record<
+  LivingArea,
+  { label: string; badgeLabel: string }
+> = {
+  lt35: {
+    label: 'Moins de 35 m²',
+    badgeLabel: 'Surface : moins de 35 m²'
+  },
+  '35to74': {
+    label: '35 - 74 m²',
+    badgeLabel: 'Surface : entre 35 et 74 m²'
+  },
+  '75to99': {
+    label: '75 - 99 m²',
+    badgeLabel: 'Surface : entre 75 et 99 m²'
+  },
+  gte100: {
+    label: '100 m² et plus',
+    badgeLabel: 'Surface : 100 m² et plus'
+  }
+};
 
 export const roomsCountOptions: SelectOption<RoomCount>[] = [
   { value: '1', label: '1 pièce', badgeLabel: 'Nombre de pièces : 1' },

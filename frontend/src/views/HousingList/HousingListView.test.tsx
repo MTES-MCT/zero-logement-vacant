@@ -1241,5 +1241,28 @@ describe('Housing list view', () => {
         expect(badge).toBeVisible();
       });
     });
+
+    describe('Taxed filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Logement'
+        });
+        await user.click(accordion);
+
+        const taxed = await screen.findByRole('combobox', {
+          name: 'Taxé'
+        });
+        await user.click(taxed);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Oui');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText('Taxé : oui');
+        expect(badge).toBeVisible();
+      });
+    });
   });
 });

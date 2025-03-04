@@ -930,6 +930,60 @@ describe('Housing list view', () => {
     });
   });
 
+  describe('Locality kind filter', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          }
+        ],
+        {
+          initialEntries: ['/parc-de-logements']
+        }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
+
+      return {
+        router
+      };
+    }
+
+    it('should display a badge', async () => {
+      renderView();
+
+      const accordion = await screen.findByRole('button', {
+        name: 'Localisation'
+      });
+      await user.click(accordion);
+
+      const localityKind = await screen.findByRole('combobox', {
+        name: 'Type de commune'
+      });
+      await user.click(localityKind);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText(
+        /^Petites villes de demain$/i
+      );
+      await user.click(option);
+      await user.keyboard('{Escape}');
+
+      const badge = await screen.findByText(
+        /^Type de commune : petites villes de demain$/i
+      );
+      expect(badge).toBeVisible();
+    });
+  });
+
   describe('Campaign filter', () => {
     const campaigns: ReadonlyArray<CampaignDTO> = CAMPAIGN_STATUS_VALUES.map(
       (status) => {

@@ -19,14 +19,14 @@ import {
   OwnerKind,
   OwnershipKind,
   RoomCount,
-  VacancyRate
+  VacancyRate,
+  VacancyYear
 } from '@zerologementvacant/models';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import { OCCUPANCY_LABELS } from './Housing';
 import { HousingStates } from './HousingState';
-import { LocalityKindLabels, LocalityKinds } from './Locality';
+import { LocalityKindLabels } from './Locality';
 import { SelectOption } from './SelectOption';
-import { VacancyYear } from './VacancyYear';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HousingFilters extends HousingFiltersDTO {}
@@ -386,18 +386,34 @@ export function getIntercommunalityOptions(
   }));
 }
 
+/**
+ * @deprecated Use {@link LOCALITY_KIND_OPTIONS} instead.
+ */
 export const localityKindsOptions: SelectOption<LocalityKind>[] = [
   {
-    value: LocalityKinds.ACV,
-    label: LocalityKindLabels[LocalityKinds.ACV],
-    badgeLabel: `Type de commune : ${LocalityKindLabels[LocalityKinds.ACV]}`
+    value: 'ACV',
+    label: LocalityKindLabels['ACV'],
+    badgeLabel: `Type de commune : ${LocalityKindLabels['ACV']}`
   },
   {
-    value: LocalityKinds.PVD,
-    label: LocalityKindLabels[LocalityKinds.PVD],
-    badgeLabel: `Type de commune : ${LocalityKindLabels[LocalityKinds.PVD]}`
+    value: 'PVD',
+    label: LocalityKindLabels['PVD'],
+    badgeLabel: `Type de commune : ${LocalityKindLabels['PVD']}`
   }
 ];
+export const LOCALITY_KIND_OPTIONS: Record<
+  LocalityKind,
+  { label: string; badgeLabel: string }
+> = {
+  ACV: {
+    label: 'Action Cœur de Ville',
+    badgeLabel: 'Type de commune : Action Cœur de Ville'
+  },
+  PVD: {
+    label: 'Petites Villes de Demain',
+    badgeLabel: 'Type de commune : Petites Villes de Demain'
+  }
+};
 
 export const dataFileYearsIncludedOptions: SelectOption[] = [
   {

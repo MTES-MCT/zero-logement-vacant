@@ -812,6 +812,77 @@ describe('Housing list view', () => {
     });
   });
 
+  describe('Vacancy year filter', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          }
+        ],
+        {
+          initialEntries: ['/parc-de-logements']
+        }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
+
+      return {
+        router
+      };
+    }
+
+    it('should disable the input if `Vacant` is not selected', async () => {
+      renderView();
+
+      const badge = await screen.findByRole('button', {
+        name: /^Occupation : vacant/i
+      });
+      await user.click(badge);
+
+      const accordion = await screen.findByRole('button', {
+        name: /^Occupation$/,
+        expanded: false
+      });
+      await user.click(accordion);
+      const vacancyYear = await screen.findByRole('combobox', {
+        name: 'Année de début de vacance'
+      });
+      expect(vacancyYear).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('should display a badge', async () => {
+      renderView();
+
+      const accordion = await screen.findByRole('button', {
+        name: 'Occupation'
+      });
+      await user.click(accordion);
+
+      const vacancyYear = await screen.findByRole('combobox', {
+        name: 'Année de début de vacance'
+      });
+      await user.click(vacancyYear);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText('2021');
+      await user.click(option);
+      await user.keyboard('{Escape}');
+
+      const badge = await screen.findByRole('button', {
+        name: /^Début de vacance : depuis 2021/
+      });
+      expect(badge).toBeVisible();
+    });
+  });
+
   describe('Housing kind filter', () => {
     function renderView() {
       const router = createMemoryRouter(

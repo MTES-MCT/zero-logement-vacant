@@ -36,13 +36,6 @@ export function useFilters(opts?: FiltersOptions) {
     dispatch(expandFilters(value));
   }
 
-  function removeFilter(removed: HousingFilters) {
-    setFilters({
-      ...filters,
-      ...removed
-    });
-  }
-
   const length = useMemo<number>(() => Object.keys(filters).length, [filters]);
 
   function onChange(changed: HousingFilters): void {
@@ -66,7 +59,6 @@ export function useFilters(opts?: FiltersOptions) {
     filters,
     setFilters,
     length,
-    removeFilter,
     onChangeFilters: onChange,
     onResetFilters: onReset,
     setExpand

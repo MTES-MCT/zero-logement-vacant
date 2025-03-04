@@ -31,7 +31,6 @@ import {
   dataFileYearsIncludedOptions,
   energyConsumptionOptions,
   housingAreaOptions,
-  housingCountOptions,
   HousingFilters,
   multiOwnerOptions,
   ownerAgeOptions,
@@ -57,6 +56,7 @@ import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 import CampaignFilter from './CampaignFilter';
 import styles from './housing-list-filters.module.scss';
+import HousingCountSelect from './HousingCountSelect';
 import HousingKindSelect from './HousingKindSelect';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
@@ -498,15 +498,11 @@ function HousingListFiltersSidemenu(props: Props) {
           }
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Nombre de logements"
-              options={housingCountOptions}
-              initialValues={filters.housingCounts}
+            <HousingCountSelect
+              multiple
+              value={filters.housingCounts ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { housingCounts: values },
-                  'Nombre de logements'
-                );
+                onChangeFilters({ housingCounts: values });
                 posthog.capture('filtre-nombre-de-logements');
               }}
             />

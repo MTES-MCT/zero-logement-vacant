@@ -130,6 +130,9 @@ export const beneficiaryCountOptions: SelectOption<BeneficiaryCount>[] = [
   }
 ];
 
+/**
+ * @deprecated Use {@link HOUSING_COUNT_OPTIONS} instead.
+ */
 export const housingCountOptions: SelectOption<HousingByBuilding>[] = [
   {
     value: 'lt5',
@@ -152,6 +155,30 @@ export const housingCountOptions: SelectOption<HousingByBuilding>[] = [
     badgeLabel: 'Nombre de logements : 50 et plus'
   }
 ];
+export const HOUSING_COUNT_OPTIONS: Record<
+  HousingByBuilding,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  lt5: {
+    label: 'Moins de 5',
+    badgeLabel: 'Nombre de logements : moins de 5'
+  },
+  '5to19': {
+    label: 'Entre 5 et 19',
+    badgeLabel: 'Nombre de logements : entre 5 et 19'
+  },
+  '20to49': {
+    label: 'Entre 20 et 49',
+    badgeLabel: 'Nombre de logements : entre 20 et 49'
+  },
+  gte50: {
+    label: '50 et plus',
+    badgeLabel: 'Nombre de logements : 50 et plus'
+  }
+};
 
 export const vacancyRateOptions: SelectOption<VacancyRate>[] = [
   {

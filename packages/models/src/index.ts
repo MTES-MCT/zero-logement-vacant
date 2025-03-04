@@ -46,4 +46,5 @@ export * from './SignupLinkDTO';
 export * from './TimePerWeek';
 export * from './UserDTO';
 export * from './VacancyRate';
+export * from './VacancyYear';
 export * from './variable-options';

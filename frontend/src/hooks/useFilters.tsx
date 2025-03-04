@@ -1,8 +1,9 @@
+import { Occupancy } from '@zerologementvacant/models';
 import { useMemo, useState } from 'react';
+import { HousingFilters } from '../models/HousingFilters';
 import housingSlice, {
   initialHousingFilters
 } from '../store/reducers/housingReducer';
-import { HousingFilters } from '../models/HousingFilters';
 import { useAppDispatch, useAppSelector } from './useStore';
 
 interface FiltersOptions {
@@ -45,10 +46,15 @@ export function useFilters(opts?: FiltersOptions) {
   const length = useMemo<number>(() => Object.keys(filters).length, [filters]);
 
   function onChange(changed: HousingFilters): void {
-    setFilters({
-      ...filters,
-      ...changed
-    });
+    const changes = { ...filters, ...changed };
+
+    // The `vacancyYears` filter should be available
+    // only when the `VACANT` occupancy is selected
+    if (!changes.occupancies?.includes(Occupancy.VACANT)) {
+      changes.vacancyYears = [];
+    }
+
+    setFilters(changes);
   }
 
   function onReset(): void {

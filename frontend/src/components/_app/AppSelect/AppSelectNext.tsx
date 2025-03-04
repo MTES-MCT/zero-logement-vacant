@@ -48,6 +48,8 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
 
   const multiple = props.multiple ?? false;
 
+  const disabled = props.disabled ?? props.options.length === 0;
+
   const emptyValue = multiple ? 'Tous' : '';
 
   const value: SelectValue<Value, any> =
@@ -200,7 +202,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
     <Box
       className={classNames(
         fr.cx('fr-select-group', {
-          [fr.cx('fr-select-group--disabled')]: props.disabled,
+          [fr.cx('fr-select-group--disabled')]: disabled,
           [fr.cx('fr-select-group--error')]: props.invalid
         })
       )}
@@ -213,12 +215,12 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
           root: fr.cx('fr-mt-1w'),
           select: classNames(
             fr.cx('fr-select', 'fr-pt-1w', 'fr-pr-5w', {
-              [styles.selectDisabled]: props.disabled
+              [styles.selectDisabled]: disabled
             })
           ),
           icon: fr.cx('fr-hidden')
         }}
-        disabled={props.disabled}
+        disabled={disabled}
         disableUnderline
         displayEmpty
         id={selectId}

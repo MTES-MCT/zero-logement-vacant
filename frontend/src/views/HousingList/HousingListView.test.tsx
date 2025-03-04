@@ -1133,6 +1133,58 @@ describe('Housing list view', () => {
     });
   });
 
+  describe('Building period filter', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          }
+        ],
+        {
+          initialEntries: ['/parc-de-logements']
+        }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
+
+      return {
+        router
+      };
+    }
+
+    it('should display a badge', async () => {
+      renderView();
+
+      const accordion = await screen.findByRole('button', {
+        name: 'Logement'
+      });
+      await user.click(accordion);
+
+      const dpe = await screen.findByRole('combobox', {
+        name: 'Date de construction'
+      });
+      await user.click(dpe);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText('Avant 1919');
+      await user.click(option);
+      await user.keyboard('{Escape}');
+
+      const badge = await screen.findByText(
+        'Date de construction : avant 1919'
+      );
+      expect(badge).toBeVisible();
+    });
+  });
+
   describe('Campaign filter', () => {
     const campaigns: ReadonlyArray<CampaignDTO> = CAMPAIGN_STATUS_VALUES.map(
       (status) => {

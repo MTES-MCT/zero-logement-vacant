@@ -33,7 +33,6 @@ import {
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
-  roomsCountOptions,
   taxedOptions,
   unselectedOptions
 } from '../../models/HousingFilters';
@@ -45,7 +44,7 @@ import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
 import { concat } from '../../utils/arrayUtils';
 import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
-import { Icon, SearchableSelect, Text } from '../_dsfr';
+import { Icon, SearchableSelect } from '../_dsfr';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import PrecisionSelect from '../Precision/PrecisionSelect';
@@ -60,6 +59,7 @@ import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
 import LocalityKindSelect from './LocalityKindSelect';
 import OccupancySelect from './OccupancySelect';
+import RoomCountSelect from './RoomCountSelect';
 import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
@@ -73,7 +73,7 @@ function TitleWithIcon(props: TitleWithIconProps) {
   return (
     <>
       <Icon name={props.icon} className={styles.icon} verticalAlign="middle" />
-      <Text as="span">{props.title}</Text>
+      <span>{props.title}</span>
     </>
   );
 }
@@ -563,12 +563,11 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Nombre de pièces"
-              options={roomsCountOptions}
-              initialValues={filters.roomsCounts ?? []}
+            <RoomCountSelect
+              multiple
+              value={filters.roomsCounts ?? []}
               onChange={(values) => {
-                onChangeFilters({ roomsCounts: values }, 'Nombre de pièces');
+                onChangeFilters({ roomsCounts: values });
                 posthog.capture('filtre-nombre-de-pieces');
               }}
             />

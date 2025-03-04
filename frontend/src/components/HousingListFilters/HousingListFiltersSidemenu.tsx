@@ -7,7 +7,6 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import {
   HOUSING_STATUS_VALUES,
-  HousingStatus,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
   isPrecisionMechanismCategory,
@@ -45,10 +44,7 @@ import {
   vacancyRateOptions,
   vacancyYearOptions
 } from '../../models/HousingFilters';
-import {
-  getSubStatusList,
-  getSubStatusListOptions
-} from '../../models/HousingState';
+import { getSubStatusListOptions } from '../../models/HousingState';
 import { citiesWithDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
@@ -101,22 +97,6 @@ function HousingListFiltersSidemenu(props: Props) {
   const { data: campaigns } = useFindCampaignsQuery();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localities } = useLocalityList(establishment?.id);
-
-  function onChangeStatusFilter(status: HousingStatus, isChecked: boolean) {
-    const statusList = [
-      ...(filters.statusList ?? []).filter((_) => _ !== status),
-      ...(isChecked ? [status] : [])
-    ];
-    onChangeFilters(
-      {
-        statusList,
-        subStatus: filters.subStatus?.filter((_) =>
-          getSubStatusList(statusList).includes(_)
-        )
-      },
-      'Statut'
-    );
-  }
 
   const { data: intercommunalities, isFetching } = useIntercommunalities();
   const localityOptions =
@@ -226,9 +206,13 @@ function HousingListFiltersSidemenu(props: Props) {
         >
           <Grid component="article" mb={2} xs={12}>
             <HousingStatusMultiSelect
-              selectedStatus={filters.statusList}
-              options={statusOptions()}
-              onChange={onChangeStatusFilter}
+              multiple
+              options={HOUSING_STATUS_VALUES}
+              value={filters.statusList ?? []}
+              onChange={(values) => {
+                onChangeFilters({ statusList: values });
+                posthog.capture('filtre-statut-suivi');
+              }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
@@ -434,11 +418,15 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(value: string) => {
                 if (value) {
                   let cities = concat(filters.localities, value);
-                  cities = (cities ?? [] as Array<keyof typeof citiesWithDistricts>).flatMap(code => citiesWithDistricts[code as keyof typeof citiesWithDistricts] ?? [code]);
-                  onChangeFilters(
-                    { localities: cities },
-                    'Commune'
+                  cities = (
+                    cities ?? ([] as Array<keyof typeof citiesWithDistricts>)
+                  ).flatMap(
+                    (code) =>
+                      citiesWithDistricts[
+                        code as keyof typeof citiesWithDistricts
+                      ] ?? [code]
                   );
+                  onChangeFilters({ localities: cities }, 'Commune');
                   posthog.capture('filtre-commune');
                 }
               }}

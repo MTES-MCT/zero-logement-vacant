@@ -180,6 +180,9 @@ export const HOUSING_COUNT_OPTIONS: Record<
   }
 };
 
+/**
+ * @deprecated Use {@link VACANCY_RATE_OPTIONS}
+ */
 export const vacancyRateOptions: SelectOption<VacancyRate>[] = [
   {
     value: 'lt20',
@@ -207,6 +210,34 @@ export const vacancyRateOptions: SelectOption<VacancyRate>[] = [
     badgeLabel: 'Taux de vacance : 80% et plus'
   }
 ];
+export const VACANCY_RATE_OPTIONS: Record<
+  VacancyRate,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  lt20: {
+    label: 'Moins de 20%',
+    badgeLabel: 'Taux de vacance : moins de 20%'
+  },
+  '20to39': {
+    label: '20% - 39%',
+    badgeLabel: 'Taux de vacance : entre 20% et 39%'
+  },
+  '40to59': {
+    label: '40% - 59%',
+    badgeLabel: 'Taux de vacance : entre 40% et 59%'
+  },
+  '60to79': {
+    label: '60% - 79%',
+    badgeLabel: 'Taux de vacance : entre 60% et 79%'
+  },
+  gte80: {
+    label: '80% et plus',
+    badgeLabel: 'Taux de vacance : 80% et plus'
+  }
+};
 
 export const energyConsumptionOptions: SelectOption<EnergyConsumption>[] =
   ENERGY_CONSUMPTION_VALUES.map((grade) => ({

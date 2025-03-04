@@ -1083,6 +1083,56 @@ describe('Housing list view', () => {
     });
   });
 
+  describe('Energy consumption filter', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          }
+        ],
+        {
+          initialEntries: ['/parc-de-logements']
+        }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
+
+      return {
+        router
+      };
+    }
+
+    it('should display a badge', async () => {
+      renderView();
+
+      const accordion = await screen.findByRole('button', {
+        name: 'Bâtiment/DPE'
+      });
+      await user.click(accordion);
+
+      const dpe = await screen.findByRole('combobox', {
+        name: 'Étiquette DPE représentatif (CSTB)'
+      });
+      await user.click(dpe);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText('A');
+      await user.click(option);
+      await user.keyboard('{Escape}');
+
+      const badge = await screen.findByText('DPE représentatif (CSTB) A');
+      expect(badge).toBeVisible();
+    });
+  });
+
   describe('Campaign filter', () => {
     const campaigns: ReadonlyArray<CampaignDTO> = CAMPAIGN_STATUS_VALUES.map(
       (status) => {

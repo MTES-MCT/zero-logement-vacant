@@ -33,7 +33,6 @@ import {
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
-  taxedOptions,
   unselectedOptions
 } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
@@ -61,6 +60,7 @@ import LocalityKindSelect from './LocalityKindSelect';
 import OccupancySelect from './OccupancySelect';
 import RoomCountSelect from './RoomCountSelect';
 import SurfaceSelect from './SurfaceSelect';
+import TaxSelect from './TaxSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
 
@@ -573,19 +573,11 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Taxé"
-              options={taxedOptions}
-              initialValues={filters.isTaxedValues?.map((value) =>
-                value ? 'true' : 'false'
-              )}
+            <TaxSelect
+              multiple
+              value={filters.isTaxedValues ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  {
-                    isTaxedValues: values.map((value) => value === 'true')
-                  },
-                  'Taxé'
-                );
+                onChangeFilters({ isTaxedValues: values });
                 posthog.capture('filtre-taxe');
               }}
             />

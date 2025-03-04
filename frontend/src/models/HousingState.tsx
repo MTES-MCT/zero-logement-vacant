@@ -123,6 +123,10 @@ export function getSubStatusOptions(status: HousingStatusDTO) {
     : undefined;
 }
 
+/**
+ * @deprecated See {@link getSubStatuses}
+ * @param statuses
+ */
 export function getSubStatusList(
   statuses: string[] | HousingStatusDTO[]
 ): string[] {
@@ -135,10 +139,9 @@ export function getSubStatusList(
 }
 
 export function getSubStatusListOptions(
-  statuses: string[] | HousingStatusDTO[]
+  statuses: HousingStatusDTO[]
 ): SelectOption[] {
   return statuses
-    .map((status) => (typeof status === 'string' ? Number(status) : status))
     .map(getHousingState)
     .flatMap<SelectOption>((state) => {
       const substatuses: SelectOption[] =
@@ -153,4 +156,21 @@ export function getSubStatusListOptions(
       ];
     })
     .filter(isDefined);
+}
+
+export function getSubStatuses(status: HousingStatusDTO): string[] {
+  const subStatuses = getHousingState(status).subStatusList?.map(
+    (subStatus) => subStatus.title
+  );
+  return subStatuses ?? [];
+}
+
+export function findStatus(subStatus: string): HousingStatusDTO {
+  const status = HousingStates.find((state) => {
+    return state.subStatusList?.find((sub) => sub.title === subStatus);
+  });
+  if (!status) {
+    throw new Error(`Status not found for sub-status ${subStatus}`);
+  }
+  return status.status;
 }

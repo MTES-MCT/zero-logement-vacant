@@ -6,6 +6,7 @@ import { CSSObject, styled, Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import {
+  HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
@@ -32,7 +33,6 @@ import {
   housingAreaOptions,
   housingCountOptions,
   HousingFilters,
-  housingKindOptions,
   localityKindsOptions,
   multiOwnerOptions,
   ownerAgeOptions,
@@ -59,7 +59,9 @@ import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 import CampaignFilter from './CampaignFilter';
 import styles from './housing-list-filters.module.scss';
+import HousingKindSelect from './HousingKindSelect';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
+import HousingSubStatusSelect from './HousingSubStatusSelect';
 import OccupancySelect from './OccupancySelect';
 
 interface TitleWithIconProps {
@@ -544,12 +546,12 @@ function HousingListFiltersSidemenu(props: Props) {
           label={<TitleWithIcon icon="fr-icon-home-4-line" title="Logement" />}
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Type de logement"
-              options={housingKindOptions}
-              initialValues={filters.housingKinds}
+            <HousingKindSelect
+              multiple
+              options={HOUSING_KIND_VALUES}
+              value={filters.housingKinds ?? []}
               onChange={(values) => {
-                onChangeFilters({ housingKinds: values }, 'Type');
+                onChangeFilters({ housingKinds: values });
                 posthog.capture('filtre-type-logement');
               }}
             />

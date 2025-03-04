@@ -44,7 +44,7 @@ import {
   vacancyRateOptions,
   vacancyYearOptions
 } from '../../models/HousingFilters';
-import { getSubStatusListOptions } from '../../models/HousingState';
+import { getSubStatuses } from '../../models/HousingState';
 import { citiesWithDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
@@ -218,12 +218,12 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sous-statut de suivi"
-              options={getSubStatusListOptions(filters.statusList ?? [])}
-              initialValues={filters.subStatus}
+            <HousingSubStatusSelect
+              multiple
+              options={filters.statusList?.flatMap(getSubStatuses) ?? []}
+              value={filters.subStatus ?? []}
               onChange={(values) => {
-                onChangeFilters({ subStatus: values }, 'Sous-statut');
+                onChangeFilters({ subStatus: values });
                 posthog.capture('filtre-sous-statut-suivi');
               }}
             />

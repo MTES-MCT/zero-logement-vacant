@@ -1,15 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import async from 'async';
-import fp from 'lodash/fp';
-import * as randomstring from 'randomstring';
-import { Provider } from 'react-redux';
-import {
-  createMemoryRouter,
-  MemoryRouter as Router,
-  RouterProvider
-} from 'react-router-dom';
 
 import {
   CAMPAIGN_STATUS_LABELS,
@@ -28,13 +19,22 @@ import {
   genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
-import HousingListView from './HousingListView';
-import configureTestStore from '../../utils/test/storeUtils';
-import { AppStore } from '../../store/store';
-import GroupView from '../Group/GroupView';
+import async from 'async';
+import fp from 'lodash/fp';
+import * as randomstring from 'randomstring';
+import { Provider } from 'react-redux';
+import {
+  createMemoryRouter,
+  MemoryRouter as Router,
+  RouterProvider
+} from 'react-router-dom';
 import data from '../../mocks/handlers/data';
-import HousingListTabsProvider from './HousingListTabsProvider';
+import { AppStore } from '../../store/store';
+import configureTestStore from '../../utils/test/storeUtils';
 import CampaignView from '../Campaign/CampaignView';
+import GroupView from '../Group/GroupView';
+import HousingListTabsProvider from './HousingListTabsProvider';
+import HousingListView from './HousingListView';
 
 jest.mock('../../components/Aside/Aside.tsx');
 
@@ -701,6 +701,53 @@ describe('Housing list view', () => {
       });
       await user.click(tab);
       expect(tab).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
+  describe('Status filter', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          }
+        ],
+        {
+          initialEntries: ['/parc-de-logements']
+        }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
+
+      return {
+        router
+      };
+    }
+
+    it('should display a badge', async () => {
+      renderView();
+
+      const mobilization = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(mobilization);
+      const status = await screen.findByRole('combobox', {
+        name: /Statut de suivi/
+      });
+      await user.click(status);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText('Non suivi');
+      await user.click(option);
+      const badge = await screen.findByText('Statut de suivi : non suivi');
+      expect(badge).toBeVisible();
     });
   });
 

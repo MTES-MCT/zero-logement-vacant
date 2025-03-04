@@ -1,6 +1,5 @@
 import { HousingStatus as HousingStatusDTO } from '@zerologementvacant/models';
-import { ReactElement } from 'react';
-import { Text } from '../components/_dsfr';
+import { ReactNode } from 'react';
 import { isDefined } from '../utils/compareUtils';
 import { Housing } from './Housing';
 import { SelectOption } from './SelectOption';
@@ -10,7 +9,7 @@ export interface HousingState {
   title: string;
   subStatusList?: HousingSubStatus[];
   colorFamily: string;
-  hint?: ReactElement;
+  hint?: ReactNode;
 }
 
 export interface HousingSubStatus {
@@ -38,22 +37,13 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatusDTO.WAITING,
     title: 'En attente de retour',
-    hint: (
-      <Text spacing="mb-0" as="span">
-        Le propriétaire<b> n’a pas répondu au courrier.</b>
-      </Text>
-    ),
+    hint: 'Le propriétaire n’a pas répondu au courrier.',
     colorFamily: 'yellow-tournesol'
   },
   {
     status: HousingStatusDTO.FIRST_CONTACT,
     title: 'Premier contact',
-    hint: (
-      <Text spacing="mb-0" as="span">
-        Phase de qualification de la situation et d’engagement du propriétaire
-        pour l’évolution de sa situation.
-      </Text>
-    ),
+    hint: 'Phase de qualification de la situation et d’engagement du propriétaire pour l’évolution de sa situation.',
     colorFamily: 'blue-cumulus',
     subStatusList: [
       { title: 'Intérêt potentiel / En réflexion' },
@@ -64,12 +54,7 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatusDTO.IN_PROGRESS,
     title: 'Suivi en cours',
-    hint: (
-      <Text spacing="mb-0" as="span">
-        La situation du logement est en cours d’évolution (vers une sortie de la
-        vacance ou de passoire énergétique).
-      </Text>
-    ),
+    hint: 'La situation du logement est en cours d’évolution (vers une sortie de la vacance ou de passoire énergétique).',
     colorFamily: 'orange-terre-battue',
     subStatusList: [
       { title: 'En accompagnement' },
@@ -81,12 +66,7 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatusDTO.COMPLETED,
     title: 'Suivi terminé',
-    hint: (
-      <Text spacing="mb-0" as="span">
-        Le dossier ne nécessite plus de suivi car la situation du logement a
-        évolué ou la base de données d’origine comportait une erreur.
-      </Text>
-    ),
+    hint: 'Le dossier ne nécessite plus de suivi car la situation du logement a évolué ou la base de données d’origine comportait une erreur.',
     colorFamily: 'green-bourgeon',
     subStatusList: [
       { title: 'Sortie de la vacance' },
@@ -99,11 +79,7 @@ export const HousingStates: HousingState[] = [
   {
     status: HousingStatusDTO.BLOCKED,
     title: 'Bloqué',
-    hint: (
-      <Text spacing="mb-0" as="span">
-        La situation ne peut pas évoluer à court ou moyen terme.
-      </Text>
-    ),
+    hint: 'La situation ne peut pas évoluer à court ou moyen terme.',
     colorFamily: 'purple-glycine-sun',
     subStatusList: [
       { title: 'Blocage involontaire du propriétaire' },

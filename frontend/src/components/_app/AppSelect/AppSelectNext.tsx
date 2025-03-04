@@ -17,7 +17,7 @@ import styles from './app-select-next.module.scss';
 
 export type AppSelectNextProps<Value, Multiple extends boolean> = Pick<
   BaseSelectProps<SelectValue<Value, Multiple>>,
-  'className' | 'label' | 'renderValue'
+  'className' | 'label' | 'renderValue' | 'onBlur'
 > & {
   disabled?: boolean;
   error?: string;
@@ -273,6 +273,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
         value={selected ?? ''}
         variant="standard"
         onChange={onChange}
+        onBlur={props.onBlur}
       >
         {groups
           ? groups.map((options, group) =>

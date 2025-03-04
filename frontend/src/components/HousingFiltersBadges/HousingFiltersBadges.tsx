@@ -42,7 +42,7 @@ import {
 } from '../../models/HousingFilters';
 import {
   getSubStatusList,
-  getSubStatusListOptions
+  getSubStatusOptions
 } from '../../models/HousingState';
 
 import { citiesWithDistricts } from '../../models/Locality';
@@ -72,11 +72,11 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   function mergeDistricts(localities: string[]): string[] {
     const setGeoCodes = new Set(localities);
     for (const [city, districts] of Object.entries(citiesWithDistricts)) {
-      if (districts.every(d => setGeoCodes.has(d))) {
-        districts.forEach(d => {
-            setGeoCodes.delete(d);
-          });
-          setGeoCodes.add(city);
+      if (districts.every((d) => setGeoCodes.has(d))) {
+        districts.forEach((d) => {
+          setGeoCodes.delete(d);
+        });
+        setGeoCodes.add(city);
       }
     }
     return Array.from(setGeoCodes);
@@ -254,7 +254,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         }
       />
       <FilterBadges
-        options={getSubStatusListOptions(filters.statusList ?? [])}
+        options={filters.statusList?.flatMap(getSubStatusOptions) ?? []}
         values={filters.subStatus}
         small={small}
         onChange={(values) => onChange?.({ subStatus: values })}

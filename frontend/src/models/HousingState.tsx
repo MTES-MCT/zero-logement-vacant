@@ -111,16 +111,15 @@ export const getHousingSubStatus = (
   }
 };
 
-export function getSubStatusOptions(status: HousingStatusDTO) {
+export function getSubStatusOptions(status: HousingStatusDTO): SelectOption[] {
   const housingState = getHousingState(status);
-  return housingState.subStatusList
-    ? [
-        ...housingState.subStatusList.map((subStatus) => ({
-          value: subStatus.title,
-          label: subStatus.title
-        }))
-      ]
-    : undefined;
+  return (
+    housingState.subStatusList?.map((subStatus) => ({
+      value: subStatus.title,
+      label: subStatus.title,
+      badgeLabel: `Sous-statut de suivi : ${subStatus.title.toLowerCase()}`
+    })) ?? []
+  );
 }
 
 /**
@@ -136,26 +135,6 @@ export function getSubStatusList(
     .flatMap((state) => state.subStatusList)
     .filter(isDefined)
     .map((substatus) => substatus.title);
-}
-
-export function getSubStatusListOptions(
-  statuses: HousingStatusDTO[]
-): SelectOption[] {
-  return statuses
-    .map(getHousingState)
-    .flatMap<SelectOption>((state) => {
-      const substatuses: SelectOption[] =
-        state.subStatusList?.map((substatus) => ({
-          value: substatus.title,
-          label: substatus.title,
-          badgeLabel: `Sous-statut de suivi : ${substatus.title}`
-        })) ?? [];
-      return [
-        { value: state.title, label: state.title, disabled: true },
-        ...substatuses
-      ];
-    })
-    .filter(isDefined);
 }
 
 export function getSubStatuses(status: HousingStatusDTO): string[] {

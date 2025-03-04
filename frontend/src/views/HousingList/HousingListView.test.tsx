@@ -751,6 +751,67 @@ describe('Housing list view', () => {
     });
   });
 
+  describe('Substatus filter', () => {
+    function renderView() {
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/parc-de-logements',
+            element: (
+              <HousingListTabsProvider>
+                <HousingListView />
+              </HousingListTabsProvider>
+            )
+          }
+        ],
+        {
+          initialEntries: ['/parc-de-logements']
+        }
+      );
+      render(
+        <Provider store={store}>
+          <RouterProvider router={router} />
+        </Provider>
+      );
+
+      return {
+        router
+      };
+    }
+
+    it('should display a badge', async () => {
+      renderView();
+
+      const accordion = await screen.findByRole('button', {
+        name: 'Mobilisation'
+      });
+      await user.click(accordion);
+      const status = await screen.findByRole('combobox', {
+        name: 'Statut de suivi'
+      });
+      await user.click(status);
+
+      const statusOptions = await screen.findByRole('listbox');
+      const statusOption =
+        await within(statusOptions).findByText('Suivi en cours');
+      await user.click(statusOption);
+      await user.keyboard('{Escape}');
+
+      const subStatus = await screen.findByRole('combobox', {
+        name: 'Sous-statut de suivi'
+      });
+      await user.click(subStatus);
+      const subStatusOptions = await screen.findByRole('listbox');
+      const subStatusOption =
+        await within(subStatusOptions).findByText('En accompagnement');
+      await user.click(subStatusOption);
+      const badge = await screen.findByText(
+        'Sous-statut de suivi : en accompagnement'
+      );
+      expect(badge).toBeVisible();
+    });
+  });
+
   describe('Housing kind filter', () => {
     function renderView() {
       const router = createMemoryRouter(

@@ -15,15 +15,15 @@ import { match, Pattern } from 'ts-pattern';
 
 import styles from './app-select-next.module.scss';
 
-export type AppSelectNextProps<Value, Multiple extends boolean> = Omit<
+export type AppSelectNextProps<Value, Multiple extends boolean> = Pick<
   BaseSelectProps<SelectValue<Value, Multiple>>,
-  'error' | 'multiple' | 'value' | 'onChange'
+  'className' | 'label' | 'renderValue'
 > & {
   disabled?: boolean;
   error?: string;
   invalid?: boolean;
   getOptionKey?(value: Value): Key;
-  getOptionLabel?(value: Value): string;
+  getOptionLabel?(value: Value): ReactNode;
   getOptionValue?(value: Value): string;
   groupBy?(value: Value): string;
   isOptionEqualToValue?(option: Value, value: Value): boolean;
@@ -116,7 +116,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
     return props.getOptionKey?.(option) ?? String(option);
   }
 
-  function getOptionLabel(option: Value): string {
+  function getOptionLabel(option: Value): ReactNode {
     if (props.getOptionLabel) {
       return props.getOptionLabel(option);
     }
@@ -143,7 +143,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
     const option = props.options.find(
       (option) => getOptionValue(option) === value
     );
-    if (!option) {
+    if (option === undefined) {
       throw new Error(`Option with value ${value} not found`);
     }
 
@@ -252,6 +252,10 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
         native={false}
         ref={ref}
         renderValue={(values) => {
+          if (props.renderValue) {
+            return props.renderValue(values as SelectValue<Value, Multiple>);
+          }
+
           return multiple && typeof values !== 'string'
             ? match(withoutGroups(values).length)
                 .with(1, () => '1 option sélectionnée')

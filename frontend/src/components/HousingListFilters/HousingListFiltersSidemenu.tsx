@@ -41,8 +41,7 @@ import {
   roomsCountOptions,
   taxedOptions,
   unselectedOptions,
-  vacancyRateOptions,
-  vacancyYearOptions
+  vacancyRateOptions
 } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
 import { citiesWithDistricts } from '../../models/Locality';
@@ -63,6 +62,7 @@ import HousingKindSelect from './HousingKindSelect';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
 import OccupancySelect from './OccupancySelect';
+import VacancyYearSelect from './VacancyYearSelect';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -353,21 +353,17 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          {filters?.occupancies?.includes(Occupancy.VACANT) && (
-            <Grid component="article" mb={2} xs={12}>
-              <AppMultiSelect
-                label="Année de début de vacance"
-                options={vacancyYearOptions}
-                initialValues={filters.vacancyYears}
-                onChange={(values) =>
-                  onChangeFilters(
-                    { vacancyYears: values },
-                    'Année de début de vacance'
-                  )
-                }
-              />
-            </Grid>
-          )}
+          <Grid component="article" mb={2} xs={12}>
+            <VacancyYearSelect
+              disabled={!filters.occupancies?.includes(Occupancy.VACANT)}
+              multiple
+              value={filters.vacancyYears ?? []}
+              onChange={(values) => {
+                onChangeFilters({ vacancyYears: values });
+                posthog.capture('filtre-annee-debut-vacance');
+              }}
+            />
+          </Grid>
         </Accordion>
         <Accordion
           label={

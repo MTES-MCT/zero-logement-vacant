@@ -33,7 +33,6 @@ import {
   housingAreaOptions,
   housingCountOptions,
   HousingFilters,
-  localityKindsOptions,
   multiOwnerOptions,
   ownerAgeOptions,
   ownerKindOptions,
@@ -61,6 +60,7 @@ import styles from './housing-list-filters.module.scss';
 import HousingKindSelect from './HousingKindSelect';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
+import LocalityKindSelect from './LocalityKindSelect';
 import OccupancySelect from './OccupancySelect';
 import VacancyYearSelect from './VacancyYearSelect';
 
@@ -431,13 +431,12 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Type de commune"
-              options={localityKindsOptions}
-              initialValues={filters.localityKinds}
+            <LocalityKindSelect
+              multiple
+              value={filters.localityKinds ?? []}
               onChange={(values) => {
-                onChangeFilters({ localityKinds: values }, 'Type de commune');
-                posthog.capture('filtre-commune');
+                onChangeFilters({ localityKinds: values });
+                posthog.capture('filtre-type-commune');
               }}
             />
           </Grid>

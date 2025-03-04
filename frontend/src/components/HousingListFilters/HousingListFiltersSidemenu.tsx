@@ -28,7 +28,6 @@ import {
   cadastralClassificationOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
-  housingAreaOptions,
   HousingFilters,
   multiOwnerOptions,
   ownerAgeOptions,
@@ -61,6 +60,7 @@ import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
 import LocalityKindSelect from './LocalityKindSelect';
 import OccupancySelect from './OccupancySelect';
+import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
 
@@ -553,12 +553,11 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Surface"
-              options={housingAreaOptions}
-              initialValues={filters.housingAreas}
+            <SurfaceSelect
+              multiple
+              value={filters.housingAreas ?? []}
               onChange={(values) => {
-                onChangeFilters({ housingAreas: values }, 'Surface');
+                onChangeFilters({ housingAreas: values });
                 posthog.capture('filtre-surface');
               }}
             />

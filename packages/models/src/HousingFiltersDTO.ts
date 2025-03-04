@@ -6,6 +6,7 @@ import { HousingByBuilding } from './HousingByBuilding';
 import { HousingKind } from './HousingKind';
 import { HousingStatus } from './HousingStatus';
 import { LivingArea } from './LivingArea';
+import { LocalityKind } from './LocalityDTO';
 import { Occupancy } from './Occupancy';
 import { OwnerAge } from './OwnerAge';
 import { OwnerKind } from './OwnerKind';
@@ -46,7 +47,7 @@ export interface HousingFiltersDTO {
   vacancyRates?: VacancyRate[];
   intercommunalities?: string[];
   localities?: string[];
-  localityKinds?: string[];
+  localityKinds?: LocalityKind[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
   dataFileYearsIncluded?: string[];

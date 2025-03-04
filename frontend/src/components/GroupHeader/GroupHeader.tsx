@@ -88,7 +88,7 @@ function Empty() {
       </Typography>
       <Typography mb={1} variant="caption">
         Pour pouvoir exporter une liste de logements, sélectionnez les logements
-        que vous souhaitez cibler et cliquez sur “Ajouter dans un groupe”.
+        que vous souhaitez cibler et cliquez sur “Exporter ou contacter”.
       </Typography>
     </Stack>
   );

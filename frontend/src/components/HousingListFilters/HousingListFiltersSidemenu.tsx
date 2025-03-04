@@ -38,8 +38,7 @@ import {
   ownershipKindsOptions,
   roomsCountOptions,
   taxedOptions,
-  unselectedOptions,
-  vacancyRateOptions
+  unselectedOptions
 } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
 import { citiesWithDistricts } from '../../models/Locality';
@@ -62,6 +61,7 @@ import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
 import LocalityKindSelect from './LocalityKindSelect';
 import OccupancySelect from './OccupancySelect';
+import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
 
 interface TitleWithIconProps {
@@ -508,12 +508,11 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Taux de vacance"
-              options={vacancyRateOptions}
-              initialValues={filters.vacancyRates}
+            <VacancyRateSelect
+              multiple
+              value={filters.vacancyRates ?? []}
               onChange={(values) => {
-                onChangeFilters({ vacancyRates: values }, 'Taux de vacance');
+                onChangeFilters({ vacancyRates: values });
                 posthog.capture('filtre-taux-de-vacance');
               }}
             />

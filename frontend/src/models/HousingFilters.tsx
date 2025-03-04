@@ -25,8 +25,8 @@ import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyCon
 import { OCCUPANCY_LABELS } from './Housing';
 import { HousingStates } from './HousingState';
 import { LocalityKindLabels, LocalityKinds } from './Locality';
-import { VacancyYear } from './VacancyYear';
 import { SelectOption } from './SelectOption';
+import { VacancyYear } from './VacancyYear';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HousingFilters extends HousingFiltersDTO {}
@@ -89,10 +89,10 @@ export const statusOptions = (
 ): SelectOption[] => [
   ...HousingStates.filter(
     (_) => !(statusExcluded ?? []).includes(_.status)
-  ).map((status) => ({
+  ).map<SelectOption>((status) => ({
     value: String(status.status),
     label: status.title,
-    badgeLabel: `Statut de suivi : ${status.title}`,
+    badgeLabel: `Statut de suivi : ${status.title.toLowerCase()}`,
     hint: status.hint
   }))
 ];

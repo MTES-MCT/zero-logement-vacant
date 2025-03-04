@@ -13,6 +13,7 @@ import { OwnershipKind } from './OwnershipKind';
 import { Precision } from './Precision';
 import { RoomCount } from './RoomCount';
 import { VacancyRate } from './VacancyRate';
+import { VacancyYear } from './VacancyYear';
 
 export interface HousingFiltersDTO {
   /**
@@ -36,7 +37,7 @@ export interface HousingFiltersDTO {
   roomsCounts?: RoomCount[];
   cadastralClassifications?: number[];
   buildingPeriods?: BuildingPeriod[];
-  vacancyYears?: string[];
+  vacancyYears?: VacancyYear[];
   // TODO: make it an exclusive boolean ?
   // TODO: rename to taxed
   isTaxedValues?: boolean[];

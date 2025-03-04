@@ -6,6 +6,7 @@ import { CSSObject, styled, Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import {
+  HOUSING_STATUS_VALUES,
   HousingStatus,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
@@ -23,7 +24,6 @@ import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
-  allOccupancyOptions,
   beneficiaryCountOptions,
   buildingPeriodOptions,
   cadastralClassificationOptions,
@@ -40,7 +40,6 @@ import {
   ownerKindOptions,
   ownershipKindsOptions,
   roomsCountOptions,
-  statusOptions,
   taxedOptions,
   unselectedOptions,
   vacancyRateOptions,
@@ -50,6 +49,7 @@ import {
   getSubStatusList,
   getSubStatusListOptions
 } from '../../models/HousingState';
+import { citiesWithDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
@@ -61,10 +61,10 @@ import GroupHeader from '../GroupHeader/GroupHeader';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
-import { citiesWithDistricts } from '../../models/Locality';
 import CampaignFilter from './CampaignFilter';
 import styles from './housing-list-filters.module.scss';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
+import OccupancySelect from './OccupancySelect';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -358,12 +358,11 @@ function HousingListFiltersSidemenu(props: Props) {
           }
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Statut d’occupation"
-              options={allOccupancyOptions}
-              initialValues={filters.occupancies}
+            <OccupancySelect
+              multiple
+              value={filters.occupancies ?? []}
               onChange={(values) => {
-                onChangeFilters({ occupancies: values }, 'Statut d’occupation');
+                onChangeFilters({ occupancies: values });
                 posthog.capture('filtre-statut-occupation');
               }}
             />

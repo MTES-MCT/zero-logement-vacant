@@ -309,6 +309,9 @@ export const LIVING_AREA_OPTIONS: Record<
   }
 };
 
+/**
+ * @deprecated Use {@link ROOM_COUNT_OPTIONS} instead.
+ */
 export const roomsCountOptions: SelectOption<RoomCount>[] = [
   { value: '1', label: '1 pièce', badgeLabel: 'Nombre de pièces : 1' },
   { value: '2', label: '2 pièces', badgeLabel: 'Nombre de pièces : 2' },
@@ -320,6 +323,22 @@ export const roomsCountOptions: SelectOption<RoomCount>[] = [
     badgeLabel: 'Nombre de pièces : 5 et plus'
   }
 ];
+export const ROOM_COUNT_OPTIONS: Record<
+  RoomCount,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  '1': { label: '1 pièce', badgeLabel: 'Nombre de pièces : 1' },
+  '2': { label: '2 pièces', badgeLabel: 'Nombre de pièces : 2' },
+  '3': { label: '3 pièces', badgeLabel: 'Nombre de pièces : 3' },
+  '4': { label: '4 pièces', badgeLabel: 'Nombre de pièces : 4' },
+  gte5: {
+    label: '5 pièces et plus',
+    badgeLabel: 'Nombre de pièces : 5 et plus'
+  }
+};
 
 export const cadastralClassificationOptions: SelectOption[] = [
   {

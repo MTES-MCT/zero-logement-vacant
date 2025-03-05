@@ -1299,10 +1299,10 @@ describe('Housing list view', () => {
         });
         await user.click(accordion);
 
-        const ownerKind = await screen.findByRole('combobox', {
+        const ownershipKind = await screen.findByRole('combobox', {
           name: 'Type de propriété'
         });
-        await user.click(ownerKind);
+        await user.click(ownershipKind);
         const options = await screen.findByRole('listbox');
         const option = await within(options).findByText('Monopropriété');
         await user.click(option);
@@ -1336,6 +1336,29 @@ describe('Housing list view', () => {
         const badge = await screen.findByText(
           'Type de propriétaire : particulier'
         );
+        expect(badge).toBeVisible();
+      });
+    });
+
+    describe('Owner age filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Propriétaires'
+        });
+        await user.click(accordion);
+
+        const ownerAge = await screen.findByRole('combobox', {
+          name: 'Âge'
+        });
+        await user.click(ownerAge);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Moins de 40 ans');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText('Âge : moins de 40 ans');
         expect(badge).toBeVisible();
       });
     });

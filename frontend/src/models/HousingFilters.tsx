@@ -46,6 +46,9 @@ export const allOccupancyOptions: SelectOption<Occupancy>[] = [
   }))
 ];
 
+/**
+ * @deprecated Use {@link OWNER_AGE_OPTIONS} instead.
+ */
 export const ownerAgeOptions: SelectOption<OwnerAge>[] = [
   {
     value: 'lt40',
@@ -61,6 +64,19 @@ export const ownerAgeOptions: SelectOption<OwnerAge>[] = [
     badgeLabel: 'Âge : 100 ans et plus'
   }
 ];
+export const OWNER_AGE_OPTIONS: Record<
+  OwnerAge,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  lt40: { label: 'Moins de 40 ans', badgeLabel: 'Âge : moins de 40 ans' },
+  '40to59': { label: '40 - 59 ans', badgeLabel: 'Âge : 40 - 59 ans' },
+  '60to74': { label: '60 - 74 ans', badgeLabel: 'Âge : 60 - 74 ans' },
+  '75to99': { label: '75 - 99 ans', badgeLabel: 'Âge : 75 - 99 ans' },
+  gte100: { label: '100 ans et plus', badgeLabel: 'Âge : 100 ans et plus' }
+};
 
 export const noCampaignOption: SelectOption = {
   value: 'null',

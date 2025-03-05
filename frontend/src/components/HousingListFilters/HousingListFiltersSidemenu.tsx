@@ -30,7 +30,6 @@ import {
   dataFileYearsIncludedOptions,
   HousingFilters,
   multiOwnerOptions,
-  ownerAgeOptions,
   unselectedOptions
 } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
@@ -57,6 +56,7 @@ import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
 import LocalityKindSelect from './LocalityKindSelect';
 import OccupancySelect from './OccupancySelect';
+import OwnerAgeSelect from './OwnerAgeSelect';
 import OwnerKindSelect from './OwnerKindSelect';
 import OwnershipKindSelect from './OwnershipKindSelect';
 import RoomCountSelect from './RoomCountSelect';
@@ -626,12 +626,11 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Âge"
-              options={ownerAgeOptions}
-              initialValues={filters.ownerAges}
+            <OwnerAgeSelect
+              multiple
+              value={filters.ownerAges ?? []}
               onChange={(values) => {
-                onChangeFilters({ ownerAges: values }, 'Âge');
+                onChangeFilters({ ownerAges: values });
                 posthog.capture('filtre-age');
               }}
             />

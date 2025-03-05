@@ -1,6 +1,7 @@
 import {
   BeneficiaryCount,
   BuildingPeriod,
+  CadastralClassification,
   CampaignDTO,
   ENERGY_CONSUMPTION_VALUES,
   EnergyConsumption,
@@ -340,48 +341,92 @@ export const ROOM_COUNT_OPTIONS: Record<
   }
 };
 
-export const cadastralClassificationOptions: SelectOption[] = [
+/**
+ * @deprecated Use {@link CADASTRAL_CLASSIFICATION_OPTIONS} instead.
+ */
+export const cadastralClassificationOptions: SelectOption<CadastralClassification>[] =
+  [
+    {
+      value: '1',
+      label: '1 - Grand luxe',
+      badgeLabel: 'Classement cadastral : 1 - Grand luxe'
+    },
+    {
+      value: '2',
+      label: '2 - Luxe',
+      badgeLabel: 'Classement cadastral : 2 - Luxe'
+    },
+    {
+      value: '3',
+      label: '3 - Très confortable',
+      badgeLabel: 'Classement cadastral : 3 - Très confortable'
+    },
+    {
+      value: '4',
+      label: '4 - Confortable',
+      badgeLabel: 'Classement cadastral : 4 - Confortable'
+    },
+    {
+      value: '5',
+      label: '5 - Assez confortable',
+      badgeLabel: 'Classement cadastral : 5 - Assez confortable'
+    },
+    {
+      value: '6',
+      label: '6 - Ordinaire',
+      badgeLabel: 'Classement cadastral : 6 - Ordinaire'
+    },
+    {
+      value: '7',
+      label: '7 - Médiocre',
+      badgeLabel: 'Classement cadastral : 7 - Médiocre'
+    },
+    {
+      value: '8',
+      label: '8 - Très médiocre',
+      badgeLabel: 'Classement cadastral : 8 - Très médiocre'
+    }
+  ];
+export const CADASTRAL_CLASSIFICATION_OPTIONS: Record<
+  CadastralClassification,
   {
-    value: '1',
-    label: '1 - Grand luxe',
-    badgeLabel: 'Classification cadastrale : 1 - Grand luxe'
-  },
-  {
-    value: '2',
-    label: '2 - Luxe',
-    badgeLabel: 'Classification cadastrale : 2 - Luxe'
-  },
-  {
-    value: '3',
-    label: '3 - Très confortable',
-    badgeLabel: 'Classification cadastrale : 3 - Très confortable'
-  },
-  {
-    value: '4',
-    label: '4 - Confortable',
-    badgeLabel: 'Classification cadastrale : 4 - Confortable'
-  },
-  {
-    value: '5',
-    label: '5 - Assez confortable',
-    badgeLabel: 'Classification cadastrale : 5 - Assez confortable'
-  },
-  {
-    value: '6',
-    label: '6 - Ordinaire',
-    badgeLabel: 'Classification cadastrale : 6 - Ordinaire'
-  },
-  {
-    value: '7',
-    label: '7 - Médiocre',
-    badgeLabel: 'Classification cadastrale : 7 - Médiocre'
-  },
-  {
-    value: '8',
-    label: '8 - Très médiocre',
-    badgeLabel: 'Classification cadastrale : 8 - Très médiocre'
+    label: string;
+    badgeLabel: string;
   }
-];
+> = {
+  '1': {
+    label: '1 - Grand luxe',
+    badgeLabel: 'Classement cadastral : 1 - Grand luxe'
+  },
+  '2': {
+    label: '2 - Luxe',
+    badgeLabel: 'Classement cadastral : 2 - Luxe'
+  },
+  '3': {
+    label: '3 - Très confortable',
+    badgeLabel: 'Classement cadastral : 3 - Très confortable'
+  },
+  '4': {
+    label: '4 - Confortable',
+    badgeLabel: 'Classement cadastral : 4 - Confortable'
+  },
+  '5': {
+    label: '5 - Assez confortable',
+    badgeLabel: 'Classement cadastral : 5 - Assez confortable'
+  },
+  '6': {
+    label: '6 - Ordinaire',
+    badgeLabel: 'Classement cadastral : 6 - Ordinaire'
+  },
+  '7': {
+    label: '7 - Médiocre',
+    badgeLabel: 'Classement cadastral : 7 - Médiocre'
+  },
+  '8': {
+    label: '8 - Très médiocre',
+    badgeLabel: 'Classement cadastral : 8 - Très médiocre'
+  }
+};
 
 /**
  * @deprecated Use {@link BUILDING_PERIOD_OPTIONS} instead.

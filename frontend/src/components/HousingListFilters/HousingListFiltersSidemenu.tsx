@@ -39,7 +39,7 @@ import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 import BuildingPeriodSelect from './BuildingPeriodSelect';
 import CadastralClassificationSelect from './CadastralClassificationSelect';
-import CampaignFilter from './CampaignFilter';
+import CampaignSelect from './CampaignSelect';
 import DataFileYearSelect from './DataFileYearSelect';
 import EnergyConsumptionSelect from './EnergyConsumptionSelect';
 import styles from './housing-list-filters.module.scss';
@@ -92,7 +92,6 @@ function HousingListFiltersSidemenu(props: Props) {
   const filters = props.filters;
   const onChangeFilters = props.onChange;
   const onResetFilters = props.onReset;
-  const { data: campaigns } = useFindCampaignsQuery();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localities } = useLocalityList(establishment?.id);
 
@@ -120,6 +119,9 @@ function HousingListFiltersSidemenu(props: Props) {
 
   const { data: precisions } = useFindPrecisionsQuery();
   const precisionOptions = precisions ?? [];
+
+  const { data: campaigns } = useFindCampaignsQuery();
+  const campaignOptions = campaigns ?? [];
 
   const { isVisitor } = useUser();
 
@@ -224,18 +226,29 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          {campaigns && (
-            <Grid component="article" mb={2} xs={12}>
-              <CampaignFilter
-                options={campaigns}
-                values={filters.campaignIds ?? []}
-                onChange={(values: Array<string | null>) => {
-                  onChangeFilters({ campaignIds: values }, 'Campagne');
-                  posthog.capture('filtre-campagne');
-                }}
-              />
-            </Grid>
-          )}
+          <Grid component="article" mb={2} xs={12}>
+            <CampaignSelect
+              disabled={campaigns && campaigns.length === 0}
+              multiple
+              options={campaigns ?? []}
+              value={
+                filters.campaignIds?.map((id) => {
+                  const option = campaignOptions.find(
+                    (option) => option.id === id
+                  );
+                  return option ?? null;
+                }) ?? []
+              }
+              onChange={(values) => {
+                onChangeFilters({
+                  campaignIds: values.map((value) =>
+                    value !== null ? value.id : null
+                  )
+                });
+                posthog.capture('filtre-campagne');
+              }}
+            />
+          </Grid>
           <Grid component="article" mb={2} xs={12}>
             <PrecisionSelect
               label="Dispositifs"

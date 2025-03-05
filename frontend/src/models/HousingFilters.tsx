@@ -3,6 +3,8 @@ import {
   BuildingPeriod,
   CadastralClassification,
   CampaignDTO,
+  DATA_FILE_YEAR_VALUES,
+  DataFileYear,
   ENERGY_CONSUMPTION_VALUES,
   EnergyConsumption,
   EstablishmentDTO,
@@ -23,6 +25,7 @@ import {
   VacancyRate,
   VacancyYear
 } from '@zerologementvacant/models';
+import { match, Pattern } from 'ts-pattern';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import { OCCUPANCY_LABELS } from './Housing';
 import { HousingStates } from './HousingState';
@@ -677,6 +680,9 @@ export const LOCALITY_KIND_OPTIONS: Record<
   }
 };
 
+/**
+ * @deprecated Use {@link DATA_FILE_YEAR_INCLUDED_OPTIONS} instead.
+ */
 export const dataFileYearsIncludedOptions: SelectOption[] = [
   {
     value: 'ff-2023-locatif',
@@ -716,6 +722,58 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
   }
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
+export const DATA_FILE_YEAR_INCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
+  (record, value) => {
+    return {
+      ...record,
+      [value]: match(value)
+        .with('ff-2023-locatif', () => {
+          const label = 'Fichiers fonciers 2023 (parc locatif privé)';
+          return {
+            label,
+            badgeLabel: `Source et millésime inclus: ${label}`
+          };
+        })
+        .with(Pattern.string.startsWith('lovac-'), (value) => {
+          const label = `LOVAC ${value.slice('lovac-'.length)} (>2 ans)`;
+          return {
+            label,
+            badgeLabel: `Source et millésime inclus : ${label}`
+          };
+        })
+        .exhaustive()
+    };
+  },
+  {} as Record<DataFileYear, { label: string; badgeLabel: string }>
+);
+export const DATA_FILE_YEAR_EXCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
+  (record, value) => {
+    return {
+      ...record,
+      [value]: match(value)
+        .with('ff-2023-locatif', () => {
+          const label = 'Fichiers fonciers 2023 (parc locatif privé)';
+          return {
+            label,
+            badgeLabel: `Source et millésime exclus : ${label}`
+          };
+        })
+        .with(Pattern.string.startsWith('lovac-'), (value) => {
+          const label = `LOVAC ${value.slice('lovac-'.length)} (>2 ans)`;
+          return {
+            label,
+            badgeLabel: `Source et millésime exclus : ${label}`
+          };
+        })
+        .exhaustive()
+    };
+  },
+  {} as Record<DataFileYear, { label: string; badgeLabel: string }>
+);
+
+/**
+ * @deprecated Use {@link DATA_FILE_YEAR_EXCLUDED_OPTIONS} instead.
+ */
 export const dataFileYearsExcludedOptions: SelectOption[] = [
   {
     value: 'ff-2023-locatif',

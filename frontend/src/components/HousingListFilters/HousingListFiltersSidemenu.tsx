@@ -24,12 +24,7 @@ import { useAppSelector } from '../../hooks/useStore';
 import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-import {
-  dataFileYearsExcludedOptions,
-  dataFileYearsIncludedOptions,
-  HousingFilters,
-  unselectedOptions
-} from '../../models/HousingFilters';
+import { HousingFilters, unselectedOptions } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
 import { citiesWithDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
@@ -37,7 +32,6 @@ import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
 import { concat } from '../../utils/arrayUtils';
-import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
 import { Icon, SearchableSelect } from '../_dsfr';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
@@ -46,6 +40,7 @@ import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 import BuildingPeriodSelect from './BuildingPeriodSelect';
 import CadastralClassificationSelect from './CadastralClassificationSelect';
 import CampaignFilter from './CampaignFilter';
+import DataFileYearSelect from './DataFileYearSelect';
 import EnergyConsumptionSelect from './EnergyConsumptionSelect';
 import styles from './housing-list-filters.module.scss';
 import HousingCountSelect from './HousingCountSelect';
@@ -660,34 +655,25 @@ function HousingListFiltersSidemenu(props: Props) {
           label={<TitleWithIcon icon="fr-icon-server-line" title="Données" />}
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes inclus"
-              options={dataFileYearsIncludedOptions}
-              initialValues={(filters.dataFileYearsIncluded ?? []).map((_) =>
-                String(_)
-              )}
+            <DataFileYearSelect
+              multiple
+              type="included"
+              value={filters.dataFileYearsIncluded ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsIncluded: values },
-                  'Sources et Millésimes inclus'
-                );
+                onChangeFilters({
+                  dataFileYearsIncluded: values
+                });
                 posthog.capture('filtre-sources-millesimes-inclus');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes exclus"
-              defaultOption="Aucun"
-              options={dataFileYearsExcludedOptions}
-              initialValues={(filters.dataFileYearsExcluded ?? []).map((_) =>
-                String(_)
-              )}
+            <DataFileYearSelect
+              multiple
+              type="excluded"
+              value={filters.dataFileYearsExcluded ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsExcluded: values },
-                  'Sources et millésime exclus'
-                );
+                onChangeFilters({ dataFileYearsExcluded: values });
                 posthog.capture('filtre-sources-millesimes-exclus');
               }}
             />

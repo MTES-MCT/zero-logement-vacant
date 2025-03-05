@@ -7,6 +7,7 @@ export * from './CampaignDTO';
 export * from './ContactPoint';
 export * from './DraftDTO';
 export * from './DashboardDTO';
+export * from './DataFileYear';
 export * from './DatafoncierHousing';
 export * from './DatafoncierOwner';
 export * from './EnergyConsumption';

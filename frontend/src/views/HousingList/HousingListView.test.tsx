@@ -1410,5 +1410,55 @@ describe('Housing list view', () => {
         expect(badge).toBeVisible();
       });
     });
+
+    describe('Included data file years filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Données'
+        });
+        await user.click(accordion);
+
+        const dataFileYearsIncluded = await screen.findByRole('combobox', {
+          name: 'Sources et millésimes inclus'
+        });
+        await user.click(dataFileYearsIncluded);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText(/^LOVAC 2020/);
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText(
+          /^Source et millésime inclus : LOVAC 2020/
+        );
+        expect(badge).toBeVisible();
+      });
+    });
+
+    describe('Excluded data file years filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Données'
+        });
+        await user.click(accordion);
+
+        const dataFileYearsExcluded = await screen.findByRole('combobox', {
+          name: 'Sources et millésimes exclus'
+        });
+        await user.click(dataFileYearsExcluded);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText(/^LOVAC 2020/);
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText(
+          /^Source et millésime exclus : LOVAC 2020/
+        );
+        expect(badge).toBeVisible();
+      });
+    });
   });
 });

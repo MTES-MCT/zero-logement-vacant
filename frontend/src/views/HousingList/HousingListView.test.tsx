@@ -1290,6 +1290,31 @@ describe('Housing list view', () => {
       });
     });
 
+    describe('Ownership kind filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Logement'
+        });
+        await user.click(accordion);
+
+        const ownerKind = await screen.findByRole('combobox', {
+          name: 'Type de propriété'
+        });
+        await user.click(ownerKind);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Monopropriété');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText(
+          'Type de propriété : monopropriété'
+        );
+        expect(badge).toBeVisible();
+      });
+    });
+
     describe('Owner kind filter', () => {
       it('should display a badge', async () => {
         renderView();

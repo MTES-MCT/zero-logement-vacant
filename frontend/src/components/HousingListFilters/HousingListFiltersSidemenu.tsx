@@ -25,7 +25,6 @@ import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
-  beneficiaryCountOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
   HousingFilters,
@@ -60,6 +59,7 @@ import OwnerAgeSelect from './OwnerAgeSelect';
 import OwnerKindSelect from './OwnerKindSelect';
 import OwnershipKindSelect from './OwnershipKindSelect';
 import RoomCountSelect from './RoomCountSelect';
+import SecondaryOwnerSelect from './SecondaryOwnerSelect';
 import SurfaceSelect from './SurfaceSelect';
 import TaxSelect from './TaxSelect';
 import VacancyRateSelect from './VacancyRateSelect';
@@ -646,15 +646,11 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Propriétaires secondaires"
-              options={beneficiaryCountOptions}
-              initialValues={filters.beneficiaryCounts}
+            <SecondaryOwnerSelect
+              multiple
+              value={filters.beneficiaryCounts ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { beneficiaryCounts: values },
-                  'Propriétaires secondaires'
-                );
+                onChangeFilters({ beneficiaryCounts: values });
                 posthog.capture('filtre-proprietaires-secondaires');
               }}
             />

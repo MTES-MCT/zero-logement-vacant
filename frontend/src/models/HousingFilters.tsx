@@ -132,6 +132,9 @@ export const statusOptions = (
   }))
 ];
 
+/**
+ * @deprecated Use {@link BENEFICIARY_COUNT_OPTIONS} instead.
+ */
 export const beneficiaryCountOptions: SelectOption<BeneficiaryCount>[] = [
   {
     value: '0',
@@ -164,6 +167,38 @@ export const beneficiaryCountOptions: SelectOption<BeneficiaryCount>[] = [
     badgeLabel: 'Propriétaires secondaires : 5 bénéficiaires et plus'
   }
 ];
+export const BENEFICIARY_COUNT_OPTIONS: Record<
+  BeneficiaryCount,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  '0': {
+    label: 'Aucun',
+    badgeLabel: 'Propriétaires secondaires : aucun bénéficiaire'
+  },
+  '1': {
+    label: '1',
+    badgeLabel: 'Propriétaires secondaires : 1 bénéficiaire'
+  },
+  '2': {
+    label: '2',
+    badgeLabel: 'Propriétaires secondaires : 2 bénéficiaires'
+  },
+  '3': {
+    label: '3',
+    badgeLabel: 'Propriétaires secondaires : 3 bénéficiaires'
+  },
+  '4': {
+    label: '4',
+    badgeLabel: 'Propriétaires secondaires : 4 bénéficiaires'
+  },
+  gte5: {
+    label: '5 et plus',
+    badgeLabel: 'Propriétaires secondaires : 5 bénéficiaires et plus'
+  }
+};
 
 /**
  * @deprecated Use {@link HOUSING_COUNT_OPTIONS} instead.

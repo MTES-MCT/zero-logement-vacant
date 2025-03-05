@@ -29,7 +29,6 @@ import {
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
   HousingFilters,
-  multiOwnerOptions,
   unselectedOptions
 } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
@@ -55,6 +54,7 @@ import HousingKindSelect from './HousingKindSelect';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
 import LocalityKindSelect from './LocalityKindSelect';
+import MultiOwnerSelect from './MultiOwnerSelect';
 import OccupancySelect from './OccupancySelect';
 import OwnerAgeSelect from './OwnerAgeSelect';
 import OwnerKindSelect from './OwnerKindSelect';
@@ -636,18 +636,12 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Multi-propriétaire"
-              options={multiOwnerOptions}
-              initialValues={filters.multiOwners?.map((value) =>
-                value ? 'true' : 'false'
-              )}
+            <MultiOwnerSelect
+              multiple
+              value={filters.multiOwners ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { multiOwners: values?.map((value) => value === 'true') },
-                  'Multi-propriétaire'
-                );
-                posthog.capture('filtre-multi-proprietaire');
+                onChangeFilters({ multiOwners: values });
+                posthog.capture('filtre-owners');
               }}
             />
           </Grid>

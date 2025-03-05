@@ -1362,5 +1362,28 @@ describe('Housing list view', () => {
         expect(badge).toBeVisible();
       });
     });
+
+    describe('Multi-owner filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Propriétaires'
+        });
+        await user.click(accordion);
+
+        const multiOwner = await screen.findByRole('combobox', {
+          name: 'Multi-propriétaire'
+        });
+        await user.click(multiOwner);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Oui');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText('Multi-propriétaire : oui');
+        expect(badge).toBeVisible();
+      });
+    });
   });
 });

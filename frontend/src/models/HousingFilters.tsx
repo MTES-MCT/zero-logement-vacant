@@ -549,6 +549,9 @@ export const taxedOptions: SelectOption[] = [
   { value: 'false', label: 'Non', badgeLabel: 'Taxé : non' }
 ];
 
+/**
+ * @deprecated Use {@link OWNERSHIP_KIND_OPTIONS} instead.
+ */
 export const ownershipKindsOptions: SelectOption<OwnershipKind>[] = [
   {
     value: 'single',
@@ -566,6 +569,23 @@ export const ownershipKindsOptions: SelectOption<OwnershipKind>[] = [
     badgeLabel: 'Type de propriété : autre'
   }
 ];
+export const OWNERSHIP_KIND_OPTIONS: Record<
+  OwnershipKind,
+  { label: string; badgeLabel: string }
+> = {
+  single: {
+    label: 'Monopropriété',
+    badgeLabel: 'Type de propriété : monopropriété'
+  },
+  co: {
+    label: 'Copropriété',
+    badgeLabel: 'Type de propriété : copropriété'
+  },
+  other: {
+    label: 'Autre',
+    badgeLabel: 'Type de propriété : autre'
+  }
+};
 
 export function getIntercommunalityOptions(
   establishments: EstablishmentDTO[]

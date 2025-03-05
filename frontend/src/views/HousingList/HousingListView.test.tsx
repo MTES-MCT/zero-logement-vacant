@@ -1264,5 +1264,30 @@ describe('Housing list view', () => {
         expect(badge).toBeVisible();
       });
     });
+
+    describe('Cadastral classification filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Logement'
+        });
+        await user.click(accordion);
+
+        const cadastralClassfication = await screen.findByRole('combobox', {
+          name: 'Classement cadastral'
+        });
+        await user.click(cadastralClassfication);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('1 - Grand luxe');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText(
+          'Classement cadastral : 1 - Grand luxe'
+        );
+        expect(badge).toBeVisible();
+      });
+    });
   });
 });

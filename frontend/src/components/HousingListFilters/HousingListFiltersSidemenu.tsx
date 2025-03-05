@@ -6,6 +6,7 @@ import { CSSObject, styled, Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import {
+  CadastralClassification,
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
   isPrecisionBlockingPointCategory,
@@ -25,7 +26,6 @@ import { useUser } from '../../hooks/useUser';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import {
   beneficiaryCountOptions,
-  cadastralClassificationOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
   HousingFilters,
@@ -49,6 +49,7 @@ import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersMo
 import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 import BuildingPeriodSelect from './BuildingPeriodSelect';
+import CadastralClassificationSelect from './CadastralClassificationSelect';
 import CampaignFilter from './CampaignFilter';
 import EnergyConsumptionSelect from './EnergyConsumptionSelect';
 import styles from './housing-list-filters.module.scss';
@@ -583,15 +584,17 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Classement cadastral"
-              options={cadastralClassificationOptions}
-              initialValues={filters.cadastralClassifications?.map(String)}
+            <CadastralClassificationSelect
+              multiple
+              value={
+                (filters.cadastralClassifications?.map(String) as
+                  | CadastralClassification[]
+                  | undefined) ?? []
+              }
               onChange={(values) => {
-                onChangeFilters(
-                  { cadastralClassifications: values.map(Number) },
-                  'Classement cadastral'
-                );
+                onChangeFilters({
+                  cadastralClassifications: values.map(Number)
+                });
                 posthog.capture('filtre-classement-cadastral');
               }}
             />

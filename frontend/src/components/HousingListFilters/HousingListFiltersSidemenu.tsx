@@ -31,7 +31,6 @@ import {
   HousingFilters,
   multiOwnerOptions,
   ownerAgeOptions,
-  ownershipKindsOptions,
   unselectedOptions
 } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
@@ -59,6 +58,7 @@ import HousingSubStatusSelect from './HousingSubStatusSelect';
 import LocalityKindSelect from './LocalityKindSelect';
 import OccupancySelect from './OccupancySelect';
 import OwnerKindSelect from './OwnerKindSelect';
+import OwnershipKindSelect from './OwnershipKindSelect';
 import RoomCountSelect from './RoomCountSelect';
 import SurfaceSelect from './SurfaceSelect';
 import TaxSelect from './TaxSelect';
@@ -600,15 +600,11 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Type de propriété"
-              options={ownershipKindsOptions}
-              initialValues={filters.ownershipKinds}
+            <OwnershipKindSelect
+              multiple
+              value={filters.ownershipKinds ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { ownershipKinds: values },
-                  'Type de propriété'
-                );
+                onChangeFilters({ ownershipKinds: values });
                 posthog.capture('filtre-type-propriete');
               }}
             />

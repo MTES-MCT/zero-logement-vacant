@@ -25,7 +25,7 @@ export type AppSelectNextProps<Value, Multiple extends boolean> = Pick<
   getOptionKey?(value: Value): Key;
   getOptionLabel?(value: Value): ReactNode;
   getOptionValue?(value: Value): string;
-  groupBy?(value: Value): string;
+  groupBy?(value: Value): string | null;
   isOptionEqualToValue?(option: Value, value: Value): boolean;
   // Keep this until upgrading to MUI v6
   multiple?: Multiple;
@@ -55,7 +55,12 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
   const value: SelectValue<Value, any> =
     props.options.length === 0 ? null : props.value;
   const groups = props.groupBy
-    ? List(props.options).groupBy((option) => props.groupBy!(option))
+    ? List(props.options)
+        .groupBy((option) => props.groupBy!(option) ?? '')
+        .filter((_, group) => group !== '')
+    : null;
+  const groupLessOptions = props.groupBy
+    ? List(props.options).filter((option) => props.groupBy!(option) === null)
     : null;
 
   const selectedOptions: ReadonlyArray<Value> = multiple
@@ -198,6 +203,48 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
     return props.renderGroup?.(group) ?? group;
   }
 
+  function renderOption(option: Value) {
+    return (
+      <MenuItem
+        dense
+        disableRipple
+        key={getOptionKey(option)}
+        value={getOptionValue(option)}
+        selected={isOptionSelected(option)}
+        sx={{
+          whiteSpace: 'normal'
+        }}
+      >
+        {!props.multiple ? (
+          <Typography variant="body2">{getOptionLabel(option)}</Typography>
+        ) : (
+          <Checkbox
+            classes={{
+              root: fr.cx('fr-mb-0'),
+              inputGroup: fr.cx('fr-mt-0')
+            }}
+            options={[
+              {
+                label: (
+                  <Typography sx={{ mt: '0.125rem' }} variant="body2">
+                    {getOptionLabel(option)}
+                  </Typography>
+                ),
+                nativeInputProps: {
+                  checked: isOptionSelected(option),
+                  onClick: noop,
+                  onChange: noop
+                }
+              }
+            ]}
+            orientation="vertical"
+            small
+          />
+        )}
+      </MenuItem>
+    );
+  }
+
   return (
     <Box
       className={classNames(
@@ -278,130 +325,50 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
         onBlur={props.onBlur}
       >
         {groups
-          ? groups.map((options, group) =>
-              [
-                <MenuItem
-                  key={group}
-                  value={group}
-                  dense
-                  disableRipple
-                  classes={{
-                    selected: styles.selected
-                  }}
-                  sx={{
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 1,
-                    backgroundColor:
-                      fr.colors.decisions.background.default.grey.default,
-                    whiteSpace: 'normal'
-                  }}
-                >
-                  <Checkbox
-                    classes={{
-                      root: fr.cx('fr-mb-0'),
-                      inputGroup: fr.cx('fr-mt-0')
-                    }}
-                    options={[
-                      {
-                        label: renderGroup(group),
-                        nativeInputProps: {
-                          checked: isGroupSelected(group),
-                          onClick: noop,
-                          onChange: noop
-                        }
-                      }
-                    ]}
-                    orientation="vertical"
-                    small
-                  />
-                </MenuItem>
-              ].concat(
-                ...options.map((option) => (
+          ? [
+              ...(groupLessOptions ?? List()).map(renderOption),
+              ...groups.map((options, group) =>
+                [
                   <MenuItem
+                    key={group}
+                    value={group}
                     dense
                     disableRipple
-                    key={getOptionKey(option)}
-                    value={getOptionValue(option)}
+                    classes={{
+                      selected: styles.selected
+                    }}
                     sx={{
+                      position: 'sticky',
+                      top: 0,
+                      zIndex: 1,
+                      backgroundColor:
+                        fr.colors.decisions.background.default.grey.default,
                       whiteSpace: 'normal'
                     }}
                   >
-                    {!props.multiple ? (
-                      <Typography variant="body2">
-                        {getOptionLabel(option)}
-                      </Typography>
-                    ) : (
-                      <Checkbox
-                        classes={{
-                          root: fr.cx('fr-mb-0'),
-                          inputGroup: fr.cx('fr-mt-0')
-                        }}
-                        options={[
-                          {
-                            label: (
-                              <Typography
-                                sx={{ mt: '0.125rem' }}
-                                variant="body2"
-                              >
-                                {getOptionLabel(option)}
-                              </Typography>
-                            ),
-                            nativeInputProps: {
-                              checked: isOptionSelected(option),
-                              onClick: noop,
-                              onChange: noop
-                            }
+                    <Checkbox
+                      classes={{
+                        root: fr.cx('fr-mb-0'),
+                        inputGroup: fr.cx('fr-mt-0')
+                      }}
+                      options={[
+                        {
+                          label: renderGroup(group),
+                          nativeInputProps: {
+                            checked: isGroupSelected(group),
+                            onClick: noop,
+                            onChange: noop
                           }
-                        ]}
-                        orientation="vertical"
-                        small
-                      />
-                    )}
-                  </MenuItem>
-                ))
-              )
-            )
-          : props.options.map((option) => (
-              <MenuItem
-                dense
-                disableRipple
-                key={getOptionKey(option)}
-                value={getOptionValue(option)}
-                sx={{
-                  whiteSpace: 'normal'
-                }}
-              >
-                {!props.multiple ? (
-                  <Typography variant="body2">
-                    {getOptionLabel(option)}
-                  </Typography>
-                ) : (
-                  <Checkbox
-                    classes={{
-                      root: fr.cx('fr-mb-0'),
-                      inputGroup: fr.cx('fr-mt-0')
-                    }}
-                    options={[
-                      {
-                        label: (
-                          <Typography sx={{ mt: '0.125rem' }} variant="body2">
-                            {getOptionLabel(option)}
-                          </Typography>
-                        ),
-                        nativeInputProps: {
-                          checked: isOptionSelected(option),
-                          onClick: noop,
-                          onChange: noop
                         }
-                      }
-                    ]}
-                    orientation="vertical"
-                    small
-                  />
-                )}
-              </MenuItem>
-            ))}
+                      ]}
+                      orientation="vertical"
+                      small
+                    />
+                  </MenuItem>
+                ].concat(...options.map(renderOption))
+              )
+            ]
+          : props.options.map(renderOption)}
       </MuiSelect>
       {props.error ? (
         <Typography className={fr.cx('fr-error-text')}>

@@ -78,12 +78,30 @@ export function getCampaignOptions(campaigns: CampaignDTO[]): SelectOption[] {
   ];
 }
 
+/**
+ * @deprecated Use {@link OWNER_KIND_OPTIONS} instead.
+ */
 export const ownerKindOptions: SelectOption<OwnerKind>[] =
   OWNER_KIND_VALUES.map((value) => ({
     value: value,
     label: OWNER_KIND_LABELS[value],
-    badgeLabel: `Type de propriétaire : ${OWNER_KIND_LABELS[value]}`
+    badgeLabel: `Type de propriétaire : ${OWNER_KIND_LABELS[value].toLowerCase()}`
   }));
+export const OWNER_KIND_OPTIONS: Record<
+  OwnerKind,
+  { label: string; badgeLabel: string }
+> = OWNER_KIND_VALUES.reduce(
+  (record, value) => {
+    return {
+      ...record,
+      [value]: {
+        label: OWNER_KIND_LABELS[value],
+        badgeLabel: `Type de propriétaire : ${OWNER_KIND_LABELS[value].toLowerCase()}`
+      }
+    };
+  },
+  {} as Record<OwnerKind, { label: string; badgeLabel: string }>
+);
 
 export const statusOptions = (
   statusExcluded?: HousingStatus[]

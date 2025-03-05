@@ -1385,5 +1385,30 @@ describe('Housing list view', () => {
         expect(badge).toBeVisible();
       });
     });
+
+    describe('Secondary owner filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Propriétaires'
+        });
+        await user.click(accordion);
+
+        const secondaryOwners = await screen.findByRole('combobox', {
+          name: 'Propriétaires secondaires'
+        });
+        await user.click(secondaryOwners);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Aucun');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText(
+          'Propriétaires secondaires : aucun bénéficiaire'
+        );
+        expect(badge).toBeVisible();
+      });
+    });
   });
 });

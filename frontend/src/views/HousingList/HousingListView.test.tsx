@@ -1289,5 +1289,30 @@ describe('Housing list view', () => {
         expect(badge).toBeVisible();
       });
     });
+
+    describe('Owner kind filter', () => {
+      it('should display a badge', async () => {
+        renderView();
+
+        const accordion = await screen.findByRole('button', {
+          name: 'Propriétaires'
+        });
+        await user.click(accordion);
+
+        const ownerKind = await screen.findByRole('combobox', {
+          name: 'Type de propriétaire'
+        });
+        await user.click(ownerKind);
+        const options = await screen.findByRole('listbox');
+        const option = await within(options).findByText('Particulier');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
+        const badge = await screen.findByText(
+          'Type de propriétaire : particulier'
+        );
+        expect(badge).toBeVisible();
+      });
+    });
   });
 });

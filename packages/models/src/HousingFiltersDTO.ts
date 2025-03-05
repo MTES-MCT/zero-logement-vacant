@@ -1,6 +1,7 @@
 import { BeneficiaryCount } from './BeneficiaryCount';
 import { BuildingPeriod } from './BuildingPeriod';
 import { CampaignCount } from './CampaignCount';
+import { DataFileYear } from './DataFileYear';
 import { EnergyConsumption } from './EnergyConsumption';
 import { HousingByBuilding } from './HousingByBuilding';
 import { HousingKind } from './HousingKind';
@@ -50,8 +51,8 @@ export interface HousingFiltersDTO {
   localityKinds?: LocalityKind[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
-  dataFileYearsIncluded?: string[];
-  dataFileYearsExcluded?: string[];
+  dataFileYearsIncluded?: DataFileYear[];
+  dataFileYearsExcluded?: DataFileYear[];
   status?: HousingStatus;
   statusList?: HousingStatus[];
   subStatus?: string[];

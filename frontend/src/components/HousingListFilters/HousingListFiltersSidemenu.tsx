@@ -397,17 +397,7 @@ function HousingListFiltersSidemenu(props: Props) {
                   if (values) {
                     onChangeFilters(
                       {
-                        intercommunalities: values.map((value) => value.id),
-                        localities:
-                          values.length > 0
-                            ? // Remove unavailable localities
-                              Set(filters.localities)
-                                .intersect(
-                                  values.flatMap((value) => value.geoCodes)
-                                )
-                                .toArray()
-                            : // Otherwise, keep as it is
-                              filters.localities
+                        intercommunalities: values.map((value) => value.id)
                       },
                       'Intercommunalité'
                     );

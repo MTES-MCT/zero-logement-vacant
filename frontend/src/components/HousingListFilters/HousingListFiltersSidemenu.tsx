@@ -5,6 +5,7 @@ import MuiDrawer from '@mui/material/Drawer';
 import { CSSObject, styled, Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
+
 import {
   CadastralClassification,
   HOUSING_KIND_VALUES,
@@ -14,10 +15,11 @@ import {
   isPrecisionMechanismCategory,
   Occupancy
 } from '@zerologementvacant/models';
-
 import { isDefined } from '@zerologementvacant/utils';
 import classNames from 'classnames';
+import { Set } from 'immutable';
 import posthog from 'posthog-js';
+import { match, Pattern } from 'ts-pattern';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
@@ -26,7 +28,6 @@ import { useUser } from '../../hooks/useUser';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
 import { HousingFilters, unselectedOptions } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
-import { citiesWithDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
@@ -96,26 +97,18 @@ function HousingListFiltersSidemenu(props: Props) {
   const { localities } = useLocalityList(establishment?.id);
 
   const { data: intercommunalities, isFetching } = useIntercommunalities();
-  const localityOptions =
-    localities
-      ?.filter((locality) => {
-        if (!filters.intercommunalities?.length) {
-          return true;
-        }
+  const localityOptions = localities?.filter((locality) => {
+    if (!filters.intercommunalities?.length) {
+      return true;
+    }
 
-        const set = new Set(
-          intercommunalities
-            ?.filter((interco) =>
-              filters.intercommunalities?.includes(interco.id)
-            )
-            ?.flatMap((interco) => interco.geoCodes)
-        );
-        return set.has(locality.geoCode);
-      })
-      ?.map((locality) => ({
-        value: locality.geoCode,
-        label: locality.name
-      })) ?? [];
+    const set = Set(
+      intercommunalities
+        ?.filter((interco) => filters.intercommunalities?.includes(interco.id))
+        ?.flatMap((interco) => interco.geoCodes)
+    );
+    return set.has(locality.geoCode);
+  });
 
   const { data: precisions } = useFindPrecisionsQuery();
   const precisionOptions = precisions ?? [];
@@ -383,6 +376,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <SearchableSelectNext
               autocompleteProps={{
                 autoHighlight: true,
+                disabled: !intercommunalities?.length,
                 options: intercommunalities ?? [],
                 loading: isFetching,
                 multiple: true,
@@ -402,7 +396,19 @@ function HousingListFiltersSidemenu(props: Props) {
                 onChange: (_, values) => {
                   if (values) {
                     onChangeFilters(
-                      { intercommunalities: values.map((value) => value.id) },
+                      {
+                        intercommunalities: values.map((value) => value.id),
+                        localities:
+                          values.length > 0
+                            ? // Remove unavailable localities
+                              Set(filters.localities)
+                                .intersect(
+                                  values.flatMap((value) => value.geoCodes)
+                                )
+                                .toArray()
+                            : // Otherwise, keep as it is
+                              filters.localities
+                      },
                       'Intercommunalité'
                     );
                     posthog.capture('filtre-intercommunalite');
@@ -418,26 +424,64 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <SearchableSelect
-              options={unselectedOptions(localityOptions, filters.localities)}
-              label="Commune"
-              placeholder="Rechercher une commune"
-              onChange={(value: string) => {
-                if (value) {
-                  let cities = concat(filters.localities, value);
-                  cities = (
-                    cities ?? ([] as Array<keyof typeof citiesWithDistricts>)
-                  ).flatMap(
-                    (code) =>
-                      citiesWithDistricts[
-                        code as keyof typeof citiesWithDistricts
-                      ] ?? [code]
-                  );
-                  onChangeFilters({ localities: cities }, 'Commune');
+            <SearchableSelectNext
+              autocompleteProps={{
+                multiple: true,
+                disabled: localityOptions && localityOptions.length === 0,
+                options: localityOptions ?? [],
+                getOptionLabel: (option) => option.name,
+                value:
+                  filters.localities?.map((geoCode) => {
+                    const option = localityOptions?.find(
+                      (option) => option.geoCode === geoCode
+                    );
+                    if (!option) {
+                      throw new Error(`Locality ${geoCode} not found`);
+                    }
+
+                    return option;
+                  }) ?? [],
+                onChange(_, values) {
+                  onChangeFilters({
+                    localities: values.map((value) => value.geoCode)
+                  });
                   posthog.capture('filtre-commune');
                 }
               }}
+              inputProps={{
+                label: 'Commune (nouveau)',
+                nativeInputProps: {
+                  placeholder: match(filters.localities?.length)
+                    .with(1, () => '1 option sélectionnée')
+                    .with(
+                      Pattern.number.int().gte(2),
+                      (nb) => `${nb} options sélectionnées`
+                    )
+                    .otherwise(() => 'Rechercher une commune')
+                }
+              }}
             />
+
+            {/*<SearchableSelect*/}
+            {/*  options={localityOptions}*/}
+            {/*  label="Commune"*/}
+            {/*  placeholder="Rechercher une commune"*/}
+            {/*  onChange={(value: string) => {*/}
+            {/*    if (value) {*/}
+            {/*      let cities = concat(filters.localities, value);*/}
+            {/*      cities = (*/}
+            {/*        cities ?? ([] as Array<keyof typeof citiesWithDistricts>)*/}
+            {/*      ).flatMap(*/}
+            {/*        (code) =>*/}
+            {/*          citiesWithDistricts[*/}
+            {/*            code as keyof typeof citiesWithDistricts*/}
+            {/*          ] ?? [code]*/}
+            {/*      );*/}
+            {/*      onChangeFilters({ localities: cities }, 'Commune');*/}
+            {/*      posthog.capture('filtre-commune');*/}
+            {/*    }*/}
+            {/*  }}*/}
+            {/*/>*/}
           </Grid>
           <Grid component="article" mb={2} xs={12}>
             <LocalityKindSelect

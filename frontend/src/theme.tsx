@@ -1,7 +1,8 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import { createMuiDsfrThemeProvider } from '@codegouvfr/react-dsfr/mui';
 import { StyledEngineProvider, Theme } from '@mui/material/styles';
-import { PropsWithChildren } from 'react';
 import fp from 'lodash/fp';
+import { PropsWithChildren } from 'react';
 import { DeepPartial } from 'ts-essentials';
 
 const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
@@ -31,6 +32,16 @@ const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
             variantMapping: {
               subtitle1: 'p',
               subtitle2: 'p'
+            }
+          }
+        },
+        MuiAutocomplete: {
+          styleOverrides: {
+            listbox: {
+              padding: 0
+            },
+            option: {
+              padding: `0.25rem ${fr.spacing('2w')}`
             }
           }
         }

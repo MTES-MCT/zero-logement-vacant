@@ -17,7 +17,7 @@ import { match, Pattern } from 'ts-pattern';
 
 import styles from './searchable-select.module.scss';
 
-type Props<
+export type SearchableSelectNextProps<
   Value,
   Multiple extends boolean | undefined,
   DisableClearable extends boolean | undefined,
@@ -26,6 +26,7 @@ type Props<
 > = Pick<
   AutocompleteProps<Value, Multiple, DisableClearable, FreeSolo, ChipComponent>,
   | 'disabled'
+  | 'disableClearable'
   | 'freeSolo'
   | 'loading'
   | 'multiple'
@@ -78,14 +79,22 @@ function SearchableSelectNext<
   DisableClearable extends boolean | undefined = false,
   FreeSolo extends boolean | undefined = false,
   ChipComponent extends ElementType = ChipTypeMap['defaultComponent']
->(props: Props<Value, Multiple, DisableClearable, FreeSolo, ChipComponent>) {
+>(
+  props: SearchableSelectNextProps<
+    Value,
+    Multiple,
+    DisableClearable,
+    FreeSolo,
+    ChipComponent
+  >
+) {
   async function search(query: string | undefined): Promise<void> {
     if (query) {
       props.search?.(query).catch(console.error);
     }
   }
 
-  const value = props.value ?? props.autocompleteProps?.value;
+  const value = props.value;
   const [inputChange, setInputChange] = useState('');
 
   useDebounce(
@@ -96,8 +105,7 @@ function SearchableSelectNext<
     [inputChange]
   );
 
-  const disabled: boolean =
-    props.disabled ?? props.autocompleteProps?.disabled ?? false;
+  const disabled: boolean = props.disabled ?? false;
 
   // Use the placeholder text to display the number of selected options
   const placeholder: string | undefined = disabled
@@ -109,15 +117,11 @@ function SearchableSelectNext<
             Pattern.number.int().gte(2),
             (nb) => `${nb} options sélectionnées`
           )
-          .otherwise(
-            () =>
-              props.placeholder ??
-              props.inputProps?.nativeInputProps?.placeholder
-          )
-      : (props.placeholder ?? props.inputProps?.nativeInputProps?.placeholder);
+          .otherwise(() => props.placeholder)
+      : props.placeholder;
 
   const hasSelected = Array.isArray(value) && value.length > 0;
-  const multiple = props.multiple ?? props.autocompleteProps?.multiple;
+  const multiple = props.multiple;
 
   const groups =
     multiple && props.groupBy
@@ -192,20 +196,18 @@ function SearchableSelectNext<
   return (
     <Autocomplete
       {...props.autocompleteProps}
-      multiple={props.multiple ?? props.autocompleteProps?.multiple}
+      multiple={props.multiple}
       className={props.className}
-      options={props.options ?? props.autocompleteProps?.options ?? []}
+      options={props.options ?? []}
       disabled={disabled}
-      disableCloseOnSelect
       clearText="Supprimer"
       closeText="Fermer"
       loadingText="Chargement..."
       noOptionsText="Aucune option"
       openText="Ouvrir"
-      getOptionKey={props.getOptionKey ?? props.autocompleteProps?.getOptionKey}
-      getOptionLabel={
-        props.getOptionLabel ?? props.autocompleteProps?.getOptionLabel
-      }
+      getOptionKey={props.getOptionKey}
+      getOptionLabel={props.getOptionLabel}
+      isOptionEqualToValue={props.isOptionEqualToValue}
       slotProps={{
         popper: {
           // Prevents the listbox from going above the input
@@ -245,7 +247,8 @@ function SearchableSelectNext<
           disableRipple
           key={key}
           sx={{
-            whiteSpace: 'normal'
+            whiteSpace: 'normal',
+            wordBreak: 'break-word'
           }}
           onClick={(event) => {
             event.preventDefault();
@@ -280,7 +283,7 @@ function SearchableSelectNext<
           )}
         </MenuItem>
       )}
-      groupBy={props.groupBy ?? props.autocompleteProps?.groupBy}
+      groupBy={props.groupBy}
       renderGroup={({ key, group, children }) => {
         if (!group) {
           return children;
@@ -301,7 +304,8 @@ function SearchableSelectNext<
                 zIndex: 1,
                 backgroundColor:
                   fr.colors.decisions.background.default.grey.default,
-                whiteSpace: 'normal'
+                whiteSpace: 'normal',
+                wordBreak: 'break-word'
               }}
               onClick={() => {
                 onGroupClick(group);
@@ -339,12 +343,12 @@ function SearchableSelectNext<
           )
           .otherwise(() => '');
       }}
+      filterOptions={props.freeSolo ? (x) => x : undefined}
       inputValue={inputChange}
-      onInputChange={(event, query, reason) => {
+      onInputChange={(_, query) => {
         setInputChange(query);
-        props.autocompleteProps?.onInputChange?.(event, query, reason);
       }}
-      value={props.value ?? props.autocompleteProps?.value}
+      value={props.value}
       onChange={onChange}
     />
   );

@@ -212,7 +212,8 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
         value={getOptionValue(option)}
         selected={isOptionSelected(option)}
         sx={{
-          whiteSpace: 'normal'
+          whiteSpace: 'normal',
+          wordBreak: 'break-word'
         }}
       >
         {!props.multiple ? (
@@ -343,7 +344,8 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                       zIndex: 1,
                       backgroundColor:
                         fr.colors.decisions.background.default.grey.default,
-                      whiteSpace: 'normal'
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word'
                     }}
                   >
                     <Checkbox

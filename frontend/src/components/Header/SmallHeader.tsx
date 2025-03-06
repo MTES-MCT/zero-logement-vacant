@@ -125,19 +125,20 @@ function SmallHeader() {
           <Grid alignItems="center" display="flex" ml="auto">
             {isAuthenticated ? (
               isAdmin || isVisitor ? (
-                <EstablishmentSearchableSelect
-                  className={fr.cx('fr-mr-2w')}
-                  value={
-                    establishment ? toEstablishmentDTO(establishment) : null
-                  }
-                  onChange={(establishment) => {
-                    if (establishment) {
-                      onChangeEstablishment(
-                        fromEstablishmentDTO(establishment)
-                      );
-                    }
-                  }}
-                />
+                establishment ? (
+                  <EstablishmentSearchableSelect
+                    className={fr.cx('fr-mr-2w')}
+                    disableClearable
+                    value={toEstablishmentDTO(establishment)}
+                    onChange={(establishment) => {
+                      if (establishment) {
+                        onChangeEstablishment(
+                          fromEstablishmentDTO(establishment)
+                        );
+                      }
+                    }}
+                  />
+                ) : null
               ) : (
                 <Typography
                   className={styles.establishmentName}

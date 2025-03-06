@@ -1,0 +1,6 @@
+.activePlaceholder {
+  &::placeholder {
+    color: var(--text-default-grey);
+    font-style: normal;
+  }
+}

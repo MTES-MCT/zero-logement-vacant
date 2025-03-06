@@ -24,16 +24,14 @@ import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
 import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
-import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-import { HousingFilters, unselectedOptions } from '../../models/HousingFilters';
+import { HousingFilters } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
 import { getCity, getDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
-import { concat } from '../../utils/arrayUtils';
-import { Icon, SearchableSelect } from '../_dsfr';
+import { Icon } from '../_dsfr';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import PrecisionSelect from '../Precision/PrecisionSelect';
@@ -54,6 +52,7 @@ import OccupancySelect from './OccupancySelect';
 import OwnerAgeSelect from './OwnerAgeSelect';
 import OwnerKindSelect from './OwnerKindSelect';
 import OwnershipKindSelect from './OwnershipKindSelect';
+import PerimeterSearchableSelect from './PerimeterSearchableSelect';
 import RoomCountSelect from './RoomCountSelect';
 import SecondaryOwnerSelect from './SecondaryOwnerSelect';
 import SurfaceSelect from './SurfaceSelect';
@@ -472,53 +471,46 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <SearchableSelect
-              options={unselectedOptions(
-                geoPerimeterOptions(geoPerimeters),
-                filters.geoPerimetersIncluded
-              )}
+            <PerimeterSearchableSelect
               label="Périmètre inclus"
-              placeholder="Rechercher un périmètre"
-              onChange={(value: string) => {
-                if (value) {
-                  onChangeFilters(
-                    {
-                      geoPerimetersIncluded: concat(
-                        filters.geoPerimetersIncluded,
-                        value
-                      )
-                    },
-                    'Périmètre inclus'
-                  );
-                  posthog.capture('filtre-perimetre-inclus');
-                }
+              multiple
+              options={geoPerimeters ?? []}
+              value={
+                filters.geoPerimetersIncluded
+                  ?.map((kind) =>
+                    geoPerimeters?.find((perimeter) => perimeter.kind === kind)
+                  )
+                  ?.filter(isDefined) ?? []
+              }
+              onChange={(values) => {
+                onChangeFilters({
+                  geoPerimetersIncluded: values.map((value) => value.kind)
+                });
+                posthog.capture('filtre-perimetre-inclus');
               }}
             />
           </Grid>
-          <Grid component="article" mb={0} xs={12}>
-            <SearchableSelect
-              options={unselectedOptions(
-                geoPerimeterOptions(geoPerimeters),
+          <Grid component="article" mb={2} xs={12}>
+            <PerimeterSearchableSelect
+              label="Périmètre exclus"
+              multiple
+              options={geoPerimeters ?? []}
+              value={
                 filters.geoPerimetersExcluded
-              )}
-              label="Périmètre exclu"
-              placeholder="Rechercher un périmètre"
-              onChange={(value: string) => {
-                if (value) {
-                  onChangeFilters(
-                    {
-                      geoPerimetersExcluded: concat(
-                        filters.geoPerimetersExcluded,
-                        value
-                      )
-                    },
-                    'Périmètre exclu'
-                  );
-                  posthog.capture('filtre-perimetre-exclu');
-                }
+                  ?.map((kind) =>
+                    geoPerimeters?.find((perimeter) => perimeter.kind === kind)
+                  )
+                  ?.filter(isDefined) ?? []
+              }
+              onChange={(values) => {
+                onChangeFilters({
+                  geoPerimetersExcluded: values.map((value) => value.kind)
+                });
+                posthog.capture('filtre-perimetre-exclus');
               }}
             />
-
+          </Grid>
+          <Grid component="section" xs={12}>
             {!isVisitor && <GeoPerimetersModalLink />}
           </Grid>
         </Accordion>

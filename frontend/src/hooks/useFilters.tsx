@@ -1,9 +1,11 @@
 import { Occupancy } from '@zerologementvacant/models';
+import { Set } from 'immutable';
 import { useMemo, useState } from 'react';
 import { HousingFilters } from '../models/HousingFilters';
 import housingSlice, {
   initialHousingFilters
 } from '../store/reducers/housingReducer';
+import { useIntercommunalities } from './useIntercommunalities';
 import { useAppDispatch, useAppSelector } from './useStore';
 
 interface FiltersOptions {
@@ -38,6 +40,8 @@ export function useFilters(opts?: FiltersOptions) {
 
   const length = useMemo<number>(() => Object.keys(filters).length, [filters]);
 
+  const { data: intercommunalities } = useIntercommunalities();
+
   function onChange(changed: HousingFilters): void {
     const changes = { ...filters, ...changed };
 
@@ -45,6 +49,19 @@ export function useFilters(opts?: FiltersOptions) {
     // only when the `VACANT` occupancy is selected
     if (!changes.occupancies?.includes(Occupancy.VACANT)) {
       changes.vacancyYears = [];
+    }
+
+    if (changes.intercommunalities?.length && intercommunalities) {
+      // Remove unavailable localities
+      changes.localities = Set(changes.localities)
+        .intersect(
+          intercommunalities
+            .filter((intercommunality) =>
+              changes.intercommunalities?.includes(intercommunality.id)
+            )
+            .flatMap((intercommunality) => intercommunality.geoCodes)
+        )
+        .toArray();
     }
 
     setFilters(changes);

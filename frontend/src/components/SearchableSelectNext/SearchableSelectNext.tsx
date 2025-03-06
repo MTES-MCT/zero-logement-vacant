@@ -132,6 +132,9 @@ function SearchableSelectNext<
           dense
           disableRipple
           key={key}
+          sx={{
+            whiteSpace: 'normal'
+          }}
           onClick={(event) => {
             event.preventDefault();
             // eslint-disable-next-line react/prop-types

@@ -4,43 +4,73 @@ import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
 import {
   Autocomplete,
   AutocompleteProps,
+  AutocompleteValue,
   ChipTypeMap,
   MenuItem,
   Typography
 } from '@mui/material';
 import classNames from 'classnames';
-import { ElementType, useState } from 'react';
+import { List } from 'immutable';
+import { ChangeEvent, ElementType, Fragment, ReactNode, useState } from 'react';
 import { useDebounce } from 'react-use';
-import { MarkOptional } from 'ts-essentials';
 import { match, Pattern } from 'ts-pattern';
 
 import styles from './searchable-select.module.scss';
 
-interface Props<
+type Props<
   Value,
   Multiple extends boolean | undefined,
   DisableClearable extends boolean | undefined,
   FreeSolo extends boolean | undefined,
   ChipComponent extends ElementType = ChipTypeMap['defaultComponent']
-> {
-  autocompleteProps?: MarkOptional<
-    AutocompleteProps<
-      Value,
-      Multiple,
-      DisableClearable,
-      FreeSolo,
-      ChipComponent
-    >,
-    'renderInput'
-  >;
-  className?: string;
-  /**
-   * Debounce calls to {@link search} (in milliseconds).
-   */
-  debounce?: number;
-  inputProps?: MarkOptional<InputProps.RegularInput, 'label'>;
-  search?(query: string | undefined): Promise<void>;
-}
+> = Pick<
+  AutocompleteProps<Value, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+  | 'disabled'
+  | 'freeSolo'
+  | 'loading'
+  | 'multiple'
+  | 'options'
+  | 'getOptionKey'
+  | 'getOptionLabel'
+  | 'groupBy'
+  | 'value'
+> &
+  Pick<InputProps.RegularInput, 'label' | 'hintText'> & {
+    className?: string;
+    /**
+     * Debounce calls to {@link search} (in milliseconds).
+     */
+    debounce?: number;
+    search?(query: string | undefined): Promise<void>;
+    placeholder?: string;
+
+    // Custom autocomplete functions
+    isOptionEqualToValue(option: Value, value: Value): boolean;
+    renderGroup?(group: string): ReactNode;
+    onChange(
+      value: AutocompleteValue<Value, Multiple, DisableClearable, FreeSolo>
+    ): void;
+
+    /**
+     * Pass props through to the Autocomplete component.
+     * Prefer using the top-level values when possible.
+     */
+    autocompleteProps?: Partial<
+      AutocompleteProps<
+        Value,
+        Multiple,
+        DisableClearable,
+        FreeSolo,
+        ChipComponent
+      >
+    >;
+
+    /**
+     * Pass props through to the Input component.
+     * Prefer using the top-level values when possible.
+     */
+    inputProps?: Partial<InputProps.RegularInput>;
+  };
 
 function SearchableSelectNext<
   Value,
@@ -55,6 +85,7 @@ function SearchableSelectNext<
     }
   }
 
+  const value = props.value ?? props.autocompleteProps?.value;
   const [inputChange, setInputChange] = useState('');
 
   useDebounce(
@@ -65,30 +96,105 @@ function SearchableSelectNext<
     [inputChange]
   );
 
-  const disabled: boolean = props.autocompleteProps?.disabled ?? false;
+  const disabled: boolean =
+    props.disabled ?? props.autocompleteProps?.disabled ?? false;
 
   // Use the placeholder text to display the number of selected options
   const placeholder: string | undefined = disabled
     ? undefined
-    : Array.isArray(props.autocompleteProps?.value)
-      ? match(props.autocompleteProps.value.length)
+    : Array.isArray(value)
+      ? match(value.length)
           .with(1, () => '1 option sélectionnée')
           .with(
             Pattern.number.int().gte(2),
             (nb) => `${nb} options sélectionnées`
           )
-          .otherwise(() => props.inputProps?.nativeInputProps?.placeholder)
-      : props.inputProps?.nativeInputProps?.placeholder;
+          .otherwise(
+            () =>
+              props.placeholder ??
+              props.inputProps?.nativeInputProps?.placeholder
+          )
+      : (props.placeholder ?? props.inputProps?.nativeInputProps?.placeholder);
 
-  const hasSelected =
-    Array.isArray(props.autocompleteProps?.value) &&
-    props.autocompleteProps.value.length > 0;
+  const hasSelected = Array.isArray(value) && value.length > 0;
+  const multiple = props.multiple ?? props.autocompleteProps?.multiple;
+
+  const groups =
+    multiple && props.groupBy
+      ? List(props.options).groupBy(props.groupBy)
+      : null;
+
+  function isGroupSelected(group: string): boolean {
+    if (!Array.isArray(value)) {
+      return false;
+    }
+
+    const options = groups?.get(group) ?? List();
+    return options.every((option) =>
+      value.some((v) => props.isOptionEqualToValue?.(option, v))
+    );
+  }
+
+  function onGroupClick(group: string): void {
+    if (multiple) {
+      if (isGroupSelected(group)) {
+        const groupOptions = groups?.get(group);
+        const values: Value[] = (value as Value[]).filter((value) => {
+          return !groupOptions?.some((option) =>
+            props.isOptionEqualToValue(option, value)
+          );
+        });
+        return props.onChange(
+          values as AutocompleteValue<
+            Value,
+            Multiple,
+            DisableClearable,
+            FreeSolo
+          >
+        );
+      }
+
+      const groupOptions = groups?.get(group) ?? List();
+      const values: Value[] =
+        (value as Value[])
+          .filter(
+            (value) =>
+              !groupOptions?.some((option) =>
+                props.isOptionEqualToValue(option, value)
+              )
+          )
+          .concat(groupOptions.toArray()) ?? [];
+      return props.onChange(
+        values as AutocompleteValue<Value, Multiple, DisableClearable, FreeSolo>
+      );
+    }
+  }
+
+  function renderGroup(group: string): ReactNode {
+    return props.renderGroup?.(group) ?? group;
+  }
+
+  const onChange: AutocompleteProps<
+    Value,
+    Multiple,
+    DisableClearable,
+    FreeSolo,
+    ChipComponent
+  >['onChange'] = (_, value) => {
+    props.onChange(value);
+  };
+
+  function noop(event: ChangeEvent): void {
+    event.stopPropagation();
+    event.preventDefault();
+  }
 
   return (
     <Autocomplete
       {...props.autocompleteProps}
+      multiple={props.multiple ?? props.autocompleteProps?.multiple}
       className={props.className}
-      options={props.autocompleteProps?.options ?? []}
+      options={props.options ?? props.autocompleteProps?.options ?? []}
       disabled={disabled}
       disableCloseOnSelect
       clearText="Supprimer"
@@ -96,6 +202,10 @@ function SearchableSelectNext<
       loadingText="Chargement..."
       noOptionsText="Aucune option"
       openText="Ouvrir"
+      getOptionKey={props.getOptionKey ?? props.autocompleteProps?.getOptionKey}
+      getOptionLabel={
+        props.getOptionLabel ?? props.autocompleteProps?.getOptionLabel
+      }
       slotProps={{
         popper: {
           // Prevents the listbox from going above the input
@@ -115,6 +225,8 @@ function SearchableSelectNext<
             })
           }}
           disabled={disabled}
+          label={props.label ?? props.inputProps?.label}
+          hintText={props.hintText ?? props.inputProps?.hintText}
           nativeInputProps={{
             ...props.inputProps?.nativeInputProps,
             ...params.inputProps,
@@ -168,6 +280,56 @@ function SearchableSelectNext<
           )}
         </MenuItem>
       )}
+      groupBy={props.groupBy ?? props.autocompleteProps?.groupBy}
+      renderGroup={({ key, group, children }) => {
+        if (!group) {
+          return children;
+        }
+
+        return (
+          <Fragment key={key}>
+            <MenuItem
+              dense
+              disableRipple
+              classes={{
+                selected: styles.selected
+              }}
+              selected={isGroupSelected(group)}
+              sx={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 1,
+                backgroundColor:
+                  fr.colors.decisions.background.default.grey.default,
+                whiteSpace: 'normal'
+              }}
+              onClick={() => {
+                onGroupClick(group);
+              }}
+            >
+              <Checkbox
+                classes={{
+                  root: fr.cx('fr-mb-0'),
+                  inputGroup: fr.cx('fr-mt-0')
+                }}
+                options={[
+                  {
+                    label: renderGroup(group),
+                    nativeInputProps: {
+                      checked: isGroupSelected(group),
+                      onClick: noop,
+                      onChange: noop
+                    }
+                  }
+                ]}
+                orientation="vertical"
+                small
+              />
+            </MenuItem>
+            {children}
+          </Fragment>
+        );
+      }}
       renderTags={(values: ReadonlyArray<Value>) => {
         return match(values.length)
           .with(1, () => '1 option sélectionnée')
@@ -182,6 +344,8 @@ function SearchableSelectNext<
         setInputChange(query);
         props.autocompleteProps?.onInputChange?.(event, query, reason);
       }}
+      value={props.value ?? props.autocompleteProps?.value}
+      onChange={onChange}
     />
   );
 }

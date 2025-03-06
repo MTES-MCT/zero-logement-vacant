@@ -1,6 +1,7 @@
 import { Occupancy } from '@zerologementvacant/models';
 import { Set } from 'immutable';
 import { useMemo, useState } from 'react';
+
 import { HousingFilters } from '../models/HousingFilters';
 import housingSlice, {
   initialHousingFilters

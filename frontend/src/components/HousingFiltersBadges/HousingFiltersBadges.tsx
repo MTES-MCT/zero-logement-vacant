@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import {
+  DataFileYear,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
   isPrecisionMechanismCategory,
@@ -45,7 +46,7 @@ import {
   getSubStatusOptions
 } from '../../models/HousingState';
 
-import { citiesWithDistricts } from '../../models/Locality';
+import { CITIES_WITH_DISTRICTS } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
@@ -71,7 +72,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
 
   function mergeDistricts(localities: string[]): string[] {
     const setGeoCodes = new Set(localities);
-    for (const [city, districts] of Object.entries(citiesWithDistricts)) {
+    for (const [city, districts] of Object.entries(CITIES_WITH_DISTRICTS)) {
       if (districts.every((d) => setGeoCodes.has(d))) {
         districts.forEach((d) => {
           setGeoCodes.delete(d);
@@ -279,13 +280,17 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         options={dataFileYearsIncludedOptions}
         values={filters.dataFileYearsIncluded}
         small={small}
-        onChange={(values) => onChange?.({ dataFileYearsIncluded: values })}
+        onChange={(values: DataFileYear[]) =>
+          onChange?.({ dataFileYearsIncluded: values })
+        }
       />
       <FilterBadges
         options={dataFileYearsExcludedOptions}
         values={filters.dataFileYearsExcluded}
         small={small}
-        onChange={(values) => onChange?.({ dataFileYearsExcluded: values })}
+        onChange={(values: DataFileYear[]) =>
+          onChange?.({ dataFileYearsExcluded: values })
+        }
       />
       <FilterBadges
         options={energyConsumptionOptions}

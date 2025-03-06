@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { match, Pattern } from 'ts-pattern';
+import { fr } from '@codegouvfr/react-dsfr';
 
 import { EstablishmentDTO } from '@zerologementvacant/models';
+import { useState } from 'react';
+import { match, Pattern } from 'ts-pattern';
 import { useLazyFindEstablishmentsQuery } from '../../services/establishment.service';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
-import { fr } from '@codegouvfr/react-dsfr';
 
 interface Props {
   className?: string;
@@ -35,26 +35,23 @@ function EstablishmentSearchableSelect(props: Props) {
       className={props.className}
       debounce={250}
       search={search}
+      options={establishments ?? []}
+      loading={isFetching}
+      label={null}
+      getOptionKey={(option) => option.id}
+      getOptionLabel={(option) => option.name}
+      isOptionEqualToValue={(option, value) => option.id === value.id}
+      value={value}
+      onChange={(establishment) => {
+        match(establishment)
+          .with(Pattern.string, () => {})
+          .otherwise((establishment) => {
+            onChange?.(establishment);
+          });
+      }}
       autocompleteProps={{
         autoHighlight: true,
-        clearIcon: null,
-        freeSolo: true,
-        getOptionKey: (option) =>
-          typeof option === 'string' ? option : option.id,
-        getOptionLabel: (option) =>
-          typeof option === 'string' ? option : option.name,
-        isOptionEqualToValue: (option, value) => option.id === value.id,
-        options: establishments ?? [],
-        loading: isFetching,
-        openOnFocus: true,
-        value: value,
-        onChange: (_, establishment) => {
-          match(establishment)
-            .with(Pattern.string, () => {})
-            .otherwise((establishment) => {
-              onChange?.(establishment);
-            });
-        }
+        openOnFocus: true
       }}
       inputProps={{
         classes: {

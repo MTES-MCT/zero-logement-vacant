@@ -7,15 +7,15 @@ import { match, Pattern } from 'ts-pattern';
 import { useLazyFindEstablishmentsQuery } from '../../services/establishment.service';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 
-interface Props<DisableClearable extends boolean> {
+interface Props<Multiple extends boolean, DisableClearable extends boolean> {
   className?: string;
   disableClearable?: DisableClearable;
   label?: ReactNode;
-  value: AutocompleteValue<EstablishmentDTO, false, DisableClearable, false>;
+  value: AutocompleteValue<EstablishmentDTO, Multiple, DisableClearable, false>;
   onChange(
     establishment: AutocompleteValue<
       EstablishmentDTO,
-      false,
+      Multiple,
       DisableClearable,
       false
     >
@@ -23,8 +23,9 @@ interface Props<DisableClearable extends boolean> {
 }
 
 function EstablishmentSearchableSelect<
+  Multiple extends boolean = false,
   DisableClearable extends boolean = false
->(props: Props<DisableClearable>) {
+>(props: Props<Multiple, DisableClearable>) {
   const [findEstablishments, { data, isFetching }] =
     useLazyFindEstablishmentsQuery();
   const establishments = data ?? [];

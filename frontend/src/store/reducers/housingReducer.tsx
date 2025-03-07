@@ -1,5 +1,3 @@
-import { HousingFilters } from '../../models/HousingFilters';
-import config from '../../utils/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   DatafoncierHousing,
@@ -7,6 +5,8 @@ import {
   Pagination
 } from '@zerologementvacant/models';
 import { Selection } from '../../hooks/useSelection';
+import { HousingFilters } from '../../models/HousingFilters';
+import config from '../../utils/config';
 
 export type ViewMode = 'list' | 'map';
 
@@ -36,7 +36,7 @@ export interface HousingState {
 }
 
 export const initialHousingFilters: HousingFiltersDTO = {
-  dataFileYearsIncluded: [`lovac-${config.dataYear + 1}`]
+  dataFileYearsIncluded: ['lovac-2024']
 };
 
 const initialState: HousingState = {

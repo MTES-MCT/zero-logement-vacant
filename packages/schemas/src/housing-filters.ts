@@ -2,18 +2,21 @@ import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
   CAMPAIGN_COUNT_VALUES,
+  DATA_FILE_YEAR_VALUES,
   ENERGY_CONSUMPTION_VALUES,
   HOUSING_BY_BUILDING_VALUES,
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
   HousingFiltersDTO,
   LIVING_AREA_VALUES,
+  LOCALITY_KIND_VALUES,
   OCCUPANCY_VALUES,
   OWNER_AGE_VALUES,
   OWNER_KIND_VALUES,
   OWNERSHIP_KIND_VALUES,
   ROOM_COUNT_VALUES,
-  VACANCY_RATE_VALUES
+  VACANCY_RATE_VALUES,
+  VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
 import { array, boolean, number, object, ObjectSchema, string } from 'yup';
 import { commaSeparatedString, parseNull } from './transforms';
@@ -70,7 +73,9 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   buildingPeriods: array()
     .transform(commaSeparatedString)
     .of(string().oneOf(BUILDING_PERIOD_VALUES).required()),
-  vacancyYears: array().transform(commaSeparatedString).of(string().required()),
+  vacancyYears: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(VACANCY_YEAR_VALUES).required()),
   isTaxedValues: array()
     .transform(commaSeparatedString)
     .of(boolean().required()),
@@ -91,7 +96,7 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().length(5).required()),
   localityKinds: array()
     .transform(commaSeparatedString)
-    .of(string().required()),
+    .of(string().oneOf(LOCALITY_KIND_VALUES).required()),
   geoPerimetersIncluded: array()
     .transform(commaSeparatedString)
     .of(string().required()),
@@ -100,10 +105,10 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().required()),
   dataFileYearsIncluded: array()
     .transform(commaSeparatedString)
-    .of(string().required()),
+    .of(string().oneOf(DATA_FILE_YEAR_VALUES).required()),
   dataFileYearsExcluded: array()
     .transform(commaSeparatedString)
-    .of(string().required()),
+    .of(string().oneOf(DATA_FILE_YEAR_VALUES).required()),
   status: number().oneOf(HOUSING_STATUS_VALUES),
   statusList: array()
     .transform(commaSeparatedString)

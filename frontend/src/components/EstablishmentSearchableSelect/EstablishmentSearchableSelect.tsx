@@ -1,28 +1,34 @@
-import { useState } from 'react';
-import { match, Pattern } from 'ts-pattern';
+import { fr } from '@codegouvfr/react-dsfr';
+import { AutocompleteValue } from '@mui/material/Autocomplete';
 
 import { EstablishmentDTO } from '@zerologementvacant/models';
+import { ReactNode } from 'react';
+import { match, Pattern } from 'ts-pattern';
 import { useLazyFindEstablishmentsQuery } from '../../services/establishment.service';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
-import { fr } from '@codegouvfr/react-dsfr';
 
-interface Props {
+interface Props<Multiple extends boolean, DisableClearable extends boolean> {
   className?: string;
-  value?: EstablishmentDTO | null;
-  onChange?(establishment: EstablishmentDTO | null): void;
+  disableClearable?: DisableClearable;
+  label?: ReactNode;
+  value: AutocompleteValue<EstablishmentDTO, Multiple, DisableClearable, false>;
+  onChange(
+    establishment: AutocompleteValue<
+      EstablishmentDTO,
+      Multiple,
+      DisableClearable,
+      false
+    >
+  ): void;
 }
 
-function EstablishmentSearchableSelect(props: Props) {
-  const [internalValue, setInternalValue] = useState<EstablishmentDTO | null>(
-    null
-  );
-  const [value, onChange] =
-    props.value !== undefined
-      ? [props.value, props.onChange]
-      : [internalValue, setInternalValue];
-
-  const [findEstablishments, { data: establishments, isFetching }] =
+function EstablishmentSearchableSelect<
+  Multiple extends boolean = false,
+  DisableClearable extends boolean = false
+>(props: Props<Multiple, DisableClearable>) {
+  const [findEstablishments, { data, isFetching }] =
     useLazyFindEstablishmentsQuery();
+  const establishments = data ?? [];
 
   async function search(query: string | undefined): Promise<void> {
     if (query) {
@@ -33,28 +39,30 @@ function EstablishmentSearchableSelect(props: Props) {
   return (
     <SearchableSelectNext
       className={props.className}
+      disableClearable={props.disableClearable}
       debounce={250}
       search={search}
+      options={establishments}
+      loading={isFetching}
+      label={props.label ?? null}
+      getOptionKey={(option) =>
+        typeof option === 'string' ? option : option.id
+      }
+      getOptionLabel={(option) =>
+        typeof option === 'string' ? option : option.name
+      }
+      isOptionEqualToValue={(option, value) => option.id === value.id}
+      value={props.value}
+      onChange={(establishment) => {
+        match(establishment)
+          .with(Pattern.string, () => {})
+          .otherwise((establishment) => {
+            props.onChange(establishment);
+          });
+      }}
       autocompleteProps={{
         autoHighlight: true,
-        clearIcon: null,
-        freeSolo: true,
-        getOptionKey: (option) =>
-          typeof option === 'string' ? option : option.id,
-        getOptionLabel: (option) =>
-          typeof option === 'string' ? option : option.name,
-        isOptionEqualToValue: (option, value) => option.id === value.id,
-        options: establishments ?? [],
-        loading: isFetching,
-        openOnFocus: true,
-        value: value,
-        onChange: (_, establishment) => {
-          match(establishment)
-            .with(Pattern.string, () => {})
-            .otherwise((establishment) => {
-              onChange?.(establishment);
-            });
-        }
+        openOnFocus: true
       }}
       inputProps={{
         classes: {

@@ -2,32 +2,32 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
+import Group from '../../components/Group/Group';
+import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
+import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useFilters } from '../../hooks/useFilters';
+import { useAppSelector } from '../../hooks/useStore';
+import { Campaign } from '../../models/Campaign';
+import { GroupPayload } from '../../models/GroupPayload';
+import authService from '../../services/auth.service';
+import {
+  useCreateCampaignFromGroupMutation,
+  useFindCampaignsQuery
+} from '../../services/campaign.service';
 
 import {
   useGetGroupQuery,
   useRemoveGroupMutation,
   useUpdateGroupMutation
 } from '../../services/group.service';
-import Group from '../../components/Group/Group';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import config from '../../utils/config';
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
-import { useAppSelector } from '../../hooks/useStore';
-import { Campaign } from '../../models/Campaign';
-import config from '../../utils/config';
-import authService from '../../services/auth.service';
-import { GroupPayload } from '../../models/GroupPayload';
-import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
-import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
-import {
-  useCreateCampaignFromGroupMutation,
-  useFindCampaignsQuery
-} from '../../services/campaign.service';
-import NotFoundView from '../NotFoundView';
-import { useFilters } from '../../hooks/useFilters';
 import HousingListTabsProvider from '../HousingList/HousingListTabsProvider';
+import NotFoundView from '../NotFoundView';
 
 interface RouterState {
   alert?: string;
@@ -45,7 +45,6 @@ function GroupView() {
 
   const {
     filters,
-    removeFilter: removeFilters,
     setFilters,
     onChangeFilters,
     onResetFilters,
@@ -171,7 +170,10 @@ function GroupView() {
           </Grid>
 
           <Grid xs={12}>
-            <HousingFiltersBadges filters={filters} onChange={removeFilters} />
+            <HousingFiltersBadges
+              filters={filters}
+              onChange={onChangeFilters}
+            />
           </Grid>
 
           {view === 'map' ? (

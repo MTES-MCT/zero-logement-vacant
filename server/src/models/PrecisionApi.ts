@@ -1,6 +1,5 @@
-import { Map, OrderedMap } from 'immutable';
-
 import { Precision, PrecisionCategory } from '@zerologementvacant/models';
+import { Map, OrderedMap } from 'immutable';
 
 export interface PrecisionApi extends Precision {
   order: number;
@@ -35,7 +34,7 @@ export const PRECISION_TREE_VALUES: OrderedMap<
     'Autre'
   ],
   'dispositifs-coercitifs': [
-    'ORI - THIRORI',
+    'RHI - THIRORI',
     'Bien sans maître',
     'Abandon manifeste',
     'DIA - préemption',

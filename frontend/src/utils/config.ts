@@ -1,4 +1,3 @@
-console.log(process.env.REACT_APP_SENTRY_ENV);
 const config = {
   apiEndpoint: process.env.REACT_APP_API_URL ?? 'http://localhost:3001',
   banEndpoint: 'https://api-adresse.data.gouv.fr',
@@ -35,7 +34,6 @@ const config = {
       ? Number(process.env.REACT_APP_TRACES_SAMPLE_RATE)
       : 0.2
   },
-  dataYear: 2023,
   banEligibleScore: 0.8,
   feature: {
     /**

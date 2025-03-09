@@ -10,4 +10,4 @@ models:
   - name: stg_production_groups
   - name: stg_production_groups_housing
   - name: stg_production_geo_perimeters
-  
+  - name: stg_production_housing_groups

@@ -1,2 +1,2 @@
-export * from './templates/draft';
+export * from './draft';
 export { default as pdf } from './pdf';

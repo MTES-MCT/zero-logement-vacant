@@ -6,12 +6,15 @@
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "copy": "copyfiles -V -u 1 'src/**/*.css' 'src/**/*.hbs' dist",
-    "build": "tsc -b tsconfig.build.json && yarn copy",
+    "typecheck": "tsc --noEmit",
+    "build": "pkgroll -p tsconfig.build.json && yarn copy",
     "dev": "nodemon --watch src -e ts --exec 'yarn build'",
     "test": "jest",
     "coverage": "jest --coverage"
   },
   "devDependencies": {
+    "@swc/core": "^1.11.8",
+    "@swc/jest": "^0.2.37",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.2",
     "@tsconfig/node20": "^20.1.4",
@@ -23,6 +26,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-extended": "^4.0.2",
     "nodemon": "^3.1.7",
+    "pkgroll": "^2.11.2",
     "rimraf": "^5.0.10",
     "ts-jest": "^29.2.5",
     "typescript": "^5.6.2"

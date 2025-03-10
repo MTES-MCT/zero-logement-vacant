@@ -105,10 +105,11 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().required()),
   dataFileYearsIncluded: array()
     .transform(commaSeparatedString)
-    .of(string().oneOf(DATA_FILE_YEAR_VALUES).required()),
+    .transform(parseNull)
+    .of(string().oneOf(DATA_FILE_YEAR_VALUES).defined().nullable()),
   dataFileYearsExcluded: array()
     .transform(commaSeparatedString)
-    .of(string().oneOf(DATA_FILE_YEAR_VALUES).required()),
+    .of(string().oneOf(DATA_FILE_YEAR_VALUES).defined().nullable()),
   status: number().oneOf(HOUSING_STATUS_VALUES),
   statusList: array()
     .transform(commaSeparatedString)

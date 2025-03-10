@@ -3,6 +3,7 @@ import * as turf from '@turf/turf';
 import {
   AddressKinds,
   BENEFIARY_COUNT_VALUES,
+  DataFileYear,
   HOUSING_KIND_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
@@ -27,6 +28,7 @@ import { CampaignApi } from '~/models/CampaignApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { EnergyConsumptionGradesApi, HousingApi } from '~/models/HousingApi';
+import { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
 import { LocalityApi } from '~/models/LocalityApi';
@@ -1522,8 +1524,32 @@ describe('Housing repository', () => {
           await Housing().insert(housings.map(formatHousingRecordApi));
         });
 
+        it('should keep housings that have no data file years', async () => {
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), dataFileYears: [] }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              dataFileYearsIncluded: [null]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return (
+              housing.dataFileYears === undefined ||
+              housing.dataFileYears.length === 0
+            );
+          });
+        });
+
         it('should keep housings that belong to the given data file year', async () => {
-          const dataFileYears = ['lovac-2023', 'lovac-2024'];
+          const dataFileYears: HousingFiltersApi['dataFileYearsIncluded'] = [
+            'lovac-2023',
+            'lovac-2024'
+          ];
 
           const actual = await housingRepository.find({
             filters: {
@@ -1535,7 +1561,7 @@ describe('Housing repository', () => {
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
             const set = new Set(dataFileYears);
             return housing.dataFileYears.some((dataFileYear) =>
-              set.has(dataFileYear)
+              set.has(dataFileYear as DataFileYear)
             );
           });
         });
@@ -1547,8 +1573,29 @@ describe('Housing repository', () => {
           return Housing().insert(housings.map(formatHousingRecordApi));
         });
 
+        it('should skip housings that have no data file years', async () => {
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), dataFileYears: [] }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              dataFileYearsExcluded: [null]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.dataFileYears.length > 0;
+          });
+        });
+
         it('should keep housings that do not belong to the given data file year', async () => {
-          const dataFileYears = ['lovac-2023', 'lovac-2024'];
+          const dataFileYears: HousingFiltersApi['dataFileYearsExcluded'] = [
+            'lovac-2023',
+            'lovac-2024'
+          ];
 
           const actual = await housingRepository.find({
             filters: {
@@ -1560,7 +1607,7 @@ describe('Housing repository', () => {
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
             const set = new Set(dataFileYears);
             return !housing.dataFileYears.some((dataFileYear) =>
-              set.has(dataFileYear)
+              set.has(dataFileYear as DataFileYear)
             );
           });
         });

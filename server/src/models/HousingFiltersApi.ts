@@ -15,7 +15,14 @@ import {
 } from '~/utils/validators';
 
 export interface HousingFiltersApi
-  extends Pick<HousingFiltersDTO, 'all' | 'intercommunalities' | 'precisions'> {
+  extends Pick<
+    HousingFiltersDTO,
+    | 'all'
+    | 'intercommunalities'
+    | 'precisions'
+    | 'dataFileYearsIncluded'
+    | 'dataFileYearsExcluded'
+  > {
   housingIds?: string[];
   establishmentIds?: string[];
   groupIds?: string[];
@@ -45,8 +52,6 @@ export interface HousingFiltersApi
   localityKinds?: string[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
-  dataFileYearsIncluded?: string[];
-  dataFileYearsExcluded?: string[];
   status?: number;
   statusList?: number[];
   subStatus?: string[];

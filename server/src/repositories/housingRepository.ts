@@ -8,6 +8,7 @@ import {
   PaginationOptions,
   Precision
 } from '@zerologementvacant/models';
+import { isNotNull } from '@zerologementvacant/utils';
 import highland from 'highland';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
@@ -785,14 +786,32 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.dataFileYearsIncluded?.length) {
-      queryBuilder.whereRaw('data_file_years && ?::text[]', [
-        filters.dataFileYearsIncluded
-      ]);
+      queryBuilder.where((where) => {
+        if (filters.dataFileYearsIncluded?.includes(null)) {
+          where
+            .whereNull('data_file_years')
+            .orWhereRaw('cardinality(data_file_years) = 0');
+        }
+        const dataFileYears = filters.dataFileYearsIncluded?.filter(isNotNull);
+        if (dataFileYears?.length) {
+          where.orWhereRaw('data_file_years && ?::text[]', [dataFileYears]);
+        }
+      });
     }
     if (filters.dataFileYearsExcluded?.length) {
-      queryBuilder.whereRaw('not(data_file_years && ?::text[])', [
-        filters.dataFileYearsExcluded
-      ]);
+      queryBuilder.where((where) => {
+        if (filters.dataFileYearsExcluded?.includes(null)) {
+          where
+            .whereNotNull('data_file_years')
+            .whereRaw('cardinality(data_file_years) > 0');
+        }
+        const dataFileYears = filters.dataFileYearsExcluded?.filter(isNotNull);
+        if (dataFileYears?.length) {
+          where.orWhereRaw('not(data_file_years && ?::text[])', [
+            dataFileYears
+          ]);
+        }
+      });
     }
     if (filters.statusList?.length) {
       queryBuilder.whereIn('status', filters.statusList);

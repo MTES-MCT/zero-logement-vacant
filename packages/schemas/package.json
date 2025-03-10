@@ -17,6 +17,8 @@
   "devDependencies": {
     "@fast-check/jest": "^1.8.2",
     "@jest/globals": "^29.7.0",
+    "@swc/core": "^1.11.8",
+    "@swc/jest": "^0.2.37",
     "@tsconfig/node20": "^20.1.4",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.16.10",

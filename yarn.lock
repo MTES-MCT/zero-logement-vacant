@@ -11471,6 +11471,8 @@ __metadata:
   resolution: "@zerologementvacant/draft@workspace:packages/draft"
   dependencies:
     "@codegouvfr/react-dsfr": "npm:^1.9.11"
+    "@swc/core": "npm:^1.11.8"
+    "@swc/jest": "npm:^0.2.37"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^6.6.2"
     "@tsconfig/node20": "npm:^20.1.4"
@@ -11599,6 +11601,8 @@ __metadata:
   resolution: "@zerologementvacant/healthcheck@workspace:packages/healthcheck"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.658.1"
+    "@swc/core": "npm:^1.11.8"
+    "@swc/jest": "npm:^0.2.37"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/async": "npm:^3.2.24"
     "@types/express": "npm:^4.17.21"
@@ -11627,7 +11631,7 @@ __metadata:
   resolution: "@zerologementvacant/models@workspace:packages/models"
   dependencies:
     "@faker-js/faker": "npm:^8.4.1"
-    "@swc/core": "npm:^1.11.1"
+    "@swc/core": "npm:^1.11.8"
     "@swc/jest": "npm:^0.2.37"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/geojson": "npm:^7946.0.14"
@@ -11704,6 +11708,8 @@ __metadata:
   dependencies:
     "@fast-check/jest": "npm:^1.8.2"
     "@jest/globals": "npm:^29.7.0"
+    "@swc/core": "npm:^1.11.8"
+    "@swc/jest": "npm:^0.2.37"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/jest": "npm:^29.5.13"
     "@types/node": "npm:^20.16.10"
@@ -11860,6 +11866,8 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.658.1"
     "@faker-js/faker": "npm:^8.4.1"
+    "@swc/core": "npm:^1.11.8"
+    "@swc/jest": "npm:^0.2.37"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/jest": "npm:^29.5.13"
     "@types/lodash": "npm:^4.17.9"

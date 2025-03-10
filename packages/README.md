@@ -13,7 +13,7 @@ You are ready to go!
 - Inside `package.json`, add a script `"test": "jest"`
 - Copy `template/jest.config.json` to your package root (not `src`)
 - Type `yarn workspace @zerologementvacant/<your-package> add --dev @types/jest
-  jest jest-extended ts-jest`
+  jest jest-extended @swc/core @swc/jest`
 
 ## Lint
 

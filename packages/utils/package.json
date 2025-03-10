@@ -31,6 +31,8 @@
     "ts-essentials": "^10.0.2"
   },
   "devDependencies": {
+    "@swc/core": "^1.11.8",
+    "@swc/jest": "^0.2.37",
     "@tsconfig/node20": "^20.1.4",
     "@types/jest": "^29.5.13",
     "@types/lodash": "^4.17.9",

@@ -13,6 +13,8 @@
     "coverage": "jest --coverage"
   },
   "devDependencies": {
+    "@swc/core": "^1.11.8",
+    "@swc/jest": "^0.2.37",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.2",
     "@tsconfig/node20": "^20.1.4",

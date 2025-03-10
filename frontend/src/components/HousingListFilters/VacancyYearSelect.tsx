@@ -1,5 +1,5 @@
-import { VacancyYear } from '@zerologementvacant/models';
-import { vacancyYearOptions } from '../../models/HousingFilters';
+import { VACANCY_YEAR_VALUES, VacancyYear } from '@zerologementvacant/models';
+import { VACANCY_YEAR_OPTIONS } from '../../models/HousingFilters';
 import AppSelectNext, {
   AppSelectNextProps
 } from '../_app/AppSelect/AppSelectNext';
@@ -12,15 +12,12 @@ export type VacancyYearSelectProps<Multiple extends boolean> = Pick<
 function VacancyYearSelect<Multiple extends boolean = false>(
   props: VacancyYearSelectProps<Multiple>
 ) {
-  const options: VacancyYear[] = vacancyYearOptions.map(
-    (option) => option.value
-  );
-
   return (
     <AppSelectNext
       {...props}
-      options={options}
+      options={VACANCY_YEAR_VALUES}
       label="Année de début de vacance"
+      getOptionLabel={(option) => VACANCY_YEAR_OPTIONS[option].label}
     />
   );
 }

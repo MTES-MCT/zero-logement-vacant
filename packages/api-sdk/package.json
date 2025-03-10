@@ -13,6 +13,8 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
+    "@swc/core": "^1.11.8",
+    "@swc/jest": "^0.2.37",
     "@tsconfig/node20": "^20.1.4",
     "@types/convict": "^6.1.6",
     "@types/jest": "^29.5.13",

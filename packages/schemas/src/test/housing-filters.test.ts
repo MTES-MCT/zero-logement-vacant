@@ -52,8 +52,12 @@ describe('Housing filters', () => {
     localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
     geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
     geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
-    dataFileYearsIncluded: fc.array(fc.constantFrom(...DATA_FILE_YEAR_VALUES)),
-    dataFileYearsExcluded: fc.array(fc.constantFrom(...DATA_FILE_YEAR_VALUES)),
+    dataFileYearsIncluded: fc.array(
+      fc.constantFrom(null, ...DATA_FILE_YEAR_VALUES)
+    ),
+    dataFileYearsExcluded: fc.array(
+      fc.constantFrom(null, ...DATA_FILE_YEAR_VALUES)
+    ),
     status: fc.constantFrom(...HOUSING_STATUS_VALUES),
     statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
     subStatus: fc.array(fc.string({ minLength: 1 })),

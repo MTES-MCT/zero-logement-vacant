@@ -1,12 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "references": [
-    { "path": "../draft/tsconfig.build.json" },
-    { "path": "../utils/tsconfig.build.json" }
-  ],
   "exclude": [
-    "node_modules",
-    "dist",
     "src/**/*.test.ts",
     "src/test/setup-tests.ts"
   ]

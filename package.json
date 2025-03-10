@@ -5,7 +5,7 @@
   "engines": {
     "node": "^20"
   },
-  "packageManager": "yarn@4.4.1",
+  "packageManager": "yarn@4.7.0",
   "workspaces": [
     "e2e",
     "frontend",
@@ -16,6 +16,7 @@
   "scripts": {
     "prepare": "husky",
     "clean": "lerna run clean",
+    "typecheck": "lerna run typecheck",
     "build": "lerna run build",
     "lint": "eslint .",
     "test": "lerna run test",

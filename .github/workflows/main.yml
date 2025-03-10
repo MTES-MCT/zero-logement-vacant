@@ -61,8 +61,16 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
+      # Building is required before typechecking
       - name: Build
         run: yarn build
+        env:
+          DISABLE_ESLINT_PLUGIN: true
+          METABASE_TOKEN: token
+
+      # Check source and **test** files
+      - name: Check types
+        run: yarn typecheck
         env:
           DISABLE_ESLINT_PLUGIN: true
           METABASE_TOKEN: token

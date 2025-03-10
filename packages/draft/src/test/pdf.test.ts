@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/dom';
+import { DRAFT_TEMPLATE_FILE, DraftData } from '../draft';
 
 import pdf from '../pdf';
-import { DRAFT_TEMPLATE_FILE, DraftData } from '../templates/draft';
 
 describe('PDF', () => {
   const transformer = pdf.createTransformer({ logger: console });

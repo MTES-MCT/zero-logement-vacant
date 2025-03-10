@@ -1,15 +1,15 @@
 import { faker } from '@faker-js/faker';
-import { http, HttpResponse, RequestHandler } from 'msw';
-import { constants } from 'node:http2';
 
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO
 } from '@zerologementvacant/models';
-import data from './data';
-import config from '../../utils/config';
+import { http, HttpResponse, RequestHandler } from 'msw';
+import { constants } from 'node:http2';
 import { isDefined } from '../../utils/compareUtils';
+import config from '../../utils/config';
+import data from './data';
 
 interface DraftParams {
   id: string;
@@ -54,10 +54,6 @@ export const draftHandlers: RequestHandler[] = [
           address: payload.sender?.address ?? null,
           service: payload.sender?.service ?? null,
           signatories: payload.sender?.signatories ?? null,
-          signatoryFile: payload.sender?.signatoryFile ?? null,
-          signatoryFirstName: payload.sender?.signatoryFirstName ?? null,
-          signatoryLastName: payload.sender?.signatoryLastName ?? null,
-          signatoryRole: payload.sender?.signatoryRole ?? null,
           createdAt: new Date().toJSON(),
           updatedAt: new Date().toJSON()
         },

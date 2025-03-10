@@ -35,4 +35,4 @@ RUN echo "0 3 * * * root aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /
 # Commande pour démarrer Metabase
 CMD aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/$FILENAME && \
     cron && \
-    java -jar /home/metabase.jar
+    java --add-opens java.base/java.nio=ALL-UNNAMED -jar /home/metabase.jar

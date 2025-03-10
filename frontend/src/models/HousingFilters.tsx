@@ -555,6 +555,9 @@ export const multiOwnerOptions: SelectOption[] = [
   { value: 'false', label: 'Non', badgeLabel: 'Multi-propriétaire : non' }
 ];
 
+/**
+ * @deprecated Use {@link VACANCY_YEAR_OPTIONS} instead.
+ */
 export const vacancyYearOptions: SelectOption<VacancyYear>[] = [
   {
     value: '2021',
@@ -597,6 +600,46 @@ export const vacancyYearOptions: SelectOption<VacancyYear>[] = [
     badgeLabel: 'Début de vacance : 2022 (incohérence donnée source)'
   }
 ];
+export const VACANCY_YEAR_OPTIONS: Record<
+  VacancyYear,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  '2021': {
+    label: '2021',
+    badgeLabel: 'Début de vacance : depuis 2021'
+  },
+  '2020': {
+    label: '2020',
+    badgeLabel: 'Début de vacance : depuis 2020'
+  },
+  '2019': {
+    label: '2019',
+    badgeLabel: 'Début de vacance : depuis 2019'
+  },
+  '2018to2015': {
+    label: 'Entre 2018 et 2015',
+    badgeLabel: 'Début de vacance : entre 2018 et 2015'
+  },
+  '2014to2010': {
+    label: 'Entre 2014 et 2010',
+    badgeLabel: 'Début de vacance : entre 2014 et 2010'
+  },
+  before2010: {
+    label: 'Avant 2010',
+    badgeLabel: 'Début de vacance : avant 2010'
+  },
+  missingData: {
+    label: 'Pas d’information',
+    badgeLabel: 'Début de vacance : pas d’information'
+  },
+  inconsistency2022: {
+    label: '2022 (incohérence donnée source)',
+    badgeLabel: 'Début de vacance : 2022 (incohérence donnée source)'
+  }
+};
 
 export const taxedOptions: SelectOption[] = [
   { value: 'true', label: 'Oui', badgeLabel: 'Taxé : oui' },

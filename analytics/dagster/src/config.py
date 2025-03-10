@@ -53,7 +53,7 @@ public_tables = [
     "marts_public_establishments_morphology",
     "marts_public_establishments_morphology_unpivoted",
     "marts_public_establishments_hierarchy",
-    "marts_public_establishments_morphology_categorized",
+    "marts_public_establishments_morphology_catagorized",
 ]
 
 admin_tables = [

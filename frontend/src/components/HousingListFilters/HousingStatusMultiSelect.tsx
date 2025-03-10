@@ -1,92 +1,54 @@
-import classNames from 'classnames';
-import { ChangeEvent, useRef, useState } from 'react';
+import { fr } from '@codegouvfr/react-dsfr';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 import { HousingStatus } from '@zerologementvacant/models';
-import { useOutsideClick } from '../../hooks/useOutsideClick';
-import { SelectOption } from '../../models/SelectOption';
+import { getHousingState } from '../../models/HousingState';
+import AppSelectNext, {
+  AppSelectNextProps
+} from '../_app/AppSelect/AppSelectNext';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
-import styles from './housing-list-filters.module.scss';
-import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
 
-interface Props {
-  selectedStatus?: HousingStatus[];
-  options: SelectOption[];
-  onChange: (value: HousingStatus, checked: boolean) => void;
-  messageType?: string;
-  message?: string;
-}
+export type HousingStatusSelectProps<Multiple extends boolean> = Pick<
+  AppSelectNextProps<HousingStatus, Multiple>,
+  | 'className'
+  | 'disabled'
+  | 'error'
+  | 'invalid'
+  | 'multiple'
+  | 'options'
+  | 'value'
+  | 'onChange'
+>;
 
-function HousingStatusMultiSelect({
-  selectedStatus,
-  options,
-  onChange,
-  messageType,
-  message
-}: Props) {
-  const [showOptions, setShowOptions] = useState(false);
-
-  const wrapperRef = useRef(null);
-  useOutsideClick(wrapperRef, () => setShowOptions(false));
-
-  const handleStatusChange = (newStatus: HousingStatus, checked: boolean) => {
-    onChange(newStatus, checked);
-    setShowOptions(false);
-  };
+function HousingStatusMultiSelect<Multiple extends boolean = false>(
+  props: HousingStatusSelectProps<Multiple>
+) {
+  const renderValue = props.multiple
+    ? undefined
+    : (status: HousingStatusSelectProps<Multiple>['value']) => (
+        <HousingStatusBadge
+          status={
+            // Single value because `props.multiple` is false
+            (status as HousingStatusSelectProps<false>['value']) ?? undefined
+          }
+        />
+      );
 
   return (
-    <div className="select-single-input" ref={wrapperRef}>
-      <div
-        className={classNames({
-          [`fr-select-group--${messageType}`]: messageType
-        })}
-      >
-        <label className="fr-label">Statut de suivi</label>
-        <button
-          className="fr-select"
-          title={showOptions ? 'Masquer les options' : 'Afficher les options'}
-          onClick={() => setShowOptions(!showOptions)}
-        >
-          {selectedStatus !== undefined && selectedStatus.length > 0 ? (
-            selectedStatus.map((status) => (
-              <HousingStatusBadge status={status} key={status} />
-            ))
-          ) : (
-            <div>Tous</div>
-          )}
-        </button>
-        {message && messageType && (
-          <p className={`fr-${messageType}-text`}>{message}</p>
-        )}
-      </div>
-      <div
-        className={classNames('select-single-options', 'fr-pt-1w', {
-          'select-single-options__visible': showOptions
-        })}
-      >
-        {options.map((option) => (
-          <AppCheckbox
-            label={
-              <div style={{ marginTop: '-2px' }}>
-                <HousingStatusBadge status={Number(option.value)} />
-              </div>
-            }
-            checked={selectedStatus?.includes(Number(option.value))}
-            value={option.value}
-            className={classNames(
-              styles.checkboxLabel,
-              'bordered-b',
-              'fr-mx-0',
-              'fr-pb-1w'
-            )}
-            hintText={option.hint}
-            key={option.label}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              handleStatusChange(Number(option.value), e.target.checked)
-            }
-          />
-        ))}
-      </div>
-    </div>
+    <AppSelectNext
+      {...props}
+      getOptionLabel={(status) => (
+        <Stack>
+          <HousingStatusBadge status={status} />
+          <Typography className={fr.cx('fr-hint-text')}>
+            {getHousingState(status).hint}
+          </Typography>
+        </Stack>
+      )}
+      label="Statut de suivi"
+      renderValue={renderValue}
+    />
   );
 }
 

@@ -1,7 +1,10 @@
 import {
   BeneficiaryCount,
   BuildingPeriod,
+  CadastralClassification,
   CampaignDTO,
+  DATA_FILE_YEAR_VALUES,
+  DataFileYear,
   ENERGY_CONSUMPTION_VALUES,
   EnergyConsumption,
   EstablishmentDTO,
@@ -19,13 +22,14 @@ import {
   OwnerKind,
   OwnershipKind,
   RoomCount,
-  VacancyRate
+  VacancyRate,
+  VacancyYear
 } from '@zerologementvacant/models';
+import { match, Pattern } from 'ts-pattern';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import { OCCUPANCY_LABELS } from './Housing';
 import { HousingStates } from './HousingState';
-import { LocalityKindLabels, LocalityKinds } from './Locality';
-import { VacancyYear } from './VacancyYear';
+import { LocalityKindLabels } from './Locality';
 import { SelectOption } from './SelectOption';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -45,6 +49,9 @@ export const allOccupancyOptions: SelectOption<Occupancy>[] = [
   }))
 ];
 
+/**
+ * @deprecated Use {@link OWNER_AGE_OPTIONS} instead.
+ */
 export const ownerAgeOptions: SelectOption<OwnerAge>[] = [
   {
     value: 'lt40',
@@ -60,6 +67,19 @@ export const ownerAgeOptions: SelectOption<OwnerAge>[] = [
     badgeLabel: 'Âge : 100 ans et plus'
   }
 ];
+export const OWNER_AGE_OPTIONS: Record<
+  OwnerAge,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  lt40: { label: 'Moins de 40 ans', badgeLabel: 'Âge : moins de 40 ans' },
+  '40to59': { label: '40 - 59 ans', badgeLabel: 'Âge : 40 - 59 ans' },
+  '60to74': { label: '60 - 74 ans', badgeLabel: 'Âge : 60 - 74 ans' },
+  '75to99': { label: '75 - 99 ans', badgeLabel: 'Âge : 75 - 99 ans' },
+  gte100: { label: '100 ans et plus', badgeLabel: 'Âge : 100 ans et plus' }
+};
 
 export const noCampaignOption: SelectOption = {
   value: 'null',
@@ -77,26 +97,47 @@ export function getCampaignOptions(campaigns: CampaignDTO[]): SelectOption[] {
   ];
 }
 
+/**
+ * @deprecated Use {@link OWNER_KIND_OPTIONS} instead.
+ */
 export const ownerKindOptions: SelectOption<OwnerKind>[] =
   OWNER_KIND_VALUES.map((value) => ({
     value: value,
     label: OWNER_KIND_LABELS[value],
-    badgeLabel: `Type de propriétaire : ${OWNER_KIND_LABELS[value]}`
+    badgeLabel: `Type de propriétaire : ${OWNER_KIND_LABELS[value].toLowerCase()}`
   }));
+export const OWNER_KIND_OPTIONS: Record<
+  OwnerKind,
+  { label: string; badgeLabel: string }
+> = OWNER_KIND_VALUES.reduce(
+  (record, value) => {
+    return {
+      ...record,
+      [value]: {
+        label: OWNER_KIND_LABELS[value],
+        badgeLabel: `Type de propriétaire : ${OWNER_KIND_LABELS[value].toLowerCase()}`
+      }
+    };
+  },
+  {} as Record<OwnerKind, { label: string; badgeLabel: string }>
+);
 
 export const statusOptions = (
   statusExcluded?: HousingStatus[]
 ): SelectOption[] => [
   ...HousingStates.filter(
     (_) => !(statusExcluded ?? []).includes(_.status)
-  ).map((status) => ({
+  ).map<SelectOption>((status) => ({
     value: String(status.status),
     label: status.title,
-    badgeLabel: `Statut de suivi : ${status.title}`,
+    badgeLabel: `Statut de suivi : ${status.title.toLowerCase()}`,
     hint: status.hint
   }))
 ];
 
+/**
+ * @deprecated Use {@link BENEFICIARY_COUNT_OPTIONS} instead.
+ */
 export const beneficiaryCountOptions: SelectOption<BeneficiaryCount>[] = [
   {
     value: '0',
@@ -129,7 +170,42 @@ export const beneficiaryCountOptions: SelectOption<BeneficiaryCount>[] = [
     badgeLabel: 'Propriétaires secondaires : 5 bénéficiaires et plus'
   }
 ];
+export const BENEFICIARY_COUNT_OPTIONS: Record<
+  BeneficiaryCount,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  '0': {
+    label: 'Aucun',
+    badgeLabel: 'Propriétaires secondaires : aucun bénéficiaire'
+  },
+  '1': {
+    label: '1',
+    badgeLabel: 'Propriétaires secondaires : 1 bénéficiaire'
+  },
+  '2': {
+    label: '2',
+    badgeLabel: 'Propriétaires secondaires : 2 bénéficiaires'
+  },
+  '3': {
+    label: '3',
+    badgeLabel: 'Propriétaires secondaires : 3 bénéficiaires'
+  },
+  '4': {
+    label: '4',
+    badgeLabel: 'Propriétaires secondaires : 4 bénéficiaires'
+  },
+  gte5: {
+    label: '5 et plus',
+    badgeLabel: 'Propriétaires secondaires : 5 bénéficiaires et plus'
+  }
+};
 
+/**
+ * @deprecated Use {@link HOUSING_COUNT_OPTIONS} instead.
+ */
 export const housingCountOptions: SelectOption<HousingByBuilding>[] = [
   {
     value: 'lt5',
@@ -152,7 +228,34 @@ export const housingCountOptions: SelectOption<HousingByBuilding>[] = [
     badgeLabel: 'Nombre de logements : 50 et plus'
   }
 ];
+export const HOUSING_COUNT_OPTIONS: Record<
+  HousingByBuilding,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  lt5: {
+    label: 'Moins de 5',
+    badgeLabel: 'Nombre de logements : moins de 5'
+  },
+  '5to19': {
+    label: 'Entre 5 et 19',
+    badgeLabel: 'Nombre de logements : entre 5 et 19'
+  },
+  '20to49': {
+    label: 'Entre 20 et 49',
+    badgeLabel: 'Nombre de logements : entre 20 et 49'
+  },
+  gte50: {
+    label: '50 et plus',
+    badgeLabel: 'Nombre de logements : 50 et plus'
+  }
+};
 
+/**
+ * @deprecated Use {@link VACANCY_RATE_OPTIONS}
+ */
 export const vacancyRateOptions: SelectOption<VacancyRate>[] = [
   {
     value: 'lt20',
@@ -180,6 +283,34 @@ export const vacancyRateOptions: SelectOption<VacancyRate>[] = [
     badgeLabel: 'Taux de vacance : 80% et plus'
   }
 ];
+export const VACANCY_RATE_OPTIONS: Record<
+  VacancyRate,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  lt20: {
+    label: 'Moins de 20%',
+    badgeLabel: 'Taux de vacance : moins de 20%'
+  },
+  '20to39': {
+    label: '20% - 39%',
+    badgeLabel: 'Taux de vacance : entre 20% et 39%'
+  },
+  '40to59': {
+    label: '40% - 59%',
+    badgeLabel: 'Taux de vacance : entre 40% et 59%'
+  },
+  '60to79': {
+    label: '60% - 79%',
+    badgeLabel: 'Taux de vacance : entre 60% et 79%'
+  },
+  gte80: {
+    label: '80% et plus',
+    badgeLabel: 'Taux de vacance : 80% et plus'
+  }
+};
 
 export const energyConsumptionOptions: SelectOption<EnergyConsumption>[] =
   ENERGY_CONSUMPTION_VALUES.map((grade) => ({
@@ -204,6 +335,9 @@ export const housingKindOptions: SelectOption<HousingKind>[] = [
   }
 ];
 
+/**
+ * @deprecated Use {@link LIVING_AREA_OPTIONS} instead.
+ */
 export const housingAreaOptions: SelectOption<LivingArea>[] = [
   {
     value: 'lt35',
@@ -226,7 +360,31 @@ export const housingAreaOptions: SelectOption<LivingArea>[] = [
     badgeLabel: 'Surface : 100 m² et plus'
   }
 ];
+export const LIVING_AREA_OPTIONS: Record<
+  LivingArea,
+  { label: string; badgeLabel: string }
+> = {
+  lt35: {
+    label: 'Moins de 35 m²',
+    badgeLabel: 'Surface : moins de 35 m²'
+  },
+  '35to74': {
+    label: '35 - 74 m²',
+    badgeLabel: 'Surface : entre 35 et 74 m²'
+  },
+  '75to99': {
+    label: '75 - 99 m²',
+    badgeLabel: 'Surface : entre 75 et 99 m²'
+  },
+  gte100: {
+    label: '100 m² et plus',
+    badgeLabel: 'Surface : 100 m² et plus'
+  }
+};
 
+/**
+ * @deprecated Use {@link ROOM_COUNT_OPTIONS} instead.
+ */
 export const roomsCountOptions: SelectOption<RoomCount>[] = [
   { value: '1', label: '1 pièce', badgeLabel: 'Nombre de pièces : 1' },
   { value: '2', label: '2 pièces', badgeLabel: 'Nombre de pièces : 2' },
@@ -238,50 +396,113 @@ export const roomsCountOptions: SelectOption<RoomCount>[] = [
     badgeLabel: 'Nombre de pièces : 5 et plus'
   }
 ];
-
-export const cadastralClassificationOptions: SelectOption[] = [
+export const ROOM_COUNT_OPTIONS: Record<
+  RoomCount,
   {
-    value: '1',
-    label: '1 - Grand luxe',
-    badgeLabel: 'Classification cadastrale : 1 - Grand luxe'
-  },
-  {
-    value: '2',
-    label: '2 - Luxe',
-    badgeLabel: 'Classification cadastrale : 2 - Luxe'
-  },
-  {
-    value: '3',
-    label: '3 - Très confortable',
-    badgeLabel: 'Classification cadastrale : 3 - Très confortable'
-  },
-  {
-    value: '4',
-    label: '4 - Confortable',
-    badgeLabel: 'Classification cadastrale : 4 - Confortable'
-  },
-  {
-    value: '5',
-    label: '5 - Assez confortable',
-    badgeLabel: 'Classification cadastrale : 5 - Assez confortable'
-  },
-  {
-    value: '6',
-    label: '6 - Ordinaire',
-    badgeLabel: 'Classification cadastrale : 6 - Ordinaire'
-  },
-  {
-    value: '7',
-    label: '7 - Médiocre',
-    badgeLabel: 'Classification cadastrale : 7 - Médiocre'
-  },
-  {
-    value: '8',
-    label: '8 - Très médiocre',
-    badgeLabel: 'Classification cadastrale : 8 - Très médiocre'
+    label: string;
+    badgeLabel: string;
   }
-];
+> = {
+  '1': { label: '1 pièce', badgeLabel: 'Nombre de pièces : 1' },
+  '2': { label: '2 pièces', badgeLabel: 'Nombre de pièces : 2' },
+  '3': { label: '3 pièces', badgeLabel: 'Nombre de pièces : 3' },
+  '4': { label: '4 pièces', badgeLabel: 'Nombre de pièces : 4' },
+  gte5: {
+    label: '5 pièces et plus',
+    badgeLabel: 'Nombre de pièces : 5 et plus'
+  }
+};
 
+/**
+ * @deprecated Use {@link CADASTRAL_CLASSIFICATION_OPTIONS} instead.
+ */
+export const cadastralClassificationOptions: SelectOption<CadastralClassification>[] =
+  [
+    {
+      value: '1',
+      label: '1 - Grand luxe',
+      badgeLabel: 'Classement cadastral : 1 - Grand luxe'
+    },
+    {
+      value: '2',
+      label: '2 - Luxe',
+      badgeLabel: 'Classement cadastral : 2 - Luxe'
+    },
+    {
+      value: '3',
+      label: '3 - Très confortable',
+      badgeLabel: 'Classement cadastral : 3 - Très confortable'
+    },
+    {
+      value: '4',
+      label: '4 - Confortable',
+      badgeLabel: 'Classement cadastral : 4 - Confortable'
+    },
+    {
+      value: '5',
+      label: '5 - Assez confortable',
+      badgeLabel: 'Classement cadastral : 5 - Assez confortable'
+    },
+    {
+      value: '6',
+      label: '6 - Ordinaire',
+      badgeLabel: 'Classement cadastral : 6 - Ordinaire'
+    },
+    {
+      value: '7',
+      label: '7 - Médiocre',
+      badgeLabel: 'Classement cadastral : 7 - Médiocre'
+    },
+    {
+      value: '8',
+      label: '8 - Très médiocre',
+      badgeLabel: 'Classement cadastral : 8 - Très médiocre'
+    }
+  ];
+export const CADASTRAL_CLASSIFICATION_OPTIONS: Record<
+  CadastralClassification,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  '1': {
+    label: '1 - Grand luxe',
+    badgeLabel: 'Classement cadastral : 1 - Grand luxe'
+  },
+  '2': {
+    label: '2 - Luxe',
+    badgeLabel: 'Classement cadastral : 2 - Luxe'
+  },
+  '3': {
+    label: '3 - Très confortable',
+    badgeLabel: 'Classement cadastral : 3 - Très confortable'
+  },
+  '4': {
+    label: '4 - Confortable',
+    badgeLabel: 'Classement cadastral : 4 - Confortable'
+  },
+  '5': {
+    label: '5 - Assez confortable',
+    badgeLabel: 'Classement cadastral : 5 - Assez confortable'
+  },
+  '6': {
+    label: '6 - Ordinaire',
+    badgeLabel: 'Classement cadastral : 6 - Ordinaire'
+  },
+  '7': {
+    label: '7 - Médiocre',
+    badgeLabel: 'Classement cadastral : 7 - Médiocre'
+  },
+  '8': {
+    label: '8 - Très médiocre',
+    badgeLabel: 'Classement cadastral : 8 - Très médiocre'
+  }
+};
+
+/**
+ * @deprecated Use {@link BUILDING_PERIOD_OPTIONS} instead.
+ */
 export const buildingPeriodOptions: SelectOption<BuildingPeriod>[] = [
   {
     value: 'lt1919',
@@ -304,12 +525,39 @@ export const buildingPeriodOptions: SelectOption<BuildingPeriod>[] = [
     badgeLabel: 'Date de construction : 1991 ou après'
   }
 ];
+export const BUILDING_PERIOD_OPTIONS: Record<
+  BuildingPeriod,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  lt1919: {
+    label: 'Avant 1919',
+    badgeLabel: 'Date de construction : avant 1919'
+  },
+  '1919to1945': {
+    label: 'Entre 1919 et 1945',
+    badgeLabel: 'Date de construction : entre 1919 et 1945'
+  },
+  '1946to1990': {
+    label: 'Entre 1946 et 1990',
+    badgeLabel: 'Date de construction : entre 1946 et 1990'
+  },
+  gte1991: {
+    label: '1991 ou après',
+    badgeLabel: 'Date de construction : 1991 ou après'
+  }
+};
 
 export const multiOwnerOptions: SelectOption[] = [
   { value: 'true', label: 'Oui', badgeLabel: 'Multi-propriétaire : oui' },
   { value: 'false', label: 'Non', badgeLabel: 'Multi-propriétaire : non' }
 ];
 
+/**
+ * @deprecated Use {@link VACANCY_YEAR_OPTIONS} instead.
+ */
 export const vacancyYearOptions: SelectOption<VacancyYear>[] = [
   {
     value: '2021',
@@ -352,12 +600,55 @@ export const vacancyYearOptions: SelectOption<VacancyYear>[] = [
     badgeLabel: 'Début de vacance : 2022 (incohérence donnée source)'
   }
 ];
+export const VACANCY_YEAR_OPTIONS: Record<
+  VacancyYear,
+  {
+    label: string;
+    badgeLabel: string;
+  }
+> = {
+  '2021': {
+    label: '2021',
+    badgeLabel: 'Début de vacance : depuis 2021'
+  },
+  '2020': {
+    label: '2020',
+    badgeLabel: 'Début de vacance : depuis 2020'
+  },
+  '2019': {
+    label: '2019',
+    badgeLabel: 'Début de vacance : depuis 2019'
+  },
+  '2018to2015': {
+    label: 'Entre 2018 et 2015',
+    badgeLabel: 'Début de vacance : entre 2018 et 2015'
+  },
+  '2014to2010': {
+    label: 'Entre 2014 et 2010',
+    badgeLabel: 'Début de vacance : entre 2014 et 2010'
+  },
+  before2010: {
+    label: 'Avant 2010',
+    badgeLabel: 'Début de vacance : avant 2010'
+  },
+  missingData: {
+    label: 'Pas d’information',
+    badgeLabel: 'Début de vacance : pas d’information'
+  },
+  inconsistency2022: {
+    label: '2022 (incohérence donnée source)',
+    badgeLabel: 'Début de vacance : 2022 (incohérence donnée source)'
+  }
+};
 
 export const taxedOptions: SelectOption[] = [
   { value: 'true', label: 'Oui', badgeLabel: 'Taxé : oui' },
   { value: 'false', label: 'Non', badgeLabel: 'Taxé : non' }
 ];
 
+/**
+ * @deprecated Use {@link OWNERSHIP_KIND_OPTIONS} instead.
+ */
 export const ownershipKindsOptions: SelectOption<OwnershipKind>[] = [
   {
     value: 'single',
@@ -375,6 +666,23 @@ export const ownershipKindsOptions: SelectOption<OwnershipKind>[] = [
     badgeLabel: 'Type de propriété : autre'
   }
 ];
+export const OWNERSHIP_KIND_OPTIONS: Record<
+  OwnershipKind,
+  { label: string; badgeLabel: string }
+> = {
+  single: {
+    label: 'Monopropriété',
+    badgeLabel: 'Type de propriété : monopropriété'
+  },
+  co: {
+    label: 'Copropriété',
+    badgeLabel: 'Type de propriété : copropriété'
+  },
+  other: {
+    label: 'Autre',
+    badgeLabel: 'Type de propriété : autre'
+  }
+};
 
 export function getIntercommunalityOptions(
   establishments: EstablishmentDTO[]
@@ -386,19 +694,38 @@ export function getIntercommunalityOptions(
   }));
 }
 
+/**
+ * @deprecated Use {@link LOCALITY_KIND_OPTIONS} instead.
+ */
 export const localityKindsOptions: SelectOption<LocalityKind>[] = [
   {
-    value: LocalityKinds.ACV,
-    label: LocalityKindLabels[LocalityKinds.ACV],
-    badgeLabel: `Type de commune : ${LocalityKindLabels[LocalityKinds.ACV]}`
+    value: 'ACV',
+    label: LocalityKindLabels['ACV'],
+    badgeLabel: `Type de commune : ${LocalityKindLabels['ACV']}`
   },
   {
-    value: LocalityKinds.PVD,
-    label: LocalityKindLabels[LocalityKinds.PVD],
-    badgeLabel: `Type de commune : ${LocalityKindLabels[LocalityKinds.PVD]}`
+    value: 'PVD',
+    label: LocalityKindLabels['PVD'],
+    badgeLabel: `Type de commune : ${LocalityKindLabels['PVD']}`
   }
 ];
+export const LOCALITY_KIND_OPTIONS: Record<
+  LocalityKind,
+  { label: string; badgeLabel: string }
+> = {
+  ACV: {
+    label: 'Action Cœur de Ville',
+    badgeLabel: 'Type de commune : Action Cœur de Ville'
+  },
+  PVD: {
+    label: 'Petites Villes de Demain',
+    badgeLabel: 'Type de commune : Petites Villes de Demain'
+  }
+};
 
+/**
+ * @deprecated Use {@link DATA_FILE_YEAR_INCLUDED_OPTIONS} instead.
+ */
 export const dataFileYearsIncludedOptions: SelectOption[] = [
   {
     value: 'ff-2023-locatif',
@@ -438,6 +765,58 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
   }
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
+export const DATA_FILE_YEAR_INCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
+  (record, value) => {
+    return {
+      ...record,
+      [value]: match(value)
+        .with('ff-2023-locatif', () => {
+          const label = 'Fichiers fonciers 2023 (parc locatif privé)';
+          return {
+            label,
+            badgeLabel: `Source et millésime inclus: ${label}`
+          };
+        })
+        .with(Pattern.string.startsWith('lovac-'), (value) => {
+          const label = `LOVAC ${value.slice('lovac-'.length)} (>2 ans)`;
+          return {
+            label,
+            badgeLabel: `Source et millésime inclus : ${label}`
+          };
+        })
+        .exhaustive()
+    };
+  },
+  {} as Record<DataFileYear, { label: string; badgeLabel: string }>
+);
+export const DATA_FILE_YEAR_EXCLUDED_OPTIONS = DATA_FILE_YEAR_VALUES.reduce(
+  (record, value) => {
+    return {
+      ...record,
+      [value]: match(value)
+        .with('ff-2023-locatif', () => {
+          const label = 'Fichiers fonciers 2023 (parc locatif privé)';
+          return {
+            label,
+            badgeLabel: `Source et millésime exclus : ${label}`
+          };
+        })
+        .with(Pattern.string.startsWith('lovac-'), (value) => {
+          const label = `LOVAC ${value.slice('lovac-'.length)} (>2 ans)`;
+          return {
+            label,
+            badgeLabel: `Source et millésime exclus : ${label}`
+          };
+        })
+        .exhaustive()
+    };
+  },
+  {} as Record<DataFileYear, { label: string; badgeLabel: string }>
+);
+
+/**
+ * @deprecated Use {@link DATA_FILE_YEAR_EXCLUDED_OPTIONS} instead.
+ */
 export const dataFileYearsExcludedOptions: SelectOption[] = [
   {
     value: 'ff-2023-locatif',

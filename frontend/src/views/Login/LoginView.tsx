@@ -2,19 +2,19 @@ import { fr } from '@codegouvfr/react-dsfr';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
+
+import { EstablishmentDTO } from '@zerologementvacant/models';
 import { FormEvent, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
-
-import { EstablishmentDTO } from '@zerologementvacant/models';
-import { Col, Container, Row, Text } from '../../components/_dsfr';
-import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
-import { emailValidator, useForm } from '../../hooks/useForm';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
+import { Col, Container, Row, Text } from '../../components/_dsfr';
+import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { emailValidator, useForm } from '../../hooks/useForm';
+import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { logIn } from '../../store/thunks/auth-thunks';
 
 const LoginView = () => {
@@ -126,6 +126,7 @@ const LoginView = () => {
             {isAdminView && (
               <EstablishmentSearchableSelect
                 className={fr.cx('fr-mb-2w')}
+                label="Collectivité"
                 value={establishment}
                 onChange={(establishment) => {
                   if (establishment) {

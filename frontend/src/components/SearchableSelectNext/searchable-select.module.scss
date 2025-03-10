@@ -1,0 +1,15 @@
+.activePlaceholder {
+  &::placeholder {
+    color: var(--text-default-grey);
+    font-style: normal;
+  }
+}
+
+.selected {
+  // Hack to avoid transparency issues with the selected item
+  background-color: #ebebf6 !important;
+
+  &:hover {
+    background-color: #e0e0f2 !important;
+  }
+}

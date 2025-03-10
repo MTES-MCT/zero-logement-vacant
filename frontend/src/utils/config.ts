@@ -1,4 +1,3 @@
-console.log(process.env.REACT_APP_SENTRY_ENV);
 const config = {
   apiEndpoint: process.env.REACT_APP_API_URL ?? 'http://localhost:3001',
   banEndpoint: 'https://api-adresse.data.gouv.fr',

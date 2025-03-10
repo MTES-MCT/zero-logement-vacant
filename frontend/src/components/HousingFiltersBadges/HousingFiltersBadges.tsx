@@ -22,6 +22,7 @@ import {
   cadastralClassificationOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
+  EMPTY_OPTION,
   energyConsumptionOptions,
   getCampaignOptions,
   getIntercommunalityOptions,
@@ -106,7 +107,6 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         options={allOccupancyOptions}
         values={filters.occupancies}
         small={small}
-        keepEmptyValue
         onChange={(values) => onChange?.({ occupancies: values })}
       />
       <FilterBadges
@@ -277,18 +277,32 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         />
       )}
       <FilterBadges
-        options={dataFileYearsIncludedOptions}
+        options={[
+          {
+            ...EMPTY_OPTION,
+            badgeLabel: 'Source et millésime inclus : pas d’information'
+          },
+          ...dataFileYearsIncludedOptions
+        ]}
         values={filters.dataFileYearsIncluded}
         small={small}
-        onChange={(values: DataFileYear[]) =>
-          onChange?.({ dataFileYearsIncluded: values })
+        onChange={(values: (DataFileYear | null)[]) =>
+          onChange?.({
+            dataFileYearsIncluded: values
+          })
         }
       />
       <FilterBadges
-        options={dataFileYearsExcludedOptions}
+        options={[
+          {
+            ...EMPTY_OPTION,
+            badgeLabel: 'Source et millésime exclus : pas d’information'
+          },
+          ...dataFileYearsExcludedOptions
+        ]}
         values={filters.dataFileYearsExcluded}
         small={small}
-        onChange={(values: DataFileYear[]) =>
+        onChange={(values: (DataFileYear | null)[]) =>
           onChange?.({ dataFileYearsExcluded: values })
         }
       />

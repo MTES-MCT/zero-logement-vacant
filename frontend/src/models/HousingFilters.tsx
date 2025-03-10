@@ -35,6 +35,11 @@ import { SelectOption } from './SelectOption';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HousingFilters extends HousingFiltersDTO {}
 
+export const EMPTY_OPTION = {
+  label: 'Pas d’information',
+  value: null
+};
+
 export const allOccupancyOptions: SelectOption<Occupancy>[] = [
   {
     label: OCCUPANCY_LABELS[Occupancy.UNKNOWN],

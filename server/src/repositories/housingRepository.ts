@@ -1,5 +1,6 @@
 import {
   AddressKinds,
+  EnergyConsumption,
   HousingSource,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
@@ -20,7 +21,6 @@ import db, { toRawArray, where } from '~/infra/database';
 import { getTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import {
-  EnergyConsumptionGradesApi,
   HousingApi,
   HousingRecordApi,
   HousingSortApi
@@ -455,10 +455,15 @@ function filteredQuery(opts: FilteredQueryOptions) {
       queryBuilder.whereIn('occupancy', filters.occupancies);
     }
     if (filters.energyConsumption?.length) {
-      queryBuilder.whereIn(
-        'energy_consumption_bdnb',
-        filters.energyConsumption
-      );
+      queryBuilder.where((where) => {
+        if (filters.energyConsumption?.includes(null)) {
+          where.whereNull('energy_consumption_bdnb');
+        }
+        const energyConsumptions = filters.energyConsumption?.filter(isNotNull);
+        if (energyConsumptions?.length) {
+          where.orWhereIn('energy_consumption_bdnb', energyConsumptions);
+        }
+      });
     }
     if (filters.groupIds?.length) {
       queryBuilder.join(groupsHousingTable, (join) => {
@@ -964,8 +969,8 @@ export interface HousingRecordDBO {
   occupancy: Occupancy;
   occupancy_source: Occupancy;
   occupancy_intended: Occupancy | null;
-  energy_consumption_bdnb?: EnergyConsumptionGradesApi;
-  energy_consumption_at_bdnb?: Date;
+  energy_consumption_bdnb: EnergyConsumption | null;
+  energy_consumption_at_bdnb: Date | null;
 }
 
 export interface HousingDBO extends HousingRecordDBO {

@@ -27,7 +27,9 @@ describe('Housing filters', () => {
     all: fc.boolean(),
     housingIds: fc.array(fc.uuid()),
     occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
-    energyConsumption: fc.array(fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)),
+    energyConsumption: fc.array(
+      fc.constantFrom(null, ...ENERGY_CONSUMPTION_VALUES)
+    ),
     establishmentIds: fc.array(fc.uuid()),
     groupIds: fc.array(fc.uuid()),
     campaignsCounts: fc.array(fc.constantFrom(...CAMPAIGN_COUNT_VALUES)),

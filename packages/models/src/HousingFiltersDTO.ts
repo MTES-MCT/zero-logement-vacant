@@ -24,7 +24,7 @@ export interface HousingFiltersDTO {
   all?: boolean;
   housingIds?: string[];
   occupancies?: Occupancy[];
-  energyConsumption?: EnergyConsumption[];
+  energyConsumption?: (EnergyConsumption | null)[];
   establishmentIds?: string[];
   groupIds?: string[];
   campaignsCounts?: CampaignCount[];

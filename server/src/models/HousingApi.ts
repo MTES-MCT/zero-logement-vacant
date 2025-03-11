@@ -1,6 +1,3 @@
-import fp from 'lodash/fp';
-import { assert, MarkRequired } from 'ts-essentials';
-
 import {
   HousingDTO,
   HousingKind,
@@ -8,15 +5,18 @@ import {
   Occupancy,
   Precision
 } from '@zerologementvacant/models';
-import { OwnerApi, toOwnerDTO } from './OwnerApi';
-import { HousingStatusApi, toHousingStatus } from './HousingStatusApi';
-import { Sort } from './SortApi';
-import { HousingEventApi, isUserModified } from '~/models/EventApi';
+import fp from 'lodash/fp';
+import { assert, MarkRequired } from 'ts-essentials';
 import OwnerMissingError from '~/errors/ownerMissingError';
+import { HousingEventApi, isUserModified } from '~/models/EventApi';
+import { HousingStatusApi, toHousingStatus } from './HousingStatusApi';
+import { OwnerApi, toOwnerDTO } from './OwnerApi';
+import { Sort } from './SortApi';
 
 export type HousingId = Pick<HousingRecordApi, 'geoCode' | 'id'>;
 
-export interface HousingRecordApi {
+export interface HousingRecordApi
+  extends Pick<HousingDTO, 'energyConsumption' | 'energyConsumptionAt'> {
   id: string;
   /**
    * @deprecated Shall be replaced by `localId`
@@ -63,8 +63,6 @@ export interface HousingRecordApi {
    * @deprecated See {@link precisions}
    */
   deprecatedPrecisions?: string[] | null;
-  energyConsumption?: EnergyConsumptionGradesApi;
-  energyConsumptionAt?: Date;
   occupancy: Occupancy;
   occupancyRegistered: Occupancy;
   occupancyIntended?: Occupancy | null;
@@ -194,10 +192,6 @@ export enum EnergyConsumptionGradesApi {
   F = 'F',
   G = 'G'
 }
-
-export const ENERGY_CONSUMPTION_GRADES = Object.values(
-  EnergyConsumptionGradesApi
-);
 
 const trimStartingZeros = (str: string): string => str.replace(/^0+/, '');
 

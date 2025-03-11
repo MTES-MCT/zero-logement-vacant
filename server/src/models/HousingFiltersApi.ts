@@ -1,5 +1,4 @@
 import {
-  EnergyConsumption,
   HousingFiltersDTO,
   Occupancy,
   OwnerKind,
@@ -22,6 +21,7 @@ export interface HousingFiltersApi
     | 'precisions'
     | 'dataFileYearsIncluded'
     | 'dataFileYearsExcluded'
+    | 'energyConsumption'
   > {
   housingIds?: string[];
   establishmentIds?: string[];
@@ -56,7 +56,6 @@ export interface HousingFiltersApi
   statusList?: number[];
   subStatus?: string[];
   query?: string;
-  energyConsumption?: EnergyConsumption[];
   occupancies?: Occupancy[];
 }
 

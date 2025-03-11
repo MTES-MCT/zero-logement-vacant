@@ -37,7 +37,7 @@ describe('Housing filters', () => {
     campaignIds: fc.array(fc.oneof(fc.constant(null), fc.uuid())),
     ownerIds: fc.array(fc.uuid()),
     ownerKinds: fc.array(fc.constantFrom(null, ...OWNER_KIND_VALUES)),
-    ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
+    ownerAges: fc.array(fc.constantFrom(null, ...OWNER_AGE_VALUES)),
     multiOwners: fc.array(fc.boolean()),
     beneficiaryCounts: fc.array(fc.constantFrom(...BENEFIARY_COUNT_VALUES)),
     housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),

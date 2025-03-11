@@ -14,6 +14,7 @@ import {
   OCCUPANCY_VALUES,
   OWNER_KIND_LABELS,
   OWNER_KIND_VALUES,
+  OwnerAge,
   OwnershipKind,
   Precision,
   ROOM_COUNT_VALUES
@@ -482,21 +483,25 @@ describe('Housing repository', () => {
       });
 
       describe('by owner’s age', () => {
-        function createOwner(age: number): OwnerApi {
+        function createOwner(age: number | null): OwnerApi {
           return {
             ...genOwnerApi(),
-            birthDate: faker.date
-              .birthdate({
-                min: age,
-                max: age,
-                mode: 'age'
-              })
-              .toJSON()
+            birthDate:
+              age === null
+                ? null
+                : faker.date
+                    .birthdate({
+                      min: age,
+                      max: age,
+                      mode: 'age'
+                    })
+                    .toJSON()
           };
         }
 
         beforeAll(async () => {
           const owners: OwnerApi[] = [
+            createOwner(null),
             createOwner(39),
             createOwner(40),
             createOwner(59),
@@ -516,15 +521,21 @@ describe('Housing repository', () => {
           );
         });
 
-        const tests = [
+        const tests: ReadonlyArray<{
+          name: string;
+          filter: Array<OwnerAge | null>;
+          predicate(owner: OwnerApi): boolean;
+        }> = [
+          {
+            name: 'unfilled birth date',
+            filter: [null],
+            predicate: (owner) => owner.birthDate === null
+          },
           {
             name: 'less than 40 years old',
             filter: ['lt40'],
-            predicate: (owner: OwnerApi) => {
-              return (
-                differenceInYears(new Date(), owner.birthDate as string) < 40
-              );
-            }
+            predicate: (owner) =>
+              differenceInYears(new Date(), owner.birthDate as string) < 40
           },
           {
             name: 'between 40 and 59 years old',
@@ -562,11 +573,8 @@ describe('Housing repository', () => {
           {
             name: '100 years old and more',
             filter: ['gte100'],
-            predicate: (owner: OwnerApi) => {
-              return (
-                differenceInYears(new Date(), owner.birthDate as string) >= 100
-              );
-            }
+            predicate: (owner) =>
+              differenceInYears(new Date(), owner.birthDate as string) >= 100
           }
         ];
 

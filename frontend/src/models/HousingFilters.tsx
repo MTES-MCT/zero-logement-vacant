@@ -72,6 +72,11 @@ export const ownerAgeOptions: SelectOption<OwnerAge>[] = [
     badgeLabel: 'Âge : 100 ans et plus'
   }
 ];
+export const OWNER_AGE_EMPTY_OPTION: SelectOption<null> = {
+  value: null,
+  label: 'Pas d’information',
+  badgeLabel: 'Âge : pas d’information'
+};
 export const OWNER_AGE_OPTIONS: Record<
   OwnerAge,
   {

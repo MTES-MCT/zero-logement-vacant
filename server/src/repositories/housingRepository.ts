@@ -513,27 +513,30 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.ownerAges?.length) {
-      queryBuilder.where((whereBuilder) => {
+      queryBuilder.where((where) => {
+        if (filters.ownerAges?.includes(null)) {
+          where.orWhereNull(`${ownerTable}.birth_date`);
+        }
         if (filters.ownerAges?.includes('lt40')) {
-          whereBuilder.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) < 40');
+          where.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) < 40');
         }
         if (filters.ownerAges?.includes('40to59')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 40 AND 59'
           );
         }
         if (filters.ownerAges?.includes('60to74')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 60 AND 74'
           );
         }
         if (filters.ownerAges?.includes('75to99')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 75 AND 99'
           );
         }
         if (filters.ownerAges?.includes('gte100')) {
-          whereBuilder.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) >= 100');
+          where.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) >= 100');
         }
       });
     }

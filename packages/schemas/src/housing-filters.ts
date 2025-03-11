@@ -57,7 +57,8 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().oneOf(OWNER_KIND_VALUES).defined().nullable()),
   ownerAges: array()
     .transform(commaSeparatedString)
-    .of(string().oneOf(OWNER_AGE_VALUES).required()),
+    .transform(parseNull)
+    .of(string().oneOf(OWNER_AGE_VALUES).defined().nullable()),
   multiOwners: array().transform(commaSeparatedString).of(boolean().required()),
   beneficiaryCounts: array()
     .transform(commaSeparatedString)

@@ -8,7 +8,7 @@ export interface OwnerDTO {
   /**
    * A date formatted like yyyy-mm-dd
    */
-  birthDate?: string;
+  birthDate: string | null;
   email?: string;
   phone?: string;
   banAddress?: AddressDTO;

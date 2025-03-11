@@ -500,10 +500,17 @@ function filteredQuery(opts: FilteredQueryOptions) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }
     if (filters.ownerKinds?.length) {
-      const ownerKinds = filters.ownerKinds.map(
-        (kind) => OWNER_KIND_LABELS[kind]
-      );
-      queryBuilder.whereIn(`${ownerTable}.kind_class`, ownerKinds);
+      queryBuilder.where((where) => {
+        if (filters.ownerKinds?.includes(null)) {
+          where.whereNull(`${ownerTable}.kind_class`);
+        }
+        const ownerKinds = filters.ownerKinds
+          ?.filter(isNotNull)
+          ?.map((kind) => OWNER_KIND_LABELS[kind]);
+        if (ownerKinds?.length) {
+          where.orWhereIn(`${ownerTable}.kind_class`, ownerKinds);
+        }
+      });
     }
     if (filters.ownerAges?.length) {
       queryBuilder.where((whereBuilder) => {

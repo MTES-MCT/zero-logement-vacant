@@ -629,6 +629,30 @@ describe('Housing repository', () => {
           );
         });
 
+        it('should keep owners that have an empty kind', async () => {
+          const housing = genHousingApi();
+          await Housing().insert(formatHousingRecordApi(housing));
+          const owner: OwnerApi = {
+            ...genOwnerApi(),
+            kind: null
+          };
+          await Owners().insert(formatOwnerApi(owner));
+          await HousingOwners().insert(
+            formatHousingOwnersApi(housing, [owner])
+          );
+
+          const actual = await housingRepository.find({
+            filters: {
+              ownerKinds: [null]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.owner?.kind === null;
+          });
+        });
+
         test.each(kinds)('should filter by %s', async (kind) => {
           const actual = await housingRepository.find({
             filters: {

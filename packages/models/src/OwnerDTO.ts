@@ -13,7 +13,7 @@ export interface OwnerDTO {
   phone?: string;
   banAddress?: AddressDTO;
   additionalAddress?: string;
-  kind?: string;
+  kind: string | null;
   kindDetail?: string;
   createdAt?: string;
   updatedAt?: string;

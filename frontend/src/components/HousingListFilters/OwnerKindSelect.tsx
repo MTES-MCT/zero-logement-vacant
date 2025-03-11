@@ -1,5 +1,8 @@
 import { OWNER_KIND_VALUES, OwnerKind } from '@zerologementvacant/models';
-import { OWNER_KIND_OPTIONS } from '../../models/HousingFilters';
+import {
+  OWNER_KIND_EMPTY_OPTION,
+  OWNER_KIND_OPTIONS
+} from '../../models/HousingFilters';
 import AppSelectNext, {
   AppSelectNextProps
 } from '../_app/AppSelect/AppSelectNext';
@@ -15,9 +18,13 @@ function OwnerKindSelect<Multiple extends boolean = false>(
   return (
     <AppSelectNext
       {...props}
-      options={OWNER_KIND_VALUES}
+      options={[OWNER_KIND_EMPTY_OPTION.value, ...OWNER_KIND_VALUES]}
       label="Type de propriétaire"
-      getOptionLabel={(option) => OWNER_KIND_OPTIONS[option].label}
+      getOptionLabel={(option) =>
+        option === OWNER_KIND_EMPTY_OPTION.value
+          ? OWNER_KIND_EMPTY_OPTION.label
+          : OWNER_KIND_OPTIONS[option].label
+      }
     />
   );
 }

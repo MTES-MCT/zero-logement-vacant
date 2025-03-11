@@ -111,6 +111,11 @@ export const ownerKindOptions: SelectOption<OwnerKind>[] =
     label: OWNER_KIND_LABELS[value],
     badgeLabel: `Type de propriétaire : ${OWNER_KIND_LABELS[value].toLowerCase()}`
   }));
+export const OWNER_KIND_EMPTY_OPTION = {
+  value: null,
+  label: 'Pas d’information',
+  badgeLabel: `Type de propriétaire : pas d’information`
+};
 export const OWNER_KIND_OPTIONS: Record<
   OwnerKind,
   { label: string; badgeLabel: string }

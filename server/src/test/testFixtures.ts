@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
 import {
   AddressKinds,
+  CADASTRAL_CLASSIFICATION_VALUES,
   DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
   ESTABLISHMENT_KIND_VALUES,
@@ -209,10 +210,10 @@ export const genOwnerApi = (): OwnerApi => {
     fullName: faker.person.fullName(),
     email: genEmail(),
     phone: faker.phone.number(),
-    kind: faker.helpers.maybe(
-      () => faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS)),
-      { probability: 0.8 }
-    ),
+    kind: faker.helpers.arrayElement([
+      null,
+      ...Object.values(OWNER_KIND_LABELS)
+    ]),
     kindDetail: randomstring.generate(),
     additionalAddress: randomstring.generate()
   };
@@ -321,7 +322,10 @@ export const genHousingApi = (
     ),
     owner: genOwnerApi(),
     livingArea: faker.number.int({ min: 10, max: 300 }),
-    cadastralClassification: faker.number.int({ min: 1, max: 10 }),
+    cadastralClassification: faker.helpers.arrayElement([
+      null,
+      ...CADASTRAL_CLASSIFICATION_VALUES
+    ]),
     uncomfortable: faker.datatype.boolean(),
     vacancyStartYear: faker.date.past({ years: 20 }).getUTCFullYear(),
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),

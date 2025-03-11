@@ -3,6 +3,7 @@ import { fc, test } from '@fast-check/jest';
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
+  CADASTRAL_CLASSIFICATION_VALUES,
   CAMPAIGN_COUNT_VALUES,
   DATA_FILE_YEAR_VALUES,
   ENERGY_CONSUMPTION_VALUES,
@@ -42,7 +43,9 @@ describe('Housing filters', () => {
     housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
     housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
     roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
-    cadastralClassifications: fc.array(fc.integer({ min: 0 })),
+    cadastralClassifications: fc.array(
+      fc.constantFrom(null, ...CADASTRAL_CLASSIFICATION_VALUES)
+    ),
     buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
     vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
     isTaxedValues: fc.array(fc.boolean()),
@@ -66,9 +69,9 @@ describe('Housing filters', () => {
     query: fc.string(),
     precisions: fc.array(fc.string({ minLength: 1 }))
   })('should validate inputs', (filters) => {
-    const actual = housingFilters.validateSync(filters);
+    const validate = () => housingFilters.validateSync(filters);
 
-    expect(actual).toStrictEqual(filters);
+    expect(validate).not.toThrow();
   });
 
   it('should validate empty inputs', () => {

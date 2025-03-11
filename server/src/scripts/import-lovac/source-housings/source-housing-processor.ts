@@ -1,10 +1,16 @@
+import {
+  AddressKinds,
+  CadastralClassification,
+  Occupancy
+} from '@zerologementvacant/models';
 import { WritableStream } from 'node:stream/web';
 import { v4 as uuidv4 } from 'uuid';
-
-import { AddressKinds, Occupancy } from '@zerologementvacant/models';
-import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
-import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 import { createLogger } from '~/infra/logger';
+import { AddressApi } from '~/models/AddressApi';
+import {
+  HousingEventApi,
+  isUserModified as isEventUserModified
+} from '~/models/EventApi';
 import {
   HousingApi,
   HousingId,
@@ -13,15 +19,12 @@ import {
 } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
-  HousingEventApi,
-  isUserModified as isEventUserModified
-} from '~/models/EventApi';
-import {
   HousingNoteApi,
   isUserModified as isNoteUserModified
 } from '~/models/NoteApi';
-import { AddressApi } from '~/models/AddressApi';
 import { UserApi } from '~/models/UserApi';
+import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
+import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 
 const logger = createLogger('sourceHousingProcessor');
 
@@ -78,7 +81,8 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             longitude: chunk.dgfip_longitude ?? undefined,
             latitude: chunk.dgfip_latitude ?? undefined,
             cadastralClassification:
-              chunk.cadastral_classification ?? undefined,
+              (chunk.cadastral_classification as CadastralClassification) ??
+              null,
             uncomfortable: chunk.uncomfortable,
             vacancyStartYear: chunk.vacancy_start_year,
             housingKind: chunk.housing_kind,
@@ -95,6 +99,8 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             buildingLocation: chunk.location_detail,
             ownershipKind: chunk.condominium as OwnershipKindsApi,
             status: HousingStatusApi.NeverContacted,
+            energyConsumption: null,
+            energyConsumptionAt: null,
             occupancy: Occupancy.VACANT,
             occupancyRegistered: Occupancy.VACANT,
             source: 'lovac'

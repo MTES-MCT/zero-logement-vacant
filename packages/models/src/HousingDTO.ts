@@ -14,13 +14,13 @@ export interface HousingDTO {
   campaignIds?: string[];
   longitude?: number;
   latitude?: number;
-  cadastralClassification?: number;
+  cadastralClassification: number | null;
+  cadastralReference?: string;
   uncomfortable: boolean;
   vacancyStartYear?: number;
   housingKind: HousingKind;
   roomsCount: number;
   livingArea: number;
-  cadastralReference?: string;
   buildingYear?: number;
   taxed?: boolean;
   /**

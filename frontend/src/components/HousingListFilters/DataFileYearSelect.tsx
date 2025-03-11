@@ -12,7 +12,7 @@ import AppSelectNext, {
 } from '../_app/AppSelect/AppSelectNext';
 
 export type DataFileYearSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<DataFileYear, Multiple>,
+  AppSelectNextProps<DataFileYear | null, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 > & {
   type: 'included' | 'excluded';
@@ -40,7 +40,9 @@ function DataFileYearSelect<Multiple extends boolean = false>(
       options={options}
       label={label}
       getOptionLabel={(option) =>
-        option === null ? EMPTY_OPTION.label : labels[option].label
+        option === EMPTY_OPTION.value
+          ? EMPTY_OPTION.label
+          : labels[option].label
       }
     />
   );

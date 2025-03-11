@@ -8,7 +8,7 @@ import AppSelectNext, {
 import DPE from '../DPE/DPE';
 
 export type EnergyConsumptionSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<EnergyConsumption, Multiple>,
+  AppSelectNextProps<EnergyConsumption | null, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 

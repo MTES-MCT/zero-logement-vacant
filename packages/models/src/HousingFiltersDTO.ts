@@ -1,5 +1,6 @@
 import { BeneficiaryCount } from './BeneficiaryCount';
 import { BuildingPeriod } from './BuildingPeriod';
+import { CadastralClassification } from './CadastralClassification';
 import { CampaignCount } from './CampaignCount';
 import { DataFileYear } from './DataFileYear';
 import { EnergyConsumption } from './EnergyConsumption';
@@ -37,7 +38,7 @@ export interface HousingFiltersDTO {
   housingKinds?: HousingKind[];
   housingAreas?: LivingArea[];
   roomsCounts?: RoomCount[];
-  cadastralClassifications?: number[];
+  cadastralClassifications?: Array<CadastralClassification | null>;
   buildingPeriods?: BuildingPeriod[];
   vacancyYears?: VacancyYear[];
   // TODO: make it an exclusive boolean ?

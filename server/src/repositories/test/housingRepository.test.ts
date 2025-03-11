@@ -3,6 +3,7 @@ import * as turf from '@turf/turf';
 import {
   AddressKinds,
   BENEFIARY_COUNT_VALUES,
+  CADASTRAL_CLASSIFICATION_VALUES,
   DataFileYear,
   EnergyConsumption,
   HOUSING_KIND_VALUES,
@@ -915,28 +916,36 @@ describe('Housing repository', () => {
       });
 
       describe('by cadastral classification', () => {
-        it('should filter by cadastral classification', async () => {
-          const cadastralClassifications = housings
-            .slice(0, 3)
-            .map((housing) => housing.cadastralClassification)
-            .filter(isDefined);
+        const cadastralClassifications = [
+          null,
+          ...CADASTRAL_CLASSIFICATION_VALUES
+        ];
 
-          const actual = await housingRepository.find({
-            filters: {
-              cadastralClassifications
-            }
-          });
-
-          expect(actual.length).toBeGreaterThan(0);
-          expect(actual).toSatisfyAll<HousingApi>((housing) => {
-            return (
-              housing.cadastralClassification !== undefined &&
-              cadastralClassifications
-                .map(Number)
-                .includes(housing.cadastralClassification)
-            );
-          });
+        beforeAll(async () => {
+          const housings: ReadonlyArray<HousingApi> =
+            cadastralClassifications.map((cadastralClassification) => {
+              return { ...genHousingApi(), cadastralClassification };
+            });
+          await Housing().insert(housings.map(formatHousingRecordApi));
         });
+
+        test.each(cadastralClassifications)(
+          'should filter by cadastral classification = %s',
+          async (cadastralClassification) => {
+            const actual = await housingRepository.find({
+              filters: {
+                cadastralClassifications: [cadastralClassification]
+              }
+            });
+
+            expect(actual.length).toBeGreaterThan(0);
+            expect(actual).toSatisfyAll<HousingApi>((housing) => {
+              return (
+                housing.cadastralClassification === cadastralClassification
+              );
+            });
+          }
+        );
       });
 
       describe('by building period', () => {

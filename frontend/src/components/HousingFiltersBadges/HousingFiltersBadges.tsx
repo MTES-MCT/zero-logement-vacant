@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import {
+  CadastralClassification,
   DataFileYear,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
@@ -19,6 +20,7 @@ import {
   allOccupancyOptions,
   beneficiaryCountOptions,
   buildingPeriodOptions,
+  CADASTRAL_CLASSIFICATION_EMPTY_OPTION,
   cadastralClassificationOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
@@ -156,11 +158,20 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         onChange={(values) => onChange?.({ roomsCounts: values })}
       />
       <FilterBadges
-        options={cadastralClassificationOptions}
-        values={filters.cadastralClassifications?.map(String)}
+        options={[
+          CADASTRAL_CLASSIFICATION_EMPTY_OPTION,
+          ...cadastralClassificationOptions
+        ]}
+        values={filters.cadastralClassifications?.map((value) =>
+          value !== null ? value.toString() : null
+        )}
         small={small}
         onChange={(values) =>
-          onChange?.({ cadastralClassifications: values.map(Number) })
+          onChange?.({
+            cadastralClassifications: values.map((value) =>
+              value !== null ? (Number(value) as CadastralClassification) : null
+            )
+          })
         }
       />
       <FilterBadges

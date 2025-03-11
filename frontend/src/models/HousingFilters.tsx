@@ -719,6 +719,11 @@ export const localityKindsOptions: SelectOption<LocalityKind>[] = [
     badgeLabel: `Type de commune : ${LocalityKindLabels['PVD']}`
   }
 ];
+export const LOCALITY_KIND_EMPTY_OPTION: SelectOption<null> = {
+  value: null,
+  label: 'Sans type',
+  badgeLabel: `Type de commune : sans type`
+};
 export const LOCALITY_KIND_OPTIONS: Record<
   LocalityKind,
   { label: string; badgeLabel: string }

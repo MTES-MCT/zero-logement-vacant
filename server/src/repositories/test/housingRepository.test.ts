@@ -1443,29 +1443,56 @@ describe('Housing repository', () => {
         );
       });
 
-      it('should filter by locality kind', async () => {
-        const localities: LocalityApi[] = [
-          { ...genLocalityApi(), kind: 'ACV' },
-          { ...genLocalityApi(), kind: 'PVD' }
-        ];
-        await Localities().insert(localities.map(formatLocalityApi));
-        const housingList = new Array(10).fill('0').map(() => {
-          const geoCode = oneOf(localities).geoCode;
-          return genHousingApi(geoCode);
-        });
-        await Housing().insert(housingList.map(formatHousingRecordApi));
+      describe('by locality kind', () => {
+        it('should filter by empty locality kind', async () => {
+          const locality: LocalityApi = {
+            ...genLocalityApi(),
+            kind: null
+          };
+          await Localities().insert(formatLocalityApi(locality));
+          const housing = genHousingApi(locality.geoCode);
+          await Housing().insert(formatHousingRecordApi(housing));
 
-        const actual = await housingRepository.find({
-          filters: {
-            localityKinds: ['ACV', 'PVD']
-          }
+          const actual = await housingRepository.find({
+            filters: {
+              localityKinds: [null]
+            }
+          });
+
+          const actualLocalities =
+            await Localities().whereNull('locality_kind');
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return actualLocalities.some(
+              (locality) => locality.geo_code === housing.geoCode
+            );
+          });
         });
 
-        expect(actual).toSatisfyAll<HousingApi>((housing) =>
-          localities
-            .map((locality) => locality.geoCode)
-            .includes(housing.geoCode)
-        );
+        it('should filter by locality kind', async () => {
+          const localities: LocalityApi[] = [
+            { ...genLocalityApi(), kind: 'ACV' },
+            { ...genLocalityApi(), kind: 'PVD' }
+          ];
+          await Localities().insert(localities.map(formatLocalityApi));
+          const housingList = new Array(10).fill('0').map(() => {
+            const geoCode = oneOf(localities).geoCode;
+            return genHousingApi(geoCode);
+          });
+          await Housing().insert(housingList.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              localityKinds: ['ACV', 'PVD']
+            }
+          });
+
+          expect(actual).toSatisfyAll<HousingApi>((housing) =>
+            localities
+              .map((locality) => locality.geoCode)
+              .includes(housing.geoCode)
+          );
+        });
       });
 
       describe('by included perimeter', () => {

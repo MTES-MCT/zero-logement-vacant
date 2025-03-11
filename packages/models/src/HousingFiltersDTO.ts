@@ -48,7 +48,7 @@ export interface HousingFiltersDTO {
   vacancyRates?: VacancyRate[];
   intercommunalities?: string[];
   localities?: string[];
-  localityKinds?: LocalityKind[];
+  localityKinds?: Array<LocalityKind | null>;
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
   dataFileYearsIncluded?: Array<DataFileYear | null>;

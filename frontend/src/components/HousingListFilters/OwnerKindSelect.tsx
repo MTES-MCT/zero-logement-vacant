@@ -8,7 +8,7 @@ import AppSelectNext, {
 } from '../_app/AppSelect/AppSelectNext';
 
 export type OwnerKindSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<OwnerKind, Multiple>,
+  AppSelectNextProps<OwnerKind | null, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 

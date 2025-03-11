@@ -23,6 +23,7 @@ export interface HousingFiltersApi
     | 'energyConsumption'
     | 'ownerKinds'
     | 'localityKinds'
+    | 'cadastralClassifications'
   > {
   housingIds?: string[];
   establishmentIds?: string[];
@@ -35,7 +36,6 @@ export interface HousingFiltersApi
    */
   beneficiaryCounts?: string[];
   housingKinds?: string[];
-  cadastralClassifications?: number[];
   housingAreas?: string[];
   roomsCounts?: string[];
   buildingPeriods?: string[];

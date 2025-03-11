@@ -1,6 +1,8 @@
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
+  CADASTRAL_CLASSIFICATION_VALUES,
+  CadastralClassification,
   CAMPAIGN_COUNT_VALUES,
   DATA_FILE_YEAR_VALUES,
   ENERGY_CONSUMPTION_VALUES,
@@ -71,7 +73,13 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().oneOf(ROOM_COUNT_VALUES).required()),
   cadastralClassifications: array()
     .transform(commaSeparatedString)
-    .of(number().integer().min(0).required()),
+    .transform(parseNull)
+    .of(
+      number<CadastralClassification>()
+        .oneOf(CADASTRAL_CLASSIFICATION_VALUES)
+        .defined()
+        .nullable()
+    ),
   buildingPeriods: array()
     .transform(commaSeparatedString)
     .of(string().oneOf(BUILDING_PERIOD_VALUES).required()),

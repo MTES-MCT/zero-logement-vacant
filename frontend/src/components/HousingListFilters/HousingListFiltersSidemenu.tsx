@@ -7,7 +7,6 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 
 import {
-  CadastralClassification,
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
   isPrecisionBlockingPointCategory,
@@ -638,14 +637,10 @@ function HousingListFiltersSidemenu(props: Props) {
           <Grid component="article" mb={2} xs={12}>
             <CadastralClassificationSelect
               multiple
-              value={
-                (filters.cadastralClassifications?.map(String) as
-                  | CadastralClassification[]
-                  | undefined) ?? []
-              }
+              value={filters.cadastralClassifications ?? []}
               onChange={(values) => {
                 onChangeFilters({
-                  cadastralClassifications: values.map(Number)
+                  cadastralClassifications: values
                 });
                 posthog.capture('filtre-classement-cadastral');
               }}

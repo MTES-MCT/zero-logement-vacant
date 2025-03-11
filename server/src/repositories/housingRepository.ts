@@ -624,10 +624,19 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.cadastralClassifications?.length) {
-      queryBuilder.whereIn(
-        `${housingTable}.cadastral_classification`,
-        filters.cadastralClassifications
-      );
+      queryBuilder.where((where) => {
+        if (filters.cadastralClassifications?.includes(null)) {
+          where.whereNull(`${housingTable}.cadastral_classification`);
+        }
+        const cadastralClassifications =
+          filters.cadastralClassifications?.filter(isNotNull);
+        if (cadastralClassifications?.length) {
+          where.orWhereIn(
+            `${housingTable}.cadastral_classification`,
+            cadastralClassifications
+          );
+        }
+      });
     }
     if (filters.buildingPeriods?.length) {
       queryBuilder.where((where) => {
@@ -948,7 +957,7 @@ export interface HousingRecordDBO {
   longitude_dgfip?: number;
   latitude_dgfip?: number;
   geolocation?: string;
-  cadastral_classification?: number;
+  cadastral_classification: number | null;
   uncomfortable: boolean;
   vacancy_start_year?: number;
   housing_kind: string;

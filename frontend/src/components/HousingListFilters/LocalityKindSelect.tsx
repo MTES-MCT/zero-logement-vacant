@@ -8,7 +8,7 @@ import AppSelectNext, {
 } from '../_app/AppSelect/AppSelectNext';
 
 export type LocalityKindSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<LocalityKind, Multiple>,
+  AppSelectNextProps<LocalityKind | null, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 

@@ -3,6 +3,7 @@ import { fakerFR as faker } from '@faker-js/faker';
 import { compactUndefined } from '@zerologementvacant/utils';
 import fp from 'lodash/fp';
 import { AddressDTO, AddressKinds } from '../AddressDTO';
+import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
 import { CampaignDTO } from '../CampaignDTO';
 import { DatafoncierHousing } from '../DatafoncierHousing';
 import { DraftDTO } from '../DraftDTO';
@@ -298,6 +299,9 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     rawAddress: faker.location
       .streetAddress({ useFullAddress: true })
       .split(' '),
+    cadastralClassification: faker.helpers.arrayElement(
+      CADASTRAL_CLASSIFICATION_VALUES
+    ),
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),

@@ -16,7 +16,10 @@ import { Sort } from './SortApi';
 export type HousingId = Pick<HousingRecordApi, 'geoCode' | 'id'>;
 
 export interface HousingRecordApi
-  extends Pick<HousingDTO, 'energyConsumption' | 'energyConsumptionAt'> {
+  extends Pick<
+    HousingDTO,
+    'energyConsumption' | 'energyConsumptionAt' | 'cadastralClassification'
+  > {
   id: string;
   /**
    * @deprecated Shall be replaced by `localId`
@@ -33,7 +36,6 @@ export interface HousingRecordApi
   geoCode: string;
   longitude?: number;
   latitude?: number;
-  cadastralClassification?: number;
   uncomfortable: boolean;
   vacancyStartYear?: number;
   housingKind: string;
@@ -99,12 +101,12 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     latitude: housing.latitude,
     campaignIds: housing.campaignIds,
     cadastralClassification: housing.cadastralClassification,
+    cadastralReference: housing.cadastralReference,
     uncomfortable: housing.uncomfortable,
     vacancyStartYear: housing.vacancyStartYear,
     housingKind: housing.housingKind as HousingKind,
     roomsCount: housing.roomsCount,
     livingArea: housing.livingArea,
-    cadastralReference: housing.cadastralReference,
     buildingYear: housing.buildingYear,
     taxed: housing.taxed,
     dataYears: housing.dataYears,

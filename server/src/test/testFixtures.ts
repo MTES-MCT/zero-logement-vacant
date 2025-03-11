@@ -206,7 +206,8 @@ export const genOwnerApi = (): OwnerApi => {
       `${faker.location.zipCode()}, ${faker.location.city()}`
     ],
     // Get the start of the day to avoid time zone issues
-    birthDate: faker.date.birthdate().toJSON(),
+    birthDate:
+      faker.helpers.maybe(() => faker.date.birthdate().toJSON()) ?? null,
     fullName: faker.person.fullName(),
     email: genEmail(),
     phone: faker.phone.number(),

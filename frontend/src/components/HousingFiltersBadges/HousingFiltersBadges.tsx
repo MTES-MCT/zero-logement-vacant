@@ -36,6 +36,7 @@ import {
   localityKindsOptions,
   multiOwnerOptions,
   noCampaignOption,
+  OWNER_AGE_EMPTY_OPTION,
   OWNER_KIND_EMPTY_OPTION,
   ownerAgeOptions,
   ownerKindOptions,
@@ -120,7 +121,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         onChange={(values) => onChange?.({ ownerKinds: values })}
       />
       <FilterBadges
-        options={ownerAgeOptions}
+        options={[OWNER_AGE_EMPTY_OPTION, ...ownerAgeOptions]}
         values={filters.ownerAges}
         small={small}
         onChange={(values) => onChange?.({ ownerAges: values })}

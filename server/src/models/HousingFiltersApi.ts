@@ -22,13 +22,13 @@ export interface HousingFiltersApi
     | 'dataFileYearsExcluded'
     | 'energyConsumption'
     | 'ownerKinds'
+    | 'ownerAges'
     | 'localityKinds'
     | 'cadastralClassifications'
   > {
   housingIds?: string[];
   establishmentIds?: string[];
   groupIds?: string[];
-  ownerAges?: string[];
   multiOwners?: boolean[];
   /**
    * The secondary owners

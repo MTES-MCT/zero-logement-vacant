@@ -1,10 +1,3 @@
-import async from 'async';
-import { Request, Response } from 'express';
-import { AuthenticatedRequest } from 'express-jwt';
-import { body, ValidationChain } from 'express-validator';
-import { constants } from 'http2';
-import { v4 as uuidv4 } from 'uuid';
-
 import {
   AddressKinds,
   HousingOwnerDTO,
@@ -12,23 +5,29 @@ import {
   OwnerDTO,
   OwnerPayloadDTO
 } from '@zerologementvacant/models';
-import ownerRepository from '~/repositories/ownerRepository';
+import async from 'async';
+import { Request, Response } from 'express';
+import { AuthenticatedRequest } from 'express-jwt';
+import { body, ValidationChain } from 'express-validator';
+import { constants } from 'http2';
+import { v4 as uuidv4 } from 'uuid';
+import HousingMissingError from '~/errors/housingMissingError';
+import OwnerMissingError from '~/errors/ownerMissingError';
+import { logger } from '~/infra/logger';
+import { AddressApi } from '~/models/AddressApi';
+import { HousingOwnerApi, toHousingOwnerDTO } from '~/models/HousingOwnerApi';
 import {
   hasContactChanges,
   hasIdentityChanges,
   OwnerApi,
   toOwnerDTO
 } from '~/models/OwnerApi';
-import eventRepository from '~/repositories/eventRepository';
-import OwnerMissingError from '~/errors/ownerMissingError';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
-import { isArrayOf, isString } from '~/utils/validators';
-import { logger } from '~/infra/logger';
-import housingRepository from '~/repositories/housingRepository';
-import HousingMissingError from '~/errors/housingMissingError';
-import { HousingOwnerApi, toHousingOwnerDTO } from '~/models/HousingOwnerApi';
+import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
-import { AddressApi } from '~/models/AddressApi';
+import housingRepository from '~/repositories/housingRepository';
+import ownerRepository from '~/repositories/ownerRepository';
+import { isArrayOf, isString } from '~/utils/validators';
 
 interface PathParams extends Record<string, string> {
   id: string;
@@ -93,7 +92,9 @@ async function create(
     id: uuidv4(),
     fullName: body.fullName,
     rawAddress: body.rawAddress,
-    birthDate: body.birthDate ? new Date(body.birthDate).toJSON() : undefined,
+    birthDate: body.birthDate ? new Date(body.birthDate).toJSON() : null,
+    // TODO: we should ask the user to provide the kind of owner
+    kind: null,
     phone: body.phone,
     email: body.email,
     createdAt: new Date().toJSON(),
@@ -176,7 +177,9 @@ async function update(
         'updated_at'
       ]
     }),
-    banAddress ? banAddressesRepository.save(banAddress) : banAddressesRepository.remove(existingOwner.id, AddressKinds.Owner),
+    banAddress
+      ? banAddressesRepository.save(banAddress)
+      : banAddressesRepository.remove(existingOwner.id, AddressKinds.Owner),
     hasIdentityChanges(existingOwner, owner)
       ? eventRepository.insertOwnerEvent({
           id: uuidv4(),

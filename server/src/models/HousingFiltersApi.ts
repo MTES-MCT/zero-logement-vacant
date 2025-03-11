@@ -1,7 +1,6 @@
 import {
   HousingFiltersDTO,
   Occupancy,
-  OwnerKind,
   OwnershipKind
 } from '@zerologementvacant/models';
 import { body, ValidationChain } from 'express-validator';
@@ -22,11 +21,11 @@ export interface HousingFiltersApi
     | 'dataFileYearsIncluded'
     | 'dataFileYearsExcluded'
     | 'energyConsumption'
+    | 'ownerKinds'
   > {
   housingIds?: string[];
   establishmentIds?: string[];
   groupIds?: string[];
-  ownerKinds?: OwnerKind[];
   ownerAges?: string[];
   multiOwners?: boolean[];
   /**

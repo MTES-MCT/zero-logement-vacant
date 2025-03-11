@@ -30,7 +30,7 @@ export interface HousingFiltersDTO {
   campaignsCounts?: CampaignCount[];
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
-  ownerKinds?: OwnerKind[];
+  ownerKinds?: Array<OwnerKind | null>;
   ownerAges?: OwnerAge[];
   multiOwners?: boolean[];
   beneficiaryCounts?: BeneficiaryCount[];

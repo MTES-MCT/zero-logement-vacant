@@ -307,7 +307,14 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         }
       />
       <FilterBadges
-        options={energyConsumptionOptions}
+        options={[
+          {
+            value: null,
+            label: 'Pas d’information',
+            badgeLabel: 'Étiquette DPE représentatif (CSTB) : pas d’information'
+          },
+          ...energyConsumptionOptions
+        ]}
         values={filters.energyConsumption}
         small={small}
         onChange={(values) => onChange?.({ energyConsumption: values })}

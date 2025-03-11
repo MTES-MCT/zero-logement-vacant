@@ -1,29 +1,30 @@
 import { fakerFR as faker } from '@faker-js/faker';
-import fp from 'lodash/fp';
 
 import { compactUndefined } from '@zerologementvacant/utils';
+import fp from 'lodash/fp';
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CampaignDTO } from '../CampaignDTO';
-import { DraftDTO } from '../DraftDTO';
-import { GroupDTO } from '../GroupDTO';
-import { HousingDTO } from '../HousingDTO';
-import { OwnerDTO } from '../OwnerDTO';
-import { RolesDTO } from '../RolesDTO';
-import { SenderDTO, SignatoryDTO } from '../SenderDTO';
-import { UserDTO } from '../UserDTO';
-import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
-import { HOUSING_KIND_VALUES } from '../HousingKind';
 import { DatafoncierHousing } from '../DatafoncierHousing';
-import { HOUSING_STATUS_VALUES } from '../HousingStatus';
-import { FileUploadDTO } from '../FileUploadDTO';
-import { HousingOwnerDTO } from '../HousingOwnerDTO';
-import { SignupLinkDTO } from '../SignupLinkDTO';
-import { ProspectDTO } from '../ProspectDTO';
+import { DraftDTO } from '../DraftDTO';
+import { ENERGY_CONSUMPTION_VALUES } from '../EnergyConsumption';
 import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
-import { OWNER_KIND_LABELS } from '../OwnerKind';
+import { FileUploadDTO } from '../FileUploadDTO';
+import { GroupDTO } from '../GroupDTO';
+import { HousingDTO } from '../HousingDTO';
+import { HOUSING_KIND_VALUES } from '../HousingKind';
+import { HousingOwnerDTO } from '../HousingOwnerDTO';
+import { HOUSING_STATUS_VALUES } from '../HousingStatus';
 import { NoteDTO } from '../NoteDTO';
+import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
+import { OwnerDTO } from '../OwnerDTO';
+import { OWNER_KIND_LABELS } from '../OwnerKind';
+import { ProspectDTO } from '../ProspectDTO';
+import { RolesDTO } from '../RolesDTO';
+import { SenderDTO, SignatoryDTO } from '../SenderDTO';
+import { SignupLinkDTO } from '../SignupLinkDTO';
+import { UserDTO } from '../UserDTO';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -302,6 +303,11 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     status: faker.helpers.arrayElement(HOUSING_STATUS_VALUES),
     subStatus: null,
+    energyConsumption: faker.helpers.arrayElement([
+      null,
+      ...ENERGY_CONSUMPTION_VALUES
+    ]),
+    energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
     owner
   };
 }

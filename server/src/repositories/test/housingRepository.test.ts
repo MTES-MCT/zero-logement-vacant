@@ -4,6 +4,7 @@ import {
   AddressKinds,
   BENEFIARY_COUNT_VALUES,
   DataFileYear,
+  EnergyConsumption,
   HOUSING_KIND_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
@@ -27,7 +28,7 @@ import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
-import { EnergyConsumptionGradesApi, HousingApi } from '~/models/HousingApi';
+import { HousingApi } from '~/models/HousingApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
@@ -321,32 +322,46 @@ describe('Housing repository', () => {
         );
       });
 
-      it('should filter by DPE score', async () => {
-        const actualA = await housingRepository.find({
-          filters: {
-            energyConsumption: ['A' as EnergyConsumptionGradesApi]
-          }
-        });
-        expect(actualA).toSatisfyAll<HousingApi>(
-          (housing) =>
-            housing.energyConsumption === EnergyConsumptionGradesApi.A
-        );
+      describe('by energy consumption', () => {
+        it('should keep housings that have no energy consumption filled', async () => {
+          const housing: HousingApi = {
+            ...genHousingApi(),
+            energyConsumption: null
+          };
+          await Housing().insert(formatHousingRecordApi(housing));
 
-        const EFGClasses = [
-          'E' as EnergyConsumptionGradesApi,
-          'F' as EnergyConsumptionGradesApi,
-          'G' as EnergyConsumptionGradesApi
-        ];
-        const actualEFG = await housingRepository.find({
-          filters: {
-            energyConsumption: EFGClasses
-          }
+          const actual = await housingRepository.find({
+            filters: {
+              energyConsumption: [null]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.energyConsumption === null;
+          });
         });
-        expect(actualEFG).toSatisfyAll<HousingApi>((housing) =>
-          EFGClasses.includes(
-            housing.energyConsumption as EnergyConsumptionGradesApi
-          )
-        );
+
+        it('should filter by energy consumption', async () => {
+          const actualA = await housingRepository.find({
+            filters: {
+              energyConsumption: ['A']
+            }
+          });
+          expect(actualA).toSatisfyAll<HousingApi>(
+            (housing) => housing.energyConsumption === 'A'
+          );
+
+          const EFGClasses: Array<EnergyConsumption | null> = ['E', 'F', 'G'];
+          const actualEFG = await housingRepository.find({
+            filters: {
+              energyConsumption: EFGClasses
+            }
+          });
+          expect(actualEFG).toSatisfyAll<HousingApi>((housing) =>
+            EFGClasses.includes(housing.energyConsumption)
+          );
+        });
       });
 
       it('should filter by establishment', async () => {

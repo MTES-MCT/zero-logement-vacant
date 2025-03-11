@@ -31,7 +31,8 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().oneOf(OCCUPANCY_VALUES).required()),
   energyConsumption: array()
     .transform(commaSeparatedString)
-    .of(string().oneOf(ENERGY_CONSUMPTION_VALUES).required()),
+    .transform(parseNull)
+    .of(string().oneOf(ENERGY_CONSUMPTION_VALUES).defined().nullable()),
   establishmentIds: array()
     .transform(commaSeparatedString)
     .of(string().uuid().required()),

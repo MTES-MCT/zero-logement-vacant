@@ -34,8 +34,8 @@ export interface HousingDTO {
   ownershipKind?: string;
   status: HousingStatus;
   subStatus: string | null;
-  energyConsumption?: EnergyConsumption;
-  energyConsumptionAt?: Date;
+  energyConsumption: EnergyConsumption | null;
+  energyConsumptionAt: Date | null;
   occupancy: Occupancy;
   occupancyIntended: Occupancy | null;
   source: HousingSource | null;

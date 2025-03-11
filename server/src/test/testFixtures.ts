@@ -12,6 +12,7 @@ import {
   HOUSING_SOURCE_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
+  LOCALITY_KIND_VALUES,
   Occupancy,
   OCCUPANCY_VALUES,
   OWNER_KIND_LABELS,
@@ -112,6 +113,7 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
     id: uuidv4(),
     geoCode,
     name: faker.location.city(),
+    kind: faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES]),
     taxKind: TaxKindsApi.None
   };
 };

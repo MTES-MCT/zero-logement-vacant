@@ -98,7 +98,8 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(string().length(5).required()),
   localityKinds: array()
     .transform(commaSeparatedString)
-    .of(string().oneOf(LOCALITY_KIND_VALUES).required()),
+    .transform(parseNull)
+    .of(string().oneOf(LOCALITY_KIND_VALUES).defined().nullable()),
   geoPerimetersIncluded: array()
     .transform(commaSeparatedString)
     .of(string().required()),

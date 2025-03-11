@@ -22,6 +22,7 @@ export interface HousingFiltersApi
     | 'dataFileYearsExcluded'
     | 'energyConsumption'
     | 'ownerKinds'
+    | 'localityKinds'
   > {
   housingIds?: string[];
   establishmentIds?: string[];
@@ -48,7 +49,6 @@ export interface HousingFiltersApi
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
   localities?: string[];
-  localityKinds?: string[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
   status?: number;

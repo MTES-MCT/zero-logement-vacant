@@ -51,7 +51,7 @@ describe('Housing filters', () => {
     vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
     intercommunalities: fc.array(fc.uuid({ version: 4 })),
     localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
-    localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
+    localityKinds: fc.array(fc.constantFrom(null, ...LOCALITY_KIND_VALUES)),
     geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
     geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
     dataFileYearsIncluded: fc.array(

@@ -771,7 +771,15 @@ function filteredQuery(opts: FilteredQueryOptions) {
           `${housingTable}.geo_code`,
           `${localitiesTable}.geo_code`
         )
-        .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
+        .where((where) => {
+          if (filters.localityKinds?.includes(null)) {
+            where.whereNull(`${localitiesTable}.locality_kind`);
+          }
+          const localityKinds = filters.localityKinds?.filter(isNotNull);
+          if (localityKinds?.length) {
+            where.orWhereIn(`${localitiesTable}.locality_kind`, localityKinds);
+          }
+        });
     }
     if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
       queryBuilder.whereExists((subquery) => {

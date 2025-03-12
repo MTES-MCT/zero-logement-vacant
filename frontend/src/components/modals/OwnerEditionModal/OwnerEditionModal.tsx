@@ -1,24 +1,24 @@
+import { fr } from '@codegouvfr/react-dsfr';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { Typography } from '@mui/material';
 import { useState } from 'react';
-import { Col, Row } from '../../_dsfr';
-import { Owner } from '../../../models/Owner';
 
 import * as yup from 'yup';
-import { parseDateInput } from '../../../utils/dateUtils';
 import {
   banAddressValidator,
   birthDateValidator,
   emailValidator,
   useForm
 } from '../../../hooks/useForm';
-import AppTextInput from '../../_app/AppTextInput/AppTextInput';
-import { useUpdateOwnerMutation } from '../../../services/owner.service';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import Button from '@codegouvfr/react-dsfr/Button';
-import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
 import { useUser } from '../../../hooks/useUser';
-import { Typography } from '@mui/material';
-import { fr } from '@codegouvfr/react-dsfr';
+import { Owner } from '../../../models/Owner';
+import { useUpdateOwnerMutation } from '../../../services/owner.service';
+import { parseDateInput } from '../../../utils/dateUtils';
+import AppTextInput from '../../_app/AppTextInput/AppTextInput';
+import { Col, Row } from '../../_dsfr';
+import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
 
 const modal = createModal({
   id: 'owner-edition-modal',
@@ -41,8 +41,12 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
     owner?.additionalAddress
   );
 
-  const storedWarningVisible = localStorage.getItem('OwnerEdition.warningVisible');
-  const [warningVisible, setWarningVisible] = useState(storedWarningVisible === null || storedWarningVisible === 'true');
+  const storedWarningVisible = localStorage.getItem(
+    'OwnerEdition.warningVisible'
+  );
+  const [warningVisible, setWarningVisible] = useState(
+    storedWarningVisible === null || storedWarningVisible === 'true'
+  );
 
   const [updateOwner, { isError: isUpdateError }] = useUpdateOwnerMutation();
 
@@ -70,7 +74,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
         updateOwner({
           ...owner,
           fullName,
-          birthDate: parseDateInput(birthDate)?.toJSON(),
+          birthDate: parseDateInput(birthDate)?.toJSON() ?? null,
           banAddress,
           email,
           phone,
@@ -133,7 +137,10 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
             />
           </Col>
           <Col n="12">
-            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+            <Typography
+              component="h3"
+              color={fr.colors.decisions.text.active.grey.default}
+            >
               <span
                 className={fr.cx(
                   'fr-icon-bank-line',
@@ -144,11 +151,19 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
               />
               Adresse fiscale (source: DGFIP)
             </Typography>
-            <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
-            <Typography color={fr.colors.decisions.text.default.grey.default}>{owner.rawAddress ? owner.rawAddress.join(' ') : 'Inconnue'}</Typography>
+            <span className="fr-hint-text">
+              Cette adresse est issue du fichier LOVAC, récupérée via le fichier
+              1767BIS-COM. Celle-ci n’est pas modifiable.
+            </span>
+            <Typography color={fr.colors.decisions.text.default.grey.default}>
+              {owner.rawAddress ? owner.rawAddress.join(' ') : 'Inconnue'}
+            </Typography>
           </Col>
           <Col n="12">
-            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+            <Typography
+              component="h3"
+              color={fr.colors.decisions.text.active.grey.default}
+            >
               <span
                 className={fr.cx(
                   'fr-icon-home-4-line',

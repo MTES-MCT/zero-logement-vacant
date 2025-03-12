@@ -43,7 +43,8 @@ export const toHousingRecordApi = fp.curry(
       source: additionalData.source,
       mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
       energyConsumption: null,
-      energyConsumptionAt: null
+      energyConsumptionAt: null,
+      cadastralClassification: null
     };
   }
 );

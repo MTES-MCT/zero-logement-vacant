@@ -87,7 +87,7 @@ describe('Housing view', () => {
 
       it('should be defined', async () => {
         housing.occupancy = Occupancy.VACANT;
-        housing.vacancyStartYear = faker.date.past().getFullYear();
+        housing.vacancyStartYear = new Date().getFullYear() - 1;
 
         renderView(housing);
 

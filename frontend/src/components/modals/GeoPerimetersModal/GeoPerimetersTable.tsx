@@ -1,14 +1,14 @@
-import { Row, Table, Text } from '../../_dsfr';
-import { GeoPerimeter } from '../../../models/GeoPerimeter';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Tag from '@codegouvfr/react-dsfr/Tag';
 import { useSelection } from '../../../hooks/useSelection';
+import { GeoPerimeter } from '../../../models/GeoPerimeter';
+import { pluralize } from '../../../utils/stringUtils';
+import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
+import AppLink from '../../_app/AppLink/AppLink';
+import { Row, Table, Text } from '../../_dsfr';
 import SelectableListHeader from '../../SelectableListHeader/SelectableListHeader';
 import SelectableListHeaderActions from '../../SelectableListHeader/SelectableListHeaderActions';
-import AppCheckbox from '../../_app/AppCheckbox/AppCheckbox';
-import Tag from '@codegouvfr/react-dsfr/Tag';
-import Button from '@codegouvfr/react-dsfr/Button';
-import AppLink from '../../_app/AppLink/AppLink';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
-import { pluralize } from '../../../utils/stringUtils';
 
 interface GeoPerimetersTableProps {
   geoPerimeters: GeoPerimeter[];
@@ -160,6 +160,8 @@ const GeoPerimetersTable = ({
         data={geoPerimeters}
         columns={columns}
         fixedLayout={true}
+        pagination
+        paginationPosition="center"
         className="with-view with-select"
       />
     </>

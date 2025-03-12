@@ -1504,9 +1504,13 @@ describe('Housing repository', () => {
             }
           });
 
+          const actualLocalities = await Localities().whereIn('locality_kind', [
+            'ACV',
+            'PVD'
+          ]);
           expect(actual).toSatisfyAll<HousingApi>((housing) =>
-            localities
-              .map((locality) => locality.geoCode)
+            actualLocalities
+              .map((locality) => locality.geo_code)
               .includes(housing.geoCode)
           );
         });

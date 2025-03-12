@@ -306,7 +306,7 @@ const HousingListView = () => {
           isClosed={!showExportAlert}
           severity="error"
           title="Aucun logement sélectionné"
-          description="Sélectionnez les logements à exporter ou contacter dans le tableau ci-dessous puis cliquez sur le bouton “Exporter ou contacter”."
+          description="Sélectionnez les logements dans le tableau de l'onglet correspondant, puis cliquez sur le bouton “Exporter ou contacter“."
           onClose={() => setShowExportAlert(false)}
         />
 

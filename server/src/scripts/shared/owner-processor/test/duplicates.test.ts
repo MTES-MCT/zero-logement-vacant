@@ -15,7 +15,7 @@ describe('Duplicates', () => {
     return {
       ...genOwnerApi(),
       rawAddress,
-      birthDate: birthDate?.toJSON()
+      birthDate: birthDate?.toJSON() ?? null
     };
   }
 

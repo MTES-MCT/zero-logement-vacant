@@ -295,7 +295,7 @@ async function updateHousingOwners(
 
 const ownerValidators: ValidationChain[] = [
   body('fullName').isString(),
-  body('birthDate').isString().isISO8601().optional(),
+  body('birthDate').isString().isISO8601().optional({ nullable: true }),
   body('rawAddress').custom(isArrayOf(isString)).optional({ nullable: true }),
   body('email').optional({ checkFalsy: true }).isEmail(),
   body('phone').isString().optional({ nullable: true }),

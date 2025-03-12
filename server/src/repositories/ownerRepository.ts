@@ -518,9 +518,9 @@ export interface OwnerDBO extends OwnerRecordDBO {
 export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
   const birthDate = match(owner.birth_date)
     .returnType<string | null>()
-    .with(Pattern.string, (value) => value.substring('yyyy-mm-dd'.length))
+    .with(Pattern.string, (value) => value.substring(0, 'yyyy-mm-dd'.length))
     .with(Pattern.instanceOf(Date), (value) =>
-      value.toJSON().substring('yyyy-mm-dd'.length)
+      value.toJSON().substring(0, 'yyyy-mm-dd'.length)
     )
     .otherwise((value) => value);
   return {

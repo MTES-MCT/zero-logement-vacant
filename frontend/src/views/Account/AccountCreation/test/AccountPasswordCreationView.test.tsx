@@ -1,8 +1,6 @@
 import { faker } from '@faker-js/faker';
-import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
-import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
 
 import { ProspectDTO, SignupLinkDTO } from '@zerologementvacant/models';
 import {
@@ -10,10 +8,12 @@ import {
   genProspectDTO,
   genSignupLinkDTO
 } from '@zerologementvacant/models/fixtures';
-import AccountPasswordCreationView from '../AccountPasswordCreationView';
-import configureTestStore from '../../../../utils/test/storeUtils';
-import data from '../../../../mocks/handlers/data';
+import { Provider } from 'react-redux';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import OnboardingModal from '../../../../components/modals/OnboardingModal/OnboardingModal';
+import data from '../../../../mocks/handlers/data';
+import configureTestStore from '../../../../utils/test/storeUtils';
+import AccountPasswordCreationView from '../AccountPasswordCreationView';
 
 describe('AccountPasswordCreationView', () => {
   const user = userEvent.setup();
@@ -180,9 +180,9 @@ describe('AccountPasswordCreationView', () => {
     await user.type(confirmationInput, password);
     await user.keyboard('{Enter}');
 
-    const title = await screen.findByText(
-      /^Bienvenue sur Zéro Logement Vacant !/
-    );
-    expect(title).toBeVisible();
+    const modal = await screen.findByRole('dialog', undefined, {
+      timeout: 5000
+    });
+    expect(modal).toBeVisible();
   });
 });

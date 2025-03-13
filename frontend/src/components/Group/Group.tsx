@@ -1,23 +1,27 @@
-import { Group as GroupModel } from '../../models/Group';
-import { Col, Container, Row, Text } from '../_dsfr';
-import styles from './group.module.scss';
-import { pluralize } from '../../utils/stringUtils';
-import { dateShortFormat } from '../../utils/dateUtils';
-import GroupEditionModal from '../modals/GroupUpdateModal/GroupEditionModal';
-import { GroupPayload } from '../../models/GroupPayload';
-import { Campaign } from '../../models/Campaign';
-import GroupRemovalModal from '../modals/GroupRemovalModal/GroupRemovalModal';
-import AppLink from '../_app/AppLink/AppLink';
-import { Button } from '@codegouvfr/react-dsfr/Button';
-import GroupCampaignCreationModal from '../modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
 import { fr } from '@codegouvfr/react-dsfr';
+import { Button } from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
+import { ReactNode } from 'react';
+import { Campaign } from '../../models/Campaign';
+import { Group as GroupModel } from '../../models/Group';
+import { GroupPayload } from '../../models/GroupPayload';
+import { createdBy } from '../../models/User';
+import { dateShortFormat } from '../../utils/dateUtils';
+import { pluralize } from '../../utils/stringUtils';
+import AppLink from '../_app/AppLink/AppLink';
+import { Col, Container, Row, Text } from '../_dsfr';
+import GroupCampaignCreationModal from '../modals/GroupCampaignCreationModal/GroupCampaignCreationModal';
+import GroupRemovalModal from '../modals/GroupRemovalModal/GroupRemovalModal';
+import GroupEditionModal from '../modals/GroupUpdateModal/GroupEditionModal';
+import styles from './group.module.scss';
 
 interface GroupProps {
   campaigns?: Campaign[];
   className?: string;
   group: GroupModel;
-  onCampaignCreate?: (campaign: Pick<Campaign, 'title' | 'description'>) => void;
+  onCampaignCreate?: (
+    campaign: Pick<Campaign, 'title' | 'description'>
+  ) => void;
   onExport?: () => void;
   onUpdate?: (group: GroupPayload) => void;
   onRemove?: () => Promise<void>;
@@ -27,7 +31,13 @@ function Group(props: GroupProps) {
   const housing = pluralize(props.group.housingCount)('logement');
   const owners = pluralize(props.group.ownerCount)('propriétaire');
 
-  function createCampaign(campaign: Pick<Campaign, 'title' | 'description'>): void {
+  const creator: ReactNode = props.group.createdBy
+    ? ` par ${createdBy(props.group.createdBy)}`
+    : null;
+
+  function createCampaign(
+    campaign: Pick<Campaign, 'title' | 'description'>
+  ): void {
     props.onCampaignCreate?.(campaign);
   }
 
@@ -82,9 +92,8 @@ function Group(props: GroupProps) {
                     'fr-mr-1v'
                   )}
                 />
-                Créé le {dateShortFormat(props.group.createdAt)} par 
-                {props.group.createdBy?.firstName} 
-                {props.group.createdBy?.lastName}
+                Créé le {dateShortFormat(props.group.createdAt)}
+                {creator}
               </Text>
             </Row>
           </Container>

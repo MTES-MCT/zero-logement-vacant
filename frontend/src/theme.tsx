@@ -41,7 +41,48 @@ const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
               padding: 0
             },
             option: {
-              padding: `0.25rem ${fr.spacing('2w')}`
+              padding: `0.25rem ${fr.spacing('2w')}`,
+              '&.Mui-focused': {
+                backgroundColor: `${fr.colors.decisions.background.default.grey.hover} !important`
+              },
+              '&.Mui-focusVisible': {
+                backgroundColor: `${fr.colors.decisions.background.default.grey.hover} !important`
+              },
+              '&[aria-selected="true"]': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.default} !important`
+              },
+              '&[aria-selected="true"]:hover': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover} !important`
+              },
+              '&[aria-selected="true"].Mui-focused': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover} !important`
+              },
+              '&[aria-selected="true"].Mui-focusVisible': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover} !important`
+              }
+            }
+          }
+        },
+        MuiMenuItem: {
+          styleOverrides: {
+            root: {
+              '&.Mui-focused': {
+                backgroundColor:
+                  fr.colors.decisions.background.default.grey.hover
+              },
+              '&.Mui-focusVisible': {
+                backgroundColor:
+                  fr.colors.decisions.background.default.grey.hover
+              },
+              '&.Mui-selected': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.default}`
+              },
+              '&.Mui-selected.Mui-focusVisible': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover}`
+              },
+              '&.Mui-selected:hover': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover}`
+              }
             }
           }
         }

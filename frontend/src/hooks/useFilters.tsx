@@ -3,6 +3,7 @@ import { Set } from 'immutable';
 import { useMemo, useState } from 'react';
 
 import { HousingFilters } from '../models/HousingFilters';
+import { getSubStatuses } from '../models/HousingState';
 import housingSlice, {
   initialHousingFilters
 } from '../store/reducers/housingReducer';
@@ -45,6 +46,13 @@ export function useFilters(opts?: FiltersOptions) {
 
   function onChange(changed: HousingFilters): void {
     const changes = { ...filters, ...changed };
+
+    // Sub-statuses depend on the statuses
+    const allowedSubStatuses =
+      changes.statusList?.flatMap(getSubStatuses) ?? [];
+    changes.subStatus = changes.subStatus?.filter((subStatus) =>
+      allowedSubStatuses.includes(subStatus)
+    );
 
     // The `vacancyYears` filter should be available
     // only when the `VACANT` occupancy is selected

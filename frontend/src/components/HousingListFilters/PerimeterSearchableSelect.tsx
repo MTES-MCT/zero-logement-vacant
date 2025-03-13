@@ -14,9 +14,6 @@ function PerimeterSearchableSelect<Multiple extends boolean = false>(
   return (
     <SearchableSelectNext
       {...props}
-      autocompleteProps={{
-        disableCloseOnSelect: true
-      }}
       placeholder="Rechercher un périmètre"
       getOptionKey={(option) => option.id}
       getOptionLabel={(option) => option.kind}

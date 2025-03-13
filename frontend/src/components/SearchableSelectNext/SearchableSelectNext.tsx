@@ -200,6 +200,7 @@ function SearchableSelectNext<
       className={props.className}
       options={props.options ?? []}
       disabled={disabled}
+      disableCloseOnSelect={multiple}
       clearText="Supprimer"
       closeText="Fermer"
       loadingText="Chargement..."

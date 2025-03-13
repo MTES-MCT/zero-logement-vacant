@@ -4,6 +4,9 @@
   "description": "Zéro Logement Vacant queue",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "queue": "dist/bin/index.js"
+  },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "typecheck": "tsc --noEmit",

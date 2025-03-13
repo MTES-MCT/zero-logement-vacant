@@ -1,11 +1,11 @@
-import { useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Unstable_Grid2';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import image from '../../../assets/images/community.svg';
 
 import { useIsDsfrReady } from '../../../hooks/useIsDsfrReady';
-import image from '../../../assets/images/community.svg';
 
 const id = 'onboarding-modal';
 const modal = createModal({
@@ -17,10 +17,10 @@ function OnboardingModal() {
   const location = useLocation();
   const onboarding: boolean = location.state?.onboarding ?? false;
 
-  const ready = useIsDsfrReady();
+  const ready = useIsDsfrReady(id);
 
   useEffect(() => {
-    if (ready && onboarding && modal) {
+    if (ready && onboarding) {
       // Dirty hack to provide a larger modal
       document
         .getElementById(id)

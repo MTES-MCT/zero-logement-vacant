@@ -1,8 +1,6 @@
 import {
-  EnergyConsumption,
   HousingFiltersDTO,
   Occupancy,
-  OwnerKind,
   OwnershipKind
 } from '@zerologementvacant/models';
 import { body, ValidationChain } from 'express-validator';
@@ -15,12 +13,22 @@ import {
 } from '~/utils/validators';
 
 export interface HousingFiltersApi
-  extends Pick<HousingFiltersDTO, 'all' | 'intercommunalities' | 'precisions'> {
+  extends Pick<
+    HousingFiltersDTO,
+    | 'all'
+    | 'intercommunalities'
+    | 'precisions'
+    | 'dataFileYearsIncluded'
+    | 'dataFileYearsExcluded'
+    | 'energyConsumption'
+    | 'ownerKinds'
+    | 'ownerAges'
+    | 'localityKinds'
+    | 'cadastralClassifications'
+  > {
   housingIds?: string[];
   establishmentIds?: string[];
   groupIds?: string[];
-  ownerKinds?: OwnerKind[];
-  ownerAges?: string[];
   multiOwners?: boolean[];
   /**
    * The secondary owners
@@ -28,7 +36,6 @@ export interface HousingFiltersApi
    */
   beneficiaryCounts?: string[];
   housingKinds?: string[];
-  cadastralClassifications?: number[];
   housingAreas?: string[];
   roomsCounts?: string[];
   buildingPeriods?: string[];
@@ -42,16 +49,12 @@ export interface HousingFiltersApi
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
   localities?: string[];
-  localityKinds?: string[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
-  dataFileYearsIncluded?: string[];
-  dataFileYearsExcluded?: string[];
   status?: number;
   statusList?: number[];
   subStatus?: string[];
   query?: string;
-  energyConsumption?: EnergyConsumption[];
   occupancies?: Occupancy[];
 }
 

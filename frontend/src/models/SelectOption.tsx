@@ -1,6 +1,6 @@
 import { ReactElement, ReactNode } from 'react';
 
-export interface SelectOption<Value extends string = string> {
+export interface SelectOption<Value extends string | null = string> {
   label: string;
   value: Value;
   disabled?: boolean;
@@ -11,7 +11,7 @@ export interface SelectOption<Value extends string = string> {
   icon?: string;
 }
 
-interface SelectOptionProps<Value extends string> {
+interface SelectOptionProps<Value extends string | null> {
   key?: string;
   checked?: boolean;
   onChangeValue?: (value: Value, isChecked: boolean) => void;

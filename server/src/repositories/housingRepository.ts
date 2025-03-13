@@ -1,5 +1,6 @@
 import {
   AddressKinds,
+  EnergyConsumption,
   HousingSource,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
@@ -8,6 +9,7 @@ import {
   PaginationOptions,
   Precision
 } from '@zerologementvacant/models';
+import { isNotNull } from '@zerologementvacant/utils';
 import highland from 'highland';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
@@ -19,7 +21,6 @@ import db, { toRawArray, where } from '~/infra/database';
 import { getTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import {
-  EnergyConsumptionGradesApi,
   HousingApi,
   HousingRecordApi,
   HousingSortApi
@@ -454,10 +455,15 @@ function filteredQuery(opts: FilteredQueryOptions) {
       queryBuilder.whereIn('occupancy', filters.occupancies);
     }
     if (filters.energyConsumption?.length) {
-      queryBuilder.whereIn(
-        'energy_consumption_bdnb',
-        filters.energyConsumption
-      );
+      queryBuilder.where((where) => {
+        if (filters.energyConsumption?.includes(null)) {
+          where.whereNull('energy_consumption_bdnb');
+        }
+        const energyConsumptions = filters.energyConsumption?.filter(isNotNull);
+        if (energyConsumptions?.length) {
+          where.orWhereIn('energy_consumption_bdnb', energyConsumptions);
+        }
+      });
     }
     if (filters.groupIds?.length) {
       queryBuilder.join(groupsHousingTable, (join) => {
@@ -494,33 +500,43 @@ function filteredQuery(opts: FilteredQueryOptions) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);
     }
     if (filters.ownerKinds?.length) {
-      const ownerKinds = filters.ownerKinds.map(
-        (kind) => OWNER_KIND_LABELS[kind]
-      );
-      queryBuilder.whereIn(`${ownerTable}.kind_class`, ownerKinds);
+      queryBuilder.where((where) => {
+        if (filters.ownerKinds?.includes(null)) {
+          where.whereNull(`${ownerTable}.kind_class`);
+        }
+        const ownerKinds = filters.ownerKinds
+          ?.filter(isNotNull)
+          ?.map((kind) => OWNER_KIND_LABELS[kind]);
+        if (ownerKinds?.length) {
+          where.orWhereIn(`${ownerTable}.kind_class`, ownerKinds);
+        }
+      });
     }
     if (filters.ownerAges?.length) {
-      queryBuilder.where((whereBuilder) => {
+      queryBuilder.where((where) => {
+        if (filters.ownerAges?.includes(null)) {
+          where.orWhereNull(`${ownerTable}.birth_date`);
+        }
         if (filters.ownerAges?.includes('lt40')) {
-          whereBuilder.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) < 40');
+          where.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) < 40');
         }
         if (filters.ownerAges?.includes('40to59')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 40 AND 59'
           );
         }
         if (filters.ownerAges?.includes('60to74')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 60 AND 74'
           );
         }
         if (filters.ownerAges?.includes('75to99')) {
-          whereBuilder.orWhereRaw(
+          where.orWhereRaw(
             'EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 75 AND 99'
           );
         }
         if (filters.ownerAges?.includes('gte100')) {
-          whereBuilder.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) >= 100');
+          where.orWhereRaw('EXTRACT(YEAR FROM AGE(birth_date)) >= 100');
         }
       });
     }
@@ -611,10 +627,19 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.cadastralClassifications?.length) {
-      queryBuilder.whereIn(
-        `${housingTable}.cadastral_classification`,
-        filters.cadastralClassifications
-      );
+      queryBuilder.where((where) => {
+        if (filters.cadastralClassifications?.includes(null)) {
+          where.whereNull(`${housingTable}.cadastral_classification`);
+        }
+        const cadastralClassifications =
+          filters.cadastralClassifications?.filter(isNotNull);
+        if (cadastralClassifications?.length) {
+          where.orWhereIn(
+            `${housingTable}.cadastral_classification`,
+            cadastralClassifications
+          );
+        }
+      });
     }
     if (filters.buildingPeriods?.length) {
       queryBuilder.where((where) => {
@@ -758,7 +783,15 @@ function filteredQuery(opts: FilteredQueryOptions) {
           `${housingTable}.geo_code`,
           `${localitiesTable}.geo_code`
         )
-        .whereIn(`${localitiesTable}.locality_kind`, filters.localityKinds);
+        .where((where) => {
+          if (filters.localityKinds?.includes(null)) {
+            where.whereNull(`${localitiesTable}.locality_kind`);
+          }
+          const localityKinds = filters.localityKinds?.filter(isNotNull);
+          if (localityKinds?.length) {
+            where.orWhereIn(`${localitiesTable}.locality_kind`, localityKinds);
+          }
+        });
     }
     if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
       queryBuilder.whereExists((subquery) => {
@@ -785,14 +818,32 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.dataFileYearsIncluded?.length) {
-      queryBuilder.whereRaw('data_file_years && ?::text[]', [
-        filters.dataFileYearsIncluded
-      ]);
+      queryBuilder.where((where) => {
+        if (filters.dataFileYearsIncluded?.includes(null)) {
+          where
+            .whereNull('data_file_years')
+            .orWhereRaw('cardinality(data_file_years) = 0');
+        }
+        const dataFileYears = filters.dataFileYearsIncluded?.filter(isNotNull);
+        if (dataFileYears?.length) {
+          where.orWhereRaw('data_file_years && ?::text[]', [dataFileYears]);
+        }
+      });
     }
     if (filters.dataFileYearsExcluded?.length) {
-      queryBuilder.whereRaw('not(data_file_years && ?::text[])', [
-        filters.dataFileYearsExcluded
-      ]);
+      queryBuilder.where((where) => {
+        if (filters.dataFileYearsExcluded?.includes(null)) {
+          where
+            .whereNotNull('data_file_years')
+            .whereRaw('cardinality(data_file_years) > 0');
+        }
+        const dataFileYears = filters.dataFileYearsExcluded?.filter(isNotNull);
+        if (dataFileYears?.length) {
+          where.orWhereRaw('not(data_file_years && ?::text[])', [
+            dataFileYears
+          ]);
+        }
+      });
     }
     if (filters.statusList?.length) {
       queryBuilder.whereIn('status', filters.statusList);
@@ -909,7 +960,7 @@ export interface HousingRecordDBO {
   longitude_dgfip?: number;
   latitude_dgfip?: number;
   geolocation?: string;
-  cadastral_classification?: number;
+  cadastral_classification: number | null;
   uncomfortable: boolean;
   vacancy_start_year?: number;
   housing_kind: string;
@@ -945,8 +996,8 @@ export interface HousingRecordDBO {
   occupancy: Occupancy;
   occupancy_source: Occupancy;
   occupancy_intended: Occupancy | null;
-  energy_consumption_bdnb?: EnergyConsumptionGradesApi;
-  energy_consumption_at_bdnb?: Date;
+  energy_consumption_bdnb: EnergyConsumption | null;
+  energy_consumption_at_bdnb: Date | null;
 }
 
 export interface HousingDBO extends HousingRecordDBO {

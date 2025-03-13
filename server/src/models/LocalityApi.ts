@@ -4,7 +4,7 @@ export interface LocalityApi {
   id: string;
   geoCode: string;
   name: string;
-  kind?: LocalityKind;
+  kind: LocalityKind | null;
   taxKind: TaxKindsApi;
   taxRate?: number;
 }

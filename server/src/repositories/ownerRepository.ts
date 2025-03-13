@@ -1,36 +1,36 @@
+import { AddressKinds } from '@zerologementvacant/models';
 import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
-
-import { AddressKinds } from '@zerologementvacant/models';
+import { match, Pattern } from 'ts-pattern';
+import { OwnerExportStreamApi } from '~/controllers/housingExportController';
 import db, {
   ConflictOptions,
   groupBy,
   onConflict,
   where
 } from '~/infra/database';
-import { OwnerApi, OwnerPayloadApi } from '~/models/OwnerApi';
+import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
-import { PaginatedResultApi } from '~/models/PaginatedResultApi';
-import { logger } from '~/infra/logger';
-import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { OwnerApi, OwnerPayloadApi } from '~/models/OwnerApi';
+import { PaginatedResultApi } from '~/models/PaginatedResultApi';
+import { compact } from '~/utils/object';
+import {
+  AddressDBO,
+  banAddressesTable,
+  parseAddressApi
+} from './banAddressesRepository';
+import { campaignsHousingTable } from './campaignHousingRepository';
+import { groupsHousingTable } from './groupRepository';
+import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import {
   HousingDBO,
   housingTable,
   ownerHousingJoinClause,
   parseHousingApi
 } from './housingRepository';
-import { campaignsHousingTable } from './campaignHousingRepository';
-import { groupsHousingTable } from './groupRepository';
-import { OwnerExportStreamApi } from '~/controllers/housingExportController';
-import {
-  AddressDBO,
-  banAddressesTable,
-  parseAddressApi
-} from './banAddressesRepository';
-import { compact } from '~/utils/object';
 import Stream = Highland.Stream;
 
 export const ownerTable = 'owners';
@@ -203,29 +203,25 @@ const searchOwners = async (
   perPage?: number
 ): Promise<PaginatedResultApi<OwnerApi>> => {
   const filterQuery = db(ownerTable)
-  .select('*')
-  .whereRaw(
-    `immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`,
-    [`%${q}%`]
-  )
-  .orWhereRaw(
-    `immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`,
-    [`%${q.split(' ').reverse().join(' ')}%`]
-  )
-  .orderBy('id', 'desc');
+    .select('*')
+    .whereRaw(`immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`, [
+      `%${q}%`
+    ])
+    .orWhereRaw(`immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`, [
+      `%${q.split(' ').reverse().join(' ')}%`
+    ])
+    .orderBy('id', 'desc');
 
-const filteredCount = await db(ownerTable)
-  .whereRaw(
-    `immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`,
-    [`%${q}%`]
-  )
-  .orWhereRaw(
-    `immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`,
-    [`%${q.split(' ').reverse().join(' ')}%`]
-  )
-  .count('id')
-  .first()
-  .then((row) => Number(row?.count));
+  const filteredCount = await db(ownerTable)
+    .whereRaw(`immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`, [
+      `%${q}%`
+    ])
+    .orWhereRaw(`immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`, [
+      `%${q.split(' ').reverse().join(' ')}%`
+    ])
+    .count('id')
+    .first()
+    .then((row) => Number(row?.count));
 
   const totalCount = await db(ownerTable)
     .count('id')
@@ -388,7 +384,7 @@ const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
       .update({
         address_dgfip: ownerApi.rawAddress,
         full_name: ownerApi.fullName,
-        birth_date: ownerApi.birthDate ?? null,
+        birth_date: ownerApi.birthDate,
         email: ownerApi.email ?? null,
         phone: ownerApi.phone ?? null,
         additional_address: ownerApi.additionalAddress ?? null
@@ -520,21 +516,23 @@ export interface OwnerDBO extends OwnerRecordDBO {
 }
 
 export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
-  const birthDate = owner.birth_date ? new Date(owner.birth_date) : undefined;
-  const birthDateStr =
-    birthDate && !isNaN(birthDate.getTime())
-      ? birthDate.toISOString().split('T')[0]
-      : undefined;
+  const birthDate = match(owner.birth_date)
+    .returnType<string | null>()
+    .with(Pattern.string, (value) => value.substring(0, 'yyyy-mm-dd'.length))
+    .with(Pattern.instanceOf(Date), (value) =>
+      value.toJSON().substring(0, 'yyyy-mm-dd'.length)
+    )
+    .otherwise((value) => value);
   return {
     id: owner.id,
     idpersonne: owner.idpersonne ?? undefined,
     rawAddress: owner.address_dgfip,
     fullName: owner.full_name,
     administrator: owner.administrator ?? undefined,
-    birthDate: birthDateStr,
+    birthDate: birthDate,
     email: owner.email ?? undefined,
     phone: owner.phone ?? undefined,
-    kind: owner.kind_class ?? undefined,
+    kind: owner.kind_class,
     kindDetail: owner.owner_kind_detail ?? undefined,
     siren: owner.siren ?? undefined,
     banAddress: owner.ban ? parseAddressApi(owner.ban) : undefined,
@@ -565,7 +563,7 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   id: owner.id,
   idpersonne: owner.idpersonne ?? null,
   full_name: owner.fullName,
-  birth_date: owner.birthDate ?? null,
+  birth_date: owner.birthDate,
   administrator: owner.administrator ?? null,
   siren: owner.siren ?? null,
   address_dgfip: owner.rawAddress.filter((_: string) => _ && _.length),

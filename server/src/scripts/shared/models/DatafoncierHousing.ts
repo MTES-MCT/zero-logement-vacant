@@ -1,13 +1,13 @@
-import fp from 'lodash/fp';
-import { HousingRecordApi, OwnershipKindsApi } from '~/models/HousingApi';
-import { v4 as uuidv4 } from 'uuid';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
   DatafoncierHousing,
   HousingSource,
   toOccupancy
 } from '@zerologementvacant/models';
 import { parse } from 'date-fns';
+import fp from 'lodash/fp';
+import { v4 as uuidv4 } from 'uuid';
+import { HousingRecordApi, OwnershipKindsApi } from '~/models/HousingApi';
+import { HousingStatusApi } from '~/models/HousingStatusApi';
 
 export const toHousingRecordApi = fp.curry(
   (
@@ -41,7 +41,10 @@ export const toHousingRecordApi = fp.curry(
       occupancy: toOccupancy(housing.ccthp),
       occupancyRegistered: toOccupancy(housing.ccthp),
       source: additionalData.source,
-      mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date())
+      mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
+      energyConsumption: null,
+      energyConsumptionAt: null,
+      cadastralClassification: null
     };
   }
 );

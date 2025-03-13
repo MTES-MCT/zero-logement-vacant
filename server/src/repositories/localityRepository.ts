@@ -1,9 +1,8 @@
-import { Knex } from 'knex';
-
 import { LocalityKind } from '@zerologementvacant/models';
+import { Knex } from 'knex';
 import db from '~/infra/database';
-import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { createLogger } from '~/infra/logger';
+import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import {
   Establishments,
   establishmentsTable
@@ -59,7 +58,7 @@ export interface LocalityDBO {
   id: string;
   geo_code: string;
   name: string;
-  locality_kind?: string;
+  locality_kind: LocalityKind | null;
   tax_kind?: string;
   tax_rate?: number;
 }

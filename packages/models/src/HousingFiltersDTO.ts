@@ -1,5 +1,6 @@
 import { BeneficiaryCount } from './BeneficiaryCount';
 import { BuildingPeriod } from './BuildingPeriod';
+import { CadastralClassification } from './CadastralClassification';
 import { CampaignCount } from './CampaignCount';
 import { DataFileYear } from './DataFileYear';
 import { EnergyConsumption } from './EnergyConsumption';
@@ -24,20 +25,20 @@ export interface HousingFiltersDTO {
   all?: boolean;
   housingIds?: string[];
   occupancies?: Occupancy[];
-  energyConsumption?: EnergyConsumption[];
+  energyConsumption?: (EnergyConsumption | null)[];
   establishmentIds?: string[];
   groupIds?: string[];
   campaignsCounts?: CampaignCount[];
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
-  ownerKinds?: OwnerKind[];
-  ownerAges?: OwnerAge[];
+  ownerKinds?: Array<OwnerKind | null>;
+  ownerAges?: Array<OwnerAge | null>;
   multiOwners?: boolean[];
   beneficiaryCounts?: BeneficiaryCount[];
   housingKinds?: HousingKind[];
   housingAreas?: LivingArea[];
   roomsCounts?: RoomCount[];
-  cadastralClassifications?: number[];
+  cadastralClassifications?: Array<CadastralClassification | null>;
   buildingPeriods?: BuildingPeriod[];
   vacancyYears?: VacancyYear[];
   // TODO: make it an exclusive boolean ?
@@ -48,11 +49,11 @@ export interface HousingFiltersDTO {
   vacancyRates?: VacancyRate[];
   intercommunalities?: string[];
   localities?: string[];
-  localityKinds?: LocalityKind[];
+  localityKinds?: Array<LocalityKind | null>;
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];
-  dataFileYearsIncluded?: DataFileYear[];
-  dataFileYearsExcluded?: DataFileYear[];
+  dataFileYearsIncluded?: Array<DataFileYear | null>;
+  dataFileYearsExcluded?: Array<DataFileYear | null>;
   status?: HousingStatus;
   statusList?: HousingStatus[];
   subStatus?: string[];

@@ -3,6 +3,7 @@ import { fc, test } from '@fast-check/jest';
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
+  CADASTRAL_CLASSIFICATION_VALUES,
   CAMPAIGN_COUNT_VALUES,
   CampaignCreationPayloadDTO,
   CampaignDTO,
@@ -227,7 +228,9 @@ describe('Campaign API', () => {
           housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
           housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
           roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
-          cadastralClassifications: fc.array(fc.integer({ min: 0 })),
+          cadastralClassifications: fc.array(
+            fc.constantFrom(...CADASTRAL_CLASSIFICATION_VALUES)
+          ),
           buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
           vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
           isTaxedValues: fc.array(fc.boolean()),

@@ -1,3 +1,6 @@
+import { OwnerApi } from '~/models/OwnerApi';
+import { genOwnerApi } from '~/test/testFixtures';
+import { ScoredOwner } from '../../models/Comparison';
 import {
   compare,
   isStreetNumber,
@@ -6,16 +9,13 @@ import {
   preprocessAddress,
   REVIEW_THRESHOLD
 } from '../duplicates';
-import { genOwnerApi } from '~/test/testFixtures';
-import { OwnerApi } from '~/models/OwnerApi';
-import { ScoredOwner } from '../../models/Comparison';
 
 describe('Duplicates', () => {
   function genOwner(rawAddress: string[], birthDate?: Date): OwnerApi {
     return {
       ...genOwnerApi(),
       rawAddress,
-      birthDate: birthDate?.toJSON()
+      birthDate: birthDate?.toJSON() ?? null
     };
   }
 
@@ -85,14 +85,14 @@ describe('Duplicates', () => {
           score: REVIEW_THRESHOLD,
           value: {
             ...genOwnerApi(),
-            birthDate: undefined
+            birthDate: null
           }
         },
         {
           score: REVIEW_THRESHOLD,
           value: {
             ...genOwnerApi(),
-            birthDate: undefined
+            birthDate: null
           }
         }
       ];
@@ -117,7 +117,7 @@ describe('Duplicates', () => {
         },
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: undefined }
+          value: { ...genOwnerApi(), birthDate: null }
         }
       ];
 
@@ -147,7 +147,7 @@ describe('Duplicates', () => {
     });
 
     it('should not need review if at most one birth date is filled', () => {
-      const source: OwnerApi = { ...genOwnerApi(), birthDate: undefined };
+      const source: OwnerApi = { ...genOwnerApi(), birthDate: null };
       const duplicates: ScoredOwner[] = [
         {
           score: MATCH_THRESHOLD,
@@ -158,7 +158,7 @@ describe('Duplicates', () => {
         },
         {
           score: MATCH_THRESHOLD,
-          value: { ...genOwnerApi(), birthDate: undefined }
+          value: { ...genOwnerApi(), birthDate: null }
         }
       ];
 

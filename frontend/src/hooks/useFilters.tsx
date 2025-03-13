@@ -1,8 +1,13 @@
+import { Occupancy } from '@zerologementvacant/models';
+import { Set } from 'immutable';
 import { useMemo, useState } from 'react';
+
+import { HousingFilters } from '../models/HousingFilters';
+import { getSubStatuses } from '../models/HousingState';
 import housingSlice, {
   initialHousingFilters
 } from '../store/reducers/housingReducer';
-import { HousingFilters } from '../models/HousingFilters';
+import { useIntercommunalities } from './useIntercommunalities';
 import { useAppDispatch, useAppSelector } from './useStore';
 
 interface FiltersOptions {
@@ -35,20 +40,40 @@ export function useFilters(opts?: FiltersOptions) {
     dispatch(expandFilters(value));
   }
 
-  function removeFilter(removed: HousingFilters) {
-    setFilters({
-      ...filters,
-      ...removed
-    });
-  }
-
   const length = useMemo<number>(() => Object.keys(filters).length, [filters]);
 
+  const { data: intercommunalities } = useIntercommunalities();
+
   function onChange(changed: HousingFilters): void {
-    setFilters({
-      ...filters,
-      ...changed
-    });
+    const changes = { ...filters, ...changed };
+
+    // Sub-statuses depend on the statuses
+    const allowedSubStatuses =
+      changes.statusList?.flatMap(getSubStatuses) ?? [];
+    changes.subStatus = changes.subStatus?.filter((subStatus) =>
+      allowedSubStatuses.includes(subStatus)
+    );
+
+    // The `vacancyYears` filter should be available
+    // only when the `VACANT` occupancy is selected
+    if (!changes.occupancies?.includes(Occupancy.VACANT)) {
+      changes.vacancyYears = [];
+    }
+
+    if (changes.intercommunalities?.length && intercommunalities) {
+      // Remove unavailable localities
+      changes.localities = Set(changes.localities)
+        .intersect(
+          intercommunalities
+            .filter((intercommunality) =>
+              changes.intercommunalities?.includes(intercommunality.id)
+            )
+            .flatMap((intercommunality) => intercommunality.geoCodes)
+        )
+        .toArray();
+    }
+
+    setFilters(changes);
   }
 
   function onReset(): void {
@@ -60,7 +85,6 @@ export function useFilters(opts?: FiltersOptions) {
     filters,
     setFilters,
     length,
-    removeFilter,
     onChangeFilters: onChange,
     onResetFilters: onReset,
     setExpand

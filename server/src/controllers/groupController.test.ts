@@ -1,12 +1,10 @@
-import async from 'async';
-import { constants } from 'http2';
-import fp from 'lodash/fp';
-import request from 'supertest';
+import { fc, test } from '@fast-check/jest';
 
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
   CAMPAIGN_COUNT_VALUES,
+  DATA_FILE_YEAR_VALUES,
   ENERGY_CONSUMPTION_VALUES,
   GroupDTO,
   GroupPayloadDTO,
@@ -15,17 +13,65 @@ import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
   LIVING_AREA_VALUES,
+  LOCALITY_KIND_VALUES,
   OCCUPANCY_VALUES,
   OWNER_AGE_VALUES,
   OWNER_KIND_VALUES,
   OWNERSHIP_KIND_VALUES,
   ROOM_COUNT_VALUES,
-  VACANCY_RATE_VALUES
+  VACANCY_RATE_VALUES,
+  VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
 import { wait } from '@zerologementvacant/utils';
+import async from 'async';
+import { constants } from 'http2';
+import fp from 'lodash/fp';
+import request from 'supertest';
+import config from '~/infra/config';
+import db from '~/infra/database';
 import { createServer } from '~/infra/server';
-import { tokenProvider } from '~/test/testUtils';
+import { CampaignApi } from '~/models/CampaignApi';
+import { EventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
+import { HousingApi } from '~/models/HousingApi';
+import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { OwnerApi } from '~/models/OwnerApi';
+import { toUserDTO } from '~/models/UserApi';
+import campaignRepository, {
+  Campaigns
+} from '~/repositories/campaignRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import {
+  EventRecordDBO,
+  Events,
+  eventsTable,
+  GroupHousingEvents,
+  groupHousingEventsTable,
+  parseEventApi
+} from '~/repositories/eventRepository';
+import {
+  formatGroupApi,
+  formatGroupHousingApi,
+  Groups,
+  GroupsHousing,
+  groupsHousingTable
+} from '~/repositories/groupRepository';
+import {
+  formatHousingOwnersApi,
+  HousingOwnerDBO,
+  HousingOwners
+} from '~/repositories/housingOwnerRepository';
+import {
+  formatHousingRecordApi,
+  Housing,
+  HousingRecordDBO,
+  housingTable
+} from '~/repositories/housingRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genCampaignApi,
   genEstablishmentApi,
@@ -35,50 +81,7 @@ import {
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
-import {
-  formatGroupApi,
-  formatGroupHousingApi,
-  Groups,
-  GroupsHousing,
-  groupsHousingTable
-} from '~/repositories/groupRepository';
-import {
-  formatHousingRecordApi,
-  Housing,
-  HousingRecordDBO,
-  housingTable
-} from '~/repositories/housingRepository';
-import { toUserDTO } from '~/models/UserApi';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
-import {
-  EventRecordDBO,
-  Events,
-  eventsTable,
-  GroupHousingEvents,
-  groupHousingEventsTable,
-  parseEventApi
-} from '~/repositories/eventRepository';
-import { EventApi } from '~/models/EventApi';
-import { HousingApi } from '~/models/HousingApi';
-import campaignRepository, {
-  Campaigns
-} from '~/repositories/campaignRepository';
-import { CampaignApi } from '~/models/CampaignApi';
-import {
-  formatHousingOwnersApi,
-  HousingOwnerDBO,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import config from '~/infra/config';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
-import { OwnerApi } from '~/models/OwnerApi';
-import db from '~/infra/database';
-import { fc, test } from '@fast-check/jest';
+import { tokenProvider } from '~/test/testUtils';
 
 describe('Group API', () => {
   const { app } = createServer();
@@ -249,7 +252,7 @@ describe('Group API', () => {
           roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
           cadastralClassifications: fc.array(fc.integer({ min: 0 })),
           buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
-          vacancyYears: fc.array(fc.string({ minLength: 1 })),
+          vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
           isTaxedValues: fc.array(fc.boolean()),
           ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
           housingCounts: fc.array(
@@ -258,11 +261,15 @@ describe('Group API', () => {
           vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
           intercommunalities: fc.array(fc.uuid({ version: 4 })),
           localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
-          localityKinds: fc.array(fc.string({ minLength: 1 })),
+          localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
           geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
           geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
-          dataFileYearsIncluded: fc.array(fc.string({ minLength: 1 })),
-          dataFileYearsExcluded: fc.array(fc.string({ minLength: 1 })),
+          dataFileYearsIncluded: fc.array(
+            fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+          ),
+          dataFileYearsExcluded: fc.array(
+            fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+          ),
           status: fc.constantFrom(...HOUSING_STATUS_VALUES),
           statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
           subStatus: fc.array(fc.string({ minLength: 1 })),

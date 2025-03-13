@@ -1,7 +1,8 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import { createMuiDsfrThemeProvider } from '@codegouvfr/react-dsfr/mui';
 import { StyledEngineProvider, Theme } from '@mui/material/styles';
-import { PropsWithChildren } from 'react';
 import fp from 'lodash/fp';
+import { PropsWithChildren } from 'react';
 import { DeepPartial } from 'ts-essentials';
 
 const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
@@ -31,6 +32,61 @@ const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
             variantMapping: {
               subtitle1: 'p',
               subtitle2: 'p'
+            }
+          }
+        },
+        MuiAutocomplete: {
+          styleOverrides: {
+            listbox: {
+              padding: 0
+            },
+            option: {
+              padding: `0.25rem ${fr.spacing('2w')}`,
+              '&.Mui-focused': {
+                backgroundColor: `${fr.colors.decisions.background.default.grey.hover} !important`
+              },
+              '&.Mui-focusVisible': {
+                backgroundColor: `${fr.colors.decisions.background.default.grey.hover} !important`
+              },
+              '&[aria-selected="true"]': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.default} !important`
+              },
+              '&[aria-selected="true"]:hover': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover} !important`
+              },
+              '&[aria-selected="true"].Mui-focused': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover} !important`
+              },
+              '&[aria-selected="true"].Mui-focusVisible': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover} !important`
+              }
+            }
+          }
+        },
+        MuiMenuItem: {
+          styleOverrides: {
+            root: {
+              '&.Mui-focused': {
+                backgroundColor:
+                  fr.colors.decisions.background.default.grey.hover
+              },
+              '&.Mui-focusVisible': {
+                backgroundColor:
+                  fr.colors.decisions.background.default.grey.hover
+              },
+              '&.Mui-selected': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.default}`
+              },
+              '&.Mui-selected.Mui-focusVisible': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover}`
+              },
+              '&.Mui-selected:hover': {
+                backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover}`
+              }
+            },
+            dense: {
+              paddingTop: '2px',
+              paddingBottom: '2px'
             }
           }
         }

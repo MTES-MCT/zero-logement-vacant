@@ -11719,6 +11719,8 @@ __metadata:
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.6.2"
     uuid: "npm:^9.0.1"
+  bin:
+    queue: dist/bin/index.js
   languageName: unknown
   linkType: soft
 

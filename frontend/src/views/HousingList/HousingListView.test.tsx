@@ -1014,11 +1014,6 @@ describe('Housing list view', () => {
       it('should disable the input if `Vacant` is not selected', async () => {
         renderView();
 
-        const badge = await screen.findByRole('button', {
-          name: /^Occupation : vacant/i
-        });
-        await user.click(badge);
-
         const accordion = await screen.findByRole('button', {
           name: /^Occupation$/,
           expanded: false
@@ -1038,12 +1033,21 @@ describe('Housing list view', () => {
         });
         await user.click(accordion);
 
+        const occupancy = await screen.findByRole('combobox', {
+          name: 'Statut d’occupation'
+        });
+        await user.click(occupancy);
+        let options = await screen.findByRole('listbox');
+        let option = await within(options).findByText('Vacant');
+        await user.click(option);
+        await user.keyboard('{Escape}');
+
         const vacancyYear = await screen.findByRole('combobox', {
           name: 'Année de début de vacance'
         });
         await user.click(vacancyYear);
-        const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText('2021');
+        options = await screen.findByRole('listbox');
+        option = await within(options).findByText('2021');
         await user.click(option);
         await user.keyboard('{Escape}');
 

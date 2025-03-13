@@ -297,7 +297,12 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
             vertical: 'top',
             horizontal: 'left'
           },
-          transitionDuration: 0
+          transitionDuration: 0,
+          MenuListProps: {
+            sx: {
+              padding: 0
+            }
+          }
         }}
         native={false}
         ref={ref}
@@ -335,9 +340,6 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                     value={group}
                     dense
                     disableRipple
-                    classes={{
-                      selected: styles.selected
-                    }}
                     sx={{
                       position: 'sticky',
                       top: 0,

@@ -83,6 +83,10 @@ const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
               '&.Mui-selected:hover': {
                 backgroundColor: `${fr.colors.decisions.background.open.blueFrance.hover}`
               }
+            },
+            dense: {
+              paddingTop: '2px',
+              paddingBottom: '2px'
             }
           }
         }

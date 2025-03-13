@@ -14,6 +14,7 @@ function PerimeterSearchableSelect<Multiple extends boolean = false>(
   return (
     <SearchableSelectNext
       {...props}
+      disabled={!props.options.length}
       placeholder="Rechercher un périmètre"
       getOptionKey={(option) => option.id}
       getOptionLabel={(option) => option.kind}

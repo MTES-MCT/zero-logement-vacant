@@ -295,9 +295,6 @@ function SearchableSelectNext<
             <MenuItem
               dense
               disableRipple
-              classes={{
-                selected: styles.selected
-              }}
               selected={isGroupSelected(group)}
               sx={{
                 position: 'sticky',

@@ -220,6 +220,44 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
         </Grid>
         
+         <Accordion
+          label={<TitleWithIcon icon="fr-icon-server-line" title="Données" />}
+        >
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Sources et millésimes inclus"
+              options={dataFileYearsIncludedOptions}
+              initialValues={(filters.dataFileYearsIncluded ?? []).map((_) =>
+                String(_)
+              )}
+              onChange={(values) => {
+                onChangeFilters(
+                  { dataFileYearsIncluded: values },
+                  'Sources et Millésimes inclus'
+                );
+                posthog.capture('filtre-sources-millesimes-inclus');
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Sources et millésimes exclus"
+              defaultOption="Aucun"
+              options={dataFileYearsExcludedOptions}
+              initialValues={(filters.dataFileYearsExcluded ?? []).map((_) =>
+                String(_)
+              )}
+              onChange={(values) => {
+                onChangeFilters(
+                  { dataFileYearsExcluded: values },
+                  'Sources et millésime exclus'
+                );
+                posthog.capture('filtre-sources-millesimes-exclus');
+              }}
+            />
+          </Grid>
+        </Accordion>
+        
         <Accordion
           label={
             <TitleWithIcon
@@ -708,43 +746,6 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Propriétaires secondaires'
                 );
                 posthog.capture('filtre-proprietaires-secondaires');
-              }}
-            />
-          </Grid>
-        </Accordion>
-        <Accordion
-          label={<TitleWithIcon icon="fr-icon-server-line" title="Données" />}
-        >
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes inclus"
-              options={dataFileYearsIncludedOptions}
-              initialValues={(filters.dataFileYearsIncluded ?? []).map((_) =>
-                String(_)
-              )}
-              onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsIncluded: values },
-                  'Sources et Millésimes inclus'
-                );
-                posthog.capture('filtre-sources-millesimes-inclus');
-              }}
-            />
-          </Grid>
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes exclus"
-              defaultOption="Aucun"
-              options={dataFileYearsExcludedOptions}
-              initialValues={(filters.dataFileYearsExcluded ?? []).map((_) =>
-                String(_)
-              )}
-              onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsExcluded: values },
-                  'Sources et millésime exclus'
-                );
-                posthog.capture('filtre-sources-millesimes-exclus');
               }}
             />
           </Grid>

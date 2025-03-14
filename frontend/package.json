@@ -48,7 +48,7 @@
     "fetch-intercept": "^2.4.0",
     "immutable": "^5.0.0",
     "jose": "^4.15.9",
-    "lexical": "^0.20.0",
+    "lexical": "^0.25.0",
     "lodash": "^4.17.21",
     "maplibre-gl": "^4.7.1",
     "mime": "^4.0.4",

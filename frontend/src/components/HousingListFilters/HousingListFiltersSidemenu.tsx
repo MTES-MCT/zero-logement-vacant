@@ -219,6 +219,43 @@ function HousingListFiltersSidemenu(props: Props) {
             </Button>
           </Grid>
         </Grid>
+        
+        <Accordion
+          label={
+            <TitleWithIcon
+              icon="fr-icon-map-pin-user-line"
+              title="Occupation"
+            />
+          }
+        >
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Statut d’occupation"
+              options={allOccupancyOptions}
+              initialValues={filters.occupancies}
+              onChange={(values) => {
+                onChangeFilters({ occupancies: values }, 'Statut d’occupation');
+                posthog.capture('filtre-statut-occupation');
+              }}
+            />
+          </Grid>
+          {filters?.occupancies?.includes(Occupancy.VACANT) && (
+            <Grid component="article" mb={2} xs={12}>
+              <AppMultiSelect
+                label="Année de début de vacance"
+                options={vacancyYearOptions}
+                initialValues={filters.vacancyYears}
+                onChange={(values) =>
+                  onChangeFilters(
+                    { vacancyYears: values },
+                    'Année de début de vacance'
+                  )
+                }
+              />
+            </Grid>
+          )}
+        </Accordion>
+
         <Accordion
           label={
             <TitleWithIcon icon="fr-icon-folder-2-line" title="Mobilisation" />
@@ -348,42 +385,7 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
         </Accordion>
-
-        <Accordion
-          label={
-            <TitleWithIcon
-              icon="fr-icon-map-pin-user-line"
-              title="Occupation"
-            />
-          }
-        >
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Statut d’occupation"
-              options={allOccupancyOptions}
-              initialValues={filters.occupancies}
-              onChange={(values) => {
-                onChangeFilters({ occupancies: values }, 'Statut d’occupation');
-                posthog.capture('filtre-statut-occupation');
-              }}
-            />
-          </Grid>
-          {filters?.occupancies?.includes(Occupancy.VACANT) && (
-            <Grid component="article" mb={2} xs={12}>
-              <AppMultiSelect
-                label="Année de début de vacance"
-                options={vacancyYearOptions}
-                initialValues={filters.vacancyYears}
-                onChange={(values) =>
-                  onChangeFilters(
-                    { vacancyYears: values },
-                    'Année de début de vacance'
-                  )
-                }
-              />
-            </Grid>
-          )}
-        </Accordion>
+        
         <Accordion
           label={
             <TitleWithIcon icon="fr-icon-france-line" title="Localisation" />

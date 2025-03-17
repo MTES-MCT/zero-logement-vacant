@@ -38,6 +38,7 @@ function SmallHeader() {
     navItem: UserNavItems
   ) {
     const link = getUserNavItem(navItem);
+
     return {
       className: styles.mainNavigationItem,
       linkProps: link?.items ?? (link.items && link.items.length > 0) ? undefined : {
@@ -89,9 +90,8 @@ function SmallHeader() {
           <MainNavigation
             className="fr-mr-5w"
             classes={{
-              root: styles.root,
-              list: styles.linkList,
-              link: styles.link
+               list: styles.linkList,
+               link: styles.link
             }}
             items={
               isAuthenticated

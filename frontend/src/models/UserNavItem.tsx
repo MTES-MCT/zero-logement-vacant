@@ -22,7 +22,7 @@ export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
     case UserNavItems.Resources:
       return { url: '/ressources', label: 'Ressources', icon: 'fr-icon-information-line' };
     case UserNavItems.Analysis:
-      return { label: 'Analyses', showNewBadge: true, icon: 'ri-bar-chart-2-line', url: '/analyses/parc-vacant', items: [
+      return { label: 'Analyses', showNewBadge: true, icon: 'ri-bar-chart-2-line', url: '/analyses', items: [
         { url: '/analyses/parc-vacant', label: 'Analyse du parc vacant' },
         { url: '/analyses/lutte', label: 'Analyse de la lutte contre la vacance' }
       ] };

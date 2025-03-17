@@ -50,7 +50,8 @@ const router = sentry.createBrowserRouter(
           path="/parc-de-logements/campagnes/:id"
           element={<CampaignView />}
         />
-        <Route path="/analyses" element={<AnalysisView />} />
+        <Route path="/analyses/parc-vacant" element={<AnalysisView id='13-analyses' />} />
+        <Route path="/analyses/lutte" element={<AnalysisView id='15-analyses-activites' />} />
         <Route path="/groupes/:id" element={<GroupView />} />
         <Route path="/campagnes" element={<CampaignsListView />} />
         <Route path="/campagnes/:id" element={<CampaignView />} />

@@ -10,6 +10,7 @@ export interface UserNavItem {
   label: string;
   showNewBadge?: boolean;
   icon: string;
+  items?: { url: string; label: string }[];
 }
 
 export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
@@ -21,7 +22,10 @@ export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
     case UserNavItems.Resources:
       return { url: '/ressources', label: 'Ressources', icon: 'fr-icon-information-line' };
     case UserNavItems.Analysis:
-      return { url: '/analyses', label: 'Analyses', showNewBadge: true, icon: 'ri-bar-chart-2-line' };
+      return { label: 'Analyses', showNewBadge: true, icon: 'ri-bar-chart-2-line', url: '/analyses/parc-vacant', items: [
+        { url: '/analyses/parc-vacant', label: 'Analyse du parc vacant' },
+        { url: '/analyses/lutte', label: 'Analyse de la lutte contre la vacance' }
+      ] };
     default:
       return { url: '/', label: 'Accueil', icon: 'fr-icon-building-line' };
   }

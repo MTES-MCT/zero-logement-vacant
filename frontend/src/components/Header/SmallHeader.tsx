@@ -36,16 +36,20 @@ function SmallHeader() {
 
   function getMainNavigationItem(
     navItem: UserNavItems
-  ): MainNavigationProps.Item {
+  ) {
     const link = getUserNavItem(navItem);
     return {
       className: styles.mainNavigationItem,
-      linkProps: {
+      linkProps: link?.items ?? (link.items && link.items.length > 0) ? undefined : {
         to: link.url
       },
       text: <><span className={`${link.icon} ${styles.icon}`} aria-hidden="true"></span>{link.label}{link.showNewBadge && <Badge small={true} severity='success' noIcon={true} className="fr-ml-1w fr-mr-0w">Nouveau</Badge>}</>,
       isActive: location.pathname.startsWith(link.url),
-    };
+      menuLinks: link?.items && link.items.length > 0 ? link.items.map((item) => ({
+        linkProps: { to: item.url },
+        text: item.label
+      })) : undefined
+    }
   }
 
   async function onChangeEstablishment(

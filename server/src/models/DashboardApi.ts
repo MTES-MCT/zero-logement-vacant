@@ -10,6 +10,8 @@ export function getResource(id: Resource): number {
       return 7;
     case '13-analyses':
       return 13;
+    case '15-analyses-activites':
+      return 15;
   }
 }
 

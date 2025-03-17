@@ -29,6 +29,12 @@ ADD https://github.com/motherduckdb/metabase_duckdb_driver/releases/download/0.2
 RUN mkdir -p /data/duckdb/
 RUN chmod 744 /home/plugins/duckdb.metabase-driver.jar
 
+# Installer DuckDB CLI version 1.2.1 pour assurer la compatibilité avec MotherDuck
+RUN wget -O /tmp/duckdb.zip https://github.com/duckdb/duckdb/releases/download/v1.2.1/duckdb_cli-linux-amd64.zip && \
+    unzip -o /tmp/duckdb.zip -d /usr/local/bin/ && \
+    chmod +x /usr/local/bin/duckdb && \
+    rm /tmp/duckdb.zip
+    
 # Configurer un cron job pour mettre à jour quotidiennement le fichier DuckDB
 RUN echo "0 3 * * * root aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/$FILENAME" >> /etc/crontab
 

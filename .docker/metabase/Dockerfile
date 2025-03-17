@@ -24,7 +24,7 @@ RUN pip3 install s3cmd awscli
 
 
 ADD https://downloads.metabase.com/v0.53.5/metabase.jar /home
-ADD https://github.com/motherduckdb/metabase_duckdb_driver/releases/download/0.2.12-b/duckdb.metabase-driver.jar $MB_PLUGINS_DIR
+ADD https://github.com/MotherDuck-Open-Source/metabase_duckdb_driver/releases/latest $MB_PLUGINS_DIR
 
 RUN mkdir -p /data/duckdb/
 RUN chmod 744 /home/plugins/duckdb.metabase-driver.jar

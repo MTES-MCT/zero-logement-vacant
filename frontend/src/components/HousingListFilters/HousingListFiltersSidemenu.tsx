@@ -219,6 +219,81 @@ function HousingListFiltersSidemenu(props: Props) {
             </Button>
           </Grid>
         </Grid>
+        
+         <Accordion
+          label={<TitleWithIcon icon="fr-icon-server-line" title="Fichiers sources" />}
+        >
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Sources et millésimes inclus"
+              options={dataFileYearsIncludedOptions}
+              initialValues={(filters.dataFileYearsIncluded ?? []).map((_) =>
+                String(_)
+              )}
+              onChange={(values) => {
+                onChangeFilters(
+                  { dataFileYearsIncluded: values },
+                  'Sources et Millésimes inclus'
+                );
+                posthog.capture('filtre-sources-millesimes-inclus');
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Sources et millésimes exclus"
+              defaultOption="Aucun"
+              options={dataFileYearsExcludedOptions}
+              initialValues={(filters.dataFileYearsExcluded ?? []).map((_) =>
+                String(_)
+              )}
+              onChange={(values) => {
+                onChangeFilters(
+                  { dataFileYearsExcluded: values },
+                  'Sources et millésime exclus'
+                );
+                posthog.capture('filtre-sources-millesimes-exclus');
+              }}
+            />
+          </Grid>
+        </Accordion>
+        
+        <Accordion
+          label={
+            <TitleWithIcon
+              icon="fr-icon-map-pin-user-line"
+              title="Occupation"
+            />
+          }
+        >
+          <Grid component="article" mb={2} xs={12}>
+            <AppMultiSelect
+              label="Statut d’occupation"
+              options={allOccupancyOptions}
+              initialValues={filters.occupancies}
+              onChange={(values) => {
+                onChangeFilters({ occupancies: values }, 'Statut d’occupation');
+                posthog.capture('filtre-statut-occupation');
+              }}
+            />
+          </Grid>
+          {filters?.occupancies?.includes(Occupancy.VACANT) && (
+            <Grid component="article" mb={2} xs={12}>
+              <AppMultiSelect
+                label="Année de début de vacance"
+                options={vacancyYearOptions}
+                initialValues={filters.vacancyYears}
+                onChange={(values) =>
+                  onChangeFilters(
+                    { vacancyYears: values },
+                    'Année de début de vacance'
+                  )
+                }
+              />
+            </Grid>
+          )}
+        </Accordion>
+
         <Accordion
           label={
             <TitleWithIcon icon="fr-icon-folder-2-line" title="Mobilisation" />
@@ -348,42 +423,7 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
         </Accordion>
-
-        <Accordion
-          label={
-            <TitleWithIcon
-              icon="fr-icon-map-pin-user-line"
-              title="Occupation"
-            />
-          }
-        >
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Statut d’occupation"
-              options={allOccupancyOptions}
-              initialValues={filters.occupancies}
-              onChange={(values) => {
-                onChangeFilters({ occupancies: values }, 'Statut d’occupation');
-                posthog.capture('filtre-statut-occupation');
-              }}
-            />
-          </Grid>
-          {filters?.occupancies?.includes(Occupancy.VACANT) && (
-            <Grid component="article" mb={2} xs={12}>
-              <AppMultiSelect
-                label="Année de début de vacance"
-                options={vacancyYearOptions}
-                initialValues={filters.vacancyYears}
-                onChange={(values) =>
-                  onChangeFilters(
-                    { vacancyYears: values },
-                    'Année de début de vacance'
-                  )
-                }
-              />
-            </Grid>
-          )}
-        </Accordion>
+        
         <Accordion
           label={
             <TitleWithIcon icon="fr-icon-france-line" title="Localisation" />
@@ -706,43 +746,6 @@ function HousingListFiltersSidemenu(props: Props) {
                   'Propriétaires secondaires'
                 );
                 posthog.capture('filtre-proprietaires-secondaires');
-              }}
-            />
-          </Grid>
-        </Accordion>
-        <Accordion
-          label={<TitleWithIcon icon="fr-icon-server-line" title="Données" />}
-        >
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes inclus"
-              options={dataFileYearsIncludedOptions}
-              initialValues={(filters.dataFileYearsIncluded ?? []).map((_) =>
-                String(_)
-              )}
-              onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsIncluded: values },
-                  'Sources et Millésimes inclus'
-                );
-                posthog.capture('filtre-sources-millesimes-inclus');
-              }}
-            />
-          </Grid>
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes exclus"
-              defaultOption="Aucun"
-              options={dataFileYearsExcludedOptions}
-              initialValues={(filters.dataFileYearsExcluded ?? []).map((_) =>
-                String(_)
-              )}
-              onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsExcluded: values },
-                  'Sources et millésime exclus'
-                );
-                posthog.capture('filtre-sources-millesimes-exclus');
               }}
             />
           </Grid>

@@ -29,4 +29,4 @@ RUN chmod 744 /home/plugins/duckdb.metabase-driver.jar
 
 # Commande pour démarrer Metabase
 CMD aws s3 --endpoint-url $AWS_ENDPOINT_URL cp $FILE_PATH /data/duckdb/$FILENAME && \
-    java --add-opens java.base/java.nio=ALL-UNNAMED -jar metabase.jar
+    java --add-opens java.base/java.nio=ALL-UNNAMED -jar /home/metabase.jar

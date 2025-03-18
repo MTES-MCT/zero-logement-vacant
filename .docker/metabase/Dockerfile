@@ -1,4 +1,4 @@
-FROM openjdk:19-buster
+FROM openjdk:21-buster
 
 
 ARG CELLAR_ADDON_HOST

@@ -37,11 +37,12 @@ function SmallHeader() {
 
   function getMainNavigationItem(
     navItem: UserNavItems
-  ): MainNavigationProps.Item {
+  ) {
     const link = getUserNavItem(navItem);
+
     return {
       className: styles.mainNavigationItem,
-      linkProps: {
+      linkProps: link?.items ?? (link.items && link.items.length > 0) ? undefined : {
         to: link.url
       },
       text: (
@@ -63,8 +64,12 @@ function SmallHeader() {
           )}
         </>
       ),
-      isActive: location.pathname.startsWith(link.url)
-    };
+      isActive: location.pathname.startsWith(link.url),
+      menuLinks: link?.items && link.items.length > 0 ? link.items.map((item) => ({
+        linkProps: { to: item.url },
+        text: item.label
+      })) : undefined
+    }
   }
 
   const { onResetFilters } = useFilters({ storage: 'store' });
@@ -107,7 +112,7 @@ function SmallHeader() {
           <MainNavigation
             className="fr-mr-5w"
             classes={{
-              root: styles.root,
+              //root: styles.root,
               list: styles.linkList,
               link: styles.link
             }}

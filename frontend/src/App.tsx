@@ -8,7 +8,6 @@ import {
 } from 'react-router-dom';
 
 import './App.scss';
-import { useIsDsfrReady } from './hooks/useIsDsfrReady';
 import { useAppDispatch, useAppSelector } from './hooks/useStore';
 import AuthenticatedLayout from './layouts/AuthenticatedLayout';
 import GuestLayout from './layouts/GuestLayout';
@@ -101,8 +100,6 @@ function App() {
       (query) => query?.status === 'pending'
     )
   );
-
-  useIsDsfrReady();
 
   useEffect(() => {
     if (isSomeQueryPending) {

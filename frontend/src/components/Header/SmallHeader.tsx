@@ -1,4 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr';
+import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   MainNavigation,
@@ -9,24 +10,24 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import LoadingBar from 'react-redux-loading-bar';
 import { Link, useLocation } from 'react-router-dom';
-
-import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
-import Collapse from '../Collapse/Collapse';
-import { Container } from '../_dsfr';
-import AccountSideMenu from '../../views/Account/AccountSideMenu';
-import { useUser } from '../../hooks/useUser';
-import styles from './small-header.module.scss';
-import { changeEstablishment } from '../../store/actions/authenticationAction';
-import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
-import { useAppDispatch } from '../../hooks/useStore';
 import logo from '../../assets/images/zlv.svg';
-import { zlvApi } from '../../services/api.service';
+import { useFilters } from '../../hooks/useFilters';
+import { useAppDispatch } from '../../hooks/useStore';
+import { useUser } from '../../hooks/useUser';
 import {
   Establishment,
   fromEstablishmentDTO,
   toEstablishmentDTO
 } from '../../models/Establishment';
-import Badge from '@codegouvfr/react-dsfr/Badge';
+
+import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
+import { zlvApi } from '../../services/api.service';
+import { changeEstablishment } from '../../store/actions/authenticationAction';
+import AccountSideMenu from '../../views/Account/AccountSideMenu';
+import { Container } from '../_dsfr';
+import Collapse from '../Collapse/Collapse';
+import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import styles from './small-header.module.scss';
 
 function SmallHeader() {
   const dispatch = useAppDispatch();
@@ -44,7 +45,25 @@ function SmallHeader() {
       linkProps: link?.items ?? (link.items && link.items.length > 0) ? undefined : {
         to: link.url
       },
-      text: <><span className={`${link.icon} ${styles.icon}`} aria-hidden="true"></span>{link.label}{link.showNewBadge && <Badge small={true} severity='success' noIcon={true} className="fr-ml-1w fr-mr-0w">Nouveau</Badge>}</>,
+      text: (
+        <>
+          <span
+            className={`${link.icon} ${styles.icon}`}
+            aria-hidden="true"
+          ></span>
+          {link.label}
+          {link.showNewBadge && (
+            <Badge
+              small={true}
+              severity="success"
+              noIcon={true}
+              className="fr-ml-1w fr-mr-0w"
+            >
+              Nouveau
+            </Badge>
+          )}
+        </>
+      ),
       isActive: location.pathname.startsWith(link.url),
       menuLinks: link?.items && link.items.length > 0 ? link.items.map((item) => ({
         linkProps: { to: item.url },
@@ -53,12 +72,15 @@ function SmallHeader() {
     }
   }
 
+  const { onResetFilters } = useFilters({ storage: 'store' });
+
   async function onChangeEstablishment(
     establishment: Establishment
   ): Promise<void> {
     await dispatch(changeEstablishment(establishment.id)).unwrap();
     // Reset all state instead of reloading the page
     dispatch(zlvApi.util.resetApiState());
+    onResetFilters();
   }
 
   return (
@@ -108,21 +130,27 @@ function SmallHeader() {
           <Grid alignItems="center" display="flex" ml="auto">
             {isAuthenticated ? (
               isAdmin || isVisitor ? (
-                <EstablishmentSearchableSelect
-                  className={fr.cx('fr-mr-2w')}
-                  value={
-                    establishment ? toEstablishmentDTO(establishment) : null
-                  }
-                  onChange={(establishment) => {
-                    if (establishment) {
-                      onChangeEstablishment(
-                        fromEstablishmentDTO(establishment)
-                      );
-                    }
-                  }}
-                />
+                establishment ? (
+                  <EstablishmentSearchableSelect
+                    className={fr.cx('fr-mr-2w')}
+                    disableClearable
+                    value={toEstablishmentDTO(establishment)}
+                    onChange={(establishment) => {
+                      if (establishment) {
+                        onChangeEstablishment(
+                          fromEstablishmentDTO(establishment)
+                        );
+                      }
+                    }}
+                  />
+                ) : null
               ) : (
-                <Typography className={styles.establishmentName} component="span" mr={2} variant="body2">
+                <Typography
+                  className={styles.establishmentName}
+                  component="span"
+                  mr={2}
+                  variant="body2"
+                >
                   {establishment?.name}
                 </Typography>
               )

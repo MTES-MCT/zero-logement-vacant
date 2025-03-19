@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import {
+  DataFileYear,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
   isPrecisionMechanismCategory,
@@ -42,10 +43,10 @@ import {
 } from '../../models/HousingFilters';
 import {
   getSubStatusList,
-  getSubStatusListOptions
+  getSubStatusOptions
 } from '../../models/HousingState';
 
-import { citiesWithDistricts } from '../../models/Locality';
+import { CITIES_WITH_DISTRICTS } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
@@ -71,12 +72,12 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
 
   function mergeDistricts(localities: string[]): string[] {
     const setGeoCodes = new Set(localities);
-    for (const [city, districts] of Object.entries(citiesWithDistricts)) {
-      if (districts.every(d => setGeoCodes.has(d))) {
-        districts.forEach(d => {
-            setGeoCodes.delete(d);
-          });
-          setGeoCodes.add(city);
+    for (const [city, districts] of Object.entries(CITIES_WITH_DISTRICTS)) {
+      if (districts.every((d) => setGeoCodes.has(d))) {
+        districts.forEach((d) => {
+          setGeoCodes.delete(d);
+        });
+        setGeoCodes.add(city);
       }
     }
     return Array.from(setGeoCodes);
@@ -254,7 +255,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         }
       />
       <FilterBadges
-        options={getSubStatusListOptions(filters.statusList ?? [])}
+        options={filters.statusList?.flatMap(getSubStatusOptions) ?? []}
         values={filters.subStatus}
         small={small}
         onChange={(values) => onChange?.({ subStatus: values })}
@@ -279,13 +280,17 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         options={dataFileYearsIncludedOptions}
         values={filters.dataFileYearsIncluded}
         small={small}
-        onChange={(values) => onChange?.({ dataFileYearsIncluded: values })}
+        onChange={(values: DataFileYear[]) =>
+          onChange?.({ dataFileYearsIncluded: values })
+        }
       />
       <FilterBadges
         options={dataFileYearsExcludedOptions}
         values={filters.dataFileYearsExcluded}
         small={small}
-        onChange={(values) => onChange?.({ dataFileYearsExcluded: values })}
+        onChange={(values: DataFileYear[]) =>
+          onChange?.({ dataFileYearsExcluded: values })
+        }
       />
       <FilterBadges
         options={energyConsumptionOptions}

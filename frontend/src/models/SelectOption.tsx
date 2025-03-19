@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 
 export interface SelectOption<Value extends string = string> {
   label: string;
@@ -7,7 +7,7 @@ export interface SelectOption<Value extends string = string> {
   hidden?: boolean;
   badgeLabel?: string;
   markup?: (props: SelectOptionProps<Value>) => ReactElement;
-  hint?: ReactElement;
+  hint?: ReactNode;
   icon?: string;
 }
 

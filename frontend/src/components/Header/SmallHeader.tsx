@@ -90,8 +90,9 @@ function SmallHeader() {
           <MainNavigation
             className="fr-mr-5w"
             classes={{
-               list: styles.linkList,
-               link: styles.link
+              //root: styles.root,
+              list: styles.linkList,
+              link: styles.link
             }}
             items={
               isAuthenticated

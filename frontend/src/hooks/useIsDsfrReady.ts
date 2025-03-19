@@ -1,17 +1,27 @@
-import { useEvent } from 'react-use';
+import { retry } from 'async';
+import { useEffect } from 'react';
+import { createGlobalState } from 'react-use';
 
-import { useAppDispatch, useAppSelector } from './useStore';
-import appSlice from '../store/reducers/appReducer';
+const useIsReady = createGlobalState(false);
 
-export function useIsDsfrReady() {
-  const dispatch = useAppDispatch();
-  const app = useAppSelector((state) => state.app);
+export function useIsDsfrReady(id: string) {
+  const [ready, setReady] = useIsReady();
 
-  function onLoad() {
-    dispatch(appSlice.actions.setDsfrReady());
-  }
+  useEffect(() => {
+    retry({ times: 10, interval: 500 }, async () => {
+      const dialog = document.getElementById(id);
+      // @ts-expect-error: Property 'dsfr' does not exist on type 'Window & typeof globalThis'.ts(2339)
+      return !!window.dsfr(dialog).modal;
+    })
+      .then(() => {
+        setReady(true);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
 
-  useEvent('load', onLoad, window);
+    return () => setReady(false);
+  }, [id, setReady]);
 
-  return app.isDsfrReady;
+  return ready;
 }

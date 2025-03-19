@@ -1,13 +1,13 @@
 import Grid from '@mui/material/Unstable_Grid2';
-import { useFilters } from '../../hooks/useFilters';
-import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
-import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
-import HousingListMap from '../HousingList/HousingListMap';
-import HousingListTabs from '../HousingList/HousingListTabs';
-import { useAppSelector } from '../../hooks/useStore';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
+import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
+import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
+import { useFilters } from '../../hooks/useFilters';
+import { useAppSelector } from '../../hooks/useStore';
 import { Campaign } from '../../models/Campaign';
+import HousingListMap from '../HousingList/HousingListMap';
+import HousingListTabs from '../HousingList/HousingListTabs';
 import HousingListTabsProvider from '../HousingList/HousingListTabsProvider';
 
 interface Props {
@@ -19,7 +19,6 @@ function CampaignInProgress(props: Readonly<Props>) {
     filters,
     setFilters,
     expand,
-    removeFilter,
     setExpand,
     onChangeFilters,
     onResetFilters
@@ -63,7 +62,7 @@ function CampaignInProgress(props: Readonly<Props>) {
         </Grid>
 
         <Grid mb={3} xs={12}>
-          <HousingFiltersBadges filters={filters} onChange={removeFilter} />
+          <HousingFiltersBadges filters={filters} onChange={onChangeFilters} />
         </Grid>
 
         {view === 'map' ? (

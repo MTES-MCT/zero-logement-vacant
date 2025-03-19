@@ -1,10 +1,40 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/jest';
+import {
+  BENEFIARY_COUNT_VALUES,
+  BUILDING_PERIOD_VALUES,
+  CAMPAIGN_COUNT_VALUES,
+  CampaignCreationPayloadDTO,
+  CampaignDTO,
+  CampaignUpdatePayloadDTO,
+  DATA_FILE_YEAR_VALUES,
+  ENERGY_CONSUMPTION_VALUES,
+  HOUSING_BY_BUILDING_VALUES,
+  HOUSING_KIND_VALUES,
+  HOUSING_STATUS_VALUES,
+  LIVING_AREA_VALUES,
+  LOCALITY_KIND_VALUES,
+  OCCUPANCY_VALUES,
+  OWNER_AGE_VALUES,
+  OWNER_KIND_VALUES,
+  OWNERSHIP_KIND_VALUES,
+  ROOM_COUNT_VALUES,
+  VACANCY_RATE_VALUES,
+  VACANCY_YEAR_VALUES
+} from '@zerologementvacant/models';
+
+import { isDefined, wait } from '@zerologementvacant/utils';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
-
-import { isDefined, wait } from '@zerologementvacant/utils';
+import { createServer } from '~/infra/server';
+import { CampaignApi } from '~/models/CampaignApi';
+import { DraftApi } from '~/models/DraftApi';
+import { GroupApi } from '~/models/GroupApi';
+import { HousingApi } from '~/models/HousingApi';
+import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { CampaignsDrafts } from '~/repositories/campaignDraftRepository';
 import {
   CampaignHousingDBO,
   CampaignsHousing
@@ -13,21 +43,29 @@ import {
   Campaigns,
   formatCampaignApi
 } from '~/repositories/campaignRepository';
-import { tokenProvider } from '~/test/testUtils';
-import { CampaignEvents, HousingEvents } from '~/repositories/eventRepository';
-import { CampaignApi } from '~/models/CampaignApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { Drafts, formatDraftApi } from '~/repositories/draftRepository';
 import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { createServer } from '~/infra/server';
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import { CampaignEvents, HousingEvents } from '~/repositories/eventRepository';
 import {
   formatGroupApi,
   formatGroupHousingApi,
   Groups,
   GroupsHousing
 } from '~/repositories/groupRepository';
+import {
+  formatOwnerHousingApi,
+  HousingOwners
+} from '~/repositories/housingOwnerRepository';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
+import { formatSenderApi, Senders } from '~/repositories/senderRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genCampaignApi,
   genDraftApi,
@@ -38,42 +76,7 @@ import {
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import {
-  formatOwnerHousingApi,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import {
-  BENEFIARY_COUNT_VALUES,
-  BUILDING_PERIOD_VALUES,
-  CAMPAIGN_COUNT_VALUES,
-  CampaignCreationPayloadDTO,
-  CampaignDTO,
-  CampaignUpdatePayloadDTO,
-  ENERGY_CONSUMPTION_VALUES,
-  HOUSING_BY_BUILDING_VALUES,
-  HOUSING_KIND_VALUES,
-  HOUSING_STATUS_VALUES,
-  LIVING_AREA_VALUES,
-  OCCUPANCY_VALUES,
-  OWNER_AGE_VALUES,
-  OWNER_KIND_VALUES,
-  OWNERSHIP_KIND_VALUES,
-  ROOM_COUNT_VALUES,
-  VACANCY_RATE_VALUES
-} from '@zerologementvacant/models';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
-import { HousingApi } from '~/models/HousingApi';
-import { GroupApi } from '~/models/GroupApi';
-import { DraftApi } from '~/models/DraftApi';
-import { Drafts, formatDraftApi } from '~/repositories/draftRepository';
-import { CampaignsDrafts } from '~/repositories/campaignDraftRepository';
-import { formatSenderApi, Senders } from '~/repositories/senderRepository';
-import { fc, test } from '@fast-check/jest';
+import { tokenProvider } from '~/test/testUtils';
 
 describe('Campaign API', () => {
   const { app } = createServer();
@@ -226,7 +229,7 @@ describe('Campaign API', () => {
           roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
           cadastralClassifications: fc.array(fc.integer({ min: 0 })),
           buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
-          vacancyYears: fc.array(fc.string({ minLength: 1 })),
+          vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
           isTaxedValues: fc.array(fc.boolean()),
           ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
           housingCounts: fc.array(
@@ -235,11 +238,15 @@ describe('Campaign API', () => {
           vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
           intercommunalities: fc.array(fc.uuid({ version: 4 })),
           localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
-          localityKinds: fc.array(fc.string({ minLength: 1 })),
+          localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
           geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
           geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
-          dataFileYearsIncluded: fc.array(fc.string({ minLength: 1 })),
-          dataFileYearsExcluded: fc.array(fc.string({ minLength: 1 })),
+          dataFileYearsIncluded: fc.array(
+            fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+          ),
+          dataFileYearsExcluded: fc.array(
+            fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+          ),
           status: fc.constantFrom(...HOUSING_STATUS_VALUES),
           statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
           subStatus: fc.array(fc.string({ minLength: 1 })),

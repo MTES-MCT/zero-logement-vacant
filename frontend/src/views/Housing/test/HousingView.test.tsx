@@ -1,9 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { format, subYears } from 'date-fns';
 
 import {
   HousingDTO,
@@ -17,9 +14,12 @@ import {
   genHousingOwnerDTO,
   genOwnerDTO
 } from '@zerologementvacant/models/fixtures';
+import { format, subYears } from 'date-fns';
+import { Provider } from 'react-redux';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import data from '../../../mocks/handlers/data';
 import configureTestStore from '../../../utils/test/storeUtils';
 import HousingView from '../HousingView';
-import data from '../../../mocks/handlers/data';
 
 describe('Housing view', () => {
   const user = userEvent.setup();
@@ -277,7 +277,8 @@ describe('Housing view', () => {
       const status =
         await within(mobilizationPanel).findByLabelText(/Statut de suivi/);
       await user.click(status);
-      const statusOption = await screen.findByLabelText(/Premier contact/);
+      const options = await screen.findByRole('listbox');
+      const statusOption = await within(options).findByText(/Premier contact/i);
       await user.click(statusOption);
       const subStatus =
         await within(mobilizationPanel).findByLabelText(/Sous-statut/);

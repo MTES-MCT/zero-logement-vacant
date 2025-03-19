@@ -5,6 +5,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import {
+  HOUSING_STATUS_VALUES,
   HousingStatus,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
@@ -16,7 +17,6 @@ import { Dispatch, SetStateAction, useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 import { useNotification } from '../../hooks/useNotification';
 import { Housing } from '../../models/Housing';
-import { statusOptions } from '../../models/HousingFilters';
 import { getSubStatusOptions } from '../../models/HousingState';
 import {
   useFindPrecisionsByHousingQuery,
@@ -24,12 +24,12 @@ import {
   useSaveHousingPrecisionsMutation
 } from '../../services/precision.service';
 import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import HousingStatusMultiSelect from '../HousingListFilters/HousingStatusMultiSelect';
 import createPrecisionModalNext from '../Precision/PrecisionModalNext';
 import { PrecisionTabId } from '../Precision/PrecisionTabs';
 import { useFilteredPrecisions } from '../Precision/useFilteredPrecisions';
 import styles from './housing-edition.module.scss';
 import { HousingEditionFormSchema } from './HousingEditionSideMenu';
-import HousingStatusSelect from './HousingStatusSelect';
 
 interface Props {
   housingId: Housing['id'] | null;
@@ -134,13 +134,13 @@ function HousingEditionMobilizationTab(props: Props) {
         >
           Statut de suivi
         </Typography>
-        <HousingStatusSelect
-          selected={statusField.value as HousingStatus}
-          message={statusFieldState.error?.message}
-          messageType={statusFieldState.invalid ? 'error' : 'default'}
-          options={statusOptions()}
-          onChange={(status) => {
-            statusField.onChange(status);
+        <HousingStatusMultiSelect
+          error={statusFieldState.error?.message}
+          invalid={statusFieldState.invalid}
+          options={HOUSING_STATUS_VALUES}
+          value={statusField.value}
+          onChange={(value) => {
+            statusField.onChange(value);
             form.setValue('subStatus', null);
             form.clearErrors('subStatus');
           }}
@@ -148,7 +148,6 @@ function HousingEditionMobilizationTab(props: Props) {
         <AppSelectNext
           disabled={subStatusDisabled}
           label="Sous-statut de suivi"
-          name={subStatusField.name}
           multiple={false}
           options={
             getSubStatusOptions(statusField.value as HousingStatus)?.map(
@@ -157,7 +156,6 @@ function HousingEditionMobilizationTab(props: Props) {
           }
           error={subStatusFieldState.error?.message}
           invalid={subStatusFieldState.invalid}
-          ref={subStatusField.ref}
           value={subStatusField.value}
           onBlur={subStatusField.onBlur}
           onChange={subStatusField.onChange}

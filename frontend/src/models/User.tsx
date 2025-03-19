@@ -1,5 +1,5 @@
-import { Establishment } from './Establishment';
 import { UserDTO } from '@zerologementvacant/models';
+import { Establishment } from './Establishment';
 
 export interface AuthUser {
   user: User;
@@ -15,6 +15,14 @@ export interface User {
   role: UserRoles;
   activatedAt: Date;
   establishmentId: string;
+}
+
+export function createdBy(
+  user: Pick<User, 'email' | 'firstName' | 'lastName'>
+): string {
+  return user.firstName && user.lastName
+    ? `${user.firstName} ${user.lastName}`
+    : user.email;
 }
 
 export const fromUserDTO = (user: UserDTO): User => ({

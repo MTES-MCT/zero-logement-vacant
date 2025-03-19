@@ -5,6 +5,11 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
+import createCampaignCreationInfoModal from '../../components/Campaign/CampaignCreationInfoModal';
+import createCampaignCreationModal from '../../components/Campaign/CampaignCreationModal';
+import createGroupAddHousingModal from '../../components/Group/GroupAddHousingModal';
+import createGroupCreationModal from '../../components/Group/GroupCreationModal';
+import createGroupOrCampaignCreationModal from '../../components/Group/GroupOrCampaignCreationModal';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
@@ -12,25 +17,20 @@ import HousingListFiltersSidemenu from '../../components/HousingListFilters/Hous
 import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useFilters } from '../../hooks/useFilters';
+import { useNotification } from '../../hooks/useNotification';
+import { useSelection } from '../../hooks/useSelection';
 import { useAppSelector } from '../../hooks/useStore';
 import { useUser } from '../../hooks/useUser';
-import { initialHousingFilters } from '../../store/reducers/housingReducer';
-import HousingListMap from './HousingListMap';
-import HousingListTabs from './HousingListTabs';
-import createGroupOrCampaignCreationModal from '../../components/Group/GroupOrCampaignCreationModal';
-import createGroupAddHousingModal from '../../components/Group/GroupAddHousingModal';
-import createGroupCreationModal from '../../components/Group/GroupCreationModal';
+import { useCreateCampaignMutation } from '../../services/campaign.service';
 import {
   useAddGroupHousingMutation,
   useCreateGroupMutation
 } from '../../services/group.service';
-import { useNotification } from '../../hooks/useNotification';
-import { useSelection } from '../../hooks/useSelection';
-import { useHousingListTabs } from './HousingListTabsProvider';
 import { useCountHousingQuery } from '../../services/housing.service';
-import createCampaignCreationModal from '../../components/Campaign/CampaignCreationModal';
-import createCampaignCreationInfoModal from '../../components/Campaign/CampaignCreationInfoModal';
-import { useCreateCampaignMutation } from '../../services/campaign.service';
+import { initialHousingFilters } from '../../store/reducers/housingReducer';
+import HousingListMap from './HousingListMap';
+import HousingListTabs from './HousingListTabs';
+import { useHousingListTabs } from './HousingListTabsProvider';
 
 const campaignCreationInfoModal = createCampaignCreationInfoModal();
 const campaignCreationModal = createCampaignCreationModal();
@@ -47,8 +47,7 @@ const HousingListView = () => {
     setExpand,
     setFilters,
     onChangeFilters,
-    onResetFilters,
-    removeFilter
+    onResetFilters
   } = useFilters({
     storage: 'store',
     initialState: initialHousingFilters
@@ -297,7 +296,7 @@ const HousingListView = () => {
         </Grid>
 
         <Grid sx={{ mb: 3 }} xs={12}>
-          <HousingFiltersBadges filters={filters} onChange={removeFilter} />
+          <HousingFiltersBadges filters={filters} onChange={onChangeFilters} />
         </Grid>
 
         <Alert
@@ -306,7 +305,7 @@ const HousingListView = () => {
           isClosed={!showExportAlert}
           severity="error"
           title="Aucun logement sélectionné"
-          description="Sélectionnez les logements à exporter ou contacter dans le tableau ci-dessous puis cliquez sur le bouton “Exporter ou contacter”."
+          description="Sélectionnez les logements dans le tableau de l'onglet correspondant, puis cliquez sur le bouton “Exporter ou contacter“."
           onClose={() => setShowExportAlert(false)}
         />
 

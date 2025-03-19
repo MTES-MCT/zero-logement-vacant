@@ -4,6 +4,7 @@
   "scripts": {
     "clean": "rimraf build",
     "icons": "only-include-used-icons && tsx src/scripts/generate-building-images.ts",
+    "typecheck": "tsc --noEmit",
     "build": "yarn clean && yarn icons && tsc -b tsconfig.build.json && DISABLE_ESLINT_PLUGIN=true craco build",
     "dev": "yarn icons && DISABLE_ESLINT_PLUGIN=true craco start",
     "test": "DISABLE_ESLINT_PLUGIN=true craco test",
@@ -33,8 +34,9 @@
     "@lexical/text": "^0.20.0",
     "@lexical/utils": "^0.20.0",
     "@maplibre/maplibre-gl-style-spec": "^20.3.1",
-    "@mui/material": "^5.16.7",
+    "@mui/material": "^5.16.14",
     "@reduxjs/toolkit": "^1.9.7",
+    "@sentry/react": "^9.2.0",
     "@turf/turf": "^7.1.0",
     "@typeform/embed-react": "^2.31.0",
     "@zerologementvacant/models": "workspace:*",

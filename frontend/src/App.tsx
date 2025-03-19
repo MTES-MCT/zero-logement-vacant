@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
-  createBrowserRouter,
   createRoutesFromElements,
   Navigate,
   Route,
@@ -11,29 +10,29 @@ import {
 import './App.scss';
 import { useAppDispatch, useAppSelector } from './hooks/useStore';
 import AuthenticatedLayout from './layouts/AuthenticatedLayout';
-import HousingListView from './views/HousingList/HousingListView';
-import CampaignView from './views/Campaign/CampaignView';
-import GroupView from './views/Group/GroupView';
-import CampaignsListView from './views/Campaign/CampaignListView';
-import HousingView from './views/Housing/HousingView';
-import OwnerView from './views/Owner/OwnerView';
-import StatusView from './views/Resources/StatusView';
-import ResourcesView from './views/Resources/ResourcesView';
-import AccountView from './views/Account/AccountView';
-import AccountPasswordView from './views/Account/AccountPasswordView';
-import UsersView from './views/Users/UsersView';
-import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
 import GuestLayout from './layouts/GuestLayout';
+import sentry from './utils/sentry';
 import AccountCreationView from './views/Account/AccountCreationView';
-import LoginView from './views/Login/LoginView';
+import AccountPasswordView from './views/Account/AccountPasswordView';
+import AccountView from './views/Account/AccountView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
-import NotFoundView from './views/NotFoundView';
 import AnalysisView from './views/Analysis/AnalysisView';
-import { useIsDsfrReady } from './hooks/useIsDsfrReady';
+import CampaignsListView from './views/Campaign/CampaignListView';
+import CampaignView from './views/Campaign/CampaignView';
+import GroupView from './views/Group/GroupView';
+import HousingView from './views/Housing/HousingView';
 import HousingListTabsProvider from './views/HousingList/HousingListTabsProvider';
+import HousingListView from './views/HousingList/HousingListView';
+import LoginView from './views/Login/LoginView';
+import NotFoundView from './views/NotFoundView';
+import OwnerView from './views/Owner/OwnerView';
+import ResourcesView from './views/Resources/ResourcesView';
+import StatusView from './views/Resources/StatusView';
+import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
+import UsersView from './views/Users/UsersView';
 
-const router = createBrowserRouter(
+const router = sentry.createBrowserRouter(
   createRoutesFromElements(
     <Route>
       <Route element={<AuthenticatedLayout />}>
@@ -50,7 +49,8 @@ const router = createBrowserRouter(
           path="/parc-de-logements/campagnes/:id"
           element={<CampaignView />}
         />
-        <Route path="/analyses" element={<AnalysisView />} />
+        <Route path="/analyses/parc-vacant" element={<AnalysisView id='13-analyses' />} />
+        <Route path="/analyses/lutte" element={<AnalysisView id='15-analyses-activites' />} />
         <Route path="/groupes/:id" element={<GroupView />} />
         <Route path="/campagnes" element={<CampaignsListView />} />
         <Route path="/campagnes/:id" element={<CampaignView />} />
@@ -100,8 +100,6 @@ function App() {
       (query) => query?.status === 'pending'
     )
   );
-
-  useIsDsfrReady();
 
   useEffect(() => {
     if (isSomeQueryPending) {

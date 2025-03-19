@@ -5,17 +5,20 @@ import {
   BUILDING_PERIOD_VALUES,
   CAMPAIGN_COUNT_VALUES,
   CampaignCreationPayloadDTO,
+  DATA_FILE_YEAR_VALUES,
   ENERGY_CONSUMPTION_VALUES,
   HOUSING_BY_BUILDING_VALUES,
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
   LIVING_AREA_VALUES,
+  LOCALITY_KIND_VALUES,
   OCCUPANCY_VALUES,
   OWNER_AGE_VALUES,
   OWNER_KIND_VALUES,
   OWNERSHIP_KIND_VALUES,
   ROOM_COUNT_VALUES,
-  VACANCY_RATE_VALUES
+  VACANCY_RATE_VALUES,
+  VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
 import { campaignCreationPayload } from '../campaign-creation-payload';
 
@@ -46,18 +49,22 @@ describe('Campaign creation payload', () => {
         roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
         cadastralClassifications: fc.array(fc.integer({ min: 0 })),
         buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
-        vacancyYears: fc.array(fc.string({ minLength: 1 })),
+        vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
         isTaxedValues: fc.array(fc.boolean()),
         ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
         housingCounts: fc.array(fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)),
         vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
         intercommunalities: fc.array(fc.uuid({ version: 4 })),
         localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
-        localityKinds: fc.array(fc.string({ minLength: 1 })),
+        localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
         geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
         geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
-        dataFileYearsIncluded: fc.array(fc.string({ minLength: 1 })),
-        dataFileYearsExcluded: fc.array(fc.string({ minLength: 1 })),
+        dataFileYearsIncluded: fc.array(
+          fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+        ),
+        dataFileYearsExcluded: fc.array(
+          fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+        ),
         status: fc.constantFrom(...HOUSING_STATUS_VALUES),
         statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
         subStatus: fc.array(fc.string({ minLength: 1 })),

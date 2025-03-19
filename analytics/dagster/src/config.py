@@ -53,6 +53,7 @@ public_tables = [
     "marts_public_establishments_morphology",
     "marts_public_establishments_morphology_unpivoted",
     "marts_public_establishments_hierarchy",
+    "marts_public_establishments_morphology_catagorized",
 ]
 
 admin_tables = [
@@ -70,6 +71,7 @@ production_tables = [
     "marts_stats_monthly_global",
     "marts_production_housing",
     "marts_production_establishments",
+    "marts_production_establishments_activation",
     "marts_production_owners",
     "marts_production_groups",
     "marts_production_users",

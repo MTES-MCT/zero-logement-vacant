@@ -5,12 +5,15 @@ import ReactDOM from 'react-dom/client';
 import { MapProvider } from 'react-map-gl/maplibre';
 import { Provider as StoreProvider } from 'react-redux';
 import { Link } from 'react-router-dom';
+import App from './App';
 
 import Notification from './components/Notification/Notification';
 import { store } from './store/store';
-import config from './utils/config';
-import App from './App';
 import ThemeProvider from './theme';
+import config from './utils/config';
+import sentry from './utils/sentry';
+
+sentry.init();
 
 startReactDsfr({
   defaultColorScheme: 'light',

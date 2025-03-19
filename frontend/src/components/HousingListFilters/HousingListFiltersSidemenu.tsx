@@ -5,66 +5,60 @@ import MuiDrawer from '@mui/material/Drawer';
 import { CSSObject, styled, Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
+
 import {
-  HousingStatus,
+  CadastralClassification,
+  HOUSING_KIND_VALUES,
+  HOUSING_STATUS_VALUES,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
   isPrecisionMechanismCategory,
   Occupancy
 } from '@zerologementvacant/models';
-
 import { isDefined } from '@zerologementvacant/utils';
 import classNames from 'classnames';
+import { Set } from 'immutable';
 import posthog from 'posthog-js';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
 import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
-import { geoPerimeterOptions } from '../../models/GeoPerimeter';
-import {
-  allOccupancyOptions,
-  beneficiaryCountOptions,
-  buildingPeriodOptions,
-  cadastralClassificationOptions,
-  dataFileYearsExcludedOptions,
-  dataFileYearsIncludedOptions,
-  energyConsumptionOptions,
-  housingAreaOptions,
-  housingCountOptions,
-  HousingFilters,
-  housingKindOptions,
-  localityKindsOptions,
-  multiOwnerOptions,
-  ownerAgeOptions,
-  ownerKindOptions,
-  ownershipKindsOptions,
-  roomsCountOptions,
-  statusOptions,
-  taxedOptions,
-  unselectedOptions,
-  vacancyRateOptions,
-  vacancyYearOptions
-} from '../../models/HousingFilters';
-import {
-  getSubStatusList,
-  getSubStatusListOptions
-} from '../../models/HousingState';
+import { HousingFilters } from '../../models/HousingFilters';
+import { getSubStatuses } from '../../models/HousingState';
+import { getCity, getDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useFindPrecisionsQuery } from '../../services/precision.service';
-import { concat } from '../../utils/arrayUtils';
-import AppMultiSelect from '../_app/AppMultiSelect/AppMultiSelect';
-import { Icon, SearchableSelect, Text } from '../_dsfr';
+import { Icon } from '../_dsfr';
 import GroupHeader from '../GroupHeader/GroupHeader';
 import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
 import PrecisionSelect from '../Precision/PrecisionSelect';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
-import { citiesWithDistricts } from '../../models/Locality';
-import CampaignFilter from './CampaignFilter';
+import BuildingPeriodSelect from './BuildingPeriodSelect';
+import CadastralClassificationSelect from './CadastralClassificationSelect';
+import CampaignSelect from './CampaignSelect';
+import DataFileYearSelect from './DataFileYearSelect';
+import EnergyConsumptionSelect from './EnergyConsumptionSelect';
 import styles from './housing-list-filters.module.scss';
+import HousingCountSelect from './HousingCountSelect';
+import HousingKindSelect from './HousingKindSelect';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
+import HousingSubStatusSelect from './HousingSubStatusSelect';
+import LocalityKindSelect from './LocalityKindSelect';
+import MultiOwnerSelect from './MultiOwnerSelect';
+import OccupancySelect from './OccupancySelect';
+import OwnerAgeSelect from './OwnerAgeSelect';
+import OwnerKindSelect from './OwnerKindSelect';
+import OwnershipKindSelect from './OwnershipKindSelect';
+import PerimeterSearchableSelect from './PerimeterSearchableSelect';
+import RoomCountSelect from './RoomCountSelect';
+import SecondaryOwnerSelect from './SecondaryOwnerSelect';
+import SurfaceSelect from './SurfaceSelect';
+import TaxSelect from './TaxSelect';
+import VacancyRateSelect from './VacancyRateSelect';
+import VacancyYearSelect from './VacancyYearSelect';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -75,7 +69,7 @@ function TitleWithIcon(props: TitleWithIconProps) {
   return (
     <>
       <Icon name={props.icon} className={styles.icon} verticalAlign="middle" />
-      <Text as="span">{props.title}</Text>
+      <span>{props.title}</span>
     </>
   );
 }
@@ -98,50 +92,35 @@ function HousingListFiltersSidemenu(props: Props) {
   const filters = props.filters;
   const onChangeFilters = props.onChange;
   const onResetFilters = props.onReset;
-  const { data: campaigns } = useFindCampaignsQuery();
   const { data: geoPerimeters } = useListGeoPerimetersQuery();
   const { localities } = useLocalityList(establishment?.id);
 
-  function onChangeStatusFilter(status: HousingStatus, isChecked: boolean) {
-    const statusList = [
-      ...(filters.statusList ?? []).filter((_) => _ !== status),
-      ...(isChecked ? [status] : [])
-    ];
-    onChangeFilters(
-      {
-        statusList,
-        subStatus: filters.subStatus?.filter((_) =>
-          getSubStatusList(statusList).includes(_)
-        )
-      },
-      'Statut'
-    );
-  }
-
   const { data: intercommunalities, isFetching } = useIntercommunalities();
-  const localityOptions =
-    localities
-      ?.filter((locality) => {
-        if (!filters.intercommunalities?.length) {
-          return true;
-        }
+  const localityOptions = localities
+    ?.filter((locality) => {
+      const districts = getDistricts(locality.geoCode);
+      return districts === null;
+    })
+    ?.filter((locality) => {
+      if (!filters.intercommunalities?.length) {
+        return true;
+      }
 
-        const set = new Set(
-          intercommunalities
-            ?.filter((interco) =>
-              filters.intercommunalities?.includes(interco.id)
-            )
-            ?.flatMap((interco) => interco.geoCodes)
-        );
-        return set.has(locality.geoCode);
-      })
-      ?.map((locality) => ({
-        value: locality.geoCode,
-        label: locality.name
-      })) ?? [];
+      const set = Set(
+        intercommunalities
+          ?.filter((interco) =>
+            filters.intercommunalities?.includes(interco.id)
+          )
+          ?.flatMap((interco) => interco.geoCodes)
+      );
+      return set.has(locality.geoCode);
+    });
 
   const { data: precisions } = useFindPrecisionsQuery();
   const precisionOptions = precisions ?? [];
+
+  const { data: campaigns } = useFindCampaignsQuery();
+  const campaignOptions = campaigns ?? [];
 
   const { isVisitor } = useUser();
 
@@ -220,38 +199,29 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
         </Grid>
         
-         <Accordion
+        <Accordion
           label={<TitleWithIcon icon="fr-icon-server-line" title="Fichiers sources" />}
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes inclus"
-              options={dataFileYearsIncludedOptions}
-              initialValues={(filters.dataFileYearsIncluded ?? []).map((_) =>
-                String(_)
-              )}
+            <DataFileYearSelect
+              multiple
+              type="included"
+              value={filters.dataFileYearsIncluded ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsIncluded: values },
-                  'Sources et Millésimes inclus'
-                );
+                onChangeFilters({
+                  dataFileYearsIncluded: values
+                });
                 posthog.capture('filtre-sources-millesimes-inclus');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes exclus"
-              defaultOption="Aucun"
-              options={dataFileYearsExcludedOptions}
-              initialValues={(filters.dataFileYearsExcluded ?? []).map((_) =>
-                String(_)
-              )}
+            <DataFileYearSelect
+              multiple
+              type="excluded"
+              value={filters.dataFileYearsExcluded ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsExcluded: values },
-                  'Sources et millésime exclus'
-                );
+                onChangeFilters({ dataFileYearsExcluded: values });
                 posthog.capture('filtre-sources-millesimes-exclus');
               }}
             />
@@ -262,36 +232,31 @@ function HousingListFiltersSidemenu(props: Props) {
           label={
             <TitleWithIcon
               icon="fr-icon-map-pin-user-line"
-              title="Occupation"
+              title="Statut d'occupation"
             />
           }
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Statut d’occupation"
-              options={allOccupancyOptions}
-              initialValues={filters.occupancies}
+            <OccupancySelect
+              multiple
+              value={filters.occupancies ?? []}
               onChange={(values) => {
-                onChangeFilters({ occupancies: values }, 'Statut d’occupation');
+                onChangeFilters({ occupancies: values });
                 posthog.capture('filtre-statut-occupation');
               }}
             />
           </Grid>
-          {filters?.occupancies?.includes(Occupancy.VACANT) && (
-            <Grid component="article" mb={2} xs={12}>
-              <AppMultiSelect
-                label="Année de début de vacance"
-                options={vacancyYearOptions}
-                initialValues={filters.vacancyYears}
-                onChange={(values) =>
-                  onChangeFilters(
-                    { vacancyYears: values },
-                    'Année de début de vacance'
-                  )
-                }
-              />
-            </Grid>
-          )}
+          <Grid component="article" mb={2} xs={12}>
+            <VacancyYearSelect
+              disabled={!filters.occupancies?.includes(Occupancy.VACANT)}
+              multiple
+              value={filters.vacancyYears ?? []}
+              onChange={(values) => {
+                onChangeFilters({ vacancyYears: values });
+                posthog.capture('filtre-annee-debut-vacance');
+              }}
+            />
+          </Grid>
         </Accordion>
 
         <Accordion
@@ -301,34 +266,49 @@ function HousingListFiltersSidemenu(props: Props) {
         >
           <Grid component="article" mb={2} xs={12}>
             <HousingStatusMultiSelect
-              selectedStatus={filters.statusList}
-              options={statusOptions()}
-              onChange={onChangeStatusFilter}
+              multiple
+              options={HOUSING_STATUS_VALUES}
+              value={filters.statusList ?? []}
+              onChange={(values) => {
+                onChangeFilters({ statusList: values });
+                posthog.capture('filtre-statut-suivi');
+              }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sous-statut de suivi"
-              options={getSubStatusListOptions(filters.statusList ?? [])}
-              initialValues={filters.subStatus}
+            <HousingSubStatusSelect
+              multiple
+              options={filters.statusList?.flatMap(getSubStatuses) ?? []}
+              value={filters.subStatus ?? []}
               onChange={(values) => {
-                onChangeFilters({ subStatus: values }, 'Sous-statut');
+                onChangeFilters({ subStatus: values });
                 posthog.capture('filtre-sous-statut-suivi');
               }}
             />
           </Grid>
-          {campaigns && (
-            <Grid component="article" mb={2} xs={12}>
-              <CampaignFilter
-                options={campaigns}
-                values={filters.campaignIds ?? []}
-                onChange={(values: Array<string | null>) => {
-                  onChangeFilters({ campaignIds: values }, 'Campagne');
-                  posthog.capture('filtre-campagne');
-                }}
-              />
-            </Grid>
-          )}
+          <Grid component="article" mb={2} xs={12}>
+            <CampaignSelect
+              disabled={campaigns && campaigns.length === 0}
+              multiple
+              options={campaigns ?? []}
+              value={
+                filters.campaignIds?.map((id) => {
+                  const option = campaignOptions.find(
+                    (option) => option.id === id
+                  );
+                  return option ?? null;
+                }) ?? []
+              }
+              onChange={(values) => {
+                onChangeFilters({
+                  campaignIds: values.map((value) =>
+                    value !== null ? value.id : null
+                  )
+                });
+                posthog.capture('filtre-campagne');
+              }}
+            />
+          </Grid>
           <Grid component="article" mb={2} xs={12}>
             <PrecisionSelect
               label="Dispositifs"
@@ -423,7 +403,6 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
         </Accordion>
-        
         <Accordion
           label={
             <TitleWithIcon icon="fr-icon-france-line" title="Localisation" />
@@ -431,119 +410,137 @@ function HousingListFiltersSidemenu(props: Props) {
         >
           <Grid component="article" mb={2} xs={12}>
             <SearchableSelectNext
-              autocompleteProps={{
-                autoHighlight: true,
-                options: intercommunalities ?? [],
-                loading: isFetching,
-                multiple: true,
-                openOnFocus: true,
-                size: 'small',
-                getOptionKey: (option) => option.id,
-                getOptionLabel: (option) => option.name,
-                isOptionEqualToValue: (option, value) => option.id === value.id,
-                value:
-                  filters.intercommunalities
-                    ?.map((intercommunality) => {
-                      return intercommunalities?.find(
-                        (establishment) => establishment.id === intercommunality
-                      );
-                    })
-                    ?.filter(isDefined) ?? [],
-                onChange: (_, values) => {
-                  if (values) {
-                    onChangeFilters(
-                      { intercommunalities: values.map((value) => value.id) },
-                      'Intercommunalité'
+              label="Intercommunalités"
+              placeholder="Rechercher une intercommunalité"
+              disabled={!intercommunalities || !intercommunalities.length}
+              options={intercommunalities ?? []}
+              loading={isFetching}
+              multiple
+              getOptionKey={(option) => option.id}
+              getOptionLabel={(option) => option.name}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              value={
+                filters.intercommunalities
+                  ?.map((intercommunality) => {
+                    return intercommunalities?.find(
+                      (establishment) => establishment.id === intercommunality
                     );
-                    posthog.capture('filtre-intercommunalite');
-                  }
-                }
-              }}
-              inputProps={{
-                label: 'Intercommunalités',
-                nativeInputProps: {
-                  placeholder: 'Rechercher une intercommunalité'
-                }
+                  })
+                  ?.filter(isDefined) ?? []
+              }
+              onChange={(values) => {
+                onChangeFilters({
+                  intercommunalities: values.map((value) => value.id)
+                });
+                posthog.capture('filtre-intercommunalite');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <SearchableSelect
-              options={unselectedOptions(localityOptions, filters.localities)}
+            <SearchableSelectNext
+              multiple
+              disabled={localityOptions && localityOptions.length === 0}
               label="Commune"
               placeholder="Rechercher une commune"
-              onChange={(value: string) => {
-                if (value) {
-                  let cities = concat(filters.localities, value);
-                  cities = (cities ?? [] as Array<keyof typeof citiesWithDistricts>).flatMap(code => citiesWithDistricts[code as keyof typeof citiesWithDistricts] ?? [code]);
-                  onChangeFilters(
-                    { localities: cities },
-                    'Commune'
-                  );
-                  posthog.capture('filtre-commune');
-                }
+              options={
+                localityOptions?.toSorted((a, b) => {
+                  const cityA = getCity(a.geoCode) ?? '';
+                  const cityB = getCity(b.geoCode) ?? '';
+                  return cityA.localeCompare(cityB);
+                }) ?? []
+              }
+              isOptionEqualToValue={(option, value) =>
+                option.geoCode === value.geoCode
+              }
+              getOptionLabel={(option) => option.name}
+              groupBy={(option) => {
+                const city = getCity(option.geoCode);
+                return city ?? '';
               }}
-            />
-          </Grid>
-          <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Type de commune"
-              options={localityKindsOptions}
-              initialValues={filters.localityKinds}
+              renderGroup={(group) => {
+                const city = localities?.find(
+                  (locality) => locality.geoCode === group
+                );
+                return (
+                  <Typography
+                    sx={{ mt: '0.125rem', fontWeight: 700 }}
+                    variant="body2"
+                  >
+                    {city?.name ?? group}
+                  </Typography>
+                );
+              }}
+              value={
+                filters.localities?.map((geoCode) => {
+                  const option = localityOptions?.find(
+                    (option) => option.geoCode === geoCode
+                  );
+                  if (!option) {
+                    throw new Error(`Locality ${geoCode} not found`);
+                  }
+
+                  return option;
+                }) ?? []
+              }
               onChange={(values) => {
-                onChangeFilters({ localityKinds: values }, 'Type de commune');
+                onChangeFilters({
+                  localities: values.map((value) => value.geoCode)
+                });
                 posthog.capture('filtre-commune');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <SearchableSelect
-              options={unselectedOptions(
-                geoPerimeterOptions(geoPerimeters),
-                filters.geoPerimetersIncluded
-              )}
-              label="Périmètre inclus"
-              placeholder="Rechercher un périmètre"
-              onChange={(value: string) => {
-                if (value) {
-                  onChangeFilters(
-                    {
-                      geoPerimetersIncluded: concat(
-                        filters.geoPerimetersIncluded,
-                        value
-                      )
-                    },
-                    'Périmètre inclus'
-                  );
-                  posthog.capture('filtre-perimetre-inclus');
-                }
+            <LocalityKindSelect
+              multiple
+              value={filters.localityKinds ?? []}
+              onChange={(values) => {
+                onChangeFilters({ localityKinds: values });
+                posthog.capture('filtre-type-commune');
               }}
             />
           </Grid>
-          <Grid component="article" mb={0} xs={12}>
-            <SearchableSelect
-              options={unselectedOptions(
-                geoPerimeterOptions(geoPerimeters),
-                filters.geoPerimetersExcluded
-              )}
-              label="Périmètre exclu"
-              placeholder="Rechercher un périmètre"
-              onChange={(value: string) => {
-                if (value) {
-                  onChangeFilters(
-                    {
-                      geoPerimetersExcluded: concat(
-                        filters.geoPerimetersExcluded,
-                        value
-                      )
-                    },
-                    'Périmètre exclu'
-                  );
-                  posthog.capture('filtre-perimetre-exclu');
-                }
+          <Grid component="article" mb={2} xs={12}>
+            <PerimeterSearchableSelect
+              label="Périmètre inclus"
+              multiple
+              options={geoPerimeters ?? []}
+              value={
+                filters.geoPerimetersIncluded
+                  ?.map((kind) =>
+                    geoPerimeters?.find((perimeter) => perimeter.kind === kind)
+                  )
+                  ?.filter(isDefined) ?? []
+              }
+              onChange={(values) => {
+                onChangeFilters({
+                  geoPerimetersIncluded: values.map((value) => value.kind)
+                });
+                posthog.capture('filtre-perimetre-inclus');
               }}
             />
-
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <PerimeterSearchableSelect
+              label="Périmètre exclus"
+              multiple
+              options={geoPerimeters ?? []}
+              value={
+                filters.geoPerimetersExcluded
+                  ?.map((kind) =>
+                    geoPerimeters?.find((perimeter) => perimeter.kind === kind)
+                  )
+                  ?.filter(isDefined) ?? []
+              }
+              onChange={(values) => {
+                onChangeFilters({
+                  geoPerimetersExcluded: values.map((value) => value.kind)
+                });
+                posthog.capture('filtre-perimetre-exclus');
+              }}
+            />
+          </Grid>
+          <Grid component="section" xs={12}>
             {!isVisitor && <GeoPerimetersModalLink />}
           </Grid>
         </Accordion>
@@ -554,41 +551,32 @@ function HousingListFiltersSidemenu(props: Props) {
           }
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Nombre de logements"
-              options={housingCountOptions}
-              initialValues={filters.housingCounts}
+            <HousingCountSelect
+              multiple
+              value={filters.housingCounts ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { housingCounts: values },
-                  'Nombre de logements'
-                );
+                onChangeFilters({ housingCounts: values });
                 posthog.capture('filtre-nombre-de-logements');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Taux de vacance"
-              options={vacancyRateOptions}
-              initialValues={filters.vacancyRates}
+            <VacancyRateSelect
+              multiple
+              value={filters.vacancyRates ?? []}
               onChange={(values) => {
-                onChangeFilters({ vacancyRates: values }, 'Taux de vacance');
+                onChangeFilters({ vacancyRates: values });
                 posthog.capture('filtre-taux-de-vacance');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Étiquette DPE représentatif (CSTB)"
-              options={energyConsumptionOptions}
-              initialValues={filters.energyConsumption}
+            <EnergyConsumptionSelect
+              multiple
+              value={filters.energyConsumption ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { energyConsumption: values },
-                  'Étiquette DPE représentatif (CSTB)'
-                );
-                posthog.capture('filtre-etiquette-dpe');
+                onChangeFilters({ energyConsumption: values });
+                posthog.capture('filtre-taux-de-vacance');
               }}
             />
           </Grid>
@@ -597,94 +585,78 @@ function HousingListFiltersSidemenu(props: Props) {
           label={<TitleWithIcon icon="fr-icon-home-4-line" title="Logement" />}
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Type de logement"
-              options={housingKindOptions}
-              initialValues={filters.housingKinds}
+            <HousingKindSelect
+              multiple
+              options={HOUSING_KIND_VALUES}
+              value={filters.housingKinds ?? []}
               onChange={(values) => {
-                onChangeFilters({ housingKinds: values }, 'Type');
+                onChangeFilters({ housingKinds: values });
                 posthog.capture('filtre-type-logement');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Date de construction"
-              options={buildingPeriodOptions}
-              initialValues={filters.buildingPeriods}
+            <BuildingPeriodSelect
+              multiple
+              value={filters.buildingPeriods ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { buildingPeriods: values },
-                  'Date de construction'
-                );
+                onChangeFilters({ buildingPeriods: values });
                 posthog.capture('filtre-date-construction');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Surface"
-              options={housingAreaOptions}
-              initialValues={filters.housingAreas}
+            <SurfaceSelect
+              multiple
+              value={filters.housingAreas ?? []}
               onChange={(values) => {
-                onChangeFilters({ housingAreas: values }, 'Surface');
+                onChangeFilters({ housingAreas: values });
                 posthog.capture('filtre-surface');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Nombre de pièces"
-              options={roomsCountOptions}
-              initialValues={filters.roomsCounts ?? []}
+            <RoomCountSelect
+              multiple
+              value={filters.roomsCounts ?? []}
               onChange={(values) => {
-                onChangeFilters({ roomsCounts: values }, 'Nombre de pièces');
+                onChangeFilters({ roomsCounts: values });
                 posthog.capture('filtre-nombre-de-pieces');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Taxé"
-              options={taxedOptions}
-              initialValues={filters.isTaxedValues?.map((value) =>
-                value ? 'true' : 'false'
-              )}
+            <TaxSelect
+              multiple
+              value={filters.isTaxedValues ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  {
-                    isTaxedValues: values.map((value) => value === 'true')
-                  },
-                  'Taxé'
-                );
+                onChangeFilters({ isTaxedValues: values });
                 posthog.capture('filtre-taxe');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Classement cadastral"
-              options={cadastralClassificationOptions}
-              initialValues={filters.cadastralClassifications?.map(String)}
+            <CadastralClassificationSelect
+              multiple
+              value={
+                (filters.cadastralClassifications?.map(String) as
+                  | CadastralClassification[]
+                  | undefined) ?? []
+              }
               onChange={(values) => {
-                onChangeFilters(
-                  { cadastralClassifications: values.map(Number) },
-                  'Classement cadastral'
-                );
+                onChangeFilters({
+                  cadastralClassifications: values.map(Number)
+                });
                 posthog.capture('filtre-classement-cadastral');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Type de propriété"
-              options={ownershipKindsOptions}
-              initialValues={filters.ownershipKinds}
+            <OwnershipKindSelect
+              multiple
+              value={filters.ownershipKinds ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { ownershipKinds: values },
-                  'Type de propriété'
-                );
+                onChangeFilters({ ownershipKinds: values });
                 posthog.capture('filtre-type-propriete');
               }}
             />
@@ -696,55 +668,41 @@ function HousingListFiltersSidemenu(props: Props) {
           }
         >
           <Grid component="article" mb={2} xs={12}>
-            <div data-testid="ownerkind-filter">
-              <AppMultiSelect
-                label="Type de propriétaire"
-                options={ownerKindOptions}
-                initialValues={filters.ownerKinds}
-                onChange={(values) => {
-                  onChangeFilters({ ownerKinds: values }, 'Type');
-                  posthog.capture('filtre-type-proprietaire');
-                }}
-              />
-            </div>
+            <OwnerKindSelect
+              multiple
+              value={filters.ownerKinds ?? []}
+              onChange={(values) => {
+                onChangeFilters({ ownerKinds: values });
+                posthog.capture('filtre-type-proprietaire');
+              }}
+            />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Âge"
-              options={ownerAgeOptions}
-              initialValues={filters.ownerAges}
+            <OwnerAgeSelect
+              multiple
+              value={filters.ownerAges ?? []}
               onChange={(values) => {
-                onChangeFilters({ ownerAges: values }, 'Âge');
+                onChangeFilters({ ownerAges: values });
                 posthog.capture('filtre-age');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Multi-propriétaire"
-              options={multiOwnerOptions}
-              initialValues={filters.multiOwners?.map((value) =>
-                value ? 'true' : 'false'
-              )}
+            <MultiOwnerSelect
+              multiple
+              value={filters.multiOwners ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { multiOwners: values?.map((value) => value === 'true') },
-                  'Multi-propriétaire'
-                );
-                posthog.capture('filtre-multi-proprietaire');
+                onChangeFilters({ multiOwners: values });
+                posthog.capture('filtre-owners');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Propriétaires secondaires"
-              options={beneficiaryCountOptions}
-              initialValues={filters.beneficiaryCounts}
+            <SecondaryOwnerSelect
+              multiple
+              value={filters.beneficiaryCounts ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { beneficiaryCounts: values },
-                  'Propriétaires secondaires'
-                );
+                onChangeFilters({ beneficiaryCounts: values });
                 posthog.capture('filtre-proprietaires-secondaires');
               }}
             />

@@ -199,38 +199,29 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
         </Grid>
         
-         <Accordion
+        <Accordion
           label={<TitleWithIcon icon="fr-icon-server-line" title="Fichiers sources" />}
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes inclus"
-              options={dataFileYearsIncludedOptions}
-              initialValues={(filters.dataFileYearsIncluded ?? []).map((_) =>
-                String(_)
-              )}
+            <DataFileYearSelect
+              multiple
+              type="included"
+              value={filters.dataFileYearsIncluded ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsIncluded: values },
-                  'Sources et Millésimes inclus'
-                );
+                onChangeFilters({
+                  dataFileYearsIncluded: values
+                });
                 posthog.capture('filtre-sources-millesimes-inclus');
               }}
             />
           </Grid>
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Sources et millésimes exclus"
-              defaultOption="Aucun"
-              options={dataFileYearsExcludedOptions}
-              initialValues={(filters.dataFileYearsExcluded ?? []).map((_) =>
-                String(_)
-              )}
+            <DataFileYearSelect
+              multiple
+              type="excluded"
+              value={filters.dataFileYearsExcluded ?? []}
               onChange={(values) => {
-                onChangeFilters(
-                  { dataFileYearsExcluded: values },
-                  'Sources et millésime exclus'
-                );
+                onChangeFilters({ dataFileYearsExcluded: values });
                 posthog.capture('filtre-sources-millesimes-exclus');
               }}
             />
@@ -241,36 +232,31 @@ function HousingListFiltersSidemenu(props: Props) {
           label={
             <TitleWithIcon
               icon="fr-icon-map-pin-user-line"
-              title="Occupation"
+              title="Statut d'occupation"
             />
           }
         >
           <Grid component="article" mb={2} xs={12}>
-            <AppMultiSelect
-              label="Statut d’occupation"
-              options={allOccupancyOptions}
-              initialValues={filters.occupancies}
+            <OccupancySelect
+              multiple
+              value={filters.occupancies ?? []}
               onChange={(values) => {
-                onChangeFilters({ occupancies: values }, 'Statut d’occupation');
+                onChangeFilters({ occupancies: values });
                 posthog.capture('filtre-statut-occupation');
               }}
             />
           </Grid>
-          {filters?.occupancies?.includes(Occupancy.VACANT) && (
-            <Grid component="article" mb={2} xs={12}>
-              <AppMultiSelect
-                label="Année de début de vacance"
-                options={vacancyYearOptions}
-                initialValues={filters.vacancyYears}
-                onChange={(values) =>
-                  onChangeFilters(
-                    { vacancyYears: values },
-                    'Année de début de vacance'
-                  )
-                }
-              />
-            </Grid>
-          )}
+          <Grid component="article" mb={2} xs={12}>
+            <VacancyYearSelect
+              disabled={!filters.occupancies?.includes(Occupancy.VACANT)}
+              multiple
+              value={filters.vacancyYears ?? []}
+              onChange={(values) => {
+                onChangeFilters({ vacancyYears: values });
+                posthog.capture('filtre-annee-debut-vacance');
+              }}
+            />
+          </Grid>
         </Accordion>
 
         <Accordion

@@ -51,7 +51,7 @@ export const PRECISION_TREE_VALUES: OrderedMap<
   // Points de blocage
   'blocage-involontaire': [
     'Mise en location ou vente infructueuse',
-    'Succession difficile, indivision en désaccord',
+    'Succession en cours',
     'Défaut d’entretien / Nécessité de travaux',
     'Problème de financement / Dossier non-éligible',
     'Manque de conseils en amont de l’achat',

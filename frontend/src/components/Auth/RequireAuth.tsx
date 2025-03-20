@@ -3,17 +3,21 @@ import { Navigate, useLocation } from 'react-router-dom';
 
 import { useUser } from '../../hooks/useUser';
 import { useFetchInterceptor } from '../../hooks/useFetchInterceptor';
+import config from '../../utils/config';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RequireAuthProps {}
 
 function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
-  const { isAuthenticated } = useUser();
+  const { isAuthenticated, user } = useUser();
   const location = useLocation();
 
   useFetchInterceptor();
 
   if (isAuthenticated) {
+    if (config.jimo.enabled && user) {
+      window['jimo'].push(['do', 'identify', [user.id]]);
+    }
     return props.children;
   }
 

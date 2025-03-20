@@ -60,7 +60,7 @@ export const HousingStates: HousingState[] = [
       { title: 'En accompagnement' },
       { title: 'Intervention publique' },
       { title: 'En sortie sans accompagnement' },
-      { title: 'Mutation en cours' }
+      { title: 'Mutation en cours ou effectuée' }
     ]
   },
   {

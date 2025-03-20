@@ -6,6 +6,5 @@ WITH establishment_localities AS (
 )
 
 SELECT
-    el.establishment_id,
-    el.geo_code
+    DISTINCT el.establishment_id, el.geo_code
 FROM establishment_localities el

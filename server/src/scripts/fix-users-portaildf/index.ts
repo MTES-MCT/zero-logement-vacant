@@ -2,7 +2,6 @@ import fs from 'fs';
 import axios from 'axios';
 import { parse } from 'json2csv';
 import { parse as csvParse } from 'csv-parse';
-import pRetry from 'p-retry';
 import config from '~/infra/config';
 import userRepository from '~/repositories/userRepository';
 
@@ -41,6 +40,7 @@ async function readEmailsFromCSV(): Promise<string[]> {
 }
 
 async function checkEmailWithRetry(email: string, token: string) {
+    const { default: pRetry } = await import('p-retry');
     return pRetry(async () => {
         const response = await axios.get(`${API_USER_URL}${encodeURIComponent(email)}`, {
             headers: { Authorization: `Bearer ${token}` },

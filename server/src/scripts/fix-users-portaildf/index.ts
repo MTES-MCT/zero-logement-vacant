@@ -1,6 +1,5 @@
 import fs from 'fs';
 import axios from 'axios';
-import { parse } from 'json2csv';
 import { parse as csvParse } from 'csv-parse';
 import config from '~/infra/config';
 import userRepository from '~/repositories/userRepository';
@@ -8,7 +7,6 @@ import userRepository from '~/repositories/userRepository';
 const API_AUTH_URL = 'https://portaildf.cerema.fr/api/api-token-auth/';
 const API_USER_URL = 'https://portaildf.cerema.fr/api/utilisateurs?email=';
 const CSV_INPUT_PATH = 'users.csv';
-const CSV_OUTPUT_PATH = 'found_users.csv';
 
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -56,8 +54,6 @@ async function checkEmailWithRetry(email: string, token: string) {
 }
 
 async function verifyUsers(token: string, emails: string[]) {
-    const foundUsers: any[] = [];
-
     for (const email of emails) {
         try {
             const data = await checkEmailWithRetry(email, token);
@@ -73,7 +69,13 @@ async function verifyUsers(token: string, emails: string[]) {
                 }
             } else {
                 console.log(`Utilisateur trouvé pour l'email : ${email}`);
-                foundUsers.push(...data.results);
+                const user = await userRepository.getByEmail(email);
+                if (user) {
+                    await userRepository.remove(user.id);
+                    console.log(`Utilisateur local supprimé : ${email} (ID: ${user.id})`);
+                } else {
+                    console.log(`Utilisateur local introuvable : ${email}`);
+                }
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -84,14 +86,6 @@ async function verifyUsers(token: string, emails: string[]) {
         }
 
         await sleep(200);
-    }
-
-    if (foundUsers.length > 0) {
-        const csvData = parse(foundUsers);
-        fs.writeFileSync(CSV_OUTPUT_PATH, csvData);
-        console.log(`Utilisateurs trouvés sauvegardés dans ${CSV_OUTPUT_PATH}`);
-    } else {
-        console.log('Aucun utilisateur trouvé.');
     }
 }
 

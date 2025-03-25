@@ -402,9 +402,9 @@ function mapPrecisions(housing: Housing): Housing {
         'Liés au propriétaire > Blocage volontaire > Mauvaise expérience locative'
       ]
     },
-    'Succession difficile, indivision en désaccord': {
+    'Succession en cours': {
       precisions: [
-        'Liés au propriétaire > Blocage involontaire > Succession difficile, indivision en désaccord'
+        'Liés au propriétaire > Blocage involontaire > Succession en cours'
       ]
     },
     'Expertise judiciaire': {
@@ -499,9 +499,9 @@ function mapVacancyReasons(housing: Housing): Housing {
         'Extérieurs au propriétaire > Tiers en cause > Copropriété en désaccord'
       ]
     },
-    'Blocage juridique - succession difficile, indivision en désaccord': {
+    'Blocage juridique - Succession en cours': {
       vacancy_reasons: [
-        'Liés au propriétaire > Blocage involontaire > Succession difficile, indivision en désaccord'
+        'Liés au propriétaire > Blocage involontaire > Succession en cours'
       ]
     },
     'Blocage juridique - expertise judiciaire': {

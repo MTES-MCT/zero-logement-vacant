@@ -49,11 +49,19 @@ export function createServer(): Server {
             'https://stats.beta.gouv.fr',
             'https://client.crisp.chat',
             'https://www.googletagmanager.com',
-            'https://googleads.g.doubleclick.net'
+            'https://googleads.g.doubleclick.net',
+            'https://cdn.jimo.so',
+            'https://i.usejimo.com',
+            'https://karabor.usejimo.com',
+            'https://karabor-undercity.usejimo.com',
+            'https://karabor-undercity-cf.usejimo.com'
           ],
           frameSrc: [
             'https://zerologementvacant-metabase-prod.osc-secnum-fr1.scalingo.io',
-            'https://zerologementvacant.crisp.help'
+            'https://zerologementvacant.crisp.help',
+            'https://karabor.usejimo.com',
+            'https://karabor-undercity.usejimo.com',
+            'https://karabor-undercity-cf.usejimo.com'
           ],
           styleSrc: [
             "'self'",
@@ -69,6 +77,9 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://www.google.fr',
             'https://www.google.com',
+            'https://i.usejimo.com',
+            'https://res.usejimo.com',
+            'https://assets.usejimo.com',
             'data:'
           ],
           fontSrc: [
@@ -89,7 +100,12 @@ export function createServer(): Server {
             'https://client.crisp.chat',
             'https://openmaptiles.geo.data.gouv.fr',
             'https://openmaptiles.github.io',
-            'https://unpkg.com'
+            'https://unpkg.com',
+            'https://stormwind.usejimo.com',
+            'https://undercity.usejimo.com',
+            'https://karabor.usejimo.com',
+            'https://karabor-undercity.usejimo.com',
+            'https://karabor-undercity-cf.usejimo.com'
           ],
           workerSrc: ["'self'", 'blob:']
         }

@@ -5,6 +5,7 @@ sources:
     schema: ff
     tables:
       - name: raw_ff_owners
+      - name: raw_ff_2024
       - name: raw_ff_2023
       - name: raw_ff_2022
       - name: raw_ff_2021

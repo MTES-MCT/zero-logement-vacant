@@ -232,7 +232,7 @@ function HousingListFiltersSidemenu(props: Props) {
           label={
             <TitleWithIcon
               icon="fr-icon-map-pin-user-line"
-              title="Statut d'occupation"
+              title="Occupation"
             />
           }
         >

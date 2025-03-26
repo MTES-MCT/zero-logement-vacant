@@ -15,6 +15,13 @@ const config = {
         : process.env.NODE_ENV === 'production',
     apiKey: process.env.REACT_APP_POSTHOG_API_KEY ?? ''
   },
+  jimo: {
+    enabled:
+      process.env.REACT_APP_JIMO_ENABLED !== undefined
+        ? process.env.REACT_APP_JIMO_ENABLED === 'true'
+        : process.env.NODE_ENV === 'production',
+    projectId: process.env.REACT_APP_JIMO_PROJECT_ID ?? ''
+  },
   sentry: {
     enabled:
       process.env.REACT_APP_SENTRY_ENABLED !== undefined

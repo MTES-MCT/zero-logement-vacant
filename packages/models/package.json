@@ -18,7 +18,6 @@
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "typecheck": "tsc --noEmit",
     "build": "pkgroll -p tsconfig.build.json",
-    "build-next": "pkgroll --tsconfig=tsconfig.build.json",
     "test": "jest",
     "coverage": "jest --coverage",
     "dev": "nodemon --watch src -e ts --exec 'yarn build'"

@@ -4,6 +4,7 @@
     "composite": true,
     "declaration": true,
     "declarationMap": true,
+    "moduleResolution": "bundler",
     "sourceMap": true,
     "outDir": "dist",
     "rootDir": "src"

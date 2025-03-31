@@ -7,6 +7,7 @@
     "icons": "only-include-used-icons && tsx src/scripts/generate-building-images.ts",
     "typecheck": "tsc --noEmit",
     "build": "yarn clean && yarn icons && tsc -b tsconfig.build.json && DISABLE_ESLINT_PLUGIN=true craco build",
+    "build-old": "DISABLE_ESLINT_PLUGIN=true craco build",
     "build-next": "vite build",
     "dev": "yarn icons && DISABLE_ESLINT_PLUGIN=true craco start",
     "test": "TZ=UTC DISABLE_ESLINT_PLUGIN=true craco test",

@@ -7,7 +7,7 @@ ff_tables_sql = {
     CREATE OR REPLACE TABLE {SCHEMA}.raw_ff_2024_buildings AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/ff/2024/buildings.csv',
                             auto_detect = TRUE,
-                            ignore_errors = false,
+                            ignore_errors = false
                 )
     );
     """,

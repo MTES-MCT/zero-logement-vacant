@@ -1,49 +1,47 @@
-# PostgreSQL Database
-resource "clevercloud_postgresql" "postgresql" {
-  name   = var.database_name
-  plan   = "dev"
-  region = var.region
+terraform {
+  required_providers {
+    clevercloud = {
+      source  = "clevercloud/clevercloud"
+      version = "0.7.0"
+    }
+  }
 }
 
-# API Node.js
-resource "clevercloud_nodejs" "api" {
-  name               = "${var.project_name}-api"
-  region             = var.region
-  build_flavor       = "M"
-  min_instance_count = 1
-  max_instance_count = 1
-  smallest_flavor    = "XS"
-  biggest_flavor     = "XS"
+provider "clevercloud" {
+  organisation = var.clevercloud_org
+  token        = var.clevercloud_api_token
+  secret       = var.clevercloud_api_secret
+}
 
-  package_manager = "custom"
+# module "front" {
+#   source = "./modules/front"
+# }
 
-  dependencies = [
-    clevercloud_postgresql.postgresql.id
-  ]
+module "api" {
+  source = "./modules/api"
 
-  deployment {
-    repository = "https://github.com/MTES-MCT/zero-logement-vacant"
-    commit     = "refs/heads/main"
-  }
+  depends_on = [module.database]
 
-  environment = {
-    CC_HEALTH_CHECK_PATH   = "/"
-    CC_OVERRIDE_BUILDCACHE = ".:../.cache/puppeteer"
-    CEREMA_API             = "https://portaildf.cerema.fr"
-    CEREMA_ENABLED         = "false"
-    CEREMA_PASSWORD        = "unused"
-    CEREMA_USERNAME        = "unused"
-    DATABASE_ENV           = "development"
-    DATABASE_URL           = clevercloud_postgresql.postgresql.host
-    LOG_LEVEL              = "debug"
-    PORT                   = "8080"
-    TZ                     = "Etc/UTC"
-    WORKSPACE              = "@zerologementvacant/server"
-  }
+  database_id                = module.database.id
+  database_connection_string = module.database.connection_string
+  project_name               = var.project_name
+  region                     = var.region
+}
 
-  hooks {
-    pre_run = "corepack yarn workspace $WORKSPACE migrate"
-  }
+# module "queue" {
+#   source = "./modules/queue"
+# }
 
-  start_script = "corepack yarn workspace $WORKSPACE start"
+module "database" {
+  source = "./modules/database"
+
+  project_name = var.project_name
+  region       = var.region
+}
+
+module "s3" {
+  source = "./modules/s3"
+
+  project_name = var.project_name
+  region       = var.region
 }

@@ -1,6 +1,6 @@
 output "connection_string" {
   description = "Connection string for the PostgreSQL database"
-  value       = clevercloud_postgresql.postgresql.host
+  value       = "postgres://${clevercloud_postgresql.postgresql.user}:${clevercloud_postgresql.postgresql.password}@${clevercloud_postgresql.postgresql.host}:${clevercloud_postgresql.postgresql.port}/${clevercloud_postgresql.postgresql.database}"
 }
 
 output "id" {

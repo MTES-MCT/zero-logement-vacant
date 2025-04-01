@@ -8,7 +8,7 @@ terraform {
 }
 
 resource "clevercloud_cellar" "s3" {
-  name   = "common-s3"
+  name   = "terraform-s3"
   region = var.region
 }
 

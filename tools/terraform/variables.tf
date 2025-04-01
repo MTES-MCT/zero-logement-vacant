@@ -13,14 +13,31 @@ variable "clevercloud_api_secret" {
   type        = string
 }
 
-variable "project_name" {
-  description = "Nom du projet"
-  type        = string
-  default     = "terraform"
+variable "mailer" {
+  description = "Mailer configuration"
+  type = object({
+    api_key       = string
+    event_api_key = string
+    host          = string
+    password      = string
+    port          = string
+    provider      = string
+    user          = string
+  })
+  sensitive = true
+  default = {
+    api_key       = ""
+    event_api_key = ""
+    host          = "maildev.zerologementvacant.beta.gouv.fr"
+    password      = ""
+    port          = "5037"
+    provider      = "nodemailer"
+    user          = ""
+  }
 }
 
-variable "database_name" {
-  description = "Nom de la base de données PostgreSQL"
+variable "project_name" {
+  description = "Nom du projet"
   type        = string
   default     = "terraform"
 }

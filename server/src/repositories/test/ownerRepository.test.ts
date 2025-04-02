@@ -1,11 +1,11 @@
+import db from '~/infra/database';
+import { OwnerApi } from '~/models/OwnerApi';
+import { genOwnerApi } from '~/test/testFixtures';
 import ownerRepository, {
   formatOwnerApi,
   Owners,
   ownerTable
 } from '../ownerRepository';
-import { genOwnerApi } from '~/test/testFixtures';
-import db from '~/infra/database';
-import { OwnerApi } from '~/models/OwnerApi';
 
 describe('Owner repository', () => {
   describe('find', () => {
@@ -27,7 +27,7 @@ describe('Owner repository', () => {
     it('should find a owner without birth date', async () => {
       const owner: OwnerApi = {
         ...genOwnerApi(),
-        birthDate: undefined
+        birthDate: null
       };
       await db(ownerTable).insert(formatOwnerApi(owner));
 
@@ -57,7 +57,7 @@ describe('Owner repository', () => {
         id: owner.id,
         fullName: owner.fullName,
         rawAddress: owner.rawAddress,
-        birthDate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length)
+        birthDate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null
       });
     });
   });

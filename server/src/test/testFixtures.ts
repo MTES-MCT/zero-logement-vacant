@@ -1,63 +1,10 @@
-import * as turf from '@turf/turf';
 import { faker } from '@faker-js/faker/locale/fr';
-import { addHours } from 'date-fns';
-import type { BBox } from 'geojson';
-import fp from 'lodash/fp';
-import randomstring from 'randomstring';
-import { MarkRequired } from 'ts-essentials';
-import { v4 as uuidv4 } from 'uuid';
-
-import { genGeoCode } from '@zerologementvacant/models/fixtures';
-import { firstDefined } from '@zerologementvacant/utils';
-import { UserApi, UserRoles } from '~/models/UserApi';
-import { OwnerApi } from '~/models/OwnerApi';
-import { EstablishmentApi } from '~/models/EstablishmentApi';
-import { ENERGY_CONSUMPTION_GRADES, HousingApi } from '~/models/HousingApi';
-import { CampaignApi } from '~/models/CampaignApi';
-import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
-import { ProspectApi } from '~/models/ProspectApi';
-import {
-  RESET_LINK_EXPIRATION,
-  RESET_LINK_LENGTH,
-  ResetLinkApi
-} from '~/models/ResetLinkApi';
-import { ContactPointApi } from '~/models/ContactPointApi';
-import {
-  SIGNUP_LINK_EXPIRATION,
-  SIGNUP_LINK_LENGTH,
-  SignupLinkApi
-} from '~/models/SignupLinkApi';
-import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
-import { OwnerProspectApi } from '~/models/OwnerProspectApi';
-import { SettingsApi } from '~/models/SettingsApi';
-import {
-  HOUSING_STATUS_VALUES,
-  HousingStatusApi
-} from '~/models/HousingStatusApi';
-import {
-  EventApi,
-  GroupHousingEventApi,
-  HousingEventApi,
-  OwnerEventApi
-} from '~/models/EventApi';
-import { GroupApi } from '~/models/GroupApi';
-import { DatafoncierOwner } from '~/scripts/shared';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
-import {
-  ConflictApi,
-  HousingOwnerConflictApi,
-  OwnerConflictApi
-} from '~/models/ConflictApi';
-import { logger } from '~/infra/logger';
-import { BuildingApi } from '~/models/BuildingApi';
-import { AddressApi } from '~/models/AddressApi';
-import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
-import { SenderApi } from '~/models/SenderApi';
-import { DraftApi } from '~/models/DraftApi';
+import * as turf from '@turf/turf';
 import {
   AddressKinds,
+  CADASTRAL_CLASSIFICATION_VALUES,
   DatafoncierHousing,
+  ENERGY_CONSUMPTION_VALUES,
   ESTABLISHMENT_KIND_VALUES,
   EVENT_CATEGORY_VALUES,
   EVENT_KIND_VALUES,
@@ -66,11 +13,67 @@ import {
   HOUSING_SOURCE_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
+  LOCALITY_KIND_VALUES,
   Occupancy,
   OCCUPANCY_VALUES,
   OWNER_KIND_LABELS,
   UserAccountDTO
 } from '@zerologementvacant/models';
+
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
+import { firstDefined } from '@zerologementvacant/utils';
+import { addHours } from 'date-fns';
+import type { BBox } from 'geojson';
+import fp from 'lodash/fp';
+import randomstring from 'randomstring';
+import { MarkRequired } from 'ts-essentials';
+import { v4 as uuidv4 } from 'uuid';
+import { logger } from '~/infra/logger';
+import { AddressApi } from '~/models/AddressApi';
+import { BuildingApi } from '~/models/BuildingApi';
+import { CampaignApi } from '~/models/CampaignApi';
+import {
+  ConflictApi,
+  HousingOwnerConflictApi,
+  OwnerConflictApi
+} from '~/models/ConflictApi';
+import { ContactPointApi } from '~/models/ContactPointApi';
+import { DraftApi } from '~/models/DraftApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import {
+  EventApi,
+  GroupHousingEventApi,
+  HousingEventApi,
+  OwnerEventApi
+} from '~/models/EventApi';
+import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
+import { GroupApi } from '~/models/GroupApi';
+import { HousingApi } from '~/models/HousingApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import {
+  HOUSING_STATUS_VALUES,
+  HousingStatusApi
+} from '~/models/HousingStatusApi';
+import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
+import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
+import { OwnerApi } from '~/models/OwnerApi';
+import { OwnerProspectApi } from '~/models/OwnerProspectApi';
+import { ProspectApi } from '~/models/ProspectApi';
+import {
+  RESET_LINK_EXPIRATION,
+  RESET_LINK_LENGTH,
+  ResetLinkApi
+} from '~/models/ResetLinkApi';
+import { SenderApi } from '~/models/SenderApi';
+import { SettingsApi } from '~/models/SettingsApi';
+import {
+  SIGNUP_LINK_EXPIRATION,
+  SIGNUP_LINK_LENGTH,
+  SignupLinkApi
+} from '~/models/SignupLinkApi';
+import { UserApi, UserRoles } from '~/models/UserApi';
+import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
+import { DatafoncierOwner } from '~/scripts/shared';
 
 logger.debug(`Seed: ${faker.seed()}`);
 
@@ -111,6 +114,7 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
     id: uuidv4(),
     geoCode,
     name: faker.location.city(),
+    kind: faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES]),
     taxKind: TaxKindsApi.None
   };
 };
@@ -202,14 +206,15 @@ export const genOwnerApi = (): OwnerApi => {
       `${faker.location.zipCode()}, ${faker.location.city()}`
     ],
     // Get the start of the day to avoid time zone issues
-    birthDate: faker.date.birthdate().toJSON(),
+    birthDate:
+      faker.helpers.maybe(() => faker.date.birthdate().toJSON()) ?? null,
     fullName: faker.person.fullName(),
     email: genEmail(),
     phone: faker.phone.number(),
-    kind: faker.helpers.maybe(
-      () => faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS)),
-      { probability: 0.8 }
-    ),
+    kind: faker.helpers.arrayElement([
+      null,
+      ...Object.values(OWNER_KIND_LABELS)
+    ]),
     kindDetail: randomstring.generate(),
     additionalAddress: randomstring.generate()
   };
@@ -318,7 +323,10 @@ export const genHousingApi = (
     ),
     owner: genOwnerApi(),
     livingArea: faker.number.int({ min: 10, max: 300 }),
-    cadastralClassification: faker.number.int({ min: 1, max: 10 }),
+    cadastralClassification: faker.helpers.arrayElement([
+      null,
+      ...CADASTRAL_CLASSIFICATION_VALUES
+    ]),
     uncomfortable: faker.datatype.boolean(),
     vacancyStartYear: faker.date.past({ years: 20 }).getUTCFullYear(),
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
@@ -348,7 +356,11 @@ export const genHousingApi = (
         weight: 1
       }))
     ]),
-    energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_GRADES),
+    energyConsumption: faker.helpers.arrayElement([
+      null,
+      ...ENERGY_CONSUMPTION_VALUES
+    ]),
+    energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     occupancyRegistered: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     buildingVacancyRate: faker.number.float(),

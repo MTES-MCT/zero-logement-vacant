@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import {
+  CadastralClassification,
   DataFileYear,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
@@ -19,9 +20,11 @@ import {
   allOccupancyOptions,
   beneficiaryCountOptions,
   buildingPeriodOptions,
+  CADASTRAL_CLASSIFICATION_EMPTY_OPTION,
   cadastralClassificationOptions,
   dataFileYearsExcludedOptions,
   dataFileYearsIncludedOptions,
+  EMPTY_OPTION,
   energyConsumptionOptions,
   getCampaignOptions,
   getIntercommunalityOptions,
@@ -29,9 +32,12 @@ import {
   housingCountOptions,
   HousingFilters,
   housingKindOptions,
+  LOCALITY_KIND_EMPTY_OPTION,
   localityKindsOptions,
   multiOwnerOptions,
   noCampaignOption,
+  OWNER_AGE_EMPTY_OPTION,
+  OWNER_KIND_EMPTY_OPTION,
   ownerAgeOptions,
   ownerKindOptions,
   ownershipKindsOptions,
@@ -106,17 +112,16 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         options={allOccupancyOptions}
         values={filters.occupancies}
         small={small}
-        keepEmptyValue
         onChange={(values) => onChange?.({ occupancies: values })}
       />
       <FilterBadges
-        options={ownerKindOptions}
+        options={[OWNER_KIND_EMPTY_OPTION, ...ownerKindOptions]}
         values={filters.ownerKinds}
         small={small}
         onChange={(values) => onChange?.({ ownerKinds: values })}
       />
       <FilterBadges
-        options={ownerAgeOptions}
+        options={[OWNER_AGE_EMPTY_OPTION, ...ownerAgeOptions]}
         values={filters.ownerAges}
         small={small}
         onChange={(values) => onChange?.({ ownerAges: values })}
@@ -154,11 +159,20 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         onChange={(values) => onChange?.({ roomsCounts: values })}
       />
       <FilterBadges
-        options={cadastralClassificationOptions}
-        values={filters.cadastralClassifications?.map(String)}
+        options={[
+          CADASTRAL_CLASSIFICATION_EMPTY_OPTION,
+          ...cadastralClassificationOptions
+        ]}
+        values={filters.cadastralClassifications?.map((value) =>
+          value !== null ? value.toString() : null
+        )}
         small={small}
         onChange={(values) =>
-          onChange?.({ cadastralClassifications: values.map(Number) })
+          onChange?.({
+            cadastralClassifications: values.map((value) =>
+              value !== null ? (Number(value) as CadastralClassification) : null
+            )
+          })
         }
       />
       <FilterBadges
@@ -214,7 +228,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         onChange={(values) => onChange?.({ localities: values })}
       />
       <FilterBadges
-        options={localityKindsOptions}
+        options={[LOCALITY_KIND_EMPTY_OPTION, ...localityKindsOptions]}
         values={filters.localityKinds}
         small={small}
         onChange={(values) => onChange?.({ localityKinds: values })}
@@ -277,23 +291,44 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         />
       )}
       <FilterBadges
-        options={dataFileYearsIncludedOptions}
+        options={[
+          {
+            ...EMPTY_OPTION,
+            badgeLabel: 'Source et millésime inclus : pas d’information'
+          },
+          ...dataFileYearsIncludedOptions
+        ]}
         values={filters.dataFileYearsIncluded}
         small={small}
-        onChange={(values: DataFileYear[]) =>
-          onChange?.({ dataFileYearsIncluded: values })
+        onChange={(values: (DataFileYear | null)[]) =>
+          onChange?.({
+            dataFileYearsIncluded: values
+          })
         }
       />
       <FilterBadges
-        options={dataFileYearsExcludedOptions}
+        options={[
+          {
+            ...EMPTY_OPTION,
+            badgeLabel: 'Source et millésime exclus : pas d’information'
+          },
+          ...dataFileYearsExcludedOptions
+        ]}
         values={filters.dataFileYearsExcluded}
         small={small}
-        onChange={(values: DataFileYear[]) =>
+        onChange={(values: (DataFileYear | null)[]) =>
           onChange?.({ dataFileYearsExcluded: values })
         }
       />
       <FilterBadges
-        options={energyConsumptionOptions}
+        options={[
+          {
+            value: null,
+            label: 'Pas d’information',
+            badgeLabel: 'Étiquette DPE représentatif (CSTB) : pas d’information'
+          },
+          ...energyConsumptionOptions
+        ]}
         values={filters.energyConsumption}
         small={small}
         onChange={(values) => onChange?.({ energyConsumption: values })}

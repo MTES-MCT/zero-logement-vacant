@@ -3,6 +3,9 @@ import * as turf from '@turf/turf';
 import {
   AddressKinds,
   BENEFIARY_COUNT_VALUES,
+  CADASTRAL_CLASSIFICATION_VALUES,
+  DataFileYear,
+  EnergyConsumption,
   HOUSING_KIND_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
@@ -11,6 +14,7 @@ import {
   OCCUPANCY_VALUES,
   OWNER_KIND_LABELS,
   OWNER_KIND_VALUES,
+  OwnerAge,
   OwnershipKind,
   Precision,
   ROOM_COUNT_VALUES
@@ -26,7 +30,8 @@ import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
-import { EnergyConsumptionGradesApi, HousingApi } from '~/models/HousingApi';
+import { HousingApi } from '~/models/HousingApi';
+import { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
 import { LocalityApi } from '~/models/LocalityApi';
@@ -319,32 +324,46 @@ describe('Housing repository', () => {
         );
       });
 
-      it('should filter by DPE score', async () => {
-        const actualA = await housingRepository.find({
-          filters: {
-            energyConsumption: ['A' as EnergyConsumptionGradesApi]
-          }
-        });
-        expect(actualA).toSatisfyAll<HousingApi>(
-          (housing) =>
-            housing.energyConsumption === EnergyConsumptionGradesApi.A
-        );
+      describe('by energy consumption', () => {
+        it('should keep housings that have no energy consumption filled', async () => {
+          const housing: HousingApi = {
+            ...genHousingApi(),
+            energyConsumption: null
+          };
+          await Housing().insert(formatHousingRecordApi(housing));
 
-        const EFGClasses = [
-          'E' as EnergyConsumptionGradesApi,
-          'F' as EnergyConsumptionGradesApi,
-          'G' as EnergyConsumptionGradesApi
-        ];
-        const actualEFG = await housingRepository.find({
-          filters: {
-            energyConsumption: EFGClasses
-          }
+          const actual = await housingRepository.find({
+            filters: {
+              energyConsumption: [null]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.energyConsumption === null;
+          });
         });
-        expect(actualEFG).toSatisfyAll<HousingApi>((housing) =>
-          EFGClasses.includes(
-            housing.energyConsumption as EnergyConsumptionGradesApi
-          )
-        );
+
+        it('should filter by energy consumption', async () => {
+          const actualA = await housingRepository.find({
+            filters: {
+              energyConsumption: ['A']
+            }
+          });
+          expect(actualA).toSatisfyAll<HousingApi>(
+            (housing) => housing.energyConsumption === 'A'
+          );
+
+          const EFGClasses: Array<EnergyConsumption | null> = ['E', 'F', 'G'];
+          const actualEFG = await housingRepository.find({
+            filters: {
+              energyConsumption: EFGClasses
+            }
+          });
+          expect(actualEFG).toSatisfyAll<HousingApi>((housing) =>
+            EFGClasses.includes(housing.energyConsumption)
+          );
+        });
       });
 
       it('should filter by establishment', async () => {
@@ -464,21 +483,25 @@ describe('Housing repository', () => {
       });
 
       describe('by owner’s age', () => {
-        function createOwner(age: number): OwnerApi {
+        function createOwner(age: number | null): OwnerApi {
           return {
             ...genOwnerApi(),
-            birthDate: faker.date
-              .birthdate({
-                min: age,
-                max: age,
-                mode: 'age'
-              })
-              .toJSON()
+            birthDate:
+              age === null
+                ? null
+                : faker.date
+                    .birthdate({
+                      min: age,
+                      max: age,
+                      mode: 'age'
+                    })
+                    .toJSON()
           };
         }
 
         beforeAll(async () => {
           const owners: OwnerApi[] = [
+            createOwner(null),
             createOwner(39),
             createOwner(40),
             createOwner(59),
@@ -498,15 +521,21 @@ describe('Housing repository', () => {
           );
         });
 
-        const tests = [
+        const tests: ReadonlyArray<{
+          name: string;
+          filter: Array<OwnerAge | null>;
+          predicate(owner: OwnerApi): boolean;
+        }> = [
+          {
+            name: 'unfilled birth date',
+            filter: [null],
+            predicate: (owner) => owner.birthDate === null
+          },
           {
             name: 'less than 40 years old',
             filter: ['lt40'],
-            predicate: (owner: OwnerApi) => {
-              return (
-                differenceInYears(new Date(), owner.birthDate as string) < 40
-              );
-            }
+            predicate: (owner) =>
+              differenceInYears(new Date(), owner.birthDate as string) < 40
           },
           {
             name: 'between 40 and 59 years old',
@@ -544,11 +573,8 @@ describe('Housing repository', () => {
           {
             name: '100 years old and more',
             filter: ['gte100'],
-            predicate: (owner: OwnerApi) => {
-              return (
-                differenceInYears(new Date(), owner.birthDate as string) >= 100
-              );
-            }
+            predicate: (owner) =>
+              differenceInYears(new Date(), owner.birthDate as string) >= 100
           }
         ];
 
@@ -610,6 +636,30 @@ describe('Housing repository', () => {
               formatHousingOwnersApi(housing, [housing.owner])
             )
           );
+        });
+
+        it('should keep owners that have an empty kind', async () => {
+          const housing = genHousingApi();
+          await Housing().insert(formatHousingRecordApi(housing));
+          const owner: OwnerApi = {
+            ...genOwnerApi(),
+            kind: null
+          };
+          await Owners().insert(formatOwnerApi(owner));
+          await HousingOwners().insert(
+            formatHousingOwnersApi(housing, [owner])
+          );
+
+          const actual = await housingRepository.find({
+            filters: {
+              ownerKinds: [null]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.owner?.kind === null;
+          });
         });
 
         test.each(kinds)('should filter by %s', async (kind) => {
@@ -874,28 +924,36 @@ describe('Housing repository', () => {
       });
 
       describe('by cadastral classification', () => {
-        it('should filter by cadastral classification', async () => {
-          const cadastralClassifications = housings
-            .slice(0, 3)
-            .map((housing) => housing.cadastralClassification)
-            .filter(isDefined);
+        const cadastralClassifications = [
+          null,
+          ...CADASTRAL_CLASSIFICATION_VALUES
+        ];
 
-          const actual = await housingRepository.find({
-            filters: {
-              cadastralClassifications
-            }
-          });
-
-          expect(actual.length).toBeGreaterThan(0);
-          expect(actual).toSatisfyAll<HousingApi>((housing) => {
-            return (
-              housing.cadastralClassification !== undefined &&
-              cadastralClassifications
-                .map(Number)
-                .includes(housing.cadastralClassification)
-            );
-          });
+        beforeAll(async () => {
+          const housings: ReadonlyArray<HousingApi> =
+            cadastralClassifications.map((cadastralClassification) => {
+              return { ...genHousingApi(), cadastralClassification };
+            });
+          await Housing().insert(housings.map(formatHousingRecordApi));
         });
+
+        test.each(cadastralClassifications)(
+          'should filter by cadastral classification = %s',
+          async (cadastralClassification) => {
+            const actual = await housingRepository.find({
+              filters: {
+                cadastralClassifications: [cadastralClassification]
+              }
+            });
+
+            expect(actual.length).toBeGreaterThan(0);
+            expect(actual).toSatisfyAll<HousingApi>((housing) => {
+              return (
+                housing.cadastralClassification === cadastralClassification
+              );
+            });
+          }
+        );
       });
 
       describe('by building period', () => {
@@ -1402,29 +1460,60 @@ describe('Housing repository', () => {
         );
       });
 
-      it('should filter by locality kind', async () => {
-        const localities: LocalityApi[] = [
-          { ...genLocalityApi(), kind: 'ACV' },
-          { ...genLocalityApi(), kind: 'PVD' }
-        ];
-        await Localities().insert(localities.map(formatLocalityApi));
-        const housingList = new Array(10).fill('0').map(() => {
-          const geoCode = oneOf(localities).geoCode;
-          return genHousingApi(geoCode);
-        });
-        await Housing().insert(housingList.map(formatHousingRecordApi));
+      describe('by locality kind', () => {
+        it('should filter by empty locality kind', async () => {
+          const locality: LocalityApi = {
+            ...genLocalityApi(),
+            kind: null
+          };
+          await Localities().insert(formatLocalityApi(locality));
+          const housing = genHousingApi(locality.geoCode);
+          await Housing().insert(formatHousingRecordApi(housing));
 
-        const actual = await housingRepository.find({
-          filters: {
-            localityKinds: ['ACV', 'PVD']
-          }
+          const actual = await housingRepository.find({
+            filters: {
+              localityKinds: [null]
+            }
+          });
+
+          const actualLocalities =
+            await Localities().whereNull('locality_kind');
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return actualLocalities.some(
+              (locality) => locality.geo_code === housing.geoCode
+            );
+          });
         });
 
-        expect(actual).toSatisfyAll<HousingApi>((housing) =>
-          localities
-            .map((locality) => locality.geoCode)
-            .includes(housing.geoCode)
-        );
+        it('should filter by locality kind', async () => {
+          const localities: LocalityApi[] = [
+            { ...genLocalityApi(), kind: 'ACV' },
+            { ...genLocalityApi(), kind: 'PVD' }
+          ];
+          await Localities().insert(localities.map(formatLocalityApi));
+          const housingList = new Array(10).fill('0').map(() => {
+            const geoCode = oneOf(localities).geoCode;
+            return genHousingApi(geoCode);
+          });
+          await Housing().insert(housingList.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              localityKinds: ['ACV', 'PVD']
+            }
+          });
+
+          const actualLocalities = await Localities().whereIn('locality_kind', [
+            'ACV',
+            'PVD'
+          ]);
+          expect(actual).toSatisfyAll<HousingApi>((housing) =>
+            actualLocalities
+              .map((locality) => locality.geo_code)
+              .includes(housing.geoCode)
+          );
+        });
       });
 
       describe('by included perimeter', () => {
@@ -1522,8 +1611,32 @@ describe('Housing repository', () => {
           await Housing().insert(housings.map(formatHousingRecordApi));
         });
 
+        it('should keep housings that have no data file years', async () => {
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), dataFileYears: [] }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              dataFileYearsIncluded: [null]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return (
+              housing.dataFileYears === undefined ||
+              housing.dataFileYears.length === 0
+            );
+          });
+        });
+
         it('should keep housings that belong to the given data file year', async () => {
-          const dataFileYears = ['lovac-2023', 'lovac-2024'];
+          const dataFileYears: HousingFiltersApi['dataFileYearsIncluded'] = [
+            'lovac-2023',
+            'lovac-2024'
+          ];
 
           const actual = await housingRepository.find({
             filters: {
@@ -1535,7 +1648,7 @@ describe('Housing repository', () => {
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
             const set = new Set(dataFileYears);
             return housing.dataFileYears.some((dataFileYear) =>
-              set.has(dataFileYear)
+              set.has(dataFileYear as DataFileYear)
             );
           });
         });
@@ -1547,8 +1660,29 @@ describe('Housing repository', () => {
           return Housing().insert(housings.map(formatHousingRecordApi));
         });
 
+        it('should skip housings that have no data file years', async () => {
+          const housings: ReadonlyArray<HousingApi> = [
+            { ...genHousingApi(), dataFileYears: [] }
+          ];
+          await Housing().insert(housings.map(formatHousingRecordApi));
+
+          const actual = await housingRepository.find({
+            filters: {
+              dataFileYearsExcluded: [null]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return housing.dataFileYears.length > 0;
+          });
+        });
+
         it('should keep housings that do not belong to the given data file year', async () => {
-          const dataFileYears = ['lovac-2023', 'lovac-2024'];
+          const dataFileYears: HousingFiltersApi['dataFileYearsExcluded'] = [
+            'lovac-2023',
+            'lovac-2024'
+          ];
 
           const actual = await housingRepository.find({
             filters: {
@@ -1560,7 +1694,7 @@ describe('Housing repository', () => {
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
             const set = new Set(dataFileYears);
             return !housing.dataFileYears.some((dataFileYear) =>
-              set.has(dataFileYear)
+              set.has(dataFileYear as DataFileYear)
             );
           });
         });

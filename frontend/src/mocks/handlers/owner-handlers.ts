@@ -1,7 +1,4 @@
 import { faker } from '@faker-js/faker';
-import fp from 'lodash/fp';
-import { http, HttpResponse, RequestHandler } from 'msw';
-import { constants } from 'node:http2';
 
 import {
   AddressKinds,
@@ -12,6 +9,9 @@ import {
   Paginated,
   Pagination
 } from '@zerologementvacant/models';
+import fp from 'lodash/fp';
+import { http, HttpResponse, RequestHandler } from 'msw';
+import { constants } from 'node:http2';
 import config from '../../utils/config';
 import data from './data';
 
@@ -61,6 +61,7 @@ export const ownerHandlers: RequestHandler[] = [
         rawAddress: payload.rawAddress,
         fullName: payload.fullName,
         administrator: undefined,
+        kind: 'Particulier',
         birthDate: payload.birthDate,
         email: payload.email,
         phone: payload.phone,

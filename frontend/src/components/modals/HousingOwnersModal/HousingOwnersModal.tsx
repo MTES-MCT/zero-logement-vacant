@@ -1,33 +1,33 @@
+import { fr } from '@codegouvfr/react-dsfr';
+import Accordion from '@codegouvfr/react-dsfr/Accordion';
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import Badge from '@codegouvfr/react-dsfr/Badge';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
+import { Typography } from '@mui/material';
+import classNames from 'classnames';
+import fp from 'lodash/fp';
 import { useState } from 'react';
-import { Col, Icon, Row, Text } from '../../_dsfr';
-import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
+import { useList } from 'react-use';
 
 import * as yup from 'yup';
-import { SelectOption } from '../../../models/SelectOption';
 import {
   banAddressValidator,
   dateValidator,
   emailValidator,
   useForm
 } from '../../../hooks/useForm';
-import classNames from 'classnames';
-import HousingAdditionalOwner from './HousingAdditionalOwner';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import Button from '@codegouvfr/react-dsfr/Button';
-import { fr } from '@codegouvfr/react-dsfr';
-import Accordion from '@codegouvfr/react-dsfr/Accordion';
+import { useUser } from '../../../hooks/useUser';
+import { isBanEligible } from '../../../models/Address';
+import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
+import { SelectOption } from '../../../models/SelectOption';
+import { AddressSearchResult } from '../../../services/address.service';
 import AppSelect from '../../_app/AppSelect/AppSelect';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
-import { AddressSearchResult } from '../../../services/address.service';
-import Badge from '@codegouvfr/react-dsfr/Badge';
+import { Col, Icon, Row, Text } from '../../_dsfr';
 import OwnerAddressEdition from '../../OwnerAddressEdition/OwnerAddressEdition';
-import { isBanEligible } from '../../../models/Address';
-import { useUser } from '../../../hooks/useUser';
-import { Typography } from '@mui/material';
-import Alert from '@codegouvfr/react-dsfr/Alert';
-import { useList } from 'react-use';
-import fp from 'lodash/fp';
+import HousingAdditionalOwner from './HousingAdditionalOwner';
 
 interface Props {
   housingId: string;
@@ -49,8 +49,12 @@ function HousingOwnersModal({
 }: Props) {
   const { isVisitor } = useUser();
 
-  const storedWarningVisible = localStorage.getItem('OwnerEdition.warningVisible');
-  const [warningVisible, setWarningVisible] = useState(storedWarningVisible === null || storedWarningVisible === 'true');
+  const storedWarningVisible = localStorage.getItem(
+    'OwnerEdition.warningVisible'
+  );
+  const [warningVisible, setWarningVisible] = useState(
+    storedWarningVisible === null || storedWarningVisible === 'true'
+  );
 
   const [modalMode, setModalMode] = useState<'list' | 'add'>('list');
   const [
@@ -209,7 +213,7 @@ function HousingOwnersModal({
           <div>
             <span className="icon-xs">
               <Icon
-                name={iconName(housingOwner.kind)}
+                name={iconName(housingOwner.kind ?? '')}
                 iconPosition="center"
                 size="xs"
               />
@@ -292,7 +296,10 @@ function HousingOwnersModal({
             />
           </Col>
           <Col n="12">
-            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+            <Typography
+              component="h3"
+              color={fr.colors.decisions.text.active.grey.default}
+            >
               <span
                 className={fr.cx(
                   'fr-icon-bank-line',
@@ -303,11 +310,21 @@ function HousingOwnersModal({
               />
               Adresse fiscale (source: DGFIP)
             </Typography>
-            <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
-            <Typography color={fr.colors.decisions.text.default.grey.default}>{housingOwner.rawAddress ? housingOwner.rawAddress.join(' ') : 'Inconnue'}</Typography>
+            <span className="fr-hint-text">
+              Cette adresse est issue du fichier LOVAC, récupérée via le fichier
+              1767BIS-COM. Celle-ci n’est pas modifiable.
+            </span>
+            <Typography color={fr.colors.decisions.text.default.grey.default}>
+              {housingOwner.rawAddress
+                ? housingOwner.rawAddress.join(' ')
+                : 'Inconnue'}
+            </Typography>
           </Col>
           <Col n="12">
-            <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+            <Typography
+              component="h3"
+              color={fr.colors.decisions.text.active.grey.default}
+            >
               <span
                 className={fr.cx(
                   'fr-icon-home-4-line',

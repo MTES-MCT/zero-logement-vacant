@@ -96,7 +96,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     message: {
       error: 'Impossible de créer la note',
       loading: 'Création de la note...',
-      success: 'Note créée !'
+      success: 'Votre note a été correctement créée et enregistrée dans la section "Historique et notes" du logement.'
     }
   });
   useNotification({

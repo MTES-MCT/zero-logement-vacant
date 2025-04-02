@@ -1445,7 +1445,7 @@ describe('Housing list view', () => {
         renderView();
 
         const accordion = await screen.findByRole('button', {
-          name: 'Données'
+          name: 'Fichiers sources'
         });
         await user.click(accordion);
 

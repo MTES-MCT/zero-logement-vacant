@@ -1,6 +1,6 @@
 import { OwnerDTO, OwnerPayloadDTO } from '@zerologementvacant/models';
-import { compare } from '~/utils/compareUtils';
 import fp from 'lodash/fp';
+import { compare } from '~/utils/compareUtils';
 
 export interface OwnerPayloadApi extends Omit<OwnerPayloadDTO, 'birthDate'> {
   birthDate?: Date;
@@ -31,7 +31,7 @@ export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
       ],
       owner
     ),
-    birthDate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length)
+    birthDate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null
   };
 }
 

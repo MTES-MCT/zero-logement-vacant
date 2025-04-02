@@ -1,16 +1,16 @@
 import classNames from 'classnames';
+import { format } from 'date-fns';
+import React, { ReactElement } from 'react';
+import { isDefined } from '../../utils/compareUtils';
 
 import styles from './dpe.module.scss';
-import { format } from 'date-fns';
-import { isDefined } from '../../utils/compareUtils';
-import React, { ReactElement } from 'react';
 
 interface Props {
   /**
    * The Diagnosis of Performance
    */
   value: string;
-  madeAt?: Date;
+  madeAt?: Date | null;
 }
 
 function DPE(props: Props) {

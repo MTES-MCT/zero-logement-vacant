@@ -14,13 +14,13 @@ export interface HousingDTO {
   campaignIds?: string[];
   longitude?: number;
   latitude?: number;
-  cadastralClassification?: number;
+  cadastralClassification: number | null;
+  cadastralReference?: string;
   uncomfortable: boolean;
   vacancyStartYear?: number;
   housingKind: HousingKind;
   roomsCount: number;
   livingArea: number;
-  cadastralReference?: string;
   buildingYear?: number;
   taxed?: boolean;
   /**
@@ -34,8 +34,8 @@ export interface HousingDTO {
   ownershipKind?: string;
   status: HousingStatus;
   subStatus: string | null;
-  energyConsumption?: EnergyConsumption;
-  energyConsumptionAt?: Date;
+  energyConsumption: EnergyConsumption | null;
+  energyConsumptionAt: Date | null;
   occupancy: Occupancy;
   occupancyIntended: Occupancy | null;
   source: HousingSource | null;

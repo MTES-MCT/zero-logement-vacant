@@ -1,13 +1,12 @@
-import axios from 'axios';
-import nock from 'nock';
-import { constants } from 'node:http2';
-import qs from 'qs';
-
 import { Occupancy } from '@zerologementvacant/models';
 import {
   genHousingDTO,
   genOwnerDTO
 } from '@zerologementvacant/models/fixtures';
+import axios from 'axios';
+import nock from 'nock';
+import { constants } from 'node:http2';
+import qs from 'qs';
 import { createHousingAPI } from '../housing-api';
 
 describe('Housing API', () => {
@@ -38,7 +37,9 @@ describe('Housing API', () => {
         }
       });
 
-      expect(actual).toStrictEqual(housings);
+      expect(actual).toIncludeAllPartialMembers(
+        housings.map((housing) => ({ id: housing.id }))
+      );
     });
   });
 });

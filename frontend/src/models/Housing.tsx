@@ -1,7 +1,3 @@
-import { differenceInDays, format } from 'date-fns';
-import { List } from 'immutable';
-import { match, Pattern } from 'ts-pattern';
-
 import {
   EnergyConsumption,
   HousingDTO,
@@ -12,12 +8,15 @@ import {
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   Occupancy
 } from '@zerologementvacant/models';
-import { Owner, toOwnerDTO } from './Owner';
+import { differenceInDays, format } from 'date-fns';
+import { List } from 'immutable';
+import { match, Pattern } from 'ts-pattern';
+import { Compare } from '../utils/compareUtils';
 import { stringSort } from '../utils/stringUtils';
-import { Sort } from './Sort';
 import { LocalityKinds } from './Locality';
 import { Note } from './Note';
-import { Compare } from '../utils/compareUtils';
+import { Owner, toOwnerDTO } from './Owner';
+import { Sort } from './Sort';
 
 export interface Housing {
   id: string;
@@ -51,8 +50,8 @@ export interface Housing {
   status: HousingStatus;
   subStatus?: string;
   lastContact?: Date;
-  energyConsumption?: string;
-  energyConsumptionAt?: Date;
+  energyConsumption: string | null;
+  energyConsumptionAt: Date | null;
   occupancy: OccupancyKind | OccupancyKindUnknown;
   occupancyIntended?: OccupancyKind | OccupancyKindUnknown;
   source: HousingSource | null;

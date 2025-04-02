@@ -1,9 +1,9 @@
+import { isNotNull } from '@zerologementvacant/utils';
 import { isValid } from 'date-fns';
 import joi from 'joi';
 import { v4 as uuidv4 } from 'uuid';
 
 import { OwnerApi } from '~/models/OwnerApi';
-import { isNotNull } from '@zerologementvacant/utils';
 import { Sort } from '~/models/SortApi';
 
 /**
@@ -100,7 +100,7 @@ export function toOwnerApi(owner: DatafoncierOwner): OwnerApi {
       owner.catpro2txt === 'PERSONNE PHYSIQUE'
         ? owner.ddenom.replace('/', ' ')
         : owner.ddenom,
-    birthDate: isValid(birthdate) ? birthdate?.toJSON() : undefined,
+    birthDate: !!birthdate && isValid(birthdate) ? birthdate.toJSON() : null,
     kind: kinds[owner.catpro2txt] ?? 'Autre',
     kindDetail: owner.catpro3txt
   };

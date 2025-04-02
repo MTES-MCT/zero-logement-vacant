@@ -1,23 +1,24 @@
 import { faker } from '@faker-js/faker';
-import { addHours } from 'date-fns';
-import randomstring from 'randomstring';
-
-import { Owner } from '../src/models/Owner';
-import { Address } from '../src/models/Address';
-import { Housing, OccupancyKind } from '../src/models/Housing';
-import { AuthUser, User } from '../src/models/User';
-import { SignupLink } from '../src/models/SignupLink';
-import { Prospect } from '../src/models/Prospect';
-import { LocalityKinds } from '../src/models/Locality';
-import { Group } from '../src/models/Group';
 import {
   AddressKinds,
   DatafoncierHousing,
+  ENERGY_CONSUMPTION_VALUES,
   HousingStatus
 } from '@zerologementvacant/models';
 import { genAddressDTO } from '@zerologementvacant/models/fixtures';
+import { addHours } from 'date-fns';
 
 import fp from 'lodash/fp';
+import randomstring from 'randomstring';
+import { Address } from '../src/models/Address';
+import { Group } from '../src/models/Group';
+import { Housing, OccupancyKind } from '../src/models/Housing';
+import { LocalityKinds } from '../src/models/Locality';
+
+import { Owner } from '../src/models/Owner';
+import { Prospect } from '../src/models/Prospect';
+import { SignupLink } from '../src/models/SignupLink';
+import { AuthUser, User } from '../src/models/User';
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -77,6 +78,7 @@ export function genOwner(): Owner {
     rawAddress: [randomstring.generate(), randomstring.generate()],
     fullName: randomstring.generate(),
     birthDate: new Date().toJSON(),
+    kind: 'Particulier',
     email: genEmail(),
     phone: randomstring.generate(),
     banAddress: genAddress()
@@ -107,7 +109,9 @@ export function genHousing(): Housing {
     buildingVacancyRate: genNumber(2),
     status: HousingStatus.NEVER_CONTACTED,
     source: null,
-    occupancy: OccupancyKind.Vacant
+    occupancy: OccupancyKind.Vacant,
+    energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES),
+    energyConsumptionAt: new Date()
   };
 }
 

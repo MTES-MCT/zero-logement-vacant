@@ -1,11 +1,14 @@
 import { OWNER_AGE_VALUES, OwnerAge } from '@zerologementvacant/models';
-import { OWNER_AGE_OPTIONS } from '../../models/HousingFilters';
+import {
+  OWNER_AGE_EMPTY_OPTION,
+  OWNER_AGE_OPTIONS
+} from '../../models/HousingFilters';
 import AppSelectNext, {
   AppSelectNextProps
 } from '../_app/AppSelect/AppSelectNext';
 
 export type OwnerAgeSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<OwnerAge, Multiple>,
+  AppSelectNextProps<OwnerAge | null, Multiple>,
   'className' | 'disabled' | 'error' | 'multiple' | 'value' | 'onChange'
 >;
 
@@ -15,9 +18,13 @@ function OwnerAgeSelect<Multiple extends boolean = false>(
   return (
     <AppSelectNext
       {...props}
-      options={OWNER_AGE_VALUES}
+      options={[OWNER_AGE_EMPTY_OPTION.value, ...OWNER_AGE_VALUES]}
       label="Âge"
-      getOptionLabel={(option) => OWNER_AGE_OPTIONS[option].label}
+      getOptionLabel={(option) =>
+        option === OWNER_AGE_EMPTY_OPTION.value
+          ? OWNER_AGE_EMPTY_OPTION.label
+          : OWNER_AGE_OPTIONS[option].label
+      }
     />
   );
 }

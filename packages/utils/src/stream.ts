@@ -5,9 +5,37 @@ import {
   TransformStream,
   WritableStream
 } from 'node:stream/web';
+import { AsyncOrSync } from 'ts-essentials';
 
 import { Predicate } from './compare';
-import { AsyncOrSync } from 'ts-essentials';
+
+interface ChunkifyOptions {
+  /**
+   * @default 1000
+   */
+  size?: number;
+}
+
+export function chunkify<A>(options?: ChunkifyOptions) {
+  const size = options?.size ?? 1000;
+  const chunk: A[] = [];
+
+  return new TransformStream<A, ReadonlyArray<A>>({
+    async transform(a, controller) {
+      chunk.push(a);
+
+      if (chunk.length >= size) {
+        controller.enqueue([...chunk]);
+        chunk.length = 0;
+      }
+    },
+    flush(controller) {
+      if (chunk.length > 0) {
+        controller.enqueue([...chunk]);
+      }
+    }
+  });
+}
 
 export async function countLines(file: ReadableStream): Promise<number> {
   return new Promise((resolve) => {

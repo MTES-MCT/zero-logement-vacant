@@ -273,7 +273,9 @@ export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
     ).length,
     rentHousingCount: housingList.filter(
       (housing) => housing.occupancy === Occupancy.RENT
-    ).length
+    ).length,
+    rnbId: faker.string.alphanumeric({ casing: 'upper' }),
+    rnbIdScore: faker.helpers.arrayElement([0, 1, 2, 3, 8, 9])
   };
 };
 

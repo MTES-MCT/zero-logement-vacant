@@ -2,14 +2,12 @@ import buildingRepository, {
   Buildings,
   formatBuildingApi
 } from '~/repositories/buildingRepository';
-import { genBuildingApi, genHousingApi } from '~/test/testFixtures';
+import { genBuildingApi } from '~/test/testFixtures';
 
 describe('Building repository', () => {
   describe('save', () => {
-    const housings = Array.from({ length: 10 }, () => genHousingApi());
-
     it('should create a building if it does not exist', async () => {
-      const building = genBuildingApi(housings);
+      const building = genBuildingApi();
 
       await buildingRepository.save(building);
 
@@ -18,7 +16,7 @@ describe('Building repository', () => {
     });
 
     it('should update a building if it exists', async () => {
-      const building = genBuildingApi(housings);
+      const building = genBuildingApi();
       await Buildings().insert(formatBuildingApi(building));
 
       await buildingRepository.save({
@@ -31,7 +29,7 @@ describe('Building repository', () => {
     });
 
     it('should update only the chosen properties', async () => {
-      const building = genBuildingApi(housings);
+      const building = genBuildingApi();
       await Buildings().insert(formatBuildingApi(building));
       expect(building.rnbId).not.toBeNull();
 

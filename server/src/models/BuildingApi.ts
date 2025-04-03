@@ -4,5 +4,5 @@ export interface BuildingApi {
   rentHousingCount: number | null;
   vacantHousingCount: number;
   rnbId: string | null;
-  rnbIdScore: number;
+  rnbIdScore: number | null;
 }

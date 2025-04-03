@@ -1,9 +1,9 @@
 import { WritableStream } from 'node:stream/web';
 
 import { createLogger } from '~/infra/logger';
+import { BuildingApi } from '~/models/BuildingApi';
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 import { SourceBuilding } from '~/scripts/import-lovac/source-buildings/source-building';
-import { BuildingApi } from '~/models/BuildingApi';
 
 const logger = createLogger('sourceBuildingProcessor');
 
@@ -24,7 +24,10 @@ export function createSourceBuildingProcessor(options: ProcessorOptions) {
           id: chunk.building_id,
           vacantHousingCount: chunk.housing_vacant_count,
           rentHousingCount: chunk.housing_rent_count,
-          housingCount: 0 // Should be provided later, by the file
+          // Should be provided later, by the file
+          housingCount: 0,
+          rnbId: null,
+          rnbIdScore: null
         };
         await buildingRepository.save(building);
         reporter.passed(chunk);

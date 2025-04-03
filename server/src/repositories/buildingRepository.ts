@@ -15,7 +15,7 @@ export interface BuildingDBO {
    * A score >= 0 representing the quality of the RNB ID.
    * @see https://doc-datafoncier.cerema.fr/doc/ff/batiment/rnb_id_score
    */
-  rnb_id_score: number;
+  rnb_id_score: number | null;
 }
 
 type SaveOptions = ConflictOptions<BuildingDBO>;

@@ -3,7 +3,7 @@ import type { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('buildings', (table) => {
     table.string('rnb_id').nullable();
-    table.integer('rnb_id_score').notNullable();
+    table.integer('rnb_id_score').nullable();
   });
 }
 

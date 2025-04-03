@@ -24,7 +24,7 @@ resource "clevercloud_nodejs" "queue" {
 
   deployment {
     repository = "https://github.com/MTES-MCT/zero-logement-vacant"
-    commit     = "refs/heads/main"
+    commit     = "refs/heads/build-add-terraform"
   }
 
   environment = {

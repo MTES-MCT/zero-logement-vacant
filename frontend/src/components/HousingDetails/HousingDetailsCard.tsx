@@ -130,7 +130,7 @@ function HousingDetailsCard({
                 )
               },
               {
-                label: 'Historique de suivi',
+                label: 'Historique et notes',
                 content: (
                   <EventsHistory events={housingEvents} notes={housingNotes} />
                 )

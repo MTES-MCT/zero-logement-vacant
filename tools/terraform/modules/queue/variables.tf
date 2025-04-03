@@ -9,6 +9,11 @@ variable "auth_secret" {
   sensitive   = true
 }
 
+variable "branch" {
+  description = "The branch to deploy"
+  type        = string
+}
+
 variable "database_connection_string" {
   description = "Clever Cloud PostgreSQL host"
   type        = string

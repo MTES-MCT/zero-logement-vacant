@@ -24,7 +24,7 @@ resource "clevercloud_nodejs" "api" {
 
   deployment {
     repository = "https://github.com/MTES-MCT/zero-logement-vacant"
-    commit     = "refs/heads/main"
+    commit     = "refs/heads/${var.branch}"
   }
 
   environment = {
@@ -40,17 +40,17 @@ resource "clevercloud_nodejs" "api" {
     CEREMA_USERNAME      = "unused"
     DATABASE_ENV         = "development"
     DATABASE_URL         = var.database_connection_string
-    E2E_EMAIL            = ""
-    E2E_PASSWORD         = ""
+    E2E_EMAIL            = var.e2e_email
+    E2E_PASSWORD         = var.e2e_password
     HOST                 = local.host
     LOG_LEVEL            = "debug"
-    MAILER_API_KEY       = ""
-    MAILER_EVENT_API_KEY = ""
-    MAILER_HOST          = ""
-    MAILER_PASSWORD      = ""
-    MAILER_PORT          = ""
-    MAILER_PROVIDER      = ""
-    MAILER_USER          = ""
+    MAILER_API_KEY       = var.mailer.api_key
+    MAILER_EVENT_API_KEY = var.mailer.event_api_key
+    MAILER_HOST          = var.mailer.host
+    MAILER_PASSWORD      = var.mailer.password
+    MAILER_PORT          = var.mailer.port
+    MAILER_PROVIDER      = var.mailer.provider
+    MAILER_USER          = var.mailer.user
     METABASE_TOKEN       = "unused"
     NODE_ENV             = "production"
     PORT                 = "8080"

@@ -1,43 +1,56 @@
+import { Occupancy } from '@zerologementvacant/models';
 import { stringify } from 'csv-stringify';
 import fp from 'lodash/fp';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Transform, Writable } from 'node:stream';
 import { ReadableStream, TransformStream } from 'node:stream/web';
-
-import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
+import config from '~/infra/config';
+import { BuildingApi } from '~/models/BuildingApi';
+import { HousingApi } from '~/models/HousingApi';
+import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { UserApi } from '~/models/UserApi';
+import {
+  Buildings,
+  formatBuildingApi
+} from '~/repositories/buildingRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
 import {
   formatHousingRecordApi,
   Housing,
   HousingRecordDBO
 } from '~/repositories/housingRepository';
-import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
+
+import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
 import {
+  genBuildingApi,
   genEstablishmentApi,
   genHousingApi,
   genUserApi
 } from '~/test/testFixtures';
-import { HousingApi } from '~/models/HousingApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { UserApi } from '~/models/UserApi';
-import config from '~/infra/config';
-import { formatUserApi, Users } from '~/repositories/userRepository';
-import { Occupancy } from '@zerologementvacant/models';
 
 describe('Source housing command', () => {
   const command = createSourceHousingCommand();
   const file = path.join(__dirname, 'housings.csv');
 
-  const missingSourceHousings = Array.from({ length: 3 }, () =>
-    genSourceHousing()
+  const building: BuildingApi = genBuildingApi();
+  const missingSourceHousings: SourceHousing[] = Array.from(
+    { length: 3 },
+    () => ({ ...genSourceHousing(), building_id: building.id })
   );
-  const nonVacantUnsupervisedHousings = [genSourceHousing()];
-  const vacantHousings = Array.from({ length: 3 }, () => genSourceHousing());
+  const nonVacantUnsupervisedHousings = [
+    { ...genSourceHousing(), building_id: building.id }
+  ];
+  const vacantHousings = Array.from({ length: 3 }, () => ({
+    ...genSourceHousing(),
+    building_id: building.id
+  }));
 
   const sourceHousings: ReadonlyArray<SourceHousing> = [
     ...missingSourceHousings,
@@ -53,15 +66,18 @@ describe('Source housing command', () => {
       email: config.app.system
     };
     await Users().insert(formatUserApi(auth));
+    await Buildings().insert(formatBuildingApi(building));
     const housings: ReadonlyArray<HousingApi> = [
       ...nonVacantUnsupervisedHousings.map<HousingApi>((sourceHousing) => ({
         ...genHousingApi(),
+        buildingId: building.id,
         geoCode: sourceHousing.geo_code,
         localId: sourceHousing.local_id,
         occupancy: Occupancy.RENT
       })),
       ...vacantHousings.map<HousingApi>((sourceHousing) => ({
         ...genHousingApi(),
+        buildingId: building.id,
         geoCode: sourceHousing.geo_code,
         localId: sourceHousing.local_id,
         occupancy: Occupancy.VACANT,

@@ -1,3 +1,9 @@
+variable "branch" {
+  description = "The branch to deploy"
+  type        = string
+  default     = "main"
+}
+
 variable "clevercloud_org" {
   description = "Clever Cloud Organisation ID"
   type        = string

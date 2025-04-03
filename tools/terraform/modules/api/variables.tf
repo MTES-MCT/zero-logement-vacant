@@ -4,6 +4,11 @@ variable "auth_secret" {
   sensitive   = true
 }
 
+variable "branch" {
+  description = "The branch to deploy"
+  type        = string
+}
+
 variable "database_id" {
   description = "Clever Cloud PostgreSQL ID"
   type        = string
@@ -18,13 +23,27 @@ variable "database_connection_string" {
 variable "e2e_email" {
   description = "End-to-end user email"
   type        = string
-  default     = "e2e@beta.gouv.fr"
+  sensitive   = true
 }
 
 variable "e2e_password" {
   description = "End-to-end user password"
   type        = string
   sensitive   = true
+}
+
+variable "mailer" {
+  description = "Mailer configuration"
+  type = object({
+    api_key       = string
+    event_api_key = string
+    host          = string
+    password      = string
+    port          = string
+    provider      = string
+    user          = string
+  })
+  sensitive = true
 }
 
 variable "project_name" {

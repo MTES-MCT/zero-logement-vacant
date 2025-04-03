@@ -60,10 +60,13 @@ module "api" {
   depends_on = [module.database, module.redis, module.s3]
 
   auth_secret                = random_password.auth_secret.result
+  branch                     = var.branch
   database_id                = module.database.id
   database_connection_string = module.database.connection_string
   project_name               = var.project_name
+  e2e_email                  = "e2e@beta.gouv.fr"
   e2e_password               = random_password.e2e_password.result
+  mailer                     = var.mailer
   redis = {
     id  = module.redis.id
     url = module.redis.url
@@ -86,6 +89,7 @@ module "queue" {
 
   api_url                    = "${module.api.url}/api"
   auth_secret                = random_password.auth_secret.result
+  branch                     = var.branch
   database_connection_string = module.database.connection_string
   project_name               = var.project_name
   queue_dashboard_username   = "zlv"

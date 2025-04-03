@@ -9,7 +9,9 @@
     "outDir": "dist",
     "resolveJsonModule": true,
     "rootDir": "src",
-    "typeRoots": ["node_modules/@types", "src/types"]
+    "typeRoots": ["node_modules/@types", "src/types"],
+    "moduleResolution": "bundler",
+    "module": "esnext"
   },
   "ts-node": {
     "swc": true

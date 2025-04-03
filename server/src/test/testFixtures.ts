@@ -21,7 +21,6 @@ import {
 } from '@zerologementvacant/models';
 
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
-import { firstDefined } from '@zerologementvacant/utils';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
 import fp from 'lodash/fp';
@@ -262,20 +261,23 @@ export const genHousingOwnerApi = (
   rank: faker.number.int({ min: 1, max: 6 })
 });
 
-export const genBuildingApi = (housingList: HousingApi[]): BuildingApi => {
+export function genBuildingApi(): BuildingApi {
+  const housingCount = faker.number.int({ min: 1, max: 10 });
+  const vacantHousingCount = faker.number.int({ min: 0, max: housingCount });
+  const rentHousingCount = faker.number.int({
+    min: housingCount - vacantHousingCount,
+    max: housingCount
+  });
+
   return {
-    id:
-      housingList.map((housing) => housing.buildingId).reduce(firstDefined) ??
-      uuidv4(),
-    housingCount: housingList.length,
-    vacantHousingCount: housingList.filter(
-      (housing) => housing.occupancy === Occupancy.VACANT
-    ).length,
-    rentHousingCount: housingList.filter(
-      (housing) => housing.occupancy === Occupancy.RENT
-    ).length
+    id: uuidv4(),
+    housingCount: vacantHousingCount,
+    vacantHousingCount,
+    rentHousingCount,
+    rnbId: faker.string.alphanumeric({ casing: 'upper' }),
+    rnbIdScore: faker.helpers.arrayElement([0, 1, 2, 3, 8, 9])
   };
-};
+}
 
 export const genHousingApi = (
   geoCode: string = genGeoCode()

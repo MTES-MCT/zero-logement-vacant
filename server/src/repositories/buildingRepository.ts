@@ -1,38 +1,73 @@
-import db from '~/infra/database';
+import db, { ConflictOptions, onConflict } from '~/infra/database';
 import { BuildingApi } from '~/models/BuildingApi';
 
-export const buildingTable = 'buildings';
+export const BUILDING_TABLE = 'buildings';
 export const Buildings = (transaction = db) =>
-  transaction<BuildingDBO>(buildingTable);
+  transaction<BuildingDBO>(BUILDING_TABLE);
 
 export interface BuildingDBO {
   id: string;
   housing_count: number;
   vacant_housing_count: number;
-  rent_housing_count?: number;
+  rent_housing_count: number | null;
+  rnb_id: string | null;
+  /**
+   * A score >= 0 representing the quality of the RNB ID.
+   * @see https://doc-datafoncier.cerema.fr/doc/ff/batiment/rnb_id_score
+   */
+  rnb_id_score: number | null;
 }
 
-export async function save(building: BuildingApi): Promise<void> {
+type SaveOptions = ConflictOptions<BuildingDBO>;
+
+export async function save(
+  building: BuildingApi,
+  options?: SaveOptions
+): Promise<void> {
+  await saveMany([building], options);
+}
+
+export async function saveMany(
+  buildings: ReadonlyArray<BuildingApi>,
+  options?: SaveOptions
+): Promise<void> {
   await Buildings()
-    .insert(formatBuildingApi(building))
-    .onConflict(['id'])
-    .merge(['housing_count', 'vacant_housing_count', 'rent_housing_count']);
+    .insert(buildings.map(formatBuildingApi))
+    .modify(
+      onConflict({
+        onConflict: options?.onConflict ?? ['id'],
+        merge: options?.merge ?? [
+          'housing_count',
+          'vacant_housing_count',
+          'rent_housing_count',
+          'rnb_id',
+          'rnb_id_score'
+        ]
+      })
+    );
 }
 
 export const formatBuildingApi = (building: BuildingApi): BuildingDBO => ({
   id: building.id,
   housing_count: building.housingCount,
   vacant_housing_count: building.vacantHousingCount,
-  rent_housing_count: building.rentHousingCount
+  rent_housing_count: building.rentHousingCount,
+  rnb_id: building.rnbId,
+  rnb_id_score: building.rnbIdScore
 });
 
 export const parseBuildingApi = (building: BuildingDBO): BuildingApi => ({
   id: building.id,
   housingCount: building.housing_count,
   vacantHousingCount: building.vacant_housing_count,
-  rentHousingCount: building.rent_housing_count
+  rentHousingCount: building.rent_housing_count,
+  rnbId: building.rnb_id,
+  rnbIdScore: building.rnb_id_score
 });
 
-export default {
-  save
+const buildingRepository = {
+  save,
+  saveMany
 };
+
+export default buildingRepository;

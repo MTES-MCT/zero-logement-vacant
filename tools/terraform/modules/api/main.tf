@@ -72,9 +72,8 @@ resource "clevercloud_nodejs" "api" {
   }
 
   hooks {
-    pre_build  = "corepack enable"
-    post_build = "npm i -g htpasswd && htpasswd -c -B -b queue/dist/.htpasswd $QUEUE_DASHBOARD_USERNAME $QUEUE_DASHBOARD_PASSWORD"
-    pre_run    = "corepack yarn workspace $WORKSPACE migrate"
+    pre_build = "corepack enable"
+    pre_run   = "corepack yarn workspace $WORKSPACE migrate"
   }
 
   start_script = "corepack yarn workspace $WORKSPACE start"

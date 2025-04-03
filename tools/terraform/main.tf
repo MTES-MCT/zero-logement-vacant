@@ -82,6 +82,8 @@ module "api" {
 module "queue" {
   source = "./modules/queue"
 
+  depends_on = [module.database, module.redis, module.s3]
+
   api_url                    = "${module.api.url}/api"
   auth_secret                = random_password.auth_secret.result
   database_connection_string = module.database.connection_string

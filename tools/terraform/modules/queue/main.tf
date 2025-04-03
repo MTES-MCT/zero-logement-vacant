@@ -32,8 +32,8 @@ resource "clevercloud_nodejs" "queue" {
     CC_OVERRIDE_BUILDCACHE = ".:../.cache/puppeteer"
     CC_CUSTOM_BUILD_TOOL   = "corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build "
     CC_NODE_BUILD_TOOL     = "custom"
-    CC_POST_BUILD_HOOK     = "npm i -g htpasswd && htpasswd -c -B -b queue/dist/.htpasswd $QUEUE_DASHBOARD_USERNAME $QUEUE_DASHBOARD_PASSWORD"
     CC_PRE_BUILD_HOOK      = "corepack enable"
+    CC_PRE_RUN_HOOK        = "corepack yarn workspace $WORKSPACE prestart"
     CC_RUN_COMMAND         = "corepack yarn workspace $WORKSPACE start"
 
     API_HOST                 = var.api_url

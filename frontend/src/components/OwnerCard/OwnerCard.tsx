@@ -86,7 +86,7 @@ function OwnerCard(props: OwnerCardProps) {
             />
             Adresse postale (source: Base Adresse Nationale)
           </LabelNext>
-          <Typography>{props.owner.banAddress ? formatAddress(props.owner.banAddress).join(' ') :  'Inconnue'}</Typography>
+          <Typography>{props.owner.banAddress ? formatAddress(props.owner.banAddress).join(' ') :  'Non renseigné'}</Typography>
         </Grid>
 
 

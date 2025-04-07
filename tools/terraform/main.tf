@@ -17,10 +17,6 @@ provider "clevercloud" {
   secret       = var.clevercloud_api_secret
 }
 
-# module "front" {
-#   source = "./modules/front"
-# }
-
 resource "random_password" "auth_secret" {
   length = 32
 }
@@ -61,7 +57,6 @@ module "api" {
 
   auth_secret                = random_password.auth_secret.result
   branch                     = var.branch
-  database_id                = module.database.id
   database_connection_string = module.database.connection_string
   project_name               = var.project_name
   e2e_email                  = "e2e@beta.gouv.fr"
@@ -80,6 +75,17 @@ module "api" {
     id                = module.s3.id
     secret_access_key = module.s3.key_secret
   }
+}
+
+module "front" {
+  source = "./modules/front"
+
+  depends_on = [module.api]
+
+  api_url      = module.api.url
+  branch       = var.branch
+  project_name = var.project_name
+  region       = var.region
 }
 
 module "queue" {

@@ -14,11 +14,16 @@ resource "clevercloud_static" "front" {
   max_instance_count = 1
   min_instance_count = 1
   # Set to XS after build_flavor gets fixed
-  smallest_flavor = "XS"
-  biggest_flavor  = "XS"
+  smallest_flavor = "M"
+  biggest_flavor  = "M"
   additional_vhosts = [
     "${var.project_name}-front.cleverapps.io"
   ]
+
+  deployment {
+    repository = "https://github.com/MTES-MCT/zero-logement-vacant"
+    commit     = "refs/heads/${var.branch}"
+  }
 
   environment = {
     CC_OVERRIDE_BUILDCACHE = "frontend/build/"

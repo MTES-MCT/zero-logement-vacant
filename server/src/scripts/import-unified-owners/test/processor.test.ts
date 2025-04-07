@@ -1,5 +1,9 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { List } from 'immutable';
 import { ReadableStream } from 'node:stream/web';
+import { HousingApi } from '~/models/HousingApi';
+import { AWAITING_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { DepartmentalOwnerDBO } from '~/repositories/departmentalOwnersRepository';
 
 import {
   createProcessor,
@@ -7,21 +11,20 @@ import {
   isNationalOwner,
   toPairs
 } from '~/scripts/import-unified-owners/processor';
-import { AWAITING_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { DepartmentalOwnerDBO } from '~/repositories/departmentalOwnersRepository';
 import {
   genHousingApi,
   genHousingOwnerApi,
   genOwnerApi
 } from '~/test/testFixtures';
-import { HousingApi } from '~/models/HousingApi';
 
 describe('Processor', () => {
   function createNationalHousingOwner(housing: HousingApi): HousingOwnerApi {
     const owner = genOwnerApi();
     return {
       ...genHousingOwnerApi(housing, owner),
+      idpersonne: undefined,
       idprocpte: undefined,
+      idprodroit: undefined,
       rank: AWAITING_RANK
     };
   }
@@ -104,11 +107,12 @@ describe('Processor', () => {
 
       const actual = toPairs(housingOwners);
 
-      expect(actual).toSatisfyAll<[HousingOwnerApi, HousingOwnerApi]>(
-        (pair) => {
-          return isNationalOwner(pair[0]) && isDepartmentalOwner(pair[1]);
-        }
-      );
+      expect(actual).toSatisfyAll<List<HousingOwnerApi>>((pair) => {
+        return (
+          isNationalOwner(pair.get(0) as HousingOwnerApi) &&
+          isDepartmentalOwner(pair.get(1) as HousingOwnerApi)
+        );
+      });
     });
   });
 

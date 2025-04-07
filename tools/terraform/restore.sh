@@ -16,8 +16,6 @@ BACKUP_ID=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID"
 FILE="$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .creationDate').dump"
 clever --org "$CLEVER_ORG_ID" database backups download "$CLEVER_DATABASE_ID" "$BACKUP_ID" --output "$FILE"
 
-## TODO: restaurer le dump
-
 # Restore the backup to the brand new database
 PGPASSWORD=$(terraform output -raw database_password)
 pg_restore \

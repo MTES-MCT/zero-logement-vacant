@@ -71,7 +71,7 @@ resource "clevercloud_nodejs" "api" {
 
   hooks {
     pre_build = "corepack enable"
-    pre_run   = "corepack yarn workspace $WORKSPACE migrate"
+    pre_run   = "corepack yarn workspace $WORKSPACE migrate && corepack yarn workspace $WORKSPACE seed"
   }
 
   start_script = "corepack yarn workspace $WORKSPACE start"

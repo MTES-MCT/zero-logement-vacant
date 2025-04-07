@@ -1341,10 +1341,10 @@ describe('Housing repository', () => {
       describe('by vacancy rate by building', () => {
         function createHousingByBuilding(building: BuildingApi): HousingApi[] {
           const { housingCount: total, vacantHousingCount: vacant } = building;
-          return Array.from({ length: total - vacant }).map((_, i) => ({
+          return Array.from({ length: total }).map((_, i) => ({
             ...genHousingApi(),
             buildingId: building.id,
-            occupancy: i < vacant ? Occupancy.VACANT : Occupancy.RENT
+            occupancy: i < vacant ? Occupancy.VACANT : Occupancy.UNKNOWN
           }));
         }
 
@@ -1368,19 +1368,11 @@ describe('Housing repository', () => {
             { ...genBuildingApi(), vacantHousingCount: 8, housingCount: 10 }
           ];
           await Buildings().insert(buildings.map(formatBuildingApi));
-
           const housingByBuilding: HousingApi[][] = buildings.map(
             createHousingByBuilding
           );
           const housingList = housingByBuilding.flat();
           await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            housingList.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [owner])
-            )
-          );
         });
 
         const tests = [

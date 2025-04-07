@@ -27,15 +27,18 @@ export interface HousingOwnerApi extends OwnerApi {
   locprop?: number;
 }
 
-type Incorrect = -1;
-type Awaiting = -2;
+export const AWAITING_RANK = -2 as const;
+export const INCORRECT_RANK = -1 as const;
 export const POSITIVE_RANKS = [1, 2, 3, 4, 5, 6] as const;
+
+export type IncorrectRank = typeof INCORRECT_RANK;
+export type AwaitingRank = typeof AWAITING_RANK;
 export type PositiveRank = (typeof POSITIVE_RANKS)[number];
-export type Rank = Incorrect | Awaiting | PositiveRank;
-export function isIncorrect(rank: Rank): rank is Incorrect {
+export type Rank = IncorrectRank | AwaitingRank | PositiveRank;
+export function isIncorrect(rank: Rank): rank is IncorrectRank {
   return rank === -1;
 }
-export function isAwaiting(rank: Rank): rank is Awaiting {
+export function isAwaiting(rank: Rank): rank is AwaitingRank {
   return rank === -2;
 }
 

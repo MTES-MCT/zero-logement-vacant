@@ -46,7 +46,8 @@
     "helmet": "^8.0.0",
     "htpasswd": "^2.4.6",
     "http-auth": "^4.2.0",
-    "parse-redis-url-simple": "^1.0.2"
+    "parse-redis-url-simple": "^1.0.2",
+    "ts-lint": "^4.5.1"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

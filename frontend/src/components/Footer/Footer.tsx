@@ -36,48 +36,6 @@ function Footer() {
       contentDescription="Zéro Logement Vacant aide les collectivités à mobiliser les propriétaires de logements vacants de longue durée."
       linkList={[
         {
-          categoryName: 'Liens utiles',
-          links: [
-            {
-              linkProps: {
-                to: 'mailto:contact@zerologementvacant.beta.gouv.fr'
-              },
-              text: 'Nous contacter'
-            },
-            {
-              linkProps: {
-                to: 'https://zerologementvacant.crisp.help/fr/'
-              },
-              text: 'FAQ'
-            },
-            {
-              linkProps: {
-                to: 'https://zlv.notion.site/Feuille-route-publique-Z-ro-Logement-Vacant-19355f27a5d740e4888b57027eed6441'
-              },
-              text: 'Nouveautés'
-            }
-          ]
-        },
-        { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
-        {
-          categoryName: 'Informations légales',
-          links: [
-            {
-              linkProps: {
-                to: 'https://zerologementvacant.beta.gouv.fr/mentions-legales'
-              },
-              text: 'Mentions légales & CGU'
-            },
-            {
-              linkProps: {
-                to: 'https://zerologementvacant.beta.gouv.fr/statistiques'
-              },
-              text: 'Statistiques'
-            }
-          ]
-        },
-        { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
-        {
           categoryName: 'Navigation',
           links: isAuthenticated
             ? [
@@ -114,7 +72,37 @@ function Footer() {
                   text: 'Connexion'
                 }
               ]
-        }
+        },
+        { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
+        {
+          categoryName: 'Liens utiles',
+          links: [
+            {
+              linkProps: {
+                to: 'mailto:contact@zerologementvacant.beta.gouv.fr'
+              },
+              text: 'Nous contacter'
+            },
+            {
+              linkProps: {
+                to: 'https://zerologementvacant.crisp.help/fr/'
+              },
+              text: 'Centre d’aide et guide d’utilisation'
+            },
+            {
+              linkProps: {
+                to: 'https://zlv.notion.site/Feuille-route-publique-Z-ro-Logement-Vacant-19355f27a5d740e4888b57027eed6441'
+              },
+              text: 'Nouveautés'
+            },
+            {
+              linkProps: {
+                to: 'https://zerologementvacant.beta.gouv.fr/statistiques'
+              },
+              text: 'Statistiques'
+            }
+          ]
+        },
       ]}
       partnersLogos={{
         sub: [

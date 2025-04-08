@@ -189,7 +189,7 @@ function createTransformer(opts: TransformerOptions) {
             }
         
             if (signatory.file?.content) {
-              const signatoryImage = formatImageContent(signatory.file.content);       
+              const signatoryImage = formatImageContent(signatory.file);       
               block += `<img src="${signatoryImage}" alt="Signature" style="width: 100px; margin: 10px" /><br />`;
             }
 

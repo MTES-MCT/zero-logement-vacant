@@ -1,0 +1,139 @@
+{
+    "schemas": [
+      {
+        "id": "logo",
+        "type": "image",
+        "position": { "x": 50, "y": 40 },
+        "width": 100,
+        "height": 50
+      },
+      {
+        "id": "sender_name",
+        "type": "text",
+        "position": { "x": 350, "y": 40 },
+        "width": 200,
+        "height": 20,
+        "fontSize": 10
+      },
+      {
+        "id": "sender_service",
+        "type": "text",
+        "position": { "x": 350, "y": 60 },
+        "width": 200,
+        "height": 20,
+        "fontSize": 10
+      },
+      {
+        "id": "sender_fullname",
+        "type": "text",
+        "position": { "x": 350, "y": 80 },
+        "width": 200,
+        "height": 20,
+        "fontSize": 10
+      },
+      {
+        "id": "sender_address",
+        "type": "text",
+        "position": { "x": 350, "y": 100 },
+        "width": 200,
+        "height": 40,
+        "fontSize": 10
+      },
+      {
+        "id": "sender_email",
+        "type": "text",
+        "position": { "x": 350, "y": 140 },
+        "width": 200,
+        "height": 20,
+        "fontSize": 10
+      },
+      {
+        "id": "sender_phone",
+        "type": "text",
+        "position": { "x": 350, "y": 160 },
+        "width": 200,
+        "height": 20,
+        "fontSize": 10
+      },
+      {
+        "id": "recipient_title",
+        "type": "text",
+        "position": { "x": 50, "y": 120 },
+        "width": 200,
+        "height": 20,
+        "fontSize": 12,
+        "text": "À l’attention de"
+      },
+      {
+        "id": "recipient_name",
+        "type": "text",
+        "position": { "x": 50, "y": 140 },
+        "width": 200,
+        "height": 20,
+        "fontSize": 10
+      },
+      {
+        "id": "recipient_address",
+        "type": "text",
+        "position": { "x": 50, "y": 160 },
+        "width": 200,
+        "height": 40,
+        "fontSize": 10
+      },
+      {
+        "id": "written_location",
+        "type": "text",
+        "position": { "x": 50, "y": 220 },
+        "width": 400,
+        "height": 20,
+        "fontSize": 10
+      },
+      {
+        "id": "subject",
+        "type": "text",
+        "position": { "x": 50, "y": 240 },
+        "width": 500,
+        "height": 20,
+        "fontSize": 12,
+        "fontWeight": "bold"
+      },
+      {
+        "id": "body",
+        "type": "text",
+        "position": { "x": 50, "y": 280 },
+        "width": 500,
+        "height": 400,
+        "fontSize": 12,
+        "lineHeight": 1.5
+      },
+      {
+        "id": "signatory_name",
+        "type": "text",
+        "position": { "x": 50, "y": 700 },
+        "width": 200,
+        "height": 20,
+        "fontSize": 12
+      },
+      {
+        "id": "signatory_role",
+        "type": "text",
+        "position": { "x": 50, "y": 720 },
+        "width": 200,
+        "height": 20,
+        "fontSize": 10
+      },
+      {
+        "id": "signature",
+        "type": "image",
+        "position": { "x": 50, "y": 750 },
+        "width": 150,
+        "height": 50
+      }
+    ],
+    "basePdf": {
+      "data": "",
+      "width": 595,
+      "height": 842
+    }
+  }
+  

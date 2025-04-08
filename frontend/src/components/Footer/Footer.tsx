@@ -72,7 +72,7 @@ function Footer() {
                   text: 'Connexion'
                 }
               ]
-        }
+        },
         { categoryName: '', links: [{ linkProps: { to: '' }, text: '' }] },
         {
           categoryName: 'Liens utiles',

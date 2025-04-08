@@ -158,10 +158,9 @@ async function preview(
   }
 
   const transformer = pdf.createTransformer({ logger });
-  const html = transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
+  const pdfBuffer = await transformer.generatePDF({
     subject: draft.subject,
     logo: draft.logo?.map(fp.pick(['id', 'content'])) ?? null,
-    watermark: true,
     body: draft.body
       ? replaceVariables(draft.body, {
           housing: body.housing,
@@ -194,10 +193,9 @@ async function preview(
       address: getAddress(body.owner) ?? []
     }
   });
-  const finalPDF = await transformer.fromHTML(html);
-  const buffer = await transformer.save(finalPDF);
-  response.status(constants.HTTP_STATUS_OK).type('pdf').send(buffer);
+  response.status(constants.HTTP_STATUS_OK).type('pdf').send(pdfBuffer);
 }
+
 const previewValidators: ValidationChain[] = [
   isUUIDParam('id'),
   body('housing').isObject().withMessage('housing must be an object'),

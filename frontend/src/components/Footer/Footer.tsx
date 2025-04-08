@@ -87,7 +87,7 @@ function Footer() {
               linkProps: {
                 to: 'https://zerologementvacant.crisp.help/fr/'
               },
-              text: 'Centre d'aide et guide d'utilisation'
+              text: 'Centre d’aide et guide d’utilisation'
             },
             {
               linkProps: {

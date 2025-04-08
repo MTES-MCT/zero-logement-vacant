@@ -54,4 +54,5 @@ allowed_patterns:
 - \[key\]
 - key=
 - 'key:'
+- .keys()
 version: "1.0"

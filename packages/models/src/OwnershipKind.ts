@@ -9,3 +9,10 @@ export const INTERNAL_CO_CONDOMINIUM_VALUES = [
   'CLV',
   'CV'
 ] as const;
+export const OWNERSHIP_KIND_INTERNAL_VALUES = [
+  ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+  ...INTERNAL_CO_CONDOMINIUM_VALUES
+] as const;
+
+export type OwnershipKindInternal =
+  (typeof OWNERSHIP_KIND_INTERNAL_VALUES)[number];

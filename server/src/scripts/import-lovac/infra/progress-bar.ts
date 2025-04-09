@@ -7,7 +7,10 @@ interface ProgressOptions {
 }
 
 export function progress(opts: ProgressOptions) {
-  const bar = new SingleBar({ etaBuffer: 10_000 });
+  const bar = new SingleBar({
+    etaBuffer: 10_000,
+    stopOnComplete: true
+  });
 
   return new TransformStream({
     start() {

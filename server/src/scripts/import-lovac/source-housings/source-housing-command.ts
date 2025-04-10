@@ -1,27 +1,30 @@
 import { count } from '@zerologementvacant/utils/node';
-import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
+import UserMissingError from '~/errors/userMissingError';
+import config from '~/infra/config';
+import { createLogger } from '~/infra/logger';
+import { AddressApi } from '~/models/AddressApi';
+import { HousingEventApi } from '~/models/EventApi';
+import { HousingApi, HousingId } from '~/models/HousingApi';
+import { HousingNoteApi } from '~/models/NoteApi';
+import banAddressesRepository from '~/repositories/banAddressesRepository';
+import eventRepository from '~/repositories/eventRepository';
+import housingRepository, {
+  Housing,
+  HousingRecordDBO
+} from '~/repositories/housingRepository';
+import noteRepository from '~/repositories/noteRepository';
+import userRepository from '~/repositories/userRepository';
+import { createHousingProcessor } from '~/scripts/import-lovac/housings/housing-processor';
+import { createLoggerReporter } from '~/scripts/import-lovac/infra';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import validator from '~/scripts/import-lovac/infra/validator';
 import {
   SourceHousing,
   sourceHousingSchema
 } from '~/scripts/import-lovac/source-housings/source-housing';
+import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
 import { createSourceHousingProcessor } from '~/scripts/import-lovac/source-housings/source-housing-processor';
-import { HousingApi, HousingId } from '~/models/HousingApi';
-import housingRepository, { Housing } from '~/repositories/housingRepository';
-import eventRepository from '~/repositories/eventRepository';
-import { createLogger } from '~/infra/logger';
-import { createLoggerReporter } from '~/scripts/import-lovac/infra';
-import { createHousingProcessor } from '~/scripts/import-lovac/housings/housing-processor';
-import { AddressApi } from '~/models/AddressApi';
-import banAddressesRepository from '~/repositories/banAddressesRepository';
-import { HousingEventApi } from '~/models/EventApi';
-import userRepository from '~/repositories/userRepository';
-import config from '~/infra/config';
-import UserMissingError from '~/errors/userMissingError';
 import { compactUndefined } from '~/utils/object';
-import { HousingNoteApi } from '~/models/NoteApi';
-import noteRepository from '~/repositories/noteRepository';
 
 const logger = createLogger('sourceHousingCommand');
 
@@ -103,11 +106,31 @@ export function createSourceHousingCommand() {
                   await Housing()
                     .where({ geo_code: geoCode, id })
                     .update(
-                      compactUndefined({
+                      compactUndefined<Partial<HousingRecordDBO>>({
                         data_file_years: housing.dataFileYears,
                         occupancy: housing.occupancy,
                         status: housing.status,
-                        sub_status: housing.subStatus
+                        sub_status: housing.subStatus,
+                        // Other properties
+                        building_id: housing.buildingId,
+                        building_location: housing.buildingLocation,
+                        building_year: housing.buildingYear,
+                        plot_id: housing.plotId,
+                        address_dgfip: housing.rawAddress,
+                        latitude_dgfip: housing.latitude,
+                        longitude_dgfip: housing.longitude,
+                        housing_kind: housing.housingKind,
+                        condominium: housing.ownershipKind,
+                        living_area: housing.livingArea,
+                        rooms_count: housing.roomsCount,
+                        uncomfortable: housing.uncomfortable,
+                        cadastral_classification:
+                          housing.cadastralClassification,
+                        taxed: housing.taxed,
+                        rental_value: housing.rentalValue,
+                        occupancy_source: housing.occupancyRegistered,
+                        vacancy_start_year: housing.vacancyStartYear,
+                        mutation_date: housing.mutationDate ?? undefined
                       })
                     );
                 }

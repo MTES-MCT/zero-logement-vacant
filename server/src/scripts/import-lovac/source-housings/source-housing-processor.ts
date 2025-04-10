@@ -14,8 +14,7 @@ import {
 import {
   HousingApi,
   HousingId,
-  normalizeDataFileYears,
-  OwnershipKindsApi
+  normalizeDataFileYears
 } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
@@ -73,44 +72,46 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         if (!existingHousing) {
           const housing: HousingApi = {
             id: uuidv4(),
-            invariant: '',
+            invariant: chunk.invariant,
             localId: chunk.local_id,
             buildingId: chunk.building_id,
-            rawAddress: [chunk.dgfip_address],
+            buildingLocation: chunk.building_location,
+            buildingYear: chunk.building_year ?? undefined,
+            plotId: chunk.plot_id,
             geoCode: chunk.geo_code,
+            rawAddress: [chunk.dgfip_address],
             longitude: chunk.dgfip_longitude ?? undefined,
             latitude: chunk.dgfip_latitude ?? undefined,
+            housingKind: chunk.housing_kind,
+            ownershipKind: chunk.condominium ?? undefined,
+            livingArea: chunk.living_area,
+            roomsCount: chunk.rooms_count,
+            uncomfortable: chunk.uncomfortable,
             cadastralClassification:
               (chunk.cadastral_classification as CadastralClassification) ??
               null,
-            uncomfortable: chunk.uncomfortable,
-            vacancyStartYear: chunk.vacancy_start_year,
-            housingKind: chunk.housing_kind,
-            roomsCount: chunk.rooms_count,
-            livingArea: chunk.living_area,
-            buildingYear: chunk.building_year ?? undefined,
-            mutationDate: chunk.mutation_date,
             taxed: chunk.taxed,
+            rentalValue: chunk.rental_value ?? undefined,
+            occupancy: Occupancy.VACANT,
+            occupancyRegistered: Occupancy.VACANT,
+            vacancyStartYear: chunk.vacancy_start_year,
+            mutationDate: chunk.last_mutation_date,
             deprecatedVacancyReasons: null,
             deprecatedPrecisions: null,
-            dataYears: [2023],
-            dataFileYears: ['lovac-2024'],
-            beneficiaryCount: chunk.beneficiary_count,
-            buildingLocation: chunk.location_detail,
-            ownershipKind: chunk.condominium as OwnershipKindsApi,
+            dataYears: [2024],
+            dataFileYears: ['lovac-2025'],
             status: HousingStatusApi.NeverContacted,
             energyConsumption: null,
             energyConsumptionAt: null,
-            occupancy: Occupancy.VACANT,
-            occupancyRegistered: Occupancy.VACANT,
             source: 'lovac'
           };
           await housingRepository.insert(housing);
-          if (chunk.ban_address) {
+          if (chunk.ban_label) {
             await banAddressRepository.insert({
               refId: housing.id,
               addressKind: AddressKinds.Housing,
-              label: chunk.ban_address,
+              banId: chunk.ban_id ?? undefined,
+              label: chunk.ban_label,
               postalCode: '',
               city: '',
               latitude: chunk.ban_latitude ?? undefined,
@@ -135,7 +136,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         ]);
 
         const dataFileYears = normalizeDataFileYears(
-          existingHousing.dataFileYears.concat('lovac-2024')
+          existingHousing.dataFileYears.concat('lovac-2025')
         );
         const events: HousingEventApi[] = [];
 
@@ -200,7 +201,28 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             { id: existingHousing.id, geoCode: existingHousing.geoCode },
             {
               ...changes,
-              dataFileYears
+              dataFileYears,
+              // Other updatable properties
+              buildingId: chunk.building_id,
+              buildingLocation: chunk.building_location,
+              buildingYear: chunk.building_year ?? undefined,
+              plotId: chunk.plot_id,
+              rawAddress: [chunk.dgfip_address],
+              latitude: chunk.dgfip_latitude ?? undefined,
+              longitude: chunk.dgfip_longitude ?? undefined,
+              housingKind: chunk.housing_kind,
+              ownershipKind: chunk.condominium ?? undefined,
+              livingArea: chunk.living_area,
+              roomsCount: chunk.rooms_count,
+              uncomfortable: chunk.uncomfortable,
+              cadastralClassification:
+                (chunk.cadastral_classification as CadastralClassification) ??
+                null,
+              taxed: chunk.taxed,
+              rentalValue: chunk.rental_value ?? undefined,
+              occupancyRegistered: chunk.occupancy_source,
+              vacancyStartYear: chunk.vacancy_start_year,
+              mutationDate: chunk.last_mutation_date
             }
           ),
           events.length > 0

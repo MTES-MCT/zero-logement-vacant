@@ -1,13 +1,12 @@
+import { Occupancy } from '@zerologementvacant/models';
 import { WritableStream } from 'node:stream/web';
 import { v4 as uuidv4 } from 'uuid';
-
-import { Occupancy } from '@zerologementvacant/models';
-import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 import { createLogger } from '~/infra/logger';
+import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { HousingEventApi } from '~/models/EventApi';
 import { UserApi } from '~/models/UserApi';
+import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 
 const logger = createLogger('housingProcessor');
 
@@ -38,7 +37,7 @@ export function createHousingProcessor(opts: ProcessorOptions) {
       try {
         logger.debug('Processing housing...', { chunk });
 
-        if (!chunk.dataFileYears.includes('lovac-2024')) {
+        if (!chunk.dataFileYears.includes('lovac-2025')) {
           if (chunk.occupancy === Occupancy.VACANT) {
             if (!isInProgress(chunk) && !isCompleted(chunk)) {
               await Promise.all([

@@ -143,7 +143,7 @@ describe('Source housing command', () => {
       return (housing.data_file_years?.length ?? 0) >= 2;
     });
     expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
-      return housing.data_file_years?.includes('lovac-2024') ?? false;
+      return housing.data_file_years?.includes('lovac-2025') ?? false;
     });
   });
 });

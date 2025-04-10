@@ -7,7 +7,7 @@ import {
 } from 'node:stream/web';
 import { AsyncOrSync } from 'ts-essentials';
 
-import { Predicate } from './compare';
+import { Eq, Predicate } from './compare';
 
 interface ChunkifyOptions {
   /**
@@ -32,6 +32,39 @@ export function chunkify<A>(options?: ChunkifyOptions) {
     flush(controller) {
       if (chunk.length > 0) {
         controller.enqueue([...chunk]);
+      }
+    }
+  });
+}
+
+/**
+ * The stream must be ordered.
+ * @param equals A function that checks if two elements are in the same group.
+ */
+export function groupBy<A>(equals: Eq<A>) {
+  const as: A[] = [];
+
+  return new TransformStream<A, ReadonlyArray<A>>({
+    transform(a, controller) {
+      const previous: A | null = as.at(as.length - 1) ?? null;
+
+      if (previous === null) {
+        as.push(a);
+        return;
+      }
+
+      if (equals(previous, a)) {
+        as.push(a);
+        return;
+      }
+
+      controller.enqueue([...as]);
+      as.length = 0;
+      as.push(a);
+    },
+    flush(controller) {
+      if (as.length > 0) {
+        controller.enqueue([...as]);
       }
     }
   });

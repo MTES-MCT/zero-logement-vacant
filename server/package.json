@@ -88,7 +88,6 @@
     "redis": "^4.7.0",
     "shpjs": "^4.0.4",
     "ts-essentials": "^10.0.2",
-    "ts-lint": "^4.5.1",
     "ts-pattern": "^5.4.0",
     "unzip-stream": "^0.3.4",
     "uuid": "^9.0.1",

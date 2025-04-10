@@ -750,26 +750,22 @@ function filteredQuery(opts: FilteredQueryOptions) {
     }
     if (filters.vacancyRates?.length) {
       queryBuilder.where((where) => {
+        const safeExpr = 'housing_count > 0 AND vacant_housing_count * 100.0 / housing_count';
+    
         if (filters.vacancyRates?.includes('lt20')) {
-          where.orWhereRaw('vacant_housing_count * 100 / housing_count < 20');
+          where.orWhereRaw(`${safeExpr} < 20`);
         }
         if (filters.vacancyRates?.includes('20to39')) {
-          where.orWhereRaw(
-            'vacant_housing_count * 100 / housing_count between 20 and 39'
-          );
+          where.orWhereRaw(`${safeExpr} BETWEEN 20 AND 39`);
         }
         if (filters.vacancyRates?.includes('40to59')) {
-          where.orWhereRaw(
-            'vacant_housing_count * 100 / housing_count between 40 and 59'
-          );
+          where.orWhereRaw(`${safeExpr} BETWEEN 40 AND 59`);
         }
         if (filters.vacancyRates?.includes('60to79')) {
-          where.orWhereRaw(
-            'vacant_housing_count * 100 / housing_count between 60 and 79'
-          );
+          where.orWhereRaw(`${safeExpr} BETWEEN 60 AND 79`);
         }
         if (filters.vacancyRates?.includes('gte80')) {
-          where.orWhereRaw('vacant_housing_count * 100 / housing_count >= 80');
+          where.orWhereRaw(`${safeExpr} >= 80`);
         }
       });
     }

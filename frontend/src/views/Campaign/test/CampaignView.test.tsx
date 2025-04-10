@@ -275,7 +275,7 @@ describe('Campaign view', () => {
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
     const [edit] = await screen.findAllByRole('button', {
-      name: /^Éditer l’adresse/
+      name: /^Éditer/
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');
@@ -297,7 +297,7 @@ describe('Campaign view', () => {
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
     const [edit] = await screen.findAllByRole('button', {
-      name: /^Éditer l’adresse/
+      name: /^Éditer/
     });
     await user.click(edit);
     const [aside] = await screen.findAllByRole('complementary');

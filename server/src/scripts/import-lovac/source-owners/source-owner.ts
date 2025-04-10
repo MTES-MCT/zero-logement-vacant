@@ -18,7 +18,7 @@ export const sourceOwnerSchema: ObjectSchema<SourceOwner> = object({
   idpersonne: string().required('idpersonne is required'),
   full_name: string().required('full_name is required'),
   dgfip_address: string().required('dgfip_address is required'),
-  ownership_type: string().required('kind_class is required'),
+  ownership_type: string().required('ownership_type is required'),
   birth_date: date()
     .defined('birth_date must be defined')
     .transform(toDate)

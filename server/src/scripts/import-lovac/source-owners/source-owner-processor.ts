@@ -1,13 +1,13 @@
 import { WritableStream } from 'node:stream/web';
 import { v4 as uuidv4 } from 'uuid';
-
-import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
+import { createLogger } from '~/infra/logger';
+import { OwnerDBO } from '~/repositories/ownerRepository';
 import {
   ReporterError,
   ReporterOptions
 } from '~/scripts/import-lovac/infra/reporters';
-import { createLogger } from '~/infra/logger';
-import { OwnerDBO } from '~/repositories/ownerRepository';
+
+import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
 const logger = createLogger('sourceOwnerProcessor');
 
@@ -35,7 +35,7 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
           additional_address: null,
           email: null,
           phone: null,
-          data_source: 'lovac-2024',
+          data_source: 'lovac-2025',
           kind_class: chunk.ownership_type,
           owner_kind_detail: null,
           created_at: now,

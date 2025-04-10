@@ -59,3 +59,21 @@ You had it when you logged in with the Clever Cloud CLI.
 ```shell
 clever -o $CLEVER_ORG_ID addon list
 ```
+
+## Limitations
+
+### Database deployment
+
+The postgresql database is deployed in the `dev`
+flavor because other flavors do not work using terraform.
+This is a limitation of the Clever Cloud API and their terraform provider.
+One must **manually change the flavor** of the database after the deployment.
+
+### API deployment
+
+Due to the previous limitation, the API tries to
+migrate the database, which in `dev` flavor is limited on the number of
+simultaneous connections.
+As a result, the first API deployment fails.
+One must **manually restart the API deployment** after having upgraded the
+database flavor.

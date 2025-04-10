@@ -61,6 +61,7 @@ resource "clevercloud_nodejs" "api" {
     S3_REGION            = var.s3.region
     S3_SECRET_ACCESS_KEY = var.s3.secret_access_key
     SENTRY_ENABLED       = "false"
+    TEST_PASSWORD        = "test"
     TZ                   = "Etc/UTC"
     WORKSPACE            = "@zerologementvacant/server"
 

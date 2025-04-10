@@ -1,13 +1,17 @@
 import { ReadableStream, WritableStream } from 'node:stream/web';
+import { HousingEventApi } from '~/models/EventApi';
+import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { HousingNoteApi } from '~/models/NoteApi';
+import { UserApi } from '~/models/UserApi';
+import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
+import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
+import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 
 import {
   createSourceHousingProcessor,
   ProcessorOptions
 } from '~/scripts/import-lovac/source-housings/source-housing-processor';
-import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
-import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
-import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
-import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
 import {
   genEstablishmentApi,
   genHousingApi,
@@ -15,10 +19,6 @@ import {
   genHousingNoteApi,
   genUserApi
 } from '~/test/testFixtures';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { HousingEventApi } from '~/models/EventApi';
-import { HousingNoteApi } from '~/models/NoteApi';
-import { UserApi } from '~/models/UserApi';
 
 describe('Source housing processor', () => {
   const establishment = genEstablishmentApi();
@@ -88,7 +88,7 @@ describe('Source housing processor', () => {
       expect(housingRepository.insert).toHaveBeenCalledOnce();
       expect(housingRepository.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          dataFileYears: ['lovac-2024'],
+          dataFileYears: ['lovac-2025'],
           occupancy: OccupancyKindApi.Vacant,
           status: HousingStatusApi.NeverContacted
         })
@@ -99,7 +99,7 @@ describe('Source housing processor', () => {
       expect(banAddressRepository.insert).toHaveBeenCalledOnce();
       expect(banAddressRepository.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          label: sourceHousing.ban_address,
+          label: sourceHousing.ban_label,
           latitude: sourceHousing.ban_latitude,
           longitude: sourceHousing.ban_longitude,
           score: sourceHousing.ban_score
@@ -141,14 +141,14 @@ describe('Source housing processor', () => {
       });
     });
 
-    it('should add "lovac-2024" to data file years in all cases', async () => {
+    it('should add "lovac-2025" to data file years in all cases', async () => {
       await stream.pipeTo(processor);
 
       expect(housingRepository.update).toHaveBeenCalledOnce();
       expect(housingRepository.update).toHaveBeenCalledWith(
         { geoCode: housing.geoCode, id: housing.id },
         expect.objectContaining({
-          dataFileYears: expect.arrayContaining(['lovac-2024'])
+          dataFileYears: expect.arrayContaining(['lovac-2025'])
         })
       );
     });
@@ -172,7 +172,7 @@ describe('Source housing processor', () => {
           expect(housingRepository.update).toHaveBeenCalledWith(
             { geoCode: housing.geoCode, id: housing.id },
             {
-              dataFileYears: expect.arrayContaining(['lovac-2024']),
+              dataFileYears: expect.arrayContaining(['lovac-2025']),
               occupancy: OccupancyKindApi.Vacant,
               status: HousingStatusApi.NeverContacted,
               subStatus: null
@@ -202,7 +202,7 @@ describe('Source housing processor', () => {
         expect(housingRepository.update).toHaveBeenCalledWith(
           { geoCode: housing.geoCode, id: housing.id },
           {
-            dataFileYears: expect.arrayContaining(['lovac-2024']),
+            dataFileYears: expect.arrayContaining(['lovac-2025']),
             occupancy: OccupancyKindApi.Vacant,
             status: HousingStatusApi.NeverContacted,
             subStatus: null

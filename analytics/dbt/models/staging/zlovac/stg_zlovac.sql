@@ -1,5 +1,5 @@
 with source as (
-    select * FROM {{ source ('duckdb_raw', 'raw_lovac_2024') }}
+    select * FROM {{ ref('stg_lovac_2025') }}
 ),
 
 cleaned_data as (
@@ -14,9 +14,8 @@ cleaned_data as (
         loc_num, -- TODO: Concatener loc_num + loc_voie + libvoie + libcom
         ban_result_score,
         ban_result_label,
-        ban_postcode,
         ban_result_id,
-        ff_idcom,
+        idcom,
         TRY_CAST(ban_latitude as DOUBLE) as ban_latitude,
         TRY_CAST(ban_longitude as DOUBLE) as ban_longitude,
         REGEXP_REPLACE(
@@ -64,7 +63,6 @@ cleaned_data as (
         aff,
         CAST(vl_revpro as INTEGER) as vl_revpro,
         potentiel_tlv_thlv,
-        ff_geomloc,
         -- DVF
         dvf_datemut,
         dvf_nblocmut,
@@ -180,4 +178,3 @@ cleaned_data as (
 select * from cleaned_data
 QUALIFY
 ROW_NUMBER () OVER (PARTITION BY local_id ORDER BY mutation_date DESC) = 1
--- LIMIT 10000

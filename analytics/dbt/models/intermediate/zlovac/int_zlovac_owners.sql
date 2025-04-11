@@ -1,6 +1,5 @@
 WITH all_owners AS (
-    SELECT DISTINCT
-        owner_idpersonne,
+    SELECT DISTINCT ON (owner_idpersonne),
         owner_idprodroit,
         owner_fullname,
         owner_address,

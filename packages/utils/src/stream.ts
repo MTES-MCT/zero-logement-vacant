@@ -7,13 +7,28 @@ import {
 } from 'node:stream/web';
 import { AsyncOrSync } from 'ts-essentials';
 
-import { Eq, Predicate } from './compare';
+import { Eq, Predicate, Refinement } from './compare';
 
 interface ChunkifyOptions {
   /**
    * @default 1000
    */
   size?: number;
+}
+
+export async function collect<A>(
+  stream: ReadableStream<A>
+): Promise<ReadonlyArray<A>> {
+  const as: A[] = [];
+
+  await stream.pipeTo(
+    new WritableStream({
+      write(a: A) {
+        as.push(a);
+      }
+    })
+  );
+  return as;
 }
 
 export function chunkify<A>(options?: ChunkifyOptions) {
@@ -111,6 +126,16 @@ export function map<A, B>(f: (a: A) => AsyncOrSync<B>) {
   });
 }
 
+export function flatten<A>() {
+  return new TransformStream<ReadonlyArray<A>, A>({
+    transform(as, controller) {
+      as.forEach((a) => {
+        controller.enqueue(a);
+      });
+    }
+  });
+}
+
 export function tap<A>(f: (a: A, i: number) => AsyncOrSync<void>) {
   let i = 0;
   return new TransformStream<A, A>({
@@ -140,7 +165,13 @@ export function reduce<A>(f: (b: A, a: A) => AsyncOrSync<A>) {
   });
 }
 
-export function filter<A>(predicate: Predicate<A>): TransformStream<A, A> {
+export function filter<A, B extends A>(
+  refinement: Refinement<A, B>
+): TransformStream<A, B>;
+export function filter<A>(predicate: Predicate<A>): TransformStream<A, A>;
+export function filter<A>(
+  predicate: Predicate<A>
+): TransformStream<A, unknown> {
   return new TransformStream({
     async transform(a, controller) {
       if (predicate(a)) {

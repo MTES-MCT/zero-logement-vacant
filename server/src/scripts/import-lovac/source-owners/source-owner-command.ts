@@ -2,6 +2,7 @@ import { isNotNull } from '@zerologementvacant/utils';
 import { chunkify, count, filter, map } from '@zerologementvacant/utils/node';
 import { Readable } from 'node:stream';
 import { WritableStream } from 'node:stream/web';
+import config from '~/infra/config';
 import db, { countQuery } from '~/infra/database';
 
 import { createLogger } from '~/infra/logger';
@@ -19,8 +20,8 @@ import {
   SourceOwner,
   sourceOwnerSchema
 } from '~/scripts/import-lovac/source-owners/source-owner';
-import createSourceOwnerFileRepository from '~/scripts/import-lovac/source-owners/source-owner-file-repository';
 import sourceOwnerProcessor from '~/scripts/import-lovac/source-owners/source-owner-processor';
+import createSourceOwnerS3Repository from '~/scripts/import-lovac/source-owners/source-owner-s3-repository';
 
 const logger = createLogger('sourceOwnerCommand');
 
@@ -51,13 +52,16 @@ export function createSourceOwnerCommand() {
 
       logger.info('Computing total...');
       const total = await count(
-        createSourceOwnerFileRepository(file).stream({
+        createSourceOwnerS3Repository(file, config.s3).stream({
           departments: options.departments
         })
       );
 
       logger.info('Starting import...', { file });
-      const [createes, updatees] = createSourceOwnerFileRepository(file)
+      const [createes, updatees] = createSourceOwnerS3Repository(
+        file,
+        config.s3
+      )
         .stream({ departments: options.departments })
         .pipeThrough(
           progress({
@@ -193,7 +197,7 @@ export async function update(
   logger.debug(
     `Updating ${changes.length} owners from "${TEMPORARY_TABLE}"...`
   );
-  const query = Owners()
+  await Owners()
     .updateFrom(TEMPORARY_TABLE)
     .update({
       full_name: db.ref(`${TEMPORARY_TABLE}.full_name`),
@@ -214,8 +218,4 @@ export async function update(
       `${TEMPORARY_TABLE}.id`,
       changes.map((change) => change.id)
     );
-
-  console.log(query.toQuery());
-
-  await query;
 }

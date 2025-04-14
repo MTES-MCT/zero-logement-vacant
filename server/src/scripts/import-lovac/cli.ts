@@ -1,11 +1,11 @@
 import commander from '@commander-js/extra-typings';
 
 import { createLogger } from '~/infra/logger';
+import { createHistoryCommand } from '~/scripts/import-lovac/history/history-command';
+import { createSourceBuildingCommand } from '~/scripts/import-lovac/source-buildings/source-building-command';
+import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
 import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
 import { createSourceOwnerCommand } from '~/scripts/import-lovac/source-owners/source-owner-command';
-import { createHistoryCommand } from '~/scripts/import-lovac/history/history-command';
-import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
-import { createSourceBuildingCommand } from '~/scripts/import-lovac/source-buildings/source-building-command';
 
 const logger = createLogger('cli');
 
@@ -55,7 +55,7 @@ program
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createSourceOwnerCommand();
-    await command(file, options).finally(() => {
+    await command(file, options).then(() => {
       process.exit();
     });
   });

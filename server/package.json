@@ -22,6 +22,7 @@
     "@commander-js/extra-typings": "^12.1.0",
     "@elastic/elasticsearch": "^8.15.0",
     "@faker-js/faker": "^8.4.1",
+    "@fast-csv/parse": "^5.0.2",
     "@getbrevo/brevo": "^1.0.1",
     "@godaddy/terminus": "^4.12.1",
     "@sendinblue/client": "^3.3.1",

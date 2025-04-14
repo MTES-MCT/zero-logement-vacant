@@ -1,4 +1,5 @@
 import { LocalityKind } from '@zerologementvacant/models';
+import { string } from 'joi';
 import { Knex } from 'knex';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
@@ -16,6 +17,7 @@ const logger = createLogger('localityRepository');
 
 interface LocalityFilters {
   establishmentId?: string;
+  geoCode?: string;
 }
 
 interface FindOptions {
@@ -51,6 +53,9 @@ function filterQuery(filters?: LocalityFilters) {
           .where({ id: filters.establishmentId })
       );
     }
+    if(filters?.geoCode) {
+      query.where('geo_code', filters.geoCode);
+    }
   };
 }
 
@@ -72,6 +77,11 @@ async function update(localityApi: LocalityApi): Promise<LocalityApi> {
     .update({ tax_rate: tax_rate ?? db.raw('null'), tax_kind })
     .returning('*')
     .then((_) => parseLocalityApi(_[0]));
+}
+
+async function remove(localityId: string): Promise<void> {
+  logger.info('Remove locality', id);
+  await Localities().where({ id }).del();
 }
 
 export const formatLocalityApi = (locality: LocalityApi): LocalityDBO => ({
@@ -96,5 +106,6 @@ export default {
   find,
   get,
   formatLocalityApi,
-  update
+  update,
+  remove
 };

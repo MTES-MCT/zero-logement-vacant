@@ -5,6 +5,7 @@ export interface AuthUser {
   user: User;
   accessToken: string;
   establishment: Establishment;
+  jimoData: object;
 }
 
 export interface User {

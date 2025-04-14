@@ -1,12 +1,12 @@
-import { parse as parseJSONL } from 'jsonlines';
 import { parse as parseCSV } from 'csv-parse';
+import { parse as parseJSONL } from 'jsonlines';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
+import { createLogger } from '~/infra/logger';
 
 import { SourceRepository } from '~/scripts/import-lovac/infra/source-repository';
-import { createLogger } from '~/infra/logger';
 
 const ALLOWED_EXTENSIONS = ['.csv', '.jsonl'] as const;
 type Extension = (typeof ALLOWED_EXTENSIONS)[number];
@@ -27,7 +27,9 @@ export abstract class SourceFileRepository<A> implements SourceRepository<A> {
   stream(): ReadableStream<A> {
     const extension = path.extname(this.file);
     if (!extension.length || !isAllowedExtension(extension)) {
-      throw new Error('Bad file extension');
+      throw new Error(
+        `Allowed file extensions: ${ALLOWED_EXTENSIONS.join(', ')}`
+      );
     }
 
     const parsers: Record<Extension, () => Transform> = {

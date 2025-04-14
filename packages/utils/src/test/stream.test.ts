@@ -1,8 +1,10 @@
 import { ReadableStream } from 'node:stream/web';
 import {
   chunkify,
+  collect,
   countLines,
   filter,
+  flatten,
   groupBy,
   map,
   reduce,
@@ -10,19 +12,23 @@ import {
 } from '../stream';
 
 describe('Stream', () => {
-  async function collect<A>(
-    stream: ReadableStream<A>
-  ): Promise<ReadonlyArray<A>> {
-    const as: A[] = [];
-    await stream.pipeTo(
-      new WritableStream({
-        write(a: A) {
-          as.push(a);
+  describe('collect', () => {
+    it('should collect items into an array', async () => {
+      const items = [1, 2, 3];
+      const stream = new ReadableStream<number>({
+        start(controller) {
+          items.forEach((item) => {
+            controller.enqueue(item);
+          });
+          controller.close();
         }
-      })
-    );
-    return as;
-  }
+      });
+
+      const actual = await collect(stream);
+
+      expect(actual).toStrictEqual(items);
+    });
+  });
 
   describe('groupBy', () => {
     it('should group items using an equality function', async () => {
@@ -115,6 +121,25 @@ describe('Stream', () => {
 
       const actual = await collect(mapped);
       expect(actual).toStrictEqual([2, 4, 6]);
+    });
+  });
+
+  describe('flatten', () => {
+    it('should flatten by one level', async () => {
+      const items = [[1], [2], [3]];
+      const stream = new ReadableStream<number[]>({
+        start(controller) {
+          items.forEach((item) => {
+            controller.enqueue(item);
+          });
+          controller.close();
+        }
+      });
+
+      const mapped = stream.pipeThrough(flatten());
+
+      const actual = await collect(mapped);
+      expect(actual).toStrictEqual([1, 2, 3]);
     });
   });
 

@@ -80,8 +80,8 @@ async function update(localityApi: LocalityApi): Promise<LocalityApi> {
 }
 
 async function remove(localityId: string): Promise<void> {
-  logger.info('Remove locality', id);
-  await Localities().where({ id }).del();
+  logger.info('Remove locality', localityId);
+  await Localities().where({ id: localityId }).del();
 }
 
 export const formatLocalityApi = (locality: LocalityApi): LocalityDBO => ({

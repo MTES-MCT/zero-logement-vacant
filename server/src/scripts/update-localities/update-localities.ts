@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { parse } from '@fast-csv/parse';
+import { parse } from 'csv-parse';
 import localityRepository from '~/repositories/localityRepository';
 import db from '~/infra/database';
 
@@ -13,22 +13,19 @@ type Row = {
 async function processCSV(filePath: string, dummy = true) {
   const rows: Row[] = [];
 
-  await new Promise<void>((resolve, reject) => {
-    fs.createReadStream(filePath)
-      .pipe(parse({ headers: false, delimiter: ';' }))
-      .on('error', reject)
-      .on('data', (row: string[]) => {
-        const oldInsee = row[0]?.trim();
-        const insee = row[1]?.trim();
-        const city = row[2]?.trim();
+  const parser = fs.createReadStream(filePath).pipe(
+    parse({ delimiter: ';', trim: true, skip_empty_lines: true })
+  );
 
-        rows.push({ oldInsee, insee, city });
-      })
-      .on('end', () => {
-        console.log(`📄 ${rows.length} rows read from the CSV`);
-        resolve();
-      });
-  });
+  for await (const row of parser) {
+    const oldInsee = row[0]?.trim();
+    const insee = row[1]?.trim();
+    const city = row[2]?.trim();
+
+    rows.push({ oldInsee, insee, city });
+  }
+
+  console.log(`📄 ${rows.length} rows read from the CSV`);
 
   let count = 0;
   for (const { oldInsee, insee, city } of rows) {
@@ -49,7 +46,7 @@ async function processCSV(filePath: string, dummy = true) {
             ...locality,
             name: city,
             geoCode: insee,
-          })
+          });
           try {
             await db.raw(
               `UPDATE localities SET name = ?, geo_code = ? WHERE id = ?`,
@@ -64,7 +61,7 @@ async function processCSV(filePath: string, dummy = true) {
               throw err;
             }
           }
-          
+
           console.log(`✅ ${city} updated — INSEE: ${locality.geoCode} (${locality.name}) ➡️ ${insee} (${city})`);
         }
       } else if (matches.length > 1) {

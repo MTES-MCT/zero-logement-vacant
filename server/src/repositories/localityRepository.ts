@@ -1,5 +1,4 @@
 import { LocalityKind } from '@zerologementvacant/models';
-import { string } from 'joi';
 import { Knex } from 'knex';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';

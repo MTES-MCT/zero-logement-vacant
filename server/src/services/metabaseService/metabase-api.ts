@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 

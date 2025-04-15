@@ -17,7 +17,7 @@ function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
   if (isAuthenticated) {
     if (config.jimo.enabled && user) {
       window['jimo'].push(['do', 'identify', [user.id]]);
-      window['jimo'].push([ 'set', 'user:attributes', [ jimoData ]])
+      window['jimo'].push([ 'set', 'user:attributes', [ jimoData ]]);
     }
     return props.children;
   }

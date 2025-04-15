@@ -60,7 +60,8 @@ export function genAuthUser(): AuthUser {
       shortName: randomstring.generate(),
       geoCodes: [faker.location.zipCode()],
       source: 'manual'
-    }
+    },
+    jimoData: {}
   };
 }
 

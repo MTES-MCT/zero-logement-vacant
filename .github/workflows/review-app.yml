@@ -116,6 +116,8 @@ jobs:
           clever env set MAILER_PASSWORD $MAILER_PASSWORD -a $APP_ALIAS
           clever env set MAILER_PROVIDER "nodemailer" -a $APP_ALIAS
           clever env set TEST_PASSWORD $TEST_PASSWORD -a $APP_ALIAS
+          clever env set METABASE_DOMAIN $METABASE_DOMAIN -a $APP_ALIAS
+          clever env set METABASE_API_TOKEN $METABASE_API_TOKEN -a $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor M -a $APP_ALIAS

@@ -9,6 +9,6 @@ terraform {
 
 resource "clevercloud_postgresql" "postgresql" {
   name   = "${var.project_name}-postgres"
-  plan   = "l_big"
+  plan   = "l_gnt"
   region = var.region
 }

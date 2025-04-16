@@ -16,7 +16,7 @@ interface ChunkifyOptions {
   size?: number;
 }
 
-export async function collect<A>(
+export async function toArray<A>(
   stream: ReadableStream<A>
 ): Promise<ReadonlyArray<A>> {
   const as: A[] = [];
@@ -179,4 +179,15 @@ export function filter<A>(
       }
     }
   });
+}
+
+export class StreamCounter<A> extends TransformStream<A, A> {
+  constructor(public count = 0) {
+    super({
+      transform(a, controller) {
+        count++;
+        controller.enqueue(a);
+      }
+    });
+  }
 }

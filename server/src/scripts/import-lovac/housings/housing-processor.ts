@@ -1,5 +1,5 @@
 import { Occupancy } from '@zerologementvacant/models';
-import { WritableStream } from 'node:stream/web';
+import { map } from '@zerologementvacant/utils/node';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '~/infra/logger';
 import { HousingEventApi } from '~/models/EventApi';
@@ -12,108 +12,115 @@ const logger = createLogger('housingProcessor');
 
 export interface ProcessorOptions extends ReporterOptions<HousingApi> {
   auth: UserApi;
-  housingRepository: {
-    update(
-      id: Pick<HousingApi, 'geoCode' | 'id'>,
-      housing: Pick<HousingApi, 'occupancy' | 'status' | 'subStatus'>
-    ): Promise<void>;
-  };
-  housingEventRepository: {
-    insert(event: HousingEventApi): Promise<void>;
-  };
 }
 
+interface Change<Value, Type extends string> {
+  type: Type;
+  kind: 'create' | 'update' | 'delete';
+  value: Value;
+}
+
+export type HousingChange = Change<HousingApi, 'housing'>;
+export type HousingEventChange = Change<HousingEventApi, 'event'>;
+export type Changes = HousingChange | HousingEventChange;
+
 export function createHousingProcessor(opts: ProcessorOptions) {
-  const {
-    abortEarly,
-    auth,
-    housingRepository,
-    housingEventRepository,
-    reporter
-  } = opts;
+  const { abortEarly, auth, reporter } = opts;
 
-  return new WritableStream<HousingApi>({
-    async write(chunk) {
-      try {
-        logger.debug('Processing housing...', { chunk });
+  return map<HousingApi, ReadonlyArray<Changes>>(async (housing) => {
+    try {
+      logger.debug('Processing housing...', { housing });
 
-        if (!chunk.dataFileYears.includes('lovac-2025')) {
-          if (chunk.occupancy === Occupancy.VACANT) {
-            if (!isInProgress(chunk) && !isCompleted(chunk)) {
-              await Promise.all([
-                housingRepository.update(
-                  { geoCode: chunk.geoCode, id: chunk.id },
-                  {
-                    occupancy: Occupancy.UNKNOWN,
-                    status: HousingStatusApi.Completed,
-                    subStatus: 'Sortie de la vacance'
-                  }
-                ),
-                housingEventRepository.insert({
+      if (!housing.dataFileYears.includes('lovac-2025')) {
+        if (housing.occupancy === Occupancy.VACANT) {
+          if (!isInProgress(housing) && !isCompleted(housing)) {
+            const changes: ReadonlyArray<Changes> = [
+              {
+                type: 'housing',
+                kind: 'update',
+                value: {
+                  ...housing,
+                  occupancy: Occupancy.UNKNOWN,
+                  status: HousingStatusApi.Completed,
+                  subStatus: 'Sortie de la vacance'
+                }
+              },
+              {
+                type: 'event',
+                kind: 'create',
+                value: {
                   id: uuidv4(),
                   name: 'Changement de statut d’occupation',
                   kind: 'Update',
                   category: 'Followup',
                   section: 'Situation',
                   conflict: false,
-                  old: chunk,
-                  new: { ...chunk, occupancy: Occupancy.UNKNOWN },
+                  // Retain only the interesting values
+                  old: { occupancy: housing.occupancy } as HousingApi,
+                  new: { occupancy: Occupancy.UNKNOWN } as HousingApi,
                   createdAt: new Date(),
                   createdBy: auth.id,
-                  housingId: chunk.id,
-                  housingGeoCode: chunk.geoCode
-                }),
-                housingEventRepository.insert({
+                  housingId: housing.id,
+                  housingGeoCode: housing.geoCode
+                }
+              },
+              {
+                type: 'event',
+                kind: 'create',
+                value: {
                   id: uuidv4(),
                   name: 'Changement de statut de suivi',
                   kind: 'Update',
                   category: 'Followup',
                   section: 'Situation',
                   conflict: false,
-                  // This event should come after the above one
-                  old: { ...chunk, occupancy: Occupancy.UNKNOWN },
+                  // Retain only the interesting values
+                  old: {
+                    status: housing.status,
+                    subStatus: housing.subStatus
+                  } as HousingApi,
                   new: {
-                    ...chunk,
-                    occupancy: Occupancy.UNKNOWN,
                     status: HousingStatusApi.Completed,
                     subStatus: 'Sortie de la vacance'
-                  },
+                  } as HousingApi,
                   createdAt: new Date(),
                   createdBy: auth.id,
-                  housingId: chunk.id,
-                  housingGeoCode: chunk.geoCode
-                })
-              ]);
-
-              reporter.passed(chunk);
-              return;
-            }
+                  housingId: housing.id,
+                  housingGeoCode: housing.geoCode
+                }
+              }
+            ];
+            reporter.passed(housing);
+            return changes;
           }
         }
-
-        reporter.skipped(chunk);
-      } catch (error) {
-        reporter.failed(
-          chunk,
-          new ReporterError((error as Error).message, chunk)
-        );
-
-        if (abortEarly) {
-          throw error;
-        }
       }
+
+      reporter.skipped(housing);
+      return [];
+    } catch (error) {
+      reporter.failed(
+        housing,
+        new ReporterError((error as Error).message, housing)
+      );
+
+      if (abortEarly) {
+        throw error;
+      }
+
+      return [];
     }
   });
 }
 
-export function isInProgress(chunk: HousingApi): boolean {
+export function isInProgress(housing: HousingApi): boolean {
   return (
-    chunk.status === HousingStatusApi.InProgress &&
-    !!chunk.subStatus &&
-    ['En accompagnement', 'Intervention publique'].includes(chunk.subStatus)
+    housing.status === HousingStatusApi.InProgress &&
+    !!housing.subStatus &&
+    ['En accompagnement', 'Intervention publique'].includes(housing.subStatus)
   );
 }
 
-export function isCompleted(chunk: HousingApi): boolean {
-  return chunk.status === HousingStatusApi.Completed;
+export function isCompleted(housing: HousingApi): boolean {
+  return housing.status === HousingStatusApi.Completed;
 }

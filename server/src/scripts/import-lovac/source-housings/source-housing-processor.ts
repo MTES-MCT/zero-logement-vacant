@@ -3,7 +3,7 @@ import {
   CadastralClassification,
   Occupancy
 } from '@zerologementvacant/models';
-import { WritableStream } from 'node:stream/web';
+import { map } from '@zerologementvacant/utils/node';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
@@ -27,13 +27,28 @@ import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-hou
 
 const logger = createLogger('sourceHousingProcessor');
 
+/**
+ * @example
+ * Change<SourceHousing, 'housing'>
+ */
+interface Change<Value, Type extends string> {
+  type: Type;
+  kind: 'create' | 'update' | 'delete';
+  value: Value;
+}
+
+export type HousingChange = Change<HousingApi, 'housing'>;
+export type HousingEventChange = Change<HousingEventApi, 'event'>;
+export type AddressChange = Change<AddressApi, 'address'>;
+
+export type SourceHousingChange =
+  | HousingChange
+  | HousingEventChange
+  | AddressChange;
+
 export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
   auth: UserApi;
-  banAddressRepository: {
-    insert(address: AddressApi): Promise<void>;
-  };
   housingEventRepository: {
-    insertMany(events: HousingEventApi[]): Promise<void>;
     find(id: HousingId): Promise<ReadonlyArray<HousingEventApi>>;
   };
   housingNoteRepository: {
@@ -41,11 +56,6 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
   };
   housingRepository: {
     findOne(geoCode: string, localId: string): Promise<HousingApi | null>;
-    insert(housing: HousingApi): Promise<void>;
-    update(
-      id: Pick<HousingApi, 'geoCode' | 'id'>,
-      housing: Partial<HousingApi>
-    ): Promise<void>;
   };
 }
 
@@ -53,74 +63,88 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
   const {
     abortEarly,
     auth,
-    banAddressRepository,
     housingEventRepository,
     housingNoteRepository,
     housingRepository,
     reporter
   } = opts;
 
-  return new WritableStream<SourceHousing>({
-    async write(chunk) {
+  return map<SourceHousing, ReadonlyArray<SourceHousingChange>>(
+    async (sourceHousing) => {
       try {
-        logger.debug('Processing source housing...', { chunk });
+        logger.debug('Processing source housing...', { sourceHousing });
 
         const existingHousing = await housingRepository.findOne(
-          chunk.geo_code,
-          chunk.local_id
+          sourceHousing.geo_code,
+          sourceHousing.local_id
         );
         if (!existingHousing) {
           const housing: HousingApi = {
             id: uuidv4(),
-            invariant: chunk.invariant,
-            localId: chunk.local_id,
-            buildingId: chunk.building_id,
-            buildingLocation: chunk.building_location,
-            buildingYear: chunk.building_year ?? undefined,
-            plotId: chunk.plot_id,
-            geoCode: chunk.geo_code,
-            rawAddress: [chunk.dgfip_address],
-            longitude: chunk.dgfip_longitude ?? undefined,
-            latitude: chunk.dgfip_latitude ?? undefined,
-            housingKind: chunk.housing_kind,
-            ownershipKind: chunk.condominium ?? undefined,
-            livingArea: chunk.living_area,
-            roomsCount: chunk.rooms_count,
-            uncomfortable: chunk.uncomfortable,
-            cadastralClassification:
-              (chunk.cadastral_classification as CadastralClassification) ??
-              null,
-            taxed: chunk.taxed,
-            rentalValue: chunk.rental_value ?? undefined,
+            invariant: sourceHousing.invariant,
+            localId: sourceHousing.local_id,
+            buildingId: sourceHousing.building_id,
+            buildingGroupId: undefined,
+            buildingLocation: sourceHousing.building_location,
+            buildingYear: sourceHousing.building_year ?? undefined,
+            plotId: sourceHousing.plot_id,
+            geoCode: sourceHousing.geo_code,
+            rawAddress: [sourceHousing.dgfip_address],
+            longitude: sourceHousing.dgfip_longitude ?? undefined,
+            latitude: sourceHousing.dgfip_latitude ?? undefined,
+            housingKind: sourceHousing.housing_kind,
+            ownershipKind: sourceHousing.condominium ?? undefined,
+            livingArea: sourceHousing.living_area,
+            roomsCount: sourceHousing.rooms_count,
+            uncomfortable: sourceHousing.uncomfortable,
+            cadastralClassification: sourceHousing.cadastral_classification,
+            cadastralReference: undefined,
+            beneficiaryCount: undefined,
+            geolocation: undefined,
+            taxed: sourceHousing.taxed,
+            rentalValue: sourceHousing.rental_value ?? undefined,
             occupancy: Occupancy.VACANT,
             occupancyRegistered: Occupancy.VACANT,
-            vacancyStartYear: chunk.vacancy_start_year,
-            mutationDate: chunk.last_mutation_date,
+            occupancyIntended: null,
+            vacancyStartYear: sourceHousing.vacancy_start_year,
+            mutationDate: sourceHousing.last_mutation_date,
             deprecatedVacancyReasons: null,
             deprecatedPrecisions: null,
+            source: 'lovac',
             dataYears: [2024],
             dataFileYears: ['lovac-2025'],
             status: HousingStatusApi.NeverContacted,
+            subStatus: null,
             energyConsumption: null,
-            energyConsumptionAt: null,
-            source: 'lovac'
+            energyConsumptionAt: null
           };
-          await housingRepository.insert(housing);
-          if (chunk.ban_label) {
-            await banAddressRepository.insert({
+          const housingChange: HousingChange = {
+            type: 'housing',
+            kind: 'create',
+            value: housing
+          };
+          const changes: SourceHousingChange[] = [housingChange];
+
+          if (sourceHousing.ban_label) {
+            const address: AddressApi = {
               refId: housing.id,
               addressKind: AddressKinds.Housing,
-              banId: chunk.ban_id ?? undefined,
-              label: chunk.ban_label,
+              banId: sourceHousing.ban_id ?? undefined,
+              label: sourceHousing.ban_label,
               postalCode: '',
               city: '',
-              latitude: chunk.ban_latitude ?? undefined,
-              longitude: chunk.ban_longitude ?? undefined,
-              score: chunk.ban_score ?? undefined
+              latitude: sourceHousing.ban_latitude ?? undefined,
+              longitude: sourceHousing.ban_longitude ?? undefined,
+              score: sourceHousing.ban_score ?? undefined
+            };
+            changes.push({
+              kind: 'create',
+              type: 'address',
+              value: address
             });
           }
-          reporter.passed(chunk);
-          return;
+          reporter.passed(sourceHousing);
+          return changes;
         }
 
         // The housing exists
@@ -140,14 +164,14 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         );
         const events: HousingEventApi[] = [];
 
-        const changes = applyChanges(
+        const patch = applyChanges(
           existingHousing,
           existingEvents,
           existingNotes
         );
         if (
-          changes.occupancy !== undefined &&
-          existingHousing.occupancy !== changes.occupancy
+          patch.occupancy !== undefined &&
+          existingHousing.occupancy !== patch.occupancy
         ) {
           events.push({
             id: uuidv4(),
@@ -159,7 +183,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             old: existingHousing,
             new: {
               ...existingHousing,
-              occupancy: changes.occupancy
+              occupancy: patch.occupancy
             },
             createdBy: auth.id,
             createdAt: new Date(),
@@ -168,8 +192,8 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           });
         }
         if (
-          changes.status !== undefined &&
-          existingHousing.status !== changes.status
+          patch.status !== undefined &&
+          existingHousing.status !== patch.status
         ) {
           events.push({
             id: uuidv4(),
@@ -181,13 +205,13 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             // This event should come after the above one
             old: {
               ...existingHousing,
-              occupancy: changes.occupancy ?? existingHousing.occupancy
+              occupancy: patch.occupancy ?? existingHousing.occupancy
             },
             new: {
               ...existingHousing,
-              occupancy: changes.occupancy ?? existingHousing.occupancy,
-              status: changes.status,
-              subStatus: changes.subStatus
+              occupancy: patch.occupancy ?? existingHousing.occupancy,
+              status: patch.status,
+              subStatus: patch.subStatus
             },
             createdBy: auth.id,
             createdAt: new Date(),
@@ -196,51 +220,61 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           });
         }
 
-        await Promise.all([
-          housingRepository.update(
-            { id: existingHousing.id, geoCode: existingHousing.geoCode },
-            {
-              ...changes,
-              dataFileYears,
-              // Other updatable properties
-              buildingId: chunk.building_id,
-              buildingLocation: chunk.building_location,
-              buildingYear: chunk.building_year ?? undefined,
-              plotId: chunk.plot_id,
-              rawAddress: [chunk.dgfip_address],
-              latitude: chunk.dgfip_latitude ?? undefined,
-              longitude: chunk.dgfip_longitude ?? undefined,
-              housingKind: chunk.housing_kind,
-              ownershipKind: chunk.condominium ?? undefined,
-              livingArea: chunk.living_area,
-              roomsCount: chunk.rooms_count,
-              uncomfortable: chunk.uncomfortable,
-              cadastralClassification:
-                (chunk.cadastral_classification as CadastralClassification) ??
-                null,
-              taxed: chunk.taxed,
-              rentalValue: chunk.rental_value ?? undefined,
-              occupancyRegistered: chunk.occupancy_source,
-              vacancyStartYear: chunk.vacancy_start_year,
-              mutationDate: chunk.last_mutation_date
-            }
-          ),
-          events.length > 0
-            ? housingEventRepository.insertMany(events)
-            : Promise.resolve()
-        ]);
-        reporter.passed(chunk);
+        const housing: HousingApi = {
+          ...existingHousing,
+          ...patch,
+          dataFileYears,
+          localId: sourceHousing.local_id,
+          invariant: sourceHousing.invariant,
+          // Other updatable properties
+          buildingId: sourceHousing.building_id,
+          buildingLocation: sourceHousing.building_location,
+          buildingYear: sourceHousing.building_year ?? undefined,
+          plotId: sourceHousing.plot_id,
+          rawAddress: [sourceHousing.dgfip_address],
+          latitude: sourceHousing.dgfip_latitude ?? undefined,
+          longitude: sourceHousing.dgfip_longitude ?? undefined,
+          housingKind: sourceHousing.housing_kind,
+          ownershipKind: sourceHousing.condominium ?? undefined,
+          livingArea: sourceHousing.living_area,
+          roomsCount: sourceHousing.rooms_count,
+          uncomfortable: sourceHousing.uncomfortable,
+          cadastralClassification:
+            (sourceHousing.cadastral_classification as CadastralClassification) ??
+            null,
+          taxed: sourceHousing.taxed,
+          rentalValue: sourceHousing.rental_value ?? undefined,
+          occupancy: Occupancy.VACANT,
+          vacancyStartYear: sourceHousing.vacancy_start_year,
+          mutationDate: sourceHousing.last_mutation_date
+        };
+
+        reporter.passed(sourceHousing);
+        const changes: SourceHousingChange[] = [
+          {
+            type: 'housing',
+            kind: 'update',
+            value: housing
+          },
+          ...events.map<HousingEventChange>((event) => ({
+            type: 'event',
+            kind: 'create',
+            value: event
+          }))
+        ];
+        return changes;
       } catch (error) {
         reporter.failed(
-          chunk,
-          new ReporterError((error as Error).message, chunk)
+          sourceHousing,
+          new ReporterError((error as Error).message, sourceHousing)
         );
         if (abortEarly) {
           throw error;
         }
+        return [];
       }
     }
-  });
+  );
 }
 
 function applyChanges(

@@ -1,11 +1,10 @@
-import async from 'async';
-import fp from 'lodash/fp';
-
 import {
   EventCategory,
   EventKind,
   EventSection
 } from '@zerologementvacant/models';
+import async from 'async';
+import fp from 'lodash/fp';
 import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
@@ -104,7 +103,7 @@ const insertOwnerEvent = async (ownerEvent: OwnerEventApi): Promise<void> => {
 const insertCampaignEvent = async (
   campaignEvent: CampaignEventApi
 ): Promise<void> => {
-  logger.info('Insert CampaignEventApi', campaignEvent);
+  logger.debug('Creating campaign event...', campaignEvent);
   await db.transaction(async (transaction) => {
     await Events(transaction).insert(formatEventApi(campaignEvent));
     await CampaignEvents(transaction).insert({
@@ -121,7 +120,7 @@ const insertManyGroupHousingEvents = async (
     return;
   }
 
-  logger.debug('Insert many group housing events', {
+  logger.debug('Inserting group events...', {
     events: groupHousingEvents.length
   });
   await db.transaction(async (transaction) => {
@@ -154,13 +153,20 @@ async function findEvents<T>(
     .select(db.raw(`to_json(${usersTable}.*) AS creator`))
     .where(`${tableName}.${columnName}`, value)
     .orderBy(`${eventsTable}.created_at`, 'desc');
+  logger.debug(`Found ${events.length}`, {
+    table: tableName,
+    column: columnName,
+    id: value
+  });
   return events.map(parseEventApi<T>);
 }
 
 const findOwnerEvents = async (
   ownerId: string
 ): Promise<EventApi<OwnerApi>[]> => {
-  logger.info('List eventApi for owner with id', ownerId);
+  logger.debug('Find owner events...', {
+    owner: ownerId
+  });
   return findEvents(ownerEventsTable, 'owner_id', ownerId);
 };
 
@@ -174,7 +180,9 @@ const findHousingEvents = async (
 const findCampaignEvents = async (
   campaignId: string
 ): Promise<EventApi<CampaignApi>[]> => {
-  logger.info('List eventApi for campaign with id', campaignId);
+  logger.debug('Finding campaign events...', {
+    campaign: campaignId
+  });
   return findEvents(campaignEventsTable, 'campaign_id', campaignId);
 };
 
@@ -182,7 +190,7 @@ const findGroupHousingEvents = async (
   housing: HousingApi,
   group?: GroupApi
 ): Promise<EventApi<GroupApi>[]> => {
-  logger.debug('Find group housing events', {
+  logger.debug('Find group housing events...', {
     housing: housing.id,
     geoCode: housing.geoCode,
     group: group?.id

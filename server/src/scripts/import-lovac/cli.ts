@@ -41,7 +41,7 @@ program
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createHistoryCommand();
-    await command(file, options).finally(() => {
+    await command(file, options).then(() => {
       process.exit();
     });
   });
@@ -69,7 +69,7 @@ program
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createSourceHousingCommand();
-    await command(file, options).finally(() => {
+    await command(file, options).then(() => {
       process.exit();
     });
   });
@@ -83,7 +83,7 @@ program
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createSourceHousingOwnerCommand();
-    await command(file, options).finally(() => {
+    await command(file, options).then(() => {
       process.exit();
     });
   });
@@ -97,7 +97,7 @@ program
   .addOption(dryRun)
   .action(async (file, options) => {
     const command = createSourceBuildingCommand();
-    await command(file, options).finally(() => {
+    await command(file, options).then(() => {
       process.exit();
     });
   });

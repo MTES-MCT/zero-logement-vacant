@@ -58,7 +58,7 @@ export function createSourceOwnerCommand() {
       );
 
       logger.info('Starting import...', { file });
-      const [createes, updatees] = createSourceOwnerS3Repository(
+      const [ownerCreations, ownerUpdates] = createSourceOwnerS3Repository(
         file,
         config.s3
       )
@@ -95,15 +95,11 @@ export function createSourceOwnerCommand() {
         .tee();
 
       await Promise.all([
-        createes
+        ownerCreations
           .pipeThrough(filter(isNotNull))
           .pipeThrough(filter((change) => change.kind === 'create'))
           .pipeThrough(map((change) => change.value))
-          .pipeThrough(
-            chunkify({
-              size: 1_000
-            })
-          )
+          .pipeThrough(chunkify({ size: 1_000 }))
           .pipeTo(
             new WritableStream({
               async write(changes: ReadonlyArray<OwnerApi>) {
@@ -113,7 +109,7 @@ export function createSourceOwnerCommand() {
               }
             })
           ),
-        updatees
+        ownerUpdates
           .pipeThrough(filter(isNotNull))
           .pipeThrough(filter((change) => change.kind === 'update'))
           .pipeThrough(map((change) => change.value))

@@ -1,4 +1,4 @@
-import { collect } from '@zerologementvacant/utils/node';
+import { toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
 import { OwnerApi } from '~/models/OwnerApi';
 import { formatOwnerApi } from '~/repositories/ownerRepository';
@@ -21,7 +21,7 @@ describe('SourceOwnerProcessor', () => {
         }
       });
 
-      const actual = await collect(
+      const actual = await toArray(
         input.pipeThrough(
           sourceOwnerProcessor({
             reporter: createNoopReporter(),
@@ -72,7 +72,7 @@ describe('SourceOwnerProcessor', () => {
         idpersonne: sourceOwner.idpersonne
       };
 
-      const actual = await collect(
+      const actual = await toArray(
         input.pipeThrough(
           sourceOwnerProcessor({
             reporter: createNoopReporter(),
@@ -126,7 +126,7 @@ describe('SourceOwnerProcessor', () => {
       });
 
       const doCollect = async () =>
-        collect(
+        toArray(
           input.pipeThrough(
             sourceOwnerProcessor({
               reporter: createNoopReporter(),

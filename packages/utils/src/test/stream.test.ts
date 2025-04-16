@@ -1,14 +1,14 @@
 import { ReadableStream } from 'node:stream/web';
 import {
   chunkify,
-  collect,
   countLines,
   filter,
   flatten,
   groupBy,
   map,
   reduce,
-  tap
+  tap,
+  toArray
 } from '../stream';
 
 describe('Stream', () => {
@@ -24,7 +24,7 @@ describe('Stream', () => {
         }
       });
 
-      const actual = await collect(stream);
+      const actual = await toArray(stream);
 
       expect(actual).toStrictEqual(items);
     });
@@ -42,7 +42,7 @@ describe('Stream', () => {
         }
       });
 
-      const actual = await collect(
+      const actual = await toArray(
         stream.pipeThrough(groupBy((a, b) => a === b))
       );
 
@@ -62,7 +62,7 @@ describe('Stream', () => {
         }
       });
 
-      const actual = await collect(stream.pipeThrough(chunkify({ size: 2 })));
+      const actual = await toArray(stream.pipeThrough(chunkify({ size: 2 })));
 
       expect(actual).toStrictEqual([
         [1, 2],
@@ -81,7 +81,7 @@ describe('Stream', () => {
         }
       });
 
-      const actual = await collect(stream.pipeThrough(chunkify({ size: 2 })));
+      const actual = await toArray(stream.pipeThrough(chunkify({ size: 2 })));
 
       expect(actual).toStrictEqual([[1, 2], [3]]);
     });
@@ -119,7 +119,7 @@ describe('Stream', () => {
 
       const mapped = stream.pipeThrough(map(f));
 
-      const actual = await collect(mapped);
+      const actual = await toArray(mapped);
       expect(actual).toStrictEqual([2, 4, 6]);
     });
   });
@@ -138,7 +138,7 @@ describe('Stream', () => {
 
       const mapped = stream.pipeThrough(flatten());
 
-      const actual = await collect(mapped);
+      const actual = await toArray(mapped);
       expect(actual).toStrictEqual([1, 2, 3]);
     });
   });
@@ -156,7 +156,7 @@ describe('Stream', () => {
         }
       });
 
-      const actual = await collect(stream.pipeThrough(tap(f)));
+      const actual = await toArray(stream.pipeThrough(tap(f)));
 
       expect(actual).toStrictEqual([1, 2, 3]);
       expect(f).toHaveBeenCalledTimes(items.length);
@@ -176,7 +176,7 @@ describe('Stream', () => {
         }
       });
 
-      const [actual] = await collect(stream.pipeThrough(reduce(f)));
+      const [actual] = await toArray(stream.pipeThrough(reduce(f)));
 
       expect(actual).toBe(6);
     });
@@ -195,7 +195,7 @@ describe('Stream', () => {
         }
       });
 
-      const actual = await collect(stream.pipeThrough(filter(f)));
+      const actual = await toArray(stream.pipeThrough(filter(f)));
 
       expect(actual).toStrictEqual([1, 3]);
     });

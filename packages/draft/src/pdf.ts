@@ -1,11 +1,11 @@
 import path from 'path';
 import fs from 'fs';
 import { generate } from '@pdfme/generator';
-import { Template, BLANK_PDF, Font, Schema, PDFRenderProps } from '@pdfme/common';
+import { Template, BLANK_PDF, Schema } from '@pdfme/common';
 import { Logger } from '@zerologementvacant/utils';
 import { text, image } from '@pdfme/schemas';
-const { PDFDocument, PDFPage } = require('pdf-lib');
-const puppeteer = require('puppeteer');
+import { PDFDocument, PDFPage } from 'pdf-lib';
+import puppeteer, { Browser } from 'puppeteer';
 import { format } from 'date-fns';
 import { fr as frLocale } from 'date-fns/locale';
 import { pdfPlugin } from './pdfPlugin';
@@ -339,7 +339,7 @@ function createTransformer(opts: TransformerOptions) {
       for (const buffer of pdfBuffers) {
         const docToMerge = await PDFDocument.load(buffer);
         const pages = await finalDoc.copyPages(docToMerge, docToMerge.getPageIndices());
-        pages.forEach((page: typeof PDFPage) => finalDoc.addPage(page));
+        pages.forEach((page: PDFPage) => finalDoc.addPage(page));
       }
       
       const finalPDF = await finalDoc.save();
@@ -353,7 +353,7 @@ function createTransformer(opts: TransformerOptions) {
 
 interface FindFitOptions {
   fullHtml: string;
-  browser: typeof puppeteer.Browser;
+  browser: Browser;
   maxHeight: number;
   maxWidth: number;
   containerId?: string;
@@ -432,7 +432,7 @@ export async function splitHtmlIntoPages({
   maxWidth,
 }: {
   fullHtml: string;
-  browser: typeof puppeteer.Browser;
+  browser: Browser;
   firstPageMaxHeight: number;
   otherPagesMaxHeight: number;
   maxWidth: number;

@@ -1,9 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const file = path.join(__dirname, 'templates', 'draft', 'draft.hbs');
-export const DRAFT_TEMPLATE_FILE = fs.readFileSync(file, 'utf8');
-
 export interface DraftData {
   watermark?: boolean;
   subject: string | null;

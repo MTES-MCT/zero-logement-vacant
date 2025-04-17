@@ -129,6 +129,8 @@ async function processCSV(filePath: string, dummy = true) {
   }
   
 // Usage: node update-localities.js path/to/file.csv --dummy
+// CSV export of XLSX file tab 'Liste des scissions', cols B,C,D,E
+// https://www.insee.fr/fr/information/7671867
 const args = process.argv.slice(2);
 const filePath = args.find(arg => arg.endsWith('.csv'));
 const dummy = args.includes('--dummy');

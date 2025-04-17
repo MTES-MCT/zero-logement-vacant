@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse';
-import localityRepository from '~/repositories/localityRepository';
+import localityRepository, { Localities } from '~/repositories/localityRepository';
 import db from '~/infra/database';
 
 type Row = {
@@ -26,6 +26,15 @@ async function processCSV(filePath: string, dummy = true) {
   }
 
   console.log(`📄 ${rows.length} rows read from the CSV`);
+
+  const countMap = rows.reduce((acc: Record<string, number>, row) => {
+    acc[row.oldInsee] = (acc[row.oldInsee] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const uniqueRows = rows.filter(row => countMap[row.oldInsee] === 1);
+
+  console.log(`✅ ${uniqueRows.length} rows after removing duplicates`);
 
   let count = 0;
   for (const { oldInsee, insee, city } of rows) {
@@ -56,7 +65,7 @@ async function processCSV(filePath: string, dummy = true) {
             const msg = (err instanceof Error) ? err.message : String(err);
 
             if (msg.includes('duplicate key value') && msg.includes('localities_geo_code_unique')) {
-              await db('localities').where({ id: locality.id }).del();
+              await Localities().where({ id: locality.id }).del();
             } else {
               throw err;
             }

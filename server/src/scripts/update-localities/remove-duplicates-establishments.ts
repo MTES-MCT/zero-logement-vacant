@@ -1,10 +1,12 @@
 import db from '~/infra/database';
 import cliProgress from 'cli-progress';
+import { Establishments } from '~/repositories/establishmentRepository';
+import { Users } from '~/repositories/userRepository';
 
 async function deduplicateEstablishments(dummy = true) {
   console.log('🔍 Searching for duplicates by SIREN...');
 
-  const duplicates = await db('establishments')
+  const duplicates = await Establishments()
     .select('siren')
     .groupBy('siren')
     .havingRaw('COUNT(*) > 1');
@@ -17,7 +19,7 @@ async function deduplicateEstablishments(dummy = true) {
   for (const [index, { siren }] of duplicates.entries()) {
     bar.update(index + 1);
 
-    const establishments = await db('establishments')
+    const establishments = await Establishments()
       .select('id')
       .where({ siren })
       .orderBy('id', 'asc');
@@ -29,11 +31,11 @@ async function deduplicateEstablishments(dummy = true) {
     if (dummy) {
       console.log(`📝 [DUMMY] "${siren}": keep #${keeper}, remove [${toRemove.join(', ')}]`);
     } else {
-      await db('users')
+      await Users()
         .whereIn('establishment_id', toRemove)
         .update({ establishment_id: keeper });
 
-      await db('establishments')
+      await Establishments()
         .whereIn('id', toRemove)
         .del();
 

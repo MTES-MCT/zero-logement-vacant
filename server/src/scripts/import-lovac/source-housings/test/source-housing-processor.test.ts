@@ -1,4 +1,5 @@
-import { Occupancy } from '@zerologementvacant/models';
+import { faker } from '@faker-js/faker/locale/fr';
+import { Occupancy, OCCUPANCY_VALUES } from '@zerologementvacant/models';
 import { flatten, toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
 import { AddressApi } from '~/models/AddressApi';
@@ -26,6 +27,10 @@ import {
 
 describe('Source housing processor', () => {
   const establishment = genEstablishmentApi();
+  const user: UserApi = {
+    ...genUserApi(establishment.id),
+    email: 'test@test.test'
+  };
   const admin: UserApi = {
     ...genUserApi(establishment.id),
     email: 'admin@zerologementvacant.beta.gouv.fr'
@@ -82,33 +87,29 @@ describe('Source housing processor', () => {
     });
 
     it('should insert a new housing', () => {
-      expect(actual).toIncludeAllMembers([
-        {
-          type: 'housing',
-          kind: 'create',
-          value: expect.objectContaining({
-            dataFileYears: ['lovac-2025'],
-            occupancy: OccupancyKindApi.Vacant,
-            status: HousingStatusApi.NeverContacted
-          })
-        }
-      ]);
+      expect(actual).toPartiallyContain({
+        type: 'housing',
+        kind: 'create',
+        value: expect.objectContaining({
+          dataFileYears: ['lovac-2025'],
+          occupancy: OccupancyKindApi.Vacant,
+          status: HousingStatusApi.NeverContacted
+        })
+      });
     });
 
     it('should insert a new BAN address', () => {
-      expect(actual).toIncludeAllMembers([
-        {
-          type: 'address',
-          kind: 'create',
-          value: expect.objectContaining<Partial<AddressApi>>({
-            banId: sourceHousing.ban_id ?? undefined,
-            label: sourceHousing.ban_label ?? undefined,
-            latitude: sourceHousing.ban_latitude ?? undefined,
-            longitude: sourceHousing.ban_longitude ?? undefined,
-            score: sourceHousing.ban_score ?? undefined
-          })
-        }
-      ]);
+      expect(actual).toPartiallyContain({
+        type: 'address',
+        kind: 'create',
+        value: expect.objectContaining<Partial<AddressApi>>({
+          banId: sourceHousing.ban_id ?? undefined,
+          label: sourceHousing.ban_label ?? undefined,
+          latitude: sourceHousing.ban_latitude ?? undefined,
+          longitude: sourceHousing.ban_longitude ?? undefined,
+          score: sourceHousing.ban_score ?? undefined
+        })
+      });
     });
   });
 
@@ -122,12 +123,12 @@ describe('Source housing processor', () => {
 
     beforeEach(() => {
       sourceHousing = genSourceHousing();
-      housing = genHousingApi();
+      housing = {
+        ...genHousingApi(),
+        dataFileYears: ['lovac-2023', 'lovac-2024']
+      };
       events = [];
       notes = [];
-      housingRepository.findOne.mockResolvedValue(housing);
-      housingEventRepository.find.mockResolvedValue(events);
-      housingNoteRepository.find.mockResolvedValue(notes);
 
       stream = new ReadableStream<SourceHousing>({
         pull(controller) {
@@ -160,92 +161,183 @@ describe('Source housing processor', () => {
       ]);
     });
 
-    describe('If the housing has no user event nor user notes', () => {
+    describe('If the housing is non-vacant', () => {
       beforeEach(() => {
-        events = [];
-        notes = [];
+        housing.occupancy = faker.helpers.arrayElement(
+          OCCUPANCY_VALUES.filter((occupancy) => occupancy !== Occupancy.VACANT)
+        );
+        housing.status = HousingStatusApi.Completed;
+        housingRepository.findOne.mockResolvedValue(housing);
       });
 
-      describe(`If the housing status is ${HousingStatusApi.Completed} and the sub status is "Sortie de la vacance"`, () => {
-        let actual: ReadonlyArray<SourceHousingChange>;
+      describe.each([
+        {
+          name: 'has no user event related to occupancy or status, nor any user note',
+          condition() {
+            events = [];
+            notes = [];
+          }
+        },
+        {
+          name: 'has an admin event related to occupancy',
+          condition() {
+            events = [
+              {
+                ...genHousingEventApi(housing, admin),
+                name: 'Changement de statut d’occupation'
+              }
+            ];
+            notes = [];
+          }
+        },
+        {
+          name: 'has an admin event related to status',
+          condition() {
+            events = [
+              {
+                ...genHousingEventApi(housing, admin),
+                name: 'Changement de statut de suivi'
+              }
+            ];
+            notes = [];
+          }
+        },
+        {
+          name: 'has an admin note',
+          condition() {
+            events = [];
+            notes = [genHousingNoteApi(admin, housing)];
+          }
+        }
+      ])('If the housing $name', ({ condition }) => {
+        let changes: ReadonlyArray<SourceHousingChange>;
 
         beforeEach(async () => {
-          housing.status = HousingStatusApi.Completed;
-          housing.subStatus = 'Sortie de la vacance';
+          condition();
+          housingEventRepository.find.mockResolvedValue(events);
+          housingNoteRepository.find.mockResolvedValue(notes);
 
-          actual = await toArray(
+          changes = await toArray(
             stream.pipeThrough(processor).pipeThrough(flatten())
           );
         });
 
-        it('should update the data file years, the occupancy, status and substatus', () => {
-          expect(actual).toIncludeAllMembers([
-            {
-              type: 'housing',
-              kind: 'update',
-              value: expect.objectContaining<Partial<HousingApi>>({
-                id: housing.id,
-                geoCode: housing.geoCode,
-                dataFileYears: expect.arrayContaining(['lovac-2025']),
-                occupancy: Occupancy.VACANT,
-                status: HousingStatusApi.NeverContacted,
-                subStatus: null
-              })
-            }
-          ]);
-        });
-
-        it('should create an event "Changement de statut d’occupation"', () => {
-          expect(actual).toIncludeAllMembers<SourceHousingChange>([
-            {
-              type: 'event',
-              kind: 'create',
-              value: expect.objectContaining<
-                Partial<SourceHousingChange['value']>
-              >({
-                name: 'Changement de statut d’occupation',
-                kind: 'Update',
-                housingGeoCode: housing.geoCode,
-                housingId: housing.id
-              })
-            }
-          ]);
-        });
-      });
-    });
-
-    describe(`If the housing has no user notes, no user events about status or occupancy, has status ${HousingStatusApi.Completed} and substatus "Sortie de la vacance"`, () => {
-      let actual: ReadonlyArray<SourceHousingChange>;
-
-      beforeEach(async () => {
-        events.push({
-          ...genHousingEventApi(housing, admin),
-          name: 'Ajout dans une campagne'
-        });
-        notes.push(genHousingNoteApi(admin, housing));
-        housing.status = HousingStatusApi.Completed;
-        housing.subStatus = 'Sortie de la vacance';
-
-        actual = await toArray(
-          stream.pipeThrough(processor).pipeThrough(flatten())
-        );
-      });
-
-      it('should update the data file years, the occupancy, status and substatus', () => {
-        expect(actual).toIncludeAllMembers<SourceHousingChange>([
-          {
+        it('should set the housing as vacant', async () => {
+          expect(changes).toPartiallyContain({
             type: 'housing',
             kind: 'update',
             value: expect.objectContaining<Partial<HousingApi>>({
-              id: housing.id,
-              geoCode: housing.geoCode,
               dataFileYears: expect.arrayContaining(['lovac-2025']),
               occupancy: Occupancy.VACANT,
               status: HousingStatusApi.NeverContacted,
               subStatus: null
             })
+          });
+        });
+
+        it('should create an event related to occupancy change', async () => {
+          expect(changes).toPartiallyContain({
+            type: 'event',
+            kind: 'create',
+            value: expect.objectContaining<Partial<HousingEventApi>>({
+              name: 'Changement de statut d’occupation'
+            })
+          });
+        });
+
+        it('should create an event related to status change', async () => {
+          expect(changes).toPartiallyContain({
+            type: 'event',
+            kind: 'create',
+            value: expect.objectContaining<Partial<HousingEventApi>>({
+              name: 'Changement de statut de suivi'
+            })
+          });
+        });
+      });
+
+      describe.each([
+        {
+          name: 'has at least one user event related to occupancy',
+          condition() {
+            events = [
+              {
+                ...genHousingEventApi(housing, user),
+                name: 'Changement de statut d’occupation'
+              }
+            ];
           }
-        ]);
+        },
+        {
+          name: 'has at least one user event related to status',
+          condition() {
+            events = [
+              {
+                ...genHousingEventApi(housing, user),
+                name: 'Changement de statut de suivi'
+              }
+            ];
+          }
+        },
+        {
+          name: 'has at least one user note',
+          condition() {
+            notes = [genHousingNoteApi(user, housing)];
+          }
+        }
+      ])('If the housing $name', ({ condition }) => {
+        let changes: ReadonlyArray<SourceHousingChange>;
+
+        beforeEach(async () => {
+          condition();
+          housingEventRepository.find.mockResolvedValue(events);
+          housingNoteRepository.find.mockResolvedValue(notes);
+
+          changes = await toArray(
+            stream.pipeThrough(processor).pipeThrough(flatten())
+          );
+        });
+
+        it('should only add it to lovac-2025', () => {
+          expect(changes).toHaveLength(1);
+          expect(changes).toPartiallyContain({
+            type: 'housing',
+            kind: 'update',
+            value: expect.objectContaining<Partial<HousingApi>>({
+              dataFileYears: [...housing.dataFileYears, 'lovac-2025'],
+              // Leave the rest unchanged
+              occupancy: housing.occupancy,
+              status: housing.status,
+              subStatus: housing.subStatus
+            })
+          });
+        });
+      });
+    });
+
+    describe('Otherwise the housing is already vacant', () => {
+      beforeEach(() => {
+        housing.occupancy = Occupancy.VACANT;
+        housingRepository.findOne.mockResolvedValue(housing);
+      });
+
+      it('should only add it to `lovac-2025`', async () => {
+        const changes = await toArray(
+          stream.pipeThrough(processor).pipeThrough(flatten())
+        );
+
+        expect(changes).toHaveLength(1);
+        expect(changes).toPartiallyContain({
+          type: 'housing',
+          kind: 'update',
+          value: expect.objectContaining<Partial<HousingApi>>({
+            dataFileYears: [...housing.dataFileYears, 'lovac-2025'],
+            // Leave the rest unchanged
+            occupancy: housing.occupancy,
+            status: housing.status,
+            subStatus: housing.subStatus
+          })
+        });
       });
     });
   });

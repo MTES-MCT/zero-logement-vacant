@@ -358,6 +358,7 @@ export const genHousingApi = (
         weight: 1
       }))
     ]),
+    subStatus: null,
     energyConsumption: faker.helpers.arrayElement([
       null,
       ...ENERGY_CONSUMPTION_VALUES

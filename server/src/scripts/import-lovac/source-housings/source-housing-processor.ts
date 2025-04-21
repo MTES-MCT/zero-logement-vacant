@@ -3,6 +3,7 @@ import {
   CadastralClassification,
   Occupancy
 } from '@zerologementvacant/models';
+import { Predicate } from '@zerologementvacant/utils';
 import { map } from '@zerologementvacant/utils/node';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '~/infra/logger';
@@ -180,11 +181,9 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             category: 'Followup',
             section: 'Situation',
             conflict: false,
-            old: existingHousing,
-            new: {
-              ...existingHousing,
-              occupancy: patch.occupancy
-            },
+            // Assert types until we change the Event API
+            old: { occupancy: existingHousing.occupancy } as HousingApi,
+            new: { occupancy: patch.occupancy } as HousingApi,
             createdBy: auth.id,
             createdAt: new Date(),
             housingGeoCode: existingHousing.geoCode,
@@ -204,15 +203,13 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             conflict: false,
             // This event should come after the above one
             old: {
-              ...existingHousing,
-              occupancy: patch.occupancy ?? existingHousing.occupancy
-            },
+              status: existingHousing.status,
+              subStatus: existingHousing.subStatus
+            } as HousingApi,
             new: {
-              ...existingHousing,
-              occupancy: patch.occupancy ?? existingHousing.occupancy,
               status: patch.status,
               subStatus: patch.subStatus
-            },
+            } as HousingApi,
             createdBy: auth.id,
             createdAt: new Date(),
             housingGeoCode: existingHousing.geoCode,
@@ -244,7 +241,6 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             null,
           taxed: sourceHousing.taxed,
           rentalValue: sourceHousing.rental_value ?? undefined,
-          occupancy: Occupancy.VACANT,
           vacancyStartYear: sourceHousing.vacancy_start_year,
           mutationDate: sourceHousing.last_mutation_date
         };
@@ -282,16 +278,13 @@ function applyChanges(
   events: ReadonlyArray<HousingEventApi>,
   notes: ReadonlyArray<HousingNoteApi>
 ): Partial<HousingApi> {
-  const rules: ReadonlyArray<() => boolean> = [
-    () => events.length === 0 && notes.length === 0,
-    () =>
-      !hasUserNotes(notes) &&
-      !hasUserEvents(events) &&
-      isCompleted(housing) &&
-      isOutOfVacancy(housing)
+  const rules: ReadonlyArray<Predicate<void>> = [
+    () => housing.occupancy !== Occupancy.VACANT,
+    () => events.length === 0 || !hasUserEvents(events),
+    () => notes.length === 0 || !hasUserNotes(notes)
   ];
 
-  if (rules.some((rule) => rule())) {
+  if (rules.every((rule) => rule())) {
     return {
       occupancy: Occupancy.VACANT,
       status: HousingStatusApi.NeverContacted,
@@ -300,14 +293,6 @@ function applyChanges(
   }
 
   return {};
-}
-
-function isCompleted(housing: HousingApi): boolean {
-  return housing.status === HousingStatusApi.Completed;
-}
-
-function isOutOfVacancy(housing: HousingApi): boolean {
-  return housing.subStatus === 'Sortie de la vacance';
 }
 
 function hasUserNotes(notes: ReadonlyArray<HousingNoteApi>): boolean {

@@ -53,7 +53,7 @@ const insertHousingEvent = async (
 };
 
 const insertManyHousingEvents = async (
-  housingEvents: HousingEventApi[]
+  housingEvents: ReadonlyArray<HousingEventApi>
 ): Promise<void> => {
   if (housingEvents.length) {
     await db.transaction(async (transaction) => {

@@ -25,6 +25,13 @@ const dryRun = program.createOption(
   '-d, --dry-run',
   'Run the script without saving to the database'
 );
+const from = program
+  .createOption(
+    '-f, --from <from>',
+    'The location where the input file is stored'
+  )
+  .choices(['file', 's3'])
+  .default('s3');
 
 program.hook('preAction', (_, actionCommand) => {
   logger.info('Options', actionCommand.opts());
@@ -35,7 +42,7 @@ program
   .description(
     'Import housing history from a file. It should run exactly once, after importing housings'
   )
-  .argument('<file>', 'The file to import in .csv or .jsonl')
+  .argument('<file>', 'The .jsonl file to import')
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
@@ -49,10 +56,11 @@ program
 program
   .command('owners')
   .description('Import owners from a file to an existing database')
-  .argument('<file>', 'The file to import in .csv or .jsonl')
+  .argument('<file>', 'The .jsonl file to import')
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
+  .addOption(from)
   .action(async (file, options) => {
     const command = createSourceOwnerCommand();
     await command(file, options).then(() => {
@@ -63,10 +71,11 @@ program
 program
   .command('housings')
   .description('Import housings from a file to an existing database')
-  .argument('<file>', 'The file to import in .csv or .jsonl')
+  .argument('<file>', 'The .jsonl file to import')
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
+  .addOption(from)
   .action(async (file, options) => {
     const command = createSourceHousingCommand();
     await command(file, options).then(() => {
@@ -77,7 +86,7 @@ program
 program
   .command('housing-owners')
   .description('Import housing owners from a file to an existing database')
-  .argument('<file>', 'The file to import in .csv or .jsonl')
+  .argument('<file>', 'The .jsonl file to import')
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
@@ -91,7 +100,7 @@ program
 program
   .command('buildings')
   .description('Import buildings from a file to an existing database')
-  .argument('<file>', 'The file to import in .csv or .jsonl')
+  .argument('<file>', 'The .jsonl file to import')
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)

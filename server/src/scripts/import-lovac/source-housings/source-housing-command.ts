@@ -47,12 +47,12 @@ import {
   SourceHousing,
   sourceHousingSchema
 } from '~/scripts/import-lovac/source-housings/source-housing';
-import createSourceHousingFileRepository from '~/scripts/import-lovac/source-housings/source-housing-file-repository';
 import {
   AddressChange,
   createSourceHousingProcessor,
   HousingChange
 } from '~/scripts/import-lovac/source-housings/source-housing-processor';
+import { createSourceHousingRepository } from '~/scripts/import-lovac/source-housings/source-housing-repository';
 
 const logger = createLogger('sourceHousingCommand');
 
@@ -60,6 +60,7 @@ export interface ExecOptions {
   abortEarly?: boolean;
   departments?: string[];
   dryRun?: boolean;
+  from: 'file' | 's3';
 }
 
 export function createSourceHousingCommand() {
@@ -77,11 +78,19 @@ export function createSourceHousingCommand() {
 
       const departments = options.departments ?? [];
       const total = await count(
-        createSourceHousingFileRepository(file).stream({ departments })
+        createSourceHousingRepository({
+          ...config.s3,
+          file: file,
+          from: options.from
+        }).stream({ departments })
       );
 
       // Update geo codes before importing
-      await createSourceHousingFileRepository(file)
+      await createSourceHousingRepository({
+        ...config.s3,
+        file: file,
+        from: options.from
+      })
         .stream({ departments })
         .pipeThrough(
           progress({
@@ -156,7 +165,11 @@ export function createSourceHousingCommand() {
         );
 
       logger.info('Starting import...', { file });
-      const stream = createSourceHousingFileRepository(file)
+      const stream = createSourceHousingRepository({
+        ...config.s3,
+        file: file,
+        from: options.from
+      })
         .stream({ departments })
         .pipeThrough(
           progress({

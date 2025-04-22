@@ -29,7 +29,7 @@ export interface HousingDTO {
   dataYears: number[];
   dataFileYears: string[];
   beneficiaryCount?: number;
-  buildingLocation?: string;
+  buildingLocation?: string | null;
   rentalValue?: number;
   ownershipKind?: string;
   status: HousingStatus;

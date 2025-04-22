@@ -30,8 +30,8 @@ interface Replacement {
     invariant?: string;
     cadastralReference?: string;
     housingKind?: string;
-    livingArea?: number;
-    roomsCount?: number;
+    livingArea?: number | null;
+    roomsCount?: number | null;
     buildingYear?: number;
     vacancyStartYear?: number;
     energyConsumption?: EnergyConsumption | null;

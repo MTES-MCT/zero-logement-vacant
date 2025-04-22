@@ -26,9 +26,9 @@ export interface HousingRecordApi
    */
   invariant: string;
   localId: string;
-  plotId?: string;
-  buildingId?: string;
-  buildingGroupId?: string;
+  plotId?: string | null;
+  buildingId?: string | null;
+  buildingGroupId?: string | null;
   /**
    * @deprecateds Should become `addressDGFIP: string`
    */
@@ -51,7 +51,7 @@ export interface HousingRecordApi
   dataYears: number[];
   dataFileYears: string[];
   beneficiaryCount?: number;
-  buildingLocation?: string;
+  buildingLocation?: string | null;
   rentalValue?: number;
   geolocation?: string;
   ownershipKind?: string;

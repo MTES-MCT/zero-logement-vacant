@@ -948,9 +948,9 @@ export interface HousingRecordDBO {
   id: string;
   invariant: string;
   local_id: string;
-  building_id?: string;
-  building_group_id?: string;
-  plot_id?: string;
+  building_id?: string | null;
+  building_group_id?: string | null;
+  plot_id?: string | null;
   geo_code: string;
   address_dgfip: string[];
   longitude_dgfip?: number;
@@ -980,7 +980,7 @@ export interface HousingRecordDBO {
   data_file_years?: string[];
   data_source: HousingSource | null;
   beneficiary_count?: number;
-  building_location?: string;
+  building_location?: string | null;
   rental_value?: number;
   condominium?: string;
   status: HousingStatusApi;

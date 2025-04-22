@@ -2,6 +2,7 @@ import commander from '@commander-js/extra-typings';
 
 import { createLogger } from '~/infra/logger';
 import { createHistoryCommand } from '~/scripts/import-lovac/history/history-command';
+import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { createSourceBuildingCommand } from '~/scripts/import-lovac/source-buildings/source-building-command';
 import { createSourceHousingOwnerCommand } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-command';
 import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
@@ -30,8 +31,8 @@ const from = program
     '-f, --from <from>',
     'The location where the input file is stored'
   )
-  .choices(['file', 's3'])
-  .default('s3');
+  .choices<FromOptionValue[]>(['file', 's3'])
+  .default<FromOptionValue>('s3');
 
 program.hook('preAction', (_, actionCommand) => {
   logger.info('Options', actionCommand.opts());

@@ -960,8 +960,8 @@ export interface HousingRecordDBO {
   uncomfortable: boolean;
   vacancy_start_year?: number;
   housing_kind: string;
-  rooms_count: number;
-  living_area: number;
+  rooms_count: number | null;
+  living_area: number | null;
   cadastral_reference?: string;
   building_year?: number;
   mutation_date?: Date;

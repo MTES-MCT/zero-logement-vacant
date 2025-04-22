@@ -12,10 +12,10 @@ export interface SourceHousing {
   data_file_year: string;
   invariant: string;
   local_id: string;
-  building_id: string;
-  building_location: string;
+  building_id: string | null;
+  building_location: string | null;
   building_year: number | null;
-  plot_id: string;
+  plot_id: string | null;
   geo_code: string;
   ban_id: string | null;
   ban_label: string | null;
@@ -27,8 +27,8 @@ export interface SourceHousing {
   dgfip_latitude: number | null;
   housing_kind: HousingKind;
   condominium: OwnershipKindInternal | null;
-  living_area: number;
-  rooms_count: number;
+  living_area: number | null;
+  rooms_count: number | null;
   uncomfortable: boolean;
   cadastral_classification: number | null;
   taxed: boolean;
@@ -44,8 +44,10 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .oneOf(['lovac-2025']),
   invariant: string().required('invariant is required'),
   local_id: string().required('local_id is required'),
-  building_id: string().required('building_id is required'),
-  building_location: string().required('building_location is required'),
+  building_id: string().defined('building_id must be defined').nullable(),
+  building_location: string()
+    .defined('building_location must be defined')
+    .nullable(),
   building_year: number()
     .integer('building_year must be an integer')
     .defined('building_year must be defined')
@@ -53,7 +55,7 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .transform((value) => (value === 0 ? null : value))
     .min(1)
     .max(new Date().getUTCFullYear()),
-  plot_id: string().required('plot_id is required'),
+  plot_id: string().defined('plot_id is required').nullable(),
   geo_code: string().length(5).required('geo_code is required'),
   ban_id: string().defined('ban_id must be defined').nullable(),
   ban_label: string().defined('ban_id must be defined').nullable(),
@@ -86,10 +88,15 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .oneOf(OWNERSHIP_KIND_INTERNAL_VALUES)
     .defined('condominium must be defined')
     .nullable(),
-  living_area: number().required('living_area is required').min(1).truncate(),
+  living_area: number()
+    .defined('living_area must be defined')
+    .nullable()
+    .min(1)
+    .truncate(),
   rooms_count: number()
+    .defined('rooms_count must be defined')
+    .nullable()
     .integer('rooms_count must be an integer')
-    .required('rooms_count is required')
     .min(0),
   uncomfortable: boolean().required('uncomfortable is required'),
   cadastral_classification: number()

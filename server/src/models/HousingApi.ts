@@ -39,8 +39,8 @@ export interface HousingRecordApi
   uncomfortable: boolean;
   vacancyStartYear?: number;
   housingKind: string;
-  roomsCount: number;
-  livingArea: number;
+  roomsCount: number | null;
+  livingArea: number | null;
   cadastralReference?: string;
   buildingYear?: number;
   mutationDate: Date | null;

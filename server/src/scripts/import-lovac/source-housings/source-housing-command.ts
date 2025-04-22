@@ -40,6 +40,7 @@ import {
   HousingEventChange
 } from '~/scripts/import-lovac/housings/housing-processor';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
+import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { createUpdater } from '~/scripts/import-lovac/infra/updater';
 import validator from '~/scripts/import-lovac/infra/validator';
@@ -60,7 +61,7 @@ export interface ExecOptions {
   abortEarly?: boolean;
   departments?: string[];
   dryRun?: boolean;
-  from: 'file' | 's3';
+  from: FromOptionValue;
 }
 
 export function createSourceHousingCommand() {
@@ -69,6 +70,7 @@ export function createSourceHousingCommand() {
 
   return async (file: string, options: ExecOptions): Promise<void> => {
     try {
+      console.time('Import housings');
       logger.debug('Starting source housing command...', { file, options });
 
       const auth = await userRepository.getByEmail(config.app.system);
@@ -400,6 +402,7 @@ export function createSourceHousingCommand() {
     } finally {
       sourceHousingReporter.report();
       housingReporter.report();
+      console.timeEnd('Import housings');
     }
   };
 }

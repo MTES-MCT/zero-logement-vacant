@@ -16,12 +16,12 @@ describe('SourceHousing', () => {
       data_file_year: fc.constant('lovac-2025'),
       invariant: fc.string({ minLength: 1, maxLength: 20 }),
       local_id: fc.string({ minLength: 12, maxLength: 12 }),
-      building_id: fc.string({ minLength: 15, maxLength: 15 }),
-      building_location: fc.string({ minLength: 1 }),
+      building_id: fc.option(fc.string({ minLength: 15, maxLength: 15 })),
+      building_location: fc.option(fc.string({ minLength: 1 })),
       building_year: fc.option(
         fc.integer({ min: 1, max: new Date().getUTCFullYear() })
       ),
-      plot_id: fc.string({ minLength: 1 }),
+      plot_id: fc.option(fc.string({ minLength: 1 })),
       geo_code: fc.string({ minLength: 5, maxLength: 5 }),
       ban_id: fc.option(fc.string({ minLength: 1 })),
       ban_label: fc.option(fc.string({ minLength: 1 })),
@@ -37,8 +37,8 @@ describe('SourceHousing', () => {
       condominium: fc.option(
         fc.constantFrom(...OWNERSHIP_KIND_INTERNAL_VALUES)
       ),
-      living_area: fc.integer({ min: 1 }),
-      rooms_count: fc.integer({ min: 0 }),
+      living_area: fc.option(fc.integer({ min: 1 })),
+      rooms_count: fc.option(fc.integer({ min: 0 })),
       uncomfortable: fc.boolean(),
       cadastral_classification: fc.option(fc.integer({ min: 0 })),
       taxed: fc.boolean(),

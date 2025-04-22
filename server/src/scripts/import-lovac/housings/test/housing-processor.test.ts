@@ -51,7 +51,7 @@ describe('Housing processor', () => {
     });
   });
 
-  describe('Otherwise the housing is missing from LOVAC 2024', () => {
+  describe('Otherwise the housing is missing from LOVAC 2025', () => {
     beforeEach(() => {
       housing.dataFileYears = ['lovac-2023'];
     });

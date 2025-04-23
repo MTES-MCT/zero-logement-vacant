@@ -48,7 +48,7 @@ import {
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { ACTIVE_OWNER_RANKS, HousingOwnerApi } from '~/models/HousingOwnerApi';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatusApi
@@ -258,7 +258,12 @@ export const genHousingOwnerApi = (
   ownerId: owner.id,
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
-  rank: faker.number.int({ min: 1, max: 6 })
+  rank: faker.helpers.arrayElement(ACTIVE_OWNER_RANKS),
+  origin: 'lovac',
+  idprocpte: faker.string.alphanumeric(11),
+  idprodroit: faker.string.alphanumeric(13),
+  locprop: faker.number.int({ min: 1, max: 10 }),
+  startDate: faker.date.past()
 });
 
 export function genBuildingApi(): BuildingApi {

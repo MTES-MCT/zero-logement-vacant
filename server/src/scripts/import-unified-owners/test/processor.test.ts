@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { List } from 'immutable';
 import { ReadableStream } from 'node:stream/web';
 import { HousingApi } from '~/models/HousingApi';
-import { AWAITING_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { AWAITING_OWNER_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { DepartmentalOwnerDBO } from '~/repositories/departmentalOwnersRepository';
 
 import {
@@ -25,7 +25,7 @@ describe('Processor', () => {
       idpersonne: undefined,
       idprocpte: undefined,
       idprodroit: undefined,
-      rank: AWAITING_RANK
+      rank: AWAITING_OWNER_RANK
     };
   }
 

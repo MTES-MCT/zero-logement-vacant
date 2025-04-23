@@ -228,7 +228,7 @@ describe('Source housing command', () => {
     await HousingEvents().insert(events.map(formatHousingEventApi));
   });
 
-  // Write the file
+  // Write the file and run
   beforeAll(async () => {
     await write(file, sourceHousings);
     await command(file, { abortEarly: true });

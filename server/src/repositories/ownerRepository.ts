@@ -556,7 +556,13 @@ export const parseHousingOwnerApi = (
   rank: housingOwner.rank,
   startDate: housingOwner.start_date,
   endDate: housingOwner.end_date,
-  origin: housingOwner.origin
+  origin: housingOwner.origin,
+  idprocpte: housingOwner.idprocpte,
+  idprodroit: housingOwner.idprodroit,
+  locprop:
+    typeof housingOwner.locprop_source === 'string'
+      ? Number(housingOwner.locprop_source)
+      : null
 });
 
 export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({

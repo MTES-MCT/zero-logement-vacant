@@ -1,10 +1,10 @@
 import { fc, test } from '@fast-check/jest';
+import { ActiveOwnerRank } from '~/models/HousingOwnerApi';
 
 import {
   SourceHousingOwner,
   sourceHousingOwnerSchema
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
-import { PositiveRank } from '~/models/HousingOwnerApi';
 
 describe('SourceHousingOwner', () => {
   describe('sourceHousingOwnerSchema', () => {
@@ -14,8 +14,8 @@ describe('SourceHousingOwner', () => {
       idpersonne: fc.string({ minLength: 8, maxLength: 8 }),
       idprocpte: fc.string({ minLength: 11, maxLength: 11 }),
       idprodroit: fc.string({ minLength: 13, maxLength: 13 }),
-      locprop: fc.integer({ min: 1, max: 9 }),
-      rank: fc.constantFrom<PositiveRank>(1, 2, 3, 4, 5, 6)
+      locprop_source: fc.integer({ min: 1, max: 9 }),
+      rank: fc.constantFrom<ActiveOwnerRank>(1, 2, 3, 4, 5, 6)
     })('should validate a source housing owner', (sourceHousingOwner) => {
       const actual = sourceHousingOwnerSchema.validateSync(sourceHousingOwner);
 

@@ -48,6 +48,34 @@ describe('Stream', () => {
 
       expect(actual).toStrictEqual([[1, 1], [2, 2], [3]]);
     });
+
+    it('should use an object key', async () => {
+      const items = [
+        { group: 'A' },
+        { group: 'A' },
+        { group: 'B' },
+        { group: 'B' },
+        { group: 'C' }
+      ];
+      const stream = new ReadableStream<{ group: string }>({
+        start(controller) {
+          items.forEach((item) => {
+            controller.enqueue(item);
+          });
+          controller.close();
+        }
+      });
+
+      const actual = await toArray(
+        stream.pipeThrough(groupBy((a, b) => a.group === b.group))
+      );
+
+      expect(actual).toStrictEqual([
+        [{ group: 'A' }, { group: 'A' }],
+        [{ group: 'B' }, { group: 'B' }],
+        [{ group: 'C' }]
+      ]);
+    });
   });
 
   describe('chunkify', () => {

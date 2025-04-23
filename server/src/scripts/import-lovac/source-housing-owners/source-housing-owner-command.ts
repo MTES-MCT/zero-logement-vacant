@@ -1,25 +1,38 @@
-import { count } from '@zerologementvacant/utils/node';
+import {
+  chunkify,
+  count,
+  filter,
+  flatten,
+  groupBy,
+  map
+} from '@zerologementvacant/utils/node';
+import { WritableStream } from 'node:stream/web';
+import UserMissingError from '~/errors/userMissingError';
+import config from '~/infra/config';
+import { createLogger } from '~/infra/logger';
+import { HousingEventApi } from '~/models/EventApi';
+import { HousingApi } from '~/models/HousingApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
+import eventRepository from '~/repositories/eventRepository';
+import housingOwnerRepository from '~/repositories/housingOwnerRepository';
+import housingRepository from '~/repositories/housingRepository';
+import ownerRepository from '~/repositories/ownerRepository';
+import userRepository from '~/repositories/userRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
+import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
+import { progress } from '~/scripts/import-lovac/infra/progress-bar';
+import validator from '~/scripts/import-lovac/infra/validator';
 import {
   SourceHousingOwner,
   sourceHousingOwnerSchema
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
-import { createLogger } from '~/infra/logger';
-import { createSourceHousingOwnerProcessor } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-processor';
-import userRepository from '~/repositories/userRepository';
-import config from '~/infra/config';
-import UserMissingError from '~/errors/userMissingError';
-import { HousingApi } from '~/models/HousingApi';
-import housingRepository from '~/repositories/housingRepository';
-import { HousingEventApi } from '~/models/EventApi';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerApi } from '~/models/OwnerApi';
 import createSourceHousingOwnerFileRepository from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-file-repository';
-import eventRepository from '~/repositories/eventRepository';
-import housingOwnerRepository from '~/repositories/housingOwnerRepository';
-import ownerRepository from '~/repositories/ownerRepository';
-import { progress } from '~/scripts/import-lovac/infra/progress-bar';
-import validator from '~/scripts/import-lovac/infra/validator';
+import {
+  createSourceHousingOwnerProcessor,
+  HousingEventChange,
+  HousingOwnersChange
+} from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-processor';
 
 const logger = createLogger('sourceHousingOwnerCommand');
 
@@ -27,6 +40,7 @@ export interface ExecOptions {
   abortEarly?: boolean;
   departments?: string[];
   dryRun?: boolean;
+  from: FromOptionValue;
 }
 
 export function createSourceHousingOwnerCommand() {
@@ -52,70 +66,96 @@ export function createSourceHousingOwnerCommand() {
       );
 
       logger.info('Starting import...', { file });
-      await createSourceHousingOwnerFileRepository(file)
-        .stream({
-          departments: options.departments
-        })
-        .pipeThrough(
-          progress({
-            initial: 0,
-            total
+      const [housingOwnerStream, eventStream] =
+        createSourceHousingOwnerFileRepository(file)
+          .stream({
+            departments: options.departments
           })
-        )
-        .pipeThrough(
-          validator(sourceHousingOwnerSchema, {
-            abortEarly: options.abortEarly,
-            reporter
-          })
-        )
-        .pipeTo(
-          createSourceHousingOwnerProcessor({
-            abortEarly: options.abortEarly,
-            auth,
-            housingRepository: {
-              async findOne(geoCode, localId): Promise<HousingApi | null> {
-                return housingRepository.findOne({
-                  localId,
-                  geoCode
-                });
-              }
-            },
-            housingEventRepository: {
-              async insert(event: HousingEventApi): Promise<void> {
-                if (!options.dryRun) {
-                  await eventRepository.insertHousingEvent(event);
-                }
-              }
-            },
-            housingOwnerRepository: {
-              async insert(housingOwner: HousingOwnerApi): Promise<void> {
-                if (!options.dryRun) {
-                  await housingOwnerRepository.insert(housingOwner);
+          .pipeThrough(
+            progress({
+              initial: 0,
+              total
+            })
+          )
+          .pipeThrough(
+            validator(sourceHousingOwnerSchema, {
+              abortEarly: options.abortEarly,
+              reporter
+            })
+          )
+          .pipeThrough(groupBy((a, b) => a.local_id === b.local_id))
+          .pipeThrough(
+            createSourceHousingOwnerProcessor({
+              abortEarly: options.abortEarly,
+              auth,
+              housingRepository: {
+                async findOne(geoCode, localId): Promise<HousingApi | null> {
+                  return housingRepository.findOne({
+                    localId,
+                    geoCode
+                  });
                 }
               },
-              async saveMany(
-                housingOwners: ReadonlyArray<HousingOwnerApi>
-              ): Promise<void> {
+              ownerRepository: {
+                async find(
+                  idpersonnes: string[]
+                ): Promise<ReadonlyArray<OwnerApi>> {
+                  return ownerRepository.find({
+                    filters: { idpersonne: idpersonnes }
+                  });
+                },
+                async findByHousing(
+                  housing: HousingApi
+                ): Promise<ReadonlyArray<HousingOwnerApi>> {
+                  return ownerRepository.findByHousing(housing);
+                }
+              },
+              reporter
+            })
+          )
+          .pipeThrough(flatten())
+          .tee();
+
+      await Promise.all([
+        // Update housing owners
+        housingOwnerStream
+          .pipeThrough(
+            filter(
+              (change): change is HousingOwnersChange =>
+                change.type === 'housingOwners' && change.kind === 'replace'
+            )
+          )
+          .pipeThrough(map((change) => change.value))
+          .pipeTo(
+            new WritableStream<HousingOwnerApi[]>({
+              async write(housingOwners) {
                 if (!options.dryRun) {
-                  await housingOwnerRepository.saveMany(
-                    housingOwners as HousingOwnerApi[]
-                  );
+                  await housingOwnerRepository.saveMany(housingOwners);
                 }
               }
-            },
-            ownerRepository: {
-              async findOne(idpersonne: string): Promise<OwnerApi | null> {
-                return ownerRepository.findOne({ idpersonne });
-              },
-              async findByHousing(
-                housing: HousingApi
-              ): Promise<ReadonlyArray<HousingOwnerApi>> {
-                return ownerRepository.findByHousing(housing);
+            })
+          ),
+        // Save events
+        eventStream
+          .pipeThrough(
+            filter(
+              (change): change is HousingEventChange =>
+                change.type === 'event' && change.kind === 'create'
+            )
+          )
+          .pipeThrough(map((change) => change.value))
+          .pipeThrough(chunkify({ size: 1_000 }))
+          .pipeTo(
+            new WritableStream<HousingEventApi[]>({
+              async write(events) {
+                if (!options.dryRun) {
+                  await eventRepository.insertManyHousingEvents(events);
+                }
               }
-            },
-            reporter
-          })
-        );
+            })
+          )
+      ]);
+
       logger.info(`File ${file} imported.`);
     } catch (error) {
       logger.error(error);

@@ -1,8 +1,8 @@
 import db from '~/infra/database';
-import { HousingApi, HousingRecordApi } from '~/models/HousingApi';
-import { OwnerApi } from '~/models/OwnerApi';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { logger } from '~/infra/logger';
+import { HousingApi, HousingRecordApi } from '~/models/HousingApi';
+import { HousingOwnerApi, OwnerRank } from '~/models/HousingOwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 
 export const housingOwnersTable = 'owners_housing';
 
@@ -51,13 +51,13 @@ export interface HousingOwnerDBO {
   owner_id: string;
   housing_id: string;
   housing_geo_code: string;
-  rank: number;
-  start_date?: Date;
-  end_date?: Date;
+  rank: OwnerRank;
+  start_date?: Date | null;
+  end_date?: Date | null;
   origin?: string;
-  idprocpte?: string;
-  idprodroit?: string;
-  locprop?: number;
+  idprocpte?: string | null;
+  idprodroit?: string | null;
+  locprop_source?: string | null;
 }
 
 export const formatOwnerHousingApi = (housing: HousingApi): HousingOwnerDBO => {
@@ -84,7 +84,10 @@ export const formatHousingOwnerApi = (
   origin: housingOwner.origin,
   idprocpte: housingOwner.idprocpte,
   idprodroit: housingOwner.idprodroit,
-  locprop: housingOwner.locprop
+  locprop_source:
+    typeof housingOwner.locprop === 'number'
+      ? String(housingOwner.locprop)
+      : null
 });
 
 export const formatHousingOwnersApi = (
@@ -96,7 +99,7 @@ export const formatHousingOwnersApi = (
     owner_id: owner.id,
     housing_id: housing.id,
     housing_geo_code: housing.geoCode,
-    rank: i + 1,
+    rank: (i + 1) as OwnerRank,
     start_date: new Date(),
     origin
   }));

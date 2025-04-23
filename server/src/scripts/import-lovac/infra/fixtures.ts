@@ -6,7 +6,7 @@ import {
 } from '@zerologementvacant/models';
 
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
-import { PositiveRank } from '~/models/HousingOwnerApi';
+import { ActiveOwnerRank } from '~/models/HousingOwnerApi';
 import { SourceBuilding } from '~/scripts/import-lovac/source-buildings/source-building';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
@@ -67,8 +67,8 @@ export function genSourceHousingOwner(
     idpersonne: sourceOwner.idpersonne,
     idprocpte: faker.string.alphanumeric(11),
     idprodroit: faker.string.alphanumeric(13),
-    locprop: faker.helpers.arrayElement([1, 2, 3, 4, 5, 6, 9]),
-    rank: faker.number.int({ min: 1, max: 6 }) as PositiveRank
+    locprop_source: faker.helpers.arrayElement([1, 2, 3, 4, 5, 6, 9]),
+    rank: faker.number.int({ min: 1, max: 6 }) as ActiveOwnerRank
   };
 }
 

@@ -1,10 +1,10 @@
 import async from 'async';
 import { List, Map } from 'immutable';
 import { WritableStream } from 'node:stream/web';
+import { createLogger } from '~/infra/logger';
+import { AWAITING_OWNER_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
 
 import { DepartmentalOwnerDBO } from '~/repositories/departmentalOwnersRepository';
-import { createLogger } from '~/infra/logger';
-import { AWAITING_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
 
 const logger = createLogger('processor');
 
@@ -90,7 +90,8 @@ export function toPairs(
         housingOwners.size === 2 &&
         housingOwners.some(
           (housingOwner) =>
-            isNationalOwner(housingOwner) && housingOwner.rank === AWAITING_RANK
+            isNationalOwner(housingOwner) &&
+            housingOwner.rank === AWAITING_OWNER_RANK
         ) &&
         housingOwners.some(
           (housingOwner) =>

@@ -27,7 +27,7 @@ export type Changes = HousingChange | HousingEventChange;
 export function createHousingProcessor(opts: ProcessorOptions) {
   const { abortEarly, auth, reporter } = opts;
 
-  return map<HousingApi, ReadonlyArray<Changes>>(async (housing) => {
+  return map<HousingApi, ReadonlyArray<Changes>>((housing) => {
     try {
       logger.debug('Processing housing...', { housing });
 

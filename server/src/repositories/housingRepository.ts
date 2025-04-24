@@ -97,7 +97,7 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
 }
 
 type StreamOptions = FindOptions & {
-  includes: HousingInclude[];
+  includes?: HousingInclude[];
 };
 
 /**

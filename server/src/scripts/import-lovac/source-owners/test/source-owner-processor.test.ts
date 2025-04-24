@@ -4,7 +4,10 @@ import { OwnerApi } from '~/models/OwnerApi';
 import { formatOwnerApi } from '~/repositories/ownerRepository';
 import { genSourceOwner } from '~/scripts/import-lovac/infra/fixtures';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
-import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
+import {
+  mapEntity,
+  SourceOwner
+} from '~/scripts/import-lovac/source-owners/source-owner';
 import sourceOwnerProcessor, {
   OwnerChange
 } from '~/scripts/import-lovac/source-owners/source-owner-processor';
@@ -51,6 +54,7 @@ describe('SourceOwnerProcessor', () => {
           dataSource: 'lovac-2025',
           kind: sourceOwner.ownership_type,
           kindDetail: undefined,
+          entity: mapEntity(sourceOwner.entity),
           createdAt: expect.any(String),
           updatedAt: expect.any(String)
         }
@@ -108,6 +112,7 @@ describe('SourceOwnerProcessor', () => {
           dataSource: existingOwner.dataSource,
           kind: sourceOwner.ownership_type,
           kindDetail: existingOwner.kindDetail,
+          entity: mapEntity(sourceOwner.entity),
           createdAt: existingOwner.createdAt,
           updatedAt: expect.any(String)
         }

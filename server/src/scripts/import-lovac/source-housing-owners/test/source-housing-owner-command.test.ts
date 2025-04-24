@@ -207,7 +207,7 @@ describe('Source housing owner command', () => {
           rank: housingOwnerBefore?.rank,
           idprocpte: housingOwnerBefore?.idprocpte,
           idprodroit: housingOwnerBefore?.idprodroit,
-          locprop: String(housingOwnerBefore?.locprop),
+          locprop_source: String(housingOwnerBefore?.locprop),
           start_date: expect.any(Date),
           end_date: null
         });
@@ -235,7 +235,7 @@ describe('Source housing owner command', () => {
           rank: replacingHousingOwner?.rank,
           idprocpte: replacingHousingOwner?.idprocpte,
           idprodroit: replacingHousingOwner?.idprodroit,
-          locprop: String(replacingHousingOwner?.locprop),
+          locprop_source: String(replacingHousingOwner?.locprop),
           start_date: expect.any(Date),
           end_date: null
         });

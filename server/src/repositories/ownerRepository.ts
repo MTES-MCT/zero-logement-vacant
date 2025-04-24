@@ -1,4 +1,4 @@
-import { AddressKinds } from '@zerologementvacant/models';
+import { AddressKinds, OwnerEntity } from '@zerologementvacant/models';
 import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
@@ -487,6 +487,7 @@ export interface OwnerRecordDBO {
   data_source: string | null;
   kind_class: string | null;
   owner_kind_detail: string | null;
+  entity: OwnerEntity;
   created_at: Date | string | null;
   updated_at: Date | string | null;
 }
@@ -537,6 +538,7 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     siren: owner.siren ?? undefined,
     banAddress: owner.ban ? parseAddressApi(owner.ban) : undefined,
     additionalAddress: owner.additional_address ?? undefined,
+    entity: owner.entity,
     createdAt: owner.created_at
       ? new Date(owner.created_at).toJSON()
       : undefined,
@@ -579,6 +581,7 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   data_source: owner.dataSource ?? null,
   kind_class: owner.kind ?? null,
   owner_kind_detail: owner.kindDetail ?? null,
+  entity: owner.entity,
   created_at: owner.createdAt ? new Date(owner.createdAt) : null,
   updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null
 });

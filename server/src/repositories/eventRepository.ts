@@ -85,9 +85,13 @@ const insertManyHousingEvents = async (
 };
 
 function denormalizeStatus(housing: HousingApi | undefined) {
-  return housing
-    ? { ...housing, status: getHousingStatusApiLabel(housing.status) }
-    : undefined;
+  if (!housing) {
+    return undefined;
+  }
+  if (housing.status) {
+    return { ...housing, status: getHousingStatusApiLabel(housing.status) };
+  }
+  return housing;
 }
 
 const insertOwnerEvent = async (ownerEvent: OwnerEventApi): Promise<void> => {

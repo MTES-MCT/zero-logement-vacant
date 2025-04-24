@@ -1,4 +1,6 @@
-import { date, object, ObjectSchema, string } from 'yup';
+import { OwnerEntity } from '@zerologementvacant/models';
+import { match } from 'ts-pattern';
+import { date, number, object, ObjectSchema, string } from 'yup';
 
 import { toDate } from '~/scripts/import-lovac/infra/validator';
 
@@ -12,6 +14,7 @@ export interface SourceOwner {
   ownership_type: string;
   birth_date: Date | null;
   siren: string | null;
+  entity: number | null;
 }
 
 export const sourceOwnerSchema: ObjectSchema<SourceOwner> = object({
@@ -23,5 +26,30 @@ export const sourceOwnerSchema: ObjectSchema<SourceOwner> = object({
     .defined('birth_date must be defined')
     .transform(toDate)
     .nullable(),
-  siren: string().defined('siren must be defined').nullable()
+  siren: string().defined('siren must be defined').nullable(),
+  entity: number()
+    .defined('entity must be defined')
+    .nullable()
+    .integer()
+    .min(0)
+    .max(9)
 });
+
+export function mapEntity(entity: number | null): OwnerEntity {
+  return match(entity)
+    .returnType<OwnerEntity>()
+    .with(0, () => 'personnes-morales-non-remarquables')
+    .with(1, () => 'etat')
+    .with(2, () => 'region')
+    .with(3, () => 'departement')
+    .with(4, () => 'commune')
+    .with(5, () => 'office-hlm')
+    .with(6, () => 'personnes-morales-representant-des-societes')
+    .with(7, () => 'coproprietaire')
+    .with(8, () => 'associe')
+    .with(9, () => 'etablissements-publics-ou-organismes-assimiles')
+    .with(null, () => 'personnes-physiques')
+    .otherwise((value) => {
+      throw new Error(`Unexpected value ${value}`);
+    });
+}

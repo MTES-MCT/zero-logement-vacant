@@ -53,7 +53,9 @@ export function genSourceOwner(): SourceOwner {
     dgfip_address: faker.location.streetAddress(),
     birth_date: faker.date.past(),
     siren: null,
-    ownership_type: 'Particulier'
+    ownership_type: 'Particulier',
+    entity:
+      faker.helpers.maybe(() => faker.number.int({ min: 0, max: 9 })) ?? null
   };
 }
 

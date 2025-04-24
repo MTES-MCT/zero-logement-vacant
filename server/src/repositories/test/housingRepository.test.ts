@@ -846,24 +846,30 @@ describe('Housing repository', () => {
           {
             name: 'less than 35 m2',
             filter: ['lt35'],
-            predicate: (housing: HousingApi) => housing.livingArea < 35
+            predicate: (housing: HousingApi) =>
+              housing.livingArea !== null && housing.livingArea < 35
           },
           {
             name: 'between 35 and 74 m2',
             filter: ['35to74'],
             predicate: (housing: HousingApi) =>
-              35 <= housing.livingArea && housing.livingArea <= 74
+              housing.livingArea !== null &&
+              35 <= housing.livingArea &&
+              housing.livingArea <= 74
           },
           {
             name: 'between 75 and 99 m2',
             filter: ['75to99'],
             predicate: (housing: HousingApi) =>
-              75 <= housing.livingArea && housing.livingArea <= 99
+              housing.livingArea !== null &&
+              75 <= housing.livingArea &&
+              housing.livingArea <= 99
           },
           {
             name: 'more than 100 m2',
             filter: ['gte100'],
-            predicate: (housing: HousingApi) => housing.livingArea >= 100
+            predicate: (housing: HousingApi) =>
+              housing.livingArea !== null && housing.livingArea >= 100
           }
         ];
 
@@ -907,7 +913,7 @@ describe('Housing repository', () => {
             name: 'housings with 5+ rooms',
             filter: ['gte5'],
             predicate(housing: HousingApi) {
-              return housing.roomsCount >= 5;
+              return housing.roomsCount !== null && housing.roomsCount >= 5;
             }
           });
 

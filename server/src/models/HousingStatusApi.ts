@@ -21,9 +21,9 @@ export const HOUSING_STATUS_VALUES = Object.values(HousingStatusApi).filter(
   (value): value is HousingStatusApi => typeof value === 'number'
 );
 
-export const getHousingStatusApiLabel = (
-  housingStatusApi?: HousingStatusApi
-) => {
+export function getHousingStatusApiLabel(
+  housingStatusApi: HousingStatusApi
+): string | null {
   switch (housingStatusApi) {
     case HousingStatusApi.NeverContacted:
       return 'Non suivi';
@@ -37,20 +37,5 @@ export const getHousingStatusApiLabel = (
       return 'Suivi terminé';
     case HousingStatusApi.Blocked:
       return 'Bloqué';
-    default:
-      return '';
   }
-};
-
-export interface HousingStatusCountApi {
-  status: HousingStatusApi;
-  subStatus?: string;
-  precisions?: string[];
-  count: number;
-}
-
-export interface HousingStatusDurationApi {
-  status: HousingStatusApi;
-  averageDuration: any;
-  unchangedFor3MonthsCount: number;
 }

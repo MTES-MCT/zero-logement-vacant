@@ -1,4 +1,3 @@
-import { Occupancy } from '@zerologementvacant/models';
 import { isNotNull } from '@zerologementvacant/utils';
 import {
   chunkify,
@@ -321,22 +320,20 @@ export function createSourceHousingCommand() {
       logger.info('Checking for missing housings from the file...');
       const housingCount = await count(
         housingRepository.betterStream({
-          // Optimize the processor
-          filters: {
-            occupancies: [Occupancy.VACANT],
-            dataFileYearsExcluded: ['lovac-2025']
-          },
-          includes: []
+          filters: {}
+          // For some reason, we cannot optimize by fetching
+          // only vacant housing, excluding lovac-2025.
+          // It seems to come from the `knex` package or `pg-query-stream`.
+          // filters: {
+          //   occupancies: [Occupancy.VACANT],
+          //   dataFileYearsExcluded: ['lovac-2025']
+          // },
+          // includes: []
         })
       );
       const [housingUpdates2, eventCreations2] = housingRepository
         .betterStream({
-          // Optimize the processor
-          filters: {
-            occupancies: [Occupancy.VACANT],
-            dataFileYearsExcluded: ['lovac-2025']
-          },
-          includes: []
+          filters: {}
         })
         .pipeThrough(
           progress({
@@ -367,7 +364,7 @@ export function createSourceHousingCommand() {
           .pipeTo(
             createUpdater<HousingRecordDBO>({
               destination: options.dryRun ? 'file' : 'database',
-              file: 'housing-updates.jsonl',
+              file: path.join(__dirname, 'housing-updates.jsonl'),
               temporaryTable: 'housing_updates_tmp',
               likeTable: housingTable,
               async update(housings): Promise<void> {

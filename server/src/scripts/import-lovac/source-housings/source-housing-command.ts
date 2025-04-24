@@ -98,7 +98,7 @@ export function createSourceHousingCommand() {
           progress({
             initial: 0,
             total: total,
-            name: 'Updating housing geo codes'
+            name: '(1/3) Updating housing geo codes'
           })
         )
         .pipeThrough(
@@ -177,7 +177,7 @@ export function createSourceHousingCommand() {
           progress({
             initial: 0,
             total: total,
-            name: 'Importing from LOVAC'
+            name: '(2/3) Importing from LOVAC'
           })
         )
         .pipeThrough(
@@ -326,7 +326,6 @@ export function createSourceHousingCommand() {
             occupancies: [Occupancy.VACANT],
             dataFileYearsExcluded: ['lovac-2025']
           },
-          // TODO: sort by geocode
           includes: []
         })
       );
@@ -343,7 +342,7 @@ export function createSourceHousingCommand() {
           progress({
             initial: 0,
             total: housingCount,
-            name: 'Updating housings missing from LOVAC'
+            name: '(3/3) Updating housings missing from LOVAC'
           })
         )
         .pipeThrough(

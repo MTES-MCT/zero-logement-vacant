@@ -16,6 +16,7 @@ import {
   LOCALITY_KIND_VALUES,
   Occupancy,
   OCCUPANCY_VALUES,
+  OWNER_ENTITY_VALUES,
   OWNER_KIND_LABELS,
   UserAccountDTO
 } from '@zerologementvacant/models';
@@ -215,7 +216,8 @@ export const genOwnerApi = (): OwnerApi => {
       ...Object.values(OWNER_KIND_LABELS)
     ]),
     kindDetail: randomstring.generate(),
-    additionalAddress: randomstring.generate()
+    additionalAddress: randomstring.generate(),
+    entity: faker.helpers.arrayElement(OWNER_ENTITY_VALUES)
   };
 };
 

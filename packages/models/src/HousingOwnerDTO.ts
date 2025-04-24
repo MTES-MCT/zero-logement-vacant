@@ -1,8 +1,9 @@
-import { OwnerDTO } from './OwnerDTO';
 import { HousingDTO } from './HousingDTO';
+import { OwnerDTO } from './OwnerDTO';
 
 export interface BaseHousingOwnerDTO {
-  rank: number;
+  // TODO: move OwnerRank from server/ to models/ and use it here
+  rank: -2 | -1 | 0 | 1 | 2 | 3 | 4 | 5 | 6;
   idprocpte: string | null;
   idprodroit: string | null;
   locprop: number | null;

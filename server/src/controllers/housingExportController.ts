@@ -1,33 +1,33 @@
+import { AddressKinds } from '@zerologementvacant/models';
+import { slugify, timestamp } from '@zerologementvacant/utils';
+import exceljs from 'exceljs';
 import { NextFunction, Request, Response } from 'express';
-import housingRepository from '~/repositories/housingRepository';
+import { AuthenticatedRequest } from 'express-jwt';
+import { param, ValidationChain } from 'express-validator';
+import highland from 'highland';
+import fp from 'lodash/fp';
+import CampaignMissingError from '~/errors/campaignMissingError';
+import GroupMissingError from '~/errors/groupMissingError';
+import { createLogger } from '~/infra/logger';
+import { AddressApi, formatAddressApi } from '~/models/AddressApi';
+import { CampaignApi } from '~/models/CampaignApi';
 import {
   assertOwner,
   getBuildingLocation,
   HousingApi,
   OccupancyKindApiLabels
 } from '~/models/HousingApi';
-import campaignRepository from '~/repositories/campaignRepository';
-import { AddressApi, formatAddressApi } from '~/models/AddressApi';
-import { AuthenticatedRequest } from 'express-jwt';
 import { getHousingStatusApiLabel } from '~/models/HousingStatusApi';
-import banAddressesRepository from '~/repositories/banAddressesRepository';
-import { capitalize, reduceStringArray } from '~/utils/stringUtils';
-import highland from 'highland';
-import { CampaignApi } from '~/models/CampaignApi';
-import { createLogger } from '~/infra/logger';
-import excelUtils from '~/utils/excelUtils';
-import exceljs from 'exceljs';
-import groupRepository from '~/repositories/groupRepository';
-import GroupMissingError from '~/errors/groupMissingError';
-import { param, ValidationChain } from 'express-validator';
-import CampaignMissingError from '~/errors/campaignMissingError';
 import { OwnerApi } from '~/models/OwnerApi';
+import banAddressesRepository from '~/repositories/banAddressesRepository';
+import campaignRepository from '~/repositories/campaignRepository';
+import groupRepository from '~/repositories/groupRepository';
+import housingRepository from '~/repositories/housingRepository';
 import ownerRepository from '~/repositories/ownerRepository';
-import { AddressKinds } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
-import { slugify, timestamp } from '@zerologementvacant/utils';
-import Stream = Highland.Stream;
+import excelUtils from '~/utils/excelUtils';
+import { capitalize, reduceStringArray } from '~/utils/stringUtils';
 import WorkbookWriter = exceljs.stream.xlsx.WorkbookWriter;
+import Stream = Highland.Stream;
 
 const logger = createLogger('housingExportController');
 
@@ -212,7 +212,7 @@ function writeHousingWorksheet(
             buildingYear: housing.buildingYear,
             occupancy: OccupancyKindApiLabels[housing.occupancy],
             vacancyStartYear: housing.vacancyStartYear,
-            status: getHousingStatusApiLabel(housing.status),
+            status: getHousingStatusApiLabel(housing.status) ?? '',
             subStatus: housing.subStatus,
             vacancyReasons: reduceStringArray(
               housing.deprecatedVacancyReasons ?? undefined
@@ -358,7 +358,10 @@ const ownerWorksheetColumns = [
     header: 'Adresse BAN du propriétaire - Fiabilité',
     key: 'ownerAddressScore'
   },
-  { header: 'Complément d\'adresse du propriétaire', key: 'ownerAdditionalAddress' }
+  {
+    header: "Complément d'adresse du propriétaire",
+    key: 'ownerAdditionalAddress'
+  }
 ];
 
 const addOwnerWorksheet = (

@@ -1,10 +1,10 @@
 import { fc, test } from '@fast-check/jest';
+import { genSourceOwner } from '~/scripts/import-lovac/infra/fixtures';
 
 import {
   SourceOwner,
   sourceOwnerSchema
 } from '~/scripts/import-lovac/source-owners/source-owner';
-import { genSourceOwner } from '~/scripts/import-lovac/infra/fixtures';
 
 describe('SourceOwner', () => {
   describe('sourceOwnerSchema', () => {
@@ -14,7 +14,8 @@ describe('SourceOwner', () => {
       dgfip_address: fc.string({ minLength: 1 }),
       ownership_type: fc.string({ minLength: 1 }),
       birth_date: fc.option(fc.date()),
-      siren: fc.option(fc.string({ minLength: 1 }))
+      siren: fc.option(fc.string({ minLength: 1 })),
+      entity: fc.option(fc.integer({ min: 0, max: 9 }))
     })('should validate a source owner', (sourceOwner) => {
       const actual = sourceOwnerSchema.validateSync(sourceOwner);
 

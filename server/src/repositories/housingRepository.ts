@@ -133,6 +133,7 @@ function betterStream(
       filters: opts?.filters ?? {},
       includes: opts?.includes
     })
+      .modify(housingSortQuery())
       .stream()
       .map(parseHousingApi)
   );

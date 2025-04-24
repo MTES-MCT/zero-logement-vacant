@@ -14,6 +14,7 @@ import {
   ownerTable
 } from '~/repositories/ownerRepository';
 import { createLoggerReporter } from '~/scripts/import-lovac/infra';
+import { FromOptionValue } from '~/scripts/import-lovac/infra/options/from';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import validator from '~/scripts/import-lovac/infra/validator';
 import {
@@ -21,7 +22,7 @@ import {
   sourceOwnerSchema
 } from '~/scripts/import-lovac/source-owners/source-owner';
 import sourceOwnerProcessor from '~/scripts/import-lovac/source-owners/source-owner-processor';
-import createSourceOwnerS3Repository from '~/scripts/import-lovac/source-owners/source-owner-s3-repository';
+import { createSourceOwnerRepository } from '~/scripts/import-lovac/source-owners/source-owner-repository';
 
 const logger = createLogger('sourceOwnerCommand');
 
@@ -29,6 +30,7 @@ export interface ExecOptions {
   abortEarly?: boolean;
   departments?: string[];
   dryRun?: boolean;
+  from: FromOptionValue;
 }
 
 const TEMPORARY_TABLE = 'owner_changes_tmp';
@@ -52,22 +54,27 @@ export function createSourceOwnerCommand() {
 
       logger.info('Computing total...');
       const total = await count(
-        createSourceOwnerS3Repository(file, config.s3).stream({
+        createSourceOwnerRepository({
+          from: options.from,
+          file,
+          ...config.s3
+        }).stream({
           departments: options.departments
         })
       );
 
       logger.info('Starting import...', { file });
-      const [ownerCreations, ownerUpdates] = createSourceOwnerS3Repository(
+      const [ownerCreations, ownerUpdates] = createSourceOwnerRepository({
+        from: options.from,
         file,
-        config.s3
-      )
+        ...config.s3
+      })
         .stream({ departments: options.departments })
         .pipeThrough(
           progress({
             initial: 0,
             total: total,
-            name: 'Import (1/2)'
+            name: '(1/2) Insert owners'
           })
         )
         .pipeThrough(
@@ -147,7 +154,7 @@ export function createSourceOwnerCommand() {
           progress({
             initial: 0,
             total: temporaryTableCount,
-            name: 'Import (2/2)'
+            name: '(2/2) Update owners'
           })
         )
         .pipeTo(

@@ -91,6 +91,7 @@ program
   .addOption(abortEarly)
   .addOption(departments)
   .addOption(dryRun)
+  .addOption(from)
   .action(async (file, options) => {
     const command = createSourceHousingOwnerCommand();
     await command(file, options).then(() => {

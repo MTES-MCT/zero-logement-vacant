@@ -74,7 +74,8 @@ export function createSourceHousingOwnerCommand() {
           .pipeThrough(
             progress({
               initial: 0,
-              total
+              total,
+              name: '(1/1) Updating housing owners'
             })
           )
           .pipeThrough(

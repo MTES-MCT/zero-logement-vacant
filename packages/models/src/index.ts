@@ -11,7 +11,7 @@ export * from './DataFileYear';
 export * from './DatafoncierHousing';
 export * from './DatafoncierOwner';
 export * from './EnergyConsumption';
-export * from './Entity';
+export * from './OwnerEntity';
 export * from './EstablishmentDTO';
 export * from './EstablishmentFiltersDTO';
 export * from './EstablishmentKind';

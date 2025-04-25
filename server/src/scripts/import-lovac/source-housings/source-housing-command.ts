@@ -1,3 +1,4 @@
+import { isNotNull } from '@zerologementvacant/utils';
 import {
   chunkify,
   count,
@@ -5,10 +6,13 @@ import {
   flatten,
   map
 } from '@zerologementvacant/utils/node';
+import async from 'async';
+import { List } from 'immutable';
 import { Knex } from 'knex';
 import fp from 'lodash/fp';
 import path from 'node:path';
 import { WritableStream } from 'node:stream/web';
+
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import db from '~/infra/database';

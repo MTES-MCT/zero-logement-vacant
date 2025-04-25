@@ -1,4 +1,3 @@
-import { isNotNull } from '@zerologementvacant/utils';
 import {
   chunkify,
   count,
@@ -6,8 +5,6 @@ import {
   flatten,
   map
 } from '@zerologementvacant/utils/node';
-import async from 'async';
-import { List } from 'immutable';
 import { Knex } from 'knex';
 import fp from 'lodash/fp';
 import path from 'node:path';
@@ -76,6 +73,14 @@ export function createSourceHousingCommand() {
       if (!auth) {
         throw new UserMissingError(config.app.system);
       }
+
+      // Disable the building triggers
+      logger.info('Disabling building triggers...');
+      await db.raw(`
+        ALTER TABLE fast_housing DISABLE TRIGGER housing_insert_building_trigger;
+        ALTER TABLE fast_housing DISABLE TRIGGER housing_update_building_trigger;
+        ALTER TABLE fast_housing DISABLE TRIGGER housing_delete_building_trigger;
+      `);
 
       const departments = options.departments ?? [];
       const total = await count(
@@ -393,9 +398,35 @@ export function createSourceHousingCommand() {
             })
           )
       ]);
-
       logger.info('Check done.');
+
+      logger.info('Updating building counts...');
+      await db.raw(`
+        WITH building_counts AS (
+          SELECT
+            building_id,
+            COUNT(*) FILTER (WHERE occupancy = 'L') as rent_count,
+            COUNT(*) FILTER (WHERE occupancy = 'V') as vacant_count
+          FROM fast_housing
+          WHERE building_id IS NOT NULL
+          GROUP BY building_id
+        )
+        UPDATE buildings b
+        SET
+          rent_housing_count = COALESCE(bc.rent_count, 0),
+          vacant_housing_count = COALESCE(bc.vacant_count, 0)
+          FROM building_counts bc
+        WHERE b.id = bc.building_id
+      `);
     } finally {
+      // Re-enable the building triggers
+      logger.info('Enabling building triggers...');
+      await db.raw(`
+        ALTER TABLE fast_housing ENABLE TRIGGER housing_insert_building_trigger;
+        ALTER TABLE fast_housing ENABLE TRIGGER housing_update_building_trigger;
+        ALTER TABLE fast_housing ENABLE TRIGGER housing_delete_building_trigger;
+      `);
+
       sourceHousingReporter.report();
       housingReporter.report();
       console.timeEnd('Import housings');

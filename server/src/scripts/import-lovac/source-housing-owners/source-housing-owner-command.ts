@@ -27,12 +27,12 @@ import {
   SourceHousingOwner,
   sourceHousingOwnerSchema
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
-import createSourceHousingOwnerFileRepository from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-file-repository';
 import {
   createSourceHousingOwnerProcessor,
   HousingEventChange,
   HousingOwnersChange
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-processor';
+import { createSourceHousingOwnerRepository } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-repository';
 
 const logger = createLogger('sourceHousingOwnerCommand');
 
@@ -60,14 +60,22 @@ export function createSourceHousingOwnerCommand() {
 
       logger.info('Computing total...');
       const total = await count(
-        createSourceHousingOwnerFileRepository(file).stream({
+        createSourceHousingOwnerRepository({
+          ...config.s3,
+          file: file,
+          from: options.from
+        }).stream({
           departments: options.departments
         })
       );
 
       logger.info('Starting import...', { file });
       const [housingOwnerStream, eventStream] =
-        createSourceHousingOwnerFileRepository(file)
+        createSourceHousingOwnerRepository({
+          ...config.s3,
+          file: file,
+          from: options.from
+        })
           .stream({
             departments: options.departments
           })

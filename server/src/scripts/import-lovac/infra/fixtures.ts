@@ -3,6 +3,7 @@ import {
   ActiveOwnerRank,
   HOUSING_KIND_VALUES,
   Occupancy,
+  OWNER_ENTITY_VALUES,
   OWNERSHIP_KIND_INTERNAL_VALUES
 } from '@zerologementvacant/models';
 
@@ -54,8 +55,7 @@ export function genSourceOwner(): SourceOwner {
     birth_date: faker.date.past(),
     siren: null,
     ownership_type: 'Particulier',
-    entity:
-      faker.helpers.maybe(() => faker.number.int({ min: 0, max: 9 })) ?? null
+    entity: faker.helpers.arrayElement(OWNER_ENTITY_VALUES)
   };
 }
 

@@ -1,6 +1,6 @@
-import { OwnerEntity } from '@zerologementvacant/models';
+import { OWNER_ENTITY_VALUES, OwnerEntity } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
-import { date, number, object, ObjectSchema, string } from 'yup';
+import { date, object, string } from 'yup';
 
 import { toDate } from '~/scripts/import-lovac/infra/validator';
 
@@ -14,10 +14,10 @@ export interface SourceOwner {
   ownership_type: string;
   birth_date: Date | null;
   siren: string | null;
-  entity: number | null;
+  entity: OwnerEntity;
 }
 
-export const sourceOwnerSchema: ObjectSchema<SourceOwner> = object({
+export const sourceOwnerSchema = object({
   idpersonne: string().required('idpersonne is required'),
   full_name: string().required('full_name is required'),
   dgfip_address: string().defined('dgfip_address must be defined').nullable(),
@@ -27,27 +27,32 @@ export const sourceOwnerSchema: ObjectSchema<SourceOwner> = object({
     .transform(toDate)
     .nullable(),
   siren: string().defined('siren must be defined').nullable(),
-  entity: number()
+  entity: string()
+    .transform((value) => {
+      if (value === null) return null;
+      if (typeof value === 'string' && value.length >= 1) {
+        return mapEntity(value[0]);
+      }
+      return value;
+    })
     .defined('entity must be defined')
     .nullable()
-    .integer()
-    .min(0)
-    .max(9)
+    .oneOf(OWNER_ENTITY_VALUES)
 });
 
-export function mapEntity(entity: number | null): OwnerEntity {
+export function mapEntity(entity: string | null): OwnerEntity {
   return match(entity)
     .returnType<OwnerEntity>()
-    .with(0, () => 'personnes-morales-non-remarquables')
-    .with(1, () => 'etat')
-    .with(2, () => 'region')
-    .with(3, () => 'departement')
-    .with(4, () => 'commune')
-    .with(5, () => 'office-hlm')
-    .with(6, () => 'personnes-morales-representant-des-societes')
-    .with(7, () => 'coproprietaire')
-    .with(8, () => 'associe')
-    .with(9, () => 'etablissements-publics-ou-organismes-assimiles')
+    .with('0', () => 'personnes-morales-non-remarquables')
+    .with('1', () => 'etat')
+    .with('2', () => 'region')
+    .with('3', () => 'departement')
+    .with('4', () => 'commune')
+    .with('5', () => 'office-hlm')
+    .with('6', () => 'personnes-morales-representant-des-societes')
+    .with('7', () => 'coproprietaire')
+    .with('8', () => 'associe')
+    .with('9', () => 'etablissements-publics-ou-organismes-assimiles')
     .with(null, () => 'personnes-physiques')
     .otherwise((value) => {
       throw new Error(`Unexpected value ${value}`);

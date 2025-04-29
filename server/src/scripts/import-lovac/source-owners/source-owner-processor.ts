@@ -8,10 +8,7 @@ import {
   ReporterOptions
 } from '~/scripts/import-lovac/infra/reporters';
 
-import {
-  mapEntity,
-  SourceOwner
-} from '~/scripts/import-lovac/source-owners/source-owner';
+import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
 const logger = createLogger('sourceOwnerProcessor');
 
@@ -60,7 +57,7 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
             dataSource: 'lovac-2025',
             kind: sourceOwner.ownership_type,
             kindDetail: undefined,
-            entity: mapEntity(sourceOwner.entity),
+            entity: sourceOwner.entity,
             createdAt: now,
             updatedAt: now
           }
@@ -92,7 +89,7 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
           dataSource: existingOwner.data_source ?? undefined,
           kind: sourceOwner.ownership_type,
           kindDetail: existingOwner.owner_kind_detail ?? undefined,
-          entity: mapEntity(sourceOwner.entity),
+          entity: sourceOwner.entity,
           createdAt: existingOwner.created_at
             ? new Date(existingOwner.created_at).toJSON()
             : undefined,

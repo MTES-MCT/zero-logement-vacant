@@ -786,6 +786,11 @@ export const dataFileYearsIncludedOptions: SelectOption[] = [
     value: 'lovac-2024',
     label: 'LOVAC 2024 (>2 ans)',
     badgeLabel: 'Source et millésime inclus : LOVAC 2024 (>2 ans)'
+  },
+  {
+    value: 'lovac-2025',
+    label: 'LOVAC 2025 (>2 ans)',
+    badgeLabel: 'Source et millésime inclus : LOVAC 2025 (>2 ans)'
   }
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
@@ -877,6 +882,11 @@ export const dataFileYearsExcludedOptions: SelectOption[] = [
     value: 'lovac-2024',
     label: 'LOVAC 2024 (>2 ans)',
     badgeLabel: 'Source et millésime exclus : LOVAC 2024 (>2 ans)'
+  },
+  {
+    value: 'lovac-2025',
+    label: 'LOVAC 2025 (>2 ans)',
+    badgeLabel: 'Source et millésime exclus : LOVAC 2025 (>2 ans)'
   }
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 

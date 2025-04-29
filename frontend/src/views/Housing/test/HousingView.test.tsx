@@ -63,6 +63,18 @@ describe('Housing view', () => {
     );
   }
 
+  it('should throw an error if the housing is missing', async () => {
+    const owner = genOwnerDTO();
+    const missingHousing = genHousingDTO(owner);
+
+    renderView(missingHousing);
+
+    const error = await screen.findByRole('heading', {
+      name: 'Page non trouvée'
+    });
+    expect(error).toBeVisible();
+  });
+
   it('should display the main owner', async () => {
     renderView(housing);
 

@@ -1,4 +1,5 @@
 import {
+  DataFileYear,
   EnergyConsumption,
   HousingDTO,
   HousingKind,
@@ -48,10 +49,10 @@ export interface Housing {
   ownershipKind: string;
   buildingHousingCount?: number;
   buildingVacancyRate?: number;
-  dataFileYears: string[];
+  dataFileYears: DataFileYear[];
   campaignIds: string[];
   status: HousingStatus;
-  subStatus?: string;
+  subStatus?: string | null;
   lastContact?: Date;
   energyConsumption: string | null;
   energyConsumptionAt: Date | null;
@@ -235,7 +236,9 @@ export const getOccupancy = (
   occupancy?: OccupancyKind | OccupancyKindUnknown
 ) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
 
-export function getSource(housing: Housing): string {
+export function getSource(
+  housing: Pick<Housing, 'source' | 'dataFileYears'>
+): string {
   const labels: Record<string, string> = {
     lovac: 'LOVAC',
     ff: 'Fichiers fonciers',

@@ -895,17 +895,6 @@ export const filterCount = (housingFilters: HousingFilters) => {
     ([, v]) => v !== undefined && v !== null && (v as any[]).length > 0
   ).length;
 };
-export const hasFilters = (housingFilters: HousingFilters) => {
-  return filterCount(housingFilters) > 0;
-};
-
-export const unselectedOptions = (
-  options: SelectOption[],
-  selectedValues?: string[]
-) =>
-  options.filter(
-    (option: { value: any }) => !selectedValues?.includes(option.value)
-  );
 
 export function hasPerimetersFilter(filters: HousingFilters): boolean {
   return (

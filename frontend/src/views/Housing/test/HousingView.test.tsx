@@ -7,7 +7,8 @@ import {
   HousingOwnerDTO,
   HousingStatus,
   Occupancy,
-  OwnerDTO
+  OwnerDTO,
+  OwnerRank
 } from '@zerologementvacant/models';
 import {
   genHousingDTO,
@@ -42,7 +43,7 @@ describe('Housing view', () => {
     data.housings.push(housing);
     housingOwners = [owner, ...secondaryOwners].map((owner, i) => ({
       ...genHousingOwnerDTO(owner),
-      rank: i + 1
+      rank: (i + 1) as OwnerRank
     }));
     data.housingOwners.set(housing.id, housingOwners);
   });
@@ -170,7 +171,9 @@ describe('Housing view', () => {
         await within(modal).findByLabelText(/^Date de naissance/);
       await user.type(birthDate, newOwner.birthDate as string);
       const address = await within(modal).findByLabelText(/^Adresse postale/);
-      await user.type(address, newOwner.rawAddress.join(' '));
+      if (newOwner.rawAddress) {
+        await user.type(address, newOwner.rawAddress.join(' '));
+      }
       const email = await within(modal).findByLabelText(/^Adresse mail/);
       await user.type(email, newOwner.email as string);
       const phone = await within(modal).findByLabelText(/^Numéro de téléphone/);

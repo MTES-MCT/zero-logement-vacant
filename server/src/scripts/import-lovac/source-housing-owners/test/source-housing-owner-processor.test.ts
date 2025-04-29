@@ -112,6 +112,7 @@ describe('Source housing owner processor', () => {
         ...genOwnerApi(),
         idpersonne: sourceHousingOwner.idpersonne
       }));
+    const missingOwners = sourceHousingOwners.slice(1);
 
     const doRun = async () =>
       run(sourceHousingOwners, {
@@ -124,7 +125,9 @@ describe('Source housing owner processor', () => {
         }
       });
 
-    await expect(doRun()).rejects.toThrow('Owner(s) missing');
+    await expect(doRun()).rejects.toThrow(
+      `Owner(s) ${missingOwners.map((owner) => owner.idpersonne).join(', ')} missing`
+    );
   });
 
   it('should throw an error if the housing is missing and abortEarly is true', async () => {

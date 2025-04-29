@@ -270,6 +270,7 @@ export const genHousingOwnerApi = (
 });
 
 export function genBuildingApi(): BuildingApi {
+  const geoCode = genGeoCode();
   const housingCount = faker.number.int({ min: 1, max: 10 });
   const vacantHousingCount = faker.number.int({ min: 0, max: housingCount });
   const rentHousingCount = faker.number.int({
@@ -278,7 +279,7 @@ export function genBuildingApi(): BuildingApi {
   });
 
   return {
-    id: uuidv4(),
+    id: geoCode + faker.string.sample(7),
     housingCount: vacantHousingCount,
     vacantHousingCount,
     rentHousingCount,

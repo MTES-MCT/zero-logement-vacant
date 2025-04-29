@@ -750,9 +750,11 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.vacancyRates?.length) {
+      queryBuilder.debug(true);
       queryBuilder.where((where) => {
-        const safeExpr = 'housing_count > 0 AND vacant_housing_count * 100.0 / housing_count';
-    
+        const safeExpr =
+          'housing_count > 0 AND vacant_housing_count * 100.0 / housing_count';
+
         if (filters.vacancyRates?.includes('lt20')) {
           where.orWhereRaw(`${safeExpr} < 20`);
         }

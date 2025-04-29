@@ -1,20 +1,20 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import {
+  ACTIVE_OWNER_RANKS,
+  ActiveOwnerRank,
+  isActiveOwnerRank,
+  isPreviousOwnerRank,
+  OwnerRank
+} from '@zerologementvacant/models';
 import { stringify as writeJSONL } from 'jsonlines';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Transform, Writable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
+
 import config from '~/infra/config';
 import { HousingApi } from '~/models/HousingApi';
-
-import {
-  ACTIVE_OWNER_RANKS,
-  ActiveOwnerRank,
-  HousingOwnerApi,
-  isActiveOwnerRank,
-  isPreviousOwnerRank,
-  OwnerRank
-} from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { UserApi } from '~/models/UserApi';
 import {

@@ -1,6 +1,8 @@
+import {
+  ACTIVE_OWNER_RANKS,
+  ActiveOwnerRank
+} from '@zerologementvacant/models';
 import { number, object, ObjectSchema, string } from 'yup';
-
-import { ACTIVE_OWNER_RANKS, ActiveOwnerRank } from '~/models/HousingOwnerApi';
 
 export interface SourceHousingOwner {
   geo_code: string;

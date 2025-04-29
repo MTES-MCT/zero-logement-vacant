@@ -1,3 +1,14 @@
+import { Pagination } from '@zerologementvacant/models';
+import { format } from 'date-fns';
+import { useState } from 'react';
+import { usePagination } from '../../../hooks/usePagination';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
+import { Owner } from '../../../models/Owner';
+import { useFindOwnersQuery } from '../../../services/owner.service';
+import housingSlice, {
+  DefaultPagination
+} from '../../../store/reducers/housingReducer';
+import { displayCount } from '../../../utils/stringUtils';
 import {
   Col,
   Pagination as DSFRPagination,
@@ -5,17 +16,6 @@ import {
   Table,
   Text
 } from '../../_dsfr';
-import { format } from 'date-fns';
-import { displayCount } from '../../../utils/stringUtils';
-import { Owner } from '../../../models/Owner';
-import { usePagination } from '../../../hooks/usePagination';
-import { useFindOwnersQuery } from '../../../services/owner.service';
-import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
-import housingSlice, {
-  DefaultPagination
-} from '../../../store/reducers/housingReducer';
-import { useState } from 'react';
-import { Pagination } from '@zerologementvacant/models';
 
 interface Props {
   onSelect: (owner: Owner) => void;
@@ -64,7 +64,7 @@ const HousingAdditionalOwnerSearchResults = ({ onSelect }: Props) => {
             Ajouter
           </button>
           <br />
-          {owner.rawAddress.join(' - ')}
+          {owner.rawAddress?.join(' - ')}
         </>
       )
     }

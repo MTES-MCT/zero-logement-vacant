@@ -1,12 +1,10 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { AWAITING_OWNER_RANK, OWNER_RANKS } from '@zerologementvacant/models';
 import { List } from 'immutable';
 import { ReadableStream } from 'node:stream/web';
+
 import { HousingApi } from '~/models/HousingApi';
-import {
-  AWAITING_OWNER_RANK,
-  HOUSING_OWNER_RANKS,
-  HousingOwnerApi
-} from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { DepartmentalOwnerDBO } from '~/repositories/departmentalOwnersRepository';
 
 import {
@@ -41,7 +39,7 @@ describe('Processor', () => {
       ...genHousingOwnerApi(housing, owner),
       idpersonne: faker.string.alphanumeric(8),
       idprocpte: faker.string.alphanumeric(10),
-      rank: faker.helpers.arrayElement(HOUSING_OWNER_RANKS)
+      rank: faker.helpers.arrayElement(OWNER_RANKS)
     };
   }
 

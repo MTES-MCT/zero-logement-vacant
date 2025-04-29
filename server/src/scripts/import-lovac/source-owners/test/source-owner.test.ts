@@ -11,7 +11,7 @@ describe('SourceOwner', () => {
     test.prop<SourceOwner>({
       idpersonne: fc.string({ minLength: 1 }),
       full_name: fc.string({ minLength: 1 }),
-      dgfip_address: fc.string({ minLength: 1 }),
+      dgfip_address: fc.option(fc.string({ minLength: 1 })),
       ownership_type: fc.string({ minLength: 1 }),
       birth_date: fc.option(fc.date()),
       siren: fc.option(fc.string({ minLength: 1 })),

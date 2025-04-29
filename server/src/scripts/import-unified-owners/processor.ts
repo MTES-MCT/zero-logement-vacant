@@ -1,8 +1,9 @@
+import { AWAITING_OWNER_RANK } from '@zerologementvacant/models';
 import async from 'async';
 import { List, Map } from 'immutable';
 import { WritableStream } from 'node:stream/web';
 import { createLogger } from '~/infra/logger';
-import { AWAITING_OWNER_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 
 import { DepartmentalOwnerDBO } from '~/repositories/departmentalOwnersRepository';
 

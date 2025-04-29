@@ -10,7 +10,7 @@ import { toDate } from '~/scripts/import-lovac/infra/validator';
 export interface SourceOwner {
   idpersonne: string;
   full_name: string;
-  dgfip_address: string;
+  dgfip_address: string | null;
   ownership_type: string;
   birth_date: Date | null;
   siren: string | null;
@@ -20,7 +20,7 @@ export interface SourceOwner {
 export const sourceOwnerSchema: ObjectSchema<SourceOwner> = object({
   idpersonne: string().required('idpersonne is required'),
   full_name: string().required('full_name is required'),
-  dgfip_address: string().required('dgfip_address is required'),
+  dgfip_address: string().defined('dgfip_address must be defined').nullable(),
   ownership_type: string().required('ownership_type is required'),
   birth_date: date()
     .defined('birth_date must be defined')

@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
 import {
+  ACTIVE_OWNER_RANKS,
   AddressKinds,
   CADASTRAL_CLASSIFICATION_VALUES,
   DatafoncierHousing,
@@ -49,7 +50,7 @@ import {
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
-import { ACTIVE_OWNER_RANKS, HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatusApi

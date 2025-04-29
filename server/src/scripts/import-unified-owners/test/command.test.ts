@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { beforeAll } from '@jest/globals';
-import { AWAITING_OWNER_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { AWAITING_OWNER_RANK } from '@zerologementvacant/models';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
   DepartmentalOwnerDBO,

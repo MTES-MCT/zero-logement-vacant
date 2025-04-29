@@ -1,8 +1,8 @@
+import { OwnerRank } from '@zerologementvacant/models';
 import {
   compareHousingOwners,
   equals,
   HousingOwnerApi,
-  OwnerRank,
   toHousingOwnersApi
 } from '~/models/HousingOwnerApi';
 import {

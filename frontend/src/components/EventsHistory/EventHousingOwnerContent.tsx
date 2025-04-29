@@ -1,8 +1,8 @@
 import { getHousingOwnerRankLabel, HousingOwner } from '../../models/Owner';
-import styles from './events-history.module.scss';
-import { age, birthdate } from '../../utils/dateUtils';
 import { parseHousingOwner } from '../../services/owner.service';
+import { age, birthdate } from '../../utils/dateUtils';
 import { capitalize } from '../../utils/stringUtils';
+import styles from './events-history.module.scss';
 
 interface Props {
   housingOwners?: HousingOwner[];
@@ -28,7 +28,7 @@ const EventHousingOwnerContent = ({ housingOwners }: Props) => {
                 {age(housingOwner.birthDate)} ans)
               </span>
             )}
-            {housingOwner.rawAddress.map((address, i) => (
+            {housingOwner.rawAddress?.map((address, i) => (
               <div className="capitalize" key={`address_${i}`}>
                 {capitalize(address)}
               </div>

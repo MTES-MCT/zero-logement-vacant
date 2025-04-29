@@ -1,5 +1,6 @@
+import { AWAITING_OWNER_RANK } from '@zerologementvacant/models';
 import { createLogger } from '~/infra/logger';
-import { AWAITING_OWNER_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import departmentalOwnersRepository from '~/repositories/departmentalOwnersRepository';
 import {
   eventsTable,

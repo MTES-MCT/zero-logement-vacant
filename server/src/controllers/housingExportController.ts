@@ -309,11 +309,15 @@ function ownerRowData(
   const rawAddress = owner.rawAddress;
   return {
     owner: owner.fullName,
-    ownerRawAddress: reduceStringArray(rawAddress),
-    ownerRawAddress1: rawAddress[0],
-    ownerRawAddress2: rawAddress.length > 2 ? rawAddress[1] : undefined,
-    ownerRawAddress3: rawAddress.length > 3 ? rawAddress[1] : undefined,
-    ownerRawAddress4: rawAddress[rawAddress.length - 1],
+    ownerRawAddress: rawAddress ? reduceStringArray(rawAddress) : undefined,
+    ownerRawAddress1: rawAddress ? rawAddress[0] : undefined,
+    ownerRawAddress2:
+      rawAddress && rawAddress.length > 2 ? rawAddress[1] : undefined,
+    ownerRawAddress3:
+      rawAddress && rawAddress.length > 3 ? rawAddress[1] : undefined,
+    ownerRawAddress4: rawAddress
+      ? rawAddress[rawAddress.length - 1]
+      : undefined,
     ownerAddress: formatAddressApi(ownerAddress),
     ownerAddressHouseNumber: ownerAddress?.houseNumber,
     ownerAddressStreet: ownerAddress?.street,

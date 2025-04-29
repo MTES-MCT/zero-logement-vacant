@@ -1,25 +1,27 @@
+import { Container } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import async from 'async';
 import { useState } from 'react';
-import OwnerCard from '../../components/OwnerCard/OwnerCard';
-import { useHousing } from '../../hooks/useHousing';
+import HousingHeader from '../../components/Housing/HousingHeader';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
+import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
+import OwnerCard from '../../components/OwnerCard/OwnerCard';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useHousing } from '../../hooks/useHousing';
+import { Campaign } from '../../models/Campaign';
 import {
   hasOwnerChanges,
   hasRankChanges,
   HousingOwner
 } from '../../models/Owner';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
 import {
   useUpdateHousingOwnersMutation,
   useUpdateOwnerMutation
 } from '../../services/owner.service';
-import { Campaign } from '../../models/Campaign';
-import MainContainer from '../../components/MainContainer/MainContainer';
+import NotFoundView from '../NotFoundView';
 
-const HousingView = () => {
+function HousingView() {
   const {
     housing,
     count,
@@ -47,10 +49,6 @@ const HousingView = () => {
   const [housingOwnersModalKey, setHousingOwnersModalKey] = useState(
     new Date().getTime()
   );
-
-  if (!housing) {
-    return <></>;
-  }
 
   const submitHousingOwnersUpdate = async (
     housingOwnersUpdated: HousingOwner[]
@@ -81,8 +79,22 @@ const HousingView = () => {
     }
   };
 
+  if (!housing) {
+    return <NotFoundView />;
+  }
+
   return (
-    <MainContainer grey>
+    <Container maxWidth={false} sx={{ mt: '2rem' }}>
+      <HousingHeader
+        address={housing.rawAddress.join(', ')}
+        dataFileYears={housing.dataFileYears}
+        localId={housing.localId}
+        occupancy={housing.occupancy}
+        source={housing.source}
+        status={housing.status}
+        subStatus={housing.subStatus ?? null}
+      />
+
       <Grid container columnSpacing={3}>
         {/* Set a custom order to facilitate accessibility:
         housing first, owner second */}
@@ -121,8 +133,8 @@ const HousingView = () => {
           )}
         </Grid>
       </Grid>
-    </MainContainer>
+    </Container>
   );
-};
+}
 
 export default HousingView;

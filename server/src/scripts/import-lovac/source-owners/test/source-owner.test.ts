@@ -20,7 +20,7 @@ describe('SourceOwner', () => {
 
       expect(actual).toStrictEqual({
         ...sourceOwner,
-        entity: mapEntity(sourceOwner.entity)
+        entity: sourceOwner.entity ? mapEntity(sourceOwner.entity[0]) : null
       });
     });
   });

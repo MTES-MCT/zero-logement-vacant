@@ -9,22 +9,42 @@ import {
 import {
   createHousingProcessor,
   HousingChange,
+  HousingChanges,
   HousingEventChange,
   isCompleted,
-  isInProgress,
-  ProcessorOptions
+  isInProgress
 } from '~/scripts/import-lovac/housings/housing-processor';
 import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
-import { genHousingApi, genUserApi } from '~/test/testFixtures';
+import {
+  genEstablishmentApi,
+  genHousingApi,
+  genUserApi
+} from '~/test/testFixtures';
 
 describe('Housing processor', () => {
-  let auth: ProcessorOptions['auth'];
   let housing: HousingApi;
 
   beforeEach(() => {
-    auth = genUserApi('');
     housing = genHousingApi();
   });
+
+  async function run(
+    housing: HousingApi
+  ): Promise<ReadonlyArray<HousingChanges>> {
+    const establishment = genEstablishmentApi();
+    const auth = genUserApi(establishment.id);
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(housing);
+        controller.close();
+      }
+    });
+    const processor = createHousingProcessor({
+      auth,
+      reporter: createNoopReporter()
+    });
+    return toArray(stream.pipeThrough(processor).pipeThrough(flatten()));
+  }
 
   describe('If the housing is present in LOVAC 2025', () => {
     beforeEach(() => {
@@ -32,20 +52,7 @@ describe('Housing processor', () => {
     });
 
     it('should skip it', async () => {
-      const stream = new ReadableStream<HousingApi>({
-        start(controller) {
-          controller.enqueue(housing);
-          controller.close();
-        }
-      });
-      const processor = createHousingProcessor({
-        auth,
-        reporter: createNoopReporter()
-      });
-
-      const actual = await toArray(
-        stream.pipeThrough(processor).pipeThrough(flatten())
-      );
+      const actual = await run(housing);
 
       expect(actual).toHaveLength(0);
     });
@@ -69,23 +76,7 @@ describe('Housing processor', () => {
         const subStatuses = ['En accompagnement', 'Intervention publique'];
 
         it.each(subStatuses)('should remain untouched', async (subStatus) => {
-          const stream = new ReadableStream<HousingApi>({
-            start(controller) {
-              controller.enqueue({
-                ...housing,
-                subStatus
-              });
-              controller.close();
-            }
-          });
-          const processor = createHousingProcessor({
-            auth,
-            reporter: createNoopReporter()
-          });
-
-          const actual = await toArray(
-            stream.pipeThrough(processor).pipeThrough(flatten())
-          );
+          const actual = await run({ ...housing, subStatus });
 
           expect(actual).toHaveLength(0);
         });
@@ -97,20 +88,7 @@ describe('Housing processor', () => {
         });
 
         it('should remain untouched', async () => {
-          const stream = new ReadableStream<HousingApi>({
-            start(controller) {
-              controller.enqueue(housing);
-              controller.close();
-            }
-          });
-          const processor = createHousingProcessor({
-            auth,
-            reporter: createNoopReporter()
-          });
-
-          const actual = await toArray(
-            stream.pipeThrough(processor).pipeThrough(flatten())
-          );
+          const actual = await run(housing);
 
           expect(actual).toHaveLength(0);
         });
@@ -123,23 +101,7 @@ describe('Housing processor', () => {
       it.each(statuses)(
         'should be set as non-vacant otherwise',
         async (status) => {
-          const stream = new ReadableStream<HousingApi>({
-            start(controller) {
-              controller.enqueue({
-                ...housing,
-                status
-              });
-              controller.close();
-            }
-          });
-          const processor = createHousingProcessor({
-            auth,
-            reporter: createNoopReporter()
-          });
-
-          const actual = await toArray(
-            stream.pipeThrough(processor).pipeThrough(flatten())
-          );
+          const actual = await run({ ...housing, status });
 
           expect(actual).toPartiallyContain<HousingChange>({
             type: 'housing',
@@ -154,20 +116,7 @@ describe('Housing processor', () => {
       );
 
       it('should create an event "Changement de statut d’occupation"', async () => {
-        const stream = new ReadableStream<HousingApi>({
-          start(controller) {
-            controller.enqueue(housing);
-            controller.close();
-          }
-        });
-        const processor = createHousingProcessor({
-          auth,
-          reporter: createNoopReporter()
-        });
-
-        const actual = await toArray(
-          stream.pipeThrough(processor).pipeThrough(flatten())
-        );
+        const actual = await run(housing);
 
         expect(actual).toPartiallyContain<HousingEventChange>({
           type: 'event',
@@ -183,20 +132,7 @@ describe('Housing processor', () => {
       });
 
       it('should create an event "Changement de statut de suivi"', async () => {
-        const stream = new ReadableStream<HousingApi>({
-          start(controller) {
-            controller.enqueue(housing);
-            controller.close();
-          }
-        });
-        const processor = createHousingProcessor({
-          auth,
-          reporter: createNoopReporter()
-        });
-
-        const actual = await toArray(
-          stream.pipeThrough(processor).pipeThrough(flatten())
-        );
+        const actual = await run(housing);
 
         expect(actual).toPartiallyContain<HousingEventChange>({
           type: 'event',

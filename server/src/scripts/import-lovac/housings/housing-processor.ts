@@ -22,19 +22,19 @@ interface Change<Value, Type extends string> {
 
 export type HousingChange = Change<HousingApi, 'housing'>;
 export type HousingEventChange = Change<HousingEventApi, 'event'>;
-export type Changes = HousingChange | HousingEventChange;
+export type HousingChanges = HousingChange | HousingEventChange;
 
 export function createHousingProcessor(opts: ProcessorOptions) {
   const { abortEarly, auth, reporter } = opts;
 
-  return map<HousingApi, ReadonlyArray<Changes>>((housing) => {
+  return map<HousingApi, ReadonlyArray<HousingChanges>>((housing) => {
     try {
       logger.debug('Processing housing...', { housing });
 
       if (!housing.dataFileYears.includes('lovac-2025')) {
         if (housing.occupancy === Occupancy.VACANT) {
           if (!isInProgress(housing) && !isCompleted(housing)) {
-            const changes: ReadonlyArray<Changes> = [
+            const changes: ReadonlyArray<HousingChanges> = [
               {
                 type: 'housing',
                 kind: 'update',

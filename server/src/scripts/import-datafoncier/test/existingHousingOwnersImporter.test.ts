@@ -1,4 +1,4 @@
-import { DatafoncierHousing } from '@zerologementvacant/models';
+import { DatafoncierHousing, OwnerRank } from '@zerologementvacant/models';
 import { HousingApi } from '~/models/HousingApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
@@ -76,7 +76,7 @@ describe('Import housing owners from existing housing', () => {
         housing_geo_code: housing.geoCode,
         housing_id: housing.id,
         owner_id: owner.id,
-        rank: i + 1,
+        rank: (i + 1) as OwnerRank,
         start_date: expect.any(Date),
         end_date: null,
         origin: null,

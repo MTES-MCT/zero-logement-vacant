@@ -1355,6 +1355,7 @@ describe('Housing repository', () => {
               { length: building.housingCount - building.vacantHousingCount },
               () => ({
                 ...genHousingApi(),
+                buildingId: building.id,
                 occupancy: Occupancy.UNKNOWN
               })
             )

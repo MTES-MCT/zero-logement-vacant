@@ -16,7 +16,7 @@ export interface HousingOwnerApi extends OwnerApi {
   rank: OwnerRank;
   startDate?: Date | null;
   endDate?: Date | null;
-  origin?: string;
+  origin?: string | null;
   /**
    * @deprecated Hard to maintain because it is computed from the housings
    */

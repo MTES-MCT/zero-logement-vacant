@@ -55,7 +55,7 @@ export interface HousingOwnerDBO {
   rank: OwnerRank;
   start_date?: Date | null;
   end_date?: Date | null;
-  origin?: string;
+  origin?: string | null;
   idprocpte?: string | null;
   idprodroit?: string | null;
   locprop_source?: string | null;

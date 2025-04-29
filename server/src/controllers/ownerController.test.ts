@@ -5,7 +5,8 @@ import {
   AddressKinds,
   HousingOwnerPayloadDTO,
   OwnerDTO,
-  OwnerPayloadDTO
+  OwnerPayloadDTO,
+  OwnerRank
 } from '@zerologementvacant/models';
 import { addDays } from 'date-fns';
 import { constants } from 'http2';
@@ -14,7 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import db from '~/infra/database';
 import { createServer } from '~/infra/server';
 import { HousingApi } from '~/models/HousingApi';
-import { HousingOwnerApi, OwnerRank } from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
   banAddressesTable,

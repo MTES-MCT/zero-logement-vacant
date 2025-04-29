@@ -1,14 +1,14 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import {
+  ActiveOwnerRank,
+  INACTIVE_OWNER_RANKS,
+  PREVIOUS_OWNER_RANK
+} from '@zerologementvacant/models';
 import { flatten, toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
-import {
-  ActiveOwnerRank,
-  HousingOwnerApi,
-  INACTIVE_OWNER_RANKS,
-  PREVIOUS_OWNER_RANK
-} from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
   genSourceHousing,

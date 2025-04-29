@@ -1,12 +1,12 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
+  ActiveOwnerRank,
   HOUSING_KIND_VALUES,
   Occupancy,
   OWNERSHIP_KIND_INTERNAL_VALUES
 } from '@zerologementvacant/models';
 
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
-import { ActiveOwnerRank } from '~/models/HousingOwnerApi';
 import { SourceBuilding } from '~/scripts/import-lovac/source-buildings/source-building';
 import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';

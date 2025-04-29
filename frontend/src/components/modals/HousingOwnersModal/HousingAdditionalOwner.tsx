@@ -1,11 +1,12 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import Select from '@codegouvfr/react-dsfr/Select';
+import { OwnerRank } from '@zerologementvacant/models';
 import { ChangeEvent, useState } from 'react';
 import { HousingOwner, Owner } from '../../../models/Owner';
 import { SelectOption } from '../../../models/SelectOption';
 import styles from './housing-owner-modal.module.scss';
-import HousingAdditionalOwnerSearch from './HousingAdditionalOwnerSearch';
 import HousingAdditionalOwnerCreation from './HousingAdditionalOwnerCreation';
-import Select from '@codegouvfr/react-dsfr/Select';
-import Alert from '@codegouvfr/react-dsfr/Alert';
+import HousingAdditionalOwnerSearch from './HousingAdditionalOwnerSearch';
 
 interface Props {
   housingId: string;
@@ -20,7 +21,7 @@ function HousingAdditionalOwner({ activeOwnersCount, onAddOwner }: Props) {
   function submitAddingHousingOwner(owner: Owner) {
     onAddOwner?.({
       ...owner,
-      rank: Number(additionalOwnerRank),
+      rank: Number(additionalOwnerRank) as OwnerRank,
       idprocpte: null,
       idprodroit: null,
       locprop: null

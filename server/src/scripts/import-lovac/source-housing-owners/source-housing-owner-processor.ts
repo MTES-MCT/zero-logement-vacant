@@ -1,3 +1,8 @@
+import {
+  isActiveOwnerRank,
+  isInactiveOwnerRank,
+  PREVIOUS_OWNER_RANK
+} from '@zerologementvacant/models';
 import { map } from '@zerologementvacant/utils/node';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,12 +12,7 @@ import OwnerMissingError from '~/errors/ownerMissingError';
 import { createLogger } from '~/infra/logger';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
-import {
-  HousingOwnerApi,
-  isActiveOwnerRank,
-  isInactiveOwnerRank,
-  PREVIOUS_OWNER_RANK
-} from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { UserApi } from '~/models/UserApi';
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';

@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
 
-import { AddressKinds } from '@zerologementvacant/models';
+import { AddressKinds, OwnerRank } from '@zerologementvacant/models';
 import async from 'async';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
 import { Knex } from 'knex';
@@ -9,7 +9,7 @@ import fp from 'lodash/fp';
 import { ElementOf, MarkRequired } from 'ts-essentials';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
-import { HousingOwnerApi, OwnerRank } from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
   banAddressesTable,

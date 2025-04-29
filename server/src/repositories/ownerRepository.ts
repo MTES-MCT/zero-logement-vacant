@@ -175,11 +175,10 @@ const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
   );
 };
 
-interface FindOneOptions {
-  id?: string;
-  idpersonne?: string;
-  fullName?: string;
-  rawAddress?: string[];
+interface FindOneOptions
+  extends Partial<
+    Pick<OwnerApi, 'id' | 'idpersonne' | 'fullName' | 'rawAddress'>
+  > {
   birthDate?: Date;
 }
 
@@ -479,7 +478,7 @@ export interface OwnerRecordDBO {
   birth_date: Date | string | null;
   administrator: string | null;
   siren: string | null;
-  address_dgfip: string[];
+  address_dgfip: string[] | null;
   // ban_address: string | null;
   additional_address: string | null;
   email: string | null;
@@ -574,7 +573,7 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   birth_date: owner.birthDate,
   administrator: owner.administrator ?? null,
   siren: owner.siren ?? null,
-  address_dgfip: owner.rawAddress.filter((_: string) => _ && _.length),
+  address_dgfip: owner.rawAddress,
   additional_address: owner.additionalAddress ?? null,
   email: owner.email ?? null,
   phone: owner.phone ?? null,

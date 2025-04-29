@@ -1,5 +1,5 @@
 import { fc, test } from '@fast-check/jest';
-import { ActiveOwnerRank } from '~/models/HousingOwnerApi';
+import { ActiveOwnerRank } from '@zerologementvacant/models';
 
 import {
   SourceHousingOwner,

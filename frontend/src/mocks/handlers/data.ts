@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker';
-import fp from 'lodash/fp';
 
 import {
   BaseHousingOwnerDTO,
@@ -11,6 +10,7 @@ import {
   HousingDTO,
   NoteDTO,
   OwnerDTO,
+  OwnerRank,
   Precision,
   PRECISION_CATEGORY_VALUES,
   ProspectDTO,
@@ -27,6 +27,7 @@ import {
   genSenderDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
+import fp from 'lodash/fp';
 
 const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
 
@@ -101,7 +102,7 @@ const housingOwners = new Map<
     const elements = faker.helpers.arrayElements(owners);
     const housingOwners = elements.map((owner, i) => ({
       id: owner.id,
-      rank: i + 1,
+      rank: (i + 1) as OwnerRank,
       idprocpte: null,
       idprodroit: null,
       locprop: null

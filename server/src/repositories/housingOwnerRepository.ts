@@ -1,7 +1,8 @@
+import { OwnerRank } from '@zerologementvacant/models';
 import db from '~/infra/database';
 import { logger } from '~/infra/logger';
 import { HousingApi, HousingRecordApi } from '~/models/HousingApi';
-import { HousingOwnerApi, OwnerRank } from '~/models/HousingOwnerApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 
 export const housingOwnersTable = 'owners_housing';

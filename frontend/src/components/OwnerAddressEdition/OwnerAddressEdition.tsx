@@ -1,23 +1,21 @@
+import CallOut from '@codegouvfr/react-dsfr/CallOut';
 import { useState } from 'react';
 
 import { Address, isBanEligible } from '../../models/Address';
 import { AddressSearchResult } from '../../services/address.service';
 import AddressSearchableSelectNext from '../AddressSearchableSelect/AddressSearchableSelectNext';
-import CallOut from '@codegouvfr/react-dsfr/CallOut';
 
 interface Props {
   banAddress?: Address;
   disabled?: boolean;
   errorMessage?: string;
   help?: boolean;
-  rawAddress: string[];
   onSelectAddress(address: AddressSearchResult | null): void;
   warningVisible: boolean;
   setWarningVisible: (visible: boolean) => void;
 }
 
 function OwnerAddressEdition(props: Props) {
-
   const [inputValue, setInputValue] = useState('');
   const [open, setOpen] = useState(false);
 
@@ -49,13 +47,17 @@ function OwnerAddressEdition(props: Props) {
       />
       {props.warningVisible && !isBanEligible(props.banAddress) && (
         <CallOut
-        className="fr-mt-3w"
-        buttonProps={{
-          children: 'Ignorer',
-          onClick: () => {props.setWarningVisible(false);},
-        }}>
-        L’adresse de la Base Adresse Nationale diffère de celle de la DGFIP. Veuillez vérifier attentivement ces informations ou ignorez l’alerte.
-      </CallOut>
+          className="fr-mt-3w"
+          buttonProps={{
+            children: 'Ignorer',
+            onClick: () => {
+              props.setWarningVisible(false);
+            }
+          }}
+        >
+          L’adresse de la Base Adresse Nationale diffère de celle de la DGFIP.
+          Veuillez vérifier attentivement ces informations ou ignorez l’alerte.
+        </CallOut>
       )}
     </>
   );

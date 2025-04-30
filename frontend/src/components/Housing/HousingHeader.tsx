@@ -14,6 +14,7 @@ import OccupancyBadge from './OccupancyBadge';
 
 export interface HousingHeaderProps {
   address: string | null;
+  className?: string;
   dataFileYears: DataFileYear[];
   localId: string;
   occupancy: Occupancy;
@@ -24,7 +25,7 @@ export interface HousingHeaderProps {
 
 function HousingHeader(props: HousingHeaderProps) {
   return (
-    <Stack component="section">
+    <Stack className={props.className} component="section">
       <Typography component="h1" variant="h3">
         {fallback(props.address)}
       </Typography>

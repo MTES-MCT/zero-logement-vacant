@@ -15,6 +15,7 @@ import {
   banAddressesTable,
   formatAddressApi
 } from '~/repositories/banAddressesRepository';
+import { Buildings } from '~/repositories/buildingRepository';
 import { Establishments } from '~/repositories/establishmentRepository';
 import {
   formatHousingOwnerApi,
@@ -36,13 +37,18 @@ export async function seed(knex: Knex): Promise<void> {
   await knex.raw(`TRUNCATE TABLE ${ownerTable} CASCADE`);
 
   const establishments = await Establishments(knex).where({ available: true });
+  const buildings = await Buildings(knex).limit(1000);
+
   await async.forEachSeries(establishments, async (establishment) => {
     const geoCodes = faker.helpers.arrayElements(
       establishment.localities_geo_code,
       30
     );
     const baseHousings: HousingApi[] = faker.helpers.multiple(
-      () => genHousingApi(faker.helpers.arrayElement(geoCodes)),
+      () => ({
+        ...genHousingApi(faker.helpers.arrayElement(geoCodes)),
+        buildingId: faker.helpers.arrayElement(buildings).id
+      }),
       {
         count: {
           min: 100,

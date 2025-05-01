@@ -407,7 +407,7 @@ function HousingOwnersModal({
         <Button
           className="float-right"
           iconId="fr-icon-edit-fill"
-          priority="tertiary no outline"
+          priority="tertiary"
           title="Modifier le propriétaire"
           onClick={modal.open}
         >

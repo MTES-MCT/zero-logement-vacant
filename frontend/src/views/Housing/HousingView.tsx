@@ -1,4 +1,5 @@
 import { Container } from '@mui/material';
+import Skeleton from '@mui/material/Skeleton';
 import Grid from '@mui/material/Unstable_Grid2';
 import async from 'async';
 import { useState } from 'react';
@@ -25,12 +26,12 @@ function HousingView() {
   const {
     housing,
     count,
-    coOwners,
     mainHousingOwner,
     housingOwners,
     events,
     notes,
-    campaigns
+    campaigns,
+    getHousingQuery
   } = useHousing();
   const housingCount = count?.housing ?? 0;
   useDocumentTitle(
@@ -79,21 +80,26 @@ function HousingView() {
     }
   };
 
+  if (getHousingQuery.isLoading) {
+    return (
+      <Container maxWidth={false} sx={{ my: '2rem' }}>
+        <Skeleton
+          animation="wave"
+          variant="rectangular"
+          height="8rem"
+          width="50rem"
+        />
+      </Container>
+    );
+  }
+
   if (!housing) {
     return <NotFoundView />;
   }
 
   return (
-    <Container maxWidth={false} sx={{ mt: '2rem' }}>
-      <HousingHeader
-        address={housing.rawAddress.join(', ')}
-        dataFileYears={housing.dataFileYears}
-        localId={housing.localId}
-        occupancy={housing.occupancy}
-        source={housing.source}
-        status={housing.status}
-        subStatus={housing.subStatus ?? null}
-      />
+    <Container maxWidth={false} sx={{ my: '2rem' }}>
+      <HousingHeader className="fr-mb-3w" housing={housing} />
 
       <Grid container columnSpacing={3}>
         {/* Set a custom order to facilitate accessibility:
@@ -112,24 +118,22 @@ function HousingView() {
         </Grid>
         <Grid xs={4} order={1}>
           {mainHousingOwner && housingOwners && (
-            <>
-              <OwnerCard
-                owner={mainHousingOwner}
-                coOwners={coOwners}
-                housingCount={housingCount}
-                modify={
-                  <HousingOwnersModal
-                    housingId={housing.id}
-                    housingOwners={housingOwners}
-                    onSubmit={submitHousingOwnersUpdate}
-                    key={housingOwnersModalKey}
-                    onCancel={() =>
-                      setHousingOwnersModalKey(new Date().getTime())
-                    }
-                  />
-                }
-              />
-            </>
+            <OwnerCard
+              housingId={housing.id}
+              owner={mainHousingOwner}
+              housingCount={housingCount}
+              modify={
+                <HousingOwnersModal
+                  housingId={housing.id}
+                  housingOwners={housingOwners}
+                  onSubmit={submitHousingOwnersUpdate}
+                  key={housingOwnersModalKey}
+                  onCancel={() =>
+                    setHousingOwnersModalKey(new Date().getTime())
+                  }
+                />
+              }
+            />
           )}
         </Grid>
       </Grid>

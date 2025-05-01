@@ -1,28 +1,28 @@
-import { useEffect, useMemo, useState } from 'react';
 import * as turf from '@turf/turf';
+import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
   NavigationControl,
   useMap,
   ViewState,
   ViewStateChangeEvent
 } from 'react-map-gl/maplibre';
-import {
-  hasCoordinates,
-  Housing,
-  HousingWithCoordinates
-} from '../../models/Housing';
-import HousingPopup from './HousingPopup';
-import Clusters from './Clusters';
+import { useMapImage } from '../../hooks/useMapImage';
 import {
   Building,
   groupByBuilding,
   HousingByBuilding
 } from '../../models/Building';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
-import Perimeters from './Perimeters';
+import {
+  hasCoordinates,
+  Housing,
+  HousingWithCoordinates
+} from '../../models/Housing';
+import Clusters from './Clusters';
+import HousingPopup from './HousingPopup';
 import MapControls from './MapControls';
+import Perimeters from './Perimeters';
 import Points from './Points';
-import { useMapImage } from '../../hooks/useMapImage';
 
 const STYLE = {
   title: 'Carte',
@@ -38,6 +38,8 @@ export interface MapProps {
   viewState?: ViewState;
   minZoom?: number;
   maxZoom?: number;
+  showMapSettings?: boolean;
+  style?: CSSProperties;
   onMove?: (viewState: ViewState) => void;
 }
 
@@ -158,7 +160,8 @@ function Map(props: MapProps) {
       style={{
         minHeight: '600px',
         height: 'auto',
-        fontFamily: 'Marianne, sans-serif'
+        fontFamily: 'Marianne, sans-serif',
+        ...props.style
       }}
     >
       <Perimeters
@@ -192,6 +195,7 @@ function Map(props: MapProps) {
       <MapControls
         clusterize={clusterize}
         perimeters={showPerimeters}
+        show={props.showMapSettings}
         onClusterizeChange={setClusterize}
         onPerimetersChange={setShowPerimeters}
       />

@@ -61,6 +61,7 @@ export function useHousing() {
     coOwners,
     housingOwners,
     housing,
+    housingId,
     count,
     campaigns
   };

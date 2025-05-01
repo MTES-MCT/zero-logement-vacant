@@ -1,4 +1,5 @@
 import {
+  CadastralClassification,
   DataFileYear,
   EnergyConsumption,
   HousingDTO,
@@ -27,6 +28,7 @@ export interface Housing {
   localId: string;
   geoCode: string;
   cadastralReference: string;
+  buildingId: string | null;
   buildingLocation?: string;
   buildingGroupId?: string;
   rawAddress: string[];
@@ -38,14 +40,14 @@ export interface Housing {
   localityKind: LocalityKinds;
   geoPerimeters?: string[];
   owner: Owner;
-  livingArea: number;
+  livingArea: number | null;
   housingKind: string;
   roomsCount: number;
   buildingYear?: number;
-  vacancyStartYear: number;
+  vacancyStartYear: number | null;
   uncomfortable: boolean;
-  cadastralClassification: number;
-  taxed: boolean;
+  cadastralClassification: CadastralClassification | null;
+  taxed: boolean | null;
   ownershipKind: string;
   buildingHousingCount?: number;
   buildingVacancyRate?: number;
@@ -56,8 +58,8 @@ export interface Housing {
   lastContact?: Date;
   energyConsumption: string | null;
   energyConsumptionAt: Date | null;
-  occupancy: OccupancyKind | OccupancyKindUnknown;
-  occupancyIntended?: OccupancyKind | OccupancyKindUnknown;
+  occupancy: Occupancy;
+  occupancyIntended: Occupancy | null;
   source: HousingSource | null;
 }
 
@@ -302,8 +304,8 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     energyConsumption:
       housing.energyConsumption as unknown as EnergyConsumption,
     energyConsumptionAt: housing.energyConsumptionAt,
-    occupancy: housing.occupancy as unknown as Occupancy,
-    occupancyIntended: housing.occupancyIntended as unknown as Occupancy,
+    occupancy: housing.occupancy,
+    occupancyIntended: housing.occupancyIntended,
     source: housing.source,
     owner: toOwnerDTO(housing.owner)
   };

@@ -295,6 +295,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
       'datafoncier-import',
       'datafoncier-manual'
     ]),
+    vacancyStartYear: faker.date.past().getUTCFullYear(),
     localId: genLocalId(department, invariant),
     invariant: genInvariant(locality),
     rawAddress: faker.location

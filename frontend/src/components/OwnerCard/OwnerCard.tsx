@@ -195,7 +195,7 @@ function OwnerCard(props: OwnerCardProps) {
       </Stack>
 
       <Stack component="article">
-        <Typography component="h2" variant="h6" mb={1} mt={4}>
+        <Typography component="h2" variant="h6" sx={{ mb: '0.5rem' }}>
           Propriétaires archivés (
           {archivedOwners ? archivedOwners.length : '...'})
         </Typography>

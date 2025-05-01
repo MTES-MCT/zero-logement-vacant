@@ -1,69 +1,94 @@
 import { fr } from '@codegouvfr/react-dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import {
-  DataFileYear,
-  HousingSource,
-  HousingStatus,
-  Occupancy
-} from '@zerologementvacant/models';
-import { getSource } from '../../models/Housing';
+import { useState } from 'react';
+
+import { useUser } from '../../hooks/useUser';
+import { getSource, Housing } from '../../models/Housing';
+import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 
 import OccupancyBadge from './OccupancyBadge';
 
 export interface HousingHeaderProps {
-  address: string | null;
   className?: string;
-  dataFileYears: DataFileYear[];
-  localId: string;
-  occupancy: Occupancy;
-  source: HousingSource | null;
-  status: HousingStatus;
-  subStatus: string | null;
+  housing: Housing;
 }
 
 function HousingHeader(props: HousingHeaderProps) {
+  const [editing, setEditing] = useState(false);
+
+  const { isVisitor } = useUser();
+
   return (
-    <Stack className={props.className} component="section">
-      <Typography component="h1" variant="h3">
-        {fallback(props.address)}
-      </Typography>
-      <Typography
-        sx={{
-          color: fr.colors.decisions.text.title.grey.default,
-          fontWeight: 500,
-          mb: '0.5rem'
-        }}
-      >
-        Identifiant fiscal national : {props.localId}
-      </Typography>
-      <Stack
-        direction="row"
-        spacing="0.75rem"
-        sx={{ alignItems: 'center', mb: '0.5rem' }}
-      >
-        <Typography component="span">
-          Occupation : <OccupancyBadge occupancy={props.occupancy} />
+    <Stack
+      component="header"
+      direction="row"
+      sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}
+    >
+      <Stack className={props.className} component="section">
+        <Typography component="h1" variant="h3">
+          {fallback(props.housing.rawAddress.join(', '))}
         </Typography>
-        <Typography component="span" sx={{ display: 'inline-flex' }}>
-          <Typography component="span" sx={{ mr: '0.5rem' }}>
-            Statut de suivi :&nbsp;
+        <Typography
+          sx={{
+            color: fr.colors.decisions.text.title.grey.default,
+            fontWeight: 500,
+            mb: '0.5rem'
+          }}
+        >
+          Identifiant fiscal national : {props.housing.localId}
+        </Typography>
+        <Stack
+          direction="row"
+          spacing="0.75rem"
+          sx={{ alignItems: 'center', mb: '0.5rem' }}
+        >
+          <Typography component="span">
+            Occupation : <OccupancyBadge occupancy={props.housing.occupancy} />
           </Typography>
-          <HousingStatusBadge inline status={props.status} />
+          <Typography component="span" sx={{ display: 'inline-flex' }}>
+            <Typography component="span" sx={{ mr: '0.5rem' }}>
+              Statut de suivi :&nbsp;
+            </Typography>
+            <HousingStatusBadge inline status={props.housing.status} />
+          </Typography>
+          {props.housing.subStatus ? (
+            <Typography>{props.housing.subStatus}</Typography>
+          ) : null}
+        </Stack>
+        <Typography
+          variant="body2"
+          sx={{ color: fr.colors.decisions.text.mention.grey.default }}
+        >
+          Source des informations :&nbsp;
+          {getSource({
+            dataFileYears: props.housing.dataFileYears,
+            source: props.housing.source
+          })}
         </Typography>
-        {props.subStatus ? <Typography>{props.subStatus}</Typography> : null}
       </Stack>
-      <Typography
-        variant="body2"
-        sx={{ color: fr.colors.decisions.text.mention.grey.default }}
-      >
-        Source des informations :&nbsp;
-        {getSource({
-          dataFileYears: props.dataFileYears,
-          source: props.source
-        })}
-      </Typography>
+
+      {isVisitor ? null : (
+        <>
+          <Button
+            size="large"
+            onClick={() => {
+              setEditing(true);
+            }}
+          >
+            Mettre à jour
+          </Button>
+          <HousingEditionSideMenu
+            housing={props.housing}
+            expand={editing}
+            onClose={() => {
+              setEditing(false);
+            }}
+          />
+        </>
+      )}
     </Stack>
   );
 }

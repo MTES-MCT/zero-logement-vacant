@@ -24,14 +24,17 @@ import {
 import { CADASTRAL_CLASSIFICATION_OPTIONS } from '../../models/HousingFilters';
 import { Note } from '../../models/Note';
 import { useGetBuildingQuery } from '../../services/building.service';
+import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useFindPerimetersQuery } from '../../services/perimeter.service';
 import AppLink from '../_app/AppLink/AppLink';
 import DPE from '../DPE/DPE';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import OccupancyBadge from '../Housing/OccupancyBadge';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
+import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import LabelNext from '../Label/LabelNext';
 import Map from '../Map/Map';
+import PrecisionLists from '../Precision/PrecisionLists';
 import styles from './housing-details-card.module.scss';
 import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
 import HousingDetailsSubCardLocation from './HousingDetailsSubCardLocation';
@@ -58,6 +61,10 @@ function HousingDetailsCard(props: HousingDetailsCardProps) {
           label: 'Logement et bâtiment',
           content: HousingTab({ housing: props.housing }),
           isDefault: true
+        },
+        {
+          label: 'Mobilisation',
+          content: MobilizationTab({ housing: props.housing })
         }
       ]}
     />
@@ -73,9 +80,6 @@ function HousingTab(props: HousingTabProps) {
     props.housing.buildingId ?? skipToken
   );
   const findPerimetersQuery = useFindPerimetersQuery();
-  // props.housing.geoPerimeters?.length
-  //   ? { id: props.housing.geoPerimeters }
-  //   : skipToken
 
   const buildingLocation = getBuildingLocation(props.housing);
   const addressComplement: string | null = buildingLocation
@@ -237,16 +241,22 @@ function HousingTab(props: HousingTabProps) {
               ))
               .with(
                 { isLoading: false, data: Pattern.nonNullable },
-                ({ data: perimeters }) => (
-                  <HousingAttribute
-                    label="Périmètres"
-                    value={perimeters.map((perimeter) => (
+                ({ data: perimeters }) => {
+                  const result = perimeters
+                    .filter((perimeter) => {
+                      return props.housing.geoPerimeters?.some(
+                        (housingPerimeter) => {
+                          return housingPerimeter === perimeter.kind;
+                        }
+                      );
+                    })
+                    .map((perimeter) => (
                       <Typography key={perimeter.id}>
                         {perimeter.name}
                       </Typography>
-                    ))}
-                  />
-                )
+                    ));
+                  return result.length > 0 ? result : null;
+                }
               )
               .otherwise(() => null)}
           />
@@ -294,6 +304,58 @@ function HousingTab(props: HousingTabProps) {
         </Stack>
       </Grid>
     </Grid>
+  );
+}
+
+interface MobilizationTabProps {
+  housing: Housing;
+}
+
+function MobilizationTab(props: MobilizationTabProps) {
+  const findCampaignsQuery = useFindCampaignsQuery();
+
+  return (
+    <Stack component="section" spacing="2rem">
+      <Stack component="article" spacing="0.75rem">
+        <Typography component="h3" variant="h6">
+          Informations sur la mobilisation
+        </Typography>
+
+        <HousingAttribute
+          label="Statut de suivi"
+          value={<HousingStatusBadge inline status={props.housing.status} />}
+        />
+        <HousingAttribute
+          label="Sous-statut de suivi"
+          value={props.housing.subStatus}
+        />
+        <HousingAttribute
+          label="Dernière mise à jour"
+          value="Aucune mise à jour"
+        />
+        <HousingAttribute
+          label={`Campagnes (${props.housing.campaignIds.length})`}
+          value={match(findCampaignsQuery)
+            .returnType<ReactNode>()
+            .with({ isLoading: true }, () => (
+              <Skeleton animation="wave" variant="text" />
+            ))
+            .with(
+              { isLoading: false, data: Pattern.nonNullable },
+              ({ data: campaigns }) => {
+                return campaigns.map((campaign) => (
+                  <Typography key={campaign.id}>{campaign.title}</Typography>
+                ));
+              }
+            )
+            .otherwise(() => null)}
+        />
+      </Stack>
+
+      <Stack component="article">
+        <PrecisionLists housingId={props.housing.id} />
+      </Stack>
+    </Stack>
   );
 }
 

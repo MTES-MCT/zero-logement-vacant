@@ -88,12 +88,12 @@ describe('Housing view', () => {
     describe('Vacancy start year', () => {
       it('should be unknown', async () => {
         housing.occupancy = Occupancy.RENT;
-        housing.vacancyStartYear = undefined;
+        housing.vacancyStartYear = null;
 
         renderView(housing);
 
         const vacancyStartYear = await screen
-          .findByText(/^Dans cette situation depuis/)
+          .findByText(/^Année de début de vacance déclarée/)
           .then((label) => label.nextElementSibling);
         expect(vacancyStartYear).toHaveTextContent('Inconnu');
       });
@@ -105,7 +105,7 @@ describe('Housing view', () => {
         renderView(housing);
 
         const vacancyStartYear = await screen
-          .findByText(/^Dans cette situation depuis/)
+          .findByText(/^Année de début de vacance déclarée/)
           .then((label) => label.nextElementSibling);
         expect(vacancyStartYear).toHaveTextContent(
           `1 an (${format(subYears(new Date(), 1), 'yyyy')})`
@@ -120,7 +120,7 @@ describe('Housing view', () => {
         renderView(housing);
 
         const source = await screen
-          .findByText(/^Source/)
+          .findByText(/^Source des informations/)
           .then((label) => label.nextElementSibling);
         expect(source).toHaveTextContent('Fichiers fonciers (2023)');
       });

@@ -48,9 +48,7 @@ function OwnerCard(props: OwnerCardProps) {
         <Typography component="h2" variant="h5">
           Propriétaires
         </Typography>
-        <Button iconId="fr-icon-edit-fill" priority="tertiary">
-          Modifier
-        </Button>
+        {props.modify}
       </Stack>
 
       <Stack component="article" spacing="0.75rem">

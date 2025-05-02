@@ -3,6 +3,7 @@ import {
   HousingOwnerDTO,
   OwnerDTO
 } from '@zerologementvacant/models';
+import { contramap, DEFAULT_ORDER, Ord } from '@zerologementvacant/utils';
 import fp from 'lodash/fp';
 import { Address, fromAddressDTO, toOwnerAddressDTO } from './Address';
 
@@ -121,3 +122,7 @@ export function hasRankChanges(
     return ownerAfter && ownerBefore.rank !== ownerAfter.rank;
   });
 }
+
+export const byRank: Ord<HousingOwner> = contramap(
+  (housingOwner: HousingOwner) => housingOwner.rank
+)(DEFAULT_ORDER);

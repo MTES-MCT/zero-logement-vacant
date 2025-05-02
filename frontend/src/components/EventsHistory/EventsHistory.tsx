@@ -1,22 +1,35 @@
-import { useState } from 'react';
-import { Text } from '../_dsfr';
-import styles from './events-history.module.scss';
-import { differenceInMilliseconds, format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Event } from '../../models/Event';
-import EventUser from './EventUser';
-import EventPartialHousingContent from './EventPartialHousingContent';
-import EventHousingOwnerContent from './EventHousingOwnerContent';
-import { Note } from '../../models/Note';
-import classNames from 'classnames';
-import { getHousingDiff, getOwnerDiff } from '../../models/Diff';
-import EventPartialOwnerContent from './EventPartialOwnerContent';
-import { useCampaignList } from '../../hooks/useCampaignList';
-import AppLink from '../_app/AppLink/AppLink';
-import { Campaign } from '../../models/Campaign';
-import GroupEventContent from './GroupEventContent';
-import FollowupEventContent from './FollowupEventContent';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { differenceInMilliseconds } from 'date-fns';
+import { ReactNode, useState } from 'react';
+import { match, Pattern } from 'ts-pattern';
+import NoEvent from '../../assets/images/no-event.svg';
+
+import { Event } from '../../models/Event';
+import { Note } from '../../models/Note';
+import { HousingOwner } from '../../models/Owner';
+import Image from '../Image/Image';
+import { CampaignCreatedEventContent } from './CampaignEventContent';
+import EventCard from './EventCard';
+import {
+  GroupArchivedEventContent,
+  GroupHousingAddedEventContent,
+  GroupHousingRemovedEventContent,
+  GroupRemovedEventContent
+} from './GroupEventContent';
+import {
+  HousingCreatedEventContent,
+  HousingOccupancyChangeEventContent,
+  HousingStatusChangeEventContent
+} from './HousingEventContent';
+import NoteEventContent from './NoteEventContent';
+import {
+  HousingOwnersChangeEventContent,
+  MainHousingOwnerChangeEventContent,
+  OwnerChangeEventContent,
+  OwnerCreatedEventContent
+} from './OwnershipEventContent';
 
 interface Props {
   events: Event[];
@@ -26,226 +39,112 @@ interface Props {
 const EventsHistory = ({ events, notes }: Props) => {
   const [expandEvents, setExpandEvents] = useState(false);
 
-  const eventAndNotes = [...events, ...notes].sort((e1, e2) =>
+  const eventAndNotes = [...events, ...notes].toSorted((e1, e2) =>
     differenceInMilliseconds(e2.createdAt, e1.createdAt)
   );
 
-  const isEvent = (e: Event | Note): e is Event => {
+  function isEvent(e: Event | Note): e is Event {
     return (e as Event).category !== undefined;
-  };
+  }
 
-  const campaignList = useCampaignList();
-  const findNewCampaign = (event: Event): Campaign =>
-    event.new.campaignIds?.[0] &&
-    campaignList?.find(
-      (campaing) => campaing.id === event.new.campaignIds?.[0]
+  function renderEventContent(eventOrNote: Event | Note): ReactNode {
+    if (!isEvent(eventOrNote)) {
+      return <NoteEventContent note={eventOrNote} />;
+    }
+
+    const event = eventOrNote;
+
+    return (
+      match(event)
+        // Housing events
+        .with({ name: 'Création du logement' }, () => (
+          <HousingCreatedEventContent event={event} />
+        ))
+        .with(
+          {
+            name: Pattern.union(
+              "Modification du statut d'occupation",
+              'Changement de statut d’occupation'
+            )
+          },
+          (event) => <HousingOccupancyChangeEventContent event={event} />
+        )
+        .with({ name: 'Changement de statut de suivi' }, (event) => (
+          <HousingStatusChangeEventContent event={event} />
+        ))
+        // Owner events
+        .with({ name: "Création d'un nouveau propriétaire" }, (event) => (
+          <OwnerCreatedEventContent event={event} />
+        ))
+        .with({ name: 'Modification de coordonnées' }, (event) => (
+          <OwnerChangeEventContent event={event} />
+        ))
+        .with({ name: "Modification d'identité" }, (event) => (
+          <OwnerChangeEventContent event={event} />
+        ))
+        .with({ name: 'Changement de propriétaire principal' }, (event) => (
+          <MainHousingOwnerChangeEventContent event={event} />
+        ))
+        .with(
+          { name: 'Changement de propriétaires' },
+          (event: Event<HousingOwner[]>) => (
+            <HousingOwnersChangeEventContent
+              conflict={event.conflict ?? false}
+              housingOwnersBefore={event.old ?? []}
+              housingOwnersAfter={event.new ?? []}
+            />
+          )
+        )
+        // Campaign events
+        .with({ name: 'Ajout dans une campagne' }, (event) => (
+          <CampaignCreatedEventContent event={event} />
+        ))
+        // Group events
+        .with({ name: 'Ajout dans un groupe' }, (event) => (
+          <GroupHousingAddedEventContent event={event} />
+        ))
+        .with({ name: 'Retrait d’un groupe' }, (event) => (
+          <GroupHousingRemovedEventContent event={event} />
+        ))
+        .with({ name: 'Archivage d’un groupe' }, (event) => (
+          <GroupArchivedEventContent event={event} />
+        ))
+        .with({ name: 'Suppression d’un groupe' }, (event) => (
+          <GroupRemovedEventContent event={event} />
+        ))
+        .otherwise(() => null)
     );
+  }
+
+  if (eventAndNotes.length === 0) {
+    return (
+      <Stack sx={{ alignItems: 'center' }}>
+        <Box sx={{ maxWidth: '7.5rem' }}>
+          <Image
+            alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"
+            responsive="max-height"
+            src={NoEvent}
+          />
+        </Box>
+        <Typography variant="subtitle1">
+          Pas d’évènement ou de note à afficher
+        </Typography>
+      </Stack>
+    );
+  }
 
   return (
-    <>
+    <Stack spacing="1rem">
       {eventAndNotes
-        .filter((eventOrNote, index) => expandEvents || index < 3)
-        .map((eventOrNote, index) => (
-          <div key={`event_note_${index}`} className="fr-mb-3w">
-            <div className={styles.eventData}>
-              <Typography
-                component="h2"
-                variant="body2"
-                className={styles.eventDate}
-              >
-                {format(eventOrNote.createdAt, 'dd MMMM yyyy, HH:mm', {
-                  locale: fr
-                })}
-              </Typography>
-              <span className="fr-mx-1w">par</span>
-              <EventUser userId={eventOrNote.createdBy} />
-            </div>
-            <div className={styles.event}>
-              {isEvent(eventOrNote) ? (
-                <>
-                  <Typography
-                    component="h3"
-                    variant="body1"
-                    sx={{ fontWeight: 900, mb: 1 }}
-                  >
-                    {eventOrNote.name}
-                  </Typography>
-                  {eventOrNote.category === 'Followup' && (
-                    <FollowupEventContent event={eventOrNote} />
-                  )}
-                  {(eventOrNote.section === 'Situation' ||
-                    eventOrNote.name === 'Changement de statut de suivi') &&
-                    eventOrNote.name !== 'Création du logement' && (
-                      <div className={styles.eventContentRowContainer}>
-                        {eventOrNote.old ? (
-                          <>
-                            <EventPartialHousingContent
-                              partialHousing={
-                                getHousingDiff(
-                                  eventOrNote.old,
-                                  eventOrNote.new ?? {}
-                                ).old
-                              }
-                            />
-                            {eventOrNote.conflict ? (
-                              <span className="fr-icon-error-warning-fill color-red-marianne-625" />
-                            ) : (
-                              <span className="fr-icon-arrow-right-s-line" />
-                            )}
-                            {eventOrNote.new ? (
-                              <EventPartialHousingContent
-                                partialHousing={
-                                  getHousingDiff(
-                                    eventOrNote.old,
-                                    eventOrNote.new
-                                  ).new
-                                }
-                              />
-                            ) : (
-                              <div
-                                className={classNames(
-                                  styles.eventContent,
-                                  'd-inline-block'
-                                )}
-                              >
-                                Ce logement <b>n’est plus présent</b> dans Lovac
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div
-                            className={classNames(
-                              styles.eventContent,
-                              'd-inline-block'
-                            )}
-                          >
-                            {eventOrNote.new ? (
-                              <>
-                                Ce logement est <b>nouveau</b> dans Lovac
-                              </>
-                            ) : (
-                              <>
-                                Ce logement <b>n’est plus présent</b> dans Lovac
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  {eventOrNote.category === 'Ownership' && (
-                    <>
-                      {eventOrNote.section === 'Propriétaire' && (
-                        <div className={styles.eventContentRowContainer}>
-                          {eventOrNote.name ===
-                          "Création d'un nouveau propriétaire" ? (
-                            <EventHousingOwnerContent
-                              housingOwners={[eventOrNote.new]}
-                            />
-                          ) : (
-                            <>
-                              {eventOrNote.old && (
-                                <EventHousingOwnerContent
-                                  housingOwners={
-                                    eventOrNote.old.owner
-                                      ? [eventOrNote.old.owner]
-                                      : eventOrNote.old
-                                  }
-                                />
-                              )}
-                              <>
-                                {eventOrNote.conflict ? (
-                                  <span className="fr-icon-error-warning-fill color-red-marianne-625" />
-                                ) : (
-                                  <span className="fr-icon-arrow-right-s-line" />
-                                )}
-                              </>
-                              {eventOrNote.new ? (
-                                <EventHousingOwnerContent
-                                  housingOwners={
-                                    eventOrNote.new.owner
-                                      ? [eventOrNote.new.owner]
-                                      : eventOrNote.new
-                                  }
-                                />
-                              ) : (
-                                <div
-                                  className={classNames(
-                                    styles.eventContent,
-                                    'd-inline-block'
-                                  )}
-                                >
-                                  Ce logement <b>n’est plus présent</b> dans
-                                  Lovac
-                                </div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      )}
-                      {eventOrNote.section === 'Coordonnées propriétaire' && (
-                        <div className={styles.eventContentRowContainer}>
-                          <EventPartialOwnerContent
-                            partialOwner={
-                              getOwnerDiff(eventOrNote.old, eventOrNote.new).old
-                            }
-                            ownerName={eventOrNote.old.fullName}
-                            eventName={eventOrNote.name}
-                          />
-                          <span className="fr-icon-arrow-right-s-line" />
-                          <EventPartialOwnerContent
-                            partialOwner={
-                              getOwnerDiff(eventOrNote.old, eventOrNote.new).new
-                            }
-                            ownerName={eventOrNote.new.fullName}
-                            eventName={eventOrNote.name}
-                          />
-                        </div>
-                      )}
-                    </>
-                  )}
-                  {eventOrNote.category === 'Campaign' &&
-                    eventOrNote.name === 'Ajout dans une campagne' && (
-                      <div
-                        className={classNames(
-                          styles.eventContent,
-                          'd-inline-block'
-                        )}
-                      >
-                        Ce logement a été <b>ajouté dans une campagne</b>{' '}
-                        {findNewCampaign(eventOrNote) && (
-                          <AppLink
-                            to={`/campagnes/${findNewCampaign(eventOrNote).id}`}
-                            isSimple
-                            iconId="fr-icon-mail-fill"
-                            iconPosition="left"
-                          >
-                            {findNewCampaign(eventOrNote).title}
-                          </AppLink>
-                        )}
-                      </div>
-                    )}
-                  {eventOrNote.category === 'Group' && (
-                    <GroupEventContent event={eventOrNote} />
-                  )}
-                </>
-              ) : (
-                <>
-                  <Text size="md" bold spacing="mb-0">
-                    Note
-                  </Text>
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: eventOrNote.content.replaceAll(
-                        /(\n|\\n)/g,
-                        '<br />'
-                      )
-                    }}
-                    className={styles.eventContent}
-                  />
-                </>
-              )}
-            </div>
-          </div>
+        .filter((_, index) => expandEvents || index < 3)
+        .map((eventOrNote) => (
+          <EventCard
+            key={eventOrNote.id}
+            title={isEvent(eventOrNote) ? eventOrNote.name : 'Note'}
+            description={renderEventContent(eventOrNote)}
+            createdAt={eventOrNote.createdAt}
+            createdBy={eventOrNote.creator}
+          />
         ))}
       {!expandEvents && eventAndNotes.length > 3 && (
         <button
@@ -258,7 +157,7 @@ const EventsHistory = ({ events, notes }: Props) => {
           <span className="fr-icon-1x icon-right fr-icon-arrow-right-line ds-fr--v-middle" />
         </button>
       )}
-    </>
+    </Stack>
   );
 };
 

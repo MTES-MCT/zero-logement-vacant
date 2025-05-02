@@ -45,7 +45,7 @@ function EventCard(props: EventCardProps) {
     >
       <Typography
         component="h4"
-        sx={{ fontSize: '1.125rem', fontWeight: 700, mb: '0.5rem' }}
+        sx={{ fontSize: '1.125rem', fontWeight: 700, mb: '1rem' }}
       >
         {props.title}
       </Typography>

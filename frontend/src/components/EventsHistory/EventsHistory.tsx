@@ -25,10 +25,10 @@ import {
 } from './HousingEventContent';
 import NoteEventContent from './NoteEventContent';
 import {
-  HousingOwnersChangeEventContent,
-  MainHousingOwnerChangeEventContent,
   OwnerChangeEventContent,
-  OwnerCreatedEventContent
+  OwnerCreatedEventContent,
+  OwnersChangeEventContent,
+  PrimaryOwnerChangeEventContent
 } from './OwnershipEventContent';
 
 interface Props {
@@ -83,12 +83,12 @@ const EventsHistory = ({ events, notes }: Props) => {
           <OwnerChangeEventContent event={event} />
         ))
         .with({ name: 'Changement de propriétaire principal' }, (event) => (
-          <MainHousingOwnerChangeEventContent event={event} />
+          <PrimaryOwnerChangeEventContent event={event} />
         ))
         .with(
           { name: 'Changement de propriétaires' },
           (event: Event<HousingOwner[]>) => (
-            <HousingOwnersChangeEventContent
+            <OwnersChangeEventContent
               conflict={event.conflict ?? false}
               housingOwnersBefore={event.old ?? []}
               housingOwnersAfter={event.new ?? []}

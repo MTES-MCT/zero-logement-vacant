@@ -5,41 +5,36 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import {
-  formatAddress,
-  isInactiveOwnerRank,
-  isSecondaryOwner
-} from '@zerologementvacant/models';
+import { formatAddress } from '@zerologementvacant/models';
 import { ReactNode } from 'react';
-import { match, Pattern } from 'ts-pattern';
 import { isBanEligible } from '../../models/Address';
-import { HousingOwner, Owner } from '../../models/Owner';
-import { useFindOwnersByHousingQuery } from '../../services/owner.service';
+import { Owner } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import LabelNext from '../Label/LabelNext';
-import OtherOwnerCard from './OtherOwnerCard';
 import styles from './owner-card.module.scss';
 
 interface OwnerCardProps {
-  housingId: string;
-  owner: Owner | HousingOwner;
-  coOwners?: HousingOwner[];
+  owner: Owner | null;
   housingCount: number;
   modify?: ReactNode;
 }
 
 function OwnerCard(props: OwnerCardProps) {
-  const findHousingOwnersQuery = useFindOwnersByHousingQuery(props.housingId);
-
-  const secondaryOwners = findHousingOwnersQuery.data?.filter(isSecondaryOwner);
-  const archivedOwners = findHousingOwnersQuery.data?.filter((owner) =>
-    isInactiveOwnerRank(owner.rank)
-  );
+  if (!props.owner) {
+    return (
+      <Skeleton
+        animation="wave"
+        variant="rectangular"
+        width="100%"
+        height="40rem"
+      />
+    );
+  }
 
   return (
-    <Stack component="section" spacing="1.5rem">
+    <Stack component="section">
       <Stack
         component="header"
         direction="row"
@@ -167,49 +162,6 @@ function OwnerCard(props: OwnerCardProps) {
             Voir tous ses logements ({props.housingCount})
           </Button>
         ) : null}
-      </Stack>
-
-      <Stack component="article">
-        <Typography component="h3" variant="h6" sx={{ mb: '0.5rem' }}>
-          Propriétaires secondaires (
-          {secondaryOwners ? secondaryOwners.length : '...'})
-        </Typography>
-        <hr />
-        {match(findHousingOwnersQuery)
-          .returnType<ReactNode>()
-          .with({ isLoading: true }, () => (
-            <Skeleton animation="wave" width="100%" height="20rem" />
-          ))
-          .with(
-            { data: Pattern.nonNullable, isLoading: false },
-            ({ data: housingOwners }) =>
-              housingOwners
-                .filter(isSecondaryOwner)
-                .map((housingOwner) => (
-                  <OtherOwnerCard owner={housingOwner} key={housingOwner.id} />
-                ))
-          )
-          .otherwise(() => null)}
-      </Stack>
-
-      <Stack component="article">
-        <Typography component="h2" variant="h6" sx={{ mb: '0.5rem' }}>
-          Propriétaires archivés (
-          {archivedOwners ? archivedOwners.length : '...'})
-        </Typography>
-        <hr />
-        {match(findHousingOwnersQuery)
-          .returnType<ReactNode>()
-          .with(
-            { data: Pattern.nonNullable, isLoading: false },
-            ({ data: housingOwners }) =>
-              housingOwners
-                .filter((owner) => isInactiveOwnerRank(owner.rank))
-                .map((housingOwner) => (
-                  <OtherOwnerCard owner={housingOwner} key={housingOwner.id} />
-                ))
-          )
-          .otherwise(() => null)}
       </Stack>
     </Stack>
   );

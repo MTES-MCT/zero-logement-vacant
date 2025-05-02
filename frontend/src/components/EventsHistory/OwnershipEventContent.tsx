@@ -96,7 +96,7 @@ export function OwnerChangeEventContent(props: OwnershipEventContentProps) {
   );
 }
 
-export function MainHousingOwnerChangeEventContent(
+export function PrimaryOwnerChangeEventContent(
   props: OwnershipEventContentProps
 ) {
   const housingOwnerBefore: HousingOwner | null = props.event.old
@@ -119,7 +119,7 @@ export function MainHousingOwnerChangeEventContent(
     : null;
 
   return (
-    <HousingOwnersChangeEventContent
+    <OwnersChangeEventContent
       conflict={props.event.conflict ?? false}
       housingOwnersBefore={housingOwnerBefore ? [housingOwnerBefore] : []}
       housingOwnersAfter={housingOwnerAfter ? [housingOwnerAfter] : []}
@@ -133,7 +133,7 @@ interface HousingOwnersChangeEventContentProps {
   conflict: boolean;
 }
 
-export function HousingOwnersChangeEventContent(
+export function OwnersChangeEventContent(
   props: HousingOwnersChangeEventContentProps
 ) {
   const allowedKeys: ReadonlyArray<keyof HousingOwner> = [

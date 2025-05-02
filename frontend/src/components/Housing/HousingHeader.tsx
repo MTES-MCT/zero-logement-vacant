@@ -1,5 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
@@ -13,13 +14,25 @@ import OccupancyBadge from './OccupancyBadge';
 
 export interface HousingHeaderProps {
   className?: string;
-  housing: Housing;
+  housing?: Housing;
+  isLoading: boolean;
 }
 
 function HousingHeader(props: HousingHeaderProps) {
   const [editing, setEditing] = useState(false);
 
   const { isVisitor } = useUser();
+
+  if (!props.housing) {
+    return (
+      <Skeleton
+        animation="wave"
+        variant="rectangular"
+        width="50%"
+        height="8rem"
+      />
+    );
+  }
 
   return (
     <Stack
@@ -31,6 +44,7 @@ function HousingHeader(props: HousingHeaderProps) {
         <Typography component="h1" variant="h3">
           {fallback(props.housing.rawAddress.join(', '))}
         </Typography>
+
         <Typography
           sx={{
             color: fr.colors.decisions.text.title.grey.default,
@@ -40,13 +54,15 @@ function HousingHeader(props: HousingHeaderProps) {
         >
           Identifiant fiscal national : {props.housing.localId}
         </Typography>
+
         <Stack
           direction="row"
           spacing="0.75rem"
           sx={{ alignItems: 'center', mb: '0.5rem' }}
         >
           <Typography component="span">
-            Occupation : <OccupancyBadge occupancy={props.housing.occupancy} />
+            Occupation :&nbsp;
+            <OccupancyBadge occupancy={props.housing.occupancy} />
           </Typography>
           <Typography component="span" sx={{ display: 'inline-flex' }}>
             <Typography component="span" sx={{ mr: '0.5rem' }}>
@@ -54,9 +70,9 @@ function HousingHeader(props: HousingHeaderProps) {
             </Typography>
             <HousingStatusBadge inline status={props.housing.status} />
           </Typography>
-          {props.housing.subStatus ? (
+          {!props.housing.subStatus ? null : (
             <Typography>{props.housing.subStatus}</Typography>
-          ) : null}
+          )}
         </Stack>
         <Typography
           variant="body2"

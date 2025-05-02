@@ -14,15 +14,12 @@ import { ReactNode, useState } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import { useUser } from '../../hooks/useUser';
-import { Campaign } from '../../models/Campaign';
-import { Event } from '../../models/Event';
 import {
   formatOwnershipKind,
   getBuildingLocation,
   Housing
 } from '../../models/Housing';
 import { CADASTRAL_CLASSIFICATION_OPTIONS } from '../../models/HousingFilters';
-import { Note } from '../../models/Note';
 import { useGetBuildingQuery } from '../../services/building.service';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
@@ -46,9 +43,6 @@ import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
 
 interface Props {
   housing: Housing;
-  housingEvents: Event[];
-  housingNotes: Note[];
-  housingCampaigns: Campaign[];
 }
 
 interface HousingDetailsCardProps {

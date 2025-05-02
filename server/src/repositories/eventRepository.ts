@@ -206,6 +206,8 @@ const findGroupHousingEvents = async (
       `${groupHousingEventsTable}.event_id`,
       `${eventsTable}.id`
     )
+    .join(usersTable, `${usersTable}.id`, `${eventsTable}.created_by`)
+    .select(db.raw(`to_json(${usersTable}.*) AS creator`))
     .modify((query) => {
       if (group?.id) {
         query.where(`${groupHousingEventsTable}.group_id`, group.id);

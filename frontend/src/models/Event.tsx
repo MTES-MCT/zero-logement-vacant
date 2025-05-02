@@ -1,8 +1,9 @@
 import {
   EventCategory,
   EventKind,
-  EventSection,
+  EventSection
 } from '@zerologementvacant/models';
+import { User } from './User';
 
 export interface Event<T = any> {
   id: string;
@@ -16,4 +17,5 @@ export interface Event<T = any> {
   new?: T;
   createdAt: Date;
   createdBy: string;
+  creator: User;
 }

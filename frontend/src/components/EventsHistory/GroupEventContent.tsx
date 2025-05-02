@@ -9,28 +9,11 @@ import { Group } from '../../models/Group';
 import { useGetGroupQuery } from '../../services/group.service';
 import AppLink from '../_app/AppLink/AppLink';
 
-interface Props {
+interface GroupHousingEventProps {
   event: Event<Group>;
 }
 
-function GroupEventContent(props: Props) {
-  return match(props.event)
-    .with({ name: 'Ajout dans un groupe' }, (event) => (
-      <GroupHousingAddedEvent event={event} />
-    ))
-    .with({ name: 'Retrait d’un groupe' }, (event) => (
-      <GroupHousingRemovedEvent event={event} />
-    ))
-    .with({ name: 'Archivage d’un groupe' }, (event) => (
-      <GroupArchivedEvent event={event} />
-    ))
-    .with({ name: 'Suppression d’un groupe' }, (event) => (
-      <GroupRemovedEvent event={event} />
-    ))
-    .otherwise(() => null);
-}
-
-function GroupHousingAddedEvent(props: Props) {
+export function GroupHousingAddedEventContent(props: GroupHousingEventProps) {
   const { data: group, isLoading } = useGetGroupQuery(
     props.event.new?.id ?? skipToken
   );
@@ -74,7 +57,7 @@ function GroupHousingAddedEvent(props: Props) {
   );
 }
 
-function GroupHousingRemovedEvent(props: Props) {
+export function GroupHousingRemovedEventContent(props: GroupHousingEventProps) {
   const { data: group, isLoading } = useGetGroupQuery(
     props.event.old?.id ?? skipToken
   );
@@ -107,7 +90,7 @@ function GroupHousingRemovedEvent(props: Props) {
   );
 }
 
-function GroupArchivedEvent(props: Props) {
+export function GroupArchivedEventContent(props: GroupHousingEventProps) {
   return (
     <Typography component="span">
       Le groupe&nbsp;
@@ -122,7 +105,7 @@ function GroupArchivedEvent(props: Props) {
   );
 }
 
-function GroupRemovedEvent(props: Props) {
+export function GroupRemovedEventContent(props: GroupHousingEventProps) {
   return (
     <Typography component="span">
       Le groupe&nbsp;
@@ -136,5 +119,3 @@ function GroupRemovedEvent(props: Props) {
     </Typography>
   );
 }
-
-export default GroupEventContent;

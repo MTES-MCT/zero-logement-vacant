@@ -1,3 +1,4 @@
+import { fr } from '@codegouvfr/react-dsfr';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
@@ -11,15 +12,7 @@ interface CampaignEventContentProps {
   event: Event;
 }
 
-function CampaignEventContent(props: CampaignEventContentProps) {
-  return match(props.event)
-    .with({ name: 'Ajout dans une campagne' }, (event) => (
-      <CampaignCreatedEventContent event={event} />
-    ))
-    .otherwise(() => null);
-}
-
-function CampaignCreatedEventContent(props: CampaignEventContentProps) {
+export function CampaignCreatedEventContent(props: CampaignEventContentProps) {
   const after: ReadonlyArray<string> = props.event.new?.campaignIds ?? [];
   const before: ReadonlyArray<string> = props.event.old?.campaignIds ?? [];
   const id = after.filter((id1) => !before.some((id2) => id2 === id1)).at(0);
@@ -29,14 +22,26 @@ function CampaignCreatedEventContent(props: CampaignEventContentProps) {
     .with({ isLoading: true }, () => (
       <Skeleton animation="wave" variant="text" />
     ))
-    .with({ isLoading: false, campaign: Pattern.nullish }, () => (
-      <Typography>
-        Ce logement a été&nbsp;
-        <Typography component="span" sx={{ fontWeight: 700 }}>
-          ajouté dans une campagne
+    .with(
+      {
+        isLoading: false,
+        campaign: Pattern.union(Pattern.nullish, {
+          archivedAt: Pattern.nonNullable
+        })
+      },
+      ({ campaign }) => (
+        <Typography>
+          Ce logement a été&nbsp;
+          <Typography
+            component="span"
+            sx={{ color: fr.colors.decisions.text.disabled.grey.default }}
+          >
+            ajouté dans&nbsp;
+            {campaign ? `la campagne ${campaign?.title}` : 'une campagne'}
+          </Typography>
         </Typography>
-      </Typography>
-    ))
+      )
+    )
     .with(
       { isLoading: false, campaign: Pattern.nonNullable },
       ({ campaign }) => (
@@ -55,5 +60,3 @@ function CampaignCreatedEventContent(props: CampaignEventContentProps) {
     )
     .otherwise(() => null);
 }
-
-export default CampaignEventContent;

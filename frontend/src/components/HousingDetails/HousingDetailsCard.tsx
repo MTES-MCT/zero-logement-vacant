@@ -25,6 +25,8 @@ import { CADASTRAL_CLASSIFICATION_OPTIONS } from '../../models/HousingFilters';
 import { Note } from '../../models/Note';
 import { useGetBuildingQuery } from '../../services/building.service';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
+import { useFindEventsByHousingQuery } from '../../services/event.service';
+import { useFindNotesByHousingQuery } from '../../services/note.service';
 import { useFindPerimetersQuery } from '../../services/perimeter.service';
 import AppLink from '../_app/AppLink/AppLink';
 import DPE from '../DPE/DPE';
@@ -65,17 +67,21 @@ function HousingDetailsCard(props: HousingDetailsCardProps) {
         {
           label: 'Mobilisation',
           content: MobilizationTab({ housing: props.housing })
+        },
+        {
+          label: 'Historique et notes',
+          content: HistoryTab({ housing: props.housing })
         }
       ]}
     />
   );
 }
 
-interface HousingTabProps {
+interface TabProps {
   housing: Housing;
 }
 
-function HousingTab(props: HousingTabProps) {
+function HousingTab(props: TabProps) {
   const getBuildingQuery = useGetBuildingQuery(
     props.housing.buildingId ?? skipToken
   );
@@ -307,11 +313,7 @@ function HousingTab(props: HousingTabProps) {
   );
 }
 
-interface MobilizationTabProps {
-  housing: Housing;
-}
-
-function MobilizationTab(props: MobilizationTabProps) {
+function MobilizationTab(props: TabProps) {
   const findCampaignsQuery = useFindCampaignsQuery();
 
   return (
@@ -357,6 +359,20 @@ function MobilizationTab(props: MobilizationTabProps) {
       </Stack>
     </Stack>
   );
+}
+
+function HistoryTab(props: TabProps) {
+  const { data: events, isLoading: isLoadingEvents } =
+    useFindEventsByHousingQuery(props.housing.id);
+  const { data: notes, isLoading: isLoadingNotes } = useFindNotesByHousingQuery(
+    props.housing.id
+  );
+
+  if (isLoadingEvents || isLoadingNotes) {
+    return <Skeleton animation="wave" variant="rectangular" height={200} />;
+  }
+
+  return <EventsHistory events={events ?? []} notes={notes ?? []} />;
 }
 
 interface HousingAttributeProps {

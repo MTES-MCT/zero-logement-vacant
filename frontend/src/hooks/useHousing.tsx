@@ -20,11 +20,17 @@ export function useHousing() {
 
   const { data: housing, ...getHousingQuery } = useGetHousingQuery(housingId);
 
-  const { data: events, refetch: refetchHousingEvents } =
-    useFindEventsByHousingQuery(housingId);
+  const {
+    data: events,
+    refetch: refetchHousingEvents,
+    ...findEventsQuery
+  } = useFindEventsByHousingQuery(housingId);
 
-  const { data: notes, refetch: refetchHousingNotes } =
-    useFindNotesByHousingQuery(housingId);
+  const {
+    data: notes,
+    refetch: refetchHousingNotes,
+    ...findNotesQuery
+  } = useFindNotesByHousingQuery(housingId);
 
   const { data: housingOwners } = useFindOwnersByHousingQuery(housingId);
 
@@ -54,7 +60,9 @@ export function useHousing() {
   return {
     getHousingQuery,
     events,
+    findEventsQuery,
     notes,
+    findNotesQuery,
     refetchHousingEvents,
     refetchHousingNotes,
     mainHousingOwner,

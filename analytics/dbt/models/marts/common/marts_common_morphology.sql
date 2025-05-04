@@ -12,6 +12,8 @@ WITH all_lovac AS (
         plot_area, 
         living_area
     FROM {{ ref ("stg_lovac_2025") }}
+    UNION ALL
+
     SELECT
         2024 AS year,
         local_id,

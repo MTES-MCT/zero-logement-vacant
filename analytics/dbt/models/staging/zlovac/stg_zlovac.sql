@@ -161,12 +161,12 @@ cleaned_data as (
         {{ process_owner_kind ('ff_catpro3_4') }} AS ff_owner_4_kind_detail,
         {{ process_owner_kind ('ff_catpro3_5') }} AS ff_owner_5_kind_detail,
         {{ process_owner_kind ('ff_catpro3_6') }} AS ff_owner_6_kind_detail,
-        {{ process_owner_code_droit ('ff_ccodro_1') }} as ff_owner_1_code_droit,
-        {{ process_owner_code_droit ('ff_ccodro_2') }} as ff_owner_2_code_droit,
-        {{ process_owner_code_droit ('ff_ccodro_3') }} as ff_owner_3_code_droit,
-        {{ process_owner_code_droit ('ff_ccodro_4') }} as ff_owner_4_code_droit,
-        {{ process_owner_code_droit ('ff_ccodro_5') }} as ff_owner_5_code_droit,
-        {{ process_owner_code_droit ('ff_ccodro_6') }} as ff_owner_6_code_droit,
+        {{ process_owner_property_rights ('ff_ccodro_1') }} as ff_owner_1_property_rights,
+        {{ process_owner_property_rights ('ff_ccodro_2') }} as ff_owner_2_property_rights,
+        {{ process_owner_property_rights ('ff_ccodro_3') }} as ff_owner_3_property_rights,
+        {{ process_owner_property_rights ('ff_ccodro_4') }} as ff_owner_4_property_rights,
+        {{ process_owner_property_rights ('ff_ccodro_5') }} as ff_owner_5_property_rights,
+        {{ process_owner_property_rights ('ff_ccodro_6') }} as ff_owner_6_property_rights,
         CASE
         WHEN TRIM (groupe::TEXT) = '' THEN 'Particulier'
         ELSE 'Autre'

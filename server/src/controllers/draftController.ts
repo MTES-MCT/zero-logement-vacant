@@ -1,4 +1,4 @@
-import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
+import { pdf } from '@zerologementvacant/draft';
 import {
   DraftCreationPayloadDTO,
   DraftDTO,

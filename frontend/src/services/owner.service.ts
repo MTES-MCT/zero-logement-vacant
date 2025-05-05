@@ -1,18 +1,18 @@
 import {
+  HousingOwnerDTO,
+  OwnerDTO,
+  OwnerPayloadDTO
+} from '@zerologementvacant/models';
+import { parseISO } from 'date-fns';
+import {
   fromHousingOwnerDTO,
   fromOwnerDTO,
   HousingOwner,
   Owner
 } from '../models/Owner';
-import { parseISO } from 'date-fns';
-import { toTitleCase } from '../utils/stringUtils';
 import { PaginatedResult } from '../models/PaginatedResult';
+import { toTitleCase } from '../utils/stringUtils';
 import { zlvApi } from './api.service';
-import {
-  HousingOwnerDTO,
-  OwnerDTO,
-  OwnerPayloadDTO
-} from '@zerologementvacant/models';
 
 export const ownerApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -107,7 +107,8 @@ export const ownerApi = zlvApi.injectEndpoints({
       }),
       invalidatesTags: (result, error, { housingId }) => [
         { type: 'HousingOwner', id: 'LIST' },
-        { type: 'Housing', id: housingId }
+        { type: 'Housing', id: housingId },
+        'Event'
       ]
     })
   })

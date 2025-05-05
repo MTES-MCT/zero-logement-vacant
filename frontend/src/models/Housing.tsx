@@ -234,9 +234,11 @@ export const OccupancyKindBadgeLabels = {
   [OccupancyKind.Others]: 'Occupation : Autres'
 };
 
-export const getOccupancy = (
-  occupancy?: OccupancyKind | OccupancyKindUnknown
-) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
+export function getOccupancy(
+  occupancy: Occupancy | null | undefined
+): Occupancy {
+  return occupancy ?? Occupancy.UNKNOWN;
+}
 
 export function getSource(
   housing: Pick<Housing, 'source' | 'dataFileYears'>

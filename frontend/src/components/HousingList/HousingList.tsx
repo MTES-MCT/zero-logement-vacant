@@ -1,3 +1,8 @@
+import Badge from '@codegouvfr/react-dsfr/Badge';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { Pagination } from '@zerologementvacant/models';
+import classNames from 'classnames';
+import _ from 'lodash';
 import {
   ChangeEvent,
   ReactElement,
@@ -5,8 +10,12 @@ import {
   useEffect,
   useState
 } from 'react';
-
-import { Pagination as DSFRPagination, Table } from '../_dsfr';
+import { useCampaignList } from '../../hooks/useCampaignList';
+import { useHousingList } from '../../hooks/useHousingList';
+import { usePagination } from '../../hooks/usePagination';
+import { useSort } from '../../hooks/useSort';
+import { useUser } from '../../hooks/useUser';
+import { campaignSort } from '../../models/Campaign';
 import {
   Housing,
   HousingSort,
@@ -14,30 +23,21 @@ import {
   OccupancyKindLabels,
   SelectedHousing
 } from '../../models/Housing';
-import { capitalize } from '../../utils/stringUtils';
 import { HousingFilters } from '../../models/HousingFilters';
-import classNames from 'classnames';
-import { useCampaignList } from '../../hooks/useCampaignList';
-import _ from 'lodash';
+import { useCountHousingQuery } from '../../services/housing.service';
+import { DefaultPagination } from '../../store/reducers/housingReducer';
+import { isDefined } from '../../utils/compareUtils';
+import { findChild } from '../../utils/elementUtils';
+import { capitalize } from '../../utils/stringUtils';
+import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
+import AppLink from '../_app/AppLink/AppLink';
+
+import { Pagination as DSFRPagination, Table } from '../_dsfr';
+import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
+import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
+import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
 
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
-import { findChild } from '../../utils/elementUtils';
-import { useSort } from '../../hooks/useSort';
-import { usePagination } from '../../hooks/usePagination';
-import AppLink from '../_app/AppLink/AppLink';
-import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
-import { useHousingList } from '../../hooks/useHousingList';
-import { DefaultPagination } from '../../store/reducers/housingReducer';
-import { Pagination } from '@zerologementvacant/models';
-import HousingSubStatusBadge from '../HousingStatusBadge/HousingSubStatusBadge';
-import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
-import { useCountHousingQuery } from '../../services/housing.service';
-import { isDefined } from '../../utils/compareUtils';
-import Badge from '@codegouvfr/react-dsfr/Badge';
-import Button from '@codegouvfr/react-dsfr/Button';
-import AppCheckbox from '../_app/AppCheckbox/AppCheckbox';
-import { campaignSort } from '../../models/Campaign';
-import { useUser } from '../../hooks/useUser';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -227,7 +227,10 @@ const HousingList = ({
     render: ({ status, subStatus }: Housing) => (
       <div style={{ textAlign: 'center' }}>
         <HousingStatusBadge status={status} />
-        <HousingSubStatusBadge status={status} subStatus={subStatus} />
+        <HousingSubStatusBadge
+          status={status}
+          subStatus={subStatus ?? undefined}
+        />
       </div>
     )
   };

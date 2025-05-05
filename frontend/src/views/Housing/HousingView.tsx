@@ -1,5 +1,6 @@
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
+import { skipToken } from '@reduxjs/toolkit/query';
 import async from 'async';
 import { useState } from 'react';
 
@@ -9,7 +10,7 @@ import HousingOwnersModal from '../../components/modals/HousingOwnersModal/Housi
 import InactiveOwnerList from '../../components/Owner/InactiveOwnerList';
 import SecondaryOwnerList from '../../components/Owner/SecondaryOwnerList';
 import { useHousingOwners } from '../../components/Owner/useHousingOwners';
-import OwnerCard from '../../components/OwnerCard/OwnerCard';
+import OwnerCardNext from '../../components/OwnerCard/OwnerCardNext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useHousing } from '../../hooks/useHousing';
 import {
@@ -17,6 +18,7 @@ import {
   hasRankChanges,
   HousingOwner
 } from '../../models/Owner';
+import { useCountHousingQuery } from '../../services/housing.service';
 import {
   useUpdateHousingOwnersMutation,
   useUpdateOwnerMutation
@@ -24,14 +26,17 @@ import {
 import NotFoundView from '../NotFoundView';
 
 function HousingView() {
-  const { housing, housingId, count, getHousingQuery } = useHousing();
-  const housingCount = count?.housing ?? 0;
+  const { housing, housingId, getHousingQuery } = useHousing();
   useDocumentTitle(
     housing
       ? `Fiche logement - ${housing.rawAddress.join(' ')}`
       : 'Page non trouvée'
   );
   const { owner, housingOwners } = useHousingOwners(housingId);
+  const { data: count } = useCountHousingQuery(
+    housing?.owner?.id ? { ownerIds: [housing.owner.id] } : skipToken
+  );
+
   const [updateOwner] = useUpdateOwnerMutation();
   const [updateHousingOwners] = useUpdateHousingOwnersMutation();
 
@@ -42,7 +47,7 @@ function HousingView() {
   async function submitHousingOwnersUpdate(
     housingOwnersUpdated: HousingOwner[]
   ) {
-    if (!housingOwners || housingOwners.length === 0) {
+    if (!housing || !housingOwners || housingOwners.length === 0) {
       return;
     }
 
@@ -67,7 +72,7 @@ function HousingView() {
     }
   }
 
-  if (getHousingQuery.isSuccess && !housing) {
+  if (getHousingQuery.isError && !housing) {
     return <NotFoundView />;
   }
 
@@ -83,7 +88,7 @@ function HousingView() {
         {/* Set a custom order to facilitate accessibility:
         housing first, owner second */}
         <Grid xs={8} order={2}>
-          {housing && <HousingDetailsCard housing={housing} />}
+          <HousingDetailsCard housing={housing} />
         </Grid>
         <Grid
           xs={4}
@@ -91,11 +96,11 @@ function HousingView() {
           rowGap="1.5rem"
           sx={{ display: 'flex', flexFlow: 'column nowrap' }}
         >
-          {housingOwners && (
-            <OwnerCard
-              owner={owner ?? null}
-              housingCount={housingCount}
-              modify={
+          <OwnerCardNext
+            owner={owner}
+            housingCount={count?.housing}
+            modify={
+              housingOwners ? (
                 <HousingOwnersModal
                   housingId={housingId}
                   housingOwners={housingOwners}
@@ -105,9 +110,9 @@ function HousingView() {
                     setHousingOwnersModalKey(new Date().getTime())
                   }
                 />
-              }
-            />
-          )}
+              ) : null
+            }
+          />
           <SecondaryOwnerList housingId={housingId} />
           <InactiveOwnerList housingId={housingId} />
         </Grid>

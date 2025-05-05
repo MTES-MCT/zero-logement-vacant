@@ -1,22 +1,22 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import React, { useEffect, useImperativeHandle, useState } from 'react';
-import { Col, Container, Icon, Row, Text } from '../_dsfr';
-import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
-import { getSubStatusOptions } from '../../models/HousingState';
-import { SelectOption } from '../../models/SelectOption';
 
 import * as yup from 'yup';
+import { useForm } from '../../hooks/useForm';
+import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
 import {
   allOccupancyOptions,
   statusOptions
 } from '../../models/HousingFilters';
-import HousingStatusSelect from './HousingStatusSelect';
-import { useForm } from '../../hooks/useForm';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
+import { getSubStatusOptions } from '../../models/HousingState';
+import { SelectOption } from '../../models/SelectOption';
 import { pluralize } from '../../utils/stringUtils';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import AppSelect from '../_app/AppSelect/AppSelect';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { HousingStatus } from '@zerologementvacant/models';
+import AppTextInput from '../_app/AppTextInput/AppTextInput';
+import { Col, Container, Icon, Row, Text } from '../_dsfr';
+import HousingStatusSelect from './HousingStatusSelect';
 
 const modal = createModal({
   id: `housing-edition-modal`,
@@ -147,12 +147,12 @@ const HousingEditionForm = (
         ? {
             occupancy:
               occupancy === MultiHousingOccupancyDefaultValue
-                ? 'inconnu'
-                : (occupancy as OccupancyKind),
+                ? Occupancy.UNKNOWN
+                : (occupancy as Occupancy),
             occupancyIntended:
               occupancyIntended === MultiHousingOccupancyDefaultValue
-                ? undefined
-                : (occupancyIntended as OccupancyKind)
+                ? null
+                : (occupancyIntended as Occupancy | null)
           }
         : undefined,
       note: hasNote
@@ -214,7 +214,7 @@ const HousingEditionForm = (
         {subStatusOptions && (
           <AppSelect<FormShape>
             onChange={(e) => setSubStatus(e.target.value)}
-            value={subStatus}
+            value={subStatus ?? undefined}
             required
             label="Sous-statut de suivi"
             inputForm={form}
@@ -262,7 +262,7 @@ const HousingEditionForm = (
               onChange={(e) =>
                 setOccupancyIntended(e.target.value as OccupancyKind)
               }
-              value={occupancyIntended}
+              value={occupancyIntended ?? undefined}
               label="Occupation prévisionnelle"
               inputForm={form}
               inputKey="occupancyIntended"

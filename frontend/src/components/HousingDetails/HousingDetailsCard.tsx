@@ -8,7 +8,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Occupancy } from '@zerologementvacant/models';
 import classNames from 'classnames';
-import { ReactNode } from 'react';
+import { ReactNode, useId } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import {
@@ -22,6 +22,7 @@ import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
 import { useFindNotesByHousingQuery } from '../../services/note.service';
 import { useFindPerimetersQuery } from '../../services/perimeter.service';
+import { age } from '../../utils/dateUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import DPE from '../DPE/DPE';
 import EventsHistory from '../EventsHistory/EventsHistory';
@@ -87,6 +88,10 @@ function HousingTab(props: TabProps) {
         buildingLocation.level,
         buildingLocation.local
       ].join(', ')
+    : null;
+
+  const years = props.housing.vacancyStartYear
+    ? age(props.housing.vacancyStartYear.toString())
     : null;
 
   return (
@@ -279,8 +284,7 @@ function HousingTab(props: TabProps) {
               !props.housing.vacancyStartYear ? null : (
                 <Typography>
                   {props.housing.vacancyStartYear} (
-                  {`${new Date().getUTCFullYear() - props.housing.vacancyStartYear} ans`}
-                  )
+                  {`${years} an${years && years >= 2 ? 's' : ''}`})
                 </Typography>
               )
             }
@@ -294,10 +298,6 @@ function HousingTab(props: TabProps) {
                 />
               )
             }
-          />
-          <HousingAttribute
-            label="Dernière mutation"
-            value="Vente le 10/03/2023 (345 000 euros) TODO"
           />
         </Stack>
       </Grid>
@@ -373,21 +373,28 @@ interface HousingAttributeProps {
 }
 
 function HousingAttribute(props: HousingAttributeProps) {
+  const label = useId();
+
   return (
     <Stack>
-      <LabelNext sx={{ fontWeight: 700 }}>{props.label}</LabelNext>
+      <LabelNext id={label} sx={{ fontWeight: 700 }}>
+        {props.label}
+      </LabelNext>
       {match(props.value)
         .with(Pattern.union(Pattern.string, Pattern.number), (value) => (
-          <Typography>{value}</Typography>
+          <Typography aria-labelledby={label}>{value}</Typography>
         ))
         .with(Pattern.nullish, () => (
           <Typography
+            aria-labelledby={label}
             sx={{ color: fr.colors.decisions.text.disabled.grey.default }}
           >
             Pas d’information
           </Typography>
         ))
-        .otherwise((value) => value)}
+        .otherwise((value) => (
+          <span aria-labelledby={label}>{value}</span>
+        ))}
     </Stack>
   );
 }

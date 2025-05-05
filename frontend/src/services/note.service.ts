@@ -1,11 +1,11 @@
-import { parseISO } from 'date-fns';
-
 import {
   HousingDTO,
   NoteDTO,
   NotePayloadDTO
 } from '@zerologementvacant/models';
+import { parseISO } from 'date-fns';
 import { Note } from '../models/Note';
+import { fromUserDTO } from '../models/User';
 import { zlvApi } from './api.service';
 
 export const noteApi = zlvApi.injectEndpoints({
@@ -29,10 +29,17 @@ export const noteApi = zlvApi.injectEndpoints({
   })
 });
 
-const parseNote = (noteDTO: NoteDTO): Note => ({
-  ...noteDTO,
-  createdAt: parseISO(noteDTO.createdAt)
-});
+function parseNote(note: NoteDTO): Note {
+  if (!note.creator) {
+    throw new Error('Note creator is missing');
+  }
+
+  return {
+    ...note,
+    createdAt: parseISO(note.createdAt),
+    creator: fromUserDTO(note.creator)
+  };
+}
 
 export const { useFindNotesByHousingQuery, useCreateNoteByHousingMutation } =
   noteApi;

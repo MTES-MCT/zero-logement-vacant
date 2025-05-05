@@ -120,9 +120,9 @@ evolution_data AS (
         -- Évolution 2023-2024
         (d24.vacant_housing_2024 - d23.vacant_housing_2023) AS housing_vacant_evolution_23_24,
         (d24.vacant_rate_2024 - d23.vacant_rate_2023) AS housing_vacant_rate_evolution_23_24,
-        -- Évolution 2024-2025
-        (d25.vacant_housing_2025 - d23.vacant_housing_2024) AS housing_vacant_evolution_24_25,
-        (d25.vacant_rate_2025 - d23.vacant_rate_2024) AS housing_vacant_rate_evolution_24_25,
+        -- Évolution 2024-2025.
+        (d25.vacant_housing_2025 - d24.vacant_housing_2024) AS housing_vacant_evolution_24_25,
+        (d25.vacant_rate_2025 - d24.vacant_rate_2024) AS housing_vacant_rate_evolution_24_25,
     FROM data_2025 d25
     LEFT JOIN data_2024 d24 ON d24.establishment_id = d25.establishment_id
     LEFT JOIN data_2019 d19 ON d25.establishment_id = d19.establishment_id

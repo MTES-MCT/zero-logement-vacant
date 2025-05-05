@@ -15982,6 +15982,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/pdf-parse@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "@types/pdf-parse@npm:1.1.5"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/68989815ca9b6321eb5ab47437edf58d4f8291d4857b4bad0d7dedf1f4535da9918bc1113f7f59763c238f35175b080d3dfa76c5f26eeeb091ac4b6604028d2e
+  languageName: node
+  linkType: hard
+
 "@types/pg@npm:^8.11.10":
   version: 8.15.1
   resolution: "@types/pg@npm:8.15.1"
@@ -31033,6 +31042,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-ensure@npm:^0.0.0":
+  version: 0.0.0
+  resolution: "node-ensure@npm:0.0.0"
+  checksum: 10c0/7af391aee024a8b7df77c239ed8b90417e3f2539824fa06b60f243ce14c75ee455766464c7c3ba9407d5b1e4d1d74ed5cf5f8af10c67b0fc05aa6e29f5d2462b
+  languageName: node
+  linkType: hard
+
 "node-fetch@npm:2.6.7":
   version: 2.6.7
   resolution: "node-fetch@npm:2.6.7"
@@ -32414,6 +32430,16 @@ __metadata:
     pako: "npm:^1.0.11"
     tslib: "npm:^1.11.1"
   checksum: 10c0/a9489a402880dacd1389a3e14ff8f6139d58e3bc82f26b0fcbd0798b841aee6ccb7fcfab0992b574e57b40404ced0330a7170b3c6467363461a9df5d9daec489
+  languageName: node
+  linkType: hard
+
+"pdf-parse@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "pdf-parse@npm:1.1.1"
+  dependencies:
+    debug: "npm:^3.1.0"
+    node-ensure: "npm:^0.0.0"
+  checksum: 10c0/cba2b6ddfbfa73d94ff0cd342cbe8ef2ef0501863ada687eddf99487a4d06766e00fc44525c40cef3b01f04376cb99d5873ab789bd3e2379a28c3ae5377f3298
   languageName: node
   linkType: hard
 

@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "**/dbt/**/*.yaml": "jinja-yml",
+        "**/dbt/**/*.sql": "jinja-sql",
+        "**/dbt/**/*.yml": "jinja-yml",
+        "**/dbt/**/docs/**/*.md": "jinja-md"
+    }
+}

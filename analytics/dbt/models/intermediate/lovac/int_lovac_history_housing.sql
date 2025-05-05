@@ -1,5 +1,8 @@
 WITH lovac_history AS (
     SELECT local_id, 'lovac-' || data_year AS file_year, geo_code, data_year
+    FROM {{ ref ('int_lovac_fil_2025') }}
+    UNION ALL
+    SELECT local_id, 'lovac-' || data_year AS file_year, geo_code, data_year
     FROM {{ ref ('int_lovac_fil_2024') }}
     UNION ALL
     SELECT local_id, 'lovac-' || data_year AS file_year, geo_code, data_year

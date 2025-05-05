@@ -1,4 +1,4 @@
-{% macro process_owner_code_droit (ff_ccodro) %}
+{% macro process_owner_property_rights (ff_ccodro) %}
 CASE
 WHEN {{ ff_ccodro }} = 'P' THEN 'PROPRIETAIRE'
 WHEN {{ ff_ccodro }} = 'U' THEN 'USUFRUITIER'

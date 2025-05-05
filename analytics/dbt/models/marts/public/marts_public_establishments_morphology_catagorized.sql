@@ -98,20 +98,35 @@ data_2024 AS (
     FROM establishment_yearly_data
     WHERE year = 2024
 ),
+data_2025 AS (
+    SELECT 
+        establishment_id,
+        count_vacant_housing_private_fil_ccthp AS vacant_housing_2025,
+        housing_vacant_rate AS vacant_rate_2025
+    FROM establishment_yearly_data
+    WHERE year = 2025
+),
 
 -- Calcul des évolutions
 evolution_data AS (
     SELECT
-        d24.establishment_id,
+        d25.establishment_id,
         -- Évolution 2019-2024
         (d24.vacant_housing_2024 - d19.vacant_housing_2019) AS housing_vacant_evolution_19_24,
         (d24.vacant_rate_2024 - d19.vacant_rate_2019) AS housing_vacant_rate_evolution_19_24,
+        -- Évolution 2019-2025
+        (d25.vacant_housing_2025 - d19.vacant_housing_2019) AS housing_vacant_evolution_19_25,
+        (d25.vacant_rate_2025 - d19.vacant_rate_2019) AS housing_vacant_rate_evolution_19_25,
         -- Évolution 2023-2024
         (d24.vacant_housing_2024 - d23.vacant_housing_2023) AS housing_vacant_evolution_23_24,
-        (d24.vacant_rate_2024 - d23.vacant_rate_2023) AS housing_vacant_rate_evolution_23_24
-    FROM data_2024 d24
-    LEFT JOIN data_2019 d19 ON d24.establishment_id = d19.establishment_id
-    LEFT JOIN data_2023 d23 ON d24.establishment_id = d23.establishment_id
+        (d24.vacant_rate_2024 - d23.vacant_rate_2023) AS housing_vacant_rate_evolution_23_24,
+        -- Évolution 2024-2025.
+        (d25.vacant_housing_2025 - d24.vacant_housing_2024) AS housing_vacant_evolution_24_25,
+        (d25.vacant_rate_2025 - d24.vacant_rate_2024) AS housing_vacant_rate_evolution_24_25,
+    FROM data_2025 d25
+    LEFT JOIN data_2024 d24 ON d24.establishment_id = d25.establishment_id
+    LEFT JOIN data_2019 d19 ON d25.establishment_id = d19.establishment_id
+    LEFT JOIN data_2023 d23 ON d25.establishment_id = d23.establishment_id
 ),
 
 -- Statistiques sur les évolutions
@@ -126,7 +141,13 @@ evolution_stats AS (
         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_24) AS q3_evolution_19_24,
         PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_24) AS q1_rate_evolution_19_24,
         PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_24) AS q2_rate_evolution_19_24,
-        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_24) AS q3_rate_evolution_19_24
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_24) AS q3_rate_evolution_19_24,
+
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_evolution_19_25) AS q3_rate_evolution_19_25,
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_19_25) AS q3_rate_evolution_19_25,
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_evolution_24_25) AS q3_rate_evolution_24_25,
+        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY housing_vacant_rate_evolution_24_25) AS q3_rate_evolution_24_25
+
     FROM evolution_data
 ),
 

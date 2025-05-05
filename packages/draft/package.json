@@ -36,12 +36,14 @@
     "@pdfme/common": "^5.3.14",
     "@pdfme/generator": "^5.3.14",
     "@pdfme/schemas": "^5.3.14",
+    "@types/pdf-parse": "^1.1.5",
     "@zerologementvacant/utils": "workspace:*",
     "async": "^3.2.6",
     "date-fns": "^4.1.0",
     "handlebars": "^4.7.8",
     "node-html-parser": "^7.0.1",
     "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
     "puppeteer": "^22.15.0",
     "ts-pattern": "^5.5.0"
   }

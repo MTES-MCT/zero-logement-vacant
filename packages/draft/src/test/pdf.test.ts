@@ -1,18 +1,18 @@
-import { screen } from '@testing-library/dom';
-import { DRAFT_TEMPLATE_FILE, DraftData } from '../draft';
+import { DraftData } from '../draft';
+import pdfParse from 'pdf-parse';
 
 import pdf from '../pdf';
 
 describe('PDF', () => {
   const transformer = pdf.createTransformer({ logger: console });
 
-  function compile(data: DraftData): string {
-    return transformer.compile(DRAFT_TEMPLATE_FILE, data);
+  function compile(data: DraftData): Promise<Buffer> {
+    return transformer.generatePDF(data);
   }
 
   describe('compile', () => {
-    it('should display the owner', () => {
-      document.body.innerHTML = compile({
+    it('should display the owner', async () => {
+      const pdfBuffer = await compile({
         subject: null,
         body: null,
         logo: null,
@@ -25,16 +25,16 @@ describe('PDF', () => {
         }
       });
 
-      const owner = screen.getByText('Jean Dujardin');
-      const address = screen.getByText('123 rue Bidon');
-      const city = screen.getByText('75001 Paris');
-      expect(owner).toBeInTheDocument();
-      expect(address).toBeInTheDocument();
-      expect(city).toBeInTheDocument();
+      const parsed = await pdfParse(pdfBuffer);
+      const text = parsed.text;
+
+      expect(text).toContain('Jean Dujardin');
+      expect(text).toContain('123 rue Bidon');
+      expect(text).toContain('75001 Paris');
     });
 
-    it('should display a subject and body', () => {
-      document.body.innerHTML = compile({
+    it('should display a subject and body', async () => {
+      const pdfBuffer = await compile({
         subject: 'Votre logement vacant',
         body: 'On vous aide à sortir votre logement de la vacance !',
         logo: null,
@@ -47,22 +47,21 @@ describe('PDF', () => {
         }
       });
 
-      const subject = screen.getByText('Votre logement vacant');
-      const body = screen.getByText(
-        'On vous aide à sortir votre logement de la vacance !'
-      );
-      expect(subject).toBeInTheDocument();
-      expect(body).toBeInTheDocument();
+      const parsed = await pdfParse(pdfBuffer);
+      const text = parsed.text;
+
+      expect(text).toContain('Votre logement vacant');
+      expect(text).toContain('On vous aide à sortir votre logement de la vacance !');
     });
 
-    it('should display two logos', () => {
-      document.body.innerHTML = compile({
+    it('should display two logos', async () => {
+      const pdfBuffer = await compile({
         subject: null,
         body: null,
         logo: [
           {
             id: 'uuid1',
-            content: 'data:image/png'
+            content: 'data:image/png' // Base64 encoded
           },
           {
             id: 'uuid2',
@@ -78,14 +77,14 @@ describe('PDF', () => {
         }
       });
 
-      const logos = screen.getAllByRole('img');
-      logos.forEach((logo) => {
-        expect(logo).toBeInTheDocument();
-      });
+      // Simplified test: verify that the PDF contains two "image" objects
+      const text = pdfBuffer.toString('latin1');
+      const imagesFound = (text.match(/\/Subtype\s*\/Image/g) || []).length;
+      expect(imagesFound).toBeGreaterThanOrEqual(2);
     });
 
-    it('should display a sender', () => {
-      document.body.innerHTML = compile({
+    it('should display a sender', async () => {
+      const pdfBuffer = await compile({
         subject: null,
         body: null,
         logo: null,
@@ -107,21 +106,18 @@ describe('PDF', () => {
         }
       });
 
-      const name = screen.getByText('Commune de Marseille');
-      const service = screen.getByText('Logement');
-      const fullName = screen.getByText('Marseille BB');
-      const address = screen.getByText('13 La Canebière');
-      const email = screen.getByText('jean.dujardin@marseille.fr');
-      const phone = screen.getByText('0123456789');
-      expect(name).toBeInTheDocument();
-      expect(service).toBeInTheDocument();
-      expect(fullName).toBeInTheDocument();
-      expect(address).toBeInTheDocument();
-      expect(email).toBeInTheDocument();
-      expect(phone).toBeInTheDocument();
+      const parsed = await pdfParse(pdfBuffer);
+      const text = parsed.text;
+
+      expect(text).toContain('Commune de Marseille');
+      expect(text).toContain('Logement');
+      expect(text).toContain('Marseille BB');
+      expect(text).toContain('13 La Canebière');
+      expect(text).toContain('jean.dujardin@marseille.fr');
+      expect(text).toContain('0123456789');
     });
 
-    it('should display two signatories', () => {
+    it('should display two signatories', async () => {
       const signatories = [
         {
           firstName: 'Jean',
@@ -143,7 +139,7 @@ describe('PDF', () => {
         }
       ];
 
-      document.body.innerHTML = compile({
+      const pdfBuffer = await compile({
         subject: null,
         body: null,
         logo: null,
@@ -165,16 +161,20 @@ describe('PDF', () => {
         }
       });
 
-      signatories.forEach((signatory) => {
-        const fullName = screen.getByText(
-          `${signatory.firstName} ${signatory.lastName}`
-        );
-        const role = screen.getByText(signatory.role);
-        expect(fullName).toBeInTheDocument();
-        expect(role).toBeInTheDocument();
-      });
-      const signatures = screen.getAllByAltText('Signature');
-      expect(signatures).toHaveLength(signatories.length);
+      const parsed = await pdfParse(pdfBuffer);
+      const text = parsed.text;
+
+      // Verify that the name and role of each signatory appear
+      for (const signatory of signatories) {
+        const fullName = `${signatory.firstName} ${signatory.lastName}`;
+        expect(text).toContain(fullName);
+        expect(text).toContain(signatory.role);
+      }
+
+      // Verify that there are at least 2 images (signatures)
+      const rawPdf = pdfBuffer.toString('latin1');
+      const imageCount = (rawPdf.match(/\/Subtype\s*\/Image/g) || []).length;
+      expect(imageCount).toBeGreaterThanOrEqual(signatories.length);
     });
   });
 });

@@ -2,6 +2,7 @@ import { fakerFR as faker } from '@faker-js/faker';
 
 import { compactUndefined } from '@zerologementvacant/utils';
 import fp from 'lodash/fp';
+import { MarkRequired } from 'ts-essentials';
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
 import { CampaignDTO } from '../CampaignDTO';
@@ -11,6 +12,10 @@ import { ENERGY_CONSUMPTION_VALUES } from '../EnergyConsumption';
 import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
+import { EVENT_CATEGORY_VALUES } from '../EventCategory';
+import { EVENT_NAME_VALUES, EventDTO } from '../EventDTO';
+import { EVENT_KIND_VALUES } from '../EventKind';
+import { EVENT_SECTION_VALUES } from '../EventSection';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { GroupDTO } from '../GroupDTO';
 import { HousingDTO } from '../HousingDTO';
@@ -250,6 +255,26 @@ export function genEstablishmentDTO(): EstablishmentDTO {
     available: true,
     kind: faker.helpers.arrayElement(ESTABLISHMENT_KIND_VALUES),
     source: faker.helpers.arrayElement(ESTABLISHMENT_SOURCE_VALUES)
+  };
+}
+
+export function genEventDTO<T>(
+  before: T | undefined,
+  after: T | undefined,
+  creator: UserDTO
+): MarkRequired<EventDTO<T>, 'creator'> {
+  return {
+    id: faker.string.uuid(),
+    name: faker.helpers.arrayElement(EVENT_NAME_VALUES),
+    kind: faker.helpers.arrayElement(EVENT_KIND_VALUES),
+    category: faker.helpers.arrayElement(EVENT_CATEGORY_VALUES),
+    section: faker.helpers.arrayElement(EVENT_SECTION_VALUES),
+    conflict: faker.datatype.boolean(),
+    old: before,
+    new: after,
+    createdAt: new Date(),
+    createdBy: creator.id,
+    creator: creator
   };
 }
 

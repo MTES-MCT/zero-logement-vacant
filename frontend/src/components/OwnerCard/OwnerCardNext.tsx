@@ -6,7 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { formatAddress } from '@zerologementvacant/models';
-import { ReactNode } from 'react';
+import { ReactNode, useId } from 'react';
 import { isBanEligible } from '../../models/Address';
 import { Owner } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
@@ -154,18 +154,17 @@ function OwnerCardNext(props: OwnerCardProps) {
           }
         />
 
-        {props.housingCount ? (
-          <Button
-            title="Voir tous ses logements"
-            priority="secondary"
-            linkProps={{
-              to: `/proprietaires/${props.owner.id}`
-            }}
-            className={styles.housingBouton}
-          >
-            Voir tous ses logements ({props.housingCount})
-          </Button>
-        ) : null}
+        <Button
+          title="Voir tous ses logements"
+          priority="secondary"
+          linkProps={{
+            to: `/proprietaires/${props.owner.id}`
+          }}
+          className={styles.housingBouton}
+        >
+          Voir tous ses logements
+          {props.housingCount ? ` (${props.housingCount})` : null}
+        </Button>
       </Stack>
     </Stack>
   );
@@ -178,16 +177,20 @@ interface OwnerPropertyProps {
 }
 
 function OwnerAttribute(props: OwnerPropertyProps) {
+  const label = useId();
+
   return (
     <Stack component="section">
-      <LabelNext component="h4" sx={{ fontWeight: 700 }}>
+      <LabelNext component="h4" id={label} sx={{ fontWeight: 700 }}>
         <span
           className={fr.cx(props.icon, 'fr-icon--sm', 'fr-mr-1v')}
           aria-hidden={true}
         />
         {props.label}
       </LabelNext>
-      {props.value ?? 'Pas d’information'}
+      <Typography component="span" aria-labelledby={label}>
+        {props.value ?? 'Pas d’information'}
+      </Typography>
     </Stack>
   );
 }

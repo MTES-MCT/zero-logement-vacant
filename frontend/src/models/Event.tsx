@@ -1,21 +1,18 @@
-import {
-  EventCategory,
-  EventKind,
-  EventSection
-} from '@zerologementvacant/models';
-import { User } from './User';
+import { EventDTO } from '@zerologementvacant/models';
 
-export interface Event<T = any> {
-  id: string;
-  name: string;
-  kind: EventKind;
-  category: EventCategory;
-  section: EventSection;
-  contactKind?: string;
-  conflict?: boolean;
-  old?: T;
-  new?: T;
-  createdAt: Date;
-  createdBy: string;
+import { fromUserDTO, User } from './User';
+
+export type Event<T = any> = Omit<EventDTO<T>, 'creator'> & {
   creator: User;
+};
+
+export function fromEventDTO<T>(event: EventDTO<T>): Event<T> {
+  if (!event.creator) {
+    throw new Error('Event creator is missing');
+  }
+
+  return {
+    ...event,
+    creator: fromUserDTO(event.creator)
+  };
 }

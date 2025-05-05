@@ -14,7 +14,7 @@ import OccupancyBadge from './OccupancyBadge';
 
 export interface HousingHeaderProps {
   className?: string;
-  housing?: Housing;
+  housing: Housing | undefined;
   isLoading: boolean;
 }
 
@@ -30,6 +30,7 @@ function HousingHeader(props: HousingHeaderProps) {
         variant="rectangular"
         width="50%"
         height="8rem"
+        sx={{ mb: '1.5rem' }}
       />
     );
   }
@@ -90,6 +91,7 @@ function HousingHeader(props: HousingHeaderProps) {
         <>
           <Button
             size="large"
+            title="Mettre à jour le logement"
             onClick={() => {
               setEditing(true);
             }}

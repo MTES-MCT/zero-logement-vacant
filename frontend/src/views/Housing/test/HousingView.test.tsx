@@ -78,10 +78,8 @@ describe('Housing view', () => {
   it('should display the main owner', async () => {
     renderView(housing);
 
-    const name = await screen.findByRole('heading', {
-      name: owner.fullName
-    });
-    expect(name).toBeVisible();
+    const name = await screen.findByLabelText('Nom et prénom');
+    expect(name).toHaveTextContent(owner.fullName);
   });
 
   describe('Show housing details', () => {
@@ -92,10 +90,10 @@ describe('Housing view', () => {
 
         renderView(housing);
 
-        const vacancyStartYear = await screen
-          .findByText(/^Année de début de vacance déclarée/)
-          .then((label) => label.nextElementSibling);
-        expect(vacancyStartYear).toHaveTextContent('Inconnu');
+        const vacancyStartYear = await screen.findByLabelText(
+          'Année de début de vacance déclarée'
+        );
+        expect(vacancyStartYear).toHaveTextContent('Pas d’information');
       });
 
       it('should be defined', async () => {
@@ -108,7 +106,7 @@ describe('Housing view', () => {
           .findByText(/^Année de début de vacance déclarée/)
           .then((label) => label.nextElementSibling);
         expect(vacancyStartYear).toHaveTextContent(
-          `1 an (${format(subYears(new Date(), 1), 'yyyy')})`
+          `${format(subYears(new Date(), 1), 'yyyy')} (1 an)`
         );
       });
     });
@@ -119,9 +117,7 @@ describe('Housing view', () => {
 
         renderView(housing);
 
-        const source = await screen
-          .findByText(/^Source des informations/)
-          .then((label) => label.nextElementSibling);
+        const source = await screen.findByText(/^Source des informations/);
         expect(source).toHaveTextContent('Fichiers fonciers (2023)');
       });
     });
@@ -132,7 +128,8 @@ describe('Housing view', () => {
       renderView(housing);
 
       const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/
+        name: /^Modifier/,
+        description: 'Modifier le propriétaire'
       });
       await user.click(modifyOwners);
       const modal = await screen.findByRole('dialog');
@@ -152,9 +149,7 @@ describe('Housing view', () => {
       await user.click(save);
 
       expect(modal).not.toBeVisible();
-      const name = await screen.findByRole('heading', {
-        name: newName
-      });
+      const name = await screen.findByLabelText('Nom et prénom');
       expect(name).toBeVisible();
     });
   });
@@ -165,7 +160,8 @@ describe('Housing view', () => {
 
       const newOwner = genOwnerDTO();
       const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/
+        name: /^Modifier/,
+        description: 'Modifier le propriétaire'
       });
       await user.click(modifyOwners);
       const modal = await screen.findByRole('dialog');
@@ -216,7 +212,8 @@ describe('Housing view', () => {
       renderView(housing);
 
       const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/
+        name: /^Modifier/,
+        description: 'Modifier le propriétaire'
       });
       await user.click(modifyOwners);
       const modal = await screen.findByRole('dialog');
@@ -256,11 +253,17 @@ describe('Housing view', () => {
     it('should update the occupancy', async () => {
       renderView(housing);
 
-      const [update] = await screen.findAllByRole('button', {
-        name: /Mettre à jour/
+      const update = await screen.findByRole('button', {
+        name: /Mettre à jour/,
+        description: 'Mettre à jour le logement'
       });
       await user.click(update);
-      const occupancy = await screen.findByLabelText('Occupation actuelle');
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Occupation'
+      });
+      const occupancy = await within(panel).findByLabelText(
+        'Occupation actuelle'
+      );
       await user.click(occupancy);
       const options = await screen.findByRole('listbox');
       const option = await within(options).findByRole('option', {
@@ -306,7 +309,7 @@ describe('Housing view', () => {
         name: 'Enregistrer'
       });
       await user.click(save);
-      const mobilization = await screen.findByText('Premier contact');
+      const mobilization = await screen.findByLabelText('Statut de suivi');
       expect(mobilization).toBeVisible();
     });
 

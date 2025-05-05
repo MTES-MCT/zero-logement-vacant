@@ -30,7 +30,7 @@ export function OwnerCreatedEventContent(props: OwnershipEventContentProps) {
     >
       <PatchContent
         filterKey={(key) => allowedKeys.includes(key)}
-        mapKey={{
+        renderKey={{
           fullName: 'Prénom et nom',
           rawAddress: 'Adresse postale'
         }}
@@ -59,7 +59,7 @@ export function OwnerChangeEventContent(props: OwnershipEventContentProps) {
         <PatchContent
           values={event.old as Owner}
           filterKey={(key) => allowedKeys.includes(key)}
-          mapKey={{
+          renderKey={{
             rawAddress: 'Ancienne adresse',
             email: 'Ancien email',
             phone: 'Ancien téléphone',
@@ -81,7 +81,7 @@ export function OwnerChangeEventContent(props: OwnershipEventContentProps) {
         <PatchContent
           values={event.new as Owner}
           filterKey={(key) => allowedKeys.includes(key)}
-          mapKey={{
+          renderKey={{
             rawAddress: 'Nouvelle adresse',
             email: 'Nouvel email',
             phone: 'Nouveau téléphone',
@@ -171,7 +171,7 @@ export function OwnersChangeEventContent(
               key={housingOwner.id}
               values={housingOwner}
               filterKey={(key) => allowedKeys.includes(key)}
-              mapValue={{
+              renderValue={{
                 birthDate: (value) =>
                   !value
                     ? null
@@ -193,7 +193,7 @@ export function OwnersChangeEventContent(
       )}
 
       <Stack spacing="1rem">
-        {props.housingOwnersBefore.toSorted(byRank).map((housingOwner) => (
+        {props.housingOwnersAfter.toSorted(byRank).map((housingOwner) => (
           <Stack
             key={housingOwner.id}
             sx={{
@@ -214,7 +214,7 @@ export function OwnersChangeEventContent(
               key={housingOwner.id}
               values={housingOwner}
               filterKey={(key) => allowedKeys.includes(key)}
-              mapValue={{
+              renderValue={{
                 birthDate: (value) =>
                   !value
                     ? null

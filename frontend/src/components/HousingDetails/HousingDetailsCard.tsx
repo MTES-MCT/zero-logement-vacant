@@ -1,8 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Button from '@codegouvfr/react-dsfr/Button';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -10,10 +8,9 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Occupancy } from '@zerologementvacant/models';
 import classNames from 'classnames';
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
-import { useUser } from '../../hooks/useUser';
 import {
   formatOwnershipKind,
   getBuildingLocation,
@@ -29,27 +26,28 @@ import AppLink from '../_app/AppLink/AppLink';
 import DPE from '../DPE/DPE';
 import EventsHistory from '../EventsHistory/EventsHistory';
 import OccupancyBadge from '../Housing/OccupancyBadge';
-import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import LabelNext from '../Label/LabelNext';
 import Map from '../Map/Map';
 import PrecisionLists from '../Precision/PrecisionLists';
 import styles from './housing-details-card.module.scss';
-import HousingDetailsSubCardBuilding from './HousingDetailsSubCardBuilding';
-import HousingDetailsSubCardLocation from './HousingDetailsSubCardLocation';
-import HousingDetailsCardMobilisation from './HousingDetailsSubCardMobilisation';
-import HousingDetailsCardOccupancy from './HousingDetailsSubCardOccupancy';
-import HousingDetailsSubCardProperties from './HousingDetailsSubCardProperties';
-
-interface Props {
-  housing: Housing;
-}
 
 interface HousingDetailsCardProps {
-  housing: Housing;
+  housing: Housing | undefined;
 }
 
 function HousingDetailsCard(props: HousingDetailsCardProps) {
+  if (!props.housing) {
+    return (
+      <Skeleton
+        animation="wave"
+        variant="rectangular"
+        width="100%"
+        height="60rem"
+      />
+    );
+  }
+
   return (
     <Tabs
       tabs={[
@@ -77,7 +75,7 @@ interface TabProps {
 
 function HousingTab(props: TabProps) {
   const getBuildingQuery = useGetBuildingQuery(
-    props.housing.buildingId ?? skipToken
+    props.housing?.buildingId ?? skipToken
   );
   const findPerimetersQuery = useFindPerimetersQuery();
 
@@ -391,120 +389,6 @@ function HousingAttribute(props: HousingAttributeProps) {
         ))
         .otherwise((value) => value)}
     </Stack>
-  );
-}
-
-function HousingDetailsCardOld({
-  housing,
-  housingEvents,
-  housingNotes,
-  housingCampaigns
-}: Props) {
-  const { isVisitor } = useUser();
-  const [isHousingListEditionExpand, setIsHousingListEditionExpand] =
-    useState(false);
-
-  return (
-    <Paper component="article" elevation={0} sx={{ padding: 3 }}>
-      <Grid component="header" container sx={{ mb: 2 }}>
-        <Grid xs>
-          {!isVisitor && (
-            <>
-              <Typography component="h1" variant="h4" mb={1}>
-                {housing.rawAddress.map((line) => (
-                  <>
-                    {line}
-                    <br />
-                  </>
-                ))}
-              </Typography>
-              <AppLink
-                title="Voir sur la carte - nouvelle fenêtre"
-                to={`https://www.google.com/maps/place/${housing.latitude},${housing.longitude}`}
-                target="_blank"
-                iconPosition="left"
-                className={classNames(styles.link, 'fr-link')}
-              >
-                Voir sur la carte
-              </AppLink>
-            </>
-          )}
-        </Grid>
-        <Grid xs="auto">
-          {!isVisitor && (
-            <>
-              <Button onClick={() => setIsHousingListEditionExpand(true)}>
-                Mettre à jour / Ajouter une note
-              </Button>
-              <HousingEditionSideMenu
-                housing={housing}
-                expand={isHousingListEditionExpand}
-                onClose={() => setIsHousingListEditionExpand(false)}
-              />
-            </>
-          )}
-        </Grid>
-      </Grid>
-      <Grid component="section" container>
-        <>
-          <HousingDetailsCardOccupancy
-            housing={housing}
-            lastOccupancyEvent={
-              housing.source !== 'datafoncier-import'
-                ? housingEvents.find(
-                    (event) =>
-                      event.category === 'Followup' &&
-                      event.kind === 'Update' &&
-                      event.section === 'Situation' &&
-                      event.name === "Modification du statut d'occupation" &&
-                      event.old.occupancy !== event.new.occupancy
-                  )
-                : housingEvents.find(
-                    (event) =>
-                      event.category === 'Group' &&
-                      event.kind === 'Create' &&
-                      event.section === 'Ajout d’un logement dans un groupe' &&
-                      event.name === 'Ajout dans un groupe'
-                  )
-            }
-          />
-          <HousingDetailsCardMobilisation
-            housing={housing}
-            campaigns={housingCampaigns}
-          />
-          <Tabs
-            className="no-border fr-pt-3w"
-            tabs={[
-              {
-                label: 'Caractéristiques',
-                content: (
-                  <div className="fr-px-0">
-                    <Grid container spacing={2}>
-                      <Grid xs>
-                        <HousingDetailsSubCardProperties
-                          className={fr.cx('fr-mb-2w')}
-                          housing={housing}
-                        />
-                        <HousingDetailsSubCardLocation housing={housing} />
-                      </Grid>
-                      <Grid xs>
-                        <HousingDetailsSubCardBuilding housing={housing} />
-                      </Grid>
-                    </Grid>
-                  </div>
-                )
-              },
-              {
-                label: 'Historique et notes',
-                content: (
-                  <EventsHistory events={housingEvents} notes={housingNotes} />
-                )
-              }
-            ]}
-          ></Tabs>
-        </>
-      </Grid>
-    </Paper>
   );
 }
 

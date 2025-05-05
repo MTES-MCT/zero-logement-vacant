@@ -1,18 +1,7 @@
-import _ from 'lodash';
-import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { assert } from 'ts-essentials';
-import { campaignSort } from '../models/Campaign';
 
-import { useFindEventsByHousingQuery } from '../services/event.service';
-import {
-  useCountHousingQuery,
-  useGetHousingQuery
-} from '../services/housing.service';
-import { useFindNotesByHousingQuery } from '../services/note.service';
-import { useFindOwnersByHousingQuery } from '../services/owner.service';
-import { isDefined } from '../utils/compareUtils';
-import { useCampaignList } from './useCampaignList';
+import { useGetHousingQuery } from '../services/housing.service';
 
 export function useHousing() {
   const { housingId } = useParams<{ housingId: string }>();
@@ -20,57 +9,9 @@ export function useHousing() {
 
   const { data: housing, ...getHousingQuery } = useGetHousingQuery(housingId);
 
-  const {
-    data: events,
-    refetch: refetchHousingEvents,
-    ...findEventsQuery
-  } = useFindEventsByHousingQuery(housingId);
-
-  const {
-    data: notes,
-    refetch: refetchHousingNotes,
-    ...findNotesQuery
-  } = useFindNotesByHousingQuery(housingId);
-
-  const { data: housingOwners } = useFindOwnersByHousingQuery(housingId);
-
-  const campaignList = useCampaignList();
-
-  const mainHousingOwner = housingOwners?.find((_) => _.rank === 1);
-  const coOwners = housingOwners;
-
-  const { data: count } = useCountHousingQuery(
-    {
-      ownerIds: [mainHousingOwner?.id ?? '']
-    },
-    { skip: !mainHousingOwner }
-  );
-
-  const campaigns = useMemo(
-    () =>
-      _.uniq(
-        housing?.campaignIds
-          ?.map((campaignId) => campaignList?.find((c) => c.id === campaignId))
-          ?.filter(isDefined)
-          ?.sort(campaignSort)
-      ),
-    [housing, campaignList]
-  );
-
   return {
     getHousingQuery,
-    events,
-    findEventsQuery,
-    notes,
-    findNotesQuery,
-    refetchHousingEvents,
-    refetchHousingNotes,
-    mainHousingOwner,
-    coOwners,
-    housingOwners,
     housing,
-    housingId,
-    count,
-    campaigns
+    housingId
   };
 }

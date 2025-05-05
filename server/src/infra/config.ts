@@ -103,6 +103,7 @@ interface Config {
   metabase: {
     domain: string;
     token: string;
+    apiToken: string;
   };
   rateLimit: {
     max: number;
@@ -370,6 +371,13 @@ const config = convict<Config>({
     },
     token: {
       env: 'METABASE_TOKEN',
+      format: String,
+      default: null,
+      nullable: !isProduction,
+      sensitive: true
+    },
+    apiToken: {
+      env: 'METABASE_API_TOKEN',
       format: String,
       default: null,
       nullable: !isProduction,

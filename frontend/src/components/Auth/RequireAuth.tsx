@@ -9,7 +9,7 @@ import config from '../../utils/config';
 interface RequireAuthProps {}
 
 function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
-  const { isAuthenticated, user } = useUser();
+  const { isAuthenticated, user, jimoData } = useUser();
   const location = useLocation();
 
   useFetchInterceptor();
@@ -17,6 +17,7 @@ function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
   if (isAuthenticated) {
     if (config.jimo.enabled && user) {
       window['jimo'].push(['do', 'identify', [user.id]]);
+      window['jimo'].push([ 'set', 'user:attributes', [ jimoData ]]);
     }
     return props.children;
   }

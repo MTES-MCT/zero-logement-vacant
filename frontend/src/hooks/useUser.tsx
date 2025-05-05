@@ -28,6 +28,7 @@ export const useUser = () => {
 
   const user = authUser?.user;
   const establishment = authUser?.establishment;
+  const jimoData = authUser?.jimoData;
 
   function displayName(): string {
     if (user?.firstName && user?.lastName) {
@@ -48,6 +49,7 @@ export const useUser = () => {
     isAuthenticated,
     isGuest,
     isVisitor,
-    user
+    user,
+    jimoData
   };
 };

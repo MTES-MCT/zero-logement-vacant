@@ -1,156 +1,181 @@
-import { fr, FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import { fr } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Skeleton from '@mui/material/Skeleton';
-import Stack from '@mui/material/Stack';
+import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Unstable_Grid2';
 
 import { formatAddress } from '@zerologementvacant/models';
 import { ReactNode } from 'react';
 import { isBanEligible } from '../../models/Address';
-import { Owner } from '../../models/Owner';
+import { HousingOwner, Owner } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import LabelNext from '../Label/LabelNext';
+import OtherOwnerCard from './OtherOwnerCard';
 import styles from './owner-card.module.scss';
 
 interface OwnerCardProps {
-  owner: Owner | null;
-  housingCount: number;
+  owner: Owner | HousingOwner;
+  coOwners?: HousingOwner[];
+  housingCount: number | undefined;
   modify?: ReactNode;
 }
 
 function OwnerCard(props: OwnerCardProps) {
-  if (!props.owner) {
-    return (
-      <Skeleton
-        animation="wave"
-        variant="rectangular"
-        width="100%"
-        height="40rem"
-      />
-    );
-  }
+  const secondaryOwners =
+    props.coOwners?.filter((owner) => owner.rank > 1) ?? [];
+  const archivedOwners =
+    props.coOwners?.filter((owner) => owner.rank <= 0) ?? [];
 
   return (
-    <Stack component="section">
-      <Stack
-        component="header"
-        direction="row"
-        sx={{ justifyContent: 'space-between', mt: '0.5rem' }}
-      >
-        <Typography component="h2" variant="h5">
-          Propriétaires
-        </Typography>
-        {props.modify}
-      </Stack>
-
-      <Stack component="article" spacing="0.75rem">
-        <Stack component="header">
-          <Typography component="h3" variant="h6" sx={{ mb: '0.5rem' }}>
-            Propriétaire principal
+    <Paper component="article" elevation={0} sx={{ padding: 3 }}>
+      <Grid component="header" container sx={{ mb: 1 }}>
+        <Grid xs>
+          <Typography component="h2" variant="h4" mb={0} data-testid="fullName">
+            {props.owner.fullName}
           </Typography>
-          <hr className="fr-pb-1v" />
-        </Stack>
+          <Typography>Propriétaire principal</Typography>
+        </Grid>
+        <Grid xs="auto">{props.modify}</Grid>
+      </Grid>
+      <Grid component="section" container rowSpacing={1}>
+        {props.owner.birthDate ? (
+          <Grid xs={12}>
+            <LabelNext component="h3">
+              <span
+                className={fr.cx(
+                  'fr-icon-calendar-2-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Date de naissance
+            </LabelNext>
+            <Typography>
+              {birthdate(props.owner.birthDate)} ({age(props.owner.birthDate)}{' '}
+              ans)
+            </Typography>
+          </Grid>
+        ) : null}
 
-        <OwnerAttribute
-          icon="fr-icon-user-fill"
-          label="Nom et prénom"
-          value={<Typography>{props.owner.fullName}</Typography>}
-        />
+        <Grid xs={12}>
+          <LabelNext component="h3">
+            <span
+              className={fr.cx('fr-icon-bank-line', 'fr-icon--sm', 'fr-mr-1w')}
+              aria-hidden={true}
+            />
+            Adresse fiscale (source: DGFIP)
+          </LabelNext>
+          <Typography color={fr.colors.decisions.text.default.grey.default}>
+            {props.owner.rawAddress
+              ? props.owner.rawAddress.join(' ')
+              : 'Inconnue'}
+          </Typography>
+        </Grid>
 
-        <OwnerAttribute
-          icon="fr-icon-calendar-2-line"
-          label="Date de naissance"
-          value={
-            !props.owner.birthDate ? null : (
-              <Typography>
-                {birthdate(props.owner.birthDate)} ({age(props.owner.birthDate)}
-                &nbsp;ans)
-              </Typography>
-            )
-          }
-        />
-
-        <OwnerAttribute
-          icon="fr-icon-bank-line"
-          label="Adresse fiscale (source : DGFIP)"
-          value={
-            !props.owner.rawAddress ? null : (
-              <Typography>{props.owner.rawAddress.join(', ')}</Typography>
-            )
-          }
-        />
-
-        <OwnerAttribute
-          icon="fr-icon-home-4-line"
-          label="Adresse postale (source : BAN)"
-          value={
-            !props.owner.banAddress
-              ? null
-              : formatAddress(props.owner.banAddress).join(', ')
-          }
-        />
+        <Grid xs={12}>
+          <LabelNext component="h3">
+            <span
+              className={fr.cx(
+                'fr-icon-home-4-line',
+                'fr-icon--sm',
+                'fr-mr-1w'
+              )}
+              aria-hidden={true}
+            />
+            Adresse postale (source: Base Adresse Nationale)
+          </LabelNext>
+          <Typography>
+            {props.owner.banAddress
+              ? formatAddress(props.owner.banAddress).join(' ')
+              : 'Non renseigné'}
+          </Typography>
+        </Grid>
 
         {!isBanEligible(props.owner.banAddress) && (
-          <Alert
-            severity="info"
-            classes={{ title: fr.cx('fr-mb-2w') }}
-            description={
-              <>
-                <Typography>
-                  L’adresse Base Adresse Nationale ne correspond pas à celle de
-                  la DGFIP.
-                </Typography>
-                <Typography>
-                  Nous vous recommandons de vérifier en cliquant sur
-                  &quot;Modifier&quot;.
-                </Typography>
-              </>
-            }
-          />
+          <Grid xs={12}>
+            <Alert
+              severity="info"
+              classes={{ title: fr.cx('fr-mb-2w') }}
+              description={
+                <>
+                  <Typography>
+                    L’adresse Base Adresse Nationale ne correspond pas à celle
+                    de la DGFIP.
+                  </Typography>
+                  <Typography>
+                    Nous vous recommandons de vérifier en cliquant sur
+                    &quot;Modifier&quot;.
+                  </Typography>
+                </>
+              }
+            />
+          </Grid>
         )}
 
-        <OwnerAttribute
-          icon="fr-icon-home-4-line"
-          label="Complément d’adresse"
-          value={
-            !props.owner.additionalAddress ? null : (
-              <Typography>{props.owner.additionalAddress}</Typography>
-            )
-          }
-        />
+        {props.owner.additionalAddress ? (
+          <Grid xs={12}>
+            <LabelNext component="h3">
+              <span
+                className={fr.cx(
+                  'fr-icon-home-4-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Complément d’adresse
+            </LabelNext>
+            <Typography>{props.owner.additionalAddress}</Typography>
+          </Grid>
+        ) : null}
 
-        <OwnerAttribute
-          icon="fr-icon-mail-line"
-          label="Adresse e-mail"
-          value={
-            !props.owner.email ? null : (
-              <Typography>
-                <AppLink
-                  className="mailto"
-                  isSimple
-                  to={mailto(props.owner.email)}
-                >
-                  {props.owner.email}
-                </AppLink>
-              </Typography>
-            )
-          }
-        />
+        {props.owner.email ? (
+          <Grid xs={12}>
+            <LabelNext component="h3">
+              <span
+                className={fr.cx(
+                  'fr-icon-mail-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Adresse mail
+            </LabelNext>
+            <Typography>
+              <AppLink
+                className="mailto"
+                isSimple
+                to={mailto(props.owner.email)}
+              >
+                {props.owner.email}
+              </AppLink>
+            </Typography>
+          </Grid>
+        ) : null}
 
-        <OwnerAttribute
-          icon="fr-icon-phone-line"
-          label="Téléphone"
-          value={
-            !props.owner.phone ? null : (
-              <Typography>{props.owner.phone}</Typography>
-            )
-          }
-        />
+        {props.owner.phone ? (
+          <Grid xs={12}>
+            <LabelNext component="h3">
+              <span
+                className={fr.cx(
+                  'fr-icon-phone-line',
+                  'fr-icon--sm',
+                  'fr-mr-1w'
+                )}
+                aria-hidden={true}
+              />
+              Téléphone
+            </LabelNext>
+            <Typography>{props.owner.phone}</Typography>
+          </Grid>
+        ) : null}
 
-        {props.housingCount > 0 ? (
+        {props.housingCount ? (
           <Button
             title="Voir tous ses logements"
             priority="secondary"
@@ -162,29 +187,32 @@ function OwnerCard(props: OwnerCardProps) {
             Voir tous ses logements ({props.housingCount})
           </Button>
         ) : null}
-      </Stack>
-    </Stack>
-  );
-}
+      </Grid>
 
-interface OwnerPropertyProps {
-  icon: FrIconClassName | RiIconClassName;
-  label: string;
-  value: ReactNode;
-}
+      {secondaryOwners && secondaryOwners?.length > 0 && (
+        <>
+          <Typography component="h2" variant="h6" mb={1} mt={4}>
+            Propriétaires secondaires ({secondaryOwners.length})
+          </Typography>
+          <hr />
+          {secondaryOwners.map((housingOwner) => (
+            <OtherOwnerCard owner={housingOwner} key={housingOwner.id} />
+          ))}
+        </>
+      )}
 
-function OwnerAttribute(props: OwnerPropertyProps) {
-  return (
-    <Stack component="section">
-      <LabelNext component="h4" sx={{ fontWeight: 700 }}>
-        <span
-          className={fr.cx(props.icon, 'fr-icon--sm', 'fr-mr-1v')}
-          aria-hidden={true}
-        />
-        {props.label}
-      </LabelNext>
-      {props.value ?? 'Pas d’information'}
-    </Stack>
+      {archivedOwners && archivedOwners.length > 0 && (
+        <>
+          <Typography component="h2" variant="h6" mb={1} mt={4}>
+            Propriétaires archivés ({archivedOwners.length})
+          </Typography>
+          <hr />
+          {archivedOwners.map((housingOwner) => (
+            <OtherOwnerCard owner={housingOwner} key={housingOwner.id} />
+          ))}
+        </>
+      )}
+    </Paper>
   );
 }
 

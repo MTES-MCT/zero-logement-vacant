@@ -5,7 +5,7 @@ import { constants } from 'http2';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 
-import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
+import { pdf } from '@zerologementvacant/draft';
 import {
   DraftCreationPayloadDTO,
   DraftDTO,

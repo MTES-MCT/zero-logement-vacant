@@ -8,7 +8,7 @@ export interface PDFSchema extends Schema {
  * Custom PDFme plugin to embed a single-page PDF encoded in base64
  */
 export const pdfPlugin: Plugin<PDFSchema> = {
-  ui: async ({ schema, value, onChange, rootElement, mode }) => {
+  ui: async () => {
   },
 
   pdf: async ({ page, schema, value }: PDFRenderProps<PDFSchema>) => {

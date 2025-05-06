@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { generate } from '@pdfme/generator';
 import { Template, BLANK_PDF, Schema } from '@pdfme/common';
-import { Logger } from '@zerologementvacant/utils';
+import { Logger, merge } from '@zerologementvacant/utils';
 import { text, image } from '@pdfme/schemas';
 import { PDFDocument, PDFPage } from 'pdf-lib';
 import puppeteer, { Browser } from 'puppeteer';
@@ -53,6 +53,23 @@ function createTransformer(opts: TransformerOptions) {
   const { logger } = opts;
 
   return {
+    async mergePDFs(pdfs: Buffer[]): Promise<Buffer> {
+      logger.info('Merging PDFs...');
+
+      const mergedPdf = await PDFDocument.create();
+
+      for (const pdf of pdfs) {
+        const pdfDoc = await PDFDocument.load(pdf);
+        const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+        pages.forEach((page: PDFPage) => mergedPdf.addPage(page));
+      }
+
+      const mergedBuffer = await mergedPdf.save();
+      logger.info('PDFs successfully merged!');
+
+      return Buffer.from(mergedBuffer);
+    },
+
     async generatePDF(data: any): Promise<Buffer> {
       logger.info('Generating the PDF...');
 
@@ -124,7 +141,7 @@ function createTransformer(opts: TransformerOptions) {
         // Objet
         const subjectPage = await browser.newPage();
         await subjectPage.setViewport({ width: BODY_WIDTH, height: LINE_HEIGHT * 2 });
-        let subjectHTML = `<div id='block' style='margin: 0; padding: 0; display: inline-block;'>${data.subject}</div>`;
+        const subjectHTML = `<div id='block' style='margin: 0; padding: 0; display: inline-block;'>${data.subject}</div>`;
         await subjectPage.setContent(subjectHTML);
         await subjectPage.addStyleTag({ content: `${fontCss}` });
         const subject = await subjectPage.pdf({
@@ -137,7 +154,7 @@ function createTransformer(opts: TransformerOptions) {
         // Date et lieu
         const writtenInfoPage = await browser.newPage();
         await writtenInfoPage.setViewport({ width: BODY_WIDTH, height: LINE_HEIGHT * 2 });
-        let dateHTML = `<div id='block' style='margin: 0; padding: 0; display: inline-block;'>${formatWrittenInfo(data.writtenAt, data.writtenFrom)}</div>`;
+        const dateHTML = `<div id='block' style='margin: 0; padding: 0; display: inline-block;'>${formatWrittenInfo(data.writtenAt, data.writtenFrom)}</div>`;
         await writtenInfoPage.setContent(dateHTML);
         await writtenInfoPage.addStyleTag({ content: `${fontCss}` });
         const writtenInfo = await writtenInfoPage.pdf({
@@ -260,7 +277,7 @@ function createTransformer(opts: TransformerOptions) {
           width: pixelsToPointsPDF(BODY_WIDTH),
           height: 0, // height will be replaced by calculated height
           position: { x : 0, y: 0}, // will be replaced by calculated position
-      }]
+      }];
 
         const lastPageSchema = [{
           name: 'signatory',
@@ -271,7 +288,7 @@ function createTransformer(opts: TransformerOptions) {
         }];
 
         for (let i = 0; i < textBlocks.length; i++) {
-          let schema = [];
+          const schema = [];
           let bodySchema: Schema;
           if (i === 0) {
             schema.push(...firstPageSchema);
@@ -287,7 +304,7 @@ function createTransformer(opts: TransformerOptions) {
             bodySchema.position = { x: pixelsToPointsPDF(MARGIN_RIGHT), y: pixelsToPointsPDF(100) };
             schema.push(bodySchema);
           }
-          if (i == textBlocks.length - 1) {
+          if (i === textBlocks.length - 1) {
             schema.push(...lastPageSchema);
           }
           const template: Template = {
@@ -318,7 +335,7 @@ function createTransformer(opts: TransformerOptions) {
             subject: `data:application/pdf;base64,${subject.toString('base64')}`,
             body: `data:application/pdf;base64,${pdfBuffer.toString('base64')}`,
             signatory: `data:application/pdf;base64,${signatory.toString('base64')}`,
-          }
+          };
           inputs.push(inputsData);
         }
       await browser.close();

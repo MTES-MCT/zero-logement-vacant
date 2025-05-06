@@ -120,7 +120,21 @@ export function genHousing(): Housing {
     occupancy: Occupancy.VACANT,
     occupancyIntended: Occupancy.VACANT,
     energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES),
-    energyConsumptionAt: new Date()
+    energyConsumptionAt: new Date(),
+    lastMutationDate: faker.date.past({ years: 20 }).toJSON(),
+    lastTransactionDate:
+      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+      null,
+    lastTransactionValue:
+      faker.helpers.maybe(() =>
+        Number(
+          faker.finance.amount({
+            min: 100_000,
+            max: 1_000_000,
+            dec: 0
+          })
+        )
+      ) ?? null
   };
 }
 

@@ -82,7 +82,7 @@ export const parseBuildingApi = (building: BuildingDBO): BuildingApi => ({
   id: building.id,
   housingCount: building.housing_count,
   vacantHousingCount: building.vacant_housing_count,
-  rentHousingCount: building.rent_housing_count,
+  rentHousingCount: building.rent_housing_count ?? 0,
   rnbId: building.rnb_id,
   rnbIdScore: building.rnb_id_score
 });

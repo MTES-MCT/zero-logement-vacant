@@ -14,7 +14,8 @@ import { match, Pattern } from 'ts-pattern';
 import {
   formatOwnershipKind,
   getBuildingLocation,
-  Housing
+  Housing,
+  lastUpdate
 } from '../../models/Housing';
 import { CADASTRAL_CLASSIFICATION_OPTIONS } from '../../models/HousingFilters';
 import { useGetBuildingQuery } from '../../services/building.service';
@@ -75,10 +76,14 @@ interface TabProps {
 }
 
 function HousingTab(props: TabProps) {
+  const isHouse = props.housing.housingKind === 'MAISON';
   const getBuildingQuery = useGetBuildingQuery(
-    props.housing?.buildingId ?? skipToken
+    props.housing.buildingId ?? skipToken,
+    { skip: isHouse }
   );
-  const findPerimetersQuery = useFindPerimetersQuery();
+  const findPerimetersQuery = useFindPerimetersQuery(undefined, {
+    skip: !props.housing.geoPerimeters?.length
+  });
 
   const buildingLocation = getBuildingLocation(props.housing);
   const addressComplement: string | null = buildingLocation
@@ -173,6 +178,7 @@ function HousingTab(props: TabProps) {
                 ({ data: building }) => building.housingCount
               )
               .otherwise(() => null)}
+            fallback={isHouse ? 'Pas applicable' : 'Pas d’information'}
           />
           <HousingAttribute
             label="Taux de vacance"
@@ -187,6 +193,7 @@ function HousingTab(props: TabProps) {
                   `${Math.round((100 * building.vacantHousingCount) / building.housingCount)} %`
               )
               .otherwise(() => null)}
+            fallback={isHouse ? 'Pas applicable' : 'Pas d’information'}
           />
         </Stack>
       </Grid>
@@ -217,52 +224,61 @@ function HousingTab(props: TabProps) {
             </Grid>
           </Grid>
 
-          <Map
-            housingList={[props.housing]}
-            showMapSettings={false}
-            maxZoom={10}
-            style={{ minHeight: '21rem' }}
-          />
-          <Stack component="section" sx={{ alignItems: 'flex-end' }}>
-            <AppLink
-              title="Voir le bâtiment - nouvelle fenêtre"
-              to={`https://www.google.com/maps/place/${props.housing.latitude},${props.housing.longitude}`}
-              target="_blank"
-              iconPosition="left"
-              className={classNames(styles.link, 'fr-link')}
-            >
-              Voir le bâtiment
-            </AppLink>
-          </Stack>
+          {!props.housing.latitude || !props.housing.longitude ? null : (
+            <>
+              <Map
+                housingList={[props.housing]}
+                showMapSettings={false}
+                maxZoom={10}
+                style={{ minHeight: '21rem' }}
+              />
+              <Stack component="section" sx={{ alignItems: 'flex-end' }}>
+                <AppLink
+                  title="Voir le bâtiment - nouvelle fenêtre"
+                  to={`https://www.google.com/maps/place/${props.housing.latitude},${props.housing.longitude}`}
+                  target="_blank"
+                  iconPosition="left"
+                  className={classNames(styles.link, 'fr-link')}
+                >
+                  Voir le bâtiment
+                </AppLink>
+              </Stack>
 
-          <HousingAttribute
-            label="Périmètres"
-            value={match(findPerimetersQuery)
-              .returnType<ReactNode>()
-              .with({ isLoading: true }, () => (
-                <Skeleton animation="wave" variant="text" />
-              ))
-              .with(
-                { isLoading: false, data: Pattern.nonNullable },
-                ({ data: perimeters }) => {
-                  const result = perimeters
-                    .filter((perimeter) => {
-                      return props.housing.geoPerimeters?.some(
-                        (housingPerimeter) => {
-                          return housingPerimeter === perimeter.kind;
-                        }
-                      );
-                    })
-                    .map((perimeter) => (
-                      <Typography key={perimeter.id}>
-                        {perimeter.name}
-                      </Typography>
-                    ));
-                  return result.length > 0 ? result : null;
+              <HousingAttribute
+                label="Périmètres"
+                value={match(findPerimetersQuery)
+                  .returnType<ReactNode>()
+                  .with({ isLoading: true }, () => (
+                    <Skeleton animation="wave" variant="text" />
+                  ))
+                  .with(
+                    { isLoading: false, data: Pattern.nonNullable },
+                    ({ data: perimeters }) => {
+                      const result = perimeters
+                        .filter((perimeter) => {
+                          return props.housing.geoPerimeters?.some(
+                            (housingPerimeter) => {
+                              return housingPerimeter === perimeter.kind;
+                            }
+                          );
+                        })
+                        .map((perimeter) => (
+                          <Typography key={perimeter.id}>
+                            {perimeter.name}
+                          </Typography>
+                        ));
+                      return result.length > 0 ? result : null;
+                    }
+                  )
+                  .otherwise(() => null)}
+                fallback={
+                  !props.housing.geoPerimeters?.length
+                    ? 'Aucun périmètre'
+                    : 'Pas d’information'
                 }
-              )
-              .otherwise(() => null)}
-          />
+              />
+            </>
+          )}
         </Stack>
 
         <Stack component="article" spacing="0.75rem">
@@ -308,6 +324,8 @@ function HousingTab(props: TabProps) {
 function MobilizationTab(props: TabProps) {
   const findCampaignsQuery = useFindCampaignsQuery();
 
+  const updated = lastUpdate(props.housing);
+
   return (
     <Stack component="section" spacing="2rem">
       <Stack component="article" spacing="0.75rem">
@@ -322,10 +340,11 @@ function MobilizationTab(props: TabProps) {
         <HousingAttribute
           label="Sous-statut de suivi"
           value={props.housing.subStatus}
+          fallback="Pas applicable"
         />
         <HousingAttribute
           label="Dernière mise à jour"
-          value="Aucune mise à jour"
+          value={updated ?? 'Aucune mise à jour'}
         />
         <HousingAttribute
           label={`Campagnes (${props.housing.campaignIds.length})`}
@@ -337,9 +356,16 @@ function MobilizationTab(props: TabProps) {
             .with(
               { isLoading: false, data: Pattern.nonNullable },
               ({ data: campaigns }) => {
-                return campaigns.map((campaign) => (
-                  <Typography key={campaign.id}>{campaign.title}</Typography>
-                ));
+                const housingCampaigns = campaigns.filter((campaign) =>
+                  props.housing.campaignIds.includes(campaign.id)
+                );
+                return housingCampaigns.length === 0 ? (
+                  <Typography>Aucune campagne</Typography>
+                ) : (
+                  housingCampaigns.map((campaign) => (
+                    <Typography key={campaign.id}>{campaign.title}</Typography>
+                  ))
+                );
               }
             )
             .otherwise(() => null)}
@@ -370,10 +396,15 @@ function HistoryTab(props: TabProps) {
 interface HousingAttributeProps {
   label: string;
   value: ReactNode;
+  /**
+   * @default 'Pas d’information'
+   */
+  fallback?: string;
 }
 
 function HousingAttribute(props: HousingAttributeProps) {
   const label = useId();
+  const fallback = props.fallback ?? 'Pas d’information';
 
   return (
     <Stack>
@@ -389,7 +420,7 @@ function HousingAttribute(props: HousingAttributeProps) {
             aria-labelledby={label}
             sx={{ color: fr.colors.decisions.text.disabled.grey.default }}
           >
-            Pas d’information
+            {fallback}
           </Typography>
         ))
         .otherwise((value) => (

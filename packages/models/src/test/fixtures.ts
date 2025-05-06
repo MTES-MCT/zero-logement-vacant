@@ -341,7 +341,10 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
       ...ENERGY_CONSUMPTION_VALUES
     ]),
     energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
-    owner
+    owner,
+    lastMutationDate: faker.date.past().toJSON(),
+    lastTransactionDate: faker.date.past().toJSON(),
+    lastTransactionValue: faker.number.int({ min: 1_000_000, max: 10_000_000 })
   };
 }
 

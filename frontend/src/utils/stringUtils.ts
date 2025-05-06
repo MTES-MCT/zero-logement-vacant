@@ -23,7 +23,7 @@ export const displayCount = (
   label: string,
   { capitalize, feminine }: { capitalize?: boolean; feminine?: boolean } = {
     capitalize: true,
-    feminine: false,
+    feminine: false
   },
   filteredCount?: number
 ): string => {
@@ -58,7 +58,7 @@ export function pluralize(
     str
       .split(' ')
       .map((s) =>
-        count > 1 ? replacements?.find((_) => _.old === s)?.new ?? `${s}s` : s
+        count > 1 ? (replacements?.find((_) => _.old === s)?.new ?? `${s}s`) : s
       )
       .join(' ');
 }
@@ -103,3 +103,11 @@ export const reduceStringArray = (
     ?.filter((_) => _)
     .join(breakLine ? String.fromCharCode(10) : ' ');
 };
+
+export function formatPrice(price: number): string {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0
+  }).format(price);
+}

@@ -241,6 +241,7 @@ function HousingTab(props: TabProps) {
               <Map
                 housingList={[props.housing]}
                 showMapSettings={false}
+
                 style={{ minHeight: '21rem' }}
               />
               <Stack component="section" sx={{ alignItems: 'flex-end' }}>

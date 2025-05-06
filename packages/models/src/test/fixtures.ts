@@ -329,6 +329,8 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     cadastralClassification: faker.helpers.arrayElement(
       CADASTRAL_CLASSIFICATION_VALUES
     ),
+    longitude: faker.location.longitude(),
+    latitude: faker.location.latitude(),
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),

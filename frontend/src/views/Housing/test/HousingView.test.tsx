@@ -150,7 +150,45 @@ describe('Housing view', () => {
 
       expect(modal).not.toBeVisible();
       const name = await screen.findByLabelText('Nom et prénom');
-      expect(name).toBeVisible();
+      expect(name).toHaveTextContent(newName);
+    });
+
+    it('should update their birth date', async () => {
+      owner.birthDate = null;
+
+      renderView(housing);
+
+      const modifyOwners = await screen.findByRole('button', {
+        name: /^Modifier/,
+        description: 'Modifier le propriétaire'
+      });
+      await user.click(modifyOwners);
+      const modal = await screen.findByRole('dialog');
+      const accordions = await within(modal).findAllByRole('button', {
+        expanded: false
+      });
+      const [firstAccordion] = accordions;
+      await user.click(firstAccordion);
+      const inputs =
+        await within(modal).findAllByLabelText(/^Date de naissance/);
+      const [input] = inputs;
+      const value = faker.date
+        .birthdate()
+        .toJSON()
+        .substring(0, 'yyyy-mm-dd'.length);
+      await user.clear(input);
+      await user.type(input, value);
+      const save = await within(modal).findByRole('button', {
+        name: /^Enregistrer/
+      });
+      await user.click(save);
+
+      expect(modal).not.toBeVisible();
+      const birthdate = await screen.findByLabelText('Date de naissance', {
+        selector: 'span'
+      });
+      const regexp = new RegExp(`^${value.split('-').toReversed().join('/')}`);
+      expect(birthdate).toHaveTextContent(regexp);
     });
   });
 

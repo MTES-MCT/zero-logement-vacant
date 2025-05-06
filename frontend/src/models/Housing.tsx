@@ -13,6 +13,7 @@ import {
 import { differenceInDays, format } from 'date-fns';
 import { List } from 'immutable';
 import { match, Pattern } from 'ts-pattern';
+
 import { Compare } from '../utils/compareUtils';
 import { stringSort } from '../utils/stringUtils';
 import { LocalityKinds } from './Locality';
@@ -41,7 +42,7 @@ export interface Housing {
   geoPerimeters?: string[];
   owner: Owner;
   livingArea: number | null;
-  housingKind: string;
+  housingKind: HousingKind;
   roomsCount: number;
   buildingYear?: number;
   vacancyStartYear: number | null;
@@ -176,13 +177,18 @@ export function hasCoordinates(
   );
 }
 
-export const lastUpdate = (housing: Housing): string =>
+/**
+ * @deprecated The last update should not be retrieved from the housing
+ * but from the events and notes instead.
+ * @param housing
+ */
+export const lastUpdate = (housing: Housing): string | null =>
   housing.lastContact
     ? `${format(housing.lastContact, 'dd/MM/yyyy')} (${differenceInDays(
         new Date(),
         housing.lastContact
       )} jours)`
-    : 'Aucune mise à jour';
+    : null;
 
 export enum OccupancyKind {
   Vacant = 'V',

@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { ReactNode } from 'react';
+import { getOwnerDiff } from '../../models/Diff';
 
 import { Event } from '../../models/Event';
 import {
@@ -45,8 +46,10 @@ export function OwnerChangeEventContent(props: OwnershipEventContentProps) {
   const { event } = props;
   const allowedKeys: ReadonlyArray<keyof Owner> =
     event.name === 'Modification de coordonnées'
-      ? ['rawAddress', 'banAddress', 'email', 'phone', 'additionalAddress']
+      ? ['banAddress', 'email', 'phone', 'additionalAddress']
       : ['fullName', 'birthDate'];
+  const diff = getOwnerDiff(event.old as Owner, event.new as Owner);
+
   return (
     <Stack direction="row" spacing="2rem" sx={{ alignItems: 'center' }}>
       <Stack
@@ -57,10 +60,10 @@ export function OwnerChangeEventContent(props: OwnershipEventContentProps) {
         }}
       >
         <PatchContent
-          values={event.old as Owner}
+          values={diff.old}
           filterKey={(key) => allowedKeys.includes(key)}
           renderKey={{
-            rawAddress: 'Ancienne adresse',
+            banAddress: 'Ancienne adresse',
             email: 'Ancien email',
             phone: 'Ancien téléphone',
             additionalAddress: 'Ancienne adresse complémentaire',
@@ -68,6 +71,10 @@ export function OwnerChangeEventContent(props: OwnershipEventContentProps) {
             birthDate: 'Ancienne date de naissance'
           }}
           showKeys
+          renderValue={{
+            banAddress: (value) => value?.label,
+            birthDate: (value) => (value ? birthdate(value) : null)
+          }}
         />
       </Stack>
       <span className="fr-icon-arrow-right-s-line" />
@@ -79,10 +86,10 @@ export function OwnerChangeEventContent(props: OwnershipEventContentProps) {
         }}
       >
         <PatchContent
-          values={event.new as Owner}
+          values={diff.new as Owner}
           filterKey={(key) => allowedKeys.includes(key)}
           renderKey={{
-            rawAddress: 'Nouvelle adresse',
+            banAddress: 'Nouvelle adresse',
             email: 'Nouvel email',
             phone: 'Nouveau téléphone',
             additionalAddress: 'Nouvelle adresse complémentaire',
@@ -90,6 +97,10 @@ export function OwnerChangeEventContent(props: OwnershipEventContentProps) {
             birthDate: 'Nouvelle date de naissance'
           }}
           showKeys
+          renderValue={{
+            banAddress: (value) => value?.label,
+            birthDate: (value) => (value ? birthdate(value) : null)
+          }}
         />
       </Stack>
     </Stack>

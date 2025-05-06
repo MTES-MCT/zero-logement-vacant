@@ -92,7 +92,8 @@ export const ownerApi = zlvApi.injectEndpoints({
       invalidatesTags: (result, error, { id }) => [
         { type: 'Owner', id },
         { type: 'HousingOwner', id },
-        'Housing'
+        'Housing',
+        'Event'
       ]
     }),
 

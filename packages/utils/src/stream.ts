@@ -116,3 +116,18 @@ export function filter<A>(predicate: Predicate<A>): TransformStream<A, A> {
     }
   });
 }
+
+export async function collect<A>(stream: ReadableStream<A>): Promise<ReadonlyArray<A>> {
+  const result: A[] = [];
+
+  await stream.pipeTo(
+    new WritableStream<A>({
+      write(chunk) {
+        result.push(chunk);
+      }
+    })
+  );
+
+  return result;
+}
+

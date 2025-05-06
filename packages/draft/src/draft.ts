@@ -1,6 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 export interface DraftData {
   watermark?: boolean;
   subject: string | null;

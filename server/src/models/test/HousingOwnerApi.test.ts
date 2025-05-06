@@ -1,13 +1,14 @@
+import { OwnerRank } from '@zerologementvacant/models';
 import {
   compareHousingOwners,
   equals,
   HousingOwnerApi,
-  toHousingOwnersApi,
+  toHousingOwnersApi
 } from '~/models/HousingOwnerApi';
 import {
   genHousingApi,
   genHousingOwnerApi,
-  genOwnerApi,
+  genOwnerApi
 } from '~/test/testFixtures';
 
 describe('HousingOwnerApi', () => {
@@ -28,13 +29,13 @@ describe('HousingOwnerApi', () => {
       const a = genHousingOwnerApi(genHousingApi(), genOwnerApi());
       const b: HousingOwnerApi = {
         ...a,
-        rank: a.rank + 1,
+        rank: (a.rank + 1) as OwnerRank
       };
 
       const actual = compareHousingOwners(a, b);
 
       expect(actual).toStrictEqual({
-        rank: a.rank,
+        rank: a.rank
       });
     });
   });
@@ -44,7 +45,7 @@ describe('HousingOwnerApi', () => {
       const a = genHousingOwnerApi(genHousingApi(), genOwnerApi());
       const b: HousingOwnerApi = {
         ...a,
-        rank: a.rank + 1,
+        rank: (a.rank + 1) as OwnerRank
       };
 
       const actual = equals(a, b);

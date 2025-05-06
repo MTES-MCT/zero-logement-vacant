@@ -1,9 +1,12 @@
+import { AWAITING_OWNER_RANK } from '@zerologementvacant/models';
+import { createLogger } from '~/infra/logger';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import departmentalOwnersRepository from '~/repositories/departmentalOwnersRepository';
 import {
-  createProcessor,
-  FindHousingOwnersOptions,
-  RemoveEventsOptions
-} from '~/scripts/import-unified-owners/processor';
-import { AWAITING_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
+  eventsTable,
+  HousingEvents,
+  housingEventsTable
+} from '~/repositories/eventRepository';
 import {
   HousingOwners,
   housingOwnersTable
@@ -12,14 +15,12 @@ import {
   ownerTable,
   parseHousingOwnerApi
 } from '~/repositories/ownerRepository';
-import departmentalOwnersRepository from '~/repositories/departmentalOwnersRepository';
-import { createLogger } from '~/infra/logger';
-import {
-  eventsTable,
-  HousingEvents,
-  housingEventsTable
-} from '~/repositories/eventRepository';
 import { usersTable } from '~/repositories/userRepository';
+import {
+  createProcessor,
+  FindHousingOwnersOptions,
+  RemoveEventsOptions
+} from '~/scripts/import-unified-owners/processor';
 
 const logger = createLogger('command');
 
@@ -48,7 +49,7 @@ export async function findHousingOwners(
   const [nationalOwners, departmentalOwners] = await Promise.all([
     query.clone().where({
       owner_id: options.nationalOwner,
-      rank: AWAITING_RANK
+      rank: AWAITING_OWNER_RANK
     }),
     query
       .clone()

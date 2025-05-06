@@ -19,8 +19,8 @@ export interface HousingDTO {
   uncomfortable: boolean;
   vacancyStartYear?: number;
   housingKind: HousingKind;
-  roomsCount: number;
-  livingArea: number;
+  roomsCount: number | null;
+  livingArea: number | null;
   buildingYear?: number;
   taxed?: boolean;
   /**
@@ -29,7 +29,7 @@ export interface HousingDTO {
   dataYears: number[];
   dataFileYears: string[];
   beneficiaryCount?: number;
-  buildingLocation?: string;
+  buildingLocation?: string | null;
   rentalValue?: number;
   ownershipKind?: string;
   status: HousingStatus;

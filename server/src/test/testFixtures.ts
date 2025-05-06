@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
 import {
+  ACTIVE_OWNER_RANKS,
   AddressKinds,
   CADASTRAL_CLASSIFICATION_VALUES,
   DatafoncierHousing,
@@ -16,6 +17,7 @@ import {
   LOCALITY_KIND_VALUES,
   Occupancy,
   OCCUPANCY_VALUES,
+  OWNER_ENTITY_VALUES,
   OWNER_KIND_LABELS,
   UserAccountDTO
 } from '@zerologementvacant/models';
@@ -215,7 +217,8 @@ export const genOwnerApi = (): OwnerApi => {
       ...Object.values(OWNER_KIND_LABELS)
     ]),
     kindDetail: randomstring.generate(),
-    additionalAddress: randomstring.generate()
+    additionalAddress: randomstring.generate(),
+    entity: faker.helpers.arrayElement(OWNER_ENTITY_VALUES)
   };
 };
 
@@ -258,10 +261,16 @@ export const genHousingOwnerApi = (
   ownerId: owner.id,
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
-  rank: faker.number.int({ min: 1, max: 6 })
+  rank: faker.helpers.arrayElement(ACTIVE_OWNER_RANKS),
+  origin: 'lovac',
+  idprocpte: faker.string.alphanumeric(11),
+  idprodroit: faker.string.alphanumeric(13),
+  locprop: faker.number.int({ min: 1, max: 10 }),
+  startDate: faker.date.past()
 });
 
 export function genBuildingApi(): BuildingApi {
+  const geoCode = genGeoCode();
   const housingCount = faker.number.int({ min: 1, max: 10 });
   const vacantHousingCount = faker.number.int({ min: 0, max: housingCount });
   const rentHousingCount = faker.number.int({
@@ -270,7 +279,7 @@ export function genBuildingApi(): BuildingApi {
   });
 
   return {
-    id: uuidv4(),
+    id: geoCode + faker.string.sample(7),
     housingCount: vacantHousingCount,
     vacantHousingCount,
     rentHousingCount,
@@ -358,6 +367,7 @@ export const genHousingApi = (
         weight: 1
       }))
     ]),
+    subStatus: null,
     energyConsumption: faker.helpers.arrayElement([
       null,
       ...ENERGY_CONSUMPTION_VALUES

@@ -1,10 +1,3 @@
-import { Request, Response } from 'express';
-import { AuthenticatedRequest } from 'express-jwt';
-import { body, ValidationChain } from 'express-validator';
-import { constants } from 'http2';
-import fp from 'lodash/fp';
-import { v4 as uuidv4 } from 'uuid';
-
 import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
 import {
   DraftCreationPayloadDTO,
@@ -16,17 +9,23 @@ import {
   isEmpty,
   replaceVariables
 } from '@zerologementvacant/models';
-import { DraftApi, toDraftDTO } from '~/models/DraftApi';
-import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
-import campaignDraftRepository from '~/repositories/campaignDraftRepository';
-import campaignRepository from '~/repositories/campaignRepository';
+import { not } from '@zerologementvacant/utils';
+import { Request, Response } from 'express';
+import { AuthenticatedRequest } from 'express-jwt';
+import { body, ValidationChain } from 'express-validator';
+import { constants } from 'http2';
+import fp from 'lodash/fp';
+import { v4 as uuidv4 } from 'uuid';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import DraftMissingError from '~/errors/draftMissingError';
-import { isUUIDParam } from '~/utils/validators';
 import { logger } from '~/infra/logger';
+import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import { SenderApi } from '~/models/SenderApi';
+import campaignDraftRepository from '~/repositories/campaignDraftRepository';
+import campaignRepository from '~/repositories/campaignRepository';
+import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
 import senderRepository from '~/repositories/senderRepository';
-import { not } from '@zerologementvacant/utils';
+import { isUUIDParam } from '~/utils/validators';
 
 export interface DraftParams extends Record<string, string> {
   id: string;
@@ -192,7 +191,7 @@ async function preview(
     writtenFrom: draft.writtenFrom,
     owner: {
       fullName: body.owner.fullName,
-      address: getAddress(body.owner)
+      address: getAddress(body.owner) ?? []
     }
   });
   const finalPDF = await transformer.fromHTML(html);

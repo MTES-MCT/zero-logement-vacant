@@ -97,7 +97,7 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
 }
 
 type StreamOptions = FindOptions & {
-  includes: HousingInclude[];
+  includes?: HousingInclude[];
 };
 
 /**
@@ -133,6 +133,7 @@ function betterStream(
       filters: opts?.filters ?? {},
       includes: opts?.includes
     })
+      .modify(housingSortQuery())
       .stream()
       .map(parseHousingApi)
   );
@@ -750,8 +751,9 @@ function filteredQuery(opts: FilteredQueryOptions) {
     }
     if (filters.vacancyRates?.length) {
       queryBuilder.where((where) => {
-        const safeExpr = 'housing_count > 0 AND vacant_housing_count * 100.0 / housing_count';
-    
+        const safeExpr =
+          'housing_count > 0 AND vacant_housing_count * 100.0 / housing_count';
+
         if (filters.vacancyRates?.includes('lt20')) {
           where.orWhereRaw(`${safeExpr} < 20`);
         }
@@ -948,9 +950,9 @@ export interface HousingRecordDBO {
   id: string;
   invariant: string;
   local_id: string;
-  building_id?: string;
-  building_group_id?: string;
-  plot_id?: string;
+  building_id?: string | null;
+  building_group_id?: string | null;
+  plot_id?: string | null;
   geo_code: string;
   address_dgfip: string[];
   longitude_dgfip?: number;
@@ -960,8 +962,8 @@ export interface HousingRecordDBO {
   uncomfortable: boolean;
   vacancy_start_year?: number;
   housing_kind: string;
-  rooms_count: number;
-  living_area: number;
+  rooms_count: number | null;
+  living_area: number | null;
   cadastral_reference?: string;
   building_year?: number;
   mutation_date?: Date;
@@ -980,7 +982,7 @@ export interface HousingRecordDBO {
   data_file_years?: string[];
   data_source: HousingSource | null;
   beneficiary_count?: number;
-  building_location?: string;
+  building_location?: string | null;
   rental_value?: number;
   condominium?: string;
   status: HousingStatusApi;

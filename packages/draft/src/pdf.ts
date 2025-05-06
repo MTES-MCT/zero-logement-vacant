@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { generate } from '@pdfme/generator';
 import { Template, BLANK_PDF, Schema } from '@pdfme/common';
-import { Logger, merge } from '@zerologementvacant/utils';
+import { Logger } from '@zerologementvacant/utils';
 import { text, image } from '@pdfme/schemas';
 import { PDFDocument, PDFPage } from 'pdf-lib';
 import puppeteer, { Browser } from 'puppeteer';

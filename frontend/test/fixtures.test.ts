@@ -4,6 +4,7 @@ import {
   CADASTRAL_CLASSIFICATION_VALUES,
   DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
+  HOUSING_KIND_VALUES,
   HousingStatus,
   Occupancy,
   ROLE_VALUES
@@ -99,7 +100,7 @@ export function genHousing(): Housing {
     localityKind: LocalityKinds.ACV,
     owner: genOwner(),
     livingArea: genNumber(4),
-    housingKind: randomstring.generate(),
+    housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     roomsCount: genNumber(1),
     buildingId: faker.string.uuid(),
     buildingYear: genNumber(4),

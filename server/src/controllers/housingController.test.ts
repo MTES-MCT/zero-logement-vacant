@@ -93,18 +93,47 @@ describe('Housing API', () => {
   describe('GET /housing/{id}', () => {
     const testRoute = (id: string) => `/api/housing/${id}`;
 
-    const housing = genHousingApi(oneOf(anotherEstablishment.geoCodes));
+    const housing = genHousingApi(
+      faker.helpers.arrayElement(establishment.geoCodes)
+    );
+    const owner = genOwnerApi();
+    const anotherHousing = genHousingApi(
+      faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+    );
+    const anotherOwner = genOwnerApi();
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
+      await Housing().insert(
+        [housing, anotherHousing].map(formatHousingRecordApi)
+      );
+      await Owners().insert([owner, anotherOwner].map(formatOwnerApi));
+      await HousingOwners().insert([
+        ...formatHousingOwnersApi(housing, [owner]),
+        ...formatHousingOwnersApi(anotherHousing, [anotherOwner])
+      ]);
     });
 
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
       const { status } = await request(app)
-        .get(testRoute(housing.id))
+        .get(testRoute(anotherHousing.id))
         .use(tokenProvider(anotherUser));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should have the given keys', async () => {
+      const { body, status } = await request(app)
+        .get(testRoute(housing.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toContainKeys<HousingDTO>([
+        'id',
+        'geoCode',
+        'lastMutationDate',
+        'lastTransactionDate',
+        'lastTransactionValue'
+      ]);
     });
   });
 

@@ -21,7 +21,11 @@ import { Note } from './Note';
 import { Owner, toOwnerDTO } from './Owner';
 import { Sort } from './Sort';
 
-export interface Housing {
+export interface Housing
+  extends Pick<
+    HousingDTO,
+    'lastMutationDate' | 'lastTransactionDate' | 'lastTransactionValue'
+  > {
   id: string;
   // Identifiant fiscal départemental
   invariant: string;
@@ -315,6 +319,9 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     occupancy: housing.occupancy,
     occupancyIntended: housing.occupancyIntended,
     source: housing.source,
-    owner: toOwnerDTO(housing.owner)
+    owner: toOwnerDTO(housing.owner),
+    lastMutationDate: housing.lastMutationDate,
+    lastTransactionDate: housing.lastTransactionDate,
+    lastTransactionValue: housing.lastTransactionValue
   };
 }

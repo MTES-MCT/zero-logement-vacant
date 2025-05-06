@@ -107,7 +107,7 @@ all_data AS (
         COALESCE(v2025.vac_2025_moins_1an, 0) AS vac_2025_moins_1an,
         COALESCE(v2025.vac_2025_1an, 0) AS vac_2025_1an,
         COALESCE(v2025.vac_2025_2ans, 0) AS vac_2025_2ans,
-        COALESCE(v2024.vac_2025_3ans, 0) AS vac_2025_3ans,
+        COALESCE(v2025.vac_2025_3ans, 0) AS vac_2025_3ans,
         COALESCE(v2025.vac_2025_4ans_plus, 0) AS vac_2025_4ans_plus,
         
 

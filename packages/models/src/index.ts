@@ -34,6 +34,7 @@ export * from './HousingOwnerDTO';
 export * from './HousingStatus';
 export * from './LivingArea';
 export * from './LocalityDTO';
+export * from './Mutation';
 export * from './NoteDTO';
 export * from './Occupancy';
 export * from './OwnerAge';

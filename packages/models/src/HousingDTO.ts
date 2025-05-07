@@ -40,6 +40,9 @@ export interface HousingDTO {
   occupancyIntended: Occupancy | null;
   source: HousingSource | null;
   owner: OwnerDTO;
+  lastMutationDate: string | null;
+  lastTransactionDate: string | null;
+  lastTransactionValue: number | null;
 }
 
 export type HousingPayloadDTO = Pick<HousingDTO, 'localId'>;

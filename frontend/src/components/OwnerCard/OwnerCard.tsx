@@ -147,11 +147,7 @@ function OwnerCard(props: OwnerCardProps) {
               Adresse mail
             </LabelNext>
             <Typography>
-              <AppLink
-                className="mailto"
-                isSimple
-                to={mailto(props.owner.email)}
-              >
+              <AppLink isSimple to={mailto(props.owner.email)}>
                 {props.owner.email}
               </AppLink>
             </Typography>

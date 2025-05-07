@@ -3,6 +3,7 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
+import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
@@ -10,7 +11,7 @@ import {
   Precision
 } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNotification } from '../../hooks/useNotification';
 import { Housing } from '../../models/Housing';
 import {
@@ -22,15 +23,17 @@ import styles from '../HousingEdition/housing-edition.module.scss';
 import createPrecisionModalNext from './PrecisionModalNext';
 import { PrecisionTabId } from './PrecisionTabs';
 import { useFilteredPrecisions } from './useFilteredPrecisions';
-import { skipToken } from '.store/@reduxjs-toolkit-virtual-edc7bbf286/package/query';
 
 interface Props {
   housingId: Housing['id'] | null;
 }
 
-const precisionModal = createPrecisionModalNext();
-
 function PrecisionLists(props: Props) {
+  const precisionModal = useMemo(
+    () => createPrecisionModalNext(new Date().toJSON()),
+    []
+  );
+
   const [tab, setTab] = useState<PrecisionTabId>('dispositifs');
   const [showAllMechanisms, setShowAllMechanisms] = useState(false);
   const [showAllBlockingPoints, setShowAllBlockingPoints] = useState(false);

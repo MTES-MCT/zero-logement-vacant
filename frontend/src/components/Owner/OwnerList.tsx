@@ -26,7 +26,11 @@ function OwnerList(props: OwnerListProps) {
 
   return (
     <Stack component="article">
-      <Typography component="h2" variant="h6" sx={{ mb: '0.5rem' }}>
+      <Typography
+        component="h2"
+        variant="body1"
+        sx={{ fontSize: '1.125rem', fontWeight: 700, mb: '0.5rem' }}
+      >
         {props.title}
       </Typography>
       <hr />

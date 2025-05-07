@@ -21,7 +21,7 @@ import { tokenProvider } from '~/test/testUtils';
 
 describe('Building API', () => {
   const { app } = createServer();
-  const establishment = genEstablishmentApi('01337');
+  const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
 
   beforeAll(async () => {

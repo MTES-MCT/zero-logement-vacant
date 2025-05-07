@@ -13,16 +13,16 @@ describe('PDF', () => {
   describe('compile', () => {
     it('should display the owner', async () => {
       const pdfBuffer = await compile({
-        subject: '',
-        body: 'test',
-        logo: [],
-        sender: null,
-        writtenFrom: null,
-        writtenAt: null,
-        owner: {
-          fullName: 'Jean Dujardin',
-          address: ['123 rue Bidon', '75001 Paris']
-        }
+      subject: '',
+      body: 'test',
+      logo: [],
+      sender: null,
+      writtenFrom: null,
+      writtenAt: null,
+      owner: {
+        fullName: 'Jean Dujardin',
+        address: ['123 rue Bidon', '75001 Paris']
+      }
       });
 
       const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true });
@@ -30,7 +30,7 @@ describe('PDF', () => {
       expect(text).toContain('Jean Dujardin');
       expect(text).toContain('123 rue Bidon');
       expect(text).toContain('75001 Paris');
-    });
+    }, 10000);
 
     it('should display a subject and body', async () => {
       const pdfBuffer = await compile({

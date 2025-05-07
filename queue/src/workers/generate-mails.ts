@@ -152,8 +152,7 @@ export default function createWorker() {
               tap((_, i) => {
                 logger.debug(`Generating PDF page ${i + 1} of ${housings.length}...`);
               })
-            )
-            .pipeThrough(map(transformer.generatePDF));
+            );
 
             const pdfs = await collect(stream);
             const finalPDF = await transformer.mergePDFs([...pdfs]);

@@ -1,5 +1,5 @@
 import { DraftData } from '../draft';
-import { extractText } from 'unpdf'
+import { extractText } from 'unpdf';
 
 import pdf from '../pdf';
 
@@ -25,7 +25,7 @@ describe('PDF', () => {
         }
       });
 
-      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true })
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true });
 
       expect(text).toContain('Jean Dujardin');
       expect(text).toContain('123 rue Bidon');
@@ -46,7 +46,7 @@ describe('PDF', () => {
         }
       });
 
-      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true })
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true });
 
       expect(text).toContain('Votre logement vacant');
       expect(text).toContain('On vous aide à sortir votre logement de la vacance !');
@@ -104,7 +104,7 @@ describe('PDF', () => {
         }
       });
 
-      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true })
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true });
 
       expect(text).toContain('Commune de Marseille');
       expect(text).toContain('Logement');
@@ -158,7 +158,7 @@ describe('PDF', () => {
         }
       });
 
-      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true })
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true });
 
       // Verify that the name and role of each signatory appear
       for (const signatory of signatories) {

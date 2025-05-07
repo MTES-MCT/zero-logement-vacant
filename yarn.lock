@@ -39910,6 +39910,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"unpdf@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "unpdf@npm:1.0.4"
+  peerDependencies:
+    "@napi-rs/canvas": ^0.1.69
+  peerDependenciesMeta:
+    "@napi-rs/canvas":
+      optional: true
+  checksum: 10c0/cb25b56acd49c5ce7670cae3a76a5aa2efa82c4e849fc2d60c7bd332a5daac6b44e31d0a9958cd3a1767c10c9ea99a40e428f319ff8bd39b17901a5cb37ccfff
+  languageName: node
+  linkType: hard
+
 "unpipe@npm:1.0.0, unpipe@npm:~1.0.0":
   version: 1.0.0
   resolution: "unpipe@npm:1.0.0"

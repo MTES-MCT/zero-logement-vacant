@@ -11683,6 +11683,7 @@ __metadata:
     ts-pattern: "npm:^5.4.0"
     tsc-alias: "npm:^1.8.10"
     tsconfig-paths: "npm:^4.2.0"
+    tslib: "npm:^2.8.1"
     typescript: "npm:^5.6.2"
     unzip-stream: "npm:^0.3.4"
     uuid: "npm:^9.0.1"

@@ -66,6 +66,8 @@ describe('Housing processor', () => {
     describe('if it is vacant', () => {
       beforeEach(() => {
         housing.occupancy = Occupancy.VACANT;
+        housing.status = HousingStatusApi.NeverContacted;
+        housing.subStatus = null;
       });
 
       describe('if it is currently monitored', () => {

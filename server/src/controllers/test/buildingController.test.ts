@@ -21,7 +21,7 @@ import { tokenProvider } from '~/test/testUtils';
 
 describe('Building API', () => {
   const { app } = createServer();
-  const establishment = genEstablishmentApi('01337');
+  const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
 
   beforeAll(async () => {
@@ -52,7 +52,7 @@ describe('Building API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body.length).toBeGreaterThan(0);
+      expect(body.length).toBeGreaterThanOrEqual(buildings.length);
     });
 
     it('should filter by id', async () => {

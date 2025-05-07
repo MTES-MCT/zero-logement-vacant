@@ -132,11 +132,15 @@ function StatusPatchContent(props: StatusPatchContentProps) {
         }}
         showKeys
         renderValue={{
-          status: (value) => {
+          status: (value: HousingStatus | string | undefined) => {
             const status: HousingStatus | undefined = HousingStates.find(
-              (state) => state.title === (value as unknown as string)
+              (state) => {
+                return typeof value === 'string'
+                  ? state.title === value
+                  : state.status === value;
+              }
             )?.status;
-            if (!status) {
+            if (status === undefined) {
               throw new Error('Should never happen');
             }
             return <HousingStatusBadge status={status} />;

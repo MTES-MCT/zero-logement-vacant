@@ -1,16 +1,63 @@
+import { faker } from '@faker-js/faker/locale/fr';
+import {
+  HOUSING_STATUS_VALUES,
+  HousingDTO,
+  HousingUpdatePayloadDTO,
+  Occupancy,
+  OCCUPANCY_VALUES
+} from '@zerologementvacant/models';
+
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
-
-import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import db from '~/infra/database';
-import { tokenProvider } from '~/test/testUtils';
+import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { HousingStatusApi, toHousingStatus } from '~/models/HousingStatusApi';
+import { OwnerApi } from '~/models/OwnerApi';
+import { UserApi, UserRoles } from '~/models/UserApi';
+import {
+  CampaignsHousing,
+  formatCampaignHousingApi
+} from '~/repositories/campaignHousingRepository';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '~/repositories/campaignRepository';
+import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
+import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import {
+  EventRecordDBO,
+  Events,
+  eventsTable,
+  HousingEvents,
+  housingEventsTable
+} from '~/repositories/eventRepository';
+import {
+  formatHousingOwnersApi,
+  HousingOwners,
+  housingOwnersTable
+} from '~/repositories/housingOwnerRepository';
 import {
   formatHousingRecordApi,
   Housing,
   HousingRecordDBO,
   housingTable
 } from '~/repositories/housingRepository';
+import { housingNotesTable, Notes } from '~/repositories/noteRepository';
+import {
+  formatOwnerApi,
+  OwnerRecordDBO,
+  Owners,
+  ownerTable
+} from '~/repositories/ownerRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genCampaignApi,
   genDatafoncierHousing,
@@ -21,66 +68,19 @@ import {
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
-import {
-  formatOwnerApi,
-  OwnerRecordDBO,
-  Owners,
-  ownerTable
-} from '~/repositories/ownerRepository';
-import { HousingStatusApi, toHousingStatus } from '~/models/HousingStatusApi';
-import {
-  EventRecordDBO,
-  Events,
-  eventsTable,
-  HousingEvents,
-  housingEventsTable
-} from '~/repositories/eventRepository';
-import { createServer } from '~/infra/server';
-import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { tokenProvider } from '~/test/testUtils';
 import { HousingUpdateBody } from './housingController';
-import { housingNotesTable, Notes } from '~/repositories/noteRepository';
-import {
-  formatHousingOwnersApi,
-  HousingOwners,
-  housingOwnersTable
-} from '~/repositories/housingOwnerRepository';
-import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
-import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '~/repositories/campaignRepository';
-import {
-  CampaignsHousing,
-  formatCampaignHousingApi
-} from '~/repositories/campaignHousingRepository';
-import { faker } from '@faker-js/faker/locale/fr';
-import { OwnerApi } from '~/models/OwnerApi';
-import {
-  HOUSING_STATUS_VALUES,
-  HousingDTO,
-  HousingUpdatePayloadDTO,
-  Occupancy,
-  OCCUPANCY_VALUES
-} from '@zerologementvacant/models';
-import { EstablishmentApi } from '~/models/EstablishmentApi';
-import { UserApi, UserRoles } from '~/models/UserApi';
 
 describe('Housing API', () => {
   const { app } = createServer();
 
-  const establishment = genEstablishmentApi();
+  const establishment = genEstablishmentApi('12345');
   const user = genUserApi(establishment.id);
   const visitor: UserApi = {
     ...genUserApi(establishment.id),
     role: UserRoles.Visitor
   };
-  const anotherEstablishment = genEstablishmentApi();
+  const anotherEstablishment = genEstablishmentApi('23456');
   const anotherUser = genUserApi(anotherEstablishment.id);
 
   beforeAll(async () => {

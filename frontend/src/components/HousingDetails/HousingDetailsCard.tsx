@@ -108,7 +108,11 @@ function HousingTab(props: TabProps) {
         xs={4}
       >
         <Stack component="article" spacing="0.75rem">
-          <Typography component="h3" variant="h6">
+          <Typography
+            component="h3"
+            variant="body1"
+            sx={{ fontSize: '1.125rem', fontWeight: 700 }}
+          >
             Informations sur le logement
           </Typography>
 
@@ -146,7 +150,11 @@ function HousingTab(props: TabProps) {
         </Stack>
 
         <Stack component="article" spacing="0.75rem">
-          <Typography component="h3" variant="h6">
+          <Typography
+            component="h3"
+            variant="body1"
+            sx={{ fontSize: '1.125rem', fontWeight: 700 }}
+          >
             Informations sur le bâtiment
           </Typography>
 
@@ -205,7 +213,11 @@ function HousingTab(props: TabProps) {
         xs={8}
       >
         <Stack component="article" spacing="0.75rem">
-          <Typography component="h3" variant="h6">
+          <Typography
+            component="h3"
+            variant="body1"
+            sx={{ fontSize: '1.125rem', fontWeight: 700 }}
+          >
             Localisation
           </Typography>
 
@@ -281,7 +293,11 @@ function HousingTab(props: TabProps) {
         </Stack>
 
         <Stack component="article" spacing="0.75rem">
-          <Typography component="h3" variant="h6">
+          <Typography
+            component="h3"
+            variant="body1"
+            sx={{ fontSize: '1.125rem', fontWeight: 700 }}
+          >
             Vie du logement
           </Typography>
 
@@ -328,7 +344,11 @@ function MobilizationTab(props: TabProps) {
   return (
     <Stack component="section" spacing="2rem">
       <Stack component="article" spacing="0.75rem">
-        <Typography component="h3" variant="h6">
+        <Typography
+          component="h3"
+          variant="body1"
+          sx={{ fontSize: '1.125rem', fontWeight: 700 }}
+        >
           Informations sur la mobilisation
         </Typography>
 

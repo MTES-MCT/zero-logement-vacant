@@ -48,7 +48,11 @@ function OwnerCardNext(props: OwnerCardProps) {
 
       <Stack component="article" spacing="0.75rem">
         <Stack component="header">
-          <Typography component="h3" variant="h6" sx={{ mb: '0.5rem' }}>
+          <Typography
+            component="h3"
+            variant="body1"
+            sx={{ fontSize: '1.125rem', fontWeight: 700, mb: '0.5rem' }}
+          >
             Propriétaire principal
           </Typography>
           <hr className="fr-pb-1v" />

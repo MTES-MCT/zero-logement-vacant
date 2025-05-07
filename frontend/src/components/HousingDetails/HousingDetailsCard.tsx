@@ -133,14 +133,6 @@ function HousingTab(props: TabProps) {
             }
           />
           <HousingAttribute
-            label="Étiquette DPE représentatif (CSTB)"
-            value={
-              !props.housing.energyConsumption ? null : (
-                <DPE value={props.housing.energyConsumption} />
-              )
-            }
-          />
-          <HousingAttribute
             label="Taxe sur la vacance"
             value={match(props.housing.taxed)
               .with(true, () => <Tag small>Oui</Tag>)
@@ -161,6 +153,14 @@ function HousingTab(props: TabProps) {
           <HousingAttribute
             label="Date de construction"
             value={props.housing.buildingYear}
+          />
+          <HousingAttribute
+            label="Étiquette DPE représentatif (CSTB)"
+            value={
+              !props.housing.energyConsumption ? null : (
+                <DPE value={props.housing.energyConsumption} />
+              )
+            }
           />
           <HousingAttribute
             label="Type de propriété"

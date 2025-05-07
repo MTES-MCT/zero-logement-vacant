@@ -82,11 +82,10 @@ jobs:
         run: yarn lint
 
       - name: Test
-        run: yarn test --since ${{ github.event.pull_request.base.sha }} --parallel --include-dependents
+        run: NODE_OPTIONS="--experimental-vm-modules" yarn test --since ${{ github.event.pull_request.base.sha }} --parallel --include-dependents
         env:
           LOG_LEVEL: fatal
           REACT_APP_API_URL: http://localhost:3001
-          NODE_OPTIONS: --experimental-vm-modules
 
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band

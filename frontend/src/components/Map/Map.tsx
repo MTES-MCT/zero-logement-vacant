@@ -118,7 +118,8 @@ function Map(props: MapProps) {
       const bounds = turf.bbox(turf.featureCollection(points));
       map.fitBounds(bounds as [number, number, number, number], {
         padding: 64,
-        duration: 800
+        duration: 800,
+        maxZoom: 12
       });
     }
   }, [map, points]);
@@ -155,6 +156,8 @@ function Map(props: MapProps) {
       attributionControl
       id="housingMap"
       mapStyle={STYLE.uri}
+      minZoom={props.minZoom}
+      maxZoom={props.maxZoom}
       onMove={onMove}
       reuseMaps
       style={{

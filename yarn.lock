@@ -17190,7 +17190,6 @@ __metadata:
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^6.6.2"
     "@tsconfig/node20": "npm:^20.1.4"
-    "@types/async": "npm:^3.2.24"
     "@types/jest": "npm:^29.5.13"
     "@types/node": "npm:^20.16.10"
     "@zerologementvacant/utils": "workspace:*"

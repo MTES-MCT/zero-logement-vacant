@@ -30,7 +30,7 @@ describe('Mutation', () => {
         amount: null
       });
 
-      expect(actual).toContain('30/01/2023');
+      expect(actual).toInclude('30/01/2023');
     });
 
     it('should include the amount if the transaction is a "sale"', () => {
@@ -43,7 +43,11 @@ describe('Mutation', () => {
         amount
       });
 
-      expect(actual).toContain(`(Montant : ${amount} €)`);
+      // Jest and Intl.NumberFormat seem to behave differently when it comes to
+      // formatting currency. We cannot test the exact format with '€' because
+      // it depends on the Intl.NumberFormat API, which seems different
+      // in jest and in the browser.
+      expect(actual).toInclude(`Montant : ${amount}`);
     });
   });
 });

@@ -1,5 +1,5 @@
 import { DraftData } from '../draft';
-import pdfParse from 'pdf-parse';
+import { extractText } from 'unpdf'
 
 import pdf from '../pdf';
 
@@ -13,9 +13,9 @@ describe('PDF', () => {
   describe('compile', () => {
     it('should display the owner', async () => {
       const pdfBuffer = await compile({
-        subject: null,
-        body: null,
-        logo: null,
+        subject: '',
+        body: 'test',
+        logo: [],
         sender: null,
         writtenFrom: null,
         writtenAt: null,
@@ -25,8 +25,7 @@ describe('PDF', () => {
         }
       });
 
-      const parsed = await pdfParse(pdfBuffer);
-      const text = parsed.text;
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true })
 
       expect(text).toContain('Jean Dujardin');
       expect(text).toContain('123 rue Bidon');
@@ -37,7 +36,7 @@ describe('PDF', () => {
       const pdfBuffer = await compile({
         subject: 'Votre logement vacant',
         body: 'On vous aide à sortir votre logement de la vacance !',
-        logo: null,
+        logo: [],
         sender: null,
         writtenFrom: null,
         writtenAt: null,
@@ -47,8 +46,7 @@ describe('PDF', () => {
         }
       });
 
-      const parsed = await pdfParse(pdfBuffer);
-      const text = parsed.text;
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true })
 
       expect(text).toContain('Votre logement vacant');
       expect(text).toContain('On vous aide à sortir votre logement de la vacance !');
@@ -57,15 +55,15 @@ describe('PDF', () => {
     it('should display two logos', async () => {
       const pdfBuffer = await compile({
         subject: null,
-        body: null,
+        body: 'test',
         logo: [
           {
             id: 'uuid1',
-            content: 'data:image/png' // Base64 encoded
+            content: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' // Base64 encoded 1x1 pixel PNG
           },
           {
             id: 'uuid2',
-            content: 'data:image/jpg'
+            content: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==' // Base64 encoded 1x1 pixel JPEG
           }
         ],
         sender: null,
@@ -86,8 +84,8 @@ describe('PDF', () => {
     it('should display a sender', async () => {
       const pdfBuffer = await compile({
         subject: null,
-        body: null,
-        logo: null,
+        body: 'test',
+        logo: [],
         sender: {
           name: 'Commune de Marseille',
           service: 'Logement',
@@ -106,8 +104,7 @@ describe('PDF', () => {
         }
       });
 
-      const parsed = await pdfParse(pdfBuffer);
-      const text = parsed.text;
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true })
 
       expect(text).toContain('Commune de Marseille');
       expect(text).toContain('Logement');
@@ -141,8 +138,8 @@ describe('PDF', () => {
 
       const pdfBuffer = await compile({
         subject: null,
-        body: null,
-        logo: null,
+        body: 'test',
+        logo: [],
         sender: {
           name: 'Commune de Marseille',
           service: 'Logement',
@@ -161,8 +158,7 @@ describe('PDF', () => {
         }
       });
 
-      const parsed = await pdfParse(pdfBuffer);
-      const text = parsed.text;
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true })
 
       // Verify that the name and role of each signatory appear
       for (const signatory of signatories) {

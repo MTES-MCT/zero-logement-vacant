@@ -110,23 +110,25 @@ function createTransformer(opts: TransformerOptions) {
         const senderPage = await browser.newPage();
         await senderPage.setViewport({ width: 300, height: 300 });
         let senderHTML = "<div style='text-align: end; font-style: normal;font-weight: 400'>";
-        if(data.sender.name) {
-          senderHTML += `${data.sender.name}`;
-        }
-        if(data.sender.service) {
-          senderHTML += `<br />${data.sender.service}`;
-        }
-        if(data.sender.firstName || data.sender.lastName) {
-          senderHTML += `<br />${data.sender.firstName} ${data.sender.lastName}`;
-        }
-        if(data.sender.address) {
-          senderHTML += `<br />${data.sender.address}`;
-        }
-        if(data.sender.email) {
-          senderHTML += `<br />${data.sender.email}`;
-        }
-        if(data.sender.phone) {
-          senderHTML += `<br />${data.sender.phone}`;
+        if(data.sender) {
+          if(data.sender.name) {
+            senderHTML += `${data.sender.name}`;
+          }
+          if(data.sender.service) {
+            senderHTML += `<br />${data.sender.service}`;
+          }
+          if(data.sender.firstName || data.sender.lastName) {
+            senderHTML += `<br />${data.sender.firstName} ${data.sender.lastName}`;
+          }
+          if(data.sender.address) {
+            senderHTML += `<br />${data.sender.address}`;
+          }
+          if(data.sender.email) {
+            senderHTML += `<br />${data.sender.email}`;
+          }
+          if(data.sender.phone) {
+            senderHTML += `<br />${data.sender.phone}`;
+          }
         }
         senderHTML += '</div>';
         await senderPage.setContent(senderHTML);
@@ -189,7 +191,7 @@ function createTransformer(opts: TransformerOptions) {
         await signatoryPage.setViewport({ width: 400, height: 200 });
         let signatoryHTML = "";
 
-        if (data.sender.signatories && data.sender.signatories.length > 0) {
+        if (data.sender && data.sender.signatories && data.sender.signatories.length > 0) {
           signatoryHTML += `<div style="display: flex; gap: 40px;">`;
         
           for (const signatory of data.sender.signatories) {

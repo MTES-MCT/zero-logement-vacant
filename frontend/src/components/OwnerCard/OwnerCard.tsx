@@ -2,24 +2,24 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Paper from '@mui/material/Paper';
-import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
-import { ReactNode } from 'react';
+import Grid from '@mui/material/Unstable_Grid2';
 
 import { formatAddress } from '@zerologementvacant/models';
+import { ReactNode } from 'react';
+import { isBanEligible } from '../../models/Address';
 import { HousingOwner, Owner } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
-import styles from './owner-card.module.scss';
-import { isBanEligible } from '../../models/Address';
-import OtherOwnerCard from './OtherOwnerCard';
 import LabelNext from '../Label/LabelNext';
+import OtherOwnerCard from './OtherOwnerCard';
+import styles from './owner-card.module.scss';
 
 interface OwnerCardProps {
   owner: Owner | HousingOwner;
   coOwners?: HousingOwner[];
-  housingCount: number;
+  housingCount: number | undefined;
   modify?: ReactNode;
 }
 
@@ -54,25 +54,27 @@ function OwnerCard(props: OwnerCardProps) {
               />
               Date de naissance
             </LabelNext>
-            <Typography>{birthdate(props.owner.birthDate)} ({age(props.owner.birthDate)} ans)</Typography>
+            <Typography>
+              {birthdate(props.owner.birthDate)} ({age(props.owner.birthDate)}{' '}
+              ans)
+            </Typography>
           </Grid>
         ) : null}
 
         <Grid xs={12}>
           <LabelNext component="h3">
             <span
-              className={fr.cx(
-                'fr-icon-bank-line',
-                'fr-icon--sm',
-                'fr-mr-1w'
-              )}
+              className={fr.cx('fr-icon-bank-line', 'fr-icon--sm', 'fr-mr-1w')}
               aria-hidden={true}
             />
             Adresse fiscale (source: DGFIP)
           </LabelNext>
-          <Typography color={fr.colors.decisions.text.default.grey.default}>{props.owner.rawAddress ? props.owner.rawAddress.join(' ') : 'Inconnue'}</Typography>
+          <Typography color={fr.colors.decisions.text.default.grey.default}>
+            {props.owner.rawAddress
+              ? props.owner.rawAddress.join(' ')
+              : 'Inconnue'}
+          </Typography>
         </Grid>
-
 
         <Grid xs={12}>
           <LabelNext component="h3">
@@ -86,9 +88,12 @@ function OwnerCard(props: OwnerCardProps) {
             />
             Adresse postale (source: Base Adresse Nationale)
           </LabelNext>
-          <Typography>{props.owner.banAddress ? formatAddress(props.owner.banAddress).join(' ') :  'Non renseigné'}</Typography>
+          <Typography>
+            {props.owner.banAddress
+              ? formatAddress(props.owner.banAddress).join(' ')
+              : 'Non renseigné'}
+          </Typography>
         </Grid>
-
 
         {!isBanEligible(props.owner.banAddress) && (
           <Grid xs={12}>
@@ -98,10 +103,12 @@ function OwnerCard(props: OwnerCardProps) {
               description={
                 <>
                   <Typography>
-                    L’adresse Base Adresse Nationale ne correspond pas à celle de la DGFIP.
+                    L’adresse Base Adresse Nationale ne correspond pas à celle
+                    de la DGFIP.
                   </Typography>
                   <Typography>
-                    Nous vous recommandons de vérifier en cliquant sur &quot;Modifier&quot;.
+                    Nous vous recommandons de vérifier en cliquant sur
+                    &quot;Modifier&quot;.
                   </Typography>
                 </>
               }
@@ -140,11 +147,7 @@ function OwnerCard(props: OwnerCardProps) {
               Adresse mail
             </LabelNext>
             <Typography>
-              <AppLink
-                className="mailto"
-                isSimple
-                to={mailto(props.owner.email)}
-              >
+              <AppLink isSimple to={mailto(props.owner.email)}>
                 {props.owner.email}
               </AppLink>
             </Typography>
@@ -168,7 +171,7 @@ function OwnerCard(props: OwnerCardProps) {
           </Grid>
         ) : null}
 
-        {props.housingCount > 0 ? (
+        {props.housingCount ? (
           <Button
             title="Voir tous ses logements"
             priority="secondary"

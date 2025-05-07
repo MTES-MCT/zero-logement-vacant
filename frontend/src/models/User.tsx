@@ -38,6 +38,16 @@ export const fromUserDTO = (user: UserDTO): User => ({
   activatedAt: new Date(user.activatedAt!)
 });
 
+export const toUserDTO = (user: User): UserDTO => ({
+  id: user.id,
+  email: user.email,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  establishmentId: user.establishmentId,
+  role: user.role,
+  activatedAt: user.activatedAt.toJSON()
+});
+
 export interface UserAccount {
   firstName?: string;
   lastName?: string;

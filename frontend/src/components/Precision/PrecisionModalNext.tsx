@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 
 import { Precision } from '@zerologementvacant/models';
+import { useState } from 'react';
 import {
   ConfirmationModalProps,
   createConfirmationModal
 } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import PrecisionTabs from './PrecisionTabs';
-import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 
 export type PrecisionModalProps = Omit<
   ConfirmationModalProps,
@@ -18,9 +18,9 @@ export type PrecisionModalProps = Omit<
     onSubmit(value: Precision[]): void;
   };
 
-function createPrecisionModalNext() {
+function createPrecisionModalNext(id: string) {
   const precisionModalOptions = {
-    id: 'precision-modal',
+    id: `precision-modal-${id}`,
     isOpenedByDefault: false
   };
   const confirmationModal = createConfirmationModal(precisionModalOptions);

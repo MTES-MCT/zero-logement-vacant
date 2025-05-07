@@ -27,6 +27,15 @@ const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
       },
       components: {
         // Customize @mui/material components globally here
+        MuiContainer: {
+          styleOverrides: {
+            maxWidthXl: {
+              [fr.breakpoints.up('xl')]: {
+                maxWidth: '90rem'
+              }
+            }
+          }
+        },
         MuiTypography: {
           defaultProps: {
             variantMapping: {

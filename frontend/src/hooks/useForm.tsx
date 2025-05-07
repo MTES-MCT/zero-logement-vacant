@@ -1,9 +1,9 @@
+import { isDate } from 'date-fns';
+import fp from 'lodash/fp';
 import { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
 import { ObjectShape } from 'yup/lib/object';
-import { isDate } from 'date-fns';
 import { parseDateInput } from '../utils/dateUtils';
-import fp from 'lodash/fp';
 
 export const emailValidator = yup
   .string()
@@ -46,7 +46,7 @@ export const campaignDescriptionValidator = yup
 export const dateValidator = yup
   .date()
   .transform((curr, originalValue) => {
-    return !originalValue.length
+    return !originalValue || !originalValue.length
       ? null
       : isDate(originalValue)
         ? originalValue

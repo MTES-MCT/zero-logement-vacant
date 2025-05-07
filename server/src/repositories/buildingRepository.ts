@@ -18,6 +18,28 @@ export interface BuildingDBO {
   rnb_id_score: number | null;
 }
 
+interface FindOptions {
+  filters?: {
+    id?: string[];
+  };
+}
+
+export async function find(
+  options?: FindOptions
+): Promise<ReadonlyArray<BuildingApi>> {
+  const buildings = await Buildings().modify((query) => {
+    if (options?.filters?.id?.length) {
+      query.whereIn('id', options?.filters.id);
+    }
+  });
+  return buildings.map(parseBuildingApi);
+}
+
+export async function get(id: string): Promise<BuildingApi | null> {
+  const building = await Buildings().where({ id }).first();
+  return building ? parseBuildingApi(building) : null;
+}
+
 type SaveOptions = ConflictOptions<BuildingDBO>;
 
 export async function save(
@@ -60,12 +82,14 @@ export const parseBuildingApi = (building: BuildingDBO): BuildingApi => ({
   id: building.id,
   housingCount: building.housing_count,
   vacantHousingCount: building.vacant_housing_count,
-  rentHousingCount: building.rent_housing_count,
+  rentHousingCount: building.rent_housing_count ?? 0,
   rnbId: building.rnb_id,
   rnbIdScore: building.rnb_id_score
 });
 
 const buildingRepository = {
+  find,
+  get,
   save,
   saveMany
 };

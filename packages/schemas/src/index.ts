@@ -1,3 +1,4 @@
+import { buildingFilters } from './building-filters';
 import { campaignCreationPayload } from './campaign-creation-payload';
 import { dateString } from './date-string';
 import { draft } from './draft';
@@ -16,6 +17,7 @@ export { GEO_CODE_REGEXP } from './geo-code';
 export { SIREN_REGEXP } from './siren';
 
 const schemas = {
+  buildingFilters,
   campaignCreationPayload,
   dateString,
   draft,

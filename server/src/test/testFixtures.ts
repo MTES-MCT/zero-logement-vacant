@@ -280,7 +280,7 @@ export function genBuildingApi(): BuildingApi {
 
   return {
     id: geoCode + faker.string.sample(7),
-    housingCount: vacantHousingCount,
+    housingCount,
     vacantHousingCount,
     rentHousingCount,
     rnbId: faker.string.alphanumeric({ casing: 'upper' }),
@@ -343,6 +343,7 @@ export const genHousingApi = (
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     roomsCount: faker.number.int({ min: 0, max: 10 }),
     cadastralReference: randomstring.generate(),
+    buildingId: null,
     buildingYear: faker.date.past({ years: 100 }).getUTCFullYear(),
     taxed: faker.datatype.boolean(),
     deprecatedVacancyReasons: [],

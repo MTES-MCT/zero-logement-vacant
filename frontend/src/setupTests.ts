@@ -4,9 +4,10 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 import 'jest-extended';
+import 'jest-sorted';
+import EventSourceMock from '../test/event-source-mock';
 
 import { mockAPI } from './mocks/mock-api';
-import EventSourceMock from '../test/event-source-mock';
 
 jest.mock('./components/Aside/Aside.tsx');
 jest.mock('./components/RichEditor/RichEditor.tsx');

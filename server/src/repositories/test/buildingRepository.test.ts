@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import buildingRepository, {
   Buildings,
   formatBuildingApi
@@ -5,6 +6,53 @@ import buildingRepository, {
 import { genBuildingApi } from '~/test/testFixtures';
 
 describe('Building repository', () => {
+  describe('find', () => {
+    const buildings = faker.helpers.multiple(genBuildingApi);
+
+    beforeAll(async () => {
+      await Buildings().insert(buildings.map(formatBuildingApi));
+    });
+
+    it('should return buildings', async () => {
+      const actual = await buildingRepository.find();
+
+      expect(actual).toIncludeAllMembers(buildings);
+    });
+
+    it('should filter by id', async () => {
+      const slice = buildings.slice(0, 2);
+
+      const actual = await buildingRepository.find({
+        filters: {
+          id: slice.map((building) => building.id)
+        }
+      });
+
+      expect(actual).toHaveLength(slice.length);
+      expect(actual).toIncludeSameMembers(slice);
+    });
+  });
+
+  describe('get', () => {
+    const building = genBuildingApi();
+
+    beforeAll(async () => {
+      await Buildings().insert(formatBuildingApi(building));
+    });
+
+    it('should return null if the building is missing', async () => {
+      const actual = await buildingRepository.get(faker.string.sample());
+
+      expect(actual).toBeNull();
+    });
+
+    it('should return the building otherwise', async () => {
+      const actual = await buildingRepository.get(building.id);
+
+      expect(actual).toStrictEqual(building);
+    });
+  });
+
   describe('save', () => {
     it('should create a building if it does not exist', async () => {
       const building = genBuildingApi();

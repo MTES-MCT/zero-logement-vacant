@@ -1,5 +1,6 @@
 import { Housing } from './Housing';
 import { Owner } from './Owner';
+import { User } from './User';
 
 export interface NoteCreation {
   content: string;
@@ -27,6 +28,8 @@ export const isOwnerNoteCreation = (
 };
 
 export interface Note extends NoteCreation {
+  id: string;
   createdBy: string;
   createdAt: Date;
+  creator: User;
 }

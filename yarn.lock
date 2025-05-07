@@ -11601,6 +11601,7 @@ __metadata:
     immutable: "npm:^5.0.0"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
+    jest-sorted: "npm:^1.0.15"
     jest-watch-typeahead: "npm:^2.2.2"
     jose: "npm:^4.15.9"
     lexical: "npm:^0.25.0"

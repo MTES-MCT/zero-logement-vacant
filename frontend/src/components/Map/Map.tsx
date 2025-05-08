@@ -1,28 +1,28 @@
-import { useEffect, useMemo, useState } from 'react';
 import * as turf from '@turf/turf';
+import { memo, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
   NavigationControl,
   useMap,
   ViewState,
   ViewStateChangeEvent
 } from 'react-map-gl/maplibre';
-import {
-  hasCoordinates,
-  Housing,
-  HousingWithCoordinates
-} from '../../models/Housing';
-import HousingPopup from './HousingPopup';
-import Clusters from './Clusters';
+import { useMapImage } from '../../hooks/useMapImage';
 import {
   Building,
   groupByBuilding,
   HousingByBuilding
 } from '../../models/Building';
 import { GeoPerimeter } from '../../models/GeoPerimeter';
-import Perimeters from './Perimeters';
+import {
+  hasCoordinates,
+  Housing,
+  HousingWithCoordinates
+} from '../../models/Housing';
+import Clusters from './Clusters';
+import HousingPopup from './HousingPopup';
 import MapControls from './MapControls';
+import Perimeters from './Perimeters';
 import Points from './Points';
-import { useMapImage } from '../../hooks/useMapImage';
 
 const STYLE = {
   title: 'Carte',
@@ -200,4 +200,4 @@ function Map(props: MapProps) {
   );
 }
 
-export default Map;
+export default memo(Map);

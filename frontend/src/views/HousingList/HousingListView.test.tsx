@@ -1,19 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import async from 'async';
-import fp from 'lodash/fp';
-import { http, HttpResponse } from 'msw';
-import { constants } from 'node:http2';
-import * as randomstring from 'randomstring';
-import { Provider } from 'react-redux';
-import {
-  createMemoryRouter,
-  MemoryRouter as Router,
-  Route,
-  RouterProvider,
-  Routes
-} from 'react-router-dom';
 
 import {
   CAMPAIGN_STATUS_LABELS,
@@ -21,7 +8,8 @@ import {
   CampaignDTO,
   CampaignStatus,
   DatafoncierHousing,
-  HousingDTO
+  HousingDTO,
+  HousingKind
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
@@ -32,6 +20,7 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import async from 'async';
+import fp from 'lodash/fp';
 import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
 import {
@@ -311,7 +300,7 @@ describe('Housing list view', () => {
       };
     }
 
-      it('should add housings to an existing group', async () => {
+    it('should add housings to an existing group', async () => {
       const creator = genUserDTO();
       data.users.push(creator);
       const group = genGroupDTO(creator);
@@ -435,21 +424,21 @@ describe('Housing list view', () => {
       });
       await user.click(createGroup);
       const groupName = await screen.findByRole('textbox', {
-      name: /Nom du groupe/
-        });
-          await user.type(groupName, 'Logements vacants');
-          const groupDescription = await screen.findByRole('textbox', {
+        name: /Nom du groupe/
+      });
+      await user.type(groupName, 'Logements vacants');
+      const groupDescription = await screen.findByRole('textbox', {
         name: /Description/
       });
       await user.type(groupDescription, 'Tous les logements vacants');
-            const confirm = await screen.findByRole('button', {
-          name: /Créer un groupe/
-        });
+      const confirm = await screen.findByRole('button', {
+        name: /Créer un groupe/
+      });
       await user.click(confirm);
       expect(router.state.location.pathname).toStartWith('/groupes');
     });
 
-      it.todo('should require a title and a description');
+    it.todo('should require a title and a description');
 
     it('should display an alert if trying to export without selecting housings', async () => {
       renderView();
@@ -461,13 +450,13 @@ describe('Housing list view', () => {
       const alert = await screen.findByRole('alert');
       expect(alert).toBeVisible();
     });
-        });
-          describe('Campaign creation', () => {
+  });
+  describe('Campaign creation', () => {
     function renderView() {
       const router = createMemoryRouter(
         [
-            {
-              path: '/parc-de-logements',
+          {
+            path: '/parc-de-logements',
             element: (
               <HousingListTabsProvider>
                 <HousingListView />
@@ -478,8 +467,8 @@ describe('Housing list view', () => {
         ],
         { initialEntries: ['/parc-de-logements'] }
       );
-            render(
-          <Provider store={store}>
+      render(
+        <Provider store={store}>
           <RouterProvider router={router} />
         </Provider>
       );

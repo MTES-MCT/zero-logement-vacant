@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { CSSProperties, useEffect, useMemo, useState } from 'react';
+import { CSSProperties, memo, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
   NavigationControl,
   useMap,
@@ -207,4 +207,4 @@ function Map(props: MapProps) {
   );
 }
 
-export default Map;
+export default memo(Map);

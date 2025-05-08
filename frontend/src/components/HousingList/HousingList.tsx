@@ -1,5 +1,4 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -15,6 +14,7 @@ import {
   Housing,
   HousingSort,
   HousingSortable,
+  HousingUpdate,
   SelectedHousing
 } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
@@ -44,7 +44,7 @@ export interface HousingListProps {
 const MAX_CAMPAIGN_LENGTH = 17;
 
 function HousingList(props: HousingListProps) {
-  const { actions, children, filters, onSelectHousing } = props;
+  const { actions, children, filters } = props;
   const header = findChild(children, SelectableListHeader);
 
   const campaignList = useCampaignList();
@@ -73,7 +73,10 @@ function HousingList(props: HousingListProps) {
     }
   );
 
-  const selection = useSelection(filteredCount);
+  const { selected, selectedCount, setSelected, unselectAll } = useSelection(
+    filteredCount,
+    { storage: 'store' }
+  );
 
   const onSort = (sort: HousingSort) => {
     setSort(sort);
@@ -88,59 +91,6 @@ function HousingList(props: HousingListProps) {
   const columnHelper = createColumnHelper<Housing>();
   const columns = useMemo(
     () => [
-      columnHelper.display({
-        id: 'check',
-        header: () => (
-          <Checkbox
-            small
-            options={[
-              {
-                label: null,
-                nativeInputProps: {
-                  value: 'all',
-                  checked: selection.hasSelectedAll,
-                  onChange: () => {
-                    onSelectHousing({
-                      all:
-                        selection.selected.ids.length > 0 &&
-                        selection.selected.all
-                          ? selection.selected.all
-                          : !selection.selected.all,
-                      ids: []
-                    });
-                    selection.toggleSelectAll();
-                  }
-                }
-              }
-            ]}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            small
-            options={[
-              {
-                label: null,
-                nativeInputProps: {
-                  value: row.original.id,
-                  checked: selection.isSelected(row.original.id),
-                  onChange: () => {
-                    onSelectHousing({
-                      ...selection.selected,
-                      ids: selection.selected.ids.includes(row.original.id)
-                        ? selection.selected.ids.filter(
-                            (id) => row.original.id !== id
-                          )
-                        : selection.selected.ids.concat(row.original.id)
-                    });
-                    selection.toggleSelect(row.original.id);
-                  }
-                }
-              }
-            ]}
-          />
-        )
-      }),
       columnHelper.accessor('rawAddress', {
         header: () => (
           <AdvancedTableHeader
@@ -236,7 +186,7 @@ function HousingList(props: HousingListProps) {
           cell: ({ cell }) => {
             const { status, subStatus } = cell.getValue();
             return (
-              <Stack sx={{ alignItems: 'center' }}>
+              <Stack sx={{ alignItems: 'center', textAlign: 'center' }}>
                 <HousingStatusBadge
                   badgeProps={{ small: true }}
                   status={status}
@@ -277,14 +227,7 @@ function HousingList(props: HousingListProps) {
         }
       })
     ],
-    [
-      columnHelper,
-      selection,
-      onSelectHousing,
-      getSortButton,
-      campaignList,
-      actions
-    ]
+    [columnHelper, getSortButton, campaignList, actions]
   );
 
   const submitHousingUpdate = async (
@@ -301,9 +244,9 @@ function HousingList(props: HousingListProps) {
   return (
     <Stack sx={{ alignItems: 'center' }}>
       <SelectableListHeader
-        selected={selection.selectedCount}
+        selected={selectedCount}
         count={filteredCount}
-        onUnselectAll={selection.unselectAll}
+        onUnselectAll={unselectAll}
         entity="logement"
         {...header?.props}
       />
@@ -311,17 +254,20 @@ function HousingList(props: HousingListProps) {
       <AdvancedTable
         columns={columns}
         data={housingList ?? []}
+        getRowId={(housing) => housing.id}
         isLoading={isLoadingHousings}
         page={page}
         pageCount={pageCount}
         perPage={perPage}
-        tableProps={{ bordered: true, noCaption: true }}
+        selection={selected}
+        tableProps={{ noCaption: true, noScroll: true }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
+        onSelectionChange={setSelected}
       />
 
       <HousingEditionSideMenu
-        housing={updatingHousing}
+        housing={updatingHousing ?? null}
         expand={!!updatingHousing}
         onSubmit={submitHousingUpdate}
         onClose={() => setUpdatingHousing(undefined)}

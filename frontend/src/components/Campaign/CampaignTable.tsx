@@ -2,20 +2,20 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { createColumnHelper } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { PropsWithChildren, useMemo, useState } from 'react';
-
-import AdvancedTable from '../AdvancedTable/AdvancedTable';
-import AppLink from '../_app/AppLink/AppLink';
-import CampaignStatusBadge from './CampaignStatusBadge';
-import { useUser } from '../../hooks/useUser';
-import { Campaign, CampaignSort } from '../../models/Campaign';
-import { createColumnHelper } from '@tanstack/react-table';
-import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { usePagination } from '../../hooks/usePagination';
 import { useSort } from '../../hooks/useSort';
+import { useUser } from '../../hooks/useUser';
+import { Campaign, CampaignSort } from '../../models/Campaign';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
+import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { displayCount } from '../../utils/stringUtils';
+import AppLink from '../_app/AppLink/AppLink';
+
+import AdvancedTable from '../AdvancedTable/AdvancedTable';
+import CampaignStatusBadge from './CampaignStatusBadge';
 
 interface CampaignTableProps {
   onArchive?(campaign: Campaign): void;
@@ -214,7 +214,7 @@ function CampaignTable(props: CampaignTableProps) {
         page={page}
         pageCount={pageCount}
         perPage={perPage}
-        tableProps={{ bordered: true, fixed: true, noCaption: true }}
+        tableProps={{ fixed: true, noCaption: true }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
       />

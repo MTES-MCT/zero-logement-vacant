@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { useAppDispatch, useAppSelector } from './useStore';
 import housingSlice from '../store/reducers/housingReducer';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export interface Selection {
   all: boolean;
@@ -68,16 +68,14 @@ export function useSelection(
   }
 
   function toggleSelectAll(forceValue?: boolean): void {
-    setSelected((state) => {
-      return {
-        all:
-          forceValue !== undefined
-            ? forceValue
-            : state.ids.length > 0 && state.all
-              ? state.all
-              : !state.all,
-        ids: []
-      };
+    setSelected({
+      all:
+        forceValue !== undefined
+          ? forceValue
+          : selected.ids.length > 0 && selected.all
+            ? selected.all
+            : !selected.all,
+      ids: []
     });
   }
 

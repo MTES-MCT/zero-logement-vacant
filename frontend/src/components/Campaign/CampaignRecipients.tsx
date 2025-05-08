@@ -6,27 +6,27 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import { createColumnHelper } from '@tanstack/react-table';
-import { ReactNode, useMemo, useState } from 'react';
 
 import {
   formatAddress as formatAddressDTO,
   Pagination
 } from '@zerologementvacant/models';
-import { Campaign } from '../../models/Campaign';
+import { ReactNode, useMemo, useState } from 'react';
+import { useNotification } from '../../hooks/useNotification';
+import { usePagination } from '../../hooks/usePagination';
 import { Address, isBanEligible } from '../../models/Address';
-import AppLink from '../_app/AppLink/AppLink';
+import { Campaign } from '../../models/Campaign';
 import { Housing } from '../../models/Housing';
 import { useRemoveCampaignHousingMutation } from '../../services/campaign.service';
-import { DefaultPagination } from '../../store/reducers/housingReducer';
-import { usePagination } from '../../hooks/usePagination';
 import {
   useCountHousingQuery,
   useFindHousingQuery
 } from '../../services/housing.service';
+import { DefaultPagination } from '../../store/reducers/housingReducer';
+import AppLink from '../_app/AppLink/AppLink';
 import AdvancedTable from '../AdvancedTable/AdvancedTable';
 import AdvancedTableHeader from '../AdvancedTable/AdvancedTableHeader';
 import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
-import { useNotification } from '../../hooks/useNotification';
 
 interface Props {
   campaign: Campaign;
@@ -136,7 +136,7 @@ function CampaignRecipients(props: Props) {
           return (
             <Stack direction="column" spacing={1} sx={{ alignItems: 'center' }}>
               {address ? formatAddress(address) : 'Non renseigné'}
-              {housing.owner.banAddress && !isBanEligible(address) ? (
+              {address && !isBanEligible(address) ? (
                 <Badge severity="info" small>
                   Adresse améliorable
                 </Badge>
@@ -199,7 +199,7 @@ function CampaignRecipients(props: Props) {
         page={page}
         pageCount={pageCount}
         perPage={perPage}
-        tableProps={{ bordered: true, fixed: true, noCaption: true }}
+        tableProps={{ fixed: true, noCaption: true }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
       />

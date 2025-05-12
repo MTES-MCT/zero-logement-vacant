@@ -88,10 +88,10 @@ function denormalizeStatus(housing: HousingApi | undefined) {
   if (!housing) {
     return undefined;
   }
-  if (housing.status) {
-    return { ...housing, status: getHousingStatusApiLabel(housing.status) };
-  }
-  return housing;
+  return {
+    ...housing,
+    status: getHousingStatusApiLabel(housing.status)
+  };
 }
 
 const insertOwnerEvent = async (ownerEvent: OwnerEventApi): Promise<void> => {

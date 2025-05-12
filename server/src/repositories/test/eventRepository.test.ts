@@ -122,8 +122,8 @@ describe('Event repository', () => {
       await eventRepository.insertManyHousingEvents([event]);
 
       const actual = await Events().where({ id: event.id }).first();
-      expect(actual.old.status).toBeString();
-      expect(actual.new.status).toBeString();
+      expect(actual?.old?.status).toBeString();
+      expect(actual?.new?.status).toBeString();
     });
   });
 });

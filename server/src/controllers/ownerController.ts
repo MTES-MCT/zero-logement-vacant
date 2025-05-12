@@ -271,7 +271,8 @@ async function updateHousingOwners(
         rank: housingOwnerPayload.rank,
         idprocpte: housingOwnerPayload.idprocpte ?? undefined,
         idprodroit: housingOwnerPayload.idprodroit ?? undefined,
-        locprop: housingOwnerPayload.locprop ?? undefined
+        locprop: housingOwnerPayload.locprop ?? undefined,
+        propertyRight: housingOwnerPayload.propertyRight ?? null
       };
     }
   );

@@ -1,6 +1,8 @@
 import {
   ACTIVE_OWNER_RANKS,
-  ActiveOwnerRank
+  ActiveOwnerRank,
+  PROPERTY_RIGHT_VALUES,
+  PropertyRight
 } from '@zerologementvacant/models';
 import { number, object, ObjectSchema, string } from 'yup';
 
@@ -11,6 +13,7 @@ export interface SourceHousingOwner {
   idprocpte: string;
   idprodroit: string;
   locprop_source: number;
+  property_right: PropertyRight;
   rank: ActiveOwnerRank;
 }
 
@@ -22,6 +25,9 @@ export const sourceHousingOwnerSchema: ObjectSchema<SourceHousingOwner> =
     idprocpte: string().required('idprocpte is required').length(11),
     idprodroit: string().required('idprodroit is required').length(13),
     locprop_source: number().required('locprop_source is required').truncate(),
+    property_right: string()
+      .required('property_right is required')
+      .oneOf(PROPERTY_RIGHT_VALUES),
     rank: number<ActiveOwnerRank>()
       .required('rank is required')
       .oneOf(ACTIVE_OWNER_RANKS)

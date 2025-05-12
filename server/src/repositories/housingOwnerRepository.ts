@@ -1,4 +1,4 @@
-import { OwnerRank } from '@zerologementvacant/models';
+import { OwnerRank, PropertyRight } from '@zerologementvacant/models';
 import db from '~/infra/database';
 import { logger } from '~/infra/logger';
 import { HousingApi, HousingRecordApi } from '~/models/HousingApi';
@@ -59,6 +59,7 @@ export interface HousingOwnerDBO {
   idprocpte?: string | null;
   idprodroit?: string | null;
   locprop_source?: string | null;
+  property_right: PropertyRight | null;
 }
 
 export const formatOwnerHousingApi = (housing: HousingApi): HousingOwnerDBO => {
@@ -69,7 +70,8 @@ export const formatOwnerHousingApi = (housing: HousingApi): HousingOwnerDBO => {
     housing_id: housing.id,
     housing_geo_code: housing.geoCode,
     rank: 1,
-    owner_id: housing.owner.id
+    owner_id: housing.owner.id,
+    property_right: null
   };
 };
 
@@ -88,7 +90,8 @@ export const formatHousingOwnerApi = (
   locprop_source:
     typeof housingOwner.locprop === 'number'
       ? String(housingOwner.locprop)
-      : null
+      : null,
+  property_right: housingOwner.propertyRight
 });
 
 export const formatHousingOwnersApi = (
@@ -102,7 +105,8 @@ export const formatHousingOwnersApi = (
     housing_geo_code: housing.geoCode,
     rank: (i + 1) as OwnerRank,
     start_date: new Date(),
-    origin
+    origin,
+    property_right: null
   }));
 
 const housingOwnerRepository = {

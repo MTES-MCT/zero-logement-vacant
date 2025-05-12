@@ -1,5 +1,8 @@
 import { fc, test } from '@fast-check/jest';
-import { ActiveOwnerRank } from '@zerologementvacant/models';
+import {
+  ActiveOwnerRank,
+  PROPERTY_RIGHT_VALUES
+} from '@zerologementvacant/models';
 
 import {
   SourceHousingOwner,
@@ -15,6 +18,7 @@ describe('SourceHousingOwner', () => {
       idprocpte: fc.string({ minLength: 11, maxLength: 11 }),
       idprodroit: fc.string({ minLength: 13, maxLength: 13 }),
       locprop_source: fc.integer({ min: 1, max: 9 }),
+      property_right: fc.constantFrom(...PROPERTY_RIGHT_VALUES),
       rank: fc.constantFrom<ActiveOwnerRank>(1, 2, 3, 4, 5, 6)
     })('should validate a source housing owner', (sourceHousingOwner) => {
       const actual = sourceHousingOwnerSchema.validateSync(sourceHousingOwner);

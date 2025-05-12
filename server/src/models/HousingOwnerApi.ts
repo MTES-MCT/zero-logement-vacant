@@ -1,4 +1,8 @@
-import { HousingOwnerDTO, OwnerRank } from '@zerologementvacant/models';
+import {
+  HousingOwnerDTO,
+  OwnerRank,
+  PropertyRight
+} from '@zerologementvacant/models';
 import { isDefined, isUndefined } from '@zerologementvacant/utils';
 import { compare, includeSameMembers } from '~/utils/compareUtils';
 import { HousingRecordApi } from './HousingApi';
@@ -25,6 +29,7 @@ export interface HousingOwnerApi extends OwnerApi {
   idprocpte?: string | null;
   idprodroit?: string | null;
   locprop?: number | null;
+  propertyRight: PropertyRight | null;
 }
 
 /**
@@ -42,7 +47,8 @@ export function toHousingOwnersApi(
     housingId: housing.id,
     housingGeoCode: housing.geoCode,
     rank: (i + 1) as OwnerRank,
-    startDate: new Date()
+    startDate: new Date(),
+    propertyRight: null
   }));
 }
 
@@ -55,7 +61,8 @@ export function toHousingOwnerDTO(
     rank: housingOwner.rank,
     idprocpte: housingOwner.idprocpte ?? null,
     idprodroit: housingOwner.idprodroit ?? null,
-    locprop: housingOwner.locprop ?? null
+    locprop: housingOwner.locprop ?? null,
+    propertyRight: housingOwner.propertyRight
   };
 }
 

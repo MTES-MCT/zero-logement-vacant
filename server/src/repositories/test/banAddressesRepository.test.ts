@@ -1,16 +1,14 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { AddressKinds } from '@zerologementvacant/models';
+import db from '~/infra/database';
+import { AddressApi } from '~/models/AddressApi';
 import banAddressesRepository, {
   AddressDBO,
   Addresses,
   formatAddressApi
 } from '~/repositories/banAddressesRepository';
+import { formatHousingRecordApi } from '~/repositories/housingRepository';
 import { genAddressApi, genHousingApi } from '~/test/testFixtures';
-import {
-  formatHousingRecordApi
-} from '~/repositories/housingRepository';
-import db from '~/infra/database';
-import { AddressApi } from '~/models/AddressApi';
-import { AddressKinds } from '@zerologementvacant/models';
 
 describe('BAN addresses repository', () => {
   describe('save', () => {
@@ -79,7 +77,7 @@ describe('BAN addresses repository', () => {
 
   describe('saveMany', () => {
     it('should save thousands of records', async () => {
-      const housings = Array.from({ length: 2_000 }, genHousingApi);
+      const housings = Array.from({ length: 2_000 }, () => genHousingApi());
       await db.batchInsert(
         'fast_housing',
         housings.map(formatHousingRecordApi)

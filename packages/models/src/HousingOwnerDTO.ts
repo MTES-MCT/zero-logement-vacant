@@ -1,5 +1,6 @@
 import { HousingDTO } from './HousingDTO';
 import { OwnerDTO } from './OwnerDTO';
+import { PropertyRight } from './PropertyRight';
 
 export interface BaseHousingOwnerDTO {
   // TODO: move OwnerRank from server/ to models/ and use it here
@@ -7,6 +8,7 @@ export interface BaseHousingOwnerDTO {
   idprocpte: string | null;
   idprodroit: string | null;
   locprop: number | null;
+  propertyRight: PropertyRight | null;
 }
 
 export type HousingOwnerDTO = BaseHousingOwnerDTO & OwnerDTO;

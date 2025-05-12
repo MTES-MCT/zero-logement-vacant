@@ -563,7 +563,8 @@ export const parseHousingOwnerApi = (
   locprop:
     typeof housingOwner.locprop_source === 'string'
       ? Number(housingOwner.locprop_source)
-      : null
+      : null,
+  propertyRight: housingOwner.property_right
 });
 
 export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({

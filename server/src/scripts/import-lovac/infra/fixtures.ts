@@ -4,7 +4,8 @@ import {
   HOUSING_KIND_VALUES,
   Occupancy,
   OWNER_ENTITY_VALUES,
-  OWNERSHIP_KIND_INTERNAL_VALUES
+  OWNERSHIP_KIND_INTERNAL_VALUES,
+  PROPERTY_RIGHT_VALUES
 } from '@zerologementvacant/models';
 
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
@@ -71,7 +72,8 @@ export function genSourceHousingOwner(
     idprocpte: faker.string.alphanumeric(11),
     idprodroit: faker.string.alphanumeric(13),
     locprop_source: faker.helpers.arrayElement([1, 2, 3, 4, 5, 6, 9]),
-    rank: faker.number.int({ min: 1, max: 6 }) as ActiveOwnerRank
+    rank: faker.number.int({ min: 1, max: 6 }) as ActiveOwnerRank,
+    property_right: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
   };
 }
 

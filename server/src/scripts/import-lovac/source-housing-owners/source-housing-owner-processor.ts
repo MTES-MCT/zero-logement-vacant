@@ -113,6 +113,7 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
             idprodroit: sourceHousingOwner.idprodroit,
             rank: sourceHousingOwner.rank,
             locprop: sourceHousingOwner.locprop_source,
+            propertyRight: sourceHousingOwner.property_right,
             startDate: new Date(),
             endDate: undefined
           };

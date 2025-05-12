@@ -1,7 +1,11 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
 
-import { AddressKinds, OwnerRank } from '@zerologementvacant/models';
+import {
+  AddressKinds,
+  OwnerRank,
+  PROPERTY_RIGHT_VALUES
+} from '@zerologementvacant/models';
 import async from 'async';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
 import { Knex } from 'knex';
@@ -155,7 +159,8 @@ export async function seed(knex: Knex): Promise<void> {
             ownerId: archivedOwner.id,
             housingGeoCode: housing.geoCode,
             housingId: housing.id,
-            rank: -2
+            rank: -2,
+            propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
           }));
 
         return activeOwners
@@ -164,7 +169,8 @@ export async function seed(knex: Knex): Promise<void> {
             ownerId: owner.id,
             housingGeoCode: housing.geoCode,
             housingId: housing.id,
-            rank: (index + 1) as OwnerRank
+            rank: (index + 1) as OwnerRank,
+            propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
           }))
           .concat(archivedOwners);
       }

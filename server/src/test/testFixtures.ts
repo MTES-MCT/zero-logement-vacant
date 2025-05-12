@@ -19,6 +19,7 @@ import {
   OCCUPANCY_VALUES,
   OWNER_ENTITY_VALUES,
   OWNER_KIND_LABELS,
+  PROPERTY_RIGHT_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
@@ -266,6 +267,7 @@ export const genHousingOwnerApi = (
   idprocpte: faker.string.alphanumeric(11),
   idprodroit: faker.string.alphanumeric(13),
   locprop: faker.number.int({ min: 1, max: 10 }),
+  propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES),
   startDate: faker.date.past()
 });
 

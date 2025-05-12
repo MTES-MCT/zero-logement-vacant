@@ -24,7 +24,8 @@ function HousingAdditionalOwner({ activeOwnersCount, onAddOwner }: Props) {
       rank: Number(additionalOwnerRank) as OwnerRank,
       idprocpte: null,
       idprodroit: null,
-      locprop: null
+      locprop: null,
+      propertyRight: null
     });
   }
 

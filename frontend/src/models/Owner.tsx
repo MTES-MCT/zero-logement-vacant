@@ -3,8 +3,8 @@ import {
   HousingOwnerDTO,
   OwnerDTO
 } from '@zerologementvacant/models';
-import { Address, fromAddressDTO, toOwnerAddressDTO } from './Address';
 import fp from 'lodash/fp';
+import { Address, fromAddressDTO, toOwnerAddressDTO } from './Address';
 
 export interface DraftOwner {
   rawAddress: string[];
@@ -66,7 +66,8 @@ export function fromHousingOwnerDTO(
     rank: housingOwner.rank,
     idprocpte: housingOwner.idprocpte,
     idprodroit: housingOwner.idprodroit,
-    locprop: housingOwner.locprop
+    locprop: housingOwner.locprop,
+    propertyRight: housingOwner.propertyRight
   };
 }
 

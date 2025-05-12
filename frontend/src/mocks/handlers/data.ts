@@ -13,6 +13,7 @@ import {
   OwnerRank,
   Precision,
   PRECISION_CATEGORY_VALUES,
+  PROPERTY_RIGHT_VALUES,
   ProspectDTO,
   SignupLinkDTO,
   UserDTO
@@ -105,7 +106,8 @@ const housingOwners = new Map<
       rank: (i + 1) as OwnerRank,
       idprocpte: null,
       idprodroit: null,
-      locprop: null
+      locprop: faker.number.int(1),
+      propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
     }));
     return [housing.id, housingOwners];
   })

@@ -1,7 +1,3 @@
-import { constants } from 'http2';
-import fp from 'lodash/fp';
-import { http, HttpResponse, RequestHandler } from 'msw';
-
 import {
   HousingCountDTO,
   HousingDTO,
@@ -14,8 +10,11 @@ import {
   genHousingDTO,
   genOwnerDTO
 } from '@zerologementvacant/models/fixtures';
-import data from './data';
+import { constants } from 'http2';
+import fp from 'lodash/fp';
+import { http, HttpResponse, RequestHandler } from 'msw';
 import config from '../../utils/config';
+import data from './data';
 
 type HousingParams = {
   id: string;
@@ -126,7 +125,8 @@ export const housingHandlers: RequestHandler[] = [
           rank: 1,
           locprop: null,
           idprocpte: null,
-          idprodroit: null
+          idprodroit: null,
+          propertyRight: null
         }
       ]);
       return HttpResponse.json(housing, {

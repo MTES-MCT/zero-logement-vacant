@@ -114,7 +114,8 @@ describe('Housing list view', () => {
           rank: 1,
           locprop: null,
           idprocpte: null,
-          idprodroit: null
+          idprodroit: null,
+          propertyRight: null
         }
       ]);
       expect(housing.localId).toBeDefined();
@@ -781,7 +782,8 @@ describe('Housing list view', () => {
                 rank: 1,
                 idprodroit: null,
                 idprocpte: null,
-                locprop: null
+                locprop: null,
+                propertyRight: null
               }
             ]);
           });

@@ -17,6 +17,7 @@ import {
   OwnerAge,
   OwnershipKind,
   Precision,
+  PROPERTY_RIGHT_VALUES,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 
@@ -115,7 +116,8 @@ describe('Housing repository', () => {
       ownerId: housing.owner.id,
       housingGeoCode: housing.geoCode,
       housingId: housing.id,
-      rank: 1
+      rank: 1,
+      propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
     }));
 
     beforeAll(async () => {

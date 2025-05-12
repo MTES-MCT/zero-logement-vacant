@@ -34,7 +34,8 @@ describe('Owner', () => {
           rank: 1,
           idprocpte: null,
           idprodroit: null,
-          locprop: null
+          locprop: null,
+          propertyRight: null
         }
       ];
       const after: HousingOwner[] = [
@@ -43,7 +44,8 @@ describe('Owner', () => {
           rank: 1,
           idprocpte: null,
           idprodroit: null,
-          locprop: null
+          locprop: null,
+          propertyRight: null
         }
       ];
 
@@ -60,7 +62,8 @@ describe('Owner', () => {
           rank: 1,
           idprocpte: null,
           idprodroit: null,
-          locprop: null
+          locprop: null,
+          propertyRight: null
         }
       ];
       const after: HousingOwner[] = [
@@ -69,7 +72,8 @@ describe('Owner', () => {
           rank: 2,
           idprocpte: null,
           idprodroit: null,
-          locprop: null
+          locprop: null,
+          propertyRight: null
         }
       ];
 

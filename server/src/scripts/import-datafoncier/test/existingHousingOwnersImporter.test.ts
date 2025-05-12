@@ -82,7 +82,8 @@ describe('Import housing owners from existing housing', () => {
         origin: null,
         idprocpte: null,
         idprodroit: null,
-        locprop_source: null
+        locprop_source: null,
+        property_right: null
       }));
       expect(actualHousingOwners).toIncludeSameMembers(members);
     });

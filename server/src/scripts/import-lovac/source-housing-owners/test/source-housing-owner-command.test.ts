@@ -296,7 +296,8 @@ describe('Source housing owner command', () => {
       rank: housingOwner.rank,
       geo_code: housing.geoCode,
       local_id: housing.localId,
-      locprop_source: housingOwner.locprop as number
+      locprop_source: housingOwner.locprop as number,
+      property_right: housingOwner.propertyRight ?? 'autre'
     };
   }
 });

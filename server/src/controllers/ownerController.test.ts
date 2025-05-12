@@ -313,7 +313,8 @@ describe('Owner API', () => {
         rank: rank,
         locprop: null,
         idprocpte: null,
-        idprodroit: null
+        idprodroit: null,
+        propertyRight: null
       };
     }
 

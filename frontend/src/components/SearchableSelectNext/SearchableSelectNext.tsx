@@ -11,7 +11,13 @@ import {
 } from '@mui/material';
 import classNames from 'classnames';
 import { List } from 'immutable';
-import { ChangeEvent, ElementType, Fragment, ReactNode, useState } from 'react';
+import {
+  ElementType,
+  Fragment,
+  ReactNode,
+  SyntheticEvent,
+  useState
+} from 'react';
 import { useDebounce } from 'react-use';
 import { match, Pattern } from 'ts-pattern';
 
@@ -188,7 +194,7 @@ function SearchableSelectNext<
     props.onChange(value);
   };
 
-  function noop(event: ChangeEvent): void {
+  function noop(event: SyntheticEvent): void {
     event.stopPropagation();
     event.preventDefault();
   }
@@ -221,7 +227,6 @@ function SearchableSelectNext<
       }}
       renderInput={(params) => (
         <Input
-          label={props.inputProps?.label ?? null}
           {...props.inputProps}
           classes={{
             nativeInputOrTextArea: classNames({

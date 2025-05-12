@@ -10,7 +10,7 @@ import {
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { List, Set } from 'immutable';
-import { ChangeEvent, Key, ReactNode, useId, useRef } from 'react';
+import { Key, ReactNode, SyntheticEvent, useId, useRef } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import styles from './app-select-next.module.scss';
@@ -116,7 +116,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
     props.onChange(nextValue as SelectValue<Value, Multiple>);
   }
 
-  function noop(event: ChangeEvent): void {
+  function noop(event: SyntheticEvent): void {
     event.stopPropagation();
   }
 

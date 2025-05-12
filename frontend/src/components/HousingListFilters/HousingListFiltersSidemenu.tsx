@@ -5,7 +5,6 @@ import MuiDrawer from '@mui/material/Drawer';
 import { CSSObject, styled, Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
-
 import {
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
@@ -17,7 +16,8 @@ import {
 import { isDefined } from '@zerologementvacant/utils';
 import classNames from 'classnames';
 import { Set } from 'immutable';
-import posthog from 'posthog-js';
+import { usePostHog } from 'posthog-js/react';
+
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
@@ -82,6 +82,8 @@ interface Props {
 }
 
 function HousingListFiltersSidemenu(props: Props) {
+  const posthog = usePostHog();
+
   const establishment = useAppSelector(
     (state) => state.authentication.authUser?.establishment
   );
@@ -197,9 +199,14 @@ function HousingListFiltersSidemenu(props: Props) {
             </Button>
           </Grid>
         </Grid>
-        
+
         <Accordion
-          label={<TitleWithIcon icon="fr-icon-server-line" title="Fichiers sources" />}
+          label={
+            <TitleWithIcon
+              icon="fr-icon-server-line"
+              title="Fichiers sources"
+            />
+          }
         >
           <Grid component="article" mb={2} xs={12}>
             <DataFileYearSelect
@@ -226,7 +233,7 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           </Grid>
         </Accordion>
-        
+
         <Accordion
           label={
             <TitleWithIcon

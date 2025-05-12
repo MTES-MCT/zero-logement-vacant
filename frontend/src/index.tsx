@@ -1,5 +1,6 @@
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import posthog from 'posthog-js';
+import { PostHogProvider } from 'posthog-js/react';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { MapProvider } from 'react-map-gl/maplibre';
@@ -8,6 +9,7 @@ import { Link } from 'react-router-dom';
 import App from './App';
 
 import Notification from './components/Notification/Notification';
+import housingSlice from './store/reducers/housingReducer';
 import { store } from './store/store';
 import ThemeProvider from './theme';
 import config from './utils/config';
@@ -36,7 +38,20 @@ declare module '@codegouvfr/react-dsfr/spa' {
 if (config.posthog.enabled) {
   posthog.init(config.posthog.apiKey, {
     api_host: 'https://eu.i.posthog.com',
-    person_profiles: 'identified_only'
+    person_profiles: 'identified_only',
+    autocapture: false,
+    before_send: () => null
+  });
+
+  posthog.onFeatureFlags(() => {
+    const isLOVAC2025 = posthog.isFeatureEnabled('filtre-lovac-2025');
+    if (isLOVAC2025) {
+      store.dispatch(
+        housingSlice.actions.changeFilters({
+          dataFileYearsIncluded: ['lovac-2025']
+        })
+      );
+    }
   });
 }
 
@@ -45,7 +60,7 @@ if (config.jimo.enabled) {
   const s = document.createElement('script');
   s.type = 'text/javascript';
   s.async = true;
-  s.src = "https://undercity.usejimo.com/jimo-invader.js";
+  s.src = 'https://undercity.usejimo.com/jimo-invader.js';
   window['JIMO_PROJECT_ID'] = config.jimo.projectId;
   document.getElementsByTagName('head')[0].appendChild(s);
 }
@@ -57,10 +72,12 @@ root.render(
   <StrictMode>
     <ThemeProvider>
       <MapProvider>
-        <StoreProvider store={store}>
-          <Notification />
-          <App />
-        </StoreProvider>
+        <PostHogProvider client={posthog}>
+          <StoreProvider store={store}>
+            <Notification />
+            <App />
+          </StoreProvider>
+        </PostHogProvider>
       </MapProvider>
     </ThemeProvider>
   </StrictMode>

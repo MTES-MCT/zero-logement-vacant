@@ -239,6 +239,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           cadastralClassification:
             (sourceHousing.cadastral_classification as CadastralClassification) ??
             null,
+          cadastralReference: sourceHousing.cadastral_reference,
           taxed: sourceHousing.taxed,
           rentalValue: sourceHousing.rental_value ?? undefined,
           vacancyStartYear: sourceHousing.vacancy_start_year,

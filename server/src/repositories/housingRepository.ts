@@ -957,14 +957,14 @@ export interface HousingRecordDBO {
   address_dgfip: string[];
   longitude_dgfip?: number;
   latitude_dgfip?: number;
-  geolocation?: string;
+  geolocation?: string | null;
   cadastral_classification: number | null;
   uncomfortable: boolean;
   vacancy_start_year?: number;
   housing_kind: string;
   rooms_count: number | null;
   living_area: number | null;
-  cadastral_reference?: string;
+  cadastral_reference?: string | null;
   building_year?: number;
   mutation_date?: Date;
   taxed?: boolean;
@@ -981,10 +981,10 @@ export interface HousingRecordDBO {
    */
   data_file_years?: string[];
   data_source: HousingSource | null;
-  beneficiary_count?: number;
+  beneficiary_count?: number | null;
   building_location?: string | null;
-  rental_value?: number;
-  condominium?: string;
+  rental_value?: number | null;
+  condominium?: string | null;
   status: HousingStatusApi;
   sub_status: string | null;
   /**

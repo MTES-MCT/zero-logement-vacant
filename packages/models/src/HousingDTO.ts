@@ -11,27 +11,27 @@ export interface HousingDTO {
   localId: string;
   rawAddress: string[];
   geoCode: string;
-  campaignIds?: string[];
+  campaignIds?: string[] | null;
   longitude?: number;
   latitude?: number;
   cadastralClassification: number | null;
-  cadastralReference?: string;
+  cadastralReference?: string | null;
   uncomfortable: boolean;
   vacancyStartYear?: number;
   housingKind: HousingKind;
   roomsCount: number | null;
   livingArea: number | null;
-  buildingYear?: number;
+  buildingYear?: number | null;
   taxed?: boolean;
   /**
    * @deprecated See {@link dataFileYears}
    */
   dataYears: number[];
   dataFileYears: string[];
-  beneficiaryCount?: number;
+  beneficiaryCount?: number | null;
   buildingLocation?: string | null;
-  rentalValue?: number;
-  ownershipKind?: string;
+  rentalValue?: number | null;
+  ownershipKind?: string | null;
   status: HousingStatus;
   subStatus: string | null;
   energyConsumption: EnergyConsumption | null;

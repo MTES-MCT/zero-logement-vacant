@@ -38,6 +38,7 @@ export function genSourceHousing(): SourceHousing {
     rooms_count: faker.number.int({ min: 1, max: 10 }),
     uncomfortable: faker.datatype.boolean(),
     cadastral_classification: faker.number.int(10),
+    cadastral_reference: faker.string.sample(6),
     living_area: faker.number.float({ min: 10, max: 100, fractionDigits: 2 }),
     taxed: faker.datatype.boolean(),
     vacancy_start_year: faker.date.past().getFullYear(),

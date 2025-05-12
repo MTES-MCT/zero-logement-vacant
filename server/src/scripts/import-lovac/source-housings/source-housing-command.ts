@@ -471,6 +471,7 @@ export async function updateHousings(
   const keys: ReadonlyArray<keyof HousingRecordDBO> = opts.keys?.length
     ? opts.keys
     : [
+        'invariant',
         'building_id',
         'building_group_id',
         'plot_id',

@@ -34,13 +34,18 @@ import {
 import {
   formatHousingRecordApi,
   Housing,
-  HousingRecordDBO
+  HousingRecordDBO,
+  housingTable
 } from '~/repositories/housingRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
+import { createUpdater } from '~/scripts/import-lovac/infra/updater';
 import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
 
-import { createSourceHousingCommand } from '~/scripts/import-lovac/source-housings/source-housing-command';
+import {
+  createSourceHousingCommand,
+  updateHousings
+} from '~/scripts/import-lovac/source-housings/source-housing-command';
 import {
   genBuildingApi,
   genEstablishmentApi,
@@ -251,7 +256,72 @@ describe('Source housing command', () => {
     });
   });
 
-  it.todo('should update specific housing keys');
+  it('should update specific housing keys', async () => {
+    const table = faker.string.uuid();
+    const housing = formatHousingRecordApi(genHousingApi());
+    await Housing().insert(housing);
+    const updated: HousingRecordDBO = {
+      ...formatHousingRecordApi(genHousingApi()),
+      id: housing.id,
+      local_id: housing.local_id,
+      geo_code: housing.geo_code
+    };
+
+    await ReadableStream.from([updated]).pipeTo(
+      createUpdater<HousingRecordDBO>({
+        destination: 'database',
+        temporaryTable: table,
+        likeTable: housingTable,
+        async update(housings): Promise<void> {
+          await updateHousings(housings, {
+            temporaryTable: table
+          });
+        }
+      })
+    );
+
+    const actual = await Housing()
+      .where({ geo_code: housing.geo_code, id: housing.id })
+      .first();
+    expect(
+      actual?.mutation_date?.toJSON().substring(0, 'yyyy-mm-dd'.length)
+    ).toBe(updated.mutation_date?.toJSON().substring(0, 'yyyy-mm-dd'.length));
+    expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
+      invariant: updated.invariant,
+      building_id: updated.building_id,
+      building_group_id: updated.building_group_id,
+      plot_id: updated.plot_id,
+      address_dgfip: updated.address_dgfip,
+      longitude_dgfip: updated.longitude_dgfip,
+      latitude_dgfip: updated.latitude_dgfip,
+      geolocation: updated.geolocation,
+      cadastral_classification: updated.cadastral_classification,
+      uncomfortable: updated.uncomfortable,
+      vacancy_start_year: updated.vacancy_start_year,
+      housing_kind: updated.housing_kind,
+      rooms_count: updated.rooms_count,
+      living_area: updated.living_area,
+      cadastral_reference: updated.cadastral_reference,
+      building_year: updated.building_year,
+      taxed: updated.taxed,
+      deprecated_vacancy_reasons: updated.deprecated_vacancy_reasons,
+      data_years: updated.data_years,
+      data_file_years: updated.data_file_years,
+      data_source: updated.data_source,
+      beneficiary_count: updated.beneficiary_count,
+      building_location: updated.building_location,
+      rental_value: updated.rental_value,
+      condominium: updated.condominium,
+      status: updated.status,
+      sub_status: updated.sub_status,
+      deprecated_precisions: updated.deprecated_precisions,
+      occupancy: updated.occupancy,
+      occupancy_source: updated.occupancy_source,
+      occupancy_intended: updated.occupancy_intended,
+      energy_consumption_bdnb: updated.energy_consumption_bdnb,
+      energy_consumption_at_bdnb: updated.energy_consumption_at_bdnb
+    });
+  });
 
   it('should update the housing geo code if it changed', async () => {
     const actual = await Housing().whereIn(
@@ -453,7 +523,7 @@ describe('Source housing command', () => {
   });
 
   function refresh(
-    housings: ReadonlyArray<HousingApi>
+    housings: ReadonlyArray<Pick<HousingApi, 'id' | 'geoCode'>>
   ): Promise<ReadonlyArray<HousingRecordDBO>> {
     return Housing().whereIn(
       ['geo_code', 'id'],

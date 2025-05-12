@@ -31,6 +31,7 @@ export interface SourceHousing {
   rooms_count: number | null;
   uncomfortable: boolean;
   cadastral_classification: number | null;
+  cadastral_reference: string | null;
   taxed: boolean;
   rental_value: number | null;
   occupancy_source: Occupancy;
@@ -103,6 +104,10 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .defined('cadastral_classification must be defined')
     .nullable()
     .min(0),
+  cadastral_reference: string()
+    .defined('cadastral_reference must be defined')
+    .nullable()
+    .length(6),
   taxed: boolean().required('taxed is required'),
   rental_value: number()
     .defined('rental_value must be defined')

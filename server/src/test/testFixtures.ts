@@ -289,7 +289,8 @@ export function genBuildingApi(): BuildingApi {
 }
 
 export const genHousingApi = (
-  geoCode: string = genGeoCode()
+  geoCode: string = genGeoCode(),
+  building?: BuildingApi
 ): MarkRequired<HousingApi, 'owner'> => {
   const id = uuidv4();
   const department = geoCode.substring(0, 2);
@@ -349,12 +350,13 @@ export const genHousingApi = (
     dataYears,
     dataFileYears,
     buildingLocation: randomstring.generate(),
-    ownershipKind: faker.helpers.maybe(() =>
-      faker.helpers.arrayElement([
-        ...INTERNAL_MONO_CONDOMINIUM_VALUES,
-        ...INTERNAL_CO_CONDOMINIUM_VALUES
-      ])
-    ),
+    ownershipKind:
+      faker.helpers.maybe(() =>
+        faker.helpers.arrayElement([
+          ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+          ...INTERNAL_CO_CONDOMINIUM_VALUES
+        ])
+      ) ?? null,
     status: faker.helpers.weightedArrayElement([
       {
         value: HousingStatusApi.NeverContacted,
@@ -375,11 +377,23 @@ export const genHousingApi = (
     energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     occupancyRegistered: faker.helpers.arrayElement(OCCUPANCY_VALUES),
+    occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     buildingVacancyRate: faker.number.float(),
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
-    mutationDate: faker.date.past({ years: 20 })
+    mutationDate: faker.date.past({ years: 20 }),
+    geolocation: null,
+    plotId: null,
+    beneficiaryCount: null,
+    buildingId: building?.id ?? null,
+    buildingGroupId: null,
+    buildingHousingCount: null,
+    geoPerimeters: [],
+    lastContact: null,
+    precisions: [],
+    rentalValue: faker.number.int({ min: 500, max: 1000 }),
+    deprecatedPrecisions: []
   };
 };
 

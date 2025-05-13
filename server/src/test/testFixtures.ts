@@ -395,7 +395,14 @@ export const genHousingApi = (
     lastContact: null,
     precisions: [],
     rentalValue: faker.number.int({ min: 500, max: 1000 }),
-    deprecatedPrecisions: []
+    deprecatedPrecisions: [],
+    lastMutationDate:
+      faker.helpers.maybe(() => faker.date.past({ years: 20 })) ?? null,
+    lastTransactionDate:
+      faker.helpers.maybe(() => faker.date.past({ years: 20 })) ?? null,
+    lastTransactionValue:
+      faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ??
+      null
   };
 };
 

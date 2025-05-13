@@ -1001,6 +1001,9 @@ export interface HousingRecordDBO {
   occupancy_intended: Occupancy | null;
   energy_consumption_bdnb: EnergyConsumption | null;
   energy_consumption_at_bdnb: Date | null;
+  last_mutation_date: Date | null;
+  last_transaction_date: Date | null;
+  last_transaction_value: number | null;
 }
 
 export interface HousingDBO extends HousingRecordDBO {
@@ -1077,7 +1080,10 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
     ? new Date(housing.last_contact)
     : undefined,
   source: housing.data_source,
-  mutationDate: housing.mutation_date ?? null
+  mutationDate: housing.mutation_date ?? null,
+  lastMutationDate: housing.last_mutation_date,
+  lastTransactionDate: housing.last_transaction_date,
+  lastTransactionValue: housing.last_transaction_value
 });
 
 export const formatHousingRecordApi = (
@@ -1123,7 +1129,10 @@ export const formatHousingRecordApi = (
   occupancy: housing.occupancy,
   occupancy_source: housing.occupancyRegistered,
   occupancy_intended: housing.occupancyIntended ?? null,
-  data_source: housing.source
+  data_source: housing.source,
+  last_mutation_date: housing.lastMutationDate,
+  last_transaction_date: housing.lastTransactionDate,
+  last_transaction_value: housing.lastTransactionValue
 });
 
 export default {

@@ -69,6 +69,9 @@ export interface HousingRecordApi
   occupancyRegistered: Occupancy;
   occupancyIntended?: Occupancy | null;
   source: HousingSource | null;
+  lastMutationDate: Date | null;
+  lastTransactionDate: Date | null;
+  lastTransactionValue: number | null;
 }
 
 export interface HousingApi extends HousingRecordApi {
@@ -122,7 +125,10 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     occupancy: housing.occupancy,
     occupancyIntended: housing.occupancyIntended ?? null,
     source: housing.source,
-    owner: toOwnerDTO(housing.owner)
+    owner: toOwnerDTO(housing.owner),
+    lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+    lastTransactionDate: housing.lastTransactionDate?.toJSON() ?? null,
+    lastTransactionValue: housing.lastTransactionValue
   };
 }
 

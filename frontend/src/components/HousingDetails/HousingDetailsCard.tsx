@@ -6,7 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Occupancy } from '@zerologementvacant/models';
+import { fromHousing, Occupancy } from '@zerologementvacant/models';
 import classNames from 'classnames';
 import { ReactNode, useId } from 'react';
 import { match, Pattern } from 'ts-pattern';
@@ -18,6 +18,7 @@ import {
   lastUpdate
 } from '../../models/Housing';
 import { CADASTRAL_CLASSIFICATION_OPTIONS } from '../../models/HousingFilters';
+import { toString as toMutationString } from '../../models/Mutation';
 import { useGetBuildingQuery } from '../../services/building.service';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { useFindEventsByHousingQuery } from '../../services/event.service';
@@ -98,6 +99,9 @@ function HousingTab(props: TabProps) {
   const years = props.housing.vacancyStartYear
     ? age(props.housing.vacancyStartYear.toString())
     : null;
+
+  const mutation = fromHousing(props.housing);
+  const lastMutation = mutation ? toMutationString(mutation) : null;
 
   return (
     <Grid component="section" container columnSpacing="1.75rem">
@@ -241,6 +245,7 @@ function HousingTab(props: TabProps) {
               <Map
                 housingList={[props.housing]}
                 showMapSettings={false}
+
                 style={{ minHeight: '21rem' }}
               />
               <Stack component="section" sx={{ alignItems: 'flex-end' }}>
@@ -330,6 +335,7 @@ function HousingTab(props: TabProps) {
               )
             }
           />
+          <HousingAttribute label="Dernière mutation" value={lastMutation} />
         </Stack>
       </Grid>
     </Grid>

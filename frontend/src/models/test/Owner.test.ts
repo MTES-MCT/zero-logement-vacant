@@ -98,7 +98,8 @@ describe('Owner', () => {
         rank: rank,
         locprop: null,
         idprocpte: null,
-        idprodroit: null
+        idprodroit: null,
+        propertyRight: null
       }));
 
       const actual = housingOwners.toSorted(byRank);

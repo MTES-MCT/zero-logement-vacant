@@ -116,7 +116,8 @@ export function PrimaryOwnerChangeEventContent(
         rank: 1,
         idprocpte: null,
         idprodroit: null,
-        locprop: null
+        locprop: null,
+        propertyRight: null
       }
     : null;
   const housingOwnerAfter: HousingOwner | null = props.event.new
@@ -125,7 +126,8 @@ export function PrimaryOwnerChangeEventContent(
         rank: 1,
         idprocpte: null,
         idprodroit: null,
-        locprop: null
+        locprop: null,
+        propertyRight: null
       }
     : null;
 

@@ -116,7 +116,7 @@ describe('Housing API', () => {
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
       const { status } = await request(app)
         .get(testRoute(anotherHousing.id))
-        .use(tokenProvider(anotherUser));
+        .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });

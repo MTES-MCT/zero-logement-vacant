@@ -4,7 +4,6 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
 import { createColumnHelper } from '@tanstack/react-table';
 
 import {
@@ -182,7 +181,7 @@ function CampaignRecipients(props: Props) {
   );
 
   return (
-    <Grid container>
+    <Stack>
       <Alert
         severity="info"
         title="Vos propriétaires destinataires"
@@ -199,7 +198,7 @@ function CampaignRecipients(props: Props) {
         page={page}
         pageCount={pageCount}
         perPage={perPage}
-        tableProps={{ fixed: true, noCaption: true }}
+        tableProps={{ noScroll: true, noCaption: true }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
       />
@@ -223,7 +222,7 @@ function CampaignRecipients(props: Props) {
           Vous êtes sur le point de supprimer ce destinataire de la campagne.
         </Typography>
       </removeCampaignHousingModal.Component>
-    </Grid>
+    </Stack>
   );
 }
 

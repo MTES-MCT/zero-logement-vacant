@@ -214,7 +214,7 @@ function CampaignTable(props: CampaignTableProps) {
         page={page}
         pageCount={pageCount}
         perPage={perPage}
-        tableProps={{ fixed: true, noCaption: true }}
+        tableProps={{ noCaption: true, noScroll: true }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
       />

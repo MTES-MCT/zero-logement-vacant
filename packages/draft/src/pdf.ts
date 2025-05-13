@@ -144,7 +144,7 @@ function createTransformer(opts: TransformerOptions) {
       // Objet
       const subjectPage = await browser.newPage();
       await subjectPage.setViewport({ width: BODY_WIDTH, height: LINE_HEIGHT * 2 });
-      const subjectHTML = `<div id='block' style='margin: 0; padding: 0; display: inline-block;'>${data.subject}</div>`;
+      const subjectHTML = data.subject ? `<div id='block' style='margin: 0; padding: 0; display: inline-block;'><strong>Objet:</strong>${data.subject}</div>` : '';
       await subjectPage.setContent(subjectHTML);
       await subjectPage.addStyleTag({ content: `${fontCss}` });
       const subject = await subjectPage.pdf({

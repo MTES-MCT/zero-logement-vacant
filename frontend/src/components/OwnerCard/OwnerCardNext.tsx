@@ -103,6 +103,7 @@ function OwnerCardNext(props: OwnerCardProps) {
 
         {!isBanEligible(props.owner.banAddress) && (
           <Alert
+            small
             severity="info"
             classes={{ title: fr.cx('fr-mb-2w') }}
             description={

@@ -189,14 +189,19 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                           <td key={j} className={styles.cell}>
                             <Box
                               sx={{
-                                maxHeight: '5.25rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: '100%',
+                                height: '5.25rem',
                                 overflowY: 'auto'
                               }}
                             >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
+                              <Box sx={{ width: '100%' }}>
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </Box>
                             </Box>
                           </td>
                         );

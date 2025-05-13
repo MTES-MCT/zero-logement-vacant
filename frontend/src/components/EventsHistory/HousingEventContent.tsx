@@ -33,8 +33,6 @@ export function HousingOccupancyChangeEventContent(
     <OccupancyPatchContent age="after" values={diff.new} />
   ) : null;
 
-  const after = event.new ? <OccupancyPatchContent values={event.new} /> : null;
-
   return (
     <Stack direction="row" spacing="2rem" sx={{ alignItems: 'center' }}>
       {before}

@@ -1,25 +1,21 @@
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import React, { useImperativeHandle, useState, useEffect } from 'react';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
-import { HousingStatus, Occupancy } from '@zerologementvacant/models';
-import React, { useEffect, useImperativeHandle, useState } from 'react';
-
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import * as yup from 'yup';
-import { useForm } from '../../hooks/useForm';
+import { HousingStatus } from '@zerologementvacant/models';
 import { Housing, HousingUpdate, OccupancyKind } from '../../models/Housing';
-import {
-  allOccupancyOptions,
-  statusOptions
-} from '../../models/HousingFilters';
 import { getSubStatusOptions } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
-import { pluralize } from '../../utils/stringUtils';
-import AppSelect from '../_app/AppSelect/AppSelect';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
+import { allOccupancyOptions, statusOptions } from '../../models/HousingFilters';
+import { useForm } from '../../hooks/useForm';
 import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import HousingStatusSelect from './HousingStatusSelect';
+import AppSelect from '../_app/AppSelect/AppSelect';
+import AppTextInput from '../_app/AppTextInput/AppTextInput';
 
 const modal = createModal({
-  id: `housing-edition-modal`,
+  id: 'housing-edition-modal',
   isOpenedByDefault: false
 });
 
@@ -35,6 +31,7 @@ const HousingEditionForm = (
   { housing, housingCount, onSubmit }: Props,
   ref: any
 ) => {
+  // Form state
   const [occupancy, setOccupancy] = useState(
     housing ? housing?.occupancy : MultiHousingOccupancyDefaultValue
   );
@@ -51,7 +48,7 @@ const HousingEditionForm = (
     if (housing) {
       selectStatus(housing.status ?? HousingStatus.WAITING);
     }
-  }, [housing?.status]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [housing?.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function selectStatus(newStatus: HousingStatus): void {
     setStatus(+newStatus);
@@ -91,10 +88,8 @@ const HousingEditionForm = (
         'Pour enregister, veuillez saisir au moins une donnée. Sinon, cliquez sur "Annuler" ou sur "Fermer" pour quitter la mise à jour groupée.'
       )
   };
-  type FormShape = typeof shape;
 
-  const isStatusUpdate =
-    housing?.status !== status || housing?.subStatus !== subStatus;
+  const isStatusUpdate = housing?.status !== status || housing?.subStatus !== subStatus;
 
   const isOccupancyUpdate = () => {
     if (housing) {
@@ -176,8 +171,8 @@ const HousingEditionForm = (
     value: note
   }));
 
-  return (
-    <>
+  const MobilizationTab = () => (
+    <div className="bg-975 fr-py-2w fr-px-3w">
       {form.messageType('hasChange') === 'error' && (
         <Alert
           severity="error"
@@ -185,124 +180,151 @@ const HousingEditionForm = (
           description={form.message('hasChange')!}
         />
       )}
-      <div className="bg-975 fr-py-2w fr-px-3w">
-        <Text size="lg" bold spacing="mb-2w">
-          <Icon
-            name="fr-icon-information-fill"
-            size="lg"
-            verticalAlign="middle"
-            className="color-bf113"
-          />
-          Mobilisation 
-          {pluralize(housingCount ?? 1, [{ old: 'du', new: 'des' }])(
-            'du logement'
+      <Text size="lg" bold spacing="mb-2w">
+        <Icon
+          name="fr-icon-information-fill"
+          size="lg"
+          verticalAlign="middle"
+          className="color-bf113"
+        />
+        Mobilisation du logement
+      </Text>
+      <div className="fr-select-group">
+        <HousingStatusSelect
+          selected={status}
+          options={statusOptions(
+            (housing?.campaignIds ?? []).length === 0
+              ? []
+              : [HousingStatus.NEVER_CONTACTED]
           )}
-        </Text>
-        <div className="fr-select-group">
-          <HousingStatusSelect
-            selected={status}
-            options={statusOptions(
-              (housing?.campaignIds ?? []).length === 0
-                ? []
-                : [HousingStatus.NEVER_CONTACTED]
-            )}
-            onChange={(e: HousingStatus) => {
-              selectStatus(e);
-            }}
-          />
-        </div>
-        {subStatusOptions && (
-          <AppSelect<FormShape>
-            onChange={(e) => setSubStatus(e.target.value)}
-            value={subStatus ?? undefined}
-            required
-            label="Sous-statut de suivi"
+          onChange={(e: HousingStatus) => {
+            selectStatus(e);
+          }}
+        />
+      </div>
+      {subStatusOptions && (
+        <AppSelect
+          onChange={(e) => setSubStatus(e.target.value)}
+          value={subStatus}
+          required
+          label="Sous-statut de suivi"
+          inputForm={form}
+          inputKey="subStatus"
+          options={subStatusOptions}
+        />
+      )}
+    </div>
+  );
+
+  const OccupationTab = () => (
+    <div className="bg-white fr-py-2w fr-px-3w">
+      {form.messageType('hasChange') === 'error' && (
+        <Alert
+          severity="error"
+          small
+          description={form.message('hasChange')!}
+        />
+      )}
+      <Text size="lg" bold spacing="mb-2w">
+        <Icon
+          name="fr-icon-home-4-fill"
+          size="lg"
+          verticalAlign="middle"
+          className="color-bf113"
+        />
+        Occupation du logement
+      </Text>
+      <Row gutters>
+        <Col>
+          <AppSelect
+            onChange={(e) => setOccupancy(e.target.value as OccupancyKind)}
+            value={occupancy}
+            required={housing !== undefined}
+            label="Occupation actuelle"
             inputForm={form}
-            inputKey="subStatus"
-            options={subStatusOptions}
+            inputKey="occupancy"
+            options={[
+              ...(housing
+                ? []
+                : [
+                    {
+                      label: 'Sélectionnez une occupation actuelle',
+                      value: MultiHousingOccupancyDefaultValue,
+                      disabled: true
+                    }
+                  ]),
+              ...allOccupancyOptions
+            ]}
           />
-        )}
-      </div>
-      <div className="bg-white fr-py-2w fr-px-3w fr-my-1w">
-        <Text size="lg" bold spacing="mb-2w">
-          <Icon
-            name="fr-icon-home-4-fill"
-            size="lg"
-            verticalAlign="middle"
-            className="color-bf113"
+          <AppSelect
+            onChange={(e) =>
+              setOccupancyIntended(e.target.value as OccupancyKind)
+            }
+            value={occupancyIntended}
+            label="Occupation prévisionnelle"
+            inputForm={form}
+            inputKey="occupancyIntended"
+            options={[
+              ...(housing
+                ? []
+                : [
+                    {
+                      label: 'Sélectionnez une occupation prévisionnelle',
+                      value: MultiHousingOccupancyDefaultValue,
+                      disabled: true
+                    }
+                  ]),
+              ...allOccupancyOptions
+            ]}
           />
-          Occupation 
-          {pluralize(housingCount ?? 1, [{ old: 'du', new: 'des' }])(
-            'du logement'
-          )}
-        </Text>
-        <Row gutters>
-          <Col>
-            <AppSelect<FormShape>
-              onChange={(e) => setOccupancy(e.target.value as OccupancyKind)}
-              value={occupancy}
-              required={housing !== undefined}
-              label="Occupation actuelle"
-              inputForm={form}
-              inputKey="occupancy"
-              options={[
-                ...(housing
-                  ? []
-                  : [
-                      {
-                        label: 'Sélectionnez une occupation actuelle',
-                        value: MultiHousingOccupancyDefaultValue,
-                        disabled: true
-                      }
-                    ]),
-                ...allOccupancyOptions
-              ]}
-            />
-            <AppSelect<FormShape>
-              onChange={(e) =>
-                setOccupancyIntended(e.target.value as OccupancyKind)
-              }
-              value={occupancyIntended ?? undefined}
-              label="Occupation prévisionnelle"
-              inputForm={form}
-              inputKey="occupancyIntended"
-              options={[
-                ...(housing
-                  ? []
-                  : [
-                      {
-                        label: 'Sélectionnez une occupation prévisionnelle',
-                        value: MultiHousingOccupancyDefaultValue,
-                        disabled: true
-                      }
-                    ]),
-                ...allOccupancyOptions
-              ]}
-            />
-          </Col>
-        </Row>
-      </div>
-      <div className="bg-white fr-py-2w fr-px-3w">
-        <Text size="lg" bold spacing="mb-2w">
-          Note
-        </Text>
-        <AppTextInput<FormShape>
-          textArea
-          rows={3}
-          onChange={(e) => setComment(e.target.value)}
-          inputForm={form}
-          inputKey="comment"
-          placeholder="Tapez votre note ici..."
-        />
-        <AppSelect<FormShape>
-          onChange={(e) => setNoteKind(e.target.value)}
-          value={noteKind}
-          label="Type de note"
-          inputForm={form}
-          inputKey="noteKind"
-          options={notesOptions}
-        />
-      </div>
+        </Col>
+      </Row>
+    </div>
+  );
+
+  const NoteTab = () => (
+    <div className="bg-white fr-py-2w fr-px-3w">
+      <Text size="lg" bold spacing="mb-2w">
+        Note
+      </Text>
+      <AppTextInput
+        textArea
+        rows={3}
+        onChange={(e) => setComment(e.target.value)}
+        inputForm={form}
+        inputKey="comment"
+        placeholder="Tapez votre note ici..."
+      />
+      <AppSelect
+        onChange={(e) => setNoteKind(e.target.value)}
+        value={noteKind}
+        label="Type de note"
+        inputForm={form}
+        inputKey="noteKind"
+        options={notesOptions}
+      />
+    </div>
+  );
+
+  return (
+    <>
+      <Tabs
+        tabs={[
+          {
+            label: "Mobilisation",
+            content: <MobilizationTab />
+          },
+          {
+            label: "Occupation",
+            content: <OccupationTab />
+          },
+          {
+            label: "Note",
+            content: <NoteTab />
+          }
+        ]}
+      />
+
       <modal.Component
         title={`Vous êtes sur le point de mettre à jour ${housingCount} logements`}
         buttons={[
@@ -335,7 +357,7 @@ const HousingEditionForm = (
             {occupancyIntended !== MultiHousingOccupancyDefaultValue && (
               <li>Occupation du logement - Occupation prévisionnelle</li>
             )}
-            {hasNote && <li>Ajout d’une note</li>}
+            {hasNote && <li>Ajout d'une note</li>}
           </ul>
         </Container>
       </modal.Component>

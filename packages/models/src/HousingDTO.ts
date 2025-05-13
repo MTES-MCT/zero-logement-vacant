@@ -17,12 +17,12 @@ export interface HousingDTO {
   cadastralClassification: number | null;
   cadastralReference?: string | null;
   uncomfortable: boolean;
-  vacancyStartYear?: number;
+  vacancyStartYear: number | null;
   housingKind: HousingKind;
   roomsCount: number | null;
   livingArea: number | null;
   buildingYear?: number | null;
-  taxed?: boolean;
+  taxed?: boolean | null;
   /**
    * @deprecated See {@link dataFileYears}
    */

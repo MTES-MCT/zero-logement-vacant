@@ -302,6 +302,11 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
             .andOnVal('address_kind', AddressKinds.Owner);
         })
         .select(db.raw('to_json(ban.*) AS owner_ban_address')),
+    /**
+     * @deprecated Events should not be pulled to display the housings,
+     * for performance reasons.
+     * @param query
+     */
     events: (query) =>
       query.select('events.contact_count', 'events.last_contact').joinRaw(
         `left join lateral (
@@ -960,7 +965,7 @@ export interface HousingRecordDBO {
   geolocation?: string | null;
   cadastral_classification: number | null;
   uncomfortable: boolean;
-  vacancy_start_year?: number;
+  vacancy_start_year?: number | null;
   housing_kind: string;
   rooms_count: number | null;
   living_area: number | null;

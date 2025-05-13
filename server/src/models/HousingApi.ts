@@ -37,7 +37,7 @@ export interface HousingRecordApi
   longitude?: number;
   latitude?: number;
   uncomfortable: boolean;
-  vacancyStartYear?: number;
+  vacancyStartYear?: number | null;
   housingKind: string;
   roomsCount: number | null;
   livingArea: number | null;
@@ -103,7 +103,7 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     cadastralClassification: housing.cadastralClassification,
     cadastralReference: housing.cadastralReference,
     uncomfortable: housing.uncomfortable,
-    vacancyStartYear: housing.vacancyStartYear,
+    vacancyStartYear: housing.vacancyStartYear ?? null,
     housingKind: housing.housingKind as HousingKind,
     roomsCount: housing.roomsCount,
     livingArea: housing.livingArea,

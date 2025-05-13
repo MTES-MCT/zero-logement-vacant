@@ -1,24 +1,32 @@
 import { faker } from '@faker-js/faker';
 import {
   AddressKinds,
+  CADASTRAL_CLASSIFICATION_VALUES,
   DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
-  HousingStatus
+  HOUSING_KIND_VALUES,
+  HousingStatus,
+  Occupancy,
+  ROLE_VALUES
 } from '@zerologementvacant/models';
-import { genAddressDTO } from '@zerologementvacant/models/fixtures';
+import {
+  genAddressDTO,
+  genEventDTO,
+  genUserDTO
+} from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 
 import fp from 'lodash/fp';
 import randomstring from 'randomstring';
 import { Address } from '../src/models/Address';
+import { Event, fromEventDTO } from '../src/models/Event';
 import { Group } from '../src/models/Group';
-import { Housing, OccupancyKind } from '../src/models/Housing';
+import { Housing } from '../src/models/Housing';
 import { LocalityKinds } from '../src/models/Locality';
-
 import { Owner } from '../src/models/Owner';
 import { Prospect } from '../src/models/Prospect';
 import { SignupLink } from '../src/models/SignupLink';
-import { AuthUser, User } from '../src/models/User';
+import { AuthUser, fromUserDTO, toUserDTO, User } from '../src/models/User';
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -65,12 +73,8 @@ export function genAuthUser(): AuthUser {
   };
 }
 
-export function genUser() {
-  return {
-    email: genEmail(),
-    firstName: randomstring.generate(),
-    lastName: randomstring.generate()
-  } as User;
+export function genUser(): User {
+  return fromUserDTO(genUserDTO(faker.helpers.arrayElement(ROLE_VALUES)));
 }
 
 export function genOwner(): Owner {
@@ -96,21 +100,25 @@ export function genHousing(): Housing {
     localityKind: LocalityKinds.ACV,
     owner: genOwner(),
     livingArea: genNumber(4),
-    housingKind: randomstring.generate(),
+    housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
     roomsCount: genNumber(1),
+    buildingId: faker.string.uuid(),
     buildingYear: genNumber(4),
     vacancyStartYear: genNumber(4),
-    dataFileYears: ['2021'],
+    dataFileYears: ['lovac-2021'],
     campaignIds: [],
     cadastralReference: '',
     uncomfortable: false,
-    cadastralClassification: genNumber(1),
+    cadastralClassification: faker.helpers.arrayElement(
+      CADASTRAL_CLASSIFICATION_VALUES
+    ),
     taxed: false,
     ownershipKind: 'single',
     buildingVacancyRate: genNumber(2),
     status: HousingStatus.NEVER_CONTACTED,
     source: null,
-    occupancy: OccupancyKind.Vacant,
+    occupancy: Occupancy.VACANT,
+    occupancyIntended: Occupancy.VACANT,
     energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES),
     energyConsumptionAt: new Date()
   };
@@ -289,4 +297,12 @@ export function genDatafoncierHousing(): DatafoncierHousing {
     code_epci: randomstring.generate(),
     idpk: null
   };
+}
+
+export function genEvent<T>(
+  before: T | undefined,
+  after: T | undefined,
+  creator: User
+): Event {
+  return fromEventDTO(genEventDTO(before, after, toUserDTO(creator)));
 }

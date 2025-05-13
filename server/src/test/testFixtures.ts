@@ -282,7 +282,7 @@ export function genBuildingApi(): BuildingApi {
 
   return {
     id: geoCode + faker.string.sample(7),
-    housingCount: vacantHousingCount,
+    housingCount,
     vacantHousingCount,
     rentHousingCount,
     rnbId: faker.string.alphanumeric({ casing: 'upper' }),

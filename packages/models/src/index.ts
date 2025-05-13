@@ -1,5 +1,7 @@
 export * from './AddressDTO';
 export * from './BeneficiaryCount';
+export * from './BuildingDTO';
+export * from './BuildingFiltersDTO';
 export * from './BuildingPeriod';
 export * from './CadastralClassification';
 export * from './CampaignCount';

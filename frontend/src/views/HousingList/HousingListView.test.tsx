@@ -70,7 +70,9 @@ describe('Housing list view', () => {
     render(
       <Provider store={store}>
         <Router>
-          <HousingListView />
+          <HousingListTabsProvider>
+            <HousingListView />
+          </HousingListTabsProvider>
         </Router>
       </Provider>
     );
@@ -116,7 +118,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );
@@ -131,7 +135,9 @@ describe('Housing list view', () => {
       render(
         <Provider store={store}>
           <Router>
-            <HousingListView />
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
           </Router>
         </Provider>
       );

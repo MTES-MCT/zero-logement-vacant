@@ -31,6 +31,9 @@ export interface Housing {
   rawAddress: string[];
   latitude?: number;
   longitude?: number;
+  /**
+   * @deprecated Should be fetched from the Locality API.
+   */
   localityKind: LocalityKinds;
   geoPerimeters?: string[];
   owner: Owner;

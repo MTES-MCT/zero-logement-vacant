@@ -1,57 +1,114 @@
-import { WritableStream } from 'node:stream/web';
+import { map } from '@zerologementvacant/utils/node';
 import { v4 as uuidv4 } from 'uuid';
-
-import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
+import { createLogger } from '~/infra/logger';
+import { OwnerApi } from '~/models/OwnerApi';
+import { OwnerDBO } from '~/repositories/ownerRepository';
 import {
   ReporterError,
   ReporterOptions
 } from '~/scripts/import-lovac/infra/reporters';
-import { createLogger } from '~/infra/logger';
-import { OwnerDBO } from '~/repositories/ownerRepository';
+
+import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
 
 const logger = createLogger('sourceOwnerProcessor');
 
 interface ProcessorOptions extends ReporterOptions<SourceOwner> {
-  saveOwner(owner: OwnerDBO): Promise<void>;
+  ownerRepository: {
+    findOne(opts: { idpersonne: string }): Promise<OwnerDBO | null>;
+  };
 }
 
+interface Change<Value, Type extends string> {
+  type: Type;
+  kind: 'create' | 'update' | 'delete';
+  value: Value;
+}
+
+export type OwnerChange = Change<OwnerApi, 'owner'>;
+
 export function sourceOwnerProcessor(opts: ProcessorOptions) {
-  const { abortEarly, saveOwner, reporter } = opts;
+  const { abortEarly, ownerRepository, reporter } = opts;
 
-  return new WritableStream<SourceOwner>({
-    async write(chunk) {
-      try {
-        logger.debug('Processing source owner...', { chunk });
-        const now = new Date();
+  return map<SourceOwner, OwnerChange | null>(async (sourceOwner) => {
+    try {
+      logger.debug('Processing source owner...', { sourceOwner });
 
-        await saveOwner({
-          id: uuidv4(),
-          idpersonne: chunk.idpersonne,
-          full_name: chunk.full_name,
-          birth_date: chunk.birth_date,
-          administrator: null,
-          siren: chunk.siren,
-          address_dgfip: [chunk.dgfip_address],
-          additional_address: null,
-          email: null,
-          phone: null,
-          data_source: 'lovac-2024',
-          kind_class: chunk.ownership_type,
-          owner_kind_detail: null,
-          created_at: now,
-          updated_at: now
-        });
-        reporter.passed(chunk);
-      } catch (error) {
-        reporter.failed(
-          chunk,
-          new ReporterError((error as Error).message, chunk)
-        );
-
-        if (abortEarly) {
-          throw error;
-        }
+      const existingOwner = await ownerRepository.findOne({
+        idpersonne: sourceOwner.idpersonne
+      });
+      if (!existingOwner) {
+        const now = new Date().toJSON();
+        const change: OwnerChange = {
+          type: 'owner',
+          kind: 'create',
+          value: {
+            id: uuidv4(),
+            idpersonne: sourceOwner.idpersonne,
+            fullName: sourceOwner.full_name,
+            birthDate: sourceOwner.birth_date?.toJSON() ?? null,
+            administrator: undefined,
+            siren: sourceOwner.siren ?? undefined,
+            rawAddress: sourceOwner.dgfip_address
+              ? [sourceOwner.dgfip_address]
+              : null,
+            additionalAddress: undefined,
+            email: undefined,
+            phone: undefined,
+            dataSource: 'lovac-2025',
+            kind: sourceOwner.ownership_type,
+            kindDetail: undefined,
+            entity: sourceOwner.entity,
+            createdAt: now,
+            updatedAt: now
+          }
+        };
+        reporter.passed(sourceOwner);
+        return change;
       }
+
+      const change: OwnerChange = {
+        type: 'owner',
+        kind: 'update',
+        value: {
+          id: existingOwner.id,
+          idpersonne: sourceOwner.idpersonne,
+          fullName: sourceOwner.full_name,
+          birthDate: sourceOwner.birth_date
+            ? sourceOwner.birth_date.toJSON().substring(0, 'yyyy-mm-dd'.length)
+            : existingOwner.birth_date
+              ? new Date(existingOwner.birth_date).toJSON()
+              : null,
+          administrator: existingOwner.administrator ?? undefined,
+          siren: sourceOwner.siren ?? existingOwner.siren ?? undefined,
+          rawAddress: sourceOwner.dgfip_address
+            ? [sourceOwner.dgfip_address]
+            : null,
+          additionalAddress: existingOwner.additional_address ?? undefined,
+          email: existingOwner.email ?? undefined,
+          phone: existingOwner.phone ?? undefined,
+          dataSource: existingOwner.data_source ?? undefined,
+          kind: sourceOwner.ownership_type,
+          kindDetail: existingOwner.owner_kind_detail ?? undefined,
+          entity: sourceOwner.entity,
+          createdAt: existingOwner.created_at
+            ? new Date(existingOwner.created_at).toJSON()
+            : undefined,
+          updatedAt: new Date().toJSON()
+        }
+      };
+      reporter.passed(sourceOwner);
+      return change;
+    } catch (error) {
+      reporter.failed(
+        sourceOwner,
+        new ReporterError((error as Error).message, sourceOwner)
+      );
+
+      if (abortEarly) {
+        throw error;
+      }
+
+      return null;
     }
   });
 }

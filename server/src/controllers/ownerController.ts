@@ -97,6 +97,8 @@ async function create(
     kind: null,
     phone: body.phone,
     email: body.email,
+    // TODO: obtain this from the frontend form
+    entity: 'personnes-physiques',
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON()
   };
@@ -160,6 +162,7 @@ async function update(
     idpersonne: existingOwner.idpersonne,
     siren: existingOwner.siren,
     dataSource: existingOwner.dataSource,
+    entity: existingOwner.entity,
     createdAt: existingOwner.createdAt,
     updatedAt: new Date().toJSON()
   };
@@ -268,7 +271,8 @@ async function updateHousingOwners(
         rank: housingOwnerPayload.rank,
         idprocpte: housingOwnerPayload.idprocpte ?? undefined,
         idprodroit: housingOwnerPayload.idprodroit ?? undefined,
-        locprop: housingOwnerPayload.locprop ?? undefined
+        locprop: housingOwnerPayload.locprop ?? undefined,
+        propertyRight: housingOwnerPayload.propertyRight ?? null
       };
     }
   );

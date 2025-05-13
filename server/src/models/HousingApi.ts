@@ -26,9 +26,9 @@ export interface HousingRecordApi
    */
   invariant: string;
   localId: string;
-  plotId?: string;
-  buildingId?: string;
-  buildingGroupId?: string;
+  plotId?: string | null;
+  buildingId?: string | null;
+  buildingGroupId?: string | null;
   /**
    * @deprecateds Should become `addressDGFIP: string`
    */
@@ -39,9 +39,9 @@ export interface HousingRecordApi
   uncomfortable: boolean;
   vacancyStartYear?: number;
   housingKind: string;
-  roomsCount: number;
-  livingArea: number;
-  cadastralReference?: string;
+  roomsCount: number | null;
+  livingArea: number | null;
+  cadastralReference?: string | null;
   buildingYear?: number;
   mutationDate: Date | null;
   taxed?: boolean;
@@ -50,11 +50,11 @@ export interface HousingRecordApi
    */
   dataYears: number[];
   dataFileYears: string[];
-  beneficiaryCount?: number;
-  buildingLocation?: string;
-  rentalValue?: number;
-  geolocation?: string;
-  ownershipKind?: string;
+  beneficiaryCount?: number | null;
+  buildingLocation?: string | null;
+  rentalValue?: number | null;
+  geolocation?: string | null;
+  ownershipKind?: string | null;
   status: HousingStatusApi;
   subStatus?: string | null;
   /**
@@ -72,14 +72,14 @@ export interface HousingRecordApi
 }
 
 export interface HousingApi extends HousingRecordApi {
-  localityKind?: string;
-  geoPerimeters?: string[];
+  localityKind?: string | null;
+  geoPerimeters?: string[] | null;
   owner?: OwnerApi;
-  buildingHousingCount?: number;
-  buildingVacancyRate?: number;
-  campaignIds?: string[];
-  contactCount?: number;
-  lastContact?: Date;
+  buildingHousingCount?: number | null;
+  buildingVacancyRate?: number | null;
+  campaignIds?: string[] | null;
+  contactCount?: number | null;
+  lastContact?: Date | null;
   /**
    * Added by joining with the `housing_precisions` and `precisions` tables
    */

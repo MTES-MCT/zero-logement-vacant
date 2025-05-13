@@ -11608,7 +11608,7 @@ __metadata:
     maplibre-gl: "npm:^4.7.1"
     mime: "npm:^4.0.4"
     msw: "npm:^2.4.9"
-    posthog-js: "npm:^1.200.1"
+    posthog-js: "npm:^1.240.6"
     prop-types: "npm:^15.8.1"
     qs: "npm:^6.13.0"
     randomstring: "npm:^1.3.0"
@@ -26513,15 +26513,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"posthog-js@npm:^1.200.1":
-  version: 1.200.1
-  resolution: "posthog-js@npm:1.200.1"
+"posthog-js@npm:^1.240.6":
+  version: 1.240.6
+  resolution: "posthog-js@npm:1.240.6"
   dependencies:
     core-js: "npm:^3.38.1"
     fflate: "npm:^0.4.8"
     preact: "npm:^10.19.3"
-    web-vitals: "npm:^4.2.0"
-  checksum: 10c0/9e8d5fe36d2cde15ba9966cad9672ad3436f1eb73b57d43411ec31215959681ab00a2525c6c4add27d42b0c0c9dcdb5ae61d813a4d11ec57bc17ccd1de773a64
+    web-vitals: "npm:^4.2.4"
+  peerDependencies:
+    "@rrweb/types": 2.0.0-alpha.17
+    rrweb-snapshot: 2.0.0-alpha.17
+  peerDependenciesMeta:
+    "@rrweb/types":
+      optional: true
+    rrweb-snapshot:
+      optional: true
+  checksum: 10c0/9231ac2e715cc8804b825b478d14d76e409e74622d6b94d4c306891cb437c3e2576ebcd5e77cc82d15105e2d7cb11490ecbb77bfc790658752bda968ca0a717b
   languageName: node
   linkType: hard
 
@@ -31538,7 +31546,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-vitals@npm:^4.2.0":
+"web-vitals@npm:^4.2.4":
   version: 4.2.4
   resolution: "web-vitals@npm:4.2.4"
   checksum: 10c0/383c9281d5b556bcd190fde3c823aeb005bb8cf82e62c75b47beb411014a4ed13fa5c5e0489ed0f1b8d501cd66b0bebcb8624c1a75750bd5df13e2a3b1b2d194

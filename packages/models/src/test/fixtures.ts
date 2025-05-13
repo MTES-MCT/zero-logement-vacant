@@ -21,6 +21,7 @@ import { NoteDTO } from '../NoteDTO';
 import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
 import { OwnerDTO } from '../OwnerDTO';
 import { OWNER_KIND_LABELS } from '../OwnerKind';
+import { PROPERTY_RIGHT_VALUES } from '../PropertyRight';
 import { ProspectDTO } from '../ProspectDTO';
 import { RolesDTO } from '../RolesDTO';
 import { SenderDTO, SignatoryDTO } from '../SenderDTO';
@@ -319,10 +320,11 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
 export function genHousingOwnerDTO(owner: OwnerDTO): HousingOwnerDTO {
   return {
     ...owner,
-    rank: faker.number.int({ min: 1, max: 10 }),
+    rank: faker.helpers.arrayElement([-2, -1, 0, 1, 2, 3, 4, 5, 6]),
     idprocpte: faker.string.numeric(11),
     idprodroit: faker.string.numeric(13),
-    locprop: faker.number.int(9)
+    locprop: faker.number.int(9),
+    propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
   };
 }
 

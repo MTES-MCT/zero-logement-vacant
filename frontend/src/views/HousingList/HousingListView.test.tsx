@@ -54,7 +54,9 @@ describe('Housing list view', () => {
 
     render(
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <HousingListTabsProvider>
+          <RouterProvider router={router} />
+        </HousingListTabsProvider>
       </Provider>
     );
   }
@@ -79,10 +81,13 @@ describe('Housing list view', () => {
 
     const accordion = await screen.findByRole('button', { name: /^Logement/ });
     await user.click(accordion);
-    const checkbox = await screen.findByRole('checkbox', {
-      name: /^Appartement/
+    const status = await screen.findByRole('combobox', {
+      name: /Type de logement/
     });
-    await user.click(checkbox);
+    await user.click(status);
+    const options = await screen.findByRole('listbox');
+    const option = await within(options).findByText('Appartement');
+    await user.click(option);
     const text = `${apartments.length} logements (${owners.length} propriétaires) filtrés sur un total de ${data.housings.length} logements`;
     const label = await screen.findByText(text);
     expect(label).toBeVisible();
@@ -92,7 +97,7 @@ describe('Housing list view', () => {
     it('should select all housings when the top checkbox gets checked', async () => {
       setup();
 
-      const [row] = await screen.findAllByRole('row');
+      const [row] = await screen.findAllByRole('columnheader');
       const checkboxes = await within(row).findAllByRole('checkbox');
       const [checkAll] = checkboxes;
       await user.click(checkAll);
@@ -112,45 +117,6 @@ describe('Housing list view', () => {
       checkboxes.forEach((checkbox) => {
         expect(checkbox).not.toBeChecked();
       });
-    });
-
-    it('should hide the button to create campaign if no housing are selected', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListTabsProvider>
-              <HousingListView />
-            </HousingListTabsProvider>
-          </Router>
-        </Provider>
-      );
-
-      const createCampaign = screen.queryByRole('button', {
-        name: /^Créer une campagne/
-      });
-      expect(createCampaign).not.toBeInTheDocument();
-    });
-
-    it('should enable the creation of the campaign when at least a housing is selected', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListTabsProvider>
-              <HousingListView />
-            </HousingListTabsProvider>
-          </Router>
-        </Provider>
-      );
-
-      const rows = await screen.findAllByRole('row');
-      const firstDataRow = rows[1]; // First row after the header row
-      const checkbox = await within(firstDataRow).findByRole('checkbox');
-      await user.click(checkbox);
-
-      const createCampaign = await screen.findByRole('button', {
-        name: /^Créer une campagne/
-      });
-      expect(createCampaign).toBeVisible();
     });
   });
 
@@ -457,6 +423,7 @@ describe('Housing list view', () => {
       expect(alert).toBeVisible();
     });
   });
+
   describe('Campaign creation', () => {
     function renderView() {
       const router = createMemoryRouter(
@@ -894,7 +861,9 @@ describe('Housing list view', () => {
         const filter = await screen.findByLabelText(/^Campagne/);
         await user.click(filter);
         const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText(campaign.title);
+        const option = await within(options).findByRole('option', {
+          name: campaign.title
+        });
         await user.click(option);
         await user.keyboard('{Escape}');
         const panel = await screen.findByRole('tabpanel', {

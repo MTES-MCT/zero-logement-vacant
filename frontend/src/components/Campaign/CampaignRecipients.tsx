@@ -198,7 +198,7 @@ function CampaignRecipients(props: Props) {
         page={page}
         pageCount={pageCount}
         perPage={perPage}
-        tableProps={{ noScroll: true, noCaption: true }}
+        tableProps={{ fixed: true, noCaption: true }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
       />

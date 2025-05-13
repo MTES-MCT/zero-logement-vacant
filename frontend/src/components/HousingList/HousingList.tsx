@@ -55,7 +55,7 @@ function HousingList(props: HousingListProps) {
   const [sort, setSort] = useState<HousingSort>();
   const [updatingHousing, setUpdatingHousing] = useState<Housing>();
 
-  const { data: housings, isLoading: isLoadingHousings } = useFindHousingQuery({
+  const { data: housings, isFetching: isFetchHousings } = useFindHousingQuery({
     filters,
     pagination,
     sort
@@ -255,7 +255,7 @@ function HousingList(props: HousingListProps) {
         columns={columns}
         data={housingList ?? []}
         getRowId={(housing) => housing.id}
-        isLoading={isLoadingHousings}
+        isLoading={isFetchHousings}
         page={page}
         pageCount={pageCount}
         perPage={perPage}

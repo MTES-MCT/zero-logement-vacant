@@ -1,7 +1,8 @@
 import { ComponentPropsWithoutRef } from 'react';
+import { vi } from 'vitest';
 
 const { default: Aside } =
-  jest.requireActual<typeof import('../Aside')>('../Aside');
+  await vi.importActual<typeof import('../Aside')>('../Aside');
 
 type AsideProps = ComponentPropsWithoutRef<typeof Aside>;
 type MockAsideProps = Omit<AsideProps, 'attachTo'>;

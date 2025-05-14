@@ -1,10 +1,10 @@
 import { render, screen, within } from '@testing-library/react';
-import HousingEditionForm from './HousingEditionForm';
-import { genHousing } from '../../../test/fixtures.test';
-import { MemoryRouter as Router } from 'react-router-dom';
-import { getHousingState } from '../../models/HousingState';
-import { Housing } from '../../models/Housing';
 import { HousingStatus } from '@zerologementvacant/models';
+import { MemoryRouter as Router } from 'react-router-dom';
+import { genHousing } from '../../../test/fixtures.ts';
+import { Housing } from '../../models/Housing';
+import { getHousingState } from '../../models/HousingState';
+import HousingEditionForm from './HousingEditionForm';
 
 describe('HousingEditionForm', () => {
   describe('statusOptions', () => {

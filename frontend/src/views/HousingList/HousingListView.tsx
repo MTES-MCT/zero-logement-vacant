@@ -27,7 +27,6 @@ import {
   useCreateGroupMutation
 } from '../../services/group.service';
 import { useCountHousingQuery } from '../../services/housing.service';
-import { initialHousingFilters } from '../../store/reducers/housingReducer';
 import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
@@ -49,8 +48,7 @@ const HousingListView = () => {
     onChangeFilters,
     onResetFilters
   } = useFilters({
-    storage: 'store',
-    initialState: initialHousingFilters
+    storage: 'store'
   });
 
   const { view } = useAppSelector((state) => state.housing);

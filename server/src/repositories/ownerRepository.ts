@@ -1,4 +1,4 @@
-import { AddressKinds } from '@zerologementvacant/models';
+import { AddressKinds, OwnerEntity } from '@zerologementvacant/models';
 import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
@@ -175,11 +175,10 @@ const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
   );
 };
 
-interface FindOneOptions {
-  id?: string;
-  idpersonne?: string;
-  fullName?: string;
-  rawAddress?: string[];
+interface FindOneOptions
+  extends Partial<
+    Pick<OwnerApi, 'id' | 'idpersonne' | 'fullName' | 'rawAddress'>
+  > {
   birthDate?: Date;
 }
 
@@ -479,7 +478,7 @@ export interface OwnerRecordDBO {
   birth_date: Date | string | null;
   administrator: string | null;
   siren: string | null;
-  address_dgfip: string[];
+  address_dgfip: string[] | null;
   // ban_address: string | null;
   additional_address: string | null;
   email: string | null;
@@ -487,6 +486,7 @@ export interface OwnerRecordDBO {
   data_source: string | null;
   kind_class: string | null;
   owner_kind_detail: string | null;
+  entity: OwnerEntity;
   created_at: Date | string | null;
   updated_at: Date | string | null;
 }
@@ -537,6 +537,7 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     siren: owner.siren ?? undefined,
     banAddress: owner.ban ? parseAddressApi(owner.ban) : undefined,
     additionalAddress: owner.additional_address ?? undefined,
+    entity: owner.entity,
     createdAt: owner.created_at
       ? new Date(owner.created_at).toJSON()
       : undefined,
@@ -556,7 +557,14 @@ export const parseHousingOwnerApi = (
   rank: housingOwner.rank,
   startDate: housingOwner.start_date,
   endDate: housingOwner.end_date,
-  origin: housingOwner.origin
+  origin: housingOwner.origin,
+  idprocpte: housingOwner.idprocpte,
+  idprodroit: housingOwner.idprodroit,
+  locprop:
+    typeof housingOwner.locprop_source === 'string'
+      ? Number(housingOwner.locprop_source)
+      : null,
+  propertyRight: housingOwner.property_right
 });
 
 export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
@@ -566,13 +574,14 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
   birth_date: owner.birthDate,
   administrator: owner.administrator ?? null,
   siren: owner.siren ?? null,
-  address_dgfip: owner.rawAddress.filter((_: string) => _ && _.length),
+  address_dgfip: owner.rawAddress,
   additional_address: owner.additionalAddress ?? null,
   email: owner.email ?? null,
   phone: owner.phone ?? null,
   data_source: owner.dataSource ?? null,
   kind_class: owner.kind ?? null,
   owner_kind_detail: owner.kindDetail ?? null,
+  entity: owner.entity,
   created_at: owner.createdAt ? new Date(owner.createdAt) : null,
   updated_at: owner.updatedAt ? new Date(owner.updatedAt) : null
 });

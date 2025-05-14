@@ -1,32 +1,37 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
-import async from 'async';
-import { Knex } from 'knex';
-import { ElementOf, MarkRequired } from 'ts-essentials';
 
-import { AddressKinds } from '@zerologementvacant/models';
-import { Establishments } from '~/repositories/establishmentRepository';
-import { HousingApi } from '~/models/HousingApi';
-import { genHousingApi, genOwnerApi } from '~/test/testFixtures';
 import {
-  formatHousingRecordApi,
-  housingTable
-} from '~/repositories/housingRepository';
-import { OwnerApi } from '~/models/OwnerApi';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { formatOwnerApi, ownerTable } from '~/repositories/ownerRepository';
-import {
-  formatHousingOwnerApi,
-  housingOwnersTable
-} from '~/repositories/housingOwnerRepository';
+  AddressKinds,
+  OwnerRank,
+  PROPERTY_RIGHT_VALUES
+} from '@zerologementvacant/models';
+import async from 'async';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
-import { createBanAPI } from '~/services/ban/ban-api';
+import { Knex } from 'knex';
+import fp from 'lodash/fp';
+import { ElementOf, MarkRequired } from 'ts-essentials';
+import { AddressApi } from '~/models/AddressApi';
+import { HousingApi } from '~/models/HousingApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import {
   banAddressesTable,
   formatAddressApi
 } from '~/repositories/banAddressesRepository';
-import { AddressApi } from '~/models/AddressApi';
-import fp from 'lodash/fp';
+import { Buildings } from '~/repositories/buildingRepository';
+import { Establishments } from '~/repositories/establishmentRepository';
+import {
+  formatHousingOwnerApi,
+  housingOwnersTable
+} from '~/repositories/housingOwnerRepository';
+import {
+  formatHousingRecordApi,
+  housingTable
+} from '~/repositories/housingRepository';
+import { formatOwnerApi, ownerTable } from '~/repositories/ownerRepository';
+import { createBanAPI } from '~/services/ban/ban-api';
+import { genHousingApi, genOwnerApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   const ban = createBanAPI();
@@ -36,13 +41,18 @@ export async function seed(knex: Knex): Promise<void> {
   await knex.raw(`TRUNCATE TABLE ${ownerTable} CASCADE`);
 
   const establishments = await Establishments(knex).where({ available: true });
+  const buildings = await Buildings(knex).limit(1000);
+
   await async.forEachSeries(establishments, async (establishment) => {
     const geoCodes = faker.helpers.arrayElements(
       establishment.localities_geo_code,
       30
     );
     const baseHousings: HousingApi[] = faker.helpers.multiple(
-      () => genHousingApi(faker.helpers.arrayElement(geoCodes)),
+      () => ({
+        ...genHousingApi(faker.helpers.arrayElement(geoCodes)),
+        buildingId: faker.helpers.arrayElement(buildings).id
+      }),
       {
         count: {
           min: 100,
@@ -155,7 +165,8 @@ export async function seed(knex: Knex): Promise<void> {
             ownerId: archivedOwner.id,
             housingGeoCode: housing.geoCode,
             housingId: housing.id,
-            rank: -2
+            rank: -2,
+            propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
           }));
 
         return activeOwners
@@ -164,7 +175,8 @@ export async function seed(knex: Knex): Promise<void> {
             ownerId: owner.id,
             housingGeoCode: housing.geoCode,
             housingId: housing.id,
-            rank: index + 1
+            rank: (index + 1) as OwnerRank,
+            propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
           }))
           .concat(archivedOwners);
       }

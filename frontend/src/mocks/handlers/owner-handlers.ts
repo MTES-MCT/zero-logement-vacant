@@ -162,13 +162,21 @@ export const ownerHandlers: RequestHandler[] = [
           rank: payload.rank,
           idprocpte: payload.idprocpte,
           idprodroit: payload.idprodroit,
-          locprop: payload.locprop
+          locprop: payload.locprop,
+          propertyRight: payload.propertyRight
         };
       });
       data.housingOwners.set(
         housing.id,
         housingOwners.map(
-          fp.pick(['id', 'rank', 'idprocpte', 'idprodroit', 'locprop'])
+          fp.pick([
+            'id',
+            'rank',
+            'idprocpte',
+            'idprodroit',
+            'locprop',
+            'propertyRight'
+          ])
         )
       );
       return HttpResponse.json(housingOwners, {

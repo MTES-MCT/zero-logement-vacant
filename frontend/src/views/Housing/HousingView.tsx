@@ -1,46 +1,42 @@
+import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
+import { skipToken } from '@reduxjs/toolkit/query';
 import async from 'async';
 import { useState } from 'react';
-import OwnerCard from '../../components/OwnerCard/OwnerCard';
-import { useHousing } from '../../hooks/useHousing';
+
+import HousingHeader from '../../components/Housing/HousingHeader';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
+import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
+import InactiveOwnerList from '../../components/Owner/InactiveOwnerList';
+import SecondaryOwnerList from '../../components/Owner/SecondaryOwnerList';
+import { useHousingOwners } from '../../components/Owner/useHousingOwners';
+import OwnerCardNext from '../../components/OwnerCard/OwnerCardNext';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useHousing } from '../../hooks/useHousing';
 import {
   hasOwnerChanges,
   hasRankChanges,
   HousingOwner
 } from '../../models/Owner';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
-import { useFindEventsByHousingQuery } from '../../services/event.service';
+import { useCountHousingQuery } from '../../services/housing.service';
 import {
   useUpdateHousingOwnersMutation,
   useUpdateOwnerMutation
 } from '../../services/owner.service';
-import { Campaign } from '../../models/Campaign';
-import MainContainer from '../../components/MainContainer/MainContainer';
+import NotFoundView from '../NotFoundView';
 
-const HousingView = () => {
-  const {
-    housing,
-    count,
-    coOwners,
-    mainHousingOwner,
-    housingOwners,
-    events,
-    notes,
-    campaigns
-  } = useHousing();
-  const housingCount = count?.housing ?? 0;
+function HousingView() {
+  const { housing, housingId, getHousingQuery } = useHousing();
   useDocumentTitle(
     housing
       ? `Fiche logement - ${housing.rawAddress.join(' ')}`
       : 'Page non trouvée'
   );
-
-  const { refetch: refetchHousingEvents } = useFindEventsByHousingQuery(
-    housing?.id ?? '',
-    { skip: !housing }
+  const { owner, housingOwners } = useHousingOwners(housingId);
+  const { data: count } = useCountHousingQuery(
+    housing?.owner?.id ? { ownerIds: [housing.owner.id] } : skipToken
   );
+
   const [updateOwner] = useUpdateOwnerMutation();
   const [updateHousingOwners] = useUpdateHousingOwnersMutation();
 
@@ -48,14 +44,10 @@ const HousingView = () => {
     new Date().getTime()
   );
 
-  if (!housing) {
-    return <></>;
-  }
-
-  const submitHousingOwnersUpdate = async (
+  async function submitHousingOwnersUpdate(
     housingOwnersUpdated: HousingOwner[]
-  ) => {
-    if (!housingOwners || housingOwners.length === 0) {
+  ) {
+    if (!housing || !housingOwners || housingOwners.length === 0) {
       return;
     }
 
@@ -77,52 +69,56 @@ const HousingView = () => {
         housingId: housing.id,
         housingOwners: housingOwnersUpdated
       }).unwrap();
-      await refetchHousingEvents().unwrap();
     }
-  };
+  }
+
+  if (getHousingQuery.isError && !housing) {
+    return <NotFoundView />;
+  }
 
   return (
-    <MainContainer grey>
+    <Container maxWidth="xl" sx={{ my: '2rem' }}>
+      <HousingHeader
+        className="fr-mb-3w"
+        housing={housing}
+        isLoading={getHousingQuery.isLoading}
+      />
+
       <Grid container columnSpacing={3}>
         {/* Set a custom order to facilitate accessibility:
         housing first, owner second */}
         <Grid xs={8} order={2}>
-          {housing && (
-            <>
-              <HousingDetailsCard
-                housing={housing}
-                housingEvents={events ?? []}
-                housingNotes={notes ?? []}
-                housingCampaigns={(campaigns as Campaign[]) ?? []}
-              />
-            </>
-          )}
+          <HousingDetailsCard housing={housing} />
         </Grid>
-        <Grid xs={4} order={1}>
-          {mainHousingOwner && housingOwners && (
-            <>
-              <OwnerCard
-                owner={mainHousingOwner}
-                coOwners={coOwners}
-                housingCount={housingCount}
-                modify={
-                  <HousingOwnersModal
-                    housingId={housing.id}
-                    housingOwners={housingOwners}
-                    onSubmit={submitHousingOwnersUpdate}
-                    key={housingOwnersModalKey}
-                    onCancel={() =>
-                      setHousingOwnersModalKey(new Date().getTime())
-                    }
-                  />
-                }
-              />
-            </>
-          )}
+        <Grid
+          xs={4}
+          order={1}
+          rowGap="1.5rem"
+          sx={{ display: 'flex', flexFlow: 'column nowrap' }}
+        >
+          <OwnerCardNext
+            owner={owner}
+            housingCount={count?.housing}
+            modify={
+              housingOwners ? (
+                <HousingOwnersModal
+                  housingId={housingId}
+                  housingOwners={housingOwners}
+                  onSubmit={submitHousingOwnersUpdate}
+                  key={housingOwnersModalKey}
+                  onCancel={() =>
+                    setHousingOwnersModalKey(new Date().getTime())
+                  }
+                />
+              ) : null
+            }
+          />
+          <SecondaryOwnerList housingId={housingId} />
+          <InactiveOwnerList housingId={housingId} />
         </Grid>
       </Grid>
-    </MainContainer>
+    </Container>
   );
-};
+}
 
 export default HousingView;

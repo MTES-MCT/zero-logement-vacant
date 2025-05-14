@@ -1,14 +1,15 @@
+import schemas from '@zerologementvacant/schemas';
 import fileUpload from 'express-fileupload';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
-import { object } from 'yup';
-
-import schemas from '@zerologementvacant/schemas';
+import { object, string } from 'yup';
 import accountController from '~/controllers/accountController';
+import buildingController from '~/controllers/buildingController';
 import campaignController from '~/controllers/campaignController';
 import contactPointController from '~/controllers/contactPointController';
 import dashboardController from '~/controllers/dashboardController';
 import datafoncierController from '~/controllers/datafoncierHousingController';
+import draftController from '~/controllers/draftController';
 import eventController from '~/controllers/eventController';
 import fileController from '~/controllers/fileController';
 import geoController from '~/controllers/geoController';
@@ -19,18 +20,17 @@ import localityController from '~/controllers/localityController';
 import noteController from '~/controllers/noteController';
 import ownerController from '~/controllers/ownerController';
 import ownerProspectController from '~/controllers/ownerProspectController';
+import precisionController from '~/controllers/precisionController';
 import settingsController from '~/controllers/settingsController';
 import userController from '~/controllers/userController';
 import { hasRole, jwtCheck, userCheck } from '~/middlewares/auth';
 import { upload } from '~/middlewares/upload';
 import validator from '~/middlewares/validator';
-import { isUUIDParam } from '~/utils/validators';
-import draftController from '~/controllers/draftController';
 import validatorNext from '~/middlewares/validator-next';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
 import { UserRoles } from '~/models/UserApi';
-import precisionController from '~/controllers/precisionController';
+import { isUUIDParam } from '~/utils/validators';
 
 const router = Router();
 
@@ -89,6 +89,22 @@ router.post(
   [param('housingId').isUUID(), ...housingController.updateValidators],
   validator.validate,
   housingController.update
+);
+
+// Buildings
+router.get(
+  '/buildings',
+  validatorNext.validate({ query: schemas.buildingFilters }),
+  buildingController.find
+);
+router.get(
+  '/buildings/:id',
+  validatorNext.validate({
+    params: object({
+      id: string().required()
+    })
+  }),
+  buildingController.get
 );
 
 router.get('/precisions', precisionController.find);

@@ -11,7 +11,8 @@ function LabelNext(props: PropsWithChildren<LabelProps>) {
       sx={{
         color: fr.colors.decisions.text.mention.grey.default,
         display: 'inline-block',
-        fontWeight: 500
+        fontWeight: 500,
+        ...props.sx
       }}
       variant="body2"
     />

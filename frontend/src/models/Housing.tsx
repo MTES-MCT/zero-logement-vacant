@@ -1,4 +1,6 @@
 import {
+  CadastralClassification,
+  DataFileYear,
   EnergyConsumption,
   HousingDTO,
   HousingKind,
@@ -11,6 +13,7 @@ import {
 import { differenceInDays, format } from 'date-fns';
 import { List } from 'immutable';
 import { match, Pattern } from 'ts-pattern';
+
 import { Compare } from '../utils/compareUtils';
 import { stringSort } from '../utils/stringUtils';
 import { LocalityKinds } from './Locality';
@@ -18,7 +21,11 @@ import { Note } from './Note';
 import { Owner, toOwnerDTO } from './Owner';
 import { Sort } from './Sort';
 
-export interface Housing {
+export interface Housing
+  extends Pick<
+    HousingDTO,
+    'lastMutationDate' | 'lastTransactionDate' | 'lastTransactionValue'
+  > {
   id: string;
   // Identifiant fiscal départemental
   invariant: string;
@@ -26,34 +33,38 @@ export interface Housing {
   localId: string;
   geoCode: string;
   cadastralReference: string;
+  buildingId: string | null;
   buildingLocation?: string;
   buildingGroupId?: string;
   rawAddress: string[];
   latitude?: number;
   longitude?: number;
+  /**
+   * @deprecated Should be fetched from the Locality API.
+   */
   localityKind: LocalityKinds;
   geoPerimeters?: string[];
   owner: Owner;
-  livingArea: number;
-  housingKind: string;
+  livingArea: number | null;
+  housingKind: HousingKind;
   roomsCount: number;
   buildingYear?: number;
-  vacancyStartYear: number;
+  vacancyStartYear: number | null;
   uncomfortable: boolean;
-  cadastralClassification: number;
-  taxed: boolean;
+  cadastralClassification: CadastralClassification | null;
+  taxed: boolean | null;
   ownershipKind: string;
   buildingHousingCount?: number;
   buildingVacancyRate?: number;
-  dataFileYears: string[];
+  dataFileYears: DataFileYear[];
   campaignIds: string[];
   status: HousingStatus;
-  subStatus?: string;
+  subStatus?: string | null;
   lastContact?: Date;
   energyConsumption: string | null;
   energyConsumptionAt: Date | null;
-  occupancy: OccupancyKind | OccupancyKindUnknown;
-  occupancyIntended?: OccupancyKind | OccupancyKindUnknown;
+  occupancy: Occupancy;
+  occupancyIntended: Occupancy | null;
   source: HousingSource | null;
 }
 
@@ -170,13 +181,18 @@ export function hasCoordinates(
   );
 }
 
-export const lastUpdate = (housing: Housing): string =>
+/**
+ * @deprecated The last update should not be retrieved from the housing
+ * but from the events and notes instead.
+ * @param housing
+ */
+export const lastUpdate = (housing: Housing): string | null =>
   housing.lastContact
     ? `${format(housing.lastContact, 'dd/MM/yyyy')} (${differenceInDays(
         new Date(),
         housing.lastContact
       )} jours)`
-    : 'Aucune mise à jour';
+    : null;
 
 export enum OccupancyKind {
   Vacant = 'V',
@@ -228,11 +244,15 @@ export const OccupancyKindBadgeLabels = {
   [OccupancyKind.Others]: 'Occupation : Autres'
 };
 
-export const getOccupancy = (
-  occupancy?: OccupancyKind | OccupancyKindUnknown
-) => (occupancy && occupancy.length > 0 ? occupancy : OccupancyUnknown);
+export function getOccupancy(
+  occupancy: Occupancy | null | undefined
+): Occupancy {
+  return occupancy ?? Occupancy.UNKNOWN;
+}
 
-export function getSource(housing: Housing): string {
+export function getSource(
+  housing: Pick<Housing, 'source' | 'dataFileYears'>
+): string {
   const labels: Record<string, string> = {
     lovac: 'LOVAC',
     ff: 'Fichiers fonciers',
@@ -296,9 +316,12 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     energyConsumption:
       housing.energyConsumption as unknown as EnergyConsumption,
     energyConsumptionAt: housing.energyConsumptionAt,
-    occupancy: housing.occupancy as unknown as Occupancy,
-    occupancyIntended: housing.occupancyIntended as unknown as Occupancy,
+    occupancy: housing.occupancy,
+    occupancyIntended: housing.occupancyIntended,
     source: housing.source,
-    owner: toOwnerDTO(housing.owner)
+    owner: toOwnerDTO(housing.owner),
+    lastMutationDate: housing.lastMutationDate,
+    lastTransactionDate: housing.lastTransactionDate,
+    lastTransactionValue: housing.lastTransactionValue
   };
 }

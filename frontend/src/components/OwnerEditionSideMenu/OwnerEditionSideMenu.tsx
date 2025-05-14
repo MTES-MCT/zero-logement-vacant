@@ -1,17 +1,17 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
+import { Grid, Typography } from '@mui/material';
 import { FormEvent, useState } from 'react';
 import { object, string } from 'yup';
+import { banAddressValidator, useForm } from '../../hooks/useForm';
+import { useNotification } from '../../hooks/useNotification';
+import { useToggle } from '../../hooks/useToggle';
+import { Owner } from '../../models/Owner';
+import { useUpdateOwnerMutation } from '../../services/owner.service';
+import AppTextInput from '../_app/AppTextInput/AppTextInput';
+import Aside from '../Aside/Aside';
 
 import OwnerAddressEdition from '../OwnerAddressEdition/OwnerAddressEdition';
-import Aside from '../Aside/Aside';
-import { useToggle } from '../../hooks/useToggle';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
-import { Owner } from '../../models/Owner';
-import { banAddressValidator, useForm } from '../../hooks/useForm';
-import { useUpdateOwnerMutation } from '../../services/owner.service';
-import { useNotification } from '../../hooks/useNotification';
-import { Grid, Typography } from '@mui/material';
 
 interface Props {
   className?: string;
@@ -21,8 +21,12 @@ interface Props {
 function OwnerEditionSideMenu(props: Props) {
   const { active, setActive, toggle } = useToggle();
 
-  const storedWarningVisible = localStorage.getItem('OwnerEdition.warningVisible');
-  const [warningVisible, setWarningVisible] = useState(storedWarningVisible === null || storedWarningVisible === 'true');
+  const storedWarningVisible = localStorage.getItem(
+    'OwnerEdition.warningVisible'
+  );
+  const [warningVisible, setWarningVisible] = useState(
+    storedWarningVisible === null || storedWarningVisible === 'true'
+  );
 
   const shape = {
     address: banAddressValidator.optional(),
@@ -52,7 +56,10 @@ function OwnerEditionSideMenu(props: Props) {
   const [updateOwner, mutation] = useUpdateOwnerMutation();
 
   async function save(event: FormEvent): Promise<void> {
-    localStorage.setItem('OwnerEdition.warningVisible', warningVisible.toString());
+    localStorage.setItem(
+      'OwnerEdition.warningVisible',
+      warningVisible.toString()
+    );
     event.preventDefault();
     await form.validate(async () => {
       await updateOwner({
@@ -100,7 +107,10 @@ function OwnerEditionSideMenu(props: Props) {
         content={
           <form id={formId} className="fr-px-6w">
             <Grid container>
-              <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+              <Typography
+                component="h3"
+                color={fr.colors.decisions.text.active.grey.default}
+              >
                 <span
                   className={fr.cx(
                     'fr-icon-bank-line',
@@ -112,12 +122,24 @@ function OwnerEditionSideMenu(props: Props) {
                 Adresse fiscale (source: DGFIP)
               </Typography>
               <Grid>
-                <span className='fr-hint-text'>Cette adresse est issue du fichier LOVAC, récupérée via le fichier 1767BIS-COM. Celle-ci n’est pas modifiable.</span>
-                <Typography color={fr.colors.decisions.text.default.grey.default}>{props.owner.rawAddress ? props.owner.rawAddress.join(' ') : 'Inconnue'}</Typography>
+                <span className="fr-hint-text">
+                  Cette adresse est issue du fichier LOVAC, récupérée via le
+                  fichier 1767BIS-COM. Celle-ci n’est pas modifiable.
+                </span>
+                <Typography
+                  color={fr.colors.decisions.text.default.grey.default}
+                >
+                  {props.owner.rawAddress
+                    ? props.owner.rawAddress.join(' ')
+                    : 'Inconnue'}
+                </Typography>
               </Grid>
             </Grid>
             <section className="fr-mb-3w fr-mt-3w">
-              <Typography component="h3" color={fr.colors.decisions.text.active.grey.default}>
+              <Typography
+                component="h3"
+                color={fr.colors.decisions.text.active.grey.default}
+              >
                 <span
                   className={fr.cx(
                     'fr-icon-home-4-line',
@@ -132,7 +154,6 @@ function OwnerEditionSideMenu(props: Props) {
                 banAddress={address}
                 errorMessage={form.message('address')}
                 help={false}
-                rawAddress={props.owner.rawAddress}
                 onSelectAddress={(value) => setAddress(value ?? undefined)}
                 warningVisible={warningVisible}
                 setWarningVisible={setWarningVisible}

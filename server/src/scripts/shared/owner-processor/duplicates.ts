@@ -1,3 +1,4 @@
+import { isDefined, isNotNull } from '@zerologementvacant/utils';
 import { isEqual } from 'date-fns';
 import fp from 'lodash/fp';
 import { jaccard } from 'wuzzy';
@@ -5,7 +6,6 @@ import { jaccard } from 'wuzzy';
 import { OwnerApi } from '~/models/OwnerApi';
 import ownerRepository from '~/repositories/ownerRepository';
 import { ScoredOwner } from '../models/Comparison';
-import { isDefined, isNotNull } from '@zerologementvacant/utils';
 
 export const REVIEW_THRESHOLD = 0.7;
 export const MATCH_THRESHOLD = 0.85;
@@ -28,7 +28,7 @@ export async function findDuplicatesByName(
  */
 export function compare(source: OwnerApi, duplicate: OwnerApi): number {
   const addressScore =
-    source.rawAddress.length && duplicate.rawAddress.length
+    source.rawAddress?.length && duplicate.rawAddress?.length
       ? jaccard(
           preprocessAddress(source.rawAddress),
           preprocessAddress(duplicate.rawAddress)

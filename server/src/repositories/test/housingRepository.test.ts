@@ -17,6 +17,7 @@ import {
   OwnerAge,
   OwnershipKind,
   Precision,
+  PROPERTY_RIGHT_VALUES,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 
@@ -115,7 +116,8 @@ describe('Housing repository', () => {
       ownerId: housing.owner.id,
       housingGeoCode: housing.geoCode,
       housingId: housing.id,
-      rank: 1
+      rank: 1,
+      propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
     }));
 
     beforeAll(async () => {
@@ -846,24 +848,30 @@ describe('Housing repository', () => {
           {
             name: 'less than 35 m2',
             filter: ['lt35'],
-            predicate: (housing: HousingApi) => housing.livingArea < 35
+            predicate: (housing: HousingApi) =>
+              housing.livingArea !== null && housing.livingArea < 35
           },
           {
             name: 'between 35 and 74 m2',
             filter: ['35to74'],
             predicate: (housing: HousingApi) =>
-              35 <= housing.livingArea && housing.livingArea <= 74
+              housing.livingArea !== null &&
+              35 <= housing.livingArea &&
+              housing.livingArea <= 74
           },
           {
             name: 'between 75 and 99 m2',
             filter: ['75to99'],
             predicate: (housing: HousingApi) =>
-              75 <= housing.livingArea && housing.livingArea <= 99
+              housing.livingArea !== null &&
+              75 <= housing.livingArea &&
+              housing.livingArea <= 99
           },
           {
             name: 'more than 100 m2',
             filter: ['gte100'],
-            predicate: (housing: HousingApi) => housing.livingArea >= 100
+            predicate: (housing: HousingApi) =>
+              housing.livingArea !== null && housing.livingArea >= 100
           }
         ];
 
@@ -907,7 +915,7 @@ describe('Housing repository', () => {
             name: 'housings with 5+ rooms',
             filter: ['gte5'],
             predicate(housing: HousingApi) {
-              return housing.roomsCount >= 5;
+              return housing.roomsCount !== null && housing.roomsCount >= 5;
             }
           });
 
@@ -1340,36 +1348,47 @@ describe('Housing repository', () => {
 
       describe('by vacancy rate by building', () => {
         function createHousingByBuilding(building: BuildingApi): HousingApi[] {
-          const { housingCount: total, vacantHousingCount: vacant } = building;
-          return Array.from({ length: total }).map((_, i) => ({
-            ...genHousingApi(),
-            buildingId: building.id,
-            occupancy: i < vacant ? Occupancy.VACANT : Occupancy.UNKNOWN
-          }));
+          return Array.from({ length: building.vacantHousingCount }, () => ({
+            ...genHousingApi(building.id.substring(0, 5)),
+            occupancy: Occupancy.VACANT,
+            buildingId: building.id
+          })).concat(
+            Array.from(
+              { length: building.housingCount - building.vacantHousingCount },
+              () => ({
+                ...genHousingApi(),
+                buildingId: building.id,
+                occupancy: Occupancy.UNKNOWN
+              })
+            )
+          );
         }
 
         beforeEach(async () => {
-          const buildings: BuildingApi[] = [
-            // 19 %
-            { ...genBuildingApi(), vacantHousingCount: 19, housingCount: 100 },
-            // 20 %
-            { ...genBuildingApi(), vacantHousingCount: 2, housingCount: 10 },
-            // 39 %
-            { ...genBuildingApi(), vacantHousingCount: 39, housingCount: 100 },
-            // 40 %
-            { ...genBuildingApi(), vacantHousingCount: 4, housingCount: 10 },
-            // 59 %
-            { ...genBuildingApi(), vacantHousingCount: 59, housingCount: 100 },
-            // 60 %
-            { ...genBuildingApi(), vacantHousingCount: 6, housingCount: 10 },
-            // 79 %
-            { ...genBuildingApi(), vacantHousingCount: 79, housingCount: 100 },
-            // 80 %
-            { ...genBuildingApi(), vacantHousingCount: 8, housingCount: 10 }
+          const testAmounts = [
+            { vacant: 19, total: 100 },
+            { vacant: 2, total: 10 },
+            { vacant: 39, total: 100 },
+            { vacant: 4, total: 10 },
+            { vacant: 59, total: 100 },
+            { vacant: 6, total: 10 },
+            { vacant: 79, total: 100 },
+            { vacant: 8, total: 10 }
           ];
+
+          const buildings: BuildingApi[] = testAmounts.map(
+            ({ vacant, total }) => {
+              return {
+                ...genBuildingApi(),
+                vacantHousingCount: vacant,
+                housingCount: total
+              };
+            }
+          );
           await Buildings().insert(buildings.map(formatBuildingApi));
-          const housingByBuilding: HousingApi[][] = buildings.map(
-            createHousingByBuilding
+
+          const housingByBuilding: HousingApi[][] = buildings.map((building) =>
+            createHousingByBuilding(building)
           );
           const housingList = housingByBuilding.flat();
           await Housing().insert(housingList.map(formatHousingRecordApi));

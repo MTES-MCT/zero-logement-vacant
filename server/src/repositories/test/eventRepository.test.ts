@@ -1,33 +1,34 @@
 import { v4 as uuidv4 } from 'uuid';
+import { CampaignApi } from '~/models/CampaignApi';
+import { EventApi } from '~/models/EventApi';
+import { GroupApi } from '~/models/GroupApi';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '~/repositories/campaignRepository';
 
 import {
   genCampaignApi,
   genEstablishmentApi,
   genGroupApi,
   genHousingApi,
+  genHousingEventApi,
   genUserApi,
   oneOf
 } from '../../test/testFixtures';
-import { formatHousingRecordApi, Housing } from '../housingRepository';
-import { formatGroupApi, Groups } from '../groupRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '../establishmentRepository';
 import eventRepository, {
   CampaignEvents,
   Events,
   formatEventApi,
   GroupHousingEvents
 } from '../eventRepository';
-import { EventApi } from '~/models/EventApi';
-import { GroupApi } from '~/models/GroupApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../establishmentRepository';
+import { formatGroupApi, Groups } from '../groupRepository';
+import { formatHousingRecordApi, Housing } from '../housingRepository';
 import { formatUserApi, Users } from '../userRepository';
-import { CampaignApi } from '~/models/CampaignApi';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '~/repositories/campaignRepository';
 
 describe('Event repository', () => {
   describe('findGroupHousingEvents', () => {
@@ -105,6 +106,24 @@ describe('Event repository', () => {
       );
 
       expect(actual).toBeArrayOfSize(1);
+    });
+  });
+
+  describe('insertManyHousingEvents', () => {
+    it('should denormalize the housing status', async () => {
+      const establishment = genEstablishmentApi();
+      const housing = genHousingApi();
+      const creator = genUserApi(establishment.id);
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(creator));
+      await Housing().insert(formatHousingRecordApi(housing));
+      const event = genHousingEventApi(housing, creator);
+
+      await eventRepository.insertManyHousingEvents([event]);
+
+      const actual = await Events().where({ id: event.id }).first();
+      expect(actual?.old?.status).toBeString();
+      expect(actual?.new?.status).toBeString();
     });
   });
 });

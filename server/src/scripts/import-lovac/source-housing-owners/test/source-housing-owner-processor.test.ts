@@ -1,22 +1,28 @@
+import { faker } from '@faker-js/faker/locale/fr';
+import {
+  ActiveOwnerRank,
+  INACTIVE_OWNER_RANKS,
+  PREVIOUS_OWNER_RANK
+} from '@zerologementvacant/models';
+import { flatten, toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
-
-import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
+import { HousingEventApi } from '~/models/EventApi';
+import { HousingApi } from '~/models/HousingApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import {
   genSourceHousing,
   genSourceHousingOwner,
   genSourceOwner
 } from '~/scripts/import-lovac/infra/fixtures';
-import { SourceOwner } from '~/scripts/import-lovac/source-owners/source-owner';
-import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-housing';
+
+import { createNoopReporter } from '~/scripts/import-lovac/infra/reporters/noop-reporter';
+import { SourceHousingOwner } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner';
 import {
   createSourceHousingOwnerProcessor,
-  isNationalOwner,
-  isNewHousing,
-  isSupervised,
+  HousingOwnerChanges,
   ProcessorOptions
 } from '~/scripts/import-lovac/source-housing-owners/source-housing-owner-processor';
-import { Reporter } from '~/scripts/import-lovac/infra';
-import { HousingApi } from '~/models/HousingApi';
 import {
   genEstablishmentApi,
   genHousingApi,
@@ -24,405 +30,519 @@ import {
   genOwnerApi,
   genUserApi
 } from '~/test/testFixtures';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { OwnerApi } from '~/models/OwnerApi';
-import { UserApi } from '~/models/UserApi';
-import { HousingEventApi } from '~/models/EventApi';
 
 describe('Source housing owner processor', () => {
-  let auth: UserApi;
-  let sourceHousing: SourceHousing;
-  let sourceOwners: ReadonlyArray<SourceOwner>;
-  let sourceHousingOwners: ReadonlyArray<SourceHousingOwner>;
-  let housingRepository: jest.MockedObject<
-    ProcessorOptions['housingRepository']
-  >;
-  let housingEventRepository: jest.MockedObject<
-    ProcessorOptions['housingEventRepository']
-  >;
-  let housingOwnerRepository: jest.MockedObject<
-    ProcessorOptions['housingOwnerRepository']
-  >;
-  let ownerRepository: jest.MockedObject<ProcessorOptions['ownerRepository']>;
-  let reporter: jest.MockedObject<Reporter<SourceHousingOwner>>;
+  interface RunOptions {
+    housingRepository: jest.MockedObject<ProcessorOptions['housingRepository']>;
+    ownerRepository: jest.MockedObject<ProcessorOptions['ownerRepository']>;
+    abortEarly?: boolean;
+  }
 
-  beforeEach(() => {
+  async function run(
+    sourceHousingOwners: ReadonlyArray<SourceHousingOwner>,
+    options: RunOptions
+  ): Promise<ReadonlyArray<HousingOwnerChanges>> {
     const establishment = genEstablishmentApi();
-    auth = genUserApi(establishment.id);
-    sourceHousing = genSourceHousing();
-    sourceOwners = Array.from({ length: 3 }, () => genSourceOwner());
-    sourceHousingOwners = sourceOwners.map((sourceOwner, index) => {
-      return {
-        ...genSourceHousingOwner(sourceHousing, sourceOwner),
-        rank: (index + 1) as SourceHousingOwner['rank']
-      };
-    });
-    housingRepository = {
-      findOne: jest.fn()
-    };
-    housingEventRepository = {
-      insert: jest.fn().mockImplementation(() => Promise.resolve())
-    };
-    housingOwnerRepository = {
-      saveMany: jest.fn().mockImplementation(() => Promise.resolve()),
-      insert: jest.fn().mockImplementation(() => Promise.resolve())
-    };
-    ownerRepository = {
-      findOne: jest.fn(),
-      findByHousing: jest.fn()
-    };
-    reporter = {
-      passed: jest.fn(),
-      skipped: jest.fn(),
-      failed: jest.fn(),
-      report: jest.fn()
-    };
-  });
+    const auth = genUserApi(establishment.id);
+    const reporter = createNoopReporter();
 
-  it('should fail if the housing is missing from our database', async () => {
-    housingRepository.findOne.mockResolvedValue(null);
-    const stream = new ReadableStream<SourceHousingOwner>({
-      pull(controller) {
-        sourceHousingOwners.forEach((_) => controller.enqueue(_));
+    const stream = new ReadableStream<ReadonlyArray<SourceHousingOwner>>({
+      start(controller) {
+        controller.enqueue(sourceHousingOwners);
         controller.close();
       }
     });
     const processor = createSourceHousingOwnerProcessor({
+      abortEarly: options.abortEarly ?? true,
       auth,
       reporter,
-      housingRepository,
-      housingEventRepository,
-      housingOwnerRepository,
-      ownerRepository
+      housingRepository: options.housingRepository,
+      ownerRepository: options.ownerRepository
     });
+    return toArray(stream.pipeThrough(processor).pipeThrough(flatten()));
+  }
 
-    await stream.pipeTo(processor);
+  it('should throw an error if one of the owners is not related to the housing and abortEarly is true', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 1, max: 6 }
+    });
+    const differentSourceHousingOwner = genSourceHousingOwner(
+      genSourceHousing(),
+      genSourceOwner()
+    );
+    const sourceHousingOwners = sourceOwners
+      .map((sourceOwner) => genSourceHousingOwner(sourceHousing, sourceOwner))
+      .concat(differentSourceHousingOwner);
 
-    expect(reporter.failed).toHaveBeenCalledTimes(sourceHousingOwners.length);
+    const doRun = async () =>
+      run(sourceHousingOwners, {
+        abortEarly: true,
+        housingRepository: {
+          findOne: jest.fn()
+        },
+        ownerRepository: {
+          find: jest.fn(),
+          findByHousing: jest.fn()
+        }
+      });
+
+    await expect(doRun()).rejects.toThrow(
+      `The following housing owners are related to different housings: ${differentSourceHousingOwner}`
+    );
   });
 
-  it('should fail if the departmental owners are missing from our database', async () => {
-    ownerRepository.findOne.mockResolvedValue(null);
-    const stream = new ReadableStream<SourceHousingOwner>({
-      pull(controller) {
-        sourceHousingOwners.forEach((_) => controller.enqueue(_));
-        controller.close();
-      }
+  it('should throw an error if one of the owners is missing and abortEarly is true', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 2, max: 6 }
     });
-    const processor = createSourceHousingOwnerProcessor({
-      auth,
-      reporter,
-      housingRepository,
-      housingEventRepository,
-      housingOwnerRepository,
-      ownerRepository
-    });
-
-    await stream.pipeTo(processor);
-
-    expect(reporter.failed).toHaveBeenCalledTimes(sourceHousingOwners.length);
-  });
-
-  describe('Otherwise the housing and the departmental owners exist', () => {
-    let housing: HousingApi;
-    let departmentalOwners: ReadonlyArray<OwnerApi>;
-
-    beforeEach(() => {
-      housing = genHousingApi();
-      housingRepository.findOne.mockResolvedValue(housing);
-      departmentalOwners = sourceOwners.map((sourceOwner) => ({
+    const sourceHousingOwners = sourceOwners.map((sourceOwner) =>
+      genSourceHousingOwner(sourceHousing, sourceOwner)
+    );
+    const housing: HousingApi = {
+      ...genHousingApi(),
+      geoCode: sourceHousing.geo_code,
+      localId: sourceHousing.local_id
+    };
+    const owners = sourceHousingOwners
+      // Cut off the rest of the source housing owners
+      .slice(0, 1)
+      .map<OwnerApi>((sourceHousingOwner) => ({
         ...genOwnerApi(),
-        idpersonne: sourceOwner.idpersonne
+        idpersonne: sourceHousingOwner.idpersonne
       }));
-      ownerRepository.findOne.mockImplementation(async (idpersonne) => {
-        return (
-          departmentalOwners.find((owner) => owner.idpersonne === idpersonne) ??
-          null
-        );
+    const missingOwners = sourceHousingOwners.slice(1);
+
+    const doRun = async () =>
+      run(sourceHousingOwners, {
+        housingRepository: {
+          findOne: jest.fn().mockResolvedValue(housing)
+        },
+        ownerRepository: {
+          find: jest.fn().mockResolvedValue(owners),
+          findByHousing: jest.fn()
+        }
       });
+
+    await expect(doRun()).rejects.toThrow(
+      `Owner(s) ${missingOwners.map((owner) => owner.idpersonne).join(', ')} missing`
+    );
+  });
+
+  it('should throw an error if the housing is missing and abortEarly is true', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 1, max: 6 }
+    });
+    const sourceHousingOwners = sourceOwners.map((sourceOwner) =>
+      genSourceHousingOwner(sourceHousing, sourceOwner)
+    );
+
+    const doRun = async () =>
+      run(sourceHousingOwners, {
+        housingRepository: {
+          findOne: jest.fn().mockResolvedValue(null)
+        },
+        ownerRepository: {
+          find: jest.fn().mockResolvedValue(sourceOwners),
+          findByHousing: jest.fn()
+        }
+      });
+
+    await expect(doRun()).rejects.toThrow(
+      `Housing ${sourceHousing.local_id} missing`
+    );
+  });
+
+  it('should return no change if the housing is missing and abortEarly is false', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 1, max: 6 }
+    });
+    const sourceHousingOwners = sourceOwners.map((sourceOwner) =>
+      genSourceHousingOwner(sourceHousing, sourceOwner)
+    );
+
+    const actual = await run(sourceHousingOwners, {
+      abortEarly: false,
+      housingRepository: {
+        findOne: jest.fn().mockResolvedValue(null)
+      },
+      ownerRepository: {
+        find: jest.fn(),
+        findByHousing: jest.fn()
+      }
     });
 
-    describe('If the housing was missing before LOVAC 2024', () => {
-      beforeEach(() => {
-        housing.dataFileYears = ['lovac-2024'];
-      });
+    expect(actual).toStrictEqual([]);
+  });
 
-      it('should link the housing to its owners', async () => {
-        const stream = new ReadableStream<SourceHousingOwner>({
-          pull(controller) {
-            sourceHousingOwners.forEach((_) => controller.enqueue(_));
-            controller.close();
-          }
-        });
-        const processor = createSourceHousingOwnerProcessor({
-          auth,
-          reporter,
-          housingRepository,
-          housingEventRepository,
-          housingOwnerRepository,
-          ownerRepository
-        });
+  it('should return no change if one of the owners is missing and abortEarly is false', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 1, max: 6 }
+    });
+    const sourceHousingOwners = sourceOwners.map((sourceOwner) =>
+      genSourceHousingOwner(sourceHousing, sourceOwner)
+    );
 
-        await stream.pipeTo(processor);
-
-        expect(reporter.passed).toHaveBeenCalledTimes(
-          sourceHousingOwners.length
-        );
-        expect(housingOwnerRepository.insert).toHaveBeenCalledTimes(
-          sourceHousingOwners.length
-        );
-        sourceHousingOwners.forEach((sourceHousingOwner, index) => {
-          expect(housingOwnerRepository.insert).toHaveBeenNthCalledWith<
-            [HousingOwnerApi]
-          >(
-            index + 1,
-            expect.objectContaining({
-              ownerId: departmentalOwners[index].id,
-              housingId: housing.id,
-              housingGeoCode: housing.geoCode,
-              idprocpte: sourceHousingOwner.idprocpte,
-              idprodroit: sourceHousingOwner.idprodroit,
-              locprop: sourceHousingOwner.locprop,
-              rank: sourceHousingOwner.rank
-            })
-          );
-        });
-      });
+    const actual = await run(sourceHousingOwners, {
+      abortEarly: false,
+      housingRepository: {
+        findOne: jest.fn()
+      },
+      ownerRepository: {
+        find: jest.fn().mockResolvedValue([]),
+        findByHousing: jest.fn()
+      }
     });
 
-    describe('Otherwise the housing was present before LOVAC 2024', () => {
-      beforeEach(() => {
-        housing.dataFileYears = ['lovac-2022', 'lovac-2024'];
-      });
+    expect(actual).toStrictEqual([]);
+  });
 
-      describe('If the housing is unsupervised', () => {
-        let existingOwners: ReadonlyArray<HousingOwnerApi>;
+  it('should create new housing owners', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 1, max: 6 }
+    });
+    const sourceHousingOwners = sourceOwners.map<SourceHousingOwner>(
+      (sourceOwner, i) => ({
+        ...genSourceHousingOwner(sourceHousing, sourceOwner),
+        rank: (i + 1) as ActiveOwnerRank
+      })
+    );
+    const housing: HousingApi = {
+      ...genHousingApi(),
+      geoCode: sourceHousing.geo_code,
+      localId: sourceHousing.local_id
+    };
+    const owners: ReadonlyArray<OwnerApi> = sourceOwners.map((sourceOwner) => ({
+      ...genOwnerApi(),
+      idpersonne: sourceOwner.idpersonne
+    }));
 
-        beforeEach(async () => {
-          housing.status = HousingStatusApi.Waiting;
-          // Add existing owners
-          existingOwners = Array.from({ length: 6 }).map<HousingOwnerApi>(
-            (_, index) => {
-              const owner = genOwnerApi();
-              return {
-                ...owner,
-                ...genHousingOwnerApi(housing, owner),
-                // Must be undefined to be considered as a national owner
-                idpersonne: undefined,
-                rank: index + 1
-              };
-            }
-          );
-          ownerRepository.findByHousing.mockResolvedValue(existingOwners);
+    const actual = await run(sourceHousingOwners, {
+      housingRepository: {
+        findOne: jest.fn().mockResolvedValue(housing)
+      },
+      ownerRepository: {
+        find: jest.fn().mockResolvedValue(owners),
+        findByHousing: jest.fn().mockResolvedValue([])
+      }
+    });
 
-          const stream = new ReadableStream<SourceHousingOwner>({
-            pull(controller) {
-              sourceHousingOwners.forEach((_) => controller.enqueue(_));
-              controller.close();
-            }
-          });
-          const processor = createSourceHousingOwnerProcessor({
-            auth,
-            reporter,
-            housingRepository,
-            housingEventRepository,
-            housingOwnerRepository,
-            ownerRepository
-          });
-
-          await stream.pipeTo(processor);
+    expect(actual).toHaveLength(1);
+    const [change] = actual;
+    expect(change).toStrictEqual<HousingOwnerChanges>({
+      type: 'housingOwners',
+      kind: 'replace',
+      value: sourceHousingOwners.map((sourceHousingOwner) => {
+        return expect.objectContaining<Partial<HousingOwnerApi>>({
+          // Housing-owner-related properties
+          idprocpte: sourceHousingOwner.idprocpte,
+          idprodroit: sourceHousingOwner.idprodroit,
+          locprop: sourceHousingOwner.locprop_source,
+          rank: sourceHousingOwner.rank,
+          // Housing-related properties
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id,
+          // Owner-related properties
+          idpersonne: sourceHousingOwner.idpersonne
         });
-
-        it('should archive the national owners', () => {
-          expect(housingOwnerRepository.saveMany).toHaveBeenCalledTimes(
-            sourceHousingOwners.length
-          );
-          expect(housingOwnerRepository.saveMany).toHaveBeenNthCalledWith(
-            1,
-            expect.arrayContaining(
-              existingOwners.map((owner) => ({
-                ...owner,
-                rank: -2
-              }))
-            )
-          );
-        });
-
-        it('should link it to the new departmental owners', () => {
-          expect(housingOwnerRepository.saveMany).toHaveBeenCalledTimes(
-            sourceHousingOwners.length
-          );
-          // For each call, a new departmental owner should be added
-          sourceHousingOwners.forEach((sourceHousingOwner, index) => {
-            expect(housingOwnerRepository.saveMany).toHaveBeenNthCalledWith(
-              index + 1,
-              expect.arrayContaining([
-                expect.objectContaining<Partial<HousingOwnerApi>>({
-                  idpersonne: sourceHousingOwner.idpersonne,
-                  rank: sourceHousingOwner.rank
-                })
-              ])
-            );
-          });
-        });
-
-        it('should create an event "Changement de propriétaires"', () => {
-          expect(housingEventRepository.insert).toHaveBeenCalledTimes(
-            sourceHousingOwners.length
-          );
-
-          const event = housingEventRepository.insert.mock.calls[0][0];
-          expect(event).toMatchObject<Partial<HousingEventApi>>({
-            name: 'Changement de propriétaires',
-            old: existingOwners as HousingOwnerApi[]
-          });
-          expect(event.new).toIncludeAllPartialMembers(
-            existingOwners.map((owner) => ({ ...owner, rank: -2 }))
-          );
-          expect(event.new).toPartiallyContain<Partial<HousingOwnerApi>>({
-            rank: sourceHousingOwners[0].rank
-          });
-        });
-      });
-
-      describe('If the housing is supervised', () => {
-        let existingOwners: ReadonlyArray<HousingOwnerApi>;
-
-        beforeEach(async () => {
-          housing.status = HousingStatusApi.InProgress;
-          housing.subStatus = 'En accompagnement';
-
-          // Add existing owners
-          existingOwners = Array.from({ length: 6 }).map<HousingOwnerApi>(
-            (_, index) => {
-              const owner = genOwnerApi();
-              return {
-                ...owner,
-                ...genHousingOwnerApi(housing, owner),
-                // Must be undefined to be considered as a national owner
-                idpersonne: undefined,
-                rank: index + 1
-              };
-            }
-          );
-          ownerRepository.findByHousing.mockResolvedValue(existingOwners);
-
-          const stream = new ReadableStream<SourceHousingOwner>({
-            pull(controller) {
-              sourceHousingOwners.forEach((_) => controller.enqueue(_));
-              controller.close();
-            }
-          });
-          const processor = createSourceHousingOwnerProcessor({
-            auth,
-            reporter,
-            housingRepository,
-            housingEventRepository,
-            housingOwnerRepository,
-            ownerRepository
-          });
-
-          await stream.pipeTo(processor);
-        });
-
-        it('should insert new departmental owners as archived', () => {
-          expect(housingOwnerRepository.insert).toHaveBeenCalledTimes(
-            sourceHousingOwners.length
-          );
-          sourceHousingOwners.forEach((sourceHousingOwner, index) => {
-            expect(housingOwnerRepository.insert).toHaveBeenNthCalledWith(
-              index + 1,
-              expect.objectContaining<Partial<HousingOwnerApi>>({
-                housingId: housing.id,
-                housingGeoCode: housing.geoCode,
-                idprocpte: sourceHousingOwner.idprocpte,
-                idprodroit: sourceHousingOwner.idprodroit,
-                locprop: sourceHousingOwner.locprop,
-                rank: -2
-              })
-            );
-          });
-        });
-      });
+      })
     });
   });
 
-  describe('isNewHousing', () => {
-    it('should return true if dataFileYears contains only "lovac-2024"', () => {
-      const housing: HousingApi = {
-        ...genHousingApi(),
-        dataFileYears: ['lovac-2024']
-      };
+  it('should replace existing active owners', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 1, max: 6 }
+    });
+    const sourceHousingOwners = sourceOwners.map<SourceHousingOwner>(
+      (sourceOwner, i) => ({
+        ...genSourceHousingOwner(sourceHousing, sourceOwner),
+        rank: (i + 1) as ActiveOwnerRank
+      })
+    );
+    const housing: HousingApi = {
+      ...genHousingApi(),
+      geoCode: sourceHousing.geo_code,
+      localId: sourceHousing.local_id
+    };
+    const owners: ReadonlyArray<OwnerApi> = sourceOwners.map((sourceOwner) => ({
+      ...genOwnerApi(),
+      idpersonne: sourceOwner.idpersonne
+    }));
+    // There should be between 1 and 6 existing active housing owners
+    const existingActiveHousingOwners: ReadonlyArray<HousingOwnerApi> =
+      faker.helpers
+        .multiple(genOwnerApi, {
+          count: { min: 1, max: 6 }
+        })
+        .map((owner, i) => ({
+          ...genHousingOwnerApi(housing, owner),
+          rank: (i + 1) as ActiveOwnerRank
+        }));
 
-      const actual = isNewHousing(housing);
-
-      expect(actual).toBeTrue();
+    const actual = await run(sourceHousingOwners, {
+      housingRepository: {
+        findOne: jest.fn().mockResolvedValue(housing)
+      },
+      ownerRepository: {
+        find: jest.fn().mockResolvedValue(owners),
+        findByHousing: jest.fn().mockResolvedValue(existingActiveHousingOwners)
+      }
     });
 
-    it('should return false otherwise', () => {
-      const housing: HousingApi = {
-        ...genHousingApi(),
-        dataFileYears: ['lovac-2022', 'lovac-2024']
-      };
-
-      const actual = isNewHousing(housing);
-
-      expect(actual).toBeFalse();
+    const replacingHousingOwners = sourceHousingOwners.map(
+      (sourceHousingOwner) => {
+        return expect.objectContaining<Partial<HousingOwnerApi>>({
+          idprocpte: sourceHousingOwner.idprocpte,
+          idprodroit: sourceHousingOwner.idprodroit,
+          locprop: sourceHousingOwner.locprop_source,
+          rank: sourceHousingOwner.rank,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id,
+          idpersonne: sourceHousingOwner.idpersonne
+        });
+      }
+    );
+    expect(actual).toPartiallyContain({
+      type: 'housingOwners',
+      kind: 'replace',
+      value: expect.arrayContaining(replacingHousingOwners)
+    });
+    expect(actual).toPartiallyContain({
+      type: 'event',
+      kind: 'create',
+      value: expect.objectContaining<Partial<HousingEventApi>>({
+        name: 'Changement de propriétaires',
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        old: expect.arrayContaining(existingActiveHousingOwners),
+        new: expect.arrayContaining(replacingHousingOwners)
+      })
     });
   });
 
-  describe('isSupervised', () => {
-    it('should return true if the status is "in progress" and the substatus is "En accompagnement" or "Intervention publique"', () => {
-      const housing: HousingApi = {
-        ...genHousingApi(),
-        status: HousingStatusApi.InProgress,
-        subStatus: 'En accompagnement'
-      };
+  it('should move inactive owners to active if needed', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 1, max: 6 }
+    });
+    const sourceHousingOwners = sourceOwners.map<SourceHousingOwner>(
+      (sourceOwner, i) => ({
+        ...genSourceHousingOwner(sourceHousing, sourceOwner),
+        rank: (i + 1) as ActiveOwnerRank
+      })
+    );
+    const housing: HousingApi = {
+      ...genHousingApi(),
+      geoCode: sourceHousing.geo_code,
+      localId: sourceHousing.local_id
+    };
+    const owners: ReadonlyArray<OwnerApi> = sourceOwners.map((sourceOwner) => ({
+      ...genOwnerApi(),
+      idpersonne: sourceOwner.idpersonne
+    }));
+    // There should be some existing inactive housing owners
+    const existingInactiveHousingOwners = owners.map((owner, i) => ({
+      ...genHousingOwnerApi(housing, owner),
+      idprocpte: sourceHousingOwners[i].idprocpte,
+      idprodroit: sourceHousingOwners[i].idprodroit,
+      locprop: sourceHousingOwners[i].locprop_source,
+      rank: faker.helpers.arrayElement(INACTIVE_OWNER_RANKS)
+    }));
 
-      const actual = isSupervised(housing);
-
-      expect(actual).toBeTrue();
+    const actual = await run(sourceHousingOwners, {
+      housingRepository: {
+        findOne: jest.fn().mockResolvedValue(housing)
+      },
+      ownerRepository: {
+        find: jest.fn().mockResolvedValue(owners),
+        findByHousing: jest
+          .fn()
+          .mockResolvedValue(existingInactiveHousingOwners)
+      }
     });
 
-    it('should return false otherwise', () => {
-      const housing: HousingApi = {
-        ...genHousingApi(),
-        status: HousingStatusApi.InProgress,
-        subStatus: 'En instruction'
-      };
-
-      const actual = isSupervised(housing);
-
-      expect(actual).toBeFalse();
+    const movedHousingOwners = existingInactiveHousingOwners.map(
+      (housingOwner, i) => {
+        return expect.objectContaining<Partial<HousingOwnerApi>>({
+          idprocpte: housingOwner.idprocpte,
+          idprodroit: housingOwner.idprodroit,
+          locprop: housingOwner.locprop,
+          rank: (i + 1) as ActiveOwnerRank,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id,
+          idpersonne: housingOwner.idpersonne
+        });
+      }
+    );
+    expect(actual).toPartiallyContain({
+      type: 'housingOwners',
+      kind: 'replace',
+      value: movedHousingOwners
+    });
+    expect(actual).toPartiallyContain({
+      type: 'event',
+      kind: 'create',
+      value: expect.objectContaining<Partial<HousingEventApi>>({
+        name: 'Changement de propriétaires',
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        old: expect.arrayContaining(existingInactiveHousingOwners),
+        new: expect.arrayContaining(movedHousingOwners)
+      })
     });
   });
 
-  describe('isNationalOwner', () => {
-    it('should return true if the housing owner has no _idpersonne_', () => {
-      const housing = genHousingApi();
-      const owner = genOwnerApi();
-      const housingOwner: HousingOwnerApi = {
-        ...genHousingOwnerApi(housing, owner),
-        idpersonne: undefined
-      };
+  it('should move replaced owners to inactive', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 1, max: 6 }
+    });
+    const sourceHousingOwners = sourceOwners.map<SourceHousingOwner>(
+      (sourceOwner, i) => ({
+        ...genSourceHousingOwner(sourceHousing, sourceOwner),
+        rank: (i + 1) as ActiveOwnerRank
+      })
+    );
+    const housing: HousingApi = {
+      ...genHousingApi(),
+      geoCode: sourceHousing.geo_code,
+      localId: sourceHousing.local_id
+    };
+    const owners: ReadonlyArray<OwnerApi> = sourceOwners.map((sourceOwner) => ({
+      ...genOwnerApi(),
+      idpersonne: sourceOwner.idpersonne
+    }));
+    // There should be between 1 and 6 existing active housing owners
+    const existingActiveHousingOwners: ReadonlyArray<HousingOwnerApi> =
+      faker.helpers
+        .multiple(genOwnerApi, {
+          count: { min: 1, max: 6 }
+        })
+        .map((owner, i) => ({
+          ...genHousingOwnerApi(housing, owner),
+          idprocpte: faker.string.alphanumeric(10),
+          idprodroit: faker.string.alphanumeric(12),
+          locprop: faker.number.int(),
+          rank: (i + 1) as ActiveOwnerRank
+        }));
 
-      const actual = isNationalOwner(housingOwner);
-
-      expect(actual).toBeTrue();
+    const actual = await run(sourceHousingOwners, {
+      housingRepository: {
+        findOne: jest.fn().mockResolvedValue(housing)
+      },
+      ownerRepository: {
+        find: jest.fn().mockResolvedValue(owners),
+        findByHousing: jest.fn().mockResolvedValue(existingActiveHousingOwners)
+      }
     });
 
-    it('should return false if _idpersonne_ is defined', () => {
-      const housing = genHousingApi();
-      const owner = genOwnerApi();
-      const housingOwner: HousingOwnerApi = {
-        ...genHousingOwnerApi(housing, owner),
-        idpersonne: 'idpersonne'
-      };
+    const movedHousingOwners = existingActiveHousingOwners.map(
+      (housingOwner) => {
+        return expect.objectContaining<Partial<HousingOwnerApi>>({
+          rank: PREVIOUS_OWNER_RANK,
+          idprocpte: housingOwner.idprocpte,
+          idprodroit: housingOwner.idprodroit,
+          locprop: housingOwner.locprop,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id,
+          ownerId: housingOwner.ownerId,
+          idpersonne: housingOwner.idpersonne,
+          startDate: expect.any(Date),
+          endDate: expect.any(Date)
+        });
+      }
+    );
+    expect(actual).toPartiallyContain({
+      type: 'housingOwners',
+      kind: 'replace',
+      value: expect.arrayContaining(movedHousingOwners)
+    });
+    expect(actual).toPartiallyContain({
+      type: 'event',
+      kind: 'create',
+      value: expect.objectContaining<Partial<HousingEventApi>>({
+        name: 'Changement de propriétaires',
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        old: expect.arrayContaining(existingActiveHousingOwners),
+        new: expect.arrayContaining(movedHousingOwners)
+      })
+    });
+  });
 
-      const actual = isNationalOwner(housingOwner);
+  it('should leave the existing inactive owners untouched if no change is detected', async () => {
+    const sourceHousing = genSourceHousing();
+    const sourceOwners = faker.helpers.multiple(genSourceOwner, {
+      count: { min: 1, max: 6 }
+    });
+    const sourceHousingOwners = sourceOwners.map<SourceHousingOwner>(
+      (sourceOwner, i) => ({
+        ...genSourceHousingOwner(sourceHousing, sourceOwner),
+        rank: (i + 1) as ActiveOwnerRank
+      })
+    );
+    const housing: HousingApi = {
+      ...genHousingApi(),
+      geoCode: sourceHousing.geo_code,
+      localId: sourceHousing.local_id
+    };
+    const owners: ReadonlyArray<OwnerApi> = sourceOwners.map((sourceOwner) => ({
+      ...genOwnerApi(),
+      idpersonne: sourceOwner.idpersonne
+    }));
+    // There should be between 1 and 6 existing active housing owners
+    const existingInactiveHousingOwners: ReadonlyArray<HousingOwnerApi> =
+      faker.helpers
+        .multiple(genOwnerApi, {
+          count: { min: 1, max: 6 }
+        })
+        .map((owner) => ({
+          ...genHousingOwnerApi(housing, owner),
+          idprocpte: faker.string.alphanumeric(10),
+          idprodroit: faker.string.alphanumeric(12),
+          locprop: faker.number.int(),
+          rank: faker.helpers.arrayElement(INACTIVE_OWNER_RANKS),
+          startDate: faker.date.past(),
+          endDate: new Date()
+        }));
 
-      expect(actual).toBeFalse();
+    const actual = await run(sourceHousingOwners, {
+      housingRepository: {
+        findOne: jest.fn().mockResolvedValue(housing)
+      },
+      ownerRepository: {
+        find: jest.fn().mockResolvedValue(owners),
+        findByHousing: jest
+          .fn()
+          .mockResolvedValue(existingInactiveHousingOwners)
+      }
+    });
+
+    expect(actual).toPartiallyContain({
+      type: 'housingOwners',
+      kind: 'replace',
+      value: expect.arrayContaining(
+        existingInactiveHousingOwners.map((housingOwner) => {
+          return expect.objectContaining<Partial<HousingOwnerApi>>({
+            rank: housingOwner.rank,
+            idprocpte: housingOwner.idprocpte,
+            idprodroit: housingOwner.idprodroit,
+            locprop: housingOwner.locprop,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id,
+            ownerId: housingOwner.ownerId,
+            idpersonne: housingOwner.idpersonne,
+            startDate: expect.any(Date),
+            endDate: expect.any(Date)
+          });
+        })
+      )
     });
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
   createRoutesFromElements,
@@ -49,8 +49,14 @@ const router = sentry.createBrowserRouter(
           path="/parc-de-logements/campagnes/:id"
           element={<CampaignView />}
         />
-        <Route path="/analyses/parc-vacant" element={<AnalysisView id='13-analyses' />} />
-        <Route path="/analyses/lutte" element={<AnalysisView id='15-analyses-activites' />} />
+        <Route
+          path="/analyses/parc-vacant"
+          element={<AnalysisView id="13-analyses" />}
+        />
+        <Route
+          path="/analyses/lutte"
+          element={<AnalysisView id="15-analyses-activites" />}
+        />
         <Route path="/groupes/:id" element={<GroupView />} />
         <Route path="/campagnes" element={<CampaignsListView />} />
         <Route path="/campagnes/:id" element={<CampaignView />} />
@@ -108,6 +114,13 @@ function App() {
       dispatch(hideLoading());
     }
   }, [dispatch, isSomeQueryPending]);
+
+  // Scroll to top on route change
+  useLayoutEffect(() => {
+    window.scrollTo({
+      top: 0
+    });
+  });
 
   return <RouterProvider router={router} />;
 }

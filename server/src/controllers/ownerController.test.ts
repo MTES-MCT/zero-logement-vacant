@@ -1,17 +1,49 @@
-import { addDays } from 'date-fns';
-import { constants } from 'http2';
-import request from 'supertest';
-import { v4 as uuidv4 } from 'uuid';
+import { faker } from '@faker-js/faker/locale/fr';
 
 import {
   AddressDTO,
   AddressKinds,
   HousingOwnerPayloadDTO,
   OwnerDTO,
-  OwnerPayloadDTO
+  OwnerPayloadDTO,
+  OwnerRank
 } from '@zerologementvacant/models';
+import { addDays } from 'date-fns';
+import { constants } from 'http2';
+import request from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
+import db from '~/infra/database';
 import { createServer } from '~/infra/server';
-import { tokenProvider } from '~/test/testUtils';
+import { HousingApi } from '~/models/HousingApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
+import {
+  banAddressesTable,
+  formatAddressApi
+} from '~/repositories/banAddressesRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import {
+  EventRecordDBO,
+  Events,
+  eventsTable,
+  housingEventsTable,
+  OwnerEventDBO,
+  ownerEventsTable
+} from '~/repositories/eventRepository';
+import {
+  formatHousingOwnerApi,
+  formatHousingOwnersApi,
+  HousingOwners
+} from '~/repositories/housingOwnerRepository';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genAddressApi,
   genEstablishmentApi,
@@ -21,38 +53,7 @@ import {
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import {
-  EventRecordDBO,
-  Events,
-  eventsTable,
-  housingEventsTable,
-  OwnerEventDBO,
-  ownerEventsTable
-} from '~/repositories/eventRepository';
-import { OwnerApi } from '~/models/OwnerApi';
-import db from '~/infra/database';
-import {
-  banAddressesTable,
-  formatAddressApi
-} from '~/repositories/banAddressesRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import {
-  formatHousingOwnerApi,
-  formatHousingOwnersApi,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { HousingApi } from '~/models/HousingApi';
-import { faker } from '@faker-js/faker/locale/fr';
+import { tokenProvider } from '~/test/testUtils';
 
 describe('Owner API', () => {
   const { app } = createServer();
@@ -297,7 +298,7 @@ describe('Owner API', () => {
       housingOwners = owners.map((owner, i) => {
         return {
           ...genHousingOwnerApi(housing, owner),
-          rank: i + 1
+          rank: (i + 1) as OwnerRank
         };
       });
       await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
@@ -305,20 +306,21 @@ describe('Owner API', () => {
 
     function createHousingOwnerPayload(
       owner: OwnerApi,
-      rank: number
+      rank: OwnerRank
     ): HousingOwnerPayloadDTO {
       return {
         id: owner.id,
         rank: rank,
         locprop: null,
         idprocpte: null,
-        idprodroit: null
+        idprodroit: null,
+        propertyRight: null
       };
     }
 
     it('should reject if the housing is missing', async () => {
       const payload: HousingOwnerPayloadDTO[] = owners.map((owner, i) => {
-        return createHousingOwnerPayload(owner, i + 1);
+        return createHousingOwnerPayload(owner, (i + 1) as OwnerRank);
       });
 
       const { status } = await request(app)
@@ -332,9 +334,14 @@ describe('Owner API', () => {
     it('should reject if one of the owners is missing', async () => {
       const payload: HousingOwnerPayloadDTO[] = owners
         .map((owner, i) => {
-          return createHousingOwnerPayload(owner, i + 1);
+          return createHousingOwnerPayload(owner, (i + 1) as OwnerRank);
         })
-        .concat(createHousingOwnerPayload(genOwnerApi(), owners.length + 1));
+        .concat(
+          createHousingOwnerPayload(
+            genOwnerApi(),
+            (owners.length + 1) as OwnerRank
+          )
+        );
 
       const { status } = await request(app)
         .put(testRoute(housing.id))

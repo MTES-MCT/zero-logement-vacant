@@ -1,33 +1,34 @@
+import { DatafoncierHousing, OwnerRank } from '@zerologementvacant/models';
+import { HousingApi } from '~/models/HousingApi';
+import { OwnerApi } from '~/models/OwnerApi';
+import {
+  HousingOwnerConflictRecordDBO,
+  HousingOwnerConflicts
+} from '~/repositories/conflict/housingOwnerConflictRepository';
+import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
+import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
+import {
+  formatHousingOwnersApi,
+  HousingOwnerDBO,
+  HousingOwners
+} from '~/repositories/housingOwnerRepository';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
+import {
+  OwnerMatchDBO,
+  OwnerMatches
+} from '~/repositories/ownerMatchRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import {
   genDatafoncierHousing,
   genDatafoncierOwner,
   genHousingApi,
   genOwnerApi
 } from '~/test/testFixtures';
-import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
-import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import {
-  formatHousingOwnersApi,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import { processHousing } from '../existingHousingOwnersImporter';
-import {
-  OwnerMatchDBO,
-  OwnerMatches
-} from '~/repositories/ownerMatchRepository';
-import {
-  HousingOwnerConflictRecordDBO,
-  HousingOwnerConflicts
-} from '~/repositories/conflict/housingOwnerConflictRepository';
-import { DatafoncierHousing } from '@zerologementvacant/models';
-import { HousingApi } from '~/models/HousingApi';
 import { DatafoncierOwner } from '../../shared';
-import { OwnerApi } from '~/models/OwnerApi';
+import { processHousing } from '../existingHousingOwnersImporter';
 
 describe('Import housing owners from existing housing', () => {
   describe('processHousing', () => {
@@ -71,17 +72,18 @@ describe('Import housing owners from existing housing', () => {
         housing_geo_code: housing.geoCode,
         housing_id: housing.id
       });
-      const members = owners.map((owner, i) => ({
+      const members = owners.map<HousingOwnerDBO>((owner, i) => ({
         housing_geo_code: housing.geoCode,
         housing_id: housing.id,
         owner_id: owner.id,
-        rank: i + 1,
+        rank: (i + 1) as OwnerRank,
         start_date: expect.any(Date),
         end_date: null,
         origin: null,
         idprocpte: null,
         idprodroit: null,
-        locprop: null
+        locprop_source: null,
+        property_right: null
       }));
       expect(actualHousingOwners).toIncludeSameMembers(members);
     });

@@ -44,7 +44,10 @@ export const toHousingRecordApi = fp.curry(
       mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
       energyConsumption: null,
       energyConsumptionAt: null,
-      cadastralClassification: null
+      cadastralClassification: null,
+      lastMutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
+      lastTransactionDate: null,
+      lastTransactionValue: null
     };
   }
 );

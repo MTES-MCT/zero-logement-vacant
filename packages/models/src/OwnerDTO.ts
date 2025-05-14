@@ -1,8 +1,9 @@
+import { isDefined, isNotNull } from '@zerologementvacant/utils';
 import { AddressDTO, AddressPayloadDTO, formatAddress } from './AddressDTO';
 
 export interface OwnerDTO {
   id: string;
-  rawAddress: string[];
+  rawAddress: string[] | null;
   fullName: string;
   administrator?: string;
   /**
@@ -31,12 +32,13 @@ export type OwnerPayloadDTO = Pick<
   banAddress?: AddressPayloadDTO;
 };
 
-export function getAddress(owner: OwnerDTO): string[] {
+export function getAddress(owner: OwnerDTO): string[] | null {
   if (owner.banAddress) {
     return formatAddress(owner.banAddress, owner.additionalAddress);
   }
 
-  return !owner.additionalAddress
-    ? owner.rawAddress
-    : [owner.additionalAddress, ...owner.rawAddress];
+  return [owner.additionalAddress, owner.rawAddress]
+    .filter(isNotNull)
+    .filter(isDefined)
+    .flat();
 }

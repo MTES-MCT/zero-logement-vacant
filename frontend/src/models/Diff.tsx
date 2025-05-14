@@ -47,19 +47,19 @@ function customizer(a?: any, b?: any) {
 }
 
 export const getHousingDiff = (
-  oldHousing: Housing,
-  newHousing: Housing
+  before: Housing,
+  after: Housing
 ): Diff<Housing> =>
   getDiff(
     {
-      ...oldHousing,
-      occupancy: getOccupancy(oldHousing.occupancy),
-      occupancyIntended: getOccupancy(oldHousing.occupancyIntended)
+      ...before,
+      occupancy: getOccupancy(before.occupancy),
+      occupancyIntended: getOccupancy(before.occupancyIntended)
     },
     {
-      ...newHousing,
-      occupancy: getOccupancy(newHousing.occupancy),
-      occupancyIntended: getOccupancy(newHousing.occupancyIntended)
+      ...after,
+      occupancy: getOccupancy(after.occupancy),
+      occupancyIntended: getOccupancy(after.occupancyIntended)
     },
     ['status', 'subStatus', 'occupancy', 'occupancyIntended']
   );

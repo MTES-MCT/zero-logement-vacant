@@ -28,12 +28,12 @@ interface Replacement {
     rawAddress?: string[];
     localId?: string;
     invariant?: string;
-    cadastralReference?: string;
-    housingKind?: string;
-    livingArea?: number;
-    roomsCount?: number;
-    buildingYear?: number;
-    vacancyStartYear?: number;
+    cadastralReference?: string | null;
+    housingKind?: string | null;
+    livingArea?: number | null;
+    roomsCount?: number | null;
+    buildingYear?: number | null;
+    vacancyStartYear?: number | null;
     energyConsumption?: EnergyConsumption | null;
   };
 }

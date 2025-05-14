@@ -1,27 +1,28 @@
 import { faker } from '@faker-js/faker/locale/fr';
-
-import createImportUnifiedOwnersCommand from '~/scripts/import-unified-owners/command';
+import { beforeAll } from '@jest/globals';
+import { AWAITING_OWNER_RANK } from '@zerologementvacant/models';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
+import {
+  DepartmentalOwnerDBO,
+  DepartmentalOwners
+} from '~/repositories/departmentalOwnersRepository';
 import {
   formatHousingOwnerApi,
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
-import { AWAITING_RANK, HousingOwnerApi } from '~/models/HousingOwnerApi';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
+
+import createImportUnifiedOwnersCommand from '~/scripts/import-unified-owners/command';
 import {
   genHousingApi,
   genHousingOwnerApi,
   genOwnerApi
 } from '~/test/testFixtures';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import {
-  DepartmentalOwnerDBO,
-  DepartmentalOwners
-} from '~/repositories/departmentalOwnersRepository';
-import { OwnerApi } from '~/models/OwnerApi';
-import { beforeAll } from '@jest/globals';
 
 describe('Unified owners command', () => {
   describe('When a national owner is awaiting and a departmental owner is active', () => {
@@ -40,7 +41,10 @@ describe('Unified owners command', () => {
         ...genHousingOwnerApi(housing, existingDepartmentalOwner),
         rank: EXISTING_DEPARTMENTAL_OWNER_RANK
       },
-      { ...genHousingOwnerApi(housing, nationalOwner), rank: AWAITING_RANK }
+      {
+        ...genHousingOwnerApi(housing, nationalOwner),
+        rank: AWAITING_OWNER_RANK
+      }
     ];
     const match: DepartmentalOwnerDBO = {
       owner_id: nationalOwner.id,

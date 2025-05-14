@@ -6,6 +6,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { Typography } from '@mui/material';
+import { OwnerRank } from '@zerologementvacant/models';
 import classNames from 'classnames';
 import fp from 'lodash/fp';
 import { useState } from 'react';
@@ -251,7 +252,7 @@ function HousingOwnersModal({
           onChange={(e) =>
             changeOwnerInputs({
               ...housingOwner,
-              rank: Number(e.target.value)
+              rank: Number(e.target.value) as OwnerRank
             })
           }
           value={String(housingOwner.rank)}
@@ -337,7 +338,6 @@ function HousingOwnersModal({
             </Typography>
             <OwnerAddressEdition
               banAddress={housingOwner.banAddress}
-              rawAddress={housingOwner.rawAddress}
               disabled={housingOwner.rank === -2}
               onSelectAddress={(address) =>
                 onSelectAddress(housingOwner, address ?? undefined)
@@ -407,7 +407,7 @@ function HousingOwnersModal({
         <Button
           className="float-right"
           iconId="fr-icon-edit-fill"
-          priority="tertiary no outline"
+          priority="tertiary"
           title="Modifier le propriétaire"
           onClick={modal.open}
         >

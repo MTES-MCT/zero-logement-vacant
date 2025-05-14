@@ -176,7 +176,6 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
             </Typography>
             <OwnerAddressEdition
               banAddress={owner.banAddress}
-              rawAddress={owner.rawAddress}
               onSelectAddress={(a) => setBanAddress(a ?? undefined)}
               errorMessage={form.message('banAddress')}
               warningVisible={warningVisible}

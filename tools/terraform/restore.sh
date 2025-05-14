@@ -14,18 +14,21 @@ fi
 # Retrieve and download the latest production backup
 BACKUP_ID=$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .backupId')
 FILE="$(clever --org "$CLEVER_ORG_ID" database backups "$CLEVER_DATABASE_ID" --format json | jq -r 'max_by(.creationDate) | .creationDate').dump"
+echo 'Downloading backup...'
 clever --org "$CLEVER_ORG_ID" database backups download "$CLEVER_DATABASE_ID" "$BACKUP_ID" --output "$FILE"
 
 # Restore the backup to the brand new database
-PGPASSWORD=$(terraform output -raw database_password)
+PGPASSWORD=$(terraform output -json database | jq -r .password)
 pg_restore \
-  -h "$(terraform output -raw database_connection_string)" \
-  -p "$(terraform output -raw database_port)" \
-  -U "$(terraform output -raw database_user)" \
-  -d "$(terraform output -raw database_name)" \
+  -h "$(terraform output -json database | jq -r .host)" \
+  -p "$(terraform output -json database | jq -r .port)" \
+  -U "$(terraform output -json database | jq -r .user)" \
+  -d "$(terraform output -json database | jq -r .name)" \
+  --verbose \
   --no-owner \
   --no-privileges \
   --no-comments \
   --clean \
   --if-exists \
-  --format=c "$FILE"
+  --format=c \
+  "$FILE"

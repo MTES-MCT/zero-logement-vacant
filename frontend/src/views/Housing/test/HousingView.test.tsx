@@ -7,7 +7,8 @@ import {
   HousingOwnerDTO,
   HousingStatus,
   Occupancy,
-  OwnerDTO
+  OwnerDTO,
+  OwnerRank
 } from '@zerologementvacant/models';
 import {
   genHousingDTO,
@@ -42,7 +43,7 @@ describe('Housing view', () => {
     data.housings.push(housing);
     housingOwners = [owner, ...secondaryOwners].map((owner, i) => ({
       ...genHousingOwnerDTO(owner),
-      rank: i + 1
+      rank: (i + 1) as OwnerRank
     }));
     data.housingOwners.set(housing.id, housingOwners);
   });
@@ -62,27 +63,37 @@ describe('Housing view', () => {
     );
   }
 
+  it('should throw an error if the housing is missing', async () => {
+    const owner = genOwnerDTO();
+    const missingHousing = genHousingDTO(owner);
+
+    renderView(missingHousing);
+
+    const error = await screen.findByRole('heading', {
+      name: 'Page non trouvée'
+    });
+    expect(error).toBeVisible();
+  });
+
   it('should display the main owner', async () => {
     renderView(housing);
 
-    const name = await screen.findByRole('heading', {
-      name: owner.fullName
-    });
-    expect(name).toBeVisible();
+    const name = await screen.findByLabelText('Nom et prénom');
+    expect(name).toHaveTextContent(owner.fullName);
   });
 
   describe('Show housing details', () => {
     describe('Vacancy start year', () => {
       it('should be unknown', async () => {
         housing.occupancy = Occupancy.RENT;
-        housing.vacancyStartYear = undefined;
+        housing.vacancyStartYear = null;
 
         renderView(housing);
 
-        const vacancyStartYear = await screen
-          .findByText(/^Dans cette situation depuis/)
-          .then((label) => label.nextElementSibling);
-        expect(vacancyStartYear).toHaveTextContent('Inconnu');
+        const vacancyStartYear = await screen.findByLabelText(
+          'Année de début de vacance déclarée'
+        );
+        expect(vacancyStartYear).toHaveTextContent('Pas d’information');
       });
 
       it('should be defined', async () => {
@@ -92,10 +103,10 @@ describe('Housing view', () => {
         renderView(housing);
 
         const vacancyStartYear = await screen
-          .findByText(/^Dans cette situation depuis/)
+          .findByText(/^Année de début de vacance déclarée/)
           .then((label) => label.nextElementSibling);
         expect(vacancyStartYear).toHaveTextContent(
-          `1 an (${format(subYears(new Date(), 1), 'yyyy')})`
+          `${format(subYears(new Date(), 1), 'yyyy')} (1 an)`
         );
       });
     });
@@ -106,9 +117,7 @@ describe('Housing view', () => {
 
         renderView(housing);
 
-        const source = await screen
-          .findByText(/^Source/)
-          .then((label) => label.nextElementSibling);
+        const source = await screen.findByText(/^Source des informations/);
         expect(source).toHaveTextContent('Fichiers fonciers (2023)');
       });
     });
@@ -119,7 +128,8 @@ describe('Housing view', () => {
       renderView(housing);
 
       const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/
+        name: /^Modifier/,
+        description: 'Modifier le propriétaire'
       });
       await user.click(modifyOwners);
       const modal = await screen.findByRole('dialog');
@@ -139,10 +149,46 @@ describe('Housing view', () => {
       await user.click(save);
 
       expect(modal).not.toBeVisible();
-      const name = await screen.findByRole('heading', {
-        name: newName
+      const name = await screen.findByLabelText('Nom et prénom');
+      expect(name).toHaveTextContent(newName);
+    });
+
+    it('should update their birth date', async () => {
+      owner.birthDate = null;
+
+      renderView(housing);
+
+      const modifyOwners = await screen.findByRole('button', {
+        name: /^Modifier/,
+        description: 'Modifier le propriétaire'
       });
-      expect(name).toBeVisible();
+      await user.click(modifyOwners);
+      const modal = await screen.findByRole('dialog');
+      const accordions = await within(modal).findAllByRole('button', {
+        expanded: false
+      });
+      const [firstAccordion] = accordions;
+      await user.click(firstAccordion);
+      const inputs =
+        await within(modal).findAllByLabelText(/^Date de naissance/);
+      const [input] = inputs;
+      const value = faker.date
+        .birthdate()
+        .toJSON()
+        .substring(0, 'yyyy-mm-dd'.length);
+      await user.clear(input);
+      await user.type(input, value);
+      const save = await within(modal).findByRole('button', {
+        name: /^Enregistrer/
+      });
+      await user.click(save);
+
+      expect(modal).not.toBeVisible();
+      const birthdate = await screen.findByLabelText('Date de naissance', {
+        selector: 'span'
+      });
+      const regexp = new RegExp(`^${value.split('-').toReversed().join('/')}`);
+      expect(birthdate).toHaveTextContent(regexp);
     });
   });
 
@@ -152,7 +198,8 @@ describe('Housing view', () => {
 
       const newOwner = genOwnerDTO();
       const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/
+        name: /^Modifier/,
+        description: 'Modifier le propriétaire'
       });
       await user.click(modifyOwners);
       const modal = await screen.findByRole('dialog');
@@ -170,7 +217,9 @@ describe('Housing view', () => {
         await within(modal).findByLabelText(/^Date de naissance/);
       await user.type(birthDate, newOwner.birthDate as string);
       const address = await within(modal).findByLabelText(/^Adresse postale/);
-      await user.type(address, newOwner.rawAddress.join(' '));
+      if (newOwner.rawAddress) {
+        await user.type(address, newOwner.rawAddress.join(' '));
+      }
       const email = await within(modal).findByLabelText(/^Adresse mail/);
       await user.type(email, newOwner.email as string);
       const phone = await within(modal).findByLabelText(/^Numéro de téléphone/);
@@ -201,7 +250,8 @@ describe('Housing view', () => {
       renderView(housing);
 
       const modifyOwners = await screen.findByRole('button', {
-        name: /^Modifier/
+        name: /^Modifier/,
+        description: 'Modifier le propriétaire'
       });
       await user.click(modifyOwners);
       const modal = await screen.findByRole('dialog');
@@ -241,11 +291,17 @@ describe('Housing view', () => {
     it('should update the occupancy', async () => {
       renderView(housing);
 
-      const [update] = await screen.findAllByRole('button', {
-        name: /Mettre à jour/
+      const update = await screen.findByRole('button', {
+        name: /Mettre à jour/,
+        description: 'Mettre à jour le logement'
       });
       await user.click(update);
-      const occupancy = await screen.findByLabelText('Occupation actuelle');
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Occupation'
+      });
+      const occupancy = await within(panel).findByLabelText(
+        'Occupation actuelle'
+      );
       await user.click(occupancy);
       const options = await screen.findByRole('listbox');
       const option = await within(options).findByRole('option', {
@@ -291,7 +347,7 @@ describe('Housing view', () => {
         name: 'Enregistrer'
       });
       await user.click(save);
-      const mobilization = await screen.findByText('Premier contact');
+      const mobilization = await screen.findByLabelText('Statut de suivi');
       expect(mobilization).toBeVisible();
     });
 

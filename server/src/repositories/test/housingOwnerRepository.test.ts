@@ -1,16 +1,18 @@
+import { faker } from '@faker-js/faker/locale/fr';
+import { PROPERTY_RIGHT_VALUES } from '@zerologementvacant/models';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import housingOwnerRepository, {
   formatHousingOwnerApi,
   HousingOwnerDBO,
   HousingOwners
 } from '~/repositories/housingOwnerRepository';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerApi } from '~/models/OwnerApi';
-import { genHousingApi, genOwnerApi } from '~/test/testFixtures';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
+import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
+import { genHousingApi, genOwnerApi } from '~/test/testFixtures';
 
 describe('housingOwnerRepository', () => {
   describe('insert', () => {
@@ -26,7 +28,8 @@ describe('housingOwnerRepository', () => {
         rank: -2,
         ownerId: owner.id,
         housingId: housing.id,
-        housingGeoCode: housing.geoCode
+        housingGeoCode: housing.geoCode,
+        propertyRight: null
       };
       await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
 
@@ -35,7 +38,8 @@ describe('housingOwnerRepository', () => {
         rank: -2,
         ownerId: owner.id,
         housingId: housing.id,
-        housingGeoCode: housing.geoCode
+        housingGeoCode: housing.geoCode,
+        propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
       });
     });
 
@@ -51,7 +55,8 @@ describe('housingOwnerRepository', () => {
         rank: -2,
         ownerId: owner.id,
         housingId: housing.id,
-        housingGeoCode: housing.geoCode
+        housingGeoCode: housing.geoCode,
+        propertyRight: null
       };
       await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
 
@@ -60,7 +65,8 @@ describe('housingOwnerRepository', () => {
         rank: 1,
         ownerId: owner.id,
         housingId: housing.id,
-        housingGeoCode: housing.geoCode
+        housingGeoCode: housing.geoCode,
+        propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
       });
 
       const actual = await HousingOwners()
@@ -89,7 +95,8 @@ describe('housingOwnerRepository', () => {
         rank: 1,
         ownerId: existingOwner.id,
         housingId: housing.id,
-        housingGeoCode: housing.geoCode
+        housingGeoCode: housing.geoCode,
+        propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
       };
       await HousingOwners().insert(formatHousingOwnerApi(existingHousingOwner));
 
@@ -99,7 +106,8 @@ describe('housingOwnerRepository', () => {
         rank: 1,
         ownerId: newOwner.id,
         housingId: housing.id,
-        housingGeoCode: housing.geoCode
+        housingGeoCode: housing.geoCode,
+        propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
       };
       await Owners().insert(formatOwnerApi(newOwner));
       const newHousingOwners: HousingOwnerApi[] = [

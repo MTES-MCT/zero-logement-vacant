@@ -1,5 +1,12 @@
+import { OwnerRank } from '@zerologementvacant/models';
+
 import { genOwner } from '../../../test/fixtures.test';
-import { hasOwnerChanges, hasRankChanges, HousingOwner } from '../Owner';
+import {
+  byRank,
+  hasOwnerChanges,
+  hasRankChanges,
+  HousingOwner
+} from '../Owner';
 
 describe('Owner', () => {
   describe('hasOwnerChanges', () => {
@@ -34,7 +41,8 @@ describe('Owner', () => {
           rank: 1,
           idprocpte: null,
           idprodroit: null,
-          locprop: null
+          locprop: null,
+          propertyRight: null
         }
       ];
       const after: HousingOwner[] = [
@@ -43,7 +51,8 @@ describe('Owner', () => {
           rank: 1,
           idprocpte: null,
           idprodroit: null,
-          locprop: null
+          locprop: null,
+          propertyRight: null
         }
       ];
 
@@ -60,7 +69,8 @@ describe('Owner', () => {
           rank: 1,
           idprocpte: null,
           idprodroit: null,
-          locprop: null
+          locprop: null,
+          propertyRight: null
         }
       ];
       const after: HousingOwner[] = [
@@ -69,13 +79,32 @@ describe('Owner', () => {
           rank: 2,
           idprocpte: null,
           idprodroit: null,
-          locprop: null
+          locprop: null,
+          propertyRight: null
         }
       ];
 
       const actual = hasRankChanges(before, after);
 
       expect(actual).toBeTrue();
+    });
+  });
+
+  describe('byRank', () => {
+    it('should sort housing owners by rank', () => {
+      const ranks: ReadonlyArray<OwnerRank> = [6, -2, 2, 0, 1, -1, 3, 5, 4];
+      const housingOwners: ReadonlyArray<HousingOwner> = ranks.map((rank) => ({
+        ...genOwner(),
+        rank: rank,
+        locprop: null,
+        idprocpte: null,
+        idprodroit: null,
+        propertyRight: null
+      }));
+
+      const actual = housingOwners.toSorted(byRank);
+
+      expect(actual).toBeSortedBy('rank');
     });
   });
 });

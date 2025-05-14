@@ -28,6 +28,7 @@ import {
   MemoryRouter as Router,
   RouterProvider
 } from 'react-router-dom';
+import { vi } from 'vitest';
 import data from '../../mocks/handlers/data';
 import { AppStore } from '../../store/store';
 import configureTestStore from '../../utils/test/storeUtils';
@@ -36,7 +37,7 @@ import GroupView from '../Group/GroupView';
 import HousingListTabsProvider from './HousingListTabsProvider';
 import HousingListView from './HousingListView';
 
-jest.mock('../../components/Aside/Aside.tsx');
+vi.mock('../../components/Aside/Aside.tsx');
 
 describe('Housing list view', () => {
   const user = userEvent.setup();

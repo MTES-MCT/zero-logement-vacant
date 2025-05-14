@@ -4,7 +4,6 @@ import { User } from './User';
 
 export interface NoteCreation {
   content: string;
-  noteKind: string;
 }
 
 export interface HousingNoteCreation extends NoteCreation {

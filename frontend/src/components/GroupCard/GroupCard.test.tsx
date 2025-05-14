@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import GroupCard from './GroupCard';
-import { genGroup } from '../../../test/fixtures.test';
 import { MemoryRouter as Router } from 'react-router-dom';
+import { genGroup } from '../../../test/fixtures.ts';
+import GroupCard from './GroupCard';
 
 describe('GroupCard', () => {
   const group = genGroup();
@@ -10,7 +10,7 @@ describe('GroupCard', () => {
     render(
       <Router>
         <GroupCard group={group} />
-      </Router>,
+      </Router>
     );
 
     const title = screen.queryByText(group.title);
@@ -21,7 +21,7 @@ describe('GroupCard', () => {
     render(
       <Router>
         <GroupCard group={group} />
-      </Router>,
+      </Router>
     );
 
     const housingCount = screen.queryByText(group.housingCount);
@@ -32,7 +32,7 @@ describe('GroupCard', () => {
     render(
       <Router>
         <GroupCard group={group} />
-      </Router>,
+      </Router>
     );
 
     const ownerCount = screen.queryByText(group.ownerCount);
@@ -43,7 +43,7 @@ describe('GroupCard', () => {
     render(
       <Router>
         <GroupCard group={group} />
-      </Router>,
+      </Router>
     );
 
     const link = screen.getByRole('link');

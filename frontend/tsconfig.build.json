@@ -5,6 +5,6 @@
     "src/setupTests.ts",
     "src/**/*.test.ts",
     "src/**/*.test.tsx",
-    "test/fixtures.test.ts"
+    "test/fixtures.ts"
   ]
 }

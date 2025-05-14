@@ -3,7 +3,6 @@ import { Owner } from './Owner';
 
 export interface NoteCreation {
   content: string;
-  noteKind: string;
 }
 
 export interface HousingNoteCreation extends NoteCreation {

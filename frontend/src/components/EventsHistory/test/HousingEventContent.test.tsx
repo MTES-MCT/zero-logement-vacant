@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { Occupancy } from '@zerologementvacant/models';
 
-import { genEvent, genHousing, genUser } from '../../../../test/fixtures.test';
+import { genEvent, genHousing, genUser } from '../../../../test/fixtures.ts';
 import { Event } from '../../../models/Event';
 import { Housing, OCCUPANCY_LABELS } from '../../../models/Housing';
 import { HousingOccupancyChangeEventContent } from '../HousingEventContent';

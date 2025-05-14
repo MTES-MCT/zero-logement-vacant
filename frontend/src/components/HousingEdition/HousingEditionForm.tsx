@@ -12,6 +12,7 @@ import { useForm } from '../../hooks/useForm';
 import { Col, Container, Icon, Row, Text } from '../_dsfr';
 import HousingStatusSelect from './HousingStatusSelect';
 import AppSelect from '../_app/AppSelect/AppSelect';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 
 const modal = createModal({
@@ -42,7 +43,6 @@ const HousingEditionForm = (
   const [subStatus, setSubStatus] = useState(housing?.subStatus);
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
   const [comment, setComment] = useState<string>();
-  const [noteKind, setNoteKind] = useState<string>();
 
   useEffect(() => {
     if (housing) {
@@ -79,8 +79,7 @@ const HousingEditionForm = (
           .string()
           .required('Veuillez sélectionner un sous-statut de suivi.')
       }),
-    comment: yup.string().nullable(),
-    noteKind: yup.string().nullable(),
+    note: yup.string(),
     hasChange: yup
       .boolean()
       .oneOf(
@@ -114,8 +113,7 @@ const HousingEditionForm = (
     hasCurrent: housing !== undefined,
     status,
     subStatus,
-    comment,
-    noteKind,
+    note: '',
     hasChange:
       [housing, status].some((prop) => prop !== undefined) ||
       [occupancy, occupancyIntended].some(
@@ -150,29 +148,15 @@ const HousingEditionForm = (
                 : (occupancyIntended as Occupancy | null)
           }
         : undefined,
-      note: hasNote
-        ? {
-            content: comment,
-            noteKind: noteKind!
-          }
-        : undefined
     });
+
+    // TODO handle note
+
     modal.close();
   };
 
-  const notesOptions: SelectOption[] = [
-    'Note courante',
-    'Échanges avec le(s) propriétaire(s)',
-    'Échanges avec une partie prenante',
-    'Diagnostic/Qualification',
-    'Avis de situation'
-  ].map((note) => ({
-    label: note,
-    value: note
-  }));
-
   const MobilizationTab = () => (
-    <div className="bg-975 fr-py-2w fr-px-3w">
+    <div className="fr-py-2w fr-px-3w">
       {form.messageType('hasChange') === 'error' && (
         <Alert
           severity="error"
@@ -180,15 +164,6 @@ const HousingEditionForm = (
           description={form.message('hasChange')!}
         />
       )}
-      <Text size="lg" bold spacing="mb-2w">
-        <Icon
-          name="fr-icon-information-fill"
-          size="lg"
-          verticalAlign="middle"
-          className="color-bf113"
-        />
-        Mobilisation du logement
-      </Text>
       <div className="fr-select-group">
         <HousingStatusSelect
           selected={status}
@@ -225,15 +200,6 @@ const HousingEditionForm = (
           description={form.message('hasChange')!}
         />
       )}
-      <Text size="lg" bold spacing="mb-2w">
-        <Icon
-          name="fr-icon-home-4-fill"
-          size="lg"
-          verticalAlign="middle"
-          className="color-bf113"
-        />
-        Occupation du logement
-      </Text>
       <Row gutters>
         <Col>
           <AppSelect
@@ -284,24 +250,11 @@ const HousingEditionForm = (
 
   const NoteTab = () => (
     <div className="bg-white fr-py-2w fr-px-3w">
-      <Text size="lg" bold spacing="mb-2w">
-        Note
-      </Text>
-      <AppTextInput
+      <AppTextInputNext
+        label="Nouvelle note"
+        name="comment"
+        nativeTextAreaProps={{ rows: 8 }}
         textArea
-        rows={3}
-        onChange={(e) => setComment(e.target.value)}
-        inputForm={form}
-        inputKey="comment"
-        placeholder="Tapez votre note ici..."
-      />
-      <AppSelect
-        onChange={(e) => setNoteKind(e.target.value)}
-        value={noteKind}
-        label="Type de note"
-        inputForm={form}
-        inputKey="noteKind"
-        options={notesOptions}
       />
     </div>
   );
@@ -311,12 +264,12 @@ const HousingEditionForm = (
       <Tabs
         tabs={[
           {
-            label: "Mobilisation",
-            content: <MobilizationTab />
-          },
-          {
             label: "Occupation",
             content: <OccupationTab />
+          },
+          {
+            label: "Mobilisation",
+            content: <MobilizationTab />
           },
           {
             label: "Note",

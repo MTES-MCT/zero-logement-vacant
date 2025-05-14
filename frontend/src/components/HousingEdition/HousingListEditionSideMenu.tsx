@@ -1,4 +1,3 @@
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
 import { useRef } from 'react';
@@ -8,6 +7,8 @@ import { HousingUpdate } from '../../models/Housing';
 import { displayCount } from '../../utils/stringUtils';
 import Aside from '../Aside/Aside';
 import HousingEditionForm from './HousingEditionForm';
+import LabelNext from '../Label/LabelNext';
+import Box from '@mui/material/Box';
 
 interface Props {
   housingCount: number;
@@ -31,25 +32,29 @@ const HousingListEditionSideMenu = ({
       expand={open}
       onClose={onClose}
       title={
-        <Container as="header" className="d-flex" fluid>
-          <Typography component="h6" className="d-inline-block" mb={0} pt={1}>
-            {displayCount(housingCount, 'logement sélectionné')}
-          </Typography>
-          <div className="align-right">
-            <Button
-              priority="tertiary no outline"
-              iconId="ri-close-line"
-              iconPosition="right"
-              onClick={onClose}
-            >
-              Fermer
-            </Button>
-            <Alert
-              description="Mise à jour groupée"
-              small
-              severity="warning"
-            ></Alert>
-          </div>
+        <Container
+          as="header"
+          className="position-relative"
+          fluid
+        >
+          <Box component="header">
+            <LabelNext>Mise à jour groupée</LabelNext>
+            <Typography variant="h6">
+              {displayCount(housingCount, 'logement sélectionné')}
+            </Typography>
+                      <Button
+            priority="tertiary no outline"
+            iconId="ri-close-line"
+            iconPosition="left"
+            onClick={onClose}
+            style={{ position: 'absolute', top: '2rem', right: '1.5rem' }}
+          >
+            Fermer
+          </Button>
+          </Box>
+
+
+
         </Container>
       }
       content={

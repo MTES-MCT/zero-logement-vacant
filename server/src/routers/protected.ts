@@ -1,8 +1,9 @@
 import schemas from '@zerologementvacant/schemas';
+import { Router } from 'express';
 import fileUpload from 'express-fileupload';
-import Router from 'express-promise-router';
 import { param } from 'express-validator';
 import { object, string } from 'yup';
+
 import accountController from '~/controllers/accountController';
 import buildingController from '~/controllers/buildingController';
 import campaignController from '~/controllers/campaignController';

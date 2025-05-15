@@ -1,34 +1,9 @@
-import { Request, RequestHandler, Response } from 'express';
-import campaignRepository from '~/repositories/campaignRepository';
-import campaignHousingRepository from '~/repositories/campaignHousingRepository';
 import {
-  CampaignApi,
-  CampaignSortableApi,
-  toCampaignDTO
-} from '~/models/CampaignApi';
-import housingRepository from '~/repositories/housingRepository';
-import eventRepository from '~/repositories/eventRepository';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { AuthenticatedRequest } from 'express-jwt';
-import { body, param, ValidationChain } from 'express-validator';
-import { constants } from 'http2';
-import { v4 as uuidv4 } from 'uuid';
-import { HousingApi } from '~/models/HousingApi';
-import async from 'async';
-import housingFiltersApi, {
-  HousingFiltersApi
-} from '~/models/HousingFiltersApi';
-import { logger } from '~/infra/logger';
-import groupRepository from '~/repositories/groupRepository';
-import GroupMissingError from '~/errors/groupMissingError';
-import {
-  campaignFiltersValidators,
-  CampaignQuery
-} from '~/models/CampaignFiltersApi';
-import { isArrayOf, isString, isUUID, isUUIDParam } from '~/utils/validators';
-import sortApi from '~/models/SortApi';
-import CampaignMissingError from '~/errors/campaignMissingError';
-import { HousingEventApi } from '~/models/EventApi';
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
   CAMPAIGN_STATUS_VALUES,
   CampaignCreationPayloadDTO,
@@ -37,18 +12,43 @@ import {
   HousingFiltersDTO,
   nextStatus
 } from '@zerologementvacant/models';
-import CampaignStatusError from '~/errors/campaignStatusError';
-import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
-import draftRepository from '~/repositories/draftRepository';
-import {
-  CopyObjectCommand,
-  DeleteObjectCommand,
-  GetObjectCommand
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import config from '~/infra/config';
 import { createS3, slugify, timestamp } from '@zerologementvacant/utils';
+import async from 'async';
+import { Request, RequestHandler, Response } from 'express';
+import { AuthenticatedRequest } from 'express-jwt';
+import { body, param, ValidationChain } from 'express-validator';
+import { constants } from 'http2';
+import { v4 as uuidv4 } from 'uuid';
 import CampaignEmptyError from '~/errors/campaignEmptyError';
+import CampaignFileMissingError from '~/errors/CampaignFileMissingError';
+import CampaignMissingError from '~/errors/campaignMissingError';
+import CampaignStatusError from '~/errors/campaignStatusError';
+import GroupMissingError from '~/errors/groupMissingError';
+import config from '~/infra/config';
+import { logger } from '~/infra/logger';
+import {
+  CampaignApi,
+  CampaignSortableApi,
+  toCampaignDTO
+} from '~/models/CampaignApi';
+import {
+  campaignFiltersValidators,
+  CampaignQuery
+} from '~/models/CampaignFiltersApi';
+import { HousingEventApi } from '~/models/EventApi';
+import { HousingApi } from '~/models/HousingApi';
+import housingFiltersApi, {
+  HousingFiltersApi
+} from '~/models/HousingFiltersApi';
+import { HousingStatusApi } from '~/models/HousingStatusApi';
+import sortApi from '~/models/SortApi';
+import campaignHousingRepository from '~/repositories/campaignHousingRepository';
+import campaignRepository from '~/repositories/campaignRepository';
+import draftRepository from '~/repositories/draftRepository';
+import eventRepository from '~/repositories/eventRepository';
+import groupRepository from '~/repositories/groupRepository';
+import housingRepository from '~/repositories/housingRepository';
+import { isArrayOf, isString, isUUID, isUUIDParam } from '~/utils/validators';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
 
@@ -462,7 +462,7 @@ async function update(request: Request, response: Response) {
 async function removeCampaign(
   request: Request,
   response: Response
-): Promise<Response> {
+): Promise<void> {
   const campaignId = request.params.id;
   const { establishmentId } = (request as AuthenticatedRequest).auth;
 
@@ -486,7 +486,7 @@ async function removeCampaign(
 
   await resetHousingWithoutCampaigns(establishmentId);
 
-  return response.sendStatus(constants.HTTP_STATUS_NO_CONTENT);
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 }
 
 async function resetHousingWithoutCampaigns(establishmentId: string) {
@@ -516,10 +516,7 @@ const removeHousingValidators: ValidationChain[] = [
   body('ids').custom(isArrayOf(isString)),
   ...housingFiltersApi.validators('filters')
 ];
-async function removeHousing(
-  request: Request,
-  response: Response
-): Promise<Response> {
+async function removeHousing(request: Request, response: Response) {
   logger.info('Remove campaign housing list');
 
   const campaignId = request.params.id;
@@ -542,7 +539,7 @@ async function removeHousing(
       )
     );
 
-  return campaignHousingRepository
+  await campaignHousingRepository
     .deleteHousingFromCampaigns([campaignId], housingIds)
     .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
 }

@@ -1,19 +1,19 @@
-import { param, ValidationChain } from 'express-validator';
 import { Request, Response } from 'express';
+import { param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
+import ProspectMissingError from '~/errors/prospectMissingError';
+import SignupLinkExpiredError from '~/errors/signupLinkExpiredError';
+import SignupLinkMissingError from '~/errors/signupLinkMissingError';
+import { logger } from '~/infra/logger';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { ProspectApi } from '~/models/ProspectApi';
+import { hasExpired, SIGNUP_LINK_LENGTH } from '~/models/SignupLinkApi';
+import establishmentRepository from '~/repositories/establishmentRepository';
+import prospectRepository from '~/repositories/prospectRepository';
+import signupLinkRepository from '~/repositories/signupLinkRepository';
 
 import userRepository from '~/repositories/userRepository';
-import prospectRepository from '~/repositories/prospectRepository';
-import ProspectMissingError from '~/errors/prospectMissingError';
-import signupLinkRepository from '~/repositories/signupLinkRepository';
-import SignupLinkMissingError from '~/errors/signupLinkMissingError';
-import { hasExpired, SIGNUP_LINK_LENGTH } from '~/models/SignupLinkApi';
-import SignupLinkExpiredError from '~/errors/signupLinkExpiredError';
-import { ProspectApi } from '~/models/ProspectApi';
 import ceremaService from '~/services/ceremaService';
-import establishmentRepository from '~/repositories/establishmentRepository';
-import { EstablishmentApi } from '~/models/EstablishmentApi';
-import { logger } from '~/infra/logger';
 
 async function upsert(request: Request, response: Response) {
   const id = request.params.id as string;
@@ -31,7 +31,8 @@ async function upsert(request: Request, response: Response) {
   const user = await userRepository.getByEmail(email);
   if (user) {
     logger.info('Prospect is already a user for email', email);
-    return response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+    response.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+    return;
   }
 
   const ceremaUsers = await ceremaService.consultUsers(email);
@@ -84,7 +85,7 @@ async function show(request: Request, response: Response) {
   if (!prospect) {
     throw new ProspectMissingError(email);
   }
-  return response.status(constants.HTTP_STATUS_OK).json(prospect);
+  response.status(constants.HTTP_STATUS_OK).json(prospect);
 }
 
 const showProspectValidator: ValidationChain[] = [

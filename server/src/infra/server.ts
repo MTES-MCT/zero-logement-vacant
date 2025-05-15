@@ -1,26 +1,25 @@
+import {
+  brevoCheck,
+  healthcheck,
+  postgresCheck,
+  redisCheck,
+  s3Check
+} from '@zerologementvacant/healthcheck';
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import http from 'node:http';
 import util from 'node:util';
-
-import {
-  healthcheck,
-  brevoCheck,
-  postgresCheck,
-  redisCheck,
-  s3Check
-} from '@zerologementvacant/healthcheck';
 import RouteNotFoundError from '~/errors/routeNotFoundError';
 import config from '~/infra/config';
 import gracefulShutdown from '~/infra/graceful-shutdown';
 import { logger } from '~/infra/logger';
 import sentry from '~/infra/sentry';
-import mockServices from '~/mocks';
-import unprotectedRouter from '~/routers/unprotected';
-import protectedRouter from '~/routers/protected';
 import errorHandler from '~/middlewares/error-handler';
+import mockServices from '~/mocks';
+import protectedRouter from '~/routers/protected';
+import unprotectedRouter from '~/routers/unprotected';
 
 export interface Server {
   app: http.Server;
@@ -154,7 +153,8 @@ export function createServer(): Server {
   app.use('/api', unprotectedRouter);
   app.use('/api', protectedRouter);
 
-  app.all('*', (request) => {
+  // Catch-all route
+  app.all('/*splat', (request) => {
     throw new RouteNotFoundError(request);
   });
   sentry.errorHandler(app);

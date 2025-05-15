@@ -6,13 +6,13 @@ import { body, param } from 'express-validator';
 import { Feature, Geometry, MultiPolygon } from 'geojson';
 import { constants } from 'http2';
 import shpjs from 'shpjs';
-import { v4 as uuidv4 } from 'uuid';
 import { match, Pattern } from 'ts-pattern';
+import { v4 as uuidv4 } from 'uuid';
+import { logger } from '~/infra/logger';
+import { GeoPerimeterApi, toGeoPerimeterDTO } from '~/models/GeoPerimeterApi';
 
 import geoRepository from '~/repositories/geoRepository';
 import { isArrayOf, isUUID } from '~/utils/validators';
-import { logger } from '~/infra/logger';
-import { GeoPerimeterApi, toGeoPerimeterDTO } from '~/models/GeoPerimeterApi';
 
 async function listGeoPerimeters(request: Request, response: Response) {
   const { auth } = request as AuthenticatedRequest;
@@ -128,7 +128,8 @@ async function updateGeoPerimeter(request: Request, response: Response) {
   const geoPerimeter = await geoRepository.get(geoPerimeterId);
 
   if (!geoPerimeter || geoPerimeter.establishmentId !== establishmentId) {
-    return response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
+    response.sendStatus(constants.HTTP_STATUS_UNAUTHORIZED);
+    return;
   }
 
   const updated: GeoPerimeterApi = {

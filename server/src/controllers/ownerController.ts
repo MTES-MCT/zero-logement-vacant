@@ -251,7 +251,8 @@ async function updateHousingOwners(
       return found && found.rank === existingHousingOwner.rank;
     })
   ) {
-    return response.status(constants.HTTP_STATUS_NOT_MODIFIED).send();
+    response.status(constants.HTTP_STATUS_NOT_MODIFIED).send();
+    return;
   }
 
   const housingOwners: HousingOwnerApi[] = await async.map(

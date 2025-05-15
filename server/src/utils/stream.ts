@@ -9,27 +9,27 @@ type AwaitedFinders<In, Out, T extends Record<string, Finder<In, Out>>> = {
 };
 
 export function appendAll<In, Out, U extends Record<string, Finder<In, Out>>>(
-  finders: U,
+  finders: U
 ) {
   return (
-    stream: Highland.Stream<In>,
+    stream: Highland.Stream<In>
   ): Highland.Stream<In & AwaitedFinders<In, Out, U>> => {
     return stream.flatMap((data) => {
       return highland(
         Promise.all(
           _.toPairs(finders).map(async ([key, finder]) => [
             key,
-            await finder(data),
-          ]),
+            await finder(data)
+          ])
         )
           .then(_.fromPairs)
           .then(
             (additionalData) =>
               ({
                 ...data,
-                ...additionalData,
-              }) as In & AwaitedFinders<In, unknown, U>,
-          ),
+                ...additionalData
+              }) as In & AwaitedFinders<In, unknown, U>
+          )
       );
     });
   };
@@ -66,7 +66,7 @@ export function errorHandler() {
       .on('end', () => {
         const report = {
           imported,
-          errors: errors.length,
+          errors: errors.length
         };
         logger.info('Report', report);
       });

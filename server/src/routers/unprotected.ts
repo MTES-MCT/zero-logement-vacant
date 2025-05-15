@@ -1,4 +1,5 @@
-import Router from 'express-promise-router';
+import schemas from '@zerologementvacant/schemas';
+import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 
 import accountController from '~/controllers/accountController';
@@ -8,15 +9,14 @@ import localityController from '~/controllers/localityController';
 import ownerProspectController from '~/controllers/ownerProspectController';
 import prospectController from '~/controllers/prospectController';
 import resetLinkController from '~/controllers/resetLinkController';
+import serverSentEventController from '~/controllers/serverSentEventController';
 import settingsController from '~/controllers/settingsController';
 import signupLinkController from '~/controllers/signupLinkController';
 import userController from '~/controllers/userController';
 import config from '~/infra/config';
 import { noop } from '~/middlewares/noop';
 import validator from '~/middlewares/validator';
-import serverSentEventController from '~/controllers/serverSentEventController';
 import validatorNext from '~/middlewares/validator-next';
-import schemas from '@zerologementvacant/schemas';
 
 const router = Router();
 

@@ -486,7 +486,7 @@ export interface OwnerRecordDBO {
   data_source: string | null;
   kind_class: string | null;
   owner_kind_detail: string | null;
-  entity: OwnerEntity;
+  entity: OwnerEntity | null;
   created_at: Date | string | null;
   updated_at: Date | string | null;
 }

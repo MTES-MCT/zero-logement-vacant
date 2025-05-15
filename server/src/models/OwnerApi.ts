@@ -14,7 +14,7 @@ export interface OwnerApi extends OwnerDTO {
   idpersonne?: string;
   siren?: string;
   dataSource?: string;
-  entity: OwnerEntity;
+  entity: OwnerEntity | null;
 }
 
 export function toOwnerDTO(owner: OwnerApi): OwnerDTO {

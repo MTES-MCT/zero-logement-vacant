@@ -1,8 +1,4 @@
 import { faker } from '@faker-js/faker';
-import { constants } from 'http2';
-import { List } from 'immutable';
-import fp from 'lodash/fp';
-import { http, HttpResponse, RequestHandler } from 'msw';
 
 import {
   byCreatedAt,
@@ -15,10 +11,16 @@ import {
   HousingDTO
 } from '@zerologementvacant/models';
 import { combineAll, desc, Ord } from '@zerologementvacant/utils';
-import data from './data';
-import config from '../../utils/config';
-import { isDefined } from '../../utils/compareUtils';
+import { Array } from 'effect';
+import { identity } from 'effect/Function';
+import { constants } from 'http2';
+import { List } from 'immutable';
+import fp from 'lodash/fp';
+import { http, HttpResponse, RequestHandler } from 'msw';
 import { CampaignSortable, isCampaignSortable } from '../../models/Campaign';
+import { isDefined } from '../../utils/compareUtils';
+import config from '../../utils/config';
+import data from './data';
 
 type CampaignParams = {
   id: string;
@@ -238,13 +240,11 @@ function filter(
 ): (campaigns: CampaignDTO[]) => CampaignDTO[] {
   const { groups } = opts;
 
-  return fp.pipe((campaigns: CampaignDTO[]): CampaignDTO[] =>
-    !!groups && groups.length > 0
-      ? campaigns.filter(
-          (campaign) => campaign.groupId && groups.includes(campaign.groupId)
-        )
-      : campaigns
-  );
+  return !!groups && groups.length > 0
+    ? Array.filter<CampaignDTO>(
+        (campaign) => !!campaign.groupId && groups.includes(campaign.groupId)
+      )
+    : identity;
 }
 
 function sort(keys?: ReadonlyArray<string>) {

@@ -1,4 +1,4 @@
-import fp from 'lodash/fp';
+import { Record } from 'effect';
 
 /**
  * Arrays in GeoJSON features get stringified for some reason.
@@ -8,7 +8,7 @@ import fp from 'lodash/fp';
 export function deserialize(
   obj: Record<string, unknown>
 ): Record<string, unknown> {
-  return fp.mapValues(parse)(obj);
+  return Record.map(obj, parse);
 }
 
 function parse(value: unknown): any {

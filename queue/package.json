@@ -2,16 +2,25 @@
   "name": "@zerologementvacant/queue",
   "version": "0.0.1",
   "description": "Zéro Logement Vacant queue",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
   "bin": "dist/bin/index.js",
+  "exports": {
+    "require": {
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.cjs"
+    },
+    "import": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "typecheck": "tsc --noEmit",
     "build": "pkgroll -p tsconfig.build.json",
     "dev": "nodemon -w src src/bin/index.ts",
     "prestart": "htpasswd -c -B -b dist/bin/.htpasswd $QUEUE_DASHBOARD_USERNAME $QUEUE_DASHBOARD_PASSWORD",
-    "start": "node ./dist/bin/index.js"
+    "start": "node ./dist/bin/index.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",

@@ -1,4 +1,8 @@
-import { OwnerDTO, OwnerPayloadDTO } from '@zerologementvacant/models';
+import {
+  OwnerDTO,
+  OwnerEntity,
+  OwnerPayloadDTO
+} from '@zerologementvacant/models';
 import fp from 'lodash/fp';
 import { compare } from '~/utils/compareUtils';
 
@@ -10,6 +14,7 @@ export interface OwnerApi extends OwnerDTO {
   idpersonne?: string;
   siren?: string;
   dataSource?: string;
+  entity: OwnerEntity | null;
 }
 
 export function toOwnerDTO(owner: OwnerApi): OwnerDTO {

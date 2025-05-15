@@ -1,6 +1,6 @@
 import db from '~/infra/database';
-import { HousingNoteApi, NoteApi, OwnerNoteApi } from '~/models/NoteApi';
 import { logger } from '~/infra/logger';
+import { HousingNoteApi, NoteApi, OwnerNoteApi } from '~/models/NoteApi';
 import {
   parseUserApi,
   UserDBO,
@@ -18,7 +18,7 @@ export const HousingNotes = (transaction = db) =>
   transaction<HousingNoteDBO>(housingNotesTable);
 
 async function insertOwnerNote(ownerNoteApi: OwnerNoteApi): Promise<void> {
-  logger.info('Insert OwnerNoteApi');
+  logger.debug('Inserting owner note...', ownerNoteApi);
   await Notes().insert(formatNoteApi(ownerNoteApi));
   await OwnerNotes().insert({
     note_id: ownerNoteApi.id,
@@ -33,7 +33,9 @@ async function createByHousing(housingNote: HousingNoteApi): Promise<void> {
 async function createManyByHousing(
   housingNotes: HousingNoteApi[]
 ): Promise<void> {
-  logger.info('Insert %d HousingNoteApi', housingNotes.length);
+  logger.debug('Inserting housing notes...', {
+    notes: housingNotes
+  });
   if (housingNotes.length) {
     await Notes().insert(
       housingNotes.map((housingNote) => formatNoteApi(housingNote))
@@ -64,12 +66,16 @@ async function findNotes(
 }
 
 async function findOwnerNotes(ownerId: string): Promise<NoteApi[]> {
-  logger.info('List noteApi for owner with id', ownerId);
+  logger.debug('Find owner notes...', {
+    owner: ownerId
+  });
   return findNotes(ownerNotesTable, 'owner_id', ownerId);
 }
 
 async function findHousingNotes(housingId: string): Promise<NoteApi[]> {
-  logger.info('List noteApi for housing with id', housingId);
+  logger.debug('Finding housing notes...', {
+    housing: housingId
+  });
   return findNotes(housingNotesTable, 'housing_id', housingId);
 }
 

@@ -191,7 +191,8 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1
+        rank: 1,
+        property_right: null
       }));
       await HousingOwners().insert(ownersHousing);
     });
@@ -528,7 +529,8 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1
+        rank: 1,
+        property_right: null
       }));
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
@@ -681,7 +683,8 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1
+        rank: 1,
+        property_right: null
       }));
       await HousingOwners().insert(ownersHousing);
       await Groups().insert(formatGroupApi(group));
@@ -811,7 +814,8 @@ describe('Group API', () => {
         owner_id: owner.id,
         housing_id: housing.id,
         housing_geo_code: housing.geoCode,
-        rank: 1
+        rank: 1,
+        property_right: null
       }));
       await HousingOwners().insert(ownersHousing);
     });

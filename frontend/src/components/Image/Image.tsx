@@ -7,7 +7,7 @@ type Responsive = '1x1' | '2x3' | '3x2' | '3x4' | '4x3' | '16x9' | '32x9';
 interface Props {
   alt: string;
   className?: string;
-  responsive?: boolean | Responsive | 'max-width';
+  responsive?: boolean | Responsive | 'max-width' | 'max-height';
   src: string;
 }
 
@@ -37,6 +37,10 @@ function Image(props: Readonly<Props>) {
 }
 
 export default styled(Image)`
-  max-width: ${(props) => (props.responsive === 'max-width' ? '100%' : 'none')};
-  height: auto;
+  max-width: ${(props) =>
+    props.responsive === 'max-width' ? '100%' : undefined};
+  height: ${(props) => (props.responsive === 'max-width' ? 'auto' : undefined)};
+  max-height: ${(props) =>
+    props.responsive === 'max-height' ? '100%' : undefined};
+  width: ${(props) => (props.responsive === 'max-height' ? 'auto' : undefined)};
 `;

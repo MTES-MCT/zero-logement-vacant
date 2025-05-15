@@ -4,6 +4,8 @@ export enum Comparison {
   B_GT_A = -1
 }
 
+export type Eq<A> = (first: A, second: A) => boolean;
+
 export type Ord<A> = (first: A, second: A) => Comparison;
 
 export const DEFAULT_ORDER = <A>(first: A, second: A): Comparison =>

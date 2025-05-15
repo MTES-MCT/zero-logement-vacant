@@ -4,6 +4,7 @@ sources:
   - name: duckdb_production_raw
     schema: production
     tables:
+      - name: building
       - name: housing
       - name: owners
       - name: events

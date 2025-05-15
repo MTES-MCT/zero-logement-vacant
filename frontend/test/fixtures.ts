@@ -20,8 +20,6 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
-
-import fp from 'lodash/fp';
 import randomstring from 'randomstring';
 import { Address } from '../src/models/Address';
 import { Event, fromEventDTO } from '../src/models/Event';
@@ -138,8 +136,14 @@ export function genHousing(): Housing {
   };
 }
 
-export const genAddress = (): Address =>
-  fp.omit(['refId', 'addressKind'], genAddressDTO('', AddressKinds.Housing));
+export function genAddress(): Address {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { refId, addressKind, ...rest } = genAddressDTO(
+    '',
+    AddressKinds.Housing
+  );
+  return rest;
+}
 
 export function genSignupLink(email: string): SignupLink {
   return {

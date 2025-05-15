@@ -1,3 +1,4 @@
+import { HOUSING_STATUS_VALUES } from '@zerologementvacant/models';
 import {
   createContext,
   Dispatch,
@@ -6,8 +7,6 @@ import {
   useContext,
   useState
 } from 'react';
-import { HOUSING_STATUS_VALUES } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
 
 import { getHousingState } from '../../models/HousingState';
 
@@ -20,7 +19,8 @@ const statuses = [
   { id: 'all', label: 'Tous', value: undefined },
   ...HOUSING_STATUS_VALUES.map((status) => {
     const label = getHousingState(status).title;
-    const id = fp.kebabCase(label);
+
+    const id = label.toLowerCase();
     return {
       id,
       label,

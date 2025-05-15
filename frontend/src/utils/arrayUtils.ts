@@ -1,4 +1,4 @@
-import fp from 'lodash/fp';
+import { compose } from 'effect/Function';
 
 import { Identifiable } from '../models/Identifiable';
 
@@ -49,7 +49,7 @@ export function exclude<T extends Identifiable>(ids: string[]) {
 }
 
 export function includeExclude(included: string[], excluded: string[]) {
-  return fp.pipe(include(included), exclude(excluded));
+  return compose(include(included), exclude(excluded));
 }
 
 export function includeExcludeWith<T, K extends keyof T>(
@@ -57,5 +57,5 @@ export function includeExcludeWith<T, K extends keyof T>(
   excluded: Array<T[K]>,
   map: (item: T) => T[K]
 ) {
-  return fp.pipe(includeWith(included, map), excludeWith(excluded, map));
+  return compose(includeWith(included, map), excludeWith(excluded, map));
 }

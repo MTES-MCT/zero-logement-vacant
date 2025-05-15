@@ -28,7 +28,6 @@ import {
   genSenderDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
-import fp from 'lodash/fp';
 
 const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
 
@@ -75,7 +74,7 @@ const campaignHousings = new Map<
 >(
   campaigns.map((campaign) => {
     const elements = faker.helpers.arrayElements(housings);
-    return [campaign.id, elements.map(fp.pick(['id']))];
+    return [campaign.id, elements.map((housing) => ({ id: housing.id }))];
   })
 );
 const housingCampaigns = new Map<HousingDTO['id'], CampaignDTO[]>();

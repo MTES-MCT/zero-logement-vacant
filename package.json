@@ -51,5 +51,8 @@
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
+  },
+  "resolutions": {
+    "@types/express": "4.17.21"
   }
 }

@@ -1,5 +1,3 @@
-import fp from 'lodash/fp';
-
 import { Occupancy, OCCUPANCY_VALUES } from './Occupancy';
 
 /**
@@ -132,15 +130,6 @@ export interface DatafoncierHousing {
   geomloc: string | null;
   idpk: number | null;
   dis_ban_ff: number;
-}
-
-export function toAddress(housing: DatafoncierHousing): string {
-  const streetNumber = fp.trimCharsStart('0', housing.dnvoiri);
-  const repetition = housing.dindic ?? '';
-  const street = housing.dvoilib;
-  const zipcode = housing.idcom;
-  const city = housing.idcomtxt;
-  return `${streetNumber}${repetition} ${street}, ${zipcode} ${city}`;
 }
 
 export function toOccupancy(ccthp: DatafoncierHousing['ccthp']): Occupancy {

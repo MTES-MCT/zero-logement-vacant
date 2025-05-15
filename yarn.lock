@@ -10005,7 +10005,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ms@npm:*":
+"@types/ms@npm:*, @types/ms@npm:^2":
   version: 2.1.0
   resolution: "@types/ms@npm:2.1.0"
   checksum: 10c0/5ce692ffe1549e1b827d99ef8ff71187457e0eb44adbae38fdf7b9a74bae8d20642ee963c14516db1d35fa2652e65f47680fdf679dcbde52bbfadd021f497225
@@ -11251,6 +11251,7 @@ __metadata:
     "@types/jsonwebtoken": "npm:^9.0.7"
     "@types/lodash": "npm:^4.17.9"
     "@types/memoizee": "npm:^0.4.11"
+    "@types/ms": "npm:^2"
     "@types/multer": "npm:^1.4.12"
     "@types/multer-s3": "npm:^3.0.3"
     "@types/node": "npm:^20.16.10"
@@ -11308,6 +11309,7 @@ __metadata:
     knex: "npm:^3.1.0"
     lodash: "npm:^4.17.21"
     memoizee: "npm:^0.4.17"
+    ms: "npm:^2.1.3"
     multer: "npm:^1.4.5-lts.1"
     multer-s3: "npm:^3.0.1"
     nock: "npm:^13.5.5"

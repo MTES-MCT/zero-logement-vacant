@@ -1,28 +1,27 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Typography from '@mui/material/Typography';
+import { HousingStatus } from '@zerologementvacant/models';
 import { useEffect, useState } from 'react';
-import { useSelection } from '../../hooks/useSelection';
-import HousingList from '../../components/HousingList/HousingList';
-import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
+import { useParams } from 'react-router-dom';
 import { Row } from '../../components/_dsfr';
+import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
+import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
-import {
-  useCountHousingQuery,
-  useUpdateHousingListMutation
-} from '../../services/housing.service';
+import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
+import { useSelection } from '../../hooks/useSelection';
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
-import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount, HousingCount } from '../../models/HousingCount';
+import { HousingFilters } from '../../models/HousingFilters';
 import {
   useGetGroupQuery,
   useRemoveGroupHousingMutation
 } from '../../services/group.service';
-import { useParams } from 'react-router-dom';
-import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import Button from '@codegouvfr/react-dsfr/Button';
-import fp from 'lodash/fp';
-import { HousingStatus } from '@zerologementvacant/models';
-import Typography from '@mui/material/Typography';
+import {
+  useCountHousingQuery,
+  useUpdateHousingListMutation
+} from '../../services/housing.service';
 
 export type HousingListTabProps = {
   isActive: boolean;
@@ -53,11 +52,11 @@ const HousingListTab = ({
     useState<SelectedHousing>();
   const [error, setError] = useState<string>();
 
-  const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataFileYearsIncluded', 'dataFileYearsExcluded', 'occupancies'])(
-      filters
-    )
-  );
+  const { data: housingCount } = useCountHousingQuery({
+    dataFileYearsIncluded: filters.dataFileYearsIncluded,
+    dataFileYearsExcluded: filters.dataFileYearsExcluded,
+    occupancies: filters.occupancies
+  });
   const totalCount = housingCount?.housing;
 
   const { data: count } = useCountHousingQuery(filters);

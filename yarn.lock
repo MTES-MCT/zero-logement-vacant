@@ -4986,6 +4986,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@standard-schema/spec@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@standard-schema/spec@npm:1.0.0"
+  checksum: 10c0/a1ab9a8bdc09b5b47aa8365d0e0ec40cc2df6437be02853696a0e377321653b0d3ac6f079a8c67d5ddbe9821025584b1fb71d9cc041a6666a96f1fadf2ece15f
+  languageName: node
+  linkType: hard
+
 "@streamparser/json@npm:^0.0.6":
   version: 0.0.6
   resolution: "@streamparser/json@npm:0.0.6"
@@ -8311,6 +8318,7 @@ __metadata:
     async: "npm:^3.2.6"
     classnames: "npm:^2.5.1"
     date-fns: "npm:^2.30.0"
+    effect: "npm:^3.15.1"
     fetch-intercept: "npm:^2.4.0"
     happy-dom: "npm:^17.4.7"
     immutable: "npm:^5.0.0"
@@ -8395,13 +8403,12 @@ __metadata:
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/geojson": "npm:^7946.0.14"
     "@types/jest": "npm:^29.5.13"
-    "@types/lodash": "npm:^4.17.9"
     "@types/node": "npm:^20.16.10"
     "@zerologementvacant/draft": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
+    effect: "npm:^3.15.1"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
-    lodash: "npm:^4.17.21"
     nodemon: "npm:^3.1.7"
     pkgroll: "npm:^2.11.2"
     rimraf: "npm:^5.0.10"
@@ -11900,6 +11907,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"effect@npm:^3.15.1":
+  version: 3.15.1
+  resolution: "effect@npm:3.15.1"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    fast-check: "npm:^3.23.1"
+  checksum: 10c0/11956e44c559e5b9d58d56c3ca4f5471209c8a25a8eb1118dd81a2735e987529fbe089d1107bd99eb5899234ce39b7cc2d4bfbaa7073d8a734e73dccf72f443b
+  languageName: node
+  linkType: hard
+
 "ejs@npm:^3.1.10, ejs@npm:^3.1.7":
   version: 3.1.10
   resolution: "ejs@npm:3.1.10"
@@ -13123,7 +13140,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-check@npm:^3.0.0":
+"fast-check@npm:^3.0.0, fast-check@npm:^3.23.1":
   version: 3.23.2
   resolution: "fast-check@npm:3.23.2"
   dependencies:

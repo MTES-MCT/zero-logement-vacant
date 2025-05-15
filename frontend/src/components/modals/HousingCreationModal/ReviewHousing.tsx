@@ -1,13 +1,13 @@
+import { DatafoncierHousing } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
 import { forwardRef, useImperativeHandle } from 'react';
+import { useAppSelector } from '../../../hooks/useStore';
+import { OccupancyKind } from '../../../models/Housing';
+import { datafoncierApi } from '../../../services/datafoncier.service';
+import { useCreateHousingMutation } from '../../../services/housing.service';
+import { Text } from '../../_dsfr';
 
 import HousingResult from '../../HousingResult/HousingResult';
-import { OccupancyKind } from '../../../models/Housing';
-import { Text } from '../../_dsfr';
-import { useCreateHousingMutation } from '../../../services/housing.service';
-import { datafoncierApi } from '../../../services/datafoncier.service';
-import { DatafoncierHousing } from '@zerologementvacant/models';
-import { useAppSelector } from '../../../hooks/useStore';
 import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
 const ReviewHousing = forwardRef((props: StepProps, ref) => {

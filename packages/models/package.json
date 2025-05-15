@@ -1,16 +1,27 @@
 {
   "name": "@zerologementvacant/models",
   "version": "0.0.1",
+  "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./fixtures": {
-      "import": "./dist/test/fixtures.js",
-      "require": "./dist/test/fixtures.js",
-      "types": "./dist/test/fixtures.d.ts"
+      "require": {
+        "types": "./dist/test/fixtures.d.cts",
+        "default": "./dist/test/fixtures.cjs"
+      },
+      "import": {
+        "types": "./dist/test/fixtures.d.mts",
+        "default": "./dist/test/fixtures.mjs"
+      }
     }
   },
   "scripts": {
@@ -24,7 +35,7 @@
   "dependencies": {
     "@zerologementvacant/draft": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
-    "lodash": "^4.17.21",
+    "effect": "^3.15.1",
     "ts-essentials": "^10.0.2"
   },
   "devDependencies": {
@@ -34,7 +45,6 @@
     "@tsconfig/node20": "^20.1.4",
     "@types/geojson": "^7946.0.14",
     "@types/jest": "^29.5.13",
-    "@types/lodash": "^4.17.9",
     "@types/node": "^20.16.10",
     "jest": "^29.7.0",
     "jest-extended": "^4.0.2",

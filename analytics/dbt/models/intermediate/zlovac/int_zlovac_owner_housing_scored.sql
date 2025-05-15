@@ -14,6 +14,7 @@ WITH structured_data AS (
         ff_owner_1_idprodroit AS ff_owner_idprodroit,
         ff_owner_1_idpersonne AS ff_owner_idpersonne,
         ff_owner_1_locprop AS ff_owner_locprop,
+        ff_owner_1_property_rights AS ff_owner_property_rights,
         1 AS rank
     FROM {{ ref('int_zlovac') }}
     WHERE ff_owner_1_fullname IS NOT NULL
@@ -35,6 +36,7 @@ WITH structured_data AS (
         ff_owner_2_idprodroit AS ff_owner_idprodroit,
         ff_owner_2_idpersonne AS ff_owner_idpersonne,
         ff_owner_2_locprop AS ff_owner_locprop,
+        ff_owner_2_property_rights AS ff_owner_property_rights,
         2 AS rank
     FROM {{ ref('int_zlovac') }}
     WHERE ff_owner_2_fullname IS NOT NULL
@@ -56,6 +58,7 @@ WITH structured_data AS (
         ff_owner_3_idprodroit AS ff_owner_idprodroit,
         ff_owner_3_idpersonne AS ff_owner_idpersonne,
         ff_owner_3_locprop AS ff_owner_locprop,
+        ff_owner_3_property_rights AS ff_owner_property_rights,
         3 AS rank
     FROM {{ ref('int_zlovac') }}
     WHERE ff_owner_3_fullname IS NOT NULL
@@ -77,6 +80,7 @@ WITH structured_data AS (
         ff_owner_4_idprodroit AS ff_owner_idprodroit,
         ff_owner_4_idpersonne AS ff_owner_idpersonne,
         ff_owner_4_locprop AS ff_owner_locprop,
+        ff_owner_4_property_rights AS ff_owner_property_rights,
         4 AS rank
     FROM {{ ref('int_zlovac') }}
     WHERE ff_owner_4_fullname IS NOT NULL
@@ -98,6 +102,7 @@ WITH structured_data AS (
         ff_owner_5_idprodroit AS ff_owner_idprodroit,
         ff_owner_5_idpersonne AS ff_owner_idpersonne,
         ff_owner_5_locprop AS ff_owner_locprop,
+        ff_owner_5_property_rights AS ff_owner_property_rights,
         5 AS rank
     FROM {{ ref('int_zlovac') }}
     WHERE ff_owner_5_fullname IS NOT NULL
@@ -119,6 +124,7 @@ WITH structured_data AS (
         ff_owner_6_idprodroit AS ff_owner_idprodroit,
         ff_owner_6_idpersonne AS ff_owner_idpersonne,
         ff_owner_6_locprop AS ff_owner_locprop,
+        ff_owner_6_property_rights AS ff_owner_property_rights,
         6 AS rank
     FROM {{ ref('int_zlovac') }}
     WHERE ff_owner_6_fullname IS NOT NULL
@@ -249,6 +255,7 @@ rank_processed AS (
         ff_owner_raw_address,
         ff_owner_idprodroit,
         ff_owner_idpersonne,
+        ff_owner_property_rights,
         ff_owner_locprop,
         rank AS old_rank,
         -- Assign new rank based on score (higher score = lower rank)
@@ -276,6 +283,7 @@ SELECT
     ff_owner_raw_address,
     ff_owner_idprodroit,
     ff_owner_idpersonne,
+    ff_owner_property_rights,
     ff_owner_locprop,
     old_rank,
     rank,

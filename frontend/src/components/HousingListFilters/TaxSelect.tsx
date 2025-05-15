@@ -22,7 +22,7 @@ function TaxSelect<Multiple extends boolean = false>(
     <AppSelectNext
       {...props}
       options={[true, false]}
-      label="Taxé"
+      label="Taxe sur la vacance"
       getOptionLabel={getLabel}
     />
   );

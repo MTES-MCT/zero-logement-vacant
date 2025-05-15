@@ -15,9 +15,6 @@ function HousingPoints(props: Props) {
       type="circle"
       filter={props.filter}
       paint={{
-        // @ts-expect-error: match expects 4 starting arguments
-        // before spreading the rest, but we know that
-        // statusColors.backgroundColors contains 5 pairs
         'circle-color': [
           'match',
           ['get', 'status', ['at', 0, ['get', 'housingList']]],
@@ -29,7 +26,6 @@ function HousingPoints(props: Props) {
         ],
         'circle-radius': 8,
         'circle-stroke-width': 1,
-        // @ts-expect-error: match expects 4 starting arguments
         'circle-stroke-color': [
           'match',
           ['get', 'status', ['at', 0, ['get', 'housingList']]],

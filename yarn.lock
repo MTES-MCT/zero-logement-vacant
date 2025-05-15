@@ -11865,6 +11865,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@standard-schema/spec@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@standard-schema/spec@npm:1.0.0"
+  checksum: 10c0/a1ab9a8bdc09b5b47aa8365d0e0ec40cc2df6437be02853696a0e377321653b0d3ac6f079a8c67d5ddbe9821025584b1fb71d9cc041a6666a96f1fadf2ece15f
+  languageName: node
+  linkType: hard
+
 "@streamparser/json@npm:^0.0.6":
   version: 0.0.6
   resolution: "@streamparser/json@npm:0.0.6"
@@ -23647,6 +23654,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"effect@npm:^3.15.1":
+  version: 3.15.1
+  resolution: "effect@npm:3.15.1"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    fast-check: "npm:^3.23.1"
+  checksum: 10c0/11956e44c559e5b9d58d56c3ca4f5471209c8a25a8eb1118dd81a2735e987529fbe089d1107bd99eb5899234ce39b7cc2d4bfbaa7073d8a734e73dccf72f443b
+  languageName: node
+  linkType: hard
+
 "ejs@npm:^3.1.10, ejs@npm:^3.1.6, ejs@npm:^3.1.7":
   version: 3.1.10
   resolution: "ejs@npm:3.1.10"
@@ -25810,6 +25827,15 @@ __metadata:
   linkType: hard
 
 "fast-check@npm:^3.0.0":
+  version: 3.23.2
+  resolution: "fast-check@npm:3.23.2"
+  dependencies:
+    pure-rand: "npm:^6.1.0"
+  checksum: 10c0/16fcff3c80321ee765e23c3aebd0f6427f175c9c6c1753104ec658970162365dc2d56bda046d815e8f2e90634c07ba7d6f0bcfd327fbd576d98c56a18a9765ed
+  languageName: node
+  linkType: hard
+
+"fast-check@npm:^3.0.0, fast-check@npm:^3.23.1":
   version: 3.23.2
   resolution: "fast-check@npm:3.23.2"
   dependencies:

@@ -3,6 +3,7 @@ import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FileUploadDTO } from '@zerologementvacant/models';
+import { Record } from 'effect';
 import fp from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import * as yup from 'yup';

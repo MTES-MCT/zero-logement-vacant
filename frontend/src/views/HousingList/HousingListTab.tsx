@@ -3,9 +3,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import { HousingStatus } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
 import HousingList from '../../components/HousingList/HousingList';
@@ -51,11 +51,11 @@ function HousingListTab(props: HousingListTabProps) {
     useState<SelectedHousing>();
   const [error, setError] = useState<string>();
 
-  const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataFileYearsIncluded', 'dataFileYearsExcluded', 'occupancies'])(
-      props.filters
-    )
-  );
+  const { data: housingCount } = useCountHousingQuery({
+    dataFileYearsIncluded: filters.dataFileYearsIncluded,
+    dataFileYearsExcluded: filters.dataFileYearsExcluded,
+    occupancies: filters.occupancies
+  });
   const totalCount = housingCount?.housing;
 
   const { data: count, isLoading: isCounting } = useCountHousingQuery(

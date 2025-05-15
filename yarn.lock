@@ -26015,6 +26015,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"effect@npm:^3.15.1":
+  version: 3.15.1
+  resolution: "effect@npm:3.15.1"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    fast-check: "npm:^3.23.1"
+  checksum: 10c0/11956e44c559e5b9d58d56c3ca4f5471209c8a25a8eb1118dd81a2735e987529fbe089d1107bd99eb5899234ce39b7cc2d4bfbaa7073d8a734e73dccf72f443b
+  languageName: node
+  linkType: hard
+
 "effect@npm:^3.16.3":
   version: 3.16.3
   resolution: "effect@npm:3.16.3"

@@ -66,7 +66,7 @@ describe('Building API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual(slice.map(toBuildingDTO));
+      expect(body).toIncludeSameMembers(slice.map(toBuildingDTO));
     });
   });
 

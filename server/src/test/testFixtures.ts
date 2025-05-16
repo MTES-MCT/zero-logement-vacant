@@ -281,7 +281,7 @@ export function genBuildingApi(): BuildingApi {
   });
 
   return {
-    id: geoCode + faker.string.sample(7),
+    id: geoCode + faker.string.alphanumeric(7),
     housingCount,
     vacantHousingCount,
     rentHousingCount,

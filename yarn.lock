@@ -2321,25 +2321,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codegouvfr/react-dsfr@npm:^1.9.11":
-  version: 1.23.4
-  resolution: "@codegouvfr/react-dsfr@npm:1.23.4"
-  dependencies:
-    tsafe: "npm:^1.8.5"
-    yargs-parser: "npm:^21.1.1"
-  peerDependencies:
-    "@gouvfr/dsfr-chart": ^1.0.0
-  peerDependenciesMeta:
-    "@gouvfr/dsfr-chart":
-      optional: true
-  bin:
-    copy-dsfr-to-public: bin/copy-dsfr-to-public.js
-    only-include-used-icons: bin/only-include-used-icons.js
-    react-dsfr: bin/react-dsfr.js
-  checksum: 10c0/5107f4a22bee9ffcae92e963bc043ca81962d808646a6c8dd0915b908ca017119bf85de9a5e1dd1ff06254539723997ae5265a4c7eb41a8fcf52d8fd6a219a08
-  languageName: node
-  linkType: hard
-
 "@colors/colors@npm:1.5.0":
   version: 1.5.0
   resolution: "@colors/colors@npm:1.5.0"
@@ -10956,7 +10937,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/draft@workspace:packages/draft"
   dependencies:
-    "@codegouvfr/react-dsfr": "npm:^1.9.11"
+    "@codegouvfr/react-dsfr": "npm:1.9.16"
     "@swc/core": "npm:^1.11.8"
     "@swc/jest": "npm:^0.2.37"
     "@testing-library/dom": "npm:^10.4.0"
@@ -27003,14 +26984,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:*":
-  version: 19.1.0
-  resolution: "react@npm:19.1.0"
-  checksum: 10c0/530fb9a62237d54137a13d2cfb67a7db6a2156faed43eecc423f4713d9b20c6f2728b026b45e28fcd72e8eadb9e9ed4b089e99f5e295d2f0ad3134251bdd3698
-  languageName: node
-  linkType: hard
-
-"react@npm:^18.3.1":
+"react@npm:18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
@@ -30291,7 +30265,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsafe@npm:^1.6.3, tsafe@npm:^1.8.5":
+"tsafe@npm:^1.6.3":
   version: 1.8.5
   resolution: "tsafe@npm:1.8.5"
   checksum: 10c0/5eb88061c640a11035aa8f7d9713cf9d1e9d479b417ed5f7094151d891b76160d17dd3a8718d624b95a77240e1221fd2a6b6064a25447ca9983088f92442450b

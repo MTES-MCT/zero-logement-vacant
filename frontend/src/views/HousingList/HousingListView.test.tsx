@@ -1258,7 +1258,7 @@ describe('Housing list view', () => {
         await user.click(accordion);
 
         const taxed = await screen.findByRole('combobox', {
-          name: 'Taxé'
+          name: 'Taxe sur la vacance'
         });
         await user.click(taxed);
         const options = await screen.findByRole('listbox');
@@ -1266,7 +1266,7 @@ describe('Housing list view', () => {
         await user.click(option);
         await user.keyboard('{Escape}');
 
-        const badge = await screen.findByText('Taxé : oui');
+        const badge = await screen.findByText('Taxe sur la vacance : oui');
         expect(badge).toBeVisible();
       });
     });

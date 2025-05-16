@@ -1,8 +1,12 @@
+import {
+  HousingOwnerDTO,
+  OwnerRank,
+  PropertyRight
+} from '@zerologementvacant/models';
 import { isDefined, isUndefined } from '@zerologementvacant/utils';
-import { OwnerApi, toOwnerDTO } from './OwnerApi';
 import { compare, includeSameMembers } from '~/utils/compareUtils';
 import { HousingRecordApi } from './HousingApi';
-import { HousingOwnerDTO } from '@zerologementvacant/models';
+import { OwnerApi, toOwnerDTO } from './OwnerApi';
 
 export const MAX_OWNERS = 6;
 
@@ -13,35 +17,26 @@ export interface HousingOwnerApi extends OwnerApi {
   /**
    * Should be come `rank: Rank`
    */
-  rank: number;
-  startDate?: Date;
-  endDate?: Date;
-  origin?: string;
+  rank: OwnerRank;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  origin?: string | null;
   /**
    * @deprecated Hard to maintain because it is computed from the housings
    */
   housingCount?: number;
   // New properties
-  idprocpte?: string;
-  idprodroit?: string;
-  locprop?: number;
+  idprocpte?: string | null;
+  idprodroit?: string | null;
+  locprop?: number | null;
+  propertyRight: PropertyRight | null;
 }
 
-export const AWAITING_RANK = -2 as const;
-export const INCORRECT_RANK = -1 as const;
-export const POSITIVE_RANKS = [1, 2, 3, 4, 5, 6] as const;
-
-export type IncorrectRank = typeof INCORRECT_RANK;
-export type AwaitingRank = typeof AWAITING_RANK;
-export type PositiveRank = (typeof POSITIVE_RANKS)[number];
-export type Rank = IncorrectRank | AwaitingRank | PositiveRank;
-export function isIncorrect(rank: Rank): rank is IncorrectRank {
-  return rank === -1;
-}
-export function isAwaiting(rank: Rank): rank is AwaitingRank {
-  return rank === -2;
-}
-
+/**
+ * @deprecated
+ * @param housing
+ * @param owners
+ */
 export function toHousingOwnersApi(
   housing: HousingRecordApi,
   owners: OwnerApi[]
@@ -51,8 +46,9 @@ export function toHousingOwnersApi(
     ownerId: owner.id,
     housingId: housing.id,
     housingGeoCode: housing.geoCode,
-    rank: i + 1,
-    startDate: new Date()
+    rank: (i + 1) as OwnerRank,
+    startDate: new Date(),
+    propertyRight: null
   }));
 }
 
@@ -65,7 +61,8 @@ export function toHousingOwnerDTO(
     rank: housingOwner.rank,
     idprocpte: housingOwner.idprocpte ?? null,
     idprodroit: housingOwner.idprodroit ?? null,
-    locprop: housingOwner.locprop ?? null
+    locprop: housingOwner.locprop ?? null,
+    propertyRight: housingOwner.propertyRight
   };
 }
 

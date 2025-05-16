@@ -5,6 +5,7 @@ export interface AuthUser {
   user: User;
   accessToken: string;
   establishment: Establishment;
+  jimoData: object;
 }
 
 export interface User {
@@ -35,6 +36,16 @@ export const fromUserDTO = (user: UserDTO): User => ({
   role: user.role,
   // TODO: avoid !
   activatedAt: new Date(user.activatedAt!)
+});
+
+export const toUserDTO = (user: User): UserDTO => ({
+  id: user.id,
+  email: user.email,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  establishmentId: user.establishmentId,
+  role: user.role,
+  activatedAt: user.activatedAt.toJSON()
 });
 
 export interface UserAccount {

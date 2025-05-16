@@ -160,7 +160,8 @@ WITH base_data AS (
         MAX(CASE WHEN year = 2021 THEN count_value END) AS "2021",
         MAX(CASE WHEN year = 2022 THEN count_value END) AS "2022",
         MAX(CASE WHEN year = 2023 THEN count_value END) AS "2023",
-        MAX(CASE WHEN year = 2024 THEN count_value END) AS "2024"
+        MAX(CASE WHEN year = 2024 THEN count_value END) AS "2024",
+        MAX(CASE WHEN year = 2025 THEN count_value END) AS "2025"
     FROM unpivoted_data
     GROUP BY establishment_id, count_type
 )
@@ -174,6 +175,14 @@ SELECT
     "2022",
     "2023",
     "2024",
+    "2025",
+    ("2025" - "2024") AS var_2025_2024,
+    CASE
+        WHEN
+            "2024" != 0
+            THEN ROUND((("2025" - "2024") / "2024") * 100, 2)
+        ELSE NULL
+    END AS var_pct_2025_2024,
     ("2024" - "2023") AS var_2024_2023,
     CASE
         WHEN

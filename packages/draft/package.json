@@ -32,7 +32,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "@codegouvfr/react-dsfr": "^1.9.11",
+    "@codegouvfr/react-dsfr": "1.9.16",
     "@zerologementvacant/utils": "workspace:*",
     "async": "^3.2.6",
     "handlebars": "^4.7.8",

@@ -1,6 +1,6 @@
 import { HeadBucketCommand } from '@aws-sdk/client-s3';
 
-import { createS3, S3Options } from '@zerologementvacant/utils';
+import { createS3, S3Options } from '@zerologementvacant/utils/node';
 import { Check } from './check';
 
 interface Options extends S3Options {

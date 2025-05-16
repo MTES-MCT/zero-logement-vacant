@@ -3,7 +3,8 @@ import {
   CadastralClassification,
   Occupancy
 } from '@zerologementvacant/models';
-import { WritableStream } from 'node:stream/web';
+import { Predicate } from '@zerologementvacant/utils';
+import { map } from '@zerologementvacant/utils/node';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
@@ -14,8 +15,7 @@ import {
 import {
   HousingApi,
   HousingId,
-  normalizeDataFileYears,
-  OwnershipKindsApi
+  normalizeDataFileYears
 } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import {
@@ -28,13 +28,28 @@ import { SourceHousing } from '~/scripts/import-lovac/source-housings/source-hou
 
 const logger = createLogger('sourceHousingProcessor');
 
+/**
+ * @example
+ * Change<SourceHousing, 'housing'>
+ */
+interface Change<Value, Type extends string> {
+  type: Type;
+  kind: 'create' | 'update' | 'delete';
+  value: Value;
+}
+
+export type HousingChange = Change<HousingApi, 'housing'>;
+export type HousingEventChange = Change<HousingEventApi, 'event'>;
+export type AddressChange = Change<AddressApi, 'address'>;
+
+export type SourceHousingChange =
+  | HousingChange
+  | HousingEventChange
+  | AddressChange;
+
 export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
   auth: UserApi;
-  banAddressRepository: {
-    insert(address: AddressApi): Promise<void>;
-  };
   housingEventRepository: {
-    insertMany(events: HousingEventApi[]): Promise<void>;
     find(id: HousingId): Promise<ReadonlyArray<HousingEventApi>>;
   };
   housingNoteRepository: {
@@ -42,11 +57,6 @@ export interface ProcessorOptions extends ReporterOptions<SourceHousing> {
   };
   housingRepository: {
     findOne(geoCode: string, localId: string): Promise<HousingApi | null>;
-    insert(housing: HousingApi): Promise<void>;
-    update(
-      id: Pick<HousingApi, 'geoCode' | 'id'>,
-      housing: Partial<HousingApi>
-    ): Promise<void>;
   };
 }
 
@@ -54,72 +64,91 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
   const {
     abortEarly,
     auth,
-    banAddressRepository,
     housingEventRepository,
     housingNoteRepository,
     housingRepository,
     reporter
   } = opts;
 
-  return new WritableStream<SourceHousing>({
-    async write(chunk) {
+  return map<SourceHousing, ReadonlyArray<SourceHousingChange>>(
+    async (sourceHousing) => {
       try {
-        logger.debug('Processing source housing...', { chunk });
+        logger.debug('Processing source housing...', { sourceHousing });
 
         const existingHousing = await housingRepository.findOne(
-          chunk.geo_code,
-          chunk.local_id
+          sourceHousing.geo_code,
+          sourceHousing.local_id
         );
         if (!existingHousing) {
           const housing: HousingApi = {
             id: uuidv4(),
-            invariant: '',
-            localId: chunk.local_id,
-            buildingId: chunk.building_id,
-            rawAddress: [chunk.dgfip_address],
-            geoCode: chunk.geo_code,
-            longitude: chunk.dgfip_longitude ?? undefined,
-            latitude: chunk.dgfip_latitude ?? undefined,
-            cadastralClassification:
-              (chunk.cadastral_classification as CadastralClassification) ??
-              null,
-            uncomfortable: chunk.uncomfortable,
-            vacancyStartYear: chunk.vacancy_start_year,
-            housingKind: chunk.housing_kind,
-            roomsCount: chunk.rooms_count,
-            livingArea: chunk.living_area,
-            buildingYear: chunk.building_year ?? undefined,
-            mutationDate: chunk.mutation_date,
-            taxed: chunk.taxed,
-            deprecatedVacancyReasons: null,
-            deprecatedPrecisions: null,
-            dataYears: [2023],
-            dataFileYears: ['lovac-2024'],
-            beneficiaryCount: chunk.beneficiary_count,
-            buildingLocation: chunk.location_detail,
-            ownershipKind: chunk.condominium as OwnershipKindsApi,
-            status: HousingStatusApi.NeverContacted,
-            energyConsumption: null,
-            energyConsumptionAt: null,
+            invariant: sourceHousing.invariant,
+            localId: sourceHousing.local_id,
+            buildingId: sourceHousing.building_id,
+            buildingGroupId: undefined,
+            buildingLocation: sourceHousing.building_location,
+            buildingYear: sourceHousing.building_year ?? undefined,
+            plotId: sourceHousing.plot_id,
+            geoCode: sourceHousing.geo_code,
+            rawAddress: [sourceHousing.dgfip_address],
+            longitude: sourceHousing.dgfip_longitude ?? undefined,
+            latitude: sourceHousing.dgfip_latitude ?? undefined,
+            housingKind: sourceHousing.housing_kind,
+            ownershipKind: sourceHousing.condominium ?? undefined,
+            livingArea: sourceHousing.living_area,
+            roomsCount: sourceHousing.rooms_count,
+            uncomfortable: sourceHousing.uncomfortable,
+            cadastralClassification: sourceHousing.cadastral_classification,
+            cadastralReference: undefined,
+            beneficiaryCount: undefined,
+            geolocation: undefined,
+            taxed: sourceHousing.taxed,
+            rentalValue: sourceHousing.rental_value ?? undefined,
             occupancy: Occupancy.VACANT,
             occupancyRegistered: Occupancy.VACANT,
-            source: 'lovac'
+            occupancyIntended: null,
+            vacancyStartYear: sourceHousing.vacancy_start_year,
+            mutationDate: sourceHousing.last_mutation_date,
+            lastMutationDate: sourceHousing.last_mutation_date,
+            lastTransactionDate: null,
+            lastTransactionValue: null,
+            deprecatedVacancyReasons: null,
+            deprecatedPrecisions: null,
+            source: 'lovac',
+            dataYears: [2024],
+            dataFileYears: ['lovac-2025'],
+            status: HousingStatusApi.NeverContacted,
+            subStatus: null,
+            energyConsumption: null,
+            energyConsumptionAt: null
           };
-          await housingRepository.insert(housing);
-          if (chunk.ban_address) {
-            await banAddressRepository.insert({
+          const housingChange: HousingChange = {
+            type: 'housing',
+            kind: 'create',
+            value: housing
+          };
+          const changes: SourceHousingChange[] = [housingChange];
+
+          if (sourceHousing.ban_label) {
+            const address: AddressApi = {
               refId: housing.id,
               addressKind: AddressKinds.Housing,
-              label: chunk.ban_address,
+              banId: sourceHousing.ban_id ?? undefined,
+              label: sourceHousing.ban_label,
               postalCode: '',
               city: '',
-              latitude: chunk.ban_latitude ?? undefined,
-              longitude: chunk.ban_longitude ?? undefined,
-              score: chunk.ban_score ?? undefined
+              latitude: sourceHousing.ban_latitude ?? undefined,
+              longitude: sourceHousing.ban_longitude ?? undefined,
+              score: sourceHousing.ban_score ?? undefined
+            };
+            changes.push({
+              kind: 'create',
+              type: 'address',
+              value: address
             });
           }
-          reporter.passed(chunk);
-          return;
+          reporter.passed(sourceHousing);
+          return changes;
         }
 
         // The housing exists
@@ -135,18 +164,18 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
         ]);
 
         const dataFileYears = normalizeDataFileYears(
-          existingHousing.dataFileYears.concat('lovac-2024')
+          existingHousing.dataFileYears.concat('lovac-2025')
         );
         const events: HousingEventApi[] = [];
 
-        const changes = applyChanges(
+        const patch = applyChanges(
           existingHousing,
           existingEvents,
           existingNotes
         );
         if (
-          changes.occupancy !== undefined &&
-          existingHousing.occupancy !== changes.occupancy
+          patch.occupancy !== undefined &&
+          existingHousing.occupancy !== patch.occupancy
         ) {
           events.push({
             id: uuidv4(),
@@ -155,11 +184,9 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             category: 'Followup',
             section: 'Situation',
             conflict: false,
-            old: existingHousing,
-            new: {
-              ...existingHousing,
-              occupancy: changes.occupancy
-            },
+            // Assert types until we change the Event API
+            old: { occupancy: existingHousing.occupancy } as HousingApi,
+            new: { occupancy: patch.occupancy } as HousingApi,
             createdBy: auth.id,
             createdAt: new Date(),
             housingGeoCode: existingHousing.geoCode,
@@ -167,8 +194,8 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           });
         }
         if (
-          changes.status !== undefined &&
-          existingHousing.status !== changes.status
+          patch.status !== undefined &&
+          existingHousing.status !== patch.status
         ) {
           events.push({
             id: uuidv4(),
@@ -179,15 +206,13 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             conflict: false,
             // This event should come after the above one
             old: {
-              ...existingHousing,
-              occupancy: changes.occupancy ?? existingHousing.occupancy
-            },
+              status: existingHousing.status,
+              subStatus: existingHousing.subStatus
+            } as HousingApi,
             new: {
-              ...existingHousing,
-              occupancy: changes.occupancy ?? existingHousing.occupancy,
-              status: changes.status,
-              subStatus: changes.subStatus
-            },
+              status: patch.status,
+              subStatus: patch.subStatus
+            } as HousingApi,
             createdBy: auth.id,
             createdAt: new Date(),
             housingGeoCode: existingHousing.geoCode,
@@ -195,30 +220,61 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           });
         }
 
-        await Promise.all([
-          housingRepository.update(
-            { id: existingHousing.id, geoCode: existingHousing.geoCode },
-            {
-              ...changes,
-              dataFileYears
-            }
-          ),
-          events.length > 0
-            ? housingEventRepository.insertMany(events)
-            : Promise.resolve()
-        ]);
-        reporter.passed(chunk);
+        const housing: HousingApi = {
+          ...existingHousing,
+          ...patch,
+          dataFileYears,
+          localId: sourceHousing.local_id,
+          invariant: sourceHousing.invariant,
+          // Other updatable properties
+          buildingId: sourceHousing.building_id,
+          buildingLocation: sourceHousing.building_location,
+          buildingYear: sourceHousing.building_year ?? undefined,
+          plotId: sourceHousing.plot_id,
+          rawAddress: [sourceHousing.dgfip_address],
+          latitude: sourceHousing.dgfip_latitude ?? undefined,
+          longitude: sourceHousing.dgfip_longitude ?? undefined,
+          housingKind: sourceHousing.housing_kind,
+          ownershipKind: sourceHousing.condominium ?? undefined,
+          livingArea: sourceHousing.living_area,
+          roomsCount: sourceHousing.rooms_count,
+          uncomfortable: sourceHousing.uncomfortable,
+          cadastralClassification:
+            (sourceHousing.cadastral_classification as CadastralClassification) ??
+            null,
+          cadastralReference: sourceHousing.cadastral_reference,
+          taxed: sourceHousing.taxed,
+          rentalValue: sourceHousing.rental_value ?? undefined,
+          vacancyStartYear: sourceHousing.vacancy_start_year,
+          mutationDate: sourceHousing.last_mutation_date
+        };
+
+        reporter.passed(sourceHousing);
+        const changes: SourceHousingChange[] = [
+          {
+            type: 'housing',
+            kind: 'update',
+            value: housing
+          },
+          ...events.map<HousingEventChange>((event) => ({
+            type: 'event',
+            kind: 'create',
+            value: event
+          }))
+        ];
+        return changes;
       } catch (error) {
         reporter.failed(
-          chunk,
-          new ReporterError((error as Error).message, chunk)
+          sourceHousing,
+          new ReporterError((error as Error).message, sourceHousing)
         );
         if (abortEarly) {
           throw error;
         }
+        return [];
       }
     }
-  });
+  );
 }
 
 function applyChanges(
@@ -226,16 +282,13 @@ function applyChanges(
   events: ReadonlyArray<HousingEventApi>,
   notes: ReadonlyArray<HousingNoteApi>
 ): Partial<HousingApi> {
-  const rules: ReadonlyArray<() => boolean> = [
-    () => events.length === 0 && notes.length === 0,
-    () =>
-      !hasUserNotes(notes) &&
-      !hasUserEvents(events) &&
-      isCompleted(housing) &&
-      isOutOfVacancy(housing)
+  const rules: ReadonlyArray<Predicate<void>> = [
+    () => housing.occupancy !== Occupancy.VACANT,
+    () => events.length === 0 || !hasUserEvents(events),
+    () => notes.length === 0 || !hasUserNotes(notes)
   ];
 
-  if (rules.some((rule) => rule())) {
+  if (rules.every((rule) => rule())) {
     return {
       occupancy: Occupancy.VACANT,
       status: HousingStatusApi.NeverContacted,
@@ -244,14 +297,6 @@ function applyChanges(
   }
 
   return {};
-}
-
-function isCompleted(housing: HousingApi): boolean {
-  return housing.status === HousingStatusApi.Completed;
-}
-
-function isOutOfVacancy(housing: HousingApi): boolean {
-  return housing.subStatus === 'Sortie de la vacance';
 }
 
 function hasUserNotes(notes: ReadonlyArray<HousingNoteApi>): boolean {

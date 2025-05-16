@@ -1,5 +1,20 @@
 WITH all_lovac AS (
     SELECT
+        2025 AS year,
+        local_id,
+        geo_code,
+        vacancy_start_year,
+        data_year,
+        ff_ccthp,
+        housing_kind,
+        aff,
+        groupe, 
+        plot_area, 
+        living_area
+    FROM {{ ref ("stg_lovac_2025") }}
+    UNION ALL
+
+    SELECT
         2024 AS year,
         local_id,
         geo_code,
@@ -87,7 +102,7 @@ WITH all_lovac AS (
 all_ff AS (
     SELECT
         2024 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_ff_ext_2023") }}
+    FROM {{ ref ("stg_ff_ext_2024") }}
     UNION ALL -- todo: change to 2024 when its available
     SELECT
         2023 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc

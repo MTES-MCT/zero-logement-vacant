@@ -20,5 +20,5 @@ SELECT
     dsiren AS ff_owner_siren,
     catpro3 AS ff_owner_category,
     {{ process_owner_kind ('catpro3') }} AS ff_owner_category_text,
-    {{ process_owner_code_droit ('ccodro') }} AS ff_owner_code_droit
+    {{ process_owner_property_rights ('ccodro') }} AS ff_owner_property_rights
 FROM {{ source ('duckdb_raw', 'raw_ff_owners') }}

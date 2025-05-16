@@ -2,6 +2,7 @@ import { fakerFR as faker } from '@faker-js/faker';
 
 import { compactUndefined } from '@zerologementvacant/utils';
 import fp from 'lodash/fp';
+import { MarkRequired } from 'ts-essentials';
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
 import { CampaignDTO } from '../CampaignDTO';
@@ -11,6 +12,10 @@ import { ENERGY_CONSUMPTION_VALUES } from '../EnergyConsumption';
 import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
+import { EVENT_CATEGORY_VALUES } from '../EventCategory';
+import { EVENT_NAME_VALUES, EventDTO } from '../EventDTO';
+import { EVENT_KIND_VALUES } from '../EventKind';
+import { EVENT_SECTION_VALUES } from '../EventSection';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { GroupDTO } from '../GroupDTO';
 import { HousingDTO } from '../HousingDTO';
@@ -21,6 +26,7 @@ import { NoteDTO } from '../NoteDTO';
 import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
 import { OwnerDTO } from '../OwnerDTO';
 import { OWNER_KIND_LABELS } from '../OwnerKind';
+import { PROPERTY_RIGHT_VALUES } from '../PropertyRight';
 import { ProspectDTO } from '../ProspectDTO';
 import { RolesDTO } from '../RolesDTO';
 import { SenderDTO, SignatoryDTO } from '../SenderDTO';
@@ -252,6 +258,26 @@ export function genEstablishmentDTO(): EstablishmentDTO {
   };
 }
 
+export function genEventDTO<T>(
+  before: T | undefined,
+  after: T | undefined,
+  creator: UserDTO
+): MarkRequired<EventDTO<T>, 'creator'> {
+  return {
+    id: faker.string.uuid(),
+    name: faker.helpers.arrayElement(EVENT_NAME_VALUES),
+    kind: faker.helpers.arrayElement(EVENT_KIND_VALUES),
+    category: faker.helpers.arrayElement(EVENT_CATEGORY_VALUES),
+    section: faker.helpers.arrayElement(EVENT_SECTION_VALUES),
+    conflict: faker.datatype.boolean(),
+    old: before,
+    new: after,
+    createdAt: new Date(),
+    createdBy: creator.id,
+    creator: creator
+  };
+}
+
 export function genGroupDTO(
   creator: UserDTO,
   housings?: HousingDTO[]
@@ -294,6 +320,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
       'datafoncier-import',
       'datafoncier-manual'
     ]),
+    vacancyStartYear: faker.date.past().getUTCFullYear(),
     localId: genLocalId(department, invariant),
     invariant: genInvariant(locality),
     rawAddress: faker.location
@@ -302,6 +329,8 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     cadastralClassification: faker.helpers.arrayElement(
       CADASTRAL_CLASSIFICATION_VALUES
     ),
+    longitude: faker.location.longitude(),
+    latitude: faker.location.latitude(),
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
@@ -312,17 +341,21 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
       ...ENERGY_CONSUMPTION_VALUES
     ]),
     energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
-    owner
+    owner,
+    lastMutationDate: faker.date.past().toJSON(),
+    lastTransactionDate: faker.date.past().toJSON(),
+    lastTransactionValue: faker.number.int({ min: 1_000_000, max: 10_000_000 })
   };
 }
 
 export function genHousingOwnerDTO(owner: OwnerDTO): HousingOwnerDTO {
   return {
     ...owner,
-    rank: faker.number.int({ min: 1, max: 10 }),
+    rank: faker.helpers.arrayElement([-2, -1, 0, 1, 2, 3, 4, 5, 6]),
     idprocpte: faker.string.numeric(11),
     idprodroit: faker.string.numeric(13),
-    locprop: faker.number.int(9)
+    locprop: faker.number.int(9),
+    propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
   };
 }
 

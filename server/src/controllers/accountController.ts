@@ -28,6 +28,7 @@ import PasswordInvalidError from '~/errors/passwordInvalidError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
 import UserMissingError from '~/errors/userMissingError';
 import { logger } from '~/infra/logger';
+import { createMetabaseAPI } from '~/services/metabaseService/metabase-api';
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
@@ -83,10 +84,14 @@ async function signInToEstablishment(
     { expiresIn: config.auth.expiresIn }
   );
 
+  const metabaseAPI = createMetabaseAPI();
+  const jimoData = (await metabaseAPI.fetchMetabaseData(290, user.id)); // used for user segmentation in JIMO
+
   response.status(constants.HTTP_STATUS_OK).json({
     user: toUserDTO(user),
     establishment,
-    accessToken
+    accessToken,
+    jimoData: jimoData,
   });
 }
 

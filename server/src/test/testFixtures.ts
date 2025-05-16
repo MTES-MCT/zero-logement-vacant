@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import * as turf from '@turf/turf';
 import {
+  ACTIVE_OWNER_RANKS,
   AddressKinds,
   CADASTRAL_CLASSIFICATION_VALUES,
   DatafoncierHousing,
@@ -16,7 +17,9 @@ import {
   LOCALITY_KIND_VALUES,
   Occupancy,
   OCCUPANCY_VALUES,
+  OWNER_ENTITY_VALUES,
   OWNER_KIND_LABELS,
+  PROPERTY_RIGHT_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
@@ -215,7 +218,8 @@ export const genOwnerApi = (): OwnerApi => {
       ...Object.values(OWNER_KIND_LABELS)
     ]),
     kindDetail: randomstring.generate(),
-    additionalAddress: randomstring.generate()
+    additionalAddress: randomstring.generate(),
+    entity: faker.helpers.arrayElement(OWNER_ENTITY_VALUES)
   };
 };
 
@@ -258,10 +262,17 @@ export const genHousingOwnerApi = (
   ownerId: owner.id,
   housingGeoCode: housing.geoCode,
   housingId: housing.id,
-  rank: faker.number.int({ min: 1, max: 6 })
+  rank: faker.helpers.arrayElement(ACTIVE_OWNER_RANKS),
+  origin: 'lovac',
+  idprocpte: faker.string.alphanumeric(11),
+  idprodroit: faker.string.alphanumeric(13),
+  locprop: faker.number.int({ min: 1, max: 10 }),
+  propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES),
+  startDate: faker.date.past()
 });
 
 export function genBuildingApi(): BuildingApi {
+  const geoCode = genGeoCode();
   const housingCount = faker.number.int({ min: 1, max: 10 });
   const vacantHousingCount = faker.number.int({ min: 0, max: housingCount });
   const rentHousingCount = faker.number.int({
@@ -270,8 +281,8 @@ export function genBuildingApi(): BuildingApi {
   });
 
   return {
-    id: uuidv4(),
-    housingCount: vacantHousingCount,
+    id: geoCode + faker.string.alphanumeric(7),
+    housingCount,
     vacantHousingCount,
     rentHousingCount,
     rnbId: faker.string.alphanumeric({ casing: 'upper' }),
@@ -280,7 +291,8 @@ export function genBuildingApi(): BuildingApi {
 }
 
 export const genHousingApi = (
-  geoCode: string = genGeoCode()
+  geoCode: string = genGeoCode(),
+  building?: BuildingApi
 ): MarkRequired<HousingApi, 'owner'> => {
   const id = uuidv4();
   const department = geoCode.substring(0, 2);
@@ -340,12 +352,13 @@ export const genHousingApi = (
     dataYears,
     dataFileYears,
     buildingLocation: randomstring.generate(),
-    ownershipKind: faker.helpers.maybe(() =>
-      faker.helpers.arrayElement([
-        ...INTERNAL_MONO_CONDOMINIUM_VALUES,
-        ...INTERNAL_CO_CONDOMINIUM_VALUES
-      ])
-    ),
+    ownershipKind:
+      faker.helpers.maybe(() =>
+        faker.helpers.arrayElement([
+          ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+          ...INTERNAL_CO_CONDOMINIUM_VALUES
+        ])
+      ) ?? null,
     status: faker.helpers.weightedArrayElement([
       {
         value: HousingStatusApi.NeverContacted,
@@ -358,6 +371,7 @@ export const genHousingApi = (
         weight: 1
       }))
     ]),
+    subStatus: null,
     energyConsumption: faker.helpers.arrayElement([
       null,
       ...ENERGY_CONSUMPTION_VALUES
@@ -365,11 +379,30 @@ export const genHousingApi = (
     energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     occupancyRegistered: faker.helpers.arrayElement(OCCUPANCY_VALUES),
+    occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
     buildingVacancyRate: faker.number.float(),
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
-    mutationDate: faker.date.past({ years: 20 })
+    mutationDate: faker.date.past({ years: 20 }),
+    geolocation: null,
+    plotId: null,
+    beneficiaryCount: null,
+    buildingId: building?.id ?? null,
+    buildingGroupId: null,
+    buildingHousingCount: null,
+    geoPerimeters: [],
+    lastContact: null,
+    precisions: [],
+    rentalValue: faker.number.int({ min: 500, max: 1000 }),
+    deprecatedPrecisions: [],
+    lastMutationDate:
+      faker.helpers.maybe(() => faker.date.past({ years: 20 })) ?? null,
+    lastTransactionDate:
+      faker.helpers.maybe(() => faker.date.past({ years: 20 })) ?? null,
+    lastTransactionValue:
+      faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ??
+      null
   };
 };
 

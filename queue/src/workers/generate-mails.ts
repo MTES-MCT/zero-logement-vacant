@@ -1,10 +1,5 @@
 import { Upload } from '@aws-sdk/lib-storage';
 
-import archiver from 'archiver';
-import { Worker, WorkerOptions } from 'bullmq';
-import { parseRedisUrl } from 'parse-redis-url-simple';
-import { Readable } from 'node:stream';
-
 import { createSDK } from '@zerologementvacant/api-sdk';
 import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
 import {
@@ -12,10 +7,15 @@ import {
   HousingDTO,
   replaceVariables
 } from '@zerologementvacant/models';
-import { createS3, slugify, timestamp } from '@zerologementvacant/utils';
-import { map, reduce, tap } from '@zerologementvacant/utils/node';
-import { Jobs } from '../jobs';
+import { slugify, timestamp } from '@zerologementvacant/utils';
+import { createS3, map, reduce, tap } from '@zerologementvacant/utils/node';
+import archiver from 'archiver';
+import { Worker, WorkerOptions } from 'bullmq';
+import { Readable } from 'node:stream';
+import { parseRedisUrl } from 'parse-redis-url-simple';
+
 import config from '../config';
+import { Jobs } from '../jobs';
 import { createLogger } from '../logger';
 import { storage } from '../storage';
 
@@ -144,7 +144,7 @@ export default function createWorker() {
                   writtenFrom: draft.writtenFrom,
                   owner: {
                     fullName: housing.owner.fullName,
-                    address: address
+                    address: address ?? []
                   }
                 });
               })

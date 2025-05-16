@@ -1,5 +1,8 @@
 WITH ff_history AS (
     SELECT ff_idlocal, 'ff-' || ff_millesime AS file_year
+    FROM {{ ref ('int_ff_ext_2024') }}
+    UNION ALL
+    SELECT ff_idlocal, 'ff-' || ff_millesime AS file_year
     FROM {{ ref ('int_ff_ext_2023') }}
     UNION ALL
     SELECT ff_idlocal, 'ff-' || ff_millesime AS file_year

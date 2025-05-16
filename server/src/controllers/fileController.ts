@@ -4,7 +4,7 @@ import { constants } from 'http2';
 import { FileUploadDTO } from '@zerologementvacant/models';
 import FileUploadError from '~/errors/fileUploadError';
 import config from '~/infra/config';
-import { createS3, getBase64Content } from '@zerologementvacant/utils';
+import { createS3, getBase64Content } from '@zerologementvacant/utils/node';
 
 async function create(request: Request, response: Response<FileUploadDTO>): Promise<void> {
   const file = request.file as Express.MulterS3.File;

@@ -3,6 +3,26 @@ from .....config import Config
 SCHEMA = "lovac"
 
 lovac_tables_sql = {
+    "raw_lovac_2025": f"""
+        CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2025 AS (
+        SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/lovac/2025/raw.csv',
+        auto_detect = TRUE,
+        escape = '"',
+        quote = '"',
+        types = {{
+        'ff_jdatnss_6': 'VARCHAR',
+        'ff_jdatnss_5': 'VARCHAR',
+        'ff_jdatnss_4': 'VARCHAR',
+        'ff_jdatnss_3': 'VARCHAR',
+        'ff_jdatnss_2': 'VARCHAR',
+        'ff_jdatnss_1': 'VARCHAR',
+        'ff_ccogrm_1': 'VARCHAR',
+        'ff_ccogrm_2': 'VARCHAR',
+        'ff_ccogrm_3': 'VARCHAR',
+        'ff_ccogrm_4': 'VARCHAR',
+        'ff_ccogrm_5': 'VARCHAR',
+        'ff_ccogrm_6': 'VARCHAR',
+        }}));""",
     "raw_lovac_2024": f"""
         CREATE OR REPLACE TABLE {SCHEMA}.raw_lovac_2024 AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/lovac/2024/raw.csv', auto_detect = TRUE,

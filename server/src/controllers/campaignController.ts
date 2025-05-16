@@ -47,7 +47,9 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '~/infra/config';
-import { createS3, slugify, timestamp } from '@zerologementvacant/utils';
+import { createS3 } from '@zerologementvacant/utils/node';
+import { slugify, timestamp } from '@zerologementvacant/utils';
+
 import CampaignEmptyError from '~/errors/campaignEmptyError';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];

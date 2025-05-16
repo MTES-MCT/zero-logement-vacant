@@ -3,7 +3,7 @@ import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { v4 as uuidv4 } from 'uuid';
 
-import { createS3 } from '@zerologementvacant/utils';
+import { createS3 } from '@zerologementvacant/utils/node';
 import config from '~/infra/config';
 import BadRequestError from '~/errors/badRequestError';
 

@@ -1,5 +1,5 @@
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { createS3 } from '@zerologementvacant/utils';
+import { createS3 } from '@zerologementvacant/utils/node';
 import async from 'async';
 import { parse as parseJSONL } from 'jsonlines';
 import { Transform } from 'node:stream';

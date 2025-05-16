@@ -1,5 +1,5 @@
 import { FileUploadDTO } from '@zerologementvacant/models';
-import { createS3, getContent, toBase64 } from '@zerologementvacant/utils';
+import { createS3, getContent, toBase64 } from '@zerologementvacant/utils/node';
 import FileMissingError from '~/errors/fileMissingError';
 import config from '~/infra/config';
 import { createLogger } from '~/infra/logger';

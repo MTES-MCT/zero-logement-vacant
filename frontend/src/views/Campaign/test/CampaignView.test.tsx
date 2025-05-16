@@ -145,7 +145,7 @@ describe('Campaign view', () => {
     await user.click(tab);
     const rowsBefore = screen.getAllByRole<HTMLTableRowElement>('row').slice(1); // Remove headers
     const remove = screen.getAllByRole('button', {
-      name: /^Supprimer le propriétaire/
+      name: /^Supprimer le destinataire/
     })[index];
     await user.click(remove);
     const dialog = await screen.findByRole('dialog');

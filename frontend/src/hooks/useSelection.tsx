@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { useAppDispatch, useAppSelector } from './useStore';
 import housingSlice from '../store/reducers/housingReducer';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export interface Selection {
   all: boolean;
@@ -38,6 +38,11 @@ export function useSelection(
       (selected.all && selected.ids.length < itemCount) ||
       (!selected.all && selected.ids.length > 0),
     [selected.all, selected.ids, itemCount]
+  );
+
+  const hasSelectedAll = useMemo<boolean>(
+    () => selected.all && selected.ids.length === 0,
+    [selected.all, selected.ids]
   );
 
   const selectedCount = useMemo<number>(
@@ -81,6 +86,13 @@ export function useSelection(
     });
   }
 
+  function unselectAll(): void {
+    setSelected({
+      all: false,
+      ids: []
+    });
+  }
+
   function isSelected(id: string): boolean {
     return (
       (selected.all && !selected.ids.includes(id)) ||
@@ -90,6 +102,7 @@ export function useSelection(
 
   return {
     hasSelected,
+    hasSelectedAll,
     selectedCount,
     isSelected,
     select,
@@ -97,6 +110,7 @@ export function useSelection(
     setSelected,
     toggleSelect,
     toggleSelectAll,
-    unselect
+    unselect,
+    unselectAll
   };
 }

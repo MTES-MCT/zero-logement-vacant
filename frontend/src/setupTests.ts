@@ -5,8 +5,8 @@
 import '@testing-library/jest-dom';
 import 'jest-extended';
 import 'jest-sorted';
-import EventSourceMock from '../test/event-source-mock';
 
+import EventSourceMock from '../test/event-source-mock';
 import { mockAPI } from './mocks/mock-api';
 
 jest.mock('./components/Aside/Aside.tsx');

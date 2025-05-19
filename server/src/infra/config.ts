@@ -1,6 +1,7 @@
 import convict from 'convict';
 import formats from 'convict-format-with-validator';
 import dotenv from 'dotenv';
+import { StringValue } from 'ms';
 import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
@@ -42,7 +43,7 @@ interface Config {
   };
   auth: {
     secret: string;
-    expiresIn: string;
+    expiresIn: StringValue;
   };
   ban: {
     api: {

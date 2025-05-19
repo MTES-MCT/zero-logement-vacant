@@ -7,13 +7,13 @@ import {
   HousingDTO,
   replaceVariables
 } from '@zerologementvacant/models';
-import { createS3, slugify, timestamp } from '@zerologementvacant/utils';
-import { map, reduce, tap } from '@zerologementvacant/utils/node';
-
+import { slugify, timestamp } from '@zerologementvacant/utils';
+import { createS3, map, reduce, tap } from '@zerologementvacant/utils/node';
 import archiver from 'archiver';
 import { Worker, WorkerOptions } from 'bullmq';
 import { Readable } from 'node:stream';
 import { parseRedisUrl } from 'parse-redis-url-simple';
+
 import config from '../config';
 import { Jobs } from '../jobs';
 import { createLogger } from '../logger';

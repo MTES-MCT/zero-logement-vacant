@@ -5,7 +5,7 @@ SCHEMA = "production"
 
 
 production_tables = {
-    "buildings": f"CREATE OR REPLACE table {SCHEMA}.buildings AS (SELECT * FROM zlv_replication_db.public.buildings );",
+    "buildings": f"CREATE OR REPLACE table {SCHEMA}.buildings AS (SELECT * FROM zlv_replication_db.public.building );",
     "owners": f"CREATE OR REPLACE table {SCHEMA}.owners AS (SELECT * FROM zlv_replication_db.public.owners );",
     "housing": f"CREATE OR REPLACE table {SCHEMA}.housing AS (SELECT * FROM zlv_replication_db.public.fast_housing );",
     "owners_housing": f"CREATE OR REPLACE table {SCHEMA}.owners_housing AS (SELECT * FROM zlv_replication_db.public.owners_housing );",

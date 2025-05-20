@@ -7784,7 +7784,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/helpers@npm:^0.5.12, @swc/helpers@npm:^0.5.15":
+"@swc/helpers@npm:^0.5.12":
   version: 0.5.15
   resolution: "@swc/helpers@npm:0.5.15"
   dependencies:
@@ -11577,7 +11577,6 @@ __metadata:
     "@sentry/integrations": "npm:^7.119.0"
     "@sentry/node": "npm:^7.119.0"
     "@swc/core": "npm:^1.11.1"
-    "@swc/helpers": "npm:^0.5.15"
     "@swc/jest": "npm:^0.2.37"
     "@tsconfig/node20": "npm:^20.1.4"
     "@turf/turf": "npm:^7.1.0"
@@ -32869,7 +32868,6 @@ __metadata:
     node-talisman: "npm:^1.29.11"
     prettier: "npm:^3.3.3"
     ts-node: "npm:^10.9.2"
-    tslib: "npm:^2.8.1"
     typescript: "npm:^5.6.2"
   languageName: unknown
   linkType: soft

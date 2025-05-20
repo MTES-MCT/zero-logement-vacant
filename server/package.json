@@ -30,6 +30,7 @@
     "@sendinblue/client": "^3.3.1",
     "@sentry/integrations": "^7.119.0",
     "@sentry/node": "^7.119.0",
+    "@swc/helpers": "^0.5.17",
     "@types/json2csv": "^5.0.7",
     "@wecre8websites/sendinblue-tracker": "^1.0.6",
     "@zerologementvacant/draft": "workspace:*",

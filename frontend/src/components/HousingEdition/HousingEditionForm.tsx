@@ -83,7 +83,6 @@ const HousingEditionForm = (
           statusVal !== HousingStatus.NEVER_CONTACTED &&
           statusVal !== HousingStatus.WAITING
         ) {
-          console.log("erreur", statusVal)
           return schema.required('Veuillez sélectionner un sous-statut de suivi.');
         }
         return schema;
@@ -325,7 +324,7 @@ const HousingEditionForm = (
             {occupancyIntended !== MultiHousingOccupancyDefaultValue && (
               <li>Occupation du logement - Occupation prévisionnelle</li>
             )}
-            {hasNote && <li>Ajout d'une note</li>}
+            {hasNote && <li>Ajout d’une note</li>}
           </ul>
         </Container>
       </modal.Component>

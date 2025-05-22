@@ -1,19 +1,18 @@
-import fp from 'lodash/fp';
-
 import {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO,
   SenderPayloadDTO
 } from '@zerologementvacant/models';
-import { zlvApi } from './api.service';
+import { pipe, Record } from 'effect';
+import fp from 'lodash/fp';
 import {
   Draft,
   DraftCreationPayload,
   DraftUpdatePayload
 } from '../models/Draft';
-import { getURLQuery } from '../utils/fetchUtils';
 import { SenderPayload } from '../models/Sender';
+import { zlvApi } from './api.service';
 
 export interface FindOptions {
   campaign?: string;
@@ -22,12 +21,12 @@ export interface FindOptions {
 export const draftApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findDrafts: builder.query<Draft[], FindOptions | void>({
-      query(opts) {
-        const query = getURLQuery({
+      query: (opts) => ({
+        url: '/drafts',
+        params: {
           campaign: opts?.campaign
-        });
-        return `/drafts${query}`;
-      },
+        }
+      }),
       transformResponse: (drafts: DraftDTO[]) => drafts.map(fromDraftDTO),
       providesTags(drafts) {
         return [
@@ -110,7 +109,11 @@ function toSenderPayloadDTO(sender: SenderPayload): SenderPayloadDTO {
   return emptyToNull(sender);
 }
 
-function emptyToNull<T extends object>(obj: T): T {
+function emptyToNull<T extends Record<any, any>>(obj: T): T {
+  return pipe(
+    obj,
+    Record.map((value) => {})
+  );
   // @ts-expect-error: lodash/fp’s types are awful
   return fp.mapValues((value) => (fp.isEmpty(value) ? null : value), obj);
 }

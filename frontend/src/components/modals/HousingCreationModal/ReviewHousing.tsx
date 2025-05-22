@@ -1,5 +1,4 @@
 import { DatafoncierHousing } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
 import { forwardRef, useImperativeHandle } from 'react';
 import { useAppSelector } from '../../../hooks/useStore';
 import { OccupancyKind } from '../../../models/Housing';
@@ -64,7 +63,7 @@ const step: Step = {
 };
 
 function toAddress(housing: DatafoncierHousing): string {
-  const streetNumber = fp.trimCharsStart('0', housing.dnvoiri);
+  const streetNumber = housing.dnvoiri.replace('^0+', '0');
   const repetition = housing.dindic ?? '';
   const street = housing.dvoilib;
   const zipcode = housing.idcom;

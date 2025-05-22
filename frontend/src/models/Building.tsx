@@ -1,5 +1,5 @@
+import { Array, pipe, Record } from 'effect';
 import { HousingWithCoordinates } from './Housing';
-import fp from 'lodash/fp';
 
 type Ordered<T> = { order: string } & T;
 
@@ -24,7 +24,7 @@ function createBuilding(
     longitude: housing.longitude,
     rawAddress: housing.rawAddress,
     housingCount: housingList.length,
-    housingList,
+    housingList
   };
 }
 
@@ -33,10 +33,11 @@ export function groupByBuilding(
 ): HousingByBuilding {
   const withIndices = housingList.map((h, i) => ({
     ...h,
-    order: `#${i + 1}`,
+    order: `#${i + 1}`
   }));
-  return fp.pipe(
-    fp.groupBy('rawAddress'),
-    fp.mapValues(createBuilding)
-  )(withIndices);
+  return pipe(
+    withIndices,
+    Array.groupBy((housing) => housing.rawAddress.join(', ')),
+    Record.map(createBuilding)
+  );
 }

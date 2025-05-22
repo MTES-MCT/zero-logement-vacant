@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
-import fp from 'lodash/fp';
+import { Record } from 'effect';
 import qs from 'qs';
 
 import config from '../utils/config';
@@ -11,12 +11,12 @@ export const zlvApi = createApi({
     prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
     paramsSerializer: (query) =>
       qs.stringify(
-        fp.mapValues((value) => {
+        Record.map(query, (value) => {
           if (Array.isArray(value)) {
             return value.map((v) => (v === null ? 'null' : v));
           }
           return value;
-        }, query),
+        }),
         { arrayFormat: 'comma' }
       )
   }),

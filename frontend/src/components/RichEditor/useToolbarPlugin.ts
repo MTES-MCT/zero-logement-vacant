@@ -1,11 +1,11 @@
 import { $findMatchingParent } from '@lexical/utils';
+import { Array } from 'effect';
 import {
   $getSelection,
   $isElementNode,
   $isRangeSelection,
-  LexicalEditor,
+  LexicalEditor
 } from 'lexical';
-import fp from 'lodash/fp';
 import { useCallback, useEffect, useState } from 'react';
 
 import { isNotNull } from '../../utils/compareUtils';
@@ -27,7 +27,7 @@ export function useToolbarPlugin(props: Props) {
     bold: false,
     italic: false,
     underline: false,
-    align: '',
+    align: ''
   });
 
   const onSelectionChange = useCallback(() => {
@@ -43,13 +43,13 @@ export function useToolbarPlugin(props: Props) {
         .filter(isNotNull)
         .map((node) => node.getFormatType())
         .filter(isAlign);
-      const isUnique = fp.uniq(formats).length === 1;
+      const isUnique = Array.dedupe(formats).length === 1;
 
       setState({
         bold: selection.hasFormat('bold'),
         italic: selection.hasFormat('italic'),
         underline: selection.hasFormat('underline'),
-        align: isUnique ? formats[0] : '',
+        align: isUnique ? formats[0] : ''
       });
     }
   }, []);
@@ -66,7 +66,7 @@ export function useToolbarPlugin(props: Props) {
 
   return {
     state,
-    setState,
+    setState
   };
 }
 

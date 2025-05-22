@@ -5,10 +5,9 @@ import {
   CampaignUpdatePayloadDTO,
   HousingDTO
 } from '@zerologementvacant/models';
-import { Array } from 'effect';
+import { Array, pipe } from 'effect';
 import { identity } from 'effect/Function';
 import { constants } from 'http2';
-import fp from 'lodash/fp';
 import { http, HttpResponse, RequestHandler } from 'msw';
 
 import { isDefined } from '../../utils/compareUtils';
@@ -26,7 +25,7 @@ export const campaignHandlers: RequestHandler[] = [
       const url = new URL(request.url);
       const groups = url.searchParams.get('groups')?.split(',');
 
-      const campaigns = fp.pipe(filter({ groups }))(data.campaigns);
+      const campaigns = pipe(data.campaigns, filter({ groups }));
       return HttpResponse.json(campaigns);
     }
   ),

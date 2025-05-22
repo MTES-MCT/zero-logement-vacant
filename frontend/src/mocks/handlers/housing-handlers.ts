@@ -10,8 +10,8 @@ import {
   genHousingDTO,
   genOwnerDTO
 } from '@zerologementvacant/models/fixtures';
+import { Array, pipe, Struct } from 'effect';
 import { constants } from 'http2';
-import fp from 'lodash/fp';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import config from '../../utils/config';
 import data from './data';
@@ -42,11 +42,12 @@ export const housingHandlers: RequestHandler[] = [
         queryParams.get('statusList')?.split(',').map(Number) ??
         undefined;
 
-      const subset = fp.pipe(
+      const subset = pipe(
+        data.housings,
         filterByCampaign(campaignIds),
         filterByHousingKind(housingKinds),
         filterByStatus(statuses)
-      )(data.housings);
+      );
 
       return HttpResponse.json({
         page: 1,
@@ -74,15 +75,16 @@ export const housingHandlers: RequestHandler[] = [
         queryParams.get('statusList')?.split(',').map(Number) ??
         undefined;
 
-      const subset: HousingDTO[] = fp.pipe(
+      const subset: HousingDTO[] = pipe(
+        data.housings,
         filterByCampaign(campaignIds),
         filterByHousingKind(housingKinds),
         filterByStatus(statuses)
-      )(data.housings);
+      );
 
-      const owners: number = fp.uniqBy(
-        'id',
-        subset.map((housing) => housing.owner)
+      const owners: number = Array.dedupeWith(
+        subset.map((housing) => housing.owner),
+        (a, b) => a.id === b.id
       ).length;
 
       return HttpResponse.json({
@@ -165,23 +167,21 @@ export const housingHandlers: RequestHandler[] = [
       }
       return HttpResponse.json({
         ...housing,
-        owner: fp.pick(
-          [
-            'id',
-            'rawAddress',
-            'fullName',
-            'administrator',
-            'birthDate',
-            'email',
-            'phone',
-            'banAddress',
-            'additionalAddress',
-            'kind',
-            'kindDetail',
-            'createdAt',
-            'updatedAt'
-          ],
-          owner
+        owner: Struct.pick(
+          owner,
+          'id',
+          'rawAddress',
+          'fullName',
+          'administrator',
+          'birthDate',
+          'email',
+          'phone',
+          'banAddress',
+          'additionalAddress',
+          'kind',
+          'kindDetail',
+          'createdAt',
+          'updatedAt'
         )
       });
     }

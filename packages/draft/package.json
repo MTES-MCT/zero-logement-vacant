@@ -1,7 +1,6 @@
 {
   "name": "@zerologementvacant/draft",
   "version": "0.0.1",
-  "type": "module",
   "exports": {
     "import": {
       "types": "./dist/index.d.ts",

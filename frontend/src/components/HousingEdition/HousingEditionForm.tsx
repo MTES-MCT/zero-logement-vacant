@@ -13,6 +13,7 @@ import { Col, Container, Row } from '../_dsfr';
 import HousingStatusSelect from './HousingStatusSelect';
 import AppSelect from '../_app/AppSelect/AppSelect';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
+import { Occupancy } from '@zerologementvacant/models';
 
 const modal = createModal({
   id: 'housing-edition-modal',
@@ -42,9 +43,8 @@ const HousingEditionForm = (
   const [subStatus, setSubStatus] = useState(housing?.subStatus);
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
   const noteRef = useRef<string>('');
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     noteRef.current = e.target.value;
   };
 
@@ -77,11 +77,10 @@ const HousingEditionForm = (
     subStatus: yup
       .string()
       .nullable()
-      .when('status', (statusVal: HousingStatus | null, schema) => {
+      .when('status', (statusVal: HousingStatus | undefined, schema) => {
         if (
           statusVal !== undefined &&
-          statusVal !== HousingStatus.NEVER_CONTACTED &&
-          statusVal !== HousingStatus.WAITING
+          [ HousingStatus.NEVER_CONTACTED,  HousingStatus.WAITING].includes(statusVal)
         ) {
           return schema.required('Veuillez sélectionner un sous-statut de suivi.');
         }
@@ -157,7 +156,7 @@ const HousingEditionForm = (
                 : (occupancyIntended as Occupancy | null)
           }
         : undefined,
-      note: noteRef.current ? { content: noteRef.current, noteKind: 'Note courante' } : undefined
+      note: noteRef.current ? { content: noteRef.current } : undefined
     });
 
     modal.close();
@@ -185,10 +184,10 @@ const HousingEditionForm = (
           }}
         />
       </div>
-      {(subStatusOptions && ![HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(status)) && (
+      {(subStatusOptions && status !== undefined && ![HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(status)) && (
         <AppSelect
           onChange={(e) => setSubStatus(e.target.value)}
-          value={subStatus}
+          value={subStatus ?? ''}
           required
           label="Sous-statut de suivi"
           inputForm={form}
@@ -234,7 +233,7 @@ const HousingEditionForm = (
             onChange={(e) =>
               setOccupancyIntended(e.target.value as OccupancyKind)
             }
-            value={occupancyIntended}
+            value={occupancyIntended ?? ''}
             label="Occupation prévisionnelle"
             inputForm={form}
             inputKey="occupancyIntended"
@@ -266,7 +265,6 @@ const HousingEditionForm = (
         defaultValue={noteRef.current}
         onChange={handleChange}
         inputForm={form}
-        inputRef={textareaRef}
         inputKey="note"
         />
       </div>

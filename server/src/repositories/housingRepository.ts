@@ -971,7 +971,6 @@ export interface HousingRecordDBO {
   living_area: number | null;
   cadastral_reference?: string | null;
   building_year?: number;
-  mutation_date?: Date;
   taxed?: boolean;
   /**
    * @deprecated See the tables `precisions` and `housing_precisions`
@@ -1001,6 +1000,7 @@ export interface HousingRecordDBO {
   occupancy_intended: Occupancy | null;
   energy_consumption_bdnb: EnergyConsumption | null;
   energy_consumption_at_bdnb: Date | null;
+  mutation_date?: Date;
   last_mutation_date: Date | null;
   last_transaction_date: Date | null;
   last_transaction_value: number | null;
@@ -1103,7 +1103,6 @@ export const formatHousingRecordApi = (
   rental_value: housing.rentalValue,
   beneficiary_count: housing.beneficiaryCount,
   geolocation: housing.geolocation,
-  mutation_date: housing.mutationDate ?? undefined,
   geo_code: housing.geoCode,
   cadastral_classification: housing.cadastralClassification,
   uncomfortable: housing.uncomfortable,
@@ -1130,6 +1129,7 @@ export const formatHousingRecordApi = (
   occupancy_source: housing.occupancyRegistered,
   occupancy_intended: housing.occupancyIntended ?? null,
   data_source: housing.source,
+  mutation_date: housing.mutationDate ?? undefined,
   last_mutation_date: housing.lastMutationDate,
   last_transaction_date: housing.lastTransactionDate,
   last_transaction_value: housing.lastTransactionValue

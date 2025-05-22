@@ -1,5 +1,4 @@
 import { DatafoncierHousing } from '@zerologementvacant/models';
-import { getURLQuery } from '../utils/fetchUtils';
 import { zlvApi } from './api.service';
 
 export const datafoncierApi = zlvApi.injectEndpoints({
@@ -8,7 +7,10 @@ export const datafoncierApi = zlvApi.injectEndpoints({
       DatafoncierHousing[],
       DatafoncierHousingQuery
     >({
-      query: (params) => `datafoncier/housing${getURLQuery(params)}`,
+      query: (params) => ({
+        url: 'datafoncier/housing',
+        params
+      }),
       providesTags: () => [{ type: 'Datafoncier housing', id: 'LIST' }]
     }),
     findOneHousing: builder.query<DatafoncierHousing, string>({

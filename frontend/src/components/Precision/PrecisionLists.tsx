@@ -10,7 +10,6 @@ import {
   isPrecisionMechanismCategory,
   Precision
 } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
 import { useMemo, useState } from 'react';
 import { useNotification } from '../../hooks/useNotification';
 import { Housing } from '../../models/Housing';
@@ -243,7 +242,9 @@ function PrecisionLists(props: Props) {
             ) : (
               filteredEvolutions.map((precision) => (
                 <Tag key={precision.id} className={styles.tag}>
-                  {fp.startCase(precision.category.replace('-', ' '))} :&nbsp;
+                  {precision.category[0] +
+                    precision.category.substring(1).replace('-', ' ')}
+                  :&nbsp;
                   {precision.label.toLowerCase()}
                 </Tag>
               ))

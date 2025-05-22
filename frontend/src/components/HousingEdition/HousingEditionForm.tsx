@@ -184,7 +184,7 @@ const HousingEditionForm = (
           }}
         />
       </div>
-      {(subStatusOptions && status !== undefined && ![HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(status)) && (
+      {subStatusOptions && (
         <AppSelect
           onChange={(e) => setSubStatus(e.target.value)}
           value={subStatus ?? ''}
@@ -193,6 +193,7 @@ const HousingEditionForm = (
           inputForm={form}
           inputKey="subStatus"
           options={subStatusOptions}
+          disabled={status == undefined || [HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(status)}
         />
       )}
     </div>

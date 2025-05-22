@@ -12,7 +12,7 @@ import { genBuildingApi } from '~/test/testFixtures';
 export async function seed(knex: Knex): Promise<void> {
   await knex.raw(`TRUNCATE TABLE ${BUILDING_TABLE} CASCADE`);
 
-  const establishments = await Establishments(knex);
+  const establishments = await Establishments(knex).where({ available: true });
   await async.forEachSeries(establishments, async () => {
     const buildings: ReadonlyArray<BuildingDBO> = Array.from(
       { length: 10 },

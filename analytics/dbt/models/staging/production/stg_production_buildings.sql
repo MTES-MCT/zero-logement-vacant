@@ -1,1 +1,1 @@
-SELECT * FROM {{ source ('duckdb_production_raw', 'building') }}
+SELECT * FROM {{ source ('duckdb_production_raw', 'buildings') }}

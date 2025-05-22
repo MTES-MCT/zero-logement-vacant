@@ -177,4 +177,4 @@ cleaned_data as (
 
 select * from cleaned_data
 QUALIFY
-ROW_NUMBER () OVER (PARTITION BY local_id ORDER BY mutation_date DESC) = 1
+ROW_NUMBER () OVER (PARTITION BY local_id ORDER BY vacancy_start_year DESC, mutation_date DESC) = 1

@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, useState, useEffect } from 'react';
+import React, { useImperativeHandle, useState, useEffect, useRef } from 'react';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
@@ -9,10 +9,9 @@ import { getSubStatusOptions } from '../../models/HousingState';
 import { SelectOption } from '../../models/SelectOption';
 import { allOccupancyOptions, statusOptions } from '../../models/HousingFilters';
 import { useForm } from '../../hooks/useForm';
-import { Col, Container, Icon, Row, Text } from '../_dsfr';
+import { Col, Container, Row } from '../_dsfr';
 import HousingStatusSelect from './HousingStatusSelect';
 import AppSelect from '../_app/AppSelect/AppSelect';
-import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 
 const modal = createModal({
@@ -42,7 +41,12 @@ const HousingEditionForm = (
   const [status, setStatus] = useState<HousingStatus>();
   const [subStatus, setSubStatus] = useState(housing?.subStatus);
   const [subStatusOptions, setSubStatusOptions] = useState<SelectOption[]>();
-  const [comment, setComment] = useState<string>();
+  const noteRef = useRef<string>('');
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    noteRef.current = e.target.value;
+  };
 
   useEffect(() => {
     if (housing) {
@@ -73,11 +77,16 @@ const HousingEditionForm = (
     subStatus: yup
       .string()
       .nullable()
-      .when('hasSubStatus', {
-        is: true,
-        then: yup
-          .string()
-          .required('Veuillez sélectionner un sous-statut de suivi.')
+      .when('status', (statusVal: HousingStatus | null, schema) => {
+        if (
+          statusVal !== undefined &&
+          statusVal !== HousingStatus.NEVER_CONTACTED &&
+          statusVal !== HousingStatus.WAITING
+        ) {
+          console.log("erreur", statusVal)
+          return schema.required('Veuillez sélectionner un sous-statut de suivi.');
+        }
+        return schema;
       }),
     note: yup.string(),
     hasChange: yup
@@ -87,6 +96,7 @@ const HousingEditionForm = (
         'Pour enregister, veuillez saisir au moins une donnée. Sinon, cliquez sur "Annuler" ou sur "Fermer" pour quitter la mise à jour groupée.'
       )
   };
+  type FormShape = typeof shape;
 
   const isStatusUpdate = housing?.status !== status || housing?.subStatus !== subStatus;
 
@@ -104,7 +114,7 @@ const HousingEditionForm = (
     }
   };
 
-  const hasNote = comment !== undefined && comment.length > 0;
+  const hasNote = noteRef.current !== undefined && noteRef.current.length > 0;
 
   const form = useForm(yup.object().shape(shape), {
     occupancy,
@@ -148,15 +158,14 @@ const HousingEditionForm = (
                 : (occupancyIntended as Occupancy | null)
           }
         : undefined,
+      note: noteRef.current ? { content: noteRef.current, noteKind: 'Note courante' } : undefined
     });
-
-    // TODO handle note
 
     modal.close();
   };
 
   const MobilizationTab = () => (
-    <div className="fr-py-2w fr-px-3w">
+    <div className="fr-py-2w">
       {form.messageType('hasChange') === 'error' && (
         <Alert
           severity="error"
@@ -177,7 +186,7 @@ const HousingEditionForm = (
           }}
         />
       </div>
-      {subStatusOptions && (
+      {(subStatusOptions && ![HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(status)) && (
         <AppSelect
           onChange={(e) => setSubStatus(e.target.value)}
           value={subStatus}
@@ -192,7 +201,7 @@ const HousingEditionForm = (
   );
 
   const OccupationTab = () => (
-    <div className="bg-white fr-py-2w fr-px-3w">
+    <div className="bg-white fr-py-2w">
       {form.messageType('hasChange') === 'error' && (
         <Alert
           severity="error"
@@ -249,14 +258,20 @@ const HousingEditionForm = (
   );
 
   const NoteTab = () => (
-    <div className="bg-white fr-py-2w fr-px-3w">
-      <AppTextInputNext
-        label="Nouvelle note"
-        name="comment"
-        nativeTextAreaProps={{ rows: 8 }}
+    <>
+      <label className="fr-label fr-mb-1w">Nouvelle note</label>
+      <div className="bg-white">
+        <AppTextInput<FormShape>
         textArea
-      />
-    </div>
+        rows={8}
+        defaultValue={noteRef.current}
+        onChange={handleChange}
+        inputForm={form}
+        inputRef={textareaRef}
+        inputKey="note"
+        />
+      </div>
+    </>
   );
 
   return (

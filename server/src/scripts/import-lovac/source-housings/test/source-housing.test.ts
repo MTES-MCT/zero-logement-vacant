@@ -49,7 +49,10 @@ describe('SourceHousing', () => {
         min: 1,
         max: new Date().getUTCFullYear()
       }),
-      last_mutation_date: fc.option(fc.date())
+      mutation_date: fc.option(fc.date()),
+      last_mutation_date: fc.option(fc.date()),
+      last_transaction_date: fc.option(fc.date()),
+      last_transaction_value: fc.option(fc.integer({ min: 1 }))
     })('should validate a source housing', (sourceHousing) => {
       const actual = sourceHousingSchema.validateSync(sourceHousing);
 

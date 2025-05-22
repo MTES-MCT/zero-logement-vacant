@@ -36,7 +36,10 @@ export interface SourceHousing {
   rental_value: number | null;
   occupancy_source: Occupancy;
   vacancy_start_year: number;
+  mutation_date: Date | null;
   last_mutation_date: Date | null;
+  last_transaction_date: Date | null;
+  last_transaction_value: number | null;
 }
 
 export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
@@ -122,7 +125,16 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .min(0)
     .max(new Date().getUTCFullYear())
     .required('vacancy_start_year is required'),
+  mutation_date: date().defined('mutation_Date must be defined').nullable(),
   last_mutation_date: date()
     .defined('last_mutation_date must be defined')
+    .nullable(),
+  last_transaction_date: date()
+    .defined('last_transaction_date must be defined')
+    .nullable(),
+  last_transaction_value: number()
+    .defined('last_transaction_value must be defined')
     .nullable()
+    .integer()
+    .min(1)
 });

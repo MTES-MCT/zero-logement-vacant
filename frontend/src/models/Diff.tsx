@@ -1,3 +1,5 @@
+import { pipe, Record, Struct } from 'effect';
+import { ReadonlyRecord } from 'effect/Record';
 import fp from 'lodash/fp';
 
 import { getOccupancy, Housing } from './Housing';
@@ -8,7 +10,17 @@ export interface Diff<T> {
   new: Partial<T>;
 }
 
-function compare<T>(a: T, b: T, props: Array<keyof T>): Partial<T> {
+function compare<T extends ReadonlyRecord<string | symbol, unknown>>(
+  a: T,
+  b: T,
+  props: Array<keyof T>
+): Partial<T> {
+  return pipe(
+    Struct.pick(a, ...props),
+    Record.filterMap((value, key) => {
+      return;
+    })
+  );
   return fp.pipe(
     fp.pick(props),
     fp.pickBy(

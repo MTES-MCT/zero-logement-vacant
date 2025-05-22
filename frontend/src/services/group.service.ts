@@ -1,10 +1,9 @@
 import { GroupDTO, PaginationOptions } from '@zerologementvacant/models';
 import { fromGroupDTO, Group } from '../models/Group';
 import { GroupFilters } from '../models/GroupFilters';
-import fp from 'lodash/fp';
 import { GroupPayload } from '../models/GroupPayload';
-import { housingApi } from './housing.service';
 import { zlvApi } from './api.service';
+import { housingApi } from './housing.service';
 
 interface FindOptions extends PaginationOptions {
   filters: GroupFilters;
@@ -60,10 +59,10 @@ export const groupApi = zlvApi.injectEndpoints({
       void,
       GroupPayload['housing'] & Pick<Group, 'id'>
     >({
-      query: (group) => ({
-        url: `groups/${group.id}/housing`,
+      query: ({ id, ...group }) => ({
+        url: `groups/${id}/housing`,
         method: 'POST',
-        body: fp.omit(['id'], group)
+        body: group
       }),
       invalidatesTags: (result, error, args) => [
         { type: 'Group', id: args.id }
@@ -83,10 +82,10 @@ export const groupApi = zlvApi.injectEndpoints({
       void,
       GroupPayload['housing'] & Pick<Group, 'id'>
     >({
-      query: (group) => ({
-        url: `groups/${group.id}/housing`,
+      query: ({ id, ...group }) => ({
+        url: `groups/${id}/housing`,
         method: 'DELETE',
-        body: fp.omit(['id'], group)
+        body: group
       }),
       invalidatesTags: (result, error, args) => [
         { type: 'Group', id: args.id }

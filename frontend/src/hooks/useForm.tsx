@@ -1,5 +1,5 @@
 import { isDate } from 'date-fns';
-import fp from 'lodash/fp';
+import { Array, pipe, Predicate, Record } from 'effect';
 import { useEffect, useRef, useState } from 'react';
 import * as yup from 'yup';
 import { ObjectShape } from 'yup/lib/object';
@@ -228,24 +228,27 @@ export function useForm<
   };
 }
 
-function keysDeep(record: ObjectShape, prefix: string = ''): string[] {
-  return fp.pipe(
-    fp.toPairs,
-    fp.flatMap<[string, unknown], string>(([key, value]) =>
-      fp.isObject(value) && 'fields' in value
-        ? keysDeep(value.fields as ObjectShape, `${key}.`)
-        : `${prefix}${key}`
-    )
-  )(record);
+export function keysDeep(record: ObjectShape, prefix: string = ''): string[] {
+  return pipe(
+    record,
+    Array.fromRecord,
+    Array.map(([key, value]) => {
+      return value instanceof yup.ObjectSchema
+        ? keysDeep(value.fields, `${key}.`)
+        : [`${prefix}${key}`];
+    }),
+    Array.flatten
+  );
 }
 
-function entriesDeep(record: object, prefix: string = ''): [string, unknown][] {
-  return fp.pipe(
-    fp.toPairs,
-    fp.flatMap<[string, unknown], [string, unknown]>(([key, value]) =>
-      fp.isObject(value)
+export function entriesDeep(record: object, prefix = ''): [string, unknown][] {
+  return pipe(
+    record,
+    Array.fromRecord,
+    Array.flatMap<[string, unknown], [string, unknown]>(([key, value]) =>
+      Predicate.isRecord(value)
         ? entriesDeep(value, `${key}.`)
         : [[`${prefix}${key}`, value]]
     )
-  )(record);
+  );
 }

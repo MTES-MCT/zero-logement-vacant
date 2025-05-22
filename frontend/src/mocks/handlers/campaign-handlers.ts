@@ -11,11 +11,10 @@ import {
   HousingDTO
 } from '@zerologementvacant/models';
 import { combineAll, desc, Ord } from '@zerologementvacant/utils';
-import { Array } from 'effect';
+import { Array, pipe } from 'effect';
 import { identity } from 'effect/Function';
 import { constants } from 'http2';
 import { List } from 'immutable';
-import fp from 'lodash/fp';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { CampaignSortable, isCampaignSortable } from '../../models/Campaign';
 import { isDefined } from '../../utils/compareUtils';
@@ -34,10 +33,7 @@ export const campaignHandlers: RequestHandler[] = [
       const groups = url.searchParams.get('groups')?.split(',');
       const order = url.searchParams.get('sort')?.split(',');
 
-      const campaigns = fp.pipe(
-        filter({ groups }),
-        sort(order)
-      )(data.campaigns);
+      const campaigns = pipe(data.campaigns, filter({ groups }), sort(order));
       return HttpResponse.json(campaigns);
     }
   ),

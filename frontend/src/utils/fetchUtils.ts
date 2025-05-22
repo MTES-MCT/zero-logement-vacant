@@ -1,7 +1,7 @@
+import { Record } from 'effect';
 import { kebabCase } from 'lodash';
 
 import authService from '../services/auth.service';
-import fp from 'lodash/fp';
 
 interface HttpService {
   name: string;
@@ -31,12 +31,12 @@ export function createHttpService(
   function doFetch(method?: HttpMethod) {
     return (input: string, init?: RequestOptions): Promise<Response> => {
       const authHeaders: Record<string, string> = options?.authenticated
-        ? authService.authHeader() ?? {}
+        ? (authService.authHeader() ?? {})
         : {};
       const jsonHeaders: Record<string, string> = options?.json
         ? {
             Accept: 'application/json',
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           }
         : {};
 
@@ -47,9 +47,9 @@ export function createHttpService(
         headers: {
           ...authHeaders,
           ...jsonHeaders,
-          ...init?.headers,
+          ...init?.headers
         },
-        signal: init?.abortId ? allowAbort(init.abortId) : undefined,
+        signal: init?.abortId ? allowAbort(init.abortId) : undefined
       });
     };
   }
@@ -60,7 +60,7 @@ export function createHttpService(
     get: doFetch('GET'),
     post: doFetch('POST'),
     put: doFetch('PUT'),
-    delete: doFetch('DELETE'),
+    delete: doFetch('DELETE')
   };
 }
 
@@ -85,24 +85,6 @@ export function toJSON(response: Response): any {
 export interface AbortOptions {
   abortable?: boolean;
 }
-
-export const getURLQuery = (params: object): string => {
-  if (fp.isEmpty(params)) {
-    return '';
-  }
-
-  return fp.pipe(
-    // Faster than fp.omitBy
-    fp.pickBy((value) => {
-      return (
-        !fp.isNil(value) &&
-        (fp.isBoolean(value) || fp.isNumber(value) || !fp.isEmpty(value))
-      );
-    }),
-    (params: Record<string, string>) => new URLSearchParams(params),
-    (params) => (params.toString().length > 0 ? `?${params}` : '')
-  )(params);
-};
 
 export const normalizeUrlSegment = (segment: string) =>
   kebabCase(segment.replaceAll(/\(.*\)/g, ''))

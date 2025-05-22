@@ -57,6 +57,7 @@ function HousingEditionMobilizationTab(props: Props) {
             form.clearErrors('subStatus');
           }}
         />
+        { ![HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(statusField.value) &&
         <AppSelectNext
           disabled={subStatusDisabled}
           label="Sous-statut de suivi"
@@ -71,7 +72,7 @@ function HousingEditionMobilizationTab(props: Props) {
           value={subStatusField.value}
           onBlur={subStatusField.onBlur}
           onChange={subStatusField.onChange}
-        />
+        /> } 
       </Grid>
 
       <PrecisionLists housingId={props.housingId} />

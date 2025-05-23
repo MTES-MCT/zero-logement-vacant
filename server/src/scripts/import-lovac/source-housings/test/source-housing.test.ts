@@ -39,7 +39,7 @@ describe('SourceHousing', () => {
       ),
       living_area: fc.option(fc.integer({ min: 1 })),
       rooms_count: fc.option(fc.integer({ min: 0 })),
-      uncomfortable: fc.boolean(),
+      uncomfortable: fc.option(fc.boolean()),
       cadastral_classification: fc.option(fc.integer({ min: 0 })),
       cadastral_reference: fc.option(fc.string()),
       taxed: fc.boolean(),

@@ -29,7 +29,7 @@ export interface SourceHousing {
   condominium: OwnershipKindInternal | null;
   living_area: number | null;
   rooms_count: number | null;
-  uncomfortable: boolean;
+  uncomfortable: boolean | null;
   cadastral_classification: number | null;
   cadastral_reference: string | null;
   taxed: boolean;
@@ -102,7 +102,10 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .nullable()
     .integer('rooms_count must be an integer')
     .min(0),
-  uncomfortable: boolean().required('uncomfortable is required'),
+  uncomfortable: boolean()
+    .defined('uncomfortable must be defined')
+    .nullable()
+    .default(false),
   cadastral_classification: number()
     .defined('cadastral_classification must be defined')
     .nullable()

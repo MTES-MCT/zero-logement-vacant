@@ -97,7 +97,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             ownershipKind: sourceHousing.condominium ?? undefined,
             livingArea: sourceHousing.living_area,
             roomsCount: sourceHousing.rooms_count,
-            uncomfortable: sourceHousing.uncomfortable,
+            uncomfortable: sourceHousing.uncomfortable ?? false,
             cadastralClassification: sourceHousing.cadastral_classification,
             cadastralReference: sourceHousing.cadastral_reference,
             beneficiaryCount: undefined,
@@ -238,7 +238,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           ownershipKind: sourceHousing.condominium ?? undefined,
           livingArea: sourceHousing.living_area,
           roomsCount: sourceHousing.rooms_count,
-          uncomfortable: sourceHousing.uncomfortable,
+          uncomfortable: sourceHousing.uncomfortable ?? false,
           cadastralClassification:
             (sourceHousing.cadastral_classification as CadastralClassification) ??
             null,

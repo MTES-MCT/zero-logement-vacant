@@ -136,5 +136,6 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .defined('last_transaction_value must be defined')
     .nullable()
     .integer()
+    .round()
     .min(1)
 });

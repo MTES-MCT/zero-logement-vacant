@@ -52,7 +52,7 @@ describe('SourceHousing', () => {
       mutation_date: fc.option(fc.date()),
       last_mutation_date: fc.option(fc.date()),
       last_transaction_date: fc.option(fc.date()),
-      last_transaction_value: fc.option(fc.integer({ min: 1 }))
+      last_transaction_value: fc.option(fc.integer({ min: 0 }))
     })('should validate a source housing', (sourceHousing) => {
       const validate = () => sourceHousingSchema.validateSync(sourceHousing);
 

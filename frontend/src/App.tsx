@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
   createRoutesFromElements,
@@ -114,13 +114,6 @@ function App() {
       dispatch(hideLoading());
     }
   }, [dispatch, isSomeQueryPending]);
-
-  // Scroll to top on route change
-  useLayoutEffect(() => {
-    window.scrollTo({
-      top: 0
-    });
-  });
 
   return <RouterProvider router={router} />;
 }

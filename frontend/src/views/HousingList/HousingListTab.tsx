@@ -122,7 +122,7 @@ const HousingListTab = ({
           title={`La mise à jour groupée de ${updatedCount} logements a bien été enregistrée`}
           description="Les informations saisies ont bien été appliquées aux logements sélectionnés"
           closable
-          className="fr-mb-2w"
+          className="fr-mb-2w fr-mt-2w"
         />
       )}
       {error && (
@@ -131,7 +131,7 @@ const HousingListTab = ({
           title="Impossible de mettre à jour les logements sélectionnés"
           description={error}
           closable
-          className="fr-mb-2w"
+          className="fr-mb-2w fr-mt-2w"
         />
       )}
       {(showCount ?? true) &&

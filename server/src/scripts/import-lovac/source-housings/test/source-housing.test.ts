@@ -41,7 +41,7 @@ describe('SourceHousing', () => {
       rooms_count: fc.option(fc.integer({ min: 0 })),
       uncomfortable: fc.boolean(),
       cadastral_classification: fc.option(fc.integer({ min: 0 })),
-      cadastral_reference: fc.option(fc.string({ minLength: 6, maxLength: 6 })),
+      cadastral_reference: fc.option(fc.string()),
       taxed: fc.boolean(),
       rental_value: fc.option(fc.integer({ min: 0 })),
       occupancy_source: fc.constantFrom(...OCCUPANCY_VALUES),
@@ -54,9 +54,9 @@ describe('SourceHousing', () => {
       last_transaction_date: fc.option(fc.date()),
       last_transaction_value: fc.option(fc.integer({ min: 1 }))
     })('should validate a source housing', (sourceHousing) => {
-      const actual = sourceHousingSchema.validateSync(sourceHousing);
+      const validate = () => sourceHousingSchema.validateSync(sourceHousing);
 
-      expect(actual).toStrictEqual(sourceHousing);
+      expect(validate).not.toThrow();
     });
   });
 });

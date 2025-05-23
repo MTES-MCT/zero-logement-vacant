@@ -110,7 +110,7 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
   cadastral_reference: string()
     .defined('cadastral_reference must be defined')
     .nullable()
-    .length(6),
+    .trim(),
   taxed: boolean().required('taxed is required'),
   rental_value: number()
     .defined('rental_value must be defined')

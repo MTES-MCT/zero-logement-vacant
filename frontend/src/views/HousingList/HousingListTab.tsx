@@ -40,7 +40,11 @@ function HousingListTab(props: HousingListTabProps) {
   const showCount = props.showCount ?? true;
   const [
     updateHousingList,
-    { isSuccess: isUpdateSuccess, data: updatedCount }
+    {
+      isSuccess: isUpdateSuccess,
+      data: updatedCount,
+      reset: resetHousingUpdate
+    }
   ] = useUpdateHousingListMutation();
 
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
@@ -118,7 +122,10 @@ function HousingListTab(props: HousingListTabProps) {
           title={`La mise à jour groupée de ${updatedCount} logements a bien été enregistrée`}
           description="Les informations saisies ont bien été appliquées aux logements sélectionnés"
           closable
-          className="fr-mb-2w fr-mt-2w"
+          className="fr-my-2w fr-mt-2w"
+          onClose={() => {
+            resetHousingUpdate();
+          }}
         />
       )}
       {error && (

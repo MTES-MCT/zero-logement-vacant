@@ -137,5 +137,5 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .nullable()
     .integer()
     .round()
-    .min(1)
+    .min(0)
 });

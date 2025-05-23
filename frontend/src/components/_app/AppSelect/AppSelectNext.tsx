@@ -213,6 +213,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
         value={getOptionValue(option)}
         selected={isOptionSelected(option)}
         sx={{
+          py: '0.75rem',
           whiteSpace: 'normal',
           wordBreak: 'break-word'
         }}
@@ -345,6 +346,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
                       position: 'sticky',
                       top: 0,
                       zIndex: 1,
+                      py: '0.75rem',
                       backgroundColor:
                         fr.colors.decisions.background.default.grey.default,
                       whiteSpace: 'normal',

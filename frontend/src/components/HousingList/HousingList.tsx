@@ -121,7 +121,7 @@ function HousingList(props: HousingListProps) {
             <AppLink
               isSimple
               size="sm"
-              to={`/proprietaires/${row.original.id}`}
+              to={`/proprietaires/${row.original.owner.id}`}
             >
               {cell.getValue()}
             </AppLink>

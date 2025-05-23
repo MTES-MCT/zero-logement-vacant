@@ -13,10 +13,15 @@ import { createLogger } from './logger';
 import { createDashboard } from './dashboard';
 import { createBasicAuth } from './basic-auth';
 
-function createServer() {
+interface Server {
+  app: express.Express;
+  start(): Promise<void>;
+}
+
+function createServer(): Server {
   const app = express();
   app.use(helmet());
-  
+
   const logger = createLogger('queue');
   app.set('trust proxy', 1);
 

@@ -1,19 +1,18 @@
 import { Upload } from '@aws-sdk/lib-storage';
 
 import { createSDK } from '@zerologementvacant/api-sdk';
-import { DRAFT_TEMPLATE_FILE, DraftData, pdf } from '@zerologementvacant/draft';
+import { pdf } from '@zerologementvacant/draft';
 import {
   getAddress,
   HousingDTO,
   replaceVariables
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
-import { createS3, map, reduce, tap } from '@zerologementvacant/utils/node';
+import { createS3, map, collect, tap } from '@zerologementvacant/utils/node';
 import archiver from 'archiver';
 import { Worker, WorkerOptions } from 'bullmq';
 import { Readable } from 'node:stream';
 import { parseRedisUrl } from 'parse-redis-url-simple';
-
 import config from '../config';
 import { Jobs } from '../jobs';
 import { createLogger } from '../logger';
@@ -93,7 +92,7 @@ export default function createWorker() {
           }
 
           logger.debug('Generating PDF...');
-          const finalPDF = await new ReadableStream<HousingDTO>({
+          const stream = new ReadableStream<HousingDTO>({
             pull(controller) {
               housings.forEach((housing) => {
                 controller.enqueue(housing);
@@ -105,7 +104,7 @@ export default function createWorker() {
               map((housing) => {
                 const address = getAddress(housing.owner);
 
-                return transformer.compile<DraftData>(DRAFT_TEMPLATE_FILE, {
+                return transformer.generatePDF({
                   subject: draft.subject ?? '',
                   logo:
                     draft.logo?.map((logo) => ({
@@ -151,17 +150,12 @@ export default function createWorker() {
             )
             .pipeThrough(
               tap((_, i) => {
-                logger.debug(
-                  `Generating PDF page ${i + 1} of ${housings.length}...`
-                );
+                logger.debug(`Generating PDF page ${i + 1} of ${housings.length}...`);
               })
-            )
-            .pipeThrough(map(transformer.fromHTML))
-            .pipeThrough(reduce(transformer.merge))
-            .pipeThrough(map((pdf) => transformer.save(pdf)))
-            .getReader()
-            .read()
-            .then(({ value }) => value);
+            );
+
+            const pdfs = await collect(stream);
+            const finalPDF = await transformer.mergePDFs([...pdfs]);
 
           if (!finalPDF) {
             throw new Error('Should be defined');

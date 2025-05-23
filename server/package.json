@@ -1,8 +1,16 @@
 {
   "name": "@zerologementvacant/server",
   "version": "0.0.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    "import": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "require": {
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.cjs"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "typecheck": "tsc --noEmit",
@@ -24,6 +32,9 @@
     "@faker-js/faker": "^8.4.1",
     "@getbrevo/brevo": "^1.0.1",
     "@godaddy/terminus": "^4.12.1",
+    "@pdfme/common": "^5.3.14",
+    "@pdfme/generator": "^5.3.14",
+    "@pdfme/schemas": "^5.3.14",
     "@sendinblue/client": "^3.3.1",
     "@sentry/integrations": "^7.119.0",
     "@sentry/node": "^7.119.0",

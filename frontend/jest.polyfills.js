@@ -8,6 +8,16 @@
  * you don't want to deal with this.
  */
 
+const { BroadcastChannel } = require('node:worker_threads');
+Object.defineProperty(globalThis, 'BroadcastChannel', { value: BroadcastChannel });
+
+globalThis.setImmediate  ??= (fn, ...args) => setTimeout(fn, 0, ...args);
+globalThis.clearImmediate ??= (id) => clearTimeout(id);
+
+if (!('markResourceTiming' in performance)) {
+  performance.markResourceTiming = () => {};          // no‑op
+}
+
 const { TextDecoder, TextEncoder } = require('node:util');
 const { ReadableStream, TransformStream } = require('node:stream/web');
 

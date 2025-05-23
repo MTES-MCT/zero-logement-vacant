@@ -1,11 +1,19 @@
 {
   "name": "@zerologementvacant/draft",
   "version": "0.0.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    "import": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "require": {
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.cjs"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
-    "copy": "copyfiles -V -u 1 'src/**/*.css' 'src/**/*.hbs' dist",
+    "copy": "copyfiles -V -u 1 'src/**/*.css' 'src/**/*.hbs' 'src/**/*.json' 'src/fonts/**/*.otf' dist",
     "typecheck": "tsc --noEmit",
     "build": "pkgroll -p tsconfig.build.json && yarn copy",
     "dev": "nodemon --watch src -e ts --exec 'yarn build'",
@@ -18,7 +26,6 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.2",
     "@tsconfig/node20": "^20.1.4",
-    "@types/async": "^3.2.24",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.16.10",
     "copyfiles": "^2.4.1",
@@ -33,11 +40,17 @@
   },
   "dependencies": {
     "@codegouvfr/react-dsfr": "1.9.16",
+    "@pdfme/common": "^5.3.14",
+    "@pdfme/generator": "^5.3.14",
+    "@pdfme/schemas": "^5.3.14",
     "@zerologementvacant/utils": "workspace:*",
     "async": "^3.2.6",
+    "date-fns": "^4.1.0",
     "handlebars": "^4.7.8",
+    "node-html-parser": "^7.0.1",
     "pdf-lib": "^1.17.1",
     "puppeteer": "^22.15.0",
-    "ts-pattern": "^5.5.0"
+    "ts-pattern": "^5.5.0",
+    "unpdf": "^1.0.4"
   }
 }

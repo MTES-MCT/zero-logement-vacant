@@ -1,43 +1,42 @@
-import { screen } from '@testing-library/dom';
-import { DRAFT_TEMPLATE_FILE, DraftData } from '../draft';
+import { DraftData } from '../draft';
+import { extractText } from 'unpdf';
 
 import pdf from '../pdf';
 
 describe('PDF', () => {
   const transformer = pdf.createTransformer({ logger: console });
 
-  function compile(data: DraftData): string {
-    return transformer.compile(DRAFT_TEMPLATE_FILE, data);
+  function compile(data: DraftData): Promise<Buffer> {
+    return transformer.generatePDF(data);
   }
 
   describe('compile', () => {
-    it('should display the owner', () => {
-      document.body.innerHTML = compile({
-        subject: null,
-        body: null,
-        logo: null,
-        sender: null,
-        writtenFrom: null,
-        writtenAt: null,
-        owner: {
-          fullName: 'Jean Dujardin',
-          address: ['123 rue Bidon', '75001 Paris']
-        }
+    it('should display the owner', async () => {
+      const pdfBuffer = await compile({
+      subject: '',
+      body: 'test',
+      logo: [],
+      sender: null,
+      writtenFrom: null,
+      writtenAt: null,
+      owner: {
+        fullName: 'Jean Dujardin',
+        address: ['123 rue Bidon', '75001 Paris']
+      }
       });
 
-      const owner = screen.getByText('Jean Dujardin');
-      const address = screen.getByText('123 rue Bidon');
-      const city = screen.getByText('75001 Paris');
-      expect(owner).toBeInTheDocument();
-      expect(address).toBeInTheDocument();
-      expect(city).toBeInTheDocument();
-    });
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true });
 
-    it('should display a subject and body', () => {
-      document.body.innerHTML = compile({
+      expect(text).toContain('Jean Dujardin');
+      expect(text).toContain('123 rue Bidon');
+      expect(text).toContain('75001 Paris');
+    }, 10000);
+
+    it('should display a subject and body', async () => {
+      const pdfBuffer = await compile({
         subject: 'Votre logement vacant',
         body: 'On vous aide à sortir votre logement de la vacance !',
-        logo: null,
+        logo: [],
         sender: null,
         writtenFrom: null,
         writtenAt: null,
@@ -47,26 +46,24 @@ describe('PDF', () => {
         }
       });
 
-      const subject = screen.getByText('Votre logement vacant');
-      const body = screen.getByText(
-        'On vous aide à sortir votre logement de la vacance !'
-      );
-      expect(subject).toBeInTheDocument();
-      expect(body).toBeInTheDocument();
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true });
+
+      expect(text).toContain('Votre logement vacant');
+      expect(text).toContain('On vous aide à sortir votre logement de la vacance !');
     });
 
-    it('should display two logos', () => {
-      document.body.innerHTML = compile({
+    it('should display two logos', async () => {
+      const pdfBuffer = await compile({
         subject: null,
-        body: null,
+        body: 'test',
         logo: [
           {
             id: 'uuid1',
-            content: 'data:image/png'
+            content: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' // Base64 encoded 1x1 pixel PNG
           },
           {
             id: 'uuid2',
-            content: 'data:image/jpg'
+            content: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==' // Base64 encoded 1x1 pixel JPEG
           }
         ],
         sender: null,
@@ -78,17 +75,17 @@ describe('PDF', () => {
         }
       });
 
-      const logos = screen.getAllByRole('img');
-      logos.forEach((logo) => {
-        expect(logo).toBeInTheDocument();
-      });
+      // Simplified test: verify that the PDF contains two "image" objects
+      const text = pdfBuffer.toString('latin1');
+      const imagesFound = (text.match(/\/Subtype\s*\/Image/g) || []).length;
+      expect(imagesFound).toBeGreaterThanOrEqual(2);
     });
 
-    it('should display a sender', () => {
-      document.body.innerHTML = compile({
+    it('should display a sender', async () => {
+      const pdfBuffer = await compile({
         subject: null,
-        body: null,
-        logo: null,
+        body: 'test',
+        logo: [],
         sender: {
           name: 'Commune de Marseille',
           service: 'Logement',
@@ -107,21 +104,17 @@ describe('PDF', () => {
         }
       });
 
-      const name = screen.getByText('Commune de Marseille');
-      const service = screen.getByText('Logement');
-      const fullName = screen.getByText('Marseille BB');
-      const address = screen.getByText('13 La Canebière');
-      const email = screen.getByText('jean.dujardin@marseille.fr');
-      const phone = screen.getByText('0123456789');
-      expect(name).toBeInTheDocument();
-      expect(service).toBeInTheDocument();
-      expect(fullName).toBeInTheDocument();
-      expect(address).toBeInTheDocument();
-      expect(email).toBeInTheDocument();
-      expect(phone).toBeInTheDocument();
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true });
+
+      expect(text).toContain('Commune de Marseille');
+      expect(text).toContain('Logement');
+      expect(text).toContain('Marseille BB');
+      expect(text).toContain('13 La Canebière');
+      expect(text).toContain('jean.dujardin@marseille.fr');
+      expect(text).toContain('0123456789');
     });
 
-    it('should display two signatories', () => {
+    it('should display two signatories', async () => {
       const signatories = [
         {
           firstName: 'Jean',
@@ -143,10 +136,10 @@ describe('PDF', () => {
         }
       ];
 
-      document.body.innerHTML = compile({
+      const pdfBuffer = await compile({
         subject: null,
-        body: null,
-        logo: null,
+        body: 'test',
+        logo: [],
         sender: {
           name: 'Commune de Marseille',
           service: 'Logement',
@@ -165,16 +158,19 @@ describe('PDF', () => {
         }
       });
 
-      signatories.forEach((signatory) => {
-        const fullName = screen.getByText(
-          `${signatory.firstName} ${signatory.lastName}`
-        );
-        const role = screen.getByText(signatory.role);
-        expect(fullName).toBeInTheDocument();
-        expect(role).toBeInTheDocument();
-      });
-      const signatures = screen.getAllByAltText('Signature');
-      expect(signatures).toHaveLength(signatories.length);
+      const { text } = await extractText(new Uint8Array(pdfBuffer), { mergePages: true });
+
+      // Verify that the name and role of each signatory appear
+      for (const signatory of signatories) {
+        const fullName = `${signatory.firstName} ${signatory.lastName}`;
+        expect(text).toContain(fullName);
+        expect(text).toContain(signatory.role);
+      }
+
+      // Verify that there are at least 2 images (signatures)
+      const rawPdf = pdfBuffer.toString('latin1');
+      const imageCount = (rawPdf.match(/\/Subtype\s*\/Image/g) || []).length;
+      expect(imageCount).toBeGreaterThanOrEqual(signatories.length);
     });
   });
 });

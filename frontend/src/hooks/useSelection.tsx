@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import housingSlice from '../store/reducers/housingReducer';
 import { useAppDispatch, useAppSelector } from './useStore';
 
@@ -32,6 +33,17 @@ export function useSelection(
   });
   const [selected, setSelected] =
     storage === 'store' ? [store.selected, changeSelected] : state;
+
+  const location = useLocation();
+  useEffect(() => {
+    return () => {
+      changeSelected({
+        all: false,
+        ids: []
+      });
+    };
+    // eslint-disable-next-line
+  }, [location]);
 
   const hasSelected = useMemo<boolean>(
     () =>

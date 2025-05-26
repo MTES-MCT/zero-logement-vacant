@@ -1,8 +1,7 @@
+import { HousingStatus } from '@zerologementvacant/models';
 import async from 'async';
 import * as path from 'node:path';
 import sharp, { Color, OutputInfo } from 'sharp';
-
-import { HousingStatus } from '@zerologementvacant/models';
 import statusColors from '../components/Map/status-colors';
 
 const SIZE = 15;
@@ -14,7 +13,7 @@ interface CreateImageOptions {
   filename: string;
 }
 
-const directory = path.join(__dirname, '..', '..', 'public', 'map');
+const directory = path.join(import.meta.dirname, '..', '..', 'public', 'map');
 
 async function createImage(options: CreateImageOptions): Promise<OutputInfo> {
   return sharp({

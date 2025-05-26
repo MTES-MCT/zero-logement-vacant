@@ -4,7 +4,7 @@ import {
   OwnerDTO
 } from '@zerologementvacant/models';
 import { contramap, DEFAULT_ORDER, Ord } from '@zerologementvacant/utils';
-import { Differ, Option, pipe, Record } from 'effect';
+import { isEqual, pick, pickBy } from 'lodash-es';
 import { Address, fromAddressDTO, toOwnerAddressDTO } from './Address';
 
 export interface DraftOwner {
@@ -99,17 +99,7 @@ export const getHousingOwnerRankLabel = (rank: number) => {
   return label ? label : `${rank}ème ayant droit`;
 };
 
-const ownerDiffer = Differ.make<Owner, Partial<Owner>>({
-  empty: {},
-  diff(before, after) {
-    return {
-      ...after
-    };
-  }
-});
-type OwnerDiffer = typeof ownerDiffer;
-
-function compare(before: Owner, after: Owner): OwnerDiffer {
+function compare(before: Owner, after: Owner): Partial<Owner> {
   const keys: ReadonlyArray<keyof Owner> = [
     'fullName',
     'birthDate',
@@ -118,26 +108,9 @@ function compare(before: Owner, after: Owner): OwnerDiffer {
     'banAddress',
     'additionalAddress'
   ];
-  return pipe(
-    before,
-    Record.filterMap((value, key) => {
-      if (!keys.includes(key)) {
-        return Option.none();
-      }
-
-      return Option.some(value);
-    })
-    // fp.pick([
-    //   'fullName',
-    //   'birthDate',
-    //   'email',
-    //   'phone',
-    //   'banAddress',
-    //   'additionalAddress'
-    // ]),
-    // fp.pickBy(
-    //   (value, key) => !fp.isEqual(value, after[key as keyof typeof value])
-    // )
+  return pickBy(
+    pick(before, keys),
+    (value, key) => !isEqual(value, after[key as keyof typeof value])
   );
 }
 

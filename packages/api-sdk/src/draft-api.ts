@@ -1,7 +1,5 @@
-import { AxiosInstance } from 'axios';
-
 import { DraftDTO, DraftFiltersDTO } from '@zerologementvacant/models';
-import { createQuery } from '@zerologementvacant/utils';
+import { AxiosInstance } from 'axios';
 
 export interface DraftAPI {
   find(opts?: FindOptions): Promise<DraftDTO[]>;
@@ -10,12 +8,12 @@ export interface DraftAPI {
 export function createDraftAPI(http: AxiosInstance): DraftAPI {
   return {
     async find(opts?: FindOptions): Promise<DraftDTO[]> {
-      const query = createQuery({
-        ...opts?.filters,
-      });
+      const query = {
+        ...opts?.filters
+      };
       const response = await http.get(`/drafts${query}`);
       return response.data;
-    },
+    }
   };
 }
 

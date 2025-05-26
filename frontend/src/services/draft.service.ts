@@ -5,7 +5,6 @@ import {
   SenderPayloadDTO
 } from '@zerologementvacant/models';
 import { pipe, Record } from 'effect';
-import fp from 'lodash/fp';
 import {
   Draft,
   DraftCreationPayload,
@@ -52,7 +51,7 @@ export const draftApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: toDraftUpdatePayloadDTO(draft)
       }),
-      invalidatesTags: (result, error, draft) => [
+      invalidatesTags: (_result, _error, draft) => [
         { type: 'Draft', id: draft.id }
       ]
     })
@@ -109,13 +108,16 @@ function toSenderPayloadDTO(sender: SenderPayload): SenderPayloadDTO {
   return emptyToNull(sender);
 }
 
-function emptyToNull<T extends Record<any, any>>(obj: T): T {
+export function emptyToNull<T extends Record<any, any>>(obj: T): T {
   return pipe(
     obj,
-    Record.map((value) => {})
+    Record.map((value) => {
+      if (typeof value === 'string' && value.trim() === '') {
+        return null;
+      }
+      return value;
+    })
   );
-  // @ts-expect-error: lodash/fp’s types are awful
-  return fp.mapValues((value) => (fp.isEmpty(value) ? null : value), obj);
 }
 
 export const {

@@ -1,7 +1,7 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { HOUSING_STATUS_VALUES } from '@zerologementvacant/models';
-import lodash from 'lodash-es';
+import { kebabCase } from 'lodash-es';
 import { useStatusTabs } from '../../hooks/useStatusTabs';
 import { HousingFilters } from '../../models/HousingFilters';
 
@@ -27,7 +27,7 @@ const HousingListTabs = ({
     ...HOUSING_STATUS_VALUES.map((status) => {
       const label = getHousingState(status).title;
       return {
-        id: lodash.kebabCase(label),
+        id: kebabCase(label),
         label,
         value: status
       };

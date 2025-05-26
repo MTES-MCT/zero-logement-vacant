@@ -1,6 +1,4 @@
-import { pipe, Record, Struct } from 'effect';
-import { ReadonlyRecord } from 'effect/Record';
-import fp from 'lodash/fp';
+import { isEqual, isEqualWith, pick, pickBy } from 'lodash-es';
 
 import { getOccupancy, Housing } from './Housing';
 import { Owner } from './Owner';
@@ -10,24 +8,12 @@ export interface Diff<T> {
   new: Partial<T>;
 }
 
-function compare<T extends ReadonlyRecord<string | symbol, unknown>>(
-  a: T,
-  b: T,
-  props: Array<keyof T>
-): Partial<T> {
-  return pipe(
-    Struct.pick(a, ...props),
-    Record.filterMap((value, key) => {
-      return;
-    })
-  );
-  return fp.pipe(
-    fp.pick(props),
-    fp.pickBy(
-      (value, key) =>
-        !fp.isEqualWith(customizer, value, b[key as keyof typeof value])
-    )
-  )(a);
+function compare<T>(a: T, b: T, props: Array<keyof T>): Partial<T> {
+  return pickBy(
+    pick(a, props),
+    (value, key) =>
+      !isEqualWith(value, b[key as keyof typeof value], customizer)
+  ) as Partial<T>;
 }
 
 function getDiff<T>(a: T, b: T, props: Array<keyof T>): Diff<T> {
@@ -50,12 +36,12 @@ function customizer(a?: any, b?: any) {
     return a.toUpperCase() === b.toUpperCase();
   }
   if (Array.isArray(a) && Array.isArray(b)) {
-    return fp.isEqual(
+    return isEqual(
       a.map((_) => _?.toUpperCase()),
       b.map((_) => _?.toUpperCase())
     );
   }
-  return fp.isEqual(a, b);
+  return isEqual(a, b);
 }
 
 export const getHousingDiff = (

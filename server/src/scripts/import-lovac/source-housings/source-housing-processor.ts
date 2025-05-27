@@ -97,9 +97,9 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             ownershipKind: sourceHousing.condominium ?? undefined,
             livingArea: sourceHousing.living_area,
             roomsCount: sourceHousing.rooms_count,
-            uncomfortable: sourceHousing.uncomfortable,
+            uncomfortable: sourceHousing.uncomfortable ?? false,
             cadastralClassification: sourceHousing.cadastral_classification,
-            cadastralReference: undefined,
+            cadastralReference: sourceHousing.cadastral_reference,
             beneficiaryCount: undefined,
             geolocation: undefined,
             taxed: sourceHousing.taxed,
@@ -108,10 +108,10 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             occupancyRegistered: Occupancy.VACANT,
             occupancyIntended: null,
             vacancyStartYear: sourceHousing.vacancy_start_year,
-            mutationDate: sourceHousing.last_mutation_date,
+            mutationDate: sourceHousing.mutation_date,
             lastMutationDate: sourceHousing.last_mutation_date,
-            lastTransactionDate: null,
-            lastTransactionValue: null,
+            lastTransactionDate: sourceHousing.last_transaction_date,
+            lastTransactionValue: sourceHousing.last_transaction_value,
             deprecatedVacancyReasons: null,
             deprecatedPrecisions: null,
             source: 'lovac',
@@ -238,7 +238,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           ownershipKind: sourceHousing.condominium ?? undefined,
           livingArea: sourceHousing.living_area,
           roomsCount: sourceHousing.rooms_count,
-          uncomfortable: sourceHousing.uncomfortable,
+          uncomfortable: sourceHousing.uncomfortable ?? false,
           cadastralClassification:
             (sourceHousing.cadastral_classification as CadastralClassification) ??
             null,
@@ -246,7 +246,10 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           taxed: sourceHousing.taxed,
           rentalValue: sourceHousing.rental_value ?? undefined,
           vacancyStartYear: sourceHousing.vacancy_start_year,
-          mutationDate: sourceHousing.last_mutation_date
+          mutationDate: sourceHousing.mutation_date,
+          lastMutationDate: sourceHousing.last_mutation_date,
+          lastTransactionDate: sourceHousing.last_transaction_date,
+          lastTransactionValue: sourceHousing.last_transaction_value
         };
 
         reporter.passed(sourceHousing);

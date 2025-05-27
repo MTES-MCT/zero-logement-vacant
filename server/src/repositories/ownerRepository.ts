@@ -201,23 +201,19 @@ const searchOwners = async (
   page?: number,
   perPage?: number
 ): Promise<PaginatedResultApi<OwnerApi>> => {
+  const tsQuery = q
+    .trim()
+    .split(/\s+/)
+    .map((term) => `${term}:*`) // permet le préfixe (ex: dupont:* = dupont, dupontet...)
+    .join(' & '); // opérateur logique AND entre les mots
+
   const filterQuery = db(ownerTable)
     .select('*')
-    .whereRaw(`immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`, [
-      `%${q}%`
-    ])
-    .orWhereRaw(`immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`, [
-      `%${q.split(' ').reverse().join(' ')}%`
-    ])
+    .whereRaw(`full_name_fts @@ to_tsquery('simple', ?)`, [tsQuery])
     .orderBy('id', 'desc');
 
   const filteredCount = await db(ownerTable)
-    .whereRaw(`immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`, [
-      `%${q}%`
-    ])
-    .orWhereRaw(`immutable_unaccent(full_name) ILIKE immutable_unaccent(?)`, [
-      `%${q.split(' ').reverse().join(' ')}%`
-    ])
+    .whereRaw(`full_name_fts @@ to_tsquery('simple', ?)`, [tsQuery])
     .count('id')
     .first()
     .then((row) => Number(row?.count));
@@ -225,7 +221,7 @@ const searchOwners = async (
   const totalCount = await db(ownerTable)
     .count('id')
     .first()
-    .then((_) => Number(_?.count));
+    .then((row) => Number(row?.count));
 
   const results = await filterQuery.modify((queryBuilder: any) => {
     queryBuilder.orderBy('full_name');
@@ -244,6 +240,7 @@ const searchOwners = async (
     perPage
   };
 };
+
 
 const findByHousing = async (
   housing: HousingApi

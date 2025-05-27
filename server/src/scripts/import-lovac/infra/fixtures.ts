@@ -43,7 +43,10 @@ export function genSourceHousing(): SourceHousing {
     living_area: faker.number.float({ min: 10, max: 100, fractionDigits: 2 }),
     taxed: faker.datatype.boolean(),
     vacancy_start_year: faker.date.past().getFullYear(),
+    mutation_date: faker.date.past(),
     last_mutation_date: faker.date.past(),
+    last_transaction_date: faker.date.past(),
+    last_transaction_value: faker.number.int({ min: 100_000, max: 1_000_000 }),
     occupancy_source: Occupancy.VACANT,
     rental_value: faker.number.int({ min: 500, max: 10000 })
   };

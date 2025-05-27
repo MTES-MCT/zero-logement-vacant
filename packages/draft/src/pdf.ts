@@ -47,7 +47,7 @@ const fontCss = `
   font-style: normal;
 }
 
-body { font-family: Marianne; font-size: 0.8rem; }
+body { font-family: Marianne; font-size: 0.75rem; }
 `;
 
 function createTransformer(opts: TransformerOptions) {
@@ -141,19 +141,6 @@ function createTransformer(opts: TransformerOptions) {
         pageRanges: '1',
       });
 
-      // Objet
-      const subjectPage = await browser.newPage();
-      await subjectPage.setViewport({ width: BODY_WIDTH, height: LINE_HEIGHT * 2 });
-      const subjectHTML = data.subject ? `<div id='block' style='margin: 0; padding: 0; display: inline-block;'><strong>Objet:</strong>${data.subject}</div>` : '';
-      await subjectPage.setContent(subjectHTML);
-      await subjectPage.addStyleTag({ content: `${fontCss}` });
-      const subject = await subjectPage.pdf({
-        printBackground: true,
-        width: `${BODY_WIDTH}px`,
-        height: `${LINE_HEIGHT * 2}px`,
-        pageRanges: '1',
-      });
-
       // Date et lieu
       const writtenInfoPage = await browser.newPage();
       await writtenInfoPage.setViewport({ width: BODY_WIDTH, height: LINE_HEIGHT * 2 });
@@ -161,6 +148,19 @@ function createTransformer(opts: TransformerOptions) {
       await writtenInfoPage.setContent(dateHTML);
       await writtenInfoPage.addStyleTag({ content: `${fontCss}` });
       const writtenInfo = await writtenInfoPage.pdf({
+        printBackground: true,
+        width: `${BODY_WIDTH}px`,
+        height: `${LINE_HEIGHT * 2}px`,
+        pageRanges: '1',
+      });
+
+      // Objet
+      const subjectPage = await browser.newPage();
+      await subjectPage.setViewport({ width: BODY_WIDTH, height: LINE_HEIGHT * 2 });
+      const subjectHTML = data.subject ? `<div id='block' style='margin: 0; padding: 0; display: inline-block;'><strong>Objet:&nbsp;</strong>${data.subject}</div>` : '';
+      await subjectPage.setContent(subjectHTML);
+      await subjectPage.addStyleTag({ content: `${fontCss}` });
+      const subject = await subjectPage.pdf({
         printBackground: true,
         width: `${BODY_WIDTH}px`,
         height: `${LINE_HEIGHT * 2}px`,
@@ -262,14 +262,14 @@ function createTransformer(opts: TransformerOptions) {
       {
         name: "written_location",
         type: "pdf",
-        position: { "x": pixelsToPointsPDF(MARGIN_RIGHT), "y": pixelsToPointsPDF(395) },
+        position: { "x": pixelsToPointsPDF(MARGIN_RIGHT), "y": pixelsToPointsPDF(360) },
         width: pixelsToPointsPDF(BODY_WIDTH),
         height: pixelsToPointsPDF(LINE_HEIGHT * 2),
       },
       {
         name: "subject",
         type: "pdf",
-        position: { "x": pixelsToPointsPDF(MARGIN_RIGHT), "y": pixelsToPointsPDF(360) },
+        position: { "x": pixelsToPointsPDF(MARGIN_RIGHT), "y": pixelsToPointsPDF(395) },
         width: pixelsToPointsPDF(BODY_WIDTH),
         height: pixelsToPointsPDF(LINE_HEIGHT * 2),
       }];

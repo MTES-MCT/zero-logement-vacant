@@ -1,4 +1,4 @@
-import { createdBy } from '../User';
+import { createdBy, formatAuthor } from '../User';
 
 describe('User', () => {
   describe('createdBy', () => {
@@ -18,6 +18,45 @@ describe('User', () => {
       });
 
       expect(actual).toBe('john.doe@example.com');
+    });
+  });
+
+  describe('formatAuthor', () => {
+    it('should return the user first and last name only', () => {
+      const user = {
+        email: 'test@test.test',
+        firstName: 'John',
+        lastName: 'Doe'
+      };
+      const establishment = null;
+
+      const actual = formatAuthor(user, establishment);
+
+      expect(actual).toBe('John Doe');
+    });
+
+    it('should return the email if the first or last name is not defined', () => {
+      const user = {
+        email: 'test@test.test'
+      };
+      const establishment = null;
+
+      const actual = formatAuthor(user, establishment);
+
+      expect(actual).toBe('test@test.test');
+    });
+
+    it('should append the establishment name if available', () => {
+      const user = {
+        email: 'test@test.test'
+      };
+      const establishment = {
+        name: 'Eurométropole de Strasbourg'
+      };
+
+      const actual = formatAuthor(user, establishment);
+
+      expect(actual).toBe('test@test.test (Eurométropole de Strasbourg)');
     });
   });
 });

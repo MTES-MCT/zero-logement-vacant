@@ -1,5 +1,4 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
@@ -8,6 +7,7 @@ import localeFR from 'date-fns/locale/fr';
 import { Establishment } from '../../models/Establishment';
 import { formatAuthor, User } from '../../models/User';
 import AppBadge from '../_app/AppBadge/AppBadge';
+import HistoryCard from './HistoryCard';
 
 export interface NoteCardProps {
   createdAt: Date | string;
@@ -25,26 +25,9 @@ function NoteCard(props: NoteCardProps) {
   });
 
   return (
-    <Stack direction="row" spacing="1rem" sx={{ alignItems: 'center' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          background: fr.colors.decisions.background.alt.grey.hover,
-          borderRadius: '50%',
-          padding: '0.25rem',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.625rem',
-          flexShrink: 0,
-          aspectRatio: '1/1',
-          width: '2.375rem',
-          height: '2.375rem'
-        }}
-      >
-        <span className={fr.cx('ri-message-line')} />
-      </Box>
-
+    <HistoryCard icon="ri-message-line">
       <Stack
+        component="section"
         sx={{
           border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
           padding: '1rem',
@@ -66,7 +49,7 @@ function NoteCard(props: NoteCardProps) {
 
         <Typography>{props.content}</Typography>
       </Stack>
-    </Stack>
+    </HistoryCard>
   );
 }
 

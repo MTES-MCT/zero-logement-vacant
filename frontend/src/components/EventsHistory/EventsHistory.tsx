@@ -138,7 +138,7 @@ function EventsHistory({ events, notes }: Props) {
   }
 
   return (
-    <Stack spacing="1rem">
+    <Stack spacing="1.5rem">
       {eventAndNotes
         .filter((_, index) => expandEvents || index < 3)
         .map((eventOrNote) => {

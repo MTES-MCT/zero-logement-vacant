@@ -8,7 +8,7 @@ import { ReactNode } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
-import { User } from '../../models/User';
+import { formatAuthor, User } from '../../models/User';
 
 interface EventCardProps {
   title: string;
@@ -33,7 +33,7 @@ function EventCard(props: EventCardProps) {
       { firstName: Pattern.nonNullable, lastName: Pattern.nonNullable },
       (user) => `${user.firstName} ${user.lastName} (${establishment?.name})`
     )
-    .otherwise((user) => `${user.email} (${establishment?.name})`);
+    .otherwise((user) => formatAuthor(user, establishment ?? null));
 
   return (
     <Stack

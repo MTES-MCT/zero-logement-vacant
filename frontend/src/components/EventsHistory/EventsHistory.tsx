@@ -5,6 +5,7 @@ import { differenceInMilliseconds } from 'date-fns';
 import { ReactNode, useState } from 'react';
 import { match, Pattern } from 'ts-pattern';
 import NoEvent from '../../assets/images/no-event.svg';
+import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
 
 import { Event } from '../../models/Event';
 import { Note } from '../../models/Note';
@@ -23,6 +24,7 @@ import {
   HousingOccupancyChangeEventContent,
   HousingStatusChangeEventContent
 } from './HousingEventContent';
+import NoteCard from './NoteCard';
 import NoteEventContent from './NoteEventContent';
 import {
   OwnerChangeEventContent,
@@ -36,12 +38,14 @@ interface Props {
   notes: Note[];
 }
 
-const EventsHistory = ({ events, notes }: Props) => {
+function EventsHistory({ events, notes }: Props) {
   const [expandEvents, setExpandEvents] = useState(false);
 
   const eventAndNotes = [...events, ...notes].toSorted((e1, e2) =>
     differenceInMilliseconds(e2.createdAt, e1.createdAt)
   );
+
+  const { availableEstablishments } = useAvailableEstablishments();
 
   function isEvent(e: Event | Note): e is Event {
     return (e as Event).category !== undefined;
@@ -137,15 +141,30 @@ const EventsHistory = ({ events, notes }: Props) => {
     <Stack spacing="1rem">
       {eventAndNotes
         .filter((_, index) => expandEvents || index < 3)
-        .map((eventOrNote) => (
-          <EventCard
-            key={eventOrNote.id}
-            title={isEvent(eventOrNote) ? eventOrNote.name : 'Note'}
-            description={renderEventContent(eventOrNote)}
-            createdAt={eventOrNote.createdAt}
-            createdBy={eventOrNote.creator}
-          />
-        ))}
+        .map((eventOrNote) => {
+          const establishment = availableEstablishments?.find(
+            (establishment) =>
+              establishment.id === eventOrNote.creator.establishmentId
+          );
+
+          return isEvent(eventOrNote) ? (
+            <EventCard
+              key={eventOrNote.id}
+              title={isEvent(eventOrNote) ? eventOrNote.name : 'Note'}
+              description={renderEventContent(eventOrNote)}
+              createdAt={eventOrNote.createdAt}
+              createdBy={eventOrNote.creator}
+            />
+          ) : (
+            <NoteCard
+              key={eventOrNote.id}
+              content={eventOrNote.content}
+              createdAt={eventOrNote.createdAt}
+              createdBy={eventOrNote.creator}
+              establishment={establishment ?? null}
+            />
+          );
+        })}
       {!expandEvents && eventAndNotes.length > 3 && (
         <button
           className="ds-fr--inline fr-link"
@@ -159,6 +178,6 @@ const EventsHistory = ({ events, notes }: Props) => {
       )}
     </Stack>
   );
-};
+}
 
 export default EventsHistory;

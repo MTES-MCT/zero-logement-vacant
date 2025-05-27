@@ -67,3 +67,11 @@ export enum UserRoles {
   Admin,
   Visitor
 }
+
+export function formatAuthor(
+  user: Pick<User, 'email' | 'firstName' | 'lastName'>,
+  establishment: Pick<Establishment, 'name'> | null
+): string {
+  const authorName = createdBy(user);
+  return establishment ? `${authorName} (${establishment.name})` : authorName;
+}

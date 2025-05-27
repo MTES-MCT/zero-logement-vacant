@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: duckdb_raw
+    schema: lovac
+    tables:
+      - name: raw_lovac_ff_ext_2024
+      - name: raw_lovac_ff_ext_2023
+      - name: raw_lovac_ff_ext_2022
+      - name: raw_lovac_ff_ext_2021
+      - name: raw_lovac_ff_ext_2020
+      - name: raw_lovac_ff_ext_2019

@@ -101,28 +101,32 @@ WITH all_lovac AS (
 
 all_ff AS (
     SELECT
+        2025 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
+    FROM {{ ref ("stg_lovac_ff_ext_2024") }}
+    UNION ALL 
+    SELECT
         2024 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_ff_ext_2024") }}
-    UNION ALL -- todo: change to 2024 when its available
+    FROM {{ ref ("stg_lovac_ff_ext_2024") }}
+    UNION ALL 
     SELECT
         2023 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_ff_ext_2023") }}
+    FROM {{ ref ("stg_lovac_ff_ext_2023") }}
     UNION ALL
     SELECT
         2022 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_ff_ext_2022") }}
+    FROM {{ ref ("stg_lovac_ff_ext_2022") }}
     UNION ALL
     SELECT
         2021 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_ff_ext_2021") }}
+    FROM {{ ref ("stg_lovac_ff_ext_2021") }}
     UNION ALL
     SELECT
         2020 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_ff_ext_2020") }}
+    FROM {{ ref ("stg_lovac_ff_ext_2020") }}
     UNION ALL
     SELECT
         2019 AS year, ff_idlocal, geo_code, ff_ccogrm, ff_ccthp, ff_dteloc
-    FROM {{ ref ("stg_ff_ext_2019") }}
+    FROM {{ ref ("stg_lovac_ff_ext_2019") }}
 ),
 
 lovac AS (
@@ -258,6 +262,7 @@ SELECT
     , lovac.count_vacant_housing_private
     , lovac.count_vacant_housing_private_fil
     , lovac.count_vacant_housing_private_fil_ccthp
+    , CASE WHEN year > 2024 THEN lovac.count_vacant_housing_private_fil ELSE count_vacant_housing_private_fil_ccthp END AS count_vacant_housing_private_fil_public
     , lovac.sum_living_area_vacant_housing_private_fil_ccthp
     , lovac.sum_plot_area_vacant_housing_private_fil_ccthp
     , ff.count_housing

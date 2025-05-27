@@ -92,12 +92,7 @@ function HousingList(props: HousingListProps) {
   const columns = useMemo(
     () => [
       columnHelper.accessor('rawAddress', {
-        header: () => (
-          <AdvancedTableHeader
-            title="Adresse logement"
-            sort={getSortButton('rawAddress', 'Adresse logement')}
-          />
-        ),
+        header: () => <AdvancedTableHeader title="Adresse logement" />,
         cell: ({ cell, row }) => {
           return (
             <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>

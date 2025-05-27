@@ -8,7 +8,8 @@ import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 import { Typography } from '@mui/material';
 import { OwnerRank } from '@zerologementvacant/models';
 import classNames from 'classnames';
-import fp from 'lodash/fp';
+import { Array, Option, pipe, Record } from 'effect';
+import { filter, groupBy } from 'effect/Array';
 import { useState } from 'react';
 import { useList } from 'react-use';
 
@@ -21,7 +22,11 @@ import {
 } from '../../../hooks/useForm';
 import { useUser } from '../../../hooks/useUser';
 import { isBanEligible } from '../../../models/Address';
-import { getHousingOwnerRankLabel, HousingOwner } from '../../../models/Owner';
+import {
+  byRank,
+  getHousingOwnerRankLabel,
+  HousingOwner
+} from '../../../models/Owner';
 import { SelectOption } from '../../../models/SelectOption';
 import { AddressSearchResult } from '../../../services/address.service';
 import AppSelect from '../../_app/AppSelect/AppSelect';
@@ -70,9 +75,10 @@ function HousingOwnersModal({
   });
 
   const primaryOwner = housingOwners.filter((ho) => ho.rank === 1);
-  const secondaryOwners = fp.sortBy(
-    ['rank'],
-    housingOwners.filter((ho) => ho.rank >= 2)
+  const secondaryOwners = pipe(
+    housingOwners,
+    Array.sort(byRank),
+    Array.filter((ho) => ho.rank >= 2)
   );
   const archivedOwners = housingOwners.filter((ho) => ho.rank <= 0);
 
@@ -112,13 +118,17 @@ function HousingOwnersModal({
           });
         }
 
-        const findOverlaps = fp.pipe(
-          fp.filter((housingOwner: any) => housingOwner.rank >= 1),
-          fp.groupBy((housingOwner) => housingOwner.rank),
-          fp.pickBy((housingOwners) => housingOwners.length > 1),
-          fp.keys
+        const overlaps = pipe(
+          owners as ReadonlyArray<HousingOwner>,
+          filter((housingOwner) => housingOwner.rank >= 1),
+          groupBy((housingOwner) => String(housingOwner.rank)),
+          Record.filterMap((housingOwners) =>
+            housingOwners.length > 1
+              ? Option.some(housingOwners)
+              : Option.none()
+          ),
+          Record.keys
         );
-        const overlaps = findOverlaps(owners);
         if (overlaps.length > 0) {
           const [overlap] = overlaps;
           return ctx.createError({
@@ -135,11 +145,7 @@ function HousingOwnersModal({
     updateHousingOwner((a, b) => a.id === b.id, housingOwner);
   }
 
-  const secondaryRanks =
-    secondaryOwners.length > 0
-      ? // Starts at rank 2
-        Array.from({ length: secondaryOwners.length }, (_, i) => i + 2)
-      : [];
+  const secondaryRanks = secondaryOwners.length > 0 ? [2, 3, 4, 5, 6] : [];
 
   const ownerRankOptions: SelectOption[] = [
     { value: '1', label: 'Propriétaire principal' },

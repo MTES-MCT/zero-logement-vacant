@@ -1,6 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { HousingStatus } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
+import { Array } from 'effect';
 import { NonEmptyArray } from 'ts-essentials';
 
 const hex = fr.colors.getHex({ isDark: false });
@@ -11,14 +11,14 @@ const statuses = [
   HousingStatus.COMPLETED,
   HousingStatus.BLOCKED
 ];
-const backgroundColors = fp.zip(statuses, [
+const backgroundColors = Array.zip(statuses, [
   hex.decisions.background.contrast.yellowTournesol.default,
   hex.decisions.background.contrast.blueCumulus.default,
   hex.decisions.background.contrast.orangeTerreBattue.default,
   hex.decisions.background.contrast.greenBourgeon.default,
   hex.decisions.background.contrast.purpleGlycine.default
 ]) as NonEmptyArray<[HousingStatus, string]>;
-const borderColors = fp.zip(statuses, [
+const borderColors = Array.zip(statuses, [
   hex.decisions.text.label.yellowTournesol.default,
   hex.decisions.text.label.blueCumulus.default,
   hex.decisions.text.label.orangeTerreBattue.default,

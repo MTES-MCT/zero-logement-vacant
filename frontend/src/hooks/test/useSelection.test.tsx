@@ -1,10 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import { PropsWithChildren } from 'react';
 import { Provider as StoreProvider } from 'react-redux';
+import { genNumber } from '../../../test/fixtures.ts';
+import configureTestStore from '../../utils/test/storeUtils';
 
 import { useSelection } from '../useSelection';
-import { genNumber } from '../../../test/fixtures.test';
-import configureTestStore from '../../utils/test/storeUtils';
 
 describe('useSelection', () => {
   const itemCount = Number(genNumber(3));

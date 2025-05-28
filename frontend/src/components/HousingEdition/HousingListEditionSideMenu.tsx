@@ -25,7 +25,7 @@ const HousingListEditionSideMenu = ({
 }: Props) => {
   const statusFormRef = useRef<{
     submit: () => void;
-  }>();
+  } | null>(null);
 
   return (
     <Aside

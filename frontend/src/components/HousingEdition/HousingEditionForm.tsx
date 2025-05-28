@@ -142,6 +142,7 @@ const HousingEditionForm = forwardRef(function HousingEditionForm(
       <HousingSubStatusSelect
         disabled={subStatusDisabled}
         multiple={false}
+        grouped={false}
         options={
           getSubStatusOptions(statusField.value as HousingStatus)?.map((o) => o.value) ?? []
         }
@@ -149,6 +150,7 @@ const HousingEditionForm = forwardRef(function HousingEditionForm(
         invalid={subStatusFieldState.invalid}
         value={subStatusField.value ?? null}
         onChange={subStatusField.onChange}
+        onBlur={subStatusField.onBlur}
       />
     </div>
   );

@@ -63,7 +63,10 @@ def process_and_insert_owners(context: AssetExecutionContext):
                 csv_buffer.seek(0)
 
                 files = {'data': ('chunk.csv', csv_buffer, 'text/csv')}
-                data = {'columns': 'address_dgfip', 'citycode': 'geo_code'}
+                if 'geo_code' in df.columns:
+                    data = {'columns': 'address_dgfip', 'citycode': 'geo_code'}
+                else:
+                    data = {'columns': 'address_dgfip'}
                 response = requests.post(config.api_url, files=files, data=data)
                 time.sleep(1)
 

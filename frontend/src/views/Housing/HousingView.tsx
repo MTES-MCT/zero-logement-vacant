@@ -77,7 +77,7 @@ function HousingView() {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ my: '2rem' }}>
+    <Container maxWidth={false} sx={{ my: '2rem' }}>
       <HousingHeader
         className="fr-mb-3w"
         housing={housing}

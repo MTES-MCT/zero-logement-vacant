@@ -140,7 +140,7 @@ export function assertOwner<T extends HousingApi>(
 
 export type HousingSortableApi = Pick<
   HousingApi,
-  'owner' | 'rawAddress' | 'occupancy' | 'status'
+  'owner' | 'occupancy' | 'status'
 >;
 export type HousingSortApi = Sort<HousingSortableApi>;
 

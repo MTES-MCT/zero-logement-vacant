@@ -10,4 +10,4 @@ LEFT JOIN {{ ref ('stg_lovac_ff_ext_2024') }} extff ON h.ff_idlocal = extff.ff_i
 
 WHERE dteloc IN ('1', '2')
 AND h.ff_ccthp = 'L'
--- ccoaff
+-- ccoaff = 'H'

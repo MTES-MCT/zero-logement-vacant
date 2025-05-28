@@ -69,6 +69,7 @@ def process_and_insert_owners(context: AssetExecutionContext):
 
                 if response.status_code != 200:
                     context.log.warning(f"API request failed with status code {response.status_code}")
+                    context.log.warning(f"Response content: {response.content}")
                     continue
 
                 api_data = pd.read_csv(BytesIO(response.content))

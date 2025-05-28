@@ -5,6 +5,7 @@ SELECT
     SUM(count_vacant_housing) AS count_vacant_housing,
     SUM(count_vacant_housing_private) AS count_vacant_housing_private,
     SUM(count_vacant_housing_private_fil) AS count_vacant_housing_private_fil,
+    SUM(count_vacant_housing_private_fil_public) AS count_vacant_housing_private_fil_public,
     SUM(count_vacant_housing_private_fil_ccthp)
         AS count_vacant_housing_private_fil_ccthp,
     SUM(count_housing) AS count_housing,

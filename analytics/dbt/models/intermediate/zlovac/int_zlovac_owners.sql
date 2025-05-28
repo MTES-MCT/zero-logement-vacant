@@ -7,7 +7,6 @@ WITH all_owners AS (
         owner_birth_date,
         owner_kind_detail,
         owner_property_rights,
-        owner_address,
         owner_category,
         owner_category_text,
         owner_siren, 

@@ -76,7 +76,7 @@ export interface SelectedHousing {
 export interface HousingUpdate {
   statusUpdate?: Pick<Housing, 'status' | 'subStatus'>;
   occupancyUpdate?: Pick<Housing, 'occupancy' | 'occupancyIntended'>;
-  note?: Pick<Note, 'content' | 'noteKind'>;
+  note?: Pick<Note, 'content'>;
 }
 
 export interface BuildingLocation {

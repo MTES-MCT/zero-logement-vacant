@@ -4,7 +4,20 @@ import pandas as pd
 from io import StringIO, BytesIO
 from datetime import datetime
 import time
+import psycopg2
 
+
+def process_not_valid_addresses(api_data: pd.DataFrame, cursor: psycopg2.extensions.cursor, context: AssetExecutionContext, conn: psycopg2.extensions.connection) -> pd.DataFrame:
+    not_valid_df = api_data[api_data['result_status'] == 'not-found']
+    ids = not_valid_df["owner_id"].unique()
+    context.log.info(f"Dropping {len(ids)} addresses with result_status not ok")
+    for id in ids:
+        cursor.execute("""
+            DELETE FROM ban_addresses WHERE ref_id = %s AND address_kind = 'Owner';
+        """, (id,))
+
+    conn.commit()
+    return not_valid_df
 @asset(
     description="Retrieve and process owners without a BAN address in chunks, sending them directly to the API and inserting valid responses into the database.",
     required_resource_keys={"psycopg2_connection", "ban_config"}
@@ -58,12 +71,16 @@ def process_and_insert_owners(context: AssetExecutionContext):
                 if df.empty:
                     break
 
+                if 'geo_code' in df.columns:
+                    data = {'columns': 'address_dgfip', 'citycode': 'geo_code'}
+                else:
+                    data = {'columns': 'address_dgfip'}
+
                 csv_buffer = StringIO()
                 df.to_csv(csv_buffer, index=False)
                 csv_buffer.seek(0)
 
                 files = {'data': ('chunk.csv', csv_buffer, 'text/csv')}
-                data = {'columns': 'address_dgfip', 'citycode': 'geo_code'}
                 response = requests.post(config.api_url, files=files, data=data)
                 time.sleep(1)
 
@@ -72,6 +89,7 @@ def process_and_insert_owners(context: AssetExecutionContext):
                     continue
 
                 api_data = pd.read_csv(BytesIO(response.content))
+                _ = process_not_valid_addresses(api_data, cursor, context, conn)
                 valid_df = api_data[api_data['result_status'] == 'ok'].copy()
                 failed_count = len(api_data) - len(valid_df)
                 total_failed += failed_count

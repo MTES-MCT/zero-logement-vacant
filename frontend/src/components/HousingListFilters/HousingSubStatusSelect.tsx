@@ -10,10 +10,12 @@ export type HousingSubStatusSelectProps<Multiple extends boolean> = Pick<
   | 'disabled'
   | 'error'
   | 'invalid'
+  | 'grouped'
   | 'multiple'
   | 'options'
   | 'value'
   | 'onChange'
+  | 'onBlur'
 >;
 
 function HousingSubStatusSelect<Multiple extends boolean = false>(
@@ -22,8 +24,12 @@ function HousingSubStatusSelect<Multiple extends boolean = false>(
   return (
     <AppSelectNext
       {...props}
-      groupBy={(subStatus) => findStatus(subStatus).toString()}
-      renderGroup={(group) => <HousingStatusBadge status={Number(group)} />}
+      {...(props.grouped
+        ? {
+            groupBy: (subStatus) => findStatus(subStatus as string).toString(),
+            renderGroup: (group) => <HousingStatusBadge status={Number(group)} />,
+          }
+        : {})}
       label="Sous-statut de suivi"
     />
   );

@@ -1,0 +1,8 @@
+version: 2
+
+models:
+
+
+  - name: int_zff_buildings
+  - name: int_zff_housings
+  - name: int_zff_owners

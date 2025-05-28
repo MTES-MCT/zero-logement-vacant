@@ -51,7 +51,7 @@ SELECT
     "contacts_number",
     "contacted_housing_followup_ended",
     "contacted_housing_followup_ended_not_vacant"],
-    [2020, 2021, 2022, 2023, 2024]
+    [2020, 2021, 2022, 2023, 2024, 2025]
     ) }}
 FROM yearly_data
 GROUP BY establishment_id

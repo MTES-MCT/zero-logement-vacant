@@ -32,8 +32,12 @@ def process_and_update_edited_owners(context: AssetExecutionContext):
             df.to_csv(csv_buffer, index=False)
             csv_buffer.seek(0)
 
+            if 'geo_code' in df.columns:
+                data = {'columns': 'address_dgfip', 'citycode': 'geo_code'}
+            else:
+                data = {'columns': 'address_dgfip'}
+
             files = {'data': ('owners.csv', csv_buffer, 'text/csv')}
-            data = {'columns': 'address_dgfip', 'citycode': 'geo_code'}
             response = requests.post(config.api_url, files=files, data=data)
 
             if response.status_code != 200:

@@ -2,11 +2,7 @@ version: 2
 
 
 models:
-  - name: stg_ff_owners
-  - name: stg_ff_ext_2024
-  - name: stg_ff_ext_2023
-  - name: stg_ff_ext_2022
-  - name: stg_ff_ext_2021
-  - name: stg_ff_ext_2020
-  - name: stg_ff_ext_2019
+  - name: stg_ff_building_2024
+  - name: stg_ff_housing_2024
+  - name: stg_ff_owners_2024
     

@@ -9,7 +9,6 @@ import { Link } from 'react-router-dom';
 import App from './App';
 
 import Notification from './components/Notification/Notification';
-import housingSlice from './store/reducers/housingReducer';
 import { store } from './store/store';
 import ThemeProvider from './theme';
 import config from './utils/config';
@@ -39,17 +38,6 @@ if (config.posthog.enabled) {
   posthog.init(config.posthog.apiKey, {
     api_host: 'https://eu.i.posthog.com',
     person_profiles: 'identified_only'
-  });
-
-  posthog.onFeatureFlags(() => {
-    const isLOVAC2025 = posthog.isFeatureEnabled('filtre-lovac-2025');
-    if (isLOVAC2025) {
-      store.dispatch(
-        housingSlice.actions.changeFilters({
-          dataFileYearsIncluded: ['lovac-2025']
-        })
-      );
-    }
   });
 }
 

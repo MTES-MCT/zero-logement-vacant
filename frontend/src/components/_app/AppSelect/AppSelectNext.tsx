@@ -22,6 +22,7 @@ export type AppSelectNextProps<Value, Multiple extends boolean> = Pick<
   disabled?: boolean;
   error?: string;
   invalid?: boolean;
+  grouped?: boolean;
   getOptionKey?(value: Value): Key;
   getOptionLabel?(value: Value): ReactNode;
   getOptionValue?(value: Value): string;

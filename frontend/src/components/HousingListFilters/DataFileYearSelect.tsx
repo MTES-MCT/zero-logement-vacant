@@ -2,7 +2,6 @@ import {
   DATA_FILE_YEAR_VALUES,
   DataFileYear
 } from '@zerologementvacant/models';
-import { useFeatureFlagEnabled } from 'posthog-js/react';
 
 import {
   DATA_FILE_YEAR_EXCLUDED_OPTIONS,
@@ -23,13 +22,9 @@ export type DataFileYearSelectProps<Multiple extends boolean> = Pick<
 function DataFileYearSelect<Multiple extends boolean = false>(
   props: DataFileYearSelectProps<Multiple>
 ) {
-  const isLOVAC2025 = useFeatureFlagEnabled('filtre-lovac-2025');
-  const values = isLOVAC2025
-    ? DATA_FILE_YEAR_VALUES
-    : DATA_FILE_YEAR_VALUES.filter((value) => value !== 'lovac-2025');
   const options = [
     EMPTY_OPTION.value,
-    ...values.toSorted((a, b) => b.localeCompare(a))
+    ...DATA_FILE_YEAR_VALUES.toSorted((a, b) => b.localeCompare(a))
   ];
   const label =
     props.type === 'included'

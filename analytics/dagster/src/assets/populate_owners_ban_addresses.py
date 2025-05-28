@@ -4,6 +4,7 @@ import pandas as pd
 from io import StringIO, BytesIO
 from datetime import datetime
 import time
+import psycopg2
 
 
 def process_not_valid_addresses(api_data: pd.DataFrame, cursor: psycopg2.extensions.cursor, context: AssetExecutionContext, conn: psycopg2.extensions.connection) -> pd.DataFrame:

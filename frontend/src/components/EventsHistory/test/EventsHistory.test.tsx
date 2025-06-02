@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { Occupancy } from '@zerologementvacant/models';
+import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 import { Provider } from 'react-redux';
 
 import { genEvent, genUser } from '../../../../test/fixtures.test';
@@ -138,7 +138,87 @@ describe('EventsHistory', () => {
 
     it('should display a description', () => {
       const description = screen.getByText(
-        'Le logement a été créé via l’import de la base de données LOVAC 2019'
+        'Le logement a été créé via l’import de la base de données LOVAC 2019.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
+
+  describe('housing:occupancy-updated', () => {
+    beforeEach(() => {
+      renderComponent({
+        events: [
+          {
+            ...genEvent({
+              type: 'housing:occupancy-updated',
+              creator: admin,
+              nextOld: { occupancy: Occupancy.VACANT },
+              nextNew: { occupancy: Occupancy.RENT }
+            }),
+            createdAt: new Date('2020-01-01T12:00:00Z').toJSON()
+          }
+        ],
+        notes: []
+      });
+    });
+
+    it('should display a title', () => {
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a mis à jour le statut d’occupation'
+      );
+      expect(title).toBeVisible();
+      const datetime = screen.getByText('le 01/01/2020 à 13:00');
+      expect(datetime).toBeVisible();
+    });
+
+    it('should display a description', () => {
+      const description = screen.getByText(
+        'Le statut d’occupation est passé de “Vacant” à “En location”.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
+
+  describe('housing:status-updated', () => {
+    beforeEach(() => {
+      renderComponent({
+        events: [
+          {
+            ...genEvent({
+              type: 'housing:status-updated',
+              creator: admin,
+              nextOld: { status: HousingStatus.NEVER_CONTACTED },
+              nextNew: {
+                status: HousingStatus.FIRST_CONTACT,
+                subStatus: 'Intervention en cours'
+              }
+            }),
+            createdAt: new Date('2020-01-01T12:00:00Z').toJSON()
+          }
+        ],
+        notes: []
+      });
+    });
+
+    it('should display a title', () => {
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a mis à jour le statut de suivi'
+      );
+      expect(title).toBeVisible();
+      const datetime = screen.getByText('le 01/01/2020 à 13:00');
+      expect(datetime).toBeVisible();
+    });
+
+    it('should display the status change', () => {
+      const description = screen.getByText(
+        'Le statut de suivi du logement est passé de “Non suivi” à “Premier contact”.'
+      );
+      expect(description).toBeVisible();
+    });
+
+    it('should display the sub status change', () => {
+      const description = screen.getByText(
+        'Le sous-statut de suivi du logement est passé de vide à “Intervention en cours”.'
       );
       expect(description).toBeVisible();
     });

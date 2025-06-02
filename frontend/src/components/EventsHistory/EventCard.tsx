@@ -4,10 +4,9 @@ import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
 import localeFR from 'date-fns/locale/fr';
 import { ReactNode } from 'react';
-import { match, Pattern } from 'ts-pattern';
 
 import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
-import { formatAuthor, User } from '../../models/User';
+import { ADMIN_LABEL, formatAuthor, User, UserRoles } from '../../models/User';
 import AppBadge from '../_app/AppBadge/AppBadge';
 import HistoryCard from './HistoryCard';
 
@@ -19,7 +18,7 @@ interface EventCardProps {
 }
 
 function EventCard(props: EventCardProps) {
-  const date: string = format(new Date(props.createdAt), 'dd MMMM yyyy', {
+  const date: string = format(new Date(props.createdAt), 'dd/MM/yyyy', {
     locale: localeFR
   });
   const time: string = format(new Date(props.createdAt), 'HH:mm', {
@@ -29,13 +28,10 @@ function EventCard(props: EventCardProps) {
   const establishment = availableEstablishments?.find(
     (establishment) => establishment.id === props.createdBy.establishmentId
   );
-  const author = match(props.createdBy)
-    .returnType<string>()
-    .with(
-      { firstName: Pattern.nonNullable, lastName: Pattern.nonNullable },
-      (user) => `${user.firstName} ${user.lastName} (${establishment?.name})`
-    )
-    .otherwise((user) => formatAuthor(user, establishment ?? null));
+  const isAdmin = props.createdBy.role === UserRoles.Admin;
+  const author = isAdmin
+    ? ADMIN_LABEL
+    : formatAuthor(props.createdBy, establishment ?? null);
 
   return (
     <HistoryCard icon="ri-folder-line">

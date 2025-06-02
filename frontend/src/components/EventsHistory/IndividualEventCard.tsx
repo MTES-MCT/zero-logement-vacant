@@ -3,7 +3,8 @@ import { Establishment } from '../../models/Establishment';
 
 import { Event } from '../../models/Event';
 import { HousingCreatedEventCard } from './events/HousingCreatedEventCard';
-import { HousingOccupancyEventCard } from './events/HousingOccupancyEventCard';
+import { HousingOccupancyUpdatedEventCard } from './events/HousingOccupancyUpdatedEventCard';
+import { HousingStatusUpdatedEventCard } from './events/HousingStatusUpdatedEventCard';
 
 export interface IndividualEventCardProps {
   event: Event;
@@ -21,10 +22,15 @@ function IndividualEventCard(props: IndividualEventCardProps) {
     .with(
       { type: 'housing:occupancy-updated' },
       (event: Event<'housing:occupancy-updated'>) => (
-        <HousingOccupancyEventCard event={event} />
+        <HousingOccupancyUpdatedEventCard event={event} />
       )
     )
-
+    .with(
+      { type: 'housing:status-updated' },
+      (event: Event<'housing:status-updated'>) => (
+        <HousingStatusUpdatedEventCard event={event} />
+      )
+    )
     .otherwise(() => null);
 }
 

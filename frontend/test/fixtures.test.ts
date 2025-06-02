@@ -4,6 +4,7 @@ import {
   CADASTRAL_CLASSIFICATION_VALUES,
   DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
+  EventType,
   HOUSING_KIND_VALUES,
   HousingStatus,
   Occupancy,
@@ -313,10 +314,20 @@ export function genDatafoncierHousing(): DatafoncierHousing {
   };
 }
 
-export function genEvent<T>(
-  before: T | undefined,
-  after: T | undefined,
-  creator: User
-): Event {
-  return fromEventDTO(genEventDTO(before, after, toUserDTO(creator)));
+type EventOptions<Type extends EventType> = Pick<
+  Event<Type>,
+  'type' | 'creator' | 'nextOld' | 'nextNew'
+>;
+export function genEvent<Type extends EventType>(
+  options: EventOptions<Type>
+): Event<Type> {
+  const { type, creator, nextOld, nextNew } = options;
+  return fromEventDTO(
+    genEventDTO<Type>({
+      type: type,
+      creator: toUserDTO(creator),
+      nextOld: nextOld,
+      nextNew: nextNew
+    })
+  );
 }

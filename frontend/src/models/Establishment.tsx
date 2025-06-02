@@ -1,11 +1,9 @@
-import { EstablishmentDTO, EstablishmentKind } from '@zerologementvacant/models';
+import { EstablishmentDTO } from '@zerologementvacant/models';
+
 import { normalizeUrlSegment } from '../utils/fetchUtils';
 
 export interface Establishment extends Omit<EstablishmentDTO, 'siren'> {
   siren: number;
-  available: boolean;
-  geoCodes: string[];
-  kind: EstablishmentKind;
 }
 
 export function fromEstablishmentDTO(

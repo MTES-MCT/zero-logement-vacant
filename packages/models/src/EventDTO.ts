@@ -1,21 +1,6 @@
-import { EventCategory } from './EventCategory';
-import { EventKind } from './EventKind';
-import { EventSection } from './EventSection';
+import { EventPayloads } from './EventPayloads';
+import { EventType } from './EventType';
 import { UserDTO } from './UserDTO';
-
-export interface EventDTO<T> {
-  id: string;
-  name: EventName;
-  kind: EventKind;
-  category: EventCategory;
-  section: EventSection;
-  conflict?: boolean;
-  old?: T;
-  new?: T;
-  createdAt: Date;
-  createdBy: string;
-  creator?: UserDTO;
-}
 
 export const EVENT_NAME_VALUES = [
   'Modification arborescence de suivi',
@@ -39,3 +24,23 @@ export const EVENT_NAME_VALUES = [
   'Conflit d’informations possible venant d’une source externe concernant le propriétaire et/ou la propriété'
 ] as const;
 export type EventName = (typeof EVENT_NAME_VALUES)[number];
+
+export interface EventDTO<Type extends EventType = EventType> {
+  id: string;
+  name: EventName;
+  type: Type;
+  conflict?: boolean;
+  /**
+   * @deprecated Use {@link nextOld} instead.
+   */
+  old?: never;
+  /**
+   * @deprecated Use {@link nextNew} instead.
+   */
+  new?: never;
+  nextOld: EventPayloads[Type]['old'];
+  nextNew: EventPayloads[Type]['new'];
+  createdAt: string;
+  createdBy: string;
+  creator?: UserDTO;
+}

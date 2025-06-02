@@ -58,7 +58,7 @@ function HousingEditionMobilizationTab(props: Props) {
           }}
         />
         <AppSelectNext
-          disabled={subStatusDisabled}
+          disabled={subStatusDisabled || [HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(statusField.value)}
           label="Sous-statut de suivi"
           multiple={false}
           options={

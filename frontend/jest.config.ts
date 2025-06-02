@@ -1,6 +1,19 @@
-import { createJestConfig } from '@craco/craco';
+// jest.config.cjs
+const { createJestConfig } = require('@craco/craco');
+const cracoConfig = require('./craco.config.js');
 
-import cracoConfig = require('./craco.config.js');
-const jestConfig = createJestConfig(cracoConfig);
+module.exports = {
+  ...createJestConfig(cracoConfig),
 
-export default jestConfig;
+  testEnvironment: 'node',
+
+  /** Transpile TypeScript / JSX en CommonJS ou ESM selon ton besoin */
+  transform: {
+    '^.+\\.[tj]sx?$': ['ts-jest', { useESM: false }],
+  },
+
+  /** ⬇︎ Dit à Jest de NE PAS ignorer tough-cookie */
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@bundled-es-modules-tough-cookie)/)',
+  ],
+};

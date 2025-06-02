@@ -7,16 +7,19 @@ import AppSelectNext, {
 export type OccupancySelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<Occupancy, Multiple>,
   'className' | 'disabled' | 'multiple' | 'value' | 'onChange'
->;
+> & {
+  label?: string;
+};
 
 function OccupancySelect<Multiple extends boolean = false>(
   props: OccupancySelectProps<Multiple>
 ) {
+  const { label = "Statut d’occupation", ...rest } = props;
   return (
     <AppSelectNext
-      {...props}
+      {...rest}
       getOptionLabel={(occupancy) => OCCUPANCY_LABELS[occupancy]}
-      label="Statut d’occupation"
+      label={label}
       options={OCCUPANCY_VALUES}
     />
   );

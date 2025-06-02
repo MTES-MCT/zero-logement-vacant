@@ -283,6 +283,7 @@ function HousingListFiltersSidemenu(props: Props) {
           </Grid>
           <Grid component="article" mb={2} xs={12}>
             <HousingSubStatusSelect
+              grouped={true}
               multiple
               options={filters.statusList?.flatMap(getSubStatuses) ?? []}
               value={filters.subStatus ?? []}

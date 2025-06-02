@@ -3,9 +3,8 @@ import {
   NoteDTO,
   NotePayloadDTO
 } from '@zerologementvacant/models';
-import { parseISO } from 'date-fns';
-import { Note } from '../models/Note';
-import { fromUserDTO } from '../models/User';
+
+import { fromNoteDTO, Note } from '../models/Note';
 import { zlvApi } from './api.service';
 
 export const noteApi = zlvApi.injectEndpoints({
@@ -13,7 +12,8 @@ export const noteApi = zlvApi.injectEndpoints({
     findNotesByHousing: builder.query<Note[], string>({
       query: (id) => `housing/${id}/notes`,
       providesTags: () => ['Note'],
-      transformResponse: (notes: ReadonlyArray<NoteDTO>) => notes.map(parseNote)
+      transformResponse: (notes: ReadonlyArray<NoteDTO>) =>
+        notes.map(fromNoteDTO)
     }),
     createNoteByHousing: builder.mutation<
       NoteDTO,
@@ -28,18 +28,6 @@ export const noteApi = zlvApi.injectEndpoints({
     })
   })
 });
-
-function parseNote(note: NoteDTO): Note {
-  if (!note.creator) {
-    throw new Error('Note creator is missing');
-  }
-
-  return {
-    ...note,
-    createdAt: parseISO(note.createdAt),
-    creator: fromUserDTO(note.creator)
-  };
-}
 
 export const { useFindNotesByHousingQuery, useCreateNoteByHousingMutation } =
   noteApi;

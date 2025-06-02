@@ -4,7 +4,7 @@ import { match } from 'ts-pattern';
 import { Event } from '../../models/Event';
 import EventCard from './EventCard';
 import { HousingCreatedEventCardDescription } from './events/HousingCreatedEventCard';
-import { HousingOccupancyEventCardDescription } from './events/HousingOccupancyEventCard';
+import { HousingOccupancyEventCardDescription } from './events/HousingOccupancyUpdatedEventCard';
 
 export interface AggregatedEventCardProps {
   events: Array.NonEmptyReadonlyArray<Event>;

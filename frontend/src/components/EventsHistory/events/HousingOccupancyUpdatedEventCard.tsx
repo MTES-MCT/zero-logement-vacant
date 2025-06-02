@@ -8,7 +8,7 @@ interface HousingOccupancyEventCardProps {
   event: Event<'housing:occupancy-updated'>;
 }
 
-export function HousingOccupancyEventCard(
+export function HousingOccupancyUpdatedEventCard(
   props: HousingOccupancyEventCardProps
 ) {
   return (

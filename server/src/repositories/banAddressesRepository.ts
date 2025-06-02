@@ -28,6 +28,7 @@ export interface AddressDBO {
    * @deprecated See {@link address}
    */
   city?: string;
+  city_code?: string | null;
   latitude?: number;
   longitude?: number;
   score?: number;

@@ -1,37 +1,17 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { differenceInMilliseconds } from 'date-fns';
-import { ReactNode, useState } from 'react';
-import { match, Pattern } from 'ts-pattern';
-import NoEvent from '../../assets/images/no-event.svg';
-import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
+import { Array, Order, pipe, Predicate, Record } from 'effect';
+import { ReactNode } from 'react';
 
+import NoEvent from '../../assets/images/no-event.svg';
 import { Event } from '../../models/Event';
 import { Note } from '../../models/Note';
-import { HousingOwner } from '../../models/Owner';
+import { useFindEstablishmentsQuery } from '../../services/establishment.service';
 import Image from '../Image/Image';
-import { CampaignCreatedEventContent } from './CampaignEventContent';
-import EventCard from './EventCard';
-import {
-  GroupArchivedEventContent,
-  GroupHousingAddedEventContent,
-  GroupHousingRemovedEventContent,
-  GroupRemovedEventContent
-} from './GroupEventContent';
-import {
-  HousingCreatedEventContent,
-  HousingOccupancyChangeEventContent,
-  HousingStatusChangeEventContent
-} from './HousingEventContent';
+import AggregatedEventCard from './AggregatedEventCard';
+import IndividualEventCard from './IndividualEventCard';
 import NoteCard from './NoteCard';
-import NoteEventContent from './NoteEventContent';
-import {
-  OwnerChangeEventContent,
-  OwnerCreatedEventContent,
-  OwnersChangeEventContent,
-  PrimaryOwnerChangeEventContent
-} from './OwnershipEventContent';
 
 interface Props {
   events: Event[];
@@ -39,88 +19,88 @@ interface Props {
 }
 
 function EventsHistory({ events, notes }: Props) {
-  const [expandEvents, setExpandEvents] = useState(false);
+  const { data: establishments } = useFindEstablishmentsQuery({
+    // Fetch only the establishments involved in the events or notes
+    id: pipe(
+      [...events, ...notes],
+      Array.map((eventOrNote) => eventOrNote.creator.establishmentId),
+      Array.filter(Predicate.isNotNullable),
+      Array.dedupe
+    )
+  });
 
-  const eventAndNotes = [...events, ...notes].toSorted((e1, e2) =>
-    differenceInMilliseconds(e2.createdAt, e1.createdAt)
+  function isEvent(event: Event | Note): event is Event {
+    return 'type' in event;
+  }
+
+  const history: ReadonlyArray<ReactNode> = pipe(
+    [...events, ...notes],
+    Array.sortWith(
+      (event) => new Date(event.createdAt),
+      Order.reverse(Order.Date)
+    ),
+    Array.groupBy((event) => event.createdAt.substring(0, 'yyyy-mm-dd'.length)),
+    Record.map((eventsOrNotes) => {
+      // Notes and events of the day
+      const [notes, events] = Array.partition(eventsOrNotes, isEvent);
+
+      if (events.length >= 2) {
+        // Aggregate events
+        return [
+          <AggregatedEventCard
+            key={events.length}
+            events={events as unknown as Array.NonEmptyReadonlyArray<Event>}
+          />,
+          ...notes.map((note) => {
+            const establishment = establishments?.find(
+              (establishment) =>
+                establishment.id === note.creator.establishmentId
+            );
+            return (
+              <NoteCard
+                key={note.id}
+                content={note.content}
+                createdAt={note.createdAt}
+                createdBy={note.creator}
+                establishment={establishment ?? null}
+              />
+            );
+          })
+        ];
+      }
+
+      return pipe(
+        [...notes, ...events],
+        Array.sortWith(
+          (eventOrNote) => new Date(eventOrNote.createdAt),
+          Order.reverse(Order.Date)
+        ),
+        Array.map((eventOrNote) => {
+          const establishment = establishments?.find(
+            (establishment) =>
+              establishment.id === eventOrNote.creator.establishmentId
+          );
+          return isEvent(eventOrNote) ? (
+            <IndividualEventCard
+              event={eventOrNote}
+              establishment={establishment ?? null}
+            />
+          ) : (
+            <NoteCard
+              content={eventOrNote.content}
+              createdAt={eventOrNote.createdAt}
+              createdBy={eventOrNote.creator}
+              establishment={establishment ?? null}
+            />
+          );
+        })
+      );
+    }),
+    Record.values,
+    Array.flatten
   );
 
-  const { availableEstablishments } = useAvailableEstablishments();
-
-  function isEvent(e: Event | Note): e is Event {
-    return (e as Event).category !== undefined;
-  }
-
-  function renderEventContent(eventOrNote: Event | Note): ReactNode {
-    if (!isEvent(eventOrNote)) {
-      return <NoteEventContent note={eventOrNote} />;
-    }
-
-    const event = eventOrNote;
-
-    return (
-      match(event)
-        // Housing events
-        .with({ name: 'Création du logement' }, () => (
-          <HousingCreatedEventContent event={event} />
-        ))
-        .with(
-          {
-            name: Pattern.union(
-              "Modification du statut d'occupation",
-              'Changement de statut d’occupation'
-            )
-          },
-          (event) => <HousingOccupancyChangeEventContent event={event} />
-        )
-        .with({ name: 'Changement de statut de suivi' }, (event) => (
-          <HousingStatusChangeEventContent event={event} />
-        ))
-        // Owner events
-        .with({ name: "Création d'un nouveau propriétaire" }, (event) => (
-          <OwnerCreatedEventContent event={event} />
-        ))
-        .with({ name: 'Modification de coordonnées' }, (event) => (
-          <OwnerChangeEventContent event={event} />
-        ))
-        .with({ name: "Modification d'identité" }, (event) => (
-          <OwnerChangeEventContent event={event} />
-        ))
-        .with({ name: 'Changement de propriétaire principal' }, (event) => (
-          <PrimaryOwnerChangeEventContent event={event} />
-        ))
-        .with(
-          { name: 'Changement de propriétaires' },
-          (event: Event<HousingOwner[]>) => (
-            <OwnersChangeEventContent
-              conflict={event.conflict ?? false}
-              housingOwnersBefore={event.old ?? []}
-              housingOwnersAfter={event.new ?? []}
-            />
-          )
-        )
-        // Campaign events
-        .with({ name: 'Ajout dans une campagne' }, (event) => (
-          <CampaignCreatedEventContent event={event} />
-        ))
-        // Group events
-        .with({ name: 'Ajout dans un groupe' }, (event) => (
-          <GroupHousingAddedEventContent event={event} />
-        ))
-        .with({ name: 'Retrait d’un groupe' }, (event) => (
-          <GroupHousingRemovedEventContent event={event} />
-        ))
-        .with({ name: 'Archivage d’un groupe' }, (event) => (
-          <GroupArchivedEventContent event={event} />
-        ))
-        .with({ name: 'Suppression d’un groupe' }, (event) => (
-          <GroupRemovedEventContent event={event} />
-        ))
-        .otherwise(() => null)
-    );
-  }
-
-  if (eventAndNotes.length === 0) {
+  if (history.length === 0) {
     return (
       <Stack sx={{ alignItems: 'center' }}>
         <Box sx={{ maxWidth: '7.5rem' }}>
@@ -137,47 +117,7 @@ function EventsHistory({ events, notes }: Props) {
     );
   }
 
-  return (
-    <Stack spacing="1.5rem">
-      {eventAndNotes
-        .filter((_, index) => expandEvents || index < 3)
-        .map((eventOrNote) => {
-          const establishment = availableEstablishments?.find(
-            (establishment) =>
-              establishment.id === eventOrNote.creator.establishmentId
-          );
-
-          return isEvent(eventOrNote) ? (
-            <EventCard
-              key={eventOrNote.id}
-              title={isEvent(eventOrNote) ? eventOrNote.name : 'Note'}
-              description={renderEventContent(eventOrNote)}
-              createdAt={eventOrNote.createdAt}
-              createdBy={eventOrNote.creator}
-            />
-          ) : (
-            <NoteCard
-              key={eventOrNote.id}
-              content={eventOrNote.content}
-              createdAt={eventOrNote.createdAt}
-              createdBy={eventOrNote.creator}
-              establishment={establishment ?? null}
-            />
-          );
-        })}
-      {!expandEvents && eventAndNotes.length > 3 && (
-        <button
-          className="ds-fr--inline fr-link"
-          type="button"
-          title="Voir tout le suivi"
-          onClick={() => setExpandEvents(!expandEvents)}
-        >
-          Voir tout le suivi
-          <span className="fr-icon-1x icon-right fr-icon-arrow-right-line ds-fr--v-middle" />
-        </button>
-      )}
-    </Stack>
-  );
+  return <Stack spacing="1.5rem">{history}</Stack>;
 }
 
 export default EventsHistory;

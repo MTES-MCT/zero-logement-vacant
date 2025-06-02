@@ -7316,6 +7316,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@standard-schema/spec@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@standard-schema/spec@npm:1.0.0"
+  checksum: 10c0/a1ab9a8bdc09b5b47aa8365d0e0ec40cc2df6437be02853696a0e377321653b0d3ac6f079a8c67d5ddbe9821025584b1fb71d9cc041a6666a96f1fadf2ece15f
+  languageName: node
+  linkType: hard
+
 "@streamparser/json@npm:^0.0.6":
   version: 0.0.6
   resolution: "@streamparser/json@npm:0.0.6"
@@ -11162,6 +11169,7 @@ __metadata:
     async: "npm:^3.2.6"
     classnames: "npm:^2.5.1"
     date-fns: "npm:^2.30.0"
+    effect: "npm:^3.16.0"
     fetch-intercept: "npm:^2.4.0"
     identity-obj-proxy: "npm:^3.0.0"
     immutable: "npm:^5.0.0"
@@ -11258,6 +11266,7 @@ __metadata:
     rimraf: "npm:^5.0.10"
     ts-essentials: "npm:^10.0.2"
     ts-jest: "npm:^29.2.5"
+    ts-pattern: "npm:^5.5.0"
     typescript: "npm:^5.6.2"
   languageName: unknown
   linkType: soft
@@ -15850,6 +15859,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"effect@npm:^3.16.0":
+  version: 3.16.0
+  resolution: "effect@npm:3.16.0"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    fast-check: "npm:^3.23.1"
+  checksum: 10c0/315a44f3c87475a1e5203b2e24aeab789b6372e491953fa1a9b7f30b3ebfa234a5f5b8baf67ee80986d8f0cbb156ab5a18d5152c7843ff1fb159a9943a20c218
+  languageName: node
+  linkType: hard
+
 "ejs@npm:^3.1.10, ejs@npm:^3.1.6, ejs@npm:^3.1.7":
   version: 3.1.10
   resolution: "ejs@npm:3.1.10"
@@ -17267,7 +17286,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-check@npm:^3.0.0":
+"fast-check@npm:^3.0.0, fast-check@npm:^3.23.1":
   version: 3.23.2
   resolution: "fast-check@npm:3.23.2"
   dependencies:

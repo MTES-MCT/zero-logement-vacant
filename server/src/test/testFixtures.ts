@@ -241,6 +241,7 @@ export const genAddressApi = (
     street,
     postalCode,
     city,
+    cityCode: null,
     latitude: faker.location.latitude({
       min: FRANCE_BBOX[1],
       max: FRANCE_BBOX[3]

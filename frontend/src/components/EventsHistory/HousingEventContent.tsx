@@ -1,49 +1,12 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Stack from '@mui/material/Stack';
 import { HousingStatus } from '@zerologementvacant/models';
-import { getHousingDiff } from '../../models/Diff';
-
-import { Event } from '../../models/Event';
-import { getSource, Housing } from '../../models/Housing';
+import { Housing } from '../../models/Housing';
 import { HousingStates } from '../../models/HousingState';
 import OccupancyBadge from '../Housing/OccupancyBadge';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
+import { HousingEventContentProps } from './events/HousingCreatedEventCard';
 import PatchContent from './PatchContent';
-
-export interface HousingEventContentProps {
-  event: Event<Housing>;
-}
-
-export function HousingCreatedEventContent(props: HousingEventContentProps) {
-  const source = props.event.new ? getSource(props.event.new) : null;
-  return `Le logement a été ajouté depuis la source ${source}`;
-}
-
-export function HousingOccupancyChangeEventContent(
-  props: HousingEventContentProps
-) {
-  const { event } = props;
-
-  const diff =
-    event.old && event.new ? getHousingDiff(event.old, event.new) : null;
-  const before = diff?.old ? (
-    <OccupancyPatchContent age="before" values={diff.old} />
-  ) : null;
-  const after = diff?.new ? (
-    <OccupancyPatchContent age="after" values={diff.new} />
-  ) : null;
-
-  return (
-    <Stack direction="row" spacing="2rem" sx={{ alignItems: 'center' }}>
-      {before}
-      <span
-        className="fr-icon-arrow-right-s-line"
-        style={{ alignSelf: 'center' }}
-      />
-      {after}
-    </Stack>
-  );
-}
 
 export function HousingStatusChangeEventContent(
   props: HousingEventContentProps

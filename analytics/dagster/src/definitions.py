@@ -1,3 +1,4 @@
+from analytics.dagster.src.assets.populate_missing_ban_addresses_for_owners import populate_missing_ban_addresses_for_owners
 from dagster import (
     AssetSelection,
     Definitions,
@@ -117,6 +118,7 @@ defs = Definitions(
         # dagster_notion_assets,
         # dagster_notion_assets,
         process_and_insert_owners,
+        populate_missing_ban_addresses_for_owners,
         process_and_update_edited_owners,
         housings_without_address_csv, process_housings_with_api,
         *dwh_assets,

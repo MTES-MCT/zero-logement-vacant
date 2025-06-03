@@ -75,7 +75,6 @@ def _get_total_records_count(cursor):
         FROM owners o
         LEFT JOIN ban_addresses ba ON o.id = ba.ref_id AND ba.address_kind = 'Owner'
         WHERE ba.ref_id IS NULL 
-           OR (ba.ban_id IS NULL AND ba.score < 1);
     """)
     return cursor.fetchone()[0]
 
@@ -87,7 +86,6 @@ def _fetch_batch_data(conn, chunk_size):
         FROM owners o
         LEFT JOIN ban_addresses ba ON o.id = ba.ref_id AND ba.address_kind = 'Owner'
         WHERE ba.ref_id IS NULL 
-           OR (ba.ban_id IS NULL AND ba.score < 1)
         LIMIT {chunk_size};
     """
     return pd.read_sql_query(query, conn)

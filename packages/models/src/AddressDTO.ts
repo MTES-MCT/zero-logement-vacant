@@ -21,6 +21,7 @@ export interface AddressDTO {
    * @deprecated See {@link label}
    */
   city: string;
+  cityCode?: string | null;
   latitude?: number;
   longitude?: number;
   score?: number;
@@ -34,6 +35,7 @@ export type AddressPayloadDTO = Pick<
   | 'street'
   | 'postalCode'
   | 'city'
+  | 'cityCode'
   | 'latitude'
   | 'longitude'
   | 'score'

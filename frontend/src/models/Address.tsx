@@ -3,7 +3,7 @@ import { AddressDTO, AddressKinds } from '@zerologementvacant/models';
 import { Owner } from './Owner';
 import fp from 'lodash/fp';
 
-export type Address = Omit<AddressDTO, 'refId' | 'addressKind'>;
+export type Address = Omit<AddressDTO, 'refId' | 'addressKind' | 'cityCode'>;
 
 export const isBanEligible = (address?: Pick<Address, 'score'>) => {
   return (

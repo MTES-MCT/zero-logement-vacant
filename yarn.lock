@@ -19639,6 +19639,7 @@ __metadata:
     "@godaddy/terminus": "npm:^4.12.1"
     "@sentry/integrations": "npm:^7.119.0"
     "@sentry/node": "npm:^7.119.0"
+    "@swc/core": "npm:^1.11.8"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/archiver": "npm:^6.0.2"
     "@types/async": "npm:^3.2.24"
@@ -19672,6 +19673,7 @@ __metadata:
     supertest: "npm:^6.3.4"
     ts-jest: "npm:^29.2.5"
     ts-node: "npm:^10.9.2"
+    tsx: "npm:^4.19.4"
     typescript: "npm:^5.6.2"
     uuid: "npm:^9.0.1"
   bin:
@@ -42393,7 +42395,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.19.2":
+"tsx@npm:^4.19.2, tsx@npm:^4.19.4":
   version: 4.19.4
   resolution: "tsx@npm:4.19.4"
   dependencies:

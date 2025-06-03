@@ -10,7 +10,7 @@ import {
   formatAddress as formatAddressDTO,
   Pagination
 } from '@zerologementvacant/models';
-import { ReactNode, useMemo, useState } from 'react';
+import { Fragment, ReactNode, useMemo, useState } from 'react';
 import { useNotification } from '../../hooks/useNotification';
 import { usePagination } from '../../hooks/usePagination';
 import { Address, isBanEligible } from '../../models/Address';
@@ -65,6 +65,7 @@ function CampaignRecipients(props: Props) {
     ));
   }
 
+  const [editing, setEditing] = useState(false);
   const [selected, setSelected] = useState<Housing | null>(null);
   function onRemove(housing: Housing): void {
     setSelected(housing);
@@ -105,10 +106,10 @@ function CampaignRecipients(props: Props) {
           return (
             <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
               {cell.getValue().map((line) => (
-                <>
+                <Fragment key={line}>
                   {line}
                   <br />
-                </>
+                </Fragment>
               ))}
             </AppLink>
           );
@@ -164,7 +165,16 @@ function CampaignRecipients(props: Props) {
               spacing={1}
               sx={{ justifyContent: 'flex-end' }}
             >
-              <OwnerEditionSideMenu owner={row.original.owner} />
+              <Button
+                priority="secondary"
+                size="small"
+                onClick={() => {
+                  setSelected(row.original);
+                  setEditing(true);
+                }}
+              >
+                Éditer
+              </Button>
               <Button
                 iconId="fr-icon-close-line"
                 priority="tertiary"
@@ -201,6 +211,15 @@ function CampaignRecipients(props: Props) {
         tableProps={{ fixed: true, noCaption: true, noScroll: true }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
+      />
+
+      <OwnerEditionSideMenu
+        owner={selected?.owner ?? null}
+        isOpen={editing}
+        onClose={() => {
+          setEditing(false);
+          setSelected(null);
+        }}
       />
 
       <removeCampaignHousingModal.Component

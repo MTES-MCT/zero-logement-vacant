@@ -23,6 +23,7 @@ function OwnerAddressEdition(props: Props) {
     <>
       <AddressSearchableSelectNext
         disabled={props.disabled}
+        state={props.errorMessage ? 'error' : 'default'}
         stateRelatedMessage={props.errorMessage}
         value={props.banAddress ?? null}
         inputValue={inputValue}

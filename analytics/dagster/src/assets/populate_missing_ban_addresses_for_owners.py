@@ -21,7 +21,7 @@ def process_not_valid_addresses(api_data: pd.DataFrame, cursor: psycopg2.extensi
     not_valid_df['ban_id'] = None
     not_valid_df['address_kind'] = 'Owner'
     not_valid_df['last_updated_at'] = datetime.now()
-    not_valid_df['address'] = None
+    not_valid_df['address'] = not_valid_df['address_dgfip']
     
     # Set default values for missing fields
     not_valid_df['house_number'] = None
@@ -176,6 +176,7 @@ def _insert_batch_data(cursor, conn, valid_df):
 
 
 @asset(
+    name="populate_missing_ban_addresses_for_owners",
     description="Process all owners to ensure each has a BAN address entry. Creates entries with NULL ban_id for not-found addresses.",
     required_resource_keys={"psycopg2_connection", "ban_config"}
 )
@@ -196,6 +197,7 @@ def populate_missing_ban_addresses_for_owners(context: AssetExecutionContext):
             batch_number = 1
             
             while True:
+                context.log.info(f"Processing batch {batch_number}")
                 try:
                     # Fetch and process batch
                     df = _fetch_batch_data(conn, chunk_size)
@@ -204,7 +206,9 @@ def populate_missing_ban_addresses_for_owners(context: AssetExecutionContext):
                         break
 
                     # Call API and process response
+                    context.log.info(f"Calling API for batch {batch_number}..")
                     api_data = _call_ban_api(df, config)
+                    context.log.info(f"Successfully called API for batch {batch_number}...")
                     
                     # Process not-found addresses (insert with NULL ban_id)
                     not_found_df = process_not_valid_addresses(api_data, cursor, context, conn)

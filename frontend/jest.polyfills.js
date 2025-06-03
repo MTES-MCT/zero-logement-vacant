@@ -8,9 +8,6 @@
  * you don't want to deal with this.
  */
 
-const { BroadcastChannel } = require('node:worker_threads');
-Object.defineProperty(globalThis, 'BroadcastChannel', { value: BroadcastChannel });
-
 globalThis.setImmediate  ??= (fn, ...args) => setTimeout(fn, 0, ...args);
 globalThis.clearImmediate ??= (id) => clearTimeout(id);
 

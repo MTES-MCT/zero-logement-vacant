@@ -1,3 +1,4 @@
+
 from dagster import (
     AssetSelection,
     Definitions,
@@ -27,6 +28,7 @@ from .assets import production_dbt
 from .assets.populate_owners_ban_addresses import process_and_insert_owners
 from .assets.populate_edited_owners_ban_addresses import process_and_update_edited_owners
 from .assets.populate_housings_ban_addresses import housings_without_address_csv, process_housings_with_api
+from .assets.populate_missing_ban_addresses_for_owners import populate_missing_ban_addresses_for_owners
 from .resources.ban_config import ban_config_resource
 from .resources.database_resources import psycopg2_connection_resource
 
@@ -102,6 +104,13 @@ edited_owners_asset_job = define_asset_job(
     ),
 )
 
+missing_ban_addresses_asset_job_for_owners = define_asset_job(
+    name="missing_ban_addresses_asset_job_for_owners",
+    selection=AssetSelection.assets(
+        "populate_missing_ban_addresses_for_owners",
+    ),
+)
+
 housings_asset_job = define_asset_job(
     name="populate_housings_addresses",
     selection=AssetSelection.assets(
@@ -117,6 +126,7 @@ defs = Definitions(
         # dagster_notion_assets,
         # dagster_notion_assets,
         process_and_insert_owners,
+        populate_missing_ban_addresses_for_owners,
         process_and_update_edited_owners,
         housings_without_address_csv, process_housings_with_api,
         *dwh_assets,
@@ -139,5 +149,5 @@ defs = Definitions(
         "psycopg2_connection": psycopg2_connection_resource,
     },
     schedules=[daily_refresh_schedule, yearly_ff_refresh_schedule],
-    jobs=[owners_asset_job, edited_owners_asset_job, housings_asset_job],
+    jobs=[owners_asset_job, edited_owners_asset_job, housings_asset_job, missing_ban_addresses_asset_job_for_owners],
 )

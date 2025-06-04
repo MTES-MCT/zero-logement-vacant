@@ -481,5 +481,10 @@ export async function splitHtmlIntoPages({
     isFirstPage = false;
   }
 
+  // If there is no content left, we ensure at least one block is returned
+  if(blocks.length === 0) {
+    blocks.push('');
+  }
+
   return blocks;
 }

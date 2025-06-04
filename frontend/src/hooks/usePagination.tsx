@@ -1,6 +1,11 @@
 import { Pagination } from '@zerologementvacant/models';
 import config from '../utils/config';
 
+/**
+ * @todo Refactor this to remove the duplicated `pagination`
+ * and `extends Partial<Pagination`.
+ * Also, allow the state to be controlled or uncontrolled.
+ */
 interface PaginationOptions extends Partial<Pagination> {
   pagination: Pagination;
   count?: number;
@@ -21,21 +26,23 @@ export function usePagination(opts: PaginationOptions) {
     opts.setPagination({
       ...opts.pagination,
       page: 1,
-      perPage,
+      perPage
     });
   };
 
   const changePage = (page: number) => {
     opts.setPagination({
       ...opts.pagination,
-      page,
+      page
     });
   };
   return {
     pageCount,
     rowNumber,
     hasPagination,
-    changePerPage,
+    page,
     changePage,
+    perPage,
+    changePerPage
   };
 }

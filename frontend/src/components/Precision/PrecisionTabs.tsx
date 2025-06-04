@@ -1,9 +1,9 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Unstable_Grid2';
-import { List } from 'immutable';
-import { ChangeEvent, ReactElement, useMemo } from 'react';
 
 import { Precision } from '@zerologementvacant/models';
+import { List } from 'immutable';
+import { ChangeEvent, ReactElement, useMemo } from 'react';
 import PrecisionColumn from './PrecisionColumn';
 
 interface PrecisionTabs {
@@ -209,7 +209,11 @@ function PrecisionTabs(props: PrecisionTabs) {
   const activeTab = tabs.find((t) => t.tabId === tab) ?? tabs[0];
 
   return (
-    <Tabs tabs={tabs} selectedTabId={tab} onTabChange={props.onTabChange}>
+    <Tabs
+      tabs={tabs}
+      selectedTabId={tab}
+      onTabChange={(tabId) => props.onTabChange(tabId as PrecisionTabId)}
+    >
       {activeTab.children}
     </Tabs>
   );

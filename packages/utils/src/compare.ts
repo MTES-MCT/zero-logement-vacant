@@ -15,6 +15,15 @@ export const DEFAULT_ORDER = <A>(first: A, second: A): Comparison =>
       ? Comparison.A_GT_B
       : Comparison.A_EQ_B;
 
+export function combineAll<A>(ords: ReadonlyArray<Ord<A>>): Ord<A> {
+  return (first, second) =>
+    ords.reduce((firstOrd, secondOrd) => {
+      return firstOrd(first, second) === Comparison.A_EQ_B
+        ? secondOrd
+        : firstOrd;
+    })(first, second);
+}
+
 export function desc<A>(ord: Ord<A> = DEFAULT_ORDER): Ord<A> {
   return (first, second) => ord(second, first);
 }

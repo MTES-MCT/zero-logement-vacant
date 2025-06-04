@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect } from 'react';
 import { hideLoading, showLoading } from 'react-redux-loading-bar';
 import {
   createRoutesFromElements,
@@ -18,7 +18,7 @@ import AccountView from './views/Account/AccountView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
 import AnalysisView from './views/Analysis/AnalysisView';
-import CampaignsListView from './views/Campaign/CampaignListView';
+import CampaignListView from './views/Campaign/CampaignListView';
 import CampaignView from './views/Campaign/CampaignView';
 import GroupView from './views/Group/GroupView';
 import HousingView from './views/Housing/HousingView';
@@ -58,7 +58,7 @@ const router = sentry.createBrowserRouter(
           element={<AnalysisView id="15-analyses-activites" />}
         />
         <Route path="/groupes/:id" element={<GroupView />} />
-        <Route path="/campagnes" element={<CampaignsListView />} />
+        <Route path="/campagnes" element={<CampaignListView />} />
         <Route path="/campagnes/:id" element={<CampaignView />} />
         <Route
           path="/proprietaires/:ownerId/logements/:housingId"
@@ -114,13 +114,6 @@ function App() {
       dispatch(hideLoading());
     }
   }, [dispatch, isSomeQueryPending]);
-
-  // Scroll to top on route change
-  useLayoutEffect(() => {
-    window.scrollTo({
-      top: 0
-    });
-  });
 
   return <RouterProvider router={router} />;
 }

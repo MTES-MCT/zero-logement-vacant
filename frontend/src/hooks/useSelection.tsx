@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
-import { useAppDispatch, useAppSelector } from './useStore';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import housingSlice from '../store/reducers/housingReducer';
+import { useAppDispatch, useAppSelector } from './useStore';
 
 export interface Selection {
   all: boolean;
@@ -33,11 +34,27 @@ export function useSelection(
   const [selected, setSelected] =
     storage === 'store' ? [store.selected, changeSelected] : state;
 
+  const location = useLocation();
+  useEffect(() => {
+    return () => {
+      changeSelected({
+        all: false,
+        ids: []
+      });
+    };
+    // eslint-disable-next-line
+  }, [location]);
+
   const hasSelected = useMemo<boolean>(
     () =>
       (selected.all && selected.ids.length < itemCount) ||
       (!selected.all && selected.ids.length > 0),
     [selected.all, selected.ids, itemCount]
+  );
+
+  const hasSelectedAll = useMemo<boolean>(
+    () => selected.all && selected.ids.length === 0,
+    [selected.all, selected.ids]
   );
 
   const selectedCount = useMemo<number>(
@@ -81,6 +98,13 @@ export function useSelection(
     });
   }
 
+  function unselectAll(): void {
+    setSelected({
+      all: false,
+      ids: []
+    });
+  }
+
   function isSelected(id: string): boolean {
     return (
       (selected.all && !selected.ids.includes(id)) ||
@@ -90,6 +114,7 @@ export function useSelection(
 
   return {
     hasSelected,
+    hasSelectedAll,
     selectedCount,
     isSelected,
     select,
@@ -97,6 +122,7 @@ export function useSelection(
     setSelected,
     toggleSelect,
     toggleSelectAll,
-    unselect
+    unselect,
+    unselectAll
   };
 }

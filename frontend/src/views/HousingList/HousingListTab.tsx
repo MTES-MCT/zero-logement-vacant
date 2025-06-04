@@ -1,28 +1,28 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Skeleton from '@mui/material/Skeleton';
+import Typography from '@mui/material/Typography';
+import { HousingStatus } from '@zerologementvacant/models';
+import fp from 'lodash/fp';
 import { useEffect, useState } from 'react';
-import { useSelection } from '../../hooks/useSelection';
-import HousingList from '../../components/HousingList/HousingList';
-import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
-import { Row } from '../../components/_dsfr';
+import { useParams } from 'react-router-dom';
+import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
 import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
+import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
-import {
-  useCountHousingQuery,
-  useUpdateHousingListMutation
-} from '../../services/housing.service';
+import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
+import { useSelection } from '../../hooks/useSelection';
 import { HousingUpdate, SelectedHousing } from '../../models/Housing';
-import { HousingFilters } from '../../models/HousingFilters';
 import { displayHousingCount, HousingCount } from '../../models/HousingCount';
+import { HousingFilters } from '../../models/HousingFilters';
 import {
   useGetGroupQuery,
   useRemoveGroupHousingMutation
 } from '../../services/group.service';
-import { useParams } from 'react-router-dom';
-import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
-import Button from '@codegouvfr/react-dsfr/Button';
-import fp from 'lodash/fp';
-import { HousingStatus } from '@zerologementvacant/models';
-import Typography from '@mui/material/Typography';
+import {
+  useCountHousingQuery,
+  useUpdateHousingListMutation
+} from '../../services/housing.service';
 
 export type HousingListTabProps = {
   isActive: boolean;
@@ -36,17 +36,15 @@ export type HousingListTabProps = {
   onCountFilteredHousing?: (count: HousingCount) => void;
 };
 
-const HousingListTab = ({
-  filters,
-  isActive,
-  showCount,
-  showRemoveGroupHousing,
-  status,
-  onCountFilteredHousing
-}: HousingListTabProps) => {
+function HousingListTab(props: HousingListTabProps) {
+  const showCount = props.showCount ?? true;
   const [
     updateHousingList,
-    { isSuccess: isUpdateSuccess, data: updatedCount }
+    {
+      isSuccess: isUpdateSuccess,
+      data: updatedCount,
+      reset: resetHousingUpdate
+    }
   ] = useUpdateHousingListMutation();
 
   const [updatingSelectedHousing, setUpdatingSelectedHousing] =
@@ -55,12 +53,14 @@ const HousingListTab = ({
 
   const { data: housingCount } = useCountHousingQuery(
     fp.pick(['dataFileYearsIncluded', 'dataFileYearsExcluded', 'occupancies'])(
-      filters
+      props.filters
     )
   );
   const totalCount = housingCount?.housing;
 
-  const { data: count } = useCountHousingQuery(filters);
+  const { data: count, isLoading: isCounting } = useCountHousingQuery(
+    props.filters
+  );
   const filteredCount = count;
 
   const { selectedCount, selected, setSelected } = useSelection(
@@ -72,7 +72,7 @@ const HousingListTab = ({
 
   useEffect(() => {
     if (filteredCount !== undefined) {
-      onCountFilteredHousing?.(filteredCount);
+      props.onCountFilteredHousing?.(filteredCount);
     }
   }, [filteredCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
@@ -82,7 +82,7 @@ const HousingListTab = ({
         housingUpdate,
         allHousing: selected.all,
         housingIds: selected.ids,
-        filters
+        filters: props.filters
       }).unwrap();
     } catch (error: any) {
       if (error.data.name === 'HousingUpdateForbiddenError') {
@@ -105,12 +105,12 @@ const HousingListTab = ({
         id: group.id,
         all: selected.all,
         ids: selected.ids,
-        filters: filters
+        filters: props.filters
       }).unwrap();
     }
   }
 
-  if (!isActive) {
+  if (!props.isActive) {
     return <></>;
   }
 
@@ -122,7 +122,10 @@ const HousingListTab = ({
           title={`La mise à jour groupée de ${updatedCount} logements a bien été enregistrée`}
           description="Les informations saisies ont bien été appliquées aux logements sélectionnés"
           closable
-          className="fr-mb-2w fr-mt-2w"
+          className="fr-my-2w fr-mt-2w"
+          onClose={() => {
+            resetHousingUpdate();
+          }}
         />
       )}
       {error && (
@@ -134,7 +137,19 @@ const HousingListTab = ({
           className="fr-mb-2w fr-mt-2w"
         />
       )}
-      {(showCount ?? true) &&
+
+      {showCount && isCounting ? (
+        <Skeleton
+          animation="wave"
+          variant="rectangular"
+          sx={{ margin: '1rem' }}
+          height="2rem"
+          width="20rem"
+        />
+      ) : null}
+
+      {showCount &&
+        !isCounting &&
         filteredHousingCount !== undefined &&
         filteredOwnerCount !== undefined && (
           <Typography sx={{ padding: 2 }}>
@@ -142,15 +157,16 @@ const HousingListTab = ({
               filteredHousingCount,
               filteredOwnerCount,
               totalCount,
-              status
+              status: props.status
             })}
           </Typography>
         )}
-      <HousingList filters={filters} onSelectHousing={setSelected}>
+
+      <HousingList filters={props.filters} onSelectHousing={setSelected}>
         <SelectableListHeader entity="logement" default={<></>}>
           <SelectableListHeaderActions>
             {filteredHousingCount !== undefined && filteredHousingCount > 0 && (
-              <Row alignItems="middle" justifyContent="right">
+              <>
                 {selectedCount > 1 && (
                   <Button
                     className="fr-mr-1w"
@@ -162,7 +178,7 @@ const HousingListTab = ({
                   </Button>
                 )}
 
-                {showRemoveGroupHousing && (
+                {props.showRemoveGroupHousing && (
                   <GroupRemoveHousingModal
                     housingCount={selectedCount}
                     onSubmit={doRemoveGroupHousing}
@@ -175,12 +191,12 @@ const HousingListTab = ({
                   onSubmit={submitSelectedHousingUpdate}
                   onClose={() => setUpdatingSelectedHousing(undefined)}
                 />
-              </Row>
+              </>
             )}
           </SelectableListHeaderActions>
         </SelectableListHeader>
       </HousingList>
     </>
   );
-};
+}
 export default HousingListTab;

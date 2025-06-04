@@ -8,9 +8,6 @@
  * you don't want to deal with this.
  */
 
-const { BroadcastChannel } = require('node:worker_threads');
-Object.defineProperty(globalThis, 'BroadcastChannel', { value: BroadcastChannel });
-
 globalThis.setImmediate  ??= (fn, ...args) => setTimeout(fn, 0, ...args);
 globalThis.clearImmediate ??= (id) => clearTimeout(id);
 
@@ -20,6 +17,7 @@ if (!('markResourceTiming' in performance)) {
 
 const { TextDecoder, TextEncoder } = require('node:util');
 const { ReadableStream, TransformStream } = require('node:stream/web');
+const { BroadcastChannel } = require('node:worker_threads')
 
 Object.defineProperties(globalThis, {
   ReadableStream: { value: ReadableStream },
@@ -32,13 +30,14 @@ const { Blob, File } = require('node:buffer');
 const { fetch, Headers, FormData, Request, Response } = require('undici');
 
 Object.defineProperties(globalThis, {
-  fetch: { value: fetch, writable: true },
+  fetch: { value: fetch, writable: true, configurable: true },
   Blob: { value: Blob },
   File: { value: File },
   Headers: { value: Headers },
   FormData: { value: FormData },
   Request: { value: Request, configurable: true },
-  Response: { value: Response, configurable: true }
+  Response: { value: Response, configurable: true },
+  BroadcastChannel: { value: BroadcastChannel },
 });
 
 Object.defineProperty(window, 'matchMedia', {

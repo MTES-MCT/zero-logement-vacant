@@ -90,7 +90,8 @@ ORDER  BY u.email
 # (lovac.comm codes)
 UPDATE_SQL = """
 UPDATE establishments
-SET    localities_geo_code = %s
+SET    localities_geo_code = %s,
+    updated_at = NOW()
 WHERE  siren = %s
 """
 

@@ -646,4 +646,112 @@ describe('EventsHistory', () => {
       expect(description).toBeVisible();
     });
   });
+
+  describe('housing:campaign-attached', () => {
+    function renderComponentWithCampaignAttached(
+      payload: Event<'housing:campaign-attached'>['nextNew']
+    ) {
+      renderComponent({
+        events: [
+          genEvent({
+            type: 'housing:campaign-attached',
+            creator: admin,
+            nextOld: null,
+            nextNew: payload
+          })
+        ],
+        notes: []
+      });
+    }
+
+    it('should display a title', () => {
+      renderComponentWithCampaignAttached({ name: 'Campagne de test' });
+
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a ajouté ce logement dans une campagne'
+      );
+      expect(title).toBeVisible();
+    });
+
+    it('should display the campaign attached', () => {
+      renderComponentWithCampaignAttached({ name: 'Campagne de test' });
+
+      const description = screen.getByText(
+        'Ce logement a été ajouté à la campagne “Campagne de test”.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
+
+  describe('housing:campaign-detached', () => {
+    function renderComponentWithCampaignDetached(
+      payload: Event<'housing:campaign-detached'>['nextOld']
+    ) {
+      renderComponent({
+        events: [
+          genEvent({
+            type: 'housing:campaign-detached',
+            creator: admin,
+            nextOld: payload,
+            nextNew: null
+          })
+        ],
+        notes: []
+      });
+    }
+
+    it('should display a title', () => {
+      renderComponentWithCampaignDetached({ name: 'Campagne de test' });
+
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a retiré ce logement d’une campagne'
+      );
+      expect(title).toBeVisible();
+    });
+
+    it('should display the campaign detached', () => {
+      renderComponentWithCampaignDetached({ name: 'Campagne de test' });
+
+      const description = screen.getByText(
+        'Ce logement a été retiré de la campagne “Campagne de test”.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
+
+  describe('housing:campaign-removed', () => {
+    function renderComponentWithCampaignRemoved(
+      payload: Event<'housing:campaign-removed'>['nextOld']
+    ) {
+      renderComponent({
+        events: [
+          genEvent({
+            type: 'housing:campaign-removed',
+            creator: admin,
+            nextOld: payload,
+            nextNew: null
+          })
+        ],
+        notes: []
+      });
+    }
+
+    it('should display a title', () => {
+      renderComponentWithCampaignRemoved({ name: 'Campagne de test' });
+
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a supprimé la campagne “Campagne de test” dans laquelle le logement se trouvait'
+      );
+      expect(title).toBeVisible();
+    });
+
+    it('should display the campaign removed', () => {
+      renderComponentWithCampaignRemoved({ name: 'Campagne de test' });
+
+      const description = screen.getByText(
+        'Ce logement a donc été retiré de la campagne “Campagne de test”.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
 });

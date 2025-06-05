@@ -25,6 +25,7 @@ export async function up(knex: Knex): Promise<void> {
       .onUpdate('CASCADE')
       .onDelete('SET NULL');
 
+    table.index('event_id');
     // When one searches by housing
     table.index(['housing_geo_code', 'housing_id']);
   });

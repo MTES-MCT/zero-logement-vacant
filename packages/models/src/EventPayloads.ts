@@ -89,7 +89,7 @@ export type EventPayloads = {
   }>;
 
   'owner:updated': UpdateEventChange<{
-    name?: string;
+    name: string;
     birthdate?: string | null;
     email?: string | null;
     phone?: string | null;

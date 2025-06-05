@@ -6,6 +6,7 @@ import { HousingCreatedEventCard } from './events/HousingCreatedEventCard';
 import { HousingOccupancyUpdatedEventCard } from './events/HousingOccupancyUpdatedEventCard';
 import { HousingOwnerAttachedEventCard } from './events/HousingOwnerAttachedEventCard';
 import { HousingOwnerDetachedEventCard } from './events/HousingOwnerDetachedEventCard';
+import { HousingOwnerUpdatedEventCard } from './events/HousingOwnerUpdatedEventCard';
 import { HousingPrecisionAttachedEventCard } from './events/HousingPrecisionAttachedEventCard';
 import { HousingPrecisionDetachedEventCard } from './events/HousingPrecisionDetachedEventCard';
 import { HousingStatusUpdatedEventCard } from './events/HousingStatusUpdatedEventCard';
@@ -57,6 +58,12 @@ function IndividualEventCard(props: IndividualEventCardProps) {
       { type: 'housing:owner-detached' },
       (event: Event<'housing:owner-detached'>) => (
         <HousingOwnerDetachedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:owner-updated' },
+      (event: Event<'housing:owner-updated'>) => (
+        <HousingOwnerUpdatedEventCard event={event} />
       )
     )
     .otherwise(() => null);

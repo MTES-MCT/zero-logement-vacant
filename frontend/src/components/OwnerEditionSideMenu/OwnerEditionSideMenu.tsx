@@ -58,8 +58,6 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
   /* DEPRECATED */
   const [updateOwner, mutation] = useUpdateOwnerMutation();
 
-  console.log(form);
-
   async function save(): Promise<void> {
     if (props.owner) {
       localStorage.setItem(

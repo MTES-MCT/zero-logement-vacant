@@ -1,19 +1,28 @@
 import { act, renderHook } from '@testing-library/react';
 import { PropsWithChildren } from 'react';
 import { Provider as StoreProvider } from 'react-redux';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-import { useSelection } from '../useSelection';
 import { genNumber } from '../../../test/fixtures.test';
 import configureTestStore from '../../utils/test/storeUtils';
+
+import { useSelection } from '../useSelection';
 
 describe('useSelection', () => {
   const itemCount = Number(genNumber(3));
 
   function createWrapper() {
     const store = configureTestStore();
+
     // eslint-disable-next-line react/display-name
     return ({ children }: PropsWithChildren) => (
-      <StoreProvider store={store}>{children}</StoreProvider>
+      <StoreProvider store={store}>
+        <MemoryRouter>
+          <Routes>
+            <Route path="/" element={children} />
+          </Routes>
+        </MemoryRouter>
+      </StoreProvider>
     );
   }
 

@@ -84,7 +84,7 @@ export type EventPayloads = {
   'housing:campaign-detached': RemoveEventChange<{
     name: string;
   }>;
-  'housing:campaign-removed': UpdateEventChange<{
+  'housing:campaign-removed': RemoveEventChange<{
     name: string;
   }>;
 

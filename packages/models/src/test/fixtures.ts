@@ -1,5 +1,4 @@
 import { fakerFR as faker } from '@faker-js/faker';
-import { compactUndefined } from '@zerologementvacant/utils';
 import fp from 'lodash/fp';
 import { MarkRequired } from 'ts-essentials';
 
@@ -271,7 +270,7 @@ export function genEventDTO<Type extends EventType>(
     conflict: faker.datatype.boolean(),
     nextOld: nextOld,
     nextNew: nextNew,
-    createdAt: new Date().toJSON(),
+    createdAt: faker.date.recent().toJSON(),
     createdBy: creator.id,
     creator: creator
   };
@@ -382,14 +381,16 @@ export function genOwnerDTO(): OwnerDTO {
   const address = genAddressDTO(id, AddressKinds.Owner);
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
-  return compactUndefined({
+  return {
     id,
+    administrator: null,
     rawAddress: [
       `${address.houseNumber} ${address.street}`,
       `${address.postalCode} ${address.city}`
     ],
     banAddress: genAddressDTO(id, AddressKinds.Owner),
-    additionalAddress: faker.helpers.maybe(() => faker.location.county()),
+    additionalAddress:
+      faker.helpers.maybe(() => faker.location.county()) ?? null,
     birthDate: faker.date
       .birthdate()
       .toJSON()
@@ -400,8 +401,11 @@ export function genOwnerDTO(): OwnerDTO {
       lastName
     }),
     phone: faker.phone.number(),
-    kind: faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS))
-  });
+    kind: faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS)),
+    kindDetail: null,
+    createdAt: faker.date.past().toJSON(),
+    updatedAt: faker.date.recent().toJSON()
+  };
 }
 
 export function genProspectDTO(establishment: EstablishmentDTO): ProspectDTO {

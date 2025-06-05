@@ -2,7 +2,7 @@ import { Predicate } from 'effect';
 
 import { Event } from '../../../models/Event';
 import { getHousingState } from '../../../models/HousingState';
-import AggregatedEventCard from '../AggregatedEventCard';
+import EventCard from '../EventCard';
 
 interface HousingStatusEventCardProps {
   event: Event<'housing:status-updated'>;
@@ -12,34 +12,39 @@ export function HousingStatusUpdatedEventCard(
   props: HousingStatusEventCardProps
 ) {
   return (
-    <AggregatedEventCard
-      events={[props.event]}
+    <EventCard
+      createdAt={props.event.createdAt}
+      createdBy={props.event.creator}
+      differences={formatHousingStatusUpdatedDifferences({
+        old: props.event.nextOld,
+        new: props.event.nextNew
+      })}
       title="a mis à jour le statut de suivi"
     />
   );
 }
 
-interface HousingStatusEventCardDescriptionProps {
+interface DifferencesOptions {
   old: Event<'housing:status-updated'>['nextOld'];
   new: Event<'housing:status-updated'>['nextNew'];
 }
 
-export function HousingStatusUpdatedEventCardDescription(
-  props: HousingStatusEventCardDescriptionProps
-) {
+export function formatHousingStatusUpdatedDifferences(
+  options: DifferencesOptions
+): ReadonlyArray<string> {
   const statusBefore: string =
-    props.old.status !== undefined
-      ? `“${getHousingState(props.old.status).title}”`
+    options.old.status !== undefined
+      ? `“${getHousingState(options.old.status).title}”`
       : 'vide';
   const statusAfter: string =
-    props.new.status !== undefined
-      ? `“${getHousingState(props.new.status).title}”`
+    options.new.status !== undefined
+      ? `“${getHousingState(options.new.status).title}”`
       : 'vide';
-  const subStatusBefore: string = props.old.subStatus
-    ? `“${props.old.subStatus}”`
+  const subStatusBefore: string = options.old.subStatus
+    ? `“${options.old.subStatus}”`
     : 'vide';
-  const subStatusAfter: string = props.new.subStatus
-    ? `“${props.new.subStatus}”`
+  const subStatusAfter: string = options.new.subStatus
+    ? `“${options.new.subStatus}”`
     : 'vide';
 
   const statusChange =

@@ -4,6 +4,7 @@ import {
   PropertyRight
 } from '@zerologementvacant/models';
 import { isDefined, isUndefined } from '@zerologementvacant/utils';
+import { Equivalence } from 'effect';
 import { compare, includeSameMembers } from '~/utils/compareUtils';
 import { HousingRecordApi } from './HousingApi';
 import { OwnerApi, toOwnerDTO } from './OwnerApi';
@@ -31,6 +32,29 @@ export interface HousingOwnerApi extends OwnerApi {
   locprop?: number | null;
   propertyRight: PropertyRight | null;
 }
+
+/**
+ * Consider two housing owners equivalent
+ * if they refer to the same housing and owner.
+ */
+export const HOUSING_OWNER_EQUIVALENCE: Equivalence.Equivalence<HousingOwnerApi> =
+  Equivalence.struct({
+    housingGeoCode: Equivalence.string,
+    housingId: Equivalence.string,
+    ownerId: Equivalence.string
+  });
+
+/**
+ * Consider two housing owners equivalent
+ * if they refer to the same housing, owner and rank.
+ */
+export const HOUSING_OWNER_RANK_EQUIVALENCE: Equivalence.Equivalence<HousingOwnerApi> =
+  Equivalence.struct({
+    housingGeoCode: Equivalence.string,
+    housingId: Equivalence.string,
+    ownerId: Equivalence.string,
+    rank: Equivalence.number
+  });
 
 /**
  * @deprecated

@@ -1,27 +1,31 @@
 import {
   AddressKinds,
+  formatAddress,
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
   OwnerDTO,
   OwnerPayloadDTO
 } from '@zerologementvacant/models';
 import async from 'async';
-import { Request, Response } from 'express';
+import { Array, pipe, Record, Struct } from 'effect';
+import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
+import { startTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
-import { HousingOwnerApi, toHousingOwnerDTO } from '~/models/HousingOwnerApi';
+import { HousingOwnerEventApi } from '~/models/EventApi';
 import {
-  hasContactChanges,
-  hasIdentityChanges,
-  OwnerApi,
-  toOwnerDTO
-} from '~/models/OwnerApi';
+  HOUSING_OWNER_EQUIVALENCE,
+  HOUSING_OWNER_RANK_EQUIVALENCE,
+  HousingOwnerApi,
+  toHousingOwnerDTO
+} from '~/models/HousingOwnerApi';
+import { OwnerApi, ownerDiff, toOwnerDTO } from '~/models/OwnerApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
@@ -277,24 +281,85 @@ async function updateHousingOwners(
     }
   );
 
-  await housingOwnerRepository.saveMany(housingOwners);
-  await eventRepository.insertHousingEvent({
-    id: uuidv4(),
-    name: 'Changement de propriétaires',
-    kind: 'Update',
-    category: 'Ownership',
-    section: 'Propriétaire',
-    old: existingHousingOwners,
-    new: housingOwners,
-    createdBy: auth.userId,
-    createdAt: new Date(),
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode
-  });
+  const substract = Array.differenceWith(HOUSING_OWNER_EQUIVALENCE);
+  const added = substract(housingOwners, existingHousingOwners);
+  const removed = substract(existingHousingOwners, housingOwners);
+  const updated = pipe(
+    Array.intersectionWith(HOUSING_OWNER_EQUIVALENCE)(
+      existingHousingOwners,
+      housingOwners
+    ),
+    Array.filter((existingHousingOwner) => {
+      return !Array.containsWith(HOUSING_OWNER_RANK_EQUIVALENCE)(
+        housingOwners,
+        existingHousingOwner
+      );
+    })
+  );
 
-  response
-    .status(constants.HTTP_STATUS_OK)
-    .json(housingOwners.map(toHousingOwnerDTO));
+  const events: ReadonlyArray<HousingOwnerEventApi> = [
+    ...added.map<HousingOwnerEventApi>((housingOwner) => ({
+      id: uuidv4(),
+      type: 'housing:owner-attached',
+      name: 'Propriétaire ajouté au logement',
+      nextOld: null,
+      nextNew: {
+        name: housingOwner.fullName,
+        rank: housingOwner.rank
+      },
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      ownerId: housingOwner.ownerId,
+      housingGeoCode: housingOwner.housingGeoCode,
+      housingId: housingOwner.housingId
+    })),
+    ...removed.map<HousingOwnerEventApi>((housingOwner) => ({
+      id: uuidv4(),
+      type: 'housing:owner-detached',
+      name: 'Propriétaire retiré du logement',
+      nextOld: {
+        name: housingOwner.fullName,
+        rank: housingOwner.rank
+      },
+      nextNew: null,
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      ownerId: housingOwner.ownerId,
+      housingGeoCode: housingOwner.housingGeoCode,
+      housingId: housingOwner.housingId
+    })),
+    ...updated.map<HousingOwnerEventApi>((housingOwner) => {
+      const newHousingOwner = housingOwners.find((ho) =>
+        HOUSING_OWNER_EQUIVALENCE(ho, housingOwner)
+      ) as HousingOwnerApi;
+      return {
+        id: uuidv4(),
+        type: 'housing:owner-updated',
+        name: 'Propriétaire mis à jour',
+        nextOld: {
+          name: housingOwner.fullName,
+          rank: housingOwner.rank
+        },
+        nextNew: {
+          name: newHousingOwner.fullName,
+          rank: newHousingOwner.rank
+        },
+        createdAt: new Date().toJSON(),
+        createdBy: auth.userId,
+        ownerId: housingOwner.ownerId,
+        housingGeoCode: housingOwner.housingGeoCode,
+        housingId: housingOwner.housingId
+      };
+    })
+  ];
+
+  await startTransaction(async () => {
+    await housingOwnerRepository.saveMany(housingOwners);
+    await eventRepository.insertManyHousingOwnerEvents(events);
+    response
+      .status(constants.HTTP_STATUS_OK)
+      .json(housingOwners.map(toHousingOwnerDTO));
+  });
 }
 
 const ownerValidators: ValidationChain[] = [

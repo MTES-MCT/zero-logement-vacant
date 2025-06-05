@@ -1,4 +1,5 @@
 import {
+  DataFileYear,
   HousingDTO,
   HousingKind,
   HousingSource,
@@ -49,7 +50,7 @@ export interface HousingRecordApi
    * @deprecated See {@link dataFileYears}
    */
   dataYears: number[];
-  dataFileYears: string[];
+  dataFileYears: DataFileYear[];
   beneficiaryCount?: number | null;
   buildingLocation?: string | null;
   rentalValue?: number | null;

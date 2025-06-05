@@ -21,7 +21,13 @@ export const EVENT_NAME_VALUES = [
   'Modification du statut de la campagne',
   'Création du logement',
   "Création d'un nouveau propriétaire",
-  'Conflit d’informations possible venant d’une source externe concernant le propriétaire et/ou la propriété'
+  'Conflit d’informations possible venant d’une source externe concernant le propriétaire et/ou la propriété',
+  // New events
+  'Ajout d’une précision au logement',
+  'Retrait d’une précision du logement',
+  'Propriétaire ajouté au logement',
+  'Propriétaire retiré du logement',
+  'Propriétaire mis à jour'
 ] as const;
 export type EventName = (typeof EVENT_NAME_VALUES)[number];
 

@@ -24,6 +24,7 @@
   "dependencies": {
     "@zerologementvacant/draft": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
+    "effect": "^3.16.3",
     "lodash": "^4.17.21",
     "ts-essentials": "^10.0.2",
     "ts-pattern": "^5.5.0"

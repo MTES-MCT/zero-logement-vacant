@@ -48,7 +48,7 @@ export enum AddressKinds {
 
 export function formatAddress(
   address: Pick<AddressDTO, 'label'>,
-  additionalAddress?: string
+  additionalAddress?: string | null
 ): string[] {
   const label = address.label
     .replace(/(\d{5})/, ', $1')

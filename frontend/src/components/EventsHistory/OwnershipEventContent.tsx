@@ -19,7 +19,9 @@ interface OwnershipEventContentProps {
   event: Event<Owner>;
 }
 
-export function OwnerCreatedEventContent(props: OwnershipEventContentProps) {
+export function HousingOwnerCreatedEventContent(
+  props: OwnershipEventContentProps
+) {
   const allowedKeys: ReadonlyArray<keyof Owner> = ['fullName', 'rawAddress'];
 
   return (

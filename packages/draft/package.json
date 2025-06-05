@@ -17,8 +17,8 @@
     "typecheck": "tsc --noEmit",
     "build": "pkgroll -p tsconfig.build.json && yarn copy",
     "dev": "nodemon --watch src -e ts --exec 'yarn build'",
-    "test": "jest",
-    "coverage": "jest --coverage"
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
+    "coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage"
   },
   "devDependencies": {
     "@swc/core": "^1.11.8",

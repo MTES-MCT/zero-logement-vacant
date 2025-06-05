@@ -373,7 +373,63 @@ describe('Owner API', () => {
         );
       });
 
-      it('should create an event', async () => {
+      it('should create an event when a housing owner is attached', async () => {
+        const owner = genOwnerApi();
+        await Owners().insert(formatOwnerApi(owner));
+        const payload = housingOwners.concat({
+          ...genHousingOwnerApi(housing, owner),
+          rank: -2
+        });
+
+        await request(app)
+          .put(testRoute(housing.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        const event = await Events()
+          .select(`${EVENTS_TABLE}.*`)
+          .join(
+            HOUSING_OWNER_EVENTS_TABLE,
+            `${HOUSING_OWNER_EVENTS_TABLE}.event_id`,
+            `${EVENTS_TABLE}.id`
+          )
+          .where({
+            housing_geo_code: housing.geoCode,
+            housing_id: housing.id,
+            owner_id: owner.id,
+            type: 'housing:owner-attached'
+          })
+          .first();
+        expect(event).toBeDefined();
+      });
+
+      it('should create an event when a housing owner is detached', async () => {
+        const owner = housingOwners[housingOwners.length - 1];
+        const payload = housingOwners.slice(0, -1);
+
+        await request(app)
+          .put(testRoute(housing.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        const event = await Events()
+          .select(`${EVENTS_TABLE}.*`)
+          .join(
+            HOUSING_OWNER_EVENTS_TABLE,
+            `${HOUSING_OWNER_EVENTS_TABLE}.event_id`,
+            `${EVENTS_TABLE}.id`
+          )
+          .where({
+            housing_geo_code: housing.geoCode,
+            housing_id: housing.id,
+            owner_id: owner.id,
+            type: 'housing:owner-detached'
+          })
+          .first();
+        expect(event).toBeDefined();
+      });
+
+      it('should create an event when a housing owner’s rank is changed', async () => {
         const payload = housingOwners.toReversed().map((housingOwner, i) => {
           return { ...housingOwner, rank: i + 1 };
         });
@@ -383,21 +439,35 @@ describe('Owner API', () => {
           .send(payload)
           .use(tokenProvider(user));
 
-        const event = await Events()
-          .select(`${eventsTable}.*`)
+        const events = await Events()
+          .select(`${EVENTS_TABLE}.*`)
           .join(
-            housingEventsTable,
-            `${housingEventsTable}.event_id`,
-            `${eventsTable}.id`
+            HOUSING_OWNER_EVENTS_TABLE,
+            `${HOUSING_OWNER_EVENTS_TABLE}.event_id`,
+            `${EVENTS_TABLE}.id`
           )
           .where({
             housing_geo_code: housing.geoCode,
-            housing_id: housing.id
-          })
-          .first();
-        expect(event).toMatchObject({
-          name: 'Changement de propriétaires',
-          kind: 'Update'
+            housing_id: housing.id,
+            type: 'housing:owner-updated'
+          });
+
+        housingOwners.forEach((_, i) => {
+          expect(events).toPartiallyContain<
+            Partial<
+              EventRecordDBO<'housing:owner-updated'> & HousingOwnerEventDBO
+            >
+          >({
+            type: 'housing:owner-updated',
+            next_old: {
+              name: housingOwners[i].fullName,
+              rank: housingOwners[i].rank
+            },
+            next_new: {
+              name: payload[payload.length - i - 1].fullName,
+              rank: payload[payload.length - i - 1].rank as OwnerRank
+            }
+          });
         });
       });
     });

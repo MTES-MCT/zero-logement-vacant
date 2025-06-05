@@ -502,4 +502,148 @@ describe('EventsHistory', () => {
       expect(description).toBeVisible();
     });
   });
+
+  describe('housing:group-attached', () => {
+    function renderComponentWithGroupAttached(
+      payload: Event<'housing:group-attached'>['nextNew']
+    ) {
+      renderComponent({
+        events: [
+          genEvent({
+            type: 'housing:group-attached',
+            creator: admin,
+            nextOld: null,
+            nextNew: payload
+          })
+        ],
+        notes: []
+      });
+    }
+
+    it('should display a title', () => {
+      renderComponentWithGroupAttached({ name: 'Groupe de test' });
+
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a ajouté ce logement dans un groupe'
+      );
+      expect(title).toBeVisible();
+    });
+
+    it('should display the group attached', () => {
+      renderComponentWithGroupAttached({ name: 'Groupe de test' });
+
+      const description = screen.getByText(
+        'Ce logement a été ajouté au groupe “Groupe de test”.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
+
+  describe('housing:group-detached', () => {
+    function renderComponentWithGroupDetached(
+      payload: Event<'housing:group-detached'>['nextOld']
+    ) {
+      renderComponent({
+        events: [
+          genEvent({
+            type: 'housing:group-detached',
+            creator: admin,
+            nextOld: payload,
+            nextNew: null
+          })
+        ],
+        notes: []
+      });
+    }
+
+    it('should display a title', () => {
+      renderComponentWithGroupDetached({ name: 'Groupe de test' });
+
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a retiré ce logement d’un groupe'
+      );
+      expect(title).toBeVisible();
+    });
+
+    it('should display the group detached', () => {
+      renderComponentWithGroupDetached({ name: 'Groupe de test' });
+
+      const description = screen.getByText(
+        'Ce logement a été retiré du groupe “Groupe de test”.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
+
+  describe('housing:group-archived', () => {
+    function renderComponentWithGroupArchived(
+      payload: Event<'housing:group-archived'>['nextOld']
+    ) {
+      renderComponent({
+        events: [
+          genEvent({
+            type: 'housing:group-archived',
+            creator: admin,
+            nextOld: payload,
+            nextNew: null
+          })
+        ],
+        notes: []
+      });
+    }
+
+    it('should display a title', () => {
+      renderComponentWithGroupArchived({ name: 'Groupe de test' });
+
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a archivé le groupe “Groupe de test” dans lequel le logement se trouvait'
+      );
+      expect(title).toBeVisible();
+    });
+
+    it('should display the group archived', () => {
+      renderComponentWithGroupArchived({ name: 'Groupe de test' });
+
+      const description = screen.getByText(
+        'Ce logement a donc été retiré du groupe “Groupe de test”.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
+
+  describe('housing:group-removed', () => {
+    function renderComponentWithGroupRemoved(
+      payload: Event<'housing:group-removed'>['nextOld']
+    ) {
+      renderComponent({
+        events: [
+          genEvent({
+            type: 'housing:group-removed',
+            creator: admin,
+            nextOld: payload,
+            nextNew: null
+          })
+        ],
+        notes: []
+      });
+    }
+
+    it('should display a title', () => {
+      renderComponentWithGroupRemoved({ name: 'Groupe de test' });
+
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a supprimé le groupe “Groupe de test” dans lequel le logement se trouvait'
+      );
+      expect(title).toBeVisible();
+    });
+
+    it('should display the group removed', () => {
+      renderComponentWithGroupRemoved({ name: 'Groupe de test' });
+
+      const description = screen.getByText(
+        'Ce logement a donc été retiré du groupe “Groupe de test”.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
 });

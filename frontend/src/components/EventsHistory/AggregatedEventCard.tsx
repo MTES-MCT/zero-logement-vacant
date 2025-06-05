@@ -5,6 +5,10 @@ import { match } from 'ts-pattern';
 import { Event } from '../../models/Event';
 import EventCard from './EventCard';
 import { formatHousingCreatedDifferences } from './events/HousingCreatedEventCard';
+import { formatHousingGroupArchivedDifferences } from './events/HousingGroupArchivedEventCard';
+import { formatHousingGroupAttachedDifferences } from './events/HousingGroupAttachedEventCard';
+import { formatHousingGroupDetachedDifferences } from './events/HousingGroupDetachedEventCard';
+import { formatHousingGroupRemovedDifferences } from './events/HousingGroupRemovedEventCard';
 import { formatHousingOccupancyDifferences } from './events/HousingOccupancyUpdatedEventCard';
 import { formatHousingOwnerAttachedDifferences } from './events/HousingOwnerAttachedEventCard';
 import { formatHousingOwnerDetachedDifferences } from './events/HousingOwnerDetachedEventCard';
@@ -82,6 +86,26 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
               old: event.nextOld,
               new: event.nextNew
             })
+        )
+        .with(
+          { type: 'housing:group-attached' },
+          (event: Event<'housing:group-attached'>) =>
+            formatHousingGroupAttachedDifferences(event.nextNew)
+        )
+        .with(
+          { type: 'housing:group-detached' },
+          (event: Event<'housing:group-detached'>) =>
+            formatHousingGroupDetachedDifferences(event.nextOld)
+        )
+        .with(
+          { type: 'housing:group-archived' },
+          (event: Event<'housing:group-archived'>) =>
+            formatHousingGroupArchivedDifferences(event.nextOld)
+        )
+        .with(
+          { type: 'housing:group-removed' },
+          (event: Event<'housing:group-removed'>) =>
+            formatHousingGroupRemovedDifferences(event.nextOld)
         )
         .otherwise(() => null)
     )

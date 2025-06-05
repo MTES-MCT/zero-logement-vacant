@@ -3,6 +3,10 @@ import { match } from 'ts-pattern';
 import { Establishment } from '../../models/Establishment';
 import { Event } from '../../models/Event';
 import { HousingCreatedEventCard } from './events/HousingCreatedEventCard';
+import { HousingGroupArchivedEventCard } from './events/HousingGroupArchivedEventCard';
+import { HousingGroupAttachedEventCard } from './events/HousingGroupAttachedEventCard';
+import { HousingGroupDetachedEventCard } from './events/HousingGroupDetachedEventCard';
+import { HousingGroupRemovedEventCard } from './events/HousingGroupRemovedEventCard';
 import { HousingOccupancyUpdatedEventCard } from './events/HousingOccupancyUpdatedEventCard';
 import { HousingOwnerAttachedEventCard } from './events/HousingOwnerAttachedEventCard';
 import { HousingOwnerDetachedEventCard } from './events/HousingOwnerDetachedEventCard';
@@ -64,6 +68,30 @@ function IndividualEventCard(props: IndividualEventCardProps) {
       { type: 'housing:owner-updated' },
       (event: Event<'housing:owner-updated'>) => (
         <HousingOwnerUpdatedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:group-attached' },
+      (event: Event<'housing:group-attached'>) => (
+        <HousingGroupAttachedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:group-detached' },
+      (event: Event<'housing:group-detached'>) => (
+        <HousingGroupDetachedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:group-archived' },
+      (event: Event<'housing:group-archived'>) => (
+        <HousingGroupArchivedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:group-removed' },
+      (event: Event<'housing:group-removed'>) => (
+        <HousingGroupRemovedEventCard event={event} />
       )
     )
     .otherwise(() => null);

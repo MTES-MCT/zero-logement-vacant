@@ -18,7 +18,7 @@ type CreationEventChange<T> = EventChange<null, T>;
 /**
  * Events that update an existing entity.
  */
-type UpdateEventChange<T> = EventChange<Partial<T>, Partial<T>>;
+type UpdateEventChange<T> = EventChange<T, T>;
 
 type RemoveEventChange<T> = EventChange<T, null>;
 

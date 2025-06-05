@@ -17,6 +17,7 @@ import { HousingOwnerUpdatedEventCard } from './events/HousingOwnerUpdatedEventC
 import { HousingPrecisionAttachedEventCard } from './events/HousingPrecisionAttachedEventCard';
 import { HousingPrecisionDetachedEventCard } from './events/HousingPrecisionDetachedEventCard';
 import { HousingStatusUpdatedEventCard } from './events/HousingStatusUpdatedEventCard';
+import { OwnerUpdatedEventCard } from './events/OwnerUpdatedEventCard';
 
 export interface IndividualEventCardProps {
   event: Event;
@@ -115,6 +116,9 @@ function IndividualEventCard(props: IndividualEventCardProps) {
         <HousingCampaignRemovedEventCard event={event} />
       )
     )
+    .with({ type: 'owner:updated' }, (event: Event<'owner:updated'>) => (
+      <OwnerUpdatedEventCard event={event} />
+    ))
     .otherwise(() => null);
 }
 

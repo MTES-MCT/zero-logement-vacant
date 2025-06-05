@@ -1,6 +1,24 @@
-import { fromOwnerPayloadDTO } from '~/models/OwnerApi';
+import { faker } from '@faker-js/faker/locale/fr';
+import { fromOwnerPayloadDTO, OwnerApi, ownerDiff } from '~/models/OwnerApi';
+import { genOwnerApi } from '~/test/testFixtures';
 
 describe('OwnerApi', () => {
+  describe('ownerDiff', () => {
+    it('should return an empty object when no changes', () => {
+      const before: OwnerApi = genOwnerApi();
+      const after: OwnerApi = {
+        ...before,
+        fullName: faker.person.fullName()
+      };
+
+      const actual = ownerDiff.diff(before, after);
+
+      expect(actual).toEqual({
+        fullName: after.fullName
+      });
+    });
+  });
+
   describe('fromOwnerPayloadDTO', () => {
     it('should return specific fields', () => {
       // It's intended not to provide a type because any payload could be sent
@@ -11,7 +29,7 @@ describe('OwnerApi', () => {
         email: 'john.doe@gmail.com',
         phone: '+33 6 12 34 56 78',
         something: 'something',
-        weird: 'weird',
+        weird: 'weird'
       };
 
       const actual = fromOwnerPayloadDTO(payload);
@@ -21,7 +39,7 @@ describe('OwnerApi', () => {
         'birthDate',
         'rawAddress',
         'email',
-        'phone',
+        'phone'
       ]);
     });
 
@@ -30,7 +48,7 @@ describe('OwnerApi', () => {
       const payload = {
         fullName: 'John Doe',
         birthDate: date.toISOString(),
-        rawAddress: ['1 rue de la Paix', '75000 Paris'],
+        rawAddress: ['1 rue de la Paix', '75000 Paris']
       };
 
       const actual = fromOwnerPayloadDTO(payload);

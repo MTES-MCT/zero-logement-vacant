@@ -1,8 +1,9 @@
 import { CampaignStatus } from './CampaignDTO';
 import { DataFileYear } from './DataFileYear';
+import { OwnerRank } from './HousingOwnerDTO';
 import { HousingStatus } from './HousingStatus';
 import { Occupancy } from './Occupancy';
-import { Precision, PrecisionCategory } from './Precision';
+import { PrecisionCategory } from './Precision';
 
 interface EventChange<Old, New> {
   old: Old;
@@ -30,19 +31,31 @@ export type EventPayloads = {
     occupancyIntended?: Occupancy;
   }>;
   'housing:status-updated': UpdateEventChange<{
-    // TODO: change this to a string union type
+    // TODO: change this to a string union type ?
     status?: HousingStatus;
     subStatus?: string | null;
   }>;
 
-  'housing:owner-added': CreationEventChange<{
-    name: string;
-    birthdate?: string;
-    address?: string;
+  'housing:precision-attached': CreationEventChange<{
+    category: PrecisionCategory;
+    label: string;
   }>;
-  'housing:primary-owner-updated': UpdateEventChange<{ name: string }>;
-  'housing:owners-updated': UpdateEventChange<{
-    owners: ReadonlyArray<{ id: string; name: string; rank: string }>;
+  'housing:precision-detached': RemoveEventChange<{
+    category: PrecisionCategory;
+    label: string;
+  }>;
+
+  'housing:owner-attached': CreationEventChange<{
+    name: string;
+    rank: OwnerRank;
+  }>;
+  'housing:owner-updated': UpdateEventChange<{
+    name: string;
+    rank: OwnerRank;
+  }>;
+  'housing:owner-detached': RemoveEventChange<{
+    name: string;
+    rank: OwnerRank;
   }>;
 
   'housing:perimeter-attached': CreationEventChange<{
@@ -56,6 +69,9 @@ export type EventPayloads = {
     name: string;
   }>;
   'housing:group-detached': RemoveEventChange<{
+    name: string;
+  }>;
+  'housing:group-archived': RemoveEventChange<{
     name: string;
   }>;
   'housing:group-removed': RemoveEventChange<{
@@ -72,21 +88,13 @@ export type EventPayloads = {
     name: string;
   }>;
 
-  'housing:precisions-updated': UpdateEventChange<{
-    precisions: ReadonlyArray<{
-      id: Precision['id'];
-      category: PrecisionCategory;
-      label: string;
-    }>;
-  }>;
-
   'owner:updated': UpdateEventChange<{
     name?: string;
-    birthdate?: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-    additionalAddress?: string;
+    birthdate?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    additionalAddress?: string | null;
   }>;
 
   'campaign:status-updated': UpdateEventChange<{

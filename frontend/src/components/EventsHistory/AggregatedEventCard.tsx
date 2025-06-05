@@ -79,11 +79,6 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
             })
         )
         .with(
-          { type: 'housing:owner-detached' },
-          (event: Event<'housing:owner-detached'>) =>
-            formatHousingOwnerDetachedDifferences(event.nextOld.name)
-        )
-        .with(
           { type: 'housing:owner-updated' },
           (event: Event<'housing:owner-updated'>) =>
             formatHousingOwnerUpdatedDifferences({
@@ -91,6 +86,15 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
               new: event.nextNew
             })
         )
+        .with(
+          { type: 'housing:owner-detached' },
+          (event: Event<'housing:owner-detached'>) =>
+            formatHousingOwnerDetachedDifferences(event.nextOld.name)
+        )
+        // To be implemented later...
+        .with({ type: 'housing:perimeter-attached' }, () => null)
+        .with({ type: 'housing:perimeter-detached' }, () => null)
+
         .with(
           { type: 'housing:group-attached' },
           (event: Event<'housing:group-attached'>) =>
@@ -132,7 +136,9 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
             nextNew: event.nextNew
           })
         )
-        .otherwise(() => null)
+        // Not yet needed thus not implemented
+        .with({ type: 'campaign:status-updated' }, () => null)
+        .exhaustive()
     )
     .flat()
     .filter(Predicate.isNotNull);

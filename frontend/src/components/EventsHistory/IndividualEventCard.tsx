@@ -4,6 +4,7 @@ import { Establishment } from '../../models/Establishment';
 import { Event } from '../../models/Event';
 import { HousingCreatedEventCard } from './events/HousingCreatedEventCard';
 import { HousingOccupancyUpdatedEventCard } from './events/HousingOccupancyUpdatedEventCard';
+import { HousingOwnerAttachedEventCard } from './events/HousingOwnerAttachedEventCard';
 import { HousingPrecisionAttachedEventCard } from './events/HousingPrecisionAttachedEventCard';
 import { HousingPrecisionDetachedEventCard } from './events/HousingPrecisionDetachedEventCard';
 import { HousingStatusUpdatedEventCard } from './events/HousingStatusUpdatedEventCard';
@@ -43,6 +44,12 @@ function IndividualEventCard(props: IndividualEventCardProps) {
       { type: 'housing:precision-detached' },
       (event: Event<'housing:precision-detached'>) => (
         <HousingPrecisionDetachedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:owner-attached' },
+      (event: Event<'housing:owner-attached'>) => (
+        <HousingOwnerAttachedEventCard event={event} />
       )
     )
     .otherwise(() => null);

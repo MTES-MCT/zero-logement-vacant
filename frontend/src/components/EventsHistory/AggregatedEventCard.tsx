@@ -4,9 +4,10 @@ import { match } from 'ts-pattern';
 
 import { Event } from '../../models/Event';
 import EventCard from './EventCard';
-import { HousingCreatedEventCardDescription } from './events/HousingCreatedEventCard';
-import { HousingOccupancyEventCardDescription } from './events/HousingOccupancyUpdatedEventCard';
-import { HousingStatusUpdatedEventCardDescription } from './events/HousingStatusUpdatedEventCard';
+import { formatHousingCreatedDifferences } from './events/HousingCreatedEventCard';
+import { formatHousingOccupancyDifferences } from './events/HousingOccupancyUpdatedEventCard';
+import { formatHousingPrecisionAttachedDifferences } from './events/HousingPrecisionAttachedEventCard';
+import { formatHousingStatusUpdatedDifferences } from './events/HousingStatusUpdatedEventCard';
 
 export interface AggregatedEventCardProps {
   events: Array.NonEmptyReadonlyArray<Event>;
@@ -19,33 +20,44 @@ export interface AggregatedEventCardProps {
 function AggregatedEventCard(props: AggregatedEventCardProps) {
   const createdAt = props.events[0].createdAt;
   const creator = props.events[0].creator;
-  const descriptions = props.events
+  const differences = props.events
     .map((event) =>
       match(event)
         .returnType<ReactNode>()
-        .with(
-          { type: 'housing:created' },
-          (event: Event<'housing:created'>) => (
-            <HousingCreatedEventCardDescription source={event.nextNew.source} />
-          )
+        .with({ type: 'housing:created' }, (event: Event<'housing:created'>) =>
+          formatHousingCreatedDifferences({ source: event.nextNew.source })
         )
         .with(
           { type: 'housing:occupancy-updated' },
-          (event: Event<'housing:occupancy-updated'>) => (
-            <HousingOccupancyEventCardDescription
-              old={event.nextOld}
-              new={event.nextNew}
-            />
-          )
+          (event: Event<'housing:occupancy-updated'>) =>
+            formatHousingOccupancyDifferences({
+              old: event.nextOld,
+              new: event.nextNew
+            })
         )
         .with(
           { type: 'housing:status-updated' },
-          (event: Event<'housing:status-updated'>) => (
-            <HousingStatusUpdatedEventCardDescription
-              old={event.nextOld}
-              new={event.nextNew}
-            />
-          )
+          (event: Event<'housing:status-updated'>) =>
+            formatHousingStatusUpdatedDifferences({
+              old: event.nextOld,
+              new: event.nextNew
+            })
+        )
+        .with(
+          { type: 'housing:precision-attached' },
+          (event: Event<'housing:precision-attached'>) =>
+            formatHousingPrecisionAttachedDifferences({
+              category: event.nextNew.category,
+              label: event.nextNew.label
+            })
+        )
+        .with(
+          { type: 'housing:precision-detached' },
+          (event: Event<'housing:precision-detached'>) =>
+            formatHousingPrecisionAttachedDifferences({
+              category: event.nextOld.category,
+              label: event.nextOld.label
+            })
         )
         .otherwise(() => null)
     )
@@ -56,13 +68,7 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
   return (
     <EventCard
       title={title}
-      description={
-        <ul>
-          {descriptions.map((description, index) => (
-            <li key={index}>{description}</li>
-          ))}
-        </ul>
-      }
+      differences={differences}
       createdAt={createdAt}
       createdBy={creator}
     />

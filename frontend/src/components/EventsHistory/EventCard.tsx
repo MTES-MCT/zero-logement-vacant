@@ -1,4 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr';
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
@@ -12,7 +13,7 @@ import HistoryCard from './HistoryCard';
 
 interface EventCardProps {
   title: string;
-  description: ReactNode;
+  differences: ReadonlyArray<ReactNode>;
   createdAt: string | Date;
   createdBy: User;
 }
@@ -35,16 +36,12 @@ function EventCard(props: EventCardProps) {
 
   return (
     <HistoryCard icon="ri-folder-line">
-      <Stack component="section" sx={{ flexGrow: 1 }}>
-        <AppBadge
-          className={fr.cx('fr-mb-1w')}
-          colorFamily="blue-cumulus"
-          small
-        >
+      <Stack component="section" spacing="0.5rem" sx={{ flexGrow: 1 }}>
+        <AppBadge colorFamily="blue-cumulus" small>
           Mise à jour
         </AppBadge>
 
-        <Typography sx={{ mb: '0.75rem' }}>
+        <Typography>
           <Typography component="span" sx={{ fontWeight: 700, mb: '1rem' }}>
             {author} {props.title}
           </Typography>
@@ -53,7 +50,26 @@ function EventCard(props: EventCardProps) {
           </Typography>
         </Typography>
 
-        {props.description}
+        {props.differences.length === 1 ? (
+          <Typography
+            variant="body2"
+            sx={{ color: fr.colors.decisions.text.mention.grey.default }}
+          >
+            {props.differences[0]}
+          </Typography>
+        ) : (
+          <Box
+            component="ul"
+            sx={{
+              color: fr.colors.decisions.text.mention.grey.default,
+              fontSize: '0.875rem'
+            }}
+          >
+            {props.differences.map((difference, i) => (
+              <li key={i}>{difference}</li>
+            ))}
+          </Box>
+        )}
       </Stack>
     </HistoryCard>
   );

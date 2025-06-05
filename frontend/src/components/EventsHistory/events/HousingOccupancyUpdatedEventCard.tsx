@@ -15,12 +15,10 @@ export function HousingOccupancyUpdatedEventCard(
     <EventCard
       createdAt={props.event.createdAt}
       createdBy={props.event.creator}
-      description={
-        <HousingOccupancyEventCardDescription
-          old={props.event.nextOld}
-          new={props.event.nextNew}
-        />
-      }
+      differences={formatHousingOccupancyDifferences({
+        old: props.event.nextOld,
+        new: props.event.nextNew
+      })}
       title="a mis à jour le statut d’occupation"
     />
   );
@@ -33,9 +31,9 @@ interface HousingOccupancyEventCardDescriptionProps {
 
 const FALLBACK_VALUE = 'vide';
 
-export function HousingOccupancyEventCardDescription(
+export function formatHousingOccupancyDifferences(
   props: HousingOccupancyEventCardDescriptionProps
-) {
+): ReadonlyArray<string> {
   const occupancyBefore: string = props.old.occupancy
     ? `“${OCCUPANCY_LABELS[props.old.occupancy]}”`
     : FALLBACK_VALUE;

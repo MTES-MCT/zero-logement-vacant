@@ -1,9 +1,11 @@
 import { match } from 'ts-pattern';
-import { Establishment } from '../../models/Establishment';
 
+import { Establishment } from '../../models/Establishment';
 import { Event } from '../../models/Event';
 import { HousingCreatedEventCard } from './events/HousingCreatedEventCard';
 import { HousingOccupancyUpdatedEventCard } from './events/HousingOccupancyUpdatedEventCard';
+import { HousingPrecisionAttachedEventCard } from './events/HousingPrecisionAttachedEventCard';
+import { HousingPrecisionDetachedEventCard } from './events/HousingPrecisionDetachedEventCard';
 import { HousingStatusUpdatedEventCard } from './events/HousingStatusUpdatedEventCard';
 
 export interface IndividualEventCardProps {
@@ -29,6 +31,18 @@ function IndividualEventCard(props: IndividualEventCardProps) {
       { type: 'housing:status-updated' },
       (event: Event<'housing:status-updated'>) => (
         <HousingStatusUpdatedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:precision-attached' },
+      (event: Event<'housing:precision-attached'>) => (
+        <HousingPrecisionAttachedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:precision-detached' },
+      (event: Event<'housing:precision-detached'>) => (
+        <HousingPrecisionDetachedEventCard event={event} />
       )
     )
     .otherwise(() => null);

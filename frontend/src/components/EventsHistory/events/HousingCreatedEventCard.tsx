@@ -19,23 +19,23 @@ export function HousingCreatedEventCard(props: CardProps) {
     <EventCard
       createdAt={props.event.createdAt}
       createdBy={props.event.creator}
-      description={<HousingCreatedEventCardDescription source={source} />}
+      differences={[formatHousingCreatedDifferences({ source })]}
       title={title}
     />
   );
 }
 
-interface CardDescriptionProps {
+interface CardDescriptionOptions {
   source: Event<'housing:created'>['nextNew']['source'];
 }
 
-export function HousingCreatedEventCardDescription(
-  props: CardDescriptionProps
-) {
-  return props.source === 'datafoncier-manual'
-    ? null
-    : `Le logement a été créé via l’import de la base de données ${getSource({
+export function formatHousingCreatedDifferences(
+  options: CardDescriptionOptions
+): string {
+  return options.source === 'datafoncier-manual'
+    ? 'Le logement a été créé manuellement'
+    : `Le logement a été importé de la base de données ${getSource({
         source: 'lovac',
-        dataFileYears: [props.source]
+        dataFileYears: [options.source]
       })}`;
 }

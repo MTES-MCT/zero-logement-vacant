@@ -127,7 +127,8 @@ function CampaignRecipients(props: Props) {
           </AppLink>
         )
       }),
-      columnHelper.accessor('owner.banAddress', {
+      columnHelper.accessor((row) => row.owner.banAddress, {
+        id: 'address',
         header: () => (
           <AdvancedTableHeader title="Adresse BAN du propriétaire" />
         ),

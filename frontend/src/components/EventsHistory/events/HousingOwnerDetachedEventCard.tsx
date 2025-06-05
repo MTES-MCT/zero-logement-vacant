@@ -13,11 +13,11 @@ export function HousingOwnerDetachedEventCard(props: Props) {
       createdAt={props.event.createdAt}
       createdBy={props.event.creator}
       differences={[formatHousingOwnerDetachedDifferences(owner.name)]}
-      title={`a ajouté un propriétaire`}
+      title="a supprimé un propriétaire"
     />
   );
 }
 
 export function formatHousingOwnerDetachedDifferences(name: string): string {
-  return `Le propriétaire “${name}” a été retiré des propriétaires.`;
+  return `Le propriétaire “${name}” a été supprimé.`;
 }

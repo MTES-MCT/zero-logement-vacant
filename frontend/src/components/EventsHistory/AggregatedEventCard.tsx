@@ -8,6 +8,7 @@ import { formatHousingCreatedDifferences } from './events/HousingCreatedEventCar
 import { formatHousingOccupancyDifferences } from './events/HousingOccupancyUpdatedEventCard';
 import { formatHousingOwnerAttachedDifferences } from './events/HousingOwnerAttachedEventCard';
 import { formatHousingOwnerDetachedDifferences } from './events/HousingOwnerDetachedEventCard';
+import { formatHousingOwnerUpdatedDifferences } from './events/HousingOwnerUpdatedEventCard';
 import { formatHousingPrecisionAttachedDifferences } from './events/HousingPrecisionAttachedEventCard';
 import { formatHousingStatusUpdatedDifferences } from './events/HousingStatusUpdatedEventCard';
 
@@ -73,6 +74,14 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
           { type: 'housing:owner-detached' },
           (event: Event<'housing:owner-detached'>) =>
             formatHousingOwnerDetachedDifferences(event.nextOld.name)
+        )
+        .with(
+          { type: 'housing:owner-updated' },
+          (event: Event<'housing:owner-updated'>) =>
+            formatHousingOwnerUpdatedDifferences({
+              old: event.nextOld,
+              new: event.nextNew
+            })
         )
         .otherwise(() => null)
     )

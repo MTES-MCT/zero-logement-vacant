@@ -754,4 +754,106 @@ describe('EventsHistory', () => {
       expect(description).toBeVisible();
     });
   });
+
+  describe('owner:updated', () => {
+    function renderComponentWithOwnerUpdated(
+      payload: Pick<Event<'owner:updated'>, 'nextOld' | 'nextNew'>
+    ) {
+      renderComponent({
+        events: [
+          genEvent({
+            type: 'owner:updated',
+            creator: admin,
+            nextOld: payload.nextOld,
+            nextNew: payload.nextNew
+          })
+        ],
+        notes: []
+      });
+    }
+
+    it('should display a title', () => {
+      renderComponentWithOwnerUpdated({
+        nextOld: { name: 'Jean Dupont', address: '1 rue de Paris' },
+        nextNew: { name: 'Jean Dupont', address: '2 rue de Capbreton' }
+      });
+
+      const title = screen.getByText(
+        'L’équipe Zéro Logement Vacant a mis à jour les informations d’un propriétaire'
+      );
+      expect(title).toBeVisible();
+    });
+
+    it('should display a name change', () => {
+      renderComponentWithOwnerUpdated({
+        nextOld: { name: 'Jean Jean' },
+        nextNew: { name: 'Pierre Truc' }
+      });
+
+      const description = screen.getByText(
+        'Le nom et prénom du propriétaire “Pierre Truc” sont passés de “Jean Jean” à “Pierre Truc”.'
+      );
+      expect(description).toBeVisible();
+    });
+
+    it('should display a birthdate change', () => {
+      renderComponentWithOwnerUpdated({
+        nextOld: { name: 'Jean Dupont', birthdate: '1980-01-01' },
+        nextNew: { name: 'Jean Dupont', birthdate: '1990-01-01' }
+      });
+
+      const description = screen.getByText(
+        'La date de naissance du propriétaire “Jean Dupont” est passée de “01/01/1980” à “01/01/1990”.'
+      );
+      expect(description).toBeVisible();
+    });
+
+    it('should display an email change', () => {
+      renderComponentWithOwnerUpdated({
+        nextOld: { name: 'Jean Dupont', email: 'jean.dupont@test.test' },
+        nextNew: { name: 'Jean Dupont', email: 'jean.dupont@beta.gouv.fr' }
+      });
+
+      const description = screen.getByText(
+        'L’adresse e-mail du propriétaire “Jean Dupont” est passée de “jean.dupont@test.test” à “jean.dupont@beta.gouv.fr”.'
+      );
+      expect(description).toBeVisible();
+    });
+
+    it('should display a phone change', () => {
+      renderComponentWithOwnerUpdated({
+        nextOld: { name: 'Jean Dupont', phone: '0102030405' },
+        nextNew: { name: 'Jean Dupont', phone: '06.07.08.09.10' }
+      });
+
+      const description = screen.getByText(
+        'Le numéro de téléphone du propriétaire “Jean Dupont” est passé de “0102030405” à “06.07.08.09.10”.'
+      );
+      expect(description).toBeVisible();
+    });
+
+    it('should display an address change', () => {
+      renderComponentWithOwnerUpdated({
+        nextOld: { name: 'Jean Dupont', address: '1 rue de Paris' },
+        nextNew: { name: 'Jean Dupont', address: '2 rue de Capbreton' }
+      });
+
+      const description = screen.getByText(
+        'L’adresse postale du propriétaire “Jean Dupont” est passée de “1 rue de Paris” à “2 rue de Capbreton”.'
+      );
+      expect(description).toBeVisible();
+    });
+
+    it('should display an additional address change', () => {
+      renderComponentWithOwnerUpdated({
+        nextOld: { name: 'Jean Dupont', additionalAddress: 'Les Cabannes' },
+        nextNew: { name: 'Jean Dupont', additionalAddress: 'Les Cabanons' }
+      });
+
+      const description = screen.getByText(
+        'L’adresse postale complémentaire du propriétaire “Jean Dupont” est passée de “1 rue de Paris” à “2 rue de Capbreton”.'
+      );
+      expect(description).toBeVisible();
+    });
+  });
 });

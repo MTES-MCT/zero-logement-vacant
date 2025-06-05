@@ -18,6 +18,7 @@ import { formatHousingOwnerDetachedDifferences } from './events/HousingOwnerDeta
 import { formatHousingOwnerUpdatedDifferences } from './events/HousingOwnerUpdatedEventCard';
 import { formatHousingPrecisionAttachedDifferences } from './events/HousingPrecisionAttachedEventCard';
 import { formatHousingStatusUpdatedDifferences } from './events/HousingStatusUpdatedEventCard';
+import { formatOwnerUpdatedDifferences } from './events/OwnerUpdatedEventCard';
 
 export interface AggregatedEventCardProps {
   events: Array.NonEmptyReadonlyArray<Event>;
@@ -124,6 +125,12 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
           { type: 'housing:campaign-removed' },
           (event: Event<'housing:campaign-removed'>) =>
             formatHousingCampaignRemovedDifferences(event.nextOld)
+        )
+        .with({ type: 'owner:updated' }, (event: Event<'owner:updated'>) =>
+          formatOwnerUpdatedDifferences({
+            nextOld: event.nextOld,
+            nextNew: event.nextNew
+          })
         )
         .otherwise(() => null)
     )

@@ -10,9 +10,9 @@ import {
   formatGroupApi,
   GroupHousingDBO,
   Groups,
-  GroupsHousing,
-  groupsHousingTable,
-  groupsTable
+  GROUPS_HOUSING_TABLE,
+  GROUPS_TABLE,
+  GroupsHousing
 } from '~/repositories/groupRepository';
 import { Housing } from '~/repositories/housingRepository';
 import { parseUserApi, Users } from '~/repositories/userRepository';
@@ -61,7 +61,7 @@ export async function seed(knex: Knex): Promise<void> {
       groups: groups.length,
       housings: groupHousings.length
     });
-    await knex.batchInsert(groupsTable, groups.map(formatGroupApi));
-    await knex.batchInsert(groupsHousingTable, groupHousings);
+    await knex.batchInsert(GROUPS_TABLE, groups.map(formatGroupApi));
+    await knex.batchInsert(GROUPS_HOUSING_TABLE, groupHousings);
   });
 }

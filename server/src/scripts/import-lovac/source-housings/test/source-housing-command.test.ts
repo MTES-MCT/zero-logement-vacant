@@ -24,12 +24,12 @@ import {
 import {
   EventRecordDBO,
   Events,
-  eventsTable,
+  EVENTS_TABLE,
   formatEventApi,
   formatHousingEventApi,
+  HOUSING_EVENTS_TABLE,
   HousingEventDBO,
-  HousingEvents,
-  housingEventsTable
+  HousingEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
@@ -416,14 +416,14 @@ describe('Source housing command', () => {
 
       const actualEvents = await Events()
         .join(
-          housingEventsTable,
-          `${housingEventsTable}.event_id`,
-          `${eventsTable}.id`
+          HOUSING_EVENTS_TABLE,
+          `${HOUSING_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
         )
         .whereIn(
           [
-            `${housingEventsTable}.housing_geo_code`,
-            `${housingEventsTable}.housing_id`
+            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
+            `${HOUSING_EVENTS_TABLE}.housing_id`
           ],
           actual.map((actualHousing) => [
             actualHousing.geo_code,
@@ -463,14 +463,14 @@ describe('Source housing command', () => {
 
       const actualEvents = await Events()
         .join(
-          housingEventsTable,
-          `${housingEventsTable}.event_id`,
-          `${eventsTable}.id`
+          HOUSING_EVENTS_TABLE,
+          `${HOUSING_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
         )
         .whereIn(
           [
-            `${housingEventsTable}.housing_geo_code`,
-            `${housingEventsTable}.housing_id`
+            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
+            `${HOUSING_EVENTS_TABLE}.housing_id`
           ],
           actual.map((actualHousing) => [
             actualHousing.geo_code,

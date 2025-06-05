@@ -5,7 +5,7 @@ import {
   PropsWithoutRef,
   RefAttributes,
   useRef,
-  useState,
+  useState
 } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -24,13 +24,13 @@ interface Props
   > {
   title: string;
   steps: Step[];
-  openingButtonProps?: Omit<ButtonProps, 'onClick'>;
+  openingButtonProps: Exclude<ButtonProps, ButtonProps.AsAnchor>;
   onFinish?: () => void;
 }
 
 const modal = createModal({
   id: uuidv4(),
-  isOpenedByDefault: false,
+  isOpenedByDefault: false
 });
 
 function ModalGraphStepper(props: Props) {
@@ -52,7 +52,7 @@ function ModalGraphStepper(props: Props) {
         }
         stepper.reset();
         modal.close();
-      },
+      }
     },
     {
       children: 'Confirmer',
@@ -73,8 +73,8 @@ function ModalGraphStepper(props: Props) {
         } finally {
           setIsLoading(false);
         }
-      },
-    },
+      }
+    }
   ];
 
   function open() {

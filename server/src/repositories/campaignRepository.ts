@@ -59,6 +59,7 @@ const filterQuery = (filters: CampaignFiltersApi) => {
 const campaignSortQuery = (sort?: CampaignSortApi) =>
   sortQuery(sort, {
     keys: {
+      title: (query) => query.orderBy(`${campaignsTable}.title`, sort?.title),
       createdAt: (query) =>
         query.orderBy(`${campaignsTable}.created_at`, sort?.createdAt),
       sentAt: (query) =>

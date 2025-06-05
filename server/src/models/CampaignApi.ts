@@ -24,9 +24,9 @@ export function toCampaignDTO(campaign: CampaignApi): CampaignDTO {
       'sentAt',
       'archivedAt',
       'confirmedAt',
-      'groupId',
+      'groupId'
     ],
-    campaign,
+    campaign
   );
 }
 
@@ -37,10 +37,13 @@ export enum CampaignSteps {
   Confirmation,
   InProgess,
   Outside,
-  Archived,
+  Archived
 }
 
-export type CampaignSortableApi = Pick<CampaignApi, 'createdAt' | 'sentAt'> & {
+export type CampaignSortableApi = Pick<
+  CampaignApi,
+  'title' | 'createdAt' | 'sentAt'
+> & {
   status: string;
 };
 export type CampaignSortApi = Sort<CampaignSortableApi>;

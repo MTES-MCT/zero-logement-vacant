@@ -76,7 +76,7 @@ export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
     description: faker.commerce.productDescription(),
     filters: {},
     status: 'draft',
-    createdAt: new Date().toJSON(),
+    createdAt: faker.date.past().toJSON(),
     groupId: group?.id
   };
 }

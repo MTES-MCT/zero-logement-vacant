@@ -1,39 +1,39 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Unstable_Grid2';
+import { FileUploadDTO } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import * as yup from 'yup';
-import { useCampaign } from '../../hooks/useCampaign';
-import { useForm } from '../../hooks/useForm';
-import DraftBody, { Body } from '../../components/Draft/DraftBody';
-import { Campaign } from '../../models/Campaign';
 import { Col, Container, Row } from '../../components/_dsfr';
-import {
-  useCreateDraftMutation,
-  useUpdateDraftMutation
-} from '../../services/draft.service';
-import useUnsavedChanges from '../../hooks/useUnsavedChanges';
-import PreviewButton from '../../components/Draft/PreviewButton';
-import styles from './campaign.module.scss';
-import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
-import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
-import { SenderPayload, SignatoriesPayload } from '../../models/Sender';
-import SendButton from '../../components/Draft/SendButton';
-import SaveButton from '../../components/SaveButton/SaveButton';
+import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
+import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
+import CampaignTitle from '../../components/Campaign/CampaignTitle';
+import DraftBody, { Body } from '../../components/Draft/DraftBody';
 import DraftMailInfo, {
   Written,
   writtenSchema
 } from '../../components/Draft/DraftMailInfo';
-import { DraftCreationPayload } from '../../models/Draft';
+import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
 import DraftSenderLogo from '../../components/Draft/DraftSenderLogo';
 import DraftSignature from '../../components/Draft/DraftSignature';
-import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
-import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
-import { FileUploadDTO } from '@zerologementvacant/models';
+import PreviewButton from '../../components/Draft/PreviewButton';
+import SendButton from '../../components/Draft/SendButton';
+import SaveButton from '../../components/SaveButton/SaveButton';
+import { useCampaign } from '../../hooks/useCampaign';
+import { useForm } from '../../hooks/useForm';
+import useUnsavedChanges from '../../hooks/useUnsavedChanges';
+import { Campaign } from '../../models/Campaign';
+import { DraftCreationPayload } from '../../models/Draft';
+import { SenderPayload, SignatoriesPayload } from '../../models/Sender';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
-import Alert from '@codegouvfr/react-dsfr/Alert';
-import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import {
+  useCreateDraftMutation,
+  useUpdateDraftMutation
+} from '../../services/draft.service';
+import styles from './campaign.module.scss';
 
 const schema = yup
   .object({
@@ -178,7 +178,7 @@ function CampaignDraft(props: Readonly<Props>) {
         </Grid>
       </Grid>
 
-      <Grid component="article" container xs={10} xsOffset={1}>
+      <Grid component="article" container xs={10} xsOffset={1} sx={{ py: 2 }}>
         <Grid alignItems="center" container component="header" mb={5} xs>
           <Grid mb={2} xs={12}>
             <CampaignCreatedFromGroup campaign={props.campaign} />

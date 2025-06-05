@@ -305,14 +305,14 @@ const ownerValidators: ValidationChain[] = [
   body('phone').isString().optional({ nullable: true }),
   body('banAddress.banId').isString().optional(),
   body('banAddress.label').isString().optional(),
-  body('banAddress.houseNumber').isString().optional(),
-  body('banAddress.street').isString().optional(),
-  body('banAddress.postalCode').isString().optional(),
-  body('banAddress.city').isString().optional(),
-  body('banAddress.latitude').isNumeric().optional(),
-  body('banAddress.longitude').isNumeric().optional(),
-  body('banAddress.score').isNumeric().optional(),
-  body('additionalAddress').isString().optional()
+  body('banAddress.houseNumber').isString().optional({ nullable: true }),
+  body('banAddress.street').isString().optional({ nullable: true }),
+  body('banAddress.postalCode').isString().optional({ nullable: true }),
+  body('banAddress.city').isString().optional({ nullable: true }),
+  body('banAddress.latitude').isNumeric().optional({ nullable: true }),
+  body('banAddress.longitude').isNumeric().optional({ nullable: true }),
+  body('banAddress.score').isNumeric().optional({ nullable: true }),
+  body('additionalAddress').isString().optional({ nullable: true })
 ];
 
 const ownerController = {

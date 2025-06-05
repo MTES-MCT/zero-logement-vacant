@@ -919,16 +919,6 @@ const housingSortQuery = (sort?: HousingSortApi) =>
   sortQuery(sort, {
     keys: {
       owner: (query) => query.orderBy(`${ownerTable}.full_name`, sort?.owner),
-      rawAddress: (query) => {
-        query
-          .orderBy(`${housingTable}.address_dgfip[2]`, sort?.rawAddress)
-          .orderByRaw(
-            `array_to_string(((string_to_array(${housingTable}."address_dgfip"[1], ' '))[2:]), '') ${sort?.rawAddress}`
-          )
-          .orderByRaw(
-            `(string_to_array(${housingTable}."address_dgfip"[1], ' '))[1] ${sort?.rawAddress}`
-          );
-      },
       occupancy: (query) =>
         query.orderByRaw(`LOWER(${housingTable}.occupancy) ${sort?.occupancy}`),
       status: (query) => query.orderBy(`${housingTable}.status`, sort?.status)

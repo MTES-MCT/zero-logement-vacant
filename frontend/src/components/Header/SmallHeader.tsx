@@ -2,13 +2,15 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
-  MainNavigation
+  MainNavigation,
+  MainNavigationProps
 } from '@codegouvfr/react-dsfr/MainNavigation';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
 import LoadingBar from 'react-redux-loading-bar';
 import { Link, useLocation } from 'react-router-dom';
+
 import logo from '../../assets/images/zlv.svg';
 import { useFilters } from '../../hooks/useFilters';
 import { useAppDispatch } from '../../hooks/useStore';
@@ -18,7 +20,6 @@ import {
   fromEstablishmentDTO,
   toEstablishmentDTO
 } from '../../models/Establishment';
-
 import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { zlvApi } from '../../services/api.service';
 import { changeEstablishment } from '../../store/actions/authenticationAction';
@@ -36,14 +37,10 @@ function SmallHeader() {
 
   function getMainNavigationItem(
     navItem: UserNavItems
-  ) {
+  ): MainNavigationProps.Item {
     const link = getUserNavItem(navItem);
-
-    return {
+    const item = {
       className: styles.mainNavigationItem,
-      linkProps: link?.items ?? (link.items && link.items.length > 0) ? undefined : {
-        to: link.url
-      },
       text: (
         <>
           <span
@@ -63,11 +60,24 @@ function SmallHeader() {
           )}
         </>
       ),
-      isActive: location.pathname.startsWith(link.url),
-      menuLinks: link?.items && link.items.length > 0 ? link.items.map((item) => ({
-        linkProps: { to: item.url },
-        text: item.label
-      })) : undefined
+      isActive: location.pathname.startsWith(link.url)
+    };
+    const props = link.items?.length
+      ? {
+          menuLinks: link.items.map((item) => ({
+            linkProps: { to: item.url },
+            text: item.label
+          }))
+        }
+      : {
+          linkProps: {
+            to: link.url
+          }
+        };
+
+    return {
+      ...item,
+      ...props
     };
   }
 

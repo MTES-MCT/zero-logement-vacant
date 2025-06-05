@@ -1,11 +1,14 @@
 import { Outlet } from 'react-router-dom';
+import RequireAuth from '../components/Auth/RequireAuth';
+import Footer from '../components/Footer/Footer';
 
 import SmallHeader from '../components/Header/SmallHeader';
-import Footer from '../components/Footer/Footer';
-import RequireAuth from '../components/Auth/RequireAuth';
 import OnboardingModal from '../components/modals/OnboardingModal/OnboardingModal';
+import { useScrollTop } from '../hooks/useScrollTop';
 
 function AuthenticatedLayout() {
+  useScrollTop();
+
   return (
     <RequireAuth>
       <OnboardingModal />

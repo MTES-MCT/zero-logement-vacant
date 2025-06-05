@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Direction, Sort } from '../models/Sort';
 import Button from '@codegouvfr/react-dsfr/Button';
-import classNames from 'classnames';
+import { match } from 'ts-pattern';
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 
 interface UseSortOptions<Sortable extends object> {
   onSort?(sort: Sort<Sortable>): void | Promise<void>;
@@ -16,24 +17,23 @@ export function useSort<Sortable extends object>(
     options?.default
   );
 
-  function getSortButton(key: keyof Sortable, title: string): JSX.Element {
-    const direction = sort?.[key];
+  function getSortButton(
+    key: keyof Sortable,
+    title: string
+  ): React.ReactElement {
+    const direction: Direction | undefined = sort?.[key];
     return (
       <Button
-        iconId={
-          (direction ?? 'asc') === 'asc'
-            ? 'fr-icon-arrow-up-line'
-            : 'fr-icon-arrow-down-line'
-        }
-        iconPosition="right"
-        priority="tertiary no outline"
+        iconId={match(direction)
+          .returnType<FrIconClassName | RiIconClassName>()
+          .with('asc', () => 'fr-icon-arrow-up-line')
+          .with('desc', () => 'fr-icon-arrow-down-line')
+          .otherwise(() => 'fr-icon-arrow-up-down-line')}
+        priority="tertiary"
         size="small"
-        className={classNames('fr-pl-0', { 'no-sort': !direction })}
-        style={{ color: 'var(--text-title-grey)' }}
+        title={title}
         onClick={() => cycleSort(key)}
-      >
-        {title}
-      </Button>
+      />
     );
   }
 
@@ -49,27 +49,23 @@ export function useSort<Sortable extends object>(
     const next = nextDirection(key);
     if (!next) {
       // Filter out undefined values
-      setSort(
-        Object.keys(sort ?? {})
-          .filter((k) => k !== key)
-          .reduce<Sort<Sortable>>((acc, k) => {
-            return {
-              ...acc,
-              [k]: sort ? sort[k as keyof Sortable] : undefined
-            };
-          }, {})
-      );
+      const value = Object.keys(sort ?? {})
+        .filter((k) => k !== key)
+        .reduce<Sort<Sortable>>((acc, k) => {
+          return {
+            ...acc,
+            [k]: sort ? sort[k as keyof Sortable] : undefined
+          };
+        }, {});
+      setSort(value);
+      options?.onSort?.(value);
       return;
     }
-    setSort({ ...sort, [key]: next });
-  }
 
-  useEffect(() => {
-    if (sort) {
-      options?.onSort?.(sort);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sort]);
+    const value: Sort<Sortable> = { ...sort, [key]: next };
+    setSort(value);
+    options?.onSort?.(value);
+  }
 
   return {
     cycleSort,

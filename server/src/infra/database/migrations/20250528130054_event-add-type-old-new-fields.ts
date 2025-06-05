@@ -5,6 +5,8 @@ export async function up(knex: Knex): Promise<void> {
     table
       .string('type')
       .notNullable()
+      // Set this default value until the production data is migrated
+      .defaultTo('housing:created')
       .comment('The type of the event, for example "housing:created"');
     // TODO: provide a strategy to fill this field for existing events
     table.jsonb('next_old').nullable().comment('The value before this event');

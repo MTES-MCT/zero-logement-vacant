@@ -4,11 +4,11 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useDebounce, useList, usePreviousDistinct } from 'react-use';
 import type { MarkOptional } from 'ts-essentials';
+import { Address } from '../../models/Address';
 
 import addressService, {
   AddressSearchResult
 } from '../../services/address.service';
-import { Address } from '../../models/Address';
 
 interface Props extends MarkOptional<InputProps.RegularInput, 'label'> {
   debounce?: number;
@@ -78,6 +78,9 @@ function AddressSearchableSelectNext(props: Props) {
       renderInput={(params) => (
         <>
           <Input
+            nativeLabelProps={{
+              'aria-label': 'Rechercher une adresse'
+            }}
             label={
               <Grid
                 container

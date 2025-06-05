@@ -82,7 +82,7 @@ jobs:
         run: yarn lint
 
       - name: Test
-        run: NODE_OPTIONS="--experimental-vm-modules" yarn test --since ${{ github.event.pull_request.base.sha }} --parallel --include-dependents
+        run: yarn test --since ${{ github.event.pull_request.base.sha }} --parallel --include-dependents
         env:
           LOG_LEVEL: fatal
           REACT_APP_API_URL: http://localhost:3001

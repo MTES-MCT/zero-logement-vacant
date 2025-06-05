@@ -2,7 +2,7 @@
   "transform": {
     "^.+\\.(t|j)sx?$": "@swc/jest"
   },
-  "testEnvironment": "node",
+  "testEnvironment": "jsdom",
   "rootDir": "src",
   "collectCoverageFrom": ["<rootDir>/pdf.ts"],
   "setupFilesAfterEnv": ["jest-extended/all", "<rootDir>/test/setup-tests.ts"]

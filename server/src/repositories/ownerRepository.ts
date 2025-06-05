@@ -23,7 +23,7 @@ import {
   parseAddressApi
 } from './banAddressesRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
-import { groupsHousingTable } from './groupRepository';
+import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import {
   HousingDBO,
@@ -85,15 +85,15 @@ const filteredQuery =
           `${housingOwnersTable}.owner_id`
         )
         .join(housingTable, ownerHousingJoinClause)
-        .join(groupsHousingTable, (query) =>
+        .join(GROUPS_HOUSING_TABLE, (query) =>
           query
-            .on(`${housingTable}.id`, `${groupsHousingTable}.housing_id`)
+            .on(`${housingTable}.id`, `${GROUPS_HOUSING_TABLE}.housing_id`)
             .andOn(
               `${housingTable}.geo_code`,
-              `${groupsHousingTable}.housing_geo_code`
+              `${GROUPS_HOUSING_TABLE}.housing_geo_code`
             )
         )
-        .where(`${groupsHousingTable}.group_id`, filters.groupId);
+        .where(`${GROUPS_HOUSING_TABLE}.group_id`, filters.groupId);
     }
   };
 
@@ -240,7 +240,6 @@ const searchOwners = async (
     perPage
   };
 };
-
 
 const findByHousing = async (
   housing: HousingApi

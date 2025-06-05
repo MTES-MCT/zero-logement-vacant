@@ -11169,7 +11169,7 @@ __metadata:
     async: "npm:^3.2.6"
     classnames: "npm:^2.5.1"
     date-fns: "npm:^2.30.0"
-    effect: "npm:^3.16.0"
+    effect: "npm:^3.16.3"
     fetch-intercept: "npm:^2.4.0"
     identity-obj-proxy: "npm:^3.0.0"
     immutable: "npm:^5.0.0"
@@ -11258,6 +11258,7 @@ __metadata:
     "@types/node": "npm:^20.16.10"
     "@zerologementvacant/draft": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
+    effect: "npm:^3.16.3"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     lodash: "npm:^4.17.21"
@@ -11425,6 +11426,7 @@ __metadata:
     date-fns: "npm:^3.6.0"
     dotenv: "npm:^16.4.5"
     download: "npm:^8.0.0"
+    effect: "npm:^3.16.3"
     exceljs: "npm:^4.4.0"
     express: "npm:^4.21.0"
     express-fileupload: "npm:^1.5.1"
@@ -15859,13 +15861,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"effect@npm:^3.16.0":
-  version: 3.16.0
-  resolution: "effect@npm:3.16.0"
+"effect@npm:^3.16.3":
+  version: 3.16.3
+  resolution: "effect@npm:3.16.3"
   dependencies:
     "@standard-schema/spec": "npm:^1.0.0"
     fast-check: "npm:^3.23.1"
-  checksum: 10c0/315a44f3c87475a1e5203b2e24aeab789b6372e491953fa1a9b7f30b3ebfa234a5f5b8baf67ee80986d8f0cbb156ab5a18d5152c7843ff1fb159a9943a20c218
+  checksum: 10c0/7f1b50883c91b9291f6f76e59ff804664af12a20c04a73af18d14ae222ab0215beaf72fd16681b28ba073d876df3199f81c1a0b06d0c98faf5fdc4b8688d232c
   languageName: node
   linkType: hard
 

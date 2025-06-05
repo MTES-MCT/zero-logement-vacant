@@ -3,9 +3,9 @@ import { createLogger } from '~/infra/logger';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import departmentalOwnersRepository from '~/repositories/departmentalOwnersRepository';
 import {
-  eventsTable,
-  HousingEvents,
-  housingEventsTable
+  EVENTS_TABLE,
+  HOUSING_EVENTS_TABLE,
+  HousingEvents
 } from '~/repositories/eventRepository';
 import {
   HousingOwners,
@@ -88,12 +88,16 @@ export async function removeEvents(
   logger.debug('Removing events...', options);
   await HousingEvents()
     .where({ housing_id: options.housingId })
-    .join(eventsTable, `${eventsTable}.id`, `${housingEventsTable}.event_id`)
+    .join(
+      EVENTS_TABLE,
+      `${EVENTS_TABLE}.id`,
+      `${HOUSING_EVENTS_TABLE}.event_id`
+    )
     .where({ name: 'Changement de propriétaires' })
     .whereRaw(
-      `${eventsTable}.created_at::date BETWEEN '2024-09-08' AND '2024-09-09'`
+      `${EVENTS_TABLE}.created_at::date BETWEEN '2024-09-08' AND '2024-09-09'`
     )
-    .join(usersTable, `${usersTable}.id`, `${eventsTable}.created_by`)
+    .join(usersTable, `${usersTable}.id`, `${EVENTS_TABLE}.created_by`)
     .where(`${usersTable}.email`, '=', 'admin@zerologementvacant.beta.gouv.fr')
     .delete();
 }

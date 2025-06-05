@@ -4,6 +4,9 @@ import { match } from 'ts-pattern';
 
 import { Event } from '../../models/Event';
 import EventCard from './EventCard';
+import { formatHousingCampaignAttachedDifferences } from './events/HousingCampaignAttachedEventCard';
+import { formatHousingCampaignDetachedDifferences } from './events/HousingCampaignDetachedEventCard';
+import { formatHousingCampaignRemovedDifferences } from './events/HousingCampaignRemovedEventCard';
 import { formatHousingCreatedDifferences } from './events/HousingCreatedEventCard';
 import { formatHousingGroupArchivedDifferences } from './events/HousingGroupArchivedEventCard';
 import { formatHousingGroupAttachedDifferences } from './events/HousingGroupAttachedEventCard';
@@ -106,6 +109,21 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
           { type: 'housing:group-removed' },
           (event: Event<'housing:group-removed'>) =>
             formatHousingGroupRemovedDifferences(event.nextOld)
+        )
+        .with(
+          { type: 'housing:campaign-attached' },
+          (event: Event<'housing:campaign-attached'>) =>
+            formatHousingCampaignAttachedDifferences(event.nextNew)
+        )
+        .with(
+          { type: 'housing:campaign-detached' },
+          (event: Event<'housing:campaign-detached'>) =>
+            formatHousingCampaignDetachedDifferences(event.nextOld)
+        )
+        .with(
+          { type: 'housing:campaign-removed' },
+          (event: Event<'housing:campaign-removed'>) =>
+            formatHousingCampaignRemovedDifferences(event.nextOld)
         )
         .otherwise(() => null)
     )

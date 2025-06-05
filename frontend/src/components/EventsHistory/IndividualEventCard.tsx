@@ -2,6 +2,9 @@ import { match } from 'ts-pattern';
 
 import { Establishment } from '../../models/Establishment';
 import { Event } from '../../models/Event';
+import { HousingCampaignAttachedEventCard } from './events/HousingCampaignAttachedEventCard';
+import { HousingCampaignDetachedEventCard } from './events/HousingCampaignDetachedEventCard';
+import { HousingCampaignRemovedEventCard } from './events/HousingCampaignRemovedEventCard';
 import { HousingCreatedEventCard } from './events/HousingCreatedEventCard';
 import { HousingGroupArchivedEventCard } from './events/HousingGroupArchivedEventCard';
 import { HousingGroupAttachedEventCard } from './events/HousingGroupAttachedEventCard';
@@ -92,6 +95,24 @@ function IndividualEventCard(props: IndividualEventCardProps) {
       { type: 'housing:group-removed' },
       (event: Event<'housing:group-removed'>) => (
         <HousingGroupRemovedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:campaign-attached' },
+      (event: Event<'housing:campaign-attached'>) => (
+        <HousingCampaignAttachedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:campaign-detached' },
+      (event: Event<'housing:campaign-detached'>) => (
+        <HousingCampaignDetachedEventCard event={event} />
+      )
+    )
+    .with(
+      { type: 'housing:campaign-removed' },
+      (event: Event<'housing:campaign-removed'>) => (
+        <HousingCampaignRemovedEventCard event={event} />
       )
     )
     .otherwise(() => null);

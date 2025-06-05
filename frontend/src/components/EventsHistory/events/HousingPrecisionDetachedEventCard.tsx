@@ -20,7 +20,7 @@ export function HousingPrecisionDetachedEventCard(props: Props) {
     .when(isPrecisionEvolutionCategory, () => 'une évolution')
     .when(isPrecisionBlockingPointCategory, () => 'un point de blocage')
     .exhaustive();
-  const title = `a ajouté ${category}`;
+  const title = `a retiré ${category}`;
   const differences = formatHousingPrecisionDetachedDifferences(precision);
 
   return (

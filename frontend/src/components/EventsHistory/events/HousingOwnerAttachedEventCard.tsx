@@ -1,6 +1,5 @@
-import { match } from 'ts-pattern';
-
 import { Event } from '../../../models/Event';
+import { getHousingOwnerRankLabel } from '../../../models/HousingOwner';
 import EventCard from '../EventCard';
 
 interface Props {
@@ -28,18 +27,6 @@ export function HousingOwnerAttachedEventCard(props: Props) {
 export function formatHousingOwnerAttachedDifferences(
   owner: Event<'housing:owner-attached'>['nextNew']
 ): string {
-  const rank = match(owner.rank)
-    .with(
-      -2,
-      () => 'Propriétaire doublon LOVAC 2024 - En attente de traitement par ZLV'
-    )
-    .with(-1, () => 'Propriétaire incorrect')
-    .with(0, () => 'Ancien propriétaire')
-    .with(1, () => 'Propriétaire principal')
-    .when(
-      (rank) => rank >= 2,
-      () => 'Propriétaire secondaire'
-    )
-    .otherwise(() => 'Propriétaire');
+  const rank = getHousingOwnerRankLabel(owner.rank);
   return `Le propriétaire “${owner.name}” a été ajouté en tant que “${rank}”.`;
 }

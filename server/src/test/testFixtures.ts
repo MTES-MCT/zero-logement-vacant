@@ -7,9 +7,7 @@ import {
   DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
   ESTABLISHMENT_KIND_VALUES,
-  EVENT_CATEGORY_VALUES,
-  EVENT_KIND_VALUES,
-  EVENT_SECTION_VALUES,
+  EventType,
   HOUSING_KIND_VALUES,
   HOUSING_SOURCE_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
@@ -19,11 +17,12 @@ import {
   OCCUPANCY_VALUES,
   OWNER_ENTITY_VALUES,
   OWNER_KIND_LABELS,
+  PRECISION_CATEGORY_VALUES,
   PROPERTY_RIGHT_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
-import { genGeoCode } from '@zerologementvacant/models/fixtures';
+import { genEventDTO, genGeoCode } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
 import fp from 'lodash/fp';
@@ -42,12 +41,7 @@ import {
 import { ContactPointApi } from '~/models/ContactPointApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
-import {
-  EventApi,
-  GroupHousingEventApi,
-  HousingEventApi,
-  OwnerEventApi
-} from '~/models/EventApi';
+import { EventApi, fromEventDTO } from '~/models/EventApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -60,6 +54,7 @@ import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { OwnerProspectApi } from '~/models/OwnerProspectApi';
+import { PrecisionApi } from '~/models/PrecisionApi';
 import { ProspectApi } from '~/models/ProspectApi';
 import {
   RESET_LINK_EXPIRATION,
@@ -73,7 +68,7 @@ import {
   SIGNUP_LINK_LENGTH,
   SignupLinkApi
 } from '~/models/SignupLinkApi';
-import { UserApi, UserRoles } from '~/models/UserApi';
+import { toUserDTO, UserApi, UserRoles } from '~/models/UserApi';
 import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
 import { DatafoncierOwner } from '~/scripts/shared';
 
@@ -507,59 +502,20 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
   };
 };
 
-function genEventApi<T>(creator: UserApi): EventApi<T> {
-  return {
-    id: uuidv4(),
-    name: randomstring.generate(),
-    kind: faker.helpers.arrayElement(EVENT_KIND_VALUES),
-    category: faker.helpers.arrayElement(EVENT_CATEGORY_VALUES),
-    section: faker.helpers.arrayElement(EVENT_SECTION_VALUES),
-    conflict: genBoolean(),
-    createdAt: new Date(),
-    createdBy: creator.id,
-    creator: creator
-  };
+type EventOptions<Type extends EventType> = Pick<
+  EventApi<Type>,
+  'type' | 'creator' | 'nextOld' | 'nextNew'
+>;
+export function genEventApi<Type extends EventType>(
+  options: EventOptions<Type>
+): EventApi<Type> {
+  return fromEventDTO(
+    genEventDTO<Type>({
+      ...options,
+      creator: toUserDTO(options.creator!)
+    })
+  );
 }
-
-export const genOwnerEventApi = (
-  owner: OwnerApi,
-  creator: UserApi
-): OwnerEventApi => {
-  return {
-    ...genEventApi<OwnerApi>(creator),
-    old: { ...genOwnerApi(), id: owner.id },
-    new: { ...genOwnerApi(), id: owner.id },
-    ownerId: owner.id
-  };
-};
-
-export const genHousingEventApi = (
-  housing: HousingApi,
-  creator: UserApi
-): HousingEventApi => {
-  return {
-    ...genEventApi<HousingApi>(creator),
-    old: housing,
-    new: { ...genHousingApi(housing.geoCode), id: housing.id },
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode
-  };
-};
-
-export const genGroupHousingEventApi = (
-  housing: HousingApi,
-  group: GroupApi,
-  creator: UserApi
-): GroupHousingEventApi => {
-  return {
-    ...genEventApi<GroupApi>(creator),
-    old: group,
-    new: group,
-    groupId: group.id,
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode
-  };
-};
 
 export const genGroupApi = (
   creator: UserApi,
@@ -914,5 +870,14 @@ export function genSenderApi(
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment.id
+  };
+}
+
+export function genPrecisionApi(order: number): PrecisionApi {
+  return {
+    id: faker.string.uuid(),
+    category: faker.helpers.arrayElement(PRECISION_CATEGORY_VALUES),
+    label: faker.lorem.word(),
+    order
   };
 }

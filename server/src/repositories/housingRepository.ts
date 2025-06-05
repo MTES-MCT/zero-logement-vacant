@@ -38,9 +38,9 @@ import { AddressDBO, banAddressesTable } from './banAddressesRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
 import establishmentRepository from './establishmentRepository';
-import { eventsTable, housingEventsTable } from './eventRepository';
+import { EVENTS_TABLE, HOUSING_EVENTS_TABLE } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
-import { groupsHousingTable } from './groupRepository';
+import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { localitiesTable } from './localityRepository';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
@@ -310,11 +310,11 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
     events: (query) =>
       query.select('events.contact_count', 'events.last_contact').joinRaw(
         `left join lateral (
-            select count(${eventsTable}) as contact_count,
-                   max(${eventsTable}.created_at) as last_contact
-            from ${housingEventsTable}
-            join ${eventsTable} on ${eventsTable}.id = ${housingEventsTable}.event_id
-            where ${housingTable}.id = ${housingEventsTable}.housing_id
+            select count(${EVENTS_TABLE}) as contact_count,
+                   max(${EVENTS_TABLE}.created_at) as last_contact
+            from ${HOUSING_EVENTS_TABLE}
+            join ${EVENTS_TABLE} on ${EVENTS_TABLE}.id = ${HOUSING_EVENTS_TABLE}.event_id
+            where ${housingTable}.id = ${HOUSING_EVENTS_TABLE}.housing_id
           ) events on true`
       ),
     campaigns: (query) => {
@@ -472,14 +472,14 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.groupIds?.length) {
-      queryBuilder.join(groupsHousingTable, (join) => {
+      queryBuilder.join(GROUPS_HOUSING_TABLE, (join) => {
         join
           .on(
-            `${groupsHousingTable}.housing_geo_code`,
+            `${GROUPS_HOUSING_TABLE}.housing_geo_code`,
             `${housingTable}.geo_code`
           )
-          .andOn(`${groupsHousingTable}.housing_id`, `${housingTable}.id`)
-          .andOnIn(`${groupsHousingTable}.group_id`, filters.groupIds ?? []);
+          .andOn(`${GROUPS_HOUSING_TABLE}.housing_id`, `${housingTable}.id`)
+          .andOnIn(`${GROUPS_HOUSING_TABLE}.group_id`, filters.groupIds ?? []);
       });
     }
     if (filters.campaignIds?.length) {

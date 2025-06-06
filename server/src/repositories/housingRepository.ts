@@ -1,7 +1,10 @@
 import {
   AddressKinds,
+  DataFileYear,
   EnergyConsumption,
+  HousingKind,
   HousingSource,
+  HousingStatus,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   Occupancy,
@@ -27,7 +30,6 @@ import {
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { sortQuery } from '~/models/SortApi';
 import {
@@ -948,23 +950,23 @@ export interface HousingRecordDBO {
   id: string;
   invariant: string;
   local_id: string;
-  building_id?: string | null;
-  building_group_id?: string | null;
-  plot_id?: string | null;
+  building_id: string | null;
+  building_group_id: string | null;
+  plot_id: string | null;
   geo_code: string;
   address_dgfip: string[];
-  longitude_dgfip?: number;
-  latitude_dgfip?: number;
-  geolocation?: string | null;
+  longitude_dgfip: number | null;
+  latitude_dgfip: number | null;
+  geolocation: string | null;
   cadastral_classification: number | null;
   uncomfortable: boolean;
-  vacancy_start_year?: number | null;
-  housing_kind: string;
+  vacancy_start_year: number | null;
+  housing_kind: HousingKind;
   rooms_count: number | null;
   living_area: number | null;
-  cadastral_reference?: string | null;
-  building_year?: number;
-  taxed?: boolean;
+  cadastral_reference: string | null;
+  building_year: number | null;
+  taxed: boolean | null;
   /**
    * @deprecated See the tables `precisions` and `housing_precisions`
    */
@@ -976,13 +978,13 @@ export interface HousingRecordDBO {
   /**
    * @example ['ff-2023', 'lovac-2024']
    */
-  data_file_years?: string[];
+  data_file_years: DataFileYear[] | null;
   data_source: HousingSource | null;
-  beneficiary_count?: number | null;
-  building_location?: string | null;
-  rental_value?: number | null;
-  condominium?: string | null;
-  status: HousingStatusApi;
+  beneficiary_count: number | null;
+  building_location: string | null;
+  rental_value: number | null;
+  condominium: string | null;
+  status: HousingStatus;
   sub_status: string | null;
   /**
    * @deprecated See {@link HousingDBO.precisions}
@@ -993,7 +995,7 @@ export interface HousingRecordDBO {
   occupancy_intended: Occupancy | null;
   energy_consumption_bdnb: EnergyConsumption | null;
   energy_consumption_at_bdnb: Date | null;
-  mutation_date?: Date;
+  mutation_date: Date | null;
   last_mutation_date: Date | null;
   last_transaction_date: Date | null;
   last_transaction_value: number | null;
@@ -1037,6 +1039,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   geoCode: housing.geo_code,
   longitude: housing.longitude_dgfip,
   latitude: housing.latitude_dgfip,
+  geolocation: housing.geolocation,
   cadastralClassification: housing.cadastral_classification,
   uncomfortable: housing.uncomfortable,
   vacancyStartYear: housing.vacancy_start_year,
@@ -1050,7 +1053,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   ownershipKind: housing.condominium,
   status: housing.status,
   subStatus: housing.sub_status,
-  deprecatedVacancyReasons: housing.deprecated_vacancy_reasons ?? undefined,
+  deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
   deprecatedPrecisions: housing.deprecated_precisions,
   precisions: housing.precisions,
   energyConsumption: housing.energy_consumption_bdnb,
@@ -1073,9 +1076,9 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
     ? new Date(housing.last_contact)
     : undefined,
   source: housing.data_source,
-  mutationDate: housing.mutation_date ?? null,
-  lastMutationDate: housing.last_mutation_date,
-  lastTransactionDate: housing.last_transaction_date,
+  mutationDate: housing.mutation_date?.toJSON() ?? null,
+  lastMutationDate: housing.last_mutation_date?.toJSON() ?? null,
+  lastTransactionDate: housing.last_transaction_date?.toJSON() ?? null,
   lastTransactionValue: housing.last_transaction_value
 });
 
@@ -1122,9 +1125,13 @@ export const formatHousingRecordApi = (
   occupancy_source: housing.occupancyRegistered,
   occupancy_intended: housing.occupancyIntended ?? null,
   data_source: housing.source,
-  mutation_date: housing.mutationDate ?? undefined,
-  last_mutation_date: housing.lastMutationDate,
-  last_transaction_date: housing.lastTransactionDate,
+  mutation_date: housing.mutationDate ? new Date(housing.mutationDate) : null,
+  last_mutation_date: housing.lastMutationDate
+    ? new Date(housing.lastMutationDate)
+    : null,
+  last_transaction_date: housing.lastTransactionDate
+    ? new Date(housing.lastTransactionDate)
+    : null,
   last_transaction_value: housing.lastTransactionValue
 });
 

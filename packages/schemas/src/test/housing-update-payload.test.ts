@@ -3,14 +3,13 @@ import { fc, test } from '@fast-check/jest';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
-  HousingUpdatePayloadDTO,
   Occupancy,
   OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
 import { housingUpdatePayload } from '../housing-update-payload';
 
 describe('Housing update payload', () => {
-  test.prop<HousingUpdatePayloadDTO>({
+  test.prop({
     status: fc.constantFrom(...HOUSING_STATUS_VALUES),
     occupancy: fc.constantFrom(...OCCUPANCY_VALUES),
     subStatus: fc.oneof(

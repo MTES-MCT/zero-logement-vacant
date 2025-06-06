@@ -84,12 +84,6 @@ router.put(
   }),
   housingController.updateNext
 );
-router.post(
-  '/housing/:housingId',
-  [param('housingId').isUUID(), ...housingController.updateValidators],
-  validator.validate,
-  housingController.update
-);
 
 // Buildings
 router.get(

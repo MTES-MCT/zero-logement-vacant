@@ -1,4 +1,7 @@
-import { diff, HousingUpdatePayloadDTO } from '../HousingDTO';
+import {
+  diffHousingUpdatePayload,
+  HousingUpdatePayloadDTO
+} from '../HousingDTO';
 import { HousingStatus } from '../HousingStatus';
 import { Occupancy } from '../Occupancy';
 
@@ -18,22 +21,25 @@ describe('HousingDTO', () => {
         occupancyIntended: Occupancy.RENT
       };
 
-      const actual = diff(before, after);
+      const actual = diffHousingUpdatePayload(before, after);
 
-      expect(actual).toStrictEqual<ReturnType<typeof diff>>([
+      expect(actual).toStrictEqual<ReturnType<typeof diffHousingUpdatePayload>>(
         {
-          status: HousingStatus.NEVER_CONTACTED,
-          subStatus: null,
-          occupancy: Occupancy.VACANT,
-          occupancyIntended: null
-        },
-        {
-          status: HousingStatus.COMPLETED,
-          subStatus: 'Suivi terminé',
-          occupancy: Occupancy.RENT,
-          occupancyIntended: Occupancy.RENT
+          before: {
+            status: HousingStatus.NEVER_CONTACTED,
+            subStatus: null,
+            occupancy: Occupancy.VACANT,
+            occupancyIntended: null
+          },
+          after: {
+            status: HousingStatus.COMPLETED,
+            subStatus: 'Suivi terminé',
+            occupancy: Occupancy.RENT,
+            occupancyIntended: Occupancy.RENT
+          },
+          changed: ['status', 'subStatus', 'occupancy', 'occupancyIntended']
         }
-      ]);
+      );
     });
 
     it('should diff only changed properties', () => {
@@ -51,12 +57,15 @@ describe('HousingDTO', () => {
         occupancyIntended: Occupancy.RENT
       };
 
-      const actual = diff(before, after);
+      const actual = diffHousingUpdatePayload(before, after);
 
-      expect(actual).toStrictEqual<ReturnType<typeof diff>>([
-        { occupancyIntended: null },
-        { occupancyIntended: Occupancy.RENT }
-      ]);
+      expect(actual).toStrictEqual<ReturnType<typeof diffHousingUpdatePayload>>(
+        {
+          before: { occupancyIntended: null },
+          after: { occupancyIntended: Occupancy.RENT },
+          changed: ['occupancyIntended']
+        }
+      );
     });
   });
 });

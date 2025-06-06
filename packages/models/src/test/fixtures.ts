@@ -23,6 +23,7 @@ import { NoteDTO } from '../NoteDTO';
 import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
 import { OwnerDTO } from '../OwnerDTO';
 import { OWNER_KIND_LABELS } from '../OwnerKind';
+import { OWNERSHIP_KIND_INTERNAL_VALUES } from '../OwnershipKind';
 import { PROPERTY_RIGHT_VALUES } from '../PropertyRight';
 import { ProspectDTO } from '../ProspectDTO';
 import { RolesDTO } from '../RolesDTO';
@@ -327,6 +328,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     cadastralClassification: faker.helpers.arrayElement(
       CADASTRAL_CLASSIFICATION_VALUES
     ),
+    cadastralReference: null,
     longitude: faker.location.longitude(),
     latitude: faker.location.latitude(),
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
@@ -342,7 +344,15 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     owner,
     lastMutationDate: faker.date.past().toJSON(),
     lastTransactionDate: faker.date.past().toJSON(),
-    lastTransactionValue: faker.number.int({ min: 1_000_000, max: 10_000_000 })
+    lastTransactionValue: faker.number.int({ min: 1_000_000, max: 10_000_000 }),
+    buildingYear: faker.date.past().getUTCFullYear(),
+    buildingLocation: null,
+    beneficiaryCount: null,
+    mutationDate:
+      faker.helpers.maybe(() => faker.date.recent().toJSON()) ?? null,
+    ownershipKind: faker.helpers.arrayElement(OWNERSHIP_KIND_INTERNAL_VALUES),
+    taxed: faker.datatype.boolean(),
+    rentalValue: faker.number.int({ min: 100, max: 10_000 })
   };
 }
 

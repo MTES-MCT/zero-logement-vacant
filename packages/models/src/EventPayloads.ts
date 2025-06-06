@@ -28,7 +28,7 @@ export type EventPayloads = {
   }>;
   'housing:occupancy-updated': UpdateEventChange<{
     occupancy?: Occupancy;
-    occupancyIntended?: Occupancy;
+    occupancyIntended?: Occupancy | null;
   }>;
   'housing:status-updated': UpdateEventChange<{
     // TODO: change this to a string union type ?

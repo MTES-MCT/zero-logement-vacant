@@ -1,59 +1,48 @@
-import { faker } from '@faker-js/faker/locale/fr';
-import { fromOwnerPayloadDTO, OwnerApi, ownerDiff } from '~/models/OwnerApi';
-import { genOwnerApi } from '~/test/testFixtures';
+import { diffUpdatedOwner } from '~/models/OwnerApi';
+import { EventApi } from '../EventApi';
 
 describe('OwnerApi', () => {
-  describe('ownerDiff', () => {
-    it('should return an empty object when no changes', () => {
-      const before: OwnerApi = genOwnerApi();
-      const after: OwnerApi = {
-        ...before,
-        fullName: faker.person.fullName()
+  describe('diffOwnerPayload', () => {
+    it('should return changed keys if any', () => {
+      const before: EventApi<'owner:updated'>['nextNew'] = {
+        name: 'Just Harry',
+        birthdate: null,
+        email: null,
+        phone: null,
+        address: null,
+        additionalAddress: null
+      };
+      const after: EventApi<'owner:updated'>['nextOld'] = {
+        name: 'Harry Potter',
+        birthdate: '1995-01-01',
+        email: 'harry.potter@hogwarts.org',
+        phone: '0123456789',
+        address: '4 Privet Drive, Little Whinging, Surrey',
+        additionalAddress: 'Dans le placard, sous l’escalier'
       };
 
-      const actual = ownerDiff.diff(before, after);
+      const actual = diffUpdatedOwner(before, after);
 
-      expect(actual).toEqual({
-        fullName: after.fullName
+      expect(actual.before).toStrictEqual<
+        ReturnType<typeof diffUpdatedOwner>['before']
+      >({
+        name: 'Just Harry',
+        birthdate: null,
+        email: null,
+        phone: null,
+        address: null,
+        additionalAddress: null
       });
-    });
-  });
-
-  describe('fromOwnerPayloadDTO', () => {
-    it('should return specific fields', () => {
-      // It's intended not to provide a type because any payload could be sent
-      const payload = {
-        fullName: 'John Doe',
-        birthDate: '1990-01-01',
-        rawAddress: ['1 rue de la Paix', '75000 Paris'],
-        email: 'john.doe@gmail.com',
-        phone: '+33 6 12 34 56 78',
-        something: 'something',
-        weird: 'weird'
-      };
-
-      const actual = fromOwnerPayloadDTO(payload);
-
-      expect(actual).toContainAllKeys([
-        'fullName',
-        'birthDate',
-        'rawAddress',
-        'email',
-        'phone'
-      ]);
-    });
-
-    it('should parse the date string', () => {
-      const date = new Date('1990-01-01T23:00:00Z');
-      const payload = {
-        fullName: 'John Doe',
-        birthDate: date.toISOString(),
-        rawAddress: ['1 rue de la Paix', '75000 Paris']
-      };
-
-      const actual = fromOwnerPayloadDTO(payload);
-
-      expect(actual.birthDate).toStrictEqual(date);
+      expect(actual.after).toStrictEqual<
+        ReturnType<typeof diffUpdatedOwner>['after']
+      >({
+        name: 'Harry Potter',
+        birthdate: '1995-01-01',
+        email: 'harry.potter@hogwarts.org',
+        phone: '0123456789',
+        address: '4 Privet Drive, Little Whinging, Surrey',
+        additionalAddress: 'Dans le placard, sous l’escalier'
+      });
     });
   });
 });

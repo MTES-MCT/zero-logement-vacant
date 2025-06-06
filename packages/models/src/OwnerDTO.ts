@@ -20,16 +20,11 @@ export interface OwnerDTO {
   updatedAt: string | null;
 }
 
-export type OwnerPayloadDTO = Pick<
+export type OwnerUpdatePayload = Pick<
   OwnerDTO,
-  | 'rawAddress'
-  | 'fullName'
-  | 'birthDate'
-  | 'email'
-  | 'phone'
-  | 'additionalAddress'
+  'fullName' | 'birthDate' | 'email' | 'phone' | 'additionalAddress'
 > & {
-  banAddress?: AddressPayloadDTO;
+  banAddress: AddressPayloadDTO | null;
 };
 
 export function getAddress(owner: OwnerDTO): string[] | null {

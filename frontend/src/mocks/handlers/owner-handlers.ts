@@ -5,7 +5,7 @@ import {
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
   OwnerDTO,
-  OwnerPayloadDTO,
+  OwnerUpdatePayload,
   Paginated,
   Pagination
 } from '@zerologementvacant/models';
@@ -51,7 +51,7 @@ export const ownerHandlers: RequestHandler[] = [
     }
   ),
 
-  http.post<never, OwnerPayloadDTO, OwnerDTO>(
+  http.post<never, OwnerUpdatePayload, OwnerDTO>(
     `${config.apiEndpoint}/api/owners/creation`,
     async ({ request }) => {
       const payload = await request.json();
@@ -83,7 +83,7 @@ export const ownerHandlers: RequestHandler[] = [
     }
   ),
 
-  http.put<PathParams, OwnerPayloadDTO, OwnerDTO>(
+  http.put<PathParams, OwnerUpdatePayload, OwnerDTO>(
     `${config.apiEndpoint}/api/owners/:id`,
     async ({ params, request }) => {
       const payload = await request.json();

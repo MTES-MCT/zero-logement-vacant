@@ -1,7 +1,7 @@
 import {
   HousingOwnerDTO,
   OwnerDTO,
-  OwnerPayloadDTO
+  OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
 import {
@@ -73,7 +73,7 @@ export const ownerApi = zlvApi.injectEndpoints({
         housingOwners.map(fromHousingOwnerDTO)
     }),
 
-    createOwner: builder.mutation<Owner, OwnerPayloadDTO>({
+    createOwner: builder.mutation<Owner, OwnerUpdatePayload>({
       query: (payload) => ({
         url: 'owners/creation',
         method: 'POST',
@@ -83,19 +83,21 @@ export const ownerApi = zlvApi.injectEndpoints({
       invalidatesTags: () => [{ type: 'Owner', id: 'LIST' }]
     }),
 
-    updateOwner: builder.mutation<void, OwnerPayloadDTO & Pick<Owner, 'id'>>({
-      query: (payload) => ({
-        url: `owners/${payload.id}`,
-        method: 'PUT',
-        body: payload
-      }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Owner', id },
-        { type: 'HousingOwner', id },
-        'Housing',
-        'Event'
-      ]
-    }),
+    updateOwner: builder.mutation<void, OwnerUpdatePayload & Pick<Owner, 'id'>>(
+      {
+        query: (payload) => ({
+          url: `owners/${payload.id}`,
+          method: 'PUT',
+          body: payload
+        }),
+        invalidatesTags: (result, error, { id }) => [
+          { type: 'Owner', id },
+          { type: 'HousingOwner', id },
+          'Housing',
+          'Event'
+        ]
+      }
+    ),
 
     updateHousingOwners: builder.mutation<
       void,

@@ -58,10 +58,16 @@ export type HousingUpdatePayloadDTO =
     occupancyIntended: Occupancy | null;
   };
 
-export function diff(
+interface Diff<A> {
+  before: Partial<A>;
+  after: Partial<A>;
+  changed: ReadonlyArray<keyof A>;
+}
+
+export function diffHousingUpdatePayload(
   before: HousingUpdatePayloadDTO,
   after: HousingUpdatePayloadDTO
-): [Partial<HousingUpdatePayloadDTO>, Partial<HousingUpdatePayloadDTO>] {
+): Diff<HousingUpdatePayloadDTO> {
   const changed = pipe(
     {
       status: Equivalence.strict<HousingStatus>(),
@@ -76,7 +82,11 @@ export function diff(
     Record.keys
   ) as ReadonlyArray<keyof HousingUpdatePayloadDTO>;
 
-  return [Struct.pick(before, ...changed), Struct.pick(after, ...changed)];
+  return {
+    before: Struct.pick(before, ...changed),
+    after: Struct.pick(after, ...changed),
+    changed: changed
+  };
 }
 
 export interface HousingCountDTO {

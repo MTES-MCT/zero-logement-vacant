@@ -1,14 +1,8 @@
-import {
-  OwnerDTO,
-  OwnerEntity,
-  OwnerPayloadDTO
-} from '@zerologementvacant/models';
+import { OwnerDTO, OwnerEntity } from '@zerologementvacant/models';
+import { Equivalence, pipe, Record, Struct } from 'effect';
 import fp from 'lodash/fp';
-import { compare } from '~/utils/compareUtils';
 
-export interface OwnerPayloadApi extends Omit<OwnerPayloadDTO, 'birthDate'> {
-  birthDate?: Date;
-}
+import { EventApi } from '~/models/EventApi';
 
 export interface OwnerApi extends OwnerDTO {
   idpersonne?: string;
@@ -40,47 +34,35 @@ export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
   };
 }
 
-export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {
-  return {
-    ...fp.pick(
-      [
-        'rawAddress',
-        'fullName',
-        'email',
-        'phone',
-        'banAddress',
-        'additionalAddress'
-      ],
-      payload
+interface Diff<A> {
+  before: Partial<A>;
+  after: Partial<A>;
+  changed: ReadonlyArray<keyof A>;
+}
+
+export function diffUpdatedOwner(
+  before: EventApi<'owner:updated'>['nextOld'],
+  after: EventApi<'owner:updated'>['nextNew']
+): Diff<EventApi<'owner:updated'>['nextNew']> {
+  const changed = pipe(
+    {
+      name: Equivalence.string,
+      birthdate: Equivalence.strict<string | null>(),
+      email: Equivalence.strict<string | null>(),
+      phone: Equivalence.strict<string | null>(),
+      address: Equivalence.strict<string | null>(),
+      additionalAddress: Equivalence.strict<string | null>()
+    },
+    Record.map((equivalence: Equivalence.Equivalence<any>, key) =>
+      equivalence(before[key], after[key])
     ),
-    birthDate: payload.birthDate ? new Date(payload.birthDate) : undefined
+    Record.filter((equals) => !equals),
+    Record.keys
+  ) as ReadonlyArray<keyof EventApi<'owner:updated'>['nextNew']>;
+
+  return {
+    before: Struct.pick(before, ...changed),
+    after: Struct.pick(after, ...changed),
+    changed
   };
-}
-
-export function hasIdentityChanges(prev: OwnerApi, curr: OwnerApi): boolean {
-  return (
-    Object.values(compare(prev, curr, ['fullName', 'birthDate'])).length > 0
-  );
-}
-
-export function hasContactChanges(prev: OwnerApi, curr: OwnerApi): boolean {
-  const emptyAddress = {
-    city: '',
-    street: '',
-    houseNumber: '',
-    postalCode: ''
-  };
-
-  return (
-    Object.values(
-      compare(prev, curr, ['rawAddress', 'email', 'phone', 'additionalAddress'])
-    ).length > 0 ||
-    Object.values(
-      compare(
-        prev.banAddress ?? emptyAddress,
-        curr.banAddress ?? emptyAddress,
-        ['city', 'street', 'houseNumber', 'postalCode']
-      )
-    ).length > 0
-  );
 }

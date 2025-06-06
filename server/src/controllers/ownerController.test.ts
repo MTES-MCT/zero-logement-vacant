@@ -5,22 +5,17 @@ import {
   AddressKinds,
   HousingOwnerPayloadDTO,
   OwnerDTO,
-  OwnerPayloadDTO,
-  OwnerRank
+  OwnerRank,
+  OwnerUpdatePayload
 } from '@zerologementvacant/models';
-import { addDays } from 'date-fns';
+import { genAddressDTO } from '@zerologementvacant/models/fixtures';
 import { constants } from 'http2';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
-import db from '~/infra/database';
 import { createServer } from '~/infra/server';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import {
-  banAddressesTable,
-  formatAddressApi
-} from '~/repositories/banAddressesRepository';
 import {
   Establishments,
   formatEstablishmentApi
@@ -28,10 +23,9 @@ import {
 import {
   EventRecordDBO,
   Events,
-  eventsTable,
-  housingEventsTable,
-  OwnerEventDBO,
-  ownerEventsTable
+  EVENTS_TABLE,
+  HOUSING_OWNER_EVENTS_TABLE,
+  OWNER_EVENTS_TABLE
 } from '~/repositories/eventRepository';
 import {
   formatHousingOwnerApi,
@@ -107,8 +101,9 @@ describe('Owner API', () => {
     });
 
     it('should reject if the owner is missing', async () => {
-      const payload: OwnerPayloadDTO = {
+      const payload: OwnerUpdatePayload = {
         ...owner,
+        banAddress: genAddressDTO(owner.id, AddressKinds.Owner),
         phone: '+33 6 12 34 56 78'
       };
 
@@ -122,7 +117,7 @@ describe('Owner API', () => {
     });
 
     it('should update an owner', async () => {
-      const payload: OwnerPayloadDTO = {
+      const payload: OwnerUpdatePayload = {
         ...owner,
         birthDate: new Date('2000-01-01')
           .toJSON()
@@ -139,7 +134,6 @@ describe('Owner API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject<Partial<OwnerDTO>>({
         id: owner.id,
-        rawAddress: payload.rawAddress,
         fullName: payload.fullName,
         birthDate: payload.birthDate,
         email: payload.email,
@@ -149,7 +143,7 @@ describe('Owner API', () => {
     });
 
     it('should update their BAN address', async () => {
-      const payload: OwnerPayloadDTO = {
+      const payload: OwnerUpdatePayload = {
         ...owner,
         banAddress: genAddressApi(owner.id, AddressKinds.Owner)
       };
@@ -176,15 +170,18 @@ describe('Owner API', () => {
       });
     });
 
-    it('should create an event if the name or birth date has changed', async () => {
+    it('should create an event if the owner has changed', async () => {
       const original = genOwnerApi();
       await Owners().insert(formatOwnerApi(original));
-      const payload: OwnerPayloadDTO = {
-        ...original,
-        birthDate: addDays(original.birthDate ?? new Date(), 1)
-          .toISOString()
-          .substring(0, 10)
-      };
+
+      const payload = {
+        fullName: 'Jean Dupont',
+        birthDate: faker.date.birthdate().toJSON(),
+        phone: faker.phone.number(),
+        email: faker.internet.email(),
+        banAddress: genAddressDTO(owner.id, AddressKinds.Owner),
+        additionalAddress: 'Les Cabannes'
+      } satisfies OwnerUpdatePayload;
 
       const { status } = await request(app)
         .put(testRoute(original.id))
@@ -193,90 +190,33 @@ describe('Owner API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(
-          ownerEventsTable,
-          `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`
-        )
-        .where({ owner_id: original.id });
-      expect(events).toBeArrayOfSize(1);
-      expect(events[0]).toMatchObject<
-        Partial<EventRecordDBO<OwnerApi> & OwnerEventDBO>
-      >({
-        owner_id: original.id,
-        name: "Modification d'identité",
-        kind: 'Update',
-        category: 'Ownership',
-        section: 'Coordonnées propriétaire'
-      });
-    });
-
-    it('should create an event if the email or phone has changed', async () => {
-      const original = genOwnerApi();
-      await Owners().insert(formatOwnerApi(original));
-      const payload: OwnerPayloadDTO = {
-        ...original,
-        phone: '+33 6 12 34 56 78'
-      };
-
-      const { status } = await request(app)
-        .put(testRoute(original.id))
-        .send(payload)
-        .set('Content-Type', 'application/json')
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(
-          ownerEventsTable,
-          `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`
-        )
-        .where({ owner_id: original.id });
-      expect(events).toPartiallyContain<
-        Partial<EventRecordDBO<OwnerApi> & OwnerEventDBO>
-      >({
-        owner_id: original.id,
-        name: 'Modification de coordonnées',
-        kind: 'Update',
-        category: 'Ownership',
-        section: 'Coordonnées propriétaire'
-      });
-    });
-
-    it('should create an event if the address has changed', async () => {
-      const original = genOwnerApi();
-      const originalAddress = genAddressApi(original.id, AddressKinds.Owner);
-      await Owners().insert(formatOwnerApi(original));
-      await db(banAddressesTable).insert(formatAddressApi(originalAddress));
-      const payload: OwnerPayloadDTO = {
-        ...original,
-        banAddress: genAddressApi(original.id, AddressKinds.Owner)
-      };
-
-      const { status } = await request(app)
-        .put(testRoute(original.id))
-        .send(payload)
-        .set('Content-Type', 'application/json')
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(
-          ownerEventsTable,
-          `${ownerEventsTable}.event_id`,
-          `${eventsTable}.id`
-        )
-        .where({ owner_id: original.id });
-      expect(events).toPartiallyContain<
-        Partial<EventRecordDBO<OwnerApi> & OwnerEventDBO>
-      >({
-        owner_id: original.id,
-        name: 'Modification de coordonnées',
-        kind: 'Update',
-        category: 'Ownership',
-        section: 'Coordonnées propriétaire'
+      const event = await Events()
+        .join(OWNER_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          owner_id: original.id,
+          type: 'owner:updated'
+        })
+        .first();
+      expect(event).toMatchObject<Partial<EventRecordDBO<'owner:updated'>>>({
+        type: 'owner:updated',
+        next_old: {
+          name: original.fullName,
+          birthdate:
+            original.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null,
+          phone: original.phone,
+          email: original.email,
+          address: original.banAddress?.label ?? null,
+          additionalAddress: original.additionalAddress
+        },
+        next_new: {
+          name: payload.fullName,
+          birthdate: payload.birthDate.substring(0, 'yyyy-mm-dd'.length),
+          phone: payload.phone,
+          email: payload.email,
+          address: payload.banAddress.label,
+          additionalAddress: payload.additionalAddress
+        },
+        created_by: user.id
       });
     });
   });
@@ -293,7 +233,7 @@ describe('Owner API', () => {
         faker.helpers.arrayElement(establishment.geoCodes)
       );
       await Housing().insert(formatHousingRecordApi(housing));
-      owners = Array.from({ length: 3 }, genOwnerApi);
+      owners = Array.from({ length: 4 }, genOwnerApi);
       await Owners().insert(owners.map(formatOwnerApi));
       housingOwners = owners.map((owner, i) => {
         return {
@@ -400,7 +340,17 @@ describe('Owner API', () => {
             type: 'housing:owner-attached'
           })
           .first();
-        expect(event).toBeDefined();
+        expect(event).toMatchObject<
+          Partial<EventRecordDBO<'housing:owner-attached'>>
+        >({
+          type: 'housing:owner-attached',
+          next_old: null,
+          next_new: {
+            name: owner.fullName,
+            rank: -2
+          },
+          created_by: user.id
+        });
       });
 
       it('should create an event when a housing owner is detached', async () => {
@@ -426,7 +376,17 @@ describe('Owner API', () => {
             type: 'housing:owner-detached'
           })
           .first();
-        expect(event).toBeDefined();
+        expect(event).toMatchObject<
+          Partial<EventRecordDBO<'housing:owner-detached'>>
+        >({
+          type: 'housing:owner-detached',
+          next_old: {
+            name: owner.fullName,
+            rank: owner.rank
+          },
+          next_new: null,
+          created_by: user.id
+        });
       });
 
       it('should create an event when a housing owner’s rank is changed', async () => {
@@ -454,9 +414,7 @@ describe('Owner API', () => {
 
         housingOwners.forEach((_, i) => {
           expect(events).toPartiallyContain<
-            Partial<
-              EventRecordDBO<'housing:owner-updated'> & HousingOwnerEventDBO
-            >
+            Partial<EventRecordDBO<'housing:owner-updated'>>
           >({
             type: 'housing:owner-updated',
             next_old: {

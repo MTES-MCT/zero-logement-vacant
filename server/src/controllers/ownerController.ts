@@ -1,13 +1,12 @@
 import {
   AddressKinds,
-  formatAddress,
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
   OwnerDTO,
-  OwnerPayloadDTO
+  OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import async from 'async';
-import { Array, pipe, Record, Struct } from 'effect';
+import { Array, pipe, Record } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
@@ -18,14 +17,14 @@ import OwnerMissingError from '~/errors/ownerMissingError';
 import { startTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
-import { HousingOwnerEventApi } from '~/models/EventApi';
+import { HousingOwnerEventApi, OwnerEventApi } from '~/models/EventApi';
 import {
   HOUSING_OWNER_EQUIVALENCE,
   HOUSING_OWNER_RANK_EQUIVALENCE,
   HousingOwnerApi,
   toHousingOwnerDTO
 } from '~/models/HousingOwnerApi';
-import { OwnerApi, ownerDiff, toOwnerDTO } from '~/models/OwnerApi';
+import { diffUpdatedOwner, OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
@@ -80,25 +79,31 @@ async function listByHousing(request: Request, response: Response) {
     .json(housingOwners.map(toHousingOwnerDTO));
 }
 
-async function create(
-  request: Request<never, OwnerDTO, OwnerPayloadDTO, never>,
-  response: Response<OwnerDTO>
-) {
+const create: RequestHandler<
+  never,
+  OwnerDTO,
+  OwnerUpdatePayload,
+  never
+> = async (request, response): Promise<void> => {
   logger.info('Creating owner...', request.body);
 
-  const { auth, body } = request as AuthenticatedRequest<
+  const { body } = request as AuthenticatedRequest<
     never,
     OwnerDTO,
-    OwnerPayloadDTO,
+    OwnerUpdatePayload,
     never
   >;
   const owner: OwnerApi = {
     id: uuidv4(),
     fullName: body.fullName,
     rawAddress: body.rawAddress,
+    banAddress: null,
+    additionalAddress: null,
     birthDate: body.birthDate ? new Date(body.birthDate).toJSON() : null,
+    administrator: null,
     // TODO: we should ask the user to provide the kind of owner
     kind: null,
+    kindDetail: null,
     phone: body.phone,
     email: body.email,
     // TODO: obtain this from the frontend form
@@ -112,29 +117,17 @@ async function create(
     merge: false
   });
 
-  await eventRepository.insertOwnerEvent({
-    id: uuidv4(),
-    name: "Création d'un nouveau propriétaire",
-    kind: 'Create',
-    category: 'Ownership',
-    section: 'Propriétaire',
-    new: owner,
-    createdBy: auth.userId,
-    createdAt: new Date(),
-    ownerId: owner.id
-  });
-
   response.status(constants.HTTP_STATUS_OK).json(toOwnerDTO(owner));
-}
+};
 
 async function update(
-  request: Request<PathParams, OwnerDTO, OwnerPayloadDTO, never>,
+  request: Request<PathParams, OwnerDTO, OwnerUpdatePayload, never>,
   response: Response<OwnerDTO>
 ) {
   const { auth, body, params } = request as AuthenticatedRequest<
     PathParams,
     OwnerDTO,
-    OwnerPayloadDTO,
+    OwnerUpdatePayload,
     never
   >;
 
@@ -143,14 +136,14 @@ async function update(
     throw new OwnerMissingError(params.id);
   }
 
-  const banAddress: AddressApi | undefined = body.banAddress
+  const banAddress: AddressApi | null = body.banAddress
     ? {
         ...body.banAddress,
         refId: existingOwner.id,
         addressKind: AddressKinds.Owner,
         lastUpdatedAt: new Date().toJSON()
       }
-    : undefined;
+    : null;
   const owner: OwnerApi = {
     id: existingOwner.id,
     rawAddress: existingOwner.rawAddress,
@@ -171,11 +164,49 @@ async function update(
     updatedAt: new Date().toJSON()
   };
 
+  const { before, after, changed } = diffUpdatedOwner(
+    {
+      name: existingOwner.fullName,
+      birthdate:
+        existingOwner.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null,
+      email: existingOwner.email,
+      phone: existingOwner.phone,
+      address: existingOwner.banAddress?.label ?? null,
+      additionalAddress: existingOwner.additionalAddress
+    },
+    {
+      name: owner.fullName,
+      birthdate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null,
+      email: owner.email,
+      phone: owner.phone,
+      address: owner.banAddress?.label ?? null,
+      additionalAddress: owner.additionalAddress
+    }
+  );
+  const events: OwnerEventApi[] = [];
+  if (changed.length > 0) {
+    events.push({
+      id: uuidv4(),
+      name: "Modification d'identité",
+      type: 'owner:updated',
+      nextOld: {
+        ...before,
+        name: existingOwner.fullName
+      },
+      nextNew: {
+        ...after,
+        name: owner.fullName
+      },
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      ownerId: owner.id
+    });
+  }
+
   await Promise.all([
     ownerRepository.betterSave(owner, {
       onConflict: ['id'],
       merge: [
-        'address_dgfip',
         'full_name',
         'birth_date',
         'email',
@@ -187,34 +218,7 @@ async function update(
     banAddress
       ? banAddressesRepository.save(banAddress)
       : banAddressesRepository.remove(existingOwner.id, AddressKinds.Owner),
-    hasIdentityChanges(existingOwner, owner)
-      ? eventRepository.insertOwnerEvent({
-          id: uuidv4(),
-          name: "Modification d'identité",
-          kind: 'Update',
-          category: 'Ownership',
-          section: 'Coordonnées propriétaire',
-          old: existingOwner,
-          new: owner,
-          createdBy: auth.userId,
-          createdAt: new Date(),
-          ownerId: owner.id
-        })
-      : Promise.resolve(),
-    hasContactChanges(existingOwner, owner)
-      ? eventRepository.insertOwnerEvent({
-          id: uuidv4(),
-          name: 'Modification de coordonnées',
-          kind: 'Update',
-          category: 'Ownership',
-          section: 'Coordonnées propriétaire',
-          old: existingOwner,
-          new: owner,
-          createdBy: auth.userId,
-          createdAt: new Date(),
-          ownerId: owner.id
-        })
-      : Promise.resolve()
+    eventRepository.insertManyOwnerEvents(events)
   ]);
 
   response.status(constants.HTTP_STATUS_OK).json(toOwnerDTO(owner));

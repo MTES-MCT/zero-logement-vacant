@@ -7,6 +7,7 @@ import {
   CAMPAIGN_COUNT_VALUES,
   CampaignCreationPayloadDTO,
   CampaignDTO,
+  CampaignRemovalPayloadDTO,
   CampaignStatus,
   CampaignUpdatePayloadDTO,
   DATA_FILE_YEAR_VALUES,
@@ -762,6 +763,14 @@ describe('Campaign API', () => {
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
+    it('should fail if the campaign is missing', async () => {
+      const { status } = await request(app)
+        .delete(testRoute(uuidv4()))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
     it('should remove the campaign', async () => {
       const { status } = await request(app)
         .delete(testRoute(campaign.id))
@@ -906,6 +915,90 @@ describe('Campaign API', () => {
   });
 
   describe('DELETE /campaigns/{id}/housing', () => {
-    // TODO
+    const testRoute = (id: string) => `/api/campaigns/${id}/housing`;
+
+    let campaign: CampaignApi;
+    let housings: HousingApi[];
+
+    beforeEach(async () => {
+      campaign = genCampaignApi(establishment.id, user.id);
+      await Campaigns().insert(formatCampaignApi(campaign));
+
+      housings = faker.helpers.multiple(() =>
+        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+      );
+      await Housing().insert(housings.map(formatHousingRecordApi));
+
+      const campaignHousings = formatCampaignHousingApi(campaign, housings);
+      await CampaignsHousing().insert(campaignHousings);
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).delete(testRoute(campaign.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should fail if the campaign is missing', async () => {
+      const payload: CampaignRemovalPayloadDTO = {
+        all: true,
+        ids: [],
+        filters: {}
+      };
+
+      const { status } = await request(app)
+        .delete(testRoute(uuidv4()))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it.todo('should fail if the campaign does not belong to the user');
+
+    it('should unlink the associated housings', async () => {
+      const payload = {
+        all: false,
+        ids: housings.map((housing) => housing.id)
+      };
+
+      const { status } = await request(app)
+        .delete(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actualCampaignHousings = await CampaignsHousing().where({
+        campaign_id: campaign.id
+      });
+      expect(actualCampaignHousings).toBeArrayOfSize(0);
+    });
+
+    it('should create an event "housing:campaign-detached" for each housing', async () => {
+      const payload = {
+        all: false,
+        ids: housings.map((housing) => housing.id)
+      };
+
+      const { status } = await request(app)
+        .delete(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const events = await Events()
+        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          type: 'housing:campaign-detached',
+          campaign_id: campaign.id
+        });
+
+      expect(events).toBeArrayOfSize(housings.length);
+      expect(events).toIncludeAllPartialMembers(
+        housings.map((housing) => ({ housing_id: housing.id }))
+      );
+    });
   });
 });

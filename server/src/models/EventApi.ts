@@ -85,7 +85,7 @@ export type OwnerEventApi = EventUnion<'owner:updated'> & {
   ownerId: string;
 };
 
-export type CampaignEventApi = EventUnion<'campaign:status-updated'> & {
+export type CampaignEventApi = EventUnion<'campaign:updated'> & {
   campaignId: string;
 };
 

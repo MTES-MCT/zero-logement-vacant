@@ -17,5 +17,5 @@ export const EVENT_TYPE_VALUES = [
   'housing:campaign-detached',
   'housing:campaign-removed',
   'owner:updated',
-  'campaign:status-updated'
+  'campaign:updated'
 ] as const satisfies ReadonlyArray<EventType>;

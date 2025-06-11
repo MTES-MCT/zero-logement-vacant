@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { HousingStatus, Occupancy } from '@zerologementvacant/models';
 
 import {
+  CampaignEventApi,
   GroupHousingEventApi,
   HousingEventApi,
   OwnerEventApi,
@@ -9,11 +10,17 @@ import {
 } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
 import {
+  Campaigns,
+  formatCampaignApi
+} from '~/repositories/campaignRepository';
+import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import eventRepository, {
+  CampaignEvents,
   Events,
+  formatCampaignEventApi,
   formatEventApi,
   formatGroupHousingEventApi,
   formatHousingEventApi,
@@ -38,6 +45,7 @@ import {
 } from '~/repositories/precisionRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
+  genCampaignApi,
   genEstablishmentApi,
   genEventApi,
   genGroupApi,
@@ -497,6 +505,47 @@ describe('Event repository', () => {
             .map((event) => ({ id: event.id }))
         );
       });
+    });
+  });
+
+  describe('removeCampaignEvents', () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+
+    const campaign = genCampaignApi(establishment.id, user.id);
+    const events: ReadonlyArray<CampaignEventApi> = [
+      {
+        ...genEventApi({
+          creator: user,
+          type: 'campaign:updated',
+          nextOld: { title: 'Old Title' },
+          nextNew: { title: 'New Title' }
+        }),
+        campaignId: campaign.id
+      }
+    ];
+
+    beforeAll(async () => {
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      await Users().insert(formatUserApi(user));
+      await Campaigns().insert(formatCampaignApi(campaign));
+      await Events().insert(events.map(formatEventApi));
+      await CampaignEvents().insert(events.map(formatCampaignEventApi));
+
+      await eventRepository.removeCampaignEvents(campaign.id);
+    });
+
+    it('should remove the events', async () => {
+      const actual = await Events().whereIn(
+        'id',
+        events.map((event) => event.id)
+      );
+      expect(actual).toBeArrayOfSize(0);
+    });
+
+    it('should remove the associated campaign events', async () => {
+      const actual = await CampaignEvents().where({ campaign_id: campaign.id });
+      expect(actual).toBeArrayOfSize(0);
     });
   });
 });

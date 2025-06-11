@@ -8,6 +8,7 @@ import {
   CAMPAIGN_STATUS_VALUES,
   CampaignCreationPayloadDTO,
   CampaignDTO,
+  CampaignRemovalPayloadDTO,
   CampaignUpdatePayloadDTO,
   HousingFiltersDTO,
   HousingStatus,
@@ -47,9 +48,7 @@ import {
   HousingEventApi
 } from '~/models/EventApi';
 import { HousingApi, shouldReset } from '~/models/HousingApi';
-import housingFiltersApi, {
-  HousingFiltersApi
-} from '~/models/HousingFiltersApi';
+import housingFiltersApi from '~/models/HousingFiltersApi';
 import sortApi from '~/models/SortApi';
 import campaignHousingRepository from '~/repositories/campaignHousingRepository';
 import campaignRepository from '~/repositories/campaignRepository';
@@ -569,32 +568,60 @@ const removeHousingValidators: ValidationChain[] = [
 async function removeHousing(
   request: Request,
   response: Response
-): Promise<Response> {
+): Promise<void> {
   logger.info('Remove campaign housing list');
 
-  const campaignId = request.params.id;
-  const filters = <HousingFiltersApi>request.body.filters;
-  const all = <boolean>request.body.all;
-  const { establishmentId } = (request as AuthenticatedRequest).auth;
+  const { auth, body, params } = request as AuthenticatedRequest<
+    { id: string },
+    never,
+    CampaignRemovalPayloadDTO,
+    never
+  >;
 
-  const housingIds = await housingRepository
+  const campaign = await campaignRepository.findOne({
+    id: params.id,
+    establishmentId: auth.establishmentId
+  });
+  if (!campaign) {
+    throw new CampaignMissingError(params.id);
+  }
+
+  const housings = await housingRepository
     .find({
       filters: {
-        ...filters,
-        establishmentIds: [establishmentId],
-        campaignIds: [campaignId]
+        ...body.filters,
+        establishmentIds: [auth.establishmentId],
+        campaignIds: [params.id]
       },
       pagination: { paginate: false }
     })
-    .then((_) =>
-      _.map((_) => _.id).filter((id) =>
-        all ? !request.body.ids.includes(id) : request.body.ids.includes(id)
-      )
-    );
+    .then((housings) => {
+      const ids = new Set(body.ids);
+      return housings.filter((housing) =>
+        body.all ? !ids.has(housing.id) : ids.has(housing.id)
+      );
+    });
+  const events = housings.map<CampaignHousingEventApi>((housing) => ({
+    id: uuidv4(),
+    type: 'housing:campaign-detached',
+    name: 'Retrait d’une campagne',
+    nextOld: { name: campaign.title },
+    nextNew: null,
+    createdAt: new Date().toJSON(),
+    createdBy: auth.userId,
+    campaignId: campaign.id,
+    housingGeoCode: housing.geoCode,
+    housingId: housing.id
+  }));
 
-  return campaignHousingRepository
-    .removeMany([campaignId], housingIds)
-    .then((_) => response.status(constants.HTTP_STATUS_OK).json(_));
+  await startTransaction(async () => {
+    await Promise.all([
+      campaignHousingRepository.removeMany(campaign, housings),
+      eventRepository.insertManyCampaignHousingEvents(events)
+    ]);
+  });
+  // TODO: return the remaining housings ?
+  response.status(constants.HTTP_STATUS_OK).send();
 }
 
 const campaignController = {

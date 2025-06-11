@@ -125,7 +125,7 @@ function IndividualEventCard(props: IndividualEventCardProps) {
         <OwnerUpdatedEventCard event={event} />
       ))
       // Not yet needed thus not implemented
-      .with({ type: 'campaign:status-updated' }, () => null)
+      .with({ type: 'campaign:updated' }, () => null)
       .exhaustive()
   );
 }

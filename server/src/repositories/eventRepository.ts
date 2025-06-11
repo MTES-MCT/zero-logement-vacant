@@ -47,16 +47,12 @@ export const HousingOwnerEvents = (transaction = db) =>
   transaction<HousingOwnerEventDBO>(HOUSING_OWNER_EVENTS_TABLE);
 export const CampaignEvents = (transaction = db) =>
   transaction<CampaignEventDBO>(CAMPAIGN_EVENTS_TABLE);
+export const CampaignHousingEvents = (transaction = db) =>
+  transaction<CampaignHousingEventDBO>(CAMPAIGN_HOUSING_EVENTS_TABLE);
 export const GroupHousingEvents = (transaction = db) =>
   transaction<GroupHousingEventDBO>(GROUP_HOUSING_EVENTS_TABLE);
 export const PrecisionHousingEvents = (transaction = db) =>
   transaction<PrecisionHousingEventDBO>(PRECISION_HOUSING_EVENTS_TABLE);
-
-async function insertHousingEvent(
-  housingEvent: HousingEventApi
-): Promise<void> {
-  await insertManyHousingEvents([housingEvent]);
-}
 
 async function insertManyHousingEvents(
   events: ReadonlyArray<HousingEventApi>
@@ -140,7 +136,7 @@ async function insertManyCampaignHousingEvents(
   logger.debug('Inserting campaign housing events...', {
     events: events.length
   });
-  await db.transaction(async (transaction) => {
+  await withinTransaction(async (transaction) => {
     await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
     await transaction.batchInsert(
       CAMPAIGN_HOUSING_EVENTS_TABLE,
@@ -159,7 +155,7 @@ async function insertManyCampaignEvents(
   logger.debug('Inserting campaign events...', {
     events: events.length
   });
-  await db.transaction(async (transaction) => {
+  await withinTransaction(async (transaction) => {
     await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
     await transaction.batchInsert(
       CAMPAIGN_EVENTS_TABLE,
@@ -268,10 +264,24 @@ async function find<Type extends EventType>(
   return events.map(parseEventApi);
 }
 
-const removeCampaignEvents = async (campaignId: string): Promise<void> => {
-  logger.info('Delete eventApi for campaign', campaignId);
-  await db(CAMPAIGN_EVENTS_TABLE).where('campaign_id', campaignId).delete();
-};
+async function removeCampaignEvents(campaignId: string): Promise<void> {
+  logger.debug('Removing campaign events...', {
+    campaign: campaignId
+  });
+  await withinTransaction(async (transaction) => {
+    await Events(transaction)
+      .join(
+        CAMPAIGN_EVENTS_TABLE,
+        `${CAMPAIGN_EVENTS_TABLE}.event_id`,
+        `${EVENTS_TABLE}.id`
+      )
+      .where(`${CAMPAIGN_EVENTS_TABLE}.campaign_id`, campaignId)
+      .delete();
+  });
+  logger.debug('Campaign events removed', {
+    campaign: campaignId
+  });
+}
 
 export interface EventRecordDBO<Type extends EventType> {
   id: string;
@@ -412,7 +422,7 @@ export function formatGroupHousingEventApi(
   };
 }
 
-interface CampaignHousingEventDBO {
+export interface CampaignHousingEventDBO {
   event_id: string;
   housing_geo_code: string;
   housing_id: string;

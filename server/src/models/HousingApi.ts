@@ -222,3 +222,10 @@ export function isSupervised(
 export function normalizeDataFileYears(dataFileYears: string[]): string[] {
   return fp.pipe(fp.sortBy<string>(fp.identity), fp.sortedUniq)(dataFileYears);
 }
+
+export function shouldReset(housing: HousingApi): boolean {
+  return (
+    housing.status === HousingStatus.WAITING &&
+    housing.campaignIds?.length === 1
+  );
+}

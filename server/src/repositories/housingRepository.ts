@@ -268,6 +268,11 @@ async function saveMany(
   housingList: HousingRecordApi[],
   opts?: SaveOptions
 ): Promise<void> {
+  if (housingList.length === 0) {
+    logger.debug('No housing to save. Skipping...');
+    return;
+  }
+
   await Housing()
     .insert(housingList.map(formatHousingRecordApi))
     .modify((builder) => {
@@ -373,10 +378,9 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
     includes.push('owner');
   }
 
-  const filterByCampaign = [
-    filters?.campaignIds,
-    filters?.campaignsCounts
-  ].some((filter) => filter?.length);
+  const filterByCampaign = [filters?.campaignIds, filters?.campaignCount].some(
+    (filter) => filter !== undefined
+  );
   if (filterByCampaign) {
     includes.push('campaigns');
   }
@@ -495,14 +499,10 @@ function filteredQuery(opts: FilteredQueryOptions) {
         }
       });
     }
-    if (filters.campaignsCounts?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
-        if (filters.campaignsCounts?.includes('0')) {
-          whereBuilder.orWhereRaw(
-            `cardinality(${campaignsTable}.campaign_ids) = 0`
-          );
-        }
-      });
+    if (filters.campaignCount !== undefined) {
+      queryBuilder.whereRaw(`cardinality(${campaignsTable}.campaign_ids) = ?`, [
+        filters.campaignCount
+      ]);
     }
     if (filters.ownerIds?.length) {
       queryBuilder.whereIn(`${ownerTable}.id`, filters.ownerIds);

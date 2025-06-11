@@ -97,7 +97,9 @@ export type EventPayloads = {
     additionalAddress?: string | null;
   }>;
 
-  'campaign:status-updated': UpdateEventChange<{
-    status: CampaignStatus;
+  'campaign:updated': UpdateEventChange<{
+    status?: CampaignStatus;
+    title?: string;
+    description?: string;
   }>;
 };

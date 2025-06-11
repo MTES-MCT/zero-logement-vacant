@@ -501,9 +501,9 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
   };
 };
 
-type EventOptions<Type extends EventType> = Pick<
-  EventApi<Type>,
-  'type' | 'creator' | 'nextOld' | 'nextNew'
+type EventOptions<Type extends EventType> = MarkRequired<
+  Pick<EventApi<Type>, 'type' | 'creator' | 'nextOld' | 'nextNew'>,
+  'creator'
 >;
 export function genEventApi<Type extends EventType>(
   options: EventOptions<Type>
@@ -511,7 +511,7 @@ export function genEventApi<Type extends EventType>(
   return fromEventDTO(
     genEventDTO<Type>({
       ...options,
-      creator: toUserDTO(options.creator!)
+      creator: toUserDTO(options.creator)
     })
   );
 }

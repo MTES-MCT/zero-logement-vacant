@@ -1,6 +1,7 @@
 import db from '~/infra/database';
-import { HousingApi } from '~/models/HousingApi';
+import { withinTransaction } from '~/infra/database/transaction';
 import { CampaignApi } from '~/models/CampaignApi';
+import { HousingApi } from '~/models/HousingApi';
 
 export const campaignsHousingTable = 'campaigns_housing';
 export const CampaignsHousing = (transaction = db) =>
@@ -8,44 +9,39 @@ export const CampaignsHousing = (transaction = db) =>
 
 const insertHousingList = async (
   campaignId: string,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): Promise<void> => {
   await CampaignsHousing()
     .insert(
       housingList.map((housing) => ({
         campaign_id: campaignId,
         housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-      })),
+        housing_geo_code: housing.geoCode
+      }))
     )
     .onConflict(['campaign_id', 'housing_id', 'housing_geo_code'])
     .ignore()
     .returning('housing_id');
 };
 
-const deleteHousingFromCampaigns = async (
-  campaignIds: string[],
-  housingIds?: string[],
-): Promise<number> => {
-  try {
-    return db(campaignsHousingTable)
-      .delete()
-      .whereIn('campaign_id', campaignIds)
-      .modify((queryBuilder: any) => {
-        if (housingIds) {
-          queryBuilder.whereIn('housing_id', housingIds);
-        }
-      });
-  } catch (err) {
-    console.error(
-      'Removing housing from campaign failed',
-      err,
-      campaignIds,
-      housingIds,
-    );
-    throw new Error('Removing housing from campaign failed');
+async function removeMany(
+  campaign: CampaignApi,
+  housings: HousingApi[]
+): Promise<void> {
+  if (housings?.length === 0) {
+    return;
   }
-};
+
+  await withinTransaction(async (transaction) => {
+    await CampaignsHousing(transaction)
+      .where({ campaign_id: campaign.id })
+      .whereIn(
+        ['housing_geo_code', 'housing_id'],
+        housings.map((housing) => [housing.geoCode, housing.id])
+      )
+      .delete();
+  });
+}
 
 export interface CampaignHousingDBO {
   campaign_id: string;
@@ -56,16 +52,16 @@ export interface CampaignHousingDBO {
 
 export const formatCampaignHousingApi = (
   campaign: CampaignApi,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): CampaignHousingDBO[] => {
   return housingList.map((housing) => ({
     campaign_id: campaign.id,
     housing_id: housing.id,
-    housing_geo_code: housing.geoCode,
+    housing_geo_code: housing.geoCode
   }));
 };
 
 export default {
   insertHousingList,
-  deleteHousingFromCampaigns,
+  removeMany
 };

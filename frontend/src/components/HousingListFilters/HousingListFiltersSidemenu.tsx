@@ -583,7 +583,7 @@ function HousingListFiltersSidemenu(props: Props) {
               value={filters.energyConsumption ?? []}
               onChange={(values) => {
                 onChangeFilters({ energyConsumption: values });
-                posthog.capture('filtre-taux-de-vacance');
+                posthog.capture('filtre-etiquette-dpe');
               }}
             />
           </Grid>
@@ -696,7 +696,7 @@ function HousingListFiltersSidemenu(props: Props) {
               value={filters.multiOwners ?? []}
               onChange={(values) => {
                 onChangeFilters({ multiOwners: values });
-                posthog.capture('filtre-owners');
+                posthog.capture('filtre-multi-proprietaire');
               }}
             />
           </Grid>

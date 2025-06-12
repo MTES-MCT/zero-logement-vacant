@@ -33,9 +33,9 @@ export function formatHousingCreatedDifferences(
   options: CardDescriptionOptions
 ): string {
   return options.source === 'datafoncier-manual'
-    ? 'Le logement a été créé manuellement'
+    ? 'Le logement a été créé manuellement.'
     : `Le logement a été importé de la base de données ${getSource({
         source: 'lovac',
         dataFileYears: [options.source]
-      })}`;
+      })}.`;
 }

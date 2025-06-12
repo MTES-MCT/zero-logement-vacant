@@ -7,7 +7,7 @@ import localeFR from 'date-fns/locale/fr';
 import { ReactNode } from 'react';
 
 import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
-import { ADMIN_LABEL, formatAuthor, User, UserRoles } from '../../models/User';
+import { ADMIN_LABEL, formatAuthor, User } from '../../models/User';
 import AppBadge from '../_app/AppBadge/AppBadge';
 import HistoryCard from './HistoryCard';
 
@@ -29,7 +29,8 @@ function EventCard(props: EventCardProps) {
   const establishment = availableEstablishments?.find(
     (establishment) => establishment.id === props.createdBy.establishmentId
   );
-  const isAdmin = props.createdBy.role === UserRoles.Admin;
+  const isAdmin =
+    props.createdBy.email === 'admin@zerologementvacant.beta.gouv.fr';
   const author = isAdmin
     ? ADMIN_LABEL
     : formatAuthor(props.createdBy, establishment ?? null);

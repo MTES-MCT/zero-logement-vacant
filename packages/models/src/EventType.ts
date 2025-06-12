@@ -10,6 +10,8 @@ export const EVENT_TYPE_VALUES = [
   'housing:owner-attached',
   'housing:owner-updated',
   'housing:owner-detached',
+  'housing:perimeter-attached',
+  'housing:perimeter-detached',
   'housing:group-attached',
   'housing:group-detached',
   'housing:group-removed',

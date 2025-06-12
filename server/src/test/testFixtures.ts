@@ -10,6 +10,8 @@ import {
   EventType,
   HOUSING_KIND_VALUES,
   HOUSING_SOURCE_VALUES,
+  HOUSING_STATUS_VALUES,
+  HousingStatus,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   LOCALITY_KIND_VALUES,
@@ -46,10 +48,6 @@ import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import {
-  HOUSING_STATUS_VALUES,
-  HousingStatusApi
-} from '~/models/HousingStatusApi';
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { OwnerApi } from '~/models/OwnerApi';
@@ -141,12 +139,12 @@ export const genUserApi = (establishmentId: string): UserApi => {
     lastName: faker.person.lastName(),
     establishmentId,
     role: UserRoles.Usual,
-    activatedAt: faker.date.recent(),
+    activatedAt: faker.date.recent().toJSON(),
     phone: faker.phone.number(),
     position: faker.person.jobType(),
     timePerWeek: randomstring.generate(),
-    lastAuthenticatedAt: faker.date.recent(),
-    updatedAt: faker.date.recent(),
+    lastAuthenticatedAt: faker.date.recent().toJSON(),
+    updatedAt: faker.date.recent().toJSON(),
     deletedAt: undefined
   };
 };
@@ -357,11 +355,11 @@ export const genHousingApi = (
       ) ?? null,
     status: faker.helpers.weightedArrayElement([
       {
-        value: HousingStatusApi.NeverContacted,
+        value: HousingStatus.NEVER_CONTACTED,
         weight: HOUSING_STATUS_VALUES.length - 1
       },
       ...HOUSING_STATUS_VALUES.filter(
-        (status) => status !== HousingStatusApi.NeverContacted
+        (status) => status !== HousingStatus.NEVER_CONTACTED
       ).map((status) => ({
         value: status,
         weight: 1
@@ -380,7 +378,7 @@ export const genHousingApi = (
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
-    mutationDate: faker.date.past({ years: 20 }),
+    mutationDate: faker.date.past({ years: 20 }).toJSON(),
     geolocation: null,
     plotId: null,
     beneficiaryCount: null,
@@ -393,9 +391,11 @@ export const genHousingApi = (
     rentalValue: faker.number.int({ min: 500, max: 1000 }),
     deprecatedPrecisions: [],
     lastMutationDate:
-      faker.helpers.maybe(() => faker.date.past({ years: 20 })) ?? null,
+      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+      null,
     lastTransactionDate:
-      faker.helpers.maybe(() => faker.date.past({ years: 20 })) ?? null,
+      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+      null,
     lastTransactionValue:
       faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ??
       null

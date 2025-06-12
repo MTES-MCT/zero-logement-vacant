@@ -30,11 +30,12 @@ export async function seed(knex: Knex): Promise<void> {
       .toList()
       .flatMap((_) => _)
       .toArray();
+  console.log(`Inserting ${precisions.length} precisions...`);
   await Precisions(knex).insert(precisions);
 
   // Attach precisions to some housings
   const establishments = await Establishments(knex).where({ available: true });
-  const geoCodes = establishments.map(
+  const geoCodes: ReadonlyArray<string> = establishments.flatMap(
     (establishment) => establishment.localities_geo_code
   );
   const housings = await Housing(knex)
@@ -54,5 +55,10 @@ export async function seed(knex: Knex): Promise<void> {
       }));
     })
     .flat();
+
+  console.log('Linking precisions to housings...', {
+    precisions: precisions.length,
+    housings: housingPrecisions.length
+  });
   await knex.batchInsert(HOUSING_PRECISION_TABLE, housingPrecisions);
 }

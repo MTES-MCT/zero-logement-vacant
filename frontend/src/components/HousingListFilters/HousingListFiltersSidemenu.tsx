@@ -583,7 +583,7 @@ function HousingListFiltersSidemenu(props: Props) {
               value={filters.energyConsumption ?? []}
               onChange={(values) => {
                 onChangeFilters({ energyConsumption: values });
-                posthog.capture('filtre-taux-de-vacance');
+                posthog.capture('filtre-etiquette-dpe');
               }}
             />
           </Grid>

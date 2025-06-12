@@ -271,7 +271,7 @@ export function genEventDTO<Type extends EventType>(
     conflict: faker.datatype.boolean(),
     nextOld: nextOld,
     nextNew: nextNew,
-    createdAt: faker.date.recent().toJSON(),
+    createdAt: faker.date.past().toJSON(),
     createdBy: creator.id,
     creator: creator
   };

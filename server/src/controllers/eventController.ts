@@ -1,55 +1,115 @@
-import { Request, Response } from 'express';
-
-import eventRepository from '~/repositories/eventRepository';
-import { constants } from 'http2';
-import async from 'async';
-import housingRepository from '~/repositories/housingRepository';
-import HousingMissingError from '~/errors/housingMissingError';
+import { EventDTO } from '@zerologementvacant/models';
+import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { EventApi } from '~/models/EventApi';
-import { OwnerApi } from '~/models/OwnerApi';
-import ownerRepository from '~/repositories/ownerRepository';
+import { constants } from 'http2';
+
+import HousingMissingError from '~/errors/housingMissingError';
 import { logger } from '~/infra/logger';
+import { EventUnion } from '~/models/EventApi';
+import eventRepository from '~/repositories/eventRepository';
+import housingRepository from '~/repositories/housingRepository';
+import ownerRepository from '~/repositories/ownerRepository';
 
-async function listByOwnerId(request: Request, response: Response) {
-  const { id } = request.params;
-  logger.info('List owner events', { id });
+const listByOwnerId: RequestHandler<
+  { id: string },
+  ReadonlyArray<EventDTO<'owner:updated'>>,
+  never,
+  never
+> = async (request, response) => {
+  const { params } = request;
+  logger.info('List owner events', { id: params.id });
 
-  const events = await eventRepository.findOwnerEvents(id);
+  const events = await eventRepository.find({
+    filters: {
+      types: ['owner:updated'],
+      owners: [params.id]
+    }
+  });
   response.status(constants.HTTP_STATUS_OK).json(events);
-}
+};
 
-async function listByHousingId(request: Request, response: Response) {
-  const { establishment, params } = request as AuthenticatedRequest;
+type FindByHousingResponse = ReadonlyArray<
+  // TODO: return union of EventDTOs
+  EventUnion<
+    | 'housing:created'
+    | 'housing:occupancy-updated'
+    | 'housing:status-updated'
+    | 'housing:precision-attached'
+    | 'housing:precision-detached'
+    | 'housing:owner-attached'
+    | 'housing:owner-updated'
+    | 'housing:owner-detached'
+    | 'housing:group-attached'
+    | 'housing:group-detached'
+    | 'housing:group-removed'
+    | 'housing:group-archived'
+    | 'housing:campaign-attached'
+    | 'housing:campaign-detached'
+    | 'housing:campaign-removed'
+    | 'owner:updated'
+  >
+>;
+
+async function listByHousingId(
+  request: Request,
+  response: Response<FindByHousingResponse>
+) {
+  const { establishment, params } = request as AuthenticatedRequest<
+    { id: string },
+    FindByHousingResponse,
+    never,
+    never
+  >;
   logger.info('List housing events', { id: params.id });
 
   const housing = await housingRepository.findOne({
     id: params.id,
-    geoCode: establishment.geoCodes,
+    geoCode: establishment.geoCodes
   });
   if (!housing) {
     throw new HousingMissingError(params.id);
   }
 
-  const [housingEvents, owners, groupHousingEvents] = await Promise.all([
-    eventRepository.findHousingEvents(housing.id),
-    ownerRepository.findByHousing(housing),
-    eventRepository.findGroupHousingEvents(housing),
+  const owners = await ownerRepository.findByHousing(housing);
+  const [ownerEvents, housingEvents] = await Promise.all([
+    eventRepository.find({
+      filters: {
+        types: ['owner:updated'],
+        owners: owners.map((owner) => owner.id)
+      }
+    }),
+    eventRepository.find({
+      filters: {
+        types: [
+          'housing:created',
+          'housing:occupancy-updated',
+          'housing:status-updated',
+          'housing:precision-attached',
+          'housing:precision-detached',
+          'housing:owner-attached',
+          'housing:owner-updated',
+          'housing:owner-detached',
+          'housing:group-attached',
+          'housing:group-detached',
+          'housing:group-removed',
+          'housing:group-archived',
+          'housing:campaign-attached',
+          'housing:campaign-detached',
+          'housing:campaign-removed'
+        ],
+        housings: [{ geoCode: housing.geoCode, id: housing.id }]
+      }
+    })
   ]);
 
-  const ownerEvents: EventApi<OwnerApi>[] = await async.flatMap(
-    owners.map((_) => _.id),
-    async (id: string) => eventRepository.findOwnerEvents(id),
-  );
-
-  response
-    .status(constants.HTTP_STATUS_OK)
-    .json([...ownerEvents, ...housingEvents, ...groupHousingEvents]);
+  const events = [...ownerEvents, ...housingEvents];
+  // TODO: sort by createdAt in descending order
+  response.status(constants.HTTP_STATUS_OK).json(events);
 }
 
 const eventController = {
   listByOwnerId,
-  listByHousingId,
+  listByHousingId
 };
 
 export default eventController;

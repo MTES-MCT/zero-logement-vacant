@@ -1,8 +1,7 @@
 import { fakerFR as faker } from '@faker-js/faker';
-
-import { compactUndefined } from '@zerologementvacant/utils';
 import fp from 'lodash/fp';
 import { MarkRequired } from 'ts-essentials';
+
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
 import { CampaignDTO } from '../CampaignDTO';
@@ -12,10 +11,8 @@ import { ENERGY_CONSUMPTION_VALUES } from '../EnergyConsumption';
 import { EstablishmentDTO } from '../EstablishmentDTO';
 import { ESTABLISHMENT_KIND_VALUES } from '../EstablishmentKind';
 import { ESTABLISHMENT_SOURCE_VALUES } from '../EstablishmentSource';
-import { EVENT_CATEGORY_VALUES } from '../EventCategory';
 import { EVENT_NAME_VALUES, EventDTO } from '../EventDTO';
-import { EVENT_KIND_VALUES } from '../EventKind';
-import { EVENT_SECTION_VALUES } from '../EventSection';
+import { EventType } from '../EventType';
 import { FileUploadDTO } from '../FileUploadDTO';
 import { GroupDTO } from '../GroupDTO';
 import { HousingDTO } from '../HousingDTO';
@@ -26,6 +23,7 @@ import { NoteDTO } from '../NoteDTO';
 import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
 import { OwnerDTO } from '../OwnerDTO';
 import { OWNER_KIND_LABELS } from '../OwnerKind';
+import { OWNERSHIP_KIND_INTERNAL_VALUES } from '../OwnershipKind';
 import { PROPERTY_RIGHT_VALUES } from '../PropertyRight';
 import { ProspectDTO } from '../ProspectDTO';
 import { RolesDTO } from '../RolesDTO';
@@ -258,21 +256,22 @@ export function genEstablishmentDTO(): EstablishmentDTO {
   };
 }
 
-export function genEventDTO<T>(
-  before: T | undefined,
-  after: T | undefined,
-  creator: UserDTO
-): MarkRequired<EventDTO<T>, 'creator'> {
+type GenEventOptions<Type extends EventType> = Pick<
+  Required<EventDTO<Type>>,
+  'type' | 'creator' | 'nextOld' | 'nextNew'
+>;
+export function genEventDTO<Type extends EventType>(
+  options: GenEventOptions<Type>
+): MarkRequired<EventDTO<Type>, 'creator'> {
+  const { type, creator, nextOld, nextNew } = options;
   return {
     id: faker.string.uuid(),
     name: faker.helpers.arrayElement(EVENT_NAME_VALUES),
-    kind: faker.helpers.arrayElement(EVENT_KIND_VALUES),
-    category: faker.helpers.arrayElement(EVENT_CATEGORY_VALUES),
-    section: faker.helpers.arrayElement(EVENT_SECTION_VALUES),
+    type: type,
     conflict: faker.datatype.boolean(),
-    old: before,
-    new: after,
-    createdAt: new Date(),
+    nextOld: nextOld,
+    nextNew: nextNew,
+    createdAt: faker.date.past().toJSON(),
     createdBy: creator.id,
     creator: creator
   };
@@ -329,6 +328,7 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     cadastralClassification: faker.helpers.arrayElement(
       CADASTRAL_CLASSIFICATION_VALUES
     ),
+    cadastralReference: null,
     longitude: faker.location.longitude(),
     latitude: faker.location.latitude(),
     occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
@@ -344,7 +344,15 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     owner,
     lastMutationDate: faker.date.past().toJSON(),
     lastTransactionDate: faker.date.past().toJSON(),
-    lastTransactionValue: faker.number.int({ min: 1_000_000, max: 10_000_000 })
+    lastTransactionValue: faker.number.int({ min: 1_000_000, max: 10_000_000 }),
+    buildingYear: faker.date.past().getUTCFullYear(),
+    buildingLocation: null,
+    beneficiaryCount: null,
+    mutationDate:
+      faker.helpers.maybe(() => faker.date.recent().toJSON()) ?? null,
+    ownershipKind: faker.helpers.arrayElement(OWNERSHIP_KIND_INTERNAL_VALUES),
+    taxed: faker.datatype.boolean(),
+    rentalValue: faker.number.int({ min: 100, max: 10_000 })
   };
 }
 
@@ -383,14 +391,16 @@ export function genOwnerDTO(): OwnerDTO {
   const address = genAddressDTO(id, AddressKinds.Owner);
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
-  return compactUndefined({
+  return {
     id,
+    administrator: null,
     rawAddress: [
       `${address.houseNumber} ${address.street}`,
       `${address.postalCode} ${address.city}`
     ],
     banAddress: genAddressDTO(id, AddressKinds.Owner),
-    additionalAddress: faker.helpers.maybe(() => faker.location.county()),
+    additionalAddress:
+      faker.helpers.maybe(() => faker.location.county()) ?? null,
     birthDate: faker.date
       .birthdate()
       .toJSON()
@@ -401,8 +411,11 @@ export function genOwnerDTO(): OwnerDTO {
       lastName
     }),
     phone: faker.phone.number(),
-    kind: faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS))
-  });
+    kind: faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS)),
+    kindDetail: null,
+    createdAt: faker.date.past().toJSON(),
+    updatedAt: faker.date.recent().toJSON()
+  };
 }
 
 export function genProspectDTO(establishment: EstablishmentDTO): ProspectDTO {

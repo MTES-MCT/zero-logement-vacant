@@ -3,21 +3,22 @@ import fp from 'lodash/fp';
 
 export const SALT_LENGTH = 10;
 
-export interface UserApi {
-  id: string;
-  email: string;
+export type UserApi = UserDTO & {
   password: string;
-  firstName?: string;
-  lastName?: string;
-  establishmentId?: string;
-  role: number;
-  activatedAt?: Date;
-  lastAuthenticatedAt?: Date;
-  deletedAt?: Date;
-  updatedAt?: Date;
   phone?: string;
   position?: string;
   timePerWeek?: string;
+  // Timestamps
+  lastAuthenticatedAt?: string;
+  updatedAt?: string;
+  deletedAt?: string;
+};
+
+export function fromUserDTO(user: UserDTO): UserApi {
+  return {
+    ...user,
+    password: ''
+  };
 }
 
 export function toUserDTO(user: UserApi): UserDTO {
@@ -28,7 +29,7 @@ export function toUserDTO(user: UserApi): UserDTO {
     lastName: user.lastName,
     role: user.role,
     establishmentId: user.establishmentId,
-    activatedAt: user.activatedAt?.toJSON(),
+    activatedAt: user.activatedAt
   };
 }
 
@@ -38,7 +39,7 @@ export function toUserAccountDTO(user: UserApi): UserAccountDTO {
     lastName: user.lastName,
     phone: user.phone,
     position: user.position,
-    timePerWeek: user.timePerWeek,
+    timePerWeek: user.timePerWeek
   };
 }
 
@@ -53,12 +54,12 @@ export function detectDomain(users: UserApi[]): string | null {
     fp.map(([domain, count]) => {
       return {
         domain,
-        count,
+        count
       };
     }),
     fp.filter((value) => isAllowedDomain(value.domain)),
     fp.maxBy((value) => value.count),
-    (value) => value?.domain ?? null,
+    (value) => value?.domain ?? null
   )(users);
 }
 
@@ -68,7 +69,7 @@ function isAllowedDomain(domain: string): boolean {
     'hotmail.fr',
     'hotmail.com',
     'wanadoo.fr',
-    'wanadoo.com',
+    'wanadoo.com'
   ];
   return !domains.includes(domain);
 }
@@ -81,5 +82,5 @@ export interface TokenPayload {
 export enum UserRoles {
   Usual,
   Admin,
-  Visitor,
+  Visitor
 }

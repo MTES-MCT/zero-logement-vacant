@@ -696,7 +696,7 @@ function HousingListFiltersSidemenu(props: Props) {
               value={filters.multiOwners ?? []}
               onChange={(values) => {
                 onChangeFilters({ multiOwners: values });
-                posthog.capture('filtre-multi-proprietaires');
+                posthog.capture('filtre-multi-proprietaire');
               }}
             />
           </Grid>

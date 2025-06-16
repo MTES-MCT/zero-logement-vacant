@@ -108,13 +108,13 @@ describe('HousingApi', () => {
     it('should sort data file years', () => {
       const actual = normalizeDataFileYears([
         'lovac-2020',
-        'ff-2024',
+        'ff-2023-locatif',
         'lovac-2022',
         'lovac-2021'
       ]);
 
       expect(actual).toStrictEqual([
-        'ff-2024',
+        'ff-2023-locatif',
         'lovac-2020',
         'lovac-2021',
         'lovac-2022'

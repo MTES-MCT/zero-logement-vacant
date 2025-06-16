@@ -14,7 +14,7 @@ import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerApi, OwnerPayloadApi } from '~/models/OwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import { PaginatedResultApi } from '~/models/PaginatedResultApi';
 import { compact } from '~/utils/object';
 import {
@@ -261,7 +261,7 @@ const findByHousing = async (
   return owners.map(parseHousingOwnerApi);
 };
 
-const insert = async (draftOwnerApi: OwnerPayloadApi): Promise<OwnerApi> => {
+const insert = async (draftOwnerApi: OwnerApi): Promise<OwnerApi> => {
   logger.info('Insert draftOwnerApi');
   return Owners()
     .insert({
@@ -524,22 +524,18 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     idpersonne: owner.idpersonne ?? undefined,
     rawAddress: owner.address_dgfip,
     fullName: owner.full_name,
-    administrator: owner.administrator ?? undefined,
+    administrator: owner.administrator ?? null,
     birthDate: birthDate,
-    email: owner.email ?? undefined,
-    phone: owner.phone ?? undefined,
+    email: owner.email ?? null,
+    phone: owner.phone ?? null,
     kind: owner.kind_class,
-    kindDetail: owner.owner_kind_detail ?? undefined,
+    kindDetail: owner.owner_kind_detail ?? null,
     siren: owner.siren ?? undefined,
-    banAddress: owner.ban ? parseAddressApi(owner.ban) : undefined,
-    additionalAddress: owner.additional_address ?? undefined,
+    banAddress: owner.ban ? parseAddressApi(owner.ban) : null,
+    additionalAddress: owner.additional_address ?? null,
     entity: owner.entity,
-    createdAt: owner.created_at
-      ? new Date(owner.created_at).toJSON()
-      : undefined,
-    updatedAt: owner.updated_at
-      ? new Date(owner.updated_at).toJSON()
-      : undefined
+    createdAt: owner.created_at ? new Date(owner.created_at).toJSON() : null,
+    updatedAt: owner.updated_at ? new Date(owner.updated_at).toJSON() : null
   };
 };
 

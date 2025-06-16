@@ -11,16 +11,16 @@ export const Lovac2023: UserApi = {
   lastName: '2023',
   email: 'lovac-2023@zerologementvacant.beta.gouv.fr',
   password: '',
-  activatedAt: new Date(),
+  activatedAt: new Date().toJSON(),
   establishmentId: undefined,
-  role: UserRoles.Usual,
+  role: UserRoles.Usual
 };
 
 export async function seed(knex: Knex): Promise<void> {
   const users = [Lovac2023]
     .map((user) => ({
       ...user,
-      password: bcrypt.hashSync(user.password),
+      password: bcrypt.hashSync(user.password)
     }))
     .map(formatUserApi);
   await knex.table(usersTable).insert(users);

@@ -212,7 +212,16 @@ export function createSourceHousingCommand() {
                 id,
                 geoCode
               }: HousingId): Promise<ReadonlyArray<HousingEventApi>> {
-                const events = await eventRepository.findHousingEvents(id);
+                const events = await eventRepository.find({
+                  filters: {
+                    types: [
+                      'housing:created',
+                      'housing:occupancy-updated',
+                      'housing:status-updated'
+                    ],
+                    housings: [{ geoCode, id }]
+                  }
+                });
                 return events.map((event) => ({
                   ...event,
                   housingId: id,

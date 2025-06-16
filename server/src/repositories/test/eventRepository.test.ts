@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { HousingStatus, Occupancy } from '@zerologementvacant/models';
+import { Occupancy } from '@zerologementvacant/models';
 
 import {
   CampaignEventApi,
@@ -84,8 +84,8 @@ describe('Event repository', () => {
       genEventApi({
         creator,
         type: 'housing:status-updated',
-        nextOld: { status: HousingStatus.NEVER_CONTACTED },
-        nextNew: { status: HousingStatus.BLOCKED }
+        nextOld: { status: 'never-contacted' },
+        nextNew: { status: 'blocked' }
       })
     ].map((event) => ({
       ...event,

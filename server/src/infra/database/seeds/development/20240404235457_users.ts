@@ -3,17 +3,17 @@ import async from 'async';
 import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
+import config from '~/infra/config';
+import { SALT_LENGTH, UserApi, UserRoles } from '~/models/UserApi';
+import { Establishments } from '~/repositories/establishmentRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
+import { genUserApi } from '~/test/testFixtures';
 
 import {
   SirenSaintLo,
   SirenStrasbourg,
   ZeroLogementVacantEstablishment
 } from './20240404235442_establishments';
-import { SALT_LENGTH, UserApi, UserRoles } from '~/models/UserApi';
-import { Establishments } from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
-import { genUserApi } from '~/test/testFixtures';
-import config from '~/infra/config';
 
 export async function seed(knex: Knex): Promise<void> {
   await Users(knex).delete();
@@ -34,7 +34,7 @@ export async function seed(knex: Knex): Promise<void> {
 
   const password: string = process.env.TEST_PASSWORD || '';
 
-  if(password === '') {
+  if (password === '') {
     throw new Error('You must provide TEST_PASSWORD');
   }
 
@@ -46,7 +46,7 @@ export async function seed(knex: Knex): Promise<void> {
       firstName: 'Test',
       lastName: 'Strasbourg',
       establishmentId: strasbourg.id,
-      activatedAt: new Date(),
+      activatedAt: new Date().toJSON(),
       role: UserRoles.Usual
     },
     {
@@ -56,7 +56,7 @@ export async function seed(knex: Knex): Promise<void> {
       firstName: 'Test',
       lastName: 'Saint-Lô Agglo',
       establishmentId: saintLo.id,
-      activatedAt: new Date(),
+      activatedAt: new Date().toJSON(),
       role: UserRoles.Usual
     },
     {
@@ -65,7 +65,7 @@ export async function seed(knex: Knex): Promise<void> {
       password: bcrypt.hashSync(password),
       firstName: 'Test',
       lastName: 'Admin',
-      activatedAt: new Date(),
+      activatedAt: new Date().toJSON(),
       role: UserRoles.Admin
     },
     {
@@ -74,7 +74,7 @@ export async function seed(knex: Knex): Promise<void> {
       password: bcrypt.hashSync(password),
       firstName: 'Test',
       lastName: 'Visitor',
-      activatedAt: new Date(),
+      activatedAt: new Date().toJSON(),
       role: UserRoles.Visitor
     },
     {
@@ -84,8 +84,8 @@ export async function seed(knex: Knex): Promise<void> {
       firstName: 'Zéro',
       lastName: 'Logement Vacant',
       role: UserRoles.Usual,
-      activatedAt: new Date(),
-      updatedAt: new Date()
+      activatedAt: new Date().toJSON(),
+      updatedAt: new Date().toJSON()
     },
     // End-to-end test user
     {
@@ -96,8 +96,8 @@ export async function seed(knex: Knex): Promise<void> {
       lastName: 'TO END',
       establishmentId: zlv.id,
       role: UserRoles.Usual,
-      activatedAt: new Date(),
-      updatedAt: new Date()
+      activatedAt: new Date().toJSON(),
+      updatedAt: new Date().toJSON()
     }
   ];
   await Users()

@@ -1,4 +1,5 @@
 import {
+  DataFileYear,
   EventHousingStatus,
   HousingDTO,
   HousingStatus,
@@ -213,8 +214,13 @@ export function isSupervised(
   return false;
 }
 
-export function normalizeDataFileYears(dataFileYears: string[]): string[] {
-  return fp.pipe(fp.sortBy<string>(fp.identity), fp.sortedUniq)(dataFileYears);
+export function normalizeDataFileYears(
+  dataFileYears: DataFileYear[]
+): DataFileYear[] {
+  return fp.pipe(
+    fp.sortBy<DataFileYear>(fp.identity),
+    fp.sortedUniq
+  )(dataFileYears);
 }
 
 export function shouldReset(housing: HousingApi): boolean {

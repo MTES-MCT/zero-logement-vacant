@@ -4,7 +4,8 @@ import { ReadableStream } from 'node:stream/web';
 import { HousingApi } from '~/models/HousingApi';
 import {
   HOUSING_STATUS_VALUES,
-  HousingStatusApi
+  HousingStatusApi,
+  toHousingStatus
 } from '~/models/HousingStatusApi';
 import {
   createHousingProcessor,
@@ -66,13 +67,13 @@ describe('Housing processor', () => {
     describe('if it is vacant', () => {
       beforeEach(() => {
         housing.occupancy = Occupancy.VACANT;
-        housing.status = HousingStatusApi.NeverContacted;
+        housing.status = toHousingStatus(HousingStatusApi.NeverContacted);
         housing.subStatus = null;
       });
 
       describe('if it is currently monitored', () => {
         beforeEach(() => {
-          housing.status = HousingStatusApi.InProgress;
+          housing.status = toHousingStatus(HousingStatusApi.InProgress);
         });
 
         const subStatuses = ['En accompagnement', 'Intervention publique'];
@@ -86,7 +87,7 @@ describe('Housing processor', () => {
 
       describe('if it was set as completed', () => {
         beforeEach(() => {
-          housing.status = HousingStatusApi.Completed;
+          housing.status = toHousingStatus(HousingStatusApi.Completed);
         });
 
         it('should remain untouched', async () => {
@@ -103,14 +104,17 @@ describe('Housing processor', () => {
       it.each(statuses)(
         'should be set as non-vacant otherwise',
         async (status) => {
-          const actual = await run({ ...housing, status });
+          const actual = await run({
+            ...housing,
+            status: toHousingStatus(status)
+          });
 
           expect(actual).toPartiallyContain<HousingChange>({
             type: 'housing',
             kind: 'update',
             value: expect.objectContaining<Partial<HousingChange['value']>>({
               occupancy: Occupancy.UNKNOWN,
-              status: HousingStatusApi.Completed,
+              status: toHousingStatus(HousingStatusApi.Completed),
               subStatus: 'Sortie de la vacance'
             })
           });
@@ -145,7 +149,7 @@ describe('Housing processor', () => {
               status: housing.status
             }),
             new: expect.objectContaining<Partial<HousingApi>>({
-              status: HousingStatusApi.Completed,
+              status: toHousingStatus(HousingStatusApi.Completed),
               subStatus: 'Sortie de la vacance'
             }),
             housingId: housing.id,
@@ -158,7 +162,7 @@ describe('Housing processor', () => {
 
   describe('isInProgress', () => {
     describe(`If the status is ${HousingStatusApi.InProgress}`, () => {
-      const status = HousingStatusApi.InProgress;
+      const status = toHousingStatus(HousingStatusApi.InProgress);
 
       it.each(['En accompagnement', 'Intervention publique'])(
         'should return true if the housing status is %s and the substatus is %s',
@@ -179,8 +183,7 @@ describe('Housing processor', () => {
     it('should return false if the substatus is not set', () => {
       const housing = {
         ...genHousingApi(),
-        status: HousingStatusApi.InProgress,
-        subStatus: undefined
+        status: toHousingStatus(HousingStatusApi.InProgress)
       };
 
       const actual = isInProgress(housing);
@@ -191,7 +194,7 @@ describe('Housing processor', () => {
     it('should return false if the substatus is irrelevant', () => {
       const housing = {
         ...genHousingApi(),
-        status: HousingStatusApi.InProgress,
+        status: toHousingStatus(HousingStatusApi.InProgress),
         subStatus: 'anything else'
       };
 
@@ -209,7 +212,7 @@ describe('Housing processor', () => {
       (status) => {
         const housing = {
           ...genHousingApi(),
-          status
+          status: toHousingStatus(status)
         };
 
         const actual = isInProgress(housing);
@@ -223,7 +226,7 @@ describe('Housing processor', () => {
     it(`should return true if the housing status is ${HousingStatusApi.Completed}`, () => {
       const housing = {
         ...genHousingApi(),
-        status: HousingStatusApi.Completed
+        status: toHousingStatus(HousingStatusApi.Completed)
       };
 
       const actual = isCompleted(housing);
@@ -238,7 +241,7 @@ describe('Housing processor', () => {
     it.each(otherStatuses)('should return false otherwise', (status) => {
       const housing = {
         ...genHousingApi(),
-        status
+        status: toHousingStatus(status)
       };
 
       const actual = isCompleted(housing);

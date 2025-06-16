@@ -1,9 +1,10 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
+  EVENT_HOUSING_STATUS_VALUES,
   EventType,
-  HOUSING_STATUS_VALUES,
   OCCUPANCY_VALUES,
-  OWNER_RANKS
+  OWNER_RANKS,
+  toEventHousingStatus
 } from '@zerologementvacant/models';
 import { Knex } from 'knex';
 
@@ -115,13 +116,13 @@ export async function seed(knex: Knex): Promise<void> {
             type: 'housing:status-updated',
             nextOld: {
               status: faker.helpers.arrayElement(
-                HOUSING_STATUS_VALUES.filter(
-                  (status) => status !== housing.status
+                EVENT_HOUSING_STATUS_VALUES.filter(
+                  (status) => status !== toEventHousingStatus(housing.status)
                 )
               )
             },
             nextNew: {
-              status: housing.status
+              status: toEventHousingStatus(housing.status)
             }
           }),
           housingGeoCode: housing.geo_code,

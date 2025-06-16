@@ -46,17 +46,18 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
             idpersonne: sourceOwner.idpersonne,
             fullName: sourceOwner.full_name,
             birthDate: sourceOwner.birth_date?.toJSON() ?? null,
-            administrator: undefined,
+            administrator: null,
             siren: sourceOwner.siren ?? undefined,
             rawAddress: sourceOwner.dgfip_address
               ? [sourceOwner.dgfip_address]
               : null,
-            additionalAddress: undefined,
-            email: undefined,
-            phone: undefined,
+            banAddress: null,
+            additionalAddress: null,
+            email: null,
+            phone: null,
             dataSource: 'lovac-2025',
             kind: sourceOwner.ownership_type,
-            kindDetail: undefined,
+            kindDetail: null,
             entity: sourceOwner.entity,
             createdAt: now,
             updatedAt: now
@@ -78,21 +79,22 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
             : existingOwner.birth_date
               ? new Date(existingOwner.birth_date).toJSON()
               : null,
-          administrator: existingOwner.administrator ?? undefined,
+          administrator: existingOwner.administrator ?? null,
           siren: sourceOwner.siren ?? existingOwner.siren ?? undefined,
           rawAddress: sourceOwner.dgfip_address
             ? [sourceOwner.dgfip_address]
             : null,
-          additionalAddress: existingOwner.additional_address ?? undefined,
-          email: existingOwner.email ?? undefined,
-          phone: existingOwner.phone ?? undefined,
+          banAddress: null,
+          additionalAddress: existingOwner.additional_address ?? null,
+          email: existingOwner.email ?? null,
+          phone: existingOwner.phone ?? null,
           dataSource: existingOwner.data_source ?? undefined,
           kind: sourceOwner.ownership_type,
-          kindDetail: existingOwner.owner_kind_detail ?? undefined,
+          kindDetail: existingOwner.owner_kind_detail ?? null,
           entity: sourceOwner.entity,
           createdAt: existingOwner.created_at
             ? new Date(existingOwner.created_at).toJSON()
-            : undefined,
+            : null,
           updatedAt: new Date().toJSON()
         }
       };

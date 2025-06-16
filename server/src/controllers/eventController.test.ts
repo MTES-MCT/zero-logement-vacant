@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { HousingStatus, Occupancy } from '@zerologementvacant/models';
+import { Occupancy } from '@zerologementvacant/models';
 import { constants } from 'http2';
 import request from 'supertest';
 import { createServer } from '~/infra/server';
@@ -158,8 +158,8 @@ describe('Event API', () => {
         genEventApi({
           creator: user,
           type: 'housing:status-updated',
-          nextOld: { status: HousingStatus.NEVER_CONTACTED },
-          nextNew: { status: HousingStatus.FIRST_CONTACT }
+          nextOld: { status: 'never-contacted' },
+          nextNew: { status: 'first-contact' }
         })
       ].map<HousingEventApi>((event) => ({
         ...event,

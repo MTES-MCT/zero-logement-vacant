@@ -17,7 +17,7 @@ import {
   HousingApi,
   OccupancyKindApiLabels
 } from '~/models/HousingApi';
-import { getHousingStatusApiLabel } from '~/models/HousingStatusApi';
+import { getHousingStatusLabel } from '~/models/HousingStatusApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import campaignRepository from '~/repositories/campaignRepository';
@@ -212,7 +212,7 @@ function writeHousingWorksheet(
             buildingYear: housing.buildingYear,
             occupancy: OccupancyKindApiLabels[housing.occupancy],
             vacancyStartYear: housing.vacancyStartYear,
-            status: getHousingStatusApiLabel(housing.status) ?? '',
+            status: getHousingStatusLabel(housing.status) ?? '',
             subStatus: housing.subStatus,
             vacancyReasons: reduceStringArray(
               housing.deprecatedVacancyReasons ?? undefined

@@ -4,6 +4,7 @@ import {
   ACTIVE_OWNER_RANKS,
   AddressKinds,
   CADASTRAL_CLASSIFICATION_VALUES,
+  DATA_FILE_YEAR_VALUES,
   DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
   ESTABLISHMENT_KIND_VALUES,
@@ -211,7 +212,11 @@ export const genOwnerApi = (): OwnerApi => {
       ...Object.values(OWNER_KIND_LABELS)
     ]),
     kindDetail: randomstring.generate(),
+    administrator: null,
+    banAddress: null,
     additionalAddress: randomstring.generate(),
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
     entity: faker.helpers.arrayElement(OWNER_ENTITY_VALUES)
   };
 };
@@ -299,13 +304,8 @@ export const genHousingApi = (
       max: new Date().getUTCFullYear() + 1 - 2019
     }
   );
-  const dataFileYears = dataYears
-    .map((year) => `lovac-${year}`)
-    .concat(
-      faker.helpers.maybe(() => 'ff-2023', {
-        probability: 0.2
-      }) ?? []
-    )
+  const dataFileYears = faker.helpers
+    .arrayElements(DATA_FILE_YEAR_VALUES)
     .toSorted();
 
   return {

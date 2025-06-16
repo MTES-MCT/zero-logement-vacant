@@ -730,7 +730,7 @@ describe('Campaign API', () => {
           >({
             type: 'housing:status-updated',
             next_new: {
-              status: HousingStatus.WAITING,
+              status: 'waiting',
               subStatus: null
             }
           });

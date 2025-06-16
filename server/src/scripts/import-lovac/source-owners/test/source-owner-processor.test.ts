@@ -42,17 +42,18 @@ describe('SourceOwnerProcessor', () => {
           idpersonne: sourceOwner.idpersonne,
           fullName: sourceOwner.full_name,
           birthDate: sourceOwner.birth_date?.toJSON() ?? null,
-          administrator: undefined,
+          administrator: null,
           siren: sourceOwner.siren ?? undefined,
           rawAddress: sourceOwner.dgfip_address
             ? [sourceOwner.dgfip_address]
             : null,
-          additionalAddress: undefined,
-          email: undefined,
-          phone: undefined,
+          additionalAddress: null,
+          email: null,
+          phone: null,
           dataSource: 'lovac-2025',
           kind: sourceOwner.ownership_type,
-          kindDetail: undefined,
+          kindDetail: null,
+          banAddress: null,
           entity: sourceOwner.entity,
           createdAt: expect.any(String),
           updatedAt: expect.any(String)
@@ -102,7 +103,7 @@ describe('SourceOwnerProcessor', () => {
             : existingOwner.birthDate
               ? new Date(existingOwner.birthDate).toJSON()
               : null,
-          administrator: existingOwner.administrator ?? undefined,
+          administrator: existingOwner.administrator ?? null,
           siren: existingOwner.siren ?? sourceOwner.siren ?? undefined,
           rawAddress: sourceOwner.dgfip_address
             ? [sourceOwner.dgfip_address]
@@ -113,6 +114,7 @@ describe('SourceOwnerProcessor', () => {
           dataSource: existingOwner.dataSource,
           kind: sourceOwner.ownership_type,
           kindDetail: existingOwner.kindDetail,
+          banAddress: existingOwner.banAddress,
           entity: sourceOwner.entity,
           createdAt: existingOwner.createdAt,
           updatedAt: expect.any(String)

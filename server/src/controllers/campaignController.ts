@@ -12,7 +12,8 @@ import {
   CampaignUpdatePayloadDTO,
   HousingFiltersDTO,
   HousingStatus,
-  nextStatus
+  nextStatus,
+  toEventHousingStatus
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import { createS3 } from '@zerologementvacant/utils/node';
@@ -453,11 +454,11 @@ async function update(request: Request, response: Response) {
               name: 'Changement de statut de suivi',
               type: 'housing:status-updated',
               nextOld: {
-                status: housing.status,
+                status: toEventHousingStatus(housing.status),
                 subStatus: housing.subStatus
               },
               nextNew: {
-                status: HousingStatus.WAITING,
+                status: 'waiting',
                 subStatus: null
               },
               createdBy: auth.userId,
@@ -531,11 +532,11 @@ const removeCampaign: RequestHandler<{ id: string }> = async (
       type: 'housing:status-updated',
       name: 'Changement de statut de suivi',
       nextOld: {
-        status: HousingStatus.WAITING,
+        status: 'waiting',
         subStatus: housing.subStatus
       },
       nextNew: {
-        status: HousingStatus.NEVER_CONTACTED,
+        status: 'never-contacted',
         subStatus: null
       },
       createdAt: new Date().toJSON(),

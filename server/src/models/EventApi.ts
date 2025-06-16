@@ -1,7 +1,7 @@
 import { EventDTO, EventType } from '@zerologementvacant/models';
 import { assert } from 'ts-essentials';
 
-import { fromUserDTO, UserApi } from '~/models/UserApi';
+import { fromUserDTO, toUserDTO, UserApi } from '~/models/UserApi';
 
 export type EventApi<Type extends EventType> = Omit<
   EventDTO<Type>,
@@ -16,6 +16,15 @@ export function fromEventDTO<Type extends EventType>(
   return {
     ...event,
     creator: event.creator ? fromUserDTO(event.creator) : undefined
+  };
+}
+
+export function toEventDTO<Type extends EventType>(
+  event: EventApi<Type>
+): EventDTO<Type> {
+  return {
+    ...event,
+    creator: event.creator ? toUserDTO(event.creator) : undefined
   };
 }
 

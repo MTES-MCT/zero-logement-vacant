@@ -1,9 +1,11 @@
 import {
   HousingOwnerDTO,
+  OwnerCreationPayload,
   OwnerDTO,
   OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
+import { fromAddressDTO } from '../models/Address';
 import {
   fromHousingOwnerDTO,
   fromOwnerDTO,
@@ -73,7 +75,7 @@ export const ownerApi = zlvApi.injectEndpoints({
         housingOwners.map(fromHousingOwnerDTO)
     }),
 
-    createOwner: builder.mutation<Owner, OwnerUpdatePayload>({
+    createOwner: builder.mutation<Owner, OwnerCreationPayload>({
       query: (payload) => ({
         url: 'owners/creation',
         method: 'POST',
@@ -120,15 +122,14 @@ export const ownerApi = zlvApi.injectEndpoints({
 export function parseOwner(owner: OwnerDTO): Owner {
   return {
     ...owner,
+    banAddress: owner.banAddress ? fromAddressDTO(owner.banAddress) : undefined,
     rawAddress: owner.rawAddress
       ? owner.rawAddress
           .filter((_: string) => _)
           .map((_: string) => toTitleCase(_))
       : [],
     fullName: toTitleCase(owner.fullName.replace(/^(MME |M )/i, '')),
-    administrator: owner.administrator
-      ? toTitleCase(owner.administrator)
-      : undefined
+    administrator: owner.administrator ? toTitleCase(owner.administrator) : null
   };
 }
 

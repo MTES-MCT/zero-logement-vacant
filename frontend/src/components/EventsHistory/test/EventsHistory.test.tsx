@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { render, screen } from '@testing-library/react';
 import {
-  HousingStatus,
   Occupancy,
   OwnerRank,
   PRECISION_BLOCKING_POINT_CATEGORY_VALUES,
@@ -193,9 +192,9 @@ describe('EventsHistory', () => {
             ...genEvent({
               type: 'housing:status-updated',
               creator: admin,
-              nextOld: { status: HousingStatus.NEVER_CONTACTED },
+              nextOld: { status: 'never-contacted' },
               nextNew: {
-                status: HousingStatus.FIRST_CONTACT,
+                status: 'first-contact',
                 subStatus: 'Intervention en cours'
               }
             }),

@@ -2,6 +2,7 @@ import {
   AddressKinds,
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
+  OwnerCreationPayload,
   OwnerDTO,
   OwnerUpdatePayload
 } from '@zerologementvacant/models';
@@ -82,7 +83,7 @@ async function listByHousing(request: Request, response: Response) {
 const create: RequestHandler<
   never,
   OwnerDTO,
-  OwnerUpdatePayload,
+  OwnerCreationPayload,
   never
 > = async (request, response): Promise<void> => {
   logger.info('Creating owner...', request.body);
@@ -90,7 +91,7 @@ const create: RequestHandler<
   const { body } = request as AuthenticatedRequest<
     never,
     OwnerDTO,
-    OwnerUpdatePayload,
+    OwnerCreationPayload,
     never
   >;
   const owner: OwnerApi = {

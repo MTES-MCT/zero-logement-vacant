@@ -7,7 +7,6 @@ import {
   DataFileYear,
   ENERGY_CONSUMPTION_VALUES,
   EnergyConsumption,
-  EstablishmentDTO,
   HousingByBuilding,
   HousingFiltersDTO,
   HousingKind,
@@ -27,6 +26,7 @@ import {
 } from '@zerologementvacant/models';
 import { match, Pattern } from 'ts-pattern';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
+import { Establishment } from './Establishment';
 import { OCCUPANCY_LABELS } from './Housing';
 import { HousingStates } from './HousingState';
 import { LocalityKindLabels } from './Locality';
@@ -708,8 +708,8 @@ export const OWNERSHIP_KIND_OPTIONS: Record<
 };
 
 export function getIntercommunalityOptions(
-  establishments: EstablishmentDTO[]
-): SelectOption<EstablishmentDTO['id']>[] {
+  establishments: Establishment[]
+): SelectOption<Establishment['id']>[] {
   return establishments.map((establishment) => ({
     value: establishment.id,
     label: establishment.name,

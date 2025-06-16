@@ -113,7 +113,7 @@ describe('Housing view', () => {
 
     describe('Source', () => {
       it('should be "Fichiers fonciers (2023)"', async () => {
-        housing.dataFileYears = ['ff-2023'];
+        housing.dataFileYears = ['ff-2023-locatif'];
 
         renderView(housing);
 

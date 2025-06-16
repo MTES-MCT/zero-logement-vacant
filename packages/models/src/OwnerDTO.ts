@@ -20,6 +20,11 @@ export interface OwnerDTO {
   updatedAt: string | null;
 }
 
+export type OwnerCreationPayload = Pick<
+  OwnerDTO,
+  'fullName' | 'birthDate' | 'email' | 'phone' | 'rawAddress'
+>;
+
 export type OwnerUpdatePayload = Pick<
   OwnerDTO,
   'fullName' | 'birthDate' | 'email' | 'phone' | 'additionalAddress'

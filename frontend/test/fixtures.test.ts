@@ -13,6 +13,7 @@ import {
 import {
   genAddressDTO,
   genEventDTO,
+  genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
@@ -24,7 +25,7 @@ import { Event, fromEventDTO } from '../src/models/Event';
 import { Group } from '../src/models/Group';
 import { Housing } from '../src/models/Housing';
 import { LocalityKinds } from '../src/models/Locality';
-import { Owner } from '../src/models/Owner';
+import { fromOwnerDTO, Owner } from '../src/models/Owner';
 import { Prospect } from '../src/models/Prospect';
 import { SignupLink } from '../src/models/SignupLink';
 import { AuthUser, fromUserDTO, toUserDTO, User } from '../src/models/User';
@@ -79,16 +80,7 @@ export function genUser(): User {
 }
 
 export function genOwner(): Owner {
-  return {
-    id: randomstring.generate(),
-    rawAddress: [randomstring.generate(), randomstring.generate()],
-    fullName: randomstring.generate(),
-    birthDate: new Date().toJSON(),
-    kind: 'Particulier',
-    email: genEmail(),
-    phone: randomstring.generate(),
-    banAddress: genAddress()
-  };
+  return fromOwnerDTO(genOwnerDTO());
 }
 
 export function genHousing(): Housing {

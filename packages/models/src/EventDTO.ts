@@ -52,3 +52,7 @@ export interface EventDTO<Type extends EventType = EventType> {
   createdBy: string;
   creator?: UserDTO;
 }
+
+export type EventUnionDTO<Type extends EventType> = Type extends any
+  ? EventDTO<Type>
+  : never;

@@ -293,8 +293,8 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     invariant: housing.invariant,
     rawAddress: housing.rawAddress,
     geoCode: housing.geoCode,
-    longitude: housing.longitude,
-    latitude: housing.latitude,
+    longitude: housing.longitude ?? null,
+    latitude: housing.latitude ?? null,
     cadastralClassification: housing.cadastralClassification,
     uncomfortable: housing.uncomfortable,
     vacancyStartYear: housing.vacancyStartYear,
@@ -302,13 +302,13 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     roomsCount: housing.roomsCount,
     livingArea: housing.livingArea,
     cadastralReference: housing.cadastralReference,
-    buildingYear: housing.buildingYear,
+    buildingYear: housing.buildingYear ?? null,
     taxed: housing.taxed,
     dataYears: housing.dataFileYears
       .map((dataFileYear) => dataFileYear.split('-')[1])
       .map(Number),
     dataFileYears: housing.dataFileYears,
-    buildingLocation: housing.buildingLocation,
+    buildingLocation: housing.buildingLocation ?? null,
     // TODO: fix this by making Housing extend HousingDTO
     ownershipKind: housing.ownershipKind,
     status: housing.status as unknown as HousingStatus,
@@ -322,6 +322,10 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     owner: toOwnerDTO(housing.owner),
     lastMutationDate: housing.lastMutationDate,
     lastTransactionDate: housing.lastTransactionDate,
-    lastTransactionValue: housing.lastTransactionValue
+    lastTransactionValue: housing.lastTransactionValue,
+    beneficiaryCount: null,
+    mutationDate: null,
+    campaignIds: housing.campaignIds,
+    rentalValue: null
   };
 }

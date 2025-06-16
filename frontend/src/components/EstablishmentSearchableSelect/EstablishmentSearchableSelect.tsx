@@ -28,7 +28,8 @@ function EstablishmentSearchableSelect<
 >(props: Props<Multiple, DisableClearable>) {
   const [findEstablishments, { data, isFetching }] =
     useLazyFindEstablishmentsQuery();
-  const establishments = data ?? [];
+  const establishments = (data ??
+    []) as unknown as ReadonlyArray<EstablishmentDTO>;
 
   async function search(query: string | undefined): Promise<void> {
     if (query) {
@@ -45,12 +46,8 @@ function EstablishmentSearchableSelect<
       options={establishments}
       loading={isFetching}
       label={props.label ?? null}
-      getOptionKey={(option) =>
-        typeof option === 'string' ? option : option.id
-      }
-      getOptionLabel={(option) =>
-        typeof option === 'string' ? option : option.name
-      }
+      getOptionKey={(option) => option.id}
+      getOptionLabel={(option) => option.name}
       isOptionEqualToValue={(option, value) => option.id === value.id}
       value={props.value}
       onChange={(establishment) => {

@@ -4,7 +4,8 @@ import {
   HousingStatus,
   HousingUpdatePayloadDTO,
   Occupancy,
-  OCCUPANCY_VALUES
+  OCCUPANCY_VALUES,
+  toEventHousingStatus
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { constants } from 'http2';
@@ -691,11 +692,11 @@ describe('Housing API', () => {
       >({
         type: 'housing:status-updated',
         next_old: {
-          status: housing.status,
+          status: toEventHousingStatus(housing.status),
           subStatus: housing.subStatus
         },
         next_new: {
-          status: payload.status,
+          status: toEventHousingStatus(payload.status),
           subStatus: payload.subStatus
         },
         created_by: user.id
@@ -781,10 +782,10 @@ describe('Housing API', () => {
       >({
         type: 'housing:status-updated',
         next_old: {
-          status: housing.status
+          status: toEventHousingStatus(housing.status)
         },
         next_new: {
-          status: payload.status
+          status: toEventHousingStatus(payload.status)
         },
         created_by: user.id
       });

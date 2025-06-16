@@ -506,11 +506,11 @@ async function createHousingUpdateEvents(
         name: 'Changement de statut de suivi',
         type: 'housing:status-updated',
         nextOld: compactUndefined({
-          status: housingApi.status,
+          status: toEventHousingStatus(housingApi.status),
           subStatus: housingApi.subStatus
         }),
         nextNew: compactUndefined({
-          status: statusUpdate.status,
+          status: toEventHousingStatus(statusUpdate.status),
           subStatus: statusUpdate.subStatus
         }),
         createdAt: new Date().toJSON(),

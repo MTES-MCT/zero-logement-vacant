@@ -1,11 +1,10 @@
 import { faker } from '@faker-js/faker';
-
 import {
   BaseHousingOwnerDTO,
   CampaignDTO,
   DatafoncierHousing,
   DraftDTO,
-  EventDTO,
+  EventUnionDTO,
   GroupDTO,
   HousingDTO,
   NoteDTO,
@@ -119,7 +118,12 @@ const precisions: Precision[] = PRECISION_CATEGORY_VALUES.map((category) => ({
   label: faker.word.sample()
 }));
 
-const housingEvents = new Map<HousingDTO['id'], EventDTO<HousingDTO>[]>();
+const housingEvents = new Map<
+  HousingDTO['id'],
+  EventUnionDTO<
+    'housing:created' | 'housing:occupancy-updated' | 'housing:status-updated'
+  >[]
+>();
 
 const housingNotes = new Map<HousingDTO['id'], NoteDTO[]>();
 

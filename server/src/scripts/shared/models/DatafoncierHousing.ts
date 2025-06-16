@@ -42,8 +42,10 @@ export const toHousingRecordApi = fp.curry(
       buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
       ownershipKind: housing.ctpdl as OwnershipKindsApi,
       status: HousingStatus.NEVER_CONTACTED,
+      subStatus: null,
       occupancy: toOccupancy(housing.ccthp),
       occupancyRegistered: toOccupancy(housing.ccthp),
+      occupancyIntended: null,
       source: additionalData.source,
       mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()).toJSON(),
       energyConsumption: null,
@@ -51,7 +53,20 @@ export const toHousingRecordApi = fp.curry(
       cadastralClassification: null,
       lastMutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()).toJSON(),
       lastTransactionDate: null,
-      lastTransactionValue: null
+      lastTransactionValue: null,
+      buildingGroupId: null,
+      buildingId: null,
+      plotId: null,
+      geolocation: null,
+      latitude: null,
+      longitude: null,
+      beneficiaryCount: null,
+      cadastralReference: null,
+      campaignIds: null,
+      deprecatedPrecisions: null,
+      deprecatedVacancyReasons: null,
+      rentalValue: null,
+      vacancyStartYear: null
     };
   }
 );

@@ -1,7 +1,6 @@
 import { Predicate } from 'effect';
 
-import { Event } from '../../../models/Event';
-import { getHousingState } from '../../../models/HousingState';
+import { Event, formatEventHousingStatus } from '../../../models/Event';
 import EventCard from '../EventCard';
 
 interface HousingStatusEventCardProps {
@@ -34,11 +33,11 @@ export function formatHousingStatusUpdatedDifferences(
 ): ReadonlyArray<string> {
   const statusBefore: string =
     options.old.status !== undefined
-      ? `“${getHousingState(options.old.status).title}”`
+      ? `“${formatEventHousingStatus(options.old.status)}”`
       : 'vide';
   const statusAfter: string =
     options.new.status !== undefined
-      ? `“${getHousingState(options.new.status).title}”`
+      ? `“${formatEventHousingStatus(options.new.status)}”`
       : 'vide';
   const subStatusBefore: string = options.old.subStatus
     ? `“${options.old.subStatus}”`

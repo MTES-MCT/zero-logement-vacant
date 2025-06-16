@@ -1,11 +1,11 @@
-import { EventDTO } from '@zerologementvacant/models';
+import { EventDTO, EventUnionDTO } from '@zerologementvacant/models';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import { logger } from '~/infra/logger';
-import { EventUnion } from '~/models/EventApi';
+import { toEventDTO } from '~/models/EventApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import ownerRepository from '~/repositories/ownerRepository';
@@ -29,8 +29,7 @@ const listByOwnerId: RequestHandler<
 };
 
 type FindByHousingResponse = ReadonlyArray<
-  // TODO: return union of EventDTOs
-  EventUnion<
+  EventUnionDTO<
     | 'housing:created'
     | 'housing:occupancy-updated'
     | 'housing:status-updated'
@@ -104,7 +103,9 @@ async function listByHousingId(
 
   const events = [...ownerEvents, ...housingEvents];
   // TODO: sort by createdAt in descending order
-  response.status(constants.HTTP_STATUS_OK).json(events);
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(events.map(toEventDTO) as FindByHousingResponse);
 }
 
 const eventController = {

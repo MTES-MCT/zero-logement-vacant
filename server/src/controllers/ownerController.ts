@@ -187,7 +187,7 @@ async function update(
   if (changed.length > 0) {
     events.push({
       id: uuidv4(),
-      name: 'Modification du propriétaire',
+      name: 'Propriétaire mis à jour',
       type: 'owner:updated',
       nextOld: {
         ...before,

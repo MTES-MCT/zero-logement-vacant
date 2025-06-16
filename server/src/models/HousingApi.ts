@@ -1,15 +1,19 @@
 import {
+  EventHousingStatus,
   HousingDTO,
   HousingStatus,
   Occupancy,
   Precision
 } from '@zerologementvacant/models';
+import { Equivalence, Record } from 'effect';
 import fp from 'lodash/fp';
 import { assert, MarkRequired } from 'ts-essentials';
 import OwnerMissingError from '~/errors/ownerMissingError';
+
 import { HousingEventApi, isUserModified } from '~/models/EventApi';
-import { OwnerApi, toOwnerDTO } from './OwnerApi';
-import { Sort } from './SortApi';
+import { OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
+import { Sort } from '~/models/SortApi';
+import { diff } from '~/utils/diff';
 
 export type HousingId = Pick<HousingRecordApi, 'geoCode' | 'id'>;
 
@@ -147,16 +151,6 @@ export const OccupancyKindApiLabels: Record<OccupancyKindApi, string> = {
   [OccupancyKindApi.Others]: 'Autres'
 };
 
-export enum EnergyConsumptionGradesApi {
-  A = 'A',
-  B = 'B',
-  C = 'C',
-  D = 'D',
-  E = 'E',
-  F = 'F',
-  G = 'G'
-}
-
 const trimStartingZeros = (str: string): string => str.replace(/^0+/, '');
 
 export function getBuildingLocation(housing: HousingApi) {
@@ -229,3 +223,13 @@ export function shouldReset(housing: HousingApi): boolean {
     housing.campaignIds?.length === 1
   );
 }
+
+export const diffHousingStatusUpdated = diff({
+  status: Equivalence.strict<EventHousingStatus | undefined>(),
+  subStatus: Equivalence.strict<string | null | undefined>()
+});
+
+export const diffHousingOccupancyUpdated = diff({
+  occupancy: Equivalence.strict<Occupancy | undefined>(),
+  occupancyIntended: Equivalence.strict<Occupancy | null | undefined>()
+});

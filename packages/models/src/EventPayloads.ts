@@ -1,3 +1,5 @@
+import { match } from 'ts-pattern';
+
 import { CampaignStatus } from './CampaignDTO';
 import { DataFileYear } from './DataFileYear';
 import { OwnerRank } from './HousingOwnerDTO';
@@ -31,8 +33,7 @@ export type EventPayloads = {
     occupancyIntended?: Occupancy | null;
   }>;
   'housing:status-updated': UpdateEventChange<{
-    // TODO: change this to a string union type ?
-    status?: HousingStatus;
+    status?: EventHousingStatus;
     subStatus?: string | null;
   }>;
 
@@ -103,3 +104,30 @@ export type EventPayloads = {
     description?: string;
   }>;
 };
+
+export const EVENT_HOUSING_STATUS_VALUES = [
+  'never-contacted',
+  'waiting',
+  'first-contact',
+  'in-progress',
+  'completed',
+  'blocked'
+] as const;
+export type EventHousingStatus = (typeof EVENT_HOUSING_STATUS_VALUES)[number];
+
+export function toEventHousingStatus(
+  status: HousingStatus
+): EventHousingStatus {
+  return (
+    match(status)
+      .returnType<EventHousingStatus>()
+      .with(HousingStatus.NEVER_CONTACTED, () => 'never-contacted')
+      .with(HousingStatus.WAITING, () => 'waiting')
+      .with(HousingStatus.FIRST_CONTACT, () => 'first-contact')
+      .with(HousingStatus.IN_PROGRESS, () => 'in-progress')
+      .with(HousingStatus.COMPLETED, () => 'completed')
+      .with(HousingStatus.BLOCKED, () => 'blocked')
+      // Should never happen
+      .otherwise(() => 'never-contacted')
+  );
+}

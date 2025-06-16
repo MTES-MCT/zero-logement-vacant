@@ -1,14 +1,14 @@
 import {
-  diffHousingUpdatePayload,
   HousingDTO,
   HousingFiltersDTO,
   HousingStatus,
   HousingUpdatePayloadDTO,
-  Pagination
+  Pagination,
+  toEventHousingStatus
 } from '@zerologementvacant/models';
 import { compactUndefined } from '@zerologementvacant/utils';
 import async from 'async';
-import { Array, Record, Struct } from 'effect';
+import { Record } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, oneOf, param, ValidationChain } from 'express-validator';
@@ -23,6 +23,8 @@ import { startTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import { HousingEventApi } from '~/models/EventApi';
 import {
+  diffHousingOccupancyUpdated,
+  diffHousingStatusUpdated,
   hasCampaigns,
   HousingApi,
   HousingRecordApi,
@@ -313,31 +315,48 @@ async function updateNext(
     occupancyIntended: body.occupancyIntended
   };
 
-  const { before, after, changed } = diffHousingUpdatePayload(housing, updated);
+  const housingStatusDiff = diffHousingStatusUpdated(
+    {
+      status: toEventHousingStatus(housing.status),
+      subStatus: housing.subStatus
+    },
+    {
+      status: toEventHousingStatus(updated.status),
+      subStatus: updated.subStatus
+    }
+  );
+  const housingOccupancyDiff = diffHousingOccupancyUpdated(
+    {
+      occupancy: housing.occupancy,
+      occupancyIntended: housing.occupancyIntended
+    },
+    {
+      occupancy: updated.occupancy,
+      occupancyIntended: updated.occupancyIntended
+    }
+  );
 
   const events: HousingEventApi[] = [];
-  if (Array.intersection(changed, ['status', 'subStatus']).length > 0) {
+  if (housingStatusDiff.changed.length > 0) {
     events.push({
       id: uuidv4(),
       type: 'housing:status-updated',
       name: 'Changement de statut de suivi',
-      nextOld: Struct.pick(before, 'status', 'subStatus'),
-      nextNew: Struct.pick(after, 'status', 'subStatus'),
+      nextOld: housingStatusDiff.before,
+      nextNew: housingStatusDiff.after,
       createdAt: new Date().toJSON(),
       createdBy: auth.userId,
       housingGeoCode: housing.geoCode,
       housingId: housing.id
     });
   }
-  if (
-    Array.intersection(changed, ['occupancy', 'occupancyIntended']).length > 0
-  ) {
+  if (housingOccupancyDiff.changed.length > 0) {
     events.push({
       id: uuidv4(),
       type: 'housing:occupancy-updated',
       name: "Modification du statut d'occupation",
-      nextOld: Struct.pick(before, 'occupancy', 'occupancyIntended'),
-      nextNew: Struct.pick(after, 'occupancy', 'occupancyIntended'),
+      nextOld: housingOccupancyDiff.before,
+      nextNew: housingOccupancyDiff.after,
       createdAt: new Date().toJSON(),
       createdBy: auth.userId,
       housingGeoCode: housing.geoCode,

@@ -86,10 +86,12 @@ const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
 
 async function save(campaign: CampaignApi): Promise<void> {
   logger.debug('Saving campaign', campaign);
-  await Campaigns()
-    .insert(formatCampaignApi(campaign))
-    .onConflict(['id'])
-    .merge(['status', 'title', 'description', 'file', 'sent_at']);
+  await withinTransaction(async (transaction) => {
+    await Campaigns(transaction)
+      .insert(formatCampaignApi(campaign))
+      .onConflict(['id'])
+      .merge(['status', 'title', 'description', 'file', 'sent_at']);
+  });
   logger.debug('Campaign saved', campaign);
 }
 

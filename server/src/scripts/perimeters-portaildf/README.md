@@ -198,3 +198,44 @@ wc -l utilisateurs.jsonl structures.jsonl
 | Network Timeout | Scripts auto-retry with backoff |
 | API Rate Limiting | Increase `DELAY_BETWEEN_REQUESTS` |
 | Interrupted Process | Re-run script (auto-resumes) |
+
+# Data Processing Workflows
+
+The retrieved user data can be processed with companion scripts:
+
+## 1. **Database Comparison**
+Compare with PostgreSQL users to identify missing accounts.
+
+**Script:** `export-missing-users.py`
+- Compares API users with database users
+- Exports missing users to CSV
+- Generates coverage statistics
+
+## 2. **Access Analysis**
+Check user permissions and expiration dates for security governance.
+
+**Script:** `export-users-with-expiration.py`
+- Identifies users with account expiration
+- Exports expiration dates and user details
+
+## 3. **Structure Mapping**
+Cross-reference with structure data to validate user assignments.
+
+**Scripts:**
+- `export-users-without-establishments.py` - Users not assigned to any establishment
+- `export-structures-sans-acces-lovac.py` - Structures without LOVAC access
+
+## 4. **Compliance Reporting**
+Generate audit and compliance reports for regulatory requirements.
+
+**Scripts:**
+- `export-users-cgu-invalid.py` - Users with invalid/missing CGU
+- `export-users-deactivated.py` - Deactivated users for audit trails
+
+**Usage Example:**
+```bash
+# Export missing users from database comparison
+python export-missing-users.py
+```
+
+All scripts generate CSV reports for further analysis and administrative action.

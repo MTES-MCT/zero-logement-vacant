@@ -88,7 +88,7 @@ const create: RequestHandler<
 > = async (request, response): Promise<void> => {
   logger.info('Creating owner...', request.body);
 
-  const { body } = request as AuthenticatedRequest<
+  const { auth, body } = request as AuthenticatedRequest<
     never,
     OwnerDTO,
     OwnerCreationPayload,
@@ -100,7 +100,9 @@ const create: RequestHandler<
     rawAddress: body.rawAddress,
     banAddress: null,
     additionalAddress: null,
-    birthDate: body.birthDate ? new Date(body.birthDate).toJSON() : null,
+    birthDate: body.birthDate
+      ? new Date(body.birthDate).toJSON().substring(0, 'yyyy-mm-dd'.length)
+      : null,
     administrator: null,
     // TODO: we should ask the user to provide the kind of owner
     kind: null,
@@ -117,6 +119,25 @@ const create: RequestHandler<
     onConflict: ['id'],
     merge: false
   });
+  await eventRepository.insertManyOwnerEvents([
+    {
+      id: uuidv4(),
+      name: "Création d'un nouveau propriétaire",
+      type: 'owner:created',
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      nextOld: null,
+      nextNew: {
+        name: owner.fullName,
+        birthdate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null,
+        email: owner.email,
+        phone: owner.phone,
+        address: owner.rawAddress?.length ? owner.rawAddress.join(' ') : null,
+        additionalAddress: null
+      },
+      ownerId: owner.id
+    }
+  ]);
 
   response.status(constants.HTTP_STATUS_OK).json(toOwnerDTO(owner));
 };

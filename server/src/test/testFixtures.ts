@@ -25,7 +25,11 @@ import {
   UserAccountDTO
 } from '@zerologementvacant/models';
 
-import { genEventDTO, genGeoCode } from '@zerologementvacant/models/fixtures';
+import {
+  genEventDTO,
+  genGeoCode,
+  genNoteDTO
+} from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
 import fp from 'lodash/fp';
@@ -50,7 +54,7 @@ import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
-import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
+import { fromNoteDTO, HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { OwnerProspectApi } from '~/models/OwnerProspectApi';
 import { PrecisionApi } from '~/models/PrecisionApi';
@@ -802,14 +806,8 @@ export const genHousingOwnerConflictApi = (
   housingId: housing.id
 });
 
-const genNoteApi = (creator: UserApi): NoteApi => ({
-  id: uuidv4(),
-  noteKind: faker.word.noun(),
-  content: faker.lorem.paragraph(),
-  createdBy: creator.id,
-  creator,
-  createdAt: faker.date.past()
-});
+const genNoteApi = (creator: UserApi): NoteApi =>
+  fromNoteDTO(genNoteDTO(toUserDTO(creator)));
 
 export const genHousingNoteApi = (
   creator: UserApi,

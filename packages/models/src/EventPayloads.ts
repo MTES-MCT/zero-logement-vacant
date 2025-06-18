@@ -1,16 +1,26 @@
 import { match } from 'ts-pattern';
 
-import { CampaignStatus } from './CampaignDTO';
 import { DataFileYear } from './DataFileYear';
 import { OwnerRank } from './HousingOwnerDTO';
 import { HousingStatus } from './HousingStatus';
-import { Occupancy } from './Occupancy';
-import { PrecisionCategory } from './Precision';
 
 interface EventChange<Old, New> {
   old: Old;
   new: New;
 }
+
+// Duplicate this type to be resilient to changes
+type PrecisionCategory =
+  | 'dispositifs-incitatifs'
+  | 'dispositifs-coercitifs'
+  | 'hors-dispositif-public'
+  | 'blocage-involontaire'
+  | 'blocage-volontaire'
+  | 'immeuble-environnement'
+  | 'tiers-en-cause'
+  | 'travaux'
+  | 'occupation'
+  | 'mutation';
 
 /**
  * Events that create a new entity, where the old value is always null.
@@ -26,14 +36,18 @@ type RemoveEventChange<T> = EventChange<T, null>;
 
 export type EventPayloads = {
   'housing:created': CreationEventChange<{
+    // This should not ever change so we can type it strongly
     source: 'datafoncier-manual' | DataFileYear;
+    occupancy: string;
   }>;
   'housing:occupancy-updated': UpdateEventChange<{
-    occupancy?: Occupancy;
-    occupancyIntended?: Occupancy | null;
+    // Store occupancy as a string to avoid changes
+    occupancy?: string;
+    occupancyIntended?: string | null;
   }>;
   'housing:status-updated': UpdateEventChange<{
-    status?: EventHousingStatus;
+    // Store status as a string to avoid changes
+    status?: string;
     subStatus?: string | null;
   }>;
 
@@ -89,6 +103,14 @@ export type EventPayloads = {
     name: string;
   }>;
 
+  'owner:created': CreationEventChange<{
+    name: string;
+    birthdate: string | null;
+    email: string | null;
+    phone: string | null;
+    address: string | null;
+    additionalAddress: string | null;
+  }>;
   'owner:updated': UpdateEventChange<{
     name: string;
     birthdate?: string | null;
@@ -99,7 +121,7 @@ export type EventPayloads = {
   }>;
 
   'campaign:updated': UpdateEventChange<{
-    status?: CampaignStatus;
+    status?: string;
     title?: string;
     description?: string;
   }>;

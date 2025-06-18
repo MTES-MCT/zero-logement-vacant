@@ -90,7 +90,7 @@ export type CampaignHousingEventApi = EventUnion<
   campaignId: string | null;
 };
 
-export type OwnerEventApi = EventUnion<'owner:updated'> & {
+export type OwnerEventApi = EventUnion<'owner:created' | 'owner:updated'> & {
   ownerId: string;
 };
 

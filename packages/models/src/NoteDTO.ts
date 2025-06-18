@@ -6,6 +6,7 @@ export interface NoteDTO {
   noteKind: string;
   createdBy: string;
   createdAt: string;
+  updatedAt: string | null;
   creator?: UserDTO;
 }
 

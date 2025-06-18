@@ -5,15 +5,16 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
+  CAMPAIGN_STATUS_LABELS,
   CAMPAIGN_STATUS_VALUES,
   CampaignCreationPayloadDTO,
   CampaignDTO,
   CampaignRemovalPayloadDTO,
   CampaignUpdatePayloadDTO,
+  HOUSING_STATUS_LABELS,
   HousingFiltersDTO,
   HousingStatus,
-  nextStatus,
-  toEventHousingStatus
+  nextStatus
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import { createS3 } from '@zerologementvacant/utils/node';
@@ -415,12 +416,12 @@ async function update(request: Request, response: Response) {
         name: 'Modification de la campagne',
         type: 'campaign:updated',
         nextOld: {
-          status: campaign.status,
+          status: CAMPAIGN_STATUS_LABELS[campaign.status],
           title: campaign.title,
           description: campaign.description
         },
         nextNew: {
-          status: updated.status,
+          status: CAMPAIGN_STATUS_LABELS[updated.status],
           title: updated.title,
           description: updated.description
         },
@@ -454,7 +455,7 @@ async function update(request: Request, response: Response) {
               name: 'Changement de statut de suivi',
               type: 'housing:status-updated',
               nextOld: {
-                status: toEventHousingStatus(housing.status),
+                status: HOUSING_STATUS_LABELS[housing.status],
                 subStatus: housing.subStatus
               },
               nextNew: {

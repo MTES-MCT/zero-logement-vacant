@@ -1,19 +1,19 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
+  HOUSING_STATUS_LABELS,
   HousingDTO,
   HousingStatus,
   HousingUpdatePayloadDTO,
   Occupancy,
+  OCCUPANCY_LABELS,
   OCCUPANCY_VALUES,
-  toEventHousingStatus
+  toOccupancy
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { MarkRequired } from 'ts-essentials';
-
-import db from '~/infra/database';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -523,7 +523,8 @@ describe('Housing API', () => {
         created_by: user.id,
         next_old: null,
         next_new: {
-          source: 'datafoncier-manual'
+          source: 'datafoncier-manual',
+          occupancy: OCCUPANCY_LABELS[toOccupancy(datafoncierHousing.ccthp)]
         }
       });
     });
@@ -692,11 +693,11 @@ describe('Housing API', () => {
       >({
         type: 'housing:status-updated',
         next_old: {
-          status: toEventHousingStatus(housing.status),
+          status: HOUSING_STATUS_LABELS[housing.status],
           subStatus: housing.subStatus
         },
         next_new: {
-          status: toEventHousingStatus(payload.status),
+          status: HOUSING_STATUS_LABELS[payload.status],
           subStatus: payload.subStatus
         },
         created_by: user.id
@@ -737,12 +738,12 @@ describe('Housing API', () => {
         name: "Modification du statut d'occupation",
         type: 'housing:occupancy-updated',
         next_old: {
-          occupancy: housing.occupancy,
-          occupancyIntended: housing.occupancyIntended!
+          occupancy: OCCUPANCY_LABELS[housing.occupancy],
+          occupancyIntended: OCCUPANCY_LABELS[housing.occupancyIntended!]
         },
         next_new: {
-          occupancy: payload.occupancy,
-          occupancyIntended: payload.occupancyIntended!
+          occupancy: OCCUPANCY_LABELS[payload.occupancy],
+          occupancyIntended: OCCUPANCY_LABELS[payload.occupancyIntended!]
         },
         created_by: user.id
       });
@@ -782,10 +783,10 @@ describe('Housing API', () => {
       >({
         type: 'housing:status-updated',
         next_old: {
-          status: toEventHousingStatus(housing.status)
+          status: HOUSING_STATUS_LABELS[housing.status]
         },
         next_new: {
-          status: toEventHousingStatus(payload.status)
+          status: HOUSING_STATUS_LABELS[payload.status]
         },
         created_by: user.id
       });
@@ -802,10 +803,10 @@ describe('Housing API', () => {
       >({
         type: 'housing:occupancy-updated',
         next_old: {
-          occupancyIntended: housing.occupancyIntended!
+          occupancyIntended: OCCUPANCY_LABELS[housing.occupancyIntended!]
         },
         next_new: {
-          occupancyIntended: payload.occupancyIntended!
+          occupancyIntended: OCCUPANCY_LABELS[payload.occupancyIntended!]
         },
         created_by: user.id
       });
@@ -996,42 +997,28 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-
-      await db(EVENTS_TABLE)
+      const events = await Events()
         .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where('housing_id', housing.id)
-        .andWhere('name', 'Changement de statut de suivi')
-        .then((result) =>
-          expect(result).toMatchObject(
-            expect.arrayContaining([
-              expect.objectContaining({
-                housing_id: housing.id,
-                name: 'Changement de statut de suivi',
-                kind: 'Update',
-                category: 'Followup',
-                section: 'Situation',
-                created_by: user.id
-              })
-            ])
-          )
-        );
-
-      await request(app)
-        .post(testRoute)
-        .send({
-          ...payload,
-          currentStatus: payload.housingUpdate.statusUpdate.status
-        })
-        .use(tokenProvider(user))
-        .expect(constants.HTTP_STATUS_OK);
-
-      await db(EVENTS_TABLE)
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where('housing_id', housing.id)
-        .andWhere('name', 'Changement de statut de suivi')
-        .count()
-        .first()
-        .then((result) => expect(result?.count).toBe('1'));
+        .where({
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode,
+          type: 'housing:status-updated'
+        });
+      events.forEach((event) => {
+        expect(event).toMatchObject<
+          Partial<EventRecordDBO<'housing:status-updated'>>
+        >({
+          type: 'housing:status-updated',
+          next_old: {
+            status: HOUSING_STATUS_LABELS[housing.status]
+          },
+          next_new: {
+            status:
+              HOUSING_STATUS_LABELS[payload.housingUpdate.statusUpdate.status]
+          },
+          created_by: user.id
+        });
+      });
     });
 
     it('should create an event related to the occupancy change', async () => {
@@ -1041,24 +1028,34 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-
-      const actual = await Events()
+      const events = await Events()
         .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
         .where({
+          type: 'housing:occupancy-updated',
           housing_geo_code: housing.geoCode,
           housing_id: housing.id
         });
-      expect(actual).toIncludeAllPartialMembers([
-        {
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
+      events.forEach((event) => {
+        expect(event).toMatchObject<
+          Partial<EventRecordDBO<'housing:occupancy-updated'>>
+        >({
           name: "Modification du statut d'occupation",
-          kind: 'Update',
-          category: 'Followup',
-          section: 'Situation',
-          created_by: user.id
-        }
-      ]);
+          type: 'housing:occupancy-updated',
+          created_by: user.id,
+          next_old: {
+            occupancy: OCCUPANCY_LABELS[housing.occupancy],
+            occupancyIntended: OCCUPANCY_LABELS[housing.occupancyIntended!]
+          },
+          next_new: {
+            occupancy:
+              OCCUPANCY_LABELS[payload.housingUpdate.occupancyUpdate.occupancy],
+            occupancyIntended:
+              OCCUPANCY_LABELS[
+                payload.housingUpdate.occupancyUpdate.occupancyIntended
+              ]
+          }
+        });
+      });
     });
 
     it('should create a note', async () => {

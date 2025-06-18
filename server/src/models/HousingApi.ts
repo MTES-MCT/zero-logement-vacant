@@ -1,6 +1,5 @@
 import {
   DataFileYear,
-  EventHousingStatus,
   HousingDTO,
   HousingStatus,
   Occupancy,
@@ -231,11 +230,11 @@ export function shouldReset(housing: HousingApi): boolean {
 }
 
 export const diffHousingStatusUpdated = diff({
-  status: Equivalence.strict<EventHousingStatus | undefined>(),
+  status: Equivalence.strict<string | undefined>(),
   subStatus: Equivalence.strict<string | null | undefined>()
 });
 
 export const diffHousingOccupancyUpdated = diff({
-  occupancy: Equivalence.strict<Occupancy | undefined>(),
-  occupancyIntended: Equivalence.strict<Occupancy | null | undefined>()
+  occupancy: Equivalence.strict<string | undefined>(),
+  occupancyIntended: Equivalence.strict<string | null | undefined>()
 });

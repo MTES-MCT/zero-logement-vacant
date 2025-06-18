@@ -5,6 +5,7 @@ import {
   BUILDING_PERIOD_VALUES,
   CADASTRAL_CLASSIFICATION_VALUES,
   CAMPAIGN_COUNT_VALUES,
+  CAMPAIGN_STATUS_LABELS,
   CampaignCreationPayloadDTO,
   CampaignDTO,
   CampaignRemovalPayloadDTO,
@@ -503,8 +504,14 @@ describe('Campaign API', () => {
         campaign_id: campaign.id,
         draft_id: draft.id
       });
-      const housings = faker.helpers.multiple(() => genHousingApi());
+      const housings: HousingApi[] = faker.helpers.multiple(() => ({
+        ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+        status: HousingStatus.NEVER_CONTACTED
+      }));
       await Housing().insert(housings.map(formatHousingRecordApi));
+      await CampaignsHousing().insert(
+        formatCampaignHousingApi(campaign, housings)
+      );
       return campaign;
     }
 
@@ -602,12 +609,12 @@ describe('Campaign API', () => {
       expect(event).toMatchObject<Partial<EventDBO<'campaign:updated'>>>({
         type: 'campaign:updated',
         next_old: {
-          status: campaign.status,
+          status: CAMPAIGN_STATUS_LABELS[campaign.status],
           title: campaign.title,
           description: campaign.description
         },
         next_new: {
-          status: payload.status,
+          status: CAMPAIGN_STATUS_LABELS[payload.status],
           title: payload.title,
           description: payload.description
         }
@@ -666,7 +673,19 @@ describe('Campaign API', () => {
 
       it('should set contacted houses’ status to "waiting"', async () => {
         const campaign = await createCampaign('sending');
+        const payload: CampaignUpdatePayloadDTO = {
+          status: 'in-progress',
+          sentAt: faker.date.recent().toJSON(),
+          title: campaign.title,
+          description: campaign.description
+        };
 
+        const { status } = await request(app)
+          .put(testRoute(campaign.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
         const housings = await Housing()
           .join(campaignsHousingTable, (join) => {
             join.on('housing_geo_code', 'geo_code').andOn('housing_id', 'id');
@@ -675,9 +694,11 @@ describe('Campaign API', () => {
             campaign_id: campaign.id
           });
         expect(housings.length).toBeGreaterThan(0);
-        expect(housings).toSatisfyAll(
-          (housing) => housing.status === HousingStatus.WAITING
-        );
+        housings.forEach((housing) => {
+          expect(housing).toMatchObject({
+            status: HousingStatus.WAITING
+          });
+        });
       });
     });
 

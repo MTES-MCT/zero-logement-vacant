@@ -11479,6 +11479,7 @@ __metadata:
     unzip-stream: "npm:^0.3.4"
     uuid: "npm:^9.0.1"
     validator: "npm:^13.12.0"
+    web-streams-utils: "npm:^0.3.0"
     wuzzy: "npm:^0.1.8"
     yup: "npm:^1.4.0"
   languageName: unknown
@@ -31474,6 +31475,13 @@ __metadata:
   dependencies:
     defaults: "npm:^1.0.3"
   checksum: 10c0/5b61ca583a95e2dd85d7078400190efd452e05751a64accb8c06ce4db65d7e0b0cde9917d705e826a2e05cc2548f61efde115ffa374c3e436d04be45c889e5b4
+  languageName: node
+  linkType: hard
+
+"web-streams-utils@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "web-streams-utils@npm:0.3.0"
+  checksum: 10c0/2425b2dbe1d89cfa76f1a10acae932a0e070a1221e62daf187e6dc64f5759b332fd822cf7a212f0a09f4bca545e8008f1dd1a3a9ddc385f6d207a395ae5036a7
   languageName: node
   linkType: hard
 

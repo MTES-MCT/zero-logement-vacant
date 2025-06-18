@@ -2,7 +2,6 @@ import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('campaigns_housing', (table) => {
-    table.dropPrimary('campaigns_housing_pkey');
     table.dropIndex('housing_id', 'campaigns_housing_housing_id_idx');
     table.index(['housing_geo_code', 'housing_id']);
 
@@ -29,6 +28,5 @@ export async function down(knex: Knex): Promise<void> {
 
     table.dropIndex(['housing_geo_code', 'housing_id']);
     table.index('housing_id');
-    table.primary(['campaign_id', 'housing_id', 'housing_geo_code']);
   });
 }

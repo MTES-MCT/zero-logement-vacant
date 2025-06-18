@@ -8,7 +8,6 @@ export async function up(knex: Knex): Promise<void> {
       // Set this default value until the production data is migrated
       .defaultTo('empty')
       .comment('The type of the event, for example "housing:created"');
-    // TODO: provide a strategy to fill this field for existing events
     table.jsonb('next_old').nullable().comment('The value before this event');
     table.jsonb('next_new').nullable().comment('The value after this event');
   });

@@ -1,4 +1,4 @@
-import { HousingStatus, Occupancy } from '@zerologementvacant/models';
+import { HousingStatus } from '@zerologementvacant/models';
 import { EventApi, HousingEventApi } from '~/models/EventApi';
 import {
   diffHousingOccupancyUpdated,
@@ -135,11 +135,11 @@ describe('HousingApi', () => {
   describe('diffHousingStatusUpdated', () => {
     it('should return the changed keys', () => {
       const before: EventApi<'housing:status-updated'>['nextOld'] = {
-        status: 'never-contacted',
+        status: 'Non suivi',
         subStatus: null
       };
       const after: EventApi<'housing:status-updated'>['nextNew'] = {
-        status: 'in-progress',
+        status: 'Suivi en cours',
         subStatus: null
       };
 
@@ -156,10 +156,10 @@ describe('HousingApi', () => {
 
       expect(actual).toStrictEqual<typeof actual>({
         before: {
-          status: 'never-contacted'
+          status: 'Non suivi'
         },
         after: {
-          status: 'in-progress'
+          status: 'Suivi en cours'
         },
         changed: ['status']
       });
@@ -169,12 +169,12 @@ describe('HousingApi', () => {
   describe('diffHousingOccupancyUpdated', () => {
     it('should return the changed keys', () => {
       const before: EventApi<'housing:occupancy-updated'>['nextOld'] = {
-        occupancy: Occupancy.VACANT,
-        occupancyIntended: Occupancy.RENT
+        occupancy: 'Vacant',
+        occupancyIntended: 'En location'
       };
       const after: EventApi<'housing:occupancy-updated'>['nextNew'] = {
-        occupancy: Occupancy.VACANT,
-        occupancyIntended: Occupancy.UNKNOWN
+        occupancy: 'Vacant',
+        occupancyIntended: 'Pas d’information'
       };
 
       const actual = diffHousingOccupancyUpdated(
@@ -190,10 +190,10 @@ describe('HousingApi', () => {
 
       expect(actual).toStrictEqual<typeof actual>({
         before: {
-          occupancyIntended: Occupancy.RENT
+          occupancyIntended: 'En location'
         },
         after: {
-          occupancyIntended: Occupancy.UNKNOWN
+          occupancyIntended: 'Pas d’information'
         },
         changed: ['occupancyIntended']
       });

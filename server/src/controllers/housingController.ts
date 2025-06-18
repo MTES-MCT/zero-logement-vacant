@@ -1,10 +1,11 @@
 import {
+  HOUSING_STATUS_LABELS,
   HousingDTO,
   HousingFiltersDTO,
   HousingStatus,
   HousingUpdatePayloadDTO,
-  Pagination,
-  toEventHousingStatus
+  OCCUPANCY_LABELS,
+  Pagination
 } from '@zerologementvacant/models';
 import { compactUndefined } from '@zerologementvacant/utils';
 import async from 'async';
@@ -241,7 +242,8 @@ async function create(request: Request, response: Response) {
       type: 'housing:created',
       nextOld: null,
       nextNew: {
-        source: 'datafoncier-manual'
+        source: 'datafoncier-manual',
+        occupancy: OCCUPANCY_LABELS[housing.occupancy]
       },
       conflict: false,
       createdAt: new Date().toJSON(),
@@ -317,22 +319,26 @@ async function updateNext(
 
   const housingStatusDiff = diffHousingStatusUpdated(
     {
-      status: toEventHousingStatus(housing.status),
+      status: HOUSING_STATUS_LABELS[housing.status],
       subStatus: housing.subStatus
     },
     {
-      status: toEventHousingStatus(updated.status),
+      status: HOUSING_STATUS_LABELS[updated.status],
       subStatus: updated.subStatus
     }
   );
   const housingOccupancyDiff = diffHousingOccupancyUpdated(
     {
-      occupancy: housing.occupancy,
+      occupancy: OCCUPANCY_LABELS[housing.occupancy],
       occupancyIntended: housing.occupancyIntended
+        ? OCCUPANCY_LABELS[housing.occupancyIntended]
+        : null
     },
     {
-      occupancy: updated.occupancy,
+      occupancy: OCCUPANCY_LABELS[updated.occupancy],
       occupancyIntended: updated.occupancyIntended
+        ? OCCUPANCY_LABELS[updated.occupancyIntended]
+        : null
     }
   );
 
@@ -506,11 +512,11 @@ async function createHousingUpdateEvents(
         name: 'Changement de statut de suivi',
         type: 'housing:status-updated',
         nextOld: compactUndefined({
-          status: toEventHousingStatus(housingApi.status),
+          status: HOUSING_STATUS_LABELS[housingApi.status],
           subStatus: housingApi.subStatus
         }),
         nextNew: compactUndefined({
-          status: toEventHousingStatus(statusUpdate.status),
+          status: HOUSING_STATUS_LABELS[statusUpdate.status],
           subStatus: statusUpdate.subStatus
         }),
         createdAt: new Date().toJSON(),
@@ -534,12 +540,16 @@ async function createHousingUpdateEvents(
         name: "Modification du statut d'occupation",
         type: 'housing:occupancy-updated',
         nextOld: compactUndefined({
-          occupancy: housingApi.occupancy,
-          occupancyIntended: housingApi.occupancyIntended ?? undefined
+          occupancy: OCCUPANCY_LABELS[housingApi.occupancy],
+          occupancyIntended: housingApi.occupancyIntended
+            ? OCCUPANCY_LABELS[housingApi.occupancyIntended]
+            : undefined
         }),
         nextNew: compactUndefined({
-          occupancy: occupancyUpdate.occupancy,
-          occupancyIntended: occupancyUpdate.occupancyIntended ?? undefined
+          occupancy: OCCUPANCY_LABELS[occupancyUpdate.occupancy],
+          occupancyIntended: occupancyUpdate.occupancyIntended
+            ? OCCUPANCY_LABELS[occupancyUpdate.occupancyIntended]
+            : undefined
         }),
         createdBy: userId,
         createdAt: new Date().toJSON(),

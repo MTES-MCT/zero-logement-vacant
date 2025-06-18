@@ -11,17 +11,19 @@ const insertHousingList = async (
   campaignId: string,
   housingList: HousingApi[]
 ): Promise<void> => {
-  await CampaignsHousing()
-    .insert(
-      housingList.map((housing) => ({
-        campaign_id: campaignId,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      }))
-    )
-    .onConflict(['campaign_id', 'housing_id', 'housing_geo_code'])
-    .ignore()
-    .returning('housing_id');
+  await withinTransaction(async (transaction) => {
+    await CampaignsHousing(transaction)
+      .insert(
+        housingList.map((housing) => ({
+          campaign_id: campaignId,
+          housing_id: housing.id,
+          housing_geo_code: housing.geoCode
+        }))
+      )
+      .onConflict(['campaign_id', 'housing_id', 'housing_geo_code'])
+      .ignore()
+      .returning('housing_id');
+  });
 };
 
 async function removeMany(

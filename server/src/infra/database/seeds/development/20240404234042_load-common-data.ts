@@ -18,9 +18,9 @@ import { housingOwnersTable } from '~/repositories/housingOwnerRepository';
 import { housingTable } from '~/repositories/housingRepository';
 import { localitiesTable } from '~/repositories/localityRepository';
 import {
-  housingNotesTable,
-  notesTable,
-  ownerNotesTable
+  HOUSING_NOTES_TABLE,
+  NOTES_TABLE,
+  OWNER_NOTES_TABLE
 } from '~/repositories/noteRepository';
 import { ownerTable } from '~/repositories/ownerRepository';
 import { resetLinkTable } from '~/repositories/resetLinkRepository';
@@ -31,9 +31,9 @@ import { usersTable } from '~/repositories/userRepository';
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
   await knex(geoPerimetersTable).delete();
-  await knex(housingNotesTable).delete();
-  await knex(ownerNotesTable).delete();
-  await knex(notesTable).delete();
+  await knex(HOUSING_NOTES_TABLE).delete();
+  await knex(OWNER_NOTES_TABLE).delete();
+  await knex(NOTES_TABLE).delete();
   console.info('Removed notes.');
   await knex(CAMPAIGN_EVENTS_TABLE).delete();
   await knex(OWNER_EVENTS_TABLE).delete();

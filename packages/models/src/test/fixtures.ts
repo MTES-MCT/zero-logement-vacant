@@ -376,12 +376,15 @@ export function genLocalId(department: string, invariant: string): string {
 }
 
 export function genNoteDTO(creator: UserDTO): NoteDTO {
+  const createdAt = faker.date.past();
+  const updatedAt = faker.date.between({ from: createdAt, to: new Date() });
   return {
     id: faker.string.uuid(),
     content: faker.lorem.paragraph(),
     noteKind: 'Note courante',
     createdBy: creator.id,
-    createdAt: new Date().toJSON(),
+    createdAt: createdAt.toJSON(),
+    updatedAt: updatedAt.toJSON(),
     creator
   };
 }

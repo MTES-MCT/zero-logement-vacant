@@ -1,26 +1,39 @@
+import { faker } from '@faker-js/faker/locale/fr';
+import { NotePayloadDTO } from '@zerologementvacant/models';
+
+import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
+
 import noteRepository, {
+  formatNoteApi,
   HousingNotes,
   NoteRecordDBO,
   Notes
 } from '~/repositories/noteRepository';
-import { HousingNoteApi } from '~/models/NoteApi';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genEstablishmentApi,
   genHousingApi,
   genHousingNoteApi,
   genUserApi
 } from '~/test/testFixtures';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
 
 describe('Note repository', () => {
+  const establishment = genEstablishmentApi();
+  const user = genUserApi(establishment.id);
+
+  beforeAll(async () => {
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(formatUserApi(user));
+  });
+
   describe('createByHousing', () => {
     const establishment = genEstablishmentApi();
     const creator = genUserApi(establishment.id);
@@ -42,7 +55,8 @@ describe('Note repository', () => {
         content: note.content,
         note_kind: note.noteKind,
         created_by: note.createdBy,
-        created_at: note.createdAt,
+        created_at: new Date(note.createdAt),
+        updated_at: note.updatedAt ? new Date(note.updatedAt) : null,
         // Weird fields still present in the database
         contact_kind_deprecated: null,
         title_deprecated: null
@@ -58,6 +72,60 @@ describe('Note repository', () => {
         })
         .first();
       expect(actual).toBeDefined();
+    });
+  });
+
+  describe('get', () => {
+    const housing = genHousingApi();
+    const note = genHousingNoteApi(user, housing);
+
+    beforeAll(async () => {
+      await Notes().insert(formatNoteApi(note));
+    });
+
+    it('should return null if the note is missing', async () => {
+      const actual = await noteRepository.get(faker.string.uuid());
+
+      expect(actual).toBeNull();
+    });
+
+    it('should return the note if it exists', async () => {
+      const actual = await noteRepository.get(note.id);
+
+      expect(actual).toBeDefined();
+      expect(actual).toMatchObject<Partial<NoteApi>>({
+        id: note.id,
+        content: note.content,
+        createdAt: note.createdAt,
+        updatedAt: note.updatedAt
+      });
+    });
+  });
+
+  describe('update', () => {
+    const housing = genHousingApi();
+    const note = genHousingNoteApi(user, housing);
+
+    beforeAll(async () => {
+      await Notes().insert(formatNoteApi(note));
+    });
+
+    it('should update the note content and updated_at field', async () => {
+      const payload: NotePayloadDTO = {
+        content: 'Nouveau contenu'
+      };
+
+      await noteRepository.update({
+        ...payload,
+        id: note.id
+      });
+
+      const actual = await Notes().where({ id: note.id }).first();
+      expect(actual).toMatchObject<Partial<NoteRecordDBO>>({
+        id: note.id,
+        content: payload.content,
+        updated_at: expect.any(Date)
+      });
     });
   });
 });

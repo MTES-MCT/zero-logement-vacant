@@ -48,12 +48,23 @@ export const noteApi = zlvApi.injectEndpoints({
           { type: 'Note', id: args.id }
         ]
       }
-    )
+    ),
+
+    removeNote: builder.mutation<void, Note>({
+      query: (note) => ({
+        url: `notes/${note.id}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: (_result, _error, note) => [
+        { type: 'Note', id: note.id }
+      ]
+    })
   })
 });
 
 export const {
   useFindNotesByHousingQuery,
   useCreateNoteByHousingMutation,
-  useUpdateNoteMutation
+  useUpdateNoteMutation,
+  useRemoveNoteMutation
 } = noteApi;

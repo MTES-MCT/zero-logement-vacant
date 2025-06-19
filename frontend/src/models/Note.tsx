@@ -1,7 +1,7 @@
 import { NoteDTO } from '@zerologementvacant/models';
 import { Housing } from './Housing';
 import { Owner } from './Owner';
-import { fromUserDTO, User } from './User';
+import { fromUserDTO, toUserDTO, User } from './User';
 
 export interface NoteCreation {
   content: string;
@@ -39,5 +39,12 @@ export function fromNoteDTO(note: NoteDTO): Note {
   return {
     ...note,
     creator: fromUserDTO(note.creator)
+  };
+}
+
+export function toNoteDTO(note: Note): NoteDTO {
+  return {
+    ...note,
+    creator: toUserDTO(note.creator)
   };
 }

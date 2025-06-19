@@ -59,9 +59,7 @@ function EventsHistory({ events, notes }: Props) {
             return (
               <NoteCard
                 key={note.id}
-                content={note.content}
-                createdAt={note.createdAt}
-                createdBy={note.creator}
+                note={note}
                 establishment={establishment ?? null}
               />
             );
@@ -87,9 +85,7 @@ function EventsHistory({ events, notes }: Props) {
             />
           ) : (
             <NoteCard
-              content={eventOrNote.content}
-              createdAt={eventOrNote.createdAt}
-              createdBy={eventOrNote.creator}
+              note={eventOrNote}
               establishment={establishment ?? null}
             />
           );

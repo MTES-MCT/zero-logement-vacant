@@ -16,16 +16,28 @@ interface PathParams extends Record<string, string> {
   id: string;
 }
 
-async function findByHousing(
-  request: Request<PathParams>,
-  response: Response<NoteDTO[]>
-) {
-  const { params } = request;
-  logger.debug('Finding notes by housing...', { housing: params.id });
+const findByHousing: RequestHandler<PathParams, NoteDTO[]> = async (
+  request,
+  response
+): Promise<void> => {
+  const { establishment, params } = request as AuthenticatedRequest<PathParams>;
 
-  const notes = await noteRepository.findByHousing(params.id);
+  logger.debug('Finding notes by housing...', { housing: params.id });
+  const housing = await housingRepository.findOne({
+    geoCode: establishment.geoCodes,
+    id: params.id
+  });
+  if (!housing) {
+    throw new HousingMissingError(params.id);
+  }
+
+  const notes = await noteRepository.findByHousing(housing, {
+    filters: {
+      deleted: false
+    }
+  });
   response.status(constants.HTTP_STATUS_OK).json(notes.map(toNoteDTO));
-}
+};
 
 async function createByHousing(
   request: Request<PathParams, NoteDTO, NotePayloadDTO, never>,
@@ -54,6 +66,7 @@ async function createByHousing(
     createdBy: user.id,
     createdAt: new Date().toJSON(),
     updatedAt: null,
+    deletedAt: null,
     housingId: housing.id,
     housingGeoCode: housing.geoCode,
     creator: user
@@ -97,10 +110,35 @@ const update: RequestHandler<{ id: string }, NoteDTO, NotePayloadDTO> = async (
   response.status(constants.HTTP_STATUS_OK).json(toNoteDTO(updated));
 };
 
+const remove: RequestHandler<{ id: string }, void> = async (
+  request,
+  response
+) => {
+  const { params, user } = request as AuthenticatedRequest<{ id: string }>;
+
+  const note = await noteRepository.get(params.id);
+  if (!note) {
+    throw new NoteMissingError(request.params.id);
+  }
+
+  if (!isAdmin(user) && note.creator.id !== user.id) {
+    logger.warn('Unauthorized removal attempt', {
+      user: user.id,
+      note: note.id
+    });
+    response.status(constants.HTTP_STATUS_FORBIDDEN).send();
+    return;
+  }
+
+  await noteRepository.remove(note.id);
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
+};
+
 const noteController = {
   createByHousing,
   findByHousing,
-  update
+  update,
+  remove
 };
 
 export default noteController;

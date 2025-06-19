@@ -1,6 +1,7 @@
+import { NoteDTO } from '@zerologementvacant/models';
 import { Housing } from './Housing';
 import { Owner } from './Owner';
-import { User } from './User';
+import { fromUserDTO, toUserDTO, User } from './User';
 
 export interface NoteCreation {
   content: string;
@@ -26,9 +27,24 @@ export const isOwnerNoteCreation = (
   return (noteCreation as OwnerNoteCreation).owner !== undefined;
 };
 
-export interface Note extends NoteCreation {
-  id: string;
-  createdBy: string;
-  createdAt: Date;
+export type Note = Omit<NoteDTO, 'creator'> & {
   creator: User;
+};
+
+export function fromNoteDTO(note: NoteDTO): Note {
+  if (!note.creator) {
+    throw new Error('Note creator is missing');
+  }
+
+  return {
+    ...note,
+    creator: fromUserDTO(note.creator)
+  };
+}
+
+export function toNoteDTO(note: Note): NoteDTO {
+  return {
+    ...note,
+    creator: toUserDTO(note.creator)
+  };
 }

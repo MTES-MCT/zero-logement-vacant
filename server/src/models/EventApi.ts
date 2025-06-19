@@ -1,52 +1,104 @@
+import { EventDTO, EventType } from '@zerologementvacant/models';
 import { assert } from 'ts-essentials';
 
-import {
-  EventCategory,
-  EventKind,
-  EventSection
-} from '@zerologementvacant/models';
-import { HousingApi } from './HousingApi';
-import { OwnerApi } from './OwnerApi';
-import { CampaignApi } from './CampaignApi';
-import { GroupApi } from './GroupApi';
-import { UserApi } from '~/models/UserApi';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { fromUserDTO, toUserDTO, UserApi } from '~/models/UserApi';
 
-export interface EventApi<T> {
-  id: string;
-  name: string;
-  kind: EventKind;
-  category: EventCategory;
-  section: EventSection;
-  conflict?: boolean;
-  old?: T;
-  new?: T;
-  createdAt: Date;
-  createdBy: string;
+export type EventApi<Type extends EventType> = Omit<
+  EventDTO<Type>,
+  'creator'
+> & {
   creator?: UserApi;
+};
+
+export function fromEventDTO<Type extends EventType>(
+  event: EventDTO<Type>
+): EventApi<Type> {
+  return {
+    ...event,
+    creator: event.creator ? fromUserDTO(event.creator) : undefined
+  };
 }
 
-export interface HousingEventApi
-  extends EventApi<HousingApi | HousingOwnerApi[]> {
-  housingId: string;
+export function toEventDTO<Type extends EventType>(
+  event: EventApi<Type>
+): EventDTO<Type> {
+  return {
+    ...event,
+    creator: event.creator ? toUserDTO(event.creator) : undefined
+  };
+}
+
+/**
+ * Expands a type union to a union of types.
+ * @example
+ * type HousingEvents = EventUnion<'housing:created' | 'housing:status-updated'>
+ * // = EventApi<'housing:created'> | EventApi<'housing:status-updated'>
+ */
+export type EventUnion<Type extends EventType> = Type extends any
+  ? EventApi<Type>
+  : never;
+
+export type HousingEventApi = EventUnion<
+  'housing:created' | 'housing:occupancy-updated' | 'housing:status-updated'
+> & {
   housingGeoCode: string;
-}
-
-export interface OwnerEventApi extends EventApi<OwnerApi> {
-  ownerId: string;
-}
-
-export interface CampaignEventApi extends EventApi<CampaignApi> {
-  campaignId: string;
-}
-
-export interface GroupHousingEventApi extends EventApi<GroupApi> {
   housingId: string;
+};
+
+export type PrecisionHousingEventApi = EventUnion<
+  'housing:precision-attached' | 'housing:precision-detached'
+> & {
   housingGeoCode: string;
+  housingId: string;
+  precisionId: string | null;
+};
+
+export type HousingOwnerEventApi = EventUnion<
+  'housing:owner-attached' | 'housing:owner-updated' | 'housing:owner-detached'
+> & {
+  housingGeoCode: string;
+  housingId: string;
+  ownerId: string | null;
+};
+
+export type PerimeterHousingEventApi = EventUnion<
+  'housing:perimeter-attached' | 'housing:perimeter-detached'
+> & {
+  housingGeoCode: string;
+  housingId: string;
+  perimeterId: string | null;
+};
+
+export type GroupHousingEventApi = EventUnion<
+  | 'housing:group-attached'
+  | 'housing:group-detached'
+  | 'housing:group-removed'
+  | 'housing:group-archived'
+> & {
+  housingGeoCode: string;
+  housingId: string;
   groupId: string | null;
-}
+};
 
-export function isUserModified<T>(event: EventApi<T>): boolean {
+export type CampaignHousingEventApi = EventUnion<
+  | 'housing:campaign-attached'
+  | 'housing:campaign-detached'
+  | 'housing:campaign-removed'
+> & {
+  housingGeoCode: string;
+  housingId: string;
+  campaignId: string | null;
+};
+
+export type OwnerEventApi = EventUnion<'owner:created' | 'owner:updated'> & {
+  ownerId: string;
+};
+
+export type CampaignEventApi = EventUnion<'campaign:updated'> & {
+  campaignId: string;
+};
+
+export function isUserModified(event: EventApi<EventType>): boolean {
   assert(event.creator, 'Event creator is missing');
   const isBeta = /@(zerologementvacant\.)?beta\.gouv\.fr$/;
   return !isBeta.test(event.creator.email);

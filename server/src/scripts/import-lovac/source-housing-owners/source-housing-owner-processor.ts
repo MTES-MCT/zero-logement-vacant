@@ -5,7 +5,6 @@ import {
 } from '@zerologementvacant/models';
 import { map } from '@zerologementvacant/utils/node';
 import fp from 'lodash/fp';
-import { v4 as uuidv4 } from 'uuid';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -46,8 +45,7 @@ export type HousingEventChange = {
 export type HousingOwnerChanges = HousingOwnersChange | HousingEventChange;
 
 export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
-  const { abortEarly, auth, housingRepository, ownerRepository, reporter } =
-    options;
+  const { abortEarly, housingRepository, ownerRepository, reporter } = options;
 
   return map<
     ReadonlyArray<SourceHousingOwner>,
@@ -145,23 +143,22 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
         }
       ];
       if (existingHousingOwners.length > 0) {
-        changes.push({
-          type: 'event',
-          kind: 'create',
-          value: {
-            id: uuidv4(),
-            name: 'Changement de propriétaires',
-            kind: 'Update',
-            category: 'Ownership',
-            section: 'Propriétaire',
-            old: existingHousingOwners as HousingOwnerApi[],
-            new: housingOwners as HousingOwnerApi[],
-            createdBy: auth.id,
-            createdAt: new Date(),
-            housingId: housing.id,
-            housingGeoCode: housing.geoCode
-          }
-        });
+        // TODO: refactor events on the next LOVAC import
+        // changes.push({
+        //   type: 'event',
+        //   kind: 'create',
+        //   value: {
+        //     id: uuidv4(),
+        //     name: '',
+        //     type: ''
+        //     old: existingHousingOwners as HousingOwnerApi[],
+        //     new: housingOwners as HousingOwnerApi[],
+        //     createdBy: auth.id,
+        //     createdAt: new Date(),
+        //     housingId: housing.id,
+        //     housingGeoCode: housing.geoCode
+        //   }
+        // });
       }
 
       sourceHousingOwners.forEach((sourceHousingOwner) => {

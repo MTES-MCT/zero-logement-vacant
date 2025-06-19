@@ -8,17 +8,22 @@ import {
   HousingStatus,
   Occupancy,
   OwnerDTO,
-  OwnerRank
+  OwnerRank,
+  UserRole
 } from '@zerologementvacant/models';
 import {
   genHousingDTO,
   genHousingOwnerDTO,
-  genOwnerDTO
+  genNoteDTO,
+  genOwnerDTO,
+  genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { genAuthUser, genUser } from '../../../../test/fixtures.test';
 import data from '../../../mocks/handlers/data';
+import { fromUserDTO, User } from '../../../models/User';
 import configureTestStore from '../../../utils/test/storeUtils';
 import HousingView from '../HousingView';
 
@@ -48,8 +53,14 @@ describe('Housing view', () => {
     data.housingOwners.set(housing.id, housingOwners);
   });
 
-  function renderView(housing: HousingDTO) {
-    const store = configureTestStore();
+  interface RenderViewOptions {
+    user: User;
+  }
+
+  function renderView(housing: HousingDTO, options?: RenderViewOptions) {
+    const store = configureTestStore({
+      auth: genAuthUser(options?.user ?? genUser(UserRole.USUAL))
+    });
     const router = createMemoryRouter(
       [{ path: '/housing/:housingId', element: <HousingView /> }],
       {
@@ -113,7 +124,7 @@ describe('Housing view', () => {
 
     describe('Source', () => {
       it('should be "Fichiers fonciers (2023)"', async () => {
-        housing.dataFileYears = ['ff-2023'];
+        housing.dataFileYears = ['ff-2023-locatif'];
 
         renderView(housing);
 
@@ -380,6 +391,116 @@ describe('Housing view', () => {
       });
       const note = await within(panel).findByText('Note');
       expect(note).toBeVisible();
+    });
+  });
+
+  describe('Edit a note', () => {
+    const admin = genUserDTO(UserRole.ADMIN);
+    const note = genNoteDTO(admin);
+
+    beforeEach(() => {
+      data.users.push(admin);
+      data.notes.push(note);
+      data.housingNotes.set(
+        housing.id,
+        data.housingNotes
+          .get(housing.id)
+          ?.filter((housingNote) => housingNote !== note.id)
+          ?.concat(note.id) ?? [note.id]
+      );
+    });
+
+    it('should edit the note', async () => {
+      renderView(housing, {
+        user: fromUserDTO(admin)
+      });
+
+      const history = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(history);
+      const edit = await screen.findByRole('button', {
+        name: 'Éditer la note'
+      });
+      await user.click(edit);
+      const textarea = await screen.findByRole('textbox', {
+        name: 'Contenu de la note'
+      });
+      await user.clear(textarea);
+      await user.type(textarea, 'Contenu de la note modifié');
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer la note'
+      });
+      await user.click(save);
+      const updatedNote = await screen.findByText('Contenu de la note modifié');
+      expect(updatedNote).toBeVisible();
+    });
+
+    it('should be invisible to a non-admin user who is not the creator of the note', async () => {
+      const nonAdminUser = genUserDTO(UserRole.USUAL);
+      data.users.push(nonAdminUser);
+      const note = genNoteDTO(nonAdminUser);
+      data.notes.push(note);
+      data.housingNotes.set(
+        housing.id,
+        data.housingNotes
+          .get(housing.id)
+          ?.filter((housingNote) => housingNote !== note.id)
+          ?.concat(note.id) ?? [note.id]
+      );
+
+      renderView(housing, {
+        user: fromUserDTO(nonAdminUser)
+      });
+
+      const history = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(history);
+
+      expect(
+        screen.queryByRole('button', { name: 'Éditer la note' })
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Remove a note', () => {
+    function renderViewAs(role: UserRole) {
+      const user = genUserDTO(role);
+      const note = genNoteDTO(user);
+      data.users.push(user);
+      data.notes.push(note);
+      data.housingNotes.set(housing.id, [note.id]);
+
+      renderView(housing, {
+        user: fromUserDTO(user)
+      });
+
+      return {
+        note,
+        user
+      };
+    }
+
+    it('should remove the note', async () => {
+      const { note } = renderViewAs(UserRole.ADMIN);
+
+      const history = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(history);
+      const remove = await screen.findByRole('button', {
+        name: 'Supprimer la note'
+      });
+      await user.click(remove);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Suppression d’une note'
+      });
+      const confirm = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirm);
+      expect(screen.queryByText(note.content)).not.toBeInTheDocument();
     });
   });
 });

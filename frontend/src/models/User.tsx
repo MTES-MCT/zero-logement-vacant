@@ -8,14 +8,9 @@ export interface AuthUser {
   jimoData: object;
 }
 
-export interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
+export interface User extends Omit<UserDTO, 'activatedAt' | 'role'> {
   role: UserRoles;
   activatedAt: Date;
-  establishmentId: string;
 }
 
 export function createdBy(
@@ -67,3 +62,17 @@ export enum UserRoles {
   Admin,
   Visitor
 }
+
+export function formatAuthor(
+  user: Pick<User, 'email' | 'firstName' | 'lastName'>,
+  establishment: Pick<Establishment, 'name'> | null
+): string {
+  const authorName = createdBy(user);
+  return establishment ? `${authorName} (${establishment.name})` : authorName;
+}
+
+export function isAdmin(user: User): boolean {
+  return user.role === UserRoles.Admin;
+}
+
+export const ADMIN_LABEL = 'L’équipe Zéro Logement Vacant';

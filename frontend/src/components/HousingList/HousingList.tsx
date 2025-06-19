@@ -21,7 +21,7 @@ import { HousingFilters } from '../../models/HousingFilters';
 import {
   useCountHousingQuery,
   useFindHousingQuery,
-  useUpdateHousingMutation
+  useUpdateHousingNextMutation
 } from '../../services/housing.service';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { findChild } from '../../utils/elementUtils';
@@ -49,7 +49,7 @@ function HousingList(props: HousingListProps) {
 
   const campaignList = useCampaignList();
 
-  const [updateHousing] = useUpdateHousingMutation();
+  const [updateHousing] = useUpdateHousingNextMutation();
 
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const [sort, setSort] = useState<HousingSort>();
@@ -230,8 +230,10 @@ function HousingList(props: HousingListProps) {
     housingUpdate: HousingUpdate
   ) => {
     await updateHousing({
-      housing,
-      housingUpdate
+      ...housing,
+      status: housingUpdate.statusUpdate?.status ?? housing.status,
+      subStatus:
+        housingUpdate.statusUpdate?.subStatus ?? housing.subStatus ?? null
     });
     setUpdatingHousing(undefined);
   };

@@ -463,4 +463,44 @@ describe('Housing view', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  describe('Remove a note', () => {
+    function renderViewAs(role: UserRole) {
+      const user = genUserDTO(role);
+      const note = genNoteDTO(user);
+      data.users.push(user);
+      data.notes.push(note);
+      data.housingNotes.set(housing.id, [note.id]);
+
+      renderView(housing, {
+        user: fromUserDTO(user)
+      });
+
+      return {
+        note,
+        user
+      };
+    }
+
+    it('should remove the note', async () => {
+      const { note } = renderViewAs(UserRole.ADMIN);
+
+      const history = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(history);
+      const remove = await screen.findByRole('button', {
+        name: 'Supprimer la note'
+      });
+      await user.click(remove);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Suppression d’une note'
+      });
+      const confirm = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirm);
+      expect(screen.queryByText(note.content)).not.toBeInTheDocument();
+    });
+  });
 });

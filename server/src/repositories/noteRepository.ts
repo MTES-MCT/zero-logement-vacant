@@ -1,11 +1,15 @@
+import { match } from 'ts-pattern';
 import db from '~/infra/database';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
+import { HousingId } from '~/models/HousingApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import {
   parseUserApi,
   UserDBO,
   usersTable
 } from '~/repositories/userRepository';
+
+const logger = createLogger('noteRepository');
 
 export const NOTES_TABLE = 'notes';
 export const OWNER_NOTES_TABLE = 'owner_notes';
@@ -41,17 +45,39 @@ async function createManyByHousing(
   }
 }
 
-async function findByHousing(id: string): Promise<NoteApi[]> {
-  logger.debug('Finding housing notes...', {
-    housing: id
-  });
+interface FindByHousingOptions {
+  filters?: {
+    deleted?: boolean;
+  };
+}
+
+async function findByHousing(
+  housing: HousingId,
+  options?: FindByHousingOptions
+): Promise<NoteApi[]> {
+  logger.debug('Finding housing notes...', housing);
   const notes = await listQuery()
     .join(
       HOUSING_NOTES_TABLE,
       `${HOUSING_NOTES_TABLE}.note_id`,
       `${NOTES_TABLE}.id`
     )
-    .where(`${HOUSING_NOTES_TABLE}.housing_id`, id);
+    .where({
+      [`${HOUSING_NOTES_TABLE}.housing_geo_code`]: housing.geoCode,
+      [`${HOUSING_NOTES_TABLE}.housing_id`]: housing.id
+    })
+    .modify((query) => {
+      match(options?.filters?.deleted)
+        .with(true, () => {
+          query.whereNotNull(`${NOTES_TABLE}.deleted_at`);
+        })
+        .with(false, () => {
+          query.whereNull(`${NOTES_TABLE}.deleted_at`);
+        })
+        .otherwise(() => {
+          // No filter applied, return all notes
+        });
+    });
   return notes.map(parseNoteApi);
 }
 
@@ -73,6 +99,14 @@ async function update(
     });
 }
 
+async function remove(id: string): Promise<void> {
+  logger.debug('Removing note...', { id });
+  await Notes().where({ id }).update({
+    deleted_at: new Date()
+  });
+  logger.debug('Note removed', { id });
+}
+
 export interface NoteRecordDBO {
   id: string;
   content: string;
@@ -88,6 +122,7 @@ export interface NoteRecordDBO {
   created_by: string;
   created_at: Date;
   updated_at: Date | null;
+  deleted_at: Date | null;
 }
 
 export interface NoteDBO extends NoteRecordDBO {
@@ -108,7 +143,8 @@ export const formatNoteApi = (note: NoteApi): NoteRecordDBO => ({
   contact_kind_deprecated: null,
   title_deprecated: null,
   created_at: new Date(note.createdAt),
-  updated_at: note.updatedAt ? new Date(note.updatedAt) : null
+  updated_at: note.updatedAt ? new Date(note.updatedAt) : null,
+  deleted_at: note.deletedAt ? new Date(note.deletedAt) : null
 });
 
 export function formatHousingNoteApi(note: HousingNoteApi): HousingNoteDBO {
@@ -131,6 +167,7 @@ export function parseNoteApi(note: NoteDBO): NoteApi {
     noteKind: note.note_kind,
     createdAt: note.created_at.toJSON(),
     updatedAt: note.updated_at ? note.updated_at.toJSON() : null,
+    deletedAt: note.deleted_at ? note.deleted_at.toJSON() : null,
     creator: parseUserApi(note.creator)
   };
 }
@@ -146,5 +183,6 @@ export default {
   createByHousing,
   findByHousing,
   get,
-  update
+  update,
+  remove
 };

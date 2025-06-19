@@ -8,11 +8,13 @@ import {
   HOUSING_KIND_VALUES,
   HousingStatus,
   Occupancy,
-  ROLE_VALUES
+  USER_ROLE_VALUES,
+  UserRole
 } from '@zerologementvacant/models';
 import {
   genAddressDTO,
   genEventDTO,
+  genNoteDTO,
   genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
@@ -25,6 +27,7 @@ import { Event, fromEventDTO } from '../src/models/Event';
 import { Group } from '../src/models/Group';
 import { Housing } from '../src/models/Housing';
 import { LocalityKinds } from '../src/models/Locality';
+import { fromNoteDTO, Note } from '../src/models/Note';
 import { fromOwnerDTO, Owner } from '../src/models/Owner';
 import { Prospect } from '../src/models/Prospect';
 import { SignupLink } from '../src/models/SignupLink';
@@ -57,10 +60,10 @@ export function genNumber(length = 10): number {
   );
 }
 
-export function genAuthUser(): AuthUser {
+export function genAuthUser(user: User): AuthUser {
   return {
     accessToken: randomstring.generate(),
-    user: genUser(),
+    user,
     establishment: {
       id: faker.string.uuid(),
       name: randomstring.generate(),
@@ -75,8 +78,10 @@ export function genAuthUser(): AuthUser {
   };
 }
 
-export function genUser(): User {
-  return fromUserDTO(genUserDTO(faker.helpers.arrayElement(ROLE_VALUES)));
+export function genUser(
+  role: UserRole = faker.helpers.arrayElement(USER_ROLE_VALUES)
+): User {
+  return fromUserDTO(genUserDTO(role));
 }
 
 export function genOwner(): Owner {
@@ -322,4 +327,8 @@ export function genEvent<Type extends EventType>(
       nextNew: nextNew
     })
   );
+}
+
+export function genNote(creator: User): Note {
+  return fromNoteDTO(genNoteDTO(toUserDTO(creator)));
 }

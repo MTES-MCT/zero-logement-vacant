@@ -125,7 +125,8 @@ const housingEvents = new Map<
   >[]
 >();
 
-const housingNotes = new Map<HousingDTO['id'], NoteDTO[]>();
+const notes: NoteDTO[] = [];
+const housingNotes = new Map<HousingDTO['id'], string[]>();
 
 const prospects: ProspectDTO[] = [];
 
@@ -145,6 +146,7 @@ const data = {
   housingEvents,
   housingNotes,
   housingOwners,
+  notes,
   owners,
   precisions,
   prospects,

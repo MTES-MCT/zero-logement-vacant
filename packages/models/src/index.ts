@@ -44,7 +44,7 @@ export * from './Pagination';
 export * from './Precision';
 export * from './PropertyRight';
 export * from './ProspectDTO';
-export * from './RolesDTO';
+export * from './UserRole';
 export * from './RoomCount';
 export * from './SenderDTO';
 export * from './SettingsDTO';

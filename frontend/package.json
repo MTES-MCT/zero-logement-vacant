@@ -42,6 +42,7 @@
     "@typeform/embed-react": "^2.31.0",
     "@zerologementvacant/models": "workspace:*",
     "@zerologementvacant/queue": "workspace:*",
+    "@zerologementvacant/schemas": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
     "async": "^3.2.6",
     "classnames": "^2.5.1",

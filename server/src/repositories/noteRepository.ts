@@ -61,12 +61,16 @@ async function get(id: string): Promise<NoteApi | null> {
   return note ? parseNoteApi(note) : null;
 }
 
-async function update(note: Pick<NoteApi, 'id' | 'content'>): Promise<void> {
+async function update(
+  note: Pick<NoteApi, 'id' | 'content' | 'updatedAt'>
+): Promise<void> {
   logger.debug('Updating note...', note);
-  await Notes().where({ id: note.id }).update({
-    content: note.content,
-    updated_at: new Date()
-  });
+  await Notes()
+    .where({ id: note.id })
+    .update({
+      content: note.content,
+      updated_at: note.updatedAt ? new Date(note.updatedAt) : null
+    });
 }
 
 export interface NoteRecordDBO {
@@ -107,21 +111,29 @@ export const formatNoteApi = (note: NoteApi): NoteRecordDBO => ({
   updated_at: note.updatedAt ? new Date(note.updatedAt) : null
 });
 
-export const formatHousingNoteApi = (note: HousingNoteApi): HousingNoteDBO => ({
-  note_id: note.id,
-  housing_id: note.housingId,
-  housing_geo_code: note.housingGeoCode
-});
+export function formatHousingNoteApi(note: HousingNoteApi): HousingNoteDBO {
+  return {
+    note_id: note.id,
+    housing_id: note.housingId,
+    housing_geo_code: note.housingGeoCode
+  };
+}
 
-export const parseNoteApi = (note: NoteDBO): NoteApi => ({
-  id: note.id,
-  createdBy: note.created_by,
-  content: note.content,
-  noteKind: note.note_kind,
-  createdAt: note.created_at.toJSON(),
-  updatedAt: note.updated_at ? note.updated_at.toJSON() : null,
-  creator: note.creator ? parseUserApi(note.creator) : undefined
-});
+export function parseNoteApi(note: NoteDBO): NoteApi {
+  if (!note.creator) {
+    throw new Error('Note creator should be fetched together with the note');
+  }
+
+  return {
+    id: note.id,
+    createdBy: note.created_by,
+    content: note.content,
+    noteKind: note.note_kind,
+    createdAt: note.created_at.toJSON(),
+    updatedAt: note.updated_at ? note.updated_at.toJSON() : null,
+    creator: parseUserApi(note.creator)
+  };
+}
 
 const listQuery = () =>
   Notes()

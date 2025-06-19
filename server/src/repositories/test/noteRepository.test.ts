@@ -117,6 +117,7 @@ describe('Note repository', () => {
 
       await noteRepository.update({
         ...payload,
+        updatedAt: new Date().toJSON(),
         id: note.id
       });
 

@@ -26,10 +26,10 @@ import { OWNER_KIND_LABELS } from '../OwnerKind';
 import { OWNERSHIP_KIND_INTERNAL_VALUES } from '../OwnershipKind';
 import { PROPERTY_RIGHT_VALUES } from '../PropertyRight';
 import { ProspectDTO } from '../ProspectDTO';
-import { RolesDTO } from '../RolesDTO';
 import { SenderDTO, SignatoryDTO } from '../SenderDTO';
 import { SignupLinkDTO } from '../SignupLinkDTO';
 import { UserDTO } from '../UserDTO';
+import { UserRole } from '../UserRole';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -469,7 +469,7 @@ export function genSignupLinkDTO(prospectEmail: string): SignupLinkDTO {
   };
 }
 
-export function genUserDTO(role = RolesDTO.Usual): UserDTO {
+export function genUserDTO(role = UserRole.USUAL): UserDTO {
   return {
     id: faker.string.uuid(),
     email: faker.internet.email(),

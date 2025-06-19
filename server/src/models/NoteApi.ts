@@ -4,7 +4,7 @@ import { assert } from 'ts-essentials';
 import { fromUserDTO, toUserDTO, UserApi } from '~/models/UserApi';
 
 export interface NoteApi extends Omit<NoteDTO, 'creator'> {
-  creator?: UserApi;
+  creator: UserApi;
 }
 
 export function fromNoteDTO(note: NoteDTO): NoteApi {
@@ -15,7 +15,7 @@ export function fromNoteDTO(note: NoteDTO): NoteApi {
     createdBy: note.createdBy,
     createdAt: note.createdAt,
     updatedAt: note.updatedAt,
-    creator: note.creator ? fromUserDTO(note.creator) : undefined
+    creator: fromUserDTO(note.creator)
   };
 }
 
@@ -27,7 +27,7 @@ export function toNoteDTO(note: NoteApi): NoteDTO {
     createdBy: note.createdBy,
     createdAt: note.createdAt,
     updatedAt: note.updatedAt,
-    creator: note.creator ? toUserDTO(note.creator) : undefined
+    creator: toUserDTO(note.creator)
   };
 }
 

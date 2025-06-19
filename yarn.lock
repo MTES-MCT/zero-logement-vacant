@@ -11165,6 +11165,7 @@ __metadata:
     "@types/uuid": "npm:^9.0.8"
     "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/queue": "workspace:*"
+    "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:^3.2.6"
     classnames: "npm:^2.5.1"

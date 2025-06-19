@@ -289,6 +289,15 @@ router.post(
   }),
   noteController.createByHousing
 );
+router.put(
+  '/notes/:id',
+  hasRole([UserRoles.Usual, UserRoles.Admin]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.notePayload
+  }),
+  noteController.update
+);
 
 // TODO: rework and merge this API with the User API
 router.get('/account', [], validator.validate, accountController.get);

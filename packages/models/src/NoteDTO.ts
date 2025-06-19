@@ -7,7 +7,7 @@ export interface NoteDTO {
   createdBy: string;
   createdAt: string;
   updatedAt: string | null;
-  creator?: UserDTO;
+  creator: UserDTO;
 }
 
 export type NotePayloadDTO = Pick<NoteDTO, 'content'>;

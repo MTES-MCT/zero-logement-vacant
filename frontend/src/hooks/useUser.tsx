@@ -1,34 +1,20 @@
 import { UserRoles } from '../models/User';
-import { useMemo } from 'react';
 import { useAppSelector } from './useStore';
 
 export const useUser = () => {
-  const { authUser } = useAppSelector((state) => state.authentication);
+  const { logIn } = useAppSelector((state) => state.authentication);
+  const { data, error, isError, isLoading, isUninitialized, isSuccess } = logIn;
+  const establishment = data?.establishment;
+  const user = data?.user;
+  const jimoData = data?.jimoData;
 
-  const isAuthenticated = useMemo<boolean>(
-    () =>
-      authUser !== undefined &&
-      authUser?.accessToken !== undefined &&
-      authUser?.establishment !== undefined &&
-      authUser?.user !== undefined,
-    [authUser]
-  );
+  const isAuthenticated =
+    !!data?.accessToken && !!data?.user && !!data?.establishment;
 
-  const isAdmin = useMemo<boolean>(
-    () => isAuthenticated && authUser?.user.role === UserRoles.Admin,
-    [authUser, isAuthenticated]
-  );
-
-  const isVisitor = useMemo<boolean>(
-    () => isAuthenticated && authUser?.user.role === UserRoles.Visitor,
-    [authUser, isAuthenticated]
-  );
-
+  const isAdmin = isAuthenticated && user?.role === UserRoles.Admin;
   const isGuest = !isAuthenticated;
-
-  const user = authUser?.user;
-  const establishment = authUser?.establishment;
-  const jimoData = authUser?.jimoData;
+  const isUsual = isAuthenticated && user?.role === UserRoles.Usual;
+  const isVisitor = isAuthenticated && user?.role === UserRoles.Visitor;
 
   function displayName(): string {
     if (user?.firstName && user?.lastName) {
@@ -45,11 +31,17 @@ export const useUser = () => {
   return {
     displayName,
     establishment,
+    user,
     isAdmin,
     isAuthenticated,
     isGuest,
+    isUsual,
     isVisitor,
-    user,
+    error,
+    isError,
+    isLoading,
+    isUninitialized,
+    isSuccess,
     jimoData
   };
 };

@@ -51,7 +51,7 @@ import {
   HousingRecordDBO,
   housingTable
 } from '~/repositories/housingRepository';
-import { housingNotesTable, Notes } from '~/repositories/noteRepository';
+import { HOUSING_NOTES_TABLE, Notes } from '~/repositories/noteRepository';
 import {
   formatOwnerApi,
   OwnerRecordDBO,
@@ -1067,7 +1067,7 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
       const actual = await Notes()
-        .join(housingNotesTable, 'note_id', 'id')
+        .join(HOUSING_NOTES_TABLE, 'note_id', 'id')
         .where('housing_id', housing.id)
         .first();
       expect(actual).toMatchObject({

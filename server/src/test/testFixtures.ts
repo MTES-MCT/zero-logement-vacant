@@ -28,7 +28,8 @@ import {
 import {
   genEventDTO,
   genGeoCode,
-  genNoteDTO
+  genNoteDTO,
+  genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
@@ -71,7 +72,7 @@ import {
   SIGNUP_LINK_LENGTH,
   SignupLinkApi
 } from '~/models/SignupLinkApi';
-import { toUserDTO, UserApi, UserRoles } from '~/models/UserApi';
+import { fromUserDTO, toUserDTO, UserApi } from '~/models/UserApi';
 import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
 import { DatafoncierOwner } from '~/scripts/shared';
 
@@ -135,24 +136,12 @@ export const genEstablishmentApi = (
   };
 };
 
-export const genUserApi = (establishmentId: string): UserApi => {
+export function genUserApi(establishmentId: string): UserApi {
   return {
-    id: uuidv4(),
-    email: genEmail(),
-    password: randomstring.generate(),
-    firstName: faker.person.firstName(),
-    lastName: faker.person.lastName(),
-    establishmentId,
-    role: UserRoles.Usual,
-    activatedAt: faker.date.recent().toJSON(),
-    phone: faker.phone.number(),
-    position: faker.person.jobType(),
-    timePerWeek: randomstring.generate(),
-    lastAuthenticatedAt: faker.date.recent().toJSON(),
-    updatedAt: faker.date.recent().toJSON(),
-    deletedAt: undefined
+    ...fromUserDTO(genUserDTO()),
+    establishmentId: establishmentId
   };
-};
+}
 
 export const genUserAccountDTO: UserAccountDTO = {
   firstName: faker.person.firstName(),

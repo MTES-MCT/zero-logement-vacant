@@ -1,8 +1,8 @@
+import { NoteDTO, NotePayloadDTO } from '@zerologementvacant/models';
+import { genNoteDTO, genUserDTO } from '@zerologementvacant/models/fixtures';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 
-import { NoteDTO, NotePayloadDTO } from '@zerologementvacant/models';
-import { genNoteDTO, genUserDTO } from '@zerologementvacant/models/fixtures';
 import config from '../../utils/config';
 import data from './data';
 
@@ -21,7 +21,10 @@ export const noteHandlers: RequestHandler[] = [
         });
       }
 
-      const notes = data.housingNotes.get(housing.id) || [];
+      const housingNotes = data.housingNotes.get(housing.id) ?? [];
+      const notes = housingNotes
+        .map((id) => data.notes.find((note) => note.id === id) ?? null)
+        .filter((note) => note !== null);
       return HttpResponse.json(notes, {
         status: constants.HTTP_STATUS_OK
       });
@@ -45,12 +48,33 @@ export const noteHandlers: RequestHandler[] = [
         ...genNoteDTO(creator),
         ...payload
       };
+      data.notes.push(note);
       data.housingNotes.set(
         housing.id,
-        (data.housingNotes.get(housing.id) ?? []).concat(note)
+        (data.housingNotes.get(housing.id) ?? []).concat(note.id)
       );
       return HttpResponse.json(note, {
         status: constants.HTTP_STATUS_CREATED
+      });
+    }
+  ),
+
+  // Update a note
+  http.put<PathParams, NotePayloadDTO, NoteDTO>(
+    `${config.apiEndpoint}/api/notes/:id`,
+    async ({ params, request }) => {
+      const note = data.notes.find((note) => note.id === params.id);
+      if (!note) {
+        throw HttpResponse.json(null, {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        });
+      }
+
+      const payload = await request.json();
+      note.content = payload.content;
+
+      return HttpResponse.json(note, {
+        status: constants.HTTP_STATUS_OK
       });
     }
   )

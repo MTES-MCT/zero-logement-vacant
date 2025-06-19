@@ -77,5 +77,31 @@ export const noteHandlers: RequestHandler[] = [
         status: constants.HTTP_STATUS_OK
       });
     }
+  ),
+
+  // Remove a note
+  http.delete<PathParams, never, never>(
+    `${config.apiEndpoint}/api/notes/:id`,
+    async ({ params }) => {
+      const note = data.notes.find((note) => note.id === params.id);
+      if (!note) {
+        throw HttpResponse.json(null, {
+          status: constants.HTTP_STATUS_NOT_FOUND
+        });
+      }
+
+      const index = data.notes.findIndex((note) => note.id === params.id);
+      data.notes.splice(index, 1);
+      data.housingNotes.forEach((ids) => {
+        const j = ids.findIndex((id) => id === params.id);
+        if (j >= 0) {
+          ids.splice(j, 1);
+        }
+      });
+
+      return HttpResponse.json(null, {
+        status: constants.HTTP_STATUS_NO_CONTENT
+      });
+    }
   )
 ];

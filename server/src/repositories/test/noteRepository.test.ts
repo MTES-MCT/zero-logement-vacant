@@ -12,6 +12,7 @@ import {
 } from '~/repositories/housingRepository';
 
 import noteRepository, {
+  formatHousingNoteApi,
   formatNoteApi,
   HousingNotes,
   NoteRecordDBO,
@@ -57,6 +58,7 @@ describe('Note repository', () => {
         created_by: note.createdBy,
         created_at: new Date(note.createdAt),
         updated_at: note.updatedAt ? new Date(note.updatedAt) : null,
+        deleted_at: null,
         // Weird fields still present in the database
         contact_kind_deprecated: null,
         title_deprecated: null
@@ -72,6 +74,60 @@ describe('Note repository', () => {
         })
         .first();
       expect(actual).toBeDefined();
+    });
+  });
+
+  describe('findByHousing', () => {
+    const housing = genHousingApi();
+    const notes: ReadonlyArray<HousingNoteApi> = [
+      {
+        ...genHousingNoteApi(user, housing),
+        deletedAt: null
+      },
+      {
+        ...genHousingNoteApi(user, housing),
+        deletedAt: new Date().toJSON()
+      }
+    ];
+
+    beforeAll(async () => {
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Notes().insert(notes.map(formatNoteApi));
+      await HousingNotes().insert(notes.map(formatHousingNoteApi));
+    });
+
+    it('should return all the notes of a housing', async () => {
+      const actual = await noteRepository.findByHousing(housing);
+
+      expect(actual).toIncludeAllPartialMembers(
+        notes.map((note) => ({ id: note.id }))
+      );
+    });
+
+    it('should return the deleted notes of a housing', async () => {
+      const actual = await noteRepository.findByHousing(housing, {
+        filters: {
+          deleted: true
+        }
+      });
+
+      expect(actual.length).toBeGreaterThan(0);
+      expect(actual).toSatisfyAll<NoteApi>((note) => {
+        return note.deletedAt !== null;
+      });
+    });
+
+    it('should return the non-deleted notes of a housing', async () => {
+      const actual = await noteRepository.findByHousing(housing, {
+        filters: {
+          deleted: false
+        }
+      });
+
+      expect(actual.length).toBeGreaterThan(0);
+      expect(actual).toSatisfyAll<NoteApi>((note) => {
+        return note.deletedAt === null;
+      });
     });
   });
 
@@ -127,6 +183,27 @@ describe('Note repository', () => {
         content: payload.content,
         updated_at: expect.any(Date)
       });
+    });
+  });
+
+  describe('remove', () => {
+    it('should soft-delete the note', async () => {
+      const housing = genHousingApi();
+      const note = genHousingNoteApi(user, housing);
+      await Promise.all([
+        Housing().insert(formatHousingRecordApi(housing)),
+        Notes().insert(formatNoteApi(note)),
+        HousingNotes().insert(formatHousingNoteApi(note))
+      ]);
+
+      await noteRepository.remove(note.id);
+
+      const actualNote = await Notes().where({ id: note.id }).first();
+      expect(actualNote).toBeDefined();
+      const actualHousingNote = await HousingNotes()
+        .where({ note_id: note.id, housing_id: housing.id })
+        .first();
+      expect(actualHousingNote).toBeUndefined();
     });
   });
 });

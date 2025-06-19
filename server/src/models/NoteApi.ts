@@ -5,6 +5,7 @@ import { fromUserDTO, toUserDTO, UserApi } from '~/models/UserApi';
 
 export interface NoteApi extends Omit<NoteDTO, 'creator'> {
   creator: UserApi;
+  deletedAt: string | null;
 }
 
 export function fromNoteDTO(note: NoteDTO): NoteApi {
@@ -15,6 +16,7 @@ export function fromNoteDTO(note: NoteDTO): NoteApi {
     createdBy: note.createdBy,
     createdAt: note.createdAt,
     updatedAt: note.updatedAt,
+    deletedAt: null,
     creator: fromUserDTO(note.creator)
   };
 }

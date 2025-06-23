@@ -1,13 +1,19 @@
+import Button from '@codegouvfr/react-dsfr/Button';
+import Input from '@codegouvfr/react-dsfr/Input';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Unstable_Grid2';
 import { Array, Order, pipe, Predicate, Record } from 'effect';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 
 import NoEvent from '../../assets/images/no-event.svg';
 import { Event } from '../../models/Event';
 import { Note } from '../../models/Note';
+import { formatAuthor, User, USER_EQUIVALENCE } from '../../models/User';
 import { useFindEstablishmentsQuery } from '../../services/establishment.service';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import { useHousingEdition } from '../HousingEdition/useHousingEdition';
 import Image from '../Image/Image';
 import AggregatedEventCard from './AggregatedEventCard';
 import IndividualEventCard from './IndividualEventCard';
@@ -16,6 +22,24 @@ import NoteCard from './NoteCard';
 interface Props {
   events: Event[];
   notes: Note[];
+}
+
+const EVENT_TYPE_VALUES = [
+  {
+    value: 'note',
+    label: 'Note'
+  },
+  {
+    value: 'event',
+    label: 'Mise à jour'
+  }
+] as const;
+type EventType = (typeof EVENT_TYPE_VALUES)[number];
+
+interface EventFilters {
+  types: EventType[];
+  creators: User[];
+  createdAt: Date | null;
 }
 
 function EventsHistory({ events, notes }: Props) {
@@ -28,13 +52,24 @@ function EventsHistory({ events, notes }: Props) {
       Array.dedupe
     )
   });
+  const { setEditing, setTab } = useHousingEdition();
 
-  function isEvent(event: Event | Note): event is Event {
-    return 'type' in event;
-  }
+  const [filters, setFilters] = useState<EventFilters>({
+    types: [],
+    creators: [],
+    createdAt: null
+  });
+
+  const creators = pipe(
+    [...events, ...notes],
+    Array.map((eventOrNote) => eventOrNote.creator),
+    Array.dedupeWith(USER_EQUIVALENCE)
+  );
 
   const history: ReadonlyArray<ReactNode> = pipe(
     [...events, ...notes],
+    Array.filter(byTypes(filters.types)),
+    Array.filter(byCreators(filters.creators)),
     Array.sortWith(
       (event) => new Date(event.createdAt),
       Order.reverse(Order.Date)
@@ -96,24 +131,147 @@ function EventsHistory({ events, notes }: Props) {
     Array.flatten
   );
 
-  if (history.length === 0) {
-    return (
-      <Stack sx={{ alignItems: 'center' }}>
-        <Box sx={{ maxWidth: '7.5rem' }}>
-          <Image
-            alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"
-            responsive="max-height"
-            src={NoEvent}
+  return (
+    <Stack spacing="1.5rem">
+      {/* TODO: FIX THIS SPACING */}
+      <Grid component="header" container columnSpacing="1rem">
+        <Grid component="section" xs={4}>
+          <AppSelectNext
+            label="Type d’événement"
+            multiple
+            options={EVENT_TYPE_VALUES}
+            getOptionKey={(option) => option.value}
+            getOptionLabel={(option) => option.label}
+            getOptionValue={(option) => option.value}
+            value={filters.types}
+            onChange={(options) => {
+              setFilters({
+                ...filters,
+                types: options
+              });
+            }}
           />
-        </Box>
-        <Typography variant="subtitle1">
-          Pas d’évènement ou de note à afficher
-        </Typography>
-      </Stack>
-    );
-  }
+        </Grid>
+        <Grid component="section" xs={4}>
+          <AppSelectNext
+            label="Auteur"
+            multiple
+            options={creators}
+            getOptionKey={(option) => option.id}
+            getOptionLabel={(option) => formatAuthor(option, null)}
+            getOptionValue={(option) => option.id}
+            value={filters.creators}
+            onChange={(options) => {
+              setFilters({
+                ...filters,
+                creators: options
+              });
+            }}
+          />
+        </Grid>
+        <Grid component="section" xs={4}>
+          <Input
+            label="Date de création"
+            nativeInputProps={{
+              type: 'date',
+              value:
+                filters.createdAt
+                  ?.toJSON()
+                  ?.substring(0, 'yyyy-mm-dd'.length) ?? '',
+              onChange: (event) => {
+                const value = event.target.value;
+                setFilters({
+                  ...filters,
+                  createdAt: value.length > 0 ? new Date(value) : null
+                });
+              }
+            }}
+          />
+        </Grid>
+      </Grid>
 
-  return <Stack spacing="1.5rem">{history}</Stack>;
+      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+        <Button
+          priority="secondary"
+          iconId="fr-icon-add-line"
+          iconPosition="left"
+          onClick={() => {
+            setTab('note');
+            setEditing(true);
+          }}
+        >
+          Ajouter une note
+        </Button>
+        <Button
+          priority="tertiary"
+          iconId="ri-loop-left-line"
+          iconPosition="left"
+          onClick={() => {
+            setFilters({
+              types: [],
+              creators: [],
+              createdAt: null
+            });
+          }}
+        >
+          Réinitialiser les filtres
+        </Button>
+      </Stack>
+
+      {history.length === 0 ? (
+        <Stack sx={{ alignItems: 'center' }}>
+          <Box sx={{ maxWidth: '7.5rem' }}>
+            <Image
+              alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"
+              responsive="max-height"
+              src={NoEvent}
+            />
+          </Box>
+          <Typography variant="subtitle1">
+            Pas d’évènement ou de note à afficher
+          </Typography>
+        </Stack>
+      ) : (
+        <Stack spacing="1.5rem">{history}</Stack>
+      )}
+    </Stack>
+  );
+}
+
+function isEvent(event: Event | Note): event is Event {
+  return 'type' in event;
+}
+
+function isNote(event: Event | Note): event is Note {
+  return 'content' in event;
+}
+
+function byTypes(types: ReadonlyArray<EventType>) {
+  return (event: Event | Note): boolean => {
+    if (types.length === 0) {
+      return true; // No filter, include all events/notes
+    }
+
+    if (types.map((type) => type.value).includes('event') && isEvent(event)) {
+      return true;
+    }
+
+    if (types.map((type) => type.value).includes('note') && isNote(event)) {
+      return true;
+    }
+
+    return false;
+  };
+}
+
+function byCreators(creators: ReadonlyArray<User>) {
+  return (event: Event | Note): boolean => {
+    if (creators.length === 0) {
+      return true; // No filter, include all events/notes
+    }
+
+    return creators.some((creator) => USER_EQUIVALENCE(event.creator, creator));
+  };
 }
 
 export default EventsHistory;

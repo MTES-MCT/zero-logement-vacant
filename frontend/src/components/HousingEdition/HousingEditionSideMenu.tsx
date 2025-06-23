@@ -1,4 +1,4 @@
-import Tabs, { TabsProps } from '@codegouvfr/react-dsfr/Tabs';
+import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -12,7 +12,7 @@ import {
 } from '@zerologementvacant/models';
 import { fromJS } from 'immutable';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { ElementOf } from 'ts-essentials';
+import { match } from 'ts-pattern';
 import * as yup from 'yup';
 import { useNotification } from '../../hooks/useNotification';
 import { Housing, HousingUpdate } from '../../models/Housing';
@@ -26,6 +26,7 @@ import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import AsideNext from '../Aside/AsideNext';
 import LabelNext from '../Label/LabelNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
+import { HousingEditionContext, useHousingEdition } from './useHousingEdition';
 
 interface HousingEditionSideMenuProps {
   housing: Housing | null;
@@ -72,6 +73,7 @@ export type HousingEditionFormSchema = yup.InferType<typeof schema>;
 
 function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   const { housing, expand, onClose } = props;
+  const { tab, setTab } = useHousingEdition();
 
   const form = useForm<HousingEditionFormSchema>({
     values: {
@@ -143,10 +145,8 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
     form.reset();
   }
 
-  const OccupationTab: ElementOf<TabsProps.Uncontrolled['tabs']> = {
-    label: 'Occupation',
-    isDefault: true,
-    content: (
+  const content = match(tab)
+    .with('occupancy', () => (
       <Stack rowGap={2}>
         <Controller<HousingEditionFormSchema, 'occupancy'>
           name="occupancy"
@@ -197,25 +197,19 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           )}
         />
       </Stack>
-    )
-  };
-
-  const MobilizationTab: ElementOf<TabsProps.Uncontrolled['tabs']> = {
-    label: 'Mobilisation',
-    content: <HousingEditionMobilizationTab housingId={housing?.id ?? null} />
-  };
-
-  const NoteTab: ElementOf<TabsProps.Uncontrolled['tabs']> = {
-    label: 'Note',
-    content: (
+    ))
+    .with('mobilization', () => (
+      <HousingEditionMobilizationTab housingId={housing?.id ?? null} />
+    ))
+    .with('note', () => (
       <AppTextInputNext
         label="Nouvelle note"
         name="note"
         nativeTextAreaProps={{ rows: 8 }}
         textArea
       />
-    )
-  };
+    ))
+    .exhaustive();
 
   return (
     <AsideNext
@@ -249,7 +243,19 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
       }
       main={
         <FormProvider {...form}>
-          <Tabs tabs={[OccupationTab, MobilizationTab, NoteTab]} />
+          <Tabs
+            tabs={[
+              { tabId: 'occupancy', label: 'Occupation' },
+              { tabId: 'mobilization', label: 'Mobilisation' },
+              { tabId: 'note', label: 'Note' }
+            ]}
+            selectedTabId={tab}
+            onTabChange={(tab: string) => {
+              setTab(tab as HousingEditionContext['tab']);
+            }}
+          >
+            {content}
+          </Tabs>
         </FormProvider>
       }
       open={expand}

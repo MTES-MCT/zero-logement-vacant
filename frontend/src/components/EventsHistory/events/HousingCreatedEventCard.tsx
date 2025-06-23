@@ -10,6 +10,7 @@ interface CardProps {
 
 export function HousingCreatedEventCard(props: CardProps) {
   const source = props.event.nextNew.source;
+  const occupancy = props.event.nextNew.occupancy;
   const title =
     source === 'datafoncier-manual'
       ? 'a ajouté ce logement'
@@ -19,15 +20,13 @@ export function HousingCreatedEventCard(props: CardProps) {
     <EventCard
       createdAt={props.event.createdAt}
       createdBy={props.event.creator}
-      differences={[formatHousingCreatedDifferences({ source })]}
+      differences={[formatHousingCreatedDifferences({ source, occupancy })]}
       title={title}
     />
   );
 }
 
-interface CardDescriptionOptions {
-  source: Event<'housing:created'>['nextNew']['source'];
-}
+type CardDescriptionOptions = Event<'housing:created'>['nextNew'];
 
 export function formatHousingCreatedDifferences(
   options: CardDescriptionOptions

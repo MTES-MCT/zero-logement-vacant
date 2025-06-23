@@ -30,6 +30,7 @@ import AppLink from '../_app/AppLink/AppLink';
 import AdvancedTable from '../AdvancedTable/AdvancedTable';
 import AdvancedTableHeader from '../AdvancedTable/AdvancedTableHeader';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
+import { HousingEditionProvider } from '../HousingEdition/useHousingEdition';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import OccupancyTag from '../OccupancyTag/OccupancyTag';
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
@@ -263,12 +264,14 @@ function HousingList(props: HousingListProps) {
         onSelectionChange={setSelected}
       />
 
-      <HousingEditionSideMenu
-        housing={updatingHousing ?? null}
-        expand={!!updatingHousing}
-        onSubmit={submitHousingUpdate}
-        onClose={() => setUpdatingHousing(undefined)}
-      />
+      <HousingEditionProvider>
+        <HousingEditionSideMenu
+          housing={updatingHousing ?? null}
+          expand={!!updatingHousing}
+          onSubmit={submitHousingUpdate}
+          onClose={() => setUpdatingHousing(undefined)}
+        />
+      </HousingEditionProvider>
     </Stack>
   );
 }

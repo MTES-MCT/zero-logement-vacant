@@ -1,6 +1,6 @@
 import { Predicate } from 'effect';
 
-import { Event, formatEventHousingStatus } from '../../../models/Event';
+import { Event } from '../../../models/Event';
 import EventCard from '../EventCard';
 
 interface HousingStatusEventCardProps {
@@ -28,23 +28,25 @@ interface DifferencesOptions {
   new: Event<'housing:status-updated'>['nextNew'];
 }
 
+const FALLBACK_VALUE = 'vide';
+
 export function formatHousingStatusUpdatedDifferences(
   options: DifferencesOptions
 ): ReadonlyArray<string> {
   const statusBefore: string =
     options.old.status !== undefined
-      ? `“${formatEventHousingStatus(options.old.status)}”`
-      : 'vide';
+      ? `“${options.old.status}”`
+      : FALLBACK_VALUE;
   const statusAfter: string =
     options.new.status !== undefined
-      ? `“${formatEventHousingStatus(options.new.status)}”`
-      : 'vide';
+      ? `“${options.new.status}”`
+      : FALLBACK_VALUE;
   const subStatusBefore: string = options.old.subStatus
     ? `“${options.old.subStatus}”`
-    : 'vide';
+    : FALLBACK_VALUE;
   const subStatusAfter: string = options.new.subStatus
     ? `“${options.new.subStatus}”`
-    : 'vide';
+    : FALLBACK_VALUE;
 
   const statusChange =
     statusBefore !== statusAfter

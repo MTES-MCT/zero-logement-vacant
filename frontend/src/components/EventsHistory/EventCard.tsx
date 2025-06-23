@@ -37,7 +37,12 @@ function EventCard(props: EventCardProps) {
 
   return (
     <HistoryCard icon="ri-folder-line">
-      <Stack component="section" spacing="0.5rem" sx={{ flexGrow: 1 }}>
+      <Stack
+        aria-label="Mise à jour"
+        component="section"
+        spacing="0.5rem"
+        sx={{ flexGrow: 1 }}
+      >
         <AppBadge colorFamily="blue-cumulus" small>
           Mise à jour
         </AppBadge>

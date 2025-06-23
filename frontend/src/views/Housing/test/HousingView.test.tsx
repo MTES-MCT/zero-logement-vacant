@@ -21,8 +21,9 @@ import {
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { genAuthUser, genUser } from '../../../../test/fixtures.test';
+import { genAuthUser, genNote, genUser } from '../../../../test/fixtures.test';
 import data from '../../../mocks/handlers/data';
+import { Note, toNoteDTO } from '../../../models/Note';
 import { fromUserDTO, User } from '../../../models/User';
 import configureTestStore from '../../../utils/test/storeUtils';
 import HousingView from '../HousingView';
@@ -55,9 +56,18 @@ describe('Housing view', () => {
 
   interface RenderViewOptions {
     user: User;
+    notes?: ReadonlyArray<Note>;
   }
 
   function renderView(housing: HousingDTO, options?: RenderViewOptions) {
+    if (options?.notes?.length) {
+      data.notes.push(...options.notes.map(toNoteDTO));
+      data.housingNotes.set(
+        housing.id,
+        options.notes.map((note) => note.id)
+      );
+    }
+
     const store = configureTestStore({
       auth: genAuthUser(options?.user ?? genUser(UserRole.USUAL))
     });
@@ -391,6 +401,87 @@ describe('Housing view', () => {
       });
       const note = await within(panel).findByText('Note');
       expect(note).toBeVisible();
+    });
+  });
+
+  describe('Add a note', () => {
+    it('should add a note', async () => {
+      renderView(housing, {
+        user: genUser(),
+        notes: []
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
+      const createNote = await screen.findByRole('button', {
+        name: 'Ajouter une note'
+      });
+      await user.click(createNote);
+      const textarea = await screen.findByLabelText('Nouvelle note');
+      await user.type(textarea, 'Ceci est une note de test');
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(save);
+      const note = await screen.findByText('Ceci est une note de test');
+      expect(note).toBeVisible();
+    });
+  });
+
+  describe('Filter the event history', () => {
+    it('should filter by event type', async () => {
+      renderView(housing, {
+        notes: [genNote(genUser())],
+        user: genUser()
+      });
+
+      const type = await screen.findByRole('combobox', {
+        name: 'Type d’événement'
+      });
+      await user.click(type);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByRole('option', {
+        name: 'Note'
+      });
+      await user.click(option);
+      await user.keyboard('{Escape}');
+      const notes = screen.queryAllByRole('region', {
+        name: 'Note'
+      });
+      expect(notes.length).toBeGreaterThan(0);
+      const events = screen.queryAllByRole('article', {
+        name: 'Mise à jour'
+      });
+      expect(events).toHaveLength(0);
+    });
+
+    it.todo('should filter by creator');
+
+    it.todo('should filter by date');
+
+    it('should reset filters', async () => {
+      renderView(housing);
+
+      let type = await screen.findByRole('combobox', {
+        name: 'Type d’événement'
+      });
+      await user.click(type);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByRole('option', {
+        name: 'Note'
+      });
+      await user.click(option);
+      await user.keyboard('{Escape}');
+      const reset = await screen.findByRole('button', {
+        name: 'Réinitialiser les filtres'
+      });
+      await user.click(reset);
+      type = await screen.findByRole('combobox', {
+        name: 'Type d’événement'
+      });
+      expect(type).toHaveTextContent('Tous');
     });
   });
 

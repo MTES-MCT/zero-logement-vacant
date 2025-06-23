@@ -129,6 +129,7 @@ function NoteCard(props: NoteCardProps) {
       </removeModal.Component>
 
       <Stack
+        aria-label="Note"
         component="section"
         sx={{
           border: `1px solid ${fr.colors.decisions.border.default.grey.default}`,

@@ -1,7 +1,6 @@
 import { Predicate } from 'effect';
 
 import { Event } from '../../../models/Event';
-import { OCCUPANCY_LABELS } from '../../../models/Housing';
 import EventCard from '../EventCard';
 
 interface HousingOccupancyEventCardProps {
@@ -34,18 +33,12 @@ const FALLBACK_VALUE = 'vide';
 export function formatHousingOccupancyDifferences(
   props: HousingOccupancyEventCardDescriptionProps
 ): ReadonlyArray<string> {
-  const occupancyBefore: string = props.old.occupancy
-    ? `“${OCCUPANCY_LABELS[props.old.occupancy]}”`
-    : FALLBACK_VALUE;
-  const occupancyAfter: string = props.new.occupancy
-    ? `“${OCCUPANCY_LABELS[props.new.occupancy]}”`
-    : FALLBACK_VALUE;
-  const occupancyIntendedBefore: string = props.old.occupancyIntended
-    ? `“${OCCUPANCY_LABELS[props.old.occupancyIntended]}”`
-    : FALLBACK_VALUE;
-  const occupancyIntendedAfter: string = props.new.occupancyIntended
-    ? `“${OCCUPANCY_LABELS[props.new.occupancyIntended]}”`
-    : FALLBACK_VALUE;
+  const occupancyBefore: string = props.old.occupancy ?? FALLBACK_VALUE;
+  const occupancyAfter: string = props.new.occupancy ?? FALLBACK_VALUE;
+  const occupancyIntendedBefore: string =
+    props.old.occupancyIntended ?? FALLBACK_VALUE;
+  const occupancyIntendedAfter: string =
+    props.new.occupancyIntended ?? FALLBACK_VALUE;
 
   const occupancy =
     occupancyBefore !== occupancyAfter

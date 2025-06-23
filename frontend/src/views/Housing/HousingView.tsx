@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import HousingHeader from '../../components/Housing/HousingHeader';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
+import { HousingEditionProvider } from '../../components/HousingEdition/useHousingEdition';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import InactiveOwnerList from '../../components/Owner/InactiveOwnerList';
 import SecondaryOwnerList from '../../components/Owner/SecondaryOwnerList';
@@ -78,47 +79,49 @@ function HousingView() {
   }
 
   return (
-    <Container maxWidth={false} sx={{ my: '2rem' }}>
-      <HousingHeader
-        className="fr-mb-3w"
-        housing={housing}
-        isLoading={getHousingQuery.isLoading}
-      />
+    <HousingEditionProvider>
+      <Container maxWidth={false} sx={{ my: '2rem' }}>
+        <HousingHeader
+          className="fr-mb-3w"
+          housing={housing}
+          isLoading={getHousingQuery.isLoading}
+        />
 
-      <Grid container columnSpacing={3}>
-        {/* Set a custom order to facilitate accessibility:
+        <Grid container columnSpacing={3}>
+          {/* Set a custom order to facilitate accessibility:
         housing first, owner second */}
-        <Grid xs={8} order={2}>
-          <HousingDetailsCard housing={housing} />
+          <Grid xs={8} order={2}>
+            <HousingDetailsCard housing={housing} />
+          </Grid>
+          <Grid
+            xs={4}
+            order={1}
+            rowGap="1.5rem"
+            sx={{ display: 'flex', flexFlow: 'column nowrap' }}
+          >
+            <OwnerCardNext
+              owner={owner}
+              housingCount={count?.housing}
+              modify={
+                housingOwners ? (
+                  <HousingOwnersModal
+                    housingId={housingId}
+                    housingOwners={housingOwners}
+                    onSubmit={submitHousingOwnersUpdate}
+                    key={housingOwnersModalKey}
+                    onCancel={() =>
+                      setHousingOwnersModalKey(new Date().getTime())
+                    }
+                  />
+                ) : null
+              }
+            />
+            <SecondaryOwnerList housingId={housingId} />
+            <InactiveOwnerList housingId={housingId} />
+          </Grid>
         </Grid>
-        <Grid
-          xs={4}
-          order={1}
-          rowGap="1.5rem"
-          sx={{ display: 'flex', flexFlow: 'column nowrap' }}
-        >
-          <OwnerCardNext
-            owner={owner}
-            housingCount={count?.housing}
-            modify={
-              housingOwners ? (
-                <HousingOwnersModal
-                  housingId={housingId}
-                  housingOwners={housingOwners}
-                  onSubmit={submitHousingOwnersUpdate}
-                  key={housingOwnersModalKey}
-                  onCancel={() =>
-                    setHousingOwnersModalKey(new Date().getTime())
-                  }
-                />
-              ) : null
-            }
-          />
-          <SecondaryOwnerList housingId={housingId} />
-          <InactiveOwnerList housingId={housingId} />
-        </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </HousingEditionProvider>
   );
 }
 

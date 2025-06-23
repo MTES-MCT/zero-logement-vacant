@@ -17,6 +17,7 @@ import { formatHousingOwnerAttachedDifferences } from './events/HousingOwnerAtta
 import { formatHousingOwnerDetachedDifferences } from './events/HousingOwnerDetachedEventCard';
 import { formatHousingOwnerUpdatedDifferences } from './events/HousingOwnerUpdatedEventCard';
 import { formatHousingPrecisionAttachedDifferences } from './events/HousingPrecisionAttachedEventCard';
+import { formatHousingPrecisionDetachedDifferences } from './events/HousingPrecisionDetachedEventCard';
 import { formatHousingStatusUpdatedDifferences } from './events/HousingStatusUpdatedEventCard';
 import { formatOwnerUpdatedDifferences } from './events/OwnerUpdatedEventCard';
 
@@ -36,7 +37,10 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
       match(event)
         .returnType<ReactNode>()
         .with({ type: 'housing:created' }, (event: Event<'housing:created'>) =>
-          formatHousingCreatedDifferences({ source: event.nextNew.source })
+          formatHousingCreatedDifferences({
+            source: event.nextNew.source,
+            occupancy: event.nextNew.occupancy
+          })
         )
         .with(
           { type: 'housing:occupancy-updated' },
@@ -65,7 +69,7 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
         .with(
           { type: 'housing:precision-detached' },
           (event: Event<'housing:precision-detached'>) =>
-            formatHousingPrecisionAttachedDifferences({
+            formatHousingPrecisionDetachedDifferences({
               category: event.nextOld.category,
               label: event.nextOld.label
             })
@@ -130,6 +134,7 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
           (event: Event<'housing:campaign-removed'>) =>
             formatHousingCampaignRemovedDifferences(event.nextOld)
         )
+        .with({ type: 'owner:created' }, () => null)
         .with({ type: 'owner:updated' }, (event: Event<'owner:updated'>) =>
           formatOwnerUpdatedDifferences({
             nextOld: event.nextOld,

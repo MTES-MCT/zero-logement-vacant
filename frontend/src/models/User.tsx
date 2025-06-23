@@ -1,4 +1,6 @@
-import { UserDTO } from '@zerologementvacant/models';
+import { UserDTO, UserRole } from '@zerologementvacant/models';
+import { Equivalence } from 'effect';
+
 import { Establishment } from './Establishment';
 
 export interface AuthUser {
@@ -8,14 +10,21 @@ export interface AuthUser {
   jimoData: object;
 }
 
-export interface User extends Omit<UserDTO, 'activatedAt' | 'role'> {
-  role: UserRoles;
+export interface User extends Omit<UserDTO, 'activatedAt'> {
   activatedAt: Date;
 }
+
+export const USER_EQUIVALENCE = Equivalence.struct({
+  id: Equivalence.string
+});
 
 export function createdBy(
   user: Pick<User, 'email' | 'firstName' | 'lastName'>
 ): string {
+  if (user.email.endsWith('@beta.gouv.fr')) {
+    return ADMIN_LABEL;
+  }
+
   return user.firstName && user.lastName
     ? `${user.firstName} ${user.lastName}`
     : user.email;
@@ -72,7 +81,7 @@ export function formatAuthor(
 }
 
 export function isAdmin(user: User): boolean {
-  return user.role === UserRoles.Admin;
+  return user.role === UserRole.ADMIN;
 }
 
 export const ADMIN_LABEL = 'L’équipe Zéro Logement Vacant';

@@ -1,4 +1,4 @@
-import { Array, Predicate } from 'effect';
+import { Array, Order, Predicate } from 'effect';
 import { ReactNode } from 'react';
 import { match } from 'ts-pattern';
 
@@ -29,10 +29,16 @@ export interface AggregatedEventCardProps {
   title?: string;
 }
 
+const byDate = Order.mapInput(
+  Order.Date,
+  (event: Event) => new Date(event.createdAt)
+);
+
 function AggregatedEventCard(props: AggregatedEventCardProps) {
   const createdAt = props.events[0].createdAt;
   const creator = props.events[0].creator;
   const differences = props.events
+    .toSorted(byDate)
     .map((event) =>
       match(event)
         .returnType<ReactNode>()

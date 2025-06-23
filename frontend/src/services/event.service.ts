@@ -16,10 +16,19 @@ export const eventApi = zlvApi.injectEndpoints({
     }),
     findEventsByHousing: builder.query<Event[], string>({
       query: (id) => `/housing/${id}/events`,
-      providesTags: (events) =>
+      providesTags: (events, _error, housingId) =>
         events
-          ? events.map((event) => ({ type: 'Event' as const, id: event.id }))
-          : ['Event'],
+          ? [
+              ...events.map((event) => ({
+                type: 'Event' as const,
+                id: event.id
+              })),
+              {
+                type: 'HousingEvent' as const,
+                id: housingId
+              }
+            ]
+          : ['Event', 'HousingEvent'],
       transformResponse: (events: EventDTO[]) => events.map(fromEventDTO)
     })
   })

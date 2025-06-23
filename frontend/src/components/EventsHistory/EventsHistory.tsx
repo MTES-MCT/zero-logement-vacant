@@ -4,7 +4,9 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
+import { isSameDay } from 'date-fns';
 import { Array, Order, pipe, Predicate, Record } from 'effect';
+
 import { ReactNode, useState } from 'react';
 
 import NoEvent from '../../assets/images/no-event.svg';
@@ -70,6 +72,7 @@ function EventsHistory({ events, notes }: Props) {
     [...events, ...notes],
     Array.filter(byTypes(filters.types)),
     Array.filter(byCreators(filters.creators)),
+    Array.filter(byDate(filters.createdAt)),
     Array.sortWith(
       (event) => new Date(event.createdAt),
       Order.reverse(Order.Date)
@@ -133,9 +136,8 @@ function EventsHistory({ events, notes }: Props) {
 
   return (
     <Stack spacing="1.5rem">
-      {/* TODO: FIX THIS SPACING */}
       <Grid component="header" container columnSpacing="1rem">
-        <Grid component="section" xs={4}>
+        <Grid component="section" sx={{ pl: 0 }} xs={4}>
           <AppSelectNext
             label="Type d’événement"
             multiple
@@ -169,7 +171,7 @@ function EventsHistory({ events, notes }: Props) {
             }}
           />
         </Grid>
-        <Grid component="section" xs={4}>
+        <Grid component="section" sx={{ pr: 0 }} xs={4}>
           <Input
             label="Date de création"
             nativeInputProps={{
@@ -271,6 +273,16 @@ function byCreators(creators: ReadonlyArray<User>) {
     }
 
     return creators.some((creator) => USER_EQUIVALENCE(event.creator, creator));
+  };
+}
+
+function byDate(date: Date | null) {
+  return (event: Event | Note): boolean => {
+    if (!date) {
+      return true; // No filter, include all events/notes
+    }
+
+    return isSameDay(date, new Date(event.createdAt));
   };
 }
 

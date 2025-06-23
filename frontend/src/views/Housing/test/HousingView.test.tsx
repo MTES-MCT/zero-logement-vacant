@@ -437,6 +437,10 @@ describe('Housing view', () => {
         user: genUser()
       });
 
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
       const type = await screen.findByRole('combobox', {
         name: 'Type d’événement'
       });
@@ -457,13 +461,69 @@ describe('Housing view', () => {
       expect(events).toHaveLength(0);
     });
 
-    it.todo('should filter by creator');
+    it('should filter by creator', async () => {
+      const creator = genUser();
+      renderView(housing, {
+        notes: [genNote(creator)],
+        user: creator
+      });
 
-    it.todo('should filter by date');
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
+      const author = await screen.findByRole('combobox', {
+        name: 'Auteur'
+      });
+      await user.click(author);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByRole('option', {
+        name: `${creator.firstName} ${creator.lastName}`
+      });
+      await user.click(option);
+      await user.keyboard('{Escape}');
+      const notes = await screen.findAllByRole('region', {
+        name: 'Note'
+      });
+      notes.forEach((note) => {
+        expect(
+          within(note).queryByText(`${creator.firstName} ${creator.lastName}`)
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('should filter by date', async () => {
+      const creator = genUser();
+      const note: Note = {
+        ...genNote(creator),
+        createdAt: '2000-01-01T12:00:00Z'
+      };
+      renderView(housing, {
+        notes: [note],
+        user: creator
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
+      const input = await screen.findByLabelText('Date de création');
+      await user.type(input, '01012020');
+      const history = await screen.findAllByRole('region', {
+        name: (name) => ['Note', 'Mise à jour'].includes(name)
+      });
+      history.forEach((eventOrNote) => {
+        expect(eventOrNote).toHaveTextContent('le 01/01/2000');
+      });
+    });
 
     it('should reset filters', async () => {
       renderView(housing);
 
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
       let type = await screen.findByRole('combobox', {
         name: 'Type d’événement'
       });

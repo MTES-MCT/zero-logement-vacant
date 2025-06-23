@@ -1,10 +1,13 @@
 import { fr } from '@codegouvfr/react-dsfr';
+import Button from '@codegouvfr/react-dsfr/Button';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
 import localeFR from 'date-fns/locale/fr';
 import { ReactNode } from 'react';
+import { useToggle } from 'react-use';
+import { match } from 'ts-pattern';
 
 import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
 import { ADMIN_LABEL, formatAuthor, User } from '../../models/User';
@@ -19,6 +22,7 @@ interface EventCardProps {
 }
 
 function EventCard(props: EventCardProps) {
+  const [showAllDifferences, toggleShowAllDifferences] = useToggle(false);
   const date: string = format(new Date(props.createdAt), 'dd/MM/yyyy', {
     locale: localeFR
   });
@@ -56,26 +60,53 @@ function EventCard(props: EventCardProps) {
           </Typography>
         </Typography>
 
-        {props.differences.length === 1 ? (
-          <Typography
-            variant="body2"
-            sx={{ color: fr.colors.decisions.text.mention.grey.default }}
-          >
-            {props.differences[0]}
-          </Typography>
-        ) : (
-          <Box
-            component="ul"
-            sx={{
-              color: fr.colors.decisions.text.mention.grey.default,
-              fontSize: '0.875rem'
-            }}
-          >
-            {props.differences.map((difference, i) => (
-              <li key={i}>{difference}</li>
-            ))}
-          </Box>
-        )}
+        {match(props.differences.length)
+          .with(1, () => (
+            <Typography
+              variant="body2"
+              sx={{ color: fr.colors.decisions.text.mention.grey.default }}
+            >
+              {props.differences[0]}
+            </Typography>
+          ))
+          .otherwise(() => {
+            if (!showAllDifferences) {
+              return (
+                <Button
+                  priority="tertiary"
+                  onClick={toggleShowAllDifferences}
+                  size="small"
+                >
+                  Plus de détail
+                </Button>
+              );
+            }
+
+            return (
+              <>
+                <Box
+                  component="ul"
+                  sx={{
+                    color: fr.colors.decisions.text.mention.grey.default,
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  {props.differences.map((difference, i) => (
+                    <li key={i}>{difference}</li>
+                  ))}
+                </Box>
+                {props.differences.length >= 2 && (
+                  <Button
+                    priority="tertiary"
+                    onClick={toggleShowAllDifferences}
+                    size="small"
+                  >
+                    Voir moins
+                  </Button>
+                )}
+              </>
+            );
+          })}
       </Stack>
     </HistoryCard>
   );

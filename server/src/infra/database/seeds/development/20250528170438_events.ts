@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
-  EVENT_HOUSING_STATUS_VALUES,
   EventType,
+  HOUSING_STATUS_LABELS,
+  OCCUPANCY_LABELS,
   OCCUPANCY_VALUES,
-  OWNER_RANKS,
-  toEventHousingStatus
+  OWNER_RANKS
 } from '@zerologementvacant/models';
 import { Knex } from 'knex';
 
@@ -86,7 +86,8 @@ export async function seed(knex: Knex): Promise<void> {
             nextNew: {
               source: housing.data_file_years?.length
                 ? housing.data_file_years[0]
-                : 'datafoncier-manual'
+                : 'datafoncier-manual',
+              occupancy: 'Vacant'
             }
           }),
           housingGeoCode: housing.geo_code,
@@ -97,14 +98,17 @@ export async function seed(knex: Knex): Promise<void> {
             creator: admin,
             type: 'housing:occupancy-updated',
             nextOld: {
-              occupancy: faker.helpers.arrayElement(
-                OCCUPANCY_VALUES.filter(
-                  (occupancy) => occupancy !== housing.occupancy
-                )
-              )
+              occupancy:
+                OCCUPANCY_LABELS[
+                  faker.helpers.arrayElement(
+                    OCCUPANCY_VALUES.filter(
+                      (occupancy) => occupancy !== housing.occupancy
+                    )
+                  )
+                ]
             },
             nextNew: {
-              occupancy: housing.occupancy
+              occupancy: OCCUPANCY_LABELS[housing.occupancy]
             }
           }),
           housingGeoCode: housing.geo_code,
@@ -116,13 +120,11 @@ export async function seed(knex: Knex): Promise<void> {
             type: 'housing:status-updated',
             nextOld: {
               status: faker.helpers.arrayElement(
-                EVENT_HOUSING_STATUS_VALUES.filter(
-                  (status) => status !== toEventHousingStatus(housing.status)
-                )
+                Object.values(HOUSING_STATUS_LABELS)
               )
             },
             nextNew: {
-              status: toEventHousingStatus(housing.status)
+              status: HOUSING_STATUS_LABELS[housing.status]
             }
           }),
           housingGeoCode: housing.geo_code,

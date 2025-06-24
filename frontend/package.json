@@ -4,12 +4,12 @@
   "type": "module",
   "scripts": {
     "clean": "rimraf build",
-    "icons": "only-include-used-icons && tsx src/scripts/generate-building-images.ts",
-    "typecheck": "tsc --noEmit",
-    "build": "yarn clean && yarn icons && tsc -b tsconfig.build.json && vite build",
-    "dev": "yarn icons && vite start",
-    "test": "vitest",
-    "coverage": "vitest --coverage",
+    "icons": "react-dsfr update-icons && tsx src/scripts/generate-building-images.ts",
+    "prebuild": "yarn icons",
+    "predev": "yarn icons",
+    "dev": "yarn icons && nx vite:dev",
+    "test": "nx vite:test",
+    "coverage": "nx vite:test --coverage",
     "postinstall": "copy-dsfr-to-public"
   },
   "browserslist": {

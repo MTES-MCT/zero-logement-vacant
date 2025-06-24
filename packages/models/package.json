@@ -3,31 +3,31 @@
   "version": "0.0.1",
   "type": "module",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
+        "types": "./dist/lib/index.d.ts",
+        "default": "./dist/lib/index.js"
       },
       "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
+        "types": "./dist/lib/index.d.cts",
+        "default": "./dist/lib/index.cjs"
       }
     },
     "./fixtures": {
-      "require": {
-        "types": "./dist/test/fixtures.d.cts",
-        "default": "./dist/test/fixtures.cjs"
-      },
       "import": {
-        "types": "./dist/test/fixtures.d.mts",
-        "default": "./dist/test/fixtures.mjs"
+        "types": "./dist/lib/test/fixtures.d.ts",
+        "default": "./dist/lib/test/fixtures.js"
+      },
+      "require": {
+        "types": "./dist/lib/test/fixtures.d.cts",
+        "default": "./dist/lib/test/fixtures.cjs"
       }
     }
   },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "typecheck": "tsc --noEmit",
-    "build": "pkgroll -p tsconfig.build.json",
     "test": "jest",
     "coverage": "jest --coverage",
     "dev": "nodemon --watch src -e ts --exec 'yarn build'"

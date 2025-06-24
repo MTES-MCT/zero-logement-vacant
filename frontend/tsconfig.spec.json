@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "vitest/globals",
+      "vitest/importMeta",
+      "vite/client",
+      "node",
+      "vitest",
+      "@nx/react/typings/cssmodule.d.ts",
+      "@nx/react/typings/image.d.ts"
+    ]
+  },
+  "include": [
+    "src/mocks/**/*.ts",
+    "src/setupTests.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "test/fixtures.ts"
+  ]
+}

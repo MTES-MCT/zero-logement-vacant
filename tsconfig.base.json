@@ -4,9 +4,9 @@
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "dist",
-    "rootDir": "src"
-  },
-  "include": ["src"]
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true
+  }
 }

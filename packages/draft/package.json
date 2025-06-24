@@ -1,21 +1,24 @@
 {
   "name": "@zerologementvacant/draft",
   "version": "0.0.1",
+  "type": "module",
   "exports": {
-    "import": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "require": {
-      "types": "./dist/index.d.cts",
-      "default": "./dist/index.cjs"
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/lib/index.d.ts",
+        "default": "./dist/lib/index.js"
+      },
+      "require": {
+        "types": "./dist/lib/index.d.cts",
+        "default": "./dist/lib/index.cjs"
+      }
     }
   },
   "scripts": {
-    "clean": "rimraf dist tsconfig.build.tsbuildinfo",
+    "clean": "rimraf dist",
     "copy": "copyfiles -V -u 1 'src/**/*.css' 'src/**/*.hbs' 'src/**/*.json' 'src/fonts/**/*.otf' dist",
     "typecheck": "tsc --noEmit",
-    "build": "pkgroll -p tsconfig.build.json && yarn copy",
     "dev": "nodemon --watch src -e ts --exec 'yarn build'",
     "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
     "coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage"

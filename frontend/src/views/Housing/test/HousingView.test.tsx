@@ -601,7 +601,7 @@ describe('Housing view', () => {
       );
 
       renderView(housing, {
-        user: fromUserDTO(nonAdminUser)
+        user: fromUserDTO(genUserDTO(UserRole.USUAL))
       });
 
       const history = await screen.findByRole('tab', {

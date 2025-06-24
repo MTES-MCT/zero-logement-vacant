@@ -5,6 +5,6 @@
     "tsBuildInfoFile": "dist/lib/tsconfig.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.test.ts", "src/test/setup-tests.ts"]
+  "exclude": ["src/**/*.test.ts", "src/test/setup-tests.ts", "**/node_modules", "**/dist"]
 }
 

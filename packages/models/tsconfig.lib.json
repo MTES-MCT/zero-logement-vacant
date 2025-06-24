@@ -2,8 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist/lib",
-    "tsBuildInfoFile": "dist/lib/tsconfig.tsbuildinfo",
-    "skipLibCheck": true
+    "tsBuildInfoFile": "dist/lib/tsconfig.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts", "src/test/setup-tests.ts"],

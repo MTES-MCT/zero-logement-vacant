@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import { Store } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

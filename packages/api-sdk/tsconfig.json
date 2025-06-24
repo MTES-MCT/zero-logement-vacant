@@ -1,16 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "files": [],
-  "compilerOptions": {
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "moduleResolution": "bundler",
-    "sourceMap": true,
-    "outDir": "dist",
-    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
-    "rootDir": "src"
-  },
   "references": [
     {
       "path": "../utils"

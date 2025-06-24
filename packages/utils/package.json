@@ -3,31 +3,30 @@
   "version": "0.0.1",
   "type": "module",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/lib/index.d.ts",
+        "default": "./dist/lib/index.js"
       },
       "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
+        "types": "./dist/lib/index.d.cts",
+        "default": "./dist/lib/index.cjs"
       }
     },
     "./node": {
       "import": {
-        "types": "./dist/node.d.ts",
-        "default": "./dist/node.js"
+        "types": "./dist/lib/node.d.ts",
+        "default": "./dist/lib/node.js"
       },
       "require": {
-        "types": "./dist/node.d.cts",
-        "default": "./dist/node.cjs"
+        "types": "./dist/lib/node.d.cts",
+        "default": "./dist/lib/node.cjs"
       }
     }
   },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
-    "typecheck": "tsc --noEmit",
-    "build": "pkgroll -p tsconfig.build.json",
     "test": "jest",
     "coverage": "jest --coverage"
   },

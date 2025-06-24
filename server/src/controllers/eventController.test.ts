@@ -146,7 +146,8 @@ describe('Event API', () => {
           type: 'housing:created',
           nextOld: null,
           nextNew: {
-            source: 'datafoncier-manual'
+            source: 'datafoncier-manual',
+            occupancy: Occupancy.VACANT
           }
         }),
         genEventApi({

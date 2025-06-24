@@ -1,20 +1,8 @@
 {
   "name": "@zerologementvacant/server",
   "version": "0.0.1",
-  "exports": {
-    "import": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "require": {
-      "types": "./dist/index.d.cts",
-      "default": "./dist/index.cjs"
-    }
-  },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
-    "typecheck": "tsc --noEmit",
-    "build": "tsc -b tsconfig.build.json && tsc-alias",
     "dev": "nodemon --watch src src/index.ts",
     "start": "node dist/index.js",
     "test": "jest",

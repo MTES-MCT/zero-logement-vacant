@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"],
+  "references": [
+    {
+      "path": "../packages/utils/tsconfig.lib.json"
+    },
+    {
+      "path": "../packages/schemas/tsconfig.lib.json"
+    },
+    {
+      "path": "../queue/tsconfig.build.json"
+    },
+    {
+      "path": "../packages/models/tsconfig.lib.json"
+    },
+    {
+      "path": "../packages/healthcheck/tsconfig.lib.json"
+    },
+    {
+      "path": "../packages/draft/tsconfig.lib.json"
+    }
+  ]
+}

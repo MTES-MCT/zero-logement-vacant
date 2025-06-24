@@ -1,10 +1,23 @@
+import {
+  HousingDTO,
+  HousingFiltersDTO,
+  HousingUpdatePayloadDTO,
+  Pagination
+} from '@zerologementvacant/models';
+import async from 'async';
 import { Request, RequestHandler, Response } from 'express';
+import { AuthenticatedRequest } from 'express-jwt';
 import { body, oneOf, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
+import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-
-import housingRepository from '~/repositories/housingRepository';
+import HousingExistsError from '~/errors/housingExistsError';
+import HousingMissingError from '~/errors/housingMissingError';
+import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
+import { startTransaction } from '~/infra/database/transaction';
+import { logger } from '~/infra/logger';
+import { HousingEventApi } from '~/models/EventApi';
 import {
   hasCampaigns,
   HousingApi,
@@ -13,42 +26,29 @@ import {
   OccupancyKindApi,
   toHousingDTO
 } from '~/models/HousingApi';
+import { HousingCountApi } from '~/models/HousingCountApi';
 import housingFiltersApi, {
   HousingFiltersApi
 } from '~/models/HousingFiltersApi';
-import { UserRoles } from '~/models/UserApi';
-import eventRepository from '~/repositories/eventRepository';
-import { AuthenticatedRequest } from 'express-jwt';
+import { toHousingOwnersApi } from '~/models/HousingOwnerApi';
 import { fromHousingStatus, HousingStatusApi } from '~/models/HousingStatusApi';
-import sortApi from '~/models/SortApi';
+import { NoteApi } from '~/models/NoteApi';
 import {
   HousingPaginatedDTO,
   HousingPaginatedResultApi
 } from '~/models/PaginatedResultApi';
-import { isArrayOf, isUUID } from '~/utils/validators';
-import HousingMissingError from '~/errors/housingMissingError';
-import noteRepository from '~/repositories/noteRepository';
-import { NoteApi } from '~/models/NoteApi';
-import { logger } from '~/infra/logger';
-import {
-  HousingDTO,
-  HousingFiltersDTO,
-  HousingUpdatePayloadDTO,
-  Pagination
-} from '@zerologementvacant/models';
-import { toHousingRecordApi, toOwnerApi } from '~/scripts/shared';
-import HousingExistsError from '~/errors/housingExistsError';
-import ownerRepository from '~/repositories/ownerRepository';
-import housingOwnerRepository from '~/repositories/housingOwnerRepository';
-import { toHousingOwnersApi } from '~/models/HousingOwnerApi';
-import async from 'async';
-import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
-import { HousingEventApi } from '~/models/EventApi';
+import sortApi from '~/models/SortApi';
+import { UserRoles } from '~/models/UserApi';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
-import fp from 'lodash/fp';
-import { startTransaction } from '~/infra/database/transaction';
-import { HousingCountApi } from '~/models/HousingCountApi';
+import eventRepository from '~/repositories/eventRepository';
+import housingOwnerRepository from '~/repositories/housingOwnerRepository';
+
+import housingRepository from '~/repositories/housingRepository';
+import noteRepository from '~/repositories/noteRepository';
+import ownerRepository from '~/repositories/ownerRepository';
+import { toHousingRecordApi, toOwnerApi } from '~/scripts/shared';
+import { isArrayOf, isUUID } from '~/utils/validators';
 
 interface HousingPathParams extends Record<string, string> {
   id: string;

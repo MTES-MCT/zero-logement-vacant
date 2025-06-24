@@ -10,6 +10,6 @@
     "moduleResolution": "bundler",
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": []
+    "types": []
   }
 }

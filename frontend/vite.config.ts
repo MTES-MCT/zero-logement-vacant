@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       external: [
-        /node_modules\/(?!@codegouvfr)\/.+\\.js$/,
+        /node_modules\/(?!@codegouvfr)\/react-dsfr\/.+\\.js$/,
         /node_modules\/\.store\/(?!@codegouvfr-react-dsfr-npm-[^/]+)\/package\/.*\.js$/
       ]
     }

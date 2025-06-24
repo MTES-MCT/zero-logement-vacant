@@ -15,8 +15,6 @@
   },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
-    "typecheck": "tsc --noEmit",
-    "build": "pkgroll -p tsconfig.build.json",
     "dev": "tsx src/bin/index.ts",
     "prestart": "htpasswd -c -B -b dist/bin/.htpasswd $QUEUE_DASHBOARD_USERNAME $QUEUE_DASHBOARD_PASSWORD",
     "start": "node ./dist/bin/index.cjs"

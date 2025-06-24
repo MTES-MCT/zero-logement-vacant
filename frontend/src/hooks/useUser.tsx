@@ -1,4 +1,4 @@
-import { UserRoles } from '../models/User';
+import { UserRole } from '@zerologementvacant/models';
 import { useAppSelector } from './useStore';
 
 export const useUser = () => {
@@ -11,10 +11,10 @@ export const useUser = () => {
   const isAuthenticated =
     !!data?.accessToken && !!data?.user && !!data?.establishment;
 
-  const isAdmin = isAuthenticated && user?.role === UserRoles.Admin;
+  const isAdmin = isAuthenticated && user?.role === UserRole.ADMIN;
   const isGuest = !isAuthenticated;
-  const isUsual = isAuthenticated && user?.role === UserRoles.Usual;
-  const isVisitor = isAuthenticated && user?.role === UserRoles.Visitor;
+  const isUsual = isAuthenticated && user?.role === UserRole.USUAL;
+  const isVisitor = isAuthenticated && user?.role === UserRole.VISITOR;
 
   function displayName(): string {
     if (user?.firstName && user?.lastName) {

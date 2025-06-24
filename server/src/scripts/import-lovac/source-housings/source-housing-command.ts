@@ -19,7 +19,7 @@ import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi, HousingId } from '~/models/HousingApi';
-import { HousingNoteApi } from '~/models/NoteApi';
+import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import {
   Addresses,
   formatAddressApi
@@ -234,8 +234,11 @@ export function createSourceHousingCommand() {
                 id,
                 geoCode
               }: HousingId): Promise<ReadonlyArray<HousingNoteApi>> {
-                const notes = await noteRepository.findHousingNotes(id);
-                return notes.map((note) => ({
+                const notes = await noteRepository.findByHousing({
+                  id,
+                  geoCode
+                });
+                return notes.map((note: NoteApi) => ({
                   ...note,
                   housingId: id,
                   housingGeoCode: geoCode

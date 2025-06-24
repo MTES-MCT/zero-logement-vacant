@@ -16,7 +16,7 @@
       "path": "../packages/utils/tsconfig.lib.json"
     },
     {
-      "path": "../queue/tsconfig.build.json"
+      "path": "../queue/tsconfig.app.json"
     },
     {
       "path": "../packages/models/tsconfig.lib.json"

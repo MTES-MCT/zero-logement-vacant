@@ -14538,7 +14538,6 @@ __metadata:
     date-fns: "npm:^2.30.0"
     effect: "npm:^3.16.3"
     fetch-intercept: "npm:^2.4.0"
-    happy-dom: "npm:^17.4.7"
     immutable: "npm:^5.0.0"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
@@ -14866,7 +14865,6 @@ __metadata:
   resolution: "@zerologementvacant/utils@workspace:packages/utils"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.658.1"
-    "@faker-js/faker": "npm:^8.4.1"
     "@swc/core": "npm:^1.11.8"
     "@swc/jest": "npm:^0.2.37"
     "@tsconfig/node20": "npm:^20.1.4"
@@ -22438,16 +22436,6 @@ __metadata:
   bin:
     handlebars: bin/handlebars
   checksum: 10c0/7aff423ea38a14bb379316f3857fe0df3c5d66119270944247f155ba1f08e07a92b340c58edaa00cfe985c21508870ee5183e0634dcb53dd405f35c93ef7f10d
-  languageName: node
-  linkType: hard
-
-"happy-dom@npm:^17.4.7":
-  version: 17.6.3
-  resolution: "happy-dom@npm:17.6.3"
-  dependencies:
-    webidl-conversions: "npm:^7.0.0"
-    whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10c0/bf29e0cd4c39412476ac3e44b86f2f97345241237e902ca822021e030ad475dd5517a0eabffdc4ecbfa3d4becbdd60bcbe9279dab625712930b0c612593335f5
   languageName: node
   linkType: hard
 

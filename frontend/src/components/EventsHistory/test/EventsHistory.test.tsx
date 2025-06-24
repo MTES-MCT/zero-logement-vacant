@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {
   Occupancy,
   OwnerRank,
@@ -8,6 +9,7 @@ import {
   PRECISION_MECHANISM_CATEGORY_VALUES,
   UserRole
 } from '@zerologementvacant/models';
+import async from 'async';
 import { Provider } from 'react-redux';
 
 import { genEvent, genUser } from '../../../../test/fixtures.test';
@@ -15,6 +17,7 @@ import { Event } from '../../../models/Event';
 import { Note } from '../../../models/Note';
 import { User } from '../../../models/User';
 import configureTestStore from '../../../utils/test/storeUtils';
+import { HousingEditionProvider } from '../../HousingEdition/useHousingEdition';
 import EventsHistory from '../EventsHistory';
 
 interface RenderComponentProps {
@@ -23,18 +26,23 @@ interface RenderComponentProps {
 }
 
 describe('EventsHistory', () => {
+  const user = userEvent.setup();
+
   function renderComponent({ events, notes }: RenderComponentProps) {
     const store = configureTestStore();
     render(
-      <Provider store={store}>
-        <EventsHistory events={events} notes={notes} />
-      </Provider>
+      <HousingEditionProvider>
+        <Provider store={store}>
+          <EventsHistory events={events} notes={notes} />
+        </Provider>
+      </HousingEditionProvider>
     );
   }
 
   const admin: User = {
     ...genUser(),
     role: UserRole.ADMIN,
+    email: 'admin@zerologementvacant.beta.gouv.fr',
     firstName: 'Zéro',
     lastName: 'Logement Vacant',
     establishmentId: undefined
@@ -50,7 +58,7 @@ describe('EventsHistory', () => {
             nextOld: null,
             nextNew: { source: 'lovac-2019', occupancy: Occupancy.VACANT }
           }),
-          createdAt: new Date('2020-01-01T22:59:00Z').toJSON()
+          createdAt: new Date('2020-01-01T12:00:00Z').toJSON()
         },
         {
           ...genEvent({
@@ -59,18 +67,14 @@ describe('EventsHistory', () => {
             nextOld: { occupancy: Occupancy.VACANT },
             nextNew: { occupancy: Occupancy.RENT }
           }),
-          createdAt: new Date('2020-01-01T23:00:00Z').toJSON()
+          createdAt: new Date('2020-01-02T12:00:00Z').toJSON()
         }
       ],
       notes: []
     });
 
-    const firstTitle = screen.getByText(
-      'a mis à jour le statut d’occupation le 02/01/2020 à 00:00'
-    );
-    const secondTitle = screen.getByText(
-      'a créé le logement le 01/01/2020 à 23:59'
-    );
+    const firstTitle = screen.getByText(/a mis à jour le statut d’occupation/);
+    const secondTitle = screen.getByText(/a importé ce logement/);
     expect(firstTitle?.compareDocumentPosition(secondTitle)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING
     );
@@ -93,8 +97,8 @@ describe('EventsHistory', () => {
             ...genEvent({
               type: 'housing:occupancy-updated',
               creator: admin,
-              nextOld: { occupancy: Occupancy.VACANT },
-              nextNew: { occupancy: Occupancy.RENT }
+              nextOld: { occupancy: 'Vacant' },
+              nextNew: { occupancy: 'En location' }
             }),
             createdAt: new Date('2020-01-01T12:00:00Z').toJSON()
           }
@@ -102,12 +106,16 @@ describe('EventsHistory', () => {
         notes: []
       });
 
-      const title = screen.queryByText('a mis à jour des informations');
+      const title = screen.queryByText(/a mis à jour des informations/);
       expect(title).toBeVisible();
       const datetime = screen.getByText('le 01/01/2020 à 13:00');
       expect(datetime).toBeVisible();
+      const details = screen.getByRole('button', {
+        name: 'Plus de détail'
+      });
+      await user.click(details);
       const description = screen.queryByText(
-        'Le statut d’occupation est passé de “Vacant” à “Loué”'
+        /Le statut d’occupation est passé de “Vacant” à “En location”/
       );
       expect(description).toBeVisible();
     });
@@ -124,7 +132,7 @@ describe('EventsHistory', () => {
               type: 'housing:created',
               creator: admin,
               nextOld: null,
-              nextNew: { source: 'lovac-2019', occupancy: Occupancy.VACANT }
+              nextNew: { source: 'lovac-2019', occupancy: 'Vacant' }
             }),
             createdAt: new Date('2020-01-01T12:00:00Z').toJSON()
           }
@@ -135,7 +143,7 @@ describe('EventsHistory', () => {
 
     it('should display a title', () => {
       const title = screen.getByText(
-        'L’équipe Zéro Logement Vacant a importé ce logement'
+        /L’équipe Zéro Logement Vacant a importé ce logement/
       );
       expect(title).toBeVisible();
       const datetime = screen.getByText('le 01/01/2020 à 13:00');
@@ -144,7 +152,7 @@ describe('EventsHistory', () => {
 
     it('should display a description', () => {
       const description = screen.getByText(
-        'Le logement a été créé via l’import de la base de données LOVAC 2019.'
+        'Le logement a été importé de la base de données LOVAC (2019).'
       );
       expect(description).toBeVisible();
     });
@@ -158,8 +166,8 @@ describe('EventsHistory', () => {
             ...genEvent({
               type: 'housing:occupancy-updated',
               creator: admin,
-              nextOld: { occupancy: Occupancy.VACANT },
-              nextNew: { occupancy: Occupancy.RENT }
+              nextOld: { occupancy: 'Vacant' },
+              nextNew: { occupancy: 'En location' }
             }),
             createdAt: new Date('2020-01-01T12:00:00Z').toJSON()
           }
@@ -186,16 +194,16 @@ describe('EventsHistory', () => {
   });
 
   describe('housing:status-updated', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       renderComponent({
         events: [
           {
             ...genEvent({
               type: 'housing:status-updated',
               creator: admin,
-              nextOld: { status: 'never-contacted' },
+              nextOld: { status: 'Non suivi' },
               nextNew: {
-                status: 'first-contact',
+                status: 'Premier contact',
                 subStatus: 'Intervention en cours'
               }
             }),
@@ -203,6 +211,13 @@ describe('EventsHistory', () => {
           }
         ],
         notes: []
+      });
+
+      const details = screen.getAllByRole('button', {
+        name: 'Plus de détail'
+      });
+      await async.forEachSeries(details, async (detail) => {
+        await user.click(detail);
       });
     });
 
@@ -851,7 +866,7 @@ describe('EventsHistory', () => {
       });
 
       const description = screen.getByText(
-        'L’adresse postale complémentaire du propriétaire “Jean Dupont” est passée de “1 rue de Paris” à “2 rue de Capbreton”.'
+        'Le complément d’adresse du propriétaire “Jean Dupont” est passée de “Les Cabannes” à “Les Cabanons”.'
       );
       expect(description).toBeVisible();
     });

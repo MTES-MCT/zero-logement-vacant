@@ -2,8 +2,8 @@
   "name": "@zerologementvacant/e2e",
   "version": "0.0.1",
   "scripts": {
-    "dev": "dotenvx run -- cypress open",
-    "start": "dotenvx run -- cypress run"
+    "dev": "dotenvx run -- nx open-cypress",
+    "start": "dotenvx run -- nx e2e"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.14.2",

@@ -1,5 +1,6 @@
 {
-  "extends": "@tsconfig/node20/tsconfig.json",
+  "extends": "../tsconfig.base.json",
+  "files": [],
   "compilerOptions": {
     "baseUrl": ".",
     "composite": true,
@@ -18,5 +19,30 @@
     "swc": true,
     "require": ["tsconfig-paths/register"]
   },
-  "include": ["src"]
+  "references": [
+    {
+      "path": "../packages/utils"
+    },
+    {
+      "path": "../packages/schemas"
+    },
+    {
+      "path": "../queue"
+    },
+    {
+      "path": "../packages/models"
+    },
+    {
+      "path": "../packages/healthcheck"
+    },
+    {
+      "path": "../packages/draft"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
 }

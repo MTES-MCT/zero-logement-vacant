@@ -42,11 +42,11 @@ export function formatHousingOccupancyDifferences(
 
   const occupancy =
     occupancyBefore !== occupancyAfter
-      ? `Le statut d’occupation est passé de ${occupancyBefore} à ${occupancyAfter}.`
+      ? `Le statut d’occupation est passé de “${occupancyBefore}” à “${occupancyAfter}”.`
       : null;
   const occupancyIntended =
     occupancyIntendedBefore !== occupancyIntendedAfter
-      ? `Le statut d’occupation prévisionnelle est passé de ${occupancyIntendedBefore} à ${occupancyIntendedAfter}.`
+      ? `Le statut d’occupation prévisionnelle est passé de “${occupancyIntendedBefore}” à “${occupancyIntendedAfter}”.`
       : null;
 
   return [occupancy, occupancyIntended].filter(Predicate.isNotNull);

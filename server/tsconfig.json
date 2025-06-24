@@ -2,18 +2,9 @@
   "extends": "../tsconfig.base.json",
   "files": [],
   "compilerOptions": {
-    "baseUrl": ".",
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "dist",
     "paths": {
       "~/*": ["src/*"]
     },
-    "resolveJsonModule": true,
-    "rootDir": "src",
-    "typeRoots": ["node_modules/@types", "src/types"]
   },
   "ts-node": {
     "swc": true,

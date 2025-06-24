@@ -1,4 +1,4 @@
-import { UserAccountDTO } from '@zerologementvacant/models';
+import { UserAccountDTO, UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
@@ -20,8 +20,7 @@ import {
   TokenPayload,
   toUserAccountDTO,
   toUserDTO,
-  UserApi,
-  UserRoles
+  UserApi
 } from '~/models/UserApi';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
@@ -100,7 +99,7 @@ async function signInToEstablishment(
 async function changeEstablishment(request: Request, response: Response) {
   const { user } = request as AuthenticatedRequest;
 
-  if (user.role !== UserRoles.Admin && user.role !== UserRoles.Visitor) {
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
     throw new AuthenticationFailedError();
   }
 

@@ -1,10 +1,9 @@
 import { faker } from '@faker-js/faker';
+
+import { UserDTO, UserRole } from '@zerologementvacant/models';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
-
-import { UserDTO } from '@zerologementvacant/models';
 import config from '../../utils/config';
-import { UserRoles } from '../../models/User';
 
 interface UserPayload {
   email: string;
@@ -20,7 +19,7 @@ export const userHandlers: RequestHandler[] = [
       const user: UserDTO = {
         id: faker.string.uuid(),
         email: payload.email,
-        role: UserRoles.Usual
+        role: UserRole.USUAL
       };
       return HttpResponse.json(user, {
         status: constants.HTTP_STATUS_CREATED

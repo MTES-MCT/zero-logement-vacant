@@ -1,8 +1,9 @@
+import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 
-import { UserApi, UserRoles } from '~/models/UserApi';
+import { UserApi } from '~/models/UserApi';
 import { formatUserApi, usersTable } from '~/repositories/userRepository';
 
 export const Lovac2023: UserApi = {
@@ -13,7 +14,7 @@ export const Lovac2023: UserApi = {
   password: '',
   activatedAt: new Date().toJSON(),
   establishmentId: undefined,
-  role: UserRoles.Usual
+  role: UserRole.USUAL
 };
 
 export async function seed(knex: Knex): Promise<void> {

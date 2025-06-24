@@ -1,10 +1,11 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { UserRole } from '@zerologementvacant/models';
 import async from 'async';
 import bcrypt from 'bcryptjs';
 import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 import config from '~/infra/config';
-import { SALT_LENGTH, UserApi, UserRoles } from '~/models/UserApi';
+import { SALT_LENGTH, UserApi } from '~/models/UserApi';
 import { Establishments } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
@@ -47,7 +48,7 @@ export async function seed(knex: Knex): Promise<void> {
       lastName: 'Strasbourg',
       establishmentId: strasbourg.id,
       activatedAt: new Date().toJSON(),
-      role: UserRoles.Usual
+      role: UserRole.USUAL
     },
     {
       id: uuidv4(),
@@ -57,7 +58,7 @@ export async function seed(knex: Knex): Promise<void> {
       lastName: 'Saint-Lô Agglo',
       establishmentId: saintLo.id,
       activatedAt: new Date().toJSON(),
-      role: UserRoles.Usual
+      role: UserRole.USUAL
     },
     {
       id: uuidv4(),
@@ -66,7 +67,7 @@ export async function seed(knex: Knex): Promise<void> {
       firstName: 'Test',
       lastName: 'Admin',
       activatedAt: new Date().toJSON(),
-      role: UserRoles.Admin
+      role: UserRole.ADMIN
     },
     {
       id: uuidv4(),
@@ -75,7 +76,7 @@ export async function seed(knex: Knex): Promise<void> {
       firstName: 'Test',
       lastName: 'Visitor',
       activatedAt: new Date().toJSON(),
-      role: UserRoles.Visitor
+      role: UserRole.VISITOR
     },
     {
       id: uuidv4(),
@@ -83,7 +84,7 @@ export async function seed(knex: Knex): Promise<void> {
       password: '',
       firstName: 'Zéro',
       lastName: 'Logement Vacant',
-      role: UserRoles.Usual,
+      role: UserRole.USUAL,
       activatedAt: new Date().toJSON(),
       updatedAt: new Date().toJSON()
     },
@@ -95,7 +96,7 @@ export async function seed(knex: Knex): Promise<void> {
       firstName: 'End',
       lastName: 'TO END',
       establishmentId: zlv.id,
-      role: UserRoles.Usual,
+      role: UserRole.USUAL,
       activatedAt: new Date().toJSON(),
       updatedAt: new Date().toJSON()
     }

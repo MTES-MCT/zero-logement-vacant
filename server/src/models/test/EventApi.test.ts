@@ -23,7 +23,8 @@ describe('EventApi', () => {
           creator,
           nextOld: null,
           nextNew: {
-            source: 'datafoncier-manual'
+            source: 'datafoncier-manual',
+            occupancy: Occupancy.VACANT
           }
         }),
         housingGeoCode: housing.geoCode,

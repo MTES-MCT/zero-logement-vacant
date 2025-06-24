@@ -5,14 +5,15 @@ import {
   OwnerRank,
   PRECISION_BLOCKING_POINT_CATEGORY_VALUES,
   PRECISION_EVOLUTION_CATEGORY_VALUES,
-  PRECISION_MECHANISM_CATEGORY_VALUES
+  PRECISION_MECHANISM_CATEGORY_VALUES,
+  UserRole
 } from '@zerologementvacant/models';
 import { Provider } from 'react-redux';
 
 import { genEvent, genUser } from '../../../../test/fixtures.test';
 import { Event } from '../../../models/Event';
 import { Note } from '../../../models/Note';
-import { User, UserRoles } from '../../../models/User';
+import { User } from '../../../models/User';
 import configureTestStore from '../../../utils/test/storeUtils';
 import EventsHistory from '../EventsHistory';
 
@@ -33,7 +34,7 @@ describe('EventsHistory', () => {
 
   const admin: User = {
     ...genUser(),
-    role: UserRoles.Admin,
+    role: UserRole.ADMIN,
     firstName: 'Zéro',
     lastName: 'Logement Vacant',
     establishmentId: undefined
@@ -47,7 +48,7 @@ describe('EventsHistory', () => {
             type: 'housing:created',
             creator: admin,
             nextOld: null,
-            nextNew: { source: 'lovac-2019' }
+            nextNew: { source: 'lovac-2019', occupancy: Occupancy.VACANT }
           }),
           createdAt: new Date('2020-01-01T22:59:00Z').toJSON()
         },
@@ -84,7 +85,7 @@ describe('EventsHistory', () => {
               type: 'housing:created',
               creator: admin,
               nextOld: null,
-              nextNew: { source: 'lovac-2019' }
+              nextNew: { source: 'lovac-2019', occupancy: Occupancy.VACANT }
             }),
             createdAt: new Date('2020-01-01T12:00:00Z').toJSON()
           },
@@ -123,7 +124,7 @@ describe('EventsHistory', () => {
               type: 'housing:created',
               creator: admin,
               nextOld: null,
-              nextNew: { source: 'lovac-2019' }
+              nextNew: { source: 'lovac-2019', occupancy: Occupancy.VACANT }
             }),
             createdAt: new Date('2020-01-01T12:00:00Z').toJSON()
           }

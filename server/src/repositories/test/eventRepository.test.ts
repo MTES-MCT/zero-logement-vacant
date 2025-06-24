@@ -72,7 +72,8 @@ describe('Event repository', () => {
         type: 'housing:created',
         nextOld: null,
         nextNew: {
-          source: 'datafoncier-manual'
+          source: 'datafoncier-manual',
+          occupancy: Occupancy.VACANT
         }
       }),
       genEventApi({
@@ -177,7 +178,8 @@ describe('Event repository', () => {
             type: 'housing:created',
             nextOld: null,
             nextNew: {
-              source: 'datafoncier-manual'
+              source: 'datafoncier-manual',
+              occupancy: Occupancy.VACANT
             }
           }),
           housingGeoCode: housing.geoCode,

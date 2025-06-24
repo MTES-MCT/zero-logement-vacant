@@ -5,7 +5,8 @@ import {
   HousingStatus,
   HousingUpdatePayloadDTO,
   OCCUPANCY_LABELS,
-  Pagination
+  Pagination,
+  UserRole
 } from '@zerologementvacant/models';
 import { compactUndefined } from '@zerologementvacant/utils';
 import async from 'async';
@@ -45,7 +46,6 @@ import {
   HousingPaginatedResultApi
 } from '~/models/PaginatedResultApi';
 import sortApi from '~/models/SortApi';
-import { UserRoles } from '~/models/UserApi';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import eventRepository from '~/repositories/eventRepository';
@@ -54,6 +54,7 @@ import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
 import noteRepository from '~/repositories/noteRepository';
 import ownerRepository from '~/repositories/ownerRepository';
+import userRepository from '~/repositories/userRepository';
 import { toHousingRecordApi, toOwnerApi } from '~/scripts/shared';
 import { isArrayOf, isUUID } from '~/utils/validators';
 
@@ -117,7 +118,7 @@ const list: RequestHandler<
   const filters: HousingFiltersApi = {
     ...rawFilters,
     establishmentIds:
-      [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
+      [UserRole.ADMIN, UserRole.VISITOR].includes(role) &&
       rawFilters?.establishmentIds?.length
         ? rawFilters?.establishmentIds
         : [auth.establishmentId]
@@ -175,7 +176,7 @@ const count: RequestHandler<
   const count = await housingRepository.count({
     ...query,
     establishmentIds:
-      [UserRoles.Admin, UserRoles.Visitor].includes(auth.role) &&
+      [UserRole.ADMIN, UserRole.VISITOR].includes(auth.role) &&
       query.establishmentIds?.length
         ? query.establishmentIds
         : [auth.establishmentId]
@@ -453,7 +454,7 @@ async function updateList(request: Request, response: Response) {
   const filters: HousingFiltersApi = {
     ...body.filters,
     establishmentIds:
-      [UserRoles.Admin, UserRoles.Visitor].includes(role) &&
+      [UserRole.ADMIN, UserRole.VISITOR].includes(role) &&
       body.filters.establishmentIds?.length > 0
         ? body.filters.establishmentIds
         : [auth.establishmentId]
@@ -570,7 +571,10 @@ async function createHousingUpdateNote(
       id: uuidv4(),
       ...housingUpdate.note,
       createdBy: userId,
-      createdAt: new Date(),
+      createdAt: new Date().toJSON(),
+      updatedAt: null,
+      deletedAt: null,
+      creator: (await userRepository.get(userId)) || ({ id: userId } as any), // Fallback in case user not found
       housingId,
       housingGeoCode: geoCode
     });

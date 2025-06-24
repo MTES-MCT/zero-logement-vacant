@@ -7,7 +7,8 @@ import {
   Occupancy,
   OCCUPANCY_LABELS,
   OCCUPANCY_VALUES,
-  toOccupancy
+  toOccupancy,
+  UserRole
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { constants } from 'http2';
@@ -18,7 +19,7 @@ import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { HousingApi } from '~/models/HousingApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import { UserApi, UserRoles } from '~/models/UserApi';
+import { UserApi } from '~/models/UserApi';
 import {
   CampaignsHousing,
   formatCampaignHousingApi
@@ -78,7 +79,7 @@ describe('Housing API', () => {
   const user = genUserApi(establishment.id);
   const visitor: UserApi = {
     ...genUserApi(establishment.id),
-    role: UserRoles.Visitor
+    role: UserRole.VISITOR
   };
   const anotherEstablishment = genEstablishmentApi('23456');
   const anotherUser = genUserApi(anotherEstablishment.id);

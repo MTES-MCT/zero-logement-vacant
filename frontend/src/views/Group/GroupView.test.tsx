@@ -1,7 +1,14 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import { Store } from '@reduxjs/toolkit';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
+import { GroupDTO } from '@zerologementvacant/models';
+import {
+  genCampaignDTO,
+  genGroupDTO,
+  genUserDTO
+} from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
 import {
   createMemoryRouter,
@@ -10,13 +17,6 @@ import {
   RouterProvider,
   Routes
 } from 'react-router-dom';
-
-import { GroupDTO } from '@zerologementvacant/models';
-import {
-  genCampaignDTO,
-  genGroupDTO,
-  genUserDTO
-} from '@zerologementvacant/models/fixtures';
 
 import data from '../../mocks/handlers/data';
 import configureTestStore from '../../utils/test/storeUtils';

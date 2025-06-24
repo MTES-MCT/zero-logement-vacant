@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import {
   AddressKinds,
   CADASTRAL_CLASSIFICATION_VALUES,

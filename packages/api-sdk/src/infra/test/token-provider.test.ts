@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import axios from 'axios';
 import { Knex } from 'knex';
 import nock from 'nock';

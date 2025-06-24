@@ -8,7 +8,6 @@
     "prebuild": "yarn icons",
     "predev": "yarn icons",
     "dev": "yarn icons && nx vite:dev",
-    "test": "nx vite:test",
     "coverage": "nx vite:test --coverage",
     "postinstall": "copy-dsfr-to-public"
   },

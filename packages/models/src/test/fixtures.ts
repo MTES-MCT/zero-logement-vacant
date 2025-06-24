@@ -1,4 +1,4 @@
-import { fakerFR as faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import { compactUndefined } from '@zerologementvacant/utils';
 import { Array } from 'effect';
 import { MarkRequired } from 'ts-essentials';

@@ -1,7 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo"
+    "outDir": "dist/app",
+    "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo",
+    "typeRoots": ["src/types"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts"],

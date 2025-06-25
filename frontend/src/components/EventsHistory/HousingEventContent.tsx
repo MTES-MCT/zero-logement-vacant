@@ -133,6 +133,11 @@ function StatusPatchContent(props: StatusPatchContentProps) {
         showKeys
         renderValue={{
           status: (value: HousingStatus | string | undefined) => {
+            // Temporary fix for an old value
+            if (typeof value === 'string' && value === 'Jamais contacté') {
+              return <HousingStatusBadge status={HousingStates[0].status} />;
+            }
+
             const status: HousingStatus | undefined = HousingStates.find(
               (state) => {
                 return typeof value === 'string'

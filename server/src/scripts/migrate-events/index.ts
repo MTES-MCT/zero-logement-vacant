@@ -577,6 +577,11 @@ async function run(): Promise<void> {
           await eventRemover.close();
           await housingOwnerEventsCreator.close();
           await campaignHousingEventsCreator.close();
+
+          console.log(await eventUpdater.closed);
+          console.log(await eventRemover.closed);
+          console.log(await housingOwnerEventsCreator.closed);
+          console.log(await campaignHousingEventsCreator.closed);
         },
 
         async abort() {
@@ -590,6 +595,10 @@ async function run(): Promise<void> {
     );
 }
 
-run().catch((error) => {
-  logger.error(error);
-});
+run()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    logger.error(error);
+  });

@@ -94,7 +94,10 @@ export type EventPayloads = {
   }>;
 
   'housing:campaign-attached': CreationEventChange<{
-    name: string;
+    // Temporary workaround to avoid breaking changes in events.
+    // This should be removed in the future.
+    // Some old events did not log the new campaign properly...
+    name: string | null;
   }>;
   'housing:campaign-detached': RemoveEventChange<{
     name: string;

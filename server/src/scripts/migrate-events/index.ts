@@ -15,6 +15,7 @@ import { match, Pattern } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 import { batch } from 'web-streams-utils';
 import { string } from 'yup';
+import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import {
   CampaignHousingEventApi,
@@ -27,9 +28,12 @@ import {
   HousingOwnerApi
 } from '~/models/HousingOwnerApi';
 import { CampaignDBO, Campaigns } from '~/repositories/campaignRepository';
-import { Events } from '~/repositories/eventRepository';
+import eventRepository, {
+  Events,
+  EVENTS_TABLE
+} from '~/repositories/eventRepository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
-import { compose } from '~/scripts/import-lovac/infra/updater';
+import { compose, createUpdater } from '~/scripts/import-lovac/infra/updater';
 
 const logger = createLogger('migrate-events');
 
@@ -40,17 +44,33 @@ async function run(): Promise<void> {
     }
   );
 
-  const eventUpdater = compose(
-    new WritableStream<EventApi<EventType>[]>({
-      async write(events) {
-        // TODO: update events in batch
-        logger.debug('Updating events...', {
-          events: events.length
-        });
-      }
-    }),
-    batch<EventApi<EventType>>(1000)
-  ).getWriter();
+  const eventUpdater = createUpdater<EventApi<EventType>>({
+    destination: 'database',
+    temporaryTable: 'event_updates_tmp',
+    likeTable: 'events',
+    async update(events): Promise<void> {
+      logger.debug('Updating events...', {
+        events: events.length
+      });
+
+      const temporaryTable = 'event_updates_tmp';
+      await Events()
+        .update({
+          // @ts-expect-error: knex’s types are bad
+          type: db.ref(`${temporaryTable}.type`),
+          // @ts-expect-error: knex’s types are bad
+          next_old: db.ref(`${temporaryTable}.next_old`),
+          // @ts-expect-error: knex’s types are bad
+          next_new: db.ref(`${temporaryTable}.next_new`)
+        })
+        .updateFrom(temporaryTable)
+        .where(`${EVENTS_TABLE}.id`, db.ref(`${temporaryTable}.id`))
+        .whereIn(
+          `${temporaryTable}.id`,
+          events.map((event) => event.id)
+        );
+    }
+  }).getWriter();
 
   // A stream that removes events in batch
   const eventRemover = compose(
@@ -59,7 +79,7 @@ async function run(): Promise<void> {
         logger.debug('Removing events...', {
           events: ids.length
         });
-        // await Events().whereIn('id', ids).delete();
+        await Events().whereIn('id', ids).delete();
       }
     }),
     batch<EventApi<EventType>['id']>(1000)
@@ -71,7 +91,7 @@ async function run(): Promise<void> {
         logger.debug('Inserting housing owner events...', {
           events: events.length
         });
-        // await eventRepository.insertManyHousingOwnerEvents(events);
+        await eventRepository.insertManyHousingOwnerEvents(events);
       }
     }),
     batch<HousingOwnerEventApi>(1000)
@@ -83,7 +103,7 @@ async function run(): Promise<void> {
         logger.debug('Inserting campaign housing events...', {
           events: events.length
         });
-        // await eventRepository.insertManyCampaignHousingEvents(events);
+        await eventRepository.insertManyCampaignHousingEvents(events);
       }
     }),
     batch<CampaignHousingEventApi>(1000)
@@ -577,11 +597,6 @@ async function run(): Promise<void> {
           await eventRemover.close();
           await housingOwnerEventsCreator.close();
           await campaignHousingEventsCreator.close();
-
-          console.log(await eventUpdater.closed);
-          console.log(await eventRemover.closed);
-          console.log(await housingOwnerEventsCreator.closed);
-          console.log(await campaignHousingEventsCreator.closed);
         },
 
         async abort() {

@@ -77,24 +77,17 @@ async function run(): Promise<void> {
     batch<HousingOwnerEventApi>(1000)
   ).getWriter();
 
-  const campaignHousingEventsWriter = new WritableStream<
-    ReadonlyArray<CampaignHousingEventApi>
-  >({
-    async write(events) {
-      logger.debug('Inserting campaign housing events...', {
-        events: events.length
-      });
-      // await eventRepository.insertManyCampaignHousingEvents(events);
-    }
-  });
   const campaignHousingEventsCreator = compose(
-    campaignHousingEventsWriter,
+    new WritableStream<ReadonlyArray<CampaignHousingEventApi>>({
+      async write(events) {
+        logger.debug('Inserting campaign housing events...', {
+          events: events.length
+        });
+        // await eventRepository.insertManyCampaignHousingEvents(events);
+      }
+    }),
     batch<CampaignHousingEventApi>(1000)
   ).getWriter();
-
-  const groupHousingEventsUpdater = eventUpdater;
-
-  const housingEventsUpdater = eventUpdater;
 
   await Readable.toWeb(Events().stream())
     .pipeThrough(
@@ -259,7 +252,7 @@ async function run(): Promise<void> {
               });
             })
             .with({ name: 'Suppression d’un groupe' }, async (event: any) => {
-              await groupHousingEventsUpdater.write({
+              await eventUpdater.write({
                 id: event.id,
                 name: event.name,
                 type: 'housing:group-removed',
@@ -274,7 +267,7 @@ async function run(): Promise<void> {
             .with(
               { name: 'Changement de statut de suivi' },
               async (event: any) => {
-                await housingEventsUpdater.write({
+                await eventUpdater.write({
                   id: event.id,
                   name: event.name,
                   type: 'housing:status-updated',
@@ -311,33 +304,35 @@ async function run(): Promise<void> {
                 )
               },
               async (event: any) =>
-                await housingEventsUpdater.write({
+                await eventUpdater.write({
                   id: event.id,
                   name: event.name,
                   type: 'housing:occupancy-updated',
                   createdAt: event.created_at,
                   createdBy: event.created_by,
                   nextOld: compactUndefined({
-                    occupancy:
-                      event.old.occupancy !== event.new.occupancy
+                    occupancy: !event.old
+                      ? null
+                      : event.old.occupancy !== event.new.occupancy
                         ? // @ts-expect-error: event.old.occupancy is not typed
                           OCCUPANCY_LABELS[event.old.occupancy]
                         : undefined,
                     occupancyIntended:
+                      !!event.old &&
                       event.old.occupancyIntended !==
-                      event.new.occupancyIntended
+                        event.new.occupancyIntended
                         ? // @ts-expect-error: event.old.occupancyIntended is not typed
                           OCCUPANCY_LABELS[event.old.occupancyIntended]
                         : undefined
                   }),
                   nextNew: compactUndefined({
                     occupancy:
-                      event.old.occupancy !== event.new.occupancy
+                      event.old?.occupancy !== event.new.occupancy
                         ? // @ts-expect-error: event.new.occupancy is not typed
                           OCCUPANCY_LABELS[event.new.occupancy]
                         : undefined,
                     occupancyIntended:
-                      event.old.occupancyIntended !==
+                      event.old?.occupancyIntended !==
                       event.new.occupancyIntended
                         ? // @ts-expect-error: event.new.occupancyIntended is not typed
                           OCCUPANCY_LABELS[event.new.occupancyIntended]
@@ -354,7 +349,7 @@ async function run(): Promise<void> {
             .with({ name: 'Ajout dans un groupe' }, async (event: any) => {
               string().required().trim().min(1).validateSync(event.new.title);
 
-              await groupHousingEventsUpdater.write({
+              await eventUpdater.write({
                 id: event.id,
                 name: event.name,
                 type: 'housing:group-attached',
@@ -367,7 +362,7 @@ async function run(): Promise<void> {
               });
             })
             .with({ name: 'Archivage d’un groupe' }, async (event: any) => {
-              await groupHousingEventsUpdater.write({
+              await eventUpdater.write({
                 id: event.id,
                 name: event.name,
                 type: 'housing:group-archived',
@@ -380,7 +375,7 @@ async function run(): Promise<void> {
               });
             })
             .with({ name: 'Retrait d’un groupe' }, async (event: any) => {
-              await groupHousingEventsUpdater.write({
+              await eventUpdater.write({
                 id: event.id,
                 name: event.name,
                 type: 'housing:group-removed',
@@ -518,7 +513,7 @@ async function run(): Promise<void> {
                 .oneOf(OCCUPANCY_VALUES)
                 .validateSync(event.new.occupancy);
 
-              await housingEventsUpdater.write({
+              await eventUpdater.write({
                 id: event.id,
                 name: event.name,
                 type: 'housing:created',

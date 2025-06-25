@@ -598,7 +598,7 @@ async function run(): Promise<void> {
                 await eventRemover.write(event.id);
               }
             )
-            .otherwise(Promise.resolve);
+            .otherwise(() => Promise.resolve());
         },
 
         async close() {

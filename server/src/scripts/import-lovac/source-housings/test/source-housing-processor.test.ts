@@ -8,7 +8,7 @@ import { flatten, toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingEventApi } from '~/models/EventApi';
-import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { HousingApi } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { HousingNoteApi } from '~/models/NoteApi';
 import { UserApi } from '~/models/UserApi';
@@ -96,7 +96,7 @@ describe('Source housing processor', () => {
         kind: 'create',
         value: expect.objectContaining({
           dataFileYears: ['lovac-2025'],
-          occupancy: OccupancyKindApi.Vacant,
+          occupancy: Occupancy.VACANT,
           status: HousingStatusApi.NeverContacted
         })
       });

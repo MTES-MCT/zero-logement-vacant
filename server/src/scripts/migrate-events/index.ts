@@ -15,6 +15,7 @@ import { match, Pattern } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 import { batch } from 'web-streams-utils';
 import { string } from 'yup';
+import HousingMissingError from '~/errors/housingMissingError';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import {
@@ -33,6 +34,7 @@ import eventRepository, {
   Events,
   EVENTS_TABLE
 } from '~/repositories/eventRepository';
+import { HousingRecordDBO } from '~/repositories/housingRepository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { compose, createUpdater } from '~/scripts/import-lovac/infra/updater';
 
@@ -89,9 +91,6 @@ async function run(): Promise<void> {
   const housingOwnerEventsCreator = compose(
     new WritableStream<ReadonlyArray<HousingOwnerEventApi>>({
       async write(events) {
-        logger.debug('Inserting housing owner events...', {
-          events: events.length
-        });
         await eventRepository.insertManyHousingOwnerEvents(events);
       }
     }),
@@ -101,9 +100,6 @@ async function run(): Promise<void> {
   const campaignHousingEventsCreator = compose(
     new WritableStream<ReadonlyArray<CampaignHousingEventApi>>({
       async write(events) {
-        logger.debug('Inserting campaign housing events...', {
-          events: events.length
-        });
         await eventRepository.insertManyCampaignHousingEvents(events);
       }
     }),
@@ -225,61 +221,70 @@ async function run(): Promise<void> {
                 });
               }
             )
-            .with({ name: 'Ajout dans une campagne' }, async (event: any) => {
-              // Fetch the actual housing
-              // because the INSEE code might have changed
-              // due to a fusion/separation of township
-              const geoCode = event.new.geoCode.substring(0, 2).toLowerCase();
-              const housing = await db(`fast_housing_${geoCode}`)
-                .select('geo_code', 'id')
-                .where('id', event.new.id)
-                .first();
+            .with(
+              // Match with `type: 'empty'` to avoid mixing old and new events
+              { name: 'Ajout dans une campagne', type: 'empty' },
+              async (event: any) => {
+                // Fetch the actual housing
+                // because the INSEE code might have changed
+                // due to a fusion/separation of township
+                const geoCode = event.new.geoCode.substring(0, 2).toLowerCase();
+                const housing:
+                  | Pick<HousingRecordDBO, 'geo_code' | 'id'>
+                  | undefined = await db(`fast_housing_${geoCode}`)
+                  .select('geo_code', 'id')
+                  .where('id', event.new.id)
+                  .first();
+                if (!housing) {
+                  throw new HousingMissingError(event.new.id);
+                }
 
-              if (event.new.campaignIds.length === 0) {
+                if (event.new.campaignIds.length === 0) {
+                  await campaignHousingEventsCreator.write({
+                    id: uuidv4(),
+                    name: 'Ajout dans une campagne',
+                    type: 'housing:campaign-attached',
+                    nextOld: null,
+                    nextNew: {
+                      name: null
+                    },
+                    createdAt: event.created_at,
+                    createdBy: event.created_by,
+                    campaignId: null,
+                    housingGeoCode: housing.geo_code,
+                    housingId: housing.id
+                  });
+                  return;
+                }
+
+                const diff: ReadonlyArray<string> = Array.difference(
+                  event.new.campaignIds,
+                  event.old.campaignIds
+                );
+                const campaign = campaigns.get(diff[0]);
+                if (!campaign) {
+                  logger.warn(
+                    `Campaign ${diff[0]} not found for event ${event.id}`
+                  );
+                  return;
+                }
+
                 await campaignHousingEventsCreator.write({
                   id: uuidv4(),
                   name: 'Ajout dans une campagne',
                   type: 'housing:campaign-attached',
                   nextOld: null,
                   nextNew: {
-                    name: null
+                    name: campaign.title
                   },
                   createdAt: event.created_at,
                   createdBy: event.created_by,
-                  campaignId: null,
+                  campaignId: campaign.id,
                   housingGeoCode: housing.geo_code,
                   housingId: housing.id
                 });
-                return;
               }
-
-              const diff: ReadonlyArray<string> = Array.difference(
-                event.new.campaignIds,
-                event.old.campaignIds
-              );
-              const campaign = campaigns.get(diff[0]);
-              if (!campaign) {
-                logger.warn(
-                  `Campaign ${diff[0]} not found for event ${event.id}`
-                );
-                return;
-              }
-
-              await campaignHousingEventsCreator.write({
-                id: uuidv4(),
-                name: 'Ajout dans une campagne',
-                type: 'housing:campaign-attached',
-                nextOld: null,
-                nextNew: {
-                  name: campaign.title
-                },
-                createdAt: event.created_at,
-                createdBy: event.created_by,
-                campaignId: campaign.id,
-                housingGeoCode: housing.geo_code,
-                housingId: housing.id
-              });
-            })
+            )
             .with({ name: 'Suppression d’un groupe' }, async (event: any) => {
               await eventUpdater.write({
                 id: event.id,

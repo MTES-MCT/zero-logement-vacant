@@ -238,8 +238,8 @@ async function run(): Promise<void> {
                   createdAt: event.created_at,
                   createdBy: event.created_by,
                   campaignId: null,
-                  housingGeoCode: event.new.id,
-                  housingId: event.new.geoCode
+                  housingGeoCode: event.new.geoCode,
+                  housingId: event.new.id
                 });
                 return;
               }
@@ -267,8 +267,8 @@ async function run(): Promise<void> {
                 createdAt: event.created_at,
                 createdBy: event.created_by,
                 campaignId: campaign.id,
-                housingGeoCode: event.new.id,
-                housingId: event.new.geoCode
+                housingGeoCode: event.new.geoCode,
+                housingId: event.new.id
               });
             })
             .with({ name: 'Suppression d’un groupe' }, async (event: any) => {

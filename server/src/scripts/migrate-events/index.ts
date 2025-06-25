@@ -29,6 +29,7 @@ import {
 } from '~/models/HousingOwnerApi';
 import { CampaignDBO, Campaigns } from '~/repositories/campaignRepository';
 import eventRepository, {
+  EventRecordDBO,
   Events,
   EVENTS_TABLE
 } from '~/repositories/eventRepository';
@@ -44,7 +45,7 @@ async function run(): Promise<void> {
     }
   );
 
-  const eventUpdater = createUpdater<EventApi<EventType>>({
+  const eventUpdater = createUpdater<EventRecordDBO<EventType>>({
     destination: 'database',
     temporaryTable: 'event_updates_tmp',
     likeTable: 'events',
@@ -275,12 +276,12 @@ async function run(): Promise<void> {
                 id: event.id,
                 name: event.name,
                 type: 'housing:group-removed',
-                createdAt: event.created_at,
-                createdBy: event.created_by,
-                nextOld: {
+                created_at: event.created_at,
+                created_by: event.created_by,
+                next_old: {
                   name: event.old.title
                 },
-                nextNew: null
+                next_new: null
               });
             })
             .with(
@@ -290,9 +291,9 @@ async function run(): Promise<void> {
                   id: event.id,
                   name: event.name,
                   type: 'housing:status-updated',
-                  createdAt: event.created_at,
-                  createdBy: event.created_by,
-                  nextOld: compactUndefined({
+                  created_at: event.created_at,
+                  created_by: event.created_by,
+                  next_old: compactUndefined({
                     status:
                       event.old.status !== event.new.status
                         ? event.old.status
@@ -302,7 +303,7 @@ async function run(): Promise<void> {
                         ? event.old.subStatus
                         : undefined
                   }),
-                  nextNew: compactUndefined({
+                  next_new: compactUndefined({
                     status:
                       event.old.status !== event.new.status
                         ? event.new.status
@@ -327,9 +328,9 @@ async function run(): Promise<void> {
                   id: event.id,
                   name: event.name,
                   type: 'housing:occupancy-updated',
-                  createdAt: event.created_at,
-                  createdBy: event.created_by,
-                  nextOld: compactUndefined({
+                  created_at: event.created_at,
+                  created_by: event.created_by,
+                  next_old: compactUndefined({
                     occupancy: !event.old
                       ? null
                       : event.old.occupancy !== event.new.occupancy
@@ -344,7 +345,7 @@ async function run(): Promise<void> {
                           OCCUPANCY_LABELS[event.old.occupancyIntended]
                         : undefined
                   }),
-                  nextNew: compactUndefined({
+                  next_new: compactUndefined({
                     occupancy:
                       event.old?.occupancy !== event.new.occupancy
                         ? // @ts-expect-error: event.new.occupancy is not typed
@@ -372,10 +373,10 @@ async function run(): Promise<void> {
                 id: event.id,
                 name: event.name,
                 type: 'housing:group-attached',
-                createdAt: event.created_at,
-                createdBy: event.created_by,
-                nextOld: null,
-                nextNew: {
+                created_at: event.created_at,
+                created_by: event.created_by,
+                next_old: null,
+                next_new: {
                   name: event.new.title
                 }
               });
@@ -385,12 +386,12 @@ async function run(): Promise<void> {
                 id: event.id,
                 name: event.name,
                 type: 'housing:group-archived',
-                createdAt: event.created_at,
-                createdBy: event.created_by,
-                nextOld: {
+                created_at: event.created_at,
+                created_by: event.created_by,
+                next_old: {
                   name: event.old.title
                 },
-                nextNew: null
+                next_new: null
               });
             })
             .with({ name: 'Retrait d’un groupe' }, async (event: any) => {
@@ -398,12 +399,12 @@ async function run(): Promise<void> {
                 id: event.id,
                 name: event.name,
                 type: 'housing:group-removed',
-                createdAt: event.created_at,
-                createdBy: event.created_by,
-                nextOld: {
+                created_at: event.created_at,
+                created_by: event.created_by,
+                next_old: {
                   name: event.old.title
                 },
-                nextNew: null
+                next_new: null
               });
             })
             .with(
@@ -413,9 +414,9 @@ async function run(): Promise<void> {
                   id: event.id,
                   name: event.name,
                   type: 'owner:updated',
-                  createdAt: event.created_at,
-                  createdBy: event.created_by,
-                  nextOld: compactUndefined({
+                  created_at: event.created_at,
+                  created_by: event.created_by,
+                  next_old: compactUndefined({
                     name:
                       event.old.fullName !== event.new.fullName
                         ? event.old.fullName
@@ -429,7 +430,7 @@ async function run(): Promise<void> {
                         ? event.old.phone
                         : undefined
                   }),
-                  nextNew: compactUndefined({
+                  next_new: compactUndefined({
                     name:
                       event.old.fullName !== event.new.fullName
                         ? event.new.fullName
@@ -459,9 +460,9 @@ async function run(): Promise<void> {
                 id: event.id,
                 name: event.name,
                 type: 'owner:updated',
-                createdAt: event.created_at,
-                createdBy: event.created_by,
-                nextOld: compactUndefined({
+                created_at: event.created_at,
+                created_by: event.created_by,
+                next_old: compactUndefined({
                   name:
                     event.old.fullName !== event.new.fullName
                       ? event.old.fullName
@@ -471,7 +472,7 @@ async function run(): Promise<void> {
                       ? event.old.birthdate.substring(0, 'yyyy-mm-dd'.length)
                       : undefined
                 }),
-                nextNew: compactUndefined({
+                next_new: compactUndefined({
                   name:
                     event.old.fullName !== event.new.fullName
                       ? event.new.fullName
@@ -514,12 +515,12 @@ async function run(): Promise<void> {
                   id: event.id,
                   name: event.name,
                   type: 'campaign:updated',
-                  createdAt: event.created_at,
-                  createdBy: event.created_by,
-                  nextOld: {
+                  created_at: event.created_at,
+                  created_by: event.created_by,
+                  next_old: {
                     status: before
                   },
-                  nextNew: {
+                  next_new: {
                     status: after
                   }
                 });
@@ -536,10 +537,10 @@ async function run(): Promise<void> {
                 id: event.id,
                 name: event.name,
                 type: 'housing:created',
-                createdAt: event.created_at,
-                createdBy: event.created_by,
-                nextOld: null,
-                nextNew: {
+                created_at: event.created_at,
+                created_by: event.created_by,
+                next_old: null,
+                next_new: {
                   source: 'datafoncier-manual',
                   // @ts-expect-error: event.new.occupancy is not typed
                   occupancy: OCCUPANCY_LABELS[event.new.occupancy]
@@ -559,10 +560,10 @@ async function run(): Promise<void> {
                   id: event.id,
                   name: event.name,
                   type: 'owner:created',
-                  createdAt: event.created_at,
-                  createdBy: event.created_by,
-                  nextOld: null,
-                  nextNew: {
+                  created_at: event.created_at,
+                  created_by: event.created_by,
+                  next_old: null,
+                  next_new: {
                     name: event.new.fullName,
                     birthdate:
                       event.new.birthdate &&

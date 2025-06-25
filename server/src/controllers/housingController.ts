@@ -5,6 +5,7 @@ import {
   HousingStatus,
   HousingUpdatePayloadDTO,
   OCCUPANCY_LABELS,
+  OCCUPANCY_VALUES,
   Pagination,
   UserRole
 } from '@zerologementvacant/models';
@@ -31,7 +32,6 @@ import {
   HousingApi,
   HousingRecordApi,
   HousingSortableApi,
-  OccupancyKindApi,
   toHousingDTO
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
@@ -276,14 +276,14 @@ const updateValidators = [
   body('housingUpdate.occupancyUpdate')
     .optional()
     .custom((value) =>
-      validator.isIn(String(value.occupancy), Object.values(OccupancyKindApi))
+      validator.isIn(String(value.occupancy), OCCUPANCY_VALUES)
     )
     .custom(
       (value) =>
         !value.occupancyIntended ||
         validator.isIn(
           String(value.occupancyIntended),
-          Object.values(OccupancyKindApi)
+          Object.values(OCCUPANCY_VALUES)
         )
     ),
   body('housingUpdate.note')

@@ -5,7 +5,7 @@ import {
   Occupancy,
   Precision
 } from '@zerologementvacant/models';
-import { Equivalence, Record } from 'effect';
+import { Equivalence } from 'effect';
 import fp from 'lodash/fp';
 import { assert, MarkRequired } from 'ts-essentials';
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -123,32 +123,6 @@ export const getOwnershipKindFromValue = (value?: string) => {
 export const OwnershipKindValues = {
   [OwnershipKindsApi.CoOwnership]: ['CL'],
   [OwnershipKindsApi.Other]: ['BND', 'CLV', 'CV', 'MP', 'TF']
-};
-
-export enum OccupancyKindApi {
-  Unknown = 'inconnu',
-  Vacant = 'V',
-  Rent = 'L',
-  ShortRent = 'B',
-  PrimaryResidence = 'P',
-  SecondaryResidence = 'RS',
-  CommercialOrOffice = 'T',
-  Dependency = 'N',
-  DemolishedOrDivided = 'D',
-  Others = 'A'
-}
-
-export const OccupancyKindApiLabels: Record<OccupancyKindApi, string> = {
-  [OccupancyKindApi.Unknown]: 'Pas d’information',
-  [OccupancyKindApi.Vacant]: 'Vacant',
-  [OccupancyKindApi.Rent]: 'En location',
-  [OccupancyKindApi.ShortRent]: 'Meublé de tourisme',
-  [OccupancyKindApi.PrimaryResidence]: 'Occupé par le propriétaire',
-  [OccupancyKindApi.SecondaryResidence]: 'Résidence secondaire non louée',
-  [OccupancyKindApi.CommercialOrOffice]: 'Local commercial ou bureau',
-  [OccupancyKindApi.Dependency]: 'Dépendance',
-  [OccupancyKindApi.DemolishedOrDivided]: 'Local démoli ou divisé',
-  [OccupancyKindApi.Others]: 'Autres'
 };
 
 const trimStartingZeros = (str: string): string => str.replace(/^0+/, '');

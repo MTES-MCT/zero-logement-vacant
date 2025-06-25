@@ -1,6 +1,7 @@
 export enum Occupancy {
   COMMERCIAL_OR_OFFICE = 'T',
   DEMOLISHED_OR_DIVIDED = 'D',
+  FREE = 'G',
   DEPENDENCY = 'N',
   OTHERS = 'A',
   PRIMARY_RESIDENCE = 'P',
@@ -22,6 +23,7 @@ export const OCCUPANCY_LABELS: Record<Occupancy, string> = {
   [Occupancy.COMMERCIAL_OR_OFFICE]: 'Local commercial ou bureau',
   [Occupancy.DEPENDENCY]: 'Dépendance',
   [Occupancy.DEMOLISHED_OR_DIVIDED]: 'Local démoli ou divisé',
+  [Occupancy.FREE]: 'Occupation à titre gratuit',
   [Occupancy.OTHERS]: 'Autres',
   [Occupancy.UNKNOWN]: 'Pas d’information'
 };

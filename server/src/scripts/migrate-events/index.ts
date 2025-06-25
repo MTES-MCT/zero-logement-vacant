@@ -226,6 +226,15 @@ async function run(): Promise<void> {
               }
             )
             .with({ name: 'Ajout dans une campagne' }, async (event: any) => {
+              // Fetch the actual housing
+              // because the INSEE code might have changed
+              // due to a fusion/separation of township
+              const geoCode = event.new.geoCode.substring(0, 2).toLowerCase();
+              const housing = await db(`fast_housing_${geoCode}`)
+                .select('geo_code', 'id')
+                .where('id', event.new.id)
+                .first();
+
               if (event.new.campaignIds.length === 0) {
                 await campaignHousingEventsCreator.write({
                   id: uuidv4(),
@@ -238,8 +247,8 @@ async function run(): Promise<void> {
                   createdAt: event.created_at,
                   createdBy: event.created_by,
                   campaignId: null,
-                  housingGeoCode: event.new.geoCode,
-                  housingId: event.new.id
+                  housingGeoCode: housing.geo_code,
+                  housingId: housing.id
                 });
                 return;
               }
@@ -267,8 +276,8 @@ async function run(): Promise<void> {
                 createdAt: event.created_at,
                 createdBy: event.created_by,
                 campaignId: campaign.id,
-                housingGeoCode: event.new.geoCode,
-                housingId: event.new.id
+                housingGeoCode: housing.geo_code,
+                housingId: housing.id
               });
             })
             .with({ name: 'Suppression d’un groupe' }, async (event: any) => {

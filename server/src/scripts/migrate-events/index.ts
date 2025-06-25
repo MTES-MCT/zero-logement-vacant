@@ -212,7 +212,6 @@ async function run(): Promise<void> {
                   type: 'housing:campaign-attached',
                   nextOld: null,
                   nextNew: {
-                    // @ts-expect-error: event.new.campaignIds is not typed
                     name: null
                   },
                   createdAt: event.created_at,

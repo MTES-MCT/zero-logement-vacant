@@ -1243,14 +1243,14 @@ describe('Housing list view', () => {
         renderView();
 
         const accordion = await screen.findByRole('button', {
-          name: 'Logement'
+          name: 'Bâtiment/DPE'
         });
         await user.click(accordion);
 
-        const dpe = await screen.findByRole('combobox', {
+        const constructionDate = await screen.findByRole('combobox', {
           name: 'Date de construction'
         });
-        await user.click(dpe);
+        await user.click(constructionDate);
         const options = await screen.findByRole('listbox');
         const option = await within(options).findByText('Avant 1919');
         await user.click(option);
@@ -1362,7 +1362,7 @@ describe('Housing list view', () => {
         renderView();
 
         const accordion = await screen.findByRole('button', {
-          name: 'Logement'
+          name: 'Bâtiment/DPE'
         });
         await user.click(accordion);
 

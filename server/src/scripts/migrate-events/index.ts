@@ -15,7 +15,6 @@ import { match, Pattern } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 import { batch } from 'web-streams-utils';
 import { string } from 'yup';
-import HousingMissingError from '~/errors/housingMissingError';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
 import {
@@ -236,7 +235,11 @@ async function run(): Promise<void> {
                   .where('id', event.new.id)
                   .first();
                 if (!housing) {
-                  throw new HousingMissingError(event.new.id);
+                  logger.warn('Housing not found', {
+                    geoCode: event.new.geoCode,
+                    id: event.new.id
+                  });
+                  return;
                 }
 
                 if (event.new.campaignIds.length === 0) {

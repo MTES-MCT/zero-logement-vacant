@@ -2,23 +2,23 @@ import { fromHousing, Mutation } from '../Mutation';
 
 describe('Mutation', () => {
   describe('fromHousing', () => {
-    it('should be a "donation" if the last mutation is more recent than the last transaction', () => {
+    it('should have an empty type if the last mutation is specified but the last transaction is not', () => {
       const actual = fromHousing({
         lastMutationDate: '2023-01-01',
-        lastTransactionDate: '2022-12-31',
+        lastTransactionDate: null,
         lastTransactionValue: null
       });
 
       expect(actual).toStrictEqual<Mutation>({
-        type: 'donation',
+        type: null,
         date: new Date('2023-01-01')
       });
     });
 
-    it('should be a "donation" if the last transaction date is empty', () => {
+    it('should be a "donation" if the last mutation is more recent than the last transaction', () => {
       const actual = fromHousing({
         lastMutationDate: '2023-01-01',
-        lastTransactionDate: null,
+        lastTransactionDate: '2022-12-31',
         lastTransactionValue: null
       });
 

@@ -1,15 +1,19 @@
 import { HousingDTO } from './HousingDTO';
 
-export interface Sale {
+interface Unknown {
+  type: null;
+  date: Date;
+}
+interface Sale {
   type: 'sale';
   date: Date;
   amount: number | null;
 }
-export interface Donation {
+interface Donation {
   type: 'donation';
   date: Date;
 }
-export type Mutation = Sale | Donation;
+export type Mutation = Sale | Donation | Unknown;
 
 export function fromHousing(
   housing: Pick<
@@ -25,6 +29,13 @@ export function fromHousing(
     : null;
   const lastTransactionValue = housing.lastTransactionValue;
 
+  if (lastMutationDate && !lastTransactionDate) {
+    return {
+      type: null,
+      date: lastMutationDate
+    };
+  }
+
   if (lastMutationDate && lastTransactionDate) {
     return lastMutationDate > lastTransactionDate
       ? {
@@ -36,13 +47,6 @@ export function fromHousing(
           date: lastTransactionDate,
           amount: lastTransactionValue
         };
-  }
-
-  if (lastMutationDate && !lastTransactionDate) {
-    return {
-      type: 'donation',
-      date: lastMutationDate
-    };
   }
 
   if (lastTransactionDate) {

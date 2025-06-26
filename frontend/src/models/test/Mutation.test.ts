@@ -2,7 +2,18 @@ import { toString } from '../Mutation';
 
 describe('Mutation', () => {
   describe('toString', () => {
-    it('should start by "Vente" if the mutation is a "sale"', () => {
+    it('should display the mutation date only if the mutation type is "null"', () => {
+      const actual = toString({
+        type: null,
+        date: new Date('2023-01-01')
+      });
+
+      expect(actual).toInclude('01/01/2023');
+      expect(actual).not.toInclude('Vente');
+      expect(actual).not.toInclude('Donation');
+    });
+
+    it('should start with "Vente" if the mutation is a "sale"', () => {
       const actual = toString({
         type: 'sale',
         date: new Date(),

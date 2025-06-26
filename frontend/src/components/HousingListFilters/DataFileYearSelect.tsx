@@ -1,7 +1,4 @@
-import {
-  DATA_FILE_YEAR_VALUES,
-  DataFileYear
-} from '@zerologementvacant/models';
+import { DataFileYear } from '@zerologementvacant/models';
 
 import {
   DATA_FILE_YEAR_EXCLUDED_OPTIONS,
@@ -22,9 +19,17 @@ export type DataFileYearSelectProps<Multiple extends boolean> = Pick<
 function DataFileYearSelect<Multiple extends boolean = false>(
   props: DataFileYearSelectProps<Multiple>
 ) {
-  const options = [
-    EMPTY_OPTION.value,
-    ...DATA_FILE_YEAR_VALUES.toSorted((a, b) => b.localeCompare(a))
+  // Custom sort order for options
+  const options: ReadonlyArray<DataFileYear | null> = [
+    'lovac-2025',
+    'ff-2023-locatif',
+    'lovac-2024',
+    'lovac-2023',
+    'lovac-2022',
+    'lovac-2021',
+    'lovac-2020',
+    'lovac-2019',
+    EMPTY_OPTION.value
   ];
   const label =
     props.type === 'included'

@@ -18,7 +18,7 @@ function OwnerKindSelect<Multiple extends boolean = false>(
   return (
     <AppSelectNext
       {...props}
-      options={[OWNER_KIND_EMPTY_OPTION.value, ...OWNER_KIND_VALUES]}
+      options={[...OWNER_KIND_VALUES, OWNER_KIND_EMPTY_OPTION.value]}
       label="Type de propriétaire"
       getOptionLabel={(option) =>
         option === OWNER_KIND_EMPTY_OPTION.value

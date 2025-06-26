@@ -1,14 +1,14 @@
 export enum Occupancy {
+  VACANT = 'V',
+  RENT = 'L',
+  SHORT_RENT = 'B',
+  SECONDARY_RESIDENCE = 'RS',
+  PRIMARY_RESIDENCE = 'P',
+  DEPENDENCY = 'N',
   COMMERCIAL_OR_OFFICE = 'T',
   DEMOLISHED_OR_DIVIDED = 'D',
-  DEPENDENCY = 'N',
   OTHERS = 'A',
-  PRIMARY_RESIDENCE = 'P',
-  RENT = 'L',
-  SECONDARY_RESIDENCE = 'RS',
-  SHORT_RENT = 'B',
-  UNKNOWN = 'inconnu',
-  VACANT = 'V'
+  UNKNOWN = 'inconnu'
 }
 
 export const OCCUPANCY_VALUES: Occupancy[] = Object.values(Occupancy);

@@ -238,7 +238,7 @@ function HousingListFiltersSidemenu(props: Props) {
           label={
             <TitleWithIcon
               icon="fr-icon-map-pin-user-line"
-              title="Occupation"
+              title="Vie du logement"
             />
           }
         >

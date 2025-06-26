@@ -626,6 +626,10 @@ export const VACANCY_YEAR_OPTIONS: Record<
     badgeLabel: string;
   }
 > = {
+  '2022': {
+    label: '2022',
+    badgeLabel: 'Début de vacance : depuis 2022'
+  },
   '2021': {
     label: '2021',
     badgeLabel: 'Début de vacance : depuis 2021'

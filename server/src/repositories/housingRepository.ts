@@ -664,30 +664,33 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
     if (filters.vacancyYears?.length) {
-      queryBuilder.where(function (whereBuilder: any) {
+      queryBuilder.where((where) => {
+        if (filters.vacancyYears?.includes('2022')) {
+          where.orWhere('vacancy_start_year', 2022);
+        }
         if (filters.vacancyYears?.includes('2021')) {
-          whereBuilder.orWhere('vacancy_start_year', 2021);
+          where.orWhere('vacancy_start_year', 2021);
         }
         if (filters.vacancyYears?.includes('2020')) {
-          whereBuilder.orWhere('vacancy_start_year', 2020);
+          where.orWhere('vacancy_start_year', 2020);
         }
         if (filters.vacancyYears?.includes('2019')) {
-          whereBuilder.orWhere('vacancy_start_year', 2019);
+          where.orWhere('vacancy_start_year', 2019);
         }
         if (filters.vacancyYears?.includes('2018to2015')) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [2015, 2018]);
+          where.orWhereBetween('vacancy_start_year', [2015, 2018]);
         }
         if (filters.vacancyYears?.includes('2014to2010')) {
-          whereBuilder.orWhereBetween('vacancy_start_year', [2010, 2014]);
+          where.orWhereBetween('vacancy_start_year', [2010, 2014]);
         }
         if (filters.vacancyYears?.includes('before2010')) {
-          whereBuilder.orWhere('vacancy_start_year', '<', 2010);
+          where.orWhere('vacancy_start_year', '<', 2010);
         }
         if (filters.vacancyYears?.includes('missingData')) {
-          whereBuilder.orWhere('vacancy_start_year', 0);
+          where.orWhere('vacancy_start_year', 0);
         }
         if (filters.vacancyYears?.includes('inconsistency2022')) {
-          whereBuilder.orWhere('vacancy_start_year', 2022);
+          where.orWhere('vacancy_start_year', 2022);
         }
       });
     }

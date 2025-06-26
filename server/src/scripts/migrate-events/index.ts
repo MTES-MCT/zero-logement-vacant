@@ -31,7 +31,8 @@ import { CampaignDBO, Campaigns } from '~/repositories/campaignRepository';
 import eventRepository, {
   EventRecordDBO,
   Events,
-  EVENTS_TABLE
+  EVENTS_TABLE,
+  HOUSING_EVENTS_TABLE
 } from '~/repositories/eventRepository';
 import { HousingRecordDBO } from '~/repositories/housingRepository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
@@ -105,7 +106,22 @@ async function run(): Promise<void> {
     batch<CampaignHousingEventApi>(1000)
   ).getWriter();
 
-  await Readable.toWeb(Events().stream())
+  const stream = Events()
+    .select(`${EVENTS_TABLE}.*`)
+    // Fetch related housing events to get their up-to-date geo codes
+    // because the INSEE code might have changed
+    .leftJoin(
+      `${HOUSING_EVENTS_TABLE}`,
+      `${HOUSING_EVENTS_TABLE}.event_id`,
+      `${EVENTS_TABLE}.id`
+    )
+    .select(
+      `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
+      `${HOUSING_EVENTS_TABLE}.housing_id`
+    )
+    .stream();
+
+  await Readable.toWeb(stream)
     .pipeThrough(
       progress({
         name: 'Migration des événements',
@@ -162,8 +178,8 @@ async function run(): Promise<void> {
                         rank: housingOwner.rank
                       },
                       ownerId: housingOwner.ownerId,
-                      housingGeoCode: housingOwner.housingGeoCode,
-                      housingId: housingOwner.housingId
+                      housingGeoCode: event.housing_geo_code,
+                      housingId: event.housing_id
                     };
                   }),
                   ...removed.map<HousingOwnerEventApi>((housingOwner) => {
@@ -179,8 +195,8 @@ async function run(): Promise<void> {
                       },
                       nextNew: null,
                       ownerId: housingOwner.ownerId,
-                      housingGeoCode: housingOwner.housingGeoCode,
-                      housingId: housingOwner.housingId
+                      housingGeoCode: event.housing_geo_code,
+                      housingId: event.housing_id
                     };
                   }),
                   ...updated.flatMap<HousingOwnerEventApi>((housingOwner) => {
@@ -210,8 +226,8 @@ async function run(): Promise<void> {
                         rank: newHousingOwner.rank
                       },
                       ownerId: housingOwner.ownerId,
-                      housingGeoCode: housingOwner.housingGeoCode,
-                      housingId: housingOwner.housingId
+                      housingGeoCode: event.housing_geo_code,
+                      housingId: event.housing_id
                     };
                   })
                 ];

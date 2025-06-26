@@ -244,6 +244,7 @@ function HousingListFiltersSidemenu(props: Props) {
         >
           <Grid component="article" mb={2} xs={12}>
             <OccupancySelect
+              label="Occupation actuelle"
               multiple
               value={filters.occupancies ?? []}
               onChange={(values) => {

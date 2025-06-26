@@ -1097,7 +1097,7 @@ describe('Housing list view', () => {
         await user.click(accordion);
 
         const occupancy = await screen.findByRole('combobox', {
-          name: 'Statut d’occupation'
+          name: 'Occupation actuelle'
         });
         await user.click(occupancy);
         let options = await screen.findByRole('listbox');

@@ -1,11 +1,11 @@
 export const OWNER_KIND_VALUES = [
+  'absent',
   'particulier',
   'sci-copro',
   'promoteur',
   'etat-collectivite',
   'bailleur-social',
-  'autres',
-  'absent'
+  'autres'
 ] as const;
 
 export type OwnerKind = (typeof OWNER_KIND_VALUES)[number];

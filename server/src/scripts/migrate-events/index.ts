@@ -34,7 +34,10 @@ import eventRepository, {
   EVENTS_TABLE,
   HOUSING_EVENTS_TABLE
 } from '~/repositories/eventRepository';
-import { HousingRecordDBO } from '~/repositories/housingRepository';
+import {
+  HousingRecordDBO,
+  housingTable
+} from '~/repositories/housingRepository';
 import { progress } from '~/scripts/import-lovac/infra/progress-bar';
 import { compose, createUpdater } from '~/scripts/import-lovac/infra/updater';
 
@@ -146,6 +149,24 @@ async function run(): Promise<void> {
             .with(
               { name: 'Changement de propriétaires' },
               async (event: any) => {
+                // Retrieve the actual housing
+                // that should be attached to this event
+                const housingGeoCode: string | null = event.housing_geo_code;
+                const housingId: string =
+                  event.housing_id ??
+                  event.new[0].housingId ??
+                  event.old[0].housingId;
+                const department: string = event.new[0].housingGeoCode;
+                const housing: Pick<HousingRecordDBO, 'id' | 'geo_code'> =
+                  !housingGeoCode
+                    ? await db(`${housingTable}_${department}`)
+                        .where({ id: housingId })
+                        .select('id', 'geo_code')
+                        .first()
+                    : null;
+                const geoCode: string = housingGeoCode ?? housing.geo_code;
+                const id: string = housingId ?? housing.id;
+
                 const substract = Array.differenceWith(
                   HOUSING_OWNER_EQUIVALENCE
                 );
@@ -178,8 +199,8 @@ async function run(): Promise<void> {
                         rank: housingOwner.rank
                       },
                       ownerId: housingOwner.ownerId,
-                      housingGeoCode: event.housing_geo_code,
-                      housingId: event.housing_id
+                      housingGeoCode: geoCode,
+                      housingId: id
                     };
                   }),
                   ...removed.map<HousingOwnerEventApi>((housingOwner) => {
@@ -195,8 +216,8 @@ async function run(): Promise<void> {
                       },
                       nextNew: null,
                       ownerId: housingOwner.ownerId,
-                      housingGeoCode: event.housing_geo_code,
-                      housingId: event.housing_id
+                      housingGeoCode: geoCode,
+                      housingId: id
                     };
                   }),
                   ...updated.flatMap<HousingOwnerEventApi>((housingOwner) => {
@@ -226,8 +247,8 @@ async function run(): Promise<void> {
                         rank: newHousingOwner.rank
                       },
                       ownerId: housingOwner.ownerId,
-                      housingGeoCode: event.housing_geo_code,
-                      housingId: event.housing_id
+                      housingGeoCode: geoCode,
+                      housingId: id
                     };
                   })
                 ];

@@ -156,12 +156,14 @@ async function run(): Promise<void> {
                   event.housing_id ??
                   event.new[0].housingId ??
                   event.old[0].housingId;
-                const department: string = event.new[0].housingGeoCode
-                  .substring(0, 2)
-                  .toLowerCase();
+                const department: string | undefined =
+                  event.new[0].housingGeoCode?.substring(0, 2)?.toLowerCase();
+                const table = department
+                  ? `${housingTable}_${department}`
+                  : housingTable;
                 const housing: Pick<HousingRecordDBO, 'id' | 'geo_code'> =
                   !housingGeoCode
-                    ? await db(`${housingTable}_${department}`)
+                    ? await db(table)
                         .where({ id: housingId })
                         .select('id', 'geo_code')
                         .first()

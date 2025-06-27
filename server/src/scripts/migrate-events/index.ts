@@ -156,7 +156,9 @@ async function run(): Promise<void> {
                   event.housing_id ??
                   event.new[0].housingId ??
                   event.old[0].housingId;
-                const department: string = event.new[0].housingGeoCode;
+                const department: string = event.new[0].housingGeoCode
+                  .substring(0, 2)
+                  .toLowerCase();
                 const housing: Pick<HousingRecordDBO, 'id' | 'geo_code'> =
                   !housingGeoCode
                     ? await db(`${housingTable}_${department}`)

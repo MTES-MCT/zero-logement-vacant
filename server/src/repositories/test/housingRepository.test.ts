@@ -7,6 +7,7 @@ import {
   DataFileYear,
   EnergyConsumption,
   HOUSING_KIND_VALUES,
+  HOUSING_STATUS_VALUES,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   isSecondaryOwner,
@@ -34,7 +35,6 @@ import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { HOUSING_STATUS_VALUES } from '~/models/HousingStatusApi';
 import { LocalityApi } from '~/models/LocalityApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
@@ -1127,7 +1127,7 @@ describe('Housing repository', () => {
           const housings: ReadonlyArray<HousingApi> = [
             { ...genHousingApi(), taxed: true },
             { ...genHousingApi(), taxed: false },
-            { ...genHousingApi(), taxed: undefined }
+            { ...genHousingApi(), taxed: null }
           ];
           await Housing().insert(housings.map(formatHousingRecordApi));
         });
@@ -1162,7 +1162,7 @@ describe('Housing repository', () => {
           const housings: ReadonlyArray<HousingApi> = [
             // Monopropriété
             { ...genHousingApi(), ownershipKind: 'single' },
-            { ...genHousingApi(), ownershipKind: undefined },
+            { ...genHousingApi(), ownershipKind: null },
             // Copropriété
             { ...genHousingApi(), ownershipKind: 'CL' },
             { ...genHousingApi(), ownershipKind: 'co' },
@@ -1567,10 +1567,7 @@ describe('Housing repository', () => {
 
           expect(actual.length).toBeGreaterThan(0);
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
-            if (
-              housing.longitude === undefined ||
-              housing.latitude === undefined
-            ) {
+            if (housing.longitude === null || housing.latitude === null) {
               return false;
             }
 

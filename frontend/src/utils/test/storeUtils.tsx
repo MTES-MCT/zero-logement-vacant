@@ -1,9 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { AuthUser } from '../../models/User';
 import { applicationMiddlewares, applicationReducer } from '../../store/store';
-import { genAuthUser } from '../../../test/fixtures.test';
 
 interface Options {
+  /**
+   * @deprecated Use {@link auth} instead.
+   */
   withAuth?: boolean;
+  auth?: AuthUser;
 }
 
 function configureTestStore(options?: Options) {
@@ -18,9 +22,9 @@ function configureTestStore(options?: Options) {
         isDsfrReady: true
       },
       authentication: {
-        logIn: options?.withAuth
+        logIn: options?.auth
           ? {
-              data: genAuthUser(),
+              data: options.auth,
               isError: false,
               isLoading: false,
               isSuccess: true,

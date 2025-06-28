@@ -1,19 +1,19 @@
-import { HousingFilters } from '../models/HousingFilters';
-import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
-import { HousingPaginatedResult } from '../models/PaginatedResult';
-import { toTitleCase } from '../utils/stringUtils';
-import { parseISO } from 'date-fns';
-import { SortOptions, toQuery } from '../models/Sort';
-import { AbortOptions } from '../utils/fetchUtils';
 import {
   HousingDTO,
   HousingFiltersDTO,
   HousingUpdatePayloadDTO,
   PaginationOptions
 } from '@zerologementvacant/models';
-import { parseOwner } from './owner.service';
+import { parseISO } from 'date-fns';
+import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
 import { HousingCount } from '../models/HousingCount';
+import { HousingFilters } from '../models/HousingFilters';
+import { HousingPaginatedResult } from '../models/PaginatedResult';
+import { SortOptions, toQuery } from '../models/Sort';
+import { AbortOptions } from '../utils/fetchUtils';
+import { toTitleCase } from '../utils/stringUtils';
 import { zlvApi } from './api.service';
+import { parseOwner } from './owner.service';
 
 export interface FindOptions
   extends PaginationOptions,
@@ -103,35 +103,6 @@ export const housingApi = zlvApi.injectEndpoints({
       }),
       invalidatesTags: ['Housing', 'HousingByStatus', 'HousingCountByStatus']
     }),
-    updateHousing: builder.mutation<
-      void,
-      {
-        housing: Housing;
-        housingUpdate: HousingUpdate;
-      }
-    >({
-      query: ({ housing, housingUpdate }) => ({
-        url: `housing/${housing.id}`,
-        method: 'POST',
-        body: {
-          housingId: housing.id,
-          housingUpdate
-        }
-      }),
-      invalidatesTags: (result, error, { housing, housingUpdate }) => [
-        { type: 'Housing', id: housing.id },
-        { type: 'HousingByStatus', id: housingUpdate.statusUpdate?.status },
-        { type: 'HousingByStatus', id: housing.status },
-        {
-          type: 'HousingCountByStatus',
-          id: housingUpdate.statusUpdate?.status
-        },
-        {
-          type: 'HousingCountByStatus',
-          id: housing.status
-        }
-      ]
-    }),
     updateHousingNext: builder.mutation<
       HousingDTO,
       HousingUpdatePayloadDTO & Pick<Housing, 'id'>
@@ -209,7 +180,6 @@ export const {
   useCountHousingQuery,
   useLazyCountHousingQuery,
   useCreateHousingMutation,
-  useUpdateHousingMutation,
   useUpdateHousingNextMutation,
   useUpdateHousingListMutation
 } = housingApi;

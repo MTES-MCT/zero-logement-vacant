@@ -1,34 +1,32 @@
+import { UserAccountDTO, UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import jwt from 'jsonwebtoken';
-
-import { UserAccountDTO } from '@zerologementvacant/models';
-import userRepository from '~/repositories/userRepository';
-import config from '~/infra/config';
-import establishmentRepository from '~/repositories/establishmentRepository';
-import resetLinkRepository from '~/repositories/resetLinkRepository';
-import ResetLinkMissingError from '~/errors/resetLinkMissingError';
-import { hasExpired } from '~/models/ResetLinkApi';
+import AuthenticationFailedError from '~/errors/authenticationFailedError';
+import EstablishmentMissingError from '~/errors/establishmentMissingError';
+import PasswordInvalidError from '~/errors/passwordInvalidError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
+import ResetLinkMissingError from '~/errors/resetLinkMissingError';
+import UnprocessableEntityError from '~/errors/unprocessableEntityError';
+import UserMissingError from '~/errors/userMissingError';
+import config from '~/infra/config';
+import { logger } from '~/infra/logger';
+import { hasExpired } from '~/models/ResetLinkApi';
 import {
   SALT_LENGTH,
   TokenPayload,
   toUserAccountDTO,
   toUserDTO,
-  UserApi,
-  UserRoles
+  UserApi
 } from '~/models/UserApi';
-import AuthenticationFailedError from '~/errors/authenticationFailedError';
-import EstablishmentMissingError from '~/errors/establishmentMissingError';
-import { emailValidator, passwordCreationValidator } from '~/utils/validators';
-import PasswordInvalidError from '~/errors/passwordInvalidError';
-import UnprocessableEntityError from '~/errors/unprocessableEntityError';
-import UserMissingError from '~/errors/userMissingError';
-import { logger } from '~/infra/logger';
+import establishmentRepository from '~/repositories/establishmentRepository';
+import resetLinkRepository from '~/repositories/resetLinkRepository';
+import userRepository from '~/repositories/userRepository';
 import { createMetabaseAPI } from '~/services/metabaseService/metabase-api';
+import { emailValidator, passwordCreationValidator } from '~/utils/validators';
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
@@ -55,7 +53,10 @@ async function signIn(request: Request, response: Response) {
     throw new AuthenticationFailedError();
   }
 
-  await userRepository.update({ ...user, lastAuthenticatedAt: new Date() });
+  await userRepository.update({
+    ...user,
+    lastAuthenticatedAt: new Date().toJSON()
+  });
   const establishmentId = user.establishmentId ?? payload.establishmentId;
   if (!establishmentId) {
     throw new UnprocessableEntityError();
@@ -85,20 +86,20 @@ async function signInToEstablishment(
   );
 
   const metabaseAPI = createMetabaseAPI();
-  const jimoData = (await metabaseAPI.fetchMetabaseData(290, user.id)); // used for user segmentation in JIMO
+  const jimoData = await metabaseAPI.fetchMetabaseData(290, user.id); // used for user segmentation in JIMO
 
   response.status(constants.HTTP_STATUS_OK).json({
     user: toUserDTO(user),
     establishment,
     accessToken,
-    jimoData: jimoData,
+    jimoData: jimoData
   });
 }
 
 async function changeEstablishment(request: Request, response: Response) {
   const { user } = request as AuthenticatedRequest;
 
-  if (user.role !== UserRoles.Admin && user.role !== UserRoles.Visitor) {
+  if (user.role !== UserRole.ADMIN && user.role !== UserRole.VISITOR) {
     throw new AuthenticationFailedError();
   }
 
@@ -138,7 +139,7 @@ async function updateAccount(request: Request, response: Response) {
   await userRepository.update({
     ...user,
     ...account,
-    updatedAt: new Date()
+    updatedAt: new Date().toJSON()
   });
   response.status(constants.HTTP_STATUS_OK).send();
 }

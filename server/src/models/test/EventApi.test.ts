@@ -1,13 +1,14 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { Occupancy } from '@zerologementvacant/models';
 
 import { HousingEventApi, isUserModified } from '~/models/EventApi';
+import { UserApi } from '~/models/UserApi';
 import {
   genEstablishmentApi,
+  genEventApi,
   genHousingApi,
-  genHousingEventApi,
   genUserApi
 } from '~/test/testFixtures';
-import { UserApi } from '~/models/UserApi';
 
 describe('EventApi', () => {
   describe('isUserModified', () => {
@@ -17,7 +18,17 @@ describe('EventApi', () => {
     it('should throw an error if the event creator is missing', () => {
       const creator: UserApi = genUserApi(establishment.id);
       const event: HousingEventApi = {
-        ...genHousingEventApi(housing, creator),
+        ...genEventApi({
+          type: 'housing:created',
+          creator,
+          nextOld: null,
+          nextNew: {
+            source: 'datafoncier-manual',
+            occupancy: Occupancy.VACANT
+          }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
         creator: undefined
       };
 
@@ -33,7 +44,12 @@ describe('EventApi', () => {
           ...genUserApi(establishment.id),
           email: `admin${domain}`
         };
-        const event = genHousingEventApi(housing, creator);
+        const event = genEventApi({
+          type: 'housing:occupancy-updated',
+          creator,
+          nextOld: { occupancy: Occupancy.VACANT },
+          nextNew: { occupancy: Occupancy.RENT }
+        });
 
         const actual = isUserModified(event);
 
@@ -47,7 +63,12 @@ describe('EventApi', () => {
 
     it.each(emails)('should return true otherwise (%s)', (email) => {
       const creator: UserApi = { ...genUserApi(establishment.id), email };
-      const event = genHousingEventApi(housing, creator);
+      const event = genEventApi({
+        type: 'housing:occupancy-updated',
+        creator,
+        nextOld: { occupancy: Occupancy.VACANT },
+        nextNew: { occupancy: Occupancy.RENT }
+      });
 
       const actual = isUserModified(event);
 

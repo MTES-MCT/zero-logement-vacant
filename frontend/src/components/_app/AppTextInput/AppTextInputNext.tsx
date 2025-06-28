@@ -1,5 +1,7 @@
 import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
+import { identity, pipe } from 'effect';
 import {
+  ChangeEventHandler,
   type DetailedHTMLProps,
   type LabelHTMLAttributes,
   ReactNode,
@@ -8,14 +10,32 @@ import {
 import { useController } from 'react-hook-form';
 import { match, Pattern } from 'ts-pattern';
 
-export type AppTextInputNextProps = InputProps & {
+export type AppTextInputNextProps<T> = InputProps & {
   name: string;
+  // TODO: require these functions when T is not a string
+  mapValue?(value: T): string;
+  contramapValue?(value: string): T;
 };
-
 /**
- * A text input to be used with react-hook-form and validated using yup.
+ * A text input based on the [DSFR Input](https://components.react-dsfr.codegouv.studio/?path=/docs/components-input--default) component and [react-hook-form](https://react-hook-form.com/).
+ * It supports both regular inputs and text areas.
+ *
+ * Note: if you want to use this component without react-hook-form,
+ * use the DSFR `Input` component directly.
+ *
+ * @example Text area mode
+ * ```tsx
+ * <AppTextInputNext
+ *   label="Nouvelle note"
+ *   name="note"
+ *   nativeTextAreaProps={{
+ *     rows: 4
+ *   }}
+ *   textArea
+ * />
+ * ```
  */
-function AppTextInputNext(props: AppTextInputNextProps) {
+function AppTextInputNext<T>(props: AppTextInputNextProps<T>) {
   const {
     nativeLabelProps,
     nativeInputProps,
@@ -27,6 +47,15 @@ function AppTextInputNext(props: AppTextInputNextProps) {
     name: props.name,
     disabled: props.disabled
   });
+
+  const transform = {
+    input: props.mapValue ?? identity,
+    output: props.contramapValue ?? identity
+  };
+  const value: string = transform.input(field.value);
+  const onChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (
+    event
+  ) => pipe(event.target.value, transform.output, field.onChange);
 
   const regularInputProps: Pick<
     InputProps.RegularInput,
@@ -42,9 +71,9 @@ function AppTextInputNext(props: AppTextInputNextProps) {
       formNoValidate: true,
       name: field.name,
       ref: field.ref,
-      value: field.value,
+      value: value,
       onBlur: field.onBlur,
-      onChange: field.onChange
+      onChange: onChange
     }
   };
   const textAreaProps: Pick<
@@ -60,9 +89,9 @@ function AppTextInputNext(props: AppTextInputNextProps) {
       ...nativeTextAreaProps,
       name: field.name,
       ref: field.ref,
-      value: field.value,
+      value: value,
       onBlur: field.onBlur,
-      onChange: field.onChange
+      onChange: onChange
     }
   };
 

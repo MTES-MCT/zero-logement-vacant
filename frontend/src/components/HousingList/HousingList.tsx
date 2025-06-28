@@ -21,7 +21,7 @@ import { HousingFilters } from '../../models/HousingFilters';
 import {
   useCountHousingQuery,
   useFindHousingQuery,
-  useUpdateHousingMutation
+  useUpdateHousingNextMutation
 } from '../../services/housing.service';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { findChild } from '../../utils/elementUtils';
@@ -30,6 +30,7 @@ import AppLink from '../_app/AppLink/AppLink';
 import AdvancedTable from '../AdvancedTable/AdvancedTable';
 import AdvancedTableHeader from '../AdvancedTable/AdvancedTableHeader';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
+import { HousingEditionProvider } from '../HousingEdition/useHousingEdition';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import OccupancyTag from '../OccupancyTag/OccupancyTag';
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
@@ -49,7 +50,7 @@ function HousingList(props: HousingListProps) {
 
   const campaignList = useCampaignList();
 
-  const [updateHousing] = useUpdateHousingMutation();
+  const [updateHousing] = useUpdateHousingNextMutation();
 
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const [sort, setSort] = useState<HousingSort>();
@@ -230,8 +231,10 @@ function HousingList(props: HousingListProps) {
     housingUpdate: HousingUpdate
   ) => {
     await updateHousing({
-      housing,
-      housingUpdate
+      ...housing,
+      status: housingUpdate.statusUpdate?.status ?? housing.status,
+      subStatus:
+        housingUpdate.statusUpdate?.subStatus ?? housing.subStatus ?? null
     });
     setUpdatingHousing(undefined);
   };
@@ -261,12 +264,14 @@ function HousingList(props: HousingListProps) {
         onSelectionChange={setSelected}
       />
 
-      <HousingEditionSideMenu
-        housing={updatingHousing ?? null}
-        expand={!!updatingHousing}
-        onSubmit={submitHousingUpdate}
-        onClose={() => setUpdatingHousing(undefined)}
-      />
+      <HousingEditionProvider>
+        <HousingEditionSideMenu
+          housing={updatingHousing ?? null}
+          expand={!!updatingHousing}
+          onSubmit={submitHousingUpdate}
+          onClose={() => setUpdatingHousing(undefined)}
+        />
+      </HousingEditionProvider>
     </Stack>
   );
 }

@@ -10,7 +10,7 @@ import async from 'async';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
 import { Knex } from 'knex';
 import fp from 'lodash/fp';
-import { ElementOf, MarkRequired } from 'ts-essentials';
+import { ElementOf } from 'ts-essentials';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -61,9 +61,7 @@ export async function seed(knex: Knex): Promise<void> {
       }
     );
 
-    const geolocatedHousings: ReadonlyArray<
-      MarkRequired<HousingApi, 'longitude' | 'latitude'>
-    > = await async.mapLimit(
+    const geolocatedHousings = await async.mapLimit(
       baseHousings,
       8,
       async (housing: ElementOf<typeof baseHousings>) => {

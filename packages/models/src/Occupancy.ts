@@ -8,6 +8,10 @@ export enum Occupancy {
   RENT = 'L',
   SECONDARY_RESIDENCE = 'RS',
   SHORT_RENT = 'B',
+  CIVIL_SERVANT = 'F',
+  ARTISAN = 'R',
+  COMMON = 'U',
+  RURAL = 'X',
   UNKNOWN = 'inconnu',
   VACANT = 'V'
 }
@@ -23,7 +27,11 @@ export const OCCUPANCY_LABELS: Record<Occupancy, string> = {
   [Occupancy.COMMERCIAL_OR_OFFICE]: 'Local commercial ou bureau',
   [Occupancy.DEPENDENCY]: 'Dépendance',
   [Occupancy.DEMOLISHED_OR_DIVIDED]: 'Local démoli ou divisé',
-  [Occupancy.FREE]: 'Occupation à titre gratuit',
+  [Occupancy.FREE]: 'Occupé à titre gratuit',
+  [Occupancy.CIVIL_SERVANT]: 'Fonctionnaire logé',
+  [Occupancy.ARTISAN]: 'Occupé par un artisan exonéré',
+  [Occupancy.COMMON]: 'Utilisation commune',
+  [Occupancy.RURAL]: 'Bail rural',
   [Occupancy.OTHERS]: 'Autres',
   [Occupancy.UNKNOWN]: 'Pas d’information'
 };

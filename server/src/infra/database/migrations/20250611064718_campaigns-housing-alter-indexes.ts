@@ -12,7 +12,6 @@ export async function up(knex: Knex): Promise<void> {
       .inTable('campaigns')
       .onUpdate('CASCADE')
       .onDelete('CASCADE');
-    table.index('campaign_id');
   });
 }
 

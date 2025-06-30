@@ -49,7 +49,7 @@ export function fromHousing(
         };
   }
 
-  if (lastTransactionDate) {
+  if (!lastMutationDate && lastTransactionDate) {
     return {
       type: 'sale',
       date: lastTransactionDate,
@@ -59,3 +59,15 @@ export function fromHousing(
 
   return null;
 }
+
+export const LAST_MUTATION_YEAR_FILTER_VALUES = [
+  '2024',
+  '2023',
+  '2022',
+  '2021',
+  '2015to2020',
+  '2010to2014',
+  'lte2009'
+] as const;
+export type LastMutationYearFilter =
+  (typeof LAST_MUTATION_YEAR_FILTER_VALUES)[number];

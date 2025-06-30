@@ -25,6 +25,7 @@ export interface HousingFiltersApi
     | 'ownerAges'
     | 'localityKinds'
     | 'cadastralClassifications'
+    | 'lastMutationYears'
   > {
   housingIds?: string[];
   establishmentIds?: string[];

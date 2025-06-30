@@ -11,6 +11,7 @@ import {
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   isSecondaryOwner,
+  LastMutationYearFilter,
   Occupancy,
   OCCUPANCY_VALUES,
   OWNER_KIND_LABELS,
@@ -1791,6 +1792,112 @@ describe('Housing repository', () => {
         expect(actual).toSatisfyAll<HousingApi>(
           (housing) => housing.owner?.fullName?.includes(query) ?? false
         );
+      });
+
+      describe('by last mutation year', () => {
+        beforeAll(async () => {
+          function createHousingWithMutation(year: number): HousingApi {
+            const date = faker.date.between({
+              from: year.toString(),
+              to: new Date().getUTCFullYear().toString()
+            });
+            return {
+              ...genHousingApi(),
+              lastTransactionDate: date,
+              lastMutationDate: date
+            };
+          }
+
+          const housings: HousingApi[] = [];
+          for (let i = 2010; i <= 2024; i++) {
+            housings.push(createHousingWithMutation(i));
+          }
+          await Housing().insert(housings.map(formatHousingRecordApi));
+        });
+
+        const tests: ReadonlyArray<{
+          name: string;
+          filter: LastMutationYearFilter[];
+          predicate: Predicate<HousingApi>;
+        }> = [
+          {
+            name: 'housings that were mutated in 2024',
+            filter: ['2024'],
+            predicate: (housing: HousingApi) => {
+              const mutation =
+                housing.lastMutationDate ?? housing.lastTransactionDate;
+              return mutation?.getUTCFullYear() === 2024;
+            }
+          },
+          {
+            name: 'housings that were mutated in 2023',
+            filter: ['2023'],
+            predicate: (housing: HousingApi) => {
+              const mutation =
+                housing.lastMutationDate ?? housing.lastTransactionDate;
+              return mutation?.getUTCFullYear() === 2023;
+            }
+          },
+          {
+            name: 'housings that were mutated in 2022',
+            filter: ['2022'],
+            predicate: (housing: HousingApi) => {
+              const mutation =
+                housing.lastMutationDate ?? housing.lastTransactionDate;
+              return mutation?.getUTCFullYear() === 2022;
+            }
+          },
+          {
+            name: 'housings that were mutated in 2021',
+            filter: ['2021'],
+            predicate: (housing: HousingApi) => {
+              const mutation =
+                housing.lastMutationDate ?? housing.lastTransactionDate;
+              return mutation?.getUTCFullYear() === 2021;
+            }
+          },
+          {
+            name: 'housings that were mutated between 2015 and 2020',
+            filter: ['2015to2020'],
+            predicate: (housing: HousingApi) => {
+              const mutation =
+                housing.lastMutationDate ?? housing.lastTransactionDate;
+              const year = mutation?.getUTCFullYear();
+              return year !== undefined && 2015 <= year && year <= 2020;
+            }
+          },
+          {
+            name: 'housings that were mutated between 2010 and 2014',
+            filter: ['2010to2014'],
+            predicate: (housing: HousingApi) => {
+              const mutation =
+                housing.lastMutationDate ?? housing.lastTransactionDate;
+              const year = mutation?.getUTCFullYear();
+              return year !== undefined && 2010 <= year && year <= 2014;
+            }
+          },
+          {
+            name: 'housings that were mutated before 2010',
+            filter: ['lte2009'],
+            predicate: (housing: HousingApi) => {
+              const mutation =
+                housing.lastMutationDate ?? housing.lastTransactionDate;
+              const year = mutation?.getUTCFullYear();
+              return year !== undefined && year <= 2009;
+            }
+          }
+        ];
+
+        test.each(tests)('should keep $name', async ({ filter, predicate }) => {
+          const actual = await housingRepository.find({
+            filters: {
+              lastMutationYears: filter
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>(predicate);
+        });
       });
     });
   });

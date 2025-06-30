@@ -917,6 +917,36 @@ function filteredQuery(opts: FilteredQueryOptions) {
         );
       });
     }
+
+    if (filters.lastMutationYears?.length) {
+      queryBuilder.where((where) => {
+        const staticYears = filters.lastMutationYears?.filter((year) =>
+          ['2024', '2023', '2022', '2021'].includes(year)
+        );
+
+        if (staticYears?.length) {
+          where.orWhereRaw(
+            `EXTRACT(YEAR FROM last_mutation_date) IN (?)`,
+            staticYears
+          );
+        }
+        if (filters.lastMutationYears?.includes('2015to2020')) {
+          where.orWhereRaw(
+            `EXTRACT(YEAR FROM last_mutation_date) BETWEEN ? AND ?`,
+            [2015, 2020]
+          );
+        }
+        if (filters.lastMutationYears?.includes('2010to2014')) {
+          where.orWhereRaw(
+            `EXTRACT(YEAR FROM last_mutation_date) BETWEEN ? AND ?`,
+            [2010, 2014]
+          );
+        }
+        if (filters.lastMutationYears?.includes('lte2009')) {
+          where.orWhereRaw(`EXTRACT(YEAR FROM last_mutation_date) < 2010`);
+        }
+      });
+    }
   };
 }
 

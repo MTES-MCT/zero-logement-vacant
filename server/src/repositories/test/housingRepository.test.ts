@@ -1801,10 +1801,11 @@ describe('Housing repository', () => {
               from: year.toString(),
               to: new Date().getUTCFullYear().toString()
             });
+            const bool = faker.datatype.boolean();
             return {
               ...genHousingApi(),
-              lastTransactionDate: date,
-              lastMutationDate: date
+              lastTransactionDate: bool ? date : null,
+              lastMutationDate: bool ? null : date
             };
           }
 
@@ -1833,57 +1834,54 @@ describe('Housing repository', () => {
             name: 'housings that were mutated in 2023',
             filter: ['2023'],
             predicate: (housing: HousingApi) => {
-              const mutation =
-                housing.lastMutationDate ?? housing.lastTransactionDate;
-              return mutation?.getUTCFullYear() === 2023;
+              return [housing.lastMutationDate, housing.lastTransactionDate]
+                .map((year) => year?.getUTCFullYear())
+                .some((year) => year === 2023);
             }
           },
           {
             name: 'housings that were mutated in 2022',
             filter: ['2022'],
             predicate: (housing: HousingApi) => {
-              const mutation =
-                housing.lastMutationDate ?? housing.lastTransactionDate;
-              return mutation?.getUTCFullYear() === 2022;
+              return [housing.lastMutationDate, housing.lastTransactionDate]
+                .map((year) => year?.getUTCFullYear())
+                .some((year) => year === 2022);
             }
           },
           {
             name: 'housings that were mutated in 2021',
             filter: ['2021'],
             predicate: (housing: HousingApi) => {
-              const mutation =
-                housing.lastMutationDate ?? housing.lastTransactionDate;
-              return mutation?.getUTCFullYear() === 2021;
+              return [housing.lastMutationDate, housing.lastTransactionDate]
+                .map((year) => year?.getUTCFullYear())
+                .some((year) => year === 2021);
             }
           },
           {
             name: 'housings that were mutated between 2015 and 2020',
             filter: ['2015to2020'],
             predicate: (housing: HousingApi) => {
-              const mutation =
-                housing.lastMutationDate ?? housing.lastTransactionDate;
-              const year = mutation?.getUTCFullYear();
-              return year !== undefined && 2015 <= year && year <= 2020;
+              return [housing.lastMutationDate, housing.lastTransactionDate]
+                .map((year) => year?.getUTCFullYear())
+                .some((year) => !!year && 2015 <= year && year <= 2020);
             }
           },
           {
             name: 'housings that were mutated between 2010 and 2014',
             filter: ['2010to2014'],
             predicate: (housing: HousingApi) => {
-              const mutation =
-                housing.lastMutationDate ?? housing.lastTransactionDate;
-              const year = mutation?.getUTCFullYear();
-              return year !== undefined && 2010 <= year && year <= 2014;
+              return [housing.lastMutationDate, housing.lastTransactionDate]
+                .map((year) => year?.getUTCFullYear())
+                .some((year) => !!year && 2010 <= year && year <= 2014);
             }
           },
           {
             name: 'housings that were mutated before 2010',
             filter: ['lte2009'],
             predicate: (housing: HousingApi) => {
-              const mutation =
-                housing.lastMutationDate ?? housing.lastTransactionDate;
-              const year = mutation?.getUTCFullYear();
-              return year !== undefined && year <= 2009;
+              return [housing.lastMutationDate, housing.lastTransactionDate]
+                .map((year) => year?.getUTCFullYear())
+                .some((year) => !!year && year <= 2009);
             }
           }
         ];

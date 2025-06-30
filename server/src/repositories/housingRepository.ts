@@ -925,25 +925,42 @@ function filteredQuery(opts: FilteredQueryOptions) {
         );
 
         if (staticYears?.length) {
-          where.orWhereRaw(
-            `EXTRACT(YEAR FROM last_mutation_date) IN (?)`,
-            staticYears
-          );
+          where
+            .orWhereRaw(
+              `EXTRACT(YEAR FROM last_mutation_date) IN (?)`,
+              staticYears
+            )
+            .orWhereRaw(
+              `EXTRACT(YEAR FROM last_transaction_date) IN (?)`,
+              staticYears
+            );
         }
         if (filters.lastMutationYears?.includes('2015to2020')) {
-          where.orWhereRaw(
-            `EXTRACT(YEAR FROM last_mutation_date) BETWEEN ? AND ?`,
-            [2015, 2020]
-          );
+          where
+            .orWhereRaw(
+              `EXTRACT(YEAR FROM last_mutation_date) BETWEEN ? AND ?`,
+              [2015, 2020]
+            )
+            .orWhereRaw(
+              `EXTRACT(YEAR FROM last_transaction_date) BETWEEN ? AND ?`,
+              [2015, 2020]
+            );
         }
         if (filters.lastMutationYears?.includes('2010to2014')) {
-          where.orWhereRaw(
-            `EXTRACT(YEAR FROM last_mutation_date) BETWEEN ? AND ?`,
-            [2010, 2014]
-          );
+          where
+            .orWhereRaw(
+              `EXTRACT(YEAR FROM last_mutation_date) BETWEEN ? AND ?`,
+              [2010, 2014]
+            )
+            .orWhereRaw(
+              `EXTRACT(YEAR FROM last_transaction_date) BETWEEN ? AND ?`,
+              [2010, 2014]
+            );
         }
         if (filters.lastMutationYears?.includes('lte2009')) {
-          where.orWhereRaw(`EXTRACT(YEAR FROM last_mutation_date) < 2010`);
+          where
+            .orWhereRaw(`EXTRACT(YEAR FROM last_mutation_date) <= 2009`)
+            .orWhereRaw(`EXTRACT(YEAR FROM last_transaction_date) <= 2009`);
         }
       });
     }

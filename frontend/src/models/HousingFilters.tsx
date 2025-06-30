@@ -14,6 +14,7 @@ import {
   LivingArea,
   LocalityKind,
   Occupancy,
+  OCCUPANCY_LABELS,
   OCCUPANCY_VALUES,
   OWNER_KIND_LABELS,
   OWNER_KIND_VALUES,
@@ -27,7 +28,6 @@ import {
 import { match, Pattern } from 'ts-pattern';
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import { Establishment } from './Establishment';
-import { OCCUPANCY_LABELS } from './Housing';
 import { HousingStates } from './HousingState';
 import { LocalityKindLabels } from './Locality';
 import { SelectOption } from './SelectOption';

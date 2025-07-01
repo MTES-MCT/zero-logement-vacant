@@ -49,7 +49,9 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '~/infra/config';
 import { createS3 } from '@zerologementvacant/utils/node';
 import { slugify, timestamp } from '@zerologementvacant/utils';
-
+import mailService from '~/services/mailService';
+import userRepository from '~/repositories/userRepository';
+import UserMissingError from '~/errors/userMissingError';
 import CampaignEmptyError from '~/errors/campaignEmptyError';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
@@ -209,6 +211,16 @@ const create: RequestHandler<
   await campaignHousingRepository.insertHousingList(campaign.id, houses);
 
   response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
+
+  const user = await userRepository.get(auth.userId);
+  
+  if (!user) {
+    throw new UserMissingError(auth.userId);
+  }
+
+  mailService.emit('user:created', user.email, {
+    createdAt: new Date()
+  });
 
   // TODO: transform this into CampaignHousingEventApi[]
   // extends EventApi<CampaignApi>

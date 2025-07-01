@@ -9,7 +9,7 @@ import { HousingKind } from './HousingKind';
 import { HousingStatus } from './HousingStatus';
 import { LivingArea } from './LivingArea';
 import { LocalityKind } from './LocalityDTO';
-import { LastMutationYearFilter } from './Mutation';
+import { LastMutationTypeFilter, LastMutationYearFilter } from './Mutation';
 import { Occupancy } from './Occupancy';
 import { OwnerAge } from './OwnerAge';
 import { OwnerKind } from './OwnerKind';
@@ -61,4 +61,5 @@ export interface HousingFiltersDTO {
   query?: string;
   precisions?: Array<Precision['id']>;
   lastMutationYears?: ReadonlyArray<LastMutationYearFilter>;
+  lastMutationTypes?: ReadonlyArray<LastMutationTypeFilter | null>;
 }

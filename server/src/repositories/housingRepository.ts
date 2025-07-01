@@ -964,6 +964,43 @@ function filteredQuery(opts: FilteredQueryOptions) {
         }
       });
     }
+    if (filters.lastMutationTypes?.length) {
+      queryBuilder.where((where) => {
+        if (filters.lastMutationTypes?.includes('sale')) {
+          where
+            .where((where1) => {
+              where1
+                .whereNotNull(`${housingTable}.last_mutation_date`)
+                .whereNotNull(`${housingTable}.last_transaction_date`)
+                .where(
+                  `${housingTable}.last_transaction_date`,
+                  '>=',
+                  db.ref(`${housingTable}.last_mutation_date`)
+                );
+            })
+            .orWhere((where2) => {
+              where2
+                .whereNull(`${housingTable}.last_mutation_date`)
+                .whereNotNull(`${housingTable}.last_transaction_date`);
+            });
+        }
+        if (filters.lastMutationTypes?.includes('donation')) {
+          where.orWhere((where1) => {
+            where1
+              .whereNotNull(`${housingTable}.last_mutation_date`)
+              .whereNotNull(`${housingTable}.last_transaction_date`)
+              .where(
+                `${housingTable}.last_mutation_date`,
+                '>',
+                db.ref(`${housingTable}.last_transaction_date`)
+              );
+          });
+        }
+        if (filters.lastMutationTypes?.includes(null)) {
+          where.orWhereNull(`${housingTable}.last_transaction_date`);
+        }
+      });
+    }
   };
 }
 

@@ -36,6 +36,14 @@ export function fromHousing(
     };
   }
 
+  if (!lastMutationDate && lastTransactionDate) {
+    return {
+      type: 'sale',
+      date: lastTransactionDate,
+      amount: lastTransactionValue
+    };
+  }
+
   if (lastMutationDate && lastTransactionDate) {
     return lastMutationDate > lastTransactionDate
       ? {
@@ -47,14 +55,6 @@ export function fromHousing(
           date: lastTransactionDate,
           amount: lastTransactionValue
         };
-  }
-
-  if (!lastMutationDate && lastTransactionDate) {
-    return {
-      type: 'sale',
-      date: lastTransactionDate,
-      amount: lastTransactionValue
-    };
   }
 
   return null;
@@ -71,3 +71,7 @@ export const LAST_MUTATION_YEAR_FILTER_VALUES = [
 ] as const;
 export type LastMutationYearFilter =
   (typeof LAST_MUTATION_YEAR_FILTER_VALUES)[number];
+
+export const LAST_MUTATION_TYPE_FILTER_VALUES = ['donation', 'sale'] as const;
+export type LastMutationTypeFilter =
+  (typeof LAST_MUTATION_TYPE_FILTER_VALUES)[number];

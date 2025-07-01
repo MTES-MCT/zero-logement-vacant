@@ -13,6 +13,7 @@ import {
   Precision
 } from '@zerologementvacant/models';
 import { isNotNull } from '@zerologementvacant/utils';
+import { pipe, Predicate, Record } from 'effect';
 import highland from 'highland';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
@@ -20,6 +21,7 @@ import _ from 'lodash';
 import fp from 'lodash/fp';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
+
 import db, { toRawArray, where } from '~/infra/database';
 import { getTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
@@ -923,44 +925,53 @@ function filteredQuery(opts: FilteredQueryOptions) {
         const staticYears = filters.lastMutationYears?.filter((year) =>
           ['2024', '2023', '2022', '2021'].includes(year)
         );
+        const columns: ReadonlyArray<string> = !filters?.lastMutationTypes
+          ?.length
+          ? // Default value
+            [
+              `${housingTable}.last_mutation_date`,
+              `${housingTable}.last_transaction_date`
+            ]
+          : // Filtered columns
+            pipe(
+              {
+                last_mutation_date:
+                  filters.lastMutationTypes?.includes('donation') ?? false,
+                last_transaction_date:
+                  filters.lastMutationTypes?.includes('sale') ?? false
+              },
+              Record.filter(Predicate.isTruthy),
+              Record.keys
+            );
 
         if (staticYears?.length) {
-          where
-            .orWhereRaw(
-              `EXTRACT(YEAR FROM last_mutation_date) IN (?)`,
-              staticYears
-            )
-            .orWhereRaw(
-              `EXTRACT(YEAR FROM last_transaction_date) IN (?)`,
+          columns.forEach((column) => {
+            where.orWhereRaw(
+              `EXTRACT(YEAR FROM ${column}) IN (?)`,
               staticYears
             );
+          });
         }
         if (filters.lastMutationYears?.includes('2015to2020')) {
-          where
-            .orWhereRaw(
-              `EXTRACT(YEAR FROM last_mutation_date) BETWEEN ? AND ?`,
-              [2015, 2020]
-            )
-            .orWhereRaw(
-              `EXTRACT(YEAR FROM last_transaction_date) BETWEEN ? AND ?`,
+          columns.forEach((column) => {
+            where.orWhereRaw(
+              `EXTRACT(YEAR FROM ${column}) BETWEEN ? AND ?`,
               [2015, 2020]
             );
+          });
         }
         if (filters.lastMutationYears?.includes('2010to2014')) {
-          where
-            .orWhereRaw(
-              `EXTRACT(YEAR FROM last_mutation_date) BETWEEN ? AND ?`,
-              [2010, 2014]
-            )
-            .orWhereRaw(
-              `EXTRACT(YEAR FROM last_transaction_date) BETWEEN ? AND ?`,
+          columns.forEach((column) => {
+            where.orWhereRaw(
+              `EXTRACT(YEAR FROM ${column}) BETWEEN ? AND ?`,
               [2010, 2014]
             );
+          });
         }
         if (filters.lastMutationYears?.includes('lte2009')) {
-          where
-            .orWhereRaw(`EXTRACT(YEAR FROM last_mutation_date) <= 2009`)
-            .orWhereRaw(`EXTRACT(YEAR FROM last_transaction_date) <= 2009`);
+          columns.forEach((column) => {
+            where.orWhereRaw(`EXTRACT(YEAR FROM ${column}) <= 2009`);
+          });
         }
       });
     }

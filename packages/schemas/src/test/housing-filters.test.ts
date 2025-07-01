@@ -11,6 +11,8 @@ import {
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
   HousingFiltersDTO,
+  LAST_MUTATION_TYPE_FILTER_VALUES,
+  LAST_MUTATION_YEAR_FILTER_VALUES,
   LIVING_AREA_VALUES,
   LOCALITY_KIND_VALUES,
   OCCUPANCY_VALUES,
@@ -67,7 +69,13 @@ describe('Housing filters', () => {
     statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
     subStatus: fc.array(fc.string({ minLength: 1 })),
     query: fc.string(),
-    precisions: fc.array(fc.string({ minLength: 1 }))
+    precisions: fc.array(fc.string({ minLength: 1 })),
+    lastMutationYears: fc.array(
+      fc.constantFrom(...LAST_MUTATION_YEAR_FILTER_VALUES)
+    ),
+    lastMutationTypes: fc.array(
+      fc.constantFrom(null, ...LAST_MUTATION_TYPE_FILTER_VALUES)
+    )
   })('should validate inputs', (filters) => {
     const validate = () => housingFilters.validateSync(filters);
 

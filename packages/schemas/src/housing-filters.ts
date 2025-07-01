@@ -10,6 +10,8 @@ import {
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
   HousingFiltersDTO,
+  LAST_MUTATION_TYPE_FILTER_VALUES,
+  LAST_MUTATION_YEAR_FILTER_VALUES,
   LIVING_AREA_VALUES,
   LOCALITY_KIND_VALUES,
   OCCUPANCY_VALUES,
@@ -129,5 +131,12 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
     .of(number().oneOf(HOUSING_STATUS_VALUES).required()),
   subStatus: array().transform(commaSeparatedString).of(string().required()),
   query: string().optional(),
-  precisions: array().transform(commaSeparatedString).of(string().required())
+  precisions: array().transform(commaSeparatedString).of(string().required()),
+  lastMutationYears: array()
+    .transform(commaSeparatedString)
+    .of(string().oneOf(LAST_MUTATION_YEAR_FILTER_VALUES).required()),
+  lastMutationTypes: array()
+    .transform(commaSeparatedString)
+    .transform(parseNull)
+    .of(string().oneOf(LAST_MUTATION_TYPE_FILTER_VALUES).defined().nullable())
 });

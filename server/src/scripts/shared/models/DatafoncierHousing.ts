@@ -45,6 +45,7 @@ export const toHousingRecordApi = fp.curry(
       energyConsumption: null,
       energyConsumptionAt: null,
       cadastralClassification: null,
+      lastMutationType: null,
       lastMutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
       lastTransactionDate: null,
       lastTransactionValue: null

@@ -5,8 +5,6 @@ import config from '~/infra/config';
 
 const [redis] = parseRedisUrl(config.redis.url);
 
-console.log(config.redis.url)
-
 const queue = createQueue({
   connection: redis,
   defaultJobOptions: {

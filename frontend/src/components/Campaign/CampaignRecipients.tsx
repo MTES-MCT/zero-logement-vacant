@@ -105,8 +105,8 @@ function CampaignRecipients(props: Props) {
         cell: ({ cell, row }) => {
           return (
             <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
-              {cell.getValue().map((line) => (
-                <Fragment key={line}>
+              {cell.getValue().map((line, i) => (
+                <Fragment key={i}>
                   {line}
                   <br />
                 </Fragment>

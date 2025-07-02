@@ -7,6 +7,7 @@ import {
   EventType,
   HOUSING_KIND_VALUES,
   HousingStatus,
+  MUTATION_TYPE_VALUES,
   Occupancy,
   USER_ROLE_VALUES,
   UserRole
@@ -119,6 +120,7 @@ export function genHousing(): Housing {
     occupancyIntended: Occupancy.VACANT,
     energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES),
     energyConsumptionAt: new Date(),
+    lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
     lastMutationDate: faker.date.past({ years: 20 }).toJSON(),
     lastTransactionDate:
       faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??

@@ -32,7 +32,7 @@ function LastMutationTypeSelect<Multiple extends boolean = false>(
       getOptionLabel={(option) =>
         option === LAST_MUTATION_TYPE_EMPTY_OPTION.value
           ? LAST_MUTATION_TYPE_EMPTY_OPTION.label
-          : LAST_MUTATION_TYPE_LABELS[option].label
+          : LAST_MUTATION_TYPE_LABELS[option]
       }
       label={label}
       options={options}

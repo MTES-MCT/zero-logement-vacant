@@ -113,6 +113,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             mutationDate: sourceHousing.mutation_date
               ? sourceHousing.mutation_date.toISOString()
               : null,
+            lastMutationType: null,
             lastMutationDate: sourceHousing.last_mutation_date
               ? sourceHousing.last_mutation_date.toISOString()
               : null,

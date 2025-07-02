@@ -45,6 +45,7 @@ import HousingCountSelect from './HousingCountSelect';
 import HousingKindSelect from './HousingKindSelect';
 import HousingStatusMultiSelect from './HousingStatusMultiSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
+import LastMutationYearSelect from './LastMutationYearSelect';
 import LocalityKindSelect from './LocalityKindSelect';
 import MultiOwnerSelect from './MultiOwnerSelect';
 import OccupancySelect from './OccupancySelect';
@@ -261,6 +262,16 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) => {
                 onChangeFilters({ vacancyYears: values });
                 posthog.capture('filtre-annee-debut-vacance');
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <LastMutationYearSelect
+              multiple
+              value={filters.lastMutationYears ?? []}
+              onChange={(values) => {
+                onChangeFilters({ lastMutationYears: values });
+                posthog.capture('filtre-annee-derniere-mutation');
               }}
             />
           </Grid>

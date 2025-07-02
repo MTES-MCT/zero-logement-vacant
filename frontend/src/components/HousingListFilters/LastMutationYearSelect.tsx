@@ -22,6 +22,11 @@ function LastMutationYearSelect<Multiple extends boolean = false>(
   props: LastMutationYearSelectProps<Multiple>
 ) {
   const { label = 'Dernière mutation (date)', ...rest } = props;
+  const options = [
+    LAST_MUTATION_YEAR_EMPTY_OPTION.value,
+    ...LAST_MUTATION_YEAR_FILTER_VALUES
+  ];
+
   return (
     <AppSelectNext
       {...rest}
@@ -31,7 +36,7 @@ function LastMutationYearSelect<Multiple extends boolean = false>(
           : LAST_MUTATION_YEAR_LABELS[option]
       }
       label={label}
-      options={LAST_MUTATION_YEAR_FILTER_VALUES}
+      options={options}
     />
   );
 }

@@ -21,7 +21,7 @@ export type LastMutationTypeSelectProps<Multiple extends boolean> = Pick<
 function LastMutationTypeSelect<Multiple extends boolean = false>(
   props: LastMutationTypeSelectProps<Multiple>
 ) {
-  const { label = 'Type de dernière mutation', ...rest } = props;
+  const { label = 'Dernière mutation (type)', ...rest } = props;
   const options = [
     LAST_MUTATION_TYPE_EMPTY_OPTION.value,
     ...LAST_MUTATION_TYPE_FILTER_VALUES

@@ -8,7 +8,6 @@ import {
   HousingStatus,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
-  LastMutationYearFilter,
   Occupancy
 } from '@zerologementvacant/models';
 import { differenceInDays, format } from 'date-fns';
@@ -226,17 +225,6 @@ export const OCCUPANCY_LABELS: Record<Occupancy, string> = {
   [Occupancy.OTHERS]: 'Autres',
   [Occupancy.UNKNOWN]: 'Pas d’information'
 };
-
-export const LAST_MUTATION_YEAR_LABELS: Record<LastMutationYearFilter, string> =
-  {
-    '2024': '2024',
-    '2023': '2023',
-    '2022': '2022',
-    '2021': '2021',
-    '2015to2020': '2015-2020',
-    '2010to2014': '2010-2014',
-    lte2009: 'Avant 2010'
-  };
 
 /**
  * @deprecated See {@link OCCUPANCY_LABELS}

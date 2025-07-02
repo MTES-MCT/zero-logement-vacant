@@ -1,7 +1,7 @@
 import { HousingDTO } from './HousingDTO';
 
 interface Unknown {
-  type: null;
+  type: 'unknown';
   date: Date;
 }
 interface Sale {
@@ -14,13 +14,23 @@ interface Donation {
   date: Date;
 }
 export type Mutation = Sale | Donation | Unknown;
+export type MutationType = Mutation['type'];
+export const MUTATION_TYPE_VALUES = [
+  'unknown',
+  'donation',
+  'sale'
+] as const satisfies ReadonlyArray<MutationType>;
 
 export function fromHousing(
   housing: Pick<
     HousingDTO,
-    'lastMutationDate' | 'lastTransactionDate' | 'lastTransactionValue'
+    | 'lastMutationType'
+    | 'lastMutationDate'
+    | 'lastTransactionDate'
+    | 'lastTransactionValue'
   >
 ): Mutation | null {
+  const lastMutationType = housing.lastMutationType;
   const lastMutationDate = housing.lastMutationDate
     ? new Date(housing.lastMutationDate)
     : null;
@@ -29,32 +39,30 @@ export function fromHousing(
     : null;
   const lastTransactionValue = housing.lastTransactionValue;
 
-  if (lastMutationDate && !lastTransactionDate) {
-    return {
-      type: null,
-      date: lastMutationDate
-    };
+  if (lastMutationType === null) {
+    return null;
   }
 
-  if (!lastMutationDate && lastTransactionDate) {
+  if (lastMutationType === 'sale' && lastTransactionDate) {
     return {
-      type: 'sale',
+      type: lastMutationType,
       date: lastTransactionDate,
       amount: lastTransactionValue
     };
   }
 
-  if (lastMutationDate && lastTransactionDate) {
-    return lastMutationDate > lastTransactionDate
-      ? {
-          type: 'donation',
-          date: lastMutationDate
-        }
-      : {
-          type: 'sale',
-          date: lastTransactionDate,
-          amount: lastTransactionValue
-        };
+  if (lastMutationType === 'donation' && lastMutationDate) {
+    return {
+      type: lastMutationType,
+      date: lastMutationDate
+    };
+  }
+
+  if (lastMutationType === 'unknown' && lastMutationDate) {
+    return {
+      type: lastMutationType,
+      date: lastMutationDate
+    };
   }
 
   return null;

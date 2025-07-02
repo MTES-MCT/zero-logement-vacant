@@ -1,97 +1,247 @@
-import { fromHousing, Mutation } from '../Mutation';
+import { HousingDTO } from '../HousingDTO';
+import { fromHousing } from '../Mutation';
 
 describe('Mutation', () => {
   describe('fromHousing', () => {
-    it('should have an empty type if the last mutation is specified but the last transaction is not', () => {
-      const actual = fromHousing({
-        lastMutationDate: '2023-01-01',
-        lastTransactionDate: null,
-        lastTransactionValue: null
-      });
+    describe('when lastMutationType is null', () => {
+      it('should return null', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: null,
+          lastMutationDate: '2023-06-15',
+          lastTransactionDate: '2023-06-15',
+          lastTransactionValue: 250000
+        };
 
-      expect(actual).toStrictEqual<Mutation>({
-        type: null,
-        date: new Date('2023-01-01')
-      });
-    });
+        const actual = fromHousing(housing);
 
-    it('should be a "donation" if the last mutation is more recent than the last transaction', () => {
-      const actual = fromHousing({
-        lastMutationDate: '2023-01-01',
-        lastTransactionDate: '2022-12-31',
-        lastTransactionValue: null
-      });
-
-      expect(actual).toStrictEqual<Mutation>({
-        type: 'donation',
-        date: new Date('2023-01-01')
+        expect(actual).toBeNull();
       });
     });
 
-    it('should be a "sale" if the last transaction is the same as the last mutation', () => {
-      const actual = fromHousing({
-        lastMutationDate: '2023-01-01',
-        lastTransactionDate: '2023-01-01',
-        lastTransactionValue: 100
+    describe('when lastMutationType is "sale"', () => {
+      it('should return a Sale mutation when lastTransactionDate is provided', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'sale',
+          lastMutationDate: '2023-06-15',
+          lastTransactionDate: '2023-06-20',
+          lastTransactionValue: 250000
+        };
+
+        const actual = fromHousing(housing);
+
+        expect(actual).toStrictEqual({
+          type: 'sale',
+          date: new Date('2023-06-20'),
+          amount: 250000
+        });
       });
 
-      expect(actual).toStrictEqual<Mutation>({
-        type: 'sale',
-        date: new Date('2023-01-01'),
-        amount: 100
+      it('should return a Sale mutation with null amount when lastTransactionValue is null', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'sale',
+          lastMutationDate: '2023-06-15',
+          lastTransactionDate: '2023-06-20',
+          lastTransactionValue: null
+        };
+
+        const actual = fromHousing(housing);
+
+        expect(actual).toStrictEqual({
+          type: 'sale',
+          date: new Date('2023-06-20'),
+          amount: null
+        });
+      });
+
+      it('should return null when lastTransactionDate is null', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'sale',
+          lastMutationDate: '2023-06-15',
+          lastTransactionDate: null,
+          lastTransactionValue: 250000
+        };
+
+        const actual = fromHousing(housing);
+
+        expect(actual).toBeNull();
       });
     });
 
-    it('should be a "sale" if the last transaction is more recent than the last mutation', () => {
-      const actual = fromHousing({
-        lastMutationDate: '2023-01-01',
-        lastTransactionDate: '2023-01-02',
-        lastTransactionValue: 100
+    describe('when lastMutationType is "donation"', () => {
+      it('should return a Donation mutation when lastMutationDate is provided', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'donation',
+          lastMutationDate: '2023-06-15',
+          lastTransactionDate: '2023-06-20',
+          lastTransactionValue: 250000
+        };
+
+        const actual = fromHousing(housing);
+
+        expect(actual).toStrictEqual({
+          type: 'donation',
+          date: new Date('2023-06-15')
+        });
       });
 
-      expect(actual).toStrictEqual<Mutation>({
-        type: 'sale',
-        date: new Date('2023-01-02'),
-        amount: 100
+      it('should return null when lastMutationDate is null', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'donation',
+          lastMutationDate: null,
+          lastTransactionDate: '2023-06-20',
+          lastTransactionValue: 250000
+        };
+
+        const actual = fromHousing(housing);
+
+        expect(actual).toBeNull();
       });
     });
 
-    it('should be a "sale" if the last mutation is empty and the last transaction is specified', () => {
-      const actual = fromHousing({
-        lastMutationDate: null,
-        lastTransactionDate: '2023-01-01',
-        lastTransactionValue: null
+    describe('when lastMutationType is "unknown"', () => {
+      it('should return an Unknown mutation when lastMutationDate is provided', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'unknown',
+          lastMutationDate: '2023-06-15',
+          lastTransactionDate: '2023-06-20',
+          lastTransactionValue: 250000
+        };
+
+        const actual = fromHousing(housing);
+
+        expect(actual).toStrictEqual({
+          type: 'unknown',
+          date: new Date('2023-06-15')
+        });
       });
 
-      expect(actual).toStrictEqual<Mutation>({
-        type: 'sale',
-        date: new Date('2023-01-01'),
-        amount: null
+      it('should return null when lastMutationDate is null', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'unknown',
+          lastMutationDate: null,
+          lastTransactionDate: '2023-06-20',
+          lastTransactionValue: 250000
+        };
+
+        const actual = fromHousing(housing);
+
+        expect(actual).toBeNull();
       });
     });
 
-    it('should have an empty "amount" if the last transaction value is empty', () => {
-      const actual = fromHousing({
-        lastMutationDate: '2023-01-01',
-        lastTransactionDate: '2023-01-02',
-        lastTransactionValue: null
+    describe('edge cases', () => {
+      it('should handle empty string dates as null', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'sale',
+          lastMutationDate: '',
+          lastTransactionDate: '',
+          lastTransactionValue: 250000
+        };
+
+        const actual = fromHousing(housing);
+
+        expect(actual).toBeNull();
       });
 
-      expect(actual).toStrictEqual<Mutation>({
-        type: 'sale',
-        date: new Date('2023-01-02'),
-        amount: null
-      });
-    });
+      it('should handle ISO date strings correctly', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'sale',
+          lastMutationDate: '2023-06-15T10:30:00.000Z',
+          lastTransactionDate: '2023-06-20T14:45:30.000Z',
+          lastTransactionValue: 250000
+        };
 
-    it('should return null otherwise', () => {
-      const actual = fromHousing({
-        lastMutationDate: null,
-        lastTransactionDate: null,
-        lastTransactionValue: null
+        const actual = fromHousing(housing);
+
+        expect(actual).toStrictEqual({
+          type: 'sale',
+          date: new Date('2023-06-20T14:45:30.000Z'),
+          amount: 250000
+        });
       });
 
-      expect(actual).toBeNull();
+      it('should handle zero transaction value', () => {
+        const housing: Pick<
+          HousingDTO,
+          | 'lastMutationType'
+          | 'lastMutationDate'
+          | 'lastTransactionDate'
+          | 'lastTransactionValue'
+        > = {
+          lastMutationType: 'sale',
+          lastMutationDate: '2023-06-15',
+          lastTransactionDate: '2023-06-20',
+          lastTransactionValue: 0
+        };
+
+        const actual = fromHousing(housing);
+
+        expect(actual).toStrictEqual({
+          type: 'sale',
+          date: new Date('2023-06-20'),
+          amount: 0
+        });
+      });
     });
   });
 });

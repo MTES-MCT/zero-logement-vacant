@@ -1,7 +1,7 @@
 import { HousingDTO } from './HousingDTO';
 
 interface Unknown {
-  type: 'unknown';
+  type: null;
   date: Date;
 }
 interface Sale {
@@ -16,9 +16,9 @@ interface Donation {
 export type Mutation = Sale | Donation | Unknown;
 export type MutationType = Mutation['type'];
 export const MUTATION_TYPE_VALUES = [
-  'unknown',
   'donation',
-  'sale'
+  'sale',
+  null
 ] as const satisfies ReadonlyArray<MutationType>;
 
 export function fromHousing(
@@ -58,7 +58,7 @@ export function fromHousing(
     };
   }
 
-  if (lastMutationType === 'unknown' && lastMutationDate) {
+  if (lastMutationType === null && lastMutationDate) {
     return {
       type: lastMutationType,
       date: lastMutationDate
@@ -80,6 +80,9 @@ export const LAST_MUTATION_YEAR_FILTER_VALUES = [
 export type LastMutationYearFilter =
   (typeof LAST_MUTATION_YEAR_FILTER_VALUES)[number];
 
-export const LAST_MUTATION_TYPE_FILTER_VALUES = ['donation', 'sale'] as const;
+export const LAST_MUTATION_TYPE_FILTER_VALUES = [
+  'donation',
+  'sale'
+] satisfies ReadonlyArray<MutationType>;
 export type LastMutationTypeFilter =
   (typeof LAST_MUTATION_TYPE_FILTER_VALUES)[number];

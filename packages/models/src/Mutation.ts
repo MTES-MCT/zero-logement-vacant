@@ -39,10 +39,6 @@ export function fromHousing(
     : null;
   const lastTransactionValue = housing.lastTransactionValue;
 
-  if (lastMutationType === null) {
-    return null;
-  }
-
   if (lastMutationType === 'sale' && lastTransactionDate) {
     return {
       type: lastMutationType,

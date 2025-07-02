@@ -85,6 +85,7 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     occupancyIntended: housing.occupancyIntended,
     source: housing.source,
     owner: toOwnerDTO(housing.owner),
+    lastMutationType: housing.lastMutationType,
     mutationDate: housing.mutationDate,
     lastMutationDate: housing.lastMutationDate,
     lastTransactionDate: housing.lastTransactionDate,

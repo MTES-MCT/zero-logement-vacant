@@ -24,12 +24,13 @@ import {
   PROPERTY_RIGHT_VALUES,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
-
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import { isDefined, Predicate } from '@zerologementvacant/utils';
 import async from 'async';
-import { differenceInYears } from 'date-fns';
+import { differenceInYears, endOfYear } from 'date-fns';
 import fp from 'lodash/fp';
+import { match } from 'ts-pattern';
+
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
@@ -109,6 +110,10 @@ describe('Housing repository', () => {
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
     await Users().insert(formatUserApi(user));
+  });
+
+  it('should compute the `last_mutation_type` field', async () => {
+    // TODO
   });
 
   describe('find', () => {
@@ -1802,7 +1807,7 @@ describe('Housing repository', () => {
             function createHousingWithMutation(year: number): HousingApi {
               const date = faker.date.between({
                 from: year.toString(),
-                to: new Date().getUTCFullYear().toString()
+                to: endOfYear(year.toString())
               });
               const bool = faker.datatype.boolean();
               return {
@@ -1813,9 +1818,15 @@ describe('Housing repository', () => {
             }
 
             const housings: HousingApi[] = [];
-            for (let i = 2010; i <= 2024; i++) {
+            for (let i = 2000; i <= 2024; i++) {
               housings.push(createHousingWithMutation(i));
             }
+            housings.push({
+              ...genHousingApi(),
+              lastMutationDate: null,
+              lastTransactionDate: null,
+              lastTransactionValue: null
+            });
             await Housing().insert(housings.map(formatHousingRecordApi));
           });
 
@@ -1828,63 +1839,102 @@ describe('Housing repository', () => {
               name: 'housings that were mutated in 2024',
               filter: ['2024'],
               predicate: (housing: HousingApi) => {
-                const mutation =
-                  housing.lastMutationDate ?? housing.lastTransactionDate;
-                return mutation?.getUTCFullYear() === 2024;
+                const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
+                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                  lastTransactionDate:
+                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastTransactionValue: housing.lastTransactionValue
+                });
+                return mutation?.date?.getUTCFullYear() === 2024;
               }
             },
             {
               name: 'housings that were mutated in 2023',
               filter: ['2023'],
               predicate: (housing: HousingApi) => {
-                return [housing.lastMutationDate, housing.lastTransactionDate]
-                  .map((year) => year?.getUTCFullYear())
-                  .some((year) => year === 2023);
+                const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
+                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                  lastTransactionDate:
+                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastTransactionValue: housing.lastTransactionValue
+                });
+                return mutation?.date?.getUTCFullYear() === 2023;
               }
             },
             {
               name: 'housings that were mutated in 2022',
               filter: ['2022'],
               predicate: (housing: HousingApi) => {
-                return [housing.lastMutationDate, housing.lastTransactionDate]
-                  .map((year) => year?.getUTCFullYear())
-                  .some((year) => year === 2022);
+                const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
+                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                  lastTransactionDate:
+                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastTransactionValue: housing.lastTransactionValue
+                });
+                return mutation?.date?.getUTCFullYear() === 2022;
               }
             },
             {
               name: 'housings that were mutated in 2021',
               filter: ['2021'],
               predicate: (housing: HousingApi) => {
-                return [housing.lastMutationDate, housing.lastTransactionDate]
-                  .map((year) => year?.getUTCFullYear())
-                  .some((year) => year === 2021);
+                const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
+                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                  lastTransactionDate:
+                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastTransactionValue: housing.lastTransactionValue
+                });
+                return mutation?.date?.getUTCFullYear() === 2021;
               }
             },
             {
               name: 'housings that were mutated between 2015 and 2020',
               filter: ['2015to2020'],
               predicate: (housing: HousingApi) => {
-                return [housing.lastMutationDate, housing.lastTransactionDate]
-                  .map((year) => year?.getUTCFullYear())
-                  .some((year) => !!year && 2015 <= year && year <= 2020);
+                const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
+                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                  lastTransactionDate:
+                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastTransactionValue: housing.lastTransactionValue
+                });
+                const year = mutation?.date?.getUTCFullYear();
+                return year !== undefined && 2015 <= year && year <= 2020;
               }
             },
             {
               name: 'housings that were mutated between 2010 and 2014',
               filter: ['2010to2014'],
               predicate: (housing: HousingApi) => {
-                return [housing.lastMutationDate, housing.lastTransactionDate]
-                  .map((year) => year?.getUTCFullYear())
-                  .some((year) => !!year && 2010 <= year && year <= 2014);
+                const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
+                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                  lastTransactionDate:
+                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastTransactionValue: housing.lastTransactionValue
+                });
+                const year = mutation?.date?.getUTCFullYear();
+                return year !== undefined && 2010 <= year && year <= 2014;
               }
             },
             {
               name: 'housings that were mutated before 2010',
               filter: ['lte2009'],
               predicate: (housing: HousingApi) => {
-                return [housing.lastMutationDate, housing.lastTransactionDate]
-                  .map((year) => year?.getUTCFullYear())
-                  .some((year) => !!year && year <= 2009);
+                const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
+                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                  lastTransactionDate:
+                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastTransactionValue: housing.lastTransactionValue
+                });
+                return mutation?.date
+                  ? mutation.date.getUTCFullYear() <= 2009
+                  : false;
               }
             }
           ];
@@ -1906,57 +1956,45 @@ describe('Housing repository', () => {
 
         describe('by last mutation type', () => {
           beforeAll(async () => {
-            function createHousingWithMutation(
-              payload: Pick<
-                HousingApi,
-                | 'lastMutationDate'
-                | 'lastTransactionDate'
-                | 'lastTransactionValue'
-              >
-            ): HousingApi {
-              return { ...genHousingApi(), ...payload };
+            async function createHousings(
+              types: ReadonlyArray<HousingApi['lastMutationType']>
+            ): Promise<ReadonlyArray<HousingApi>> {
+              const housings = types.map((type) => {
+                return match(type)
+                  .returnType<HousingApi>()
+                  .with('donation', () => ({
+                    ...genHousingApi(),
+                    lastMutationType: type,
+                    lastMutationDate: new Date('2024-01-01'),
+                    lastTransactionDate: new Date('2020-01-01'),
+                    lastTransactionValue: null
+                  }))
+                  .with('sale', () => ({
+                    ...genHousingApi(),
+                    lastMutationType: type,
+                    lastMutationDate: new Date('2023-01-01'),
+                    lastTransactionDate: new Date('2024-01-01'),
+                    lastTransactionValue: 1_000_000
+                  }))
+                  .with(null, () => ({
+                    ...genHousingApi(),
+                    lastMutationType: type,
+                    lastMutationDate: null,
+                    lastTransactionDate: null,
+                    lastTransactionValue: null
+                  }))
+                  .exhaustive();
+              });
+              await Housing().insert(housings.map(formatHousingRecordApi));
+              return housings;
             }
 
-            const housings: ReadonlyArray<HousingApi> = [
-              createHousingWithMutation({
-                lastMutationDate: new Date('2000-01-01'),
-                lastTransactionDate: null,
-                lastTransactionValue: null
-              }),
-              createHousingWithMutation({
-                lastMutationDate: null,
-                lastTransactionDate: new Date('2000-01-01'),
-                lastTransactionValue: faker.number.int({
-                  min: 100_000,
-                  max: 1_000_000
-                })
-              }),
-              createHousingWithMutation({
-                lastMutationDate: new Date('1999-01-01'),
-                lastTransactionDate: new Date('2000-01-01'),
-                lastTransactionValue: faker.number.int({
-                  min: 100_000,
-                  max: 1_000_000
-                })
-              }),
-              createHousingWithMutation({
-                lastMutationDate: new Date('2000-01-01'),
-                lastTransactionDate: new Date('1999-01-01'),
-                lastTransactionValue: null
-              }),
-              createHousingWithMutation({
-                lastMutationDate: null,
-                lastTransactionDate: null,
-                lastTransactionValue: null
-              })
-            ];
-
-            await Housing().insert(housings.map(formatHousingRecordApi));
+            await createHousings(['sale', 'donation', null]);
           });
 
           const tests: ReadonlyArray<{
             name: string;
-            filter: ReadonlyArray<LastMutationTypeFilter | null>;
+            filter: Array<LastMutationTypeFilter | null>;
             predicate: Predicate<HousingApi>;
           }> = [
             {
@@ -1964,6 +2002,7 @@ describe('Housing repository', () => {
               filter: ['sale'],
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
                   lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
                   lastTransactionDate:
                     housing.lastTransactionDate?.toJSON() ?? null,
@@ -1977,6 +2016,7 @@ describe('Housing repository', () => {
               filter: ['donation'],
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
                   lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
                   lastTransactionDate:
                     housing.lastTransactionDate?.toJSON() ?? null,
@@ -1986,10 +2026,11 @@ describe('Housing repository', () => {
               }
             },
             {
-              name: 'housings that were donated',
+              name: 'housings that were sold or donated',
               filter: ['sale', 'donation'],
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
                   lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
                   lastTransactionDate:
                     housing.lastTransactionDate?.toJSON() ?? null,
@@ -2005,12 +2046,13 @@ describe('Housing repository', () => {
               filter: [null],
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
                   lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
                   lastTransactionDate:
                     housing.lastTransactionDate?.toJSON() ?? null,
                   lastTransactionValue: housing.lastTransactionValue
                 });
-                return mutation === null || mutation.type === null;
+                return mutation?.type === null || mutation === null;
               }
             }
           ];
@@ -2031,38 +2073,54 @@ describe('Housing repository', () => {
         });
 
         describe('by last mutation type and year', () => {
-          function createHousingWithMutation(
-            payload: Pick<
-              HousingApi,
-              | 'lastMutationDate'
-              | 'lastTransactionDate'
-              | 'lastTransactionValue'
+          async function createHousings(
+            payloads: ReadonlyArray<
+              Pick<
+                HousingApi,
+                | 'lastMutationType'
+                | 'lastMutationDate'
+                | 'lastTransactionDate'
+                | 'lastTransactionValue'
+              >
             >
-          ): HousingApi {
-            return { ...genHousingApi(), ...payload };
+          ): Promise<ReadonlyArray<HousingApi>> {
+            const housings = payloads.map((payload) => ({
+              ...genHousingApi(),
+              ...payload
+            }));
+            await Housing().insert(housings.map(formatHousingRecordApi));
+            return housings;
           }
 
           it('should keep housings that were donated in 2024', async () => {
-            const housings: ReadonlyArray<HousingApi> = [
-              createHousingWithMutation({
+            await createHousings([
+              {
+                lastMutationType: 'donation',
                 lastMutationDate: new Date('2024-01-01'),
                 lastTransactionDate: new Date('2020-01-01'),
                 lastTransactionValue: null
-              }),
+              },
+              {
+                lastMutationType: 'donation',
+                lastMutationDate: new Date('2024-12-31'),
+                lastTransactionDate: null,
+                lastTransactionValue: null
+              },
               // Should be excluded because it was sold in 2024
-              createHousingWithMutation({
+              {
+                lastMutationType: 'sale',
                 lastMutationDate: new Date('2023-01-01'),
                 lastTransactionDate: new Date('2024-01-01'),
                 lastTransactionValue: 1_000_000
-              }),
+              },
               // Should be excluded because it was donated in 2025
-              createHousingWithMutation({
+              {
+                lastMutationType: 'donation',
                 lastMutationDate: new Date('2025-01-01'),
                 lastTransactionDate: new Date('2024-01-01'),
                 lastTransactionValue: null
-              })
-            ];
-            await Housing().insert(housings.map(formatHousingRecordApi));
+              }
+            ]);
 
             const actual = await housingRepository.find({
               filters: {
@@ -2074,6 +2132,7 @@ describe('Housing repository', () => {
             expect(actual.length).toBeGreaterThan(0);
             expect(actual).toSatisfyAll<HousingApi>((housing) => {
               const mutation = fromHousing({
+                lastMutationType: housing.lastMutationType,
                 lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
                 lastTransactionDate:
                   housing.lastTransactionDate?.toJSON() ?? null,
@@ -2087,25 +2146,32 @@ describe('Housing repository', () => {
           });
 
           it('should keep housings that were sold in 2024', async () => {
-            const housings: ReadonlyArray<HousingApi> = [
-              createHousingWithMutation({
+            await createHousings([
+              {
+                lastMutationType: 'sale',
                 lastMutationDate: new Date('2023-01-01'),
                 lastTransactionDate: new Date('2024-01-01'),
                 lastTransactionValue: faker.number.int({
                   min: 100_000,
                   max: 1_000_000
                 })
-              }),
-              createHousingWithMutation({
+              },
+              {
+                lastMutationType: 'sale',
                 lastMutationDate: null,
                 lastTransactionDate: new Date('2024-01-01'),
                 lastTransactionValue: faker.number.int({
                   min: 100_000,
                   max: 1_000_000
                 })
-              })
-            ];
-            await Housing().insert(housings.map(formatHousingRecordApi));
+              },
+              {
+                lastMutationType: 'donation',
+                lastMutationDate: new Date('2024-01-01'),
+                lastTransactionDate: null,
+                lastTransactionValue: null
+              }
+            ]);
 
             const actual = await housingRepository.find({
               filters: {
@@ -2117,6 +2183,7 @@ describe('Housing repository', () => {
             expect(actual.length).toBeGreaterThan(0);
             expect(actual).toSatisfyAll<HousingApi>((housing) => {
               const mutation = fromHousing({
+                lastMutationType: housing.lastMutationType,
                 lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
                 lastTransactionDate:
                   housing.lastTransactionDate?.toJSON() ?? null,
@@ -2125,6 +2192,40 @@ describe('Housing repository', () => {
               return (
                 mutation?.type === 'sale' &&
                 mutation.date.getUTCFullYear() === 2024
+              );
+            });
+          });
+
+          it('should keep housings of which we have no information', async () => {
+            await createHousings([
+              {
+                lastMutationType: null,
+                lastMutationDate: new Date('2024-01-01'),
+                lastTransactionDate: null,
+                lastTransactionValue: null
+              }
+            ]);
+
+            const actual = await housingRepository.find({
+              filters: {
+                lastMutationTypes: [null],
+                lastMutationYears: ['2024']
+              }
+            });
+
+            expect(actual.length).toBeGreaterThan(0);
+            expect(actual).toSatisfyAll<HousingApi>((housing) => {
+              const mutation = fromHousing({
+                lastMutationType: housing.lastMutationType,
+                lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                lastTransactionDate:
+                  housing.lastTransactionDate?.toJSON() ?? null,
+                lastTransactionValue: housing.lastTransactionValue
+              });
+              return (
+                mutation === null ||
+                (mutation?.type === null &&
+                  mutation.date.getUTCFullYear() === 2024)
               );
             });
           });

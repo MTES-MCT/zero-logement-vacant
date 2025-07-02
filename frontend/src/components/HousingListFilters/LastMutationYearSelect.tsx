@@ -3,13 +3,16 @@ import {
   LastMutationYearFilter
 } from '@zerologementvacant/models';
 
-import { LAST_MUTATION_YEAR_LABELS } from '../../models/Housing';
+import {
+  LAST_MUTATION_YEAR_EMPTY_OPTION,
+  LAST_MUTATION_YEAR_LABELS
+} from '../../models/HousingFilters';
 import AppSelectNext, {
   AppSelectNextProps
 } from '../_app/AppSelect/AppSelectNext';
 
 export type LastMutationYearSelectProps<Multiple extends boolean> = Pick<
-  AppSelectNextProps<LastMutationYearFilter, Multiple>,
+  AppSelectNextProps<LastMutationYearFilter | null, Multiple>,
   'className' | 'disabled' | 'multiple' | 'value' | 'onChange'
 > & {
   label?: string;
@@ -22,7 +25,11 @@ function LastMutationYearSelect<Multiple extends boolean = false>(
   return (
     <AppSelectNext
       {...rest}
-      getOptionLabel={(yearFilter) => LAST_MUTATION_YEAR_LABELS[yearFilter]}
+      getOptionLabel={(option) =>
+        option === LAST_MUTATION_YEAR_EMPTY_OPTION.value
+          ? LAST_MUTATION_YEAR_EMPTY_OPTION.label
+          : LAST_MUTATION_YEAR_LABELS[option]
+      }
       label={label}
       options={LAST_MUTATION_YEAR_FILTER_VALUES}
     />

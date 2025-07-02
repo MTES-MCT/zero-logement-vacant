@@ -60,6 +60,6 @@ export interface HousingFiltersDTO {
   subStatus?: string[];
   query?: string;
   precisions?: Array<Precision['id']>;
-  lastMutationYears?: Array<LastMutationYearFilter>;
+  lastMutationYears?: Array<LastMutationYearFilter | null>;
   lastMutationTypes?: Array<LastMutationTypeFilter | null>;
 }

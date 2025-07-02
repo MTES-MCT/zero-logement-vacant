@@ -8,6 +8,7 @@ import {
   HousingStatus,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
+  LastMutationYearFilter,
   Occupancy
 } from '@zerologementvacant/models';
 import { differenceInDays, format } from 'date-fns';
@@ -210,6 +211,32 @@ export enum OccupancyKind {
 }
 
 export const OccupancyUnknown = 'inconnu';
+
+export type OccupancyKindUnknown = typeof OccupancyUnknown;
+
+export const OCCUPANCY_LABELS: Record<Occupancy, string> = {
+  [Occupancy.VACANT]: 'Vacant',
+  [Occupancy.RENT]: 'En location',
+  [Occupancy.SHORT_RENT]: 'Meublé de tourisme',
+  [Occupancy.PRIMARY_RESIDENCE]: 'Occupé par le propriétaire',
+  [Occupancy.SECONDARY_RESIDENCE]: 'Résidence secondaire non louée',
+  [Occupancy.COMMERCIAL_OR_OFFICE]: 'Local commercial ou bureau',
+  [Occupancy.DEPENDENCY]: 'Dépendance',
+  [Occupancy.DEMOLISHED_OR_DIVIDED]: 'Local démoli ou divisé',
+  [Occupancy.OTHERS]: 'Autres',
+  [Occupancy.UNKNOWN]: 'Pas d’information'
+};
+
+export const LAST_MUTATION_YEAR_LABELS: Record<LastMutationYearFilter, string> =
+  {
+    '2024': '2024',
+    '2023': '2023',
+    '2022': '2022',
+    '2021': '2021',
+    '2015to2020': '2015-2020',
+    '2010to2014': '2010-2014',
+    lte2009: 'Avant 2010'
+  };
 
 /**
  * @deprecated See {@link OCCUPANCY_LABELS}

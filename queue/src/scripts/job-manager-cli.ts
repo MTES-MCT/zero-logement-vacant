@@ -60,6 +60,7 @@ async function findJobsByCampaign(
 
       console.log(`Searching in status: ${status}`);
 
+      //ts-ignore-next-line
       while (true) {
         // Get jobs for ONE status at a time with proper pagination
         const jobs = await queue.getJobs([status], start, start + BATCH_SIZE - 1, true);

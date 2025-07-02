@@ -15,11 +15,11 @@ import dateutil.parser
 
 # Database Configuration
 DB_CONFIG = {
-    'host': 'localhost',
-    'port': 5432,
-    'database': 'copieprod',
-    'user': 'postgres',
-    'password': 'postgres'
+    'host': 'b1a5hll4wc3chl1utqxz-postgresql.services.clever-cloud.com',
+    'port': 7473,
+    'database': 'b1a5hll4wc3chl1utqxz',
+    'user': 'uzkjxisxc0hkyswfp1d6',
+    'password': '1ndLae9c7BAOUwgBRC3j'
 }
 
 # File Configuration
@@ -264,10 +264,10 @@ def analyze_structure_access(structure: Structure) -> tuple[str, str]:
         tuple: (status, description)
     """
     if structure.acces_lovac is None:
-        return ('null', 'LOVAC access not defined')
+        return ('null', 'Accès LOVAC non défini')
     
     if not structure.acces_lovac.strip():
-        return ('null', 'LOVAC access empty')
+        return ('null', 'Accès LOVAC vide')
     
     try:
         # Parse LOVAC access date
@@ -277,13 +277,13 @@ def analyze_structure_access(structure: Structure) -> tuple[str, str]:
         
         if access_date <= now:
             days_expired = (now - access_date).days
-            return ('expired', f'Access expired {days_expired} day(s) ago')
+            return ('expired', f'Accès expiré depuis {days_expired} jour(s)')
         else:
             days_remaining = (access_date - now).days
-            return ('valid', f'Access valid for {days_remaining} more day(s)')
+            return ('valid', f'Accès valide pour {days_remaining} jour(s) supplémentaire(s)')
             
     except Exception as e:
-        return ('invalid', f'Invalid LOVAC date: {str(e)}')
+        return ('invalid', f'Date LOVAC invalide: {str(e)}')
 
 def find_structures_with_users(users: List[User], structures: Dict[int, Structure]) -> List[StructureWithUsers]:
     """

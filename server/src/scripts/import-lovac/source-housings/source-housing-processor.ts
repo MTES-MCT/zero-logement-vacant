@@ -109,6 +109,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             occupancyIntended: null,
             vacancyStartYear: sourceHousing.vacancy_start_year,
             mutationDate: sourceHousing.mutation_date,
+            lastMutationType: null,
             lastMutationDate: sourceHousing.last_mutation_date,
             lastTransactionDate: sourceHousing.last_transaction_date,
             lastTransactionValue: sourceHousing.last_transaction_value,

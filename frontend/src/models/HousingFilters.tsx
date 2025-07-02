@@ -914,8 +914,8 @@ export const LAST_MUTATION_YEAR_LABELS: Record<LastMutationYearFilter, string> =
     '2023': '2023',
     '2022': '2022',
     '2021': '2021',
-    '2015to2020': '2015-2020',
-    '2010to2014': '2010-2014',
+    '2015to2020': '2015 - 2020',
+    '2010to2014': '2010 - 2014',
     lte2009: 'Avant 2010'
   };
 export const LAST_MUTATION_YEAR_SELECT_OPTIONS: SelectOption<LastMutationYearFilter | null>[] =
@@ -926,7 +926,7 @@ export const LAST_MUTATION_YEAR_SELECT_OPTIONS: SelectOption<LastMutationYearFil
       label: value
     })),
     Record.values,
-    Array.prepend(LAST_MUTATION_YEAR_EMPTY_OPTION),
+    Array.append(LAST_MUTATION_YEAR_EMPTY_OPTION),
     Array.map((option) => ({
       ...option,
       badgeLabel: `Dernière mutation (date) : ${option.label.toLowerCase()}`
@@ -950,7 +950,7 @@ export const LAST_MUTATION_TYPE_SELECT_OPTIONS: SelectOption<LastMutationTypeFil
       label: value
     })),
     Record.values,
-    Array.prepend(LAST_MUTATION_TYPE_EMPTY_OPTION),
+    Array.append(LAST_MUTATION_TYPE_EMPTY_OPTION),
     Array.map((option) => ({
       ...option,
       badgeLabel: `Dernière mutation (type) : ${option.label.toLowerCase()}`

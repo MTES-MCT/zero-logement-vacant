@@ -49,7 +49,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import config from '~/infra/config';
 import { createS3 } from '@zerologementvacant/utils/node';
 import { slugify, timestamp } from '@zerologementvacant/utils';
-
+import mailService from '~/services/mailService';
 import CampaignEmptyError from '~/errors/campaignEmptyError';
 
 const getCampaignValidators = [param('id').notEmpty().isUUID()];
@@ -163,12 +163,13 @@ const create: RequestHandler<
   CampaignCreationPayloadDTO,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body } = request as AuthenticatedRequest<
+  const { auth, body, user } = request as AuthenticatedRequest<
     never,
     CampaignDTO,
     CampaignCreationPayloadDTO,
     never
   >;
+
   logger.info('Create campaign', { body });
 
   const filters: HousingFiltersDTO = {
@@ -209,6 +210,10 @@ const create: RequestHandler<
   await campaignHousingRepository.insertHousingList(campaign.id, houses);
 
   response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
+
+  mailService.emit('user:created', user.email, {
+    createdAt: new Date()
+  });
 
   // TODO: transform this into CampaignHousingEventApi[]
   // extends EventApi<CampaignApi>

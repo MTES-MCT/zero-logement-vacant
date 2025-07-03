@@ -60,7 +60,7 @@ function ResourcesView() {
         <Grid xs={6}>
           <ResourceTile
             title="Documentation"
-            linkHref="https://zlv.notion.site/Ressources-fe11627749a34b10820a6e663f607226"
+            linkHref="https://zerologementvacant.beta.gouv.fr/documentation/"
             icon="fr-icon-folder-2-fill"
             iconStyle={styles.iconResource}
           >
@@ -72,7 +72,7 @@ function ResourcesView() {
         <Grid xs={6}>
           <ResourceTile
             title="Communauté"
-            linkHref="https://zlv.notion.site/Communaut-e2af2cd2f7124d47b0d522f93c18e48f"
+            linkHref="https://zerologementvacant.beta.gouv.fr/communaut%C3%A9/"
             icon="fr-icon-group-fill"
             iconStyle={styles.iconCommunity}
           >
@@ -96,7 +96,7 @@ function ResourcesView() {
         <Grid xs={6}>
           <ResourceTile
             title="Prendre rendez-vous"
-            linkHref="https://zlv.notion.site/Prendre-rendez-vous-31933eaa1e7d4c26b1c8be6811ab9893"
+            linkHref="https://zerologementvacant.beta.gouv.fr/prendre-rendez-vous/"
             icon="fr-icon-calendar-fill"
             iconStyle={styles.iconAgenda}
           >
@@ -113,7 +113,7 @@ function ResourcesView() {
         <Grid component="article" xs={4}>
           <ResourceTile
             title="Ajouter un filtre géographique"
-            linkHref="https://zlv.notion.site/Int-grer-un-p-rim-tre-5c7cf0d51f20448bb1316405adbb4a37"
+            linkHref="https://zerologementvacant.crisp.help/fr/article/comment-ajouter-un-perimetre-geographique-9f0gk2/"
             icon="fr-icon-road-map-fill"
             iconStyle={styles.iconStep}
           >

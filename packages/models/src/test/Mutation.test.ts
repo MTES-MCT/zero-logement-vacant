@@ -1,5 +1,5 @@
 import { HousingDTO } from '../HousingDTO';
-import { fromHousing } from '../Mutation';
+import { fromHousing, Mutation } from '../Mutation';
 
 describe('Mutation', () => {
   describe('fromHousing', () => {
@@ -20,7 +20,10 @@ describe('Mutation', () => {
 
         const actual = fromHousing(housing);
 
-        expect(actual).toBeNull();
+        expect(actual).toStrictEqual<Mutation>({
+          type: null,
+          date: new Date('2023-06-15')
+        });
       });
     });
 
@@ -123,49 +126,6 @@ describe('Mutation', () => {
           | 'lastTransactionValue'
         > = {
           lastMutationType: 'donation',
-          lastMutationDate: null,
-          lastTransactionDate: '2023-06-20',
-          lastTransactionValue: 250000
-        };
-
-        const actual = fromHousing(housing);
-
-        expect(actual).toBeNull();
-      });
-    });
-
-    describe('when lastMutationType is "unknown"', () => {
-      it('should return an Unknown mutation when lastMutationDate is provided', () => {
-        const housing: Pick<
-          HousingDTO,
-          | 'lastMutationType'
-          | 'lastMutationDate'
-          | 'lastTransactionDate'
-          | 'lastTransactionValue'
-        > = {
-          lastMutationType: 'unknown',
-          lastMutationDate: '2023-06-15',
-          lastTransactionDate: '2023-06-20',
-          lastTransactionValue: 250000
-        };
-
-        const actual = fromHousing(housing);
-
-        expect(actual).toStrictEqual({
-          type: 'unknown',
-          date: new Date('2023-06-15')
-        });
-      });
-
-      it('should return null when lastMutationDate is null', () => {
-        const housing: Pick<
-          HousingDTO,
-          | 'lastMutationType'
-          | 'lastMutationDate'
-          | 'lastTransactionDate'
-          | 'lastTransactionValue'
-        > = {
-          lastMutationType: 'unknown',
           lastMutationDate: null,
           lastTransactionDate: '2023-06-20',
           lastTransactionValue: 250000

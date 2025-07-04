@@ -23,8 +23,8 @@ function LastMutationTypeSelect<Multiple extends boolean = false>(
 ) {
   const { label = 'Dernière mutation (type)', ...rest } = props;
   const options = [
-    LAST_MUTATION_TYPE_EMPTY_OPTION.value,
-    ...LAST_MUTATION_TYPE_FILTER_VALUES
+    ...LAST_MUTATION_TYPE_FILTER_VALUES,
+    LAST_MUTATION_TYPE_EMPTY_OPTION.value
   ];
   return (
     <AppSelectNext

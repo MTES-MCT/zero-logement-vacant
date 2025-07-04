@@ -23,8 +23,8 @@ function LastMutationYearSelect<Multiple extends boolean = false>(
 ) {
   const { label = 'Dernière mutation (date)', ...rest } = props;
   const options = [
-    LAST_MUTATION_YEAR_EMPTY_OPTION.value,
-    ...LAST_MUTATION_YEAR_FILTER_VALUES
+    ...LAST_MUTATION_YEAR_FILTER_VALUES,
+    LAST_MUTATION_YEAR_EMPTY_OPTION.value
   ];
 
   return (

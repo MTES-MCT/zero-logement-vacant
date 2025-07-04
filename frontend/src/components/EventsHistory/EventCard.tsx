@@ -19,6 +19,10 @@ interface EventCardProps {
   differences: ReadonlyArray<ReactNode>;
   createdAt: string | Date;
   createdBy: User;
+  /**
+   * @default true
+   */
+  includeTime?: boolean;
 }
 
 function EventCard(props: EventCardProps) {
@@ -29,6 +33,9 @@ function EventCard(props: EventCardProps) {
   const time: string = format(new Date(props.createdAt), 'HH:mm', {
     locale: localeFR
   });
+  const includeTime = props.includeTime ?? true;
+  const datetime = includeTime ? `le ${date} à ${time}` : `le ${date}`;
+
   const { availableEstablishments } = useAvailableEstablishments();
   const establishment = availableEstablishments?.find(
     (establishment) => establishment.id === props.createdBy.establishmentId
@@ -55,9 +62,7 @@ function EventCard(props: EventCardProps) {
           <Typography component="span" sx={{ fontWeight: 700, mb: '1rem' }}>
             {author} {props.title}
           </Typography>
-          <Typography component="span">
-            &nbsp;le {date} à {time}
-          </Typography>
+          <Typography component="span">&nbsp;{datetime}</Typography>
         </Typography>
 
         {match(props.differences.length)

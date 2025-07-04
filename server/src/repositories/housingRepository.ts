@@ -1008,6 +1008,9 @@ function filteredQuery(opts: FilteredQueryOptions) {
                     `EXTRACT(YEAR FROM ${housingTable}.last_mutation_date) <= 2009`
                   );
                 }
+                if (filters.lastMutationYears?.includes(null)) {
+                  where2.orWhereNull(`${housingTable}.last_mutation_date`);
+                }
               });
           });
         }

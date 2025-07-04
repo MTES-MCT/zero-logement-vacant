@@ -134,7 +134,8 @@ export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
   precisions: array().transform(commaSeparatedString).of(string().required()),
   lastMutationYears: array()
     .transform(commaSeparatedString)
-    .of(string().oneOf(LAST_MUTATION_YEAR_FILTER_VALUES).required()),
+    .transform(parseNull)
+    .of(string().oneOf(LAST_MUTATION_YEAR_FILTER_VALUES).defined().nullable()),
   lastMutationTypes: array()
     .transform(commaSeparatedString)
     .transform(parseNull)

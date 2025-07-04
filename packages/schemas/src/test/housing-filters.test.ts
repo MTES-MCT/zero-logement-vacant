@@ -71,7 +71,7 @@ describe('Housing filters', () => {
     query: fc.string(),
     precisions: fc.array(fc.string({ minLength: 1 })),
     lastMutationYears: fc.array(
-      fc.constantFrom(...LAST_MUTATION_YEAR_FILTER_VALUES)
+      fc.constantFrom(null, ...LAST_MUTATION_YEAR_FILTER_VALUES)
     ),
     lastMutationTypes: fc.array(
       fc.constantFrom(null, ...LAST_MUTATION_TYPE_FILTER_VALUES)

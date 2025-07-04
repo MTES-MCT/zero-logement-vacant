@@ -382,7 +382,7 @@ describe('Housing API', () => {
           const { body, status } = await request(app)
             .get(testRoute)
             .query({
-              lastMutationDate: '2010to2014'
+              lastMutationYears: '2010to2014'
             })
             .use(tokenProvider(user));
 
@@ -412,7 +412,7 @@ describe('Housing API', () => {
           const { body, status } = await request(app)
             .get(testRoute)
             .query({
-              lastMutationType: 'donation'
+              lastMutationTypes: 'donation'
             })
             .use(tokenProvider(user));
 
@@ -445,7 +445,7 @@ describe('Housing API', () => {
           const { body, status } = await request(app)
             .get(testRoute)
             .query({
-              lastMutationType: types.join(',')
+              lastMutationTypes: types.join(',')
             })
             .use(tokenProvider(user));
 
@@ -458,7 +458,57 @@ describe('Housing API', () => {
         });
 
         it('should filter by mutation date and type', async () => {
-          // TODO
+          await createHousings([
+            {
+              lastMutationDate: new Date('2020-01-01'),
+              lastTransactionDate: new Date('2019-01-01'),
+              lastTransactionValue: null
+            }
+          ]);
+
+          const { body, status } = await request(app)
+            .get(testRoute)
+            .query({
+              lastMutationTypes: 'donation',
+              lastMutationYears: '2021'
+            })
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+            const mutation = fromHousing(housing);
+            return (
+              mutation?.type === 'donation' &&
+              mutation?.date?.getUTCFullYear() === 2021
+            );
+          });
+        });
+
+        it('should filter by null mutation date and type', async () => {
+          await createHousings([
+            {
+              lastMutationDate: null,
+              lastTransactionDate: null,
+              lastTransactionValue: null
+            }
+          ]);
+
+          const { body, status } = await request(app)
+            .get(testRoute)
+            .query({
+              lastMutationTypes: 'null',
+              lastMutationYears: 'null'
+            })
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+            const mutation = fromHousing(housing);
+            return (
+              mutation === null ||
+              (mutation.type === null && mutation.date === null)
+            );
+          });
         });
       });
     });

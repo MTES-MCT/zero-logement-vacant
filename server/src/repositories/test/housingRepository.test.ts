@@ -2196,7 +2196,7 @@ describe('Housing repository', () => {
             });
           });
 
-          it('should keep housings of which we have no information', async () => {
+          it('should keep housings of which we have no type information', async () => {
             await createHousings([
               {
                 lastMutationType: null,
@@ -2227,6 +2227,36 @@ describe('Housing repository', () => {
                 (mutation?.type === null &&
                   mutation.date.getUTCFullYear() === 2024)
               );
+            });
+          });
+
+          it('should keep housings of which we have no information at all', async () => {
+            await createHousings([
+              {
+                lastMutationType: null,
+                lastMutationDate: null,
+                lastTransactionDate: null,
+                lastTransactionValue: null
+              }
+            ]);
+
+            const actual = await housingRepository.find({
+              filters: {
+                lastMutationTypes: [null],
+                lastMutationYears: [null]
+              }
+            });
+
+            expect(actual.length).toBeGreaterThan(0);
+            expect(actual).toSatisfyAll<HousingApi>((housing) => {
+              const mutation = fromHousing({
+                lastMutationType: housing.lastMutationType,
+                lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                lastTransactionDate:
+                  housing.lastTransactionDate?.toJSON() ?? null,
+                lastTransactionValue: housing.lastTransactionValue
+              });
+              return mutation === null;
             });
           });
         });

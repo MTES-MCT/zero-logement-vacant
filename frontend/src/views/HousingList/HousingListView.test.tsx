@@ -1078,7 +1078,7 @@ describe('Housing list view', () => {
         renderView();
 
         const accordion = await screen.findByRole('button', {
-          name: /^Occupation$/,
+          name: /^Vie du logement$/,
           expanded: false
         });
         await user.click(accordion);
@@ -1092,7 +1092,7 @@ describe('Housing list view', () => {
         renderView();
 
         const accordion = await screen.findByRole('button', {
-          name: 'Occupation'
+          name: 'Vie du logement'
         });
         await user.click(accordion);
 

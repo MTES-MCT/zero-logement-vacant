@@ -6,12 +6,9 @@ import { Event } from '../../models/Event';
 import EventCard from './EventCard';
 import { formatHousingCampaignAttachedDifferences } from './events/HousingCampaignAttachedEventCard';
 import { formatHousingCampaignDetachedDifferences } from './events/HousingCampaignDetachedEventCard';
-import { formatHousingCampaignRemovedDifferences } from './events/HousingCampaignRemovedEventCard';
 import { formatHousingCreatedDifferences } from './events/HousingCreatedEventCard';
-import { formatHousingGroupArchivedDifferences } from './events/HousingGroupArchivedEventCard';
 import { formatHousingGroupAttachedDifferences } from './events/HousingGroupAttachedEventCard';
 import { formatHousingGroupDetachedDifferences } from './events/HousingGroupDetachedEventCard';
-import { formatHousingGroupRemovedDifferences } from './events/HousingGroupRemovedEventCard';
 import { formatHousingOccupancyDifferences } from './events/HousingOccupancyUpdatedEventCard';
 import { formatHousingOwnerAttachedDifferences } from './events/HousingOwnerAttachedEventCard';
 import { formatHousingOwnerDetachedDifferences } from './events/HousingOwnerDetachedEventCard';
@@ -118,12 +115,12 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
         .with(
           { type: 'housing:group-archived' },
           (event: Event<'housing:group-archived'>) =>
-            formatHousingGroupArchivedDifferences(event.nextOld)
+            `Ce logement a été retiré du groupe “${event.nextOld.name}”.`
         )
         .with(
           { type: 'housing:group-removed' },
           (event: Event<'housing:group-removed'>) =>
-            formatHousingGroupRemovedDifferences(event.nextOld)
+            `Ce logement a été retiré du groupe “${event.nextOld.name}”.`
         )
         .with(
           { type: 'housing:campaign-attached' },
@@ -138,7 +135,8 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
         .with(
           { type: 'housing:campaign-removed' },
           (event: Event<'housing:campaign-removed'>) =>
-            formatHousingCampaignRemovedDifferences(event.nextOld)
+            // Diverge from the `formatHousingCampaignRemovedDifferences`
+            `Ce logement a été retiré de la campagne “${event.nextOld.name}”.`
         )
         .with({ type: 'owner:created' }, () => null)
         .with({ type: 'owner:updated' }, (event: Event<'owner:updated'>) =>
@@ -161,6 +159,7 @@ function AggregatedEventCard(props: AggregatedEventCardProps) {
       differences={differences}
       createdAt={createdAt}
       createdBy={creator}
+      includeTime={false}
     />
   );
 }

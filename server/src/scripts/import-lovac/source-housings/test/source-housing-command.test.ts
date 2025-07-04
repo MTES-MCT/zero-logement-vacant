@@ -271,9 +271,8 @@ describe('Source housing command', () => {
     const table = faker.string.uuid();
     const housing = formatHousingRecordApi(genHousingApi());
     await Housing().insert(housing);
-    const updated: HousingRecordDBO = {
+    const updated: Omit<HousingRecordDBO, 'last_mutation_type'> = {
       ...formatHousingRecordApi(genHousingApi()),
-      last_mutation_type: null,
       id: housing.id,
       local_id: housing.local_id,
       geo_code: housing.geo_code

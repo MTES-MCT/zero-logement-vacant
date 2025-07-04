@@ -45,7 +45,7 @@ export const campaignDescriptionValidator = yup
 
 export const dateValidator = yup
   .date()
-  .transform((curr, originalValue) => {
+  .transform((_curr, originalValue) => {
     return !originalValue || !originalValue.length
       ? null
       : isDate(originalValue)

@@ -30,7 +30,7 @@ export const localityApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: { taxKind, taxRate },
       }),
-      invalidatesTags: (result, error, { geoCode }) => [
+      invalidatesTags: (_result, _error, { geoCode }) => [
         { type: 'Locality', geoCode },
       ],
     }),

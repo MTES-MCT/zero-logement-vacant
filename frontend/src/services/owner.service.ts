@@ -89,7 +89,7 @@ export const ownerApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: payload
       }),
-      invalidatesTags: (result, error, { id }) => [
+      invalidatesTags: (_result, _error, { id }) => [
         { type: 'Owner', id },
         { type: 'HousingOwner', id },
         'Housing',
@@ -106,7 +106,7 @@ export const ownerApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: housingOwners
       }),
-      invalidatesTags: (result, error, { housingId }) => [
+      invalidatesTags: (_result, _error, { housingId }) => [
         { type: 'HousingOwner', id: 'LIST' },
         { type: 'Housing', id: housingId },
         'Event'

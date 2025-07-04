@@ -238,12 +238,13 @@ function HousingListFiltersSidemenu(props: Props) {
           label={
             <TitleWithIcon
               icon="fr-icon-map-pin-user-line"
-              title="Occupation"
+              title="Vie du logement"
             />
           }
         >
           <Grid component="article" mb={2} xs={12}>
             <OccupancySelect
+              label="Occupation actuelle"
               multiple
               value={filters.occupancies ?? []}
               onChange={(values) => {
@@ -558,6 +559,36 @@ function HousingListFiltersSidemenu(props: Props) {
           }
         >
           <Grid component="article" mb={2} xs={12}>
+            <BuildingPeriodSelect
+              multiple
+              value={filters.buildingPeriods ?? []}
+              onChange={(values) => {
+                onChangeFilters({ buildingPeriods: values });
+                posthog.capture('filtre-date-construction');
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <EnergyConsumptionSelect
+              multiple
+              value={filters.energyConsumption ?? []}
+              onChange={(values) => {
+                onChangeFilters({ energyConsumption: values });
+                posthog.capture('filtre-etiquette-dpe');
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
+            <OwnershipKindSelect
+              multiple
+              value={filters.ownershipKinds ?? []}
+              onChange={(values) => {
+                onChangeFilters({ ownershipKinds: values });
+                posthog.capture('filtre-type-propriete');
+              }}
+            />
+          </Grid>
+          <Grid component="article" mb={2} xs={12}>
             <HousingCountSelect
               multiple
               value={filters.housingCounts ?? []}
@@ -577,16 +608,6 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
-            <EnergyConsumptionSelect
-              multiple
-              value={filters.energyConsumption ?? []}
-              onChange={(values) => {
-                onChangeFilters({ energyConsumption: values });
-                posthog.capture('filtre-etiquette-dpe');
-              }}
-            />
-          </Grid>
         </Accordion>
         <Accordion
           label={<TitleWithIcon icon="fr-icon-home-4-line" title="Logement" />}
@@ -599,16 +620,6 @@ function HousingListFiltersSidemenu(props: Props) {
               onChange={(values) => {
                 onChangeFilters({ housingKinds: values });
                 posthog.capture('filtre-type-logement');
-              }}
-            />
-          </Grid>
-          <Grid component="article" mb={2} xs={12}>
-            <BuildingPeriodSelect
-              multiple
-              value={filters.buildingPeriods ?? []}
-              onChange={(values) => {
-                onChangeFilters({ buildingPeriods: values });
-                posthog.capture('filtre-date-construction');
               }}
             />
           </Grid>
@@ -651,16 +662,6 @@ function HousingListFiltersSidemenu(props: Props) {
                   cadastralClassifications: values
                 });
                 posthog.capture('filtre-classement-cadastral');
-              }}
-            />
-          </Grid>
-          <Grid component="article" mb={2} xs={12}>
-            <OwnershipKindSelect
-              multiple
-              value={filters.ownershipKinds ?? []}
-              onChange={(values) => {
-                onChangeFilters({ ownershipKinds: values });
-                posthog.capture('filtre-type-propriete');
               }}
             />
           </Grid>

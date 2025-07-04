@@ -214,31 +214,21 @@ const create: RequestHandler<
     throw new CampaignEmptyError(filters);
   }
 
-  await campaignRepository.save(campaign);
-  await campaignHousingRepository.insertHousingList(campaign.id, houses);
-
-  response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
-
-  mailService.emit('user:created', user.email, {
-    createdAt: new Date()
-  });
-
-  // TODO: transform this into CampaignHousingEventApi[]
-  // extends EventApi<CampaignApi>
-  const events = houses.map((housing) => ({
-    id: uuidv4(),
-    name: 'Ajout dans une campagne',
-    type: 'housing:campaign-attached',
-    nextOld: null,
-    nextNew: {
-      name: campaign.title
-    },
-    createdBy: auth.userId,
-    createdAt: new Date().toJSON(),
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode,
-    campaignId: campaign.id
-  }));
+  const events: ReadonlyArray<CampaignHousingEventApi> =
+    houses.map<CampaignHousingEventApi>((housing) => ({
+      id: uuidv4(),
+      name: 'Ajout dans une campagne',
+      type: 'housing:campaign-attached',
+      nextOld: null,
+      nextNew: {
+        name: campaign.title
+      },
+      createdBy: auth.userId,
+      createdAt: new Date().toJSON(),
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode,
+      campaignId: campaign.id
+    }));
 
   await startTransaction(async () => {
     await campaignRepository.save(campaign);
@@ -247,6 +237,10 @@ const create: RequestHandler<
     response
       .status(constants.HTTP_STATUS_CREATED)
       .json(toCampaignDTO(campaign));
+
+    mailService.emit('user:created', user.email, {
+      createdAt: new Date()
+    });
   });
 };
 

@@ -1,8 +1,8 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { isDefined, isNotNull } from '@zerologementvacant/utils';
-import fp from 'lodash/fp';
+import { Option, pipe, Record } from 'effect';
+import { identity } from 'effect/Function';
 import { ReactNode, useId } from 'react';
 import { match } from 'ts-pattern';
 
@@ -56,12 +56,14 @@ function PatchContent<T extends object>(props: PatchContentProps<T>) {
       .otherwise((component) => component);
   }
 
-  const patch: (obj: T) => ReactNode = fp.pipe(
-    fp.toPairs,
-    (pairs) =>
-      !filterKey ? pairs : pairs.filter(([key]) => filterKey(key as keyof T)),
-    fp.filter(([, value]) => isDefined(value) && isNotNull(value)),
-    fp.map(([key, value]: [keyof T, T[keyof T]]) => {
+  return pipe(
+    props.values,
+    !filterKey
+      ? identity
+      : Record.filterMap((_, key) =>
+          filterKey(key) ? Option.some(key) : Option.none()
+        ),
+    Record.collect((key, value) => {
       const id = props.showKeys ? `${label}-${String(key)}` : undefined;
       return (
         <Stack key={String(key)}>
@@ -71,8 +73,6 @@ function PatchContent<T extends object>(props: PatchContentProps<T>) {
       );
     })
   );
-
-  return patch(props.values);
 }
 
 export default PatchContent;

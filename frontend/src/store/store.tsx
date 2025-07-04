@@ -1,12 +1,13 @@
 import { configureStore, SerializedError } from '@reduxjs/toolkit';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { Predicate } from 'effect';
+import { loadingBarReducer } from 'react-redux-loading-bar';
+
+import { zlvApi } from '../services/api.service';
+import appReducer from './reducers/appReducer';
 import authenticationReducer from './reducers/authenticationReducer';
 import housingReducer from './reducers/housingReducer';
 import ownerProspectReducer from './reducers/ownerProspectReducer';
-import { loadingBarReducer } from 'react-redux-loading-bar';
-import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
-import fp from 'lodash/fp';
-import { zlvApi } from '../services/api.service';
-import appReducer from './reducers/appReducer';
 
 export const applicationReducer = {
   app: appReducer.reducer,
@@ -34,7 +35,7 @@ export type AppStore = typeof store;
 export function isFetchBaseQueryError(
   error: unknown
 ): error is FetchBaseQueryError {
-  return fp.isObject(error) && 'status' in error;
+  return Predicate.isRecord(error) && 'status' in error;
 }
 
 interface HttpError {
@@ -48,11 +49,11 @@ interface HttpError {
 export function isHttpError(error: FetchBaseQueryError): error is HttpError {
   return (
     'data' in error &&
-    fp.isObject(error.data) &&
+    Predicate.isRecord(error.data) &&
     'name' in error.data &&
-    fp.isString(error.data.name) &&
+    Predicate.isString(error.data.name) &&
     'message' in error.data &&
-    fp.isString(error.data.message)
+    Predicate.isString(error.data.message)
   );
 }
 

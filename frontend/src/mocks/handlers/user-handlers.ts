@@ -1,10 +1,10 @@
-import { faker } from '@faker-js/faker';
-import { http, HttpResponse, RequestHandler } from 'msw';
-import { constants } from 'node:http2';
+import { faker } from '@faker-js/faker/locale/fr';
 
 import { UserDTO } from '@zerologementvacant/models';
-import config from '../../utils/config';
+import { http, HttpResponse, RequestHandler } from 'msw';
+import { constants } from 'node:http2';
 import { UserRoles } from '../../models/User';
+import config from '../../utils/config';
 
 interface UserPayload {
   email: string;

@@ -1,4 +1,4 @@
-import { isDate } from 'date-fns/fp';
+import { isDate } from 'date-fns';
 import { TransformStream } from 'node:stream/web';
 import { Schema, ValidationError } from 'yup';
 

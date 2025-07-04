@@ -1,13 +1,13 @@
-import { faker } from '@faker-js/faker';
-import { constants } from 'http2';
-import { http, HttpResponse, RequestHandler } from 'msw';
+import { faker } from '@faker-js/faker/locale/fr';
 
 import {
   SignupLinkDTO,
   SignupLinkPayloadDTO
 } from '@zerologementvacant/models';
-import data from './data';
+import { constants } from 'http2';
+import { http, HttpResponse, RequestHandler } from 'msw';
 import config from '../../utils/config';
+import data from './data';
 
 export const signupLinksHandlers: RequestHandler[] = [
   http.post<never, SignupLinkPayloadDTO, SignupLinkDTO>(

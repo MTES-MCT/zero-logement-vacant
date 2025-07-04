@@ -1,7 +1,7 @@
-import config from '../utils/config';
 import { AddressDTO, AddressKinds } from '@zerologementvacant/models';
+import { Struct } from 'effect';
+import config from '../utils/config';
 import { Owner } from './Owner';
-import fp from 'lodash/fp';
 
 export type Address = Omit<AddressDTO, 'refId' | 'addressKind' | 'cityCode'>;
 
@@ -12,7 +12,7 @@ export const isBanEligible = (address?: Pick<Address, 'score'>) => {
 };
 
 export function fromAddressDTO(address: AddressDTO): Address {
-  return fp.omit(['refId', 'addressKind'], address);
+  return Struct.omit(address, 'refId', 'addressKind');
 }
 
 export function toOwnerAddressDTO(owner: Owner, address: Address): AddressDTO {

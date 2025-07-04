@@ -4,8 +4,10 @@ import {
   DraftPreviewPayloadDTO,
   DraftUpdatePayloadDTO
 } from '@zerologementvacant/models';
-import { SenderPayload } from './Sender';
+import { Equivalence } from 'effect';
 import { DeepNonNullable } from 'ts-essentials';
+
+import { SenderPayload } from './Sender';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Draft extends DraftDTO {}
@@ -22,3 +24,8 @@ export type DraftUpdatePayload = DeepNonNullable<
 };
 
 export type DraftPreviewPayload = DraftPreviewPayloadDTO;
+
+export const draftEquivalence: Equivalence.Equivalence<DraftCreationPayload> =
+  Equivalence.struct<DraftCreationPayload>({
+    subject: Equivalence.string
+  });

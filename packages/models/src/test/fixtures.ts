@@ -1,7 +1,6 @@
-import { fakerFR as faker } from '@faker-js/faker';
-
+import { faker } from '@faker-js/faker/locale/fr';
 import { compactUndefined } from '@zerologementvacant/utils';
-import fp from 'lodash/fp';
+import { Array } from 'effect';
 import { MarkRequired } from 'ts-essentials';
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
@@ -288,7 +287,8 @@ export function genGroupDTO(
     title: faker.commerce.productName(),
     description: faker.lorem.sentence(),
     housingCount: housings?.length ?? 0,
-    ownerCount: fp.uniqBy('id', owners).length ?? 0,
+    ownerCount:
+      Array.dedupeWith(owners ?? [], (a, b) => a.id === b.id).length ?? 0,
     createdAt: new Date().toJSON(),
     createdBy: creator,
     archivedAt: null
@@ -406,9 +406,10 @@ export function genOwnerDTO(): OwnerDTO {
 }
 
 export function genProspectDTO(establishment: EstablishmentDTO): ProspectDTO {
+  const { id, siren } = establishment;
   return {
     email: faker.internet.email(),
-    establishment: fp.pick(['id', 'siren'], establishment),
+    establishment: { id, siren },
     hasAccount: true,
     hasCommitment: true
   };

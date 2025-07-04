@@ -51,7 +51,7 @@ export const ownerProspectApi = zlvApi.injectEndpoints({
           headers: authService.withAuthHeader()
         };
       },
-      invalidatesTags: (result, error, { id }) => [
+      invalidatesTags: (_result, _error, { id }) => [
         { type: 'OwnerProspect', id }
       ]
     })

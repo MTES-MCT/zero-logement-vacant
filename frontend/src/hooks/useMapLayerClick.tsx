@@ -16,7 +16,7 @@ export function useMapLayerClick<T extends GeoJsonProperties>(props: Props<T>) {
 
     if (map) {
       layers.forEach((layer) => {
-        map.on('click', layer, (e) => {
+        map.on('click', layer, (e: any) => {
           const properties = e.features?.[0]?.properties;
           if (properties) {
             onClick?.(deserialize(properties) as T);

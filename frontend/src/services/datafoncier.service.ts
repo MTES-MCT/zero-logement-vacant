@@ -21,12 +21,3 @@ export const datafoncierApi = zlvApi.injectEndpoints({
     })
   })
 });
-
-interface DatafoncierHousingQuery
-  extends Record<string, string | null | undefined> {
-  geoCode: string;
-  address?: string;
-  idpar?: string;
-}
-
-export const { useLazyFindOneHousingQuery } = datafoncierApi;

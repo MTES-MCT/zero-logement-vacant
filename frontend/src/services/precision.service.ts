@@ -12,7 +12,7 @@ export const precisionAPI = zlvApi.injectEndpoints({
 
     findPrecisionsByHousing: builder.query<Precision[], { housingId: string }>({
       query: (params) => `housing/${params.housingId}/precisions`,
-      providesTags: (result, error, arg) => [
+      providesTags: (_result, _error, arg) => [
         { type: 'Precision', id: arg.housingId }
       ]
     }),
@@ -26,7 +26,7 @@ export const precisionAPI = zlvApi.injectEndpoints({
         method: 'PUT',
         body: payload.precisions
       }),
-      invalidatesTags: (result, error, payload) => [
+      invalidatesTags: (_result, _error, payload) => [
         {
           type: 'Precision',
           id: payload.housing

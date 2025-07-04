@@ -27,7 +27,7 @@ export const groupApi = zlvApi.injectEndpoints({
     }),
     getGroup: builder.query<Group, string>({
       query: (id: string) => `groups/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Group', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Group', id }],
       transformResponse: (group: GroupDTO) => fromGroupDTO(group)
     }),
     createGroup: builder.mutation<
@@ -53,7 +53,7 @@ export const groupApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: group
       }),
-      invalidatesTags: (result, error, args) => [{ type: 'Group', id: args.id }]
+      invalidatesTags: (_result, _error, args) => [{ type: 'Group', id: args.id }]
     }),
     addGroupHousing: builder.mutation<
       void,
@@ -64,10 +64,10 @@ export const groupApi = zlvApi.injectEndpoints({
         method: 'POST',
         body: group
       }),
-      invalidatesTags: (result, error, args) => [
+      invalidatesTags: (_result, _error, args) => [
         { type: 'Group', id: args.id }
       ],
-      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+      onQueryStarted: async (_args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
         dispatch(
           housingApi.util.invalidateTags([
@@ -87,10 +87,10 @@ export const groupApi = zlvApi.injectEndpoints({
         method: 'DELETE',
         body: group
       }),
-      invalidatesTags: (result, error, args) => [
+      invalidatesTags: (_result, _error, args) => [
         { type: 'Group', id: args.id }
       ],
-      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+      onQueryStarted: async (_args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
         dispatch(
           housingApi.util.invalidateTags([
@@ -106,7 +106,7 @@ export const groupApi = zlvApi.injectEndpoints({
         url: `groups/${group.id}`,
         method: 'DELETE'
       }),
-      invalidatesTags: (result, error, group) => [
+      invalidatesTags: (_result, _error, group) => [
         { type: 'Group', id: group.id }
       ]
     })

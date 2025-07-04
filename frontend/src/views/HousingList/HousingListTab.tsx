@@ -52,9 +52,9 @@ function HousingListTab(props: HousingListTabProps) {
   const [error, setError] = useState<string>();
 
   const { data: housingCount } = useCountHousingQuery({
-    dataFileYearsIncluded: filters.dataFileYearsIncluded,
-    dataFileYearsExcluded: filters.dataFileYearsExcluded,
-    occupancies: filters.occupancies
+    dataFileYearsIncluded: props.filters.dataFileYearsIncluded,
+    dataFileYearsExcluded: props.filters.dataFileYearsExcluded,
+    occupancies: props.filters.occupancies
   });
   const totalCount = housingCount?.housing;
 

@@ -143,6 +143,7 @@ function EventsHistory({ events, notes }: Props) {
         <Grid component="section" sx={{ pl: 0 }} xs={4}>
           <AppSelectNext
             label="Type d’événement"
+            disabled={events.length === 0 && notes.length === 0}
             multiple
             options={EVENT_TYPE_VALUES}
             getOptionKey={(option) => option.value}
@@ -160,6 +161,7 @@ function EventsHistory({ events, notes }: Props) {
         <Grid component="section" xs={4}>
           <AppSelectNext
             label="Auteur"
+            disabled={events.length === 0 && notes.length === 0}
             multiple
             options={creators}
             getOptionKey={(option) => option.id}
@@ -177,6 +179,7 @@ function EventsHistory({ events, notes }: Props) {
         <Grid component="section" sx={{ pr: 0 }} xs={4}>
           <Input
             label="Date de création"
+            disabled={events.length === 0 && notes.length === 0}
             nativeInputProps={{
               type: 'date',
               value:

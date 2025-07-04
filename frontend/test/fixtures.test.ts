@@ -6,6 +6,7 @@ import {
   ENERGY_CONSUMPTION_VALUES,
   HOUSING_KIND_VALUES,
   HousingStatus,
+  MUTATION_TYPE_VALUES,
   Occupancy,
   ROLE_VALUES
 } from '@zerologementvacant/models';
@@ -121,6 +122,7 @@ export function genHousing(): Housing {
     occupancyIntended: Occupancy.VACANT,
     energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES),
     energyConsumptionAt: new Date(),
+    lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
     lastMutationDate: faker.date.past({ years: 20 }).toJSON(),
     lastTransactionDate:
       faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??

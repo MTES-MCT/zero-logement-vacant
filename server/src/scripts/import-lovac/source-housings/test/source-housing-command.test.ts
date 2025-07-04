@@ -273,6 +273,7 @@ describe('Source housing command', () => {
     await Housing().insert(housing);
     const updated: HousingRecordDBO = {
       ...formatHousingRecordApi(genHousingApi()),
+      last_mutation_type: null,
       id: housing.id,
       local_id: housing.local_id,
       geo_code: housing.geo_code

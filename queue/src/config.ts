@@ -6,11 +6,14 @@ import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
 export const isProduction = process.env.NODE_ENV === 'production';
 
+export type Env = 'development' | 'test' | 'production';
+
 interface Config {
   api: {
     host: string;
   };
   app: {
+    env: Env;
     port: number;
   };
   auth: {
@@ -33,6 +36,10 @@ interface Config {
     accessKeyId: string;
     secretAccessKey: string;
   };
+  sentry: {
+    dsn: string | null;
+    enabled: boolean;
+  };
 }
 
 dotenv.config({
@@ -48,6 +55,11 @@ const config = convict<Config>({
     },
   },
   app: {
+    env: {
+      env: 'NODE_ENV',
+      format: ['development', 'test', 'production'],
+      default: 'development'
+    },
     port: {
       env: 'PORT',
       format: 'port',
@@ -120,6 +132,19 @@ const config = convict<Config>({
       sensitive: true,
     },
   },
+  sentry: {
+    dsn: {
+      env: 'SENTRY_DSN',
+      format: String,
+      default: null,
+      nullable: true
+    },
+    enabled: {
+      env: 'SENTRY_ENABLED',
+      format: Boolean,
+      default: isProduction
+    }
+  }
 })
   .validate({ allowed: 'strict' })
   .get();

@@ -5,31 +5,31 @@ export interface OwnerDTO {
   id: string;
   rawAddress: string[] | null;
   fullName: string;
-  administrator?: string;
+  administrator: string | null;
   /**
    * A date formatted like yyyy-mm-dd
    */
   birthDate: string | null;
-  email?: string;
-  phone?: string;
-  banAddress?: AddressDTO;
-  additionalAddress?: string;
+  email: string | null;
+  phone: string | null;
+  banAddress: AddressDTO | null;
+  additionalAddress: string | null;
   kind: string | null;
-  kindDetail?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  kindDetail: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
-export type OwnerPayloadDTO = Pick<
+export type OwnerCreationPayload = Pick<
   OwnerDTO,
-  | 'rawAddress'
-  | 'fullName'
-  | 'birthDate'
-  | 'email'
-  | 'phone'
-  | 'additionalAddress'
+  'fullName' | 'birthDate' | 'email' | 'phone' | 'rawAddress'
+>;
+
+export type OwnerUpdatePayload = Pick<
+  OwnerDTO,
+  'fullName' | 'birthDate' | 'email' | 'phone' | 'additionalAddress'
 > & {
-  banAddress?: AddressPayloadDTO;
+  banAddress: AddressPayloadDTO | null;
 };
 
 export function getAddress(owner: OwnerDTO): string[] | null {

@@ -208,21 +208,6 @@ export enum OccupancyKind {
 
 export const OccupancyUnknown = 'inconnu';
 
-export type OccupancyKindUnknown = typeof OccupancyUnknown;
-
-export const OCCUPANCY_LABELS: Record<Occupancy, string> = {
-  [Occupancy.VACANT]: 'Vacant',
-  [Occupancy.RENT]: 'En location',
-  [Occupancy.SHORT_RENT]: 'Meublé de tourisme',
-  [Occupancy.PRIMARY_RESIDENCE]: 'Occupé par le propriétaire',
-  [Occupancy.SECONDARY_RESIDENCE]: 'Résidence secondaire non louée',
-  [Occupancy.COMMERCIAL_OR_OFFICE]: 'Local commercial ou bureau',
-  [Occupancy.DEPENDENCY]: 'Dépendance',
-  [Occupancy.DEMOLISHED_OR_DIVIDED]: 'Local démoli ou divisé',
-  [Occupancy.OTHERS]: 'Autres',
-  [Occupancy.UNKNOWN]: 'Pas d’information'
-};
-
 /**
  * @deprecated See {@link OCCUPANCY_LABELS}
  */
@@ -293,8 +278,8 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     invariant: housing.invariant,
     rawAddress: housing.rawAddress,
     geoCode: housing.geoCode,
-    longitude: housing.longitude,
-    latitude: housing.latitude,
+    longitude: housing.longitude ?? null,
+    latitude: housing.latitude ?? null,
     cadastralClassification: housing.cadastralClassification,
     uncomfortable: housing.uncomfortable,
     vacancyStartYear: housing.vacancyStartYear,
@@ -302,13 +287,13 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     roomsCount: housing.roomsCount,
     livingArea: housing.livingArea,
     cadastralReference: housing.cadastralReference,
-    buildingYear: housing.buildingYear,
+    buildingYear: housing.buildingYear ?? null,
     taxed: housing.taxed,
     dataYears: housing.dataFileYears
       .map((dataFileYear) => dataFileYear.split('-')[1])
       .map(Number),
     dataFileYears: housing.dataFileYears,
-    buildingLocation: housing.buildingLocation,
+    buildingLocation: housing.buildingLocation ?? null,
     // TODO: fix this by making Housing extend HousingDTO
     ownershipKind: housing.ownershipKind,
     status: housing.status as unknown as HousingStatus,
@@ -322,6 +307,10 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     owner: toOwnerDTO(housing.owner),
     lastMutationDate: housing.lastMutationDate,
     lastTransactionDate: housing.lastTransactionDate,
-    lastTransactionValue: housing.lastTransactionValue
+    lastTransactionValue: housing.lastTransactionValue,
+    beneficiaryCount: null,
+    mutationDate: null,
+    campaignIds: housing.campaignIds,
+    rentalValue: null
   };
 }

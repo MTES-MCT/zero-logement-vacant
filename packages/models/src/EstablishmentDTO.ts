@@ -13,7 +13,7 @@ export interface EstablishmentDTO {
 }
 
 export function isChild(geoCodes: ReadonlySet<string>) {
-  return (establishment: EstablishmentDTO): boolean => {
+  return (establishment: Pick<EstablishmentDTO, 'geoCodes'>): boolean => {
     return establishment.geoCodes.some((geoCode) => geoCodes.has(geoCode));
   };
 }

@@ -1,5 +1,5 @@
-import { HousingFiltersDTO } from './HousingFiltersDTO';
 import { contramap, DEFAULT_ORDER, Ord } from '@zerologementvacant/utils';
+import { HousingFiltersDTO } from './HousingFiltersDTO';
 
 export interface CampaignDTO {
   id: string;
@@ -76,4 +76,10 @@ export interface CampaignCreationPayloadDTO
 export interface CampaignUpdatePayloadDTO
   extends Pick<CampaignDTO, 'title' | 'description' | 'status' | 'file'> {
   sentAt?: string;
+}
+
+export interface CampaignRemovalPayloadDTO {
+  all: boolean;
+  ids: string[];
+  filters: HousingFiltersDTO;
 }

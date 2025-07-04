@@ -3,13 +3,12 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
 
 import { useUser } from '../../hooks/useUser';
 import { getSource, Housing } from '../../models/Housing';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
+import { useHousingEdition } from '../HousingEdition/useHousingEdition';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
-
 import OccupancyBadge from './OccupancyBadge';
 
 export interface HousingHeaderProps {
@@ -19,7 +18,7 @@ export interface HousingHeaderProps {
 }
 
 function HousingHeader(props: HousingHeaderProps) {
-  const [editing, setEditing] = useState(false);
+  const { editing, setEditing } = useHousingEdition();
 
   const { isVisitor } = useUser();
 

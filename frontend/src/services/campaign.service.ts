@@ -33,7 +33,7 @@ export const campaignApi = zlvApi.injectEndpoints({
     getCampaign: builder.query<Campaign, string>({
       query: (campaignId) => `campaigns/${campaignId}`,
       transformResponse: (c) => parseCampaign(c),
-      providesTags: (result, error, id) => [{ type: 'Campaign', id }]
+      providesTags: (_result, _error, id) => [{ type: 'Campaign', id }]
     }),
     findCampaigns: builder.query<Campaign[], FindOptions | void>({
       query: (opts) => ({
@@ -88,7 +88,7 @@ export const campaignApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: toCampaignPayloadDTO(payload)
       }),
-      invalidatesTags: (result, error, args) => [
+      invalidatesTags: (_result, _error, args) => [
         { type: 'Campaign', id: args.id }
       ]
     }),
@@ -106,10 +106,10 @@ export const campaignApi = zlvApi.injectEndpoints({
         method: 'DELETE',
         body: payload
       }),
-      invalidatesTags: (result, error, { campaignId }) => [
+      invalidatesTags: (_result, _error, { campaignId }) => [
         { type: 'Campaign', id: campaignId }
       ],
-      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+      onQueryStarted: async (_args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
         dispatch(
           housingApi.util.invalidateTags([

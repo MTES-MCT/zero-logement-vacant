@@ -9,7 +9,7 @@ import { Text } from '../../_dsfr';
 import HousingResult from '../../HousingResult/HousingResult';
 import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
-const ReviewHousing = forwardRef((props: StepProps, ref) => {
+const ReviewHousing = forwardRef((_: StepProps, ref) => {
   const { creator } = useAppSelector((state) => state.housing);
   const { localId } = creator;
   const { data: datafoncierHousing } = datafoncierApi.useFindOneHousingQuery(

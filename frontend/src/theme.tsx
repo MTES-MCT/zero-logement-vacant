@@ -1,12 +1,12 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { createMuiDsfrThemeProvider } from '@codegouvfr/react-dsfr/mui';
-import { StyledEngineProvider, Theme } from '@mui/material/styles';
+import { StyledEngineProvider, type Theme } from '@mui/material/styles';
 import { defaultsDeep } from 'lodash-es';
 import { PropsWithChildren } from 'react';
 import { DeepPartial } from 'ts-essentials';
 
 const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
-  augmentMuiTheme({ nonAugmentedMuiTheme }): Theme {
+  augmentMuiTheme: ({ nonAugmentedMuiTheme }) => {
     return defaultsDeep(nonAugmentedMuiTheme, {
       zIndex: {
         // Found in @codegouvfr/react-dsfr

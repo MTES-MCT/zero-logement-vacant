@@ -242,10 +242,13 @@ export function keysDeep(record: ObjectShape, prefix: string = ''): string[] {
 }
 
 export function entriesDeep(record: object, prefix = ''): [string, unknown][] {
+  // @ts-expect-error: to be removed
   return pipe(
     record,
+    // @ts-expect-error: to be removed
     Array.fromRecord,
     Array.flatMap<[string, unknown], [string, unknown]>(([key, value]) =>
+      // @ts-expect-error: to be removed
       Predicate.isRecord(value)
         ? entriesDeep(value, `${key}.`)
         : [[`${prefix}${key}`, value]]

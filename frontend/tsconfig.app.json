@@ -9,6 +9,7 @@
     "src/setupTests.ts",
     "src/**/*.test.ts",
     "src/**/*.test.tsx",
+    "src/**/test",
     "test"
   ],
   "references": [

@@ -12,7 +12,7 @@ import { useAppDispatch } from '../../../hooks/useStore';
 import housingSlice from '../../../store/reducers/housingReducer';
 import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
-const FillLocalId = forwardRef((props: StepProps, ref) => {
+const FillLocalId = forwardRef((_: StepProps, ref) => {
   const [localId, setLocalId] = useState('');
   const dispatch = useAppDispatch();
   const { changeCreator } = housingSlice.actions;

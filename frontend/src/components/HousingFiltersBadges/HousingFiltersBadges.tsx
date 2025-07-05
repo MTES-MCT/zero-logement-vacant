@@ -8,7 +8,7 @@ import {
   isPrecisionMechanismCategory,
   Precision
 } from '@zerologementvacant/models';
-import { Record } from 'effect';
+import { Struct } from 'effect';
 import { match, Pattern } from 'ts-pattern';
 
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -98,7 +98,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { groupIds, ...rest } = filters;
-  const hasFilters = Record.keys(rest).length > 0;
+  const hasFilters = Struct.keys(rest).length === 0;
 
   if (!hasFilters) {
     return null;

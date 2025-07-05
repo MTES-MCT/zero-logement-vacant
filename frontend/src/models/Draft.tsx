@@ -4,7 +4,6 @@ import {
   DraftPreviewPayloadDTO,
   DraftUpdatePayloadDTO
 } from '@zerologementvacant/models';
-import { Equivalence } from 'effect';
 import { DeepNonNullable } from 'ts-essentials';
 
 import { SenderPayload } from './Sender';
@@ -24,8 +23,3 @@ export type DraftUpdatePayload = DeepNonNullable<
 };
 
 export type DraftPreviewPayload = DraftPreviewPayloadDTO;
-
-export const draftEquivalence: Equivalence.Equivalence<DraftCreationPayload> =
-  Equivalence.struct<DraftCreationPayload>({
-    subject: Equivalence.string
-  });

@@ -22,19 +22,19 @@ interface OwnerEditionSideMenuProps {
 const WIDTH = '700px';
 const schema = object({
   address: object({
-    banId: string().optional().nullable(),
+    banId: string().defined().nullable(),
     label: string().required(),
-    houseNumber: string().optional().nullable(),
-    street: string().optional().nullable(),
-    postalCode: string().optional().nullable(),
-    city: string().optional().nullable(),
-    latitude: number().optional().nullable(),
-    longitude: number().optional().nullable(),
-    score: number().optional().nullable()
+    houseNumber: string().defined().nullable(),
+    street: string().defined().nullable(),
+    postalCode: string().defined().nullable(),
+    city: string().defined().nullable(),
+    latitude: number().defined().nullable(),
+    longitude: number().defined().nullable(),
+    score: number().defined().nullable()
   })
     .defined()
     .nullable(),
-  additionalAddress: string().optional().nullable()
+  additionalAddress: string().defined().nullable()
 });
 type OwnerEditionFormSchema = InferType<typeof schema>;
 
@@ -48,8 +48,18 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
 
   const form = useForm({
     values: {
-      address: props.owner?.banAddress ?? null,
-      additionalAddress: props.owner?.additionalAddress ?? null
+      address: {
+        banId: props.owner?.banAddress?.banId ?? '',
+        label: props.owner?.banAddress?.label ?? '',
+        city: props.owner?.banAddress?.city ?? '',
+        houseNumber: props.owner?.banAddress?.houseNumber ?? '',
+        postalCode: props.owner?.banAddress?.postalCode ?? '',
+        street: props.owner?.banAddress?.street ?? '',
+        latitude: props.owner?.banAddress?.latitude ?? 0,
+        longitude: props.owner?.banAddress?.longitude ?? 0,
+        score: props.owner?.banAddress?.score ?? 0,
+      },
+      additionalAddress: props.owner?.additionalAddress ?? ''
     },
     mode: 'onSubmit',
     resolver: yupResolver(schema)
@@ -58,7 +68,7 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
   /* DEPRECATED */
   const [updateOwner, mutation] = useUpdateOwnerMutation();
 
-  async function save(): Promise<void> {
+  async function save(values: OwnerEditionFormSchema): Promise<void> {
     if (props.owner) {
       localStorage.setItem(
         'OwnerEdition.warningVisible',
@@ -66,8 +76,8 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
       );
       await updateOwner({
         ...props.owner,
-        banAddress: form.getValues('address'),
-        additionalAddress: form.getValues('additionalAddress')
+        banAddress: values.address ?? undefined,
+        additionalAddress: values.additionalAddress
       });
       props.onClose?.();
     }
@@ -149,7 +159,6 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
                   name="address"
                   render={({ field, fieldState }) => (
                     <OwnerAddressEdition
-                      /* @ts-expect-error: yup@^0 types are wrong */
                       banAddress={field.value ?? undefined}
                       disabled={field.disabled}
                       errorMessage={fieldState.error?.message}

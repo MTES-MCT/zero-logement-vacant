@@ -3,7 +3,7 @@ import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FileUploadDTO } from '@zerologementvacant/models';
-import { Struct } from 'effect';
+import { isEqual } from 'lodash-es';
 import { useEffect, useState } from 'react';
 import * as yup from 'yup';
 import { Col, Container, Row } from '../../components/_dsfr';
@@ -26,7 +26,7 @@ import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import useUnsavedChanges from '../../hooks/useUnsavedChanges';
 import { Campaign } from '../../models/Campaign';
-import { DraftCreationPayload, draftEquivalence } from '../../models/Draft';
+import { DraftCreationPayload } from '../../models/Draft';
 import { SenderPayload, SignatoriesPayload } from '../../models/Sender';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import {
@@ -102,10 +102,7 @@ function CampaignDraft(props: Readonly<Props>) {
     writtenFrom: values.writtenFrom
   });
 
-  const hasChanges =
-    form.isDirty &&
-    draft &&
-    !draftEquivalence(Struct.omit(draft, 'campaign'), values);
+  const hasChanges = form.isDirty && !!draft && !isEqual(draft, values);
   useUnsavedChanges({ when: hasChanges });
 
   const [createDraft, createDraftMutation] = useCreateDraftMutation();

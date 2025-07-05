@@ -9,6 +9,7 @@ import {
 } from 'react-router-dom';
 
 import config from './config';
+import {  } from '@sentry/react';
 
 function init(): void {
   if (config.sentry.enabled) {
@@ -35,10 +36,14 @@ function init(): void {
   }
 }
 
-const createSentryRouter =
-  Sentry.wrapCreateBrowserRouterV6(createBrowserRouter);
+const createSentryRouter: typeof createBrowserRouter = Sentry.wrapCreateBrowserRouterV6(createBrowserRouter);
 
-const sentry = {
+interface Sentry {
+  init: () => void;
+  createBrowserRouter: typeof createSentryRouter;
+}
+
+const sentry: Sentry = {
   init,
   createBrowserRouter: createSentryRouter
 };

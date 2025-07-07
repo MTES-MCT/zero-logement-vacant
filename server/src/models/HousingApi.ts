@@ -5,9 +5,10 @@ import {
   Occupancy,
   Precision
 } from '@zerologementvacant/models';
-import { Equivalence } from 'effect';
+import { Array, Equivalence, Order, pipe } from 'effect';
 import fp from 'lodash/fp';
 import { assert, MarkRequired } from 'ts-essentials';
+
 import OwnerMissingError from '~/errors/ownerMissingError';
 
 import { HousingEventApi, isUserModified } from '~/models/EventApi';
@@ -187,13 +188,8 @@ export function isSupervised(
   return false;
 }
 
-export function normalizeDataFileYears(
-  dataFileYears: DataFileYear[]
-): DataFileYear[] {
-  return fp.pipe(
-    fp.sortBy<DataFileYear>(fp.identity),
-    fp.sortedUniq
-  )(dataFileYears);
+export function normalizeDataFileYears(dataFileYears: string[]): string[] {
+  return pipe(dataFileYears, Array.sort(Order.string), Array.dedupeAdjacent);
 }
 
 export function shouldReset(housing: HousingApi): boolean {

@@ -14,7 +14,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
-import fp from 'lodash/fp';
+import { pick } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import DraftMissingError from '~/errors/draftMissingError';
@@ -47,7 +47,7 @@ async function list(
   >;
 
   const filters: DraftFilters = {
-    ...(fp.pick(['campaign'], query) as DraftQuery),
+    ...(pick(query, 'campaign') as DraftQuery),
     establishment: auth.establishmentId
   };
   const drafts: DraftApi[] = await draftRepository.find({
@@ -160,7 +160,7 @@ async function preview(
   const transformer = pdf.createTransformer({ logger });
   const pdfBuffer = await transformer.generatePDF({
     subject: draft.subject,
-    logo: draft.logo?.map(fp.pick(['id', 'content'])) ?? null,
+    logo: draft.logo?.map(logo => pick(logo, 'id', 'content')) ?? null,
     body: draft.body
       ? replaceVariables(draft.body, {
           housing: body.housing,

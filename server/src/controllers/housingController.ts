@@ -18,12 +18,11 @@ import {
 } from '@zerologementvacant/models';
 import { compactUndefined } from '@zerologementvacant/utils';
 import async from 'async';
-import { Record } from 'effect';
+import { Record, Struct } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, oneOf, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
-import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import HousingExistsError from '~/errors/housingExistsError';
@@ -121,7 +120,7 @@ const list: RequestHandler<
   };
   const role = user.role;
   const sort = sortApi.parse<HousingSortableApi>(query.sort);
-  const rawFilters = fp.omit(['paginate', 'page', 'perPage', 'sort'], query);
+  const rawFilters = Struct.omit(query, 'paginate', 'page', 'perPage', 'sort');
   const filters: HousingFiltersApi = {
     ...rawFilters,
     establishmentIds:

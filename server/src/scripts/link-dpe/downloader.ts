@@ -16,7 +16,7 @@ interface PathOptions {
 
 const exists = async (
   department: string,
-  opts?: PathOptions,
+  opts?: PathOptions
 ): Promise<boolean> => {
   const dir = getArchiveDir(department, opts);
   try {
@@ -39,12 +39,12 @@ const download = async (department: string): Promise<void> => {
 
     logger.info(`Downloading file from BNDB...`, {
       department,
-      url,
+      url
     });
 
     dl(url)
       .pipe(unzip.Extract({ path: dir }), { end: true })
-      .on('data', (chunk) => {
+      .on('data', (chunk: any) => {
         logger.info(`Received ${chunk.length} bytes of data.`);
       })
       .on('end', () => {
@@ -56,7 +56,7 @@ const download = async (department: string): Promise<void> => {
 
 const cleanup = async (
   department: string,
-  opts?: PathOptions,
+  opts?: PathOptions
 ): Promise<void> => {
   fs.rmSync(getArchiveDir(department, opts), { recursive: true, force: true });
 };
@@ -65,7 +65,7 @@ const downloader = {
   download,
   exists,
   getArchiveDir,
-  cleanup,
+  cleanup
 };
 
 export default downloader;

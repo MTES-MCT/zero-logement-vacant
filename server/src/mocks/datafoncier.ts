@@ -1,5 +1,5 @@
 import { constants } from 'http2';
-import fp from 'lodash/fp';
+import { random } from 'lodash-es';
 import nock from 'nock';
 import { URLSearchParams } from 'url';
 
@@ -42,7 +42,7 @@ function mock() {
       .query(true)
       .reply(async (uri) => {
         const query = new URLSearchParams(uri);
-        const owners = new Array(fp.random(1, 6))
+        const owners = new Array(random(1, 6))
           .fill(0)
           .map(() => genDatafoncierOwner(query.get('idprocpte') ?? undefined));
 

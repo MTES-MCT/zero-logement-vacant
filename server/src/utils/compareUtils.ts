@@ -1,11 +1,11 @@
-import fp from 'lodash/fp';
+import lodash from 'lodash-es';
 
 export function compare<T>(a: T, b: T, props: Array<keyof T>): Partial<T> {
-  return fp.pipe(
-    fp.pick(props),
-    fp.pickBy(
+  return lodash.pipe(
+    lodash.pick(props),
+    lodash.pickBy(
       (value, key) =>
-        !fp.isEqualWith(
+        !lodash.isEqualWith(
           customizer,
           value ?? undefined,
           b[key as keyof typeof value] ?? undefined
@@ -16,7 +16,7 @@ export function compare<T>(a: T, b: T, props: Array<keyof T>): Partial<T> {
 
 export function includeSameMembers<T>(equals: (a: T, b: T) => boolean) {
   return (a: T[], b: T[]): boolean =>
-    a.length === b.length && fp.xorWith(equals, a, b).length === 0;
+    a.length === b.length && lodash.xorWith(equals, a, b).length === 0;
 }
 
 function customizer(a?: any, b?: any) {
@@ -24,10 +24,10 @@ function customizer(a?: any, b?: any) {
     return a.toUpperCase() === b.toUpperCase();
   }
   if (Array.isArray(a) && Array.isArray(b)) {
-    return fp.isEqual(
+    return lodash.isEqual(
       a.map((_) => _.toUpperCase()),
       b.map((_) => _.toUpperCase())
     );
   }
-  return fp.isEqual(a, b);
+  return lodash.isEqual(a, b);
 }

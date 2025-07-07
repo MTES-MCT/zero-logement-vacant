@@ -1,9 +1,11 @@
+import { Pagination } from '@zerologementvacant/models';
+import { Array, pipe, Record } from 'effect';
 import { body, param, ValidationChain } from 'express-validator';
 import { Request, Response } from 'express';
 import { constants } from 'http2';
 import { AuthenticatedRequest } from 'express-jwt';
-import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
+
 import {
   OwnerProspectApi,
   OwnerProspectCreateApi,
@@ -19,8 +21,6 @@ import OwnerProspectMissingError from '~/errors/ownerProspectMissingError';
 import mailService from '~/services/mailService';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import userRepository from '~/repositories/userRepository';
-import { UserApi } from '~/models/UserApi';
-import { Pagination } from '@zerologementvacant/models';
 import { logger } from '~/infra/logger';
 
 const createOwnerProspectValidators: ValidationChain[] = [
@@ -66,15 +66,13 @@ async function create(request: Request, response: Response) {
         }
       });
 
-      const sendEmails = fp.pipe(
-        fp.groupBy('establishmentId'),
-        fp.mapValues(
-          (users: UserApi[]): Promise<void> =>
-            mailService.sendOwnerProspectCreatedEmail(users)
-        ),
-        Object.values
+      await pipe(
+        users,
+        Array.groupBy(user => user.establishmentId ?? ''),
+        Record.map(users => mailService.sendOwnerProspectCreatedEmail(users)),
+        Record.values,
+        Promise.all
       );
-      await Promise.all(sendEmails(users));
     }
   } catch (error) {
     logger.error(error);

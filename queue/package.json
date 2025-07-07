@@ -2,19 +2,24 @@
   "name": "@zerologementvacant/queue",
   "version": "0.0.1",
   "description": "Zéro Logement Vacant queue",
-  "bin": "dist/bin/index.js",
+  "type": "module",
+  "bin": "dist/app/bin/index.js",
   "exports": {
-    "require": {
-      "types": "./dist/index.d.cts",
-      "default": "./dist/index.cjs"
-    },
-    "import": {
-      "types": "./dist/index.d.mts",
-      "default": "./dist/index.mjs"
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/app/index.d.ts",
+        "default": "./dist/app/index.js"
+      },
+      "require": {
+        "types": "./dist/app/index.d.cts",
+        "default": "./dist/app/index.cjs"
+      }
     }
   },
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
+    "build": "tsc -b tsconfig.app.json",
     "dev": "tsx src/bin/index.ts",
     "prestart": "htpasswd -c -B -b dist/bin/.htpasswd $QUEUE_DASHBOARD_USERNAME $QUEUE_DASHBOARD_PASSWORD",
     "start": "node ./dist/bin/index.cjs"
@@ -22,9 +27,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",
     "@aws-sdk/lib-storage": "^3.658.1",
-    "@bull-board/api": "5.23.0",
-    "@bull-board/express": "5.23.0",
-    "@bull-board/ui": "5.23.0",
+    "@bull-board/api": "^6.11.0",
+    "@bull-board/express": "^6.11.0",
+    "@bull-board/ui": "^6.11.0",
     "@godaddy/terminus": "^4.12.1",
     "@sentry/integrations": "^7.119.0",
     "@sentry/node": "^7.119.0",

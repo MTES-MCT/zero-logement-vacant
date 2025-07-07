@@ -1,9 +1,11 @@
 {
   "name": "@zerologementvacant/server",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo",
-    "dev": "nodemon --watch src src/index.ts",
+    "build": "tsc -b tsconfig.app.json",
+    "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "test": "jest",
     "test:migrations": "jest -c database.jest.config.ts -i",
@@ -15,7 +17,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",
     "@aws-sdk/s3-request-presigner": "^3.658.1",
-    "@commander-js/extra-typings": "^12.1.0",
+    "@commander-js/extra-typings": "^14.0.0",
     "@elastic/elasticsearch": "^8.15.0",
     "@faker-js/faker": "^8.4.1",
     "@getbrevo/brevo": "^1.0.1",
@@ -38,7 +40,7 @@
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "cli-progress": "^3.12.0",
-    "commander": "^12.1.0",
+    "commander": "^14.0.0",
     "compose-middleware": "^5.0.1",
     "convict": "^6.2.4",
     "convict-format-with-validator": "^6.2.0",
@@ -48,7 +50,7 @@
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "download": "^8.0.0",
-    "effect": "^3.16.3",
+    "effect": "^3.16.12",
     "exceljs": "^4.4.0",
     "express": "^4.21.0",
     "express-fileupload": "^1.5.1",
@@ -142,6 +144,7 @@
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.6.2"
   }
 }

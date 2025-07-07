@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "@zerologementvacant/server",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "server/src",
   "projectType": "application",
@@ -16,10 +16,10 @@
       },
       "configurations": {
         "development": {
-          "buildTarget": "server:build:development"
+          "buildTarget": "@zerologementvacant/server:build"
         },
         "production": {
-          "buildTarget": "server:build:production"
+          "buildTarget": "@zerologementvacant/server:build"
         }
       }
     },

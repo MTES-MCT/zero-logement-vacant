@@ -7,7 +7,6 @@
     "icons": "react-dsfr update-icons && tsx src/scripts/generate-building-images.ts",
     "prebuild": "yarn icons",
     "predev": "yarn icons",
-    "dev": "yarn icons && nx vite:dev",
     "coverage": "nx vite:test --coverage",
     "postinstall": "copy-dsfr-to-public"
   },

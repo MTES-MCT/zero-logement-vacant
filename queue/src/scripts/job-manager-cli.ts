@@ -57,16 +57,17 @@ async function findJobsByCampaign(
       let start = 0;
       let totalJobsForStatus = 0;
       let foundJobsForStatus = 0;
+      let hasMoreJobs = true;
 
       console.log(`Searching in status: ${status}`);
 
-      //ts-ignore-next-line
-      while (true) {
+      while (hasMoreJobs && start <= 50000) {
         // Get jobs for ONE status at a time with proper pagination
         const jobs = await queue.getJobs([status], start, start + BATCH_SIZE - 1, true);
         
         if (jobs.length === 0) {
-          break; // No more jobs to process
+          hasMoreJobs = false;
+          break;
         }
 
         totalJobsForStatus += jobs.length;
@@ -121,14 +122,12 @@ async function findJobsByCampaign(
 
         // If we got less than BATCH_SIZE jobs, we've reached the end
         if (jobs.length < BATCH_SIZE) {
-          break;
+          hasMoreJobs = false;
         }
+      }
 
-        // Safety check to avoid infinite loops
-        if (start > 50000) {
-          console.log(`Warning: Stopped at ${start} jobs for status ${status} to avoid processing too many jobs`);
-          break;
-        }
+      if (start > 50000) {
+        console.log(`Warning: Stopped at ${start} jobs for status ${status} to avoid processing too many jobs`);
       }
 
       console.log(`Status ${status}: Found ${foundJobsForStatus} matching jobs out of ${totalJobsForStatus} total jobs`);

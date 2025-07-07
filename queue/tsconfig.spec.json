@@ -4,5 +4,5 @@
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo"
   },
-  "include": ["src/**/*.test.ts"],
+  "include": ["src/**/*.test.ts"]
 }

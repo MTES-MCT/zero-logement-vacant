@@ -10159,6 +10159,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^24.0.10":
+  version: 24.0.10
+  resolution: "@types/node@npm:24.0.10"
+  dependencies:
+    undici-types: "npm:~7.8.0"
+  checksum: 10c0/11dbd869d3e12ee7b7818113588950e538783e45d227122174c763cb05977defbd1e01b44b5ccd4b8997e42c3df7f7b83c6ee05cfa43d924c8882886bc5f6582
+  languageName: node
+  linkType: hard
+
 "@types/nodemailer@npm:^6.4.16":
   version: 6.4.17
   resolution: "@types/nodemailer@npm:6.4.17"
@@ -11274,7 +11283,7 @@ __metadata:
     "@types/express": "npm:^4.17.21"
     "@types/http-auth": "npm:^4.1.4"
     "@types/jest": "npm:^29.5.13"
-    "@types/node": "npm:^20.16.10"
+    "@types/node": "npm:^24.0.10"
     "@types/supertest": "npm:^6.0.2"
     "@zerologementvacant/api-sdk": "workspace:*"
     "@zerologementvacant/draft": "workspace:*"
@@ -11291,6 +11300,7 @@ __metadata:
     helmet: "npm:^8.0.0"
     htpasswd: "npm:^2.4.6"
     http-auth: "npm:^4.2.0"
+    ioredis: "npm:^5.6.1"
     jest: "npm:^29.7.0"
     jest-extended: "npm:^4.0.2"
     nodemon: "npm:^3.1.7"
@@ -11301,7 +11311,7 @@ __metadata:
     ts-jest: "npm:^29.2.5"
     ts-node: "npm:^10.9.2"
     tsx: "npm:^4.19.4"
-    typescript: "npm:^5.6.2"
+    typescript: "npm:^5.8.3"
     uuid: "npm:^9.0.1"
   bin:
     queue: dist/bin/index.js
@@ -19346,7 +19356,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ioredis@npm:^5.4.1":
+"ioredis@npm:^5.4.1, ioredis@npm:^5.6.1":
   version: 5.6.1
   resolution: "ioredis@npm:5.6.1"
   dependencies:
@@ -30823,7 +30833,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:>=3 < 6, typescript@npm:^5.6.2":
+"typescript@npm:>=3 < 6, typescript@npm:^5.6.2, typescript@npm:^5.8.3":
   version: 5.8.3
   resolution: "typescript@npm:5.8.3"
   bin:
@@ -30833,7 +30843,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.6.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.6.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>":
   version: 5.8.3
   resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"
   bin:
@@ -30922,6 +30932,13 @@ __metadata:
   version: 6.21.0
   resolution: "undici-types@npm:6.21.0"
   checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.8.0":
+  version: 7.8.0
+  resolution: "undici-types@npm:7.8.0"
+  checksum: 10c0/9d9d246d1dc32f318d46116efe3cfca5a72d4f16828febc1918d94e58f6ffcf39c158aa28bf5b4fc52f410446bc7858f35151367bd7a49f21746cab6497b709b
   languageName: node
   linkType: hard
 

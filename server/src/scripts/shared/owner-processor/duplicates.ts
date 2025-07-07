@@ -1,6 +1,6 @@
 import { isDefined, isNotNull } from '@zerologementvacant/utils';
 import { isEqual } from 'date-fns';
-import fp from 'lodash/fp';
+import lodash from 'lodash-es';
 import { jaccard } from 'wuzzy';
 
 import { OwnerApi } from '~/models/OwnerApi';
@@ -35,22 +35,22 @@ export function compare(source: OwnerApi, duplicate: OwnerApi): number {
         )
       : null;
 
-  const computeScore = fp.pipe(fp.filter(isNotNull), fp.mean);
+  const computeScore = lodash.pipe(lodash.filter(isNotNull), lodash.mean);
   return computeScore([addressScore]) ?? 0;
 }
 
 export const isStreetNumber = (address: string) => /^\d{4}\s/.test(address);
 
-export const preprocessAddress = fp.pipe(
-  fp.map((address: string) =>
-    isStreetNumber(address) ? fp.trimCharsStart('0', address) : address
+export const preprocessAddress = lodash.pipe(
+  lodash.map((address: string) =>
+    isStreetNumber(address) ? lodash.trimCharsStart('0', address) : address
   ),
-  fp.join(' '),
-  fp.replace(/\s+/g, ' ')
+  lodash.join(' '),
+  lodash.replace(/\s+/g, ' ')
 );
 
 export function findBest(scores: ScoredOwner[]): ScoredOwner | null {
-  const best = fp.maxBy('score', scores);
+  const best = lodash.maxBy('score', scores);
   return best ?? null;
 }
 

@@ -1,6 +1,5 @@
 import { OwnerDTO, OwnerEntity } from '@zerologementvacant/models';
 import { Equivalence, pipe, Record, Struct } from 'effect';
-import fp from 'lodash/fp';
 
 import { EventApi } from '~/models/EventApi';
 
@@ -13,22 +12,20 @@ export interface OwnerApi extends OwnerDTO {
 
 export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
   return {
-    ...fp.pick(
-      [
-        'id',
-        'rawAddress',
-        'fullName',
-        'administrator',
-        'email',
-        'phone',
-        'banAddress',
-        'additionalAddress',
-        'kind',
-        'kindDetail',
-        'createdAt',
-        'updatedAt'
-      ],
-      owner
+    ...Struct.pick(
+      owner,
+      'id',
+      'rawAddress',
+      'fullName',
+      'administrator',
+      'email',
+      'phone',
+      'banAddress',
+      'additionalAddress',
+      'kind',
+      'kindDetail',
+      'createdAt',
+      'updatedAt'
     ),
     birthDate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null
   };

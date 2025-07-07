@@ -5,6 +5,7 @@ import {
   CampaignDTO,
   DatafoncierHousing,
   DraftDTO,
+  EstablishmentDTO,
   EventUnionDTO,
   GroupDTO,
   HousingDTO,
@@ -16,8 +17,7 @@ import {
   PROPERTY_RIGHT_VALUES,
   ProspectDTO,
   SignupLinkDTO,
-  UserDTO,
-  type EstablishmentDTO
+  UserDTO
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,

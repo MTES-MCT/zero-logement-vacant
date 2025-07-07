@@ -4,28 +4,28 @@ import {
   compare,
   findBest,
   findDuplicatesByName,
-  needsManualReview,
+  needsManualReview
 } from './duplicates';
 import cache from './cache';
-import fp from 'lodash/fp';
+import lodash from 'lodash-es';
 import highland from 'highland';
 import Stream = Highland.Stream;
 
 export function evaluate(owner: OwnerApi, duplicates: OwnerApi[]): Comparison {
   cache.currentName(owner.fullName);
-  const scores = fp.orderBy(
+  const scores = lodash.orderBy(
     'score',
     ['desc'],
     duplicates
       .filter((dup) => !cache.has(owner.id, dup.id))
       .map((dup) => ({
         value: dup,
-        score: compare(owner, dup),
+        score: compare(owner, dup)
       }))
       .map((comparison) => {
         cache.add(owner.id, comparison.value.id);
         return comparison;
-      }),
+      })
   );
 
   const best = findBest(scores);
@@ -34,7 +34,7 @@ export function evaluate(owner: OwnerApi, duplicates: OwnerApi[]): Comparison {
     duplicates: scores,
     score: best?.score ?? 0,
     // Log a conflict for human intervention
-    needsReview: best ? needsManualReview(owner, scores) : false,
+    needsReview: best ? needsManualReview(owner, scores) : false
   };
 }
 
@@ -48,12 +48,12 @@ export default {
             return owners.flatMap((owner) => {
               return evaluate(
                 owner,
-                owners.filter((o) => o.id !== owner.id),
+                owners.filter((o) => o.id !== owner.id)
               );
             });
           })
-          .flatten(),
+          .flatten()
       );
     };
-  },
+  }
 };

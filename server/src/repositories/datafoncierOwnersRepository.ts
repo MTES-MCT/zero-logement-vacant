@@ -1,4 +1,7 @@
+import { Array, pipe } from 'effect';
 import highland from 'highland';
+import { Knex } from 'knex';
+
 import db, { where } from '~/infra/database';
 import {
   DatafoncierOwner,
@@ -6,11 +9,9 @@ import {
   ownerDatafoncierSchema,
   validator
 } from '~/scripts/shared';
-import { Knex } from 'knex';
 import { ownerMatchTable } from './ownerMatchRepository';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
 import { OwnerApi } from '~/models/OwnerApi';
-import fp from 'lodash/fp';
 import { sortQuery } from '~/models/SortApi';
 
 const FIELDS = [
@@ -66,7 +67,11 @@ class DatafoncierOwnersRepository {
       )
       .join(ownerTable, `${ownerTable}.id`, `${ownerMatchTable}.owner_id`)
       .orderBy(`${datafoncierOwnersTable}.dnulp`);
-    return fp.pipe(fp.uniqBy('idpersonne'), fp.map(parseOwnerApi))(owners);
+    return pipe(
+      owners,
+      Array.dedupeWith((a, b) => a.idpersonne === b.idpersonne),
+      Array.map(parseOwnerApi)
+    );
   }
 
   async findDatafoncierOwners(opts?: FindOptions): Promise<DatafoncierOwner[]> {
@@ -75,7 +80,7 @@ class DatafoncierOwnersRepository {
     const owners: DatafoncierOwner[] = await DatafoncierOwners()
       .where(whereOptions(opts?.filters))
       .orderBy(`${datafoncierOwnersTable}.dnulp`);
-    return fp.pipe(fp.uniqBy('idpersonne'))(owners);
+    return Array.dedupeWith(owners, (a, b) => a.idpersonne === b.idpersonne);
   }
 
   stream(opts?: StreamOptions): Highland.Stream<DatafoncierOwner> {

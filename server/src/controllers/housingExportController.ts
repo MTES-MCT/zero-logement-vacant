@@ -1,11 +1,12 @@
 import { AddressKinds, OCCUPANCY_LABELS } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
+import { Struct } from 'effect';
 import exceljs from 'exceljs';
 import { NextFunction, Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { param, ValidationChain } from 'express-validator';
 import highland from 'highland';
-import fp from 'lodash/fp';
+
 import CampaignMissingError from '~/errors/campaignMissingError';
 import GroupMissingError from '~/errors/groupMissingError';
 import { createLogger } from '~/infra/logger';
@@ -180,7 +181,7 @@ function writeHousingWorksheet(
           const building = getBuildingLocation(housing);
 
           logger.debug('Writing housing row...', {
-            housing: fp.pick(['id', 'geoCode', 'localId'], housing)
+            housing: Struct.pick(housing, 'id', 'geoCode', 'localId')
           });
           const row = {
             invariant: housing.invariant,
@@ -232,7 +233,7 @@ function writeHousingWorksheet(
 
           housingWorksheet.addRow(row).commit();
           logger.info('Wrote housing row', {
-            housing: fp.pick(['id', 'geoCode', 'localId'], housing)
+            housing: Struct.pick(housing, 'id', 'geoCode', 'localId')
           });
         })
       );
@@ -270,7 +271,7 @@ function writeOwnerWorksheet(
 
           const ownerWorksheet = workbook.getWorksheet('Propriétaires');
           logger.debug('Writing owner row...', {
-            owner: fp.pick(['id', 'fullName'], owner)
+            owner: Struct.pick(owner, 'id', 'fullName')
           });
           const row = housings.reduce(
             (prev, { housingApi, housingAddress }, index) => ({
@@ -286,7 +287,7 @@ function writeOwnerWorksheet(
           );
           ownerWorksheet?.addRow(row).commit();
           logger.info('Wrote owner row', {
-            owner: fp.pick(['id', 'fullName'], owner)
+            owner: Struct.pick(owner, 'id', 'fullName')
           });
         })
       );

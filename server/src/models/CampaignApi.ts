@@ -1,6 +1,6 @@
-import fp from 'lodash/fp';
-
 import { CampaignDTO } from '@zerologementvacant/models';
+import { Struct } from 'effect';
+
 import { Sort } from './SortApi';
 
 export interface CampaignApi extends CampaignDTO {
@@ -10,23 +10,21 @@ export interface CampaignApi extends CampaignDTO {
 }
 
 export function toCampaignDTO(campaign: CampaignApi): CampaignDTO {
-  return fp.pick(
-    [
-      'id',
-      'title',
-      'description',
-      'status',
-      'filters',
-      'file',
-      'createdAt',
-      'validatedAt',
-      'exportedAt',
-      'sentAt',
-      'archivedAt',
-      'confirmedAt',
-      'groupId'
-    ],
-    campaign
+  return Struct.pick(
+    campaign,
+    'id',
+    'title',
+    'description',
+    'status',
+    'filters',
+    'file',
+    'createdAt',
+    'validatedAt',
+    'exportedAt',
+    'sentAt',
+    'archivedAt',
+    'confirmedAt',
+    'groupId'
   );
 }
 

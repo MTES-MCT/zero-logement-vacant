@@ -5,6 +5,7 @@ import {
   CampaignDTO,
   DatafoncierHousing,
   DraftDTO,
+  EstablishmentDTO,
   EventDTO,
   GroupDTO,
   HousingDTO,
@@ -126,6 +127,8 @@ const prospects: ProspectDTO[] = [];
 
 const signupLinks: SignupLinkDTO[] = [];
 
+const establishments: EstablishmentDTO[] = [];
+
 const data = {
   campaigns,
   campaignDrafts,
@@ -133,6 +136,7 @@ const data = {
   datafoncierHousings,
   drafts,
   draftCampaigns,
+  establishments,
   groups,
   groupHousings,
   housings,

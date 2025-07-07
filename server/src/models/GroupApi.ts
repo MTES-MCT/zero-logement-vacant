@@ -1,6 +1,7 @@
-import { toUserDTO, UserApi } from './UserApi';
 import { GroupDTO } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
+import { Struct } from 'effect';
+
+import { toUserDTO, UserApi } from './UserApi';
 
 export interface GroupApi
   extends Omit<GroupDTO, 'createdAt' | 'createdBy' | 'archivedAt'> {
@@ -17,9 +18,13 @@ export interface GroupApi
 
 export function toGroupDTO(group: GroupApi): GroupDTO {
   return {
-    ...fp.pick(
-      ['id', 'title', 'description', 'housingCount', 'ownerCount'],
-      group
+    ...Struct.pick(
+      group,
+      'id',
+      'title',
+      'description',
+      'housingCount',
+      'ownerCount'
     ),
     createdAt: group.createdAt.toJSON(),
     createdBy: group.createdBy ? toUserDTO(group.createdBy) : undefined,

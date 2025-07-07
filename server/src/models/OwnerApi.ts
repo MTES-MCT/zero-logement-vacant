@@ -3,7 +3,8 @@ import {
   OwnerEntity,
   OwnerPayloadDTO
 } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
+import { Struct } from 'effect';
+
 import { compare } from '~/utils/compareUtils';
 
 export interface OwnerPayloadApi extends Omit<OwnerPayloadDTO, 'birthDate'> {
@@ -19,22 +20,20 @@ export interface OwnerApi extends OwnerDTO {
 
 export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
   return {
-    ...fp.pick(
-      [
-        'id',
-        'rawAddress',
-        'fullName',
-        'administrator',
-        'email',
-        'phone',
-        'banAddress',
-        'additionalAddress',
-        'kind',
-        'kindDetail',
-        'createdAt',
-        'updatedAt'
-      ],
-      owner
+    ...Struct.pick(
+      owner,
+      'id',
+      'rawAddress',
+      'fullName',
+      'administrator',
+      'email',
+      'phone',
+      'banAddress',
+      'additionalAddress',
+      'kind',
+      'kindDetail',
+      'createdAt',
+      'updatedAt'
     ),
     birthDate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null
   };
@@ -42,16 +41,14 @@ export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
 
 export function fromOwnerPayloadDTO(payload: OwnerPayloadDTO): OwnerPayloadApi {
   return {
-    ...fp.pick(
-      [
-        'rawAddress',
-        'fullName',
-        'email',
-        'phone',
-        'banAddress',
-        'additionalAddress'
-      ],
-      payload
+    ...Struct.pick(
+      payload,
+      'rawAddress',
+      'fullName',
+      'email',
+      'phone',
+      'banAddress',
+      'additionalAddress'
     ),
     birthDate: payload.birthDate ? new Date(payload.birthDate) : undefined
   };

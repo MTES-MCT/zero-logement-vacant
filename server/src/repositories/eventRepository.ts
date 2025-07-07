@@ -4,7 +4,8 @@ import {
   EventSection
 } from '@zerologementvacant/models';
 import async from 'async';
-import fp from 'lodash/fp';
+import { Array } from 'effect';
+
 import config from '~/infra/config';
 import db from '~/infra/database';
 import { createLogger } from '~/infra/logger';
@@ -58,7 +59,7 @@ const insertManyHousingEvents = async (
   if (housingEvents.length) {
     await db.transaction(async (transaction) => {
       await async.forEach(
-        fp.chunk(config.app.batchSize, housingEvents),
+        Array.chunksOf(housingEvents, config.app.batchSize),
         async (chunk) => {
           await Events(transaction).insert(
             chunk.map((housingEvent) => ({
@@ -129,7 +130,7 @@ const insertManyGroupHousingEvents = async (
   });
   await db.transaction(async (transaction) => {
     await async.forEach(
-      fp.chunk(config.app.batchSize, groupHousingEvents),
+      Array.chunksOf(groupHousingEvents, config.app.batchSize),
       async (chunk) => {
         await Events(transaction).insert(chunk.map(formatEventApi));
         await GroupHousingEvents(transaction).insert(

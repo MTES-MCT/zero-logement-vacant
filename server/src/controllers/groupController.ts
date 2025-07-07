@@ -1,9 +1,10 @@
 import async from 'async';
+import { Array, pipe, Predicate } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
-import fp from 'lodash/fp';
+import lodash from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 
 import { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/models';
@@ -18,6 +19,7 @@ import { GroupHousingEventApi } from '~/models/EventApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingFiltersApi from '~/models/HousingFiltersApi';
 import config from '~/infra/config';
+import { HousingApi } from '~/models/HousingApi';
 
 const list = async (request: Request, response: Response): Promise<void> => {
   const { auth } = request as AuthenticatedRequest;
@@ -72,7 +74,11 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO> = async (
     title: body.title,
     description: body.description,
     housingCount: housingList.length,
-    ownerCount: fp.uniqBy('id', owners).length,
+    ownerCount: pipe(
+      owners,
+      Array.filter((owner) => Predicate.isNotUndefined(owner)),
+      Array.dedupeWith((a, b) => a.id === b.id).length
+    ),
     createdAt: new Date(),
     createdBy: user,
     userId: user.id,
@@ -87,7 +93,7 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO> = async (
     response.status(constants.HTTP_STATUS_ACCEPTED).json(toGroupDTO(group));
 
     // Add housing later to avoid blocking the user
-    const chunks = fp.chunk(config.app.batchSize, housingList);
+    const chunks = Array.chunksOf(housingList, config.app.batchSize);
     await async.forEach(chunks, async (chunk) => {
       await groupRepository.addHousing(group, chunk);
     });
@@ -219,14 +225,18 @@ const addHousing = async (
     })
   ]);
 
-  const diff = fp.differenceBy('id', addingHousingList, existingHousingList);
-  const uniqueHousingList = fp.uniqBy(
+  const diff = lodash.differenceBy(
+    'id',
+    addingHousingList,
+    existingHousingList
+  );
+  const uniqueHousingList = lodash.uniqBy(
     'id',
     addingHousingList.concat(existingHousingList)
   );
-  const uniqueOwners = fp.uniqBy(
+  const uniqueOwners = lodash.uniqBy(
     'id',
-    uniqueHousingList.map((housing) => housing.owner)
+    uniqueHousingList.map((housing: HousingApi) => housing.owner)
   );
 
   await groupRepository.addHousing(group, diff);
@@ -238,7 +248,7 @@ const addHousing = async (
   };
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 
-  const events: GroupHousingEventApi[] = diff.map((housing) => ({
+  const events: GroupHousingEventApi[] = diff.map((housing: HousingApi) => ({
     id: uuidv4(),
     name: 'Ajout dans un groupe',
     kind: 'Create',
@@ -302,17 +312,17 @@ const removeHousing = async (request: Request, response: Response) => {
     })
   ]);
 
-  const housingList = fp.differenceBy(
+  const housingList = lodash.differenceBy(
     'id',
     existingHousingList,
     removingHousingList
   );
-  const owners = housingList.map((housing) => housing.owner);
+  const owners = housingList.map((housing: HousingApi) => housing.owner);
 
   const updatedGroup: GroupApi = {
     ...group,
     housingCount: housingList.length,
-    ownerCount: fp.uniqBy('id', owners).length
+    ownerCount: lodash.uniqBy('id', owners).length
   };
   await groupRepository.removeHousing(updatedGroup, removingHousingList);
 

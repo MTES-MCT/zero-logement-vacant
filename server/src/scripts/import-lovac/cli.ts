@@ -1,4 +1,4 @@
-import commander from '@commander-js/extra-typings';
+import { program } from '@commander-js/extra-typings';
 
 import { createLogger } from '~/infra/logger';
 import { createHistoryCommand } from '~/scripts/import-lovac/history/history-command';
@@ -10,7 +10,7 @@ import { createSourceOwnerCommand } from '~/scripts/import-lovac/source-owners/s
 
 const logger = createLogger('cli');
 
-const program = new commander.Command()
+program
   .name('import-lovac')
   .description('Import LOVAC housings, owners and their relations');
 

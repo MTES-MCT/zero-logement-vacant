@@ -1,5 +1,5 @@
 import { Knex, knex } from 'knex';
-import fp from 'lodash/fp';
+import lodash from 'lodash-es';
 import { match } from 'ts-pattern';
 
 import config from '~/infra/database/knexfile';
@@ -31,11 +31,11 @@ interface WhereOptions {
 }
 
 export function where<T>(props: Array<keyof T>, opts?: WhereOptions) {
-  return fp.pipe(
-    fp.pick(props),
+  return lodash.pipe(
+    lodash.pick(props),
     compact,
-    fp.mapKeys(
-      fp.pipe(fp.snakeCase, (key) =>
+    lodash.mapKeys(
+      lodash.pipe(lodash.snakeCase, (key: string) =>
         opts?.table ? `${opts?.table}.${key}` : key
       )
     )

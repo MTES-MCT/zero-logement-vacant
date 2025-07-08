@@ -16,9 +16,7 @@
     }
   },
   "scripts": {
-    "clean": "rimraf dist",
-    "test": "jest",
-    "coverage": "jest --coverage"
+    "clean": "rimraf dist"
   },
   "peerDependencies": {
     "express": "^4.20.0"

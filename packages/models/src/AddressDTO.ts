@@ -58,6 +58,7 @@ export function formatAddress(
 
   return pipe(
     [additionalAddress, ...label],
-    Array.filter(Predicate.isNotNullable)
+    Array.filter(Predicate.isNotNullable),
+    Array.filter(String.isNonEmpty)
   );
 }

@@ -26,11 +26,7 @@
     }
   },
   "scripts": {
-    "clean": "rimraf dist tsconfig.build.tsbuildinfo",
-    "typecheck": "tsc --noEmit",
-    "test": "jest",
-    "coverage": "jest --coverage",
-    "dev": "nodemon --watch src -e ts --exec 'yarn build'"
+    "clean": "rimraf dist"
   },
   "dependencies": {
     "@zerologementvacant/draft": "workspace:*",

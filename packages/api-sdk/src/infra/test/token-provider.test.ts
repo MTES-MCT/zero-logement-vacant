@@ -48,9 +48,9 @@ function mockDB(): Knex {
   const user = {
     id: faker.string.uuid()
   };
-  return jest.fn().mockReturnValue({
-    where: jest.fn().mockReturnValue({
-      first: jest.fn().mockResolvedValue(user)
+  return vi.fn().mockReturnValue({
+    where: vi.fn().mockReturnValue({
+      first: vi.fn().mockResolvedValue(user)
     })
   }) as unknown as Knex;
 }

@@ -18,16 +18,14 @@
     }
   },
   "scripts": {
-    "clean": "rimraf dist tsconfig.build.tsbuildinfo",
-    "test": "jest",
-    "coverage": "jest --coverage"
+    "clean": "rimraf dist"
   },
   "dependencies": {
     "@zerologementvacant/models": "workspace:*",
     "yup": "^1.4.0"
   },
   "devDependencies": {
-    "@fast-check/jest": "^1.8.2",
+    "@fast-check/vitest": "^0.2.1",
     "@jest/globals": "^29.7.0",
     "@swc/core": "^1.11.8",
     "@swc/jest": "^0.2.37",

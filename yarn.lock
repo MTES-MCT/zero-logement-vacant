@@ -5369,6 +5369,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fast-check/vitest@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "@fast-check/vitest@npm:0.2.1"
+  dependencies:
+    fast-check: "npm:^3.0.0 || ^4.0.0"
+  peerDependencies:
+    vitest: ^1 || ^2 || ^3
+  checksum: 10c0/673be2203ee3656fe335de09edd59b81a9c12fcb3b189c997c34dda5218face38701f11ada3fdb848f5b80fa3a74feb6123f94a69ea83e06a25a6ecb2a665eb9
+  languageName: node
+  linkType: hard
+
 "@fast-csv/format@npm:4.3.5":
   version: 4.3.5
   resolution: "@fast-csv/format@npm:4.3.5"
@@ -17076,7 +17087,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/schemas@workspace:packages/schemas"
   dependencies:
-    "@fast-check/jest": "npm:^1.8.2"
+    "@fast-check/vitest": "npm:^0.2.1"
     "@jest/globals": "npm:^29.7.0"
     "@swc/core": "npm:^1.11.8"
     "@swc/jest": "npm:^0.2.37"
@@ -23993,6 +24004,15 @@ __metadata:
   version: 0.1.8
   resolution: "eyes@npm:0.1.8"
   checksum: 10c0/4c79a9cbf45746d8c9f48cc957e35ad8ea336add1c7b8d5a0e002efc791a7a62b27b2188184ef1a1eea7bc3cd06b161791421e0e6c5fe78309705a162c53eea8
+  languageName: node
+  linkType: hard
+
+"fast-check@npm:^3.0.0 || ^4.0.0":
+  version: 4.2.0
+  resolution: "fast-check@npm:4.2.0"
+  dependencies:
+    pure-rand: "npm:^7.0.0"
+  checksum: 10c0/bd945fa1e88e544b669fc9c7bf6d8609ab4546b611b7a861602cfa00992b316921d66a729217babe1ebdd107b05f63dd872bfc27e28c5f157868148c376efd64
   languageName: node
   linkType: hard
 
@@ -33458,6 +33478,13 @@ __metadata:
   version: 6.1.0
   resolution: "pure-rand@npm:6.1.0"
   checksum: 10c0/1abe217897bf74dcb3a0c9aba3555fe975023147b48db540aa2faf507aee91c03bf54f6aef0eb2bf59cc259a16d06b28eca37f0dc426d94f4692aeff02fb0e65
+  languageName: node
+  linkType: hard
+
+"pure-rand@npm:^7.0.0":
+  version: 7.0.1
+  resolution: "pure-rand@npm:7.0.1"
+  checksum: 10c0/9cade41030f5ec95f5d55a11a71404cd6f46b69becaad892097cd7f58e2c6248cd0a933349ca7d21336ab629f1da42ffe899699b671bc4651600eaf6e57f837e
   languageName: node
   linkType: hard
 

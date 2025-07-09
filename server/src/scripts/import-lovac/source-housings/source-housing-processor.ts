@@ -1,6 +1,7 @@
 import {
   AddressKinds,
   CadastralClassification,
+  HousingStatus,
   Occupancy,
   toEventHousingStatus
 } from '@zerologementvacant/models';
@@ -299,7 +300,7 @@ function applyChanges(
   if (rules.every((rule) => rule())) {
     return {
       occupancy: Occupancy.VACANT,
-      status: HousingStatusApi.NeverContacted as any,
+      status: HousingStatus.NEVER_CONTACTED,
       subStatus: null
     };
   }
@@ -316,10 +317,9 @@ function hasUserEvents(events: ReadonlyArray<HousingEventApi>): boolean {
     events.length > 0 &&
     events
       .filter((event) =>
-        [
-          'Changement de statut de suivi',
-          "Changement de statut d'occupation"
-        ].includes(event.name)
+        ['housing:occupancy-updated', 'housing:status-updated'].includes(
+          event.type
+        )
       )
       .some(isEventUserModified)
   );

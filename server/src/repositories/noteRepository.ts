@@ -1,5 +1,6 @@
 import { match } from 'ts-pattern';
 import db from '~/infra/database';
+import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import { HousingId } from '~/models/HousingApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
@@ -15,7 +16,8 @@ export const NOTES_TABLE = 'notes';
 export const OWNER_NOTES_TABLE = 'owner_notes';
 export const HOUSING_NOTES_TABLE = 'housing_notes';
 
-export const Notes = () => db<NoteRecordDBO>(NOTES_TABLE);
+export const Notes = (transaction = db) =>
+  transaction<NoteRecordDBO>(NOTES_TABLE);
 export const OwnerNotes = () =>
   db<{ note_id: string; owner_id: string }>(OWNER_NOTES_TABLE);
 export const HousingNotes = (transaction = db) =>
@@ -101,9 +103,13 @@ async function update(
 
 async function remove(id: string): Promise<void> {
   logger.debug('Removing note...', { id });
-  await Notes().where({ id }).update({
-    deleted_at: new Date()
+  await withinTransaction(async (transaction) => {
+    await Notes(transaction).where({ id }).update({
+      deleted_at: new Date()
+    });
+    await HousingNotes(transaction).where({ note_id: id }).delete();
   });
+
   logger.debug('Note removed', { id });
 }
 

@@ -280,7 +280,7 @@ describe('Source housing processor', () => {
               {
                 ...genEventApi({
                   type: 'housing:occupancy-updated',
-                  creator: admin,
+                  creator: user,
                   nextOld: { occupancy: Occupancy.VACANT },
                   nextNew: { occupancy: housing.occupancy }
                 }),
@@ -297,7 +297,7 @@ describe('Source housing processor', () => {
               {
                 ...genEventApi({
                   type: 'housing:status-updated',
-                  creator: admin,
+                  creator: user,
                   nextOld: { status: 'never-contacted' },
                   nextNew: { status: 'completed' }
                 }),

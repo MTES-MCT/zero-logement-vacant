@@ -274,7 +274,7 @@ describe('Source housing owner command', () => {
       >({
         housing_geo_code: existingHousing.geoCode,
         housing_id: existingHousing.id,
-        name: 'Changement de propriétaires'
+        type: 'housing:owner-attached'
       });
     });
   });

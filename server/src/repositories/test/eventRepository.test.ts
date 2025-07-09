@@ -1,14 +1,17 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { Occupancy } from '@zerologementvacant/models';
+import { ActiveOwnerRank, Occupancy } from '@zerologementvacant/models';
 
 import {
   CampaignEventApi,
+  CampaignHousingEventApi,
   GroupHousingEventApi,
   HousingEventApi,
+  HousingOwnerEventApi,
   OwnerEventApi,
   PrecisionHousingEventApi
 } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
+import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import {
   Campaigns,
   formatCampaignApi
@@ -19,21 +22,29 @@ import {
 } from '~/repositories/establishmentRepository';
 import eventRepository, {
   CampaignEvents,
+  CampaignHousingEvents,
   Events,
   formatCampaignEventApi,
+  formatCampaignHousingEventApi,
   formatEventApi,
   formatGroupHousingEventApi,
   formatHousingEventApi,
+  formatHousingOwnerEventApi,
   formatOwnerEventApi,
   formatPrecisionHousingEventApi,
   GroupHousingEvents,
   HousingEventDBO,
   HousingEvents,
+  HousingOwnerEvents,
   OwnerEventDBO,
   OwnerEvents,
   PrecisionHousingEvents
 } from '~/repositories/eventRepository';
 import { formatGroupApi, Groups } from '~/repositories/groupRepository';
+import {
+  formatHousingOwnerApi,
+  HousingOwners
+} from '~/repositories/housingOwnerRepository';
 import {
   formatHousingRecordApi,
   Housing
@@ -50,6 +61,7 @@ import {
   genEventApi,
   genGroupApi,
   genHousingApi,
+  genHousingOwnerApi,
   genOwnerApi,
   genPrecisionApi,
   genUserApi
@@ -163,11 +175,28 @@ describe('Event repository', () => {
     const housings: ReadonlyArray<HousingApi> = faker.helpers.multiple(() =>
       genHousingApi()
     );
+    const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(
+      (housing) => {
+        const owners = faker.helpers.multiple(() => genOwnerApi(), {
+          count: { min: 1, max: 6 }
+        });
+        return owners
+          .map((owner) => genHousingOwnerApi(housing, owner))
+          .map((housingOwner, i) => ({
+            ...housingOwner,
+            rank: (i + 1) as ActiveOwnerRank
+          }));
+      }
+    );
     const groups = faker.helpers.multiple(() =>
       genGroupApi(creator, establishment)
     );
     const precisions = faker.helpers.multiple(() =>
       genPrecisionApi(faker.number.int({ min: 10000, max: 99999 }))
+    );
+    // Add campaign housing events fixtures
+    const campaigns = faker.helpers.multiple(() =>
+      genCampaignApi(establishment.id, creator.id)
     );
 
     const housingEvents: ReadonlyArray<HousingEventApi> =
@@ -220,23 +249,68 @@ describe('Event repository', () => {
           }));
         })
         .flat();
+    const housingOwnerEvents: ReadonlyArray<HousingOwnerEventApi> =
+      housingOwners.map((housingOwner) => ({
+        ...genEventApi({
+          creator,
+          type: 'housing:owner-attached',
+          nextOld: null,
+          nextNew: {
+            name: housingOwner.fullName,
+            rank: housingOwner.rank
+          }
+        }),
+        housingGeoCode: housingOwner.housingGeoCode,
+        housingId: housingOwner.housingId,
+        ownerId: housingOwner.ownerId
+      }));
+    const campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi> =
+      campaigns
+        .map((campaign) => {
+          return housings.map((housing) => ({
+            ...genEventApi({
+              creator,
+              type: 'housing:campaign-attached',
+              nextOld: null,
+              nextNew: {
+                name: campaign.title
+              }
+            }),
+            campaignId: campaign.id,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id
+          }));
+        })
+        .flat();
+
     const events = [
       ...housingEvents,
       ...groupHousingEvents,
-      ...precisionHousingEvents
+      ...precisionHousingEvents,
+      ...housingOwnerEvents,
+      ...campaignHousingEvents
     ];
 
     beforeAll(async () => {
       await Housing().insert(housings.map(formatHousingRecordApi));
-      await Groups().insert(groups.map(formatGroupApi));
-      await Precisions().insert(precisions.map(formatPrecisionApi));
       await Events().insert(events.map(formatEventApi));
       await HousingEvents().insert(housingEvents.map(formatHousingEventApi));
+      await Groups().insert(groups.map(formatGroupApi));
       await GroupHousingEvents().insert(
         groupHousingEvents.map(formatGroupHousingEventApi)
       );
+      await Precisions().insert(precisions.map(formatPrecisionApi));
       await PrecisionHousingEvents().insert(
         precisionHousingEvents.map(formatPrecisionHousingEventApi)
+      );
+      await Owners().insert(housingOwners.map(formatOwnerApi));
+      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
+      await HousingOwnerEvents().insert(
+        housingOwnerEvents.map(formatHousingOwnerEventApi)
+      );
+      await Campaigns().insert(campaigns.map(formatCampaignApi));
+      await CampaignHousingEvents().insert(
+        campaignHousingEvents.map(formatCampaignHousingEventApi)
       );
     });
 
@@ -246,7 +320,7 @@ describe('Event repository', () => {
       expect(actual.length).toBeGreaterThan(0);
     });
 
-    it('should filter by housing, returning related group and precision events', async () => {
+    it('should filter by housing, returning related events', async () => {
       const housing = faker.helpers.arrayElement(housings);
 
       const actual = await eventRepository.find({
@@ -265,7 +339,12 @@ describe('Event repository', () => {
         });
     });
 
-    describe('Precision events', () => {
+    describe('Precision housing events', () => {
+      const types = [
+        'housing:precision-attached',
+        'housing:precision-detached'
+      ] as const;
+
       const housings = faker.helpers.multiple(() => genHousingApi());
       const precisions = faker.helpers.multiple(
         () => genPrecisionApi(faker.number.int({ min: 10000, max: 99999 })),
@@ -304,11 +383,6 @@ describe('Event repository', () => {
       });
 
       it('should return precision housing events', async () => {
-        const types = [
-          'housing:precision-attached',
-          'housing:precision-detached'
-        ] as const;
-
         const actual = await eventRepository.find({
           filters: {
             types: types
@@ -326,6 +400,7 @@ describe('Event repository', () => {
 
         const actual = await eventRepository.find({
           filters: {
+            types: types,
             housings: [{ geoCode: housing.geoCode, id: housing.id }]
           }
         });
@@ -342,7 +417,50 @@ describe('Event repository', () => {
       });
     });
 
-    describe('Group events', () => {
+    describe('Housing owner events', () => {
+      const types = [
+        'housing:owner-attached',
+        'housing:owner-updated',
+        'housing:owner-detached'
+      ] as const;
+
+      it('should return housing owner events', async () => {
+        const actual = await eventRepository.find({
+          filters: {
+            types: types
+          }
+        });
+
+        expect(actual.length).toBeGreaterThan(0);
+        actual.forEach((event) => {
+          expect(event.type).toBeOneOf(types);
+        });
+      });
+
+      it('should filter by housing', async () => {
+        const housing = faker.helpers.arrayElement(housings);
+
+        const actual = await eventRepository.find({
+          filters: {
+            types: types,
+            housings: [{ geoCode: housing.geoCode, id: housing.id }]
+          }
+        });
+
+        const housingOwnerEvents = events
+          .filter((event) => event.housingGeoCode === housing.geoCode)
+          .filter((event) => event.housingId === housing.id)
+          .filter((event) => types.some((type) => type === event.type));
+        expect(housingOwnerEvents.length).toBeGreaterThan(0);
+        housingOwnerEvents.forEach((event) => {
+          expect(actual).toPartiallyContain({
+            id: event.id
+          });
+        });
+      });
+    });
+
+    describe('Group housing events', () => {
       const housings = Array.from({ length: 3 }, () => genHousingApi());
       const groups = Array.from({ length: 3 }, () =>
         genGroupApi(creator, establishment)
@@ -440,6 +558,45 @@ describe('Event repository', () => {
           .filter((event) => event.housingId === housing.id);
         expect(groupHousingEvents.length).toBeGreaterThan(0);
         groupHousingEvents.forEach((event) => {
+          expect(actual).toPartiallyContain({
+            id: event.id
+          });
+        });
+      });
+    });
+
+    describe('Campaign housing events', () => {
+      const types = [
+        'housing:campaign-attached',
+        'housing:campaign-detached'
+      ] as const;
+
+      it('should return campaign housing events', async () => {
+        const actual = await eventRepository.find({
+          filters: {
+            types: types
+          }
+        });
+        expect(actual.length).toBeGreaterThan(0);
+        actual.forEach((event) => {
+          expect(event.type).toBeOneOf(types);
+        });
+      });
+
+      it('should filter by housing', async () => {
+        const housing = faker.helpers.arrayElement(housings);
+        const actual = await eventRepository.find({
+          filters: {
+            types: types,
+            housings: [{ geoCode: housing.geoCode, id: housing.id }]
+          }
+        });
+        const campaignHousingEvents = events
+          .filter((event) => event.housingGeoCode === housing.geoCode)
+          .filter((event) => event.housingId === housing.id)
+          .filter((event) => types.some((type) => type === event.type));
+        expect(campaignHousingEvents.length).toBeGreaterThan(0);
+        campaignHousingEvents.forEach((event) => {
           expect(actual).toPartiallyContain({
             id: event.id
           });

@@ -1,11 +1,12 @@
-import { EventDTO, EventUnionDTO } from '@zerologementvacant/models';
+import { EventDTO, EventType, EventUnionDTO } from '@zerologementvacant/models';
+import { Array, Order, pipe } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import { logger } from '~/infra/logger';
-import { toEventDTO } from '~/models/EventApi';
+import { EventApi, toEventDTO } from '~/models/EventApi';
 import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import ownerRepository from '~/repositories/ownerRepository';
@@ -101,8 +102,15 @@ async function listByHousingId(
     })
   ]);
 
-  const events = [...ownerEvents, ...housingEvents];
-  // TODO: sort by createdAt in descending order
+  const byCreationDate = Order.mapInput<Date, EventApi<EventType>>(
+    Order.Date,
+    (event) => new Date(event.createdAt)
+  );
+  const events = pipe(
+    [...ownerEvents, ...housingEvents],
+    Array.sort(Order.reverse(byCreationDate))
+  );
+
   response
     .status(constants.HTTP_STATUS_OK)
     .json(events.map(toEventDTO) as FindByHousingResponse);

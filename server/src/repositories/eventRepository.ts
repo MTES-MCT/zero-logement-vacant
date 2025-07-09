@@ -245,6 +245,32 @@ async function find<Type extends EventType>(
                   ],
                   housings.map((housing) => [housing.geoCode, housing.id])
                 );
+            })
+            // Add housing events related to owners
+            .unionAll((union) => {
+              union
+                .select(`${HOUSING_OWNER_EVENTS_TABLE}.event_id`)
+                .from(HOUSING_OWNER_EVENTS_TABLE)
+                .whereIn(
+                  [
+                    `${HOUSING_OWNER_EVENTS_TABLE}.housing_geo_code`,
+                    `${HOUSING_OWNER_EVENTS_TABLE}.housing_id`
+                  ],
+                  housings.map((housing) => [housing.geoCode, housing.id])
+                );
+            })
+            // Add housing events related to campaigns
+            .unionAll((union) => {
+              union
+                .select(`${CAMPAIGN_HOUSING_EVENTS_TABLE}.event_id`)
+                .from(CAMPAIGN_HOUSING_EVENTS_TABLE)
+                .whereIn(
+                  [
+                    `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code`,
+                    `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id`
+                  ],
+                  housings.map((housing) => [housing.geoCode, housing.id])
+                );
             });
         });
       }

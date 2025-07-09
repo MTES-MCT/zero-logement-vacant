@@ -1,4 +1,9 @@
-import { Occupancy } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus,
+  Occupancy,
+  OCCUPANCY_LABELS
+} from '@zerologementvacant/models';
 import { flatten, toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
 import { HousingApi } from '~/models/HousingApi';
@@ -128,9 +133,9 @@ describe('Housing processor', () => {
           type: 'event',
           kind: 'create',
           value: expect.objectContaining<Partial<HousingEventChange['value']>>({
-            name: 'Changement de statut d’occupation',
-            old: expect.objectContaining({ occupancy: housing.occupancy }),
-            new: expect.objectContaining({ occupancy: Occupancy.UNKNOWN }),
+            type: 'housing:occupancy-updated',
+            nextOld: { occupancy: OCCUPANCY_LABELS[housing.occupancy] },
+            nextNew: { occupancy: OCCUPANCY_LABELS[Occupancy.UNKNOWN] },
             housingId: housing.id,
             housingGeoCode: housing.geoCode
           })
@@ -144,14 +149,15 @@ describe('Housing processor', () => {
           type: 'event',
           kind: 'create',
           value: expect.objectContaining<Partial<HousingEventChange['value']>>({
-            name: 'Changement de statut de suivi',
-            old: expect.objectContaining<Partial<HousingApi>>({
-              status: housing.status
-            }),
-            new: expect.objectContaining<Partial<HousingApi>>({
-              status: toHousingStatus(HousingStatusApi.Completed),
+            type: 'housing:status-updated',
+            nextOld: {
+              status: HOUSING_STATUS_LABELS[housing.status],
+              subStatus: null
+            },
+            nextNew: {
+              status: HOUSING_STATUS_LABELS[HousingStatus.COMPLETED],
               subStatus: 'Sortie de la vacance'
-            }),
+            },
             housingId: housing.id,
             housingGeoCode: housing.geoCode
           })

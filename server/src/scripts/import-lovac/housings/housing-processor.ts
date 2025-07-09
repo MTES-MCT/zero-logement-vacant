@@ -1,7 +1,8 @@
 import {
+  HOUSING_STATUS_LABELS,
   HousingStatus,
   Occupancy,
-  toEventHousingStatus
+  OCCUPANCY_LABELS
 } from '@zerologementvacant/models';
 import { map } from '@zerologementvacant/utils/node';
 import { v4 as uuidv4 } from 'uuid';
@@ -56,8 +57,8 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                   name: 'Changement de statut d’occupation',
                   type: 'housing:occupancy-updated',
                   // Retain only the interesting values
-                  nextOld: { occupancy: housing.occupancy },
-                  nextNew: { occupancy: Occupancy.UNKNOWN },
+                  nextOld: { occupancy: OCCUPANCY_LABELS[housing.occupancy] },
+                  nextNew: { occupancy: OCCUPANCY_LABELS[Occupancy.UNKNOWN] },
                   createdAt: new Date().toJSON(),
                   createdBy: auth.id,
                   housingId: housing.id,
@@ -73,11 +74,11 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                   type: 'housing:status-updated',
                   // Retain only the interesting values
                   nextOld: {
-                    status: toEventHousingStatus(housing.status),
+                    status: HOUSING_STATUS_LABELS[housing.status],
                     subStatus: housing.subStatus
                   },
                   nextNew: {
-                    status: 'completed',
+                    status: HOUSING_STATUS_LABELS[HousingStatus.COMPLETED],
                     subStatus: 'Sortie de la vacance'
                   },
                   createdAt: new Date().toJSON(),

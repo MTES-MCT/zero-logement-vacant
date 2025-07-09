@@ -139,6 +139,7 @@ export const genEstablishmentApi = (
 export function genUserApi(establishmentId: string): UserApi {
   return {
     ...fromUserDTO(genUserDTO()),
+    password: '123QWEasd',
     establishmentId: establishmentId
   };
 }

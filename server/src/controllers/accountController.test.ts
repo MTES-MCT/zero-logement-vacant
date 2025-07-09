@@ -35,7 +35,7 @@ describe('Account controller', () => {
   const user: UserApi = genUserApi(establishment.id);
   const admin: UserApi = {
     ...genUserApi(establishment.id),
-    establishmentId: undefined,
+    establishmentId: null,
     role: UserRole.ADMIN
   };
 

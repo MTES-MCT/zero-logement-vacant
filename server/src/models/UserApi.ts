@@ -6,19 +6,25 @@ export const SALT_LENGTH = 10;
 
 export type UserApi = UserDTO & {
   password: string;
-  phone?: string;
-  position?: string;
-  timePerWeek?: string;
+  phone: string | null;
+  position: string | null;
+  timePerWeek: string | null;
   // Timestamps
-  lastAuthenticatedAt?: string;
-  updatedAt?: string;
-  deletedAt?: string;
+  lastAuthenticatedAt: string | null;
+  updatedAt: string | null;
+  deletedAt: string | null;
 };
 
 export function fromUserDTO(user: UserDTO): UserApi {
   return {
     ...user,
-    password: ''
+    phone: null,
+    position: null,
+    timePerWeek: null,
+    password: '',
+    lastAuthenticatedAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
+    deletedAt: null
   };
 }
 

@@ -469,13 +469,17 @@ export function genSignupLinkDTO(prospectEmail: string): SignupLinkDTO {
   };
 }
 
-export function genUserDTO(role = UserRole.USUAL): UserDTO {
+export function genUserDTO(
+  role = UserRole.USUAL,
+  establishment?: Pick<EstablishmentDTO, 'id'>
+): UserDTO {
   return {
     id: faker.string.uuid(),
     email: faker.internet.email(),
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     activatedAt: faker.date.recent().toJSON(),
+    establishmentId: establishment?.id ?? null,
     role
   };
 }

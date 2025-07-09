@@ -1,4 +1,4 @@
-import { fc, test } from '@fast-check/jest';
+import { fc, test } from '@fast-check/vitest';
 import { BuildingFiltersDTO } from '@zerologementvacant/models';
 import { buildingFilters } from '../building-filters';
 

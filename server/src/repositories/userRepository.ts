@@ -96,17 +96,17 @@ export interface UserDBO {
   id: string;
   email: string;
   password: string;
-  first_name?: string;
-  last_name?: string;
-  establishment_id?: string;
+  first_name: string | null;
+  last_name: string | null;
+  establishment_id: string | null;
   role: number;
-  activated_at?: Date | string;
-  last_authenticated_at?: Date | string;
-  deleted_at?: Date | string;
-  updated_at?: Date | string;
-  phone?: string;
-  position?: string;
-  time_per_week?: string;
+  activated_at: Date | string | null;
+  last_authenticated_at: Date | string | null;
+  deleted_at: Date | string | null;
+  updated_at: Date | string | null;
+  phone: string | null;
+  position: string | null;
+  time_per_week: string | null;
 }
 
 export const parseUserApi = (userDBO: UserDBO): UserApi => ({
@@ -119,16 +119,12 @@ export const parseUserApi = (userDBO: UserDBO): UserApi => ({
   role: userDBO.role,
   activatedAt: userDBO.activated_at
     ? new Date(userDBO.activated_at).toJSON()
-    : undefined,
+    : null,
   lastAuthenticatedAt: userDBO.last_authenticated_at
     ? new Date(userDBO.last_authenticated_at).toJSON()
-    : undefined,
-  deletedAt: userDBO.deleted_at
-    ? new Date(userDBO.deleted_at).toJSON()
-    : undefined,
-  updatedAt: userDBO.updated_at
-    ? new Date(userDBO.updated_at).toJSON()
-    : undefined,
+    : null,
+  deletedAt: userDBO.deleted_at ? new Date(userDBO.deleted_at).toJSON() : null,
+  updatedAt: userDBO.updated_at ? new Date(userDBO.updated_at).toJSON() : null,
   phone: userDBO.phone,
   position: userDBO.position,
   timePerWeek: userDBO.time_per_week
@@ -144,16 +140,12 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
   role: userApi.role,
   activated_at: userApi.activatedAt
     ? new Date(userApi.activatedAt).toJSON()
-    : undefined,
+    : null,
   last_authenticated_at: userApi.lastAuthenticatedAt
     ? new Date(userApi.lastAuthenticatedAt).toJSON()
-    : undefined,
-  deleted_at: userApi.deletedAt
-    ? new Date(userApi.deletedAt).toJSON()
-    : undefined,
-  updated_at: userApi.updatedAt
-    ? new Date(userApi.updatedAt).toJSON()
-    : undefined,
+    : null,
+  deleted_at: userApi.deletedAt ? new Date(userApi.deletedAt).toJSON() : null,
+  updated_at: userApi.updatedAt ? new Date(userApi.updatedAt).toJSON() : null,
   phone: userApi.phone,
   position: userApi.position,
   time_per_week: userApi.timePerWeek

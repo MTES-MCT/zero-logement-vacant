@@ -45,7 +45,7 @@ describe('EventsHistory', () => {
     email: 'admin@zerologementvacant.beta.gouv.fr',
     firstName: 'Zéro',
     lastName: 'Logement Vacant',
-    establishmentId: undefined
+    establishmentId: null
   };
 
   it('should sort events by date and time descending', () => {
@@ -108,10 +108,10 @@ describe('EventsHistory', () => {
 
       const title = screen.queryByText(/a mis à jour des informations/);
       expect(title).toBeVisible();
-      const datetime = screen.getByText('le 01/01/2020 à 13:00');
+      const datetime = screen.getByText('le 01/01/2020');
       expect(datetime).toBeVisible();
       const details = screen.getByRole('button', {
-        name: 'Plus de détail'
+        name: 'Plus de détails'
       });
       await user.click(details);
       const description = screen.queryByText(
@@ -214,7 +214,7 @@ describe('EventsHistory', () => {
       });
 
       const details = screen.getAllByRole('button', {
-        name: 'Plus de détail'
+        name: 'Plus de détails'
       });
       await async.forEachSeries(details, async (detail) => {
         await user.click(detail);

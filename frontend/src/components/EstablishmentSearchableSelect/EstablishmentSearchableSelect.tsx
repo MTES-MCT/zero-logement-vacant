@@ -3,6 +3,7 @@ import { AutocompleteValue } from '@mui/material/Autocomplete';
 
 import { EstablishmentDTO } from '@zerologementvacant/models';
 import { ReactNode } from 'react';
+import { usePreviousDistinct } from 'react-use';
 import { match, Pattern } from 'ts-pattern';
 import { useLazyFindEstablishmentsQuery } from '../../services/establishment.service';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
@@ -37,6 +38,13 @@ function EstablishmentSearchableSelect<
     }
   }
 
+  const previous = usePreviousDistinct(
+    props.value,
+    (prev, next) => prev === next
+  );
+
+  console.log('Value', props.value, previous);
+
   return (
     <SearchableSelectNext
       className={props.className}
@@ -49,11 +57,12 @@ function EstablishmentSearchableSelect<
       getOptionKey={(option) => option.id}
       getOptionLabel={(option) => option.name}
       isOptionEqualToValue={(option, value) => option.id === value.id}
-      value={props.value}
+      value={previous}
       onChange={(establishment) => {
         match(establishment)
           .with(Pattern.string, () => {})
           .otherwise((establishment) => {
+            console.log('OnChange', establishment);
             props.onChange(establishment);
           });
       }}

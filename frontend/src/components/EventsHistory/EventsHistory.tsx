@@ -165,7 +165,12 @@ function EventsHistory({ events, notes }: Props) {
             multiple
             options={creators}
             getOptionKey={(option) => option.id}
-            getOptionLabel={(option) => formatAuthor(option, null)}
+            getOptionLabel={(option) => {
+              const establishment = establishments?.find(
+                (establishment) => establishment.id === option.establishmentId
+              );
+              return formatAuthor(option, establishment ?? null);
+            }}
             getOptionValue={(option) => option.id}
             value={filters.creators}
             onChange={(options) => {

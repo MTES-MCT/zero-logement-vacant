@@ -82,7 +82,7 @@ function EventCard(props: EventCardProps) {
                   onClick={toggleShowAllDifferences}
                   size="small"
                 >
-                  Plus de détail
+                  Plus de détails
                 </Button>
               );
             }

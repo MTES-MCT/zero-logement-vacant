@@ -11,7 +11,7 @@ function Footer() {
     <DSFRFooter
       accessibility="non compliant"
       accessibilityLinkProps={{
-        to: 'https://zerologementvacant.beta.gouv.fr/accessibilite'
+        to: 'https://zerologementvacant.beta.gouv.fr/accessibilite-de-la-plateforme/'
       }}
       brandTop={
         <>

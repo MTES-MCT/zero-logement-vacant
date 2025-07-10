@@ -4,14 +4,15 @@ import {
   ACTIVE_OWNER_RANKS,
   AddressKinds,
   CADASTRAL_CLASSIFICATION_VALUES,
+  DATA_FILE_YEAR_VALUES,
   DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
   ESTABLISHMENT_KIND_VALUES,
-  EVENT_CATEGORY_VALUES,
-  EVENT_KIND_VALUES,
-  EVENT_SECTION_VALUES,
+  EventType,
   HOUSING_KIND_VALUES,
   HOUSING_SOURCE_VALUES,
+  HOUSING_STATUS_VALUES,
+  HousingStatus,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   LOCALITY_KIND_VALUES,
@@ -19,11 +20,17 @@ import {
   OCCUPANCY_VALUES,
   OWNER_ENTITY_VALUES,
   OWNER_KIND_LABELS,
+  PRECISION_CATEGORY_VALUES,
   PROPERTY_RIGHT_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
-import { genGeoCode } from '@zerologementvacant/models/fixtures';
+import {
+  genEventDTO,
+  genGeoCode,
+  genNoteDTO,
+  genUserDTO
+} from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
 import fp from 'lodash/fp';
@@ -42,24 +49,16 @@ import {
 import { ContactPointApi } from '~/models/ContactPointApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
-import {
-  EventApi,
-  GroupHousingEventApi,
-  HousingEventApi,
-  OwnerEventApi
-} from '~/models/EventApi';
+import { EventApi, fromEventDTO } from '~/models/EventApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import {
-  HOUSING_STATUS_VALUES,
-  HousingStatusApi
-} from '~/models/HousingStatusApi';
 import { LocalityApi, TaxKindsApi } from '~/models/LocalityApi';
-import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
+import { fromNoteDTO, HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { OwnerProspectApi } from '~/models/OwnerProspectApi';
+import { PrecisionApi } from '~/models/PrecisionApi';
 import { ProspectApi } from '~/models/ProspectApi';
 import {
   RESET_LINK_EXPIRATION,
@@ -73,7 +72,7 @@ import {
   SIGNUP_LINK_LENGTH,
   SignupLinkApi
 } from '~/models/SignupLinkApi';
-import { UserApi, UserRoles } from '~/models/UserApi';
+import { fromUserDTO, toUserDTO, UserApi } from '~/models/UserApi';
 import { OwnerMatchDBO } from '~/repositories/ownerMatchRepository';
 import { DatafoncierOwner } from '~/scripts/shared';
 
@@ -137,24 +136,13 @@ export const genEstablishmentApi = (
   };
 };
 
-export const genUserApi = (establishmentId: string): UserApi => {
+export function genUserApi(establishmentId: string): UserApi {
   return {
-    id: uuidv4(),
-    email: genEmail(),
-    password: randomstring.generate(),
-    firstName: faker.person.firstName(),
-    lastName: faker.person.lastName(),
-    establishmentId,
-    role: UserRoles.Usual,
-    activatedAt: faker.date.recent(),
-    phone: faker.phone.number(),
-    position: faker.person.jobType(),
-    timePerWeek: randomstring.generate(),
-    lastAuthenticatedAt: faker.date.recent(),
-    updatedAt: faker.date.recent(),
-    deletedAt: undefined
+    ...fromUserDTO(genUserDTO()),
+    password: '123QWEasd',
+    establishmentId: establishmentId
   };
-};
+}
 
 export const genUserAccountDTO: UserAccountDTO = {
   firstName: faker.person.firstName(),
@@ -218,7 +206,11 @@ export const genOwnerApi = (): OwnerApi => {
       ...Object.values(OWNER_KIND_LABELS)
     ]),
     kindDetail: randomstring.generate(),
+    administrator: null,
+    banAddress: null,
     additionalAddress: randomstring.generate(),
+    createdAt: new Date().toJSON(),
+    updatedAt: new Date().toJSON(),
     entity: faker.helpers.arrayElement(OWNER_ENTITY_VALUES)
   };
 };
@@ -306,13 +298,8 @@ export const genHousingApi = (
       max: new Date().getUTCFullYear() + 1 - 2019
     }
   );
-  const dataFileYears = dataYears
-    .map((year) => `lovac-${year}`)
-    .concat(
-      faker.helpers.maybe(() => 'ff-2023', {
-        probability: 0.2
-      }) ?? []
-    )
+  const dataFileYears = faker.helpers
+    .arrayElements(DATA_FILE_YEAR_VALUES)
     .toSorted();
 
   return {
@@ -362,11 +349,11 @@ export const genHousingApi = (
       ) ?? null,
     status: faker.helpers.weightedArrayElement([
       {
-        value: HousingStatusApi.NeverContacted,
+        value: HousingStatus.NEVER_CONTACTED,
         weight: HOUSING_STATUS_VALUES.length - 1
       },
       ...HOUSING_STATUS_VALUES.filter(
-        (status) => status !== HousingStatusApi.NeverContacted
+        (status) => status !== HousingStatus.NEVER_CONTACTED
       ).map((status) => ({
         value: status,
         weight: 1
@@ -385,7 +372,7 @@ export const genHousingApi = (
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
-    mutationDate: faker.date.past({ years: 20 }),
+    mutationDate: faker.date.past({ years: 20 }).toJSON(),
     geolocation: null,
     plotId: null,
     beneficiaryCount: null,
@@ -398,9 +385,11 @@ export const genHousingApi = (
     rentalValue: faker.number.int({ min: 500, max: 1000 }),
     deprecatedPrecisions: [],
     lastMutationDate:
-      faker.helpers.maybe(() => faker.date.past({ years: 20 })) ?? null,
+      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+      null,
     lastTransactionDate:
-      faker.helpers.maybe(() => faker.date.past({ years: 20 })) ?? null,
+      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
+      null,
     lastTransactionValue:
       faker.helpers.maybe(() => Number(faker.finance.amount({ dec: 0 }))) ??
       null
@@ -507,59 +496,20 @@ export const genSettingsApi = (establishmentId: string): SettingsApi => {
   };
 };
 
-function genEventApi<T>(creator: UserApi): EventApi<T> {
-  return {
-    id: uuidv4(),
-    name: randomstring.generate(),
-    kind: faker.helpers.arrayElement(EVENT_KIND_VALUES),
-    category: faker.helpers.arrayElement(EVENT_CATEGORY_VALUES),
-    section: faker.helpers.arrayElement(EVENT_SECTION_VALUES),
-    conflict: genBoolean(),
-    createdAt: new Date(),
-    createdBy: creator.id,
-    creator: creator
-  };
+type EventOptions<Type extends EventType> = MarkRequired<
+  Pick<EventApi<Type>, 'type' | 'creator' | 'nextOld' | 'nextNew'>,
+  'creator'
+>;
+export function genEventApi<Type extends EventType>(
+  options: EventOptions<Type>
+): EventApi<Type> {
+  return fromEventDTO(
+    genEventDTO<Type>({
+      ...options,
+      creator: toUserDTO(options.creator)
+    })
+  );
 }
-
-export const genOwnerEventApi = (
-  owner: OwnerApi,
-  creator: UserApi
-): OwnerEventApi => {
-  return {
-    ...genEventApi<OwnerApi>(creator),
-    old: { ...genOwnerApi(), id: owner.id },
-    new: { ...genOwnerApi(), id: owner.id },
-    ownerId: owner.id
-  };
-};
-
-export const genHousingEventApi = (
-  housing: HousingApi,
-  creator: UserApi
-): HousingEventApi => {
-  return {
-    ...genEventApi<HousingApi>(creator),
-    old: housing,
-    new: { ...genHousingApi(housing.geoCode), id: housing.id },
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode
-  };
-};
-
-export const genGroupHousingEventApi = (
-  housing: HousingApi,
-  group: GroupApi,
-  creator: UserApi
-): GroupHousingEventApi => {
-  return {
-    ...genEventApi<GroupApi>(creator),
-    old: group,
-    new: group,
-    groupId: group.id,
-    housingId: housing.id,
-    housingGeoCode: housing.geoCode
-  };
-};
 
 export const genGroupApi = (
   creator: UserApi,
@@ -846,14 +796,8 @@ export const genHousingOwnerConflictApi = (
   housingId: housing.id
 });
 
-const genNoteApi = (creator: UserApi): NoteApi => ({
-  id: uuidv4(),
-  noteKind: faker.word.noun(),
-  content: faker.lorem.paragraph(),
-  createdBy: creator.id,
-  creator,
-  createdAt: faker.date.past()
-});
+const genNoteApi = (creator: UserApi): NoteApi =>
+  fromNoteDTO(genNoteDTO(toUserDTO(creator)));
 
 export const genHousingNoteApi = (
   creator: UserApi,
@@ -914,5 +858,14 @@ export function genSenderApi(
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment.id
+  };
+}
+
+export function genPrecisionApi(order: number): PrecisionApi {
+  return {
+    id: faker.string.uuid(),
+    category: faker.helpers.arrayElement(PRECISION_CATEGORY_VALUES),
+    label: faker.lorem.word(),
+    order
   };
 }

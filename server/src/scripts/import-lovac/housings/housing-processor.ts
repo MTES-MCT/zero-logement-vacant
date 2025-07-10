@@ -1,10 +1,14 @@
-import { Occupancy } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus,
+  Occupancy,
+  OCCUPANCY_LABELS
+} from '@zerologementvacant/models';
 import { map } from '@zerologementvacant/utils/node';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '~/infra/logger';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { UserApi } from '~/models/UserApi';
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
 
@@ -41,7 +45,7 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                 value: {
                   ...housing,
                   occupancy: Occupancy.UNKNOWN,
-                  status: HousingStatusApi.Completed,
+                  status: HousingStatus.COMPLETED,
                   subStatus: 'Sortie de la vacance'
                 }
               },
@@ -51,14 +55,11 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                 value: {
                   id: uuidv4(),
                   name: 'Changement de statut d’occupation',
-                  kind: 'Update',
-                  category: 'Followup',
-                  section: 'Situation',
-                  conflict: false,
+                  type: 'housing:occupancy-updated',
                   // Retain only the interesting values
-                  old: { occupancy: housing.occupancy } as HousingApi,
-                  new: { occupancy: Occupancy.UNKNOWN } as HousingApi,
-                  createdAt: new Date(),
+                  nextOld: { occupancy: OCCUPANCY_LABELS[housing.occupancy] },
+                  nextNew: { occupancy: OCCUPANCY_LABELS[Occupancy.UNKNOWN] },
+                  createdAt: new Date().toJSON(),
                   createdBy: auth.id,
                   housingId: housing.id,
                   housingGeoCode: housing.geoCode
@@ -70,20 +71,17 @@ export function createHousingProcessor(opts: ProcessorOptions) {
                 value: {
                   id: uuidv4(),
                   name: 'Changement de statut de suivi',
-                  kind: 'Update',
-                  category: 'Followup',
-                  section: 'Situation',
-                  conflict: false,
+                  type: 'housing:status-updated',
                   // Retain only the interesting values
-                  old: {
-                    status: housing.status,
+                  nextOld: {
+                    status: HOUSING_STATUS_LABELS[housing.status],
                     subStatus: housing.subStatus
-                  } as HousingApi,
-                  new: {
-                    status: HousingStatusApi.Completed,
+                  },
+                  nextNew: {
+                    status: HOUSING_STATUS_LABELS[HousingStatus.COMPLETED],
                     subStatus: 'Sortie de la vacance'
-                  } as HousingApi,
-                  createdAt: new Date(),
+                  },
+                  createdAt: new Date().toJSON(),
                   createdBy: auth.id,
                   housingId: housing.id,
                   housingGeoCode: housing.geoCode
@@ -115,12 +113,12 @@ export function createHousingProcessor(opts: ProcessorOptions) {
 
 export function isInProgress(housing: HousingApi): boolean {
   return (
-    housing.status === HousingStatusApi.InProgress &&
+    housing.status === HousingStatus.IN_PROGRESS &&
     !!housing.subStatus &&
     ['En accompagnement', 'Intervention publique'].includes(housing.subStatus)
   );
 }
 
 export function isCompleted(housing: HousingApi): boolean {
-  return housing.status === HousingStatusApi.Completed;
+  return housing.status === HousingStatus.COMPLETED;
 }

@@ -1,34 +1,30 @@
+import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { subDays } from 'date-fns';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
+import { createServer } from '~/infra/server';
+import { ResetLinkApi } from '~/models/ResetLinkApi';
+import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import {
+  formatResetLinkApi,
+  ResetLinks
+} from '~/repositories/resetLinkRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 
 import {
   genEstablishmentApi,
   genNumber,
   genResetLinkApi,
   genUserAccountDTO,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
-import {
-  formatResetLinkApi,
-  ResetLinks,
-} from '~/repositories/resetLinkRepository';
-import { ResetLinkApi } from '~/models/ResetLinkApi';
-import { formatUserApi, Users } from '~/repositories/userRepository';
-import { createServer } from '~/infra/server';
 import { tokenProvider } from '~/test/testUtils';
-import {
-  SALT_LENGTH,
-  toUserAccountDTO,
-  UserApi,
-  UserRoles,
-} from '~/models/UserApi';
-import {
-  Establishments,
-  formatEstablishmentApi,
-} from '~/repositories/establishmentRepository';
 
 jest.mock('../services/ceremaService/mockCeremaService');
 
@@ -39,15 +35,15 @@ describe('Account controller', () => {
   const user: UserApi = genUserApi(establishment.id);
   const admin: UserApi = {
     ...genUserApi(establishment.id),
-    establishmentId: undefined,
-    role: UserRoles.Admin,
+    establishmentId: null,
+    role: UserRole.ADMIN
   };
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
     const users: UserApi[] = [user, admin].map((user) => ({
       ...user,
-      password: bcrypt.hashSync(user.password, SALT_LENGTH),
+      password: bcrypt.hashSync(user.password, SALT_LENGTH)
     }));
     await Users().insert(users.map(formatUserApi));
   });
@@ -60,7 +56,7 @@ describe('Account controller', () => {
         .post(testRoute)
         .send({
           email: 'test',
-          password: '123Valid',
+          password: '123Valid'
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
@@ -68,7 +64,7 @@ describe('Account controller', () => {
         .post(testRoute)
         .send({
           email: 'test@test.test',
-          password: '   ',
+          password: '   '
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
@@ -78,7 +74,7 @@ describe('Account controller', () => {
         .post(testRoute)
         .send({
           email: 'test@test.test',
-          password: '123Valid',
+          password: '123Valid'
         })
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -86,20 +82,20 @@ describe('Account controller', () => {
     it('should fail if an admin tries to connect as a user', async () => {
       const { body, status } = await request(app).post(testRoute).send({
         email: admin.email,
-        password: admin.password,
+        password: admin.password
       });
 
       expect(status).toBe(constants.HTTP_STATUS_UNPROCESSABLE_ENTITY);
       expect(body).toStrictEqual({
         name: 'UnprocessableEntityError',
-        message: 'Unprocessable entity',
+        message: 'Unprocessable entity'
       });
     });
 
     it('should fail if the password is wrong', async () => {
       const { status } = await request(app).post(testRoute).send({
         email: user.email,
-        password: '123ValidButWrong',
+        password: '123ValidButWrong'
       });
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
@@ -108,13 +104,13 @@ describe('Account controller', () => {
     it('should succeed', async () => {
       const { body, status } = await request(app).post(testRoute).send({
         email: user.email,
-        password: user.password,
+        password: user.password
       });
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
         establishment,
-        accessToken: expect.any(String),
+        accessToken: expect.any(String)
       });
     });
   });
@@ -182,7 +178,7 @@ describe('Account controller', () => {
         last_name: userAccountDTO.lastName,
         phone: userAccountDTO.phone,
         position: userAccountDTO.position,
-        time_per_week: userAccountDTO.timePerWeek,
+        time_per_week: userAccountDTO.timePerWeek
       });
     });
   });
@@ -211,7 +207,7 @@ describe('Account controller', () => {
         .put(testRoute)
         .send({
           currentPassword: 'NotTheirCurrentPassword',
-          newPassword: '123QWEasd',
+          newPassword: '123QWEasd'
         })
         .use(tokenProvider(user));
 
@@ -223,7 +219,7 @@ describe('Account controller', () => {
         .put(testRoute)
         .send({
           currentPassword: user.password,
-          newPassword: '123QWEasd',
+          newPassword: '123QWEasd'
         })
         .use(tokenProvider(user));
 
@@ -240,7 +236,7 @@ describe('Account controller', () => {
         .post(testRoute)
         .send({
           key: '',
-          password: '123QWEasd',
+          password: '123QWEasd'
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
@@ -249,9 +245,9 @@ describe('Account controller', () => {
         .send({
           key: randomstring.generate({
             length: 100,
-            charset: 'alphanumeric',
+            charset: 'alphanumeric'
           }),
-          password: '123',
+          password: '123'
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
@@ -260,9 +256,9 @@ describe('Account controller', () => {
         .send({
           key: randomstring.generate({
             length: 100,
-            charset: 'alphanumeric',
+            charset: 'alphanumeric'
           }),
-          password: 'QWE',
+          password: 'QWE'
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
@@ -271,9 +267,9 @@ describe('Account controller', () => {
         .send({
           key: randomstring.generate({
             length: 100,
-            charset: 'alphanumeric',
+            charset: 'alphanumeric'
           }),
-          password: 'asd',
+          password: 'asd'
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
@@ -281,13 +277,13 @@ describe('Account controller', () => {
     it('should be impossible if the reset link has expired', async () => {
       const link: ResetLinkApi = {
         ...genResetLinkApi(user.id),
-        expiresAt: subDays(new Date(), 1),
+        expiresAt: subDays(new Date(), 1)
       };
       await ResetLinks().insert(formatResetLinkApi(link));
 
       const { status } = await request(app).post(testRoute).send({
         key: link.id,
-        password: '123QWEasd',
+        password: '123QWEasd'
       });
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
@@ -298,7 +294,7 @@ describe('Account controller', () => {
 
       const { status } = await request(app).post(testRoute).send({
         key: link.id,
-        password: '123QWEasd',
+        password: '123QWEasd'
       });
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
@@ -311,7 +307,7 @@ describe('Account controller', () => {
 
       const { status } = await request(app).post(testRoute).send({
         key: link.id,
-        password: newPassword,
+        password: newPassword
       });
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -333,7 +329,7 @@ describe('Account controller', () => {
       }
       const passwordsMatch = await bcrypt.compare(
         newPassword,
-        actualUser.password,
+        actualUser.password
       );
       expect(passwordsMatch).toBeTrue();
     });

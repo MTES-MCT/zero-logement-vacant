@@ -1,7 +1,9 @@
 import {
   AddressKinds,
   CadastralClassification,
-  Occupancy
+  HousingStatus,
+  Occupancy,
+  toEventHousingStatus
 } from '@zerologementvacant/models';
 import { Predicate } from '@zerologementvacant/utils';
 import { map } from '@zerologementvacant/utils/node';
@@ -85,39 +87,45 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             invariant: sourceHousing.invariant,
             localId: sourceHousing.local_id,
             buildingId: sourceHousing.building_id,
-            buildingGroupId: undefined,
+            buildingGroupId: null,
             buildingLocation: sourceHousing.building_location,
-            buildingYear: sourceHousing.building_year ?? undefined,
+            buildingYear: sourceHousing.building_year ?? null,
             plotId: sourceHousing.plot_id,
             geoCode: sourceHousing.geo_code,
             rawAddress: [sourceHousing.dgfip_address],
-            longitude: sourceHousing.dgfip_longitude ?? undefined,
-            latitude: sourceHousing.dgfip_latitude ?? undefined,
+            longitude: sourceHousing.dgfip_longitude ?? null,
+            latitude: sourceHousing.dgfip_latitude ?? null,
             housingKind: sourceHousing.housing_kind,
-            ownershipKind: sourceHousing.condominium ?? undefined,
+            ownershipKind: sourceHousing.condominium ?? null,
             livingArea: sourceHousing.living_area,
             roomsCount: sourceHousing.rooms_count,
             uncomfortable: sourceHousing.uncomfortable ?? false,
             cadastralClassification: sourceHousing.cadastral_classification,
             cadastralReference: sourceHousing.cadastral_reference,
-            beneficiaryCount: undefined,
-            geolocation: undefined,
+            beneficiaryCount: null,
+            geolocation: null,
             taxed: sourceHousing.taxed,
-            rentalValue: sourceHousing.rental_value ?? undefined,
+            rentalValue: sourceHousing.rental_value ?? null,
             occupancy: Occupancy.VACANT,
             occupancyRegistered: Occupancy.VACANT,
             occupancyIntended: null,
             vacancyStartYear: sourceHousing.vacancy_start_year,
-            mutationDate: sourceHousing.mutation_date,
-            lastMutationDate: sourceHousing.last_mutation_date,
-            lastTransactionDate: sourceHousing.last_transaction_date,
+            mutationDate: sourceHousing.mutation_date
+              ? sourceHousing.mutation_date.toISOString()
+              : null,
+            lastMutationDate: sourceHousing.last_mutation_date
+              ? sourceHousing.last_mutation_date.toISOString()
+              : null,
+            lastTransactionDate: sourceHousing.last_transaction_date
+              ? sourceHousing.last_transaction_date.toISOString()
+              : null,
             lastTransactionValue: sourceHousing.last_transaction_value,
             deprecatedVacancyReasons: null,
             deprecatedPrecisions: null,
             source: 'lovac',
             dataYears: [2024],
             dataFileYears: ['lovac-2025'],
-            status: HousingStatusApi.NeverContacted,
+            status: HousingStatusApi.NeverContacted as any,
             subStatus: null,
             energyConsumption: null,
             energyConsumptionAt: null
@@ -165,7 +173,7 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
 
         const dataFileYears = normalizeDataFileYears(
           existingHousing.dataFileYears.concat('lovac-2025')
-        );
+        ) as any;
         const events: HousingEventApi[] = [];
 
         const patch = applyChanges(
@@ -180,15 +188,11 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           events.push({
             id: uuidv4(),
             name: 'Changement de statut d’occupation',
-            kind: 'Update',
-            category: 'Followup',
-            section: 'Situation',
-            conflict: false,
-            // Assert types until we change the Event API
-            old: { occupancy: existingHousing.occupancy } as HousingApi,
-            new: { occupancy: patch.occupancy } as HousingApi,
+            type: 'housing:occupancy-updated',
+            nextOld: { occupancy: existingHousing.occupancy },
+            nextNew: { occupancy: patch.occupancy },
             createdBy: auth.id,
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
             housingGeoCode: existingHousing.geoCode,
             housingId: existingHousing.id
           });
@@ -200,21 +204,17 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           events.push({
             id: uuidv4(),
             name: 'Changement de statut de suivi',
-            kind: 'Update',
-            category: 'Followup',
-            section: 'Situation',
-            conflict: false,
-            // This event should come after the above one
-            old: {
-              status: existingHousing.status,
+            type: 'housing:status-updated',
+            nextOld: {
+              status: toEventHousingStatus(existingHousing.status),
               subStatus: existingHousing.subStatus
-            } as HousingApi,
-            new: {
-              status: patch.status,
+            },
+            nextNew: {
+              status: toEventHousingStatus(patch.status),
               subStatus: patch.subStatus
-            } as HousingApi,
+            },
             createdBy: auth.id,
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
             housingGeoCode: existingHousing.geoCode,
             housingId: existingHousing.id
           });
@@ -229,13 +229,13 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           // Other updatable properties
           buildingId: sourceHousing.building_id,
           buildingLocation: sourceHousing.building_location,
-          buildingYear: sourceHousing.building_year ?? undefined,
+          buildingYear: sourceHousing.building_year ?? null,
           plotId: sourceHousing.plot_id,
           rawAddress: [sourceHousing.dgfip_address],
-          latitude: sourceHousing.dgfip_latitude ?? undefined,
-          longitude: sourceHousing.dgfip_longitude ?? undefined,
+          latitude: sourceHousing.dgfip_latitude ?? null,
+          longitude: sourceHousing.dgfip_longitude ?? null,
           housingKind: sourceHousing.housing_kind,
-          ownershipKind: sourceHousing.condominium ?? undefined,
+          ownershipKind: sourceHousing.condominium ?? null,
           livingArea: sourceHousing.living_area,
           roomsCount: sourceHousing.rooms_count,
           uncomfortable: sourceHousing.uncomfortable ?? false,
@@ -244,11 +244,17 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             null,
           cadastralReference: sourceHousing.cadastral_reference,
           taxed: sourceHousing.taxed,
-          rentalValue: sourceHousing.rental_value ?? undefined,
+          rentalValue: sourceHousing.rental_value ?? null,
           vacancyStartYear: sourceHousing.vacancy_start_year,
-          mutationDate: sourceHousing.mutation_date,
-          lastMutationDate: sourceHousing.last_mutation_date,
-          lastTransactionDate: sourceHousing.last_transaction_date,
+          mutationDate: sourceHousing.mutation_date
+            ? sourceHousing.mutation_date.toISOString()
+            : null,
+          lastMutationDate: sourceHousing.last_mutation_date
+            ? sourceHousing.last_mutation_date.toISOString()
+            : null,
+          lastTransactionDate: sourceHousing.last_transaction_date
+            ? sourceHousing.last_transaction_date.toISOString()
+            : null,
           lastTransactionValue: sourceHousing.last_transaction_value
         };
 
@@ -294,7 +300,7 @@ function applyChanges(
   if (rules.every((rule) => rule())) {
     return {
       occupancy: Occupancy.VACANT,
-      status: HousingStatusApi.NeverContacted,
+      status: HousingStatus.NEVER_CONTACTED,
       subStatus: null
     };
   }
@@ -311,10 +317,9 @@ function hasUserEvents(events: ReadonlyArray<HousingEventApi>): boolean {
     events.length > 0 &&
     events
       .filter((event) =>
-        [
-          'Changement de statut de suivi',
-          'Changement de statut d’occupation'
-        ].includes(event.name)
+        ['housing:occupancy-updated', 'housing:status-updated'].includes(
+          event.type
+        )
       )
       .some(isEventUserModified)
   );

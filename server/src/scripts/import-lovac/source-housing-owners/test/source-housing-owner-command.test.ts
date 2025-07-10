@@ -23,10 +23,10 @@ import {
 } from '~/repositories/establishmentRepository';
 import {
   EventDBO,
-  eventsTable,
+  EVENTS_TABLE,
+  HOUSING_EVENTS_TABLE,
   HousingEventDBO,
-  HousingEvents,
-  housingEventsTable
+  HousingEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingOwnerApi,
@@ -265,16 +265,16 @@ describe('Source housing owner command', () => {
           housing_id: existingHousing.id
         })
         .join(
-          eventsTable,
-          `${eventsTable}.id`,
-          `${housingEventsTable}.event_id`
+          EVENTS_TABLE,
+          `${EVENTS_TABLE}.id`,
+          `${HOUSING_EVENTS_TABLE}.event_id`
         );
       expect(actual).toPartiallyContain<
         Partial<EventDBO<any> & HousingEventDBO>
       >({
         housing_geo_code: existingHousing.geoCode,
         housing_id: existingHousing.id,
-        name: 'Changement de propriétaires'
+        type: 'housing:owner-attached'
       });
     });
   });

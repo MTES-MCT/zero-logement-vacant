@@ -1,15 +1,19 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import { AutocompleteValue } from '@mui/material/Autocomplete';
+import {
+  AutocompleteProps,
+  AutocompleteValue
+} from '@mui/material/Autocomplete';
 
 import { EstablishmentDTO } from '@zerologementvacant/models';
 import { ReactNode } from 'react';
-import { match, Pattern } from 'ts-pattern';
 import { useLazyFindEstablishmentsQuery } from '../../services/establishment.service';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 
-interface Props<Multiple extends boolean, DisableClearable extends boolean> {
+type Props<Multiple extends boolean, DisableClearable extends boolean> = Pick<
+  AutocompleteProps<EstablishmentDTO, Multiple, DisableClearable, false>,
+  'disableClearable' | 'multiple'
+> & {
   className?: string;
-  disableClearable?: DisableClearable;
   label?: ReactNode;
   value: AutocompleteValue<EstablishmentDTO, Multiple, DisableClearable, false>;
   onChange(
@@ -20,15 +24,17 @@ interface Props<Multiple extends boolean, DisableClearable extends boolean> {
       false
     >
   ): void;
-}
+};
 
 function EstablishmentSearchableSelect<
   Multiple extends boolean = false,
   DisableClearable extends boolean = false
 >(props: Props<Multiple, DisableClearable>) {
-  const [findEstablishments, { data, isFetching }] =
+  const [findEstablishments, { data: establishments, isFetching }] =
     useLazyFindEstablishmentsQuery();
-  const establishments = data ?? [];
+
+  const options = (establishments ??
+    []) as unknown as ReadonlyArray<EstablishmentDTO>;
 
   async function search(query: string | undefined): Promise<void> {
     if (query) {
@@ -42,24 +48,14 @@ function EstablishmentSearchableSelect<
       disableClearable={props.disableClearable}
       debounce={250}
       search={search}
-      options={establishments}
+      options={options}
       loading={isFetching}
       label={props.label ?? null}
-      getOptionKey={(option) =>
-        typeof option === 'string' ? option : option.id
-      }
-      getOptionLabel={(option) =>
-        typeof option === 'string' ? option : option.name
-      }
+      getOptionKey={(option) => option.id}
+      getOptionLabel={(option) => option.name}
       isOptionEqualToValue={(option, value) => option.id === value.id}
       value={props.value}
-      onChange={(establishment) => {
-        match(establishment)
-          .with(Pattern.string, () => {})
-          .otherwise((establishment) => {
-            props.onChange(establishment);
-          });
-      }}
+      onChange={props.onChange}
       autocompleteProps={{
         autoHighlight: true,
         openOnFocus: true

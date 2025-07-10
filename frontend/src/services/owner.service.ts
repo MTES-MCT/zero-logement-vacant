@@ -1,9 +1,11 @@
 import {
   HousingOwnerDTO,
+  OwnerCreationPayload,
   OwnerDTO,
-  OwnerPayloadDTO
+  OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
+import { fromAddressDTO } from '../models/Address';
 import {
   fromHousingOwnerDTO,
   fromOwnerDTO,
@@ -73,7 +75,7 @@ export const ownerApi = zlvApi.injectEndpoints({
         housingOwners.map(fromHousingOwnerDTO)
     }),
 
-    createOwner: builder.mutation<Owner, OwnerPayloadDTO>({
+    createOwner: builder.mutation<Owner, OwnerCreationPayload>({
       query: (payload) => ({
         url: 'owners/creation',
         method: 'POST',
@@ -83,19 +85,21 @@ export const ownerApi = zlvApi.injectEndpoints({
       invalidatesTags: () => [{ type: 'Owner', id: 'LIST' }]
     }),
 
-    updateOwner: builder.mutation<void, OwnerPayloadDTO & Pick<Owner, 'id'>>({
-      query: (payload) => ({
-        url: `owners/${payload.id}`,
-        method: 'PUT',
-        body: payload
-      }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'Owner', id },
-        { type: 'HousingOwner', id },
-        'Housing',
-        'Event'
-      ]
-    }),
+    updateOwner: builder.mutation<void, OwnerUpdatePayload & Pick<Owner, 'id'>>(
+      {
+        query: (payload) => ({
+          url: `owners/${payload.id}`,
+          method: 'PUT',
+          body: payload
+        }),
+        invalidatesTags: (result, error, { id }) => [
+          { type: 'Owner', id },
+          { type: 'HousingOwner', id },
+          'Housing',
+          'Event'
+        ]
+      }
+    ),
 
     updateHousingOwners: builder.mutation<
       void,
@@ -118,15 +122,14 @@ export const ownerApi = zlvApi.injectEndpoints({
 export function parseOwner(owner: OwnerDTO): Owner {
   return {
     ...owner,
+    banAddress: owner.banAddress ? fromAddressDTO(owner.banAddress) : undefined,
     rawAddress: owner.rawAddress
       ? owner.rawAddress
           .filter((_: string) => _)
           .map((_: string) => toTitleCase(_))
       : [],
     fullName: toTitleCase(owner.fullName.replace(/^(MME |M )/i, '')),
-    administrator: owner.administrator
-      ? toTitleCase(owner.administrator)
-      : undefined
+    administrator: owner.administrator ? toTitleCase(owner.administrator) : null
   };
 }
 

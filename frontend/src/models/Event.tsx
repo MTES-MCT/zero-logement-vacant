@@ -1,12 +1,22 @@
-import { EventDTO } from '@zerologementvacant/models';
+import {
+  EventDTO,
+  EventHousingStatus,
+  EventType
+} from '@zerologementvacant/models';
+import { match } from 'ts-pattern';
 
 import { fromUserDTO, User } from './User';
 
-export type Event<T = any> = Omit<EventDTO<T>, 'creator'> & {
+export type Event<Type extends EventType = EventType> = Omit<
+  EventDTO<Type>,
+  'creator'
+> & {
   creator: User;
 };
 
-export function fromEventDTO<T>(event: EventDTO<T>): Event<T> {
+export function fromEventDTO<Type extends EventType>(
+  event: EventDTO<Type>
+): Event<Type> {
   if (!event.creator) {
     throw new Error('Event creator is missing');
   }
@@ -15,4 +25,16 @@ export function fromEventDTO<T>(event: EventDTO<T>): Event<T> {
     ...event,
     creator: fromUserDTO(event.creator)
   };
+}
+
+export function formatEventHousingStatus(status: EventHousingStatus): string {
+  return match(status)
+    .returnType<string>()
+    .with('never-contacted', () => 'Non suivi')
+    .with('waiting', () => 'En attente de retour')
+    .with('first-contact', () => 'Premier contact')
+    .with('in-progress', () => 'Suivi en cours')
+    .with('completed', () => 'Suivi terminé')
+    .with('blocked', () => 'Suivi bloqué')
+    .exhaustive();
 }

@@ -1,3 +1,5 @@
+import { Equivalence } from 'effect';
+
 export interface Precision {
   id: string;
   category: PrecisionCategory;
@@ -52,3 +54,17 @@ export function isPrecisionEvolutionCategory(
 ): category is (typeof PRECISION_EVOLUTION_CATEGORY_VALUES)[number] {
   return PRECISION_EVOLUTION_CATEGORY_VALUES.includes(category);
 }
+
+/**
+ * The equivalence between two precisions is defined by their `id`.
+ * @example
+ * const actual = PRECISION_EQUIVALENCE(
+ *   { id: '123', label: 'A' },
+ *   { id: '123', label: 'B' }
+ * )
+ * expect(actual).toBeTrue()
+ */
+export const PRECISION_EQUIVALENCE = Equivalence.mapInput<
+  Precision,
+  Precision['id']
+>((precision) => precision.id)(Equivalence.string);

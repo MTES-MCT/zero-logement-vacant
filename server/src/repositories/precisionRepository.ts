@@ -86,6 +86,24 @@ async function link(
   }
 }
 
+export function formatPrecisionApi(precision: PrecisionApi): PrecisionDBO {
+  return {
+    id: precision.id,
+    label: precision.label,
+    category: precision.category,
+    order: precision.order
+  };
+}
+
+export function formatPrecisionHousingApi(housing: HousingApi) {
+  return (precision: PrecisionApi): HousingPrecisionDBO => ({
+    housing_geo_code: housing.geoCode,
+    housing_id: housing.id,
+    precision_id: precision.id,
+    created_at: new Date()
+  });
+}
+
 const precisionRepository = {
   find,
   link

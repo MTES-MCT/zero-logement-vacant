@@ -1,9 +1,9 @@
 import { faker } from '@faker-js/faker';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { UserRole } from '@zerologementvacant/models';
 import { Provider } from 'react-redux';
 import { Group } from '../../../models/Group';
-import { UserRoles } from '../../../models/User';
 import configureTestStore from '../../../utils/test/storeUtils';
 import GroupCampaignCreationModal from './GroupCampaignCreationModal';
 
@@ -20,7 +20,7 @@ const createGroup = (): Group => {
       email: faker.internet.email(),
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
-      role: UserRoles.Usual,
+      role: UserRole.USUAL,
       activatedAt: faker.date.past(),
       establishmentId: faker.string.uuid()
     },

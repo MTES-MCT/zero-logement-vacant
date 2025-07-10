@@ -1,7 +1,5 @@
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import { Occupancy } from '@zerologementvacant/models';
-
-import { OCCUPANCY_LABELS } from '../../models/Housing';
+import { Occupancy, OCCUPANCY_LABELS } from '@zerologementvacant/models';
 
 export interface OccupancyBadgeProps {
   occupancy: Occupancy;

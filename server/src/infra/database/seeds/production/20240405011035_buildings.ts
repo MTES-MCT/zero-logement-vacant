@@ -1,10 +1,10 @@
+import { Occupancy } from '@zerologementvacant/models';
 import { Knex } from 'knex';
 
-import { OccupancyKindApi } from '~/models/HousingApi';
 import {
   buildingTable,
   housingTable,
-  ReferenceDataYear,
+  ReferenceDataYear
 } from '~/repositories/housingRepository';
 
 export async function seed(knex: Knex): Promise<void> {
@@ -22,11 +22,6 @@ export async function seed(knex: Knex): Promise<void> {
       DO
         UPDATE SET vacant_housing_count = EXCLUDED.vacant_housing_count
     `,
-    [
-      buildingTable,
-      OccupancyKindApi.Vacant,
-      ReferenceDataYear - 2,
-      housingTable,
-    ],
+    [buildingTable, Occupancy.VACANT, ReferenceDataYear - 2, housingTable]
   );
 }

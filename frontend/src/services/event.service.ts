@@ -1,25 +1,37 @@
-import { Event } from '../models/Event';
-import { parseISO } from 'date-fns';
+import { EventDTO } from '@zerologementvacant/models';
+
+import { Event, fromEventDTO } from '../models/Event';
 import { zlvApi } from './api.service';
 
 export const eventApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findEventsByOwner: builder.query<Event[], string>({
       query: (id) => `/owners/${id}/events`,
-      providesTags: () => ['Event'],
-      transformResponse: (events: any[]) => events.map(parseEvent),
+      providesTags: (events) =>
+        events
+          ? events.map((event) => ({ type: 'Event' as const, id: event.id }))
+          : ['Event'],
+      transformResponse: (events: ReadonlyArray<EventDTO>) =>
+        events.map(fromEventDTO)
     }),
     findEventsByHousing: builder.query<Event[], string>({
       query: (id) => `/housing/${id}/events`,
-      providesTags: () => ['Event'],
-      transformResponse: (events: any[]) => events.map(parseEvent),
-    }),
-  }),
-});
-
-const parseEvent = (e: any): Event => ({
-  ...e,
-  createdAt: e.createdAt ? parseISO(e.createdAt) : undefined,
+      providesTags: (events, _error, housingId) =>
+        events
+          ? [
+              ...events.map((event) => ({
+                type: 'Event' as const,
+                id: event.id
+              })),
+              {
+                type: 'HousingEvent' as const,
+                id: housingId
+              }
+            ]
+          : ['Event', 'HousingEvent'],
+      transformResponse: (events: EventDTO[]) => events.map(fromEventDTO)
+    })
+  })
 });
 
 export const { useFindEventsByHousingQuery, useFindEventsByOwnerQuery } =

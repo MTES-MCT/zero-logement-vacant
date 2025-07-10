@@ -3,18 +3,28 @@ import {
   NoteDTO,
   NotePayloadDTO
 } from '@zerologementvacant/models';
-import { parseISO } from 'date-fns';
-import { Note } from '../models/Note';
-import { fromUserDTO } from '../models/User';
+
+import { fromNoteDTO, Note } from '../models/Note';
 import { zlvApi } from './api.service';
 
 export const noteApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findNotesByHousing: builder.query<Note[], string>({
       query: (id) => `housing/${id}/notes`,
-      providesTags: () => ['Note'],
-      transformResponse: (notes: ReadonlyArray<NoteDTO>) => notes.map(parseNote)
+      providesTags: (notes) =>
+        notes
+          ? [
+              ...notes.map((note) => ({
+                type: 'Note' as const,
+                id: note.id
+              })),
+              { type: 'Note', id: 'LIST' }
+            ]
+          : [{ type: 'Note', id: 'LIST' }],
+      transformResponse: (notes: ReadonlyArray<NoteDTO>) =>
+        notes.map(fromNoteDTO)
     }),
+
     createNoteByHousing: builder.mutation<
       NoteDTO,
       Pick<HousingDTO, 'id'> & NotePayloadDTO
@@ -25,21 +35,36 @@ export const noteApi = zlvApi.injectEndpoints({
         body: payload
       }),
       invalidatesTags: () => ['Note']
+    }),
+
+    updateNote: builder.mutation<NoteDTO, Pick<NoteDTO, 'id'> & NotePayloadDTO>(
+      {
+        query: ({ id, ...payload }) => ({
+          url: `notes/${id}`,
+          method: 'PUT',
+          body: payload
+        }),
+        invalidatesTags: (_result, _error, args) => [
+          { type: 'Note', id: args.id }
+        ]
+      }
+    ),
+
+    removeNote: builder.mutation<void, Note>({
+      query: (note) => ({
+        url: `notes/${note.id}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: (_result, _error, note) => [
+        { type: 'Note', id: note.id }
+      ]
     })
   })
 });
 
-function parseNote(note: NoteDTO): Note {
-  if (!note.creator) {
-    throw new Error('Note creator is missing');
-  }
-
-  return {
-    ...note,
-    createdAt: parseISO(note.createdAt),
-    creator: fromUserDTO(note.creator)
-  };
-}
-
-export const { useFindNotesByHousingQuery, useCreateNoteByHousingMutation } =
-  noteApi;
+export const {
+  useFindNotesByHousingQuery,
+  useCreateNoteByHousingMutation,
+  useUpdateNoteMutation,
+  useRemoveNoteMutation
+} = noteApi;

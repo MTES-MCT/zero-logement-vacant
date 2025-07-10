@@ -1,10 +1,14 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { Occupancy, OCCUPANCY_VALUES } from '@zerologementvacant/models';
+import {
+  HousingStatus,
+  Occupancy,
+  OCCUPANCY_VALUES
+} from '@zerologementvacant/models';
 import { flatten, toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingEventApi } from '~/models/EventApi';
-import { HousingApi, OccupancyKindApi } from '~/models/HousingApi';
+import { HousingApi } from '~/models/HousingApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { HousingNoteApi } from '~/models/NoteApi';
 import { UserApi } from '~/models/UserApi';
@@ -19,8 +23,8 @@ import {
 } from '~/scripts/import-lovac/source-housings/source-housing-processor';
 import {
   genEstablishmentApi,
+  genEventApi,
   genHousingApi,
-  genHousingEventApi,
   genHousingNoteApi,
   genUserApi
 } from '~/test/testFixtures';
@@ -92,7 +96,7 @@ describe('Source housing processor', () => {
         kind: 'create',
         value: expect.objectContaining({
           dataFileYears: ['lovac-2025'],
-          occupancy: OccupancyKindApi.Vacant,
+          occupancy: Occupancy.VACANT,
           status: HousingStatusApi.NeverContacted
         })
       });
@@ -166,7 +170,7 @@ describe('Source housing processor', () => {
         housing.occupancy = faker.helpers.arrayElement(
           OCCUPANCY_VALUES.filter((occupancy) => occupancy !== Occupancy.VACANT)
         );
-        housing.status = HousingStatusApi.Completed;
+        housing.status = HousingStatus.COMPLETED;
         housingRepository.findOne.mockResolvedValue(housing);
       });
 
@@ -183,8 +187,14 @@ describe('Source housing processor', () => {
           condition() {
             events = [
               {
-                ...genHousingEventApi(housing, admin),
-                name: 'Changement de statut d’occupation'
+                ...genEventApi({
+                  type: 'housing:occupancy-updated',
+                  creator: admin,
+                  nextOld: { occupancy: Occupancy.VACANT },
+                  nextNew: { occupancy: housing.occupancy }
+                }),
+                housingGeoCode: housing.geoCode,
+                housingId: housing.id
               }
             ];
             notes = [];
@@ -195,8 +205,14 @@ describe('Source housing processor', () => {
           condition() {
             events = [
               {
-                ...genHousingEventApi(housing, admin),
-                name: 'Changement de statut de suivi'
+                ...genEventApi({
+                  type: 'housing:status-updated',
+                  creator: admin,
+                  nextOld: { status: 'never-contacted' },
+                  nextNew: { status: 'completed' }
+                }),
+                housingGeoCode: housing.geoCode,
+                housingId: housing.id
               }
             ];
             notes = [];
@@ -229,7 +245,7 @@ describe('Source housing processor', () => {
             value: expect.objectContaining<Partial<HousingApi>>({
               dataFileYears: expect.arrayContaining(['lovac-2025']),
               occupancy: Occupancy.VACANT,
-              status: HousingStatusApi.NeverContacted,
+              status: HousingStatus.NEVER_CONTACTED,
               subStatus: null
             })
           });
@@ -262,8 +278,14 @@ describe('Source housing processor', () => {
           condition() {
             events = [
               {
-                ...genHousingEventApi(housing, user),
-                name: 'Changement de statut d’occupation'
+                ...genEventApi({
+                  type: 'housing:occupancy-updated',
+                  creator: user,
+                  nextOld: { occupancy: Occupancy.VACANT },
+                  nextNew: { occupancy: housing.occupancy }
+                }),
+                housingGeoCode: housing.geoCode,
+                housingId: housing.id
               }
             ];
           }
@@ -273,8 +295,14 @@ describe('Source housing processor', () => {
           condition() {
             events = [
               {
-                ...genHousingEventApi(housing, user),
-                name: 'Changement de statut de suivi'
+                ...genEventApi({
+                  type: 'housing:status-updated',
+                  creator: user,
+                  nextOld: { status: 'never-contacted' },
+                  nextNew: { status: 'completed' }
+                }),
+                housingGeoCode: housing.geoCode,
+                housingId: housing.id
               }
             ];
           }

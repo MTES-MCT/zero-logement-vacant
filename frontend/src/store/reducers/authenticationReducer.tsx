@@ -88,6 +88,7 @@ const authenticationSlice = createSlice({
       .addCase(changeEstablishment.fulfilled, (state, action) => {
         localStorage.setItem(AUTH_KEY, JSON.stringify(action.payload));
         state.authUser = action.payload;
+        state.logIn.data = action.payload;
         state.changeEstablishment.error = undefined;
         state.changeEstablishment.isError = false;
         state.changeEstablishment.isLoading = false;

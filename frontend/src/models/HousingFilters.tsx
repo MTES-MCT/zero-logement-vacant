@@ -914,8 +914,8 @@ export const LAST_MUTATION_YEAR_LABELS: Record<LastMutationYearFilter, string> =
     '2023': '2023',
     '2022': '2022',
     '2021': '2021',
-    '2015to2020': '2015 - 2020',
-    '2010to2014': '2010 - 2014',
+    '2015to2020': 'Entre 2020 et 2015',
+    '2010to2014': 'Entre 2014 et 2010',
     lte2009: 'Avant 2010'
   };
 export const LAST_MUTATION_YEAR_SELECT_OPTIONS: SelectOption<LastMutationYearFilter | null>[] =

@@ -924,6 +924,14 @@ function filteredQuery(opts: FilteredQueryOptions) {
       });
     }
 
+    if (filters.lastMutationYears?.includes(null)) {
+      queryBuilder.where((where) => {
+        where
+          .whereNull(`${housingTable}.last_mutation_date`)
+          .whereNull(`${housingTable}.last_transaction_date`);
+      });
+    }
+
     if (filters.lastMutationYears?.length) {
       queryBuilder.where((where) => {
         const years = (filters.lastMutationYears ?? [])

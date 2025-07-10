@@ -112,10 +112,6 @@ describe('Housing repository', () => {
     await Users().insert(formatUserApi(user));
   });
 
-  it('should compute the `last_mutation_type` field', async () => {
-    // TODO
-  });
-
   describe('find', () => {
     const housings = Array.from({ length: 10 }, () => genHousingApi());
     const owners = housings.map((housing) => housing.owner);
@@ -1832,7 +1828,7 @@ describe('Housing repository', () => {
 
           const tests: ReadonlyArray<{
             name: string;
-            filter: LastMutationYearFilter[];
+            filter: Array<LastMutationYearFilter | null>;
             predicate: Predicate<HousingApi>;
           }> = [
             {
@@ -1935,6 +1931,20 @@ describe('Housing repository', () => {
                 return mutation?.date
                   ? mutation.date.getUTCFullYear() <= 2009
                   : false;
+              }
+            },
+            {
+              name: 'housings that have no mutation date',
+              filter: [null],
+              predicate: (housing: HousingApi) => {
+                const mutation = fromHousing({
+                  lastMutationType: housing.lastMutationType,
+                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
+                  lastTransactionDate:
+                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastTransactionValue: housing.lastTransactionValue
+                });
+                return mutation === null;
               }
             }
           ];
@@ -2256,7 +2266,7 @@ describe('Housing repository', () => {
                   housing.lastTransactionDate?.toJSON() ?? null,
                 lastTransactionValue: housing.lastTransactionValue
               });
-              return mutation === null;
+              return mutation === null || mutation.type === null;
             });
           });
         });

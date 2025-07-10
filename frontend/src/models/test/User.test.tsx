@@ -14,7 +14,9 @@ describe('User', () => {
 
     it('should return the email otherwise', () => {
       const actual = createdBy({
-        email: 'john.doe@example.com'
+        email: 'john.doe@example.com',
+        firstName: null,
+        lastName: null
       });
 
       expect(actual).toBe('john.doe@example.com');
@@ -37,7 +39,9 @@ describe('User', () => {
 
     it('should return the email if the first or last name is not defined', () => {
       const user = {
-        email: 'test@test.test'
+        email: 'test@test.test',
+        firstName: null,
+        lastName: null
       };
       const establishment = null;
 
@@ -48,7 +52,9 @@ describe('User', () => {
 
     it('should append the establishment name if available', () => {
       const user = {
-        email: 'test@test.test'
+        email: 'test@test.test',
+        firstName: null,
+        lastName: null
       };
       const establishment = {
         name: 'Eurométropole de Strasbourg'

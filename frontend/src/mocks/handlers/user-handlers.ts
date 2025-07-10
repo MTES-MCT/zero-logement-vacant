@@ -19,7 +19,11 @@ export const userHandlers: RequestHandler[] = [
       const user: UserDTO = {
         id: faker.string.uuid(),
         email: payload.email,
-        role: UserRole.USUAL
+        role: UserRole.USUAL,
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        activatedAt: new Date().toJSON(),
+        establishmentId: faker.string.uuid()
       };
       return HttpResponse.json(user, {
         status: constants.HTTP_STATUS_CREATED

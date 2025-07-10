@@ -4,12 +4,16 @@ import {
   HousingSource,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
+  Mutation,
+  MUTATION_TYPE_VALUES,
+  MutationType,
   Occupancy,
   OWNER_KIND_LABELS,
   PaginationOptions,
   Precision
 } from '@zerologementvacant/models';
 import { isNotNull } from '@zerologementvacant/utils';
+import { Array, identity, Predicate, Record } from 'effect';
 import highland from 'highland';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
@@ -17,6 +21,8 @@ import _ from 'lodash';
 import fp from 'lodash/fp';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
+import { match, Pattern } from 'ts-pattern';
+
 import db, { toRawArray, where } from '~/infra/database';
 import { getTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
@@ -915,6 +921,122 @@ function filteredQuery(opts: FilteredQueryOptions) {
         );
       });
     }
+
+    if (filters.lastMutationYears?.includes(null)) {
+      queryBuilder.where((where) => {
+        where
+          .whereNull(`${housingTable}.last_mutation_date`)
+          .whereNull(`${housingTable}.last_transaction_date`);
+      });
+    }
+
+    if (filters.lastMutationYears?.length) {
+      queryBuilder.where((where) => {
+        const years = (filters.lastMutationYears ?? [])
+          .filter(Predicate.isNotNull)
+          .flatMap((year) =>
+            match(year)
+              .returnType<string | ReadonlyArray<string>>()
+              .with(Pattern.union('2021', '2022', '2023', '2024'), identity)
+              .with('2015to2020', () => [
+                '2015',
+                '2016',
+                '2017',
+                '2018',
+                '2019',
+                '2020'
+              ])
+              .with('2010to2014', () => [
+                '2010',
+                '2011',
+                '2012',
+                '2013',
+                '2014'
+              ])
+              .otherwise(() => [])
+          );
+        const types: ReadonlyArray<MutationType> = !filters.lastMutationTypes
+          ?.length
+          ? MUTATION_TYPE_VALUES
+          : filters.lastMutationTypes;
+
+        if (types.includes('donation')) {
+          where.orWhere((where1) => {
+            where1
+              .where(`${housingTable}.last_mutation_type`, 'donation')
+              .where((where2) => {
+                if (years.length) {
+                  where2.orWhereRaw(
+                    `EXTRACT(YEAR FROM ${housingTable}.last_mutation_date) = ANY(?)`,
+                    [years]
+                  );
+                }
+                if (filters.lastMutationYears?.includes('lte2009')) {
+                  where2.whereRaw(
+                    `EXTRACT(YEAR FROM ${housingTable}.last_mutation_date) <= 2009`
+                  );
+                }
+              });
+          });
+        }
+
+        if (types.includes('sale')) {
+          where.orWhere((where1) => {
+            where1
+              .where(`${housingTable}.last_mutation_type`, 'sale')
+              .where((where2) => {
+                if (years.length) {
+                  where2.whereRaw(
+                    `EXTRACT(YEAR FROM ${housingTable}.last_transaction_date) = ANY(?)`,
+                    [years]
+                  );
+                }
+                if (filters.lastMutationYears?.includes('lte2009')) {
+                  where2.whereRaw(
+                    `EXTRACT(YEAR FROM ${housingTable}.last_transaction_date) <= 2009`
+                  );
+                }
+              });
+          });
+        }
+
+        if (types.includes(null)) {
+          where.orWhere((where1) => {
+            where1
+              .whereNull(`${housingTable}.last_mutation_type`)
+              .where((where2) => {
+                if (years.length) {
+                  where2.orWhereRaw(
+                    `EXTRACT(YEAR FROM ${housingTable}.last_mutation_date) = ANY(?)`,
+                    [years]
+                  );
+                }
+                if (filters.lastMutationYears?.includes('lte2009')) {
+                  where2.orWhereRaw(
+                    `EXTRACT(YEAR FROM ${housingTable}.last_mutation_date) <= 2009`
+                  );
+                }
+                if (filters.lastMutationYears?.includes(null)) {
+                  where2.orWhereNull(`${housingTable}.last_mutation_date`);
+                }
+              });
+          });
+        }
+      });
+    }
+
+    if (filters.lastMutationTypes?.length) {
+      queryBuilder.where((where) => {
+        const nonNullValues =
+          filters.lastMutationTypes?.filter(Predicate.isNotNull) ?? [];
+        if (nonNullValues.length) {
+          where.whereIn(`${housingTable}.last_mutation_type`, nonNullValues);
+        }
+        if (filters.lastMutationTypes?.includes(null)) {
+          where.orWhereNull(`${housingTable}.last_mutation_type`);
+        }
+      });
+    }
   };
 }
 
@@ -994,6 +1116,7 @@ export interface HousingRecordDBO {
   energy_consumption_bdnb: EnergyConsumption | null;
   energy_consumption_at_bdnb: Date | null;
   mutation_date?: Date;
+  readonly last_mutation_type: Mutation['type'] | null;
   last_mutation_date: Date | null;
   last_transaction_date: Date | null;
   last_transaction_value: number | null;
@@ -1074,14 +1197,17 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
     : undefined,
   source: housing.data_source,
   mutationDate: housing.mutation_date ?? null,
+  lastMutationType: housing.last_mutation_type,
   lastMutationDate: housing.last_mutation_date,
   lastTransactionDate: housing.last_transaction_date,
   lastTransactionValue: housing.last_transaction_value
 });
 
+type READ_ONLY_FIELDS = 'last_mutation_type';
+
 export const formatHousingRecordApi = (
   housing: HousingRecordApi
-): HousingRecordDBO => ({
+): Omit<HousingRecordDBO, READ_ONLY_FIELDS> => ({
   id: housing.id,
   invariant: housing.invariant,
   local_id: housing.localId,

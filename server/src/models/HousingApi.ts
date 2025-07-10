@@ -18,7 +18,10 @@ export type HousingId = Pick<HousingRecordApi, 'geoCode' | 'id'>;
 export interface HousingRecordApi
   extends Pick<
     HousingDTO,
-    'energyConsumption' | 'energyConsumptionAt' | 'cadastralClassification'
+    | 'energyConsumption'
+    | 'energyConsumptionAt'
+    | 'cadastralClassification'
+    | 'lastMutationType'
   > {
   id: string;
   /**
@@ -126,6 +129,7 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     occupancyIntended: housing.occupancyIntended ?? null,
     source: housing.source,
     owner: toOwnerDTO(housing.owner),
+    lastMutationType: housing.lastMutationType,
     lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
     lastTransactionDate: housing.lastTransactionDate?.toJSON() ?? null,
     lastTransactionValue: housing.lastTransactionValue

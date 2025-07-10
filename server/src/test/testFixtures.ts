@@ -15,6 +15,7 @@ import {
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   LOCALITY_KIND_VALUES,
+  MUTATION_TYPE_VALUES,
   Occupancy,
   OCCUPANCY_VALUES,
   OWNER_ENTITY_VALUES,
@@ -397,6 +398,7 @@ export const genHousingApi = (
     precisions: [],
     rentalValue: faker.number.int({ min: 500, max: 1000 }),
     deprecatedPrecisions: [],
+    lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
     lastMutationDate:
       faker.helpers.maybe(() => faker.date.past({ years: 20 })) ?? null,
     lastTransactionDate:

@@ -48,7 +48,13 @@ export async function seed(knex: Knex): Promise<void> {
       lastName: 'Strasbourg',
       establishmentId: strasbourg.id,
       activatedAt: new Date().toJSON(),
-      role: UserRole.USUAL
+      role: UserRole.USUAL,
+      position: null,
+      timePerWeek: null,
+      phone: null,
+      lastAuthenticatedAt: null,
+      updatedAt: null,
+      deletedAt: null
     },
     {
       id: uuidv4(),
@@ -58,7 +64,13 @@ export async function seed(knex: Knex): Promise<void> {
       lastName: 'Saint-Lô Agglo',
       establishmentId: saintLo.id,
       activatedAt: new Date().toJSON(),
-      role: UserRole.USUAL
+      role: UserRole.USUAL,
+      position: null,
+      timePerWeek: null,
+      phone: null,
+      lastAuthenticatedAt: null,
+      updatedAt: null,
+      deletedAt: null
     },
     {
       id: uuidv4(),
@@ -67,7 +79,14 @@ export async function seed(knex: Knex): Promise<void> {
       firstName: 'Test',
       lastName: 'Admin',
       activatedAt: new Date().toJSON(),
-      role: UserRole.ADMIN
+      role: UserRole.ADMIN,
+      position: null,
+      timePerWeek: null,
+      phone: null,
+      lastAuthenticatedAt: null,
+      updatedAt: null,
+      deletedAt: null,
+      establishmentId: null
     },
     {
       id: uuidv4(),
@@ -76,7 +95,14 @@ export async function seed(knex: Knex): Promise<void> {
       firstName: 'Test',
       lastName: 'Visitor',
       activatedAt: new Date().toJSON(),
-      role: UserRole.VISITOR
+      role: UserRole.VISITOR,
+      position: null,
+      timePerWeek: null,
+      phone: null,
+      lastAuthenticatedAt: null,
+      updatedAt: null,
+      deletedAt: null,
+      establishmentId: null
     },
     {
       id: uuidv4(),
@@ -86,7 +112,13 @@ export async function seed(knex: Knex): Promise<void> {
       lastName: 'Logement Vacant',
       role: UserRole.USUAL,
       activatedAt: new Date().toJSON(),
-      updatedAt: new Date().toJSON()
+      updatedAt: new Date().toJSON(),
+      position: null,
+      timePerWeek: null,
+      phone: null,
+      lastAuthenticatedAt: null,
+      deletedAt: null,
+      establishmentId: null
     },
     // End-to-end test user
     {
@@ -98,7 +130,12 @@ export async function seed(knex: Knex): Promise<void> {
       establishmentId: zlv.id,
       role: UserRole.USUAL,
       activatedAt: new Date().toJSON(),
-      updatedAt: new Date().toJSON()
+      updatedAt: new Date().toJSON(),
+      position: null,
+      timePerWeek: null,
+      phone: null,
+      lastAuthenticatedAt: null,
+      deletedAt: null
     }
   ];
   await Users()

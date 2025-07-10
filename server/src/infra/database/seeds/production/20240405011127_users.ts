@@ -13,8 +13,14 @@ export const Lovac2023: UserApi = {
   email: 'lovac-2023@zerologementvacant.beta.gouv.fr',
   password: '',
   activatedAt: new Date().toJSON(),
-  establishmentId: undefined,
-  role: UserRole.USUAL
+  role: UserRole.USUAL,
+  establishmentId: null,
+  phone: null,
+  position: null,
+  timePerWeek: null,
+  lastAuthenticatedAt: null,
+  updatedAt: null,
+  deletedAt: null
 };
 
 export async function seed(knex: Knex): Promise<void> {

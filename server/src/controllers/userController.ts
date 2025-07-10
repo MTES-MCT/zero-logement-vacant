@@ -70,14 +70,20 @@ async function createUser(request: Request, response: Response) {
     id: uuidv4(),
     email: body.email,
     password: await bcrypt.hash(body.password, SALT_LENGTH),
-    // TODO: should be optional in database
-    firstName: body.firstName ?? '',
-    lastName: body.lastName ?? '',
+    firstName: body.firstName ?? null,
+    lastName: body.lastName ?? null,
     role:
       userEstablishment.geoCodes.length === 0
         ? UserRole.VISITOR
         : UserRole.ADMIN,
-    establishmentId: body.establishmentId
+    establishmentId: body.establishmentId,
+    phone: null,
+    position: null,
+    timePerWeek: null,
+    activatedAt: null,
+    lastAuthenticatedAt: null,
+    updatedAt: null,
+    deletedAt: null
   };
 
   logger.info('Create user', {

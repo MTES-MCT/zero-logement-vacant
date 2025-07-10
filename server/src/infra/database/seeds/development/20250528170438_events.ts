@@ -52,7 +52,7 @@ import {
   PRECISION_TABLE,
   PrecisionDBO
 } from '~/repositories/precisionRepository';
-import { Users } from '~/repositories/userRepository';
+import { parseUserApi, Users } from '~/repositories/userRepository';
 import { genEventApi } from '~/test/testFixtures';
 
 const LIMIT = Number.MAX_SAFE_INTEGER;
@@ -60,7 +60,8 @@ const LIMIT = Number.MAX_SAFE_INTEGER;
 export async function seed(knex: Knex): Promise<void> {
   const admin = await Users(knex)
     .where({ email: 'admin@zerologementvacant.beta.gouv.fr' })
-    .first();
+    .first()
+    .then((admin) => (admin ? parseUserApi(admin) : null));
   if (!admin) {
     throw new Error('admin@zerologementvacant.beta.gouv.fr not found');
   }

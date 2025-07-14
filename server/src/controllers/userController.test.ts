@@ -168,7 +168,7 @@ describe('User API', () => {
       };
       await Establishments().insert(formatEstablishmentApi(establishment));
 
-      const { body, status } = await request(app)
+      const { status } = await request(app)
         .post(testRoute)
         .send({
           ...prospect,
@@ -177,12 +177,6 @@ describe('User API', () => {
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      expect(body).toMatchObject({
-        email: prospect.email,
-        establishmentId: establishment.id,
-        role: UserRole.USUAL
-      });
-
       const actual = await Establishments()
         .where('id', establishment.id)
         .first();

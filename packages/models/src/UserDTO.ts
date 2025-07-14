@@ -7,7 +7,7 @@ export interface UserDTO {
   lastName: string | null;
   establishmentId: string | null;
   role: UserRole;
-  activatedAt: string | null;
+  activatedAt: string;
 }
 
 export interface UserAccountDTO {

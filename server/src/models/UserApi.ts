@@ -11,7 +11,7 @@ export type UserApi = UserDTO & {
   timePerWeek: string | null;
   // Timestamps
   lastAuthenticatedAt: string | null;
-  updatedAt: string | null;
+  updatedAt: string;
   deletedAt: string | null;
 };
 

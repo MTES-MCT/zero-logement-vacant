@@ -100,10 +100,10 @@ export interface UserDBO {
   last_name: string | null;
   establishment_id: string | null;
   role: number;
-  activated_at: Date | string | null;
+  activated_at: Date | string;
   last_authenticated_at: Date | string | null;
   deleted_at: Date | string | null;
-  updated_at: Date | string | null;
+  updated_at: Date | string;
   phone: string | null;
   position: string | null;
   time_per_week: string | null;
@@ -117,14 +117,12 @@ export const parseUserApi = (userDBO: UserDBO): UserApi => ({
   lastName: userDBO.last_name,
   establishmentId: userDBO.establishment_id,
   role: userDBO.role,
-  activatedAt: userDBO.activated_at
-    ? new Date(userDBO.activated_at).toJSON()
-    : null,
+  activatedAt: new Date(userDBO.activated_at).toJSON(),
   lastAuthenticatedAt: userDBO.last_authenticated_at
     ? new Date(userDBO.last_authenticated_at).toJSON()
     : null,
   deletedAt: userDBO.deleted_at ? new Date(userDBO.deleted_at).toJSON() : null,
-  updatedAt: userDBO.updated_at ? new Date(userDBO.updated_at).toJSON() : null,
+  updatedAt: new Date(userDBO.updated_at).toJSON(),
   phone: userDBO.phone,
   position: userDBO.position,
   timePerWeek: userDBO.time_per_week
@@ -138,14 +136,12 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
   last_name: userApi.lastName,
   establishment_id: userApi.establishmentId,
   role: userApi.role,
-  activated_at: userApi.activatedAt
-    ? new Date(userApi.activatedAt).toJSON()
-    : null,
+  activated_at: new Date(userApi.activatedAt).toJSON(),
   last_authenticated_at: userApi.lastAuthenticatedAt
     ? new Date(userApi.lastAuthenticatedAt).toJSON()
     : null,
   deleted_at: userApi.deletedAt ? new Date(userApi.deletedAt).toJSON() : null,
-  updated_at: userApi.updatedAt ? new Date(userApi.updatedAt).toJSON() : null,
+  updated_at: new Date(userApi.updatedAt).toJSON(),
   phone: userApi.phone,
   position: userApi.position,
   time_per_week: userApi.timePerWeek

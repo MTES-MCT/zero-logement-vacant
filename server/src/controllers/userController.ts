@@ -75,14 +75,14 @@ async function createUser(request: Request, response: Response) {
     role:
       userEstablishment.geoCodes.length === 0
         ? UserRole.VISITOR
-        : UserRole.ADMIN,
+        : UserRole.USUAL,
     establishmentId: body.establishmentId,
     phone: null,
     position: null,
     timePerWeek: null,
-    activatedAt: null,
+    activatedAt: new Date().toJSON(),
     lastAuthenticatedAt: null,
-    updatedAt: null,
+    updatedAt: new Date().toJSON(),
     deletedAt: null
   };
 

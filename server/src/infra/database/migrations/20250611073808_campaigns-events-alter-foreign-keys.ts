@@ -29,10 +29,6 @@ export async function down(knex: Knex): Promise<void> {
     table.dropForeign('event_id');
     table.foreign('event_id').references('id').inTable('events');
 
-    table.dropIndex('campaign_id');
     table.dropIndex('event_id');
-    table.primary(['campaign_id', 'event_id'], {
-      constraintName: 'campaign_events_pkey'
-    });
   });
 }

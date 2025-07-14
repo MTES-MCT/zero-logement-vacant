@@ -465,9 +465,8 @@ async function update(request: Request, response: Response) {
         ]);
       }
     }
-
-    response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
   });
+  response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
 }
 
 const removeCampaign: RequestHandler<{ id: string }> = async (

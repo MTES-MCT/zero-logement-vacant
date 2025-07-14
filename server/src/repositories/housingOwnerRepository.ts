@@ -1,5 +1,6 @@
 import { OwnerRank, PropertyRight } from '@zerologementvacant/models';
 import db from '~/infra/database';
+import { withinTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import { HousingApi, HousingRecordApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
@@ -31,7 +32,7 @@ async function saveMany(housingOwners: HousingOwnerApi[]): Promise<void> {
     });
 
     // Remove owners before inserting them back
-    await db.transaction(async (transaction) => {
+    await withinTransaction(async (transaction) => {
       const housingGeoCode = housingOwners[0].housingGeoCode;
       const housingId = housingOwners[0].housingId;
       await HousingOwners(transaction)

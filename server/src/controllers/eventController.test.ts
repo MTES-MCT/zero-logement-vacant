@@ -42,8 +42,8 @@ import {
 } from '~/repositories/housingRepository';
 import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import {
-  formatPrecisionApi,
-  Precisions
+  Precisions,
+  type PrecisionDBO
 } from '~/repositories/precisionRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
@@ -54,7 +54,6 @@ import {
   genHousingApi,
   genHousingOwnerApi,
   genOwnerApi,
-  genPrecisionApi,
   genUserApi
 } from '~/test/testFixtures';
 
@@ -167,8 +166,8 @@ describe('Event API', () => {
         housingGeoCode: housing.geoCode,
         housingId: housing.id
       }));
-      const precision = genPrecisionApi(1000);
-      await Precisions().insert(formatPrecisionApi(precision));
+      const precision: PrecisionDBO =
+        (await Precisions().first()) as PrecisionDBO;
       const precisionHousingEvents: ReadonlyArray<PrecisionHousingEventApi> = [
         genEventApi({
           creator: user,

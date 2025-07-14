@@ -11,14 +11,15 @@ interface TransactionStore {
 const storage: AsyncLocalStorage<TransactionStore> =
   new AsyncLocalStorage<TransactionStore>();
 
-export async function startTransaction(
-  cb: () => AsyncOrSync<void>,
+export async function startTransaction<R>(
+  cb: () => AsyncOrSync<R>,
   options?: Knex.TransactionConfig
-) {
+): Promise<R> {
   const transaction = await db.transaction(options);
   try {
-    await storage.run({ transaction }, cb);
+    const result = await storage.run({ transaction }, cb);
     await transaction.commit();
+    return result;
   } catch (error) {
     await transaction.rollback();
     throw error;

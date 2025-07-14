@@ -382,10 +382,10 @@ async function updateHousingOwners(
   await startTransaction(async () => {
     await housingOwnerRepository.saveMany(housingOwners);
     await eventRepository.insertManyHousingOwnerEvents(events);
-    response
-      .status(constants.HTTP_STATUS_OK)
-      .json(housingOwners.map(toHousingOwnerDTO));
   });
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(housingOwners.map(toHousingOwnerDTO));
 }
 
 const ownerValidators: ValidationChain[] = [

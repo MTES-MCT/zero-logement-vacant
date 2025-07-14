@@ -366,13 +366,14 @@ const remove = async (request: Request, response: Response): Promise<void> => {
       groupId: group.id
     }));
 
-    await startTransaction(async () => {
+    const archived = await startTransaction(async () => {
       const [archived] = await Promise.all([
         groupRepository.archive(group),
         eventRepository.insertManyGroupHousingEvents(events)
       ]);
-      response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(archived));
+      return archived;
     });
+    response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(archived));
     return;
   }
 
@@ -396,8 +397,8 @@ const remove = async (request: Request, response: Response): Promise<void> => {
       groupRepository.remove(group),
       eventRepository.insertManyGroupHousingEvents(events)
     ]);
-    response.status(constants.HTTP_STATUS_NO_CONTENT).send();
   });
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
 };
 const removeValidators: ValidationChain[] = [param('id').isString().notEmpty()];
 

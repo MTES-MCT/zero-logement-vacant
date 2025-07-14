@@ -12,6 +12,7 @@ import {
 } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import type { PrecisionApi } from '~/models/PrecisionApi';
 import {
   Campaigns,
   formatCampaignApi
@@ -346,36 +347,35 @@ describe('Event repository', () => {
       ] as const;
 
       const housings = faker.helpers.multiple(() => genHousingApi());
-      const precisions = faker.helpers.multiple(
-        () => genPrecisionApi(faker.number.int({ min: 10000, max: 99999 })),
-        {
-          count: { min: 10, max: 20 }
-        }
-      );
-      const events: ReadonlyArray<PrecisionHousingEventApi> = housings
-        .map((housing) => {
-          return faker.helpers
-            .arrayElements(precisions)
-            .map<PrecisionHousingEventApi>((precision) => ({
-              ...genEventApi({
-                creator,
-                type: 'housing:precision-attached',
-                nextOld: null,
-                nextNew: {
-                  category: precision.category,
-                  label: precision.label
-                }
-              }),
-              precisionId: precision.id,
-              housingGeoCode: housing.geoCode,
-              housingId: housing.id
-            }));
-        })
-        .flat();
+      let precisions: ReadonlyArray<PrecisionApi>;
+      let events: ReadonlyArray<PrecisionHousingEventApi>;
 
       beforeAll(async () => {
+        precisions = await Precisions()
+          .limit(10)
+          .then((precisions) => precisions.map(formatPrecisionApi));
+        events = housings
+          .map((housing) => {
+            return faker.helpers
+              .arrayElements(precisions)
+              .map<PrecisionHousingEventApi>((precision) => ({
+                ...genEventApi({
+                  creator,
+                  type: 'housing:precision-attached',
+                  nextOld: null,
+                  nextNew: {
+                    category: precision.category,
+                    label: precision.label
+                  }
+                }),
+                precisionId: precision.id,
+                housingGeoCode: housing.geoCode,
+                housingId: housing.id
+              }));
+          })
+          .flat();
+
         await Housing().insert(housings.map(formatHousingRecordApi));
-        await Precisions().insert(precisions.map(formatPrecisionApi));
         await Events().insert(events.map(formatEventApi));
         await PrecisionHousingEvents().insert(
           events.map(formatPrecisionHousingEventApi)

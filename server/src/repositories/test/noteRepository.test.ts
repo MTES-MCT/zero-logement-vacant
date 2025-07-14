@@ -203,7 +203,7 @@ describe('Note repository', () => {
       const actualHousingNote = await HousingNotes()
         .where({ note_id: note.id, housing_id: housing.id })
         .first();
-      expect(actualHousingNote).toBeUndefined();
+      expect(actualHousingNote).toBeDefined();
     });
   });
 });

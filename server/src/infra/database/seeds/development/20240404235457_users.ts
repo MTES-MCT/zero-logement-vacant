@@ -53,7 +53,7 @@ export async function seed(knex: Knex): Promise<void> {
       timePerWeek: null,
       phone: null,
       lastAuthenticatedAt: null,
-      updatedAt: null,
+      updatedAt: new Date().toJSON(),
       deletedAt: null
     },
     {
@@ -69,7 +69,7 @@ export async function seed(knex: Knex): Promise<void> {
       timePerWeek: null,
       phone: null,
       lastAuthenticatedAt: null,
-      updatedAt: null,
+      updatedAt: new Date().toJSON(),
       deletedAt: null
     },
     {
@@ -84,7 +84,7 @@ export async function seed(knex: Knex): Promise<void> {
       timePerWeek: null,
       phone: null,
       lastAuthenticatedAt: null,
-      updatedAt: null,
+      updatedAt: new Date().toJSON(),
       deletedAt: null,
       establishmentId: null
     },
@@ -100,7 +100,7 @@ export async function seed(knex: Knex): Promise<void> {
       timePerWeek: null,
       phone: null,
       lastAuthenticatedAt: null,
-      updatedAt: null,
+      updatedAt: new Date().toJSON(),
       deletedAt: null,
       establishmentId: null
     },

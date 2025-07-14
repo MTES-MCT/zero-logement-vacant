@@ -234,13 +234,10 @@ const create: RequestHandler<
     await campaignRepository.save(campaign);
     await campaignHousingRepository.insertHousingList(campaign.id, houses);
     await eventRepository.insertManyCampaignHousingEvents(events);
-    response
-      .status(constants.HTTP_STATUS_CREATED)
-      .json(toCampaignDTO(campaign));
-
-    mailService.emit('user:created', user.email, {
-      createdAt: new Date()
-    });
+  });
+  response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
+  mailService.emit('user:created', user.email, {
+    createdAt: new Date()
   });
 };
 

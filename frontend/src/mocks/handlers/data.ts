@@ -15,7 +15,8 @@ import {
   PROPERTY_RIGHT_VALUES,
   ProspectDTO,
   SignupLinkDTO,
-  UserDTO
+  UserDTO,
+  type EstablishmentDTO
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
@@ -132,6 +133,8 @@ const prospects: ProspectDTO[] = [];
 
 const signupLinks: SignupLinkDTO[] = [];
 
+const establishments: EstablishmentDTO[] = [];
+
 const data = {
   campaigns,
   campaignDrafts,
@@ -139,6 +142,7 @@ const data = {
   datafoncierHousings,
   drafts,
   draftCampaigns,
+  establishments,
   groups,
   groupHousings,
   housings,

@@ -146,7 +146,7 @@ describe('EventsHistory', () => {
         /L’équipe Zéro Logement Vacant a importé ce logement/
       );
       expect(title).toBeVisible();
-      const datetime = screen.getByText('le 01/01/2020 à 13:00');
+      const datetime = screen.getByText('le 01/01/2020 à 12:00');
       expect(datetime).toBeVisible();
     });
 
@@ -181,7 +181,7 @@ describe('EventsHistory', () => {
         'L’équipe Zéro Logement Vacant a mis à jour le statut d’occupation'
       );
       expect(title).toBeVisible();
-      const datetime = screen.getByText('le 01/01/2020 à 13:00');
+      const datetime = screen.getByText('le 01/01/2020 à 12:00');
       expect(datetime).toBeVisible();
     });
 
@@ -226,7 +226,7 @@ describe('EventsHistory', () => {
         'L’équipe Zéro Logement Vacant a mis à jour le statut de suivi'
       );
       expect(title).toBeVisible();
-      const datetime = screen.getByText('le 01/01/2020 à 13:00');
+      const datetime = screen.getByText('le 01/01/2020 à 12:00');
       expect(datetime).toBeVisible();
     });
 

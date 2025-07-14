@@ -107,7 +107,6 @@ async function remove(id: string): Promise<void> {
     await Notes(transaction).where({ id }).update({
       deleted_at: new Date()
     });
-    await HousingNotes(transaction).where({ note_id: id }).delete();
   });
 
   logger.debug('Note removed', { id });

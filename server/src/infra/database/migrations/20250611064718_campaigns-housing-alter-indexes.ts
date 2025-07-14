@@ -26,6 +26,6 @@ export async function down(knex: Knex): Promise<void> {
       .onDelete('RESTRICT');
 
     table.dropIndex(['housing_geo_code', 'housing_id']);
-    table.index('housing_id');
+    table.index('housing_id', 'campaigns_housing_housing_id_idx');
   });
 }

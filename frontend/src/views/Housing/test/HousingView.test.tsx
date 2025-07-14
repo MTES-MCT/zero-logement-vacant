@@ -518,7 +518,10 @@ describe('Housing view', () => {
     });
 
     it('should reset filters', async () => {
-      renderView(housing);
+      renderView(housing, {
+        notes: [genNote(genUser())],
+        user: genUser()
+      });
 
       const tab = await screen.findByRole('tab', {
         name: 'Historique et notes'

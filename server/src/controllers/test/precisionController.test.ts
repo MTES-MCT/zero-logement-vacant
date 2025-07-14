@@ -218,17 +218,6 @@ describe('Precision API', () => {
     });
 
     it('should fully replace the housing precisions', async () => {
-      const housingPrecisions: ReadonlyArray<HousingPrecisionDBO> =
-        faker.helpers
-          .arrayElements(precisions, { min: 1, max: 10 })
-          .map((precision) => ({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id,
-            precision_id: precision.id,
-            created_at: new Date()
-          }));
-      await HousingPrecisions().insert(housingPrecisions);
-
       const { status } = await request(app)
         .put(testRoute(housing.id))
         .send(payload)

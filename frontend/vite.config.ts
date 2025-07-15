@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
 
@@ -12,5 +14,11 @@ export default defineConfig({
       ]
     }
   },
-  plugins: [react()]
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    testTimeout: 30_000,
+    setupFiles: ['./vitest.setup.ts', './vitest.polyfills.js']
+  }
 });

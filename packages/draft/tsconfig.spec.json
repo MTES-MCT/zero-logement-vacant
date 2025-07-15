@@ -2,7 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist/spec",
-    "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo"
+    "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
+    "types": ["jest", "jest-extended", "node"]
   },
   "include": [
     "src/**/*.test.ts"

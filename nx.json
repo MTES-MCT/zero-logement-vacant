@@ -34,13 +34,13 @@
     {
       "plugin": "@nx/vite/plugin",
       "options": {
-        "buildTargetName": "vite:build",
-        "testTargetName": "vite:test",
+        "buildTargetName": "build",
+        "testTargetName": "test",
         "serveTargetName": "serve",
-        "devTargetName": "vite:dev",
+        "devTargetName": "dev",
         "previewTargetName": "preview",
         "serveStaticTargetName": "serve-static",
-        "typecheckTargetName": "vite:typecheck",
+        "typecheckTargetName": "typecheck",
         "buildDepsTargetName": "build-deps",
         "watchDepsTargetName": "watch-deps"
       }
@@ -49,7 +49,7 @@
       "plugin": "@nx/js/typescript",
       "options": {
         "typecheck": {
-          "targetName": "tsc:typecheck"
+          "targetName": "typecheck"
         },
         "build": {
           "targetName": "build",

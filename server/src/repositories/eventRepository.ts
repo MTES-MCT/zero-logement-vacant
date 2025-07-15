@@ -3,10 +3,7 @@ import {
   EventPayloads,
   EventType
 } from '@zerologementvacant/models';
-import async from 'async';
-import { Array } from 'effect';
 
-import config from '~/infra/config';
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';

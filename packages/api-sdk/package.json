@@ -16,7 +16,7 @@
     }
   },
   "scripts": {
-    "clean": "rimraf dist tsconfig.build.tsbuildinfo"
+    "clean": "rimraf dist"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

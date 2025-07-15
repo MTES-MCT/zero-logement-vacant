@@ -17,11 +17,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "copy": "copyfiles -V -u 1 'src/**/*.css' 'src/**/*.hbs' 'src/**/*.json' 'src/fonts/**/*.otf' dist",
-    "typecheck": "tsc --noEmit",
-    "dev": "nodemon --watch src -e ts --exec 'yarn build'",
-    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
-    "coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage"
+    "copy": "copyfiles -V -u 1 'src/**/*.css' 'src/**/*.hbs' 'src/**/*.json' 'src/fonts/**/*.otf' dist"
   },
   "devDependencies": {
     "@swc/core": "^1.11.8",

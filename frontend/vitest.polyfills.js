@@ -32,7 +32,7 @@ import { vi } from 'vitest';
 //   Response: { value: Response, configurable: true }
 // });
 
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(global.window, 'matchMedia', {
   writable: true,
   value: (query) => ({
     matches: false,

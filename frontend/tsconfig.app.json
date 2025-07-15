@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "outDir": "dist/app",
+    "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo",
     "types": ["vite/client"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
@@ -15,6 +17,9 @@
   "references": [
     {
       "path": "../packages/utils/tsconfig.lib.json"
+    },
+    {
+      "path": "../packages/schemas/tsconfig.lib.json"
     },
     {
       "path": "../queue/tsconfig.app.json"

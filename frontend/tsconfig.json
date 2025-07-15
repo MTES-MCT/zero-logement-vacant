@@ -9,6 +9,9 @@
       "path": "../packages/utils"
     },
     {
+      "path": "../packages/schemas"
+    },
+    {
       "path": "../queue"
     },
     {

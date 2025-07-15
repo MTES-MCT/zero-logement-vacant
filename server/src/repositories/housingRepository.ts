@@ -17,7 +17,7 @@ import { Struct } from 'effect';
 import highland from 'highland';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
-import lodash from 'lodash-es';
+import { uniq } from 'lodash-es';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
@@ -387,7 +387,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
   }
 
   return (query: Knex.QueryBuilder) => {
-    lodash.uniq(includes).forEach((include) => {
+    uniq(includes).forEach((include) => {
       joins[include](query);
     });
   };

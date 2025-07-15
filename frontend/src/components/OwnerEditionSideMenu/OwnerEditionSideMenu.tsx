@@ -76,7 +76,7 @@ function OwnerEditionSideMenu(props: OwnerEditionSideMenuProps) {
       );
       await updateOwner({
         ...props.owner,
-        banAddress: values.address ?? undefined,
+        banAddress: values.address ?? null,
         additionalAddress: values.additionalAddress
       });
       props.onClose?.();

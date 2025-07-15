@@ -7,15 +7,13 @@ import {
   needsManualReview
 } from './duplicates';
 import cache from './cache';
-import lodash from 'lodash-es';
+import { orderBy } from 'lodash-es';
 import highland from 'highland';
 import Stream = Highland.Stream;
 
 export function evaluate(owner: OwnerApi, duplicates: OwnerApi[]): Comparison {
   cache.currentName(owner.fullName);
-  const scores = lodash.orderBy(
-    'score',
-    ['desc'],
+  const scores = orderBy(
     duplicates
       .filter((dup) => !cache.has(owner.id, dup.id))
       .map((dup) => ({
@@ -25,7 +23,9 @@ export function evaluate(owner: OwnerApi, duplicates: OwnerApi[]): Comparison {
       .map((comparison) => {
         cache.add(owner.id, comparison.value.id);
         return comparison;
-      })
+      }),
+    'score',
+    ['desc']
   );
 
   const best = findBest(scores);

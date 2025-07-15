@@ -1,14 +1,17 @@
+import { BadgeProps } from '@codegouvfr/react-dsfr/Badge';
+
+import { HousingStatus } from '@zerologementvacant/models';
 import { getHousingState } from '../../models/HousingState';
 import styles from './housing-status-badge.module.scss';
 import AppBadge from '../_app/AppBadge/AppBadge';
-import { HousingStatus } from '@zerologementvacant/models';
 
 interface Props {
+  badgeProps?: Omit<BadgeProps, 'children'>;
   status?: HousingStatus;
   inline?: boolean;
 }
 
-function HousingStatusBadge({ status, inline }: Props) {
+function HousingStatusBadge({ badgeProps, status, inline }: Props) {
   return status !== undefined ? (
     <div
       className={
@@ -16,6 +19,7 @@ function HousingStatusBadge({ status, inline }: Props) {
       }
     >
       <AppBadge
+        {...badgeProps}
         className={styles.statusBadgeLabel}
         colorFamily={getHousingState(status)?.colorFamily}
       >

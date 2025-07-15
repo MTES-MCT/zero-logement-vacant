@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { AddressKinds } from '../AddressDTO';
+import { getAddress, OwnerDTO } from '../OwnerDTO';
 
 import { genAddressDTO, genOwnerDTO } from './fixtures';
-import { getAddress, OwnerDTO } from '../OwnerDTO';
-import { AddressKinds } from '../AddressDTO';
 
 describe('OwnerDTO', () => {
   describe('getAddress', () => {
@@ -11,7 +11,7 @@ describe('OwnerDTO', () => {
       const owner: OwnerDTO = {
         ...genOwnerDTO(),
         id,
-        additionalAddress: undefined,
+        additionalAddress: null,
         banAddress: genAddressDTO(id, AddressKinds.Owner)
       };
 
@@ -24,8 +24,8 @@ describe('OwnerDTO', () => {
       const address = faker.location.streetAddress(true);
       const owner: OwnerDTO = {
         ...genOwnerDTO(),
-        additionalAddress: undefined,
-        banAddress: undefined,
+        additionalAddress: null,
+        banAddress: null,
         rawAddress: [address]
       };
 
@@ -37,7 +37,7 @@ describe('OwnerDTO', () => {
     it('should add the additional address just before the zip code', () => {
       const owner: OwnerDTO = {
         ...genOwnerDTO(),
-        banAddress: undefined,
+        banAddress: null,
         rawAddress: ['123 rue Bidon', '01234 Ville'],
         additionalAddress: 'Appart. 1'
       };

@@ -382,7 +382,7 @@ function HousingOwnersModal({
           </Col>
           <Col n="6">
             <AppTextInput<FormShape>
-              value={housingOwner.phone}
+              value={housingOwner.phone ?? undefined}
               onChange={(e) =>
                 changeOwnerInputs({
                   ...housingOwner,
@@ -464,7 +464,7 @@ function HousingOwnersModal({
             {hasError('ownerRanks') && (
               <Alert
                 severity="warning"
-                description={message('ownerRanks')}
+                description={message('ownerRanks') ?? ''}
                 closable
                 small
               ></Alert>

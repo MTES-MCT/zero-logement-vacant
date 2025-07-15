@@ -1,12 +1,13 @@
-import { Knex } from 'knex';
-
 import { CampaignStatus, HousingFiltersDTO } from '@zerologementvacant/models';
-import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
+import { Knex } from 'knex';
 import db from '~/infra/database';
-import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
+import { withinTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
-import { sortQuery } from '~/models/SortApi';
 import queue from '~/infra/queue';
+import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
+import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
+import { sortQuery } from '~/models/SortApi';
+import eventRepository from '~/repositories/eventRepository';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = (transaction = db) =>
@@ -59,6 +60,7 @@ const filterQuery = (filters: CampaignFiltersApi) => {
 const campaignSortQuery = (sort?: CampaignSortApi) =>
   sortQuery(sort, {
     keys: {
+      title: (query) => query.orderBy(`${campaignsTable}.title`, sort?.title),
       createdAt: (query) =>
         query.orderBy(`${campaignsTable}.created_at`, sort?.createdAt),
       sentAt: (query) =>
@@ -84,10 +86,12 @@ const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
 
 async function save(campaign: CampaignApi): Promise<void> {
   logger.debug('Saving campaign', campaign);
-  await Campaigns()
-    .insert(formatCampaignApi(campaign))
-    .onConflict(['id'])
-    .merge(['status', 'title', 'description', 'file', 'sent_at']);
+  await withinTransaction(async (transaction) => {
+    await Campaigns(transaction)
+      .insert(formatCampaignApi(campaign))
+      .onConflict(['id'])
+      .merge(['status', 'title', 'description', 'file', 'sent_at']);
+  });
   logger.debug('Campaign saved', campaign);
 }
 
@@ -99,9 +103,14 @@ const update = async (campaignApi: CampaignApi): Promise<string> => {
     .then((_) => _[0]);
 };
 
-const remove = async (campaignId: string): Promise<void> => {
-  await db(campaignsTable).delete().where('id', campaignId);
-};
+async function remove(id: string): Promise<void> {
+  logger.debug('Removing campaign...', { id });
+  await withinTransaction(async (transaction) => {
+    await eventRepository.removeCampaignEvents(id);
+    await Campaigns(transaction).where({ id }).delete();
+  });
+  logger.debug('Campaign removed', { id });
+}
 
 async function generateMails(campaign: CampaignApi): Promise<void> {
   await queue.add('campaign-generate', {

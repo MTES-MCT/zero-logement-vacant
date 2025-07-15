@@ -1,8 +1,10 @@
+import { UserRole } from '@zerologementvacant/models';
 import schemas from '@zerologementvacant/schemas';
 import fileUpload from 'express-fileupload';
 import Router from 'express-promise-router';
 import { param } from 'express-validator';
 import { object, string } from 'yup';
+
 import accountController from '~/controllers/accountController';
 import buildingController from '~/controllers/buildingController';
 import campaignController from '~/controllers/campaignController';
@@ -29,7 +31,6 @@ import validator from '~/middlewares/validator';
 import validatorNext from '~/middlewares/validator-next';
 import { paginationSchema } from '~/models/PaginationApi';
 import sortApi from '~/models/SortApi';
-import { UserRoles } from '~/models/UserApi';
 import { isUUIDParam } from '~/utils/validators';
 
 const router = Router();
@@ -77,18 +78,12 @@ router.post(
 );
 router.put(
   '/housing/:id',
-  hasRole([UserRoles.Usual, UserRoles.Admin]),
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validatorNext.validate({
     params: object({ id: schemas.id }),
     body: schemas.housingUpdatePayload
   }),
   housingController.updateNext
-);
-router.post(
-  '/housing/:housingId',
-  [param('housingId').isUUID(), ...housingController.updateValidators],
-  validator.validate,
-  housingController.update
 );
 
 // Buildings
@@ -288,12 +283,26 @@ router.get(
 );
 router.post(
   '/housing/:id/notes',
-  hasRole([UserRoles.Usual, UserRoles.Admin]),
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validatorNext.validate({
     params: object({ id: schemas.id }),
     body: schemas.notePayload
   }),
   noteController.createByHousing
+);
+router.put(
+  '/notes/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.notePayload
+  }),
+  noteController.update
+);
+router.delete(
+  '/notes/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  noteController.remove
 );
 
 // TODO: rework and merge this API with the User API

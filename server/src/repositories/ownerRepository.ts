@@ -14,7 +14,7 @@ import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerApi, OwnerPayloadApi } from '~/models/OwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import { PaginatedResultApi } from '~/models/PaginatedResultApi';
 import { compact } from '~/utils/object';
 import {
@@ -23,7 +23,7 @@ import {
   parseAddressApi
 } from './banAddressesRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
-import { groupsHousingTable } from './groupRepository';
+import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import { HousingOwnerDBO, housingOwnersTable } from './housingOwnerRepository';
 import {
   HousingDBO,
@@ -85,15 +85,15 @@ const filteredQuery =
           `${housingOwnersTable}.owner_id`
         )
         .join(housingTable, ownerHousingJoinClause)
-        .join(groupsHousingTable, (query) =>
+        .join(GROUPS_HOUSING_TABLE, (query) =>
           query
-            .on(`${housingTable}.id`, `${groupsHousingTable}.housing_id`)
+            .on(`${housingTable}.id`, `${GROUPS_HOUSING_TABLE}.housing_id`)
             .andOn(
               `${housingTable}.geo_code`,
-              `${groupsHousingTable}.housing_geo_code`
+              `${GROUPS_HOUSING_TABLE}.housing_geo_code`
             )
         )
-        .where(`${groupsHousingTable}.group_id`, filters.groupId);
+        .where(`${GROUPS_HOUSING_TABLE}.group_id`, filters.groupId);
     }
   };
 
@@ -241,7 +241,6 @@ const searchOwners = async (
   };
 };
 
-
 const findByHousing = async (
   housing: HousingApi
 ): Promise<HousingOwnerApi[]> => {
@@ -262,7 +261,7 @@ const findByHousing = async (
   return owners.map(parseHousingOwnerApi);
 };
 
-const insert = async (draftOwnerApi: OwnerPayloadApi): Promise<OwnerApi> => {
+const insert = async (draftOwnerApi: OwnerApi): Promise<OwnerApi> => {
   logger.info('Insert draftOwnerApi');
   return Owners()
     .insert({
@@ -525,22 +524,18 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     idpersonne: owner.idpersonne ?? undefined,
     rawAddress: owner.address_dgfip,
     fullName: owner.full_name,
-    administrator: owner.administrator ?? undefined,
+    administrator: owner.administrator ?? null,
     birthDate: birthDate,
-    email: owner.email ?? undefined,
-    phone: owner.phone ?? undefined,
+    email: owner.email ?? null,
+    phone: owner.phone ?? null,
     kind: owner.kind_class,
-    kindDetail: owner.owner_kind_detail ?? undefined,
+    kindDetail: owner.owner_kind_detail ?? null,
     siren: owner.siren ?? undefined,
-    banAddress: owner.ban ? parseAddressApi(owner.ban) : undefined,
-    additionalAddress: owner.additional_address ?? undefined,
+    banAddress: owner.ban ? parseAddressApi(owner.ban) : null,
+    additionalAddress: owner.additional_address ?? null,
     entity: owner.entity,
-    createdAt: owner.created_at
-      ? new Date(owner.created_at).toJSON()
-      : undefined,
-    updatedAt: owner.updated_at
-      ? new Date(owner.updated_at).toJSON()
-      : undefined
+    createdAt: owner.created_at ? new Date(owner.created_at).toJSON() : null,
+    updatedAt: owner.updated_at ? new Date(owner.updated_at).toJSON() : null
   };
 };
 

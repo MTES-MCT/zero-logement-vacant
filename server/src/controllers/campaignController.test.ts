@@ -5,14 +5,18 @@ import {
   BUILDING_PERIOD_VALUES,
   CADASTRAL_CLASSIFICATION_VALUES,
   CAMPAIGN_COUNT_VALUES,
+  CAMPAIGN_STATUS_LABELS,
   CampaignCreationPayloadDTO,
   CampaignDTO,
+  CampaignRemovalPayloadDTO,
+  CampaignStatus,
   CampaignUpdatePayloadDTO,
   DATA_FILE_YEAR_VALUES,
   ENERGY_CONSUMPTION_VALUES,
   HOUSING_BY_BUILDING_VALUES,
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
+  HousingStatus,
   LIVING_AREA_VALUES,
   LOCALITY_KIND_VALUES,
   OCCUPANCY_VALUES,
@@ -24,21 +28,22 @@ import {
   VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
 
-import { isDefined, wait } from '@zerologementvacant/utils';
+import { isDefined } from '@zerologementvacant/utils';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
-import { DraftApi } from '~/models/DraftApi';
+import { CampaignEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { CampaignsDrafts } from '~/repositories/campaignDraftRepository';
 import {
   CampaignHousingDBO,
-  CampaignsHousing
+  CampaignsHousing,
+  campaignsHousingTable,
+  formatCampaignHousingApi
 } from '~/repositories/campaignHousingRepository';
 import {
   Campaigns,
@@ -49,7 +54,16 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { CampaignEvents, HousingEvents } from '~/repositories/eventRepository';
+import {
+  CAMPAIGN_EVENTS_TABLE,
+  CAMPAIGN_HOUSING_EVENTS_TABLE,
+  CampaignEvents,
+  EventDBO,
+  Events,
+  formatCampaignEventApi,
+  formatEventApi,
+  HOUSING_EVENTS_TABLE
+} from '~/repositories/eventRepository';
 import {
   formatGroupApi,
   formatGroupHousingApi,
@@ -71,6 +85,7 @@ import {
   genCampaignApi,
   genDraftApi,
   genEstablishmentApi,
+  genEventApi,
   genGroupApi,
   genHousingApi,
   genSenderApi,
@@ -266,22 +281,25 @@ describe('Campaign API', () => {
       expect(status).not.toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
-    it('should create a new campaign', async () => {
-      const title = randomstring.generate();
-      const description = randomstring.generate();
-      const houses: HousingApi[] = Array.from({ length: 2 }).map(() =>
-        genHousingApi(oneOf(establishment.geoCodes))
+    async function createPayload() {
+      const housings: ReadonlyArray<HousingApi> = faker.helpers.multiple(() =>
+        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
       );
-      await Housing().insert(houses.map(formatHousingRecordApi));
+      await Housing().insert(housings.map(formatHousingRecordApi));
       const payload: CampaignCreationPayloadDTO = {
-        title,
-        description,
+        title: 'Logements prioritaires',
+        description: 'Logements ayant un potentiel de rénovation',
         housing: {
           filters: {},
           all: false,
-          ids: houses.map((housing) => housing.id)
+          ids: housings.map((housing) => housing.id)
         }
       };
+      return payload;
+    }
+
+    it('should create a new campaign', async () => {
+      const payload = await createPayload();
 
       const { body, status } = await request(app)
         .post(testRoute)
@@ -300,25 +318,42 @@ describe('Campaign API', () => {
         },
         createdAt: expect.any(String)
       });
+      const campaign = await Campaigns().where({ id: body.id }).first();
+      expect(campaign).not.toBeNull();
+    });
 
-      const actualCampaign = await Campaigns()
-        .where({
-          title,
-          establishment_id: establishment.id
-        })
-        .first();
-      expect(actualCampaign).toMatchObject({
-        title
+    it('should attach housings to this campaign', async () => {
+      const payload = await createPayload();
+
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const campaignHousing = await CampaignsHousing().where({
+        campaign_id: body.id
       });
-
-      const actualCampaignHouses = await CampaignsHousing().whereIn(
-        'housing_id',
-        houses.map((housing) => housing.id)
+      expect(campaignHousing).toIncludeAllPartialMembers(
+        payload.housing.ids.map((id) => ({ housing_id: id }))
       );
-      expect(actualCampaignHouses).toBeArrayOfSize(houses.length);
-      expect(actualCampaignHouses).toSatisfyAll((actual) => {
-        return actual.campaign_id === actualCampaign?.id;
-      });
+    });
+
+    it('should create an event for each attached housing', async () => {
+      const payload = await createPayload();
+
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const events = await Events()
+        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({ campaign_id: body.id, type: 'housing:campaign-attached' });
+      expect(events).toIncludeAllPartialMembers(
+        payload.housing.ids.map((id) => ({ housing_id: id }))
+      );
     });
   });
 
@@ -389,18 +424,16 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      expect(body).toStrictEqual<CampaignApi>({
+      expect(body).toStrictEqual<CampaignDTO>({
         id: expect.any(String),
         groupId: group.id,
         title: 'Logements prioritaires',
         description: 'description',
         status: 'draft',
-        establishmentId: establishment.id,
         filters: {
           groupIds: [group.id]
         },
-        createdAt: expect.toBeDateString(),
-        userId: user.id
+        createdAt: expect.toBeDateString()
       });
     });
 
@@ -417,13 +450,14 @@ describe('Campaign API', () => {
         'campaign_id',
         body.id
       );
+      expect(campaignHousing).toBeArrayOfSize(groupHousing.length);
       expect(campaignHousing).toIncludeAllPartialMembers(
         groupHousing.map((housing) => ({ housing_id: housing.id }))
       );
     });
 
-    it('should create campaign events', async () => {
-      const { status } = await request(app)
+    it('should create an event for each attached housing', async () => {
+      const { body, status } = await request(app)
         .post(testRoute(group.id))
         .send({
           title: 'Logements prioritaires'
@@ -431,42 +465,59 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      await wait(1000);
-
-      const housingIds = groupHousing.map((housing) => housing.id);
-      const housingEvents = await HousingEvents().whereIn(
-        'housing_id',
-        housingIds
+      const events = await Events()
+        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          campaign_id: body.id,
+          type: 'housing:campaign-attached'
+        });
+      expect(events).toBeArrayOfSize(groupHousing.length);
+      expect(events).toIncludeAllPartialMembers(
+        groupHousing.map((housing) => ({
+          housing_id: housing.id,
+          type: 'housing:campaign-attached'
+        }))
       );
-      expect(housingEvents.length).toBeGreaterThanOrEqual(groupHousing.length);
     });
   });
 
   describe('PUT /campaigns/{id}', () => {
     const testRoute = (id: string) => `/api/campaigns/${id}`;
-    const payload: CampaignUpdatePayloadDTO = {
+
+    const defaultPayload: CampaignUpdatePayloadDTO = {
       title: 'New title',
       description: '',
       status: 'sending'
     };
 
-    let campaign: CampaignApi;
-    let draft: DraftApi;
-
-    beforeEach(async () => {
-      campaign = genCampaignApi(establishment.id, user.id);
+    async function createCampaign(status: CampaignStatus) {
+      const campaign: CampaignApi = {
+        ...genCampaignApi(establishment.id, user.id),
+        status: status
+      };
       await Campaigns().insert(formatCampaignApi(campaign));
       const sender = genSenderApi(establishment);
       await Senders().insert(formatSenderApi(sender));
-      draft = genDraftApi(establishment, sender);
+      const draft = genDraftApi(establishment, sender);
       await Drafts().insert(formatDraftApi(draft));
       await CampaignsDrafts().insert({
         campaign_id: campaign.id,
         draft_id: draft.id
       });
-    });
+      const housings: HousingApi[] = faker.helpers.multiple(() => ({
+        ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+        status: HousingStatus.NEVER_CONTACTED
+      }));
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      await CampaignsHousing().insert(
+        formatCampaignHousingApi(campaign, housings)
+      );
+      return campaign;
+    }
 
     it('should be forbidden for a non-authenticated user', async () => {
+      const campaign = await createCampaign('draft');
+
       const { status } = await request(app).put(testRoute(campaign.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
@@ -475,18 +526,20 @@ describe('Campaign API', () => {
     it('should received a valid campaign id', async () => {
       await request(app)
         .put(testRoute(randomstring.generate()))
-        .send(payload)
+        .send(defaultPayload)
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
       await request(app)
         .put(testRoute(uuidv4()))
-        .send(payload)
+        .send(defaultPayload)
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should received a valid request', async () => {
+      const campaign = await createCampaign('draft');
+
       async function fail(payload?: Record<string, unknown>): Promise<void> {
         const { status } = await request(app)
           .put(testRoute(campaign.id))
@@ -497,20 +550,21 @@ describe('Campaign API', () => {
       }
 
       await fail();
-      await fail({ title: payload.title });
-      await fail({ status: payload.status });
-      await fail({ ...payload, title: '' });
-      await fail({ ...payload, title: 42 });
-      await fail({ ...payload, status: '' });
-      await fail({ ...payload, status: 'invalid' });
-      await fail({ ...payload, status: 42 });
+      await fail({ title: defaultPayload.title });
+      await fail({ status: defaultPayload.status });
+      await fail({ ...defaultPayload, title: '' });
+      await fail({ ...defaultPayload, title: 42 });
+      await fail({ ...defaultPayload, status: '' });
+      await fail({ ...defaultPayload, status: 'invalid' });
+      await fail({ ...defaultPayload, status: 42 });
     });
 
-    it('should update the campaign title', async () => {
+    it('should update the campaign', async () => {
+      const campaign = await createCampaign('draft');
       const payload: CampaignUpdatePayloadDTO = {
         status: campaign.status,
-        title: 'New title',
-        description: ''
+        title: faker.lorem.word(),
+        description: faker.lorem.words()
       };
 
       const { body, status } = await request(app)
@@ -519,28 +573,61 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toMatchObject({
+      const expected = {
         id: campaign.id,
         status: campaign.status,
-        title: payload.title
-      });
+        title: payload.title,
+        description: payload.description
+      };
+      expect(body).toMatchObject(expected);
 
       const actual = await Campaigns().where({ id: campaign.id }).first();
-      expect(actual).toMatchObject({
-        id: campaign.id,
-        status: campaign.status,
-        title: payload.title
+      expect(actual).toMatchObject(expected);
+    });
+
+    it('should create an event when the campaign changes', async () => {
+      const campaign = await createCampaign('draft');
+      const payload: CampaignUpdatePayloadDTO = {
+        status: 'sending',
+        title: faker.lorem.word(),
+        description: faker.lorem.words()
+      };
+
+      const { body, status } = await request(app)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const event = await Events()
+        .join(CAMPAIGN_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          type: 'campaign:updated',
+          campaign_id: body.id
+        })
+        .first();
+      expect(event).toMatchObject<Partial<EventDBO<'campaign:updated'>>>({
+        type: 'campaign:updated',
+        next_old: {
+          status: CAMPAIGN_STATUS_LABELS[campaign.status],
+          title: campaign.title,
+          description: campaign.description
+        },
+        next_new: {
+          status: CAMPAIGN_STATUS_LABELS[payload.status],
+          title: payload.title,
+          description: payload.description
+        }
       });
     });
 
-    it.todo('should create a campaign event when its status changes');
-
     describe('Validate the campaign', () => {
       it('should set the status from "draft" to "sending"', async () => {
+        const campaign = await createCampaign('draft');
         const payload: CampaignUpdatePayloadDTO = {
-          title: campaign.title,
           status: 'sending',
-          description: ''
+          title: campaign.title,
+          description: campaign.description
         };
 
         const { body, status } = await request(app)
@@ -552,39 +639,21 @@ describe('Campaign API', () => {
         expect(body).toMatchObject<Partial<CampaignDTO>>({
           id: campaign.id,
           title: campaign.title,
+          description: campaign.description,
           status: 'sending',
           validatedAt: expect.any(String)
         });
-      });
-
-      it('should fail if the draft is missing', async () => {
-        const campaignWithoutDraft = genCampaignApi(establishment.id, user.id);
-        const payload: CampaignUpdatePayloadDTO = {
-          title: campaignWithoutDraft.title,
-          status: 'sending',
-          description: ''
-        };
-
-        const { status } = await request(app)
-          .put(testRoute(campaignWithoutDraft.id))
-          .send(payload)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
       });
     });
 
     describe('Send the campaign', () => {
       it('should set the status from "sending" to "in-progress"', async () => {
-        campaign = { ...campaign, status: 'sending' };
-        await Campaigns().where({ id: campaign.id }).update({
-          status: campaign.status
-        });
+        const campaign = await createCampaign('sending');
         const payload: CampaignUpdatePayloadDTO = {
-          title: campaign.title,
           status: 'in-progress',
           sentAt: faker.date.recent().toJSON(),
-          description: ''
+          title: campaign.title,
+          description: campaign.description
         };
 
         const { body, status } = await request(app)
@@ -602,15 +671,40 @@ describe('Campaign API', () => {
         });
       });
 
-      it.todo('should set contacted houses’ status to "waiting"');
+      it('should set contacted houses’ status to "waiting"', async () => {
+        const campaign = await createCampaign('sending');
+        const payload: CampaignUpdatePayloadDTO = {
+          status: 'in-progress',
+          sentAt: faker.date.recent().toJSON(),
+          title: campaign.title,
+          description: campaign.description
+        };
+
+        const { status } = await request(app)
+          .put(testRoute(campaign.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        const housings = await Housing()
+          .join(campaignsHousingTable, (join) => {
+            join.on('housing_geo_code', 'geo_code').andOn('housing_id', 'id');
+          })
+          .where({
+            campaign_id: campaign.id
+          });
+        expect(housings.length).toBeGreaterThan(0);
+        housings.forEach((housing) => {
+          expect(housing).toMatchObject({
+            status: HousingStatus.WAITING
+          });
+        });
+      });
     });
 
     describe('Archive the campaign', () => {
       it('should set the status from "in-progress" to "archived"', async () => {
-        campaign = { ...campaign, status: 'in-progress' };
-        await Campaigns().where({ id: campaign.id }).update({
-          status: campaign.status
-        });
+        const campaign = await createCampaign('in-progress');
         const payload: CampaignUpdatePayloadDTO = {
           title: campaign.title,
           status: 'archived',
@@ -631,7 +725,38 @@ describe('Campaign API', () => {
         });
       });
 
-      it.todo('should create housing events when their status changes');
+      it('should create housing events when their status changes', async () => {
+        const campaign = await createCampaign('in-progress');
+        const payload: CampaignUpdatePayloadDTO = {
+          title: campaign.title,
+          status: 'archived',
+          description: ''
+        };
+
+        const { status } = await request(app)
+          .put(testRoute(campaign.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        const events = await Events()
+          .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+          .where({
+            campaign_id: campaign.id,
+            type: 'housing:status-updated'
+          });
+        events.forEach((event) => {
+          expect(event).toMatchObject<
+            Partial<EventDBO<'housing:status-updated'>>
+          >({
+            type: 'housing:status-updated',
+            next_new: {
+              status: 'waiting',
+              subStatus: null
+            }
+          });
+        });
+      });
     });
   });
 
@@ -659,6 +784,14 @@ describe('Campaign API', () => {
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
+    it('should fail if the campaign is missing', async () => {
+      const { status } = await request(app)
+        .delete(testRoute(uuidv4()))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
     it('should remove the campaign', async () => {
       const { status } = await request(app)
         .delete(testRoute(campaign.id))
@@ -666,24 +799,44 @@ describe('Campaign API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
-      const actualCampaign = await Campaigns().where({
-        establishment_id: establishment.id,
-        id: campaign.id
-      });
-      expect(actualCampaign).toStrictEqual([]);
+      const actual = await Campaigns().where({ id: campaign.id }).first();
+      expect(actual).toBeUndefined();
     });
 
-    it('should delete linked events and campaign housing', async () => {
-      const houses: HousingApi[] = Array.from({ length: 2 }).map(() =>
-        genHousingApi(oneOf(establishment.geoCodes))
-      );
-      await Housing().insert(houses.map(formatHousingRecordApi));
-      const campaignHouses: CampaignHousingDBO[] = houses.map((housing) => ({
+    it('should remove the associated campaign events', async () => {
+      const event: CampaignEventApi = {
+        ...genEventApi({
+          creator: user,
+          type: 'campaign:updated',
+          nextOld: { title: 'Before' },
+          nextNew: { title: 'After' }
+        }),
+        campaignId: campaign.id
+      };
+      await Events().insert(formatEventApi(event));
+      await CampaignEvents().insert(formatCampaignEventApi(event));
+
+      const { status } = await request(app)
+        .delete(testRoute(campaign.id))
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const actualEvent = await Events().where({ id: event.id }).first();
+      expect(actualEvent).toBeUndefined();
+      const actualCampaignEvent = await CampaignEvents().where({
         campaign_id: campaign.id,
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      }));
-      await CampaignsHousing().insert(campaignHouses);
+        event_id: event.id
+      });
+      expect(actualCampaignEvent).toBeArrayOfSize(0);
+    });
+
+    it('should unlink the associated housings', async () => {
+      const housings: HousingApi[] = faker.helpers.multiple(() =>
+        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+      );
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      const campaignHousings = formatCampaignHousingApi(campaign, housings);
+      await CampaignsHousing().insert(campaignHousings);
 
       await request(app)
         .delete(testRoute(campaign.id))
@@ -693,17 +846,12 @@ describe('Campaign API', () => {
         campaign_id: campaign.id
       });
       expect(actualCampaignHouses).toBeArrayOfSize(0);
-
-      const actualCampaignEvents = await CampaignEvents().where({
-        campaign_id: campaign.id
-      });
-      expect(actualCampaignEvents).toBeArrayOfSize(0);
     });
 
-    it('should set status never contacted for waiting housing without anymore campaigns', async () => {
+    it('should set the status to "never contacted" for each housing that has a status "waiting" and has no other campaign', async () => {
       const housing: HousingApi = {
         ...genHousingApi(oneOf(establishment.geoCodes)),
-        status: HousingStatusApi.Waiting
+        status: HousingStatus.WAITING
       };
       await Housing().insert(formatHousingRecordApi(housing));
       await CampaignsHousing().insert({
@@ -725,9 +873,153 @@ describe('Campaign API', () => {
       expect(actualHousing).toMatchObject({
         geo_code: housing.geoCode,
         id: housing.id,
-        status: HousingStatusApi.NeverContacted,
+        status: HousingStatus.NEVER_CONTACTED,
         sub_status: null
       });
+    });
+
+    it('should create an event "housing:campaign-removed" for each housing', async () => {
+      const housings: HousingApi[] = faker.helpers.multiple(() =>
+        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+      );
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      const campaignHousings: CampaignHousingDBO[] = formatCampaignHousingApi(
+        campaign,
+        housings
+      );
+      await CampaignsHousing().insert(campaignHousings);
+
+      await request(app)
+        .delete(testRoute(campaign.id))
+        .use(tokenProvider(user));
+
+      const events = await Events()
+        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          type: 'housing:campaign-removed',
+          campaign_id: null
+        })
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          housings.map((housing) => [housing.geoCode, housing.id])
+        );
+      expect(events).toBeArrayOfSize(housings.length);
+    });
+
+    it('should create an event "housing:status-updated" for each housing that has a status "waiting" and has no other campaign', async () => {
+      const housings: HousingApi[] = faker.helpers.multiple(() => ({
+        ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+        status: HousingStatus.WAITING
+      }));
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      const campaignHousings: CampaignHousingDBO[] = formatCampaignHousingApi(
+        campaign,
+        housings
+      );
+      await CampaignsHousing().insert(campaignHousings);
+
+      await request(app)
+        .delete(testRoute(campaign.id))
+        .use(tokenProvider(user));
+
+      const events = await Events()
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          type: 'housing:status-updated'
+        })
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          housings.map((housing) => [housing.geoCode, housing.id])
+        );
+      expect(events).toBeArrayOfSize(housings.length);
+    });
+  });
+
+  describe('DELETE /campaigns/{id}/housing', () => {
+    const testRoute = (id: string) => `/api/campaigns/${id}/housing`;
+
+    let campaign: CampaignApi;
+    let housings: HousingApi[];
+
+    beforeEach(async () => {
+      campaign = genCampaignApi(establishment.id, user.id);
+      await Campaigns().insert(formatCampaignApi(campaign));
+
+      housings = faker.helpers.multiple(() =>
+        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+      );
+      await Housing().insert(housings.map(formatHousingRecordApi));
+
+      const campaignHousings = formatCampaignHousingApi(campaign, housings);
+      await CampaignsHousing().insert(campaignHousings);
+    });
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(app).delete(testRoute(campaign.id));
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    it('should fail if the campaign is missing', async () => {
+      const payload: CampaignRemovalPayloadDTO = {
+        all: true,
+        ids: [],
+        filters: {}
+      };
+
+      const { status } = await request(app)
+        .delete(testRoute(uuidv4()))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it.todo('should fail if the campaign does not belong to the user');
+
+    it('should unlink the associated housings', async () => {
+      const payload = {
+        all: false,
+        ids: housings.map((housing) => housing.id)
+      };
+
+      const { status } = await request(app)
+        .delete(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actualCampaignHousings = await CampaignsHousing().where({
+        campaign_id: campaign.id
+      });
+      expect(actualCampaignHousings).toBeArrayOfSize(0);
+    });
+
+    it('should create an event "housing:campaign-detached" for each housing', async () => {
+      const payload = {
+        all: false,
+        ids: housings.map((housing) => housing.id)
+      };
+
+      const { status } = await request(app)
+        .delete(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const events = await Events()
+        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          type: 'housing:campaign-detached',
+          campaign_id: campaign.id
+        });
+
+      expect(events).toBeArrayOfSize(housings.length);
+      expect(events).toIncludeAllPartialMembers(
+        housings.map((housing) => ({ housing_id: housing.id }))
+      );
     });
   });
 });

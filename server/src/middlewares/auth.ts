@@ -1,14 +1,14 @@
+import { UserRole } from '@zerologementvacant/models';
 import { NextFunction, Request, Response } from 'express';
 import { AuthenticatedRequest, expressjwt } from 'express-jwt';
 import memoize from 'memoizee';
 
-import config from '~/infra/config';
-import userRepository from '~/repositories/userRepository';
-import UserMissingError from '~/errors/userMissingError';
 import AuthenticationMissingError from '~/errors/authenticationMissingError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
+import UserMissingError from '~/errors/userMissingError';
+import config from '~/infra/config';
 import establishmentRepository from '~/repositories/establishmentRepository';
-import { UserRoles } from '~/models/UserApi';
+import userRepository from '~/repositories/userRepository';
 
 export const jwtCheck = (credentialsRequired: boolean) =>
   expressjwt({
@@ -58,7 +58,7 @@ export const userCheck = () => {
   };
 };
 
-export function hasRole(roles: UserRoles[]) {
+export function hasRole(roles: UserRole[]) {
   return (request: Request, response: Response, next: NextFunction) => {
     const { user } = request as AuthenticatedRequest;
     if (!roles.includes(user.role)) {

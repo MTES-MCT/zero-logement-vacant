@@ -145,7 +145,7 @@ describe('Campaign view', () => {
     await user.click(tab);
     const rowsBefore = screen.getAllByRole<HTMLTableRowElement>('row').slice(1); // Remove headers
     const remove = screen.getAllByRole('button', {
-      name: /^Supprimer le propriétaire/
+      name: /^Supprimer le destinataire/
     })[index];
     await user.click(remove);
     const dialog = await screen.findByRole('dialog');
@@ -278,13 +278,12 @@ describe('Campaign view', () => {
       name: /^Éditer/
     });
     await user.click(edit);
-    const [aside] = await screen.findAllByRole('complementary');
-    const address = await within(aside).findByPlaceholderText(
-      'Rechercher une adresse'
-    );
+    const address = await screen.findByRole('combobox', {
+      name: 'Rechercher une adresse'
+    });
     await user.clear(address);
     await user.type(address, 'Rue de la vallée 85130 Tiffauges');
-    const save = await within(aside).findByRole('button', {
+    const save = await screen.findByRole('button', {
       name: /^Enregistrer/
     });
     await user.click(save);
@@ -300,20 +299,11 @@ describe('Campaign view', () => {
       name: /^Éditer/
     });
     await user.click(edit);
-    const [aside] = await screen.findAllByRole('complementary');
-    const [ignoreButton] = await within(aside).findAllByRole('button', {
+    const ignore = await screen.findByRole('button', {
       name: /^Ignorer/
     });
-    expect(ignoreButton).toBeInTheDocument();
-    await user.click(ignoreButton);
-    const save = await within(aside).findByRole('button', {
-      name: /^Enregistrer/
-    });
-    await user.click(save);
-
-    await user.click(edit);
-
-    expect(ignoreButton).not.toBeInTheDocument();
+    await user.click(ignore);
+    expect(ignore).not.toBeVisible();
   });
 
   it('should update the page when the campaign has been generated', async () => {

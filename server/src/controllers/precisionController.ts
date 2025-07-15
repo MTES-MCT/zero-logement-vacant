@@ -1,19 +1,23 @@
+import { Precision, PRECISION_EQUIVALENCE } from '@zerologementvacant/models';
+import { Array } from 'effect';
 import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
+import { v4 as uuidv4 } from 'uuid';
 
-import { Precision } from '@zerologementvacant/models';
-import precisionRepository from '~/repositories/precisionRepository';
+import HousingMissingError from '~/errors/housingMissingError';
+import PrecisionMissingError from '~/errors/precisionMissingError';
+import { startTransaction } from '~/infra/database/transaction';
+import { PrecisionHousingEventApi } from '~/models/EventApi';
 import {
   toOldPrecision,
   toPrecisionDTO,
   wasPrecision,
   wasVacancyReason
 } from '~/models/PrecisionApi';
+import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
-import HousingMissingError from '~/errors/housingMissingError';
-import PrecisionMissingError from '~/errors/precisionMissingError';
-import { startTransaction } from '~/infra/database/transaction';
+import precisionRepository from '~/repositories/precisionRepository';
 
 const find: RequestHandler<never, Precision[]> = async (
   _,
@@ -62,7 +66,7 @@ const updatePrecisionsByHousing: RequestHandler<
   PathParams,
   Precision[]
 > = async (request, response): Promise<void> => {
-  const { body, establishment, params } = request as AuthenticatedRequest<
+  const { auth, body, establishment, params } = request as AuthenticatedRequest<
     PathParams,
     Precision[]
   >;
@@ -94,6 +98,47 @@ const updatePrecisionsByHousing: RequestHandler<
     .filter((precision) => wasVacancyReason(precision.category))
     .map(toOldPrecision);
 
+  const existingPrecisions = await precisionRepository.find({
+    filters: {
+      housingId: [housing.id]
+    }
+  });
+  const substract = Array.differenceWith(PRECISION_EQUIVALENCE);
+  const removed = substract(existingPrecisions, precisions);
+  const added = substract(precisions, existingPrecisions);
+  const events = [
+    ...added.map<PrecisionHousingEventApi>((precision) => ({
+      id: uuidv4(),
+      type: 'housing:precision-attached',
+      name: 'Ajout d’une précision au logement',
+      nextOld: null,
+      nextNew: {
+        category: precision.category,
+        label: precision.label
+      },
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      precisionId: precision.id,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id
+    })),
+    ...removed.map<PrecisionHousingEventApi>((precision) => ({
+      id: uuidv4(),
+      type: 'housing:precision-detached',
+      name: 'Retrait d’une précision du logement',
+      nextOld: {
+        category: precision.category,
+        label: precision.label
+      },
+      nextNew: null,
+      createdAt: new Date().toJSON(),
+      createdBy: auth.userId,
+      precisionId: precision.id,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id
+    }))
+  ];
+
   await startTransaction(async () => {
     await Promise.all([
       housingRepository.update({
@@ -101,7 +146,8 @@ const updatePrecisionsByHousing: RequestHandler<
         deprecatedPrecisions,
         deprecatedVacancyReasons
       }),
-      precisionRepository.link(housing, precisions)
+      precisionRepository.link(housing, precisions),
+      eventRepository.insertManyPrecisionHousingEvents(events)
     ]);
   });
   response

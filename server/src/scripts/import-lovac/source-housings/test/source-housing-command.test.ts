@@ -1,6 +1,11 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { beforeAll } from '@jest/globals';
-import { Occupancy, OCCUPANCY_VALUES } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_VALUES,
+  HousingStatus,
+  Occupancy,
+  OCCUPANCY_VALUES
+} from '@zerologementvacant/models';
 import { stringify as writeJSONL } from 'jsonlines';
 import fs from 'node:fs';
 import { rm } from 'node:fs/promises';
@@ -11,7 +16,6 @@ import config from '~/infra/config';
 import { BuildingApi } from '~/models/BuildingApi';
 import { HousingEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { UserApi } from '~/models/UserApi';
 import {
   Buildings,
@@ -24,12 +28,12 @@ import {
 import {
   EventRecordDBO,
   Events,
-  eventsTable,
+  EVENTS_TABLE,
   formatEventApi,
   formatHousingEventApi,
+  HOUSING_EVENTS_TABLE,
   HousingEventDBO,
-  HousingEvents,
-  housingEventsTable
+  HousingEvents
 } from '~/repositories/eventRepository';
 import {
   formatHousingRecordApi,
@@ -49,8 +53,8 @@ import {
 import {
   genBuildingApi,
   genEstablishmentApi,
+  genEventApi,
   genHousingApi,
-  genHousingEventApi,
   genUserApi
 } from '~/test/testFixtures';
 
@@ -84,9 +88,9 @@ describe('Source housing command', () => {
   const nonVacantOccupancies = OCCUPANCY_VALUES.filter(
     (occupancy) => occupancy !== Occupancy.VACANT
   );
-  const contactedStatuses = Object.values(HousingStatusApi)
-    .filter((value) => typeof value === 'number')
-    .filter((status) => status !== HousingStatusApi.NeverContacted);
+  const contactedStatuses = HOUSING_STATUS_VALUES.filter(
+    (status) => status !== HousingStatus.NEVER_CONTACTED
+  );
   const nonVacantUnsupervisedHousings: ReadonlyArray<HousingApi> = faker.helpers
     .multiple(() => faker.helpers.arrayElement(nonVacantOccupancies), {
       count: { min: 5, max: 50 }
@@ -149,10 +153,10 @@ describe('Source housing command', () => {
         dataFileYears: ['lovac-2024'],
         occupancy: Occupancy.VACANT,
         status: faker.helpers.arrayElement([
-          HousingStatusApi.NeverContacted,
-          HousingStatusApi.Waiting,
-          HousingStatusApi.FirstContact,
-          HousingStatusApi.Blocked
+          HousingStatus.NEVER_CONTACTED,
+          HousingStatus.WAITING,
+          HousingStatus.FIRST_CONTACT,
+          HousingStatus.BLOCKED
         ]),
         subStatus: null
       }),
@@ -162,11 +166,11 @@ describe('Source housing command', () => {
     faker.helpers.multiple(
       () => {
         const status = faker.helpers.arrayElement([
-          HousingStatusApi.Completed,
-          HousingStatusApi.InProgress
+          HousingStatus.COMPLETED,
+          HousingStatus.IN_PROGRESS
         ]);
         const subStatus =
-          status === HousingStatusApi.InProgress
+          status === HousingStatus.IN_PROGRESS
             ? faker.helpers.arrayElement([
                 'En accompagnement',
                 'Intervention publique'
@@ -221,11 +225,18 @@ describe('Source housing command', () => {
     const events = nonVacantUserModifiedHousings.map<HousingEventApi>(
       (housing) => {
         return {
-          ...genHousingEventApi(housing, user),
-          name: faker.helpers.arrayElement([
-            'Changement de statut d’occupation',
-            'Changement de statut de suivi'
-          ])
+          ...genEventApi({
+            type: 'housing:occupancy-updated',
+            creator: user,
+            nextOld: {
+              occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES)
+            },
+            nextNew: {
+              occupancy: housing.occupancy
+            }
+          }),
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
         };
       }
     );
@@ -365,7 +376,7 @@ describe('Source housing command', () => {
 
     it('should set their status to "never contacted"', () => {
       expect(actual).toSatisfyAll<HousingRecordDBO>((housing) => {
-        return housing.status === HousingStatusApi.NeverContacted;
+        return housing.status === HousingStatus.NEVER_CONTACTED;
       });
     });
   });
@@ -409,21 +420,21 @@ describe('Source housing command', () => {
       actual.forEach((actualHousing) => {
         expect(actualHousing).toMatchObject<Partial<HousingRecordDBO>>({
           occupancy: Occupancy.VACANT,
-          status: HousingStatusApi.NeverContacted,
+          status: HousingStatus.NEVER_CONTACTED,
           sub_status: null
         });
       });
 
       const actualEvents = await Events()
         .join(
-          housingEventsTable,
-          `${housingEventsTable}.event_id`,
-          `${eventsTable}.id`
+          HOUSING_EVENTS_TABLE,
+          `${HOUSING_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
         )
         .whereIn(
           [
-            `${housingEventsTable}.housing_geo_code`,
-            `${housingEventsTable}.housing_id`
+            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
+            `${HOUSING_EVENTS_TABLE}.housing_id`
           ],
           actual.map((actualHousing) => [
             actualHousing.geo_code,
@@ -456,21 +467,21 @@ describe('Source housing command', () => {
       actual.forEach((actualHousing) => {
         expect(actualHousing).toMatchObject<Partial<HousingRecordDBO>>({
           occupancy: Occupancy.UNKNOWN,
-          status: HousingStatusApi.Completed,
+          status: HousingStatus.COMPLETED,
           sub_status: 'Sortie de la vacance'
         });
       });
 
       const actualEvents = await Events()
         .join(
-          housingEventsTable,
-          `${housingEventsTable}.event_id`,
-          `${eventsTable}.id`
+          HOUSING_EVENTS_TABLE,
+          `${HOUSING_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
         )
         .whereIn(
           [
-            `${housingEventsTable}.housing_geo_code`,
-            `${housingEventsTable}.housing_id`
+            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
+            `${HOUSING_EVENTS_TABLE}.housing_id`
           ],
           actual.map((actualHousing) => [
             actualHousing.geo_code,

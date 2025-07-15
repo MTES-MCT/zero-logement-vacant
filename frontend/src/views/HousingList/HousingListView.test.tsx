@@ -8,7 +8,8 @@ import {
   CampaignDTO,
   CampaignStatus,
   DatafoncierHousing,
-  HousingDTO
+  HousingDTO,
+  HousingKind
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
@@ -19,6 +20,7 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import async from 'async';
+import fp from 'lodash/fp';
 import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
 import {
@@ -44,7 +46,29 @@ describe('Housing list view', () => {
     store = configureTestStore();
   });
 
-  it('should hide the button to create campaign if no housing are selected', async () => {
+  function setup(): void {
+    const store = configureTestStore();
+    const router = createMemoryRouter([
+      { path: '/', element: <HousingListView /> }
+    ]);
+
+    render(
+      <Provider store={store}>
+        <HousingListTabsProvider>
+          <RouterProvider router={router} />
+        </HousingListTabsProvider>
+      </Provider>
+    );
+  }
+
+  it('should filter by housing kind', async () => {
+    const apartments = data.housings.filter(
+      (housing) => housing.housingKind === HousingKind.APARTMENT
+    );
+    const owners = fp.uniqBy(
+      'id',
+      apartments.map((housing) => housing.owner)
+    );
     render(
       <Provider store={store}>
         <Router>
@@ -55,10 +79,45 @@ describe('Housing list view', () => {
       </Provider>
     );
 
-    const createCampaign = screen.queryByRole('button', {
-      name: /^Créer une campagne/
+    const accordion = await screen.findByRole('button', { name: /^Logement/ });
+    await user.click(accordion);
+    const status = await screen.findByRole('combobox', {
+      name: /Type de logement/
     });
-    expect(createCampaign).not.toBeInTheDocument();
+    await user.click(status);
+    const options = await screen.findByRole('listbox');
+    const option = await within(options).findByText('Appartement');
+    await user.click(option);
+    const text = `${apartments.length} logements (${owners.length} propriétaires) filtrés sur un total de ${data.housings.length} logements`;
+    const label = await screen.findByText(text);
+    expect(label).toBeVisible();
+  });
+
+  describe('Select housings', () => {
+    it('should select all housings when the top checkbox gets checked', async () => {
+      setup();
+
+      const [row] = await screen.findAllByRole('columnheader');
+      const checkboxes = await within(row).findAllByRole('checkbox');
+      const [checkAll] = checkboxes;
+      await user.click(checkAll);
+      checkboxes.forEach((checkbox) => {
+        expect(checkbox).toBeChecked();
+      });
+    });
+
+    it('should unselect all housings when the top checkbox is checked and clicked again', async () => {
+      setup();
+
+      const [row] = await screen.findAllByRole('row');
+      const checkboxes = await within(row).findAllByRole('checkbox');
+      const [checkAll] = checkboxes;
+      await user.click(checkAll);
+      await user.click(checkAll);
+      checkboxes.forEach((checkbox) => {
+        expect(checkbox).not.toBeChecked();
+      });
+    });
   });
 
   describe('Add a housing', () => {
@@ -802,7 +861,9 @@ describe('Housing list view', () => {
         const filter = await screen.findByLabelText(/^Campagne/);
         await user.click(filter);
         const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText(campaign.title);
+        const option = await within(options).findByRole('option', {
+          name: campaign.title
+        });
         await user.click(option);
         await user.keyboard('{Escape}');
         const panel = await screen.findByRole('tabpanel', {
@@ -1017,7 +1078,7 @@ describe('Housing list view', () => {
         renderView();
 
         const accordion = await screen.findByRole('button', {
-          name: /^Occupation$/,
+          name: /^Vie du logement$/,
           expanded: false
         });
         await user.click(accordion);
@@ -1031,12 +1092,12 @@ describe('Housing list view', () => {
         renderView();
 
         const accordion = await screen.findByRole('button', {
-          name: 'Occupation'
+          name: 'Vie du logement'
         });
         await user.click(accordion);
 
         const occupancy = await screen.findByRole('combobox', {
-          name: 'Statut d’occupation'
+          name: 'Occupation actuelle'
         });
         await user.click(occupancy);
         let options = await screen.findByRole('listbox');
@@ -1182,14 +1243,14 @@ describe('Housing list view', () => {
         renderView();
 
         const accordion = await screen.findByRole('button', {
-          name: 'Logement'
+          name: 'Bâtiment/DPE'
         });
         await user.click(accordion);
 
-        const dpe = await screen.findByRole('combobox', {
+        const constructionDate = await screen.findByRole('combobox', {
           name: 'Date de construction'
         });
-        await user.click(dpe);
+        await user.click(constructionDate);
         const options = await screen.findByRole('listbox');
         const option = await within(options).findByText('Avant 1919');
         await user.click(option);
@@ -1301,7 +1362,7 @@ describe('Housing list view', () => {
         renderView();
 
         const accordion = await screen.findByRole('button', {
-          name: 'Logement'
+          name: 'Bâtiment/DPE'
         });
         await user.click(accordion);
 

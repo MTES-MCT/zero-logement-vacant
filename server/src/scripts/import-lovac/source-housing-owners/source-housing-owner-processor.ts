@@ -4,15 +4,20 @@ import {
   PREVIOUS_OWNER_RANK
 } from '@zerologementvacant/models';
 import { map } from '@zerologementvacant/utils/node';
+import { Array, pipe } from 'effect';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
 import { createLogger } from '~/infra/logger';
-import { HousingEventApi } from '~/models/EventApi';
+import { HousingEventApi, HousingOwnerEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import {
+  HOUSING_OWNER_EQUIVALENCE,
+  HOUSING_OWNER_RANK_EQUIVALENCE,
+  HousingOwnerApi
+} from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { UserApi } from '~/models/UserApi';
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
@@ -40,13 +45,13 @@ export type HousingOwnersChange = {
 export type HousingEventChange = {
   type: 'event';
   kind: 'create';
-  value: HousingEventApi;
+  value: HousingEventApi | HousingOwnerEventApi;
 };
 
 export type HousingOwnerChanges = HousingOwnersChange | HousingEventChange;
 
 export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
-  const { abortEarly, auth, housingRepository, ownerRepository, reporter } =
+  const { abortEarly, housingRepository, ownerRepository, reporter, auth } =
     options;
 
   return map<
@@ -144,25 +149,88 @@ export function createSourceHousingOwnerProcessor(options: ProcessorOptions) {
           value: housingOwners
         }
       ];
-      if (existingHousingOwners.length > 0) {
+
+      // Create events for housing owner changes
+      const substract = Array.differenceWith(HOUSING_OWNER_EQUIVALENCE);
+      const added = substract(housingOwners, existingHousingOwners);
+      const removed = substract(existingHousingOwners, housingOwners);
+      const updated = pipe(
+        Array.intersectionWith(HOUSING_OWNER_EQUIVALENCE)(
+          existingHousingOwners,
+          housingOwners
+        ),
+        Array.filter((existingHousingOwner) => {
+          return !Array.containsWith(HOUSING_OWNER_RANK_EQUIVALENCE)(
+            housingOwners,
+            existingHousingOwner
+          );
+        })
+      );
+
+      const events: ReadonlyArray<HousingOwnerEventApi> = [
+        ...added.map<HousingOwnerEventApi>((housingOwner) => ({
+          id: uuidv4(),
+          type: 'housing:owner-attached',
+          name: 'Propriétaire ajouté au logement',
+          nextOld: null,
+          nextNew: {
+            name: housingOwner.fullName,
+            rank: housingOwner.rank
+          },
+          createdAt: new Date().toJSON(),
+          createdBy: auth.id,
+          ownerId: housingOwner.ownerId,
+          housingGeoCode: housingOwner.housingGeoCode,
+          housingId: housingOwner.housingId
+        })),
+        ...removed.map<HousingOwnerEventApi>((housingOwner) => ({
+          id: uuidv4(),
+          type: 'housing:owner-detached',
+          name: 'Propriétaire retiré du logement',
+          nextOld: {
+            name: housingOwner.fullName,
+            rank: housingOwner.rank
+          },
+          nextNew: null,
+          createdAt: new Date().toJSON(),
+          createdBy: auth.id,
+          ownerId: housingOwner.ownerId,
+          housingGeoCode: housingOwner.housingGeoCode,
+          housingId: housingOwner.housingId
+        })),
+        ...updated.map<HousingOwnerEventApi>((housingOwner) => {
+          const newHousingOwner = housingOwners.find((ho) =>
+            HOUSING_OWNER_EQUIVALENCE(ho, housingOwner)
+          ) as HousingOwnerApi;
+          return {
+            id: uuidv4(),
+            type: 'housing:owner-updated',
+            name: 'Propriétaire mis à jour',
+            nextOld: {
+              name: housingOwner.fullName,
+              rank: housingOwner.rank
+            },
+            nextNew: {
+              name: newHousingOwner.fullName,
+              rank: newHousingOwner.rank
+            },
+            createdAt: new Date().toJSON(),
+            createdBy: auth.id,
+            ownerId: housingOwner.ownerId,
+            housingGeoCode: housingOwner.housingGeoCode,
+            housingId: housingOwner.housingId
+          };
+        })
+      ];
+
+      // Add events to changes
+      events.forEach((event) => {
         changes.push({
           type: 'event',
           kind: 'create',
-          value: {
-            id: uuidv4(),
-            name: 'Changement de propriétaires',
-            kind: 'Update',
-            category: 'Ownership',
-            section: 'Propriétaire',
-            old: existingHousingOwners as HousingOwnerApi[],
-            new: housingOwners as HousingOwnerApi[],
-            createdBy: auth.id,
-            createdAt: new Date(),
-            housingId: housing.id,
-            housingGeoCode: housing.geoCode
-          }
+          value: event
         });
-      }
+      });
 
       sourceHousingOwners.forEach((sourceHousingOwner) => {
         reporter.passed(sourceHousingOwner);

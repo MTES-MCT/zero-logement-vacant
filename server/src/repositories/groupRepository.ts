@@ -1,19 +1,23 @@
-import { GroupApi } from '~/models/GroupApi';
-import db from '~/infra/database';
-import { HousingApi } from '~/models/HousingApi';
-import { parseUserApi, UserDBO, usersTable } from './userRepository';
 import { Knex } from 'knex';
+import db from '~/infra/database';
+import {
+  getTransaction,
+  withinTransaction
+} from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
-import { housingTable } from './housingRepository';
+import { GroupApi } from '~/models/GroupApi';
+import { HousingApi } from '~/models/HousingApi';
 import { housingOwnersTable } from './housingOwnerRepository';
+import { housingTable } from './housingRepository';
+import { parseUserApi, UserDBO, usersTable } from './userRepository';
 
-export const groupsTable = 'groups';
-export const groupsHousingTable = 'groups_housing';
+export const GROUPS_TABLE = 'groups';
+export const GROUPS_HOUSING_TABLE = 'groups_housing';
 
 export const Groups = (transaction: Knex<GroupDBO> = db) =>
-  transaction(groupsTable);
+  transaction(GROUPS_TABLE);
 export const GroupsHousing = (transaction: Knex<GroupHousingDBO> = db) =>
-  transaction(groupsHousingTable);
+  transaction(GROUPS_HOUSING_TABLE);
 
 interface FindOptions {
   filters: {
@@ -42,7 +46,7 @@ const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
   const group: GroupDBO | undefined = await Groups()
     .modify(listQuery)
     .modify(filterQuery({ establishmentId: opts.establishmentId }))
-    .where(`${groupsTable}.id`, opts.id)
+    .where(`${GROUPS_TABLE}.id`, opts.id)
     .first();
   if (!group) {
     return null;
@@ -54,8 +58,8 @@ const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
 
 const listQuery = (query: Knex.QueryBuilder): void => {
   query
-    .select(`${groupsTable}.*`)
-    .join<UserDBO>(usersTable, `${usersTable}.id`, `${groupsTable}.user_id`)
+    .select(`${GROUPS_TABLE}.*`)
+    .join<UserDBO>(usersTable, `${usersTable}.id`, `${GROUPS_TABLE}.user_id`)
     .select(db.raw(`to_json(${usersTable}.*) AS user`))
     .joinRaw(
       `
@@ -63,17 +67,17 @@ const listQuery = (query: Knex.QueryBuilder): void => {
         SELECT
           COUNT(DISTINCT ${housingTable}.id) AS housing_count,
           COUNT(DISTINCT ${housingOwnersTable}.owner_id) AS owner_count
-        FROM ${groupsHousingTable}
+        FROM ${GROUPS_HOUSING_TABLE}
         JOIN ${housingTable}
-          ON ${housingTable}.geo_code = ${groupsHousingTable}.housing_geo_code
-          AND ${housingTable}.id = ${groupsHousingTable}.housing_id
+          ON ${housingTable}.geo_code = ${GROUPS_HOUSING_TABLE}.housing_geo_code
+          AND ${housingTable}.id = ${GROUPS_HOUSING_TABLE}.housing_id
         JOIN ${housingOwnersTable}
           ON ${housingOwnersTable}.housing_geo_code = ${housingTable}.geo_code
           AND ${housingOwnersTable}.housing_id = ${housingTable}.id
           AND ${housingOwnersTable}.rank = 1
-        WHERE ${groupsTable}.id = ${groupsHousingTable}.group_id
+        WHERE ${GROUPS_TABLE}.id = ${GROUPS_HOUSING_TABLE}.group_id
       ) counts ON true
-    `,
+    `
     )
     .select(`counts.*`);
 };
@@ -85,98 +89,116 @@ interface FilterOptions {
 const filterQuery = (opts?: FilterOptions) => {
   return function (query: Knex.QueryBuilder): void {
     if (opts?.establishmentId) {
-      query.where(`${groupsTable}.establishment_id`, opts.establishmentId);
+      query.where(`${GROUPS_TABLE}.establishment_id`, opts.establishmentId);
     }
   };
 };
 
-const save = async (
-  group: GroupApi,
-  housingList?: HousingApi[],
-): Promise<void> => {
+async function save(group: GroupApi, housings?: HousingApi[]): Promise<void> {
   logger.debug('Saving group...', {
     group,
-    housing: housingList?.length,
+    housing: housings?.length
   });
 
-  await db.transaction(async (transaction) => {
+  const doSave = async (
+    transaction: Knex.Transaction,
+    group: GroupApi,
+    housings?: HousingApi[]
+  ): Promise<void> => {
     await Groups(transaction)
       .insert(formatGroupApi(group))
       .onConflict(['id'])
       .merge(['title', 'description', 'exported_at']);
 
-    if (housingList) {
+    if (housings) {
+      // Replace existing housings from the group
       await GroupsHousing(transaction).where({ group_id: group.id }).delete();
-      if (housingList.length > 0) {
-        await GroupsHousing(transaction).insert(
-          formatGroupHousingApi(group, housingList),
+      if (housings.length > 0) {
+        await transaction.batchInsert(
+          GROUPS_HOUSING_TABLE,
+          formatGroupHousingApi(group, housings)
         );
       }
     }
-  });
-  logger.info('Saved group', { group: group.id });
-};
+    logger.info('Saved group', {
+      group: group.id,
+      housings: housings?.length ?? 0
+    });
+  };
+
+  const transaction = getTransaction();
+  if (!transaction) {
+    await db.transaction(async (transaction) => {
+      await doSave(transaction, group, housings);
+    });
+  } else {
+    await doSave(transaction, group, housings);
+  }
+}
 
 const addHousing = async (
   group: GroupApi,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): Promise<void> => {
   if (!housingList.length) {
     logger.debug('No housing to add. Skipping...', {
-      group,
+      group
     });
     return;
   }
 
   logger.debug('Adding housing to a group...', {
     group,
-    housing: housingList.length,
+    housing: housingList.length
   });
 
   await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
   logger.info(`Added housing to a group.`, {
     group,
-    housing: housingList.length,
+    housing: housingList.length
   });
 };
 
 const removeHousing = async (
   group: GroupApi,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): Promise<void> => {
   logger.debug('Removing housing from a group...', {
     group,
-    housing: housingList.length,
+    housing: housingList.length
   });
 
-  await GroupsHousing()
-    .where('group_id', group.id)
-    .whereIn(
-      'housing_id',
-      housingList.map((housing) => housing.id),
-    )
-    .whereIn(
-      'housing_geo_code',
-      housingList.map((housing) => housing.geoCode),
-    )
-    .delete();
+  await withinTransaction(async (transaction) => {
+    await GroupsHousing(transaction)
+      .where('group_id', group.id)
+      .whereIn(
+        ['housing_geo_code', 'housing_id'],
+        housingList.map((housing) => [housing.geoCode, housing.id])
+      )
+      .delete();
+  });
 };
 
 const archive = async (group: GroupApi): Promise<GroupApi> => {
   logger.debug('Archiving group...', group);
+
   const archived: GroupApi = {
     ...group,
-    archivedAt: new Date(),
+    archivedAt: new Date()
   };
-  await Groups().where({ id: group.id }).update({
-    archived_at: archived.archivedAt,
+  await withinTransaction(async (transaction) => {
+    await Groups(transaction).where({ id: group.id }).update({
+      archived_at: archived.archivedAt
+    });
   });
   return archived;
 };
 
 const remove = async (group: GroupApi): Promise<void> => {
   logger.debug('Removing group...', group);
-  await Groups().where({ id: group.id }).delete();
+  await withinTransaction(async (transaction) => {
+    await Groups(transaction).where({ id: group.id }).delete();
+  });
   logger.debug('Removed group', group.id);
 };
 
@@ -205,7 +227,7 @@ export const formatGroupApi = (group: GroupApi): GroupRecordDBO => ({
   exported_at: group.exportedAt,
   user_id: group.userId,
   establishment_id: group.establishmentId,
-  archived_at: group.archivedAt,
+  archived_at: group.archivedAt
 });
 
 export const parseGroupApi = (group: GroupDBO): GroupApi => {
@@ -220,7 +242,7 @@ export const parseGroupApi = (group: GroupDBO): GroupApi => {
     userId: group.user_id,
     createdBy: group.user ? parseUserApi(group.user) : undefined,
     establishmentId: group.establishment_id,
-    archivedAt: group.archived_at,
+    archivedAt: group.archived_at
   };
 };
 
@@ -232,12 +254,12 @@ export interface GroupHousingDBO {
 
 export const formatGroupHousingApi = (
   group: GroupApi,
-  housingList: HousingApi[],
+  housingList: HousingApi[]
 ): GroupHousingDBO[] => {
   return housingList.map((housing) => ({
     group_id: group.id,
     housing_id: housing.id,
-    housing_geo_code: housing.geoCode,
+    housing_geo_code: housing.geoCode
   }));
 };
 
@@ -248,5 +270,5 @@ export default {
   addHousing,
   removeHousing,
   archive,
-  remove,
+  remove
 };

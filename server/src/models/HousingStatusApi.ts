@@ -21,21 +21,19 @@ export const HOUSING_STATUS_VALUES = Object.values(HousingStatusApi).filter(
   (value): value is HousingStatusApi => typeof value === 'number'
 );
 
-export function getHousingStatusApiLabel(
-  housingStatusApi: HousingStatusApi
-): string | null {
-  switch (housingStatusApi) {
-    case HousingStatusApi.NeverContacted:
+export function getHousingStatusLabel(status: HousingStatus): string | null {
+  switch (status) {
+    case HousingStatus.NEVER_CONTACTED:
       return 'Non suivi';
-    case HousingStatusApi.Waiting:
+    case HousingStatus.WAITING:
       return 'En attente de retour';
-    case HousingStatusApi.FirstContact:
+    case HousingStatus.FIRST_CONTACT:
       return 'Premier contact';
-    case HousingStatusApi.InProgress:
+    case HousingStatus.IN_PROGRESS:
       return 'Suivi en cours';
-    case HousingStatusApi.Completed:
+    case HousingStatus.COMPLETED:
       return 'Suivi terminé';
-    case HousingStatusApi.Blocked:
+    case HousingStatus.BLOCKED:
       return 'Bloqué';
   }
 }

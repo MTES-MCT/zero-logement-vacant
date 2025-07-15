@@ -1,16 +1,17 @@
+import { UserRole } from '@zerologementvacant/models';
 import express, { NextFunction, Request, Response } from 'express';
 import { constants } from 'http2';
 import request from 'supertest';
+import { hasRole } from '~/middlewares/auth';
+import { UserApi } from '~/models/UserApi';
 
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
-import { UserApi, UserRoles } from '~/models/UserApi';
-import { hasRole } from '~/middlewares/auth';
 
 describe('Auth', () => {
   describe('hasRoles', () => {
     const establishment = genEstablishmentApi();
 
-    function createUser(role: UserRoles): UserApi {
+    function createUser(role: UserRole): UserApi {
       return { ...genUserApi(establishment.id), role };
     }
 
@@ -21,20 +22,15 @@ describe('Auth', () => {
       };
     }
 
-    const visitor = createUser(UserRoles.Visitor);
-    const admin = createUser(UserRoles.Admin);
-    const user = createUser(UserRoles.Usual);
+    const visitor = createUser(UserRole.VISITOR);
+    const admin = createUser(UserRole.ADMIN);
+    const user = createUser(UserRole.USUAL);
 
     it('should succeed if the user has the given role', async () => {
       const app = express();
-      app.get(
-        '/',
-        setUser(admin),
-        hasRole([UserRoles.Admin]),
-        (_, response) => {
-          response.status(constants.HTTP_STATUS_OK).send();
-        }
-      );
+      app.get('/', setUser(admin), hasRole([UserRole.ADMIN]), (_, response) => {
+        response.status(constants.HTTP_STATUS_OK).send();
+      });
 
       const { status } = await request(app).get('/');
 
@@ -46,7 +42,7 @@ describe('Auth', () => {
       app.get(
         '/',
         setUser(user),
-        hasRole([UserRoles.Admin, UserRoles.Usual]),
+        hasRole([UserRole.ADMIN, UserRole.USUAL]),
         (_, response) => {
           response.status(constants.HTTP_STATUS_OK).send();
         }
@@ -62,7 +58,7 @@ describe('Auth', () => {
       app.get(
         '/',
         setUser(visitor),
-        hasRole([UserRoles.Admin, UserRoles.Usual]),
+        hasRole([UserRole.ADMIN, UserRole.USUAL]),
         (_, response) => {
           response.status(constants.HTTP_STATUS_OK).send();
         }

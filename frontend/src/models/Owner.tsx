@@ -30,8 +30,11 @@ export function fromOwnerDTO(owner: OwnerDTO): Owner {
     email: owner.email,
     phone: owner.phone,
     kind: owner.kind,
+    kindDetail: owner.kindDetail,
     banAddress: owner.banAddress ? fromAddressDTO(owner.banAddress) : undefined,
-    additionalAddress: owner.additionalAddress
+    additionalAddress: owner.additionalAddress,
+    createdAt: owner.createdAt,
+    updatedAt: owner.updatedAt
   };
 }
 
@@ -45,10 +48,13 @@ export function toOwnerDTO(owner: Owner): OwnerDTO {
     email: owner.email,
     phone: owner.phone,
     kind: owner.kind,
+    kindDetail: owner.kindDetail,
     banAddress: owner.banAddress
       ? toOwnerAddressDTO(owner, owner.banAddress)
-      : undefined,
-    additionalAddress: owner.additionalAddress
+      : null,
+    additionalAddress: owner.additionalAddress,
+    createdAt: owner.createdAt,
+    updatedAt: owner.updatedAt
   };
 }
 
@@ -63,7 +69,7 @@ export function fromHousingOwnerDTO(
   housingOwner: HousingOwnerDTO
 ): HousingOwner {
   return {
-    ...toOwnerDTO(housingOwner),
+    ...fromOwnerDTO(housingOwner),
     rank: housingOwner.rank,
     idprocpte: housingOwner.idprocpte,
     idprodroit: housingOwner.idprodroit,

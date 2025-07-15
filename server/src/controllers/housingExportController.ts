@@ -1,4 +1,4 @@
-import { AddressKinds } from '@zerologementvacant/models';
+import { AddressKinds, OCCUPANCY_LABELS } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
 import exceljs from 'exceljs';
 import { NextFunction, Request, Response } from 'express';
@@ -14,10 +14,9 @@ import { CampaignApi } from '~/models/CampaignApi';
 import {
   assertOwner,
   getBuildingLocation,
-  HousingApi,
-  OccupancyKindApiLabels
+  HousingApi
 } from '~/models/HousingApi';
-import { getHousingStatusApiLabel } from '~/models/HousingStatusApi';
+import { getHousingStatusLabel } from '~/models/HousingStatusApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import campaignRepository from '~/repositories/campaignRepository';
@@ -210,9 +209,9 @@ function writeHousingWorksheet(
             livingArea: housing.livingArea,
             roomsCount: housing.roomsCount,
             buildingYear: housing.buildingYear,
-            occupancy: OccupancyKindApiLabels[housing.occupancy],
+            occupancy: OCCUPANCY_LABELS[housing.occupancy],
             vacancyStartYear: housing.vacancyStartYear,
-            status: getHousingStatusApiLabel(housing.status) ?? '',
+            status: getHousingStatusLabel(housing.status) ?? '',
             subStatus: housing.subStatus,
             vacancyReasons: reduceStringArray(
               housing.deprecatedVacancyReasons ?? undefined

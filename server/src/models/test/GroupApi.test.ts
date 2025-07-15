@@ -29,7 +29,7 @@ describe('GroupApi', () => {
               firstName: group.createdBy.firstName,
               lastName: group.createdBy.lastName,
               role: group.createdBy.role,
-              activatedAt: group.createdBy.activatedAt?.toJSON(),
+              activatedAt: group.createdBy.activatedAt,
               establishmentId: group.createdBy.establishmentId
             }
           : undefined,

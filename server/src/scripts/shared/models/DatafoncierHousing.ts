@@ -1,13 +1,14 @@
 import {
   DatafoncierHousing,
+  HousingKind,
   HousingSource,
+  HousingStatus,
   toOccupancy
 } from '@zerologementvacant/models';
 import { parse } from 'date-fns';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import { HousingRecordApi, OwnershipKindsApi } from '~/models/HousingApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
 
 export const toHousingRecordApi = fp.curry(
   (
@@ -25,7 +26,10 @@ export const toHousingRecordApi = fp.curry(
       geoCode: housing.idcom,
       // TODO: no data
       uncomfortable: false,
-      housingKind: housing.dteloctxt === 'MAISON' ? 'MAISON' : 'APPART',
+      housingKind:
+        housing.dteloctxt === 'MAISON'
+          ? HousingKind.HOUSE
+          : HousingKind.APARTMENT,
       roomsCount: housing.npiece_p2,
       livingArea: housing.stoth,
       buildingYear: housing.jannath,
@@ -33,21 +37,36 @@ export const toHousingRecordApi = fp.curry(
       // The data in `df_housing_nat` and `df_owners_nat` is from 2023
       dataYears: [2023],
       dataFileYears: [
-        `${additionalData.source === 'lovac' ? 'lovac' : 'ff'}-2023`
+        additionalData.source === 'lovac' ? 'lovac-2023' : 'ff-2023-locatif'
       ],
       buildingLocation: `${housing.dnubat}${housing.descc}${housing.dniv}${housing.dpor}`,
       ownershipKind: housing.ctpdl as OwnershipKindsApi,
-      status: HousingStatusApi.NeverContacted,
+      status: HousingStatus.NEVER_CONTACTED,
+      subStatus: null,
       occupancy: toOccupancy(housing.ccthp),
       occupancyRegistered: toOccupancy(housing.ccthp),
+      occupancyIntended: null,
       source: additionalData.source,
-      mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
+      mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()).toJSON(),
       energyConsumption: null,
       energyConsumptionAt: null,
       cadastralClassification: null,
-      lastMutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()),
+      lastMutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()).toJSON(),
       lastTransactionDate: null,
-      lastTransactionValue: null
+      lastTransactionValue: null,
+      buildingGroupId: null,
+      buildingId: null,
+      plotId: null,
+      geolocation: null,
+      latitude: null,
+      longitude: null,
+      beneficiaryCount: null,
+      cadastralReference: null,
+      campaignIds: null,
+      deprecatedPrecisions: null,
+      deprecatedVacancyReasons: null,
+      rentalValue: null,
+      vacancyStartYear: null
     };
   }
 );

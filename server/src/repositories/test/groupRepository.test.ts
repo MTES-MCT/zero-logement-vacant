@@ -1,25 +1,26 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { v4 as uuidv4 } from 'uuid';
+import { GroupApi } from '~/models/GroupApi';
+import { HousingApi } from '~/models/HousingApi';
 
 import {
   genEstablishmentApi,
   genGroupApi,
   genHousingApi,
-  genUserApi,
+  genUserApi
 } from '../../test/testFixtures';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '../establishmentRepository';
 import groupRepository, {
   formatGroupApi,
   formatGroupHousingApi,
   GroupHousingDBO,
   Groups,
-  GroupsHousing,
+  GroupsHousing
 } from '../groupRepository';
-import { GroupApi } from '~/models/GroupApi';
-import { HousingApi } from '~/models/HousingApi';
 import { formatHousingRecordApi, Housing } from '../housingRepository';
-import {
-  Establishments,
-  formatEstablishmentApi,
-} from '../establishmentRepository';
 import { formatUserApi, Users } from '../userRepository';
 
 describe('Group repository', () => {
@@ -31,12 +32,12 @@ describe('Group repository', () => {
     const groups: GroupApi[] = [
       genGroupApi(user, establishment),
       genGroupApi(user, establishment),
-      genGroupApi(user, anotherEstablishment),
+      genGroupApi(user, anotherEstablishment)
     ];
 
     beforeAll(async () => {
       await Establishments().insert(
-        [establishment, anotherEstablishment].map(formatEstablishmentApi),
+        [establishment, anotherEstablishment].map(formatEstablishmentApi)
       );
       await Users().insert([user, anotherUser].map(formatUserApi));
       await Groups().insert(groups.map(formatGroupApi));
@@ -51,13 +52,13 @@ describe('Group repository', () => {
 
     it('should return groups filtered by establishment', async () => {
       const filteredGroups = groups.filter(
-        (group) => group.establishmentId === establishment.id,
+        (group) => group.establishmentId === establishment.id
       );
 
       const actual = await groupRepository.find({
         filters: {
-          establishmentId: establishment.id,
-        },
+          establishmentId: establishment.id
+        }
       });
 
       expect(actual).toIncludeAllPartialMembers(filteredGroups);
@@ -74,7 +75,7 @@ describe('Group repository', () => {
 
     beforeAll(async () => {
       await Establishments().insert(
-        [establishment, anotherEstablishment].map(formatEstablishmentApi),
+        [establishment, anotherEstablishment].map(formatEstablishmentApi)
       );
       await Users().insert([user, anotherUser].map(formatUserApi));
       await Groups().insert([group, anotherGroup].map(formatGroupApi));
@@ -83,7 +84,7 @@ describe('Group repository', () => {
     it('should return null if the group belongs to another establishment', async () => {
       const actual = await groupRepository.findOne({
         id: group.id,
-        establishmentId: anotherEstablishment.id,
+        establishmentId: anotherEstablishment.id
       });
 
       expect(actual).toBeNull();
@@ -92,7 +93,7 @@ describe('Group repository', () => {
     it('should return null if the group is missing', async () => {
       const actual = await groupRepository.findOne({
         id: uuidv4(),
-        establishmentId: group.establishmentId,
+        establishmentId: group.establishmentId
       });
 
       expect(actual).toBeNull();
@@ -101,15 +102,15 @@ describe('Group repository', () => {
     it('should return the group', async () => {
       const actual = await groupRepository.findOne({
         id: group.id,
-        establishmentId: group.establishmentId,
+        establishmentId: group.establishmentId
       });
 
       expect(actual).toStrictEqual<GroupApi>({
         ...group,
         createdBy: {
           ...user,
-          password: expect.any(String),
-        },
+          password: expect.any(String)
+        }
       });
     });
   });
@@ -117,35 +118,35 @@ describe('Group repository', () => {
   describe('save', () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
-    const housingList: HousingApi[] = [
+    const housings: HousingApi[] = [
       genHousingApi(),
       genHousingApi(),
-      genHousingApi(),
+      genHousingApi()
     ];
 
     beforeAll(async () => {
       await Establishments().insert(formatEstablishmentApi(establishment));
       await Users().insert(formatUserApi(user));
-      await Housing().insert(housingList.map(formatHousingRecordApi));
+      await Housing().insert(housings.map(formatHousingRecordApi));
     });
 
     it('should create a group that does not exist', async () => {
       const group = genGroupApi(user, establishment);
-      await groupRepository.save(group, housingList);
+      await groupRepository.save(group, housings);
 
       const actualGroup = await Groups()
         .where({
           id: group.id,
-          establishment_id: group.establishmentId,
+          establishment_id: group.establishmentId
         })
         .first();
       expect(actualGroup).toStrictEqual(formatGroupApi(group));
 
       const actualHousingList = await GroupsHousing().where({
-        group_id: group.id,
+        group_id: group.id
       });
-      const ids = housingList.map((housing) => ({ housing_id: housing.id }));
-      expect(actualHousingList).toBeArrayOfSize(housingList.length);
+      const ids = housings.map((housing) => ({ housing_id: housing.id }));
+      expect(actualHousingList).toBeArrayOfSize(housings.length);
       expect(actualHousingList).toIncludeAllPartialMembers(ids);
     });
 
@@ -157,7 +158,7 @@ describe('Group repository', () => {
       const newGroup: GroupApi = {
         ...group,
         housingCount: 1,
-        ownerCount: 1,
+        ownerCount: 1
       };
 
       await groupRepository.save(newGroup, [newHousing]);
@@ -165,22 +166,57 @@ describe('Group repository', () => {
       const actualGroup = await Groups()
         .where({
           id: group.id,
-          establishment_id: group.establishmentId,
+          establishment_id: group.establishmentId
         })
         .first();
       expect(actualGroup).toStrictEqual(formatGroupApi(newGroup));
 
       const actualHousingList = await GroupsHousing().where({
-        group_id: group.id,
+        group_id: group.id
       });
       expect(actualHousingList).toBeArrayOfSize(1);
       expect(actualHousingList).toIncludeAllPartialMembers<GroupHousingDBO>([
         {
           group_id: group.id,
           housing_id: newHousing.id,
-          housing_geo_code: newHousing.geoCode,
-        },
+          housing_geo_code: newHousing.geoCode
+        }
       ]);
+    });
+
+    it('should remove housings if passed an empty array', async () => {
+      const group = genGroupApi(user, establishment);
+      await Groups().insert(formatGroupApi(group));
+      await GroupsHousing().insert(formatGroupHousingApi(group, housings));
+
+      await groupRepository.save(group, []);
+
+      const actual = await GroupsHousing().where({
+        group_id: group.id
+      });
+      expect(actual).toBeEmpty();
+    });
+
+    it('should replace existing housings by the new ones', async () => {
+      const group = genGroupApi(user, establishment);
+      await Groups().insert(formatGroupApi(group));
+      await GroupsHousing().insert(formatGroupHousingApi(group, housings));
+      const newHousings = faker.helpers.multiple(() => genHousingApi());
+      await Housing().insert(newHousings.map(formatHousingRecordApi));
+
+      await groupRepository.save(group, newHousings);
+
+      const actual = await GroupsHousing().where({
+        group_id: group.id
+      });
+      expect(actual).toBeArrayOfSize(newHousings.length);
+      newHousings.forEach((housing) => {
+        expect(actual).toPartiallyContain({
+          group_id: group.id,
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        });
+      });
     });
   });
 
@@ -201,7 +237,7 @@ describe('Group repository', () => {
 
       expect(archived).toStrictEqual({
         ...group,
-        archivedAt: expect.any(Date),
+        archivedAt: expect.any(Date)
       });
     });
   });
@@ -213,7 +249,7 @@ describe('Group repository', () => {
     const housingList: HousingApi[] = [
       genHousingApi(),
       genHousingApi(),
-      genHousingApi(),
+      genHousingApi()
     ];
 
     beforeEach(async () => {
@@ -230,12 +266,12 @@ describe('Group repository', () => {
       const actualGroup = await Groups()
         .where({
           id: group.id,
-          establishment_id: group.establishmentId,
+          establishment_id: group.establishmentId
         })
         .first();
       expect(actualGroup).toBeUndefined();
       const actualHousingList = await GroupsHousing().where({
-        group_id: group.id,
+        group_id: group.id
       });
       expect(actualHousingList).toBeArrayOfSize(0);
     });

@@ -1,14 +1,14 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import async from 'async';
 import { Knex } from 'knex';
+import { Establishments } from '~/repositories/establishmentRepository';
 
 import {
   formatGeoPerimeterApi,
   GeoPerimeters
 } from '~/repositories/geoRepository';
+import { parseUserApi, Users } from '~/repositories/userRepository';
 import { genGeoPerimeterApi } from '~/test/testFixtures';
-import { Establishments } from '~/repositories/establishmentRepository';
-import { Users } from '~/repositories/userRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   await GeoPerimeters(knex).delete();
@@ -22,7 +22,7 @@ export async function seed(knex: Knex): Promise<void> {
       () => {
         return genGeoPerimeterApi(
           establishment.id,
-          faker.helpers.arrayElement(users)
+          parseUserApi(faker.helpers.arrayElement(users))
         );
       },
       {

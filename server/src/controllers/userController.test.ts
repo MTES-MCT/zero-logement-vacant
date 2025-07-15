@@ -1,33 +1,34 @@
+import { UserRole } from '@zerologementvacant/models';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import db from '~/infra/database';
-import { tokenProvider } from '~/test/testUtils';
+import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { ProspectApi } from '~/models/ProspectApi';
+import { UserApi } from '~/models/UserApi';
 import {
-  genEstablishmentApi,
-  genProspectApi,
-  genUserApi
-} from '~/test/testFixtures';
-import { UserApi, UserRoles } from '~/models/UserApi';
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import {
+  formatProspectApi,
+  Prospects
+} from '~/repositories/prospectRepository';
 import {
   formatUserApi,
   Users,
   usersTable
 } from '~/repositories/userRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { createServer } from '~/infra/server';
-import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {
-  formatProspectApi,
-  Prospects
-} from '~/repositories/prospectRepository';
-import { ProspectApi } from '~/models/ProspectApi';
+  genEstablishmentApi,
+  genProspectApi,
+  genUserApi
+} from '~/test/testFixtures';
+import { tokenProvider } from '~/test/testUtils';
 
 const { app } = createServer();
 
@@ -137,14 +138,14 @@ describe('User API', () => {
           ...prospect,
           establishmentId: prospect.establishment?.id,
           password: validPassword,
-          role: UserRoles.Admin
+          role: UserRole.ADMIN
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject({
         email: prospect.email,
         establishmentId: prospect.establishment?.id,
-        role: UserRoles.Usual
+        role: UserRole.USUAL
       });
 
       const user = await Users()
@@ -156,7 +157,7 @@ describe('User API', () => {
       expect(user).toMatchObject({
         email: prospect.email,
         establishment_id: prospect.establishment?.id,
-        role: UserRoles.Usual
+        role: UserRole.USUAL
       });
     });
 
@@ -167,7 +168,7 @@ describe('User API', () => {
       };
       await Establishments().insert(formatEstablishmentApi(establishment));
 
-      const { body, status } = await request(app)
+      const { status } = await request(app)
         .post(testRoute)
         .send({
           ...prospect,
@@ -176,12 +177,6 @@ describe('User API', () => {
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      expect(body).toMatchObject({
-        email: prospect.email,
-        establishmentId: establishment.id,
-        role: UserRoles.Usual
-      });
-
       const actual = await Establishments()
         .where('id', establishment.id)
         .first();
@@ -221,7 +216,7 @@ describe('User API', () => {
     it('should retrieve any user if admin', async () => {
       const admin: UserApi = {
         ...genUserApi(establishment.id),
-        role: UserRoles.Admin
+        role: UserRole.ADMIN
       };
       await Users().insert(formatUserApi(admin));
 

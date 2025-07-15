@@ -1,11 +1,10 @@
 import { faker } from '@faker-js/faker';
-
 import {
   BaseHousingOwnerDTO,
   CampaignDTO,
   DatafoncierHousing,
   DraftDTO,
-  EventDTO,
+  EventUnionDTO,
   GroupDTO,
   HousingDTO,
   NoteDTO,
@@ -16,7 +15,8 @@ import {
   PROPERTY_RIGHT_VALUES,
   ProspectDTO,
   SignupLinkDTO,
-  UserDTO
+  UserDTO,
+  type EstablishmentDTO
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
@@ -119,13 +119,21 @@ const precisions: Precision[] = PRECISION_CATEGORY_VALUES.map((category) => ({
   label: faker.word.sample()
 }));
 
-const housingEvents = new Map<HousingDTO['id'], EventDTO<HousingDTO>[]>();
+const housingEvents = new Map<
+  HousingDTO['id'],
+  EventUnionDTO<
+    'housing:created' | 'housing:occupancy-updated' | 'housing:status-updated'
+  >[]
+>();
 
-const housingNotes = new Map<HousingDTO['id'], NoteDTO[]>();
+const notes: NoteDTO[] = [];
+const housingNotes = new Map<HousingDTO['id'], string[]>();
 
 const prospects: ProspectDTO[] = [];
 
 const signupLinks: SignupLinkDTO[] = [];
+
+const establishments: EstablishmentDTO[] = [];
 
 const data = {
   campaigns,
@@ -134,6 +142,7 @@ const data = {
   datafoncierHousings,
   drafts,
   draftCampaigns,
+  establishments,
   groups,
   groupHousings,
   housings,
@@ -141,6 +150,7 @@ const data = {
   housingEvents,
   housingNotes,
   housingOwners,
+  notes,
   owners,
   precisions,
   prospects,

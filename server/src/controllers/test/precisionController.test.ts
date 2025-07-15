@@ -1,32 +1,37 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { constants } from 'http2';
-import request from 'supertest';
 
 import { Precision } from '@zerologementvacant/models';
+import { constants } from 'http2';
+import request from 'supertest';
 import { createServer } from '~/infra/server';
-import { tokenProvider } from '~/test/testUtils';
-import {
-  genEstablishmentApi,
-  genHousingApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { HousingApi } from '~/models/HousingApi';
+import { toPrecisionDTO } from '~/models/PrecisionApi';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
+  Events,
+  PRECISION_HOUSING_EVENTS_TABLE
+} from '~/repositories/eventRepository';
+import {
+  formatHousingRecordApi,
+  Housing
+} from '~/repositories/housingRepository';
+import {
+  formatPrecisionHousingApi,
   HousingPrecisionDBO,
   HousingPrecisions,
   PrecisionDBO,
   Precisions
 } from '~/repositories/precisionRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { toPrecisionDTO } from '~/models/PrecisionApi';
-import { HousingApi } from '~/models/HousingApi';
+  genEstablishmentApi,
+  genHousingApi,
+  genUserApi
+} from '~/test/testFixtures';
+import { tokenProvider } from '~/test/testUtils';
 
 describe('Precision API', () => {
   const { app } = createServer();
@@ -130,6 +135,11 @@ describe('Precision API', () => {
         faker.helpers.arrayElement(establishment.geoCodes)
       );
       await Housing().insert(formatHousingRecordApi(housing));
+      const existingPrecisions = faker.helpers.arrayElements(precisions, 3);
+      await HousingPrecisions().insert(
+        existingPrecisions.map(formatPrecisionHousingApi(housing))
+      );
+
       payload = faker.helpers
         .arrayElements(precisions, { min: 1, max: 10 })
         .map((precision) => precision.id);
@@ -208,17 +218,6 @@ describe('Precision API', () => {
     });
 
     it('should fully replace the housing precisions', async () => {
-      const housingPrecisions: ReadonlyArray<HousingPrecisionDBO> =
-        faker.helpers
-          .arrayElements(precisions, { min: 1, max: 10 })
-          .map((precision) => ({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id,
-            precision_id: precision.id,
-            created_at: new Date()
-          }));
-      await HousingPrecisions().insert(housingPrecisions);
-
       const { status } = await request(app)
         .put(testRoute(housing.id))
         .send(payload)
@@ -253,6 +252,42 @@ describe('Precision API', () => {
         housing_id: housing.id
       });
       expect(actualPrecisions).toHaveLength(0);
+    });
+
+    it('should create an event when a precision is attached', async () => {
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const events = await Events()
+        .join(PRECISION_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          type: 'housing:precision-attached',
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        });
+      expect(events.length).toBeGreaterThan(0);
+    });
+
+    it('should create an event when a precision is detached', async () => {
+      const { status } = await request(app)
+        .put(testRoute(housing.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const events = await Events()
+        .join(PRECISION_HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({
+          type: 'housing:precision-detached',
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        });
+      expect(events.length).toBeGreaterThan(0);
     });
   });
 });

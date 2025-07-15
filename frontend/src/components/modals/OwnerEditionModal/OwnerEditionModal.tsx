@@ -75,7 +75,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
           ...owner,
           fullName,
           birthDate: parseDateInput(birthDate)?.toJSON() ?? null,
-          banAddress,
+          banAddress: banAddress ?? null,
           email,
           phone,
           additionalAddress
@@ -184,7 +184,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
           </Col>
           <Col n="12">
             <AppTextInput<FormShape>
-              value={additionalAddress}
+              value={additionalAddress ?? undefined}
               onChange={(e) => setAdditionalAddress(e.target.value)}
               label="Complément d'adresse"
               inputForm={form}
@@ -193,7 +193,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
           </Col>
           <Col n="6">
             <AppTextInput<FormShape>
-              value={email}
+              value={email ?? undefined}
               type="text"
               onChange={(e) => setEmail(e.target.value)}
               label="Adresse mail"
@@ -203,7 +203,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
           </Col>
           <Col n="6">
             <AppTextInput<FormShape>
-              value={phone}
+              value={phone ?? undefined}
               onChange={(e) => setPhone(e.target.value)}
               label="Numéro de téléphone"
               inputForm={form}

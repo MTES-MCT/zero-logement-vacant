@@ -1,30 +1,27 @@
+import { match } from 'ts-pattern';
 import db from '~/infra/database';
-import { logger } from '~/infra/logger';
-import { HousingNoteApi, NoteApi, OwnerNoteApi } from '~/models/NoteApi';
+import { withinTransaction } from '~/infra/database/transaction';
+import { createLogger } from '~/infra/logger';
+import { HousingId } from '~/models/HousingApi';
+import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import {
   parseUserApi,
   UserDBO,
   usersTable
 } from '~/repositories/userRepository';
 
-export const notesTable = 'notes';
-export const ownerNotesTable = 'owner_notes';
-export const housingNotesTable = 'housing_notes';
+const logger = createLogger('noteRepository');
 
-export const Notes = () => db<NoteRecordDBO>(notesTable);
+export const NOTES_TABLE = 'notes';
+export const OWNER_NOTES_TABLE = 'owner_notes';
+export const HOUSING_NOTES_TABLE = 'housing_notes';
+
+export const Notes = (transaction = db) =>
+  transaction<NoteRecordDBO>(NOTES_TABLE);
 export const OwnerNotes = () =>
-  db<{ note_id: string; owner_id: string }>(ownerNotesTable);
+  db<{ note_id: string; owner_id: string }>(OWNER_NOTES_TABLE);
 export const HousingNotes = (transaction = db) =>
-  transaction<HousingNoteDBO>(housingNotesTable);
-
-async function insertOwnerNote(ownerNoteApi: OwnerNoteApi): Promise<void> {
-  logger.debug('Inserting owner note...', ownerNoteApi);
-  await Notes().insert(formatNoteApi(ownerNoteApi));
-  await OwnerNotes().insert({
-    note_id: ownerNoteApi.id,
-    owner_id: ownerNoteApi.ownerId
-  });
-}
+  transaction<HousingNoteDBO>(HOUSING_NOTES_TABLE);
 
 async function createByHousing(housingNote: HousingNoteApi): Promise<void> {
   await createManyByHousing([housingNote]);
@@ -50,41 +47,75 @@ async function createManyByHousing(
   }
 }
 
-async function findNotes(
-  tableName: string,
-  columnName: string,
-  value: string
+interface FindByHousingOptions {
+  filters?: {
+    deleted?: boolean;
+  };
+}
+
+async function findByHousing(
+  housing: HousingId,
+  options?: FindByHousingOptions
 ): Promise<NoteApi[]> {
-  const notes = await Notes()
-    .select(`${notesTable}.*`)
-    .join(tableName, `${tableName}.note_id`, `${notesTable}.id`)
-    .join(usersTable, `${usersTable}.id`, `${notesTable}.created_by`)
-    .select(db.raw(`to_json(${usersTable}.*) AS creator`))
-    .where(`${tableName}.${columnName}`, value)
-    .orderBy(`${notesTable}.created_at`, 'desc');
+  logger.debug('Finding housing notes...', housing);
+  const notes = await listQuery()
+    .join(
+      HOUSING_NOTES_TABLE,
+      `${HOUSING_NOTES_TABLE}.note_id`,
+      `${NOTES_TABLE}.id`
+    )
+    .where({
+      [`${HOUSING_NOTES_TABLE}.housing_geo_code`]: housing.geoCode,
+      [`${HOUSING_NOTES_TABLE}.housing_id`]: housing.id
+    })
+    .modify((query) => {
+      match(options?.filters?.deleted)
+        .with(true, () => {
+          query.whereNotNull(`${NOTES_TABLE}.deleted_at`);
+        })
+        .with(false, () => {
+          query.whereNull(`${NOTES_TABLE}.deleted_at`);
+        })
+        .otherwise(() => {
+          // No filter applied, return all notes
+        });
+    });
   return notes.map(parseNoteApi);
 }
 
-async function findOwnerNotes(ownerId: string): Promise<NoteApi[]> {
-  logger.debug('Find owner notes...', {
-    owner: ownerId
-  });
-  return findNotes(ownerNotesTable, 'owner_id', ownerId);
+async function get(id: string): Promise<NoteApi | null> {
+  logger.debug('Getting a note by id...', { id });
+  const note = await listQuery().where(`${NOTES_TABLE}.id`, id).first();
+  return note ? parseNoteApi(note) : null;
 }
 
-async function findHousingNotes(housingId: string): Promise<NoteApi[]> {
-  logger.debug('Finding housing notes...', {
-    housing: housingId
+async function update(
+  note: Pick<NoteApi, 'id' | 'content' | 'updatedAt'>
+): Promise<void> {
+  logger.debug('Updating note...', note);
+  await Notes()
+    .where({ id: note.id })
+    .update({
+      content: note.content,
+      updated_at: note.updatedAt ? new Date(note.updatedAt) : null
+    });
+}
+
+async function remove(id: string): Promise<void> {
+  logger.debug('Removing note...', { id });
+  await withinTransaction(async (transaction) => {
+    await Notes(transaction).where({ id }).update({
+      deleted_at: new Date()
+    });
   });
-  return findNotes(housingNotesTable, 'housing_id', housingId);
+
+  logger.debug('Note removed', { id });
 }
 
 export interface NoteRecordDBO {
   id: string;
   content: string;
   note_kind: string;
-  created_by: string;
-  created_at: Date;
   /**
    * @deprecated
    */
@@ -93,6 +124,10 @@ export interface NoteRecordDBO {
    * @deprecated
    */
   title_deprecated: string | null;
+  created_by: string;
+  created_at: Date;
+  updated_at: Date | null;
+  deleted_at: Date | null;
 }
 
 export interface NoteDBO extends NoteRecordDBO {
@@ -105,35 +140,54 @@ export interface HousingNoteDBO {
   housing_geo_code: string;
 }
 
-export const formatNoteApi = (noteApi: NoteApi): NoteRecordDBO => ({
-  id: noteApi.id,
-  created_by: noteApi.createdBy,
-  created_at: noteApi.createdAt,
-  note_kind: noteApi.noteKind,
-  content: noteApi.content,
+export const formatNoteApi = (note: NoteApi): NoteRecordDBO => ({
+  id: note.id,
+  created_by: note.createdBy,
+  note_kind: note.noteKind,
+  content: note.content,
   contact_kind_deprecated: null,
-  title_deprecated: null
+  title_deprecated: null,
+  created_at: new Date(note.createdAt),
+  updated_at: note.updatedAt ? new Date(note.updatedAt) : null,
+  deleted_at: note.deletedAt ? new Date(note.deletedAt) : null
 });
 
-export const formatHousingNoteApi = (note: HousingNoteApi): HousingNoteDBO => ({
-  note_id: note.id,
-  housing_id: note.housingId,
-  housing_geo_code: note.housingGeoCode
-});
+export function formatHousingNoteApi(note: HousingNoteApi): HousingNoteDBO {
+  return {
+    note_id: note.id,
+    housing_id: note.housingId,
+    housing_geo_code: note.housingGeoCode
+  };
+}
 
-export const parseNoteApi = (noteDbo: NoteDBO): NoteApi => ({
-  id: noteDbo.id,
-  createdBy: noteDbo.created_by,
-  createdAt: noteDbo.created_at,
-  content: noteDbo.content,
-  noteKind: noteDbo.note_kind,
-  creator: noteDbo.creator ? parseUserApi(noteDbo.creator) : undefined
-});
+export function parseNoteApi(note: NoteDBO): NoteApi {
+  if (!note.creator) {
+    throw new Error('Note creator should be fetched together with the note');
+  }
+
+  return {
+    id: note.id,
+    createdBy: note.created_by,
+    content: note.content,
+    noteKind: note.note_kind,
+    createdAt: note.created_at.toJSON(),
+    updatedAt: note.updated_at ? note.updated_at.toJSON() : null,
+    deletedAt: note.deleted_at ? note.deleted_at.toJSON() : null,
+    creator: parseUserApi(note.creator)
+  };
+}
+
+const listQuery = () =>
+  Notes()
+    .select(`${NOTES_TABLE}.*`)
+    .join(usersTable, `${usersTable}.id`, `${NOTES_TABLE}.created_by`)
+    .select(db.raw(`to_json(${usersTable}.*) AS creator`))
+    .orderBy(`${NOTES_TABLE}.created_at`, 'desc');
 
 export default {
-  insertOwnerNote,
   createByHousing,
-  createManyByHousing,
-  findHousingNotes,
-  findOwnerNotes
+  findByHousing,
+  get,
+  update,
+  remove
 };

@@ -1,164 +1,300 @@
+import Button from '@codegouvfr/react-dsfr/Button';
+import Input from '@codegouvfr/react-dsfr/Input';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { differenceInMilliseconds } from 'date-fns';
-import { ReactNode, useState } from 'react';
-import { match, Pattern } from 'ts-pattern';
-import NoEvent from '../../assets/images/no-event.svg';
+import Grid from '@mui/material/Unstable_Grid2';
+import { isSameDay } from 'date-fns';
+import { Array, Order, pipe, Predicate, Record } from 'effect';
 
+import { ReactNode, useState } from 'react';
+
+import NoEvent from '../../assets/images/no-event.svg';
 import { Event } from '../../models/Event';
 import { Note } from '../../models/Note';
-import { HousingOwner } from '../../models/Owner';
+import { formatAuthor, User, USER_EQUIVALENCE } from '../../models/User';
+import { useFindEstablishmentsQuery } from '../../services/establishment.service';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import { useHousingEdition } from '../HousingEdition/useHousingEdition';
 import Image from '../Image/Image';
-import { CampaignCreatedEventContent } from './CampaignEventContent';
-import EventCard from './EventCard';
-import {
-  GroupArchivedEventContent,
-  GroupHousingAddedEventContent,
-  GroupHousingRemovedEventContent,
-  GroupRemovedEventContent
-} from './GroupEventContent';
-import {
-  HousingCreatedEventContent,
-  HousingOccupancyChangeEventContent,
-  HousingStatusChangeEventContent
-} from './HousingEventContent';
-import NoteEventContent from './NoteEventContent';
-import {
-  OwnerChangeEventContent,
-  OwnerCreatedEventContent,
-  OwnersChangeEventContent,
-  PrimaryOwnerChangeEventContent
-} from './OwnershipEventContent';
+import AggregatedEventCard from './AggregatedEventCard';
+import IndividualEventCard from './IndividualEventCard';
+import NoteCard from './NoteCard';
 
 interface Props {
   events: Event[];
   notes: Note[];
 }
 
-const EventsHistory = ({ events, notes }: Props) => {
-  const [expandEvents, setExpandEvents] = useState(false);
+const EVENT_TYPE_VALUES = [
+  {
+    value: 'note',
+    label: 'Note'
+  },
+  {
+    value: 'event',
+    label: 'Mise à jour'
+  }
+] as const;
+type EventType = (typeof EVENT_TYPE_VALUES)[number];
 
-  const eventAndNotes = [...events, ...notes].toSorted((e1, e2) =>
-    differenceInMilliseconds(e2.createdAt, e1.createdAt)
+interface EventFilters {
+  types: EventType[];
+  creators: User[];
+  createdAt: Date | null;
+}
+
+function EventsHistory({ events, notes }: Props) {
+  const { data: establishments } = useFindEstablishmentsQuery({
+    // Fetch only the establishments involved in the events or notes
+    id: pipe(
+      [...events, ...notes],
+      Array.map((eventOrNote) => eventOrNote.creator.establishmentId),
+      Array.filter(Predicate.isNotNullable),
+      Array.dedupe
+    )
+  });
+  const { setEditing, setTab } = useHousingEdition();
+
+  const [filters, setFilters] = useState<EventFilters>({
+    types: [],
+    creators: [],
+    createdAt: null
+  });
+
+  const creators = pipe(
+    [...events, ...notes],
+    Array.map((eventOrNote) => eventOrNote.creator),
+    Array.dedupeWith(USER_EQUIVALENCE)
   );
 
-  function isEvent(e: Event | Note): e is Event {
-    return (e as Event).category !== undefined;
-  }
+  const history: ReadonlyArray<ReactNode> = pipe(
+    [...events, ...notes],
+    Array.filter(byTypes(filters.types)),
+    Array.filter(byCreators(filters.creators)),
+    Array.filter(byDate(filters.createdAt)),
+    Array.sortWith(
+      (event) => new Date(event.createdAt),
+      Order.reverse(Order.Date)
+    ),
+    Array.groupBy((event) => event.createdAt.substring(0, 'yyyy-mm-dd'.length)),
+    Record.map((eventsOrNotes) => {
+      // Notes and events of the day
+      const [notes, events] = Array.partition(eventsOrNotes, isEvent);
 
-  function renderEventContent(eventOrNote: Event | Note): ReactNode {
-    if (!isEvent(eventOrNote)) {
-      return <NoteEventContent note={eventOrNote} />;
-    }
+      if (events.length >= 2) {
+        // Aggregate events
+        return [
+          <AggregatedEventCard
+            key={events
+              .map((event) => event.id)
+              .toSorted()
+              .join('-')}
+            events={events as unknown as Array.NonEmptyReadonlyArray<Event>}
+          />,
+          ...notes.map((note) => {
+            const establishment = establishments?.find(
+              (establishment) =>
+                establishment.id === note.creator.establishmentId
+            );
+            return (
+              <NoteCard
+                key={note.id}
+                note={note}
+                establishment={establishment ?? null}
+              />
+            );
+          })
+        ];
+      }
 
-    const event = eventOrNote;
-
-    return (
-      match(event)
-        // Housing events
-        .with({ name: 'Création du logement' }, () => (
-          <HousingCreatedEventContent event={event} />
-        ))
-        .with(
-          {
-            name: Pattern.union(
-              "Modification du statut d'occupation",
-              'Changement de statut d’occupation'
-            )
-          },
-          (event) => <HousingOccupancyChangeEventContent event={event} />
-        )
-        .with({ name: 'Changement de statut de suivi' }, (event) => (
-          <HousingStatusChangeEventContent event={event} />
-        ))
-        // Owner events
-        .with({ name: "Création d'un nouveau propriétaire" }, (event) => (
-          <OwnerCreatedEventContent event={event} />
-        ))
-        .with({ name: 'Modification de coordonnées' }, (event) => (
-          <OwnerChangeEventContent event={event} />
-        ))
-        .with({ name: "Modification d'identité" }, (event) => (
-          <OwnerChangeEventContent event={event} />
-        ))
-        .with({ name: 'Changement de propriétaire principal' }, (event) => (
-          <PrimaryOwnerChangeEventContent event={event} />
-        ))
-        .with(
-          { name: 'Changement de propriétaires' },
-          (event: Event<HousingOwner[]>) => (
-            <OwnersChangeEventContent
-              conflict={event.conflict ?? false}
-              housingOwnersBefore={event.old ?? []}
-              housingOwnersAfter={event.new ?? []}
+      return pipe(
+        [...notes, ...events],
+        Array.sortWith(
+          (eventOrNote) => new Date(eventOrNote.createdAt),
+          Order.reverse(Order.Date)
+        ),
+        Array.map((eventOrNote) => {
+          const establishment = establishments?.find(
+            (establishment) =>
+              establishment.id === eventOrNote.creator.establishmentId
+          );
+          return isEvent(eventOrNote) ? (
+            <IndividualEventCard
+              event={eventOrNote}
+              establishment={establishment ?? null}
             />
-          )
-        )
-        // Campaign events
-        .with({ name: 'Ajout dans une campagne' }, (event) => (
-          <CampaignCreatedEventContent event={event} />
-        ))
-        // Group events
-        .with({ name: 'Ajout dans un groupe' }, (event) => (
-          <GroupHousingAddedEventContent event={event} />
-        ))
-        .with({ name: 'Retrait d’un groupe' }, (event) => (
-          <GroupHousingRemovedEventContent event={event} />
-        ))
-        .with({ name: 'Archivage d’un groupe' }, (event) => (
-          <GroupArchivedEventContent event={event} />
-        ))
-        .with({ name: 'Suppression d’un groupe' }, (event) => (
-          <GroupRemovedEventContent event={event} />
-        ))
-        .otherwise(() => null)
-    );
-  }
-
-  if (eventAndNotes.length === 0) {
-    return (
-      <Stack sx={{ alignItems: 'center' }}>
-        <Box sx={{ maxWidth: '7.5rem' }}>
-          <Image
-            alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"
-            responsive="max-height"
-            src={NoEvent}
-          />
-        </Box>
-        <Typography variant="subtitle1">
-          Pas d’évènement ou de note à afficher
-        </Typography>
-      </Stack>
-    );
-  }
+          ) : (
+            <NoteCard
+              note={eventOrNote}
+              establishment={establishment ?? null}
+            />
+          );
+        })
+      );
+    }),
+    Record.values,
+    Array.flatten
+  );
 
   return (
-    <Stack spacing="1rem">
-      {eventAndNotes
-        .filter((_, index) => expandEvents || index < 3)
-        .map((eventOrNote) => (
-          <EventCard
-            key={eventOrNote.id}
-            title={isEvent(eventOrNote) ? eventOrNote.name : 'Note'}
-            description={renderEventContent(eventOrNote)}
-            createdAt={eventOrNote.createdAt}
-            createdBy={eventOrNote.creator}
+    <Stack spacing="1.5rem">
+      <Grid component="header" container columnSpacing="1rem">
+        <Grid component="section" sx={{ pl: 0 }} xs={4}>
+          <AppSelectNext
+            label="Type d’événement"
+            disabled={events.length === 0 && notes.length === 0}
+            multiple
+            options={EVENT_TYPE_VALUES}
+            getOptionKey={(option) => option.value}
+            getOptionLabel={(option) => option.label}
+            getOptionValue={(option) => option.value}
+            value={filters.types}
+            onChange={(options) => {
+              setFilters({
+                ...filters,
+                types: options
+              });
+            }}
           />
-        ))}
-      {!expandEvents && eventAndNotes.length > 3 && (
-        <button
-          className="ds-fr--inline fr-link"
-          type="button"
-          title="Voir tout le suivi"
-          onClick={() => setExpandEvents(!expandEvents)}
+        </Grid>
+        <Grid component="section" xs={4}>
+          <AppSelectNext
+            label="Auteur"
+            disabled={events.length === 0 && notes.length === 0}
+            multiple
+            options={creators}
+            getOptionKey={(option) => option.id}
+            getOptionLabel={(option) => {
+              const establishment = establishments?.find(
+                (establishment) => establishment.id === option.establishmentId
+              );
+              return formatAuthor(option, establishment ?? null);
+            }}
+            getOptionValue={(option) => option.id}
+            value={filters.creators}
+            onChange={(options) => {
+              setFilters({
+                ...filters,
+                creators: options
+              });
+            }}
+          />
+        </Grid>
+        <Grid component="section" sx={{ pr: 0 }} xs={4}>
+          <Input
+            label="Date de création"
+            disabled={events.length === 0 && notes.length === 0}
+            nativeInputProps={{
+              type: 'date',
+              value:
+                filters.createdAt
+                  ?.toJSON()
+                  ?.substring(0, 'yyyy-mm-dd'.length) ?? '',
+              onChange: (event) => {
+                const value = event.target.value;
+                setFilters({
+                  ...filters,
+                  createdAt: value.length > 0 ? new Date(value) : null
+                });
+              }
+            }}
+          />
+        </Grid>
+      </Grid>
+
+      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+        <Button
+          priority="secondary"
+          iconId="fr-icon-add-line"
+          iconPosition="left"
+          onClick={() => {
+            setTab('note');
+            setEditing(true);
+          }}
         >
-          Voir tout le suivi
-          <span className="fr-icon-1x icon-right fr-icon-arrow-right-line ds-fr--v-middle" />
-        </button>
+          Ajouter une note
+        </Button>
+        <Button
+          priority="tertiary"
+          iconId="ri-loop-left-line"
+          iconPosition="left"
+          onClick={() => {
+            setFilters({
+              types: [],
+              creators: [],
+              createdAt: null
+            });
+          }}
+        >
+          Réinitialiser les filtres
+        </Button>
+      </Stack>
+
+      {history.length === 0 ? (
+        <Stack sx={{ alignItems: 'center' }}>
+          <Box sx={{ maxWidth: '7.5rem' }}>
+            <Image
+              alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"
+              responsive="max-height"
+              src={NoEvent}
+            />
+          </Box>
+          <Typography variant="subtitle1">
+            Pas d’évènement ou de note à afficher
+          </Typography>
+        </Stack>
+      ) : (
+        <Stack spacing="1.5rem">{history}</Stack>
       )}
     </Stack>
   );
-};
+}
+
+function isEvent(event: Event | Note): event is Event {
+  return 'type' in event;
+}
+
+function isNote(event: Event | Note): event is Note {
+  return 'content' in event;
+}
+
+function byTypes(types: ReadonlyArray<EventType>) {
+  return (event: Event | Note): boolean => {
+    if (types.length === 0) {
+      return true; // No filter, include all events/notes
+    }
+
+    if (types.map((type) => type.value).includes('event') && isEvent(event)) {
+      return true;
+    }
+
+    if (types.map((type) => type.value).includes('note') && isNote(event)) {
+      return true;
+    }
+
+    return false;
+  };
+}
+
+function byCreators(creators: ReadonlyArray<User>) {
+  return (event: Event | Note): boolean => {
+    if (creators.length === 0) {
+      return true; // No filter, include all events/notes
+    }
+
+    return creators.some((creator) => USER_EQUIVALENCE(event.creator, creator));
+  };
+}
+
+function byDate(date: Date | null) {
+  return (event: Event | Note): boolean => {
+    if (!date) {
+      return true; // No filter, include all events/notes
+    }
+
+    return isSameDay(date, new Date(event.createdAt));
+  };
+}
 
 export default EventsHistory;

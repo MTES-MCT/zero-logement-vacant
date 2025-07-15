@@ -1,18 +1,20 @@
+import { HousingStatus } from '@zerologementvacant/models';
+import { EventApi, HousingEventApi } from '~/models/EventApi';
 import {
+  diffHousingOccupancyUpdated,
+  diffHousingStatusUpdated,
   getBuildingLocation,
   HousingApi,
   isSupervised,
   normalizeDataFileYears
 } from '~/models/HousingApi';
-import { HousingStatusApi } from '~/models/HousingStatusApi';
+import { UserApi } from '~/models/UserApi';
 import {
   genEstablishmentApi,
+  genEventApi,
   genHousingApi,
-  genHousingEventApi,
   genUserApi
 } from '~/test/testFixtures';
-import { HousingEventApi } from '~/models/EventApi';
-import { UserApi } from '~/models/UserApi';
 
 describe('HousingApi', () => {
   describe('getBuildingLocation', () => {
@@ -39,7 +41,7 @@ describe('HousingApi', () => {
       (subStatus) => {
         const housing: HousingApi = {
           ...genHousingApi(),
-          status: HousingStatusApi.InProgress,
+          status: HousingStatus.IN_PROGRESS,
           subStatus
         };
 
@@ -57,16 +59,29 @@ describe('HousingApi', () => {
         (subStatus) => {
           const housing: HousingApi = {
             ...genHousingApi(),
-            status: HousingStatusApi.Completed,
+            status: HousingStatus.COMPLETED,
             subStatus
           };
           const creator: UserApi = {
             ...genUserApi(establishment.id),
             email: 'test@test.test'
           };
-          const events: HousingEventApi[] = Array.from({ length: 3 }, () =>
-            genHousingEventApi(housing, creator)
-          );
+          const events: HousingEventApi[] = Array.from({ length: 3 }, () => ({
+            ...genEventApi({
+              type: 'housing:status-updated',
+              creator,
+              nextOld: {
+                status: 'in-progress',
+                subStatus: 'En accompagnement'
+              },
+              nextNew: {
+                status: 'completed',
+                subStatus
+              }
+            }),
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id
+          }));
 
           const actual = isSupervised(housing, events);
 
@@ -77,7 +92,7 @@ describe('HousingApi', () => {
       it('should return false if the user did not modify the housing', () => {
         const housing: HousingApi = {
           ...genHousingApi(),
-          status: HousingStatusApi.Completed,
+          status: HousingStatus.COMPLETED,
           subStatus: 'Sortie de la vacance'
         };
         const events: HousingEventApi[] = [];
@@ -93,13 +108,13 @@ describe('HousingApi', () => {
     it('should sort data file years', () => {
       const actual = normalizeDataFileYears([
         'lovac-2020',
-        'ff-2024',
+        'ff-2023-locatif',
         'lovac-2022',
         'lovac-2021'
       ]);
 
       expect(actual).toStrictEqual([
-        'ff-2024',
+        'ff-2023-locatif',
         'lovac-2020',
         'lovac-2021',
         'lovac-2022'
@@ -114,6 +129,74 @@ describe('HousingApi', () => {
       ]);
 
       expect(actual).toStrictEqual(['lovac-2021', 'lovac-2022']);
+    });
+  });
+
+  describe('diffHousingStatusUpdated', () => {
+    it('should return the changed keys', () => {
+      const before: EventApi<'housing:status-updated'>['nextOld'] = {
+        status: 'Non suivi',
+        subStatus: null
+      };
+      const after: EventApi<'housing:status-updated'>['nextNew'] = {
+        status: 'Suivi en cours',
+        subStatus: null
+      };
+
+      const actual = diffHousingStatusUpdated(
+        {
+          status: before.status,
+          subStatus: before.subStatus
+        },
+        {
+          status: after.status,
+          subStatus: after.subStatus
+        }
+      );
+
+      expect(actual).toStrictEqual<typeof actual>({
+        before: {
+          status: 'Non suivi'
+        },
+        after: {
+          status: 'Suivi en cours'
+        },
+        changed: ['status']
+      });
+    });
+  });
+
+  describe('diffHousingOccupancyUpdated', () => {
+    it('should return the changed keys', () => {
+      const before: EventApi<'housing:occupancy-updated'>['nextOld'] = {
+        occupancy: 'Vacant',
+        occupancyIntended: 'En location'
+      };
+      const after: EventApi<'housing:occupancy-updated'>['nextNew'] = {
+        occupancy: 'Vacant',
+        occupancyIntended: 'Pas d’information'
+      };
+
+      const actual = diffHousingOccupancyUpdated(
+        {
+          occupancy: before.occupancy,
+          occupancyIntended: before.occupancyIntended
+        },
+        {
+          occupancy: after.occupancy,
+          occupancyIntended: after.occupancyIntended
+        }
+      );
+
+      expect(actual).toStrictEqual<typeof actual>({
+        before: {
+          occupancyIntended: 'En location'
+        },
+        after: {
+          occupancyIntended: 'Pas d’information'
+        },
+        changed: ['occupancyIntended']
+      });
     });
   });
 });

@@ -1,21 +1,22 @@
-import { Request, Response } from 'express';
-import userRepository from '~/repositories/userRepository';
-import { SALT_LENGTH, toUserDTO, UserApi, UserRoles } from '~/models/UserApi';
-import { constants } from 'http2';
-import { body, param, ValidationChain } from 'express-validator';
-import establishmentRepository from '~/repositories/establishmentRepository';
-import prospectRepository from '~/repositories/prospectRepository';
-import { v4 as uuidv4 } from 'uuid';
+import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
-import { isValid } from '~/models/ProspectApi';
-import TestAccountError from '~/errors/testAccountError';
+import { Request, Response } from 'express';
+import { body, param, ValidationChain } from 'express-validator';
+import { constants } from 'http2';
+import { v4 as uuidv4 } from 'uuid';
+import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ProspectInvalidError from '~/errors/prospectInvalidError';
 import ProspectMissingError from '~/errors/prospectMissingError';
-import mailService from '~/services/mailService';
-import { isTestAccount } from '~/services/ceremaService/consultUserService';
+import TestAccountError from '~/errors/testAccountError';
 import UserMissingError from '~/errors/userMissingError';
 import { logger } from '~/infra/logger';
-import EstablishmentMissingError from '~/errors/establishmentMissingError';
+import { isValid } from '~/models/ProspectApi';
+import { SALT_LENGTH, toUserDTO, UserApi } from '~/models/UserApi';
+import establishmentRepository from '~/repositories/establishmentRepository';
+import prospectRepository from '~/repositories/prospectRepository';
+import userRepository from '~/repositories/userRepository';
+import { isTestAccount } from '~/services/ceremaService/consultUserService';
+import mailService from '~/services/mailService';
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -69,14 +70,20 @@ async function createUser(request: Request, response: Response) {
     id: uuidv4(),
     email: body.email,
     password: await bcrypt.hash(body.password, SALT_LENGTH),
-    // TODO: should be optional in database
-    firstName: body.firstName ?? '',
-    lastName: body.lastName ?? '',
+    firstName: body.firstName ?? null,
+    lastName: body.lastName ?? null,
     role:
       userEstablishment.geoCodes.length === 0
-        ? UserRoles.Visitor
-        : UserRoles.Usual,
-    establishmentId: body.establishmentId
+        ? UserRole.VISITOR
+        : UserRole.USUAL,
+    establishmentId: body.establishmentId,
+    phone: null,
+    position: null,
+    timePerWeek: null,
+    activatedAt: new Date().toJSON(),
+    lastAuthenticatedAt: null,
+    updatedAt: new Date().toJSON(),
+    deletedAt: null
   };
 
   logger.info('Create user', {

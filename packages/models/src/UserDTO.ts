@@ -1,17 +1,23 @@
+import { UserRole } from './UserRole';
+
 export interface UserDTO {
   id: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
-  establishmentId?: string;
-  role: number;
-  activatedAt?: string;
+  firstName: string | null;
+  lastName: string | null;
+  establishmentId: string | null;
+  role: UserRole;
+  activatedAt: string;
 }
 
 export interface UserAccountDTO {
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  position?: string;
-  timePerWeek?: string;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  position: string | null;
+  timePerWeek: string | null;
+}
+
+export function isAdmin(user: Pick<UserDTO, 'role'>): boolean {
+  return user.role === UserRole.ADMIN;
 }

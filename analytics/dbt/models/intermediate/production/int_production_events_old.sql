@@ -80,7 +80,8 @@ WITH old_events AS (
         content AS name,
         NULL AS simple_name,
         'old' AS version,
-        NULL AS category
+        NULL AS category, 
+        NULL AS type
     FROM
     {{ ref ('stg_production_old_events') }} AS old_events
 )

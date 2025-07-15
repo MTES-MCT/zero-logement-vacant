@@ -30,6 +30,6 @@ SELECT
     CASE
         WHEN est.kind IN ('SDED', 'SDER') THEN TRUE
         ELSE FALSE
-    END AS covered_by_state_service
-
+    END AS covered_by_state_service, 
+    IF(est.user_number > 0, TRUE, FALSE) AS is_active
 FROM {{ ref ('stg_production_establishments') }} est

@@ -4,71 +4,39 @@ SELECT
     e.created_by,
     he.housing_id,
     CASE
-        WHEN
-            lower(
-                coalesce((e.new -> 'status')::text, '')
-            ) LIKE '%jamais contacté%'
-            THEN 0
-        WHEN
-            lower(coalesce((e.new -> 'status')::text, '')) LIKE '%non suivi%'
-            THEN 0
-        WHEN
-            lower(
-                coalesce((e.new -> 'status')::text, '')
-            ) LIKE '%en attente de retour%'
-            THEN 1
-        WHEN
-            lower(
-                coalesce((e.new -> 'status')::text, '')
-            ) LIKE '%premier contact%'
-            THEN 2
-        WHEN
-            lower(
-                coalesce((e.new -> 'status')::text, '')
-            ) LIKE '%suivi en cours%'
-            THEN 3
-        WHEN
-            lower(coalesce((e.new -> 'status')::text, '')) LIKE '%non-vacant%'
-            THEN 4
-        WHEN
-            lower(
-                coalesce((e.new -> 'status')::text, '')
-            ) LIKE '%suivi terminé%'
-            THEN 4
-        WHEN
-            lower(coalesce((e.new -> 'status')::text, '')) LIKE '%bloqué%'
-            THEN 5
-        WHEN
-            lower(
-                coalesce((e.new -> 'status')::text, '')
-            ) LIKE '%sortie de la vacance%'
-            THEN 4
-    END AS new_status,
-    replace((e.new -> 'subStatus'), '"', '')::text AS new_sub_status,
-    e.name,
+        WHEN e.type = 'housing:status-updated' THEN
+            CASE
+                WHEN lower(e.next_new ->> 'status') = 'non suivi' THEN 0
+                WHEN lower(e.next_new ->> 'status') = 'jamais contacté' THEN 0
+                WHEN lower(e.next_new ->> 'status') = 'en attente de retour' THEN 1
+                WHEN lower(e.next_new ->> 'status') = 'premier contact' THEN 2
+                WHEN lower(e.next_new ->> 'status') = 'suivi en cours' THEN 3
+                WHEN lower(e.next_new ->> 'status') = 'non-vacant' THEN 4
+                WHEN lower(e.next_new ->> 'status') = 'suivi terminé' THEN 4
+                WHEN lower(e.next_new ->> 'status') = 'sortie de la vacance' THEN 4
+                WHEN lower(e.next_new ->> 'status') = 'bloqué' THEN 5
+            END
+    END as new_status,
+    e.next_new ->> 'subStatus' as new_sub_status,
+    case 
+        when e.type = 'housing:status-updated' then 'Changement de statut de suivi'
+        when e.type = 'housing:occupancy-updated' then 'Modification du statut d''occupation'
+        else e.type
+    end as name,
     CASE
-        WHEN
-            e.name = 'Changement de statut de suivi' THEN 'suivi'
-        WHEN e.name = 'Modification du statut d''occupation' THEN 'occupation'
-        WHEN e.name = 'Modification du statut' THEN 'statut'
+        WHEN e.type = 'housing:status-updated' THEN 'suivi'
+        WHEN e.type = 'housing:occupancy-updated' THEN 'occupation'
     END AS simple_name,
-    CASE
-        WHEN
-            (e.new -> 'status')::varchar != (e.old -> 'status')::varchar
-            THEN TRUE
-        ELSE FALSE
-    END AS status_changed,
-    replace((e.new -> 'status')::varchar, '"', '') AS new_status_raw,
-    replace((e.old -> 'status')::varchar, '"', '') AS old_status_raw,
-    CASE
-        WHEN
-            (e.new -> 'occupancy')::varchar != (e.old -> 'occupancy')::varchar
-            THEN TRUE
-        ELSE FALSE
-    END AS occupancy_changed,
-    replace((e.new -> 'occupancy')::varchar, '"', '') AS new_occupancy,
-    replace((e.old -> 'occupancy')::varchar, '"', '') AS old_occupancy,
+    (e.next_new ->> 'status') IS DISTINCT FROM(e.next_old ->> 'status') AS status_changed,
+    e.next_new ->> 'status' AS new_status_raw,
+    e.next_old ->> 'status' AS old_status_raw,
+    (e.next_new ->> 'occupancy') IS DISTINCT FROM (e.next_old ->> 'occupancy') AS occupancy_changed,
+    e.next_new ->> 'occupancy' AS new_occupancy,
+    e.next_old ->> 'occupancy' AS old_occupancy,
     'new' AS version,
-    category
-FROM {{ ref ('stg_production_events') }} e
-LEFT JOIN {{ ref ('stg_production_housing_events') }} he ON e.id = he.event_id
+    NULL as category, 
+    type
+FROM {{ ref('stg_production_events') }} e
+LEFT JOIN {{ ref('stg_production_housing_events') }} he
+    ON e.id = he.event_id
+WHERE e.type IN('housing:status-updated', 'housing:occupancy-updated')

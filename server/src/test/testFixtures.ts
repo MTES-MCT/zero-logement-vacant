@@ -34,7 +34,7 @@ import {
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
-import lodash from 'lodash-es';
+import { padStart, range } from 'lodash-es';
 import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
@@ -294,7 +294,7 @@ export const genHousingApi = (
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);
   const dataYears = faker.helpers.arrayElements(
-    lodash.range(2019, new Date().getUTCFullYear() + 1),
+    range(2019, new Date().getUTCFullYear() + 1),
     {
       min: 1,
       max: new Date().getUTCFullYear() + 1 - 2019
@@ -538,7 +538,7 @@ export const genDatafoncierOwner = (
 ): DatafoncierOwner => {
   const idcom = genGeoCode();
   return {
-    idprodroit: `${lodash.padCharsStart('0', 1, rank.toString(10))}${idprocpte}`,
+    idprodroit: `${padStart(rank.toString(10), 1, '0')}${idprocpte}`,
     idprocpte,
     idpersonne: randomstring.generate(8),
     idvoie: randomstring.generate(9),

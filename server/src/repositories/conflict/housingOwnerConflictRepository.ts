@@ -32,23 +32,23 @@ const find = async (opts?: FindOptions): Promise<HousingOwnerConflictApi[]> => {
   ]);
   const conflicts = await HousingOwnerConflicts()
     .select(`${housingOwnersConflictsTable}.*`)
-    .where(whereOptions(opts))
+    .where(whereOptions(opts?.filters ?? {}))
     .join(
       conflictsTable,
       `${conflictsTable}.id`,
-      `${housingOwnersConflictsTable}.conflict_id`,
+      `${housingOwnersConflictsTable}.conflict_id`
     )
     .select(`${conflictsTable}.*`)
     .leftJoin(
       { old: ownerTable },
       'old.id',
-      `${housingOwnersConflictsTable}.existing_owner_id`,
+      `${housingOwnersConflictsTable}.existing_owner_id`
     )
     .select(db.raw(`to_json(old.*) AS existing`))
     .leftJoin(
       { new: ownerTable },
       'new.id',
-      `${housingOwnersConflictsTable}.replacement_owner_id`,
+      `${housingOwnersConflictsTable}.replacement_owner_id`
     )
     .select(db.raw(`to_json(new.*) AS replacement`))
     .orderBy('created_at');

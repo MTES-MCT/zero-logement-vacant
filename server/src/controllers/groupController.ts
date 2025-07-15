@@ -1,11 +1,10 @@
 import { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/models';
-import async from 'async';
 import { Array, pipe, Predicate } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
-import lodash from 'lodash-es';
+import { differenceBy, uniqBy } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 import GroupMissingError from '~/errors/groupMissingError';
 import { startTransaction } from '~/infra/database/transaction';
@@ -66,17 +65,18 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO> = async (
             );
           })
       : [];
-  const owners = housings.map((housing) => housing.owner);
+  const owners = housings.map((housing) => housing.owner ?? null);
 
   const group: GroupApi = {
     id: uuidv4(),
     title: body.title,
     description: body.description,
-    housingCount: housingList.length,
+    housingCount: housings.length,
     ownerCount: pipe(
       owners,
-      Array.filter((owner) => Predicate.isNotUndefined(owner)),
-      Array.dedupeWith((a, b) => a.id === b.id).length
+      Array.filter((owner) => Predicate.isNotNull(owner)),
+      Array.dedupeWith((a, b) => a.id === b.id),
+      (dedupedOwners) => dedupedOwners.length
     ),
     createdAt: new Date(),
     createdBy: user,
@@ -209,18 +209,14 @@ const addHousing = async (
     })
   ]);
 
-  const diff = lodash.differenceBy(
-    'id',
-    addingHousingList,
-    existingHousingList
+  const diff = differenceBy(addingHousingList, existingHousingList, 'id');
+  const uniqueHousingList = uniqBy(
+    addingHousingList.concat(existingHousingList),
+    'id'
   );
-  const uniqueHousingList = lodash.uniqBy(
-    'id',
-    addingHousingList.concat(existingHousingList)
-  );
-  const uniqueOwners = lodash.uniqBy(
-    'id',
-    uniqueHousingList.map((housing: HousingApi) => housing.owner)
+  const uniqueOwners = uniqBy(
+    uniqueHousingList.map((housing: HousingApi) => housing.owner),
+    'id'
   );
 
   const events = diff.map<GroupHousingEventApi>((housing) => ({
@@ -295,10 +291,10 @@ const removeHousing = async (request: Request, response: Response) => {
     })
   ]);
 
-  const housingList = lodash.differenceBy(
-    'id',
+  const housingList = differenceBy(
     existingHousingList,
-    removingHousingList
+    removingHousingList,
+    'id'
   );
   const owners = housingList.map((housing: HousingApi) => housing.owner);
 
@@ -327,7 +323,7 @@ const removeHousing = async (request: Request, response: Response) => {
   const updatedGroup: GroupApi = {
     ...group,
     housingCount: housingList.length,
-    ownerCount: fp.uniqBy('id', owners).length
+    ownerCount: uniqBy(owners, 'id').length
   };
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };

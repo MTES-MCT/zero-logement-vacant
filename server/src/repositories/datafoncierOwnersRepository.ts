@@ -59,7 +59,7 @@ class DatafoncierOwnersRepository {
     const whereOptions = where<DatafoncierOwnerFilters>(['idprocpte']);
 
     const owners: OwnerDBO[] = await DatafoncierOwners()
-      .where(whereOptions(opts?.filters))
+      .where(whereOptions(opts?.filters ?? {}))
       .join(
         ownerMatchTable,
         `${ownerMatchTable}.idpersonne`,
@@ -78,7 +78,7 @@ class DatafoncierOwnersRepository {
     const whereOptions = where<DatafoncierOwnerFilters>(['idprocpte']);
 
     const owners: DatafoncierOwner[] = await DatafoncierOwners()
-      .where(whereOptions(opts?.filters))
+      .where(whereOptions(opts?.filters ?? {}))
       .orderBy(`${datafoncierOwnersTable}.dnulp`);
     return Array.dedupeWith(owners, (a, b) => a.idpersonne === b.idpersonne);
   }

@@ -1,11 +1,4 @@
 import {
-  HousingDTO,
-  HousingFiltersDTO,
-  HousingUpdatePayloadDTO,
-  Pagination
-} from '@zerologementvacant/models';
-import async from 'async';
-import {
   HOUSING_STATUS_LABELS,
   HousingDTO,
   HousingFiltersDTO,
@@ -45,7 +38,7 @@ import housingFiltersApi, {
   HousingFiltersApi
 } from '~/models/HousingFiltersApi';
 import { toHousingOwnersApi } from '~/models/HousingOwnerApi';
-import { fromHousingStatus, HousingStatusApi } from '~/models/HousingStatusApi';
+import { HousingStatusApi } from '~/models/HousingStatusApi';
 import { NoteApi } from '~/models/NoteApi';
 import {
   HousingPaginatedDTO,

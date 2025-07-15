@@ -6,7 +6,6 @@ import {
   Precision
 } from '@zerologementvacant/models';
 import { Array, Equivalence, Order, pipe } from 'effect';
-import fp from 'lodash/fp';
 import { assert, MarkRequired } from 'ts-essentials';
 
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -188,7 +187,9 @@ export function isSupervised(
   return false;
 }
 
-export function normalizeDataFileYears(dataFileYears: string[]): string[] {
+export function normalizeDataFileYears(
+  dataFileYears: DataFileYear[]
+): DataFileYear[] {
   return pipe(dataFileYears, Array.sort(Order.string), Array.dedupeAdjacent);
 }
 

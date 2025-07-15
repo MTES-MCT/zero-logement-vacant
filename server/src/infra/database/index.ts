@@ -1,9 +1,9 @@
+import { pipe, Record, Struct } from 'effect';
+import { kebabToSnake } from 'effect/String';
 import { Knex, knex } from 'knex';
-import lodash from 'lodash-es';
 import { match } from 'ts-pattern';
 
 import config from '~/infra/database/knexfile';
-import { compact } from '~/utils/object';
 
 const db = knex(config);
 
@@ -30,16 +30,23 @@ interface WhereOptions {
   table?: string;
 }
 
-export function where<T>(props: Array<keyof T>, opts?: WhereOptions) {
-  return lodash.pipe(
-    lodash.pick(props),
-    compact,
-    lodash.mapKeys(
-      lodash.pipe(lodash.snakeCase, (key: string) =>
-        opts?.table ? `${opts?.table}.${key}` : key
-      )
-    )
-  );
+export function where<T extends object>(
+  props: Array<keyof T>,
+  opts?: WhereOptions
+) {
+  return (values: T): Record<string, unknown> => {
+    const keys = Struct.keys(values).filter((key) => props.includes(key));
+    return pipe(
+      values,
+      Struct.pick(...keys),
+      (value) => value as Record<string, unknown>,
+      Record.mapKeys((key) => {
+        return pipe(key, kebabToSnake, (key: string) =>
+          opts?.table ? `${opts?.table}.${key}` : key
+        );
+      })
+    );
+  };
 }
 
 export function groupBy<T>(props?: Array<keyof T>) {

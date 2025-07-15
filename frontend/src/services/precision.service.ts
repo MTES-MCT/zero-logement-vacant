@@ -30,6 +30,10 @@ export const precisionAPI = zlvApi.injectEndpoints({
         {
           type: 'Precision',
           id: payload.housing
+        },
+        {
+          type: 'HousingEvent',
+          id: payload.housing
         }
       ]
     })

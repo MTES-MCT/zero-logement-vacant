@@ -8,17 +8,23 @@ import {
   HousingStatus,
   Occupancy,
   OwnerDTO,
-  OwnerRank
+  OwnerRank,
+  UserRole
 } from '@zerologementvacant/models';
 import {
   genHousingDTO,
   genHousingOwnerDTO,
-  genOwnerDTO
+  genNoteDTO,
+  genOwnerDTO,
+  genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { genAuthUser, genNote, genUser } from '../../../../test/fixtures.test';
 import data from '../../../mocks/handlers/data';
+import { Note, toNoteDTO } from '../../../models/Note';
+import { fromUserDTO, User } from '../../../models/User';
 import configureTestStore from '../../../utils/test/storeUtils';
 import HousingView from '../HousingView';
 
@@ -48,8 +54,23 @@ describe('Housing view', () => {
     data.housingOwners.set(housing.id, housingOwners);
   });
 
-  function renderView(housing: HousingDTO) {
-    const store = configureTestStore();
+  interface RenderViewOptions {
+    user: User;
+    notes?: ReadonlyArray<Note>;
+  }
+
+  function renderView(housing: HousingDTO, options?: RenderViewOptions) {
+    if (options?.notes?.length) {
+      data.notes.push(...options.notes.map(toNoteDTO));
+      data.housingNotes.set(
+        housing.id,
+        options.notes.map((note) => note.id)
+      );
+    }
+
+    const store = configureTestStore({
+      auth: genAuthUser(options?.user ?? genUser(UserRole.USUAL))
+    });
     const router = createMemoryRouter(
       [{ path: '/housing/:housingId', element: <HousingView /> }],
       {
@@ -113,7 +134,7 @@ describe('Housing view', () => {
 
     describe('Source', () => {
       it('should be "Fichiers fonciers (2023)"', async () => {
-        housing.dataFileYears = ['ff-2023'];
+        housing.dataFileYears = ['ff-2023-locatif'];
 
         renderView(housing);
 
@@ -380,6 +401,260 @@ describe('Housing view', () => {
       });
       const note = await within(panel).findByText('Note');
       expect(note).toBeVisible();
+    });
+  });
+
+  describe('Add a note', () => {
+    it('should add a note', async () => {
+      renderView(housing, {
+        user: genUser(),
+        notes: []
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
+      const createNote = await screen.findByRole('button', {
+        name: 'Ajouter une note'
+      });
+      await user.click(createNote);
+      const textarea = await screen.findByLabelText('Nouvelle note');
+      await user.type(textarea, 'Ceci est une note de test');
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(save);
+      const note = await screen.findByText('Ceci est une note de test');
+      expect(note).toBeVisible();
+    });
+  });
+
+  describe('Filter the event history', () => {
+    it('should filter by event type', async () => {
+      renderView(housing, {
+        notes: [genNote(genUser())],
+        user: genUser()
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
+      const type = await screen.findByRole('combobox', {
+        name: 'Type d’événement'
+      });
+      await user.click(type);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByRole('option', {
+        name: 'Note'
+      });
+      await user.click(option);
+      await user.keyboard('{Escape}');
+      const notes = screen.queryAllByRole('region', {
+        name: 'Note'
+      });
+      expect(notes.length).toBeGreaterThan(0);
+      const events = screen.queryAllByRole('article', {
+        name: 'Mise à jour'
+      });
+      expect(events).toHaveLength(0);
+    });
+
+    it('should filter by creator', async () => {
+      const creator = genUser();
+      renderView(housing, {
+        notes: [genNote(creator)],
+        user: creator
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
+      const author = await screen.findByRole('combobox', {
+        name: 'Auteur'
+      });
+      await user.click(author);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByRole('option', {
+        name: `${creator.firstName} ${creator.lastName}`
+      });
+      await user.click(option);
+      await user.keyboard('{Escape}');
+      const notes = await screen.findAllByRole('region', {
+        name: 'Note'
+      });
+      notes.forEach((note) => {
+        expect(
+          within(note).queryByText(`${creator.firstName} ${creator.lastName}`)
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('should filter by date', async () => {
+      const creator = genUser();
+      const note: Note = {
+        ...genNote(creator),
+        createdAt: '2000-01-01T12:00:00Z'
+      };
+      renderView(housing, {
+        notes: [note],
+        user: creator
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
+      const input = await screen.findByLabelText('Date de création');
+      await user.type(input, '01012020');
+      const history = await screen.findAllByRole('region', {
+        name: (name) => ['Note', 'Mise à jour'].includes(name)
+      });
+      history.forEach((eventOrNote) => {
+        expect(eventOrNote).toHaveTextContent('le 01/01/2000');
+      });
+    });
+
+    it('should reset filters', async () => {
+      renderView(housing, {
+        notes: [genNote(genUser())],
+        user: genUser()
+      });
+
+      const tab = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(tab);
+      let type = await screen.findByRole('combobox', {
+        name: 'Type d’événement'
+      });
+      await user.click(type);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByRole('option', {
+        name: 'Note'
+      });
+      await user.click(option);
+      await user.keyboard('{Escape}');
+      const reset = await screen.findByRole('button', {
+        name: 'Réinitialiser les filtres'
+      });
+      await user.click(reset);
+      type = await screen.findByRole('combobox', {
+        name: 'Type d’événement'
+      });
+      expect(type).toHaveTextContent('Tous');
+    });
+  });
+
+  describe('Edit a note', () => {
+    const admin = genUserDTO(UserRole.ADMIN);
+    const note = genNoteDTO(admin);
+
+    beforeEach(() => {
+      data.users.push(admin);
+      data.notes.push(note);
+      data.housingNotes.set(
+        housing.id,
+        data.housingNotes
+          .get(housing.id)
+          ?.filter((housingNote) => housingNote !== note.id)
+          ?.concat(note.id) ?? [note.id]
+      );
+    });
+
+    it('should edit the note', async () => {
+      renderView(housing, {
+        user: fromUserDTO(admin)
+      });
+
+      const history = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(history);
+      const edit = await screen.findByRole('button', {
+        name: 'Éditer la note'
+      });
+      await user.click(edit);
+      const textarea = await screen.findByRole('textbox', {
+        name: 'Contenu de la note'
+      });
+      await user.clear(textarea);
+      await user.type(textarea, 'Contenu de la note modifié');
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer la note'
+      });
+      await user.click(save);
+      const updatedNote = await screen.findByText('Contenu de la note modifié');
+      expect(updatedNote).toBeVisible();
+    });
+
+    it('should be invisible to a non-admin user who is not the creator of the note', async () => {
+      const nonAdminUser = genUserDTO(UserRole.USUAL);
+      data.users.push(nonAdminUser);
+      const note = genNoteDTO(nonAdminUser);
+      data.notes.push(note);
+      data.housingNotes.set(
+        housing.id,
+        data.housingNotes
+          .get(housing.id)
+          ?.filter((housingNote) => housingNote !== note.id)
+          ?.concat(note.id) ?? [note.id]
+      );
+
+      renderView(housing, {
+        user: fromUserDTO(genUserDTO(UserRole.USUAL))
+      });
+
+      const history = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(history);
+
+      expect(
+        screen.queryByRole('button', { name: 'Éditer la note' })
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Remove a note', () => {
+    function renderViewAs(role: UserRole) {
+      const user = genUserDTO(role);
+      const note = genNoteDTO(user);
+      data.users.push(user);
+      data.notes.push(note);
+      data.housingNotes.set(housing.id, [note.id]);
+
+      renderView(housing, {
+        user: fromUserDTO(user)
+      });
+
+      return {
+        note,
+        user
+      };
+    }
+
+    it('should remove the note', async () => {
+      const { note } = renderViewAs(UserRole.ADMIN);
+
+      const history = await screen.findByRole('tab', {
+        name: 'Historique et notes'
+      });
+      await user.click(history);
+      const remove = await screen.findByRole('button', {
+        name: 'Supprimer la note'
+      });
+      await user.click(remove);
+      const modal = await screen.findByRole('dialog', {
+        name: 'Suppression d’une note'
+      });
+      const confirm = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirm);
+      expect(screen.queryByText(note.content)).not.toBeInTheDocument();
     });
   });
 });

@@ -4,14 +4,18 @@ import {
   CADASTRAL_CLASSIFICATION_VALUES,
   DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
+  EventType,
   HOUSING_KIND_VALUES,
   HousingStatus,
   Occupancy,
-  ROLE_VALUES
+  USER_ROLE_VALUES,
+  UserRole
 } from '@zerologementvacant/models';
 import {
   genAddressDTO,
   genEventDTO,
+  genNoteDTO,
+  genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
@@ -23,7 +27,8 @@ import { Event, fromEventDTO } from '../src/models/Event';
 import { Group } from '../src/models/Group';
 import { Housing } from '../src/models/Housing';
 import { LocalityKinds } from '../src/models/Locality';
-import { Owner } from '../src/models/Owner';
+import { fromNoteDTO, Note } from '../src/models/Note';
+import { fromOwnerDTO, Owner } from '../src/models/Owner';
 import { Prospect } from '../src/models/Prospect';
 import { SignupLink } from '../src/models/SignupLink';
 import { AuthUser, fromUserDTO, toUserDTO, User } from '../src/models/User';
@@ -55,10 +60,10 @@ export function genNumber(length = 10): number {
   );
 }
 
-export function genAuthUser(): AuthUser {
+export function genAuthUser(user: User): AuthUser {
   return {
     accessToken: randomstring.generate(),
-    user: genUser(),
+    user,
     establishment: {
       id: faker.string.uuid(),
       name: randomstring.generate(),
@@ -73,21 +78,14 @@ export function genAuthUser(): AuthUser {
   };
 }
 
-export function genUser(): User {
-  return fromUserDTO(genUserDTO(faker.helpers.arrayElement(ROLE_VALUES)));
+export function genUser(
+  role: UserRole = faker.helpers.arrayElement(USER_ROLE_VALUES)
+): User {
+  return fromUserDTO(genUserDTO(role));
 }
 
 export function genOwner(): Owner {
-  return {
-    id: randomstring.generate(),
-    rawAddress: [randomstring.generate(), randomstring.generate()],
-    fullName: randomstring.generate(),
-    birthDate: new Date().toJSON(),
-    kind: 'Particulier',
-    email: genEmail(),
-    phone: randomstring.generate(),
-    banAddress: genAddress()
-  };
+  return fromOwnerDTO(genOwnerDTO());
 }
 
 export function genHousing(): Housing {
@@ -313,10 +311,24 @@ export function genDatafoncierHousing(): DatafoncierHousing {
   };
 }
 
-export function genEvent<T>(
-  before: T | undefined,
-  after: T | undefined,
-  creator: User
-): Event {
-  return fromEventDTO(genEventDTO(before, after, toUserDTO(creator)));
+type EventOptions<Type extends EventType> = Pick<
+  Event<Type>,
+  'type' | 'creator' | 'nextOld' | 'nextNew'
+>;
+export function genEvent<Type extends EventType>(
+  options: EventOptions<Type>
+): Event<Type> {
+  const { type, creator, nextOld, nextNew } = options;
+  return fromEventDTO(
+    genEventDTO<Type>({
+      type: type,
+      creator: toUserDTO(creator),
+      nextOld: nextOld,
+      nextNew: nextNew
+    })
+  );
+}
+
+export function genNote(creator: User): Note {
+  return fromNoteDTO(genNoteDTO(toUserDTO(creator)));
 }

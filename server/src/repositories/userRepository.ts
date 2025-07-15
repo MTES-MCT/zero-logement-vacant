@@ -1,10 +1,10 @@
 import { Knex } from 'knex';
 
 import db, { notDeleted } from '~/infra/database';
+import { logger } from '~/infra/logger';
+import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { UserApi } from '~/models/UserApi';
 import { UserFiltersApi } from '~/models/UserFiltersApi';
-import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
-import { logger } from '~/infra/logger';
 
 export const usersTable = 'users';
 
@@ -96,17 +96,17 @@ export interface UserDBO {
   id: string;
   email: string;
   password: string;
-  first_name?: string;
-  last_name?: string;
-  establishment_id?: string;
+  first_name: string | null;
+  last_name: string | null;
+  establishment_id: string | null;
   role: number;
-  activated_at?: Date | string;
-  last_authenticated_at?: Date | string;
-  deleted_at?: Date | string;
-  updated_at?: Date | string;
-  phone?: string;
-  position?: string;
-  time_per_week?: string;
+  activated_at: Date | string;
+  last_authenticated_at: Date | string | null;
+  deleted_at: Date | string | null;
+  updated_at: Date | string;
+  phone: string | null;
+  position: string | null;
+  time_per_week: string | null;
 }
 
 export const parseUserApi = (userDBO: UserDBO): UserApi => ({
@@ -117,17 +117,15 @@ export const parseUserApi = (userDBO: UserDBO): UserApi => ({
   lastName: userDBO.last_name,
   establishmentId: userDBO.establishment_id,
   role: userDBO.role,
-  activatedAt: userDBO.activated_at
-    ? new Date(userDBO.activated_at)
-    : undefined,
+  activatedAt: new Date(userDBO.activated_at).toJSON(),
   lastAuthenticatedAt: userDBO.last_authenticated_at
-    ? new Date(userDBO.last_authenticated_at)
-    : undefined,
-  deletedAt: userDBO.deleted_at ? new Date(userDBO.deleted_at) : undefined,
-  updatedAt: userDBO.updated_at ? new Date(userDBO.updated_at) : undefined,
+    ? new Date(userDBO.last_authenticated_at).toJSON()
+    : null,
+  deletedAt: userDBO.deleted_at ? new Date(userDBO.deleted_at).toJSON() : null,
+  updatedAt: new Date(userDBO.updated_at).toJSON(),
   phone: userDBO.phone,
   position: userDBO.position,
-  timePerWeek: userDBO.time_per_week,
+  timePerWeek: userDBO.time_per_week
 });
 
 export const formatUserApi = (userApi: UserApi): UserDBO => ({
@@ -138,15 +136,15 @@ export const formatUserApi = (userApi: UserApi): UserDBO => ({
   last_name: userApi.lastName,
   establishment_id: userApi.establishmentId,
   role: userApi.role,
-  activated_at: userApi.activatedAt ? new Date(userApi.activatedAt) : undefined,
+  activated_at: new Date(userApi.activatedAt).toJSON(),
   last_authenticated_at: userApi.lastAuthenticatedAt
-    ? new Date(userApi.lastAuthenticatedAt)
-    : undefined,
-  deleted_at: userApi.deletedAt ? new Date(userApi.deletedAt) : undefined,
-  updated_at: userApi.updatedAt ? new Date(userApi.updatedAt) : undefined,
+    ? new Date(userApi.lastAuthenticatedAt).toJSON()
+    : null,
+  deleted_at: userApi.deletedAt ? new Date(userApi.deletedAt).toJSON() : null,
+  updated_at: new Date(userApi.updatedAt).toJSON(),
   phone: userApi.phone,
   position: userApi.position,
-  time_per_week: userApi.timePerWeek,
+  time_per_week: userApi.timePerWeek
 });
 
 export default {
@@ -157,5 +155,5 @@ export default {
   find,
   insert,
   formatUserApi,
-  remove,
+  remove
 };

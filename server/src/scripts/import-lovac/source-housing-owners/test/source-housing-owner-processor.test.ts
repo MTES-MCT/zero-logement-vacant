@@ -6,7 +6,7 @@ import {
 } from '@zerologementvacant/models';
 import { flatten, toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
-import { HousingEventApi } from '~/models/EventApi';
+import { HousingOwnerEventApi } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
@@ -232,7 +232,7 @@ describe('Source housing owner processor', () => {
       }
     });
 
-    expect(actual).toHaveLength(1);
+    expect(actual.length).toBeGreaterThan(1);
     const [change] = actual;
     expect(change).toStrictEqual<HousingOwnerChanges>({
       type: 'housingOwners',
@@ -295,34 +295,55 @@ describe('Source housing owner processor', () => {
       }
     });
 
-    const replacingHousingOwners = sourceHousingOwners.map(
-      (sourceHousingOwner) => {
-        return expect.objectContaining<Partial<HousingOwnerApi>>({
+    const replacingHousingOwners = sourceHousingOwners
+      .map((sourceHousingOwner) => {
+        return {
           idprocpte: sourceHousingOwner.idprocpte,
           idprodroit: sourceHousingOwner.idprodroit,
+          idpersonne: sourceHousingOwner.idpersonne,
           locprop: sourceHousingOwner.locprop_source,
           rank: sourceHousingOwner.rank,
           housingGeoCode: housing.geoCode,
-          housingId: housing.id,
-          idpersonne: sourceHousingOwner.idpersonne
-        });
-      }
-    );
+          housingId: housing.id
+        };
+      })
+      .map((sourceHousingOwner) => {
+        const owner = owners.find(
+          (owner) => owner.idpersonne === sourceHousingOwner.idpersonne
+        );
+        return {
+          ...sourceHousingOwner,
+          ...owner
+        };
+      });
     expect(actual).toPartiallyContain({
       type: 'housingOwners',
       kind: 'replace',
-      value: expect.arrayContaining(replacingHousingOwners)
+      value: expect.arrayContaining([
+        ...replacingHousingOwners.map((housingOwner) =>
+          expect.objectContaining({
+            ownerId: housingOwner.id,
+            rank: housingOwner.rank
+          })
+        )
+      ])
     });
-    expect(actual).toPartiallyContain({
-      type: 'event',
-      kind: 'create',
-      value: expect.objectContaining<Partial<HousingEventApi>>({
-        name: 'Changement de propriétaires',
-        housingGeoCode: housing.geoCode,
-        housingId: housing.id,
-        old: expect.arrayContaining(existingActiveHousingOwners),
-        new: expect.arrayContaining(replacingHousingOwners)
-      })
+    replacingHousingOwners.forEach((housingOwner) => {
+      expect(actual).toPartiallyContain({
+        type: 'event',
+        kind: 'create',
+        value: expect.objectContaining<Partial<HousingOwnerEventApi>>({
+          type: 'housing:owner-attached',
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id,
+          ownerId: housingOwner.id,
+          nextOld: null,
+          nextNew: {
+            name: housingOwner.fullName as string,
+            rank: housingOwner.rank
+          }
+        })
+      });
     });
   });
 
@@ -385,16 +406,22 @@ describe('Source housing owner processor', () => {
       kind: 'replace',
       value: movedHousingOwners
     });
-    expect(actual).toPartiallyContain({
-      type: 'event',
-      kind: 'create',
-      value: expect.objectContaining<Partial<HousingEventApi>>({
-        name: 'Changement de propriétaires',
-        housingGeoCode: housing.geoCode,
-        housingId: housing.id,
-        old: expect.arrayContaining(existingInactiveHousingOwners),
-        new: expect.arrayContaining(movedHousingOwners)
-      })
+    existingInactiveHousingOwners.forEach((housingOwner) => {
+      expect(actual).toPartiallyContain({
+        type: 'event',
+        kind: 'create',
+        value: expect.objectContaining<Partial<HousingOwnerEventApi>>({
+          type: 'housing:owner-updated',
+          nextOld: {
+            name: housingOwner.fullName,
+            rank: housingOwner.rank
+          },
+          nextNew: {
+            name: housingOwner.fullName,
+            rank: expect.any(Number)
+          }
+        })
+      });
     });
   });
 
@@ -463,16 +490,22 @@ describe('Source housing owner processor', () => {
       kind: 'replace',
       value: expect.arrayContaining(movedHousingOwners)
     });
-    expect(actual).toPartiallyContain({
-      type: 'event',
-      kind: 'create',
-      value: expect.objectContaining<Partial<HousingEventApi>>({
-        name: 'Changement de propriétaires',
-        housingGeoCode: housing.geoCode,
-        housingId: housing.id,
-        old: expect.arrayContaining(existingActiveHousingOwners),
-        new: expect.arrayContaining(movedHousingOwners)
-      })
+    existingActiveHousingOwners.forEach((housingOwner) => {
+      expect(actual).toPartiallyContain({
+        type: 'event',
+        kind: 'create',
+        value: expect.objectContaining<Partial<HousingOwnerEventApi>>({
+          type: 'housing:owner-updated',
+          nextOld: {
+            name: housingOwner.fullName,
+            rank: expect.any(Number)
+          },
+          nextNew: {
+            name: housingOwner.fullName,
+            rank: PREVIOUS_OWNER_RANK
+          }
+        })
+      });
     });
   });
 

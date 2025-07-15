@@ -34,6 +34,7 @@ export const zlvApi = createApi({
     'Housing',
     'HousingByStatus',
     'HousingCountByStatus',
+    'HousingEvent',
     'HousingOwner',
     'Locality',
     'Note',

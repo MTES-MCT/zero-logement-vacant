@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker';
 
 import {
-  AddressKinds,
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
+  OwnerCreationPayload,
   OwnerDTO,
-  OwnerPayloadDTO,
+  OwnerUpdatePayload,
   Paginated,
   Pagination
 } from '@zerologementvacant/models';
@@ -51,7 +51,7 @@ export const ownerHandlers: RequestHandler[] = [
     }
   ),
 
-  http.post<never, OwnerPayloadDTO, OwnerDTO>(
+  http.post<never, OwnerCreationPayload, OwnerDTO>(
     `${config.apiEndpoint}/api/owners/creation`,
     async ({ request }) => {
       const payload = await request.json();
@@ -59,20 +59,15 @@ export const ownerHandlers: RequestHandler[] = [
       const owner: OwnerDTO = {
         id: faker.string.uuid(),
         rawAddress: payload.rawAddress,
+        banAddress: null,
+        additionalAddress: null,
         fullName: payload.fullName,
-        administrator: undefined,
+        administrator: null,
         kind: 'Particulier',
+        kindDetail: null,
         birthDate: payload.birthDate,
         email: payload.email,
         phone: payload.phone,
-        banAddress: payload.banAddress
-          ? {
-              refId: faker.string.uuid(),
-              addressKind: AddressKinds.Owner,
-              ...payload.banAddress
-            }
-          : undefined,
-        additionalAddress: payload.additionalAddress,
         createdAt: new Date().toJSON(),
         updatedAt: new Date().toJSON()
       };
@@ -83,7 +78,7 @@ export const ownerHandlers: RequestHandler[] = [
     }
   ),
 
-  http.put<PathParams, OwnerPayloadDTO, OwnerDTO>(
+  http.put<PathParams, OwnerUpdatePayload, OwnerDTO>(
     `${config.apiEndpoint}/api/owners/:id`,
     async ({ params, request }) => {
       const payload = await request.json();
@@ -95,7 +90,7 @@ export const ownerHandlers: RequestHandler[] = [
         });
       }
 
-      owner.rawAddress = payload.rawAddress;
+      owner.banAddress = payload.banAddress as any;
       owner.fullName = payload.fullName;
       owner.birthDate = payload.birthDate;
       owner.email = payload.email;

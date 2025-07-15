@@ -1,8 +1,9 @@
+import { DataFileYear } from '@zerologementvacant/models';
 import { WritableStream } from 'node:stream/web';
+import { HousingApi, normalizeDataFileYears } from '~/models/HousingApi';
+import { History } from '~/scripts/import-lovac/history/history';
 
 import { ReporterError, ReporterOptions } from '~/scripts/import-lovac/infra';
-import { History } from '~/scripts/import-lovac/history/history';
-import { HousingApi, normalizeDataFileYears } from '~/models/HousingApi';
 
 interface ProcessorOptions extends ReporterOptions<History> {
   housingRepository: {
@@ -19,7 +20,7 @@ export function historyProcessor(opts: ProcessorOptions) {
   return new WritableStream<History>({
     async write(chunk) {
       try {
-        const dataFileYears: string[] = normalizeDataFileYears(
+        const dataFileYears: DataFileYear[] = normalizeDataFileYears(
           chunk.file_years
         );
         if (dataFileYears.length > 0) {

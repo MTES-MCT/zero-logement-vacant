@@ -9,7 +9,7 @@ production_tables = {
     "owners": f"CREATE OR REPLACE table {SCHEMA}.owners AS (SELECT * FROM zlv_replication_db.public.owners );",
     "housing": f"CREATE OR REPLACE table {SCHEMA}.housing AS (SELECT * FROM zlv_replication_db.public.fast_housing );",
     "owners_housing": f"CREATE OR REPLACE table {SCHEMA}.owners_housing AS (SELECT * FROM zlv_replication_db.public.owners_housing );",
-    "events": f"CREATE OR REPLACE table {SCHEMA}.events AS (SELECT * FROM zlv_replication_db.public.events );",
+    "events": f"CREATE OR REPLACE table {SCHEMA}.events AS (SELECT * EXCLUDE(old, new) FROM zlv_replication_db.public.events );",
     "housing_events": f"CREATE OR REPLACE table {SCHEMA}.housing_events AS (SELECT * FROM zlv_replication_db.public.housing_events );",
     "establishments": f"CREATE OR REPLACE table {SCHEMA}.establishments AS (SELECT * FROM zlv_replication_db.public.establishments );",
     "users": f"CREATE OR REPLACE table {SCHEMA}.users AS (SELECT * FROM zlv_replication_db.public.users );",

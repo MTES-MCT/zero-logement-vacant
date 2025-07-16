@@ -20,6 +20,49 @@ models:
   #         table_one: marts_production_establishments
   #         table_two: int_production_establishments
 
+  - name: marts_production_establishments_category_pro_activity
+    description: "Classification de pro-activité des établissements opérationnels ouverts (EPCI, Communes) basée sur différents critères de performance dans la lutte contre la vacance"
+    columns:
+      - name: establishment_id
+        description: "Identifiant unique de l'établissement"
+        tests:
+          - unique
+          - not_null
+      - name: name
+        description: "Nom de l'établissement"
+      - name: kind
+        description: "Type d'établissement (CA, CC, CU, ME, Commune)"
+      - name: total_campaigns_sent
+        description: "Nombre total de campagnes envoyées"
+      - name: housing_contacted_2024
+        description: "Nombre de logements contactés en 2024"
+      - name: housing_rate_contacted_2024
+        description: "Taux de logements contactés en 2024 par rapport au parc total (LOVAC 24 + FF 23)"
+      - name: housing_vacant_rate_contacted_2024
+        description: "Taux de logements vacants contactés en 2024 par rapport au parc vacant LOVAC 24"
+      - name: housing_vacant_rate_contacted_2023
+        description: "Taux de logements vacants contactés en 2023 par rapport au parc vacant LOVAC 23"
+      - name: housing_rented_rate_contacted_2024
+        description: "Taux de logements locatifs contactés en 2024 par rapport au parc locatif FF 23"
+      - name: kind_campaigns_sent
+        description: "Classification par quartiles du nombre de campagnes envoyées (1-4)"
+      - name: kind_housing_contacted
+        description: "Classification par quartiles du nombre de logements contactés (1-4)"
+      - name: kind_housing_rate_contacted_2024
+        description: "Classification par quartiles du taux de logements contactés en 2024 (1-4)"
+      - name: kind_housing_vacant_rate_contacted
+        description: "Classification par quartiles du taux de logements vacants contactés (1-4)"
+      - name: kind_housing_vacant_rate_contacted_2024
+        description: "Classification par quartiles du taux de logements vacants contactés en 2024 (1-4)"
+      - name: kind_housing_vacant_rate_contacted_2023
+        description: "Classification par quartiles du taux de logements vacants contactés en 2023 (1-4)"
+      - name: kind_housing_rented_rate_contacted_2024
+        description: "Classification par quartiles du taux de logements locatifs contactés en 2024 (1-4)"
+      - name: total_pro_activity
+        description: "Score total de pro-activité (somme des 7 critères, de 7 à 28 points)"
+      - name: kind_pro_activity
+        description: "Classification finale de pro-activité par quartiles (Non pro-actif, Peu pro-actif, Pro-actif, Très pro-actif)"
+
   - name: marts_production_owners
   #   tests:
   #     - utils/same_row_number.sql:

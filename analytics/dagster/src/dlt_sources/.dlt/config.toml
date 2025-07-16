@@ -1,5 +1,0 @@
-[runtime]
-dlthub_telemetry = true
-
-[pipeline] # in ./dlt/config.toml
-loader_file_format="csv"

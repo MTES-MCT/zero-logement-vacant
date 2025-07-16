@@ -11,6 +11,8 @@ import {
   HousingFiltersDTO,
   HousingKind,
   HousingStatus,
+  LastMutationTypeFilter,
+  LastMutationYearFilter,
   LivingArea,
   LocalityKind,
   Occupancy,
@@ -25,7 +27,9 @@ import {
   VacancyRate,
   VacancyYear
 } from '@zerologementvacant/models';
+import { Array, pipe, Record } from 'effect';
 import { match, Pattern } from 'ts-pattern';
+
 import EnergyConsumptionOption from '../components/_app/AppMultiSelect/EnergyConsumptionOption';
 import { Establishment } from './Establishment';
 import { HousingStates } from './HousingState';
@@ -95,7 +99,6 @@ export const noCampaignOption: SelectOption = {
   value: 'null',
   label: 'Campagne : dans aucune campagne en cours'
 };
-export type NoCampaign = typeof noCampaignOption.value;
 export function getCampaignOptions(campaigns: CampaignDTO[]): SelectOption[] {
   return [
     ...campaigns.map((campaign) => ({
@@ -894,15 +897,62 @@ export const dataFileYearsExcludedOptions: SelectOption[] = [
   }
 ].sort((optionA, optionB) => optionB.value.localeCompare(optionA.value));
 
-export const filterCount = (housingFilters: HousingFilters) => {
-  return Object.entries(housingFilters).filter(
-    ([, v]) => v !== undefined && v !== null && (v as any[]).length > 0
-  ).length;
-};
-
 export function hasPerimetersFilter(filters: HousingFilters): boolean {
   return (
     (filters.geoPerimetersIncluded ?? []).length > 0 ||
     (filters.geoPerimetersExcluded ?? []).length > 0
   );
 }
+
+export const LAST_MUTATION_YEAR_EMPTY_OPTION: SelectOption<null> = {
+  ...EMPTY_OPTION,
+  badgeLabel: 'Dernière mutation (date) : pas d’information'
+};
+export const LAST_MUTATION_YEAR_LABELS: Record<LastMutationYearFilter, string> =
+  {
+    '2024': '2024',
+    '2023': '2023',
+    '2022': '2022',
+    '2021': '2021',
+    '2015to2020': 'Entre 2020 et 2015',
+    '2010to2014': 'Entre 2014 et 2010',
+    lte2009: 'Avant 2010'
+  };
+export const LAST_MUTATION_YEAR_SELECT_OPTIONS: SelectOption<LastMutationYearFilter | null>[] =
+  pipe(
+    LAST_MUTATION_YEAR_LABELS,
+    Record.map((value, key) => ({
+      value: key,
+      label: value
+    })),
+    Record.values,
+    Array.append(LAST_MUTATION_YEAR_EMPTY_OPTION),
+    Array.map((option) => ({
+      ...option,
+      badgeLabel: `Dernière mutation (date) : ${option.label.toLowerCase()}`
+    }))
+  );
+
+export const LAST_MUTATION_TYPE_EMPTY_OPTION: SelectOption<null> = {
+  ...EMPTY_OPTION,
+  badgeLabel: 'Dernière mutation (type) : pas d’information'
+};
+export const LAST_MUTATION_TYPE_LABELS: Record<LastMutationTypeFilter, string> =
+  {
+    donation: 'Donation',
+    sale: 'Vente'
+  };
+export const LAST_MUTATION_TYPE_SELECT_OPTIONS: SelectOption<LastMutationTypeFilter | null>[] =
+  pipe(
+    LAST_MUTATION_TYPE_LABELS,
+    Record.map((value, key) => ({
+      value: key,
+      label: value
+    })),
+    Record.values,
+    Array.append(LAST_MUTATION_TYPE_EMPTY_OPTION),
+    Array.map((option) => ({
+      ...option,
+      badgeLabel: `Dernière mutation (type) : ${option.label.toLowerCase()}`
+    }))
+  );

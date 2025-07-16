@@ -3,6 +3,7 @@ import { DataFileYear } from './DataFileYear';
 import { EnergyConsumption } from './EnergyConsumption';
 import { HousingKind } from './HousingKind';
 import { HousingStatus } from './HousingStatus';
+import { MutationType } from './Mutation';
 import { Occupancy } from './Occupancy';
 import { OwnerDTO } from './OwnerDTO';
 
@@ -42,7 +43,7 @@ export interface HousingDTO {
   occupancyIntended: Occupancy | null;
   source: HousingSource | null;
   owner: OwnerDTO;
-  mutationDate: string | null;
+  readonly lastMutationType: MutationType | null;
   lastMutationDate: string | null;
   lastTransactionDate: string | null;
   lastTransactionValue: number | null;

@@ -19,6 +19,7 @@ import { HousingDTO } from '../HousingDTO';
 import { HOUSING_KIND_VALUES } from '../HousingKind';
 import { HousingOwnerDTO } from '../HousingOwnerDTO';
 import { HOUSING_STATUS_VALUES } from '../HousingStatus';
+import { MUTATION_TYPE_VALUES } from '../Mutation';
 import { NoteDTO } from '../NoteDTO';
 import { Occupancy, OCCUPANCY_VALUES } from '../Occupancy';
 import { OwnerDTO } from '../OwnerDTO';
@@ -342,14 +343,13 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     ]),
     energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
     owner,
+    lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
     lastMutationDate: faker.date.past().toJSON(),
     lastTransactionDate: faker.date.past().toJSON(),
     lastTransactionValue: faker.number.int({ min: 1_000_000, max: 10_000_000 }),
     buildingYear: faker.date.past().getUTCFullYear(),
     buildingLocation: null,
     beneficiaryCount: null,
-    mutationDate:
-      faker.helpers.maybe(() => faker.date.recent().toJSON()) ?? null,
     ownershipKind: faker.helpers.arrayElement(OWNERSHIP_KIND_INTERNAL_VALUES),
     taxed: faker.datatype.boolean(),
     rentalValue: faker.number.int({ min: 100, max: 10_000 })

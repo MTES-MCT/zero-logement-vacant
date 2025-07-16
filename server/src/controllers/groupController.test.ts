@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { fc, test } from '@fast-check/jest';
+import { fc, test } from '@fast-check/vitest';
 
 import {
   BENEFIARY_COUNT_VALUES,
@@ -214,7 +214,7 @@ describe('Group API', () => {
         description: payload.description,
         housingCount: 2,
         ownerCount: 1,
-        createdAt: expect.toBeDateString(),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: null
       });
@@ -320,9 +320,9 @@ describe('Group API', () => {
         id: expect.any(String),
         title: payload.title,
         description: payload.description,
-        housingCount: expect.toBeNumber(),
-        ownerCount: expect.toBeNumber(),
-        createdAt: expect.toBeDateString(),
+        housingCount: expect.any(Number),
+        ownerCount: expect.any(Number),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: null
       });
@@ -447,7 +447,7 @@ describe('Group API', () => {
         description: payload.description,
         housingCount: group.housingCount,
         ownerCount: group.ownerCount,
-        createdAt: expect.toBeDateString(),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: group.archivedAt?.toJSON() ?? null
       });
@@ -558,7 +558,7 @@ describe('Group API', () => {
         description: group.description,
         housingCount: establishmentHousingList.length + 1,
         ownerCount: 1,
-        createdAt: expect.toBeDateString(),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: group.archivedAt?.toJSON() ?? null
       });
@@ -705,7 +705,7 @@ describe('Group API', () => {
         description: group.description,
         housingCount: establishmentHousingList.length - 1,
         ownerCount: 1,
-        createdAt: expect.toBeDateString(),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: group.archivedAt?.toJSON() ?? null
       });

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { subDays } from 'date-fns';
 import { constants } from 'http2';
 import request from 'supertest';
@@ -72,8 +73,8 @@ describe('Reset link API', () => {
     });
 
     it('should return OK if the user is missing without sending an email', async () => {
-      const createLink = jest.spyOn(resetLinkRepository, 'insert');
-      const sendEmail = jest.spyOn(mailService, 'sendPasswordReset');
+      const createLink = vi.spyOn(resetLinkRepository, 'insert');
+      const sendEmail = vi.spyOn(mailService, 'sendPasswordReset');
       const email = 'test@test.test';
 
       const { status } = await request(app).post(testRoute).send({ email });

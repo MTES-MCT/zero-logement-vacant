@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { subDays } from 'date-fns';
@@ -26,7 +27,7 @@ import {
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
-jest.mock('../services/ceremaService/mockCeremaService');
+vi.mock('../services/ceremaService/mockCeremaService');
 
 const { app } = createServer();
 

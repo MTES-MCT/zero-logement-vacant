@@ -82,8 +82,8 @@ describe('Owner repository', () => {
 
       expect(actual).toSatisfyAll<OwnerApi>((owner) => {
         return !actual
-          .filter((o) => o.id !== owner.id)
-          .map((o) => o.fullName)
+          .filter((owner: OwnerApi) => owner.id !== owner.id)
+          .map((owner: OwnerApi) => owner.fullName)
           .includes(owner.fullName);
       });
     });

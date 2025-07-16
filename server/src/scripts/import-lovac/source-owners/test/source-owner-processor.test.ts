@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { toArray } from '@zerologementvacant/utils/node';
 import { ReadableStream } from 'node:stream/web';
 import { OwnerApi } from '~/models/OwnerApi';
@@ -27,7 +28,7 @@ describe('SourceOwnerProcessor', () => {
             reporter: createNoopReporter(),
             abortEarly: true,
             ownerRepository: {
-              findOne: jest.fn().mockResolvedValue(null)
+              findOne: vi.fn().mockResolvedValue(null)
             }
           })
         )
@@ -140,7 +141,7 @@ describe('SourceOwnerProcessor', () => {
               reporter: createNoopReporter(),
               abortEarly: true,
               ownerRepository: {
-                findOne: jest.fn().mockRejectedValue(new Error('Fail'))
+                findOne: vi.fn().mockRejectedValue(new Error('Fail'))
               }
             })
           )

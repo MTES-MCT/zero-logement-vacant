@@ -17,6 +17,7 @@ describe('Auth', () => {
 
     function setUser(user: UserApi) {
       return (request: Request, _: Response, next: NextFunction) => {
+        // @ts-expect-error: adding user to request object
         request.user = user;
         next();
       };

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import request from 'supertest';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
@@ -89,7 +90,7 @@ describe('Prospect API', () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
       await SignupLinks().insert(formatSignupLinkApi(link));
-      jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
+      vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email,
           establishmentSiren: genSiren(),
@@ -126,7 +127,7 @@ describe('Prospect API', () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
       await SignupLinks().insert(formatSignupLinkApi(link));
-      jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
+      vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email,
           establishmentSiren: genSiren(),
@@ -153,7 +154,7 @@ describe('Prospect API', () => {
       const link = genSignupLinkApi(email);
       const siren = establishment.siren;
       await SignupLinks().insert(formatSignupLinkApi(link));
-      jest.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
+      vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email,
           establishmentSiren: siren,

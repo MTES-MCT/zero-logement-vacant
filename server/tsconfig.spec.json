@@ -2,10 +2,21 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist/spec",
-    "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo"
+    "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
+    "rootDir": "src",
+    "typeRoots": ["../node_modules", "node_modules", "src/types"],
+    "types": [
+      "express",
+      "express-jwt",
+      "jest-extended",
+      "jest-sorted",
+      "vitest/globals"
+    ]
   },
   "include": [
-    "src/**/*.test.ts"
+    "src/**/*.test.ts",
+    "src/infra/database/**.ts",
+    "src/test/testUtils.ts"
   ],
   "references": [
     {

@@ -1256,7 +1256,7 @@ export const formatHousingRecordApi = (
   occupancy_source: housing.occupancyRegistered,
   occupancy_intended: housing.occupancyIntended ?? null,
   data_source: housing.source,
-  mutation_date: housing.mutationDate ? new Date(housing.mutationDate) : null,
+  mutation_date: null,
   last_mutation_date: housing.lastMutationDate
     ? new Date(housing.lastMutationDate)
     : null,

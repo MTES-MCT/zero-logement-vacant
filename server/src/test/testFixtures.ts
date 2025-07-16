@@ -373,7 +373,6 @@ export const genHousingApi = (
     campaignIds: [],
     contactCount: genNumber(1),
     source: faker.helpers.arrayElement(HOUSING_SOURCE_VALUES),
-    mutationDate: faker.date.past({ years: 20 }).toJSON(),
     geolocation: null,
     plotId: null,
     beneficiaryCount: null,

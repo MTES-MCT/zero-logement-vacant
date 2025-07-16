@@ -110,9 +110,6 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
             occupancyRegistered: Occupancy.VACANT,
             occupancyIntended: null,
             vacancyStartYear: sourceHousing.vacancy_start_year,
-            mutationDate: sourceHousing.mutation_date
-              ? sourceHousing.mutation_date.toISOString()
-              : null,
             lastMutationType: null,
             lastMutationDate: sourceHousing.last_mutation_date
               ? sourceHousing.last_mutation_date.toISOString()
@@ -247,9 +244,6 @@ export function createSourceHousingProcessor(opts: ProcessorOptions) {
           taxed: sourceHousing.taxed,
           rentalValue: sourceHousing.rental_value ?? null,
           vacancyStartYear: sourceHousing.vacancy_start_year,
-          mutationDate: sourceHousing.mutation_date
-            ? sourceHousing.mutation_date.toISOString()
-            : null,
           lastMutationDate: sourceHousing.last_mutation_date
             ? sourceHousing.last_mutation_date.toISOString()
             : null,

@@ -1,5 +1,4 @@
-import { faker } from '@faker-js/faker';
-
+import { faker } from '@faker-js/faker/locale/fr';
 import {
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
@@ -9,9 +8,10 @@ import {
   Paginated,
   Pagination
 } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
+import { Array, pipe } from 'effect';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
+
 import config from '../../utils/config';
 import data from './data';
 
@@ -30,12 +30,10 @@ export const ownerHandlers: RequestHandler[] = [
     `${config.apiEndpoint}/api/owners`,
     async ({ request }) => {
       const payload = await request.json();
-      const search = fp.pipe(
-        fp.filter<OwnerDTO>(byName(payload.q)),
-        paginate({ page: payload.page, perPage: payload.perPage })
-      );
-
-      const owners = search(data.owners);
+      const owners = search(payload.q, data.owners, {
+        page: payload.page,
+        perPage: payload.perPage
+      });
       return HttpResponse.json(
         {
           page: payload.page,
@@ -164,14 +162,14 @@ export const ownerHandlers: RequestHandler[] = [
       data.housingOwners.set(
         housing.id,
         housingOwners.map(
-          fp.pick([
-            'id',
-            'rank',
-            'idprocpte',
-            'idprodroit',
-            'locprop',
-            'propertyRight'
-          ])
+          ({ id, rank, idprocpte, idprodroit, locprop, propertyRight }) => ({
+            id,
+            rank,
+            idprocpte,
+            idprodroit,
+            locprop,
+            propertyRight
+          })
         )
       );
       return HttpResponse.json(housingOwners, {
@@ -192,4 +190,21 @@ function paginate(pagination: Pagination) {
     const end = start + pagination.perPage;
     return owners.slice(start, end);
   };
+}
+
+interface SearchOptions {
+  page: number;
+  perPage: number;
+}
+
+function search(
+  query: string,
+  owners: ReadonlyArray<OwnerDTO>,
+  options: SearchOptions
+): ReadonlyArray<OwnerDTO> {
+  return pipe(
+    owners,
+    Array.filter(byName(query)),
+    paginate({ page: options.page, perPage: options.perPage })
+  );
 }

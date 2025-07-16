@@ -1,13 +1,13 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { genUserDTO } from '@zerologementvacant/models/fixtures';
-import LoginView from './LoginView';
+import { Provider } from 'react-redux';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import data from '../../mocks/handlers/data';
 import configureTestStore from '../../utils/test/storeUtils';
+import LoginView from './LoginView';
 
 describe('login view', () => {
   const user = userEvent.setup();

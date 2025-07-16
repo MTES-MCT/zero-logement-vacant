@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { fc, test } from '@fast-check/jest';
+import { fc, test } from '@fast-check/vitest';
 import {
   BENEFIARY_COUNT_VALUES,
   BUILDING_PERIOD_VALUES,
@@ -433,7 +433,7 @@ describe('Campaign API', () => {
         filters: {
           groupIds: [group.id]
         },
-        createdAt: expect.toBeDateString()
+        createdAt: expect.any(String)
       });
     });
 

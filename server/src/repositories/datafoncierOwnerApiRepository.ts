@@ -1,8 +1,7 @@
 import { DatafoncierOwner } from '@zerologementvacant/models';
-import { createQuery } from '@zerologementvacant/utils';
+import axios from 'axios';
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
-import { DatafoncierResultDTO } from '~/models/DatafoncierResultDTO';
 
 const API = config.datafoncier.api;
 
@@ -16,28 +15,28 @@ export interface FindOptions {
 const find = async (opts: FindOptions): Promise<DatafoncierOwner[]> => {
   logger.debug('Find datafoncier owners', opts);
 
-  const query = createQuery({
+  const query = {
     fields: 'all',
     code_insee: opts.filters.geoCode,
     idprocpte: opts.filters?.idprocpte,
     ordering: opts.filters?.idprocpte ? 'dnulp' : undefined
-  });
+  };
   logger.debug('Fetch datafoncier owners', query);
 
-  const response = await fetch(`${API}/ff/proprios${query}`, {
-    headers: {
-      Authorization: `Token ${config.datafoncier.token}`
-    }
-  });
-  if (!response.ok) {
-    logger.error('Cannot fetch datafoncier owners', response.statusText);
+  try {
+    const response = await axios.get(`${API}/ff/proprios${query}`, {
+      params: query,
+      headers: {
+        Authorization: `Token ${config.datafoncier.token}`
+      }
+    });
+
+    logger.debug(`Found ${response.data.results.length} datafoncier owners.`);
+    return response.data.results;
+  } catch (error) {
+    logger.error('Error fetching datafoncier owners', error);
     return [];
   }
-
-  const data =
-    (await response.json()) as DatafoncierResultDTO<DatafoncierOwner>;
-  logger.debug(`Found ${data.results.length} datafoncier owners.`);
-  return data.results;
 };
 
 export default {

@@ -1,10 +1,9 @@
-import { OwnerProspect, OwnerProspectSortable } from '../models/OwnerProspect';
-import authService from './auth.service';
-import { PaginatedResult } from '../models/PaginatedResult';
 import { PaginationOptions } from '@zerologementvacant/models';
+import { OwnerProspect, OwnerProspectSortable } from '../models/OwnerProspect';
+import { PaginatedResult } from '../models/PaginatedResult';
 import { SortOptions, toQuery } from '../models/Sort';
-import { getURLQuery } from '../utils/fetchUtils';
 import { zlvApi } from './api.service';
+import authService from './auth.service';
 
 export type FindOptions = PaginationOptions &
   SortOptions<OwnerProspectSortable>;
@@ -17,9 +16,10 @@ export const ownerProspectApi = zlvApi.injectEndpoints({
     >({
       query: (options) => {
         return {
-          url: `owner-prospects${getURLQuery({
+          url: 'owner-prospects',
+          params: {
             sort: toQuery(options.sort)
-          })}`,
+          },
           headers: authService.withAuthHeader()
         };
       },
@@ -51,7 +51,7 @@ export const ownerProspectApi = zlvApi.injectEndpoints({
           headers: authService.withAuthHeader()
         };
       },
-      invalidatesTags: (result, error, { id }) => [
+      invalidatesTags: (_result, _error, { id }) => [
         { type: 'OwnerProspect', id }
       ]
     })

@@ -1,0 +1,32 @@
+{
+  "name": "@zerologementvacant/server",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "server/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "server:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "@zerologementvacant/server:build"
+        },
+        "production": {
+          "buildTarget": "@zerologementvacant/server:build"
+        }
+      }
+    },
+    "test": {
+      "options": {
+        "passWithNoTests": true
+      }
+    }
+  }
+}

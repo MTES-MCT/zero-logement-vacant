@@ -1,20 +1,35 @@
 {
-  "extends": "@tsconfig/node20/tsconfig.json",
+  "extends": "../tsconfig.base.json",
+  "files": [],
   "compilerOptions": {
-    "baseUrl": ".",
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "dist",
-    "resolveJsonModule": true,
-    "rootDir": "src",
-    "typeRoots": ["node_modules/@types", "src/types"],
-    "moduleResolution": "bundler",
-    "module": "esnext"
+    "rootDir": "src"
   },
+  "exclude": ["**/node_modules", "**/dist", "**/.*"],
   "ts-node": {
     "swc": true
   },
-  "include": ["src"]
+  "references": [
+    {
+      "path": "../packages/utils"
+    },
+    {
+      "path": "../packages/models"
+    },
+    {
+      "path": "../packages/healthcheck"
+    },
+    {
+      "path": "../packages/draft"
+    },
+    {
+      "path": "../packages/api-sdk"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
 }
+

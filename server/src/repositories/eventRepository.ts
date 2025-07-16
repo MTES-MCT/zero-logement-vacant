@@ -3,6 +3,7 @@ import {
   EventPayloads,
   EventType
 } from '@zerologementvacant/models';
+
 import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';

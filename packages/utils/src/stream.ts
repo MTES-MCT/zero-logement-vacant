@@ -192,7 +192,9 @@ export class StreamCounter<A> extends TransformStream<A, A> {
   }
 }
 
-export async function collect<A>(stream: ReadableStream<A>): Promise<ReadonlyArray<A>> {
+export async function collect<A>(
+  stream: ReadableStream<A>
+): Promise<ReadonlyArray<A>> {
   const result: A[] = [];
 
   await stream.pipeTo(
@@ -205,4 +207,3 @@ export async function collect<A>(stream: ReadableStream<A>): Promise<ReadonlyArr
 
   return result;
 }
-

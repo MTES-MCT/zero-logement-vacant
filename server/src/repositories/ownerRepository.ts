@@ -101,7 +101,7 @@ const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
   const whereOptions = where<OwnerFilters>(['fullName']);
 
   const owners = await Owners()
-    .where(whereOptions(opts?.filters))
+    .where(whereOptions(opts?.filters ?? {}))
     .modify((query) => {
       if (opts?.filters?.idpersonne) {
         query.whereIn(

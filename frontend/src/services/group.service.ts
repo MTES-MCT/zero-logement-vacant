@@ -1,10 +1,9 @@
 import { GroupDTO, PaginationOptions } from '@zerologementvacant/models';
 import { fromGroupDTO, Group } from '../models/Group';
 import { GroupFilters } from '../models/GroupFilters';
-import fp from 'lodash/fp';
 import { GroupPayload } from '../models/GroupPayload';
-import { housingApi } from './housing.service';
 import { zlvApi } from './api.service';
+import { housingApi } from './housing.service';
 
 interface FindOptions extends PaginationOptions {
   filters: GroupFilters;
@@ -28,7 +27,7 @@ export const groupApi = zlvApi.injectEndpoints({
     }),
     getGroup: builder.query<Group, string>({
       query: (id: string) => `groups/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Group', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Group', id }],
       transformResponse: (group: GroupDTO) => fromGroupDTO(group)
     }),
     createGroup: builder.mutation<
@@ -54,21 +53,21 @@ export const groupApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: group
       }),
-      invalidatesTags: (result, error, args) => [{ type: 'Group', id: args.id }]
+      invalidatesTags: (_result, _error, args) => [{ type: 'Group', id: args.id }]
     }),
     addGroupHousing: builder.mutation<
       void,
       GroupPayload['housing'] & Pick<Group, 'id'>
     >({
-      query: (group) => ({
-        url: `groups/${group.id}/housing`,
+      query: ({ id, ...group }) => ({
+        url: `groups/${id}/housing`,
         method: 'POST',
-        body: fp.omit(['id'], group)
+        body: group
       }),
-      invalidatesTags: (result, error, args) => [
+      invalidatesTags: (_result, _error, args) => [
         { type: 'Group', id: args.id }
       ],
-      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+      onQueryStarted: async (_args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
         dispatch(
           housingApi.util.invalidateTags([
@@ -83,15 +82,15 @@ export const groupApi = zlvApi.injectEndpoints({
       void,
       GroupPayload['housing'] & Pick<Group, 'id'>
     >({
-      query: (group) => ({
-        url: `groups/${group.id}/housing`,
+      query: ({ id, ...group }) => ({
+        url: `groups/${id}/housing`,
         method: 'DELETE',
-        body: fp.omit(['id'], group)
+        body: group
       }),
-      invalidatesTags: (result, error, args) => [
+      invalidatesTags: (_result, _error, args) => [
         { type: 'Group', id: args.id }
       ],
-      onQueryStarted: async (args, { dispatch, queryFulfilled }) => {
+      onQueryStarted: async (_args, { dispatch, queryFulfilled }) => {
         await queryFulfilled;
         dispatch(
           housingApi.util.invalidateTags([
@@ -107,7 +106,7 @@ export const groupApi = zlvApi.injectEndpoints({
         url: `groups/${group.id}`,
         method: 'DELETE'
       }),
-      invalidatesTags: (result, error, group) => [
+      invalidatesTags: (_result, _error, group) => [
         { type: 'Group', id: group.id }
       ]
     })

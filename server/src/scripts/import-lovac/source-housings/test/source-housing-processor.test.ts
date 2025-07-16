@@ -1,3 +1,4 @@
+import { vi, MockedObject } from 'vitest';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   HousingStatus,
@@ -40,26 +41,24 @@ describe('Source housing processor', () => {
     email: 'admin@zerologementvacant.beta.gouv.fr'
   };
   let auth: ProcessorOptions['auth'];
-  let housingRepository: jest.MockedObject<
-    ProcessorOptions['housingRepository']
-  >;
-  let housingEventRepository: jest.MockedObject<
+  let housingRepository: MockedObject<ProcessorOptions['housingRepository']>;
+  let housingEventRepository: MockedObject<
     ProcessorOptions['housingEventRepository']
   >;
-  let housingNoteRepository: jest.MockedObject<
+  let housingNoteRepository: MockedObject<
     ProcessorOptions['housingNoteRepository']
   >;
 
   beforeEach(() => {
     auth = genUserApi('');
     housingRepository = {
-      findOne: jest.fn()
+      findOne: vi.fn()
     };
     housingEventRepository = {
-      find: jest.fn()
+      find: vi.fn()
     };
     housingNoteRepository = {
-      find: jest.fn()
+      find: vi.fn()
     };
   });
 

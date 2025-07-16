@@ -3,7 +3,7 @@ import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FileUploadDTO } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
+import { isEqual } from 'lodash-es';
 import { useEffect, useState } from 'react';
 import * as yup from 'yup';
 import { Col, Container, Row } from '../../components/_dsfr';
@@ -102,7 +102,7 @@ function CampaignDraft(props: Readonly<Props>) {
     writtenFrom: values.writtenFrom
   });
 
-  const hasChanges = form.isDirty && !fp.equals(draft, values);
+  const hasChanges = form.isDirty && !!draft && !isEqual(draft, values);
   useUnsavedChanges({ when: hasChanges });
 
   const [createDraft, createDraftMutation] = useCreateDraftMutation();

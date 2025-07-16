@@ -1,4 +1,4 @@
-import fp from 'lodash/fp';
+import { pipe, Predicate, Record } from 'effect';
 
 import { FileUploadDTO } from './FileUploadDTO';
 
@@ -25,7 +25,7 @@ export interface SignatoryDTO {
 export type SignatoriesDTO = [SignatoryDTO | null, SignatoryDTO | null];
 
 export function isEmpty(signatory: SignatoryDTO): boolean {
-  return fp.every(fp.isNull, signatory);
+  return pipe(signatory, Record.every(Predicate.isNull));
 }
 
 export type SenderPayloadDTO = Pick<

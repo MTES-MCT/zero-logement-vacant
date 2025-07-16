@@ -56,7 +56,6 @@ function Clusters<T extends GeoJsonProperties>(props: Props<T>) {
           'circle-color': 'rgba(227, 227, 253, 0.8)',
           'circle-stroke-color': '#000091',
           'circle-stroke-width': 2,
-          // @ts-expect-error: step expects 3 arguments
           'circle-radius': ['step', ['get', 'point_count'], ...radius]
         }}
       />

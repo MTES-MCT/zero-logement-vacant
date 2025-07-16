@@ -25,8 +25,11 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
   await knex.schema.alterTable('owner_events', (table) => {
-    table.dropIndex('event_id');
+    table.dropPrimary();
     table.primary(['owner_id', 'event_id']);
+
+    table.dropForeign('owner_id');
+    table.foreign('owner_id').references('id').inTable('owners');
 
     table.dropForeign('event_id');
     table.foreign('event_id').references('id').inTable('events');

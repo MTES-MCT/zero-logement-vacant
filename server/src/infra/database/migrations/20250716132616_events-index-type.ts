@@ -13,4 +13,7 @@ export async function down(knex: Knex): Promise<void> {
   await knex.schema.alterTable('events', (table) => {
     table.dropIndex(['type', 'created_at'], 'events_type_created_at_idx');
   });
+  await knex.schema.alterTable('events', (table) => {
+    table.setNullable('created_at');
+  });
 }

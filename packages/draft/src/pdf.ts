@@ -74,7 +74,7 @@ function createTransformer(opts: TransformerOptions) {
     async generatePDF(data: DraftData): Promise<Buffer> {
       logger.info('Generating the PDF...');
 
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({protocolTimeout: 60_000 }); // 60 seconds timeout (default is 30 seconds)
 
       const textBlocks = await splitHtmlIntoPages({ fullHtml: data.body ?? '', browser, maxWidth: BODY_WIDTH, firstPageMaxHeight: FIRST_PAGE_BODY_HEIGHT, otherPagesMaxHeight: OTHER_PAGE_BODY_HEIGHT });
       logger.info(`Number of pages generated: ${textBlocks.length}`);

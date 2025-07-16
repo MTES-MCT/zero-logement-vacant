@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { fc, test } from '@fast-check/jest';
+import { fc, test } from '@fast-check/vitest';
 
 import { NoteDTO, NotePayloadDTO, UserRole } from '@zerologementvacant/models';
 import { constants } from 'http2';

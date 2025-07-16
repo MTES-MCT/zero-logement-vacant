@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { beforeAll } from '@jest/globals';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,

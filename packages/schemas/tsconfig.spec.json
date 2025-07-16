@@ -3,13 +3,7 @@
   "compilerOptions": {
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
-    "types": [
-      "vitest/globals",
-      "vitest/importMeta",
-      "vite/client",
-      "node",
-      "vitest"
-    ]
+    "types": ["jest-extended", "node", "vitest/globals"]
   },
   "include": [
     "src/**/*.test.ts"

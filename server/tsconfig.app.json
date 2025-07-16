@@ -4,7 +4,8 @@
     "baseUrl": "./",
     "outDir": "dist/app",
     "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo",
-    "typeRoots": ["src/types"]
+    "typeRoots": ["node_modules", "src/types"],
+    "types": ["express", "express-jwt"]
   },
   "include": ["src/**/*.ts"],
   "exclude": [

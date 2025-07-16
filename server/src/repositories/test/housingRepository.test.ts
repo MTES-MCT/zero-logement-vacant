@@ -1808,8 +1808,8 @@ describe('Housing repository', () => {
               const bool = faker.datatype.boolean();
               return {
                 ...genHousingApi(),
-                lastTransactionDate: bool ? date : null,
-                lastMutationDate: bool ? null : date
+                lastTransactionDate: bool ? date.toJSON() : null,
+                lastMutationDate: bool ? null : date.toJSON()
               };
             }
 
@@ -1837,9 +1837,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return mutation?.date?.getUTCFullYear() === 2024;
@@ -1851,9 +1850,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return mutation?.date?.getUTCFullYear() === 2023;
@@ -1865,9 +1863,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return mutation?.date?.getUTCFullYear() === 2022;
@@ -1879,9 +1876,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return mutation?.date?.getUTCFullYear() === 2021;
@@ -1893,9 +1889,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 const year = mutation?.date?.getUTCFullYear();
@@ -1908,9 +1903,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 const year = mutation?.date?.getUTCFullYear();
@@ -1923,9 +1917,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return mutation?.date
@@ -1939,9 +1932,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return mutation === null;
@@ -1975,15 +1967,15 @@ describe('Housing repository', () => {
                   .with('donation', () => ({
                     ...genHousingApi(),
                     lastMutationType: type,
-                    lastMutationDate: new Date('2024-01-01'),
-                    lastTransactionDate: new Date('2020-01-01'),
+                    lastMutationDate: '2024-01-01',
+                    lastTransactionDate: '2020-01-01',
                     lastTransactionValue: null
                   }))
                   .with('sale', () => ({
                     ...genHousingApi(),
                     lastMutationType: type,
-                    lastMutationDate: new Date('2023-01-01'),
-                    lastTransactionDate: new Date('2024-01-01'),
+                    lastMutationDate: '2023-01-01',
+                    lastTransactionDate: '2024-01-01',
                     lastTransactionValue: 1_000_000
                   }))
                   .with(null, () => ({
@@ -2013,9 +2005,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return mutation?.type === 'sale';
@@ -2027,9 +2018,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return mutation?.type === 'donation';
@@ -2041,9 +2031,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return (
@@ -2057,9 +2046,8 @@ describe('Housing repository', () => {
               predicate: (housing: HousingApi) => {
                 const mutation = fromHousing({
                   lastMutationType: housing.lastMutationType,
-                  lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                  lastTransactionDate:
-                    housing.lastTransactionDate?.toJSON() ?? null,
+                  lastMutationDate: housing.lastMutationDate,
+                  lastTransactionDate: housing.lastTransactionDate,
                   lastTransactionValue: housing.lastTransactionValue
                 });
                 return mutation?.type === null || mutation === null;
@@ -2106,28 +2094,28 @@ describe('Housing repository', () => {
             await createHousings([
               {
                 lastMutationType: 'donation',
-                lastMutationDate: new Date('2024-01-01'),
-                lastTransactionDate: new Date('2020-01-01'),
+                lastMutationDate: '2024-01-01',
+                lastTransactionDate: '2020-01-01',
                 lastTransactionValue: null
               },
               {
                 lastMutationType: 'donation',
-                lastMutationDate: new Date('2024-12-31'),
+                lastMutationDate: '2024-12-31',
                 lastTransactionDate: null,
                 lastTransactionValue: null
               },
               // Should be excluded because it was sold in 2024
               {
                 lastMutationType: 'sale',
-                lastMutationDate: new Date('2023-01-01'),
-                lastTransactionDate: new Date('2024-01-01'),
+                lastMutationDate: '2023-01-01',
+                lastTransactionDate: '2024-01-01',
                 lastTransactionValue: 1_000_000
               },
               // Should be excluded because it was donated in 2025
               {
                 lastMutationType: 'donation',
-                lastMutationDate: new Date('2025-01-01'),
-                lastTransactionDate: new Date('2024-01-01'),
+                lastMutationDate: '2025-01-01',
+                lastTransactionDate: '2024-01-01',
                 lastTransactionValue: null
               }
             ]);
@@ -2143,9 +2131,8 @@ describe('Housing repository', () => {
             expect(actual).toSatisfyAll<HousingApi>((housing) => {
               const mutation = fromHousing({
                 lastMutationType: housing.lastMutationType,
-                lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                lastTransactionDate:
-                  housing.lastTransactionDate?.toJSON() ?? null,
+                lastMutationDate: housing.lastMutationDate,
+                lastTransactionDate: housing.lastTransactionDate,
                 lastTransactionValue: housing.lastTransactionValue
               });
               return (
@@ -2159,8 +2146,8 @@ describe('Housing repository', () => {
             await createHousings([
               {
                 lastMutationType: 'sale',
-                lastMutationDate: new Date('2023-01-01'),
-                lastTransactionDate: new Date('2024-01-01'),
+                lastMutationDate: '2023-01-01',
+                lastTransactionDate: '2024-01-01',
                 lastTransactionValue: faker.number.int({
                   min: 100_000,
                   max: 1_000_000
@@ -2169,7 +2156,7 @@ describe('Housing repository', () => {
               {
                 lastMutationType: 'sale',
                 lastMutationDate: null,
-                lastTransactionDate: new Date('2024-01-01'),
+                lastTransactionDate: '2024-01-01',
                 lastTransactionValue: faker.number.int({
                   min: 100_000,
                   max: 1_000_000
@@ -2177,7 +2164,7 @@ describe('Housing repository', () => {
               },
               {
                 lastMutationType: 'donation',
-                lastMutationDate: new Date('2024-01-01'),
+                lastMutationDate: '2024-01-01',
                 lastTransactionDate: null,
                 lastTransactionValue: null
               }
@@ -2194,9 +2181,8 @@ describe('Housing repository', () => {
             expect(actual).toSatisfyAll<HousingApi>((housing) => {
               const mutation = fromHousing({
                 lastMutationType: housing.lastMutationType,
-                lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                lastTransactionDate:
-                  housing.lastTransactionDate?.toJSON() ?? null,
+                lastMutationDate: housing.lastMutationDate,
+                lastTransactionDate: housing.lastTransactionDate,
                 lastTransactionValue: housing.lastTransactionValue
               });
               return (
@@ -2210,7 +2196,7 @@ describe('Housing repository', () => {
             await createHousings([
               {
                 lastMutationType: null,
-                lastMutationDate: new Date('2024-01-01'),
+                lastMutationDate: '2024-01-01',
                 lastTransactionDate: null,
                 lastTransactionValue: null
               }
@@ -2227,9 +2213,8 @@ describe('Housing repository', () => {
             expect(actual).toSatisfyAll<HousingApi>((housing) => {
               const mutation = fromHousing({
                 lastMutationType: housing.lastMutationType,
-                lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                lastTransactionDate:
-                  housing.lastTransactionDate?.toJSON() ?? null,
+                lastMutationDate: housing.lastMutationDate,
+                lastTransactionDate: housing.lastTransactionDate,
                 lastTransactionValue: housing.lastTransactionValue
               });
               return (
@@ -2261,9 +2246,8 @@ describe('Housing repository', () => {
             expect(actual).toSatisfyAll<HousingApi>((housing) => {
               const mutation = fromHousing({
                 lastMutationType: housing.lastMutationType,
-                lastMutationDate: housing.lastMutationDate?.toJSON() ?? null,
-                lastTransactionDate:
-                  housing.lastTransactionDate?.toJSON() ?? null,
+                lastMutationDate: housing.lastMutationDate,
+                lastTransactionDate: housing.lastTransactionDate,
                 lastTransactionValue: housing.lastTransactionValue
               });
               return mutation === null || mutation.type === null;

@@ -334,13 +334,13 @@ describe('Housing API', () => {
         it('should filter by a single mutation date', async () => {
           await createHousings([
             {
-              lastMutationDate: new Date('2022-01-01'),
-              lastTransactionDate: new Date('2000-01-01'),
+              lastMutationDate: '2022-01-01',
+              lastTransactionDate: '2000-01-01',
               lastTransactionValue: 1_000_000
             },
             {
               lastMutationDate: null,
-              lastTransactionDate: new Date('2022-01-01'),
+              lastTransactionDate: '2022-01-01',
               lastTransactionValue: 1_000_000
             },
             {
@@ -368,13 +368,13 @@ describe('Housing API', () => {
         it('should filter by a range of mutation dates', async () => {
           await createHousings([
             {
-              lastMutationDate: new Date('2010-01-01'),
-              lastTransactionDate: new Date('2000-01-01'),
+              lastMutationDate: '2010-01-01',
+              lastTransactionDate: '2000-01-01',
               lastTransactionValue: null
             },
             {
-              lastMutationDate: new Date('2014-01-01'),
-              lastTransactionDate: new Date('2000-01-01'),
+              lastMutationDate: '2014-01-01',
+              lastTransactionDate: '2000-01-01',
               lastTransactionValue: null
             }
           ]);
@@ -398,12 +398,12 @@ describe('Housing API', () => {
         it('should filter by a single mutation type', async () => {
           await createHousings([
             {
-              lastMutationDate: new Date('2022-01-01'),
-              lastTransactionDate: new Date('2000-01-01'),
+              lastMutationDate: '2022-01-01',
+              lastTransactionDate: '2000-01-01',
               lastTransactionValue: null
             },
             {
-              lastMutationDate: new Date('2022-01-02'),
+              lastMutationDate: '2022-01-02',
               lastTransactionDate: null,
               lastTransactionValue: null
             }
@@ -427,13 +427,13 @@ describe('Housing API', () => {
         it('should filter by several mutation types', async () => {
           await createHousings([
             {
-              lastMutationDate: new Date('2022-01-01'),
-              lastTransactionDate: new Date('2000-01-01'),
+              lastMutationDate: '2022-01-01',
+              lastTransactionDate: '2000-01-01',
               lastTransactionValue: null
             },
             {
-              lastMutationDate: new Date('2022-01-01'),
-              lastTransactionDate: new Date('2023-01-01'),
+              lastMutationDate: '2022-01-01',
+              lastTransactionDate: '2023-01-01',
               lastTransactionValue: 1_000_000
             }
           ]);
@@ -460,8 +460,8 @@ describe('Housing API', () => {
         it('should filter by mutation date and type', async () => {
           await createHousings([
             {
-              lastMutationDate: new Date('2020-01-01'),
-              lastTransactionDate: new Date('2019-01-01'),
+              lastMutationDate: '2020-01-01',
+              lastTransactionDate: '2019-01-01',
               lastTransactionValue: null
             }
           ]);

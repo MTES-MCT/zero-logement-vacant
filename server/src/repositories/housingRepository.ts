@@ -994,10 +994,10 @@ export interface HousingRecordDBO {
   occupancy_source: Occupancy;
   occupancy_intended: Occupancy | null;
   energy_consumption_bdnb: EnergyConsumption | null;
-  energy_consumption_at_bdnb: Date | null;
-  mutation_date: Date | null;
-  last_mutation_date: Date | null;
-  last_transaction_date: Date | null;
+  energy_consumption_at_bdnb: Date | string | null;
+  mutation_date: Date | string | null;
+  last_mutation_date: Date | string | null;
+  last_transaction_date: Date | string | null;
   last_transaction_value: number | null;
 }
 
@@ -1057,7 +1057,9 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   deprecatedPrecisions: housing.deprecated_precisions,
   precisions: housing.precisions,
   energyConsumption: housing.energy_consumption_bdnb,
-  energyConsumptionAt: housing.energy_consumption_at_bdnb,
+  energyConsumptionAt: housing.energy_consumption_at_bdnb
+    ? new Date(housing.energy_consumption_at_bdnb)
+    : null,
   occupancy: housing.occupancy,
   occupancyRegistered: housing.occupancy_source,
   occupancyIntended: housing.occupancy_intended,
@@ -1076,9 +1078,15 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
     ? new Date(housing.last_contact)
     : undefined,
   source: housing.data_source,
-  mutationDate: housing.mutation_date?.toJSON() ?? null,
-  lastMutationDate: housing.last_mutation_date?.toJSON() ?? null,
-  lastTransactionDate: housing.last_transaction_date?.toJSON() ?? null,
+  mutationDate: housing.mutation_date
+    ? new Date(housing.mutation_date).toJSON()
+    : null,
+  lastMutationDate: housing.last_mutation_date
+    ? new Date(housing.last_mutation_date).toJSON()
+    : null,
+  lastTransactionDate: housing.last_transaction_date
+    ? new Date(housing.last_transaction_date).toJSON()
+    : null,
   lastTransactionValue: housing.last_transaction_value
 });
 

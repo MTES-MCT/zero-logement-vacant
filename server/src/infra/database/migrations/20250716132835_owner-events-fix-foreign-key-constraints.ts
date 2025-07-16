@@ -10,8 +10,16 @@ export async function up(knex: Knex): Promise<void> {
       .onUpdate('CASCADE')
       .onDelete('CASCADE');
 
+    table.dropForeign('owner_id');
+    table
+      .foreign('owner_id')
+      .references('id')
+      .inTable('owners')
+      .onUpdate('CASCADE')
+      .onDelete('CASCADE');
+
     table.dropPrimary();
-    table.index('event_id');
+    table.primary(['event_id']);
   });
 }
 

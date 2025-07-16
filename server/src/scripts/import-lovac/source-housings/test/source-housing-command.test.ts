@@ -294,9 +294,17 @@ describe('Source housing command', () => {
     const actual = await Housing()
       .where({ geo_code: housing.geo_code, id: housing.id })
       .first();
-    expect(
-      actual?.mutation_date?.toJSON().substring(0, 'yyyy-mm-dd'.length)
-    ).toBe(updated.mutation_date?.toJSON().substring(0, 'yyyy-mm-dd'.length));
+    const mutationDate = actual?.mutation_date
+      ? new Date(actual.mutation_date)
+          .toJSON()
+          .substring(0, 'yyyy-mm-dd'.length)
+      : null;
+    const updatedMutationDate = updated.mutation_date
+      ? new Date(updated.mutation_date)
+          .toJSON()
+          .substring(0, 'yyyy-mm-dd'.length)
+      : null;
+    expect(mutationDate).toBe(updatedMutationDate);
     expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
       invariant: updated.invariant,
       building_id: updated.building_id,

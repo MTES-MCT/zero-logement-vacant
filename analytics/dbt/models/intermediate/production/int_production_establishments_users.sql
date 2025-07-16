@@ -3,6 +3,7 @@ SELECT
     STRING_AGG(u.id) AS user_ids,
     STRING_AGG(u.email) AS user_emails,
     COUNT(*) AS user_number,
+    IF(COUNT(*) > 0, TRUE, FALSE) AS is_active,
     MAX(activated_at) AS last_activated_at,
     MIN(activated_at) AS first_activated_at,
     MAX(last_authenticated_at) AS last_authenticated_at,

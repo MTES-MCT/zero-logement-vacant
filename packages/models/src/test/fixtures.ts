@@ -350,8 +350,6 @@ export function genHousingDTO(owner: OwnerDTO): HousingDTO {
     buildingYear: faker.date.past().getUTCFullYear(),
     buildingLocation: null,
     beneficiaryCount: null,
-    mutationDate:
-      faker.helpers.maybe(() => faker.date.recent().toJSON()) ?? null,
     ownershipKind: faker.helpers.arrayElement(OWNERSHIP_KIND_INTERNAL_VALUES),
     taxed: faker.datatype.boolean(),
     rentalValue: faker.number.int({ min: 100, max: 10_000 })

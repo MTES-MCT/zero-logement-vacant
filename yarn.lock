@@ -11170,7 +11170,7 @@ __metadata:
     async: "npm:^3.2.6"
     classnames: "npm:^2.5.1"
     date-fns: "npm:^2.30.0"
-    effect: "npm:^3.16.3"
+    effect: "npm:^3.16.11"
     fetch-intercept: "npm:^2.4.0"
     identity-obj-proxy: "npm:^3.0.0"
     immutable: "npm:^5.0.0"
@@ -11473,7 +11473,7 @@ __metadata:
     ts-essentials: "npm:^10.0.2"
     ts-jest: "npm:^29.2.5"
     ts-node: "npm:^10.9.2"
-    ts-pattern: "npm:^5.4.0"
+    ts-pattern: "npm:^5.5.0"
     tsc-alias: "npm:^1.8.10"
     tsconfig-paths: "npm:^4.2.0"
     typescript: "npm:^5.6.2"
@@ -15860,6 +15860,16 @@ __metadata:
   version: 1.1.1
   resolution: "ee-first@npm:1.1.1"
   checksum: 10c0/b5bb125ee93161bc16bfe6e56c6b04de5ad2aa44234d8f644813cc95d861a6910903132b05093706de2b706599367c4130eb6d170f6b46895686b95f87d017b7
+  languageName: node
+  linkType: hard
+
+"effect@npm:^3.16.11":
+  version: 3.16.11
+  resolution: "effect@npm:3.16.11"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    fast-check: "npm:^3.23.1"
+  checksum: 10c0/c0e4aa794eabdb0bb01dc9611ab593e8d4200f576970e57cf9d33ea1c8c32860f9c9fa032bf0b9ba69430dfe8364d8b4552f8decc68ca0766a7ce64e842123ce
   languageName: node
   linkType: hard
 
@@ -30553,7 +30563,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-pattern@npm:^5.4.0, ts-pattern@npm:^5.5.0":
+"ts-pattern@npm:^5.5.0":
   version: 5.7.1
   resolution: "ts-pattern@npm:5.7.1"
   checksum: 10c0/815592dcc8058c90f2329ca88ab4377eb89d794520055fb9a937424babeb87be29f60ad51505206e4ac130b7cbc70ae7c0b3c615469e7f379b7c749c0911265f

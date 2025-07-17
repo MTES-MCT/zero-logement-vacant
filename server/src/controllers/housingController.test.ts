@@ -1,9 +1,11 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
+  fromHousing,
   HOUSING_STATUS_LABELS,
   HousingDTO,
   HousingStatus,
   HousingUpdatePayloadDTO,
+  LastMutationTypeFilter,
   Occupancy,
   OCCUPANCY_LABELS,
   OCCUPANCY_VALUES,
@@ -11,6 +13,7 @@ import {
   UserRole
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
+import async from 'async';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
@@ -295,6 +298,217 @@ describe('Housing API', () => {
         expect(body.entities.length).toBeGreaterThan(0);
         expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
           return commune.geoCodes.includes(housing.geoCode);
+        });
+      });
+
+      describe('Mutation', () => {
+        async function createHousings(
+          payloads: ReadonlyArray<
+            Pick<
+              HousingApi,
+              | 'lastMutationDate'
+              | 'lastTransactionDate'
+              | 'lastTransactionValue'
+            >
+          >
+        ): Promise<ReadonlyArray<HousingApi>> {
+          const housings = payloads.map((payload) => ({
+            ...genHousingApi(
+              faker.helpers.arrayElement(establishment.geoCodes)
+            ),
+            ...payload
+          }));
+          const owners = housings.map((housing) => housing.owner);
+          await Promise.all([
+            Housing().insert(housings.map(formatHousingRecordApi)),
+            Owners().insert(owners.map(formatOwnerApi))
+          ]);
+          await async.forEach(housings, async (housing) => {
+            await HousingOwners().insert(
+              formatHousingOwnersApi(housing, [housing.owner])
+            );
+          });
+          return housings;
+        }
+
+        it('should filter by a single mutation date', async () => {
+          await createHousings([
+            {
+              lastMutationDate: '2022-01-01',
+              lastTransactionDate: '2000-01-01',
+              lastTransactionValue: 1_000_000
+            },
+            {
+              lastMutationDate: null,
+              lastTransactionDate: '2022-01-01',
+              lastTransactionValue: 1_000_000
+            },
+            {
+              lastMutationDate: null,
+              lastTransactionDate: null,
+              lastTransactionValue: null
+            }
+          ]);
+
+          const { body, status } = await request(app)
+            .get(testRoute)
+            .query({
+              lastMutationYears: '2022'
+            })
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+          expect(body.entities.length).toBeGreaterThan(0);
+          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+            const mutation = fromHousing(housing);
+            return mutation?.date?.getUTCFullYear() === 2022;
+          });
+        });
+
+        it('should filter by a range of mutation dates', async () => {
+          await createHousings([
+            {
+              lastMutationDate: '2010-01-01',
+              lastTransactionDate: '2000-01-01',
+              lastTransactionValue: null
+            },
+            {
+              lastMutationDate: '2014-01-01',
+              lastTransactionDate: '2000-01-01',
+              lastTransactionValue: null
+            }
+          ]);
+
+          const { body, status } = await request(app)
+            .get(testRoute)
+            .query({
+              lastMutationYears: '2010to2014'
+            })
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+          expect(body.entities.length).toBeGreaterThan(0);
+          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+            const mutation = fromHousing(housing);
+            const year = mutation?.date?.getUTCFullYear();
+            return year !== undefined && 2010 <= year && year <= 2014;
+          });
+        });
+
+        it('should filter by a single mutation type', async () => {
+          await createHousings([
+            {
+              lastMutationDate: '2022-01-01',
+              lastTransactionDate: '2000-01-01',
+              lastTransactionValue: null
+            },
+            {
+              lastMutationDate: '2022-01-02',
+              lastTransactionDate: null,
+              lastTransactionValue: null
+            }
+          ]);
+
+          const { body, status } = await request(app)
+            .get(testRoute)
+            .query({
+              lastMutationTypes: 'donation'
+            })
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+          expect(body.entities.length).toBeGreaterThan(0);
+          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+            const mutation = fromHousing(housing);
+            return mutation?.type === 'donation';
+          });
+        });
+
+        it('should filter by several mutation types', async () => {
+          await createHousings([
+            {
+              lastMutationDate: '2022-01-01',
+              lastTransactionDate: '2000-01-01',
+              lastTransactionValue: null
+            },
+            {
+              lastMutationDate: '2022-01-01',
+              lastTransactionDate: '2023-01-01',
+              lastTransactionValue: 1_000_000
+            }
+          ]);
+          const types: ReadonlyArray<LastMutationTypeFilter> = [
+            'donation',
+            'sale'
+          ];
+
+          const { body, status } = await request(app)
+            .get(testRoute)
+            .query({
+              lastMutationTypes: types.join(',')
+            })
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+          expect(body.entities.length).toBeGreaterThan(0);
+          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+            const mutation = fromHousing(housing);
+            return types.some((type) => type === mutation?.type);
+          });
+        });
+
+        it('should filter by mutation date and type', async () => {
+          await createHousings([
+            {
+              lastMutationDate: '2020-01-01',
+              lastTransactionDate: '2019-01-01',
+              lastTransactionValue: null
+            }
+          ]);
+
+          const { body, status } = await request(app)
+            .get(testRoute)
+            .query({
+              lastMutationTypes: 'donation',
+              lastMutationYears: '2021'
+            })
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+            const mutation = fromHousing(housing);
+            return (
+              mutation?.type === 'donation' &&
+              mutation?.date?.getUTCFullYear() === 2021
+            );
+          });
+        });
+
+        it('should filter by null mutation date and type', async () => {
+          await createHousings([
+            {
+              lastMutationDate: null,
+              lastTransactionDate: null,
+              lastTransactionValue: null
+            }
+          ]);
+
+          const { body, status } = await request(app)
+            .get(testRoute)
+            .query({
+              lastMutationTypes: 'null',
+              lastMutationYears: 'null'
+            })
+            .use(tokenProvider(user));
+
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+            const mutation = fromHousing(housing);
+            return (
+              mutation === null ||
+              (mutation.type === null && mutation.date === null)
+            );
+          });
         });
       });
     });

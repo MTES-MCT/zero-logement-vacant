@@ -35,8 +35,7 @@ import {
 } from '~/repositories/housingOwnerRepository';
 import {
   formatHousingRecordApi,
-  Housing,
-  HousingRecordDBO
+  Housing
 } from '~/repositories/housingRepository';
 import {
   formatOwnerApi,
@@ -128,11 +127,9 @@ describe('Source housing owner command', () => {
     ].map(formatOwnerApi);
     await Owners().insert(owners);
 
-    const housings: ReadonlyArray<HousingRecordDBO> = [
-      missingOwnersHousing,
-      newHousing,
-      existingHousing
-    ].map(formatHousingRecordApi);
+    const housings = [missingOwnersHousing, newHousing, existingHousing].map(
+      formatHousingRecordApi
+    );
     await Housing().insert(housings);
 
     const housingOwners: ReadonlyArray<HousingOwnerDBO> = [

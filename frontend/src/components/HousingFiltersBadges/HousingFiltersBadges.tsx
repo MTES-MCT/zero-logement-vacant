@@ -32,6 +32,8 @@ import {
   housingCountOptions,
   HousingFilters,
   housingKindOptions,
+  LAST_MUTATION_TYPE_SELECT_OPTIONS,
+  LAST_MUTATION_YEAR_SELECT_OPTIONS,
   LOCALITY_KIND_EMPTY_OPTION,
   localityKindsOptions,
   multiOwnerOptions,
@@ -186,6 +188,18 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         values={filters.vacancyYears}
         small={small}
         onChange={(values) => onChange?.({ vacancyYears: values })}
+      />
+      <FilterBadges
+        options={LAST_MUTATION_TYPE_SELECT_OPTIONS}
+        values={filters.lastMutationTypes}
+        small={small}
+        onChange={(values) => onChange?.({ lastMutationTypes: values })}
+      />
+      <FilterBadges
+        options={LAST_MUTATION_YEAR_SELECT_OPTIONS}
+        values={filters.lastMutationYears}
+        small={small}
+        onChange={(values) => onChange?.({ lastMutationYears: values })}
       />
       <FilterBadges
         options={taxedOptions}

@@ -5,10 +5,15 @@ import AppSelectNext, {
 
 export type OccupancySelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<Occupancy, Multiple>,
-  'className' | 'disabled' | 'multiple' | 'value' | 'onChange'
-> & {
-  label?: string;
-};
+  | 'className'
+  | 'disabled'
+  | 'error'
+  | 'invalid'
+  | 'label'
+  | 'multiple'
+  | 'value'
+  | 'onChange'
+>;
 
 function OccupancySelect<Multiple extends boolean = false>(
   props: OccupancySelectProps<Multiple>
@@ -16,16 +21,16 @@ function OccupancySelect<Multiple extends boolean = false>(
   const { label = 'Statut d’occupation', ...rest } = props;
   // Stick values to avoid changes of the Occupancy enum, for now
   const options: Occupancy[] = [
+    Occupancy.VACANT,
+    Occupancy.RENT,
+    Occupancy.SHORT_RENT,
+    Occupancy.SECONDARY_RESIDENCE,
+    Occupancy.PRIMARY_RESIDENCE,
+    Occupancy.DEPENDENCY,
     Occupancy.COMMERCIAL_OR_OFFICE,
     Occupancy.DEMOLISHED_OR_DIVIDED,
-    Occupancy.DEPENDENCY,
     Occupancy.OTHERS,
-    Occupancy.PRIMARY_RESIDENCE,
-    Occupancy.RENT,
-    Occupancy.SECONDARY_RESIDENCE,
-    Occupancy.SHORT_RENT,
-    Occupancy.UNKNOWN,
-    Occupancy.VACANT
+    Occupancy.UNKNOWN
   ];
   return (
     <AppSelectNext

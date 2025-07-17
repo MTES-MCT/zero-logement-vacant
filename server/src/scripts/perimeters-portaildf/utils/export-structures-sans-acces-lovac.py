@@ -15,11 +15,11 @@ import dateutil.parser
 
 # Database Configuration
 DB_CONFIG = {
-    'host': 'b1a5hll4wc3chl1utqxz-postgresql.services.clever-cloud.com',
-    'port': 7473,
-    'database': 'b1a5hll4wc3chl1utqxz',
-    'user': 'uzkjxisxc0hkyswfp1d6',
-    'password': '1ndLae9c7BAOUwgBRC3j'
+    'host': 'localhost',
+    'port': 5432,
+    'database': 'copieprod',
+    'user': 'postgres',
+    'password': 'postgres'
 }
 
 # File Configuration

@@ -17,6 +17,14 @@ export enum Occupancy {
 }
 
 export const OCCUPANCY_VALUES: Occupancy[] = Object.values(Occupancy);
+export const READ_ONLY_OCCUPANCY_VALUES: ReadonlyArray<Occupancy> = [
+  Occupancy.FREE,
+  Occupancy.CIVIL_SERVANT,
+  Occupancy.ARTISAN,
+  Occupancy.COMMON,
+  Occupancy.RURAL,
+  Occupancy.OTHERS
+];
 
 export const OCCUPANCY_LABELS: Record<Occupancy, string> = {
   [Occupancy.VACANT]: 'Vacant',

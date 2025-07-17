@@ -13,7 +13,8 @@ import {
   Occupancy,
   OWNER_KIND_LABELS,
   PaginationOptions,
-  Precision
+  Precision,
+  READ_ONLY_OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
 import { isNotNull } from '@zerologementvacant/utils';
 import { Array, identity, Predicate, Record } from 'effect';
@@ -470,7 +471,15 @@ function filteredQuery(opts: FilteredQueryOptions) {
       }
     }
     if (filters.occupancies?.length) {
-      queryBuilder.whereIn('occupancy', filters.occupancies);
+      const occupancies = filters.occupancies?.filter(
+        (occupancy) => !READ_ONLY_OCCUPANCY_VALUES.includes(occupancy)
+      );
+      if (occupancies.length > 0) {
+        queryBuilder.whereIn('occupancy', occupancies);
+      }
+      if (filters.occupancies?.includes(Occupancy.OTHERS)) {
+        queryBuilder.whereIn('occupancy', READ_ONLY_OCCUPANCY_VALUES);
+      }
     }
     if (filters.energyConsumption?.length) {
       queryBuilder.where((where) => {

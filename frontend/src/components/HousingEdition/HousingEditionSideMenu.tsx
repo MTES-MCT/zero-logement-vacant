@@ -16,13 +16,12 @@ import { match } from 'ts-pattern';
 import * as yup from 'yup';
 import { useNotification } from '../../hooks/useNotification';
 import { Housing, HousingUpdate } from '../../models/Housing';
-import { allOccupancyOptions } from '../../models/HousingFilters';
 import { HousingStates } from '../../models/HousingState';
 import { useUpdateHousingNextMutation } from '../../services/housing.service';
 import { useCreateNoteByHousingMutation } from '../../services/note.service';
 import AppLink from '../_app/AppLink/AppLink';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import AsideNext from '../Aside/AsideNext';
 import LabelNext from '../Label/LabelNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
@@ -66,8 +65,6 @@ const schema = yup.object({
     }),
   note: yup.string()
 });
-
-const occupancyOptions = allOccupancyOptions.map((option) => option.value);
 
 export type HousingEditionFormSchema = yup.InferType<typeof schema>;
 
@@ -151,48 +148,26 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
         <Controller<HousingEditionFormSchema, 'occupancy'>
           name="occupancy"
           render={({ field, fieldState }) => (
-            <AppSelectNext
-              {...field}
+            <OccupancySelect
               label="Occupation actuelle"
-              invalid={fieldState.invalid}
+              disabled={field.disabled}
               error={fieldState.error?.message}
-              multiple={false}
-              getOptionKey={(option) => option}
-              getOptionLabel={(value) => {
-                const option = allOccupancyOptions.find(
-                  (option) => option.value === value
-                );
-                if (!option) {
-                  throw new Error(`Occupancy with value ${value} not found`);
-                }
-                return option.label;
-              }}
-              getOptionValue={(option) => option}
-              options={occupancyOptions}
+              invalid={fieldState.invalid}
+              value={field.value as Occupancy}
+              onChange={field.onChange}
             />
           )}
         />
         <Controller<HousingEditionFormSchema, 'occupancyIntended'>
           name="occupancyIntended"
           render={({ field, fieldState }) => (
-            <AppSelectNext
-              {...field}
+            <OccupancySelect
               label="Occupation prévisionnelle"
-              invalid={fieldState.invalid}
+              disabled={field.disabled}
               error={fieldState.error?.message}
-              multiple={false}
-              getOptionKey={(option) => option}
-              getOptionLabel={(value) => {
-                const option = allOccupancyOptions.find(
-                  (option) => option.value === value
-                );
-                if (!option) {
-                  throw new Error(`Occupancy with value ${value} not found`);
-                }
-                return option.label;
-              }}
-              getOptionValue={(option) => option}
-              options={occupancyOptions}
+              invalid={fieldState.invalid}
+              value={field.value as Occupancy | null}
+              onChange={field.onChange}
             />
           )}
         />

@@ -18,5 +18,7 @@ SELECT idpersonne as owner_idpersonne,
         catpro2txt as owner_kind, 
         {{ process_owner_kind ('catpro3') }} AS owner_kind_detail,
         {{ process_owner_kind ('catpro3') }} AS owner_category_text,
+        {{ process_owner_property_rights_light ('ccodro') }} AS owner_property_rights,
+        {{ process_owner_property_rights('ccodro') }} as owner_property_rights_detail,
         *
   FROM source

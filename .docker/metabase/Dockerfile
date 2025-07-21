@@ -1,4 +1,4 @@
-FROM openjdk:21-buster
+FROM openjdk:21-bookworm
 
 
 ARG CELLAR_ADDON_HOST

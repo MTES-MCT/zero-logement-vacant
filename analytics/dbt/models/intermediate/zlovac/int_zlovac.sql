@@ -1,3 +1,7 @@
+-- int_zlovac.sql
+-- This model is used to structure the data from the ZLV database.
+-- It is used to prepare the data for the analysis.
+
 FROM {{ ref ("int_lovac_fil_2025") }}
 SELECT 
         annee as data_year,
@@ -70,6 +74,7 @@ SELECT
         dvf_codtypprov,
         dvf_codtypproa,
         -- Owner
+        proprietaire as raw_owner_fullname,
         case
             when
                 TRIM(proprietaire) <> ''

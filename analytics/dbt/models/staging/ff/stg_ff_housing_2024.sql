@@ -1,13 +1,12 @@
 with source as (
     SELECT *
     FROM dwh.ff.raw_ff_2024_housing
-  LIMIT 100
 ),
-
 cleaned_data as (
     select
         2024 as data_year,
         2024 as ff_millesime,
+        idprocpte as owner_idprocpte,
         invar as invariant,
         idlocal as ff_idlocal,
         idbat as ff_idbat,
@@ -108,8 +107,10 @@ cleaned_data as (
         CASE
             WHEN TRIM(COALESCE(CAST(catpro2 as VARCHAR), '')) = '' THEN 'Particulier'
             ELSE 'Autre'
-        END AS owner_kind
-        
+        END AS owner_kind, 
+        locprop, 
+        locproptxt, 
+        logh  
     FROM source
 )
 

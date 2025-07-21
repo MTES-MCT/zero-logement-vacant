@@ -22,6 +22,8 @@ import {
   OwnershipKind,
   Precision,
   PROPERTY_RIGHT_VALUES,
+  READ_ONLY_OCCUPANCY_VALUES,
+  READ_WRITE_OCCUPANCY_VALUES,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
@@ -313,21 +315,43 @@ describe('Housing repository', () => {
           );
         });
 
-        test.each(OCCUPANCY_VALUES)(
-          'should filter by %s',
-          async (occupancy) => {
-            const actual = await housingRepository.find({
-              filters: {
-                occupancies: [occupancy]
-              }
-            });
+        test.each(
+          READ_WRITE_OCCUPANCY_VALUES.filter(
+            (occupancy) => occupancy !== Occupancy.OTHERS
+          )
+        )('should filter by %s', async (occupancy) => {
+          const actual = await housingRepository.find({
+            filters: {
+              occupancies: [occupancy]
+            }
+          });
 
-            expect(actual.length).toBeGreaterThan(0);
-            expect(actual).toSatisfyAll<HousingApi>(
-              (housing) => housing.occupancy === occupancy
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>(
+            (housing) => housing.occupancy === occupancy
+          );
+        });
+
+        it('should keep housings that have a read-only occupancy', async () => {
+          const actual = await housingRepository.find({
+            filters: {
+              occupancies: [Occupancy.OTHERS]
+            }
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return (
+              housing.occupancy === Occupancy.OTHERS ||
+              READ_ONLY_OCCUPANCY_VALUES.includes(housing.occupancy)
             );
-          }
-        );
+          });
+          READ_ONLY_OCCUPANCY_VALUES.forEach((occupancy) => {
+            expect(actual).toSatisfyAny((housing: HousingApi) => {
+              return housing.occupancy === occupancy;
+            });
+          });
+        });
       });
 
       describe('by energy consumption', () => {

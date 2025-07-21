@@ -17,14 +17,21 @@ export enum Occupancy {
 }
 
 export const OCCUPANCY_VALUES: Occupancy[] = Object.values(Occupancy);
-export const READ_ONLY_OCCUPANCY_VALUES: ReadonlyArray<Occupancy> = [
-  Occupancy.FREE,
-  Occupancy.CIVIL_SERVANT,
-  Occupancy.ARTISAN,
-  Occupancy.COMMON,
-  Occupancy.RURAL,
+export const READ_WRITE_OCCUPANCY_VALUES: ReadonlyArray<Occupancy> = [
+  Occupancy.VACANT,
+  Occupancy.RENT,
+  Occupancy.SHORT_RENT,
+  Occupancy.PRIMARY_RESIDENCE,
+  Occupancy.SECONDARY_RESIDENCE,
+  Occupancy.COMMERCIAL_OR_OFFICE,
+  Occupancy.DEMOLISHED_OR_DIVIDED,
+  Occupancy.UNKNOWN,
   Occupancy.OTHERS
 ];
+export const READ_ONLY_OCCUPANCY_VALUES: ReadonlyArray<Occupancy> =
+  OCCUPANCY_VALUES.filter(
+    (value) => !READ_WRITE_OCCUPANCY_VALUES.includes(value)
+  );
 
 export const OCCUPANCY_LABELS: Record<Occupancy, string> = {
   [Occupancy.VACANT]: 'Vacant',

@@ -23,6 +23,7 @@ import {
   Precision,
   PROPERTY_RIGHT_VALUES,
   READ_ONLY_OCCUPANCY_VALUES,
+  READ_WRITE_OCCUPANCY_VALUES,
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
@@ -314,7 +315,7 @@ describe('Housing repository', () => {
           );
         });
 
-        test.each(OCCUPANCY_VALUES)(
+        test.each(READ_WRITE_OCCUPANCY_VALUES)(
           'should filter by %s',
           async (occupancy) => {
             const actual = await housingRepository.find({

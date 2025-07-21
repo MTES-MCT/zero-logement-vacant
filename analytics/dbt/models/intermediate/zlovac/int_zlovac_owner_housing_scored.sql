@@ -1,3 +1,6 @@
+-- int_zlovac_owner_housing_scored.sql
+-- This model is used to score the owners of the housing records in the ZLV database.
+-- It is used to determine the most likely owner of the housing record.
 WITH structured_data AS (
     -- Structure data for owner 1
     SELECT
@@ -228,12 +231,11 @@ mutation_scores AS (
         END AS adjusted_owner_score,
         
         -- Adjust reason based on mutation date
+        -- This is an IF / ELSE IF / ELSE (i.e., only one branch will trigger)
+        -- If final_owner_score > 0, the mutation date conditions will NOT trigger.
         CASE
-            -- Keep existing reason if score is greater than 0
             WHEN final_owner_score > 0 THEN final_owner_reason
-            -- Mutation in last two years
             WHEN mutation_date > CURRENT_DATE - INTERVAL '2 years' THEN 'mutation_in_last_two_years'
-            -- No mutation in last two years
             ELSE 'no_mutation_in_last_two_years'
         END AS adjusted_owner_reason
     FROM scored

@@ -1,0 +1,25 @@
+SELECT 
+owner_idpersonne,
+owner_idprodroit,
+owner_idprocpte,
+entity,
+owner_fullname,
+owner_birth_date,
+owner_birth_place,
+owner_siren,
+owner_address,
+owner_postal_code,
+owner_kind,
+owner_kind_detail,
+owner_category_text, 
+owner_property_rights, 
+owner_property_rights_detail,
+dqualp,
+dnomus,
+dprnus,
+dlign3 as owner_address_line_3, 
+dlign4 as owner_address_line_4,
+dlign5 as owner_address_line_5,
+dlign6 as owner_address_line_6
+FROM {{ ref ('stg_ff_owners_2024') }}
+WHERE entity NOT IN (1, 2, 3, 4, 5, 6, 9) OR entity IS NULL

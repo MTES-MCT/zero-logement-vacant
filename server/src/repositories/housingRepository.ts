@@ -14,6 +14,7 @@ import {
   OWNER_KIND_LABELS,
   PaginationOptions,
   Precision,
+  READ_ONLY_OCCUPANCY_VALUES,
   READ_WRITE_OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
 import { isNotNull } from '@zerologementvacant/utils';

@@ -5,7 +5,6 @@
 WITH zlovac_owners AS (
     SELECT 
         local_id,
-        ff_idprocpte,
         owner_fullname,
         CONCAT_WS(' ', 
             NULLIF(TRIM(owner_adresse1), ''),
@@ -21,8 +20,6 @@ WITH zlovac_owners AS (
 zff_owners AS (
     SELECT 
         owner_idpersonne,
-        owner_idprodroit,
-        owner_idprocpte,
         CONCAT_WS(' ', 
             NULLIF(TRIM(dqualp), ''),
             NULLIF(TRIM(dnomus), ''),
@@ -42,14 +39,13 @@ zff_owners AS (
 
 SELECT 
     z.local_id,
-    z.ff_idprocpte as zlovac_idprocpte,
     zff.owner_idpersonne,
-    zff.owner_idprodroit,
-    zff.owner_idprocpte as zff_idprocpte,
     z.owner_fullname as zlovac_owner_fullname,
     zff.zff_fullname as zff_owner_fullname,
     z.zlovac_full_address,
-    zff.zff_full_address
+    zff.zff_full_address, 
+    NULL as owner_property_rights ,
+    NULL as owner_property_rights_detail,
 FROM zlovac_owners z
 INNER JOIN zff_owners zff
     ON UPPER(TRIM(z.owner_fullname)) = UPPER(TRIM(zff.zff_fullname))

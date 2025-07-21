@@ -472,14 +472,17 @@ function filteredQuery(opts: FilteredQueryOptions) {
       }
     }
     if (filters.occupancies?.length) {
-      const occupancies = filters.occupancies?.filter((occupancy) =>
-        READ_WRITE_OCCUPANCY_VALUES.includes(occupancy)
-      );
+      const occupancies = [
+        ...(filters.occupancies ?? []).filter((occupancy) =>
+          READ_WRITE_OCCUPANCY_VALUES.includes(occupancy)
+        ),
+        ...(filters.occupancies?.includes(Occupancy.OTHERS)
+          ? READ_ONLY_OCCUPANCY_VALUES
+          : [])
+      ];
+
       if (occupancies.length > 0) {
         queryBuilder.whereIn('occupancy', occupancies);
-      }
-      if (filters.occupancies?.includes(Occupancy.OTHERS)) {
-        queryBuilder.whereIn('occupancy', READ_ONLY_OCCUPANCY_VALUES);
       }
     }
     if (filters.energyConsumption?.length) {

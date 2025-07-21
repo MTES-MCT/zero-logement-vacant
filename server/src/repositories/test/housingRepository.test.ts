@@ -315,21 +315,22 @@ describe('Housing repository', () => {
           );
         });
 
-        test.each(READ_WRITE_OCCUPANCY_VALUES)(
-          'should filter by %s',
-          async (occupancy) => {
-            const actual = await housingRepository.find({
-              filters: {
-                occupancies: [occupancy]
-              }
-            });
+        test.each(
+          READ_WRITE_OCCUPANCY_VALUES.filter(
+            (occupancy) => occupancy !== Occupancy.OTHERS
+          )
+        )('should filter by %s', async (occupancy) => {
+          const actual = await housingRepository.find({
+            filters: {
+              occupancies: [occupancy]
+            }
+          });
 
-            expect(actual.length).toBeGreaterThan(0);
-            expect(actual).toSatisfyAll<HousingApi>(
-              (housing) => housing.occupancy === occupancy
-            );
-          }
-        );
+          expect(actual.length).toBeGreaterThan(0);
+          expect(actual).toSatisfyAll<HousingApi>(
+            (housing) => housing.occupancy === occupancy
+          );
+        });
 
         it('should keep housings that have a read-only occupancy', async () => {
           const actual = await housingRepository.find({
@@ -340,7 +341,10 @@ describe('Housing repository', () => {
 
           expect(actual.length).toBeGreaterThan(0);
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
-            return READ_ONLY_OCCUPANCY_VALUES.includes(housing.occupancy);
+            return (
+              housing.occupancy === Occupancy.OTHERS ||
+              READ_ONLY_OCCUPANCY_VALUES.includes(housing.occupancy)
+            );
           });
           READ_ONLY_OCCUPANCY_VALUES.forEach((occupancy) => {
             expect(actual).toSatisfyAny((housing: HousingApi) => {

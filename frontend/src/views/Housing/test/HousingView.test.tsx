@@ -407,7 +407,7 @@ describe('Housing view', () => {
   describe('Add a note', () => {
     it('should add a note', async () => {
       renderView(housing, {
-        user: genUser(),
+        user: genUser(UserRole.USUAL),
         notes: []
       });
 
@@ -419,7 +419,10 @@ describe('Housing view', () => {
         name: 'Ajouter une note'
       });
       await user.click(createNote);
-      const textarea = await screen.findByLabelText('Nouvelle note');
+      screen.logTestingPlaygroundURL();
+      const textarea = await screen.findByRole('textbox', {
+        name: /Nouvelle note/
+      });
       await user.type(textarea, 'Ceci est une note de test');
       const save = await screen.findByRole('button', {
         name: 'Enregistrer'

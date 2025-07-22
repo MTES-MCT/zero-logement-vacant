@@ -92,7 +92,7 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
-    "@fast-check/vitest": "^0.1.3",
+    "@fast-check/vitest": "^0.2.2",
     "@swc/core": "^1.11.1",
     "@tsconfig/node20": "^20.1.4",
     "@turf/turf": "^7.1.0",

@@ -3556,25 +3556,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fast-check/vitest@npm:^0.1.3":
-  version: 0.1.6
-  resolution: "@fast-check/vitest@npm:0.1.6"
-  dependencies:
-    fast-check: "npm:^3.0.0 || ^4.0.0"
-  peerDependencies:
-    vitest: ">=0.28.1 <1.0.0 || ^1 || ^2 || ^3"
-  checksum: 10c0/c817ea2e41526fdde91daf37908e841306d8d3778f1560c3522f337644f6670c002e158c52cccbb40b9097e3f1f4f1a06493a09bd53720e157cfb9b8b6410c1d
-  languageName: node
-  linkType: hard
-
-"@fast-check/vitest@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "@fast-check/vitest@npm:0.2.1"
+"@fast-check/vitest@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "@fast-check/vitest@npm:0.2.2"
   dependencies:
     fast-check: "npm:^3.0.0 || ^4.0.0"
   peerDependencies:
     vitest: ^1 || ^2 || ^3
-  checksum: 10c0/673be2203ee3656fe335de09edd59b81a9c12fcb3b189c997c34dda5218face38701f11ada3fdb848f5b80fa3a74feb6123f94a69ea83e06a25a6ecb2a665eb9
+  checksum: 10c0/bdc53048d4bd6d3a7aefd3c7ddeda9a7c0f4f2bff31edc33df0e2b39fe5c7f98f528ac6741f8acf4d9ad1de894fba7976c64d7239cac4124581578cef371d30e
   languageName: node
   linkType: hard
 
@@ -13664,7 +13653,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/schemas@workspace:packages/schemas"
   dependencies:
-    "@fast-check/vitest": "npm:^0.2.1"
+    "@fast-check/vitest": "npm:^0.2.2"
     "@jest/globals": "npm:^29.7.0"
     "@swc/core": "npm:^1.11.8"
     "@swc/jest": "npm:^0.2.37"
@@ -13691,7 +13680,7 @@ __metadata:
     "@commander-js/extra-typings": "npm:^14.0.0"
     "@elastic/elasticsearch": "npm:^8.15.0"
     "@faker-js/faker": "npm:^8.4.1"
-    "@fast-check/vitest": "npm:^0.1.3"
+    "@fast-check/vitest": "npm:^0.2.2"
     "@getbrevo/brevo": "npm:^1.0.1"
     "@godaddy/terminus": "npm:^4.12.1"
     "@pdfme/common": "npm:^5.3.14"

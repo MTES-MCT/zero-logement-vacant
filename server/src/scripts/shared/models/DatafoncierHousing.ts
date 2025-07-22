@@ -5,7 +5,6 @@ import {
   HousingStatus,
   toOccupancy
 } from '@zerologementvacant/models';
-import { parse } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { HousingRecordApi, OwnershipKindsApi } from '~/models/HousingApi';
 
@@ -45,11 +44,10 @@ export const toHousingRecordApi = (
     occupancyRegistered: toOccupancy(housing.ccthp),
     occupancyIntended: null,
     source: additionalData.source,
-    mutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()).toJSON(),
     energyConsumption: null,
     energyConsumptionAt: null,
     cadastralClassification: null,
-    lastMutationDate: parse(housing.jdatatv, 'ddMMyyyy', new Date()).toJSON(),
+    lastMutationDate: null,
     lastTransactionDate: null,
     lastTransactionValue: null,
     buildingGroupId: null,

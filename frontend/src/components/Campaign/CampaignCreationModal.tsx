@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
@@ -73,7 +73,7 @@ function createCampaignCreationModal() {
             size="extra-large"
             title="Créer une campagne"
           >
-            <Grid xs={12} sx={{ mt: -1, mb: 2 }}>
+            <Grid sx={{ mt: -1, mb: 2 }} size={12}>
               {props.count && (
                 <HousingCount
                   housingCount={props.count.housing}
@@ -84,7 +84,7 @@ function createCampaignCreationModal() {
             </Grid>
 
             <Grid container sx={{ mb: 2 }}>
-              <Grid xs={5}>
+              <Grid size={5}>
                 <AppTextInputNext
                   label="Titre de la campagne (obligatoire)"
                   name="title"
@@ -92,7 +92,7 @@ function createCampaignCreationModal() {
               </Grid>
             </Grid>
             <Grid container>
-              <Grid xs={8}>
+              <Grid size={8}>
                 <AppTextInputNext
                   hintText="Vous pouvez par exemple définir les critères de votre campagne, comment vous l’avez construite, le planning de celle-ci, etc."
                   label="Description (obligatoire)"

@@ -1,5 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import classNames from 'classnames';
 import { ReactElement } from 'react';
 import { pluralize } from '../../utils/stringUtils';
@@ -53,7 +53,6 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
   return (
     <Grid
       container
-      xs={12}
       sx={{
         alignItems: 'center',
         backgroundColor:
@@ -63,15 +62,16 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
         padding: '0.5rem 0.5rem 0.5rem 1rem',
         margin: '1rem 0'
       }}
+      size={12}
     >
-      <Grid xs="auto">{selectedCount}</Grid>
+      <Grid size="auto">{selectedCount}</Grid>
       <Grid
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-end'
         }}
-        xs
+        size="grow"
       >
         <SelectableListHeaderActions {...actions?.props} />
       </Grid>

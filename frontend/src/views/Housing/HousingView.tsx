@@ -1,5 +1,5 @@
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { skipToken } from '@reduxjs/toolkit/query';
 import async from 'async';
 import { useState } from 'react';
@@ -90,14 +90,14 @@ function HousingView() {
         <Grid container columnSpacing={3}>
           {/* Set a custom order to facilitate accessibility:
         housing first, owner second */}
-          <Grid xs={8} order={2}>
+          <Grid order={2} size={8}>
             <HousingDetailsCard housing={housing} />
           </Grid>
           <Grid
-            xs={4}
             order={1}
             rowGap="1.5rem"
             sx={{ display: 'flex', flexFlow: 'column nowrap' }}
+            size={4}
           >
             <OwnerCardNext
               owner={owner}

@@ -1,6 +1,6 @@
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import image from '../../../assets/images/community.svg';
@@ -33,7 +33,7 @@ function OnboardingModal() {
   return (
     <modal.Component size="large" title="Bienvenue sur Zéro Logement Vacant !">
       <Grid container rowSpacing={3}>
-        <Grid component="section" sx={{ display: 'inline-flex' }} xs={12}>
+        <Grid component="section" sx={{ display: 'inline-flex' }} size={12}>
           <img src={image} alt="Communauté" aria-hidden="true" />
           <Typography sx={{ ml: 1 }} variant="subtitle2">
             Pour prendre en main rapidement ZLV, inscrivez-vous à une session de
@@ -46,7 +46,7 @@ function OnboardingModal() {
         <Grid
           component="section"
           sx={{ display: 'flex', justifyContent: 'center' }}
-          xs={12}
+          size={12}
         >
           <iframe
             width="75%"

@@ -1,5 +1,5 @@
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 
 import {
   HOUSING_STATUS_VALUES,
@@ -38,7 +38,7 @@ function HousingEditionMobilizationTab(props: Props) {
       <Grid
         component="article"
         sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-        xs={12}
+        size={12}
       >
         <Typography
           component="h3"
@@ -73,7 +73,6 @@ function HousingEditionMobilizationTab(props: Props) {
           onChange={subStatusField.onChange}
         />
       </Grid>
-
       <PrecisionLists housingId={props.housingId} />
     </Grid>
   );

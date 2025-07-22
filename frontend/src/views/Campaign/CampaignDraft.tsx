@@ -1,7 +1,7 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { FileUploadDTO } from '@zerologementvacant/models';
 import { isEqual } from 'lodash-es';
 import { useEffect, useState } from 'react';
@@ -160,9 +160,9 @@ function CampaignDraft(props: Readonly<Props>) {
 
   return (
     <>
-      <Grid className={styles.steps} xs={12} py={4}>
-        <Grid container xsOffset={1}>
-          <Grid xs={11}>
+      <Grid className={styles.steps} py={4} size={12}>
+        <Grid container offset={1}>
+          <Grid size={11}>
             <Stepper
               currentStep={1}
               nextTitle="Téléchargement des fichiers et validation de la date d’envoi"
@@ -170,17 +170,16 @@ function CampaignDraft(props: Readonly<Props>) {
               title="Vérification des adresses propriétaires et édition de votre courrier"
             />
           </Grid>
-          <Grid xs={11}>
+          <Grid size={11}>
             <div className={'float-right'}>
               <SendButton form={form} onSend={send} />
             </div>
           </Grid>
         </Grid>
       </Grid>
-
-      <Grid component="article" container xs={10} xsOffset={1} sx={{ py: 2 }}>
-        <Grid alignItems="center" container component="header" mb={5} xs>
-          <Grid mb={2} xs={12}>
+      <Grid component="article" container sx={{ py: 2 }} size={10} offset={1}>
+        <Grid alignItems="center" container component="header" mb={5} size="grow">
+          <Grid mb={2} size={12}>
             <CampaignCreatedFromGroup campaign={props.campaign} />
           </Grid>
           <CampaignTitle
@@ -188,7 +187,7 @@ function CampaignDraft(props: Readonly<Props>) {
             campaign={props.campaign}
             className="fr-mb-1w"
           />
-          <Grid xs={6}>
+          <Grid size={6}>
             <CampaignCounts
               display="row"
               housing={count?.housing}
@@ -196,7 +195,7 @@ function CampaignDraft(props: Readonly<Props>) {
             />
           </Grid>
           {props.campaign.description && (
-            <Grid xs={12} mt={2}>
+            <Grid mt={2} size={12}>
               <h3 className="fr-mb-1w fr-text--md">Description</h3>
               <p>{props.campaign.description}</p>
             </Grid>

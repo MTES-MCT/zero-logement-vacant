@@ -1,4 +1,4 @@
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
@@ -47,21 +47,21 @@ function CampaignInProgress(props: Readonly<Props>) {
         onReset={onResetFilters}
         onClose={() => setExpand(false)}
       />
-      <Grid container flexDirection="column" px={3} py={4} xs>
-        <Grid container mb={1} spacing={2} alignItems="flex-start" xs={12}>
-          <Grid xs>
+      <Grid container flexDirection="column" px={3} py={4} size="grow">
+        <Grid container mb={1} spacing={2} alignItems="flex-start" size={12}>
+          <Grid size="grow">
             <AppSearchBar
               onSearch={searchWithQuery}
               initialQuery={filters.query}
               placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
             />
           </Grid>
-          <Grid xs="auto">
+          <Grid size="auto">
             <HousingDisplaySwitch />
           </Grid>
         </Grid>
 
-        <Grid mb={3} xs={12}>
+        <Grid mb={3} size={12}>
           <HousingFiltersBadges filters={filters} onChange={onChangeFilters} />
         </Grid>
 

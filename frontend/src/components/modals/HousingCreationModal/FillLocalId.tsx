@@ -1,6 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { InputProps } from '@codegouvfr/react-dsfr/Input';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import * as yup from 'yup';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
@@ -130,7 +130,7 @@ const FillLocalId = forwardRef((_: StepProps, ref) => {
       />
       <form id="housing-creation-form" onSubmit={(e) => e.preventDefault()}>
         <Grid container>
-          <Grid xs={8}>
+          <Grid size={8}>
             <AppTextInput<FormShape>
               inputForm={form}
               inputKey="localId"

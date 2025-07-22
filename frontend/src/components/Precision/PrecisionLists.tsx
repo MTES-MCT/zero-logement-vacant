@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   isPrecisionBlockingPointCategory,
@@ -110,9 +110,9 @@ function PrecisionLists(props: Props) {
           component="article"
           container
           sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          xs={12}
+          size={12}
         >
-          <Grid sx={{ display: 'flex', alignItems: 'center', gap: 2 }} xs={12}>
+          <Grid sx={{ display: 'flex', alignItems: 'center', gap: 2 }} size={12}>
             <Typography
               component="h3"
               sx={{
@@ -163,9 +163,9 @@ function PrecisionLists(props: Props) {
           component="article"
           container
           sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          xs={12}
+          size={12}
         >
-          <Grid sx={{ display: 'flex', alignItems: 'center', gap: 2 }} xs={12}>
+          <Grid sx={{ display: 'flex', alignItems: 'center', gap: 2 }} size={12}>
             <Typography
               component="h3"
               sx={{
@@ -216,9 +216,9 @@ function PrecisionLists(props: Props) {
           component="article"
           container
           sx={{ alignItems: 'center', columnGap: 2, rowGap: 1 }}
-          xs={12}
+          size={12}
         >
-          <Grid sx={{ display: 'flex', alignItems: 'center', gap: 2 }} xs={12}>
+          <Grid sx={{ display: 'flex', alignItems: 'center', gap: 2 }} size={12}>
             <Typography
               component="h3"
               sx={{ fontSize: '1.125rem', fontWeight: 700 }}
@@ -264,7 +264,6 @@ function PrecisionLists(props: Props) {
           )}
         </Grid>
       </Stack>
-
       <precisionModal.Component
         tab={tab}
         options={precisionOptions}

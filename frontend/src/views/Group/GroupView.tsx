@@ -1,5 +1,5 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
@@ -135,7 +135,7 @@ function GroupView() {
           onClose={() => setExpand(false)}
         />
 
-        <Grid display="flex" flexDirection="column" px={3} py={4} xs>
+        <Grid display="flex" flexDirection="column" px={3} py={4} size="grow">
           <Group
             campaigns={campaigns}
             className="fr-mb-8w"
@@ -156,20 +156,20 @@ function GroupView() {
             className="fr-mb-5w"
           />
 
-          <Grid container mb={1} spacing={2} xs={12}>
-            <Grid xs>
+          <Grid container mb={1} spacing={2} size={12}>
+            <Grid size="grow">
               <AppSearchBar
                 onSearch={(query) => onChangeFilters({ query })}
                 initialQuery={filters.query}
                 placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
               />
             </Grid>
-            <Grid xs="auto">
+            <Grid size="auto">
               <HousingDisplaySwitch />
             </Grid>
           </Grid>
 
-          <Grid xs={12}>
+          <Grid size={12}>
             <HousingFiltersBadges
               filters={filters}
               onChange={onChangeFilters}

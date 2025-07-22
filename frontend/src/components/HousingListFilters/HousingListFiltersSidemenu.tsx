@@ -4,7 +4,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import MuiDrawer from '@mui/material/Drawer';
 import { CSSObject, styled, Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import {
   HOUSING_KIND_VALUES,
   HOUSING_STATUS_VALUES,
@@ -160,24 +160,21 @@ function HousingListFiltersSidemenu(props: Props) {
       >
         {toggle.active ? 'Réduire' : undefined}
       </Button>
-
       <GroupHeader
         className={classNames('fr-mb-4w', styles.drawerContent, {
           [styles.drawerContentExpanded]: toggle.active
         })}
       />
-
       <hr
         className={classNames('fr-pb-4w', styles.drawerContent, {
           [styles.drawerContentExpanded]: toggle.active
         })}
       />
-
       <Grid
         className={classNames(styles.drawerContent, {
           [styles.drawerContentExpanded]: toggle.active
         })}
-        xs
+        size="grow"
       >
         <Grid
           alignItems="flex-start"
@@ -186,12 +183,12 @@ function HousingListFiltersSidemenu(props: Props) {
           mb={1}
           justifyContent="space-between"
         >
-          <Grid component="section" xs="auto">
+          <Grid component="section" size="auto">
             <Typography component="h2" variant="h6" mb={3}>
               Filtres
             </Typography>
           </Grid>
-          <Grid component="section" xs="auto">
+          <Grid component="section" size="auto">
             <Button
               priority="tertiary no outline"
               size="small"
@@ -210,7 +207,7 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <DataFileYearSelect
               multiple
               type="included"
@@ -223,7 +220,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <DataFileYearSelect
               multiple
               type="excluded"
@@ -244,7 +241,7 @@ function HousingListFiltersSidemenu(props: Props) {
             />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <OccupancySelect
               label="Occupation actuelle"
               multiple
@@ -255,7 +252,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <VacancyYearSelect
               disabled={!filters.occupancies?.includes(Occupancy.VACANT)}
               multiple
@@ -293,7 +290,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <TitleWithIcon icon="fr-icon-folder-2-line" title="Mobilisation" />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <HousingStatusMultiSelect
               multiple
               options={HOUSING_STATUS_VALUES}
@@ -304,7 +301,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <HousingSubStatusSelect
               grouped={true}
               multiple
@@ -316,7 +313,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <CampaignSelect
               disabled={campaigns && campaigns.length === 0}
               multiple
@@ -339,7 +336,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <PrecisionSelect
               label="Dispositifs"
               options={precisionOptions.filter((precision) =>
@@ -370,7 +367,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <PrecisionSelect
               label="Points de blocage"
               options={precisionOptions.filter((precision) =>
@@ -401,7 +398,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <PrecisionSelect
               label="Évolutions du logement"
               options={precisionOptions.filter((precision) =>
@@ -438,7 +435,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <TitleWithIcon icon="fr-icon-france-line" title="Localisation" />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <SearchableSelectNext
               label="Intercommunalités"
               placeholder="Rechercher une intercommunalité"
@@ -466,7 +463,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <SearchableSelectNext
               multiple
               disabled={localityOptions && localityOptions.length === 0}
@@ -520,7 +517,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <LocalityKindSelect
               multiple
               value={filters.localityKinds ?? []}
@@ -530,7 +527,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <PerimeterSearchableSelect
               label="Périmètre inclus"
               multiple
@@ -550,7 +547,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <PerimeterSearchableSelect
               label="Périmètre exclus"
               multiple
@@ -570,7 +567,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="section" xs={12}>
+          <Grid component="section" size={12}>
             {!isVisitor && <GeoPerimetersModalLink />}
           </Grid>
         </Accordion>
@@ -580,7 +577,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <TitleWithIcon icon="fr-icon-building-line" title="Bâtiment/DPE" />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <BuildingPeriodSelect
               multiple
               value={filters.buildingPeriods ?? []}
@@ -590,7 +587,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <EnergyConsumptionSelect
               multiple
               value={filters.energyConsumption ?? []}
@@ -600,7 +597,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <OwnershipKindSelect
               multiple
               value={filters.ownershipKinds ?? []}
@@ -610,7 +607,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <HousingCountSelect
               multiple
               value={filters.housingCounts ?? []}
@@ -620,7 +617,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <VacancyRateSelect
               multiple
               value={filters.vacancyRates ?? []}
@@ -634,7 +631,7 @@ function HousingListFiltersSidemenu(props: Props) {
         <Accordion
           label={<TitleWithIcon icon="fr-icon-home-4-line" title="Logement" />}
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <HousingKindSelect
               multiple
               options={HOUSING_KIND_VALUES}
@@ -645,7 +642,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <SurfaceSelect
               multiple
               value={filters.housingAreas ?? []}
@@ -655,7 +652,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <RoomCountSelect
               multiple
               value={filters.roomsCounts ?? []}
@@ -665,7 +662,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <TaxSelect
               multiple
               value={filters.isTaxedValues ?? []}
@@ -675,7 +672,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <CadastralClassificationSelect
               multiple
               value={filters.cadastralClassifications ?? []}
@@ -693,7 +690,7 @@ function HousingListFiltersSidemenu(props: Props) {
             <TitleWithIcon icon="fr-icon-user-line" title="Propriétaires" />
           }
         >
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <OwnerKindSelect
               multiple
               value={filters.ownerKinds ?? []}
@@ -703,7 +700,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <OwnerAgeSelect
               multiple
               value={filters.ownerAges ?? []}
@@ -713,7 +710,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <MultiOwnerSelect
               multiple
               value={filters.multiOwners ?? []}
@@ -723,7 +720,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={12}>
             <SecondaryOwnerSelect
               multiple
               value={filters.beneficiaryCounts ?? []}

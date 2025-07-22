@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { useState } from 'react';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';
@@ -28,7 +28,7 @@ function OwnerView() {
   return (
     <MainContainer grey>
       <Grid container columnSpacing={3} alignItems="flex-start">
-        <Grid xs={4}>
+        <Grid size={4}>
           {!owner ? (
             <Skeleton
               animation="wave"
@@ -51,8 +51,8 @@ function OwnerView() {
           )}
         </Grid>
 
-        <Grid container xs={8} spacing={2}>
-          <Grid component="header" xs={12}>
+        <Grid container spacing={2} size={8}>
+          <Grid component="header" size={12}>
             <Grid
               component="section"
               sx={{
@@ -76,7 +76,7 @@ function OwnerView() {
             />
           )}
           {housings?.entities.map((housing) => (
-            <Grid component="article" xs={6} key={`col-${housing.id}`}>
+            <Grid component="article" key={`col-${housing.id}`} size={6}>
               <OwnerHousingCard housing={housing} />
             </Grid>
           ))}

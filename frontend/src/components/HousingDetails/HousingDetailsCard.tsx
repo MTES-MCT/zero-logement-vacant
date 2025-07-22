@@ -4,7 +4,7 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { fromHousing, Occupancy } from '@zerologementvacant/models';
 import classNames from 'classnames';
@@ -109,7 +109,7 @@ function HousingTab(props: TabProps) {
         component="section"
         rowGap="2rem"
         sx={{ display: 'flex', flexFlow: 'column nowrap' }}
-        xs={4}
+        size={4}
       >
         <Stack component="article" spacing="0.75rem">
           <Typography
@@ -209,12 +209,11 @@ function HousingTab(props: TabProps) {
           />
         </Stack>
       </Grid>
-
       <Grid
         component="section"
         rowGap="2rem"
         sx={{ display: 'flex', flexFlow: 'column nowrap' }}
-        xs={8}
+        size={8}
       >
         <Stack component="article" spacing="0.75rem">
           <Typography
@@ -226,13 +225,13 @@ function HousingTab(props: TabProps) {
           </Typography>
 
           <Grid container columnSpacing="0.5rem">
-            <Grid xs={6}>
+            <Grid size={6}>
               <HousingAttribute
                 label="Référence cadastrale"
                 value={props.housing.cadastralReference}
               />
             </Grid>
-            <Grid xs={6} sx={{ textAlign: 'end' }}>
+            <Grid sx={{ textAlign: 'end' }} size={6}>
               <HousingAttribute
                 label="Complément d’adresse"
                 value={addressComplement}

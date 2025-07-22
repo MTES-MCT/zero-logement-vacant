@@ -1,5 +1,5 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 
 import { Precision } from '@zerologementvacant/models';
 import { List } from 'immutable';
@@ -55,7 +55,7 @@ function PrecisionTabs(props: PrecisionTabs) {
     tabId: 'dispositifs',
     children: (
       <Grid container columnSpacing={2}>
-        <Grid xs={4}>
+        <Grid size={4}>
           <PrecisionColumn
             category="dispositifs-incitatifs"
             icon="fr-icon-money-euro-circle-line"
@@ -68,7 +68,7 @@ function PrecisionTabs(props: PrecisionTabs) {
           />
         </Grid>
 
-        <Grid xs={4}>
+        <Grid size={4}>
           <PrecisionColumn
             category="dispositifs-coercitifs"
             icon="fr-icon-scales-3-line"
@@ -81,7 +81,7 @@ function PrecisionTabs(props: PrecisionTabs) {
           />
         </Grid>
 
-        <Grid xs={4}>
+        <Grid size={4}>
           <PrecisionColumn
             category="hors-dispositif-public"
             icon="fr-icon-more-line"
@@ -102,7 +102,7 @@ function PrecisionTabs(props: PrecisionTabs) {
     tabId: 'points-de-blocage',
     children: (
       <Grid container columnSpacing={2}>
-        <Grid xs={3}>
+        <Grid size={3}>
           <PrecisionColumn
             category="blocage-involontaire"
             icon="fr-icon-close-circle-line"
@@ -115,7 +115,7 @@ function PrecisionTabs(props: PrecisionTabs) {
           />
         </Grid>
 
-        <Grid xs={3}>
+        <Grid size={3}>
           <PrecisionColumn
             category="blocage-volontaire"
             icon="fr-icon-close-circle-fill"
@@ -128,7 +128,7 @@ function PrecisionTabs(props: PrecisionTabs) {
           />
         </Grid>
 
-        <Grid xs={3}>
+        <Grid size={3}>
           <PrecisionColumn
             category="immeuble-environnement"
             icon="fr-icon-building-line"
@@ -141,7 +141,7 @@ function PrecisionTabs(props: PrecisionTabs) {
           />
         </Grid>
 
-        <Grid xs={3}>
+        <Grid size={3}>
           <PrecisionColumn
             category="tiers-en-cause"
             icon="ri-exchange-2-line"
@@ -160,7 +160,7 @@ function PrecisionTabs(props: PrecisionTabs) {
     tabId: 'evolutions',
     children: (
       <Grid container columnSpacing={2}>
-        <Grid xs={4}>
+        <Grid size={4}>
           <PrecisionColumn
             category="travaux"
             icon="ri-barricade-line"
@@ -172,7 +172,7 @@ function PrecisionTabs(props: PrecisionTabs) {
           />
         </Grid>
 
-        <Grid xs={4}>
+        <Grid size={4}>
           <PrecisionColumn
             category="occupation"
             icon="ri-user-location-line"
@@ -184,7 +184,7 @@ function PrecisionTabs(props: PrecisionTabs) {
           />
         </Grid>
 
-        <Grid xs={4}>
+        <Grid size={4}>
           <PrecisionColumn
             category="mutation"
             icon="ri-user-shared-line"

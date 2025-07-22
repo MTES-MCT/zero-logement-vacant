@@ -1,4 +1,4 @@
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import Skeleton from '@mui/material/Skeleton';
 
 import { HousingCountDTO } from '@zerologementvacant/models';
@@ -35,7 +35,7 @@ function createGroupOrCampaignCreationModal() {
               justifyContent: 'stretch'
             }}
           >
-            <Grid sx={{ mt: -1, mb: 2 }} xs={12}>
+            <Grid sx={{ mt: -1, mb: 2 }} size={12}>
               {props.isCounting && (
                 <Skeleton animation="wave" height="1.5rem" width="20rem" />
               )}
@@ -48,7 +48,7 @@ function createGroupOrCampaignCreationModal() {
               )}
             </Grid>
 
-            <Grid xs={6}>
+            <Grid size={6}>
               <GroupOrCampaignCard
                 title={
                   <>
@@ -68,7 +68,7 @@ function createGroupOrCampaignCreationModal() {
               />
             </Grid>
 
-            <Grid xs={6}>
+            <Grid size={6}>
               <GroupOrCampaignCard
                 title="Contacter les propriétaires"
                 description="Une campagne vous permet d'accéder à la liste des destinataires, de rédiger votre courrier et d'enregistrer vos prises de contact avec les propriétaires."

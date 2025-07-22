@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -47,9 +47,9 @@ function AccountEmailCreationView() {
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(submit)}>
-        <Grid container xs>
-          <Grid container xs={7}>
-            <Grid xs={12}>
+        <Grid container size="grow">
+          <Grid container size={7}>
+            <Grid size={12}>
               <Stepper
                 currentStep={1}
                 stepCount={2}
@@ -78,7 +78,7 @@ function AccountEmailCreationView() {
               </Typography>
             </Grid>
 
-            <Grid xs={8} sx={{ mb: '2rem' }}>
+            <Grid sx={{ mb: '2rem' }} size={8}>
               <AppTextInputNext
                 hintText={
                   <>
@@ -112,8 +112,8 @@ function AccountEmailCreationView() {
             </Grid>
 
             <Grid
-              xs={12}
               sx={{ display: 'flex', justifyContent: 'space-between' }}
+              size={12}
             >
               <Button
                 iconId="fr-icon-arrow-go-back-line"
@@ -135,8 +135,8 @@ function AccountEmailCreationView() {
               display: 'flex',
               justifyContent: 'flex-end'
             }}
-            xs={4}
-            xsOffset={1}
+            size={4}
+            offset={1}
           >
             <Image
               alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"

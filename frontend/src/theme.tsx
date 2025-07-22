@@ -7,7 +7,7 @@ import { DeepPartial } from 'ts-essentials';
 
 const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
   augmentMuiTheme: ({ nonAugmentedMuiTheme }) => {
-    return defaultsDeep(nonAugmentedMuiTheme, {
+    const overrides: DeepPartial<Theme> = {
       zIndex: {
         // Found in @codegouvfr/react-dsfr
         drawer: 500,
@@ -91,7 +91,8 @@ const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
           }
         }
       }
-    } satisfies DeepPartial<Theme>);
+    };
+    return defaultsDeep(overrides, nonAugmentedMuiTheme);
   }
 });
 

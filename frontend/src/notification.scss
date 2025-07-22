@@ -1,4 +1,4 @@
-@import 'react-toastify/dist/ReactToastify.min.css';
+@use 'react-toastify/dist/ReactToastify.min.css';
 
 :root {
   --toastify-color-light: var(--background-default-grey);

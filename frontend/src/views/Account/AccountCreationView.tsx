@@ -1,5 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import AccountEmailCreationView from './AccountCreation/AccountEmailCreationView';

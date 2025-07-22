@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import MainContainer from '../../components/MainContainer/MainContainer';
 import OwnerEditionModal from '../../components/modals/OwnerEditionModal/OwnerEditionModal';

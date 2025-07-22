@@ -115,7 +115,7 @@ const ModalDialog = ({
   }
   const component = (
     // eslint-disable-next-line
-    <dialog
+    (<dialog
       aria-labelledby="fr-modal-title-modal"
       className={_className}
       ref={modalRef}
@@ -137,7 +137,7 @@ const ModalDialog = ({
           </div>
         </div>
       </div>
-    </dialog>
+    </dialog>)
   );
   return ReactDOM.createPortal(component, document.body);
 };

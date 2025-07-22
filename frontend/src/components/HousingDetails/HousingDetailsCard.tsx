@@ -4,7 +4,7 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { fromHousing, Occupancy } from '@zerologementvacant/models';
 import classNames from 'classnames';

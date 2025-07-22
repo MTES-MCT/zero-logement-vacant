@@ -2,7 +2,7 @@ import Tile from '@codegouvfr/react-dsfr/Tile';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import classNames from 'classnames';
 
 import { Icon } from '../../components/_dsfr';

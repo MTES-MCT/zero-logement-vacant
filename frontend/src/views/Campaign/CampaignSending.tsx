@@ -2,7 +2,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { FormEvent, useEffect, useState } from 'react';
 
 import { Campaign } from '../../models/Campaign';

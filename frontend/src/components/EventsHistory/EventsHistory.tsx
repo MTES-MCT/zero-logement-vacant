@@ -3,7 +3,7 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { isSameDay } from 'date-fns';
 import { Array, Order, pipe, Predicate, Record } from 'effect';
 

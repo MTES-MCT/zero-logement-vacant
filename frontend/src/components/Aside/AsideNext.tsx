@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Drawer, { DrawerProps } from '@mui/material/Drawer';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { ReactNode } from 'react';
 
 interface AsideProps {

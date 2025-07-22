@@ -1,6 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { InputProps } from '@codegouvfr/react-dsfr/Input';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import * as yup from 'yup';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';

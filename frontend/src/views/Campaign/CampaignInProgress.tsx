@@ -1,4 +1,4 @@
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';

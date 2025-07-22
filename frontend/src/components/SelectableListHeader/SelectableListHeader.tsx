@@ -1,5 +1,5 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import classNames from 'classnames';
 import { ReactElement } from 'react';
 import { pluralize } from '../../utils/stringUtils';

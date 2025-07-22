@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as yup from 'yup';

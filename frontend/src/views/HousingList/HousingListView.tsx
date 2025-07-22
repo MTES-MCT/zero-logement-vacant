@@ -1,6 +1,6 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 

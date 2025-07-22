@@ -1,7 +1,7 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { FileUploadDTO } from '@zerologementvacant/models';
 import { isEqual } from 'lodash-es';
 import { useEffect, useState } from 'react';

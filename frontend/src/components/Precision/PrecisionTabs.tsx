@@ -1,5 +1,5 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 
 import { Precision } from '@zerologementvacant/models';
 import { List } from 'immutable';

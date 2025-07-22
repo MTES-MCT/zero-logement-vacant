@@ -19,10 +19,10 @@ const knexConfig: Knex.Config = {
   },
   migrations: {
     tableName: 'knex_migrations',
-    directory: path.join(__dirname, 'migrations')
+    directory: path.join(import.meta.dirname, 'migrations')
   },
   seeds: {
-    directory: path.join(__dirname, 'seeds', config.db.env),
+    directory: path.join(import.meta.dirname, 'seeds', config.db.env),
     timestampFilenamePrefix: true
   }
 };

@@ -55,7 +55,7 @@ import {
 
 describe('Source housing owner command', () => {
   const command = createSourceHousingOwnerCommand();
-  const file = path.join(__dirname, 'housing-owners.jsonl');
+  const file = path.join(import.meta.dirname, 'housing-owners.jsonl');
 
   const missingOwnersHousing = genHousingApi();
   const missingOwnersHousingOwners: ReadonlyArray<HousingOwnerApi> =

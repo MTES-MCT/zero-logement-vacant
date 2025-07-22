@@ -1,12 +1,33 @@
-/// <reference types="vitest" />
-
-import react from '@vitejs/plugin-react-swc';
+/// <reference types='vitest' />
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  base: '/',
+export default defineConfig(() => ({
+  root: __dirname,
+  cacheDir: '../node_modules/.vite/frontend',
+  server: {
+    port: 3000,
+    host: 'localhost'
+  },
+  preview: {
+    port: 3000,
+    host: 'localhost'
+  },
+  plugins: [react(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
+  // Uncomment this if you are using workers.
+  // worker: {
+  //  plugins: [ nxViteTsPaths() ],
+  // },
   build: {
+    outDir: './dist',
+    emptyOutDir: true,
+    reportCompressedSize: true,
+    commonjsOptions: {
+      transformMixedEsModules: true
+    },
     rollupOptions: {
       external: [
         /node_modules\/(?!@codegouvfr)\/react-dsfr\/.+\\.js$/,
@@ -14,11 +35,17 @@ export default defineConfig({
       ]
     }
   },
-  plugins: [react()],
   test: {
+    watch: false,
     globals: true,
     environment: 'jsdom',
+    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    reporters: ['default'],
+    coverage: {
+      reportsDirectory: '../coverage/frontend',
+      provider: 'v8' as const
+    },
     testTimeout: 30_000,
     setupFiles: ['./vitest.setup.ts', './vitest.polyfills.js']
   }
-});
+}));

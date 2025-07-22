@@ -1,6 +1,6 @@
 import { pipe, Record, Struct } from 'effect';
 import { kebabToSnake } from 'effect/String';
-import { Knex, knex } from 'knex';
+import knex, { Knex } from 'knex';
 import { match } from 'ts-pattern';
 
 import config from '~/infra/database/knexfile';

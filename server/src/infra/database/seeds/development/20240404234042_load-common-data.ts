@@ -106,7 +106,7 @@ async function load(script: string, data: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     exec(
       command,
-      { cwd: path.join(__dirname, '..', '..') },
+      { cwd: path.join(import.meta.dirname, '..', '..') },
       (error, stdout, stderr) => {
         if (error) {
           return reject(error ?? stderr);

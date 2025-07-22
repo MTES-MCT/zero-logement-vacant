@@ -8,29 +8,34 @@ export async function up(knex: Knex): Promise<void> {
     knex.schema.raw(
       fs
         .readFileSync(
-          path.join(__dirname, '..', 'procedures', '001-load-housing.sql'),
+          path.join(
+            import.meta.dirname,
+            '..',
+            'procedures',
+            '001-load-housing.sql'
+          )
         )
-        .toString(),
+        .toString()
     ),
     knex.schema.alterTable('housing', (table: CreateTableBuilder) => {
       table.index(['local_id'], 'housing_local_id_idx');
       table.index(
         ['insee_code', 'data_years'],
-        'housing_insee_code_data_years_idx',
+        'housing_insee_code_data_years_idx'
       );
     }),
     knex.schema.alterTable('owners', (table: CreateTableBuilder) => {
       table.index(
         ['full_name', 'birth_date', 'raw_address'],
-        'owners_full_name_birth_date_raw_address_idx',
+        'owners_full_name_birth_date_raw_address_idx'
       );
     }),
     knex.schema.alterTable('owners_housing', (table: CreateTableBuilder) => {
       table.index(
         ['housing_id', 'rank', 'owner_id'],
-        'owners_housing_housing_id_rank_owner_id_idx',
+        'owners_housing_housing_id_rank_owner_id_idx'
       );
-    }),
+    })
   ]);
 }
 

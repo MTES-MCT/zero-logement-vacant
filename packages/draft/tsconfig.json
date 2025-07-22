@@ -2,15 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "files": [],
   "compilerOptions": {
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
     "lib": ["es2023", "dom"],
-    "moduleResolution": "bundler",
-    "sourceMap": true,
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
-    "rootDir": "src"
+    "rootDir": "src",
+    "baseUrl": ".",
+    "resolveJsonModule": true
   },
   "references": [
     {

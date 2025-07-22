@@ -2,22 +2,27 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist/spec",
-    "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
     "types": [
       "vitest/globals",
       "vitest/importMeta",
       "vite/client",
       "node",
-      "vitest",
-      "@nx/react/typings/cssmodule.d.ts",
-      "@nx/react/typings/image.d.ts"
+      "vitest"
     ]
   },
   "include": [
-    "src/mocks/**/*.ts",
-    "src/setupTests.ts",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "test/fixtures.ts"
+    "vite.config.ts",
+    "vite.config.mts",
+    "vitest.config.ts",
+    "vitest.config.mts",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx",
+    "src/**/*.test.js",
+    "src/**/*.spec.js",
+    "src/**/*.test.jsx",
+    "src/**/*.spec.jsx",
+    "src/**/*.d.ts"
   ]
 }

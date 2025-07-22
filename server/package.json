@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "clean": "rimraf dist tsconfig.build.tsbuildinfo",
+    "clean": "rimraf dist",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "test:migrations": "vitest run --config vitest.database.config.ts",

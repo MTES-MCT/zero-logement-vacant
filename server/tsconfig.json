@@ -3,13 +3,11 @@
   "files": [],
   "compilerOptions": {
     "baseUrl": "./",
+    "outDir": "dist",
+    "rootDir": "src",
     "paths": {
       "~/*": ["src/*"]
     }
-  },
-  "ts-node": {
-    "swc": true,
-    "require": ["tsconfig-paths/register"]
   },
   "references": [
     {

@@ -5,27 +5,25 @@
   "projectType": "application",
   "tags": [],
   "targets": {
-    "serve": {
-      "continuous": true,
-      "executor": "@nx/js:node",
-      "defaultConfiguration": "development",
-      "dependsOn": ["build"],
+    "build": {
+      "executor": "@nx/js:tsc",
       "options": {
-        "buildTarget": "server:build",
-        "runBuildTargetDependencies": false
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "@zerologementvacant/server:build"
-        },
-        "production": {
-          "buildTarget": "@zerologementvacant/server:build"
-        }
-      }
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
+        "main": "server/src/index.ts",
+        "tsConfig": "server/tsconfig.app.json",
+        "outputPath": "server/dist/app",
+        "rootDir": "server/src",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "server/src/infra/database/migrations",
+            "output": "./migrations"
+          },
+          {
+            "glob": "**/*",
+            "input": "server/src/infra/database/seeds",
+            "output": "./seeds"
+          }
+        ]
       }
     }
   }

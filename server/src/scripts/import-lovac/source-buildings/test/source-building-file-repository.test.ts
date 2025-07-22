@@ -7,7 +7,7 @@ import createSourceBuildingFileRepository from '~/scripts/import-lovac/source-bu
 
 describe('Source building file repository', () => {
   describe('stream', () => {
-    const file = path.join(__dirname, 'source-buildings.csv');
+    const file = path.join(import.meta.dirname, 'source-buildings.csv');
 
     beforeAll(async () => {
       const csv = stringify([

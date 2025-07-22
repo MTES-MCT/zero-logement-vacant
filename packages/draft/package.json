@@ -16,8 +16,7 @@
     }
   },
   "scripts": {
-    "clean": "rimraf dist",
-    "copy": "copyfiles -V -u 1 'src/**/*.css' 'src/**/*.hbs' 'src/**/*.json' 'src/fonts/**/*.otf' dist"
+    "clean": "rimraf dist"
   },
   "devDependencies": {
     "@swc/core": "^1.11.8",

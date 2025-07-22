@@ -15,7 +15,7 @@
   },
   "include": [
     "src/**/*.test.ts",
-    "src/infra/database/**.ts",
+    "src/infra/database/**/*.ts",
     "src/test/testUtils.ts"
   ],
   "references": [

@@ -2,12 +2,11 @@
   "extends": "../tsconfig.base.json",
   "files": [],
   "compilerOptions": {
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "rootDir": "src"
   },
   "exclude": ["**/node_modules", "**/dist", "**/.*"],
-  "ts-node": {
-    "swc": true
-  },
   "references": [
     {
       "path": "../packages/utils"

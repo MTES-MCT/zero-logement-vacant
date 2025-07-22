@@ -59,7 +59,7 @@ import {
 
 describe('Source housing command', () => {
   const command = createSourceHousingCommand();
-  const file = path.join(__dirname, 'housings.jsonl');
+  const file = path.join(import.meta.dirname, 'housings.jsonl');
 
   const building: BuildingApi = genBuildingApi();
 

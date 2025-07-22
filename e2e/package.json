@@ -1,6 +1,7 @@
 {
   "name": "@zerologementvacant/e2e",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "dev": "dotenvx run -- nx open-cypress",
     "start": "dotenvx run -- nx e2e"

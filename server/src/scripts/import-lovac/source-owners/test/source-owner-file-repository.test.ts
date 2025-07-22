@@ -7,7 +7,7 @@ import createSourceOwnerFileRepository from '~/scripts/import-lovac/source-owner
 
 describe('Source owner file repository', () => {
   describe('stream', () => {
-    const file = path.join(__dirname, 'source-owners.csv');
+    const file = path.join(import.meta.dirname, 'source-owners.csv');
 
     beforeAll(async () => {
       const csv = stringify([

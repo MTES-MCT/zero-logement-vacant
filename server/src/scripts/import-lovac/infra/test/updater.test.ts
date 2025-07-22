@@ -23,7 +23,7 @@ import { compose, createUpdater } from '../updater';
 
 describe('Updater', () => {
   it('should write to a file', async () => {
-    const file = path.join(__dirname, 'housing-updates.jsonl');
+    const file = path.join(import.meta.dirname, 'housing-updates.jsonl');
     const items = Array.from({ length: 3 }, () => ({
       id: faker.string.uuid()
     }));

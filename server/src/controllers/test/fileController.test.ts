@@ -28,7 +28,7 @@ describe('File API', () => {
     it('should upload a file', async () => {
       const { body, status } = await request(app)
         .post(testRoute)
-        .attach('file', path.join(__dirname, 'test.jpeg'))
+        .attach('file', path.join(import.meta.dirname, 'test.jpeg'))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);

@@ -66,15 +66,15 @@ jobs:
 
       # Check source and **test** files
       - name: Check types
-        run: yarn nx affected -t typecheck --outputStyle=static --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected -t typecheck--base ${{ github.event.pull_request.base.sha }}
         env:
           METABASE_TOKEN: token
 
       - name: Lint
-        run: yarn nx affected -t lint --outputStyle=static --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected -t lint --base ${{ github.event.pull_request.base.sha }}
 
       - name: Test
-        run: yarn nx affected -t test --outputStyle=static --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected -t test --base ${{ github.event.pull_request.base.sha }}
         env:
           LOG_LEVEL: fatal
 

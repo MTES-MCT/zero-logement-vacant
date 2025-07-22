@@ -47,6 +47,7 @@ export const toHousingRecordApi = (
     energyConsumption: null,
     energyConsumptionAt: null,
     cadastralClassification: null,
+    lastMutationType: null,
     lastMutationDate: null,
     lastTransactionDate: null,
     lastTransactionValue: null,

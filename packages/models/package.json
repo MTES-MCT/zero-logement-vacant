@@ -31,7 +31,7 @@
   "dependencies": {
     "@zerologementvacant/draft": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
-    "effect": "^3.15.1",
+    "effect": "^3.17.0",
     "ts-essentials": "^10.0.2",
     "ts-pattern": "^5.5.0"
   },

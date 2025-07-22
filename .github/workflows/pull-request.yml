@@ -64,9 +64,8 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
-      # Check source and **test** files
-      - name: Check types
-        run: yarn nx affected -t typecheck --base ${{ github.event.pull_request.base.sha }}
+      - name: Build
+        run: yarn nx affected -t build --base ${{ github.event.pull_request.base.sha }}
         env:
           METABASE_TOKEN: token
 

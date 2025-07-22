@@ -15,13 +15,13 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       exclude: [
         'src/**/*.test.ts',
-        'src/infra/database/**',
+        'src/infra/database/migrations',
         'src/test/**',
         'src/**/index.ts',
         'src/types/**'
       ]
     },
     include: ['src/**/*.test.ts'],
-    exclude: ['src/infra/database/**/*.test.ts']
+    exclude: ['src/infra/database/migrations/**/*.test.ts']
   }
 });

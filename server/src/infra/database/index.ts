@@ -1,5 +1,5 @@
-import { pipe, Record, Struct } from 'effect';
-import { kebabToSnake } from 'effect/String';
+import { pipe, Predicate, Record, Struct } from 'effect';
+import { camelToSnake } from 'effect/String';
 import knex, { Knex } from 'knex';
 import { match } from 'ts-pattern';
 
@@ -36,16 +36,19 @@ export function where<T extends object>(
 ) {
   return (values: T): Record<string, unknown> => {
     const keys = Struct.keys(values).filter((key) => props.includes(key));
-    return pipe(
+    const returned = pipe(
       values,
       Struct.pick(...keys),
       (value) => value as Record<string, unknown>,
+      Record.filter(Predicate.isNotUndefined),
       Record.mapKeys((key) => {
-        return pipe(key, kebabToSnake, (key: string) =>
+        return pipe(key, camelToSnake, (key: string) =>
           opts?.table ? `${opts?.table}.${key}` : key
         );
       })
     );
+    console.log('RETURNED', returned);
+    return returned;
   };
 }
 

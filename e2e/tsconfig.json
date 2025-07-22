@@ -1,8 +1,14 @@
 {
   "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "target": "es5",
     "lib": ["es5", "dom"],
-    "esModuleInterop": true
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "types": ["cypress", "node"]
   },
   "include": ["**/*.ts"]
 }

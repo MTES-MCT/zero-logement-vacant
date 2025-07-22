@@ -2398,18 +2398,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bull-board/api@npm:6.11.0":
-  version: 6.11.0
-  resolution: "@bull-board/api@npm:6.11.0"
-  dependencies:
-    redis-info: "npm:^3.1.0"
-  peerDependencies:
-    "@bull-board/ui": 6.11.0
-  checksum: 10c0/1e853cd67da7207eee95336ffced51bfc3c518807517d4d228151b040b5aa19e1d2a387a7df5e1cc26d81584d3775450df500b06837857795388f152ec5d6b29
-  languageName: node
-  linkType: hard
-
-"@bull-board/api@npm:6.11.1, @bull-board/api@npm:^6.11.0":
+"@bull-board/api@npm:6.11.1, @bull-board/api@npm:^6.11.1":
   version: 6.11.1
   resolution: "@bull-board/api@npm:6.11.1"
   dependencies:
@@ -2420,28 +2409,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bull-board/express@npm:^6.11.0":
-  version: 6.11.0
-  resolution: "@bull-board/express@npm:6.11.0"
+"@bull-board/express@npm:^6.11.1":
+  version: 6.11.1
+  resolution: "@bull-board/express@npm:6.11.1"
   dependencies:
-    "@bull-board/api": "npm:6.11.0"
-    "@bull-board/ui": "npm:6.11.0"
+    "@bull-board/api": "npm:6.11.1"
+    "@bull-board/ui": "npm:6.11.1"
     ejs: "npm:^3.1.10"
     express: "npm:^4.21.1 || ^5.0.0"
-  checksum: 10c0/d4c83e3204808ae4dd41c49db0999abc35a97b9c4bd7bca4f6296602a338f39c36ecd976ba476e20adb56a1294af91270019624b1514bdb1dc63c81b86b6b0bd
+  checksum: 10c0/8e165d7e9d76dbbaba0ad5d463a6231e58f07c8f925564a3e1f9c6488455b6e32049dce74810f6bc64ff7e86a55e1041dc70e6a91787b935d10d1a77e22cb236
   languageName: node
   linkType: hard
 
-"@bull-board/ui@npm:6.11.0":
-  version: 6.11.0
-  resolution: "@bull-board/ui@npm:6.11.0"
-  dependencies:
-    "@bull-board/api": "npm:6.11.0"
-  checksum: 10c0/779ef81e18c88efd6a468e47619e4d6c121080b5bd4d3de3a632802f93ea61e42a28880d7fef89313c0228d8069f06bb6a1ee4d3e30020464cad30d84852a51f
-  languageName: node
-  linkType: hard
-
-"@bull-board/ui@npm:^6.11.0":
+"@bull-board/ui@npm:6.11.1, @bull-board/ui@npm:^6.11.1":
   version: 6.11.1
   resolution: "@bull-board/ui@npm:6.11.1"
   dependencies:
@@ -13630,9 +13610,9 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.658.1"
     "@aws-sdk/lib-storage": "npm:^3.658.1"
-    "@bull-board/api": "npm:^6.11.0"
-    "@bull-board/express": "npm:^6.11.0"
-    "@bull-board/ui": "npm:^6.11.0"
+    "@bull-board/api": "npm:^6.11.1"
+    "@bull-board/express": "npm:^6.11.1"
+    "@bull-board/ui": "npm:^6.11.1"
     "@faker-js/faker": "npm:^8.4.1"
     "@godaddy/terminus": "npm:^4.12.1"
     "@sentry/integrations": "npm:^7.119.0"
@@ -13654,7 +13634,7 @@ __metadata:
     "@zerologementvacant/utils": "workspace:*"
     archiver: "npm:^7.0.1"
     async: "npm:^3.2.6"
-    bullmq: "npm:^5.14.0"
+    bullmq: "npm:^5.56.5"
     convict: "npm:^6.2.4"
     dotenv: "npm:^16.4.5"
     exceljs: "npm:^4.4.0"
@@ -15431,9 +15411,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bullmq@npm:^5.14.0":
-  version: 5.53.2
-  resolution: "bullmq@npm:5.53.2"
+"bullmq@npm:^5.56.5":
+  version: 5.56.5
+  resolution: "bullmq@npm:5.56.5"
   dependencies:
     cron-parser: "npm:^4.9.0"
     ioredis: "npm:^5.4.1"
@@ -15442,7 +15422,7 @@ __metadata:
     semver: "npm:^7.5.4"
     tslib: "npm:^2.0.0"
     uuid: "npm:^9.0.0"
-  checksum: 10c0/52228809e6f82662f3ed7098048ebe4d8185cb266bbcb49c42db5ed52fd1882acc63ff9ece5f2b97b235fda57d0a8fdba9ebfc73c52845b740bc1f0775aad913
+  checksum: 10c0/10d02e73ff018af3b5a8f2f3663d56ed11c8863e42cebb723181fb528f13033b8d3b768726da4a7bd28cb554d5cb1855c5f9a309d6c52ddcb5a2ed69d482b665
   languageName: node
   linkType: hard
 

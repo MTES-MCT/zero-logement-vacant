@@ -6,7 +6,7 @@ import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 
 export class CustomMigrationSource implements Knex.MigrationSource<string> {
-  async getMigrations(_loadExtensions: readonly string[]): Promise<string[]> {
+  async getMigrations(): Promise<string[]> {
     let dirents = await fs.readdir(
       path.join(import.meta.dirname, 'migrations'),
       {
@@ -28,7 +28,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
 }
 
 export class CustomSeedSource implements Knex.SeedSource<string> {
-  async getSeeds(_seederConfig: Knex.SeederConfig): Promise<string[]> {
+  async getSeeds(): Promise<string[]> {
     const dirents = await fs.readdir(
       path.join(import.meta.dirname, 'seeds', config.db.env),
       {

@@ -1,5 +1,5 @@
 import async from 'async';
-import { knex } from 'knex';
+import knex from 'knex';
 
 import config from '~/infra/database/knexfile';
 

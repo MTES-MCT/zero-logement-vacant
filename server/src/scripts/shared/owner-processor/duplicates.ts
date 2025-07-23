@@ -43,7 +43,7 @@ export const isStreetNumber = (address: string) => /^\d{4}\s/.test(address);
 
 export const preprocessAddress: (address: string[]) => string = flow(
   Array.map((address: string) =>
-    isStreetNumber(address) ? trimStart('0', address) : address
+    isStreetNumber(address) ? trimStart(address, '0') : address
   ),
   Array.join(' '),
   String.replace(/\s+/g, ' ')

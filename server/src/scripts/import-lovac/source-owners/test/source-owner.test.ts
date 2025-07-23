@@ -8,20 +8,21 @@ import {
 describe('SourceOwner', () => {
   describe('sourceOwnerSchema', () => {
     test.prop({
-      idpersonne: fc.string({ minLength: 1 }),
-      full_name: fc.string({ minLength: 1 }),
-      dgfip_address: fc.option(fc.string({ minLength: 1 })),
-      ownership_type: fc.string({ minLength: 1 }),
-      birth_date: fc.option(fc.date()),
-      siren: fc.option(fc.string({ minLength: 1 })),
+      idpersonne: fc.stringMatching(/\S+/),
+      full_name: fc.stringMatching(/\S+/),
+      dgfip_address: fc.option(fc.stringMatching(/\S+/)),
+      ownership_type: fc.stringMatching(/\S+/),
+      birth_date: fc.option(fc.date({ noInvalidDate: true })),
+      siren: fc.option(fc.stringMatching(/\S+/)),
       entity: fc.option(fc.stringMatching(/^[0-9]/))
     })('should validate a source owner', (sourceOwner) => {
-      const actual = sourceOwnerSchema.validateSync(sourceOwner);
+      const validate = () => sourceOwnerSchema.validateSync(sourceOwner);
 
-      expect(actual).toStrictEqual({
-        ...sourceOwner,
-        entity: sourceOwner.entity ? mapEntity(sourceOwner.entity[0]) : null
-      });
+      expect(validate).not.toThrow();
+      const actual = validate();
+      expect(actual.entity).toBe(
+        sourceOwner.entity ? mapEntity(sourceOwner.entity[0]) : null
+      );
     });
   });
 

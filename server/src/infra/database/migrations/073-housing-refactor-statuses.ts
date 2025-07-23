@@ -1,8 +1,10 @@
 import async from 'async';
 import { formatDuration, intervalToDuration, isValid } from 'date-fns';
 import { Knex } from 'knex';
-import fp from 'lodash/fp';
+import { flow, Predicate } from 'effect';
+import { isEqual, omit, pick } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
+import { chunksOf } from 'effect/Array';
 
 const logger = console;
 const BATCH_SIZE = 100_000;
@@ -37,11 +39,11 @@ export async function up(knex: Knex): Promise<void> {
         .orderBy('id')
         .limit(BATCH_SIZE);
       // Remember the last id for pagination
-      currentId = fp.last(housingList)?.id;
+      currentId = housingList.at(housingList.length - 1)?.id;
 
       const items = housingList
         .map((oldHousing) => {
-          const mapHousing = fp.compose(
+          const mapHousing = flow(
             mapVacancyReasons,
             mapPrecisions,
             mapSubStatus
@@ -91,11 +93,11 @@ export async function up(knex: Knex): Promise<void> {
               ]
             : event
         );
-      await async.forEach(fp.chunk(1000, events), async (events) => {
+      await async.forEach(chunksOf(events, 1000), async (events) => {
         await saveEvents(knex)(events);
       });
       const compactHousingList = items.map((item) => item.housing);
-      await async.forEach(fp.chunk(1000, compactHousingList), async (hl) => {
+      await async.forEach(chunksOf(compactHousingList, 1000), async (hl) => {
         await saveHousingList(knex)(hl);
       });
 
@@ -132,13 +134,13 @@ export async function down(knex: Knex): Promise<void> {
         .orderBy('id')
         .limit(BATCH_SIZE);
       // Remember the last id for pagination
-      currentId = fp.last(events)?.id;
+      currentId = events.at(events.length - 1)?.id;
 
       const housingList: Housing[] = events
         .map((event) => event.old)
         .filter(
           (housing): housing is NonNullable<HousingSerialized> =>
-            !fp.isNil(housing)
+            !Predicate.isNotNullable(housing)
         )
         .map((h) => ({
           ...h,
@@ -146,7 +148,7 @@ export async function down(knex: Knex): Promise<void> {
         }))
         .map(normalizeStatus);
 
-      await async.forEach(fp.chunk(1000, housingList), async (_) => {
+      await async.forEach(chunksOf(housingList, 1000), async (_) => {
         logger.debug('Saving housing list...');
         await saveHousingList(knex)(_);
         logger.debug('Save housing list');
@@ -190,14 +192,15 @@ function statusChanges(housing: Housing): boolean {
 }
 
 function equals(a: Housing, b: Housing): boolean {
-  const subset = fp.pick([
-    'status',
-    'sub_status',
-    'precisions',
-    'vacancy_reasons',
-    'occupancy'
-  ]);
-  return fp.isEqual(subset(a), subset(b));
+  const subset = (obj: object) =>
+    pick(obj, [
+      'status',
+      'sub_status',
+      'precisions',
+      'vacancy_reasons',
+      'occupancy'
+    ]);
+  return isEqual(subset(a), subset(b));
 }
 
 function mapSubStatus(housing: Housing): Housing {
@@ -635,7 +638,9 @@ function saveEvents(knex: Knex) {
       event_id: event.id,
       housing_id: event.housing_id
     }));
-    const eventsWithoutHousingId = events.map(fp.omit(['housing_id']));
+    const eventsWithoutHousingId = events.map((event) =>
+      omit(event, 'housing_id')
+    );
 
     if (eventsWithoutHousingId.length && housingEvents.length) {
       await knex('events').insert(eventsWithoutHousingId);

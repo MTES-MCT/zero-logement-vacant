@@ -18,15 +18,18 @@ export interface SourceOwner {
 }
 
 export const sourceOwnerSchema = object({
-  idpersonne: string().required('idpersonne is required'),
-  full_name: string().required('full_name is required'),
-  dgfip_address: string().defined('dgfip_address must be defined').nullable(),
-  ownership_type: string().required('ownership_type is required'),
+  idpersonne: string().trim().required('idpersonne is required'),
+  full_name: string().trim().required('full_name is required'),
+  dgfip_address: string()
+    .trim()
+    .defined('dgfip_address must be defined')
+    .nullable(),
+  ownership_type: string().trim().required('ownership_type is required'),
   birth_date: date()
     .defined('birth_date must be defined')
     .transform(toDate)
     .nullable(),
-  siren: string().defined('siren must be defined').nullable(),
+  siren: string().trim().defined('siren must be defined').nullable(),
   entity: string()
     .transform((value) => {
       if (value === null) return null;

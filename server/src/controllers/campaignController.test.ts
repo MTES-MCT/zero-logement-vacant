@@ -222,18 +222,20 @@ describe('Campaign API', () => {
       description: fc.stringMatching(/\S/),
       housing: fc.record({
         all: fc.boolean(),
-        ids: fc.array(fc.uuid()),
+        ids: fc.array(fc.uuid({ version: 4 })),
         filters: fc.record({
-          housingIds: fc.array(fc.uuid()),
+          housingIds: fc.array(fc.uuid({ version: 4 })),
           occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
           energyConsumption: fc.array(
             fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)
           ),
-          establishmentIds: fc.array(fc.uuid()),
-          groupIds: fc.array(fc.uuid()),
+          establishmentIds: fc.array(fc.uuid({ version: 4 })),
+          groupIds: fc.array(fc.uuid({ version: 4 })),
           campaignsCounts: fc.array(fc.constantFrom(...CAMPAIGN_COUNT_VALUES)),
-          campaignIds: fc.array(fc.oneof(fc.constant(null), fc.uuid())),
-          ownerIds: fc.array(fc.uuid()),
+          campaignIds: fc.array(
+            fc.oneof(fc.constant(null), fc.uuid({ version: 4 }))
+          ),
+          ownerIds: fc.array(fc.uuid({ version: 4 })),
           ownerKinds: fc.array(fc.constantFrom(...OWNER_KIND_VALUES)),
           ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
           multiOwners: fc.array(fc.boolean()),

@@ -3,7 +3,6 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "dist/app",
-    "rootDir": "src",
     "tsBuildInfoFile": "dist/app/tsconfig.tsbuildinfo",
     "typeRoots": ["node_modules", "src/types"],
     "types": ["express", "express-jwt"]

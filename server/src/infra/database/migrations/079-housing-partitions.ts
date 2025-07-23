@@ -1,10 +1,10 @@
 import { Knex } from 'knex';
-import fp from 'lodash/fp';
+import { padStart } from 'lodash-es';
 
 export async function up(knex: Knex): Promise<void> {
   async function createPartitions(from: number, to: number): Promise<void> {
     for (let i = from; i < to; i++) {
-      const department = fp.padCharsStart('0', 2, i.toString(10));
+      const department = padStart(i.toString(10), 2, '0');
       await knex.schema.raw(`
         CREATE TABLE fast_housing_${department} PARTITION OF fast_housing
         FOR VALUES FROM ('${department}000') TO ('${department}999')
@@ -13,7 +13,7 @@ export async function up(knex: Knex): Promise<void> {
   }
 
   await knex.schema.raw(
-    'CREATE TABLE fast_housing (LIKE housing) PARTITION BY RANGE (geo_code)',
+    'CREATE TABLE fast_housing (LIKE housing) PARTITION BY RANGE (geo_code)'
   );
   await knex.schema.alterTable('fast_housing', (table) => {
     table.integer('status').notNullable().alter();
@@ -49,7 +49,7 @@ export async function up(knex: Knex): Promise<void> {
       housing_geo_code: knex
         .select('geo_code')
         .from('housing')
-        .where('housing.id', knex.ref(`${tableName}.housing_id`)),
+        .where('housing.id', knex.ref(`${tableName}.housing_id`))
     });
     await knex.schema.alterTable(tableName, (table) => {
       table.string('housing_geo_code').notNullable().alter();
@@ -69,7 +69,7 @@ export async function up(knex: Knex): Promise<void> {
     table.dropForeign('owner_id');
     table.dropIndex(
       ['housing_id', 'rank', 'owner_id'],
-      'owners_housing_housing_id_rank_owner_id_idx',
+      'owners_housing_housing_id_rank_owner_id_idx'
     );
     table.dropIndex(['housing_id', 'rank'], 'owners_housing_housing_rank_idx');
   });

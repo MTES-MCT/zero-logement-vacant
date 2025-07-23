@@ -5,6 +5,7 @@ export default defineConfig({
   root: __dirname,
   plugins: [nxViteTsPaths()],
   test: {
+    watch: false,
     globals: true,
     environment: 'node',
     testTimeout: 30_000,

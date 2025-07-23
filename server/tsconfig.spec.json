@@ -3,7 +3,6 @@
   "compilerOptions": {
     "outDir": "dist/spec",
     "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
-    "rootDir": "src",
     "typeRoots": ["../node_modules", "node_modules", "src/types"],
     "types": [
       "express",
@@ -15,7 +14,10 @@
   },
   "include": [
     "src/**/*.test.ts",
-    "src/infra/database/**/*.ts",
+    "src/test/database-global-setup.ts",
+    "src/test/global-setup.ts",
+    "src/test/setup-env.ts",
+    "src/test/setup-tests.ts",
     "src/test/testUtils.ts"
   ],
   "references": [

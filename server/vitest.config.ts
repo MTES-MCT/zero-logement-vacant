@@ -9,7 +9,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     testTimeout: 30_000,
-    setupFiles: ['./src/test/setup-env.ts', './vitest.setup.ts'],
+    setupFiles: ['./vitest.setup.ts', './src/test/setup-env.ts'],
     globalSetup: './src/test/global-setup.ts',
     reporters: ['default'],
     coverage: {

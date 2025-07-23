@@ -34,7 +34,7 @@ describe('Server-sent event API', () => {
     'should wait for an event',
     { timeout: TIMEOUT },
     () =>
-      new Promise((resolve, reject) => {
+      new Promise<void>((resolve, reject) => {
         const campaign = genCampaignApi(establishment.id, user.id);
         vi.spyOn(queue, 'on').mockImplementation((event, callback) => {
           setImmediate(() => {
@@ -71,7 +71,7 @@ describe('Server-sent event API', () => {
             }
           })
           .end((error) => {
-            reject(error);
+            return error ? reject(error) : resolve();
           });
       })
   );

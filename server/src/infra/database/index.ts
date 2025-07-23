@@ -36,7 +36,7 @@ export function where<T extends object>(
 ) {
   return (values: T): Record<string, unknown> => {
     const keys = Struct.keys(values).filter((key) => props.includes(key));
-    const returned = pipe(
+    return pipe(
       values,
       Struct.pick(...keys),
       (value) => value as Record<string, unknown>,
@@ -47,8 +47,6 @@ export function where<T extends object>(
         );
       })
     );
-    console.log('RETURNED', returned);
-    return returned;
   };
 }
 

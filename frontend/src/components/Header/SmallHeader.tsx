@@ -48,8 +48,6 @@ function SmallHeader() {
             aria-hidden="true"
           ></span>
           {link.label}
-          {link.showNewBadge && (
-          )}
         </>
       ),
       isActive: location.pathname.startsWith(link.url)

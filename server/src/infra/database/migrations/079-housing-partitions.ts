@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import { padStart } from 'lodash-es';
 
 export async function up(knex: Knex): Promise<void> {
@@ -135,18 +135,18 @@ export async function down(knex: Knex): Promise<void> {
     table.dropPrimary();
     table.dropIndex(
       ['housing_id, rank'],
-      'owners_housing_housing_rank_owner_idx',
+      'owners_housing_housing_rank_owner_idx'
     );
     table.dropIndex(
       ['housing_id, rank'],
-      'owners_housing_housing_rank_coowners_idx',
+      'owners_housing_housing_rank_coowners_idx'
     );
     table.dropColumn('housing_geo_code');
     addForeignKey(table);
     table.primary(['owner_id', 'housing_id']);
     table.index(
       ['housing_id', 'rank', 'owner_id'],
-      'owners_housing_housing_id_rank_owner_id_idx',
+      'owners_housing_housing_id_rank_owner_id_idx'
     );
   });
   await knex.schema.raw(`

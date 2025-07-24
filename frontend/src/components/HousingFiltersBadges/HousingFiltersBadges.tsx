@@ -98,7 +98,7 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { groupIds, ...rest } = filters;
-  const hasFilters = Struct.keys(rest).length === 0;
+  const hasFilters = Struct.keys(rest).length > 0;
 
   if (!hasFilters) {
     return null;

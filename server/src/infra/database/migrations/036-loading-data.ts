@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { Knex } from 'knex';
-import CreateTableBuilder = Knex.CreateTableBuilder;
+import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   await Promise.all([
@@ -17,20 +16,20 @@ export async function up(knex: Knex): Promise<void> {
         )
         .toString()
     ),
-    knex.schema.alterTable('housing', (table: CreateTableBuilder) => {
+    knex.schema.alterTable('housing', (table) => {
       table.index(['local_id'], 'housing_local_id_idx');
       table.index(
         ['insee_code', 'data_years'],
         'housing_insee_code_data_years_idx'
       );
     }),
-    knex.schema.alterTable('owners', (table: CreateTableBuilder) => {
+    knex.schema.alterTable('owners', (table) => {
       table.index(
         ['full_name', 'birth_date', 'raw_address'],
         'owners_full_name_birth_date_raw_address_idx'
       );
     }),
-    knex.schema.alterTable('owners_housing', (table: CreateTableBuilder) => {
+    knex.schema.alterTable('owners_housing', (table) => {
       table.index(
         ['housing_id', 'rank', 'owner_id'],
         'owners_housing_housing_id_rank_owner_id_idx'

@@ -82,10 +82,13 @@ export const groupHandlers: RequestHandler[] = [
     async ({ params }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
-        throw HttpResponse.json({
-          name: 'GroupMissingError',
-          message: 'Group not found'
-        });
+        return HttpResponse.json(
+          {
+            name: 'GroupMissingError',
+            message: 'Group not found'
+          },
+          { status: constants.HTTP_STATUS_NOT_FOUND }
+        );
       }
 
       const groupHousings = data.groupHousings.get(group.id) ?? [];

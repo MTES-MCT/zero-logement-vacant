@@ -21,7 +21,7 @@ import {
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { genAuthUser, genNote, genUser } from '../../../../test/fixtures.test';
+import { genAuthUser, genNote, genUser } from '../../../../test/fixtures';
 import data from '../../../mocks/handlers/data';
 import { Note, toNoteDTO } from '../../../models/Note';
 import { fromUserDTO, User } from '../../../models/User';
@@ -419,7 +419,6 @@ describe('Housing view', () => {
         name: 'Ajouter une note'
       });
       await user.click(createNote);
-      screen.logTestingPlaygroundURL();
       const textarea = await screen.findByRole('textbox', {
         name: /Nouvelle note/
       });

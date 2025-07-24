@@ -10,14 +10,14 @@ interface DatafoncierHousingParams {
 }
 
 export const datafoncierHandlers: RequestHandler[] = [
-  http.get<DatafoncierHousingParams, never, DatafoncierHousing>(
+  http.get<DatafoncierHousingParams, never, DatafoncierHousing | Error>(
     `${config.apiEndpoint}/api/datafoncier/housing/:localId`,
     async ({ params }) => {
       const housing = data.datafoncierHousings.find(
         (housing) => housing.idlocal === params.localId
       );
       if (!housing) {
-        throw HttpResponse.json(
+        return HttpResponse.json(
           {
             name: 'HousingMissingError',
             message: `Housing ${params.localId} missing`

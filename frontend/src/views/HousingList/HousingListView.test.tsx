@@ -777,6 +777,7 @@ describe('Housing list view', () => {
         const options = await screen.findByRole('listbox');
         const option = await within(options).findByText('Non suivi');
         await user.click(option);
+        await user.keyboard('{Escape}');
         const badge = await screen.findByText('Statut de suivi : non suivi');
         expect(badge).toBeVisible();
       });

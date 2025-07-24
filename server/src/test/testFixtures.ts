@@ -23,6 +23,7 @@ import {
   OWNER_KIND_LABELS,
   PRECISION_CATEGORY_VALUES,
   PROPERTY_RIGHT_VALUES,
+  READ_WRITE_OCCUPANCY_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
@@ -367,9 +368,11 @@ export const genHousingApi = (
       ...ENERGY_CONSUMPTION_VALUES
     ]),
     energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
-    occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
-    occupancyRegistered: faker.helpers.arrayElement(OCCUPANCY_VALUES),
-    occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
+    occupancy: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
+    occupancyRegistered: faker.helpers.arrayElement(
+      READ_WRITE_OCCUPANCY_VALUES
+    ),
+    occupancyIntended: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
     buildingVacancyRate: faker.number.float(),
     campaignIds: [],
     contactCount: genNumber(1),

@@ -2,7 +2,12 @@
   "extends": ["@tsconfig/vite-react/tsconfig.json", "../tsconfig.base.json"],
   "files": [],
   "compilerOptions": {
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "~/*": ["./src/*"]
+    }
   },
   "references": [
     {

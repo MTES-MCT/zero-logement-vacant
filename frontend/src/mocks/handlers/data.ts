@@ -119,6 +119,11 @@ const precisions: Precision[] = PRECISION_CATEGORY_VALUES.map((category) => ({
   label: faker.word.sample()
 }));
 
+const housingPrecisions = new Map<
+  HousingDTO['id'],
+  ReadonlyArray<Precision['id']>
+>();
+
 const housingEvents = new Map<
   HousingDTO['id'],
   EventUnionDTO<
@@ -135,7 +140,8 @@ const signupLinks: SignupLinkDTO[] = [];
 
 const establishments: EstablishmentDTO[] = [];
 
-const data = {
+// Export immediately to avoid Vite SSR module wrapping
+export default {
   campaigns,
   campaignDrafts,
   campaignHousings,
@@ -150,6 +156,7 @@ const data = {
   housingEvents,
   housingNotes,
   housingOwners,
+  housingPrecisions,
   notes,
   owners,
   precisions,
@@ -157,5 +164,3 @@ const data = {
   signupLinks,
   users
 };
-
-export default data;

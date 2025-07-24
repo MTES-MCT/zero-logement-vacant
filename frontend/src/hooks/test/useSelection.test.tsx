@@ -1,15 +1,14 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import { act, renderHook } from '@testing-library/react';
 import { PropsWithChildren } from 'react';
 import { Provider as StoreProvider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-import { genNumber } from '../../../test/fixtures.test';
 import configureTestStore from '../../utils/test/storeUtils';
-
 import { useSelection } from '../useSelection';
 
 describe('useSelection', () => {
-  const itemCount = Number(genNumber(3));
+  const itemCount = faker.number.int({ min: 1000, max: 9999 });
 
   function createWrapper() {
     const store = configureTestStore();
@@ -37,9 +36,12 @@ describe('useSelection', () => {
   });
 
   it('should select and unselect one item', () => {
-    const { result } = renderHook(() => useSelection(genNumber(3)), {
-      wrapper: createWrapper()
-    });
+    const { result } = renderHook(
+      () => useSelection(faker.number.int({ min: 1000, max: 9999 })),
+      {
+        wrapper: createWrapper()
+      }
+    );
 
     act(() => {
       result.current.toggleSelect('123');

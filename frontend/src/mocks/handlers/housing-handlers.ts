@@ -95,7 +95,7 @@ export const housingHandlers: RequestHandler[] = [
   ),
 
   // Add a housing
-  http.post<never, HousingPayloadDTO, HousingDTO>(
+  http.post<never, HousingPayloadDTO, HousingDTO | Error>(
     `${config.apiEndpoint}/api/housing`,
     async ({ request }) => {
       const payload = await request.json();
@@ -103,7 +103,7 @@ export const housingHandlers: RequestHandler[] = [
         (datafoncierHousing) => datafoncierHousing.idlocal === payload.localId
       );
       if (!datafoncierHousing) {
-        throw HttpResponse.json(
+        return HttpResponse.json(
           {
             name: 'HousingMissingError',
             message: `Housing ${payload.localId} missing`
@@ -138,14 +138,14 @@ export const housingHandlers: RequestHandler[] = [
   ),
 
   // Get a housing by id
-  http.get<HousingParams, never, HousingDTO | null>(
+  http.get<HousingParams, never, HousingDTO | null | Error>(
     `${config.apiEndpoint}/api/housing/:id`,
     ({ params }) => {
       const housing = data.housings.find((housing) =>
         [housing.id, housing.localId].includes(params.id)
       );
       if (!housing) {
-        throw HttpResponse.json(
+        return HttpResponse.json(
           {
             name: 'HousingMissingError',
             message: `Housing ${params.id} missing`
@@ -161,7 +161,7 @@ export const housingHandlers: RequestHandler[] = [
         (owner) => owner.id === mainHousingOwner?.id
       );
       if (!owner) {
-        throw HttpResponse.json(null, {
+        return HttpResponse.json(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
@@ -188,13 +188,13 @@ export const housingHandlers: RequestHandler[] = [
   ),
 
   // Update a housing
-  http.put<HousingParams, HousingUpdatePayloadDTO, HousingDTO>(
+  http.put<HousingParams, HousingUpdatePayloadDTO, HousingDTO | Error>(
     `${config.apiEndpoint}/api/housing/:id`,
     async ({ params, request }) => {
       const payload = await request.json();
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {
-        throw HttpResponse.json(
+        return HttpResponse.json(
           {
             name: 'HousingMissingError',
             message: `Housing ${params.id} missing`

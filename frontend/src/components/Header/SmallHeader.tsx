@@ -49,14 +49,6 @@ function SmallHeader() {
           ></span>
           {link.label}
           {link.showNewBadge && (
-            <Badge
-              small={true}
-              severity="success"
-              noIcon={true}
-              className="fr-ml-1w fr-mr-0w"
-            >
-              Nouveau
-            </Badge>
           )}
         </>
       ),

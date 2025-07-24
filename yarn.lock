@@ -12353,7 +12353,6 @@ __metadata:
     multer-s3: "npm:^3.0.1"
     nock: "npm:^13.5.5"
     nodemailer: "npm:^6.9.15"
-    nodemailer-mock: "npm:^2.0.6"
     nodemon: "npm:^3.1.7"
     p-retry: "npm:^6.2.1"
     parse-redis-url-simple: "npm:^1.0.2"
@@ -24365,17 +24364,6 @@ __metadata:
   bin:
     node-talisman: dist-node/index.bin.js
   checksum: 10c0/70977b2fb3b39bb70dea0eddee1646d542a9c8bcc3130cf212adebb908ddd33df576ff3ca2b60afaef3b46c7bc4b890ded84d4b35a1e0c9d60ef2e22dcfcbb58
-  languageName: node
-  linkType: hard
-
-"nodemailer-mock@npm:^2.0.6":
-  version: 2.0.9
-  resolution: "nodemailer-mock@npm:2.0.9"
-  dependencies:
-    debug: "npm:^4.4.0"
-  peerDependencies:
-    nodemailer: ^6.x || ^7.x
-  checksum: 10c0/b14e6d0551bc82325dd796311b8f28245bbd48b4b770ed5ec67b7532f2244cdceb8abb33c70b0e094f50b2137996037989563cb175e65be2afe96cec755461d2
   languageName: node
   linkType: hard
 

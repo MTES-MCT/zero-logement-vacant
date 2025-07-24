@@ -1,11 +1,22 @@
+import type { Jobs, Queue } from '@zerologementvacant/queue';
 import * as extended from 'jest-extended';
 import 'jest-sorted';
-
-import type { Jobs, Queue } from '@zerologementvacant/queue';
 import { vi } from 'vitest';
 
 // Extend expect with jest-extended matchers
 expect.extend(extended);
+
+// Mock mail services
+vi.mock('~/services/mailService', () => ({
+  default: {
+    sendAccountActivationEmail: vi.fn().mockResolvedValue(undefined),
+    emit: vi.fn(),
+    send: vi.fn().mockResolvedValue(undefined),
+    sendPasswordReset: vi.fn().mockResolvedValue(undefined),
+    sendAccountActivationEmailFromLovac: vi.fn().mockResolvedValue(undefined),
+    sendOwnerProspectCreatedEmail: vi.fn().mockResolvedValue(undefined)
+  }
+}));
 
 // Mock the queue module for vitest
 vi.mock('~/infra/queue', () => {

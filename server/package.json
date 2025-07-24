@@ -129,7 +129,6 @@
     "get-port": "^7.1.0",
     "jest-extended": "^4.0.2",
     "jest-sorted": "^1.0.15",
-    "nodemailer-mock": "^2.0.6",
     "nodemon": "^3.1.7",
     "rimraf": "^5.0.10",
     "superagent": "^8.1.2",

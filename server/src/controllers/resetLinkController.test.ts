@@ -6,23 +6,27 @@ import request from 'supertest';
 import { createServer } from '~/infra/server';
 import resetLinkRepository, {
   formatResetLinkApi,
-  ResetLinks,
+  ResetLinks
 } from '~/repositories/resetLinkRepository';
 import {
   genEstablishmentApi,
   genResetLinkApi,
-  genUserApi,
+  genUserApi
 } from '~/test/testFixtures';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 import mailService from '../services/mailService';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 
 describe('Reset link API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -37,20 +41,20 @@ describe('Reset link API', () => {
 
     it('should validate the email', async () => {
       // Without email
-      await request(app)
+      await request(url)
         .post(testRoute)
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
       // With empty value
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
-          email: '',
+          email: ''
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
       // With wrong format
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({ email: 'wrong-format' })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -59,8 +63,8 @@ describe('Reset link API', () => {
     it('should create a reset link', async () => {
       const email = user.email;
 
-      const { status } = await request(app).post(testRoute).send({
-        email,
+      const { status } = await request(url).post(testRoute).send({
+        email
       });
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -77,7 +81,7 @@ describe('Reset link API', () => {
       const sendEmail = vi.spyOn(mailService, 'sendPasswordReset');
       const email = 'test@test.test';
 
-      const { status } = await request(app).post(testRoute).send({ email });
+      const { status } = await request(url).post(testRoute).send({ email });
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(createLink).not.toHaveBeenCalled();
@@ -89,13 +93,13 @@ describe('Reset link API', () => {
     const testRoute = (id: string) => `/api/reset-links/${id}`;
 
     it('should validate the id', async () => {
-      const { status } = await request(app).get(testRoute('@$'));
+      const { status } = await request(url).get(testRoute('@$'));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should be missing', async () => {
-      const { status } = await request(app).get(testRoute('unknown'));
+      const { status } = await request(url).get(testRoute('unknown'));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
@@ -103,11 +107,11 @@ describe('Reset link API', () => {
     it('should be gone if expired', async () => {
       const link: ResetLinkApi = {
         ...genResetLinkApi(user.id),
-        expiresAt: subDays(new Date(), 1),
+        expiresAt: subDays(new Date(), 1)
       };
       await ResetLinks().insert(formatResetLinkApi(link));
 
-      const { status } = await request(app).get(testRoute(link.id));
+      const { status } = await request(url).get(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
     });
@@ -115,11 +119,11 @@ describe('Reset link API', () => {
     it('should be gone if already used', async () => {
       const link: ResetLinkApi = {
         ...genResetLinkApi(user.id),
-        usedAt: new Date(),
+        usedAt: new Date()
       };
       await ResetLinks().insert(formatResetLinkApi(link));
 
-      const { status } = await request(app).get(testRoute(link.id));
+      const { status } = await request(url).get(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
     });
@@ -128,7 +132,7 @@ describe('Reset link API', () => {
       const link = genResetLinkApi(user.id);
       await ResetLinks().insert(formatResetLinkApi(link));
 
-      const { status } = await request(app).get(testRoute(link.id));
+      const { status } = await request(url).get(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
     });

@@ -33,7 +33,11 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Note API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -57,13 +61,13 @@ describe('Note API', () => {
     const testRoute = (housingId: string) => `/api/housing/${housingId}/notes`;
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(housing.id));
+      const { status } = await request(url).get(testRoute(housing.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid housingId', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -77,7 +81,7 @@ describe('Note API', () => {
       await Notes().insert(notes.map(formatNoteApi));
       await HousingNotes().insert(notes.map(formatHousingNoteApi));
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 
@@ -92,13 +96,13 @@ describe('Note API', () => {
     const testRoute = (id: string) => `/api/housing/${id}/notes`;
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute(housing.id));
+      const { status } = await request(url).post(testRoute(housing.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should be forbidden for a visitor', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute(housing.id))
         .use(tokenProvider(visitor));
 
@@ -108,7 +112,7 @@ describe('Note API', () => {
     test.prop<NotePayloadDTO>({
       content: fc.string({ minLength: 1 })
     })('should validate inputs', async (payload) => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -122,7 +126,7 @@ describe('Note API', () => {
         content: 'Nouvelle note'
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute(faker.string.uuid()))
         .send(payload)
         .type('json')
@@ -136,7 +140,7 @@ describe('Note API', () => {
         content: 'This is a test note'
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -174,7 +178,7 @@ describe('Note API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).put(testRoute(note.id)).send({
+      const { status } = await request(url).put(testRoute(note.id)).send({
         content: 'Updated content'
       });
 
@@ -182,7 +186,7 @@ describe('Note API', () => {
     });
 
     it('should be forbidden for a visitor', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(note.id))
         .send({ content: 'Updated content' })
         .use(tokenProvider(visitor));
@@ -194,7 +198,7 @@ describe('Note API', () => {
       const anotherUser = genUserApi(establishment.id);
       await Users().insert(formatUserApi(anotherUser));
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(note.id))
         .send({ content: 'Updated content' })
         .use(tokenProvider(anotherUser));
@@ -203,7 +207,7 @@ describe('Note API', () => {
     });
 
     it('should be allowed for the creator of the note', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(note.id))
         .send({ content: 'Updated content' })
         .use(tokenProvider(user));
@@ -212,7 +216,7 @@ describe('Note API', () => {
     });
 
     it('should be allowed for an admin', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(note.id))
         .send({ content: 'Updated content' })
         .use(tokenProvider(admin));
@@ -225,7 +229,7 @@ describe('Note API', () => {
         content: 'Non-existing note'
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(faker.string.uuid()))
         .send(payload)
         .use(tokenProvider(user));
@@ -238,7 +242,7 @@ describe('Note API', () => {
         content: 'Nouveau contenu'
       };
 
-      const { status, body } = await request(app)
+      const { status, body } = await request(url)
         .put(testRoute(note.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -270,13 +274,13 @@ describe('Note API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).delete(testRoute(note.id));
+      const { status } = await request(url).delete(testRoute(note.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should be forbidden for a visitor', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(note.id))
         .use(tokenProvider(visitor));
 
@@ -287,7 +291,7 @@ describe('Note API', () => {
       const anotherUser = genUserApi(establishment.id);
       await Users().insert(formatUserApi(anotherUser));
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(note.id))
         .use(tokenProvider(anotherUser));
 
@@ -295,7 +299,7 @@ describe('Note API', () => {
     });
 
     it('should be allowed for the creator of the note', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(note.id))
         .use(tokenProvider(user));
 
@@ -303,7 +307,7 @@ describe('Note API', () => {
     });
 
     it('should be allowed for an admin', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(note.id))
         .use(tokenProvider(admin));
 
@@ -311,7 +315,7 @@ describe('Note API', () => {
     });
 
     it('should throw an error if the note is missing', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(faker.string.uuid()))
         .use(tokenProvider(user));
 
@@ -319,7 +323,7 @@ describe('Note API', () => {
     });
 
     it('should soft-delete the note', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(note.id))
         .use(tokenProvider(user));
 

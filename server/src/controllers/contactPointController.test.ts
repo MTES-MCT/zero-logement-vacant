@@ -26,7 +26,11 @@ import { SettingsApi } from '~/models/SettingsApi';
 import { formatSettingsApi, Settings } from '~/repositories/settingsRepository';
 
 describe('Contact point API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -56,13 +60,13 @@ describe('Contact point API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute(establishment.id));
+      const { status } = await request(url).post(testRoute(establishment.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid establishmentId', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -77,7 +81,7 @@ describe('Contact point API', () => {
       const anotherContactPoint = genContactPointApi(anotherEstablishment.id);
       await ContactPoints().insert(formatContactPointApi(anotherContactPoint));
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(establishment.id))
         .use(tokenProvider(user));
 
@@ -105,7 +109,7 @@ describe('Contact point API', () => {
     });
 
     it('should received a valid establishmentId', async () => {
-      const { status } = await request(app).get(testRoute('id'));
+      const { status } = await request(url).get(testRoute('id'));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
@@ -119,7 +123,7 @@ describe('Contact point API', () => {
       };
       await Settings().insert(formatSettingsApi(settings));
 
-      const { body, status } = await request(app).get(
+      const { body, status } = await request(url).get(
         testRoute(establishment.id)
       );
 
@@ -128,7 +132,7 @@ describe('Contact point API', () => {
     });
 
     it('should list the contact points to public when establishment settings allow it', async () => {
-      const res = await request(app)
+      const res = await request(url)
         .get(testRoute(otherEstablishment.id))
         .expect(constants.HTTP_STATUS_OK);
 
@@ -140,19 +144,19 @@ describe('Contact point API', () => {
     const testRoute = '/api/contact-points';
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status } = await request(url).post(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received valid parameters', async () => {
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({})
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           geoCodes: [genGeoCode()]
@@ -160,7 +164,7 @@ describe('Contact point API', () => {
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           title: randomstring.generate()
@@ -168,7 +172,7 @@ describe('Contact point API', () => {
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           title: randomstring.generate(),
@@ -185,7 +189,7 @@ describe('Contact point API', () => {
         establishment.id
       );
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -209,7 +213,7 @@ describe('Contact point API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).put(testRoute(uuidv4()));
+      const { status } = await request(url).put(testRoute(uuidv4()));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -222,7 +226,7 @@ describe('Contact point API', () => {
       const anotherContactPoint = genContactPointApi(anotherEstablishment.id);
       await ContactPoints().insert(formatContactPointApi(anotherContactPoint));
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(anotherContactPoint.id))
         .send(anotherContactPoint)
         .use(tokenProvider(user));
@@ -231,7 +235,7 @@ describe('Contact point API', () => {
     });
 
     it('should be missing', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(uuidv4()))
         .send(genContactPointApi(establishment.id))
         .use(tokenProvider(user));
@@ -240,12 +244,12 @@ describe('Contact point API', () => {
     });
 
     it('should received valid parameters', async () => {
-      await request(app)
+      await request(url)
         .put(testRoute('id'))
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .put(testRoute(contactPoint.id))
         .send({
           email: randomstring.generate()
@@ -260,7 +264,7 @@ describe('Contact point API', () => {
         establishment.id
       );
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(contactPoint.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -284,13 +288,13 @@ describe('Contact point API', () => {
       const testRoute = (id: string) => `/api/contact-points/${id}`;
 
       it('should be forbidden for a not authenticated user', async () => {
-        const { status } = await request(app).delete(testRoute(uuidv4()));
+        const { status } = await request(url).delete(testRoute(uuidv4()));
 
         expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
       });
 
       it('should be missing', async () => {
-        const { status } = await request(app)
+        const { status } = await request(url)
           .delete(testRoute(uuidv4()))
           .use(tokenProvider(user));
 
@@ -307,7 +311,7 @@ describe('Contact point API', () => {
           formatContactPointApi(anotherContactPoint)
         );
 
-        const { status } = await request(app)
+        const { status } = await request(url)
           .delete(testRoute(anotherContactPoint.id))
           .use(tokenProvider(user));
 
@@ -315,7 +319,7 @@ describe('Contact point API', () => {
       });
 
       it('should received a valid contact point id', async () => {
-        const { status } = await request(app)
+        const { status } = await request(url)
           .delete(testRoute('id'))
           .use(tokenProvider(user));
 
@@ -323,7 +327,7 @@ describe('Contact point API', () => {
       });
 
       it('should delete the contact point', async () => {
-        const { status } = await request(app)
+        const { status } = await request(url)
           .delete(testRoute(contactPoint.id))
           .use(tokenProvider(user));
 

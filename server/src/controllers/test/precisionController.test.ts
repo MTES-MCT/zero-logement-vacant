@@ -34,7 +34,11 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Precision API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
   const establishment = genEstablishmentApi('01337');
   const anotherEstablishment = genEstablishmentApi('42000');
   const user = genUserApi(establishment.id);
@@ -52,13 +56,13 @@ describe('Precision API', () => {
     const testRoute = '/api/precisions';
 
     it('should be forbidden for non-authenticated users', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status } = await request(url).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should return the referential of precisions', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -92,13 +96,13 @@ describe('Precision API', () => {
     });
 
     it('should be forbidden for non-authenticated users', async () => {
-      const { status } = await request(app).get(testRoute(housing.id));
+      const { status } = await request(url).get(testRoute(housing.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should check that the housing exists', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute(faker.string.uuid()))
         .use(tokenProvider(user));
 
@@ -106,7 +110,7 @@ describe('Precision API', () => {
     });
 
     it('should check that the housing is part of the authenticated user’s establishment', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute(housing.id))
         .use(tokenProvider(anotherUser));
 
@@ -114,7 +118,7 @@ describe('Precision API', () => {
     });
 
     it('should return housing precisions', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 
@@ -146,7 +150,7 @@ describe('Precision API', () => {
     });
 
     it('should be forbidden for non-authenticated users', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json');
@@ -155,7 +159,7 @@ describe('Precision API', () => {
     });
 
     it('should check that the housing exists', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(faker.string.uuid()))
         .send(payload)
         .type('json')
@@ -165,7 +169,7 @@ describe('Precision API', () => {
     });
 
     it('should check that the housing is part of the authenticated user’s establishment', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -175,7 +179,7 @@ describe('Precision API', () => {
     });
 
     it('should write to the old fast_housing.deprecated_precisions', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -196,7 +200,7 @@ describe('Precision API', () => {
     });
 
     it('should link the housing to the precisions', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -218,7 +222,7 @@ describe('Precision API', () => {
     });
 
     it('should fully replace the housing precisions', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -240,7 +244,7 @@ describe('Precision API', () => {
     });
 
     it('should empty the housing precisions', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send([])
         .type('json')
@@ -255,7 +259,7 @@ describe('Precision API', () => {
     });
 
     it('should create an event when a precision is attached', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -273,7 +277,7 @@ describe('Precision API', () => {
     });
 
     it('should create an event when a precision is detached', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')

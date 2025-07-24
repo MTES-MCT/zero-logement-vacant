@@ -30,7 +30,11 @@ import {
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
-const { app } = createServer();
+let url: string;
+
+beforeAll(async () => {
+  url = await createServer().testing();
+});
 
 describe('User API', () => {
   const establishment = genEstablishmentApi();
@@ -51,7 +55,7 @@ describe('User API', () => {
     });
 
     it('should received a valid draft user', async () => {
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...prospect,
@@ -59,7 +63,7 @@ describe('User API', () => {
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...prospect,
@@ -67,7 +71,7 @@ describe('User API', () => {
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...prospect,
@@ -75,7 +79,7 @@ describe('User API', () => {
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...prospect,
@@ -88,7 +92,7 @@ describe('User API', () => {
       const emails = TEST_ACCOUNTS.map((account) => account.email);
       const responses = await Promise.all(
         emails.map((email) =>
-          request(app)
+          request(url)
             .post(testRoute)
             .send({
               ...prospect,
@@ -110,7 +114,7 @@ describe('User API', () => {
     });
 
     it('should fail if the prospect is missing', async () => {
-      const { status } = await request(app).post(testRoute).send({
+      const { status } = await request(url).post(testRoute).send({
         email: 'missing@non.existing',
         password: '1234QWERasdf',
         establishmentId: prospect.establishment?.id
@@ -120,7 +124,7 @@ describe('User API', () => {
     });
 
     it('should be not found if the user establishment does not exist', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send({
           ...prospect,
@@ -132,7 +136,7 @@ describe('User API', () => {
     });
 
     it('should create a new user with Usual role', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send({
           ...prospect,
@@ -168,7 +172,7 @@ describe('User API', () => {
       };
       await Establishments().insert(formatEstablishmentApi(establishment));
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send({
           ...prospect,
@@ -197,13 +201,13 @@ describe('User API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(uuidv4()));
+      const { status } = await request(url).get(testRoute(uuidv4()));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid userId', async () => {
-      await request(app)
+      await request(url)
         .get(testRoute(randomstring.generate()))
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
@@ -220,7 +224,7 @@ describe('User API', () => {
       };
       await Users().insert(formatUserApi(admin));
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(user.id))
         .use(tokenProvider(admin));
 

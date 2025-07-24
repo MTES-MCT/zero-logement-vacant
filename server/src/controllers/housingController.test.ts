@@ -76,7 +76,11 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Housing API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi('12345');
   const user = genUserApi(establishment.id);
@@ -118,7 +122,7 @@ describe('Housing API', () => {
     });
 
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute(anotherHousing.id))
         .use(tokenProvider(user));
 
@@ -126,7 +130,7 @@ describe('Housing API', () => {
     });
 
     it('should have the given keys', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 
@@ -165,13 +169,13 @@ describe('Housing API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status } = await request(url).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -182,7 +186,7 @@ describe('Housing API', () => {
     });
 
     it('should return 200 OK', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -239,7 +243,7 @@ describe('Housing API', () => {
       ])(
         'should use the authenticated user’s establishment to filter results',
         async ({ establishment, user }) => {
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .use(tokenProvider(user));
 
@@ -252,7 +256,7 @@ describe('Housing API', () => {
       );
 
       it('should combine the authenticated user’s establishment with the intercommunalities filter', async () => {
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .get(testRoute)
           .query({
             intercommunalities: [intercommunality.id]
@@ -272,7 +276,7 @@ describe('Housing API', () => {
       });
 
       it('should combine the authenticated user’s establishment with the localities filter', async () => {
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .get(testRoute)
           .query({
             localities: [commune.geoCodes[0]]
@@ -287,7 +291,7 @@ describe('Housing API', () => {
       });
 
       it('should remove the intercommunalities filter if the user’s establishment is not at the department level', async () => {
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .get(testRoute)
           .query({
             intercommunalities: [intercommunality.id]
@@ -350,7 +354,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationYears: '2022'
@@ -379,7 +383,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationYears: '2010to2014'
@@ -409,7 +413,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationTypes: 'donation'
@@ -442,7 +446,7 @@ describe('Housing API', () => {
             'sale'
           ];
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationTypes: types.join(',')
@@ -466,7 +470,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationTypes: 'donation',
@@ -493,7 +497,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationTypes: 'null',
@@ -527,7 +531,7 @@ describe('Housing API', () => {
       });
       await HousingOwners().insert(housingOwners);
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query({
           paginate: true,
@@ -555,7 +559,7 @@ describe('Housing API', () => {
       );
       await HousingOwners().insert(housingOwners);
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query('sort=-occupancy')
         .set('Content-Type', 'application/json')
@@ -575,7 +579,7 @@ describe('Housing API', () => {
     const testRoute = '/api/housing';
 
     it('should be forbidden a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status } = await request(url).post(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -587,7 +591,7 @@ describe('Housing API', () => {
         localId: housing.localId
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -600,7 +604,7 @@ describe('Housing API', () => {
         localId: randomstring.generate(12)
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -619,7 +623,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -652,7 +656,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .type('json')
@@ -695,7 +699,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -719,7 +723,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -769,7 +773,7 @@ describe('Housing API', () => {
     }
 
     it('should throw if the housing was not found', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(faker.string.uuid()))
         .send(defaultPayload)
         .type('json')
@@ -781,7 +785,7 @@ describe('Housing API', () => {
     it('should throw if the user is a visitor', async () => {
       const housing = await createHousing();
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(defaultPayload)
         .type('json')
@@ -799,7 +803,7 @@ describe('Housing API', () => {
       });
       const payload = defaultPayload;
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -829,7 +833,7 @@ describe('Housing API', () => {
         occupancyIntended: Occupancy.RENT
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -860,7 +864,7 @@ describe('Housing API', () => {
         occupancyIntended: housing.occupancyIntended
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -888,7 +892,7 @@ describe('Housing API', () => {
         occupancyIntended: housing.occupancyIntended
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -933,7 +937,7 @@ describe('Housing API', () => {
         occupancyIntended: Occupancy.DEMOLISHED_OR_DIVIDED
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -978,7 +982,7 @@ describe('Housing API', () => {
         occupancyIntended: Occupancy.RENT
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -1067,14 +1071,14 @@ describe('Housing API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status } = await request(url).post(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid request', async () => {
       const badRequestTest = async (payload?: Record<string, unknown>) => {
-        const { status } = await request(app)
+        const { status } = await request(url)
           .post(testRoute)
           .send(payload)
           .use(tokenProvider(user));
@@ -1159,7 +1163,7 @@ describe('Housing API', () => {
     });
 
     it('should be forbidden to set status "NeverContacted" for a list of housing which one has already been contacted', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send({
           ...payload,
@@ -1178,7 +1182,7 @@ describe('Housing API', () => {
     });
 
     it('should update the housing list and return the updated result', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -1206,7 +1210,7 @@ describe('Housing API', () => {
     });
 
     it('should create and event related to the status change only when there are some changes', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -1237,7 +1241,7 @@ describe('Housing API', () => {
     });
 
     it('should create an event related to the occupancy change', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -1274,7 +1278,7 @@ describe('Housing API', () => {
     });
 
     it('should create a note', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));

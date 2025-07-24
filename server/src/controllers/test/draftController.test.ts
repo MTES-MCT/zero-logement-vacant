@@ -46,7 +46,11 @@ import {
 } from '../../repositories/senderRepository';
 
 describe('Draft API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -77,13 +81,13 @@ describe('Draft API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status } = await request(url).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should list drafts of the authenticated user’s establishment', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -107,7 +111,7 @@ describe('Draft API', () => {
         draft_id: firstDraft.id
       });
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query(`campaign=${campaign.id}`)
         .use(tokenProvider(user));
@@ -199,7 +203,7 @@ describe('Draft API', () => {
         })
       )
     })('should validate inputs', async (payload) => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send({ ...payload, campaign: campaign.id })
         .use(tokenProvider(user));
@@ -220,7 +224,7 @@ describe('Draft API', () => {
         writtenFrom: draft.writtenFrom
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -239,7 +243,7 @@ describe('Draft API', () => {
         writtenFrom: draft.writtenFrom
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -290,7 +294,7 @@ describe('Draft API', () => {
         writtenFrom: draft.writtenFrom
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -328,13 +332,13 @@ describe('Draft API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).put(testRoute(draft.id));
+      const { status } = await request(url).put(testRoute(draft.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should fail if the draft does not exist', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(faker.string.uuid()))
         .send(payload)
         .use(tokenProvider(user));
@@ -343,7 +347,7 @@ describe('Draft API', () => {
     });
 
     it('should fail if the draft belongs to another establishment', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(draft.id))
         .send(payload)
         .use(tokenProvider(anotherUser));
@@ -353,7 +357,7 @@ describe('Draft API', () => {
 
     it('should fail to validate input', async () => {
       async function fail(id: string, payload: object): Promise<void> {
-        const { status } = await request(app)
+        const { status } = await request(url)
           .put(testRoute(id))
           .send(payload)
           .use(tokenProvider(user));
@@ -370,7 +374,7 @@ describe('Draft API', () => {
     });
 
     it('should update a draft', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(draft.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -425,7 +429,7 @@ describe('Draft API', () => {
         }
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(draft.id))
         .send(payload)
         .use(tokenProvider(user));

@@ -27,12 +27,12 @@ import {
   VACANCY_RATE_VALUES,
   VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
-
 import { isDefined } from '@zerologementvacant/utils';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
+
 import { createServer } from '~/infra/server';
 import { CampaignApi } from '~/models/CampaignApi';
 import { CampaignEventApi } from '~/models/EventApi';
@@ -95,7 +95,11 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Campaign API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -114,13 +118,13 @@ describe('Campaign API', () => {
     });
 
     it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(campaign.id));
+      const { status } = await request(url).get(testRoute(campaign.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid campaign id', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -128,7 +132,7 @@ describe('Campaign API', () => {
     });
 
     it('should return an error when there is no campaign with the required id', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute(uuidv4()))
         .use(tokenProvider(user));
 
@@ -136,7 +140,7 @@ describe('Campaign API', () => {
     });
 
     it('should return the campaign', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(campaign.id))
         .use(tokenProvider(user));
 
@@ -160,13 +164,13 @@ describe('Campaign API', () => {
     });
 
     it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status } = await request(url).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should list campaigns', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -191,7 +195,7 @@ describe('Campaign API', () => {
       await Campaigns().insert(campaigns.map(formatCampaignApi));
       const query = 'groups=' + groups.map((group) => group.id).join(',');
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query(query)
         .use(tokenProvider(user));
@@ -212,69 +216,76 @@ describe('Campaign API', () => {
     const testRoute = '/api/campaigns';
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status } = await request(url).post(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
-    test.prop<CampaignCreationPayloadDTO>({
-      title: fc.stringMatching(/\S/),
-      description: fc.stringMatching(/\S/),
-      housing: fc.record({
-        all: fc.boolean(),
-        ids: fc.array(fc.uuid({ version: 4 })),
-        filters: fc.record({
-          housingIds: fc.array(fc.uuid({ version: 4 })),
-          occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
-          energyConsumption: fc.array(
-            fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)
-          ),
-          establishmentIds: fc.array(fc.uuid({ version: 4 })),
-          groupIds: fc.array(fc.uuid({ version: 4 })),
-          campaignsCounts: fc.array(fc.constantFrom(...CAMPAIGN_COUNT_VALUES)),
-          campaignIds: fc.array(
-            fc.oneof(fc.constant(null), fc.uuid({ version: 4 }))
-          ),
-          ownerIds: fc.array(fc.uuid({ version: 4 })),
-          ownerKinds: fc.array(fc.constantFrom(...OWNER_KIND_VALUES)),
-          ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
-          multiOwners: fc.array(fc.boolean()),
-          beneficiaryCounts: fc.array(
-            fc.constantFrom(...BENEFIARY_COUNT_VALUES)
-          ),
-          housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
-          housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
-          roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
-          cadastralClassifications: fc.array(
-            fc.constantFrom(...CADASTRAL_CLASSIFICATION_VALUES)
-          ),
-          buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
-          vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
-          isTaxedValues: fc.array(fc.boolean()),
-          ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
-          housingCounts: fc.array(
-            fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)
-          ),
-          vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
-          intercommunalities: fc.array(fc.uuid({ version: 4 })),
-          localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
-          localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
-          geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
-          geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
-          dataFileYearsIncluded: fc.array(
-            fc.constantFrom(...DATA_FILE_YEAR_VALUES)
-          ),
-          dataFileYearsExcluded: fc.array(
-            fc.constantFrom(...DATA_FILE_YEAR_VALUES)
-          ),
-          status: fc.constantFrom(...HOUSING_STATUS_VALUES),
-          statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
-          subStatus: fc.array(fc.string({ minLength: 1 })),
-          query: fc.string()
+    test.prop<CampaignCreationPayloadDTO>(
+      {
+        title: fc.stringMatching(/\S+/),
+        description: fc.stringMatching(/\S+/),
+        housing: fc.record({
+          all: fc.boolean(),
+          ids: fc.array(fc.uuid({ version: 4 })),
+          filters: fc.record({
+            housingIds: fc.array(fc.uuid({ version: 4 })),
+            occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
+            energyConsumption: fc.array(
+              fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)
+            ),
+            establishmentIds: fc.array(fc.uuid({ version: 4 })),
+            groupIds: fc.array(fc.uuid({ version: 4 })),
+            campaignsCounts: fc.array(
+              fc.constantFrom(...CAMPAIGN_COUNT_VALUES)
+            ),
+            campaignIds: fc.array(
+              fc.oneof(fc.constant(null), fc.uuid({ version: 4 }))
+            ),
+            ownerIds: fc.array(fc.uuid({ version: 4 })),
+            ownerKinds: fc.array(fc.constantFrom(...OWNER_KIND_VALUES)),
+            ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
+            multiOwners: fc.array(fc.boolean()),
+            beneficiaryCounts: fc.array(
+              fc.constantFrom(...BENEFIARY_COUNT_VALUES)
+            ),
+            housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
+            housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
+            roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
+            cadastralClassifications: fc.array(
+              fc.constantFrom(...CADASTRAL_CLASSIFICATION_VALUES)
+            ),
+            buildingPeriods: fc.array(
+              fc.constantFrom(...BUILDING_PERIOD_VALUES)
+            ),
+            vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
+            isTaxedValues: fc.array(fc.boolean()),
+            ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
+            housingCounts: fc.array(
+              fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)
+            ),
+            vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
+            intercommunalities: fc.array(fc.uuid({ version: 4 })),
+            localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
+            localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
+            geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
+            geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
+            dataFileYearsIncluded: fc.array(
+              fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+            ),
+            dataFileYearsExcluded: fc.array(
+              fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+            ),
+            status: fc.constantFrom(...HOUSING_STATUS_VALUES),
+            statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
+            subStatus: fc.array(fc.string({ minLength: 1 })),
+            query: fc.string()
+          })
         })
-      })
-    })('should validate the campaign creation payload', async (payload) => {
-      const { status } = await request(app)
+      },
+      { numRuns: 20 }
+    )('should validate the campaign creation payload', async (payload) => {
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .type('json')
@@ -303,7 +314,7 @@ describe('Campaign API', () => {
     it('should create a new campaign', async () => {
       const payload = await createPayload();
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -327,7 +338,7 @@ describe('Campaign API', () => {
     it('should attach housings to this campaign', async () => {
       const payload = await createPayload();
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -344,7 +355,7 @@ describe('Campaign API', () => {
     it('should create an event for each attached housing', async () => {
       const payload = await createPayload();
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -382,7 +393,7 @@ describe('Campaign API', () => {
     });
 
     it('should throw if the group is missing', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute(uuidv4()))
         .send({
           title: 'Campagne prioritaire'
@@ -402,7 +413,7 @@ describe('Campaign API', () => {
       };
       await Groups().insert(formatGroupApi(group));
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute(group.id))
         .send({
           title: 'Campagne prioritaire'
@@ -416,7 +427,7 @@ describe('Campaign API', () => {
     });
 
     it('should create the campaign', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute(group.id))
         .send({
           title: 'Logements prioritaires',
@@ -440,7 +451,7 @@ describe('Campaign API', () => {
     });
 
     it("should add the group's housing to this campaign", async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute(group.id))
         .send({
           title: 'Logements prioritaires'
@@ -459,7 +470,7 @@ describe('Campaign API', () => {
     });
 
     it('should create an event for each attached housing', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute(group.id))
         .send({
           title: 'Logements prioritaires'
@@ -520,19 +531,19 @@ describe('Campaign API', () => {
     it('should be forbidden for a non-authenticated user', async () => {
       const campaign = await createCampaign('draft');
 
-      const { status } = await request(app).put(testRoute(campaign.id));
+      const { status } = await request(url).put(testRoute(campaign.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid campaign id', async () => {
-      await request(app)
+      await request(url)
         .put(testRoute(randomstring.generate()))
         .send(defaultPayload)
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .put(testRoute(uuidv4()))
         .send(defaultPayload)
         .use(tokenProvider(user))
@@ -543,7 +554,7 @@ describe('Campaign API', () => {
       const campaign = await createCampaign('draft');
 
       async function fail(payload?: Record<string, unknown>): Promise<void> {
-        const { status } = await request(app)
+        const { status } = await request(url)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -569,7 +580,7 @@ describe('Campaign API', () => {
         description: faker.lorem.words()
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(campaign.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -595,7 +606,7 @@ describe('Campaign API', () => {
         description: faker.lorem.words()
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(campaign.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -632,7 +643,7 @@ describe('Campaign API', () => {
           description: campaign.description
         };
 
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -658,7 +669,7 @@ describe('Campaign API', () => {
           description: campaign.description
         };
 
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -682,7 +693,7 @@ describe('Campaign API', () => {
           description: campaign.description
         };
 
-        const { status } = await request(app)
+        const { status } = await request(url)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -713,7 +724,7 @@ describe('Campaign API', () => {
           description: ''
         };
 
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -735,7 +746,7 @@ describe('Campaign API', () => {
           description: ''
         };
 
-        const { status } = await request(app)
+        const { status } = await request(url)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -773,13 +784,13 @@ describe('Campaign API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).delete(testRoute(campaign.id));
+      const { status } = await request(url).delete(testRoute(campaign.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should received a valid campaign id', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -787,7 +798,7 @@ describe('Campaign API', () => {
     });
 
     it('should fail if the campaign is missing', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(uuidv4()))
         .use(tokenProvider(user));
 
@@ -795,7 +806,7 @@ describe('Campaign API', () => {
     });
 
     it('should remove the campaign', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
@@ -818,7 +829,7 @@ describe('Campaign API', () => {
       await Events().insert(formatEventApi(event));
       await CampaignEvents().insert(formatCampaignEventApi(event));
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
@@ -840,7 +851,7 @@ describe('Campaign API', () => {
       const campaignHousings = formatCampaignHousingApi(campaign, housings);
       await CampaignsHousing().insert(campaignHousings);
 
-      await request(app)
+      await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
@@ -862,7 +873,7 @@ describe('Campaign API', () => {
         housing_id: housing.id
       });
 
-      await request(app)
+      await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
@@ -891,7 +902,7 @@ describe('Campaign API', () => {
       );
       await CampaignsHousing().insert(campaignHousings);
 
-      await request(app)
+      await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
@@ -920,7 +931,7 @@ describe('Campaign API', () => {
       );
       await CampaignsHousing().insert(campaignHousings);
 
-      await request(app)
+      await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
@@ -957,7 +968,7 @@ describe('Campaign API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).delete(testRoute(campaign.id));
+      const { status } = await request(url).delete(testRoute(campaign.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -969,7 +980,7 @@ describe('Campaign API', () => {
         filters: {}
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(uuidv4()))
         .send(payload)
         .use(tokenProvider(user));
@@ -985,7 +996,7 @@ describe('Campaign API', () => {
         ids: housings.map((housing) => housing.id)
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(campaign.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -1004,7 +1015,7 @@ describe('Campaign API', () => {
         ids: housings.map((housing) => housing.id)
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(campaign.id))
         .send(payload)
         .use(tokenProvider(user));

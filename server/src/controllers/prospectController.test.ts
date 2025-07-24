@@ -30,7 +30,11 @@ import {
 } from '~/repositories/prospectRepository';
 
 describe('Prospect API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const anotherEstablishment = genEstablishmentApi();
@@ -46,7 +50,7 @@ describe('Prospect API', () => {
 
     it('should receive a valid link', async () => {
       // No link
-      await request(app)
+      await request(url)
         .put(testRoute('1'))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
@@ -59,7 +63,7 @@ describe('Prospect API', () => {
       const link = genSignupLinkApi(user.email);
       await SignupLinks().insert(formatSignupLinkApi(link));
 
-      const { status } = await request(app).put(testRoute(link.id));
+      const { status } = await request(url).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
@@ -68,7 +72,7 @@ describe('Prospect API', () => {
       const email = genEmail();
       const link = genSignupLinkApi(email);
 
-      const { status } = await request(app).put(testRoute(link.id));
+      const { status } = await request(url).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
@@ -81,7 +85,7 @@ describe('Prospect API', () => {
       };
       await signupLinkRepository.insert(link);
 
-      const { status } = await request(app).put(testRoute(link.id));
+      const { status } = await request(url).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_GONE);
     });
@@ -111,7 +115,7 @@ describe('Prospect API', () => {
         }
       ]);
 
-      const { body, status } = await request(app).put(testRoute(link.id));
+      const { body, status } = await request(url).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject<ProspectApi>({
@@ -136,7 +140,7 @@ describe('Prospect API', () => {
         }
       ]);
 
-      const { body, status } = await request(app).put(testRoute(link.id));
+      const { body, status } = await request(url).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject<ProspectApi>({
@@ -163,7 +167,7 @@ describe('Prospect API', () => {
         }
       ]);
 
-      const { body, status } = await request(app).put(testRoute(link.id));
+      const { body, status } = await request(url).put(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject<ProspectApi>({
@@ -180,17 +184,17 @@ describe('Prospect API', () => {
     const testRoute = (email: string) => `/api/prospects/${email}`;
 
     it('should receive a valid email', async () => {
-      await request(app)
+      await request(url)
         .get(testRoute('a'))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
       // Bad email
-      await request(app)
+      await request(url)
         .get(testRoute(randomstring.generate()))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should return not found if the prospect is missing', async () => {
-      const { status } = await request(app).get(testRoute('test@test.test'));
+      const { status } = await request(url).get(testRoute('test@test.test'));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
@@ -201,7 +205,7 @@ describe('Prospect API', () => {
       const prospect = genProspectApi(establishment);
       await Prospects().insert(formatProspectApi(prospect));
 
-      const { body, status } = await request(app).get(
+      const { body, status } = await request(url).get(
         testRoute(prospect.email)
       );
 

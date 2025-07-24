@@ -20,7 +20,11 @@ import { setImmediate } from 'async';
 const TIMEOUT = 10_000;
 
 describe('Server-sent event API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
   const testRoute = '/api/sse';
@@ -42,7 +46,7 @@ describe('Server-sent event API', () => {
           });
         });
 
-        request(app)
+        request(url)
           .get(testRoute)
           .use(tokenProvider(user))
           .buffer(false)

@@ -21,10 +21,13 @@ import mockServices from '~/mocks';
 import unprotectedRouter from '~/routers/unprotected';
 import protectedRouter from '~/routers/protected';
 import errorHandler from '~/middlewares/error-handler';
+import getPort from 'get-port';
 
 export interface Server {
   app: http.Server;
-  start(): Promise<void>;
+  start(port?: number): Promise<void>;
+  testing(): Promise<string>;
+  stop(): Promise<void>;
 }
 
 export function createServer(): Server {
@@ -163,22 +166,47 @@ export function createServer(): Server {
   const server = http.createServer(app);
   gracefulShutdown(server);
 
-  async function start(): Promise<void> {
+  async function start(port = config.app.port): Promise<void> {
     const listen = util.promisify((port: number, cb: () => void) => {
       return server.listen(port, cb);
     });
 
     try {
-      await listen(config.app.port);
-      logger.info(`Server listening on ${config.app.port}`);
+      await listen(port);
+      logger.info(`Server listening on ${port}`);
     } catch (error) {
       logger.error('Unable to start the server', error);
       throw error;
     }
   }
 
+  /**
+   * Like {@link start} but starts on a random port and returns the URL.
+   * Useful for testing purposes.
+   */
+  async function testing(): Promise<string> {
+    const port = await getPort();
+    await start(port);
+    return `http://localhost:${port}`;
+  }
+
+  async function stop(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      server.close((error) => {
+        if (error) {
+          logger.error('Error while stopping the server', error);
+          return reject(error);
+        }
+        logger.info('Server stopped');
+        resolve();
+      });
+    });
+  }
+
   return {
     app: server,
-    start
+    start,
+    stop,
+    testing
   };
 }

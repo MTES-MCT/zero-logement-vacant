@@ -60,7 +60,11 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Event API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -101,13 +105,13 @@ describe('Event API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(owner.id));
+      const { status } = await request(url).get(testRoute(owner.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should validate inputs', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -115,7 +119,7 @@ describe('Event API', () => {
     });
 
     it('should list owner events', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(owner.id))
         .use(tokenProvider(user));
 
@@ -347,13 +351,13 @@ describe('Event API', () => {
     it('should be forbidden for a non-authenticated user', async () => {
       const { housing } = await setUp();
 
-      const { status } = await request(app).get(testRoute(housing.id));
+      const { status } = await request(url).get(testRoute(housing.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should validate inputs', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute('id'))
         .use(tokenProvider(user));
 
@@ -363,7 +367,7 @@ describe('Event API', () => {
     it('should list housing events', async () => {
       const { housing, events } = await setUp();
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 
@@ -378,7 +382,7 @@ describe('Event API', () => {
     it('should be sorted by creation date in descending order', async () => {
       const { housing } = await setUp();
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 

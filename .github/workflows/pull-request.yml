@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        node-version: [22.x]
+        node-version: [24.x]
     services:
       postgres:
         image: postgis/postgis
@@ -40,7 +40,7 @@ jobs:
         ports:
           - 9090:9090
         env:
-          initialBuckets: "zerologementvacant"
+          initialBuckets: 'zerologementvacant'
 
     steps:
       - name: Checkout
@@ -76,7 +76,6 @@ jobs:
         run: yarn nx affected -t test --base ${{ github.event.pull_request.base.sha }}
         env:
           LOG_LEVEL: fatal
-          NODE_OPTIONS: --import tsx/esm
 
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band

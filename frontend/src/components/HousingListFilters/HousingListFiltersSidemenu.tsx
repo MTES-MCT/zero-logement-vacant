@@ -263,7 +263,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={{ xs: 12 }}>
             <LastMutationTypeSelect
               multiple
               value={filters.lastMutationTypes ?? []}
@@ -273,7 +273,7 @@ function HousingListFiltersSidemenu(props: Props) {
               }}
             />
           </Grid>
-          <Grid component="article" mb={2} xs={12}>
+          <Grid component="article" mb={2} size={{ xs: 12 }}>
             <LastMutationYearSelect
               multiple
               value={filters.lastMutationYears ?? []}

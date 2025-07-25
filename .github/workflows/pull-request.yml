@@ -76,6 +76,7 @@ jobs:
         run: yarn nx affected -t test --base ${{ github.event.pull_request.base.sha }}
         env:
           LOG_LEVEL: fatal
+          NODE_OPTIONS: --import tsx/esm
 
       - name: Test database migrations
         run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band

@@ -19,8 +19,8 @@ import { vi } from 'vitest';
 //   TextEncoder: { value: TextEncoder }
 // });
 //
-const { Blob, File } = require('node:buffer');
-const { fetch, Headers, FormData, Request, Response } = require('undici');
+import { Blob, File } from 'node:buffer';
+import { fetch, Headers, FormData, Request, Response } from 'undici';
 
 Object.defineProperties(globalThis, {
   fetch: { value: fetch, writable: true },

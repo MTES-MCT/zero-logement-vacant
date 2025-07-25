@@ -15,6 +15,7 @@ global.EventSource = EventSourceMock as unknown as EventSource;
 
 vi.mock('./src/components/Aside/Aside.tsx');
 vi.mock('./src/components/RichEditor/RichEditor.tsx');
+vi.mock('./src/components/Map/Map.tsx');
 
 beforeAll(() => {
   mockAPI.listen({

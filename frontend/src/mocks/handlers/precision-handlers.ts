@@ -16,7 +16,7 @@ export const precisionHandlers: RequestHandler[] = [
 
   // Fetch housing precisions
   http.get<{ id: string }, never, Precision[]>(
-    `${config.apiEndpoint}/api/housings/:id/precisions`,
+    `${config.apiEndpoint}/api/housing/:id/precisions`,
     async ({ params }) => {
       const housingPrecisions = data.housingPrecisions.get(params.id) ?? [];
       const precisions = housingPrecisions

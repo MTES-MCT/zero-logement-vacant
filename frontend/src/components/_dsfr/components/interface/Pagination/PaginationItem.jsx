@@ -4,11 +4,11 @@ import dataAttributes from '../../../utils/data-attributes';
 
 const PaginationItem = ({
   page,
-  anchorAs,
-  isActive,
-  buildURL,
-  onClick,
-  aria,
+  anchorAs = 'a',
+  isActive = false,
+  buildURL = undefined,
+  onClick = undefined,
+  aria = null,
   ...remainingProps
 }) => {
   const HTMLTag = `${anchorAs}`;
@@ -62,11 +62,4 @@ PaginationItem.propTypes = {
   anchorAs: PropTypes.oneOf(['a', PropTypes.elementType]),
 };
 
-PaginationItem.defaultProps = {
-  anchorAs: 'a',
-  isActive: false,
-  buildURL: undefined,
-  onClick: undefined,
-  aria: null,
-};
 export default PaginationItem;

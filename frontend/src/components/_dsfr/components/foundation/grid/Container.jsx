@@ -3,7 +3,15 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { getSpace } from '../../../utils/getters';
 
-const Container = ({ as, fluid, children, className, role, spacing }) => {
+
+const Container = ({
+  as = 'div',
+  fluid = false,
+  children = null,
+  className = '',
+  role = '',
+  spacing = '',
+}) => {
   const HtmlTag = `${as}`;
   const { margin, padding } = getSpace(spacing);
   const _className = classNames(
@@ -20,15 +28,6 @@ const Container = ({ as, fluid, children, className, role, spacing }) => {
       {children}
     </HtmlTag>
   );
-};
-
-Container.defaultProps = {
-  as: 'div',
-  fluid: false,
-  className: '',
-  role: '',
-  children: null,
-  spacing: '',
 };
 
 Container.propTypes = {

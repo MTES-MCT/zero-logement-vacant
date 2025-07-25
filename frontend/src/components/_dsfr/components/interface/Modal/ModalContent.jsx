@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import dataAttributes from '../../../utils/data-attributes';
 import typeValidation from '../../../utils/type-validation';
 
-const ModalContent = ({ children, className, ...remainingProps }) => (
+const ModalContent = ({ __TYPE = 'ModalContent', className = '', children, ...remainingProps }) => (
   <div
     className={classNames(className)}
     {...dataAttributes.getAll(remainingProps)}
@@ -24,6 +24,5 @@ ModalContent.propTypes = {
   ]).isRequired,
   className: PropTypes.string,
 };
-ModalContent.defaultProps = { __TYPE: 'ModalContent', className: '' };
 
 export default ModalContent;

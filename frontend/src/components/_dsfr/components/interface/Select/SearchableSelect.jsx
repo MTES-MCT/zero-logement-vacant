@@ -12,16 +12,23 @@ import dataAttributes from '../../../utils/data-attributes';
  * @visibleName SearchableSelect
  */
 const SearchableSelect = ({
-  id,
-  messageType,
+  className = '',
+  disabled = false,
+  hint = '',
+  id = null,
+  label = '',
+  message = '',
+  messageType = undefined,
+  name = null,
+  onChange = () => {},
+  onTextChange = () => {},
+  onBlur = () => {},
+  onFocus = () => {},
+  onKeyDown = () => {},
   options,
-  selected,
-  filter,
-  onChange,
-  onTextChange,
-  onBlur,
-  onFocus,
-  onKeyDown,
+  selected = '',
+  required = false,
+  filter = (label, option) => option.label.toLowerCase().includes(label.toLowerCase()),
   ...remainingProps
 }) => {
   const selectId = useRef(id || uuidv4());
@@ -214,25 +221,6 @@ const SearchableSelect = ({
   );
 };
 
-SearchableSelect.defaultProps = {
-  className: '',
-  disabled: false,
-  hint: '',
-  id: null,
-  label: '',
-  message: '',
-  messageType: undefined,
-  name: null,
-  onChange: () => {},
-  onTextChange: () => {},
-  onBlur: () => {},
-  onFocus: () => {},
-  onKeyDown: () => {},
-  selected: '',
-  required: false,
-  filter: (label, option) =>
-    option.label.toLowerCase().includes(label.toLowerCase()),
-};
 
 SearchableSelect.propTypes = {
   className: PropTypes.string,

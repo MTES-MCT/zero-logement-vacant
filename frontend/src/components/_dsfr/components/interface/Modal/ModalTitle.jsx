@@ -5,7 +5,7 @@ import dataAttributes from '../../../utils/data-attributes';
 import typeValidation from '../../../utils/type-validation';
 import { Icon } from '../../foundation';
 
-const ModalTitle = ({ children, className, icon, ...remainingProps }) => {
+const ModalTitle = ({ __TYPE = 'ModalTitle', icon = '', className = '', children, ...remainingProps }) => {
   const _title = (
     <h1
       className={classNames('fr-modal__title', className, {
@@ -26,11 +26,6 @@ const ModalTitle = ({ children, className, icon, ...remainingProps }) => {
   );
 };
 
-ModalTitle.defaultProps = {
-  __TYPE: 'ModalTitle',
-  icon: '',
-  className: '',
-};
 
 ModalTitle.propTypes = {
   // eslint-disable-next-line react/no-unused-prop-types

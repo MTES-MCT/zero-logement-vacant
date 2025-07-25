@@ -11,12 +11,12 @@ import dataAttributes from '../../../utils/data-attributes';
  * @visibleName Select
  */
 const Select = ({
-  disabled,
-  id,
-  messageType,
+  disabled = false,
+  id = null,
+  messageType = undefined,
   onChange,
   options,
-  selected,
+  selected = '',
   ...remainingProps
 }) => {
   const _className = classNames('fr-select', {
@@ -62,12 +62,6 @@ const Select = ({
   );
 };
 
-Select.defaultProps = {
-  disabled: false,
-  id: null,
-  messageType: undefined,
-  selected: '',
-};
 
 Select.propTypes = {
   ...SelectWrapper.PropTypes,

@@ -10,11 +10,21 @@ import PaginationItem from './PaginationItem';
 const Pagination = ({
   pageCount,
   currentPage,
-  anchorAs,
-  buildURL,
-  onClick,
-  buttonLabels,
-  surrendingPages,
+  anchorAs = 'a',
+  buildURL = undefined,
+  onClick = undefined,
+  buttonLabels = {
+    navigationAria: 'Pagination navigation',
+    currentAria: 'page',
+    pageAria: (page) => `Page ${page}`,
+    prevLabel: 'Précédente',
+    nextLabel: 'Suivante',
+    prevAria: 'Page précédente',
+    nextAria: 'Page suivante',
+    firstAria: 'Première page',
+    lastAria: 'Dernière Page',
+  },
+  surrendingPages = 2,
   ...remainingProps
 }) => {
   const surrendingLeft = getSurrendingLeft(currentPage, surrendingPages);
@@ -194,21 +204,4 @@ Pagination.propTypes = {
   surrendingPages: PropTypes.number,
 };
 
-Pagination.defaultProps = {
-  anchorAs: 'a',
-  surrendingPages: 2,
-  buildURL: undefined,
-  onClick: undefined,
-  buttonLabels: {
-    navigationAria: 'Pagination navigation',
-    currentAria: 'page',
-    pageAria: (page) => `Page ${page}`,
-    prevLabel: 'Précédente',
-    nextLabel: 'Suivante',
-    prevAria: 'Page précédente',
-    nextAria: 'Page suivante',
-    firstAria: 'Première page',
-    lastAria: 'Dernière Page',
-  },
-};
 export default Pagination;

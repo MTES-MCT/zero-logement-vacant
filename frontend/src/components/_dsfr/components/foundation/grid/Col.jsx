@@ -7,7 +7,14 @@ import { getColSize, getSpace } from '../../../utils/getters';
  *
  * @visibleName Col
  */
-const Col = ({ offset, n, children, className, spacing }) => {
+
+const Col = ({
+  n = '',
+  offset = null,
+  className = '',
+  children = null,
+  spacing = '',
+}) => {
   const { margin, padding } = getSpace(spacing);
   const { n: size, offset: off } = getColSize(n, offset);
   const _className = classNames(
@@ -39,13 +46,6 @@ Col.propTypes = {
    */
   offset: PropTypes.string,
   className: PropTypes.string,
-};
-Col.defaultProps = {
-  n: '',
-  offset: null,
-  className: '',
-  children: null,
-  spacing: '',
 };
 
 export default Col;

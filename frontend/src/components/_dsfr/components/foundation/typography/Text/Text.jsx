@@ -7,7 +7,15 @@ import { getSpace } from '../../../../utils/getters';
  *
  * @visibleName Text
  */
-const Text = ({ as, size, alt, bold, className, spacing, children }) => {
+const Text = ({
+  as = 'p',
+  size = 'md',
+  alt = false,
+  bold = false,
+  className = '',
+  spacing = '',
+  children,
+}) => {
   const HtmlTag = `${as}`;
   const { margin, padding } = getSpace(spacing);
   const _className = classNames(className, padding, margin, {
@@ -32,14 +40,6 @@ Text.propTypes = {
   bold: PropTypes.bool,
   children: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
   className: PropTypes.string,
-};
-Text.defaultProps = {
-  as: 'p',
-  size: 'md',
-  alt: false,
-  bold: false,
-  className: '',
-  spacing: '',
 };
 
 export default Text;

@@ -8,12 +8,12 @@ import { getSpace } from '../../../utils/getters';
  * @visibleName Row
  */
 const Row = ({
-  gutters,
-  justifyContent,
-  alignItems,
-  children,
-  className,
-  spacing,
+  className = '',
+  gutters = false,
+  alignItems = null,
+  justifyContent = null,
+  children = null,
+  spacing = '',
 }) => {
   const { margin, padding } = getSpace(spacing);
   const _className = classNames(
@@ -53,14 +53,6 @@ Row.propTypes = {
    */
   justifyContent: PropTypes.oneOf(['right', 'center', 'left']),
   className: PropTypes.string,
-};
-Row.defaultProps = {
-  className: '',
-  gutters: false,
-  alignItems: null,
-  justifyContent: null,
-  children: null,
-  spacing: '',
 };
 
 export default Row;

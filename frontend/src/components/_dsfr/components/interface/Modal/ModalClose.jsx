@@ -5,7 +5,12 @@ import dataAttributes from '../../../utils/data-attributes';
 import typeValidation from '../../../utils/type-validation';
 
 const ModalClose = ({
-  hide, title, children, className, ...remainingProps
+  __TYPE = 'ModalClose',
+  children = 'Fermer',
+  title = 'Fermer la fenêtre modale',
+  className = '',
+  hide = () => {},
+  ...remainingProps
 }) => (
   <button
     className={classNames('fr-link--close fr-link', className)}
@@ -28,14 +33,6 @@ ModalClose.propTypes = {
    */
   hide: PropTypes.func,
   className: PropTypes.string,
-};
-ModalClose.defaultProps = {
-  __TYPE: 'ModalClose',
-  children: 'Fermer',
-  title: 'Fermer la fenêtre modale',
-  className: '',
-  hide: () => {},
-
 };
 
 export default ModalClose;

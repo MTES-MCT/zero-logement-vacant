@@ -10,15 +10,15 @@ import dataAttributes from '../../../utils/data-attributes';
  * @visibleName Icon
  */
 const Icon = ({
-  size,
+  size = 'sm',
   name,
-  as,
-  children,
-  className,
-  iconPosition,
-  title,
-  verticalAlign,
-  color,
+  as = 'span',
+  children = null,
+  className = '',
+  iconPosition = 'left',
+  title = '',
+  verticalAlign = 'middle',
+  color = '',
   ...remainingProps
 }) => {
   const iconRef = useRef();
@@ -79,16 +79,6 @@ const Icon = ({
     : childrenWithIcon;
 };
 
-Icon.defaultProps = {
-  size: 'sm',
-  color: '',
-  as: 'span',
-  className: '',
-  verticalAlign: 'middle',
-  iconPosition: 'left',
-  children: null,
-  title: '',
-};
 
 Icon.propTypes = {
   size: PropTypes.oneOf([

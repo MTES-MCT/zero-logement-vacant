@@ -142,14 +142,15 @@ const ModalDialog = ({
   return ReactDOM.createPortal(component, document.body);
 };
 
+// Use default parameters in Modal
 const Modal = ({
-  id,
-  size,
+  id = undefined,
+  size = 'md',
   hide,
   children,
-  isOpen,
-  className,
-  canClose,
+  isOpen = false,
+  className = '',
+  canClose = true,
   ...remainingProps
 }) =>
   isOpen && (
@@ -176,13 +177,6 @@ Modal.propTypes = {
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
   className: PropTypes.string,
   canClose: PropTypes.bool,
-};
-Modal.defaultProps = {
-  id: undefined,
-  isOpen: false,
-  size: 'md',
-  className: '',
-  canClose: true,
 };
 
 export default Modal;

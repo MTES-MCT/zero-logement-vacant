@@ -14,24 +14,25 @@ import Pagination from '../Pagination/Pagination';
  * @visibleName Table
  */
 const Table = ({
-  noScroll,
-  caption,
-  captionPosition,
-  bordered,
-  fixedLayout,
-  fixedHeader,
-  className,
-  tableID,
-  tableClassName,
+  noScroll = false,
+  caption = undefined,
+  captionPosition = 'top',
+  bordered = false,
+  fixedLayout = false,
+  fixedHeader = false,
+  className = '',
+  tableID = '',
+  tableClassName = '',
   columns,
   data,
   rowKey,
-  pagination,
-  paginationPosition,
-  perPage,
-  page,
-  setPage,
-  surrendingPages,
+  pagination = false,
+  paginationPosition = 'left',
+  perPage = 10,
+  page = undefined,
+  setPage = () => {},
+  surrendingPages = 3,
+  children = null,
   ...remainingProps
 }) => {
   const _className = classNames(
@@ -162,24 +163,6 @@ const Table = ({
   );
 };
 
-Table.defaultProps = {
-  fixedLayout: false,
-  fixedHeader: false,
-  noScroll: false,
-  bordered: false,
-  caption: undefined,
-  captionPosition: 'top',
-  className: '',
-  tableID: '',
-  tableClassName: '',
-  children: null,
-  pagination: false,
-  paginationPosition: 'left',
-  surrendingPages: 3,
-  perPage: 10,
-  page: undefined,
-  setPage: () => {},
-};
 
 Table.propTypes = {
   columns: PropTypes.arrayOf(PropTypes.shape({})).isRequired,

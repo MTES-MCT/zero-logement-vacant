@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import dataAttributes from '../../../utils/data-attributes';
 import typeValidation from '../../../utils/type-validation';
 
-const ModalFooter = ({ children, className, ...remainingProps }) => (
+const ModalFooter = ({ __TYPE = 'ModalFooter', className = '', children, ...remainingProps }) => (
   <div
     className={classNames('fr-modal__footer', className)}
     {...dataAttributes.getAll(remainingProps)}
@@ -23,6 +23,5 @@ ModalFooter.propTypes = {
   ]).isRequired,
   className: PropTypes.string,
 };
-ModalFooter.defaultProps = { __TYPE: 'ModalFooter', className: '' };
 
 export default ModalFooter;

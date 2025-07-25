@@ -12,13 +12,13 @@ import dataAttributes from '../../../utils/data-attributes';
  */
 const SelectWrapper = ({
   children,
-  className,
-  disabled,
-  hint,
-  label,
-  message,
-  messageType,
-  required,
+  className = '',
+  disabled = false,
+  hint = '',
+  label = '',
+  message = '',
+  messageType = undefined,
+  required = false,
   selectId,
   ...remainingProps
 }) => {
@@ -60,15 +60,6 @@ const SelectWrapper = ({
   );
 };
 
-SelectWrapper.defaultProps = {
-  className: '',
-  disabled: false,
-  hint: '',
-  label: '',
-  message: '',
-  messageType: undefined,
-  required: false,
-};
 
 SelectWrapper.propTypes = {
   children: PropTypes.node.isRequired,

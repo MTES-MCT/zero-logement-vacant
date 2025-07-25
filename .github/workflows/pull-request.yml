@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        node-version: [24.x]
+        node-version: [22.x]
     services:
       postgres:
         image: postgis/postgis

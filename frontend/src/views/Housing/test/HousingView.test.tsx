@@ -333,7 +333,7 @@ describe('Housing view', () => {
         name: 'Enregistrer'
       });
       await user.click(save);
-      const newOccupancy = await screen.findByLabelText('Occupation');
+      const newOccupancy = await screen.findByText(/Occupation :/);
       expect(newOccupancy).toHaveTextContent(/En location/i);
     });
 

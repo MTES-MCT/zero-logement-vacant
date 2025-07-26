@@ -56,16 +56,16 @@ function HousingDetailsCard(props: HousingDetailsCardProps) {
       tabs={[
         {
           label: 'Logement et bâtiment',
-          content: HousingTab({ housing: props.housing }),
+          content: <HousingTab housing={props.housing} />,
           isDefault: true
         },
         {
           label: 'Mobilisation',
-          content: MobilizationTab({ housing: props.housing })
+          content: <MobilizationTab housing={props.housing} />
         },
         {
           label: 'Historique et notes',
-          content: HistoryTab({ housing: props.housing })
+          content: <HistoryTab housing={props.housing} />
         }
       ]}
     />

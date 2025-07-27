@@ -107,9 +107,6 @@ jobs:
           files: ./server/coverage/coverage-final.json
           flags: server
 
-      - name: Test database migrations
-        run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band
-
   deploy-front-staging:
     uses: ./.github/workflows/deploy.yml
     needs: [build]

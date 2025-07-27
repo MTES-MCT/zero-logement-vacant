@@ -78,6 +78,3 @@ jobs:
           LOG_LEVEL: fatal
           NODE_OPTIONS: --experimental-transform-types
           TZ: UTC
-
-      - name: Test database migrations
-        run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band

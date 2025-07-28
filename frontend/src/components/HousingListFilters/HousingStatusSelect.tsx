@@ -21,7 +21,7 @@ export type HousingStatusSelectProps<Multiple extends boolean> = Pick<
   | 'onChange'
 >;
 
-function HousingStatusMultiSelect<Multiple extends boolean = false>(
+function HousingStatusSelect<Multiple extends boolean = false>(
   props: HousingStatusSelectProps<Multiple>
 ) {
   const renderValue = props.multiple
@@ -52,4 +52,4 @@ function HousingStatusMultiSelect<Multiple extends boolean = false>(
   );
 }
 
-export default HousingStatusMultiSelect;
+export default HousingStatusSelect;

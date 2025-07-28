@@ -43,7 +43,7 @@ import EnergyConsumptionSelect from './EnergyConsumptionSelect';
 import styles from './housing-list-filters.module.scss';
 import HousingCountSelect from './HousingCountSelect';
 import HousingKindSelect from './HousingKindSelect';
-import HousingStatusMultiSelect from './HousingStatusMultiSelect';
+import HousingStatusSelect from './HousingStatusSelect';
 import HousingSubStatusSelect from './HousingSubStatusSelect';
 import LastMutationTypeSelect from './LastMutationTypeSelect';
 import LastMutationYearSelect from './LastMutationYearSelect';
@@ -291,7 +291,7 @@ function HousingListFiltersSidemenu(props: Props) {
           }
         >
           <Grid component="article" mb={2} size={12}>
-            <HousingStatusMultiSelect
+            <HousingStatusSelect
               multiple
               options={HOUSING_STATUS_VALUES}
               value={filters.statusList ?? []}

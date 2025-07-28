@@ -9,7 +9,7 @@ import { useController, useFormContext } from 'react-hook-form';
 import { Housing } from '../../models/Housing';
 import { getSubStatusOptions } from '../../models/HousingState';
 import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import HousingStatusMultiSelect from '../HousingListFilters/HousingStatusMultiSelect';
+import HousingStatusSelect from '../HousingListFilters/HousingStatusSelect';
 import PrecisionLists from '../Precision/PrecisionLists';
 import { HousingEditionFormSchema } from './HousingEditionSideMenu';
 
@@ -46,7 +46,7 @@ function HousingEditionMobilizationTab(props: Props) {
         >
           Statut de suivi
         </Typography>
-        <HousingStatusMultiSelect
+        <HousingStatusSelect
           error={statusFieldState.error?.message}
           invalid={statusFieldState.invalid}
           options={HOUSING_STATUS_VALUES}
@@ -58,7 +58,12 @@ function HousingEditionMobilizationTab(props: Props) {
           }}
         />
         <AppSelectNext
-          disabled={subStatusDisabled || [HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(statusField.value)}
+          disabled={
+            subStatusDisabled ||
+            [HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(
+              statusField.value
+            )
+          }
           label="Sous-statut de suivi"
           multiple={false}
           options={
@@ -73,7 +78,7 @@ function HousingEditionMobilizationTab(props: Props) {
           onChange={subStatusField.onChange}
         />
       </Grid>
-      <PrecisionLists housingId={props.housingId} />
+      {props.housingId ? <PrecisionLists housingId={props.housingId} /> : null}
     </Grid>
   );
 }

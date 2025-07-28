@@ -93,7 +93,6 @@
   },
   "devDependencies": {
     "@fast-check/vitest": "^0.2.2",
-    "@swc/core": "^1.11.1",
     "@tsconfig/node20": "^20.1.4",
     "@turf/turf": "^7.1.0",
     "@types/async": "^3.2.24",
@@ -133,9 +132,6 @@
     "rimraf": "^5.0.10",
     "superagent": "^8.1.2",
     "supertest": "^6.3.4",
-    "tsc-alias": "^1.8.10",
-    "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.20.3",
-    "typescript": "^5.6.2"
+    "tsx": "^4.20.3"
   }
 }

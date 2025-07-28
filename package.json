@@ -75,7 +75,6 @@
     "jest-environment-node": "^29.7.0",
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
-    "lerna": "^8.1.9",
     "lint-staged": "^13.3.0",
     "madr": "^3.0.0",
     "node-talisman": "^1.29.11",
@@ -85,7 +84,7 @@
     "sass": "^1.55.0",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2",
+    "typescript": "^5.8.3",
     "vite": "^6.0.0",
     "vitest": "^3.0.0",
     "webpack-cli": "^5.1.4"

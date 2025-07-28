@@ -1,5 +1,5 @@
 const config = {
-  apiEndpoint: import.meta.env.VITE_APP_URL ?? 'http://localhost:3001',
+  apiEndpoint: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
   banEndpoint: 'https://api-adresse.data.gouv.fr',
   metabase: {
     siteUrl: import.meta.env.VITE_METABASE_SITE_URL,

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Zéro Logement Vacant",
   "engines": {
-    "node": "^20"
+    "node": "^24"
   },
   "packageManager": "yarn@4.9.2",
   "workspaces": [

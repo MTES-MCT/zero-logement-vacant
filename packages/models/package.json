@@ -5,24 +5,12 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "import": {
-        "types": "./dist/lib/index.d.ts",
-        "default": "./dist/lib/index.js"
-      },
-      "require": {
-        "types": "./dist/lib/index.d.cts",
-        "default": "./dist/lib/index.cjs"
-      }
+      "types": "./dist/lib/index.d.ts",
+      "default": "./dist/lib/index.js"
     },
     "./fixtures": {
-      "import": {
-        "types": "./dist/lib/test/fixtures.d.ts",
-        "default": "./dist/lib/test/fixtures.js"
-      },
-      "require": {
-        "types": "./dist/lib/test/fixtures.d.cts",
-        "default": "./dist/lib/test/fixtures.cjs"
-      }
+      "types": "./dist/lib/test/fixtures.d.ts",
+      "default": "./dist/lib/test/fixtures.js"
     }
   },
   "scripts": {

@@ -183,6 +183,7 @@ jobs:
           clever env set S3_REGION "cellar-c2" -a $APP_ALIAS
           clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
           clever env set WORKSPACE "@zerologementvacant/queue" -a $APP_ALIAS
+          clever env set SENTRY_ENABLED "false" -a $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor M -a $APP_ALIAS

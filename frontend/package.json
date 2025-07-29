@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "clean": "rimraf build",
     "icons": "react-dsfr update-icons && tsx src/scripts/generate-building-images.ts",
     "prebuild": "yarn icons",
     "predev": "yarn icons",

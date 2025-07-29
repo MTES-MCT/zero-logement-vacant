@@ -18,7 +18,7 @@ import { pick } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import DraftMissingError from '~/errors/draftMissingError';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import { SenderApi } from '~/models/SenderApi';
 import campaignDraftRepository from '~/repositories/campaignDraftRepository';
@@ -26,6 +26,8 @@ import campaignRepository from '~/repositories/campaignRepository';
 import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
 import senderRepository from '~/repositories/senderRepository';
 import { isUUIDParam } from '~/utils/validators';
+
+const logger = createLogger('draftController');
 
 export interface DraftParams extends Record<string, string> {
   id: string;
@@ -45,9 +47,13 @@ async function list(
     never,
     DraftQuery
   >;
+  logger.info('Finding drafts...', {
+    establishment: auth.establishmentId,
+    query
+  });
 
   const filters: DraftFilters = {
-    ...(pick(query, 'campaign') as DraftQuery),
+    campaign: query.campaign,
     establishment: auth.establishmentId
   };
   const drafts: DraftApi[] = await draftRepository.find({

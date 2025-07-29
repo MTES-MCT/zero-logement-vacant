@@ -8,10 +8,11 @@ export interface DraftAPI {
 export function createDraftAPI(http: AxiosInstance): DraftAPI {
   return {
     async find(opts?: FindOptions): Promise<DraftDTO[]> {
-      const query = {
-        ...opts?.filters
-      };
-      const response = await http.get(`/drafts${query}`);
+      const response = await http.get('/drafts', {
+        params: {
+          ...opts?.filters
+        }
+      });
       return response.data;
     }
   };

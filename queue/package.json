@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsc -b tsconfig.app.json",
     "dev": "tsx src/bin/index.ts",
-    "prestart": "htpasswd -c -B -b dist/bin/.htpasswd $QUEUE_DASHBOARD_USERNAME $QUEUE_DASHBOARD_PASSWORD",
+    "prestart": "htpasswd -c -B -b dist/app/bin/.htpasswd $QUEUE_DASHBOARD_USERNAME $QUEUE_DASHBOARD_PASSWORD",
     "start": "tsx src/bin/index.ts"
   },
   "dependencies": {

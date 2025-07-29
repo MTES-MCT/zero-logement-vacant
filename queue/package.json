@@ -12,11 +12,10 @@
     }
   },
   "scripts": {
-    "clean": "rimraf dist tsconfig.build.tsbuildinfo",
     "build": "tsc -b tsconfig.app.json",
     "dev": "tsx src/bin/index.ts",
     "prestart": "htpasswd -c -B -b dist/bin/.htpasswd $QUEUE_DASHBOARD_USERNAME $QUEUE_DASHBOARD_PASSWORD",
-    "start": "node ./dist/bin/index.cjs"
+    "start": "tsx src/bin/index.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",

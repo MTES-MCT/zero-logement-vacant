@@ -10,7 +10,6 @@
   "include": ["src/**/*.ts"],
   "exclude": [
     "src/**/*.test.ts",
-    "src/test/database-global-setup.ts",
     "src/test/global-setup.ts",
     "src/test/setup-env.ts",
     "src/test/setup-tests.ts",

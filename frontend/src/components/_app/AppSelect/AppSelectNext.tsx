@@ -229,11 +229,14 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
             }}
             options={[
               {
-                label: (
-                  <Typography sx={{ mt: '0.125rem' }} variant="body2">
-                    {getOptionLabel(option)}
-                  </Typography>
-                ),
+                label:
+                  typeof getOptionLabel(option) === 'string' ? (
+                    <Typography sx={{ mt: '0.125rem' }} variant="body2">
+                      {getOptionLabel(option)}
+                    </Typography>
+                  ) : (
+                    getOptionLabel(option)
+                  ),
                 nativeInputProps: {
                   checked: isOptionSelected(option),
                   onClick: noop,

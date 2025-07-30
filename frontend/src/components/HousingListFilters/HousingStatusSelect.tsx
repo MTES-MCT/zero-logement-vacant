@@ -1,8 +1,8 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
 import { HousingStatus } from '@zerologementvacant/models';
+
 import { getHousingState } from '../../models/HousingState';
 import AppSelectNext, {
   AppSelectNextProps

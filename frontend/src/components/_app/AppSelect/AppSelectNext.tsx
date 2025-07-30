@@ -17,7 +17,7 @@ import styles from './app-select-next.module.scss';
 
 export type AppSelectNextProps<Value, Multiple extends boolean> = Pick<
   BaseSelectProps<SelectValue<Value, Multiple>>,
-  'className' | 'label' | 'renderValue' | 'onBlur'
+  'className' | 'displayEmpty' | 'label' | 'renderValue' | 'onBlur'
 > & {
   disabled?: boolean;
   error?: string;
@@ -50,6 +50,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
   const multiple = props.multiple ?? false;
 
   const disabled = props.disabled ?? props.options.length === 0;
+  const displayEmpty = props.displayEmpty ?? multiple;
 
   const emptyValue = multiple ? 'Tous' : '';
 
@@ -219,7 +220,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
         }}
       >
         {!props.multiple ? (
-          <Typography variant="body2">{getOptionLabel(option)}</Typography>
+          getOptionLabel(option)
         ) : (
           <Checkbox
             classes={{
@@ -272,7 +273,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
         }}
         disabled={disabled}
         disableUnderline
-        displayEmpty
+        displayEmpty={displayEmpty}
         id={selectId}
         fullWidth
         labelId={labelId}

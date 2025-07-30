@@ -10,7 +10,6 @@ import {
   formatEstablishmentApi
 } from '../../repositories/establishmentRepository';
 import { formatUserApi, Users } from '../../repositories/userRepository';
-import { createServer } from '~/infra/server';
 
 describe('File API', () => {
   let url: string;

@@ -5,7 +5,7 @@ import { Template, BLANK_PDF, Schema } from '@pdfme/common';
 import { Logger } from '@zerologementvacant/utils';
 import { text, image } from '@pdfme/schemas';
 import { PDFDocument, PDFPage } from 'pdf-lib';
-import puppeteer, { Browser } from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer';
 import { format } from 'date-fns';
 import { fr as frLocale } from 'date-fns/locale';
 import { pdfPlugin } from './pdfPlugin';
@@ -14,6 +14,14 @@ import { DraftData } from './draft';
 interface TransformerOptions {
   logger: Logger;
 }
+
+// Timeout and limit configuration
+const BROWSER_CONFIG = {
+  protocolTimeout: 180_000, // 3 minutes
+  pageTimeout: 60_000, // 1 minute
+  maxRetries: 3,
+  retryDelay: 1000, // 1 second
+};
 
 const pixelsToPointsPNG = (px: number) => px * 72 / 340;
 const pixelsToPointsPDF = (px: number) => px * 0.65;
@@ -54,6 +62,92 @@ const fontCss = `
 body { font-family: Marianne; font-size: 0.75rem; }
 `;
 
+/**
+ * Helper class to manage PDF operations with a reusable page
+ */
+class PdfPageManager {
+  private page: Page;
+  private logger: Logger;
+
+  constructor(page: Page, logger: Logger) {
+    this.page = page;
+    this.logger = logger;
+    this.setupPage();
+  }
+
+  private async setupPage() {
+    this.page.setDefaultTimeout(BROWSER_CONFIG.pageTimeout);
+    this.page.setDefaultNavigationTimeout(BROWSER_CONFIG.pageTimeout);
+    await this.page.addStyleTag({ content: fontCss });
+  }
+
+  async generatePdfFromHtml(
+    html: string, 
+    width: number, 
+    height: number,
+    id: string = 'content'
+  ): Promise<Buffer> {
+    return this.executeWithRetry(async () => {
+      await this.page.setViewport({ width, height });
+      await this.page.setContent(`<div id="${id}" style="margin: 0; padding: 0; display: inline-block">${html}</div>`);
+      
+      // Wait for content to load
+      try {
+        await this.page.waitForSelector(`#${id}`, { timeout: 5000 });
+      } catch (error) {
+        this.logger.warn(`Selector #${id} not found, continuing anyway`);
+      }
+
+      return await this.page.pdf({
+        printBackground: true,
+        width: `${width}px`,
+        height: `${height}px`,
+        pageRanges: '1',
+      });
+    }, `generatePdfFromHtml for ${id}`);
+  }
+
+  async measureHtmlDimensions(
+    html: string, 
+    containerId: string = 'block'
+  ): Promise<{ width: number; height: number } | null> {
+    return this.executeWithRetry(async () => {
+      await this.page.setContent(`<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block">${html}</div>`);
+      
+      try {
+        await this.page.waitForSelector(`#${containerId}`, { timeout: 5000 });
+        const element = await this.page.$(`#${containerId}`);
+        const box = await element?.boundingBox();
+        return box ? { width: box.width, height: box.height } : null;
+      } catch (error) {
+        this.logger.warn(`Error measuring dimensions for ${containerId}:`, error);
+        return null;
+      }
+    }, `measureHtmlDimensions for ${containerId}`);
+  }
+
+  private async executeWithRetry<T>(
+    operation: () => Promise<T>, 
+    operationName: string
+  ): Promise<T> {
+    for (let attempt = 1; attempt <= BROWSER_CONFIG.maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        this.logger.warn(`${operationName} attempt ${attempt} failed:`, error);
+        
+        if (attempt === BROWSER_CONFIG.maxRetries) {
+          throw new Error(`${operationName} failed after ${BROWSER_CONFIG.maxRetries} attempts: ${error}`);
+        }
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, BROWSER_CONFIG.retryDelay * attempt));
+      }
+    }
+    throw new Error(`Unexpected error in ${operationName}`);
+  }
+}
+
 function createTransformer(opts: TransformerOptions) {
   const { logger } = opts;
 
@@ -78,9 +172,32 @@ function createTransformer(opts: TransformerOptions) {
     async generatePDF(data: DraftData): Promise<Buffer> {
       logger.info('Generating the PDF...');
 
-      const browser = await puppeteer.launch({protocolTimeout: 60_000 }); // 60 seconds timeout (default is 30 seconds)
+      // Optimized browser configuration
+      const browser = await puppeteer.launch({
+        protocolTimeout: BROWSER_CONFIG.protocolTimeout,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--memory-pressure-off',
+          '--max_old_space_size=4096',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding'
+        ],
+        defaultViewport: { width: 1024, height: 768 },
+        devtools: false,
+        headless: true
+      });
 
       try {
+        // Create a reusable page for all operations
+        const reusablePage = await browser.newPage();
+        const pdfManager = new PdfPageManager(reusablePage, logger);
+
         const textBlocks = await splitHtmlIntoPages({ 
           fullHtml: data.body ?? '', 
           browser, 
@@ -88,11 +205,13 @@ function createTransformer(opts: TransformerOptions) {
           firstPageMaxHeight: FIRST_PAGE_BODY_HEIGHT, 
           otherPagesMaxHeight: OTHER_PAGE_BODY_HEIGHT 
         });
+        
         logger.info(`Number of pages generated: ${textBlocks.length}`);
 
         const templates: any[] = [];
         const inputs: Record<string, string>[] = [];
 
+        // Utility functions
         function formatWrittenInfo(writtenFrom?: string | Date, writtenAt?: string): string {
           if (!writtenAt) return '';
 
@@ -118,24 +237,8 @@ function createTransformer(opts: TransformerOptions) {
         const logo1: string = formatImageContent(data.logo?.[0]);
         const logo2: string = formatImageContent(data.logo?.[1]);
 
-        async function createPDFSection(html: string, width: number, height: number): Promise<Buffer> {
-          const page = await browser.newPage();
-          try {
-            await page.setViewport({ width, height });
-            await page.setContent(html);
-            await page.addStyleTag({ content: `${fontCss}` });
-            return await page.pdf({
-              printBackground: true,
-              width: `${width}px`,
-              height: `${height}px`,
-              pageRanges: '1',
-            });
-          } finally {
-            await page.close();
-          }
-        }
-
-        // Expéditeur
+        // Generate PDF elements using the reusable page
+        logger.info('Generating sender PDF...');
         let senderHTML = "<div style='text-align: end; font-style: normal;font-weight: 400'>";
         if (data.sender) {
           if (data.sender.name) {
@@ -158,17 +261,17 @@ function createTransformer(opts: TransformerOptions) {
           }
         }
         senderHTML += '</div>';
-        const sender = await createPDFSection(senderHTML, 300, 300);
+        const sender = await pdfManager.generatePdfFromHtml(senderHTML, 300, 300, 'sender');
 
-        // Date et lieu
+        logger.info('Generating written info PDF...');
         const dateHTML = `<div id='block' style='margin: 0; padding: 0; display: inline-block;'>${formatWrittenInfo(data.writtenAt ?? undefined, data.writtenFrom ?? undefined)}</div>`;
-        const writtenInfo = await createPDFSection(dateHTML, BODY_WIDTH, LINE_HEIGHT * 2);
+        const writtenInfo = await pdfManager.generatePdfFromHtml(dateHTML, BODY_WIDTH, LINE_HEIGHT * 2, 'written-info');
 
-        // Objet
+        logger.info('Generating subject PDF...');
         const subjectHTML = data.subject ? `<div id='block' style='margin: 0; padding: 0; display: inline-block;'><strong>Objet:&nbsp;</strong>${data.subject}</div>` : '';
-        const subject = await createPDFSection(subjectHTML, BODY_WIDTH, LINE_HEIGHT * 2);
+        const subject = await pdfManager.generatePdfFromHtml(subjectHTML, BODY_WIDTH, LINE_HEIGHT * 2, 'subject');
 
-        // Destinataire
+        logger.info('Generating recipient PDF...');
         let recipientHTML = `<div style='font-style: normal;font-weight: 400'><strong>À l'attention de</strong>`;
         if (data.owner.fullName) {
           recipientHTML += `<br />${data.owner.fullName}`;
@@ -177,9 +280,9 @@ function createTransformer(opts: TransformerOptions) {
           recipientHTML += `<br />${data.owner.address.join('<br>')}`;
         }
         recipientHTML += '</div>';
-        const recipient = await createPDFSection(recipientHTML, 300, 300);
+        const recipient = await pdfManager.generatePdfFromHtml(recipientHTML, 300, 300, 'recipient');
 
-        // Signatures
+        logger.info('Generating signatory PDF...');
         let signatoryHTML = "";
         if (data.sender && data.sender.signatories && data.sender.signatories.length > 0) {
           signatoryHTML += `<div style="display: flex; gap: 40px;">`;
@@ -208,9 +311,9 @@ function createTransformer(opts: TransformerOptions) {
 
           signatoryHTML += `</div>`;
         }
-        const signatory = await createPDFSection(signatoryHTML, 400, 200);
+        const signatory = await pdfManager.generatePdfFromHtml(signatoryHTML, 400, 200, 'signatory');
 
-        // Schémas de page
+        // Generate template schemas
         const firstPageSchema = [{
           name: "logo1",
           type: "image",
@@ -270,8 +373,11 @@ function createTransformer(opts: TransformerOptions) {
           height: pixelsToPointsPDF(200),
         }];
 
-        // Génération des pages avec gestion mémoire optimisée
+        // Generate content pages
+        logger.info('Generating content pages...');
         for (let i = 0; i < textBlocks.length; i++) {
+          logger.info(`Processing page ${i + 1}/${textBlocks.length}`);
+          
           const schema = [];
           let bodySchema: Schema;
           
@@ -300,10 +406,14 @@ function createTransformer(opts: TransformerOptions) {
           };
           templates.push(template);
 
-          // Génération du PDF pour le corps du texte avec fermeture automatique
-          const bodyHtml = `<div id='block' style='margin: 0; padding: 0; display: inline-block; font-size: 0.75rem'>${textBlocks[i]}</div>`;
-          const height = i === 0 ? FIRST_PAGE_BODY_HEIGHT : OTHER_PAGE_BODY_HEIGHT;
-          const pdfBuffer = await createPDFSection(bodyHtml, BODY_WIDTH, height);
+          // Generate PDF for this text block
+          const contentHtml = `<div id='block' style='margin: 0; padding: 0; display: inline-block; font-size: 0.75rem'>${textBlocks[i]}</div>`;
+          const pdfBuffer = await pdfManager.generatePdfFromHtml(
+            contentHtml, 
+            BODY_WIDTH, 
+            i === 0 ? FIRST_PAGE_BODY_HEIGHT : OTHER_PAGE_BODY_HEIGHT,
+            `body-${i}`
+          );
 
           const inputsData = {
             logo1: logo1,
@@ -318,9 +428,14 @@ function createTransformer(opts: TransformerOptions) {
           inputs.push(inputsData);
         }
 
+        // Close the reusable page
+        await reusablePage.close();
+
+        logger.info('Generating final PDF pages...');
         // Generate PDF pages one by one
         const pdfBuffers: Buffer[] = [];
         for (let i = 0; i < templates.length; i++) {
+          logger.info(`Generating final page ${i + 1}/${templates.length}`);
           const pdfBuffer = await generate({
             template: templates[i], 
             inputs: [inputs[i]], 
@@ -334,6 +449,7 @@ function createTransformer(opts: TransformerOptions) {
         }
 
         // Merge all PDFs
+        logger.info('Merging final PDF...');
         const finalDoc = await PDFDocument.create();
 
         for (const buffer of pdfBuffers) {
@@ -343,13 +459,11 @@ function createTransformer(opts: TransformerOptions) {
         }
 
         const finalPDF = await finalDoc.save();
-
         logger.info('Final PDF successfully generated!');
 
         return Buffer.from(finalPDF);
 
       } finally {
-        // Fermeture garantie du browser même en cas d'erreur
         await browser.close();
       }
     }
@@ -365,6 +479,7 @@ interface FindFitOptions {
 }
 
 /**
+ * Optimized version that reuses a single page for all tests
  * Returns the maximum number of HTML characters that fit within a given area
  * without breaking the HTML code (properly closed tags).
  */
@@ -380,23 +495,44 @@ export async function findMaxHtmlLengthThatFits({
   let high = safeIndices.length - 1;
   let bestLength = 0;
 
-  while (low <= high) {
-    const mid = Math.floor((low + high) / 2);
-    const cutoffIndex = safeIndices[mid];
-    const partialHtml = fullHtml.slice(0, cutoffIndex);
+  // Create a single page for all tests
+  const testPage = await browser.newPage();
+  testPage.setDefaultTimeout(BROWSER_CONFIG.pageTimeout);
+  await testPage.addStyleTag({ content: fontCss });
 
-    const page = await browser.newPage();
-    await page.setContent(`<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block">${partialHtml}</div>`);
-    await page.addStyleTag({ content: `${fontCss}` });
-    const element = await page.$(`#${containerId}`);
-    const box = await element?.boundingBox();
+  try {
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const cutoffIndex = safeIndices[mid];
+      const partialHtml = fullHtml.slice(0, cutoffIndex);
 
-    if (box && box.height <= maxHeight && box.width <= maxWidth) {
-      bestLength = cutoffIndex;
-      low = mid + 1;
-    } else {
-      high = mid - 1;
+      try {
+        // Reuse the same page
+        await testPage.setContent(`<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block">${partialHtml}</div>`);
+        
+        // Wait for content to render with shorter timeout
+        try {
+          await testPage.waitForSelector(`#${containerId}`, { timeout: 3000 });
+        } catch (error) {
+          // Continue even if selector is not found
+        }
+        
+        const element = await testPage.$(`#${containerId}`);
+        const box = await element?.boundingBox();
+
+        if (box && box.height <= maxHeight && box.width <= maxWidth) {
+          bestLength = cutoffIndex;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      } catch (error) {
+        // In case of error, consider it doesn't fit
+        high = mid - 1;
+      }
     }
+  } finally {
+    await testPage.close();
   }
 
   return bestLength;
@@ -421,11 +557,8 @@ function getSafeCutPoints(html: string): number[] {
   return indices;
 }
 
-export default {
-  createTransformer
-};
-
 /**
+ * Optimized version of splitHtmlIntoPages
  * Uses the search function to split a long HTML into paginated blocks,
  * with a specific height for the first page, and another for the subsequent ones.
  */
@@ -455,19 +588,29 @@ export async function splitHtmlIntoPages({
     });
 
     if (cutoff === 0) {
-      break;
+      // If no content fits, take at least one safe cut point
+      const safePoints = getSafeCutPoints(remainingHtml);
+      const minCutoff = safePoints.length > 1 ? safePoints[1] : remainingHtml.length;
+      const block = remainingHtml.slice(0, minCutoff);
+      blocks.push(block);
+      remainingHtml = remainingHtml.slice(minCutoff);
+    } else {
+      const block = remainingHtml.slice(0, cutoff);
+      blocks.push(block);
+      remainingHtml = remainingHtml.slice(cutoff);
     }
-
-    const block = remainingHtml.slice(0, cutoff);
-    blocks.push(block);
-    remainingHtml = remainingHtml.slice(cutoff);
+    
     isFirstPage = false;
   }
 
-  // If there is no content left, we ensure at least one block is returned
-  if(blocks.length === 0) {
+  // If no content has been processed, ensure at least one block is returned
+  if (blocks.length === 0) {
     blocks.push('');
   }
 
   return blocks;
 }
+
+export default {
+  createTransformer
+};

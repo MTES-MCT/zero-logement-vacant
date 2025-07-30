@@ -21,7 +21,7 @@ import {
   Controller,
 } from 'react-hook-form';
 import { Col, Container, Row } from '../_dsfr';
-import HousingStatusMultiSelect from '../HousingListFilters/HousingStatusMultiSelect';
+import HousingStatusSelect from '../HousingListFilters/HousingStatusSelect';
 import HousingSubStatusSelect from '../HousingListFilters/HousingSubStatusSelect';
 import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
@@ -127,7 +127,7 @@ const HousingEditionForm = forwardRef(function HousingEditionForm(
   const MobilizationTab = () => (
     <div className="fr-py-2w">
       <div className="fr-select-group">
-        <HousingStatusMultiSelect
+        <HousingStatusSelect
           error={statusFieldState.error?.message}
           invalid={statusFieldState.invalid}
           options={HOUSING_STATUS_VALUES}
@@ -144,7 +144,9 @@ const HousingEditionForm = forwardRef(function HousingEditionForm(
         multiple={false}
         grouped={false}
         options={
-          getSubStatusOptions(statusField.value as HousingStatus)?.map((o) => o.value) ?? []
+          getSubStatusOptions(statusField.value as HousingStatus)?.map(
+            (o) => o.value
+          ) ?? []
         }
         error={subStatusFieldState.error?.message}
         invalid={subStatusFieldState.invalid}

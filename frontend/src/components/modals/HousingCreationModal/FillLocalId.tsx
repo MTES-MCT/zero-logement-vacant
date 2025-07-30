@@ -1,6 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { InputProps } from '@codegouvfr/react-dsfr/Input';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import * as yup from 'yup';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
@@ -12,7 +12,7 @@ import { useAppDispatch } from '../../../hooks/useStore';
 import housingSlice from '../../../store/reducers/housingReducer';
 import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
-const FillLocalId = forwardRef((props: StepProps, ref) => {
+const FillLocalId = forwardRef((_: StepProps, ref) => {
   const [localId, setLocalId] = useState('');
   const dispatch = useAppDispatch();
   const { changeCreator } = housingSlice.actions;
@@ -130,7 +130,7 @@ const FillLocalId = forwardRef((props: StepProps, ref) => {
       />
       <form id="housing-creation-form" onSubmit={(e) => e.preventDefault()}>
         <Grid container>
-          <Grid xs={8}>
+          <Grid size={8}>
             <AppTextInput<FormShape>
               inputForm={form}
               inputKey="localId"

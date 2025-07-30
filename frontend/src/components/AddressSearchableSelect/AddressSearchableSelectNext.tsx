@@ -1,7 +1,7 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
 import Autocomplete from '@mui/material/Autocomplete';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { useDebounce, useList, usePreviousDistinct } from 'react-use';
 import type { MarkOptional } from 'ts-essentials';
 import { Address } from '../../models/Address';
@@ -86,7 +86,9 @@ function AddressSearchableSelectNext(props: Props) {
                 container
                 flexDirection="row"
                 justifyContent="space-between"
-                sm
+                size={{
+                  sm: "grow"
+                }}
               >
                 <a
                   className={fr.cx('fr-link--sm')}

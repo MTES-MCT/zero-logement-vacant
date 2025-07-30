@@ -1,20 +1,22 @@
 {
   "name": "@zerologementvacant/api-sdk",
   "version": "0.0.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "clean": "rimraf dist tsconfig.build.tsbuildinfo",
-    "typecheck": "tsc --noEmit",
-    "build": "pkgroll -p tsconfig.build.json",
-    "dev": "nodemon --watch src -e ts --exec 'yarn build'",
-    "test": "jest",
-    "coverage": "jest --coverage"
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/lib/index.d.ts",
+        "default": "./dist/lib/index.js"
+      },
+      "require": {
+        "types": "./dist/lib/index.d.cts",
+        "default": "./dist/lib/index.cjs"
+      }
+    }
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
-    "@swc/core": "^1.11.8",
-    "@swc/jest": "^0.2.37",
     "@tsconfig/node20": "^20.1.4",
     "@types/convict": "^6.1.6",
     "@types/jest": "^29.5.13",
@@ -22,14 +24,7 @@
     "@types/node": "^20.16.10",
     "@types/pg": "^8.11.10",
     "@types/qs": "^6",
-    "jest": "^29.7.0",
-    "jest-extended": "^4.0.2",
-    "nock": "^13.5.5",
-    "nodemon": "^3.1.7",
-    "pkgroll": "^2.11.2",
-    "rimraf": "^5.0.10",
-    "ts-jest": "^29.2.5",
-    "typescript": "^5.6.2"
+    "nock": "^13.5.5"
   },
   "dependencies": {
     "@zerologementvacant/models": "workspace:*",

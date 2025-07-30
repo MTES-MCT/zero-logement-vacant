@@ -57,7 +57,7 @@ export const INSERT_VARIABLE_COMMAND: LexicalCommand<Variable> =
     useEffect(() => {
       return editor.registerMutationListener(VariableNode, (nodes) => {
         editor.update(() => {
-          nodes.forEach((mutation, nodeKey) => {
+          nodes.forEach((_, nodeKey) => {
             const node = editor.getEditorState().read(() => $getNodeByKey(nodeKey));
             if (node instanceof VariableNode && !node.isAttached()) {
               cleanUpWhitespace(node);

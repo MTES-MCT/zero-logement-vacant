@@ -1,6 +1,4 @@
-// Import UserRole from models package
 import { UserAccountDTO, UserDTO, UserRole } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
 
 export const SALT_LENGTH = 10;
 
@@ -50,37 +48,6 @@ export function toUserAccountDTO(user: UserApi): UserAccountDTO {
   };
 }
 
-export function detectDomain(users: UserApi[]): string | null {
-  const getDomain = (email: string): string => {
-    return email.substring(email.indexOf('@') + 1);
-  };
-
-  return fp.pipe(
-    fp.countBy<UserApi>((user) => getDomain(user.email)),
-    Object.entries,
-    fp.map(([domain, count]) => {
-      return {
-        domain,
-        count
-      };
-    }),
-    fp.filter((value) => isAllowedDomain(value.domain)),
-    fp.maxBy((value) => value.count),
-    (value) => value?.domain ?? null
-  )(users);
-}
-
-function isAllowedDomain(domain: string): boolean {
-  const domains = [
-    'gmail.com',
-    'hotmail.fr',
-    'hotmail.com',
-    'wanadoo.fr',
-    'wanadoo.com'
-  ];
-  return !domains.includes(domain);
-}
-
 export interface TokenPayload {
   userId: string;
   establishmentId: string;
@@ -91,9 +58,9 @@ export interface TokenPayload {
  * @deprecated Use UserRole from @zerologementvacant/models instead
  */
 export enum UserRoles {
-  Usual = 0,
-  Admin = 1,
-  Visitor = 2
+  Usual,
+  Admin,
+  Visitor
 }
 
 // Map local UserRoles to imported UserRole

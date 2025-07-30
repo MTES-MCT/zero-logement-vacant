@@ -14,23 +14,27 @@ import { createServer } from '~/infra/server';
 import {
   formatOwnerProspectApi,
   OwnerProspects,
-  ownerProspectsTable,
+  ownerProspectsTable
 } from '~/repositories/ownerProspectRepository';
 import { tokenProvider } from '~/test/testUtils';
 import { OwnerProspectApi } from '~/models/OwnerProspectApi';
 import { PaginatedResultApi } from '~/models/PaginatedResultApi';
 import {
   formatLocalityApi,
-  Localities,
+  Localities
 } from '~/repositories/localityRepository';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import { formatUserApi, Users } from '~/repositories/userRepository';
 
 describe('Owner prospect controller', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const locality = genLocalityApi();
   const anotherLocality = genLocalityApi();
@@ -39,7 +43,7 @@ describe('Owner prospect controller', () => {
 
   beforeAll(async () => {
     await Localities().insert(
-      [locality, anotherLocality].map(formatLocalityApi),
+      [locality, anotherLocality].map(formatLocalityApi)
     );
     await Establishments().insert(formatEstablishmentApi(establishment));
     await Users().insert(formatUserApi(user));
@@ -57,65 +61,65 @@ describe('Owner prospect controller', () => {
     it('should received a valid owner prospect', async () => {
       const ownerProspect = genOwnerProspectApi();
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...ownerProspect,
-          email: randomstring.generate(),
+          email: randomstring.generate()
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...ownerProspect,
-          email: undefined,
+          email: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...ownerProspect,
-          address: undefined,
+          address: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...ownerProspect,
-          firstName: undefined,
+          firstName: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...ownerProspect,
-          lastName: undefined,
+          lastName: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...ownerProspect,
-          geoCode: undefined,
+          geoCode: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           ...ownerProspect,
-          phone: undefined,
+          phone: undefined
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should create a new owner prospect', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(ownerProspect);
 
@@ -123,7 +127,7 @@ describe('Owner prospect controller', () => {
       expect(body).toMatchObject({
         ...ownerProspect,
         createdAt: expect.any(String),
-        id: expect.any(String),
+        id: expect.any(String)
       });
 
       await db(ownerProspectsTable)
@@ -137,8 +141,8 @@ describe('Owner prospect controller', () => {
               last_name: ownerProspect.lastName,
               address: ownerProspect.address,
               geo_code: ownerProspect.geoCode,
-              phone: ownerProspect.phone,
-            }),
+              phone: ownerProspect.phone
+            })
           );
         });
     });
@@ -150,7 +154,7 @@ describe('Owner prospect controller', () => {
     const ownerProspects: OwnerProspectApi[] = [
       genOwnerProspectApi(locality.geoCode),
       genOwnerProspectApi(locality.geoCode),
-      genOwnerProspectApi(anotherLocality.geoCode),
+      genOwnerProspectApi(anotherLocality.geoCode)
     ];
 
     beforeAll(async () => {
@@ -158,10 +162,10 @@ describe('Owner prospect controller', () => {
     });
 
     it('should receive valid query parameters', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute)
         .query({
-          sort: '-email,address,123',
+          sort: '-email,address,123'
         })
         .use(tokenProvider(user));
 
@@ -169,7 +173,7 @@ describe('Owner prospect controller', () => {
     });
 
     it('should list owner prospects by establishment', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -180,10 +184,10 @@ describe('Owner prospect controller', () => {
     });
 
     it('should return 206 Partial Content if the page does not include all records', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query({
-          perPage: 1,
+          perPage: 1
         })
         .use(tokenProvider(user));
 
@@ -192,8 +196,8 @@ describe('Owner prospect controller', () => {
         {
           filteredCount: 1,
           page: 1,
-          perPage: 1,
-        },
+          perPage: 1
+        }
       );
       expect(body.entities).toHaveLength(1);
     });
@@ -209,15 +213,15 @@ describe('Owner prospect controller', () => {
       ownerProspect = genOwnerProspectApi(locality.geoCode);
       anotherOwnerProspect = genOwnerProspectApi(anotherLocality.geoCode);
       await OwnerProspects().insert(
-        [ownerProspect, anotherOwnerProspect].map(formatOwnerProspectApi),
+        [ownerProspect, anotherOwnerProspect].map(formatOwnerProspectApi)
       );
     });
 
     it('should receive a valid payload', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(ownerProspect.id))
         .send({
-          callBack: '123',
+          callBack: '123'
         })
         .use(tokenProvider(user));
 
@@ -225,11 +229,11 @@ describe('Owner prospect controller', () => {
     });
 
     it("should be forbidden to update another locality's owner prospect", async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(anotherOwnerProspect.id))
         .send({
           callBack: true,
-          read: false,
+          read: false
         })
         .use(tokenProvider(user));
 
@@ -237,12 +241,12 @@ describe('Owner prospect controller', () => {
     });
 
     it('should update only the allowed attributes', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(ownerProspect.id))
         .send({
           id: uuidv4(),
           callBack: !ownerProspect.callBack,
-          read: true,
+          read: true
         })
         .use(tokenProvider(user));
 
@@ -251,7 +255,7 @@ describe('Owner prospect controller', () => {
         ...ownerProspect,
         createdAt: ownerProspect.createdAt.toJSON(),
         callBack: !ownerProspect.callBack,
-        read: true,
+        read: true
       });
     });
   });

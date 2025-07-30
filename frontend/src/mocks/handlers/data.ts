@@ -1,9 +1,11 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
+
 import {
   BaseHousingOwnerDTO,
   CampaignDTO,
   DatafoncierHousing,
   DraftDTO,
+  EstablishmentDTO,
   EventUnionDTO,
   GroupDTO,
   HousingDTO,
@@ -15,8 +17,7 @@ import {
   PROPERTY_RIGHT_VALUES,
   ProspectDTO,
   SignupLinkDTO,
-  UserDTO,
-  type EstablishmentDTO
+  UserDTO
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
@@ -28,7 +29,6 @@ import {
   genSenderDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
-import fp from 'lodash/fp';
 
 const campaigns: CampaignDTO[] = Array.from({ length: 10 }, genCampaignDTO);
 
@@ -75,7 +75,7 @@ const campaignHousings = new Map<
 >(
   campaigns.map((campaign) => {
     const elements = faker.helpers.arrayElements(housings);
-    return [campaign.id, elements.map(fp.pick(['id']))];
+    return [campaign.id, elements.map((housing) => ({ id: housing.id }))];
   })
 );
 const housingCampaigns = new Map<HousingDTO['id'], CampaignDTO[]>();
@@ -119,6 +119,11 @@ const precisions: Precision[] = PRECISION_CATEGORY_VALUES.map((category) => ({
   label: faker.word.sample()
 }));
 
+const housingPrecisions = new Map<
+  HousingDTO['id'],
+  ReadonlyArray<Precision['id']>
+>();
+
 const housingEvents = new Map<
   HousingDTO['id'],
   EventUnionDTO<
@@ -135,7 +140,8 @@ const signupLinks: SignupLinkDTO[] = [];
 
 const establishments: EstablishmentDTO[] = [];
 
-const data = {
+// Export immediately to avoid Vite SSR module wrapping
+export default {
   campaigns,
   campaignDrafts,
   campaignHousings,
@@ -150,6 +156,7 @@ const data = {
   housingEvents,
   housingNotes,
   housingOwners,
+  housingPrecisions,
   notes,
   owners,
   precisions,
@@ -157,5 +164,3 @@ const data = {
   signupLinks,
   users
 };
-
-export default data;

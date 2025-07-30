@@ -4,7 +4,7 @@ import {
   OwnerDTO
 } from '@zerologementvacant/models';
 import { contramap, DEFAULT_ORDER, Ord } from '@zerologementvacant/utils';
-import fp from 'lodash/fp';
+import { isEqual, pick, pickBy } from 'lodash-es';
 import { Address, fromAddressDTO, toOwnerAddressDTO } from './Address';
 
 export interface DraftOwner {
@@ -100,19 +100,18 @@ export const getHousingOwnerRankLabel = (rank: number) => {
 };
 
 function compare(before: Owner, after: Owner): Partial<Owner> {
-  return fp.pipe(
-    fp.pick([
-      'fullName',
-      'birthDate',
-      'email',
-      'phone',
-      'banAddress',
-      'additionalAddress'
-    ]),
-    fp.pickBy(
-      (value, key) => !fp.isEqual(value, after[key as keyof typeof value])
-    )
-  )(before);
+  const keys: ReadonlyArray<keyof Owner> = [
+    'fullName',
+    'birthDate',
+    'email',
+    'phone',
+    'banAddress',
+    'additionalAddress'
+  ];
+  return pickBy(
+    pick(before, keys),
+    (value, key) => !isEqual(value, after[key as keyof typeof value])
+  );
 }
 
 export function hasOwnerChanges(before: Owner, after: Owner): boolean {

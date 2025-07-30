@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [24.x]
     services:
       postgres:
         image: postgis/postgis
@@ -79,7 +79,7 @@ jobs:
         run: yarn lint
 
       - name: Test
-        run: yarn coverage --parallel
+        run: yarn coverage
         env:
           LOG_LEVEL: fatal
           REACT_APP_API_URL: http://localhost:3001
@@ -106,9 +106,6 @@ jobs:
           disable_search: true
           files: ./server/coverage/coverage-final.json
           flags: server
-
-      - name: Test database migrations
-        run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band
 
   deploy-front-staging:
     uses: ./.github/workflows/deploy.yml

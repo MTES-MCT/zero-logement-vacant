@@ -1,0 +1,30 @@
+{
+  "name": "@zerologementvacant/server",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "server/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "options": {
+        "main": "server/src/index.ts",
+        "tsConfig": "server/tsconfig.app.json",
+        "outputPath": "server/dist/app",
+        "rootDir": "server/src",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "server/src/infra/database/migrations",
+            "output": "./migrations"
+          },
+          {
+            "glob": "**/*",
+            "input": "server/src/infra/database/seeds",
+            "output": "./seeds"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { fc, test } from '@fast-check/jest';
+import { fc, test } from '@fast-check/vitest';
 
 import {
   HOUSING_KIND_VALUES,
@@ -21,7 +21,7 @@ describe('SourceHousing', () => {
       building_year: fc.option(
         fc.integer({ min: 1, max: new Date().getUTCFullYear() })
       ),
-      plot_id: fc.option(fc.string({ minLength: 1 })),
+      plot_id: fc.option(fc.stringMatching(/\S+/)),
       geo_code: fc.string({ minLength: 5, maxLength: 5 }),
       ban_id: fc.option(fc.string({ minLength: 1 })),
       ban_label: fc.option(fc.string({ minLength: 1 })),
@@ -41,7 +41,7 @@ describe('SourceHousing', () => {
       rooms_count: fc.option(fc.integer({ min: 0 })),
       uncomfortable: fc.option(fc.boolean()),
       cadastral_classification: fc.option(fc.integer({ min: 0 })),
-      cadastral_reference: fc.option(fc.string()),
+      cadastral_reference: fc.option(fc.stringMatching(/\S+/)),
       taxed: fc.boolean(),
       rental_value: fc.option(fc.integer({ min: 0 })),
       occupancy_source: fc.constantFrom(...OCCUPANCY_VALUES),
@@ -49,9 +49,9 @@ describe('SourceHousing', () => {
         min: 1,
         max: new Date().getUTCFullYear()
       }),
-      mutation_date: fc.option(fc.date()),
-      last_mutation_date: fc.option(fc.date()),
-      last_transaction_date: fc.option(fc.date()),
+      mutation_date: fc.option(fc.date({ noInvalidDate: true })),
+      last_mutation_date: fc.option(fc.date({ noInvalidDate: true })),
+      last_transaction_date: fc.option(fc.date({ noInvalidDate: true })),
       last_transaction_value: fc.option(fc.integer({ min: 0 }))
     })('should validate a source housing', (sourceHousing) => {
       const validate = () => sourceHousingSchema.validateSync(sourceHousing);

@@ -1,4 +1,4 @@
-import fp from 'lodash/fp';
+import { Array, pipe, Predicate, String } from 'effect';
 
 export interface AddressDTO {
   refId: string;
@@ -54,6 +54,11 @@ export function formatAddress(
     .replace(/(\d{5})/, ', $1')
     .replace(/(2A|2B)(\d{3})/, ', $1$2')
     .split(',')
-    .map(fp.trim);
-  return fp.compact([additionalAddress, ...label]);
+    .map(String.trim);
+
+  return pipe(
+    [additionalAddress, ...label],
+    Array.filter(Predicate.isNotNullable),
+    Array.filter(String.isNonEmpty)
+  );
 }

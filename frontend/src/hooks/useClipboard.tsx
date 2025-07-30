@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { delay } from 'lodash';
+import { delay } from 'lodash-es';
 
 interface ClipboardOptions {
   /**

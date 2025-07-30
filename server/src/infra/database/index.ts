@@ -1,9 +1,9 @@
-import { Knex, knex } from 'knex';
-import fp from 'lodash/fp';
+import { pipe, Predicate, Record, Struct } from 'effect';
+import { camelToSnake } from 'effect/String';
+import knex, { Knex } from 'knex';
 import { match } from 'ts-pattern';
 
 import config from '~/infra/database/knexfile';
-import { compact } from '~/utils/object';
 
 const db = knex(config);
 
@@ -30,16 +30,24 @@ interface WhereOptions {
   table?: string;
 }
 
-export function where<T>(props: Array<keyof T>, opts?: WhereOptions) {
-  return fp.pipe(
-    fp.pick(props),
-    compact,
-    fp.mapKeys(
-      fp.pipe(fp.snakeCase, (key) =>
-        opts?.table ? `${opts?.table}.${key}` : key
-      )
-    )
-  );
+export function where<T extends object>(
+  props: Array<keyof T>,
+  opts?: WhereOptions
+) {
+  return (values: T): Record<string, unknown> => {
+    const keys = Struct.keys(values).filter((key) => props.includes(key));
+    return pipe(
+      values,
+      Struct.pick(...keys),
+      (value) => value as Record<string, unknown>,
+      Record.filter(Predicate.isNotUndefined),
+      Record.mapKeys((key) => {
+        return pipe(key, camelToSnake, (key: string) =>
+          opts?.table ? `${opts?.table}.${key}` : key
+        );
+      })
+    );
+  };
 }
 
 export function groupBy<T>(props?: Array<keyof T>) {

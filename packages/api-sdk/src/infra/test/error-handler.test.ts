@@ -1,6 +1,7 @@
 import axios from 'axios';
 import nock from 'nock';
 import { constants } from 'node:http2';
+import { vi } from 'vitest';
 
 import createErrorHandler from '../error-handler';
 
@@ -15,11 +16,11 @@ describe('Error handler', () => {
       undefined,
       createErrorHandler({
         logger: {
-          trace: jest.fn(),
-          debug: jest.fn(),
-          info: jest.fn(),
-          warn: jest.fn(),
-          error: jest.fn()
+          trace: vi.fn(),
+          debug: vi.fn(),
+          info: vi.fn(),
+          warn: vi.fn(),
+          error: vi.fn()
         }
       })
     );

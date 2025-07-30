@@ -1,4 +1,4 @@
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { ChangeEvent, ChangeEventHandler, useId } from 'react';
 import { match } from 'ts-pattern';
@@ -79,10 +79,10 @@ function DraftSignature(props: Readonly<Props>) {
     <Grid
       container
       component="article"
-      xs={10}
-      xsOffset={2}
       alignItems="flex-start"
       justifyContent="flex-end"
+      size={10}
+      offset={2}
     >
       {props.value?.map((signatory, index) => (
         <Grid
@@ -90,15 +90,15 @@ function DraftSignature(props: Readonly<Props>) {
           key={index}
           className={styles.article}
           sx={{ ml: 2, p: 2 }}
-          xs
+          size="grow"
         >
           <Grid container spacing={2}>
-            <Grid xs={12}>
+            <Grid size={12}>
               <Typography component="h4" variant="h6" mb={2}>
                 {title(index)}
               </Typography>
             </Grid>
-            <Grid xs={6}>
+            <Grid size={6}>
               <AppTextInput
                 inputForm={props.form}
                 inputKey={`signatories.${index}.firstName`}
@@ -107,7 +107,7 @@ function DraftSignature(props: Readonly<Props>) {
                 onChange={onChange(index, 'firstName')}
               />
             </Grid>
-            <Grid xs={6}>
+            <Grid size={6}>
               <AppTextInput
                 inputForm={props.form}
                 inputKey="sender.signatoryLastName"
@@ -117,7 +117,7 @@ function DraftSignature(props: Readonly<Props>) {
               />
             </Grid>
 
-            <Grid xs={12}>
+            <Grid size={12}>
               <AppTextInput
                 inputForm={props.form}
                 inputKey="sender.signatoryRole"
@@ -127,7 +127,7 @@ function DraftSignature(props: Readonly<Props>) {
               />
             </Grid>
 
-            <Grid xs={12}>
+            <Grid size={12}>
               <FileUpload
                 id={uploadIds[index]}
                 onUpload={(file) => onFileUpload(index, file)}

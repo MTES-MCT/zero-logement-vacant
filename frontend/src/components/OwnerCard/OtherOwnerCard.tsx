@@ -22,7 +22,7 @@ function OtherOwnerCard({ owner }: OtherOwnerCardProps) {
           ? {
               to: '/proprietaires/' + owner.id
             }
-          : { to: 'javascript:void(0)' }
+          : { to: '#' }
       }
       className={classNames('fr-mb-1w', styles.coOwnerCard, 'app-card-xs')}
       title={
@@ -45,7 +45,7 @@ function OtherOwnerCard({ owner }: OtherOwnerCardProps) {
           </Label>
           {owner.rank !== -2 && (
             <Typography
-              component="p"
+              component="span"
               mb={0}
               mr={1}
               className="float-right fr-link"

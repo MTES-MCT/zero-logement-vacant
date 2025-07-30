@@ -7,7 +7,7 @@ import path from 'node:path';
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
 dotenv.config({
-  path: path.join(__dirname, '..', '..', '.env')
+  path: path.join(import.meta.dirname, '..', '..', '.env')
 });
 
 const isProduction = process.env.NODE_ENV === 'production';

@@ -12,7 +12,7 @@ import {
 import async from 'async';
 import { Provider } from 'react-redux';
 
-import { genEvent, genUser } from '../../../../test/fixtures.test';
+import { genEvent, genUser } from '../../../../test/fixtures';
 import { Event } from '../../../models/Event';
 import { Note } from '../../../models/Note';
 import { User } from '../../../models/User';

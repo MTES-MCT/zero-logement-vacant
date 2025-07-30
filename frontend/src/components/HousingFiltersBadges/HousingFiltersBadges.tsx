@@ -8,7 +8,7 @@ import {
   isPrecisionMechanismCategory,
   Precision
 } from '@zerologementvacant/models';
-import fp from 'lodash/fp';
+import { Struct } from 'effect';
 import { match, Pattern } from 'ts-pattern';
 
 import { useCampaignList } from '../../hooks/useCampaignList';
@@ -96,7 +96,9 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
   const { data: precisions } = useFindPrecisionsQuery();
   const precisionOptions = precisions ?? [];
 
-  const hasFilters = fp.keys(fp.omit(['groupIds'], filters)).length > 0;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { groupIds, ...rest } = filters;
+  const hasFilters = Struct.keys(rest).length > 0;
 
   if (!hasFilters) {
     return null;

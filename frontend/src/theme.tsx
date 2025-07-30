@@ -1,13 +1,13 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { createMuiDsfrThemeProvider } from '@codegouvfr/react-dsfr/mui';
-import { StyledEngineProvider, Theme } from '@mui/material/styles';
-import fp from 'lodash/fp';
+import { StyledEngineProvider, type Theme } from '@mui/material/styles';
+import { defaultsDeep } from 'lodash-es';
 import { PropsWithChildren } from 'react';
 import { DeepPartial } from 'ts-essentials';
 
 const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
-  augmentMuiTheme({ nonAugmentedMuiTheme }): Theme {
-    return fp.defaultsDeep(nonAugmentedMuiTheme, {
+  augmentMuiTheme: ({ nonAugmentedMuiTheme }) => {
+    const overrides: DeepPartial<Theme> = {
       zIndex: {
         // Found in @codegouvfr/react-dsfr
         drawer: 500,
@@ -91,7 +91,8 @@ const { MuiDsfrThemeProvider } = createMuiDsfrThemeProvider({
           }
         }
       }
-    } satisfies DeepPartial<Theme>);
+    };
+    return defaultsDeep(overrides, nonAugmentedMuiTheme);
   }
 });
 

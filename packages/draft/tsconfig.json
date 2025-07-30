@@ -1,13 +1,23 @@
 {
-  "extends": "@tsconfig/node20/tsconfig.json",
+  "extends": "../../tsconfig.base.json",
+  "files": [],
   "compilerOptions": {
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
     "lib": ["es2023", "dom"],
-    "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "resolveJsonModule": true
   },
-  "include": ["src"]
+  "references": [
+    {
+      "path": "../utils"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
 }

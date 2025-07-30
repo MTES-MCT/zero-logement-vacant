@@ -1,6 +1,6 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -137,9 +137,9 @@ const HousingListView = () => {
         onReset={onResetFilters}
         onClose={() => setExpand(false)}
       />
-      <Grid container flexDirection="column" px={3} py={4} xs>
+      <Grid container flexDirection="column" px={3} py={4} size="grow">
         {alert && (
-          <Grid xs>
+          <Grid size="grow">
             <Alert
               severity="success"
               description={alert}
@@ -150,21 +150,21 @@ const HousingListView = () => {
           </Grid>
         )}
 
-        <Grid container mb={1} spacing={2} xs={12}>
-          <Grid xs>
+        <Grid container mb={1} spacing={2} size={12}>
+          <Grid size="grow">
             <AppSearchBar
               onSearch={searchWithQuery}
               initialQuery={filters.query}
               placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
             />
           </Grid>
-          <Grid xs="auto">
+          <Grid size="auto">
             <HousingDisplaySwitch />
           </Grid>
-          <Grid xs="auto">
+          <Grid size="auto">
             {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
           </Grid>
-          <Grid xs="auto">
+          <Grid size="auto">
             <Button
               priority="primary"
               onClick={() => {
@@ -293,7 +293,7 @@ const HousingListView = () => {
           </Grid>
         </Grid>
 
-        <Grid sx={{ mb: 3 }} xs={12}>
+        <Grid sx={{ mb: 3 }} size={12}>
           <HousingFiltersBadges filters={filters} onChange={onChangeFilters} />
         </Grid>
 
@@ -307,7 +307,7 @@ const HousingListView = () => {
           onClose={() => setShowExportAlert(false)}
         />
 
-        <Grid mb={1} xs={12}>
+        <Grid mb={1} size={12}>
           {view === 'map' ? (
             <HousingListMap filters={filters} />
           ) : (

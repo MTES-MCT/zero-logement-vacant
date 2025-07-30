@@ -1,6 +1,6 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
 import Image from '../../../components/Image/Image';
@@ -10,7 +10,7 @@ import AppLink from '../../../components/_app/AppLink/AppLink';
 function AccountAwaitingAccessView() {
   return (
     <Grid container>
-      <Grid xs={7}>
+      <Grid size={7}>
         <Typography component="h1" variant="h6" sx={{ mb: 2 }}>
           Votre demande d’accès aux données LOVAC n’a pas encore été validée
         </Typography>
@@ -48,14 +48,13 @@ function AccountAwaitingAccessView() {
           Retour à la page d’accueil
         </Button>
       </Grid>
-
       <Grid
         sx={{
           display: 'flex',
           justifyContent: 'flex-end'
         }}
-        xs={4}
-        xsOffset={1}
+        size={4}
+        offset={1}
       >
         <Image
           alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"

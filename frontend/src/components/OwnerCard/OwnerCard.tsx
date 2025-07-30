@@ -3,7 +3,7 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 
 import { formatAddress } from '@zerologementvacant/models';
 import { ReactNode } from 'react';
@@ -32,17 +32,17 @@ function OwnerCard(props: OwnerCardProps) {
   return (
     <Paper component="article" elevation={0} sx={{ padding: 3 }}>
       <Grid component="header" container sx={{ mb: 1 }}>
-        <Grid xs>
+        <Grid size="grow">
           <Typography component="h2" variant="h4" mb={0} data-testid="fullName">
             {props.owner.fullName}
           </Typography>
           <Typography>Propriétaire principal</Typography>
         </Grid>
-        <Grid xs="auto">{props.modify}</Grid>
+        <Grid size="auto">{props.modify}</Grid>
       </Grid>
       <Grid component="section" container rowSpacing={1}>
         {props.owner.birthDate ? (
-          <Grid xs={12}>
+          <Grid size={12}>
             <LabelNext component="h3">
               <span
                 className={fr.cx(
@@ -61,7 +61,7 @@ function OwnerCard(props: OwnerCardProps) {
           </Grid>
         ) : null}
 
-        <Grid xs={12}>
+        <Grid size={12}>
           <LabelNext component="h3">
             <span
               className={fr.cx('fr-icon-bank-line', 'fr-icon--sm', 'fr-mr-1w')}
@@ -76,7 +76,7 @@ function OwnerCard(props: OwnerCardProps) {
           </Typography>
         </Grid>
 
-        <Grid xs={12}>
+        <Grid size={12}>
           <LabelNext component="h3">
             <span
               className={fr.cx(
@@ -96,7 +96,7 @@ function OwnerCard(props: OwnerCardProps) {
         </Grid>
 
         {!isBanEligible(props.owner.banAddress) && (
-          <Grid xs={12}>
+          <Grid size={12}>
             <Alert
               severity="info"
               classes={{ title: fr.cx('fr-mb-2w') }}
@@ -118,7 +118,7 @@ function OwnerCard(props: OwnerCardProps) {
         )}
 
         {props.owner.additionalAddress ? (
-          <Grid xs={12}>
+          <Grid size={12}>
             <LabelNext component="h3">
               <span
                 className={fr.cx(
@@ -135,7 +135,7 @@ function OwnerCard(props: OwnerCardProps) {
         ) : null}
 
         {props.owner.email ? (
-          <Grid xs={12}>
+          <Grid size={12}>
             <LabelNext component="h3">
               <span
                 className={fr.cx(
@@ -156,7 +156,7 @@ function OwnerCard(props: OwnerCardProps) {
         ) : null}
 
         {props.owner.phone ? (
-          <Grid xs={12}>
+          <Grid size={12}>
             <LabelNext component="h3">
               <span
                 className={fr.cx(
@@ -185,7 +185,6 @@ function OwnerCard(props: OwnerCardProps) {
           </Button>
         ) : null}
       </Grid>
-
       {secondaryOwners && secondaryOwners?.length > 0 && (
         <>
           <Typography component="h2" variant="h6" mb={1} mt={4}>
@@ -197,7 +196,6 @@ function OwnerCard(props: OwnerCardProps) {
           ))}
         </>
       )}
-
       {archivedOwners && archivedOwners.length > 0 && (
         <>
           <Typography component="h2" variant="h6" sx={{ mb: '0.5rem' }}>

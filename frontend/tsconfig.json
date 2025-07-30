@@ -1,4 +1,32 @@
 {
-  "extends": "@tsconfig/create-react-app/tsconfig.json",
-  "include": ["src"]
+  "extends": ["@tsconfig/vite-react/tsconfig.json", "../tsconfig.base.json"],
+  "files": [],
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "~/*": ["./src/*"]
+    }
+  },
+  "references": [
+    {
+      "path": "../packages/utils"
+    },
+    {
+      "path": "../packages/schemas"
+    },
+    {
+      "path": "../queue"
+    },
+    {
+      "path": "../packages/models"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
 }

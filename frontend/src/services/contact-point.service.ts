@@ -39,14 +39,14 @@ export const contactPointsApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'ContactPoint', id }]
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'ContactPoint', id }]
     }),
     removeContactPoint: builder.mutation<void, string>({
       query: (contactPointId) => ({
         url: `contact-points/${contactPointId}`,
         method: 'DELETE'
       }),
-      invalidatesTags: (result, error, contactPointId) => [
+      invalidatesTags: (_result, _error, contactPointId) => [
         { type: 'ContactPoint', contactPointId }
       ]
     })

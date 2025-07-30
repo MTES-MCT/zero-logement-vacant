@@ -7,12 +7,17 @@ import { tokenProvider } from '../../test/testUtils';
 import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
 import {
   Establishments,
-  formatEstablishmentApi,
+  formatEstablishmentApi
 } from '../../repositories/establishmentRepository';
 import { formatUserApi, Users } from '../../repositories/userRepository';
+import { createServer } from '~/infra/server';
 
 describe('File API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -26,9 +31,9 @@ describe('File API', () => {
     const testRoute = '/api/files';
 
     it('should upload a file', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
-        .attach('file', path.join(__dirname, 'test.jpeg'))
+        .attach('file', path.join(import.meta.dirname, 'test.jpeg'))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
@@ -36,7 +41,7 @@ describe('File API', () => {
         content: expect.stringMatching(/^data:([^;]+);/),
         id: expect.any(String),
         type: 'image/jpeg',
-        url: expect.any(String),
+        url: expect.any(String)
       });
     });
   });

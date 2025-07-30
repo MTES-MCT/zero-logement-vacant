@@ -25,7 +25,7 @@ export const geoPerimetersApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body: { kind, name },
       }),
-      invalidatesTags: (result, error, { geoPerimeterId }) => [
+      invalidatesTags: (_result, _error, { geoPerimeterId }) => [
         { type: 'GeoPerimeter', id: geoPerimeterId },
       ],
     }),
@@ -35,7 +35,7 @@ export const geoPerimetersApi = zlvApi.injectEndpoints({
         method: 'DELETE',
         body: { geoPerimeterIds },
       }),
-      invalidatesTags: (result, error, geoPerimeterId) => [
+      invalidatesTags: (_result, _error, geoPerimeterId) => [
         { type: 'GeoPerimeter', geoPerimeterId },
       ],
     }),

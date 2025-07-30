@@ -1,4 +1,4 @@
-import db, { onConflict } from '~/infra/database';
+import db, { onConflict, where } from '~/infra/database';
 import { faker } from '@faker-js/faker/locale/fr';
 
 describe('Database utils', () => {
@@ -101,6 +101,25 @@ describe('Database utils', () => {
         a: entity.a,
         b: replacement.b
       });
+    });
+  });
+
+  describe('where', () => {
+    it('should filter', async () => {
+      const entity: TestEntity = {
+        id: faker.string.uuid(),
+        a: faker.string.sample(),
+        b: faker.number.int({ max: 1000 })
+      };
+      await Tests().insert(entity);
+      const whereOptions = where<Partial<TestEntity>>(['id', 'a', 'b']);
+
+      const actual = await Tests()
+        .where(whereOptions({ id: entity.id }))
+        .first()
+        .debug(true);
+
+      expect(actual).toStrictEqual<TestEntity>(entity);
     });
   });
 });

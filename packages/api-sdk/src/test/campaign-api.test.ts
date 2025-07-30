@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import axios from 'axios';
 import nock from 'nock';
 import { constants } from 'node:http2';

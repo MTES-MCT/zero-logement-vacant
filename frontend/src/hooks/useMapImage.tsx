@@ -13,7 +13,7 @@ export function useMapImage(options: UseMapImageOptions) {
     if (map && !map.hasImage(options.id)) {
       map
         .loadImage(options.path)
-        .then((response) => {
+        .then((response: any) => {
           map.addImage(options.id, response.data, {
             sdf: false
           });

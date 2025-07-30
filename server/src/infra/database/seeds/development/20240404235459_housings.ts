@@ -9,7 +9,7 @@ import {
 import async from 'async';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
 import { Knex } from 'knex';
-import fp from 'lodash/fp';
+import { memoize } from 'lodash-es';
 import { ElementOf } from 'ts-essentials';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -207,7 +207,7 @@ async function perimeter(
 
 // Memoize this function to avoid fetching the same perimeter multiple times
 // and running out of requests on geo.api.gouv.fr
-const fetchPerimeter = fp.memoize(perimeter);
+const fetchPerimeter = memoize(perimeter);
 
 function generatePointInside(perimeter: Polygon | MultiPolygon): Position {
   function generate(): Position {

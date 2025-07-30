@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/spec",
+    "tsBuildInfoFile": "dist/spec/tsconfig.tsbuildinfo",
+    "typeRoots": ["../node_modules", "node_modules", "src/types"],
+    "types": [
+      "express",
+      "express-jwt",
+      "jest-extended",
+      "jest-sorted",
+      "vitest/globals"
+    ]
+  },
+  "include": [
+    "src/**/*.test.ts",
+    "src/test/global-setup.ts",
+    "src/test/setup-env.ts",
+    "src/test/setup-tests.ts",
+    "src/test/testUtils.ts"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
+}
+

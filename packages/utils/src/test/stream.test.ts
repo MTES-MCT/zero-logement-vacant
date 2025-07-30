@@ -1,4 +1,6 @@
 import { ReadableStream } from 'node:stream/web';
+import { vi } from 'vitest';
+
 import {
   chunkify,
   countLines,
@@ -174,7 +176,7 @@ describe('Stream', () => {
   describe('tap', () => {
     it('should call the given function', async () => {
       const items = [1, 2, 3];
-      const f = jest.fn();
+      const f = vi.fn();
       const stream = new ReadableStream<number>({
         start(controller) {
           items.forEach((item) => {

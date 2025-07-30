@@ -43,7 +43,7 @@ interface Config {
 }
 
 dotenv.config({
-  path: path.join(__dirname, '..', '.env'),
+  path: path.join(import.meta.dirname, '..', '.env')
 });
 
 const config = convict<Config>({

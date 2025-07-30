@@ -14,11 +14,11 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
-import fp from 'lodash/fp';
+import { pick } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import DraftMissingError from '~/errors/draftMissingError';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
 import { SenderApi } from '~/models/SenderApi';
 import campaignDraftRepository from '~/repositories/campaignDraftRepository';
@@ -26,6 +26,8 @@ import campaignRepository from '~/repositories/campaignRepository';
 import draftRepository, { DraftFilters } from '~/repositories/draftRepository';
 import senderRepository from '~/repositories/senderRepository';
 import { isUUIDParam } from '~/utils/validators';
+
+const logger = createLogger('draftController');
 
 export interface DraftParams extends Record<string, string> {
   id: string;
@@ -45,9 +47,13 @@ async function list(
     never,
     DraftQuery
   >;
+  logger.info('Finding drafts...', {
+    establishment: auth.establishmentId,
+    query
+  });
 
   const filters: DraftFilters = {
-    ...(fp.pick(['campaign'], query) as DraftQuery),
+    campaign: query.campaign,
     establishment: auth.establishmentId
   };
   const drafts: DraftApi[] = await draftRepository.find({
@@ -160,7 +166,7 @@ async function preview(
   const transformer = pdf.createTransformer({ logger });
   const pdfBuffer = await transformer.generatePDF({
     subject: draft.subject,
-    logo: draft.logo?.map(fp.pick(['id', 'content'])) ?? null,
+    logo: draft.logo?.map(logo => pick(logo, 'id', 'content')) ?? null,
     body: draft.body
       ? replaceVariables(draft.body, {
           housing: body.housing,

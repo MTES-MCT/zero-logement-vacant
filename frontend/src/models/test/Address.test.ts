@@ -1,6 +1,6 @@
-import { isBanEligible } from '../Address';
-import { genAddress } from '../../../test/fixtures.test';
+import { genAddress } from '../../../test/fixtures.ts';
 import config from '../../utils/config';
+import { isBanEligible } from '../Address';
 
 describe('Address', () => {
   describe('isBanEligible', () => {

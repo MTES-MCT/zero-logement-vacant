@@ -3,7 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -47,15 +47,12 @@ function GroupHeader(props: Props) {
           Vos groupes de logements
         </Typography>
       </Grid>
-
       {isLoadingGroups && <Loading />}
-
       {!isLoadingGroups && !filteredGroups?.length && <Empty />}
-
       {!isLoadingGroups && filteredGroups && filteredGroups.length > 0 && (
-        <Grid component="section" container justifyContent="center" xs={12}>
+        <Grid component="section" container justifyContent="center" size={12}>
           {filteredGroups.map((group) => (
-            <Grid component="article" key={group.id} mb={1} xs={12}>
+            <Grid component="article" key={group.id} mb={1} size={12}>
               <GroupCard group={group} isActive={isActive(group)} />
             </Grid>
           ))}

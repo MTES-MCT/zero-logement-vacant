@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -28,6 +28,7 @@ import {
   MemoryRouter as Router,
   RouterProvider
 } from 'react-router-dom';
+import { vi } from 'vitest';
 import data from '../../mocks/handlers/data';
 import { AppStore } from '../../store/store';
 import configureTestStore from '../../utils/test/storeUtils';
@@ -36,7 +37,7 @@ import GroupView from '../Group/GroupView';
 import HousingListTabsProvider from './HousingListTabsProvider';
 import HousingListView from './HousingListView';
 
-jest.mock('../../components/Aside/Aside.tsx');
+vi.mock('../../components/Aside/Aside.tsx');
 
 describe('Housing list view', () => {
   const user = userEvent.setup();
@@ -776,6 +777,7 @@ describe('Housing list view', () => {
         const options = await screen.findByRole('listbox');
         const option = await within(options).findByText('Non suivi');
         await user.click(option);
+        await user.keyboard('{Escape}');
         const badge = await screen.findByText('Statut de suivi : non suivi');
         expect(badge).toBeVisible();
       });

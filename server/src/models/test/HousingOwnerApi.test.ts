@@ -1,8 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { OwnerRank } from '@zerologementvacant/models';
 import {
-  compareHousingOwners,
-  equals,
   HOUSING_OWNER_EQUIVALENCE,
   HOUSING_OWNER_RANK_EQUIVALENCE,
   HousingOwnerApi,
@@ -81,45 +78,6 @@ describe('HousingOwnerApi', () => {
 
       expect(actual).toBeArrayOfSize(owners.length);
       expect(actual).toBeSortedBy('rank');
-    });
-  });
-
-  describe('compareHousingOwners', () => {
-    it('should return properties that differ', () => {
-      const a = genHousingOwnerApi(genHousingApi(), genOwnerApi());
-      const b: HousingOwnerApi = {
-        ...a,
-        rank: (a.rank + 1) as OwnerRank
-      };
-
-      const actual = compareHousingOwners(a, b);
-
-      expect(actual).toStrictEqual({
-        rank: a.rank
-      });
-    });
-  });
-
-  describe('equals', () => {
-    it('should return true if all properties are equal, false otherwise', () => {
-      const a = genHousingOwnerApi(genHousingApi(), genOwnerApi());
-      const b: HousingOwnerApi = {
-        ...a,
-        rank: (a.rank + 1) as OwnerRank
-      };
-
-      const actual = equals(a, b);
-
-      expect(actual).toBeFalse();
-    });
-
-    it('should return true if both values are undefined', () => {
-      const a = undefined;
-      const b = undefined;
-
-      const actual = equals(a, b);
-
-      expect(actual).toBeTrue();
     });
   });
 });

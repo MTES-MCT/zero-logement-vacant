@@ -70,11 +70,13 @@ router.get(
   validator.validate,
   housingController.get
 );
-router.post(
-  '/housing/list',
-  housingController.updateListValidators,
-  validator.validate,
-  housingController.updateList
+router.put(
+  '/housing',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    body: schemas.housingBatchUpdatePayload
+  }),
+  housingController.updateMany
 );
 router.put(
   '/housing/:id',
@@ -83,7 +85,7 @@ router.put(
     params: object({ id: schemas.id }),
     body: schemas.housingUpdatePayload
   }),
-  housingController.updateNext
+  housingController.update
 );
 
 // Buildings

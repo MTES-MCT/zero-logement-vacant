@@ -59,11 +59,12 @@ async function insertManyHousingEvents(
   events: ReadonlyArray<HousingEventApi>
 ): Promise<void> {
   if (!events.length) {
+    logger.debug('No housing event to insert. Skipping...');
     return;
   }
 
   logger.debug('Inserting housing events...', { events: events.length });
-  await db.transaction(async (transaction) => {
+  await withinTransaction(async (transaction) => {
     await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
     await transaction.batchInsert(
       HOUSING_EVENTS_TABLE,

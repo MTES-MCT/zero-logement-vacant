@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 
 import db from '~/infra/database';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
 import { DraftApi } from '~/models/DraftApi';
 import { campaignsDraftsTable } from '~/repositories/campaignDraftRepository';
 import {
@@ -12,6 +12,8 @@ import {
 import { download } from '~/controllers/fileRepository';
 import async from 'async';
 import { FileUploadDTO } from '@zerologementvacant/models';
+
+const logger = createLogger('draftRepository');
 
 export const draftsTable = 'drafts';
 export const Drafts = (transaction: Knex<DraftRecordDBO> = db) =>

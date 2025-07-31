@@ -165,6 +165,12 @@ export function hasCampaigns(housing: HousingApi): boolean {
   return !!housing.campaignIds?.length;
 }
 
+export function isContacted(housing: HousingApi): boolean {
+  return (
+    housing.status !== HousingStatus.NEVER_CONTACTED && hasCampaigns(housing)
+  );
+}
+
 export function isSupervised(
   housing: HousingApi,
   events: ReadonlyArray<HousingEventApi>

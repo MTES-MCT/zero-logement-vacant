@@ -26,7 +26,7 @@ import { array, boolean, number, object, ObjectSchema, string } from 'yup';
 import { commaSeparatedString, parseNull } from './transforms';
 
 export const housingFilters: ObjectSchema<HousingFiltersDTO> = object({
-  all: boolean().optional(),
+  all: boolean(),
   housingIds: array()
     .transform(commaSeparatedString)
     .of(string().uuid().required()),

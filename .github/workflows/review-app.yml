@@ -120,7 +120,7 @@ jobs:
           clever env set METABASE_API_TOKEN $METABASE_API_TOKEN -a $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Deploy the app
         run: |
@@ -186,7 +186,7 @@ jobs:
           clever env set SENTRY_ENABLED "false" -a $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Deploy the app
         run: |
@@ -241,7 +241,7 @@ jobs:
           clever env set WORKSPACE "@zerologementvacant/front" -a $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Deploy the app
         run: |
@@ -280,7 +280,7 @@ jobs:
         run: clever link -o $ORGA_ID $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Update the app
         run: clever deploy --force -a $APP_ALIAS --same-commit-policy rebuild
@@ -317,7 +317,7 @@ jobs:
         run: clever link -o $ORGA_ID $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Update the app
         run: clever deploy --force -a $APP_ALIAS --same-commit-policy rebuild
@@ -354,7 +354,7 @@ jobs:
         run: clever link -o $ORGA_ID $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Update the app
         run: clever deploy --force -a $APP_ALIAS --same-commit-policy rebuild

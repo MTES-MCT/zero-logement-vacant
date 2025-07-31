@@ -1,5 +1,4 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   MainNavigation,
@@ -48,16 +47,6 @@ function SmallHeader() {
             aria-hidden="true"
           ></span>
           {link.label}
-          {link.showNewBadge && (
-            <Badge
-              small={true}
-              severity="success"
-              noIcon={true}
-              className="fr-ml-1w fr-mr-0w"
-            >
-              Nouveau
-            </Badge>
-          )}
         </>
       ),
       isActive: location.pathname.startsWith(link.url)

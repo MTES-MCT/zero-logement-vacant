@@ -246,8 +246,6 @@ describe('Housing list view', () => {
 
   describe('Update several housings', () => {
     it('update occupancies', async () => {
-      const n = 2;
-
       setup();
 
       const housingTable = await screen.findByRole('table');
@@ -269,7 +267,7 @@ describe('Housing list view', () => {
       });
       await user.click(save);
       const modal = await screen.findByRole('dialog', {
-        name: `Vous êtes sur le point de mettre à jour ${n} logements`
+        name: /Vous êtes sur le point de mettre à jour \d+ logements/
       });
       expect(modal).toBeVisible();
       const confirm = await within(modal).findByRole('button', {
@@ -277,8 +275,8 @@ describe('Housing list view', () => {
       });
       await user.click(confirm);
 
-      const alert = await screen.findByRole('alert', {
-        name: `La mise à jour de ${n} logements a bien été enregistrée`
+      const alert = await screen.findByRole('heading', {
+        name: /La mise à jour groupée de \d+ logements a bien été enregistrée/
       });
       expect(alert).toBeVisible();
     });

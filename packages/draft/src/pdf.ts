@@ -94,7 +94,7 @@ class PdfPageManager {
       // Wait for content to load
       try {
         await this.page.waitForSelector(`#${id}`, { timeout: 5000 });
-      } catch (error) {
+      } catch {
         this.logger.warn(`Selector #${id} not found, continuing anyway`);
       }
 
@@ -513,7 +513,7 @@ export async function findMaxHtmlLengthThatFits({
         // Wait for content to render with shorter timeout
         try {
           await testPage.waitForSelector(`#${containerId}`, { timeout: 3000 });
-        } catch (error) {
+        } catch {
           // Continue even if selector is not found
         }
         
@@ -526,7 +526,7 @@ export async function findMaxHtmlLengthThatFits({
         } else {
           high = mid - 1;
         }
-      } catch (error) {
+      } catch {
         // In case of error, consider it doesn't fit
         high = mid - 1;
       }

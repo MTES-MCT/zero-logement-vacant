@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { faker } from '@faker-js/faker/locale/fr';
 import { OCCUPANCY_VALUES } from '@zerologementvacant/models';
 import { map, toArray } from '@zerologementvacant/utils/node';
@@ -22,7 +23,7 @@ import { compose, createUpdater } from '../updater';
 
 describe('Updater', () => {
   it('should write to a file', async () => {
-    const file = path.join(__dirname, 'housing-updates.jsonl');
+    const file = path.join(import.meta.dirname, 'housing-updates.jsonl');
     const items = Array.from({ length: 3 }, () => ({
       id: faker.string.uuid()
     }));
@@ -111,21 +112,27 @@ describe('Updater', () => {
 
   describe('compose', () => {
     it('should compose a TransformStream with a WritableStream', async () => {
-      const fn = jest.fn();
+      const fn = vi.fn();
       const actual: string[] = [];
-      const stringifier = new TransformStream<number, string>({
-        async transform(chunk, controller) {
-          await new Promise((resolve) => {
-            setTimeout(resolve, 100);
-          });
-          controller.enqueue(String(chunk));
-        }
-      });
-      const multipler = new TransformStream<number, number>({
-        async transform(chunk, controller) {
-          controller.enqueue(chunk * 2);
-        }
-      });
+
+      const stringifier = Transform.toWeb(
+        new Transform({
+          objectMode: true,
+          transform(chunk: number, _encoding, callback) {
+            callback(null, String(chunk));
+          }
+        })
+      );
+
+      const multipler = Transform.toWeb(
+        new Transform({
+          objectMode: true,
+          transform(chunk: number, _encoding, callback) {
+            callback(null, chunk * 2);
+          }
+        })
+      );
+
       const writer = new WritableStream<string>({
         async write(chunk) {
           await new Promise<void>((resolve) => {

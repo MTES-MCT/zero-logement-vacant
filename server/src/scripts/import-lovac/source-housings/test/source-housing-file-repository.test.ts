@@ -7,7 +7,7 @@ import createSourceHousingFileRepository from '~/scripts/import-lovac/source-hou
 
 describe('Source housing file repository', () => {
   describe('stream', () => {
-    const file = path.join(__dirname, 'source-housings.csv');
+    const file = path.join(import.meta.dirname, 'source-housings.csv');
 
     beforeAll(async () => {
       const csv = stringify([['geo_code'], ['01234'], ['12345'], ['23456']]);

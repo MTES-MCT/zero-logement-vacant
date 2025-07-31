@@ -7,7 +7,7 @@ import createSourceHousingOwnerFileRepository from '~/scripts/import-lovac/sourc
 
 describe('Source housing owner file repository', () => {
   describe('stream', () => {
-    const file = path.join(__dirname, 'source-housings.csv');
+    const file = path.join(import.meta.dirname, 'source-housings.csv');
 
     beforeAll(async () => {
       const csv = stringify([

@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -33,7 +33,7 @@ function AccountEmailActivationView() {
 
   return (
     <Grid container>
-      <Grid xs={7}>
+      <Grid size={7}>
         <Stepper
           currentStep={1}
           stepCount={2}
@@ -90,14 +90,13 @@ function AccountEmailActivationView() {
           Revenir à l’étape précédente
         </Button>
       </Grid>
-
       <Grid
         sx={{
           display: 'flex',
           justifyContent: 'flex-end'
         }}
-        xs={4}
-        xsOffset={1}
+        size={4}
+        offset={1}
       >
         <Image
           alt="50 heures de travail de travail économisées en utilisant Zéro Logement Vacant"

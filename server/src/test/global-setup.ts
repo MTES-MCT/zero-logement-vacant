@@ -1,5 +1,5 @@
 import async from 'async';
-import { knex } from 'knex';
+import knex from 'knex';
 
 import config from '~/infra/database/knexfile';
 
@@ -12,9 +12,6 @@ const tables: string[] = [
   'campaigns',
   'campaigns_drafts',
   'campaigns_housing',
-  'conflicts',
-  'conflicts_housing_owners',
-  'conflicts_owners',
   'contact_points',
   'df_housing_nat',
   'df_owners_nat',

@@ -26,8 +26,12 @@ const FIRST_PAGE_BODY_HEIGHT = 800; // pixels
 const OTHER_PAGE_BODY_HEIGHT = 1000; // pixels
 const LINE_HEIGHT = 22; // pixels
 
-const regularBuffer = fs.readFileSync(path.join(__dirname, 'fonts', 'Marianne-Regular.otf'));
-const boldBuffer = fs.readFileSync(path.join(__dirname, 'fonts', 'Marianne-Bold.otf'));
+const regularBuffer = fs.readFileSync(
+  path.join(import.meta.dirname, 'fonts', 'Marianne-Regular.otf')
+);
+const boldBuffer = fs.readFileSync(
+  path.join(import.meta.dirname, 'fonts', 'Marianne-Bold.otf')
+);
 
 const regularBase64 = regularBuffer.toString('base64');
 const boldBase64 = boldBuffer.toString('base64');

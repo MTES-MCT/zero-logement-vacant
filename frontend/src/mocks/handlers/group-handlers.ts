@@ -1,10 +1,9 @@
-import { faker } from '@faker-js/faker';
-import fp from 'lodash/fp';
-import { http, HttpResponse, RequestHandler } from 'msw';
-import { constants } from 'node:http2';
-
+import { faker } from '@faker-js/faker/locale/fr';
 import { GroupDTO, GroupPayloadDTO } from '@zerologementvacant/models';
 import { genGroupDTO } from '@zerologementvacant/models/fixtures';
+import { Array, Record } from 'effect';
+import { http, HttpResponse, RequestHandler } from 'msw';
+import { constants } from 'node:http2';
 
 import config from '../../utils/config';
 import data from './data';
@@ -83,15 +82,21 @@ export const groupHandlers: RequestHandler[] = [
     async ({ params }) => {
       const group = data.groups.find((group) => group.id === params.id);
       if (!group) {
-        throw HttpResponse.json({
-          name: 'GroupMissingError',
-          message: 'Group not found'
-        });
+        return HttpResponse.json(
+          {
+            name: 'GroupMissingError',
+            message: 'Group not found'
+          },
+          { status: constants.HTTP_STATUS_NOT_FOUND }
+        );
       }
 
       const groupHousings = data.groupHousings.get(group.id) ?? [];
       data.groupHousings.set(group.id, [
-        ...fp.uniq([...groupHousings, ...data.housings])
+        ...Array.dedupeWith(
+          [...groupHousings, ...data.housings],
+          (a, b) => a.id === b.id
+        )
       ]);
       return HttpResponse.json(null, {
         status: constants.HTTP_STATUS_OK

@@ -1,3 +1,4 @@
+import { vi, MockedObject } from 'vitest';
 import { ReadableStream } from 'node:stream/web';
 
 import { SourceBuilding } from '~/scripts/import-lovac/source-buildings/source-building';
@@ -8,20 +9,18 @@ import {
 } from '~/scripts/import-lovac/source-buildings/source-building-processor';
 
 describe('Source building processor', () => {
-  let buildingRepository: jest.MockedObject<
-    ProcessorOptions['buildingRepository']
-  >;
-  let reporter: jest.MockedObject<ProcessorOptions['reporter']>;
+  let buildingRepository: MockedObject<ProcessorOptions['buildingRepository']>;
+  let reporter: MockedObject<ProcessorOptions['reporter']>;
 
   beforeEach(() => {
     buildingRepository = {
-      save: jest.fn().mockImplementation(() => Promise.resolve())
+      save: vi.fn().mockImplementation(() => Promise.resolve())
     };
     reporter = {
-      passed: jest.fn(),
-      skipped: jest.fn(),
-      failed: jest.fn(),
-      report: jest.fn()
+      passed: vi.fn(),
+      skipped: vi.fn(),
+      failed: vi.fn(),
+      report: vi.fn()
     };
   });
 

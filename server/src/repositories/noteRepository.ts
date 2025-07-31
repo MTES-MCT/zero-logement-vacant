@@ -28,23 +28,20 @@ async function createByHousing(housingNote: HousingNoteApi): Promise<void> {
 }
 
 async function createManyByHousing(
-  housingNotes: HousingNoteApi[]
+  housingNotes: ReadonlyArray<HousingNoteApi>
 ): Promise<void> {
-  logger.debug('Inserting housing notes...', {
-    notes: housingNotes
-  });
-  if (housingNotes.length) {
-    await Notes().insert(
-      housingNotes.map((housingNote) => formatNoteApi(housingNote))
-    );
-    await HousingNotes().insert(
-      housingNotes.map<HousingNoteDBO>((housingNote) => ({
-        note_id: housingNote.id,
-        housing_id: housingNote.housingId,
-        housing_geo_code: housingNote.housingGeoCode
-      }))
-    );
+  if (!housingNotes.length) {
+    return;
   }
+
+  logger.debug('Inserting housing notes...', { notes: housingNotes.length });
+  await withinTransaction(async (transaction) => {
+    await transaction.batchInsert(NOTES_TABLE, housingNotes.map(formatNoteApi));
+    await transaction.batchInsert(
+      HOUSING_NOTES_TABLE,
+      housingNotes.map(formatHousingNoteApi)
+    );
+  });
 }
 
 interface FindByHousingOptions {
@@ -186,6 +183,7 @@ const listQuery = () =>
 
 export default {
   createByHousing,
+  createManyByHousing,
   findByHousing,
   get,
   update,

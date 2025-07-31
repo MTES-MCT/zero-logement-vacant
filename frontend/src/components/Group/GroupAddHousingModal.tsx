@@ -3,7 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Select, { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
 import Skeleton from '@mui/material/Skeleton';
 import { FormProvider, useController, useForm } from 'react-hook-form';
@@ -105,7 +105,7 @@ function createGroupAddHousingModal() {
             </Box>
 
             <Grid container sx={{ justifyContent: 'center' }}>
-              <Grid sx={{ display: 'flex', flexDirection: 'column' }} xs={8}>
+              <Grid sx={{ display: 'flex', flexDirection: 'column' }} size={8}>
                 {/* Shall be replaced by <AppSelectNext>
             whenever we upgrade the DSFR to v1.13.0.
             A [bug](https://github.com/GouvernementFR/dsfr/pull/992)

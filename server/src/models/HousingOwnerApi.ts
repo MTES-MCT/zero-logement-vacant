@@ -3,9 +3,7 @@ import {
   OwnerRank,
   PropertyRight
 } from '@zerologementvacant/models';
-import { isDefined, isUndefined } from '@zerologementvacant/utils';
 import { Equivalence } from 'effect';
-import { compare, includeSameMembers } from '~/utils/compareUtils';
 import { HousingRecordApi } from './HousingApi';
 import { OwnerApi, toOwnerDTO } from './OwnerApi';
 
@@ -90,23 +88,3 @@ export function toHousingOwnerDTO(
   };
 }
 
-export function compareHousingOwners(
-  a: HousingOwnerApi,
-  b: HousingOwnerApi
-): Partial<HousingOwnerApi> {
-  return compare(a, b, ['id', 'housingId', 'housingGeoCode', 'rank']);
-}
-
-export function equals(a?: HousingOwnerApi, b?: HousingOwnerApi): boolean {
-  if ([a, b].every(isUndefined)) {
-    return true;
-  }
-
-  return (
-    isDefined(a) &&
-    isDefined(b) &&
-    Object.values(compareHousingOwners(a, b)).length === 0
-  );
-}
-
-export const includeSameHousingOwners = includeSameMembers(equals);

@@ -1,6 +1,6 @@
-import { byAddress, getSource, Housing } from '../Housing';
+import { genHousing } from '../../../test/fixtures.ts';
 import { Compare } from '../../utils/compareUtils';
-import { genHousing } from '../../../test/fixtures.test';
+import { byAddress, getSource, Housing } from '../Housing';
 
 describe('Housing', () => {
   describe('byAddress', () => {

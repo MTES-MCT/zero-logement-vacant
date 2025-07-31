@@ -12,10 +12,10 @@ async function run(): Promise<void> {
     logger.info(`Procedure ${path} loaded.`);
   }
 
-  const files = await fs.readdir(__dirname, 'utf-8');
+  const files = await fs.readdir(import.meta.dirname, 'utf-8');
   const procedures = files
     .filter((file) => file.endsWith('.sql'))
-    .map((file) => path.join(__dirname, file));
+    .map((file) => path.join(import.meta.dirname, file));
   await Promise.all(procedures.map(load));
 }
 

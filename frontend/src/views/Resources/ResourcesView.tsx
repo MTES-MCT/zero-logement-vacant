@@ -2,7 +2,7 @@ import Tile from '@codegouvfr/react-dsfr/Tile';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import classNames from 'classnames';
 
 import { Icon } from '../../components/_dsfr';
@@ -57,7 +57,7 @@ function ResourcesView() {
         Ressources
       </Typography>
       <Grid container spacing="1.5rem">
-        <Grid xs={6}>
+        <Grid size={6}>
           <ResourceTile
             title="Documentation"
             linkHref="https://zerologementvacant.beta.gouv.fr/documentation/"
@@ -69,7 +69,7 @@ function ResourcesView() {
           </ResourceTile>
         </Grid>
 
-        <Grid xs={6}>
+        <Grid size={6}>
           <ResourceTile
             title="Communauté"
             linkHref="https://zerologementvacant.beta.gouv.fr/communaut%C3%A9/"
@@ -81,7 +81,7 @@ function ResourcesView() {
           </ResourceTile>
         </Grid>
 
-        <Grid xs={6}>
+        <Grid size={6}>
           <ResourceTile
             title="Besoin d'aide ?"
             linkHref="https://zerologementvacant.crisp.help/fr/"
@@ -93,7 +93,7 @@ function ResourcesView() {
           </ResourceTile>
         </Grid>
 
-        <Grid xs={6}>
+        <Grid size={6}>
           <ResourceTile
             title="Prendre rendez-vous"
             linkHref="https://zerologementvacant.beta.gouv.fr/prendre-rendez-vous/"
@@ -104,13 +104,11 @@ function ResourcesView() {
           </ResourceTile>
         </Grid>
       </Grid>
-
       <Typography component="h2" variant="h5" sx={{ mt: '4rem', mb: '1.5rem' }}>
         Trois étapes clés pour prendre en main ZLV
       </Typography>
-
       <Grid container spacing="1.5rem">
-        <Grid component="article" xs={4}>
+        <Grid component="article" size={4}>
           <ResourceTile
             title="Ajouter un filtre géographique"
             linkHref="https://zerologementvacant.crisp.help/fr/article/comment-ajouter-un-perimetre-geographique-9f0gk2/"
@@ -122,7 +120,7 @@ function ResourcesView() {
           </ResourceTile>
         </Grid>
 
-        <Grid component="article" xs={4}>
+        <Grid component="article" size={4}>
           <ResourceTile
             title="Rédiger un courrier"
             linkHref="https://zlv.notion.site/R-diger-un-courrier-15e88e19d2bc404eaf371ddcb4ca42c5"
@@ -134,7 +132,7 @@ function ResourcesView() {
           </ResourceTile>
         </Grid>
 
-        <Grid component="article" xs={4}>
+        <Grid component="article" size={4}>
           <ResourceTile
             title="Comprendre les statuts de suivi"
             linkHref="/ressources/statuts"

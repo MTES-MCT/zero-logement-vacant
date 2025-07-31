@@ -7,16 +7,16 @@ import {
   OCCUPANCY_LABELS,
   OCCUPANCY_VALUES,
   Pagination,
-  UserRole
+  UserRole,
+  type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
-import { compactUndefined } from '@zerologementvacant/utils';
+import { compactNullable } from '@zerologementvacant/utils';
 import async from 'async';
-import { Record } from 'effect';
+import { Record, Struct } from 'effect';
 import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, oneOf, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
-import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import HousingExistsError from '~/errors/housingExistsError';
@@ -28,19 +28,18 @@ import { HousingEventApi } from '~/models/EventApi';
 import {
   diffHousingOccupancyUpdated,
   diffHousingStatusUpdated,
-  hasCampaigns,
   HousingApi,
   HousingRecordApi,
   HousingSortableApi,
-  toHousingDTO
+  isContacted,
+  toHousingDTO,
+  type HousingId
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
-import housingFiltersApi, {
-  HousingFiltersApi
-} from '~/models/HousingFiltersApi';
+import { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import { toHousingOwnersApi } from '~/models/HousingOwnerApi';
 import { HousingStatusApi } from '~/models/HousingStatusApi';
-import { NoteApi } from '~/models/NoteApi';
+import { NoteApi, type HousingNoteApi } from '~/models/NoteApi';
 import {
   HousingPaginatedDTO,
   HousingPaginatedResultApi
@@ -54,9 +53,7 @@ import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
 import noteRepository from '~/repositories/noteRepository';
 import ownerRepository from '~/repositories/ownerRepository';
-import userRepository from '~/repositories/userRepository';
 import { toHousingRecordApi, toOwnerApi } from '~/scripts/shared';
-import { isArrayOf, isUUID } from '~/utils/validators';
 
 interface HousingPathParams extends Record<string, string> {
   id: string;
@@ -114,7 +111,7 @@ const list: RequestHandler<
   };
   const role = user.role;
   const sort = sortApi.parse<HousingSortableApi>(query.sort);
-  const rawFilters = fp.omit(['paginate', 'page', 'perPage', 'sort'], query);
+  const rawFilters = Struct.omit(query, 'paginate', 'page', 'perPage', 'sort');
   const filters: HousingFiltersApi = {
     ...rawFilters,
     establishmentIds:
@@ -291,7 +288,7 @@ const updateValidators = [
     .custom((value) => value.content && !validator.isEmpty(value.content))
 ];
 
-async function updateNext(
+async function update(
   request: Request<HousingPathParams, HousingDTO, HousingUpdatePayloadDTO>,
   response: Response
 ): Promise<void> {
@@ -381,205 +378,154 @@ async function updateNext(
   response.status(constants.HTTP_STATUS_OK).json(toHousingDTO(updated));
 }
 
-const updateHousing = async (
-  housingId: string,
-  housingUpdate: HousingUpdateBody,
-  authUser: Pick<AuthenticatedRequest, 'user' | 'establishment'>
-): Promise<HousingApi> => {
-  logger.trace('Update housing', {
-    id: housingId,
-    update: housingUpdate
+const updateMany: RequestHandler<
+  never,
+  ReadonlyArray<HousingDTO>,
+  HousingBatchUpdatePayload
+> = async (request, response): Promise<void> => {
+  const { body, establishment, user } = request as AuthenticatedRequest<
+    never,
+    ReadonlyArray<HousingDTO>,
+    HousingBatchUpdatePayload
+  >;
+  logger.info('Updating many housings...', { body });
+
+  const housings = await housingRepository.find({
+    filters: {
+      ...body.filters,
+      establishmentIds:
+        [UserRole.ADMIN, UserRole.VISITOR].includes(user.role) &&
+        body.filters.establishmentIds?.length
+          ? body.filters.establishmentIds
+          : [establishment.id]
+    },
+    includes: ['campaigns', 'owner'],
+    pagination: { paginate: false }
   });
 
-  const { establishment, user } = authUser;
-
-  const housing = await housingRepository.findOne({
-    id: housingId,
-    geoCode: establishment.geoCodes
-  });
-  if (!housing) {
-    throw new HousingMissingError(housingId);
-  }
-
-  const updatedHousing: HousingApi = {
-    ...housing,
-    ...(housingUpdate.occupancyUpdate
-      ? {
-          occupancy: housingUpdate.occupancyUpdate.occupancy,
-          occupancyIntended: housingUpdate.occupancyUpdate.occupancyIntended
-        }
-      : {}),
-    ...(housingUpdate.statusUpdate
-      ? {
-          status: housingUpdate.statusUpdate.status,
-          subStatus: housingUpdate.statusUpdate.subStatus,
-          deprecatedVacancyReasons:
-            housingUpdate.statusUpdate.deprecatedVacancyReasons,
-          deprecatedPrecisions: housingUpdate.statusUpdate.deprecatedPrecisions
-        }
-      : {})
-  };
-
-  await housingRepository.update(updatedHousing);
-
-  await createHousingUpdateEvents(housing, housingUpdate, user.id);
-
-  await createHousingUpdateNote(
-    housing.id,
-    housingUpdate,
-    user.id,
-    housing.geoCode
-  );
-
-  return updatedHousing;
-};
-
-const updateListValidators = [
-  body('allHousing').isBoolean(),
-  body('housingIds').custom(isArrayOf(isUUID)),
-  ...housingFiltersApi.validators(),
-  ...updateValidators
-];
-
-// TODO: refactor this function
-async function updateList(request: Request, response: Response) {
-  logger.info('Update housing list');
-
-  const { auth, body, user } = request as AuthenticatedRequest;
-  const role = user.role;
-  const housingUpdateApi = <HousingUpdateBody>body.housingUpdate;
-  const allHousing = <boolean>body.allHousing;
-  const housingIds = body.housingIds;
-
-  const filters: HousingFiltersApi = {
-    ...body.filters,
-    establishmentIds:
-      [UserRole.ADMIN, UserRole.VISITOR].includes(role) &&
-      body.filters.establishmentIds?.length > 0
-        ? body.filters.establishmentIds
-        : [auth.establishmentId]
-  };
-
-  const housingList = await housingRepository
-    .find({ filters, pagination: { paginate: false }, includes: ['campaigns'] })
-    .then((_) =>
-      _.filter((housing) =>
-        allHousing
-          ? !housingIds.includes(housing.id)
-          : housingIds.includes(housing.id)
-      )
-    );
-
-  const housingContactedWithCampaigns = housingList.filter(
-    (housing) =>
-      housing.status !== HousingStatus.NEVER_CONTACTED && hasCampaigns(housing)
-  );
+  const contactedHousings = housings.filter(isContacted);
   if (
-    housingUpdateApi.statusUpdate?.status === HousingStatus.NEVER_CONTACTED &&
-    housingContactedWithCampaigns.length > 0
+    contactedHousings.length > 0 &&
+    body.status === HousingStatus.NEVER_CONTACTED
   ) {
     throw new HousingUpdateForbiddenError(
-      ...housingContactedWithCampaigns.map((housing) => housing.id)
+      ...contactedHousings.map((housing) => housing.id)
     );
   }
 
-  const updatedHousingList = await Promise.all(
-    housingList.map((housing) =>
-      updateHousing(
-        housing.id,
-        housingUpdateApi,
-        request as AuthenticatedRequest
-      )
-    )
+  const notes: ReadonlyArray<HousingNoteApi> =
+    housings.length && body.note
+      ? housings.map<HousingNoteApi>((housing) => ({
+          id: uuidv4(),
+          content: body.note as string,
+          noteKind: 'Note courante',
+          creator: user,
+          createdBy: user.id,
+          createdAt: new Date().toJSON(),
+          updatedAt: null,
+          deletedAt: null,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        }))
+      : [];
+  const events: ReadonlyArray<HousingEventApi> =
+    housings.flatMap<HousingEventApi>((housing) => {
+      const occupancyDiff = diffHousingOccupancyUpdated(
+        {
+          occupancy: body.occupancy
+            ? OCCUPANCY_LABELS[housing.occupancy]
+            : undefined,
+          occupancyIntended:
+            body.occupancyIntended && housing.occupancyIntended
+              ? OCCUPANCY_LABELS[housing.occupancyIntended]
+              : undefined
+        },
+        {
+          occupancy: body.occupancy
+            ? OCCUPANCY_LABELS[body.occupancy]
+            : undefined,
+          occupancyIntended: body.occupancyIntended
+            ? OCCUPANCY_LABELS[body.occupancyIntended]
+            : undefined
+        }
+      );
+      const statusDiff = diffHousingStatusUpdated(
+        {
+          status: body.status
+            ? HOUSING_STATUS_LABELS[housing.status]
+            : undefined,
+          subStatus: body.subStatus ? housing.subStatus : undefined
+        },
+        {
+          status: body.status ? HOUSING_STATUS_LABELS[body.status] : undefined,
+          subStatus: body.subStatus ? body.subStatus : undefined
+        }
+      );
+
+      const events: HousingEventApi[] = [];
+      if (occupancyDiff.changed.length > 0) {
+        events.push({
+          id: uuidv4(),
+          type: 'housing:occupancy-updated',
+          name: "Modification du statut d'occupation",
+          nextOld: occupancyDiff.before,
+          nextNew: occupancyDiff.after,
+          createdAt: new Date().toJSON(),
+          createdBy: user.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        });
+      }
+      if (statusDiff.changed.length > 0) {
+        events.push({
+          id: uuidv4(),
+          type: 'housing:status-updated',
+          name: 'Changement de statut de suivi',
+          nextOld: statusDiff.before,
+          nextNew: statusDiff.after,
+          createdAt: new Date().toJSON(),
+          createdBy: user.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        });
+      }
+
+      return events;
+    });
+  const ids: ReadonlyArray<HousingId> = housings.map(
+    Struct.pick('geoCode', 'id')
   );
 
-  response.status(constants.HTTP_STATUS_OK).json(updatedHousingList);
-}
-
-async function createHousingUpdateEvents(
-  housingApi: HousingApi,
-  housingUpdate: HousingUpdateBody,
-  userId: string
-): Promise<void> {
-  const statusUpdate = housingUpdate.statusUpdate;
-  if (
-    statusUpdate &&
-    (housingApi.status !== statusUpdate.status ||
-      housingApi.subStatus !== statusUpdate.subStatus)
-  ) {
-    await eventRepository.insertManyHousingEvents([
-      {
-        id: uuidv4(),
-        name: 'Changement de statut de suivi',
-        type: 'housing:status-updated',
-        nextOld: compactUndefined({
-          status: HOUSING_STATUS_LABELS[housingApi.status],
-          subStatus: housingApi.subStatus
-        }),
-        nextNew: compactUndefined({
-          status: HOUSING_STATUS_LABELS[statusUpdate.status],
-          subStatus: statusUpdate.subStatus
-        }),
-        createdAt: new Date().toJSON(),
-        createdBy: userId,
-        housingGeoCode: housingApi.geoCode,
-        housingId: housingApi.id
-      }
+  await startTransaction(async () => {
+    await Promise.all([
+      housingRepository.updateMany(ids, {
+        status: body.status,
+        subStatus: body.subStatus,
+        occupancy: body.occupancy,
+        occupancyIntended: body.occupancyIntended
+      }),
+      noteRepository.createManyByHousing(notes),
+      eventRepository.insertManyHousingEvents(events)
     ]);
-  }
+  });
 
-  const occupancyUpdate = housingUpdate.occupancyUpdate;
-  if (
-    occupancyUpdate &&
-    ((housingApi.occupancy ?? '') !== (occupancyUpdate.occupancy ?? '') ||
-      (housingApi.occupancyIntended ?? '') !==
-        (occupancyUpdate.occupancyIntended ?? ''))
-  ) {
-    await eventRepository.insertManyHousingEvents([
-      {
-        id: uuidv4(),
-        name: "Modification du statut d'occupation",
-        type: 'housing:occupancy-updated',
-        nextOld: compactUndefined({
-          occupancy: OCCUPANCY_LABELS[housingApi.occupancy],
-          occupancyIntended: housingApi.occupancyIntended
-            ? OCCUPANCY_LABELS[housingApi.occupancyIntended]
-            : undefined
-        }),
-        nextNew: compactUndefined({
-          occupancy: OCCUPANCY_LABELS[occupancyUpdate.occupancy],
-          occupancyIntended: occupancyUpdate.occupancyIntended
-            ? OCCUPANCY_LABELS[occupancyUpdate.occupancyIntended]
-            : undefined
-        }),
-        createdBy: userId,
-        createdAt: new Date().toJSON(),
-        housingId: housingApi.id,
-        housingGeoCode: housingApi.geoCode
-      }
-    ]);
-  }
-}
-async function createHousingUpdateNote(
-  housingId: string,
-  housingUpdate: HousingUpdateBody,
-  userId: string,
-  geoCode: string
-) {
-  if (housingUpdate.note) {
-    await noteRepository.createByHousing({
-      id: uuidv4(),
-      ...housingUpdate.note,
-      createdBy: userId,
-      createdAt: new Date().toJSON(),
-      updatedAt: null,
-      deletedAt: null,
-      creator: (await userRepository.get(userId)) || ({ id: userId } as any), // Fallback in case user not found
-      housingId,
-      housingGeoCode: geoCode
-    });
-  }
-}
+  const updated = compactNullable({
+    status: body.status,
+    subStatus: body.subStatus,
+    occupancy: body.occupancy,
+    occupancyIntended: body.occupancyIntended
+  });
+  const updatedHousings =
+    Object.keys(updated).length > 0
+      ? housings.map((housing) => ({
+          ...housing,
+          ...updated
+        }))
+      : housings;
+  response
+    .status(constants.HTTP_STATUS_OK)
+    .json(updatedHousings.map(toHousingDTO));
+};
 
 const housingController = {
   getValidators,
@@ -589,9 +535,8 @@ const housingController = {
   createValidators,
   create,
   updateValidators,
-  updateNext,
-  updateListValidators,
-  updateList
+  update,
+  updateMany
 };
 
 export default housingController;

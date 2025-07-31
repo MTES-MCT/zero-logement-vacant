@@ -142,7 +142,10 @@ export function createSourceHousingCommand() {
         .pipeTo(
           createUpdater<HousingRecordDBO>({
             destination: options.dryRun ? 'file' : 'database',
-            file: path.join(__dirname, 'housing-geo-code-updates.jsonl'),
+            file: path.join(
+              import.meta.dirname,
+              'housing-geo-code-updates.jsonl'
+            ),
             temporaryTable: 'housing_geo_code_updates_tmp',
             likeTable: housingTable,
             // Custom update because we cannot find housings
@@ -285,7 +288,10 @@ export function createSourceHousingCommand() {
           .pipeTo(
             createUpdater<HousingRecordDBO>({
               destination: options.dryRun ? 'file' : 'database',
-              file: path.join(__dirname, 'source-housing-updates.jsonl'),
+              file: path.join(
+                import.meta.dirname,
+                'source-housing-updates.jsonl'
+              ),
               temporaryTable: 'source_housing_updates_tmp',
               likeTable: housingTable,
               async update(housings): Promise<void> {
@@ -385,7 +391,7 @@ export function createSourceHousingCommand() {
           .pipeTo(
             createUpdater<HousingRecordDBO>({
               destination: options.dryRun ? 'file' : 'database',
-              file: path.join(__dirname, 'housing-updates.jsonl'),
+              file: path.join(import.meta.dirname, 'housing-updates.jsonl'),
               temporaryTable: 'housing_updates_tmp',
               likeTable: housingTable,
               async update(housings): Promise<void> {

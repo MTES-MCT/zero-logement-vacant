@@ -24,7 +24,11 @@ import { EstablishmentLocalities } from '~/repositories/establishmentLocalityRep
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 
 describe('Locality API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const locality = genLocalityApi();
   const establishment = genEstablishmentApi(locality.geoCode);
@@ -53,19 +57,19 @@ describe('Locality API', () => {
     const testRoute = (geoCode: string) => `/api/localities/${geoCode}`;
 
     it('should received valid parameters', async () => {
-      const { status } = await request(app).get(testRoute('id'));
+      const { status } = await request(url).get(testRoute('id'));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should be missing', async () => {
-      const { status } = await request(app).get(testRoute(genGeoCode()));
+      const { status } = await request(url).get(testRoute(genGeoCode()));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
     });
 
     it('should retrieve the locality', async () => {
-      const { body, status } = await request(app).get(
+      const { body, status } = await request(url).get(
         testRoute(locality.geoCode)
       );
 
@@ -84,13 +88,13 @@ describe('Locality API', () => {
       }`;
 
     it('should received a valid establishmentId', async () => {
-      const { status } = await request(app).get(testRoute('id'));
+      const { status } = await request(url).get(testRoute('id'));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
     });
 
     it('should list the localities', async () => {
-      const { body, status } = await request(app).get(
+      const { body, status } = await request(url).get(
         testRoute(establishment.id)
       );
 
@@ -111,13 +115,13 @@ describe('Locality API', () => {
       `/api/localities${geoCode ? '/' + geoCode : ''}/tax`;
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).put(testRoute(locality.geoCode));
+      const { status } = await request(url).put(testRoute(locality.geoCode));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should be forbidden for a user from another establishment', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(anotherLocality.geoCode))
         .send({ taxKind: TaxKindsApi.THLV, taxRate: 10 })
         .use(tokenProvider(user));
@@ -126,7 +130,7 @@ describe('Locality API', () => {
     });
 
     it('should be missing', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(genGeoCode()))
         .send({ taxKind: TaxKindsApi.THLV, taxRate: 10 })
         .use(tokenProvider(user));
@@ -135,35 +139,35 @@ describe('Locality API', () => {
     });
 
     it('should received valid parameters', async () => {
-      await request(app)
+      await request(url)
         .put(testRoute())
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_NOT_FOUND);
 
-      await request(app)
+      await request(url)
         .put(testRoute('id'))
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .put(testRoute(locality.geoCode))
         .send({ taxRate: 'a' })
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .put(testRoute(locality.geoCode))
         .send({ taxKind: TaxKindsApi.TLV, taxRate: 10 })
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .put(testRoute(locality.geoCode))
         .send({ taxKind: TaxKindsApi.THLV })
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .put(testRoute(locality.geoCode))
         .send({ taxKind: TaxKindsApi.None, taxRate: 10 })
         .use(tokenProvider(user))
@@ -171,7 +175,7 @@ describe('Locality API', () => {
     });
 
     it('should be a locality without TLV', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(anotherLocality.geoCode))
         .send({ taxKind: TaxKindsApi.THLV, taxRate: 10 })
         .use(tokenProvider(user));
@@ -180,7 +184,7 @@ describe('Locality API', () => {
     });
 
     it('should update the locality tax rate', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(locality.geoCode))
         .send({ taxKind: TaxKindsApi.THLV, taxRate: 10 })
         .use(tokenProvider(user));
@@ -209,7 +213,7 @@ describe('Locality API', () => {
         taxKind: TaxKindsApi.THLV
       });
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(locality.geoCode))
         .send({ taxKind: TaxKindsApi.None })
         .use(tokenProvider(user));

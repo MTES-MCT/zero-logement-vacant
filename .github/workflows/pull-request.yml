@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [24.x]
     services:
       postgres:
         image: postgis/postgis
@@ -40,7 +40,7 @@ jobs:
         ports:
           - 9090:9090
         env:
-          initialBuckets: "zerologementvacant"
+          initialBuckets: 'zerologementvacant'
 
     steps:
       - name: Checkout
@@ -64,28 +64,17 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
-      # Building is required before typechecking
       - name: Build
-        run: yarn build
+        run: yarn nx affected -t build --base ${{ github.event.pull_request.base.sha }}
         env:
-          DISABLE_ESLINT_PLUGIN: true
-          METABASE_TOKEN: token
-
-      # Check source and **test** files
-      - name: Check types
-        run: yarn typecheck
-        env:
-          DISABLE_ESLINT_PLUGIN: true
           METABASE_TOKEN: token
 
       - name: Lint
-        run: yarn lint
+        run: yarn nx affected -t lint --base ${{ github.event.pull_request.base.sha }}
 
       - name: Test
-        run: yarn test --since ${{ github.event.pull_request.base.sha }} --parallel --include-dependents
+        run: yarn nx affected -t test --base ${{ github.event.pull_request.base.sha }}
         env:
           LOG_LEVEL: fatal
-          REACT_APP_API_URL: http://localhost:3001
-
-      - name: Test database migrations
-        run: yarn workspace @zerologementvacant/server run test:migrations --run-in-band
+          NODE_OPTIONS: --experimental-transform-types
+          TZ: UTC

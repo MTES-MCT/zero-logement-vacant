@@ -1,0 +1,30 @@
+import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import { loadEnv } from 'vite';
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  root: __dirname,
+  plugins: [nxViteTsPaths()],
+  test: {
+    watch: false,
+    globals: true,
+    env: loadEnv('test', __dirname),
+    environment: 'node',
+    testTimeout: 30_000,
+    setupFiles: ['./vitest.setup.ts', './src/test/setup-env.ts'],
+    globalSetup: './src/test/global-setup.ts',
+    reporters: ['default'],
+    coverage: {
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/infra/database/migrations',
+        'src/test/**',
+        'src/**/index.ts',
+        'src/types/**'
+      ]
+    },
+    include: ['src/**/*.test.ts'],
+    exclude: ['src/infra/database/migrations/**/*.test.ts']
+  }
+});

@@ -5,7 +5,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { NotePayloadDTO } from '@zerologementvacant/models';
-import schemas from '@zerologementvacant/schemas';
 import { format } from 'date-fns';
 import localeFR from 'date-fns/locale/fr';
 import { useMemo, useState } from 'react';
@@ -14,6 +13,7 @@ import { match } from 'ts-pattern';
 import { useNotification } from '../../hooks/useNotification';
 import { useUser } from '../../hooks/useUser';
 
+import { object, string } from 'yup';
 import { Establishment } from '../../models/Establishment';
 import { Note } from '../../models/Note';
 import { formatAuthor } from '../../models/User';
@@ -58,7 +58,11 @@ function NoteCard(props: NoteCardProps) {
       content: props.note.content
     },
     mode: 'onSubmit',
-    resolver: yupResolver(schemas.notePayload)
+    resolver: yupResolver(
+      object({
+        content: string().required('Veuillez renseigner le contenu de la note')
+      })
+    )
   });
 
   const { isAdmin, isUsual, user } = useUser();

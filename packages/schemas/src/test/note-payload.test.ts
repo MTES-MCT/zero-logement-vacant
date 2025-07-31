@@ -1,4 +1,4 @@
-import { fc, test } from '@fast-check/jest';
+import { fc, test } from '@fast-check/vitest';
 
 import { NotePayloadDTO } from '@zerologementvacant/models';
 import { notePayload } from '../note-payload';

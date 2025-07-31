@@ -21,7 +21,7 @@ async function run(): Promise<void> {
   });
   progress.start(TOTAL, 0);
 
-  const file = path.join(__dirname, 'buildings.jsonl');
+  const file = path.join(import.meta.dirname, 'buildings.jsonl');
   await stream(file)
     .pipeThrough(mapper())
     .pipeThrough(chunkify({ size: CHUNK_SIZE }))

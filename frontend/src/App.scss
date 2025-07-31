@@ -1,7 +1,7 @@
 @use "reset";
 @use "colors";
 @use "dsfr-fix";
-@use "src/components/Map/housing-popup-overrides";
+@use "components/Map/housing-popup-overrides";
 @use "notification";
 
 :root[data-fr-scrolling] body {

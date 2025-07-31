@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { faker } from '@faker-js/faker/locale/fr';
 import { AWAITING_OWNER_RANK, OWNER_RANKS } from '@zerologementvacant/models';
 import { List } from 'immutable';
@@ -49,13 +50,13 @@ describe('Processor', () => {
     const nationalOwner = createNationalHousingOwner(housing);
     const departmentalOwner = createDepartmentalHousingOwner(housing);
 
-    const findHousingOwners = jest.fn(async () => [
+    const findHousingOwners = vi.fn(async () => [
       nationalOwner,
       departmentalOwner
     ]);
-    const updateHousingOwner = jest.fn(async () => {});
-    const removeHousingOwner = jest.fn(async () => {});
-    const removeEvents = jest.fn(async () => {});
+    const updateHousingOwner = vi.fn(async () => {});
+    const removeHousingOwner = vi.fn(async () => {});
+    const removeEvents = vi.fn(async () => {});
 
     beforeAll(async () => {
       const stream = new ReadableStream<DepartmentalOwnerDBO>({

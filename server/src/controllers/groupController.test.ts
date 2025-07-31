@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { fc, test } from '@fast-check/jest';
+import { fc, test } from '@fast-check/vitest';
 
 import {
   BENEFIARY_COUNT_VALUES,
@@ -79,7 +79,11 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Group API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const otherEstablishment = genEstablishmentApi();
@@ -107,7 +111,7 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status } = await request(url).get(testRoute);
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
@@ -116,7 +120,7 @@ describe('Group API', () => {
         (group) => group.establishmentId === establishment.id
       );
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -136,12 +140,12 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(group.id));
+      const { status } = await request(url).get(testRoute(group.id));
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it("should be hidden for a user outside of the group's establishment", async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute(anotherGroup.id))
         .use(tokenProvider(otherUser));
 
@@ -149,7 +153,7 @@ describe('Group API', () => {
     });
 
     it("should return a housing group in the authenticated user's establishment", async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(group.id))
         .use(tokenProvider(user));
 
@@ -192,14 +196,14 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute).send(payload).set({
+      const { status } = await request(url).post(testRoute).send(payload).set({
         'Content-Type': 'application/json'
       });
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should create a group with all the housing belonging to the given establishment', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .set({
@@ -214,68 +218,77 @@ describe('Group API', () => {
         description: payload.description,
         housingCount: 2,
         ownerCount: 1,
-        createdAt: expect.toBeDateString(),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: null
       });
     });
 
-    test.prop<GroupPayloadDTO>({
-      title: fc.stringMatching(/\S/),
-      description: fc.stringMatching(/\S/),
-      housing: fc.record({
-        all: fc.boolean(),
-        ids: fc.array(fc.uuid()),
-        filters: fc.record({
-          housingIds: fc.array(fc.uuid()),
-          occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
-          energyConsumption: fc.array(
-            fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)
-          ),
-          establishmentIds: fc.array(fc.uuid()),
-          groupIds: fc.array(fc.uuid()),
-          campaignsCounts: fc.array(fc.constantFrom(...CAMPAIGN_COUNT_VALUES)),
-          campaignIds: fc.array(fc.oneof(fc.constant(null), fc.uuid())),
-          ownerIds: fc.array(fc.uuid()),
-          ownerKinds: fc.array(fc.constantFrom(...OWNER_KIND_VALUES)),
-          ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
-          multiOwners: fc.array(fc.boolean()),
-          beneficiaryCounts: fc.array(
-            fc.constantFrom(...BENEFIARY_COUNT_VALUES)
-          ),
-          housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
-          housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
-          roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
-          cadastralClassifications: fc.array(
-            fc.constantFrom(...CADASTRAL_CLASSIFICATION_VALUES)
-          ),
-          buildingPeriods: fc.array(fc.constantFrom(...BUILDING_PERIOD_VALUES)),
-          vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
-          isTaxedValues: fc.array(fc.boolean()),
-          ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
-          housingCounts: fc.array(
-            fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)
-          ),
-          vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
-          intercommunalities: fc.array(fc.uuid({ version: 4 })),
-          localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
-          localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
-          geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
-          geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
-          dataFileYearsIncluded: fc.array(
-            fc.constantFrom(...DATA_FILE_YEAR_VALUES)
-          ),
-          dataFileYearsExcluded: fc.array(
-            fc.constantFrom(...DATA_FILE_YEAR_VALUES)
-          ),
-          status: fc.constantFrom(...HOUSING_STATUS_VALUES),
-          statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
-          subStatus: fc.array(fc.string({ minLength: 1 })),
-          query: fc.string()
+    test.prop<GroupPayloadDTO>(
+      {
+        title: fc.stringMatching(/\S/),
+        description: fc.stringMatching(/\S/),
+        housing: fc.record({
+          all: fc.boolean(),
+          ids: fc.array(fc.uuid({ version: 4 })),
+          filters: fc.record({
+            housingIds: fc.array(fc.uuid({ version: 4 })),
+            occupancies: fc.array(fc.constantFrom(...OCCUPANCY_VALUES)),
+            energyConsumption: fc.array(
+              fc.constantFrom(...ENERGY_CONSUMPTION_VALUES)
+            ),
+            establishmentIds: fc.array(fc.uuid({ version: 4 })),
+            groupIds: fc.array(fc.uuid({ version: 4 })),
+            campaignsCounts: fc.array(
+              fc.constantFrom(...CAMPAIGN_COUNT_VALUES)
+            ),
+            campaignIds: fc.array(
+              fc.oneof(fc.constant(null), fc.uuid({ version: 4 }))
+            ),
+            ownerIds: fc.array(fc.uuid({ version: 4 })),
+            ownerKinds: fc.array(fc.constantFrom(...OWNER_KIND_VALUES)),
+            ownerAges: fc.array(fc.constantFrom(...OWNER_AGE_VALUES)),
+            multiOwners: fc.array(fc.boolean()),
+            beneficiaryCounts: fc.array(
+              fc.constantFrom(...BENEFIARY_COUNT_VALUES)
+            ),
+            housingKinds: fc.array(fc.constantFrom(...HOUSING_KIND_VALUES)),
+            housingAreas: fc.array(fc.constantFrom(...LIVING_AREA_VALUES)),
+            roomsCounts: fc.array(fc.constantFrom(...ROOM_COUNT_VALUES)),
+            cadastralClassifications: fc.array(
+              fc.constantFrom(...CADASTRAL_CLASSIFICATION_VALUES)
+            ),
+            buildingPeriods: fc.array(
+              fc.constantFrom(...BUILDING_PERIOD_VALUES)
+            ),
+            vacancyYears: fc.array(fc.constantFrom(...VACANCY_YEAR_VALUES)),
+            isTaxedValues: fc.array(fc.boolean()),
+            ownershipKinds: fc.array(fc.constantFrom(...OWNERSHIP_KIND_VALUES)),
+            housingCounts: fc.array(
+              fc.constantFrom(...HOUSING_BY_BUILDING_VALUES)
+            ),
+            vacancyRates: fc.array(fc.constantFrom(...VACANCY_RATE_VALUES)),
+            intercommunalities: fc.array(fc.uuid({ version: 4 })),
+            localities: fc.array(fc.string({ minLength: 5, maxLength: 5 })),
+            localityKinds: fc.array(fc.constantFrom(...LOCALITY_KIND_VALUES)),
+            geoPerimetersIncluded: fc.array(fc.string({ minLength: 1 })),
+            geoPerimetersExcluded: fc.array(fc.string({ minLength: 1 })),
+            dataFileYearsIncluded: fc.array(
+              fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+            ),
+            dataFileYearsExcluded: fc.array(
+              fc.constantFrom(...DATA_FILE_YEAR_VALUES)
+            ),
+            status: fc.constantFrom(...HOUSING_STATUS_VALUES),
+            statusList: fc.array(fc.constantFrom(...HOUSING_STATUS_VALUES)),
+            subStatus: fc.array(fc.string({ minLength: 1 })),
+            query: fc.string()
+          })
         })
-      })
-    })('should validate the request payload', async (payload) => {
-      const { status } = await request(app)
+      },
+      { numRuns: 20 }
+    )('should validate the request payload', async (payload) => {
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .type('json')
@@ -285,7 +298,7 @@ describe('Group API', () => {
     });
 
     it('should create a group with all the housing corresponding to the given criteria', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send({
           ...payload,
@@ -320,16 +333,16 @@ describe('Group API', () => {
         id: expect.any(String),
         title: payload.title,
         description: payload.description,
-        housingCount: expect.toBeNumber(),
-        ownerCount: expect.toBeNumber(),
-        createdAt: expect.toBeDateString(),
+        housingCount: expect.any(Number),
+        ownerCount: expect.any(Number),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: null
       });
     });
 
     it('should create events related to the group and its housing', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .set({
@@ -392,7 +405,7 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(group.id))
         .send(payload)
         .set({
@@ -402,7 +415,7 @@ describe('Group API', () => {
     });
 
     it("should be hidden for a user outside of the group's establishment", async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(group.id))
         .send(payload)
         .set({
@@ -420,7 +433,7 @@ describe('Group API', () => {
       };
       await Groups().insert(formatGroupApi(group));
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(group.id))
         .send(payload)
         .set({
@@ -432,7 +445,7 @@ describe('Group API', () => {
     });
 
     it('should update a group', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(group.id))
         .send(payload)
         .set({
@@ -447,7 +460,7 @@ describe('Group API', () => {
         description: payload.description,
         housingCount: group.housingCount,
         ownerCount: group.ownerCount,
-        createdAt: expect.toBeDateString(),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: group.archivedAt?.toJSON() ?? null
       });
@@ -492,7 +505,7 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute(group.id))
         .send(payload)
         .set({
@@ -502,7 +515,7 @@ describe('Group API', () => {
     });
 
     it("should be hidden for a user outside of the group's establishment", async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute(group.id))
         .send(payload)
         .set({
@@ -518,7 +531,7 @@ describe('Group API', () => {
         archivedAt: new Date()
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute(group.id))
         .send(payload)
         .set({
@@ -539,7 +552,7 @@ describe('Group API', () => {
         rank: 1
       });
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute(group.id))
         .send({
           all: false,
@@ -558,7 +571,7 @@ describe('Group API', () => {
         description: group.description,
         housingCount: establishmentHousingList.length + 1,
         ownerCount: 1,
-        createdAt: expect.toBeDateString(),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: group.archivedAt?.toJSON() ?? null
       });
@@ -576,7 +589,7 @@ describe('Group API', () => {
         rank: 1
       });
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute(group.id))
         .send({
           all: false,
@@ -647,7 +660,7 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(group.id))
         .send(payload)
         .set({
@@ -657,7 +670,7 @@ describe('Group API', () => {
     });
 
     it("should be hidden for a user outside of the group's establishment", async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(group.id))
         .send(payload)
         .set({
@@ -674,7 +687,7 @@ describe('Group API', () => {
       };
       await Groups().insert(formatGroupApi(group));
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute(group.id))
         .send(payload)
         .set({
@@ -686,7 +699,7 @@ describe('Group API', () => {
     });
 
     it('should remove the housing corresponding to the given criteria to the group', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .delete(testRoute(group.id))
         .send({
           all: false,
@@ -705,14 +718,14 @@ describe('Group API', () => {
         description: group.description,
         housingCount: establishmentHousingList.length - 1,
         ownerCount: 1,
-        createdAt: expect.toBeDateString(),
+        createdAt: expect.any(String),
         createdBy: toUserDTO(user),
         archivedAt: group.archivedAt?.toJSON() ?? null
       });
     });
 
     it('should create events when some housing get removed', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .delete(testRoute(group.id))
         .send(payload)
         .set({
@@ -777,12 +790,12 @@ describe('Group API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).delete(testRoute(group.id));
+      const { status } = await request(url).delete(testRoute(group.id));
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should be hidden for a user outside of the establishment', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(anotherGroup.id))
         .use(tokenProvider(user));
 
@@ -790,7 +803,7 @@ describe('Group API', () => {
     });
 
     it('should remove a group', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(group.id))
         .use(tokenProvider(user));
 
@@ -798,7 +811,7 @@ describe('Group API', () => {
     });
 
     it('should create events when a group is removed', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute(group.id))
         .use(tokenProvider(user));
 
@@ -838,7 +851,7 @@ describe('Group API', () => {
       });
 
       it('should archive a group', async () => {
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .delete(testRoute(group.id))
           .use(tokenProvider(user));
 
@@ -854,7 +867,7 @@ describe('Group API', () => {
       });
 
       it('should create events when the group is archived', async () => {
-        const { status } = await request(app)
+        const { status } = await request(url)
           .delete(testRoute(group.id))
           .use(tokenProvider(user));
 

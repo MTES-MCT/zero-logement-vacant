@@ -12,6 +12,12 @@ export default function createErrorHandler(opts: Options) {
 
   return (error: Error): AxiosResponse => {
     if (isAxiosError(error)) {
+      logger.error('API request failed', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
       if (error.response?.status === constants.HTTP_STATUS_NOT_FOUND) {
         return {
           ...error.response,

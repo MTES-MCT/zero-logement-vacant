@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -28,6 +28,7 @@ import {
   MemoryRouter as Router,
   RouterProvider
 } from 'react-router-dom';
+import { vi } from 'vitest';
 import data from '../../mocks/handlers/data';
 import { AppStore } from '../../store/store';
 import configureTestStore from '../../utils/test/storeUtils';
@@ -36,7 +37,7 @@ import GroupView from '../Group/GroupView';
 import HousingListTabsProvider from './HousingListTabsProvider';
 import HousingListView from './HousingListView';
 
-jest.mock('../../components/Aside/Aside.tsx');
+vi.mock('../../components/Aside/Aside.tsx');
 
 describe('Housing list view', () => {
   const user = userEvent.setup();
@@ -243,6 +244,44 @@ describe('Housing list view', () => {
     });
   });
 
+  describe('Update several housings', () => {
+    it('update occupancies', async () => {
+      setup();
+
+      const housingTable = await screen.findByRole('table');
+      const [checkbox] = await within(housingTable).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const updateMany = await screen.findByRole('button', {
+        name: 'Mise à jour groupée'
+      });
+      await user.click(updateMany);
+      const select = await screen.findByRole('combobox', {
+        name: 'Occupation actuelle'
+      });
+      await user.click(select);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText('Vacant');
+      await user.click(option);
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(save);
+      const modal = await screen.findByRole('dialog', {
+        name: /Vous êtes sur le point de mettre à jour \d+ logements/
+      });
+      expect(modal).toBeVisible();
+      const confirm = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirm);
+
+      const alert = await screen.findByRole('heading', {
+        name: /La mise à jour groupée de \d+ logements a bien été enregistrée/
+      });
+      expect(alert).toBeVisible();
+    });
+  });
+  
   describe('Group creation', () => {
     function renderView() {
       const router = createMemoryRouter(
@@ -776,6 +815,7 @@ describe('Housing list view', () => {
         const options = await screen.findByRole('listbox');
         const option = await within(options).findByText('Non suivi');
         await user.click(option);
+        await user.keyboard('{Escape}');
         const badge = await screen.findByText('Statut de suivi : non suivi');
         expect(badge).toBeVisible();
       });

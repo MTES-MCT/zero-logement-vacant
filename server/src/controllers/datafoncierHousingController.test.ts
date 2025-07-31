@@ -17,7 +17,11 @@ import {
 } from '~/repositories/establishmentRepository';
 
 describe('Datafoncier housing controller', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -35,7 +39,7 @@ describe('Datafoncier housing controller', () => {
       const housing = genDatafoncierHousing(oneOf(establishment.geoCodes));
       await DatafoncierHouses().insert(housing);
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(housing.idlocal))
         .use(tokenProvider(user));
 
@@ -47,7 +51,7 @@ describe('Datafoncier housing controller', () => {
       const housing = genDatafoncierHousing('12345');
       await DatafoncierHouses().insert(housing);
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute(`1234512345678`))
         .use(tokenProvider(user));
 
@@ -55,7 +59,7 @@ describe('Datafoncier housing controller', () => {
     });
 
     it('should return "not found" otherwise', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute('missing'))
         .use(tokenProvider(user));
 

@@ -3,7 +3,7 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { isSameDay } from 'date-fns';
 import { Array, Order, pipe, Predicate, Record } from 'effect';
 
@@ -140,7 +140,7 @@ function EventsHistory({ events, notes }: Props) {
   return (
     <Stack spacing="1.5rem">
       <Grid component="header" container columnSpacing="1rem">
-        <Grid component="section" sx={{ pl: 0 }} xs={4}>
+        <Grid component="section" sx={{ pl: 0 }} size={4}>
           <AppSelectNext
             label="Type d’événement"
             disabled={events.length === 0 && notes.length === 0}
@@ -158,7 +158,7 @@ function EventsHistory({ events, notes }: Props) {
             }}
           />
         </Grid>
-        <Grid component="section" xs={4}>
+        <Grid component="section" size={4}>
           <AppSelectNext
             label="Auteur"
             disabled={events.length === 0 && notes.length === 0}
@@ -181,7 +181,7 @@ function EventsHistory({ events, notes }: Props) {
             }}
           />
         </Grid>
-        <Grid component="section" sx={{ pr: 0 }} xs={4}>
+        <Grid component="section" sx={{ pr: 0 }} size={4}>
           <Input
             label="Date de création"
             disabled={events.length === 0 && notes.length === 0}
@@ -202,7 +202,6 @@ function EventsHistory({ events, notes }: Props) {
           />
         </Grid>
       </Grid>
-
       <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
         <Button
           priority="secondary"
@@ -230,7 +229,6 @@ function EventsHistory({ events, notes }: Props) {
           Réinitialiser les filtres
         </Button>
       </Stack>
-
       {history.length === 0 ? (
         <Stack sx={{ alignItems: 'center' }}>
           <Box sx={{ maxWidth: '7.5rem' }}>

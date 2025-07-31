@@ -1,23 +1,22 @@
 import { useState } from 'react';
-import { Text } from '../../components/_dsfr';
-import Map, { MapProps } from '../../components/Map/Map';
 import { ViewState } from 'react-map-gl/maplibre';
+import { Text } from '../../components/_dsfr';
+import Label from '../../components/Label/Label';
+import Map, { MapProps } from '../../components/Map/Map';
+import { useHousingList } from '../../hooks/useHousingList';
+import { GeoPerimeter } from '../../models/GeoPerimeter';
+import { displayHousingCount } from '../../models/HousingCount';
 import {
   hasPerimetersFilter,
   HousingFilters
 } from '../../models/HousingFilters';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
+import { useCountHousingQuery } from '../../services/housing.service';
 import {
   excludeWith,
   includeExcludeWith,
   includeWith
 } from '../../utils/arrayUtils';
-import { GeoPerimeter } from '../../models/GeoPerimeter';
-import Label from '../../components/Label/Label';
-import { useHousingList } from '../../hooks/useHousingList';
-import { displayHousingCount } from '../../models/HousingCount';
-import { useCountHousingQuery } from '../../services/housing.service';
-import fp from 'lodash/fp';
 
 interface Props {
   filters: HousingFilters;
@@ -33,11 +32,11 @@ const HousingListMap = ({ filters }: Props) => {
     }
   });
 
-  const { data: housingCount } = useCountHousingQuery(
-    fp.pick(['dataFileYearsIncluded', 'dataFileYearsExcluded', 'occupancies'])(
-      filters
-    )
-  );
+  const { data: housingCount } = useCountHousingQuery({
+    dataFileYearsIncluded: filters.dataFileYearsIncluded,
+    dataFileYearsExcluded: filters.dataFileYearsExcluded,
+    occupancies: filters.occupancies
+  });
   const totalCount = housingCount?.housing;
 
   const { data: count } = useCountHousingQuery(filters);

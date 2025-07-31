@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -21,7 +21,7 @@ import {
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { genAuthUser, genNote, genUser } from '../../../../test/fixtures.test';
+import { genAuthUser, genNote, genUser } from '../../../../test/fixtures';
 import data from '../../../mocks/handlers/data';
 import { Note, toNoteDTO } from '../../../models/Note';
 import { fromUserDTO, User } from '../../../models/User';
@@ -333,7 +333,7 @@ describe('Housing view', () => {
         name: 'Enregistrer'
       });
       await user.click(save);
-      const newOccupancy = await screen.findByLabelText('Occupation');
+      const newOccupancy = await screen.findByText(/Occupation :/);
       expect(newOccupancy).toHaveTextContent(/En location/i);
     });
 
@@ -419,7 +419,6 @@ describe('Housing view', () => {
         name: 'Ajouter une note'
       });
       await user.click(createNote);
-      screen.logTestingPlaygroundURL();
       const textarea = await screen.findByRole('textbox', {
         name: /Nouvelle note/
       });

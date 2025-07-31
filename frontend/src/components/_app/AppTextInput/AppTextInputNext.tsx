@@ -40,6 +40,8 @@ function AppTextInputNext<T>(props: AppTextInputNextProps<T>) {
     nativeLabelProps,
     nativeInputProps,
     nativeTextAreaProps,
+    mapValue,
+    contramapValue,
     textArea,
     ...rest
   } = props;
@@ -49,8 +51,8 @@ function AppTextInputNext<T>(props: AppTextInputNextProps<T>) {
   });
 
   const transform = {
-    input: props.mapValue ?? identity,
-    output: props.contramapValue ?? identity
+    input: mapValue ?? identity,
+    output: contramapValue ?? identity
   };
   const value: string = transform.input(field.value);
   const onChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (

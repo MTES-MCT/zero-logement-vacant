@@ -1,7 +1,9 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/vitest';
 import {
   fromHousing,
   HOUSING_STATUS_LABELS,
+  HOUSING_STATUS_VALUES,
   HousingDTO,
   HousingStatus,
   HousingUpdatePayloadDTO,
@@ -10,14 +12,15 @@ import {
   OCCUPANCY_LABELS,
   OCCUPANCY_VALUES,
   toOccupancy,
-  UserRole
+  UserRole,
+  type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import async from 'async';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
-import { MarkRequired } from 'ts-essentials';
+
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -55,7 +58,11 @@ import {
   HousingRecordDBO,
   housingTable
 } from '~/repositories/housingRepository';
-import { HOUSING_NOTES_TABLE, Notes } from '~/repositories/noteRepository';
+import {
+  HOUSING_NOTES_TABLE,
+  Notes,
+  type NoteRecordDBO
+} from '~/repositories/noteRepository';
 import {
   formatOwnerApi,
   OwnerRecordDBO,
@@ -76,10 +83,17 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Housing API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi('12345');
-  const user = genUserApi(establishment.id);
+  const user: UserApi = {
+    ...genUserApi(establishment.id),
+    role: UserRole.USUAL
+  };
   const visitor: UserApi = {
     ...genUserApi(establishment.id),
     role: UserRole.VISITOR
@@ -118,7 +132,7 @@ describe('Housing API', () => {
     });
 
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute(anotherHousing.id))
         .use(tokenProvider(user));
 
@@ -126,7 +140,7 @@ describe('Housing API', () => {
     });
 
     it('should have the given keys', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 
@@ -165,13 +179,13 @@ describe('Housing API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status } = await request(url).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it("should forbid access to housing outside of an establishment's perimeter", async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -182,7 +196,7 @@ describe('Housing API', () => {
     });
 
     it('should return 200 OK', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -239,7 +253,7 @@ describe('Housing API', () => {
       ])(
         'should use the authenticated user’s establishment to filter results',
         async ({ establishment, user }) => {
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .use(tokenProvider(user));
 
@@ -252,7 +266,7 @@ describe('Housing API', () => {
       );
 
       it('should combine the authenticated user’s establishment with the intercommunalities filter', async () => {
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .get(testRoute)
           .query({
             intercommunalities: [intercommunality.id]
@@ -272,7 +286,7 @@ describe('Housing API', () => {
       });
 
       it('should combine the authenticated user’s establishment with the localities filter', async () => {
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .get(testRoute)
           .query({
             localities: [commune.geoCodes[0]]
@@ -287,7 +301,7 @@ describe('Housing API', () => {
       });
 
       it('should remove the intercommunalities filter if the user’s establishment is not at the department level', async () => {
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .get(testRoute)
           .query({
             intercommunalities: [intercommunality.id]
@@ -350,7 +364,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationYears: '2022'
@@ -379,7 +393,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationYears: '2010to2014'
@@ -409,7 +423,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationTypes: 'donation'
@@ -442,7 +456,7 @@ describe('Housing API', () => {
             'sale'
           ];
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationTypes: types.join(',')
@@ -466,7 +480,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationTypes: 'donation',
@@ -493,7 +507,7 @@ describe('Housing API', () => {
             }
           ]);
 
-          const { body, status } = await request(app)
+          const { body, status } = await request(url)
             .get(testRoute)
             .query({
               lastMutationTypes: 'null',
@@ -527,7 +541,7 @@ describe('Housing API', () => {
       });
       await HousingOwners().insert(housingOwners);
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query({
           paginate: true,
@@ -555,7 +569,7 @@ describe('Housing API', () => {
       );
       await HousingOwners().insert(housingOwners);
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query('sort=-occupancy')
         .set('Content-Type', 'application/json')
@@ -575,7 +589,7 @@ describe('Housing API', () => {
     const testRoute = '/api/housing';
 
     it('should be forbidden a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
+      const { status } = await request(url).post(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
@@ -587,7 +601,7 @@ describe('Housing API', () => {
         localId: housing.localId
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -600,7 +614,7 @@ describe('Housing API', () => {
         localId: randomstring.generate(12)
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -619,7 +633,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -652,7 +666,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .post(testRoute)
         .send(payload)
         .type('json')
@@ -695,7 +709,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -719,7 +733,7 @@ describe('Housing API', () => {
         localId: datafoncierHousing.idlocal
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .post(testRoute)
         .send(payload)
         .use(tokenProvider(user));
@@ -741,6 +755,265 @@ describe('Housing API', () => {
           source: 'datafoncier-manual',
           occupancy: OCCUPANCY_LABELS[toOccupancy(datafoncierHousing.ccthp)]
         }
+      });
+    });
+  });
+
+  describe('PUT /housing', () => {
+    const testRoute = '/api/housing';
+
+    interface CreateHousingsOptions {
+      count?: number;
+      occupancy?: Occupancy;
+      occupancyIntended?: Occupancy;
+      status?: HousingStatus;
+      subStatus?: string | null;
+    }
+
+    async function createHousings(options?: CreateHousingsOptions) {
+      const { count, ...payload } = options ?? {};
+      const housings = faker.helpers.multiple(
+        () => ({
+          ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+          ...payload
+        }),
+        { count }
+      );
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      await Owners().insert(
+        housings.map((housing) => formatOwnerApi(housing.owner))
+      );
+      await HousingOwners().insert(
+        housings.flatMap((housing) =>
+          formatHousingOwnersApi(housing, [housing.owner])
+        )
+      );
+      return { housings };
+    }
+
+    it('should be forbidden for a non-authenticated user', async () => {
+      const { status } = await request(url).put(testRoute);
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    test.prop<HousingBatchUpdatePayload>(
+      {
+        filters: fc.record(
+          // Reduced version because they are tested elsewhere
+          {
+            all: fc.boolean(),
+            housingIds: fc.array(fc.uuid({ version: 4 }))
+          },
+          {
+            requiredKeys: []
+          }
+        ),
+        status: fc.option(fc.constantFrom(...HOUSING_STATUS_VALUES), {
+          nil: undefined
+        }),
+        occupancy: fc.option(fc.constantFrom(...OCCUPANCY_VALUES), {
+          nil: undefined
+        }),
+        subStatus: fc.option(fc.stringMatching(/\S/), { nil: undefined }),
+        occupancyIntended: fc.option(fc.constantFrom(...OCCUPANCY_VALUES), {
+          nil: undefined
+        }),
+        note: fc.option(fc.stringMatching(/\S/), {
+          nil: undefined
+        })
+      },
+      { verbose: true, numRuns: 20 }
+    )('should validate inputs', async (payload) => {
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    it('should be forbidden to set status "NeverContacted" for housings that have already been contacted', async () => {
+      const { housings } = await createHousings({
+        status: HousingStatus.WAITING
+      });
+      const campaign = genCampaignApi(establishment.id, user.id);
+      await Campaigns().insert(formatCampaignApi(campaign));
+      await CampaignsHousing().insert(
+        formatCampaignHousingApi(campaign, housings)
+      );
+      const payload: HousingBatchUpdatePayload = {
+        filters: {
+          status: HousingStatus.WAITING
+        },
+        status: HousingStatus.NEVER_CONTACTED
+      };
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+    });
+
+    it('should update the housings', async () => {
+      const { housings } = await createHousings();
+      const payload: HousingBatchUpdatePayload = {
+        filters: {
+          all: false,
+          housingIds: housings.map((housing) => housing.id)
+        },
+        occupancy: Occupancy.SECONDARY_RESIDENCE,
+        status: HousingStatus.WAITING
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toIncludeAllPartialMembers(
+        housings.map((housing) => ({
+          id: housing.id,
+          occupancy: payload.occupancy,
+          status: payload.status
+        }))
+      );
+
+      const actual = await Housing().whereIn(
+        ['geo_code', 'id'],
+        housings.map((housing) => [housing.geoCode, housing.id])
+      );
+      expect(actual).toBeDefined();
+      actual.forEach((housing) => {
+        expect(housing).toMatchObject<Partial<HousingRecordDBO>>({
+          status: payload.status,
+          occupancy: payload.occupancy
+        });
+      });
+    });
+
+    it('should create events related to the status change', async () => {
+      const { housings } = await createHousings({
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      });
+      const payload: HousingBatchUpdatePayload = {
+        filters: {
+          status: HousingStatus.NEVER_CONTACTED
+        },
+        status: HousingStatus.IN_PROGRESS,
+        subStatus: 'En accompagnement'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const events = await Events()
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          housings.map((housing) => [housing.geoCode, housing.id])
+        )
+        .where({ type: 'housing:status-updated' });
+      events.forEach((event) => {
+        expect(event).toMatchObject<
+          Partial<EventRecordDBO<'housing:status-updated'>>
+        >({
+          type: 'housing:status-updated',
+          next_old: {
+            status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED],
+            subStatus: null
+          },
+          next_new: {
+            status: HOUSING_STATUS_LABELS[payload.status!],
+            subStatus: payload.subStatus!
+          },
+          created_by: user.id
+        });
+      });
+    });
+
+    it('should create events related to the occupancy change', async () => {
+      const { housings } = await createHousings({
+        occupancy: Occupancy.VACANT,
+        occupancyIntended: Occupancy.VACANT
+      });
+      const payload: HousingBatchUpdatePayload = {
+        filters: {
+          occupancies: [Occupancy.VACANT]
+        },
+        occupancy: Occupancy.SECONDARY_RESIDENCE,
+        occupancyIntended: Occupancy.SECONDARY_RESIDENCE
+      };
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const events = await Events()
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          housings.map((housing) => [housing.geoCode, housing.id])
+        )
+        .where({ type: 'housing:occupancy-updated' });
+      events.forEach((event) => {
+        expect(event).toMatchObject<
+          Partial<EventRecordDBO<'housing:occupancy-updated'>>
+        >({
+          type: 'housing:occupancy-updated',
+          created_by: user.id,
+          next_old: {
+            occupancy: OCCUPANCY_LABELS[Occupancy.VACANT],
+            occupancyIntended: OCCUPANCY_LABELS[Occupancy.VACANT]
+          },
+          next_new: {
+            occupancy: OCCUPANCY_LABELS[payload.occupancy!],
+            occupancyIntended: OCCUPANCY_LABELS[payload.occupancyIntended!]
+          }
+        });
+      });
+    });
+
+    it('should create a note', async () => {
+      const { housings } = await createHousings({
+        count: 3,
+        status: HousingStatus.WAITING
+      });
+      const payload: HousingBatchUpdatePayload = {
+        filters: {
+          status: HousingStatus.WAITING
+        },
+        note: 'Nouvelle note'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute)
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+
+      const actual = await Notes()
+        .join(HOUSING_NOTES_TABLE, 'note_id', 'id')
+        .whereIn(
+          ['housing_geo_code', 'housing_id'],
+          housings.map((housing) => [housing.geoCode, housing.id])
+        );
+      actual.forEach((note) => {
+        expect(note).toMatchObject<Partial<NoteRecordDBO>>({
+          content: 'Nouvelle note'
+        });
       });
     });
   });
@@ -769,7 +1042,7 @@ describe('Housing API', () => {
     }
 
     it('should throw if the housing was not found', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(faker.string.uuid()))
         .send(defaultPayload)
         .type('json')
@@ -781,7 +1054,7 @@ describe('Housing API', () => {
     it('should throw if the user is a visitor', async () => {
       const housing = await createHousing();
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(defaultPayload)
         .type('json')
@@ -799,7 +1072,7 @@ describe('Housing API', () => {
       });
       const payload = defaultPayload;
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -829,7 +1102,7 @@ describe('Housing API', () => {
         occupancyIntended: Occupancy.RENT
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -860,7 +1133,7 @@ describe('Housing API', () => {
         occupancyIntended: housing.occupancyIntended
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -888,7 +1161,7 @@ describe('Housing API', () => {
         occupancyIntended: housing.occupancyIntended
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -933,7 +1206,7 @@ describe('Housing API', () => {
         occupancyIntended: Occupancy.DEMOLISHED_OR_DIVIDED
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -978,7 +1251,7 @@ describe('Housing API', () => {
         occupancyIntended: Occupancy.RENT
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .type('json')
@@ -1023,271 +1296,6 @@ describe('Housing API', () => {
         next_new: {
           occupancyIntended: OCCUPANCY_LABELS[payload.occupancyIntended!]
         },
-        created_by: user.id
-      });
-    });
-  });
-
-  describe('POST /housing/list', () => {
-    const testRoute = '/api/housing/list';
-
-    const campaign = genCampaignApi(establishment.id, user.id);
-    const housing: MarkRequired<HousingApi, 'owner'> = {
-      ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-      status: HousingStatus.WAITING
-    };
-    const payload = {
-      filters: {
-        status: HousingStatus.WAITING,
-        campaignIds: [campaign.id]
-      },
-      housingIds: [housing.id],
-      allHousing: false,
-      housingUpdate: {
-        statusUpdate: {
-          status: HousingStatus.IN_PROGRESS,
-          vacancyReasons: [randomstring.generate()]
-        },
-        occupancyUpdate: {
-          occupancy: Occupancy.VACANT,
-          occupancyIntended: Occupancy.DEMOLISHED_OR_DIVIDED
-        },
-        note: {
-          content: randomstring.generate()
-        }
-      }
-    };
-
-    beforeAll(async () => {
-      await Campaigns().insert(formatCampaignApi(campaign));
-      await Housing().insert(formatHousingRecordApi(housing));
-      await CampaignsHousing().insert(
-        formatCampaignHousingApi(campaign, [housing])
-      );
-    });
-
-    it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).post(testRoute);
-
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
-    });
-
-    it('should received a valid request', async () => {
-      const badRequestTest = async (payload?: Record<string, unknown>) => {
-        const { status } = await request(app)
-          .post(testRoute)
-          .send(payload)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      };
-
-      await badRequestTest();
-      await badRequestTest({ ...payload, housingIds: undefined });
-      await badRequestTest({
-        ...payload,
-        housingIds: [randomstring.generate()]
-      });
-      await badRequestTest({
-        ...payload,
-        filters: {
-          ...payload.filters,
-          campaignIds: [randomstring.generate()]
-        }
-      });
-      await badRequestTest({ ...payload, housingUpdate: undefined });
-      await badRequestTest({
-        ...payload,
-        housingUpdate: {
-          ...payload.housingUpdate,
-          statusUpdate: {
-            ...payload.housingUpdate.statusUpdate,
-            status: undefined
-          }
-        }
-      });
-      await badRequestTest({
-        ...payload,
-        housingUpdate: {
-          ...payload.housingUpdate,
-          statusUpdate: {
-            ...payload.housingUpdate.statusUpdate,
-            status: randomstring.generate()
-          }
-        }
-      });
-      await badRequestTest({
-        ...payload,
-        housingUpdate: {
-          ...payload.housingUpdate,
-          occupancyUpdate: {
-            ...payload.housingUpdate.occupancyUpdate,
-            occupancy: null
-          }
-        }
-      });
-      await badRequestTest({
-        ...payload,
-        housingUpdate: {
-          ...payload.housingUpdate,
-          occupancyUpdate: {
-            ...payload.housingUpdate.occupancyUpdate,
-            occupancy: randomstring.generate()
-          }
-        }
-      });
-      await badRequestTest({
-        ...payload,
-        housingUpdate: {
-          ...payload.housingUpdate,
-          occupancyUpdate: {
-            ...payload.housingUpdate.occupancyUpdate,
-            occupancyIntended: randomstring.generate()
-          }
-        }
-      });
-      await badRequestTest({
-        ...payload,
-        housingUpdate: {
-          ...payload.housingUpdate,
-          note: {
-            ...payload.housingUpdate.note,
-            content: undefined
-          }
-        }
-      });
-    });
-
-    it('should be forbidden to set status "NeverContacted" for a list of housing which one has already been contacted', async () => {
-      const { status } = await request(app)
-        .post(testRoute)
-        .send({
-          ...payload,
-          filters: {
-            status: HousingStatus.WAITING
-          },
-          housingUpdate: {
-            statusUpdate: {
-              status: HousingStatus.NEVER_CONTACTED
-            }
-          }
-        })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
-    });
-
-    it('should update the housing list and return the updated result', async () => {
-      const { body, status } = await request(app)
-        .post(testRoute)
-        .send(payload)
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-
-      expect(body).toIncludeAllPartialMembers([
-        {
-          id: housing.id,
-          status: payload.housingUpdate.statusUpdate.status,
-          occupancy: payload.housingUpdate.occupancyUpdate.occupancy,
-          occupancyIntended:
-            payload.housingUpdate.occupancyUpdate.occupancyIntended
-        }
-      ]);
-
-      const actual = await Housing().where('id', housing.id).first();
-      expect(actual).toMatchObject({
-        id: housing.id,
-        status: payload.housingUpdate.statusUpdate.status,
-        occupancy: payload.housingUpdate.occupancyUpdate.occupancy,
-        occupancy_intended:
-          payload.housingUpdate.occupancyUpdate.occupancyIntended
-      });
-    });
-
-    it('should create and event related to the status change only when there are some changes', async () => {
-      const { status } = await request(app)
-        .post(testRoute)
-        .send(payload)
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode,
-          type: 'housing:status-updated'
-        });
-      events.forEach((event) => {
-        expect(event).toMatchObject<
-          Partial<EventRecordDBO<'housing:status-updated'>>
-        >({
-          type: 'housing:status-updated',
-          next_old: {
-            status: HOUSING_STATUS_LABELS[housing.status]
-          },
-          next_new: {
-            status:
-              HOUSING_STATUS_LABELS[payload.housingUpdate.statusUpdate.status]
-          },
-          created_by: user.id
-        });
-      });
-    });
-
-    it('should create an event related to the occupancy change', async () => {
-      const { status } = await request(app)
-        .post(testRoute)
-        .send(payload)
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          type: 'housing:occupancy-updated',
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        });
-      events.forEach((event) => {
-        expect(event).toMatchObject<
-          Partial<EventRecordDBO<'housing:occupancy-updated'>>
-        >({
-          name: "Modification du statut d'occupation",
-          type: 'housing:occupancy-updated',
-          created_by: user.id,
-          next_old: {
-            occupancy: OCCUPANCY_LABELS[housing.occupancy],
-            occupancyIntended: OCCUPANCY_LABELS[housing.occupancyIntended!]
-          },
-          next_new: {
-            occupancy:
-              OCCUPANCY_LABELS[payload.housingUpdate.occupancyUpdate.occupancy],
-            occupancyIntended:
-              OCCUPANCY_LABELS[
-                payload.housingUpdate.occupancyUpdate.occupancyIntended
-              ]
-          }
-        });
-      });
-    });
-
-    it('should create a note', async () => {
-      const { status } = await request(app)
-        .post(testRoute)
-        .send(payload)
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-
-      const actual = await Notes()
-        .join(HOUSING_NOTES_TABLE, 'note_id', 'id')
-        .where('housing_id', housing.id)
-        .first();
-      expect(actual).toMatchObject({
-        housing_id: housing.id,
-        ...payload.housingUpdate.note,
         created_by: user.id
       });
     });

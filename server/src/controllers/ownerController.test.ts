@@ -50,7 +50,11 @@ import {
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Owner API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
@@ -73,13 +77,13 @@ describe('Owner API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute(housing.id));
+      const { status } = await request(url).get(testRoute(housing.id));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should return the owner list for a housing', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute(housing.id))
         .use(tokenProvider(user));
 
@@ -107,7 +111,7 @@ describe('Owner API', () => {
         phone: '+33 6 12 34 56 78'
       };
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(uuidv4()))
         .send(payload)
         .set('Content-Type', 'application/json')
@@ -125,7 +129,7 @@ describe('Owner API', () => {
         phone: '+33 6 12 34 56 78'
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(owner.id))
         .send(payload)
         .set('Content-Type', 'application/json')
@@ -148,7 +152,7 @@ describe('Owner API', () => {
         banAddress: genAddressApi(owner.id, AddressKinds.Owner)
       };
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(owner.id))
         .send(payload)
         .set('Content-Type', 'application/json')
@@ -183,7 +187,7 @@ describe('Owner API', () => {
         additionalAddress: 'Les Cabannes'
       } satisfies OwnerUpdatePayload;
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(original.id))
         .send(payload)
         .set('Content-Type', 'application/json')
@@ -263,7 +267,7 @@ describe('Owner API', () => {
         return createHousingOwnerPayload(owner, (i + 1) as OwnerRank);
       });
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(uuidv4()))
         .send(payload)
         .use(tokenProvider(user));
@@ -283,7 +287,7 @@ describe('Owner API', () => {
           )
         );
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .use(tokenProvider(user));
@@ -297,7 +301,7 @@ describe('Owner API', () => {
           return { ...housingOwner, rank: i + 1 };
         });
 
-        const { body, status } = await request(app)
+        const { body, status } = await request(url)
           .put(testRoute(housing.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -321,7 +325,7 @@ describe('Owner API', () => {
           rank: -2
         });
 
-        await request(app)
+        await request(url)
           .put(testRoute(housing.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -357,7 +361,7 @@ describe('Owner API', () => {
         const owner = housingOwners[housingOwners.length - 1];
         const payload = housingOwners.slice(0, -1);
 
-        await request(app)
+        await request(url)
           .put(testRoute(housing.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -394,7 +398,7 @@ describe('Owner API', () => {
           return { ...housingOwner, rank: i + 1 };
         });
 
-        await request(app)
+        await request(url)
           .put(testRoute(housing.id))
           .send(payload)
           .use(tokenProvider(user));
@@ -433,7 +437,7 @@ describe('Owner API', () => {
     it('should return 304 Not modified otherwise', async () => {
       const payload = housingOwners;
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(housing.id))
         .send(payload)
         .use(tokenProvider(user));

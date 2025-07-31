@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { knex } from 'knex';
+import knex from 'knex';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import qs from 'qs';
 

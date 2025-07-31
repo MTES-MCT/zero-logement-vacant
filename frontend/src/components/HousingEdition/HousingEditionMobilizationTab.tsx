@@ -1,44 +1,53 @@
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
-
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus
 } from '@zerologementvacant/models';
-import { useController, useFormContext } from 'react-hook-form';
+import {
+  useController,
+  useFormContext,
+  type FieldValues
+} from 'react-hook-form';
+
 import { Housing } from '../../models/Housing';
 import { getSubStatusOptions } from '../../models/HousingState';
-import AppSelectNext from '../_app/AppSelect/AppSelectNext';
-import HousingStatusMultiSelect from '../HousingListFilters/HousingStatusMultiSelect';
+import HousingStatusSelect from '../HousingListFilters/HousingStatusSelect';
+import HousingSubStatusSelect from '../HousingListFilters/HousingSubStatusSelect';
 import PrecisionLists from '../Precision/PrecisionLists';
-import { HousingEditionFormSchema } from './HousingEditionSideMenu';
 
 interface Props {
   housingId: Housing['id'] | null;
 }
 
+interface BaseSchema extends FieldValues {
+  status: HousingStatus | null;
+  subStatus: string | null;
+}
+
 function HousingEditionMobilizationTab(props: Props) {
   const form = useFormContext();
   const { field: statusField, fieldState: statusFieldState } = useController<
-    HousingEditionFormSchema,
+    BaseSchema,
     'status'
   >({
     name: 'status'
   });
   const { field: subStatusField, fieldState: subStatusFieldState } =
-    useController<HousingEditionFormSchema, 'subStatus'>({
+    useController<BaseSchema, 'subStatus'>({
       name: 'subStatus'
     });
 
   const subStatusDisabled =
-    getSubStatusOptions(statusField.value as HousingStatus) === undefined;
+    statusField.value === null ||
+    getSubStatusOptions(statusField.value).length === 0;
 
   return (
     <Grid component="section" container sx={{ rowGap: 2 }}>
       <Grid
         component="article"
         sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-        xs={12}
+        size={12}
       >
         <Typography
           component="h3"
@@ -46,7 +55,7 @@ function HousingEditionMobilizationTab(props: Props) {
         >
           Statut de suivi
         </Typography>
-        <HousingStatusMultiSelect
+        <HousingStatusSelect
           error={statusFieldState.error?.message}
           invalid={statusFieldState.invalid}
           options={HOUSING_STATUS_VALUES}
@@ -57,14 +66,15 @@ function HousingEditionMobilizationTab(props: Props) {
             form.clearErrors('subStatus');
           }}
         />
-        <AppSelectNext
-          disabled={subStatusDisabled || [HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING].includes(statusField.value)}
-          label="Sous-statut de suivi"
+        <HousingSubStatusSelect
+          disabled={subStatusDisabled}
           multiple={false}
           options={
-            getSubStatusOptions(statusField.value as HousingStatus)?.map(
-              (option) => option.value
-            ) ?? []
+            statusField.value
+              ? getSubStatusOptions(statusField.value).map(
+                  (option) => option.value
+                )
+              : []
           }
           error={subStatusFieldState.error?.message}
           invalid={subStatusFieldState.invalid}
@@ -73,8 +83,7 @@ function HousingEditionMobilizationTab(props: Props) {
           onChange={subStatusField.onChange}
         />
       </Grid>
-
-      <PrecisionLists housingId={props.housingId} />
+      {props.housingId ? <PrecisionLists housingId={props.housingId} /> : null}
     </Grid>
   );
 }

@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -78,7 +78,7 @@ function createGroupCreationModal() {
             size="extra-large"
             title="Créer un nouveau groupe de logements"
           >
-            <Grid xs={12} sx={{ mt: -1, mb: 2 }}>
+            <Grid sx={{ mt: -1, mb: 2 }} size={12}>
               {props.isCounting && (
                 <Skeleton animation="wave" height="1.5rem" width="20rem" />
               )}
@@ -92,7 +92,7 @@ function createGroupCreationModal() {
             </Grid>
 
             <Grid container sx={{ mb: 2 }}>
-              <Grid xs={5}>
+              <Grid size={5}>
                 <AppTextInputNext
                   label="Nom du groupe (obligatoire)"
                   name="title"
@@ -100,7 +100,7 @@ function createGroupCreationModal() {
               </Grid>
             </Grid>
             <Grid container>
-              <Grid xs={8}>
+              <Grid size={8}>
                 <AppTextInputNext
                   hintText="Vous pouvez par exemple définir à quoi sert ce groupe et comment vous l’avez construit."
                   label="Description du groupe (obligatoire)"

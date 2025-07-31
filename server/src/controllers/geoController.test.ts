@@ -22,7 +22,11 @@ import { formatUserApi, Users } from '~/repositories/userRepository';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
 
 describe('Geo perimeters API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   const establishment = genEstablishmentApi();
   const anotherEstablishment = genEstablishmentApi();
@@ -53,13 +57,13 @@ describe('Geo perimeters API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).get(testRoute);
+      const { status } = await request(url).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should list the geo perimeters for the authenticated user', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -87,7 +91,7 @@ describe('Geo perimeters API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute)
         .send({ geoPerimeterIds: [geoPerimeter.id] });
 
@@ -95,17 +99,17 @@ describe('Geo perimeters API', () => {
     });
 
     it('should received valid geo perimeter ids array', async () => {
-      await request(app)
+      await request(url)
         .delete(testRoute)
         .send()
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
-      await request(app)
+      await request(url)
         .delete(testRoute)
         .send({ geoPerimeterIds: geoPerimeter.id })
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
-      await request(app)
+      await request(url)
         .delete(testRoute)
         .send({
           geoPerimeterIds: [geoPerimeter.id, randomstring.generate()]
@@ -115,7 +119,7 @@ describe('Geo perimeters API', () => {
     });
 
     it('should delete the perimeters', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute)
         .send({ geoPerimeterIds: [geoPerimeter.id] })
         .use(tokenProvider(user));
@@ -135,7 +139,7 @@ describe('Geo perimeters API', () => {
       );
       await GeoPerimeters().insert(formatGeoPerimeterApi(anotherGeoPerimeter));
 
-      const { status } = await request(app)
+      const { status } = await request(url)
         .delete(testRoute)
         .send({ geoPerimeterIds: [anotherGeoPerimeter.id] })
         .use(tokenProvider(user));
@@ -167,13 +171,13 @@ describe('Geo perimeters API', () => {
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
-      const { status } = await request(app).put(testRoute(faker.string.uuid()));
+      const { status } = await request(url).put(testRoute(faker.string.uuid()));
 
       expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should be forbidden for a user from another establishment', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute(anotherGeoPerimeter.id))
         .send({
           kind: randomstring.generate(),
@@ -185,12 +189,12 @@ describe('Geo perimeters API', () => {
     });
 
     it('should received valid parameters', async () => {
-      await request(app)
+      await request(url)
         .put(testRoute('id'))
         .use(tokenProvider(user))
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .put(testRoute(geoPerimeter.id))
         .send({
           name: randomstring.generate()
@@ -203,7 +207,7 @@ describe('Geo perimeters API', () => {
       const newKind: string = randomstring.generate();
       const newName: string = randomstring.generate();
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute(geoPerimeter.id))
         .send({
           kind: newKind,

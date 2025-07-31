@@ -85,6 +85,11 @@ export default function createWorker() {
               }
             })
           ]);
+          logger.debug('Found entities', {
+            campaign: campaign,
+            housings: housings.length,
+            draft: drafts[0]
+          });
 
           const [draft] = drafts;
           if (!draft) {

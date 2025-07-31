@@ -1,3 +1,4 @@
+import { vi, MockedObject } from 'vitest';
 import { faker } from '@faker-js/faker/locale/fr';
 import {
   ActiveOwnerRank,
@@ -33,8 +34,8 @@ import {
 
 describe('Source housing owner processor', () => {
   interface RunOptions {
-    housingRepository: jest.MockedObject<ProcessorOptions['housingRepository']>;
-    ownerRepository: jest.MockedObject<ProcessorOptions['ownerRepository']>;
+    housingRepository: MockedObject<ProcessorOptions['housingRepository']>;
+    ownerRepository: MockedObject<ProcessorOptions['ownerRepository']>;
     abortEarly?: boolean;
   }
 
@@ -79,11 +80,11 @@ describe('Source housing owner processor', () => {
       run(sourceHousingOwners, {
         abortEarly: true,
         housingRepository: {
-          findOne: jest.fn()
+          findOne: vi.fn()
         },
         ownerRepository: {
-          find: jest.fn(),
-          findByHousing: jest.fn()
+          find: vi.fn(),
+          findByHousing: vi.fn()
         }
       });
 
@@ -117,11 +118,11 @@ describe('Source housing owner processor', () => {
     const doRun = async () =>
       run(sourceHousingOwners, {
         housingRepository: {
-          findOne: jest.fn().mockResolvedValue(housing)
+          findOne: vi.fn().mockResolvedValue(housing)
         },
         ownerRepository: {
-          find: jest.fn().mockResolvedValue(owners),
-          findByHousing: jest.fn()
+          find: vi.fn().mockResolvedValue(owners),
+          findByHousing: vi.fn()
         }
       });
 
@@ -142,11 +143,11 @@ describe('Source housing owner processor', () => {
     const doRun = async () =>
       run(sourceHousingOwners, {
         housingRepository: {
-          findOne: jest.fn().mockResolvedValue(null)
+          findOne: vi.fn().mockResolvedValue(null)
         },
         ownerRepository: {
-          find: jest.fn().mockResolvedValue(sourceOwners),
-          findByHousing: jest.fn()
+          find: vi.fn().mockResolvedValue(sourceOwners),
+          findByHousing: vi.fn()
         }
       });
 
@@ -167,11 +168,11 @@ describe('Source housing owner processor', () => {
     const actual = await run(sourceHousingOwners, {
       abortEarly: false,
       housingRepository: {
-        findOne: jest.fn().mockResolvedValue(null)
+        findOne: vi.fn().mockResolvedValue(null)
       },
       ownerRepository: {
-        find: jest.fn(),
-        findByHousing: jest.fn()
+        find: vi.fn(),
+        findByHousing: vi.fn()
       }
     });
 
@@ -190,11 +191,11 @@ describe('Source housing owner processor', () => {
     const actual = await run(sourceHousingOwners, {
       abortEarly: false,
       housingRepository: {
-        findOne: jest.fn()
+        findOne: vi.fn()
       },
       ownerRepository: {
-        find: jest.fn().mockResolvedValue([]),
-        findByHousing: jest.fn()
+        find: vi.fn().mockResolvedValue([]),
+        findByHousing: vi.fn()
       }
     });
 
@@ -224,11 +225,11 @@ describe('Source housing owner processor', () => {
 
     const actual = await run(sourceHousingOwners, {
       housingRepository: {
-        findOne: jest.fn().mockResolvedValue(housing)
+        findOne: vi.fn().mockResolvedValue(housing)
       },
       ownerRepository: {
-        find: jest.fn().mockResolvedValue(owners),
-        findByHousing: jest.fn().mockResolvedValue([])
+        find: vi.fn().mockResolvedValue(owners),
+        findByHousing: vi.fn().mockResolvedValue([])
       }
     });
 
@@ -287,11 +288,11 @@ describe('Source housing owner processor', () => {
 
     const actual = await run(sourceHousingOwners, {
       housingRepository: {
-        findOne: jest.fn().mockResolvedValue(housing)
+        findOne: vi.fn().mockResolvedValue(housing)
       },
       ownerRepository: {
-        find: jest.fn().mockResolvedValue(owners),
-        findByHousing: jest.fn().mockResolvedValue(existingActiveHousingOwners)
+        find: vi.fn().mockResolvedValue(owners),
+        findByHousing: vi.fn().mockResolvedValue(existingActiveHousingOwners)
       }
     });
 
@@ -378,13 +379,11 @@ describe('Source housing owner processor', () => {
 
     const actual = await run(sourceHousingOwners, {
       housingRepository: {
-        findOne: jest.fn().mockResolvedValue(housing)
+        findOne: vi.fn().mockResolvedValue(housing)
       },
       ownerRepository: {
-        find: jest.fn().mockResolvedValue(owners),
-        findByHousing: jest
-          .fn()
-          .mockResolvedValue(existingInactiveHousingOwners)
+        find: vi.fn().mockResolvedValue(owners),
+        findByHousing: vi.fn().mockResolvedValue(existingInactiveHousingOwners)
       }
     });
 
@@ -461,11 +460,11 @@ describe('Source housing owner processor', () => {
 
     const actual = await run(sourceHousingOwners, {
       housingRepository: {
-        findOne: jest.fn().mockResolvedValue(housing)
+        findOne: vi.fn().mockResolvedValue(housing)
       },
       ownerRepository: {
-        find: jest.fn().mockResolvedValue(owners),
-        findByHousing: jest.fn().mockResolvedValue(existingActiveHousingOwners)
+        find: vi.fn().mockResolvedValue(owners),
+        findByHousing: vi.fn().mockResolvedValue(existingActiveHousingOwners)
       }
     });
 
@@ -547,13 +546,11 @@ describe('Source housing owner processor', () => {
 
     const actual = await run(sourceHousingOwners, {
       housingRepository: {
-        findOne: jest.fn().mockResolvedValue(housing)
+        findOne: vi.fn().mockResolvedValue(housing)
       },
       ownerRepository: {
-        find: jest.fn().mockResolvedValue(owners),
-        findByHousing: jest
-          .fn()
-          .mockResolvedValue(existingInactiveHousingOwners)
+        find: vi.fn().mockResolvedValue(owners),
+        findByHousing: vi.fn().mockResolvedValue(existingInactiveHousingOwners)
       }
     });
 

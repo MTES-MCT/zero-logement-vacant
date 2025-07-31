@@ -17,24 +17,28 @@ import {
   READ_ONLY_OCCUPANCY_VALUES,
   READ_WRITE_OCCUPANCY_VALUES
 } from '@zerologementvacant/models';
-import { isNotNull } from '@zerologementvacant/utils';
-import { Array, identity, Predicate, Record } from 'effect';
+import { compactNullable, isNotNull } from '@zerologementvacant/utils';
+import { Array, identity, Predicate, Struct } from 'effect';
 import highland from 'highland';
 import { Set } from 'immutable';
 import { Knex } from 'knex';
-import _ from 'lodash';
-import fp from 'lodash/fp';
+import { uniq } from 'lodash-es';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
+
 import { match, Pattern } from 'ts-pattern';
 
 import db, { toRawArray, where } from '~/infra/database';
-import { getTransaction } from '~/infra/database/transaction';
-import { logger } from '~/infra/logger';
+import {
+  getTransaction,
+  withinTransaction
+} from '~/infra/database/transaction';
+import { createLogger } from '~/infra/logger';
 import {
   HousingApi,
   HousingRecordApi,
-  HousingSortApi
+  HousingSortApi,
+  type HousingId
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
@@ -54,6 +58,8 @@ import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { localitiesTable } from './localityRepository';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
+
+const logger = createLogger('housingRepository');
 
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
@@ -394,7 +400,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
   }
 
   return (query: Knex.QueryBuilder) => {
-    _.uniq(includes).forEach((include) => {
+    uniq(includes).forEach((include) => {
       joins[include](query);
     });
   };
@@ -424,8 +430,44 @@ async function update(housing: HousingApi): Promise<void> {
     });
 }
 
+async function updateMany(
+  housings: ReadonlyArray<HousingId>,
+  payload: Partial<
+    Pick<HousingApi, 'status' | 'subStatus' | 'occupancy' | 'occupancyIntended'>
+  >
+): Promise<void> {
+  if (housings.length === 0) {
+    logger.debug('No housing to update. Skipping...');
+    return;
+  }
+
+  const fields = compactNullable({
+    status: payload.status,
+    sub_status: payload.subStatus,
+    occupancy: payload.occupancy,
+    occupancy_intended: payload.occupancyIntended
+  });
+  if (Object.keys(fields).length === 0) {
+    logger.debug('No fields to update. Skipping...');
+    return;
+  }
+
+  logger.debug('Updating many housings...', {
+    housings: housings.length,
+    payload
+  });
+  await withinTransaction(async (transaction) => {
+    await Housing(transaction)
+      .whereIn(
+        ['geo_code', 'id'],
+        housings.map((housing) => [housing.geoCode, housing.id])
+      )
+      .update(fields);
+  });
+}
+
 async function remove(housing: HousingApi): Promise<void> {
-  const info = fp.pick(['geoCode', 'id', 'localId'], housing);
+  const info = Struct.pick(housing, 'geoCode', 'id', 'localId');
   logger.debug('Removing housing...', info);
   await Housing()
     .where({
@@ -450,7 +492,7 @@ function fastListQuery(opts: ListQueryOptions) {
     .modify(include(opts.includes ?? [], opts.filters))
     .modify(
       filteredQuery({
-        filters: fp.omit(['establishmentIds'], opts.filters),
+        filters: Struct.omit(opts.filters, 'establishmentIds'),
         includes: opts.includes
       })
     );
@@ -1286,6 +1328,7 @@ export default {
   betterStream,
   count,
   update,
+  updateMany,
   save,
   saveMany,
   remove

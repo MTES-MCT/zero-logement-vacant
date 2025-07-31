@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { constants } from 'http2';
 import request from 'supertest';
 
@@ -19,7 +20,11 @@ import { setImmediate } from 'async';
 const TIMEOUT = 10_000;
 
 describe('Server-sent event API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
   const testRoute = '/api/sse';
@@ -31,46 +36,47 @@ describe('Server-sent event API', () => {
 
   it(
     'should wait for an event',
-    (done) => {
-      const campaign = genCampaignApi(establishment.id, user.id);
-      jest.spyOn(queue, 'on').mockImplementation((event, callback) => {
-        setImmediate(() => {
-          callback({ id: campaign.id });
+    { timeout: TIMEOUT },
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const campaign = genCampaignApi(establishment.id, user.id);
+        vi.spyOn(queue, 'on').mockImplementation((event, callback) => {
+          setImmediate(() => {
+            callback({ id: campaign.id });
+          });
         });
-      });
 
-      request(app)
-        .get(testRoute)
-        .use(tokenProvider(user))
-        .buffer(false)
-        .parse((response, callback) => {
-          try {
-            expect(response.statusCode).toBe(constants.HTTP_STATUS_OK);
-            expect(response.headers).toMatchObject({
-              'content-type': 'text/event-stream',
-              connection: 'keep-alive',
-              'cache-control': 'no-cache'
-            });
-
-            response.setEncoding('utf8');
-            response.once('data', (chunk) => {
-              expect(chunk).toBe('event: campaign-generate\n');
-
-              response.once('data', (chunk) => {
-                expect(chunk).toBe(
-                  `data: ${JSON.stringify({ id: campaign.id })}\n\n`
-                );
-                callback(null, response);
+        request(url)
+          .get(testRoute)
+          .use(tokenProvider(user))
+          .buffer(false)
+          .parse((response, callback) => {
+            try {
+              expect(response.statusCode).toBe(constants.HTTP_STATUS_OK);
+              expect(response.headers).toMatchObject({
+                'content-type': 'text/event-stream',
+                connection: 'keep-alive',
+                'cache-control': 'no-cache'
               });
-            });
-          } catch (error) {
-            done(error);
-          }
-        })
-        .end((error) => {
-          done(error);
-        });
-    },
-    TIMEOUT
+
+              response.setEncoding('utf8');
+              response.once('data', (chunk) => {
+                expect(chunk).toBe('event: campaign-generate\n');
+
+                response.once('data', (chunk) => {
+                  expect(chunk).toBe(
+                    `data: ${JSON.stringify({ id: campaign.id })}\n\n`
+                  );
+                  callback(null, response);
+                });
+              });
+            } catch (error) {
+              reject(error);
+            }
+          })
+          .end((error) => {
+            return error ? reject(error) : resolve();
+          });
+      })
   );
 });

@@ -17,12 +17,12 @@ export async function up(knex: Knex): Promise<void> {
         fs
           .readFileSync(
             path.join(
-              __dirname,
-              '../procedures/002-load-non-vacant-housing.sql',
-            ),
+              import.meta.dirname,
+              '../procedures/002-load-non-vacant-housing.sql'
+            )
           )
-          .toString(),
-      ),
+          .toString()
+      )
     );
 }
 

@@ -4,8 +4,9 @@ import {
   DraftPreviewPayloadDTO,
   DraftUpdatePayloadDTO
 } from '@zerologementvacant/models';
-import { SenderPayload } from './Sender';
 import { DeepNonNullable } from 'ts-essentials';
+
+import { SenderPayload } from './Sender';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Draft extends DraftDTO {}

@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Drawer, { DrawerProps } from '@mui/material/Drawer';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { ReactNode } from 'react';
 
 interface AsideProps {
@@ -28,11 +28,11 @@ function Aside(props: AsideProps) {
       }}
       {...props.drawerProps}
     >
-      <Grid container sx={{ flexDirection: 'column' }} xs>
+      <Grid container sx={{ flexDirection: 'column' }} size="grow">
         <Grid container sx={{ justifyContent: 'space-between', mb: 3 }}>
-          {props.header && <Grid xs>{props.header}</Grid>}
+          {props.header && <Grid size="grow">{props.header}</Grid>}
 
-          <Grid xs="auto">
+          <Grid size="auto">
             <Button
               iconId="fr-icon-close-line"
               priority="tertiary no outline"
@@ -43,7 +43,7 @@ function Aside(props: AsideProps) {
           </Grid>
         </Grid>
 
-        <Grid sx={{ overflowY: 'auto' }} xs>
+        <Grid sx={{ overflowY: 'auto' }} size="grow">
           {props.main}
         </Grid>
 

@@ -1,8 +1,7 @@
-import { logger } from '~/infra/logger';
-import config from '~/infra/config';
 import { DatafoncierHousing } from '@zerologementvacant/models';
-import { DatafoncierResultDTO } from '~/models/DatafoncierResultDTO';
-import { createQuery } from '@zerologementvacant/utils';
+import axios from 'axios';
+import config from '~/infra/config';
+import { logger } from '~/infra/logger';
 
 const API = config.datafoncier.api;
 
@@ -18,24 +17,23 @@ interface FindOptions {
 const find = async (opts: FindOptions): Promise<DatafoncierHousing[]> => {
   logger.debug('Find datafoncier housing', opts);
 
-  const query = createQuery({
-    fields: 'all',
-    dteloc: '1,2',
-    code_insee: opts.filters.geoCode
-  });
-  const response = await fetch(`${API}/ff/locaux${query}`, {
-    headers: {
-      Authorization: `Token ${config.datafoncier.token}`
-    }
-  });
-  if (!response.ok) {
-    logger.error('Cannot fetch datafoncier housing', response.statusText);
+  try {
+    const query = {
+      fields: 'all',
+      dteloc: '1,2',
+      code_insee: opts.filters.geoCode
+    };
+    const response = await axios.get(`${API}/ff/locaux`, {
+      params: query,
+      headers: {
+        Authorization: `Token ${config.datafoncier.token}`
+      }
+    });
+    return response.data.results.filter(isAllowed);
+  } catch (error) {
+    logger.error('Error fetching datafoncier housing', error);
     return [];
   }
-
-  const data =
-    (await response.json()) as DatafoncierResultDTO<DatafoncierHousing>;
-  return data.results.filter(isAllowed);
 };
 
 interface FindOneOptions {

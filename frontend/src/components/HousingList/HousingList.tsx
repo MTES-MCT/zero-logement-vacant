@@ -14,14 +14,12 @@ import {
   Housing,
   HousingSort,
   HousingSortable,
-  HousingUpdate,
   SelectedHousing
 } from '../../models/Housing';
 import { HousingFilters } from '../../models/HousingFilters';
 import {
   useCountHousingQuery,
-  useFindHousingQuery,
-  useUpdateHousingNextMutation
+  useFindHousingQuery
 } from '../../services/housing.service';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { findChild } from '../../utils/elementUtils';
@@ -49,8 +47,6 @@ function HousingList(props: HousingListProps) {
   const header = findChild(children, SelectableListHeader);
 
   const campaignList = useCampaignList();
-
-  const [updateHousing] = useUpdateHousingNextMutation();
 
   const [pagination, setPagination] = useState<Pagination>(DefaultPagination);
   const [sort, setSort] = useState<HousingSort>();
@@ -226,19 +222,6 @@ function HousingList(props: HousingListProps) {
     [columnHelper, getSortButton, campaignList, actions]
   );
 
-  const submitHousingUpdate = async (
-    housing: Housing,
-    housingUpdate: HousingUpdate
-  ) => {
-    await updateHousing({
-      ...housing,
-      status: housingUpdate.statusUpdate?.status ?? housing.status,
-      subStatus:
-        housingUpdate.statusUpdate?.subStatus ?? housing.subStatus ?? null
-    });
-    setUpdatingHousing(undefined);
-  };
-
   return (
     <Stack sx={{ alignItems: 'center' }}>
       <SelectableListHeader
@@ -268,7 +251,6 @@ function HousingList(props: HousingListProps) {
         <HousingEditionSideMenu
           housing={updatingHousing ?? null}
           expand={!!updatingHousing}
-          onSubmit={submitHousingUpdate}
           onClose={() => setUpdatingHousing(undefined)}
         />
       </HousingEditionProvider>

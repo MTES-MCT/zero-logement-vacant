@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/lib",
+    "tsBuildInfoFile": "dist/lib/tsconfig.tsbuildinfo",
+    "types": ["vitest/importMeta"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"],
+  "references": [
+    {
+      "path": "../utils/tsconfig.lib.json"
+    },
+    {
+      "path": "../models/tsconfig.lib.json"
+    }
+  ]
+}

@@ -1,13 +1,14 @@
+import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryRouter, Link, RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
+import { createMemoryRouter, Link, RouterProvider } from 'react-router-dom';
+import { vi } from 'vitest';
+import Notification from '../../../../components/Notification/Notification';
+import { signupLinkApi } from '../../../../services/signup-link.service';
+import { store } from '../../../../store/store';
 
 import AccountEmailActivationView from '../AccountEmailActivationView';
-import { store } from '../../../../store/store';
-import { signupLinkApi } from '../../../../services/signup-link.service';
-import Notification from '../../../../components/Notification/Notification';
 
 describe('AccountEmailActivationView', () => {
   const user = userEvent.setup();
@@ -79,7 +80,7 @@ describe('AccountEmailActivationView', () => {
     });
 
     it('should send an email again', async () => {
-      const sendActivationEmail = jest.spyOn(
+      const sendActivationEmail = vi.spyOn(
         signupLinkApi.endpoints.sendActivationEmail,
         'initiate'
       );

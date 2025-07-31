@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { fc, test } from '@fast-check/jest';
+import { fc, test } from '@fast-check/vitest';
 import { constants } from 'http2';
 import request from 'supertest';
 
@@ -17,7 +17,11 @@ import {
 } from '~/repositories/establishmentRepository';
 
 describe('Establishment API', () => {
-  const { app } = createServer();
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   describe('GET /establishments', () => {
     const testRoute = '/api/establishments';
@@ -61,7 +65,7 @@ describe('Establishment API', () => {
         nil: undefined
       })
     })('should validate inputs', async (query) => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .get(testRoute)
         .query({
           id: query.id?.join(','),
@@ -77,7 +81,7 @@ describe('Establishment API', () => {
     });
 
     it('should return an empty array where no establishment is found', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query({
           query: faker.string.sample(10)
@@ -88,7 +92,7 @@ describe('Establishment API', () => {
     });
 
     it('should list available establishments', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query({ available: true });
 
@@ -102,7 +106,7 @@ describe('Establishment API', () => {
     it('should search establishments by query', async () => {
       const [firstEstablishment] = establishments;
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query({
           query: firstEstablishment.name.substring(1, 3)
@@ -118,7 +122,7 @@ describe('Establishment API', () => {
     it('should list establishments by geo code', async () => {
       const [firstEstablishment] = establishments;
 
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .query({
           geoCodes: faker.helpers.arrayElement(firstEstablishment.geoCodes)

@@ -76,7 +76,7 @@ jobs:
         run: |
           clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
           clever service link-addon "Cellar staging" -a $APP_ALIAS
-          clever service link-addon "Configuration provider" -a $APP_ALIAS
+          clever service link-addon "Nx Configuration provider" -a $APP_ALIAS
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
           clever service link-addon $PR_NAME-redis -a $APP_ALIAS
 
@@ -120,7 +120,7 @@ jobs:
           clever env set METABASE_API_TOKEN $METABASE_API_TOKEN -a $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Deploy the app
         run: |
@@ -160,7 +160,7 @@ jobs:
         run: |
           clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
           clever service link-addon "Cellar staging" -a $APP_ALIAS
-          clever service link-addon "Configuration provider" -a $APP_ALIAS
+          clever service link-addon "Nx Configuration provider" -a $APP_ALIAS
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
           clever service link-addon $PR_NAME-redis -a $APP_ALIAS
 
@@ -176,6 +176,7 @@ jobs:
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
           clever env set CC_OVERRIDE_BUILDCACHE '.:../.cache/puppeteer' -a $APP_ALIAS
+          clever env set CC_PRE_RUN_HOOK 'corepack yarn nx run $WORKSPACE:prestart'
           clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
           clever env set S3_ACCESS_KEY_ID $CELLAR_ADDON_KEY_ID -a $APP_ALIAS
           clever env set S3_BUCKET zerologementvacant-pr -a $APP_ALIAS
@@ -186,7 +187,7 @@ jobs:
           clever env set SENTRY_ENABLED "false" -a $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Deploy the app
         run: |
@@ -233,15 +234,15 @@ jobs:
 
       - name: Set environment variables
         run: |
-          clever env set CC_OVERRIDE_BUILDCACHE "frontend/build/" -a $APP_ALIAS
+          clever env set CC_OVERRIDE_BUILDCACHE "frontend/dist/" -a $APP_ALIAS
           clever env set CC_POST_BUILD_HOOK "ls -al $CC_OVERRIDE_BUILDCACHE" -a $APP_ALIAS
-          clever env set CC_PRE_BUILD_HOOK 'corepack enable && corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build' -a $APP_ALIAS
-          clever env set CC_WEBROOT "/frontend/build" -a $APP_ALIAS
-          clever env set REACT_APP_API_URL https://$PR_NAME-api.cleverapps.io -a $APP_ALIAS
+          clever env set CC_PRE_BUILD_HOOK 'corepack install && corepack yarn --immutable && corepack yarn nx run $WORKSPACE:prebuild && corepack yarn nx run $WORKSPACE:build && corepack yarn nx run $WORKSPACE:postbuild' -a $APP_ALIAS
+          clever env set CC_WEBROOT "/frontend/dist" -a $APP_ALIAS
+          clever env set VITE_API_URL https://$PR_NAME-api.cleverapps.io -a $APP_ALIAS
           clever env set WORKSPACE "@zerologementvacant/front" -a $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Deploy the app
         run: |
@@ -280,7 +281,7 @@ jobs:
         run: clever link -o $ORGA_ID $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Update the app
         run: clever deploy --force -a $APP_ALIAS --same-commit-policy rebuild
@@ -317,7 +318,7 @@ jobs:
         run: clever link -o $ORGA_ID $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Update the app
         run: clever deploy --force -a $APP_ALIAS --same-commit-policy rebuild
@@ -354,7 +355,7 @@ jobs:
         run: clever link -o $ORGA_ID $APP_ALIAS
 
       - name: Scale up for deployment
-        run: clever scale --flavor M -a $APP_ALIAS
+        run: clever scale --flavor L -a $APP_ALIAS
 
       - name: Update the app
         run: clever deploy --force -a $APP_ALIAS --same-commit-policy rebuild

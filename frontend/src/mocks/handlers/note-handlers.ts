@@ -32,12 +32,12 @@ export const noteHandlers: RequestHandler[] = [
   ),
 
   // Create a note for a housing
-  http.post<PathParams, NotePayloadDTO, NoteDTO>(
+  http.post<PathParams, NotePayloadDTO, NoteDTO | null>(
     `${config.apiEndpoint}/api/housing/:id/notes`,
     async ({ params, request }) => {
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {
-        throw HttpResponse.json(null, {
+        return HttpResponse.json(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
@@ -60,12 +60,12 @@ export const noteHandlers: RequestHandler[] = [
   ),
 
   // Update a note
-  http.put<PathParams, NotePayloadDTO, NoteDTO>(
+  http.put<PathParams, NotePayloadDTO, NoteDTO | null>(
     `${config.apiEndpoint}/api/notes/:id`,
     async ({ params, request }) => {
       const note = data.notes.find((note) => note.id === params.id);
       if (!note) {
-        throw HttpResponse.json(null, {
+        return HttpResponse.json(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }
@@ -80,12 +80,12 @@ export const noteHandlers: RequestHandler[] = [
   ),
 
   // Remove a note
-  http.delete<PathParams, never, never>(
+  http.delete<PathParams, never, null>(
     `${config.apiEndpoint}/api/notes/:id`,
     async ({ params }) => {
       const note = data.notes.find((note) => note.id === params.id);
       if (!note) {
-        throw HttpResponse.json(null, {
+        return HttpResponse.json(null, {
           status: constants.HTTP_STATUS_NOT_FOUND
         });
       }

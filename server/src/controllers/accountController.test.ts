@@ -4,6 +4,7 @@ import { subDays } from 'date-fns';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
+import { vi } from 'vitest';
 import { createServer } from '~/infra/server';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
@@ -26,11 +27,15 @@ import {
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
-jest.mock('../services/ceremaService/mockCeremaService');
-
-const { app } = createServer();
+vi.mock('../services/ceremaService/mockCeremaService');
 
 describe('Account controller', () => {
+  let url: string;
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
+
   const establishment = genEstablishmentApi();
   const user: UserApi = genUserApi(establishment.id);
   const admin: UserApi = {
@@ -52,7 +57,7 @@ describe('Account controller', () => {
     const testRoute = '/api/authenticate';
 
     it('should receive valid email and password', async () => {
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           email: 'test',
@@ -60,7 +65,7 @@ describe('Account controller', () => {
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           email: 'test@test.test',
@@ -70,7 +75,7 @@ describe('Account controller', () => {
     });
 
     it('should fail if the user is missing', async () => {
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           email: 'test@test.test',
@@ -80,7 +85,7 @@ describe('Account controller', () => {
     });
 
     it('should fail if an admin tries to connect as a user', async () => {
-      const { body, status } = await request(app).post(testRoute).send({
+      const { body, status } = await request(url).post(testRoute).send({
         email: admin.email,
         password: admin.password
       });
@@ -93,7 +98,7 @@ describe('Account controller', () => {
     });
 
     it('should fail if the password is wrong', async () => {
-      const { status } = await request(app).post(testRoute).send({
+      const { status } = await request(url).post(testRoute).send({
         email: user.email,
         password: '123ValidButWrong'
       });
@@ -102,7 +107,7 @@ describe('Account controller', () => {
     });
 
     it('should succeed', async () => {
-      const { body, status } = await request(app).post(testRoute).send({
+      const { body, status } = await request(url).post(testRoute).send({
         email: user.email,
         password: user.password
       });
@@ -119,13 +124,13 @@ describe('Account controller', () => {
     const testRoute = '/api/account';
 
     it('should be forbidden for a not authenticated user', async () => {
-      await request(app)
+      await request(url)
         .get(testRoute)
         .expect(constants.HTTP_STATUS_UNAUTHORIZED);
     });
 
     it('should retrieve the account', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .get(testRoute)
         .use(tokenProvider(user));
 
@@ -138,7 +143,7 @@ describe('Account controller', () => {
     const testRoute = '/api/account';
 
     it('should be forbidden for a not authenticated user', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute)
         .send(genUserAccountDTO);
 
@@ -147,7 +152,7 @@ describe('Account controller', () => {
 
     it('should receive valid account', async () => {
       async function test(payload: Record<string, unknown>) {
-        const { status } = await request(app)
+        const { status } = await request(url)
           .put(testRoute)
           .send(payload)
           .use(tokenProvider(user));
@@ -164,7 +169,7 @@ describe('Account controller', () => {
 
     it('should succeed to change the account', async () => {
       const userAccountDTO = genUserAccountDTO;
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute)
         .send(userAccountDTO)
         .use(tokenProvider(user));
@@ -188,7 +193,7 @@ describe('Account controller', () => {
 
     it('should receive valid current and new passwords', async () => {
       async function test(payload: Record<string, unknown>) {
-        const { status } = await request(app)
+        const { status } = await request(url)
           .put(testRoute)
           .send(payload)
           .use(tokenProvider(user));
@@ -203,7 +208,7 @@ describe('Account controller', () => {
     });
 
     it('should fail if the current password and the given one are different', async () => {
-      const { status } = await request(app)
+      const { status } = await request(url)
         .put(testRoute)
         .send({
           currentPassword: 'NotTheirCurrentPassword',
@@ -215,7 +220,7 @@ describe('Account controller', () => {
     });
 
     it('should succeed to change the password', async () => {
-      const { body, status } = await request(app)
+      const { body, status } = await request(url)
         .put(testRoute)
         .send({
           currentPassword: user.password,
@@ -232,7 +237,7 @@ describe('Account controller', () => {
     const testRoute = '/api/account/reset-password';
 
     it('should receive valid key and password', async () => {
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           key: '',
@@ -240,7 +245,7 @@ describe('Account controller', () => {
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           key: randomstring.generate({
@@ -251,7 +256,7 @@ describe('Account controller', () => {
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           key: randomstring.generate({
@@ -262,7 +267,7 @@ describe('Account controller', () => {
         })
         .expect(constants.HTTP_STATUS_BAD_REQUEST);
 
-      await request(app)
+      await request(url)
         .post(testRoute)
         .send({
           key: randomstring.generate({
@@ -281,7 +286,7 @@ describe('Account controller', () => {
       };
       await ResetLinks().insert(formatResetLinkApi(link));
 
-      const { status } = await request(app).post(testRoute).send({
+      const { status } = await request(url).post(testRoute).send({
         key: link.id,
         password: '123QWEasd'
       });
@@ -292,7 +297,7 @@ describe('Account controller', () => {
     it("should be impossible to change one's password without an existing reset link", async () => {
       const link = genResetLinkApi(user.id);
 
-      const { status } = await request(app).post(testRoute).send({
+      const { status } = await request(url).post(testRoute).send({
         key: link.id,
         password: '123QWEasd'
       });
@@ -305,7 +310,7 @@ describe('Account controller', () => {
       await ResetLinks().insert(formatResetLinkApi(link));
       const newPassword = '123QWEasd';
 
-      const { status } = await request(app).post(testRoute).send({
+      const { status } = await request(url).post(testRoute).send({
         key: link.id,
         password: newPassword
       });

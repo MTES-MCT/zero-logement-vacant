@@ -23,6 +23,7 @@ import {
   OWNER_KIND_LABELS,
   PRECISION_CATEGORY_VALUES,
   PROPERTY_RIGHT_VALUES,
+  READ_WRITE_OCCUPANCY_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
@@ -34,10 +35,11 @@ import {
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import type { BBox } from 'geojson';
-import fp from 'lodash/fp';
+import { padStart, range } from 'lodash-es';
 import randomstring from 'randomstring';
 import { MarkRequired } from 'ts-essentials';
 import { v4 as uuidv4 } from 'uuid';
+
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
@@ -293,7 +295,7 @@ export const genHousingApi = (
   const locality = geoCode.substring(2, 5);
   const invariant = genInvariant(locality);
   const dataYears = faker.helpers.arrayElements(
-    fp.range(2019, new Date().getUTCFullYear() + 1),
+    range(2019, new Date().getUTCFullYear() + 1),
     {
       min: 1,
       max: new Date().getUTCFullYear() + 1 - 2019
@@ -366,9 +368,11 @@ export const genHousingApi = (
       ...ENERGY_CONSUMPTION_VALUES
     ]),
     energyConsumptionAt: faker.helpers.maybe(() => faker.date.past()) ?? null,
-    occupancy: faker.helpers.arrayElement(OCCUPANCY_VALUES),
-    occupancyRegistered: faker.helpers.arrayElement(OCCUPANCY_VALUES),
-    occupancyIntended: faker.helpers.arrayElement(OCCUPANCY_VALUES),
+    occupancy: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
+    occupancyRegistered: faker.helpers.arrayElement(
+      READ_WRITE_OCCUPANCY_VALUES
+    ),
+    occupancyIntended: faker.helpers.arrayElement(READ_WRITE_OCCUPANCY_VALUES),
     buildingVacancyRate: faker.number.float(),
     campaignIds: [],
     contactCount: genNumber(1),
@@ -537,7 +541,7 @@ export const genDatafoncierOwner = (
 ): DatafoncierOwner => {
   const idcom = genGeoCode();
   return {
-    idprodroit: `${fp.padCharsStart('0', 1, rank.toString(10))}${idprocpte}`,
+    idprodroit: `${padStart(rank.toString(10), 1, '0')}${idprocpte}`,
     idprocpte,
     idpersonne: randomstring.generate(8),
     idvoie: randomstring.generate(9),

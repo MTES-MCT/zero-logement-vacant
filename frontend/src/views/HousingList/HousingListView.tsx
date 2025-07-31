@@ -1,6 +1,6 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -30,6 +30,7 @@ import { useCountHousingQuery } from '../../services/housing.service';
 import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
+import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
 
 const campaignCreationInfoModal = createCampaignCreationInfoModal();
 const campaignCreationModal = createCampaignCreationModal();
@@ -129,193 +130,198 @@ const HousingListView = () => {
   const [showExportAlert, setShowExportAlert] = useState(false);
 
   return (
-    <Grid container position="relative">
-      <HousingListFiltersSidemenu
-        filters={filters}
-        expand={expand}
-        onChange={onChangeFilters}
-        onReset={onResetFilters}
-        onClose={() => setExpand(false)}
-      />
-      <Grid container flexDirection="column" px={3} py={4} xs>
-        {alert && (
-          <Grid xs>
-            <Alert
-              severity="success"
-              description={alert}
-              closable
-              small
-              className="fr-mb-2w"
-            />
-          </Grid>
-        )}
-
-        <Grid container mb={1} spacing={2} xs={12}>
-          <Grid xs>
-            <AppSearchBar
-              onSearch={searchWithQuery}
-              initialQuery={filters.query}
-              placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-            />
-          </Grid>
-          <Grid xs="auto">
-            <HousingDisplaySwitch />
-          </Grid>
-          <Grid xs="auto">
-            {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
-          </Grid>
-          <Grid xs="auto">
-            <Button
-              priority="primary"
-              onClick={() => {
-                if (hasSelected) {
-                  groupOrCampaignCreationModal.open();
-                  if (showExportAlert) {
-                    setShowExportAlert(false);
-                  }
-                } else {
-                  setShowExportAlert(true);
-                }
-              }}
-            >
-              Exporter ou contacter
-            </Button>
-            <groupOrCampaignCreationModal.Component
-              count={count}
-              isCounting={isCounting}
-              onCampaign={() => {
-                groupOrCampaignCreationModal.close();
-                campaignCreationInfoModal.open();
-              }}
-              onGroup={() => {
-                groupOrCampaignCreationModal.close();
-                groupAddHousingModal.open();
-              }}
-            />
-            <campaignCreationInfoModal.Component
-              count={count}
-              onBack={() => {
-                campaignCreationInfoModal.close();
-                groupOrCampaignCreationModal.open();
-              }}
-              onConfirm={() => {
-                campaignCreationInfoModal.close();
-                campaignCreationModal.open();
-              }}
-            />
-            <campaignCreationModal.Component
-              count={count}
-              onBack={() => {
-                campaignCreationModal.close();
-                campaignCreationInfoModal.open();
-              }}
-              onConfirm={(payload) => {
-                createCampaign({
-                  ...payload,
-                  housing: {
-                    all: selected.all,
-                    ids: selected.ids,
-                    filters: {
-                      ...filters,
-                      status: activeStatus.value
-                    }
-                  }
-                })
-                  .unwrap()
-                  .then((campaign) => {
-                    campaignCreationModal.close();
-                    navigate(`/campagnes/${campaign.id}`);
-                  });
-              }}
-            />
-            <groupAddHousingModal.Component
-              count={count}
-              isCounting={isCounting}
-              onBack={() => {
-                groupAddHousingModal.close();
-                groupOrCampaignCreationModal.open();
-              }}
-              onExistingGroup={(group) => {
-                addGroupHousing({
-                  id: group.id,
-                  all: selected.all,
-                  ids: selected.ids,
-                  filters: {
-                    ...filters,
-                    status: activeStatus.value
-                  }
-                })
-                  .unwrap()
-                  .then(() => {
-                    groupAddHousingModal.close();
-                    navigate(`/groupes/${group.id}`);
-                  });
-              }}
-              onNewGroup={() => {
-                groupAddHousingModal.close();
-                groupCreationModal.open();
-              }}
-            />
-            <groupCreationModal.Component
-              count={count}
-              isCounting={isCounting}
-              onBack={() => {
-                groupCreationModal.close();
-                groupAddHousingModal.open();
-              }}
-              onConfirm={({ title, description }) => {
-                createGroup({
-                  title,
-                  description,
-                  housing: {
-                    all: selected.all,
-                    ids: selected.ids,
-                    filters: {
-                      ...filters,
-                      status: activeStatus.value
-                    }
-                  }
-                })
-                  .unwrap()
-                  .then(({ group, status }) => {
-                    groupCreationModal.close();
-                    navigate(`/groupes/${group.id}`, {
-                      state: {
-                        alert:
-                          status === 202
-                            ? 'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
-                            : 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
-                      }
-                    });
-                  });
-              }}
-            />
-          </Grid>
-        </Grid>
-
-        <Grid sx={{ mb: 3 }} xs={12}>
-          <HousingFiltersBadges filters={filters} onChange={onChangeFilters} />
-        </Grid>
-
-        <Alert
-          className="fr-mb-2w"
-          closable
-          isClosed={!showExportAlert}
-          severity="error"
-          title="Aucun logement sélectionné"
-          description="Sélectionnez les logements dans le tableau de l'onglet correspondant, puis cliquez sur le bouton “Exporter ou contacter“."
-          onClose={() => setShowExportAlert(false)}
+    <HousingEditionProvider>
+      <Grid container position="relative">
+        <HousingListFiltersSidemenu
+          filters={filters}
+          expand={expand}
+          onChange={onChangeFilters}
+          onReset={onResetFilters}
+          onClose={() => setExpand(false)}
         />
-
-        <Grid mb={1} xs={12}>
-          {view === 'map' ? (
-            <HousingListMap filters={filters} />
-          ) : (
-            <HousingListTabs filters={filters} />
+        <Grid container flexDirection="column" px={3} py={4} size="grow">
+          {alert && (
+            <Grid size="grow">
+              <Alert
+                severity="success"
+                description={alert}
+                closable
+                small
+                className="fr-mb-2w"
+              />
+            </Grid>
           )}
+
+          <Grid container mb={1} spacing={2} size={12}>
+            <Grid size="grow">
+              <AppSearchBar
+                onSearch={searchWithQuery}
+                initialQuery={filters.query}
+                placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+              />
+            </Grid>
+            <Grid size="auto">
+              <HousingDisplaySwitch />
+            </Grid>
+            <Grid size="auto">
+              {!isVisitor && <HousingCreationModal onFinish={onFinish} />}
+            </Grid>
+            <Grid size="auto">
+              <Button
+                priority="primary"
+                onClick={() => {
+                  if (hasSelected) {
+                    groupOrCampaignCreationModal.open();
+                    if (showExportAlert) {
+                      setShowExportAlert(false);
+                    }
+                  } else {
+                    setShowExportAlert(true);
+                  }
+                }}
+              >
+                Exporter ou contacter
+              </Button>
+              <groupOrCampaignCreationModal.Component
+                count={count}
+                isCounting={isCounting}
+                onCampaign={() => {
+                  groupOrCampaignCreationModal.close();
+                  campaignCreationInfoModal.open();
+                }}
+                onGroup={() => {
+                  groupOrCampaignCreationModal.close();
+                  groupAddHousingModal.open();
+                }}
+              />
+              <campaignCreationInfoModal.Component
+                count={count}
+                onBack={() => {
+                  campaignCreationInfoModal.close();
+                  groupOrCampaignCreationModal.open();
+                }}
+                onConfirm={() => {
+                  campaignCreationInfoModal.close();
+                  campaignCreationModal.open();
+                }}
+              />
+              <campaignCreationModal.Component
+                count={count}
+                onBack={() => {
+                  campaignCreationModal.close();
+                  campaignCreationInfoModal.open();
+                }}
+                onConfirm={(payload) => {
+                  createCampaign({
+                    ...payload,
+                    housing: {
+                      all: selected.all,
+                      ids: selected.ids,
+                      filters: {
+                        ...filters,
+                        status: activeStatus.value
+                      }
+                    }
+                  })
+                    .unwrap()
+                    .then((campaign) => {
+                      campaignCreationModal.close();
+                      navigate(`/campagnes/${campaign.id}`);
+                    });
+                }}
+              />
+              <groupAddHousingModal.Component
+                count={count}
+                isCounting={isCounting}
+                onBack={() => {
+                  groupAddHousingModal.close();
+                  groupOrCampaignCreationModal.open();
+                }}
+                onExistingGroup={(group) => {
+                  addGroupHousing({
+                    id: group.id,
+                    all: selected.all,
+                    ids: selected.ids,
+                    filters: {
+                      ...filters,
+                      status: activeStatus.value
+                    }
+                  })
+                    .unwrap()
+                    .then(() => {
+                      groupAddHousingModal.close();
+                      navigate(`/groupes/${group.id}`);
+                    });
+                }}
+                onNewGroup={() => {
+                  groupAddHousingModal.close();
+                  groupCreationModal.open();
+                }}
+              />
+              <groupCreationModal.Component
+                count={count}
+                isCounting={isCounting}
+                onBack={() => {
+                  groupCreationModal.close();
+                  groupAddHousingModal.open();
+                }}
+                onConfirm={({ title, description }) => {
+                  createGroup({
+                    title,
+                    description,
+                    housing: {
+                      all: selected.all,
+                      ids: selected.ids,
+                      filters: {
+                        ...filters,
+                        status: activeStatus.value
+                      }
+                    }
+                  })
+                    .unwrap()
+                    .then(({ group, status }) => {
+                      groupCreationModal.close();
+                      navigate(`/groupes/${group.id}`, {
+                        state: {
+                          alert:
+                            status === 202
+                              ? 'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
+                              : 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
+                        }
+                      });
+                    });
+                }}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid sx={{ mb: 3 }} size={12}>
+            <HousingFiltersBadges
+              filters={filters}
+              onChange={onChangeFilters}
+            />
+          </Grid>
+
+          <Alert
+            className="fr-mb-2w"
+            closable
+            isClosed={!showExportAlert}
+            severity="error"
+            title="Aucun logement sélectionné"
+            description="Sélectionnez les logements dans le tableau de l'onglet correspondant, puis cliquez sur le bouton “Exporter ou contacter“."
+            onClose={() => setShowExportAlert(false)}
+          />
+
+          <Grid mb={1} size={12}>
+            {view === 'map' ? (
+              <HousingListMap filters={filters} />
+            ) : (
+              <HousingListTabs filters={filters} />
+            )}
+          </Grid>
         </Grid>
       </Grid>
-    </Grid>
+    </HousingEditionProvider>
   );
 };
 

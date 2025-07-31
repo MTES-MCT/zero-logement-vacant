@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { yupResolver } from '@hookform/resolvers/yup';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Navigate, useNavigate } from 'react-router-dom';
@@ -91,7 +91,7 @@ function AccountPasswordCreationView() {
 
   return (
     <Grid container>
-      <Grid xs={7}>
+      <Grid size={7}>
         <Stepper
           stepCount={2}
           currentStep={2}
@@ -114,7 +114,7 @@ function AccountPasswordCreationView() {
                 Vacant
               </Typography>
 
-              <Grid sx={{ mb: 4 }} xs={8}>
+              <Grid sx={{ mb: 4 }} size={8}>
                 <AppTextInputNext
                   hintText="Votre mot de passe doit contenir au moins 12 caractères, un chiffre, une majuscule et une minuscule."
                   label="Définissez votre mot de passe (obligatoire)"
@@ -137,7 +137,7 @@ function AccountPasswordCreationView() {
                   display: 'flex',
                   justifyContent: 'flex-end'
                 }}
-                xs={12}
+                size={12}
               >
                 <Button type="submit">Confirmer et créer mon compte</Button>
               </Grid>
@@ -145,14 +145,13 @@ function AccountPasswordCreationView() {
           </form>
         </FormProvider>
       </Grid>
-
       <Grid
         sx={{
           display: 'flex',
           justifyContent: 'flex-end'
         }}
-        xs={4}
-        xsOffset={1}
+        size={4}
+        offset={1}
       >
         <Image
           alt="Environ 1000 structures inscrites sur Zéro Logement Vacant sur tout le territoire national"

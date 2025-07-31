@@ -1,8 +1,9 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/fr';
 import { Store } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { vi } from 'vitest';
 import configureTestStore from '../../../utils/test/storeUtils';
 
 import GroupAddHousingModal from './GroupAddHousingModal';
@@ -18,8 +19,8 @@ describe('GroupHousingModal', () => {
     });
   });
 
-  const onSubmit = jest.fn();
-  const onGroupCreate = jest.fn();
+  const onSubmit = vi.fn();
+  const onGroupCreate = vi.fn();
 
   it('should render', async () => {
     render(

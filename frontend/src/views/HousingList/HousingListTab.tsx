@@ -140,6 +140,10 @@ function HousingListTab(props: HousingListTabProps) {
           title="Impossible de mettre à jour les logements sélectionnés"
           description={error}
           closable
+          isClosed={!error}
+          onClose={() => {
+            setError(undefined);
+          }}
           className="fr-mb-2w fr-mt-2w"
         />
       )}

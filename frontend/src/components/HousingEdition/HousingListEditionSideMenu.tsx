@@ -1,6 +1,6 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 import {
   HOUSING_STATUS_VALUES,
   HousingStatus,
@@ -91,6 +91,19 @@ function HousingListEditionSideMenu(props: Props) {
   const [tab, setTab] = useState<'occupancy' | 'mobilization' | 'note'>(
     'occupancy'
   );
+
+  async function save(): Promise<void> {
+    if (!Object.values(form.formState.dirtyFields).some(Boolean)) {
+      props.onClose();
+      form.reset();
+      return;
+    }
+
+    const isValid = await form.trigger();
+    if (isValid) {
+      modal.open();
+    }
+  }
 
   function submit(data: BatchEditionFormSchema) {
     props.onSubmit({
@@ -191,53 +204,33 @@ function HousingListEditionSideMenu(props: Props) {
             title={`Vous êtes sur le point de mettre à jour ${props.count} logements`}
             onSubmit={form.handleSubmit(submit)}
           >
-            <Stack>
+            <Stack spacing={2}>
               <Typography>
                 En confirmant, vous écraserez et remplacerez les données
                 actuelles sur les champs suivants :
               </Typography>
-              <List>
+              <ul>
                 {form.formState.dirtyFields.status && (
-                  <ListItem>
-                    <ListItemText>
-                      Mobilisation du logement — Statut de suivi
-                    </ListItemText>
-                  </ListItem>
+                  <li>Mobilisation du logement — Statut de suivi</li>
                 )}
                 {form.formState.dirtyFields.subStatus && (
-                  <ListItem>
-                    <ListItemText>
-                      Mobilisation du logement — Sous-statut de suivi
-                    </ListItemText>
-                  </ListItem>
+                  <li>Mobilisation du logement — Sous-statut de suivi</li>
                 )}
                 {form.formState.dirtyFields.occupancy && (
-                  <ListItem>
-                    <ListItemText>
-                      Occupation du logement — Occupation actuelle
-                    </ListItemText>
-                  </ListItem>
+                  <li>Occupation du logement — Occupation actuelle</li>
                 )}
                 {form.formState.dirtyFields.occupancyIntended && (
-                  <ListItem>
-                    <ListItemText>
-                      Occupation du logement — Occupation prévisionnelle
-                    </ListItemText>
-                  </ListItem>
+                  <li>Occupation du logement — Occupation prévisionnelle</li>
                 )}
-                {form.formState.dirtyFields.note && (
-                  <ListItem>
-                    <ListItemText>Ajout d’une note</ListItemText>
-                  </ListItem>
-                )}
-              </List>
+                {form.formState.dirtyFields.note && <li>Ajout d’une note</li>}
+              </ul>
             </Stack>
           </modal.Component>
         </FormProvider>
       }
       open={props.open}
       onClose={props.onClose}
-      onSave={modal.open}
+      onSave={save}
     />
   );
 }

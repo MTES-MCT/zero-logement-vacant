@@ -6,6 +6,7 @@ import { email } from './email';
 import { establishmentFilters } from './establishment-filters';
 import { geoCode } from './geo-code';
 import { groupCreationPayload } from './group-creation-payload';
+import { housingBatchUpdatePayload } from './housing-batch-update-payload';
 import { housingFilters } from './housing-filters';
 import { housingUpdatePayload } from './housing-update-payload';
 import { id } from './id';
@@ -25,6 +26,7 @@ const schemas = {
   establishmentFilters,
   geoCode,
   groupCreationPayload,
+  housingBatchUpdatePayload,
   housingFilters,
   housingUpdatePayload,
   id,

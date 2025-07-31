@@ -1,10 +1,13 @@
+import { faker } from '@faker-js/faker/locale/fr';
 import {
   HousingCountDTO,
   HousingDTO,
   HousingFiltersDTO,
   HousingPayloadDTO,
   HousingUpdatePayloadDTO,
-  Paginated
+  Paginated,
+  type HousingBatchUpdatePayload,
+  type NoteDTO
 } from '@zerologementvacant/models';
 import {
   genHousingDTO,
@@ -13,6 +16,7 @@ import {
 import { Array, pipe, Struct } from 'effect';
 import { constants } from 'http2';
 import { http, HttpResponse, RequestHandler } from 'msw';
+
 import config from '../../utils/config';
 import data from './data';
 
@@ -134,6 +138,45 @@ export const housingHandlers: RequestHandler[] = [
       return HttpResponse.json(housing, {
         status: constants.HTTP_STATUS_CREATED
       });
+    }
+  ),
+
+  // Bulk update housings
+  http.put<never, HousingBatchUpdatePayload, ReadonlyArray<HousingDTO>>(
+    `${config.apiEndpoint}/api/housing`,
+    async ({ request }) => {
+      const payload = await request.json();
+
+      // Get a random user, for now
+      const user = faker.helpers.arrayElement(data.users);
+      const housings = pipe(data.housings);
+
+      housings.forEach((housing) => {
+        housing.occupancy = payload.occupancy ?? housing.occupancy;
+        housing.occupancyIntended =
+          payload.occupancyIntended ?? housing.occupancyIntended;
+        housing.status = payload.status ?? housing.status;
+        housing.subStatus = payload.subStatus ?? housing.subStatus;
+
+        if (payload.note) {
+          const note: NoteDTO = {
+            id: faker.string.uuid(),
+            content: payload.note,
+            createdAt: new Date().toJSON(),
+            createdBy: user.id,
+            creator: user,
+            noteKind: 'Note courante',
+            updatedAt: null
+          };
+          data.notes.push(note);
+          const notes = (data.housingNotes.get(housing.id) ?? []).concat(
+            note.id
+          );
+          data.housingNotes.set(housing.id, notes);
+        }
+      });
+
+      return HttpResponse.json(housings);
     }
   ),
 

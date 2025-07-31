@@ -6,6 +6,7 @@ import { HousingStatus } from './HousingStatus';
 import { MutationType } from './Mutation';
 import { Occupancy } from './Occupancy';
 import { OwnerDTO } from './OwnerDTO';
+import type { HousingFiltersDTO } from './HousingFiltersDTO';
 
 // TODO: complete this type
 export interface HousingDTO {
@@ -58,6 +59,18 @@ export type HousingUpdatePayloadDTO =
     subStatus: string | null;
     occupancyIntended: Occupancy | null;
   };
+
+export type HousingBatchUpdatePayload = {
+  /**
+   * The filters to search for housings.
+   */
+  filters: HousingFiltersDTO;
+  occupancy?: Occupancy;
+  occupancyIntended?: Occupancy;
+  status?: HousingStatus;
+  subStatus?: string;
+  note?: string;
+};
 
 interface Diff<A> {
   before: Partial<A>;

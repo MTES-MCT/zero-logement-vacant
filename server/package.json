@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "clean": "rimraf dist",
-    "dev": "tsx src/index.ts",
+    "dev": "tsx --watch src/index.ts",
     "start": "tsx src/index.ts",
     "test:migrations": "vitest run --config vitest.database.config.ts",
     "db": "NODE_OPTIONS='--import tsx/esm' knex --knexfile=src/infra/database/knexfile.ts",

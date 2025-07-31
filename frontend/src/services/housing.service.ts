@@ -1,11 +1,12 @@
 import {
+  HousingBatchUpdatePayload,
   HousingDTO,
   HousingFiltersDTO,
   HousingUpdatePayloadDTO,
   PaginationOptions
 } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
-import { Housing, HousingSort, HousingUpdate } from '../models/Housing';
+import { Housing, HousingSort } from '../models/Housing';
 import { HousingCount } from '../models/HousingCount';
 import { HousingFilters } from '../models/HousingFilters';
 import { HousingPaginatedResult } from '../models/PaginatedResult';
@@ -52,6 +53,7 @@ export const housingApi = zlvApi.injectEndpoints({
             ]
           : []
     }),
+
     findHousing: builder.query<HousingPaginatedResult, FindOptions>({
       query: (opts) => ({
         url: '/housing',
@@ -79,6 +81,7 @@ export const housingApi = zlvApi.injectEndpoints({
         };
       }
     }),
+
     countHousing: builder.query<HousingCount, HousingFilters>({
       query: (filters) => ({
         url: 'housing/count',
@@ -103,7 +106,8 @@ export const housingApi = zlvApi.injectEndpoints({
       }),
       invalidatesTags: ['Housing', 'HousingByStatus', 'HousingCountByStatus']
     }),
-    updateHousingNext: builder.mutation<
+
+    updateHousing: builder.mutation<
       HousingDTO,
       HousingUpdatePayloadDTO & Pick<Housing, 'id'>
     >({
@@ -125,50 +129,25 @@ export const housingApi = zlvApi.injectEndpoints({
         { type: 'Precision', id: payload.id }
       ]
     }),
-    updateHousingList: builder.mutation<
-      number,
-      {
-        housingUpdate: HousingUpdate;
-        allHousing: boolean;
-        housingIds: string[];
-        filters: HousingFilters;
-      }
+
+    updateManyHousing: builder.mutation<
+      ReadonlyArray<HousingDTO>,
+      HousingBatchUpdatePayload
     >({
-      query: ({ housingUpdate, allHousing, housingIds, filters }) => ({
-        url: 'housing/list',
-        method: 'POST',
-        body: {
-          housingUpdate,
-          allHousing,
-          housingIds,
-          filters
-        }
+      query: (payload) => ({
+        url: 'housing',
+        method: 'PUT',
+        body: payload
       }),
-      transformResponse: (response: any) => {
-        return response.length;
-      },
-      invalidatesTags: (
-        _result,
-        _error,
-        { allHousing, housingIds, housingUpdate, filters }
-      ) => [
-        ...(allHousing
-          ? ['Housing' as const]
-          : housingIds.map((housingId) => ({
-              type: 'Housing' as const,
-              id: housingId
-            }))),
-        { type: 'HousingByStatus', id: housingUpdate.statusUpdate?.status },
-        { type: 'HousingByStatus', id: filters.status },
-        {
-          type: 'HousingCountByStatus',
-          id: housingUpdate.statusUpdate?.status
-        },
-        {
-          type: 'HousingCountByStatus',
-          id: filters.status
-        }
-      ]
+      invalidatesTags: () => {
+        return [
+          'Housing',
+          'HousingByStatus',
+          'HousingCountByStatus',
+          'Event',
+          'HousingEvent'
+        ];
+      }
     })
   })
 });
@@ -180,6 +159,6 @@ export const {
   useCountHousingQuery,
   useLazyCountHousingQuery,
   useCreateHousingMutation,
-  useUpdateHousingNextMutation,
-  useUpdateHousingListMutation
+  useUpdateHousingMutation,
+  useUpdateManyHousingMutation
 } = housingApi;

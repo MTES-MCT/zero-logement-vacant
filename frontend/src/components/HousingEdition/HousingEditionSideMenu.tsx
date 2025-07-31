@@ -17,7 +17,7 @@ import * as yup from 'yup';
 import { useNotification } from '../../hooks/useNotification';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import { HousingStates } from '../../models/HousingState';
-import { useUpdateHousingNextMutation } from '../../services/housing.service';
+import { useUpdateHousingMutation } from '../../services/housing.service';
 import { useCreateNoteByHousingMutation } from '../../services/note.service';
 import AppLink from '../_app/AppLink/AppLink';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
@@ -85,7 +85,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
   });
 
   const [createNote, noteCreationMutation] = useCreateNoteByHousingMutation();
-  const [updateHousing, housingUpdateMutation] = useUpdateHousingNextMutation();
+  const [updateHousing, housingUpdateMutation] = useUpdateHousingMutation();
 
   useNotification({
     toastId: 'note-creation',

@@ -52,6 +52,7 @@ export const housingApi = zlvApi.injectEndpoints({
             ]
           : []
     }),
+
     findHousing: builder.query<HousingPaginatedResult, FindOptions>({
       query: (opts) => ({
         url: '/housing',
@@ -79,6 +80,7 @@ export const housingApi = zlvApi.injectEndpoints({
         };
       }
     }),
+
     countHousing: builder.query<HousingCount, HousingFilters>({
       query: (filters) => ({
         url: 'housing/count',
@@ -103,7 +105,8 @@ export const housingApi = zlvApi.injectEndpoints({
       }),
       invalidatesTags: ['Housing', 'HousingByStatus', 'HousingCountByStatus']
     }),
-    updateHousingNext: builder.mutation<
+
+    updateHousing: builder.mutation<
       HousingDTO,
       HousingUpdatePayloadDTO & Pick<Housing, 'id'>
     >({

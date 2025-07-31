@@ -2,17 +2,19 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
-import { HousingStatus } from '@zerologementvacant/models';
+import { HousingStatus, type Occupancy } from '@zerologementvacant/models';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import GroupRemoveHousingModal from '../../components/GroupRemoveHousingModal/GroupRemoveHousingModal';
-import HousingListEditionSideMenu from '../../components/HousingEdition/HousingListEditionSideMenu';
+import HousingListEditionSideMenu, {
+  type BatchEditionFormSchema
+} from '../../components/HousingEdition/HousingListEditionSideMenu';
 import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
 import { useSelection } from '../../hooks/useSelection';
-import { HousingUpdate, SelectedHousing } from '../../models/Housing';
+import { SelectedHousing } from '../../models/Housing';
 import { displayHousingCount, HousingCount } from '../../models/HousingCount';
 import { HousingFilters } from '../../models/HousingFilters';
 import {
@@ -21,7 +23,7 @@ import {
 } from '../../services/group.service';
 import {
   useCountHousingQuery,
-  useUpdateHousingListMutation
+  useUpdateManyHousingMutation
 } from '../../services/housing.service';
 
 export type HousingListTabProps = {
@@ -38,17 +40,7 @@ export type HousingListTabProps = {
 
 function HousingListTab(props: HousingListTabProps) {
   const showCount = props.showCount ?? true;
-  const [
-    updateHousingList,
-    {
-      isSuccess: isUpdateSuccess,
-      data: updatedCount,
-      reset: resetHousingUpdate
-    }
-  ] = useUpdateHousingListMutation();
-
-  const [updatingSelectedHousing, setUpdatingSelectedHousing] =
-    useState<SelectedHousing>();
+  const [updating, setUpdating] = useState<SelectedHousing>();
   const [error, setError] = useState<string>();
 
   const { data: housingCount } = useCountHousingQuery({
@@ -63,7 +55,7 @@ function HousingListTab(props: HousingListTabProps) {
   );
   const filteredCount = count;
 
-  const { selectedCount, selected, setSelected } = useSelection(
+  const { selectedCount, selected, setSelected, unselectAll } = useSelection(
     filteredCount?.housing,
     { storage: 'store' }
   );
@@ -76,23 +68,37 @@ function HousingListTab(props: HousingListTabProps) {
     }
   }, [filteredCount]); //eslint-disable-line react-hooks/exhaustive-deps
 
-  const submitSelectedHousingUpdate = async (housingUpdate: HousingUpdate) => {
-    try {
-      await updateHousingList({
-        housingUpdate,
-        allHousing: selected.all,
-        housingIds: selected.ids,
-        filters: props.filters
-      }).unwrap();
-    } catch (error: any) {
-      if (error.data.name === 'HousingUpdateForbiddenError') {
-        setError(
-          'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".'
-        );
+  const [updateManyHousing, updateManyHousingMutation] =
+    useUpdateManyHousingMutation();
+
+  function updateHousings(payload: BatchEditionFormSchema): void {
+    updateManyHousing({
+      status: payload.status ?? undefined,
+      subStatus: payload.subStatus ?? undefined,
+      occupancy: (payload.occupancy ?? undefined) as Occupancy | undefined,
+      occupancyIntended: (payload.occupancyIntended ?? undefined) as
+        | Occupancy
+        | undefined,
+      note: payload.note ?? undefined,
+      filters: {
+        ...props.filters,
+        all: selected.all,
+        housingIds: selected.ids
       }
-    }
-    setUpdatingSelectedHousing(undefined);
-  };
+    })
+      .unwrap()
+      .catch((error) => {
+        if (error.data.name === 'HousingUpdateForbiddenError') {
+          setError(
+            'Un ou plusieurs logements sélectionnés sont au moins dans une campagne. Il n’est pas possible de leur attribuer le statut "Non suivi".'
+          );
+        }
+      })
+      .finally(() => {
+        setUpdating(undefined);
+        unselectAll();
+      });
+  }
 
   const params = useParams<{ id?: string }>();
   const { data: group } = useGetGroupQuery(params?.id ?? '', {
@@ -116,15 +122,15 @@ function HousingListTab(props: HousingListTabProps) {
 
   return (
     <>
-      {isUpdateSuccess && (
+      {updateManyHousingMutation.isSuccess && (
         <Alert
           severity="success"
-          title={`La mise à jour groupée de ${updatedCount} logements a bien été enregistrée`}
+          title={`La mise à jour groupée de ${updateManyHousingMutation.data.length} logements a bien été enregistrée`}
           description="Les informations saisies ont bien été appliquées aux logements sélectionnés"
           closable
           className="fr-my-2w fr-mt-2w"
           onClose={() => {
-            resetHousingUpdate();
+            updateManyHousingMutation.reset();
           }}
         />
       )}
@@ -172,7 +178,7 @@ function HousingListTab(props: HousingListTabProps) {
                     className="fr-mr-1w"
                     priority="secondary"
                     size="small"
-                    onClick={() => setUpdatingSelectedHousing(selected)}
+                    onClick={() => setUpdating(selected)}
                   >
                     Mise à jour groupée
                   </Button>
@@ -186,10 +192,11 @@ function HousingListTab(props: HousingListTabProps) {
                 )}
 
                 <HousingListEditionSideMenu
-                  housingCount={selectedCount}
-                  open={!!updatingSelectedHousing}
-                  onSubmit={submitSelectedHousingUpdate}
-                  onClose={() => setUpdatingSelectedHousing(undefined)}
+                  count={selectedCount}
+                  selected={selected}
+                  open={!!updating}
+                  onSubmit={updateHousings}
+                  onClose={() => setUpdating(undefined)}
                 />
               </>
             )}

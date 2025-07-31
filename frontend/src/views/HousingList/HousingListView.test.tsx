@@ -244,6 +244,46 @@ describe('Housing list view', () => {
     });
   });
 
+  describe('Update several housings', () => {
+    it('update occupancies', async () => {
+      const n = 2;
+
+      setup();
+
+      const housingTable = await screen.findByRole('table');
+      const [checkbox] = await within(housingTable).findAllByRole('checkbox');
+      await user.click(checkbox);
+      const updateMany = await screen.findByRole('button', {
+        name: 'Mise à jour groupée'
+      });
+      await user.click(updateMany);
+      const select = await screen.findByRole('combobox', {
+        name: 'Occupation actuelle'
+      });
+      await user.click(select);
+      const options = await screen.findByRole('listbox');
+      const option = await within(options).findByText('Vacant');
+      await user.click(option);
+      const save = await screen.findByRole('button', {
+        name: 'Enregistrer'
+      });
+      await user.click(save);
+      const modal = await screen.findByRole('dialog', {
+        name: `Vous êtes sur le point de mettre à jour ${n} logements`
+      });
+      expect(modal).toBeVisible();
+      const confirm = await within(modal).findByRole('button', {
+        name: 'Confirmer'
+      });
+      await user.click(confirm);
+
+      const alert = await screen.findByRole('alert', {
+        name: `La mise à jour de ${n} logements a bien été enregistrée`
+      });
+      expect(alert).toBeVisible();
+    });
+  });
+  
   describe('Group creation', () => {
     function renderView() {
       const router = createMemoryRouter(

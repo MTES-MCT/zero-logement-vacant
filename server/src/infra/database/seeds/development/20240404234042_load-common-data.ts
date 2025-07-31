@@ -4,66 +4,25 @@ import { exec } from 'node:child_process';
 import path from 'node:path';
 
 import config from '~/infra/config';
-import { campaignsTable } from '~/repositories/campaignRepository';
-import { establishmentsLocalitiesTable } from '~/repositories/establishmentLocalityRepository';
 import { establishmentsTable } from '~/repositories/establishmentRepository';
-import {
-  CAMPAIGN_EVENTS_TABLE,
-  EVENTS_TABLE,
-  OWNER_EVENTS_TABLE
-} from '~/repositories/eventRepository';
-import { geoPerimetersTable } from '~/repositories/geoRepository';
-import { GROUPS_TABLE } from '~/repositories/groupRepository';
-import { housingOwnersTable } from '~/repositories/housingOwnerRepository';
-import { housingTable } from '~/repositories/housingRepository';
 import { localitiesTable } from '~/repositories/localityRepository';
-import {
-  HOUSING_NOTES_TABLE,
-  NOTES_TABLE,
-  OWNER_NOTES_TABLE
-} from '~/repositories/noteRepository';
-import { ownerTable } from '~/repositories/ownerRepository';
+import { NOTES_TABLE } from '~/repositories/noteRepository';
 import { resetLinkTable } from '~/repositories/resetLinkRepository';
-import { settingsTable } from '~/repositories/settingsRepository';
 import { signupLinkTable } from '~/repositories/signupLinkRepository';
-import { usersTable } from '~/repositories/userRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean up
-  await knex(geoPerimetersTable).delete();
-  await knex(HOUSING_NOTES_TABLE).delete();
-  await knex(OWNER_NOTES_TABLE).delete();
-  await knex(NOTES_TABLE).delete();
-  console.info('Removed notes.');
-  await knex(CAMPAIGN_EVENTS_TABLE).delete();
-  await knex(OWNER_EVENTS_TABLE).delete();
-  await knex(EVENTS_TABLE).delete();
-  console.info('Removed events.');
-  await knex(resetLinkTable).delete();
-  console.info('Removed reset links.');
-  await knex(signupLinkTable).delete();
-  console.info('Removed signup links.');
-  await knex(housingOwnersTable).delete();
-  await knex(housingTable).delete();
-  if (await knex.schema.hasTable('_extract_zlv_')) {
-    await knex.schema.dropTable('_extract_zlv_');
-  }
-  console.info('Removed houses.');
-  await knex(ownerTable).delete();
-  console.info('Removed owners.');
-  await knex(campaignsTable).delete();
-  console.info('Removed campaigns.');
-  await knex(GROUPS_TABLE).delete();
-  console.info('Removed groups.');
-  await knex(usersTable).delete();
-  console.info('Removed users.');
-  await knex(settingsTable).delete();
-  console.info('Removed settings.');
-  await knex(establishmentsLocalitiesTable).delete();
-  await knex(establishmentsTable).delete();
-  console.info('Removed establishments.');
-  await knex(localitiesTable).delete();
-  console.info('Removed localities.');
+  const tables = [
+    establishmentsTable,
+    localitiesTable,
+    NOTES_TABLE,
+    signupLinkTable,
+    resetLinkTable
+  ];
+  await async.forEachSeries(tables, async (table) => {
+    await knex.raw(`TRUNCATE TABLE ${table} CASCADE`);
+    console.log(`Truncated table ${table}.`);
+  });
 
   const files = [
     {

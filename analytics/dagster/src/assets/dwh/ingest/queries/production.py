@@ -19,6 +19,7 @@ production_tables = {
     "groups": f"CREATE OR REPLACE table {SCHEMA}.groups AS (SELECT * FROM zlv_replication_db.public.groups );",
     "groups_housing": f"CREATE OR REPLACE table {SCHEMA}.groups_housing AS (SELECT * FROM zlv_replication_db.public.groups_housing );",
     "geo_perimeters": f"CREATE OR REPLACE table {SCHEMA}.geo_perimeters AS (SELECT id, establishment_id, name, kind, created_at, created_by FROM zlv_replication_db.public.geo_perimeters );",
+    "notes": f"CREATE OR REPLACE table {SCHEMA}.notes AS (SELECT * FROM zlv_replication_db.public.notes );",
     "old_events": f"""
         CREATE OR REPLACE TABLE {SCHEMA}.old_events AS (
         SELECT * FROM read_csv('s3://{Config.CELLAR_DATA_LAKE_BUCKET_NAME}/lake/production/old_events.csv', auto_detect = TRUE));""",

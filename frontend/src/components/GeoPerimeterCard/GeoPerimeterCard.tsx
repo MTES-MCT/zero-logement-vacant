@@ -1,16 +1,17 @@
-import { Col, Icon, Row, Text } from '../_dsfr';
-import { GeoPerimeter } from '../../models/GeoPerimeter';
-import Tag from '@codegouvfr/react-dsfr/Tag';
-import Card from '@codegouvfr/react-dsfr/Card';
-import AppLink from '../_app/AppLink/AppLink';
 import Button from '@codegouvfr/react-dsfr/Button';
-import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
+import Card from '@codegouvfr/react-dsfr/Card';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
+
+import { GeoPerimeter } from '../../models/GeoPerimeter';
+import AppLink from '../_app/AppLink/AppLink';
+import { Icon, Row } from '../_dsfr';
 
 interface Props {
   geoPerimeter: GeoPerimeter;
-  onEdit: (geoPerimeter: GeoPerimeter) => void;
-  onRemove: (geoPerimeter: GeoPerimeter) => Promise<void>;
+  onEdit(geoPerimeter: GeoPerimeter): void;
+  onRemove(geoPerimeter: GeoPerimeter): void;
 }
 
 function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
@@ -20,8 +21,13 @@ function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
       titleAs="h2"
       title={
         <>
-          <Row>
-            <Col>
+          <Grid
+            container
+            spacing={2}
+            size={12}
+            sx={{ justifyContent: 'space-between' }}
+          >
+            <Grid size={4}>
               <span className="card-title-icon">
                 <Icon
                   name="fr-icon-france-fill"
@@ -29,30 +35,22 @@ function GeoPerimeterCard({ geoPerimeter, onEdit, onRemove }: Props) {
                   size="1x"
                 />
               </span>
-            </Col>
-            <Col className="align-right">
+            </Grid>
+            <Grid>
               <Button
                 title="Modifier"
                 priority="tertiary no outline"
                 onClick={() => onEdit(geoPerimeter)}
                 iconId="fr-icon-edit-fill"
               />
-              <ConfirmationModal
-                modalId={geoPerimeter.id}
-                onSubmit={() => onRemove(geoPerimeter)}
-                openingButtonProps={{
-                  iconId: 'fr-icon-delete-bin-fill',
-                  priority: 'tertiary no outline',
-                  title: 'Supprimer',
-                  className: 'd-inline-block'
-                }}
-              >
-                <Text size="md">
-                  Êtes-vous sûr de vouloir supprimer ce périmètre ?
-                </Text>
-              </ConfirmationModal>
-            </Col>
-          </Row>
+              <Button
+                title="Supprimer"
+                iconId="fr-icon-delete-bin-fill"
+                priority="tertiary no outline"
+                onClick={() => onRemove(geoPerimeter)}
+              ></Button>
+            </Grid>
+          </Grid>
           <Typography component="h2" variant="h6" mb={0}>
             {geoPerimeter.name}
           </Typography>

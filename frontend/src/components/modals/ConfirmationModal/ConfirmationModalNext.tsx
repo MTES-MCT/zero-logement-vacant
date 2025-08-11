@@ -10,6 +10,7 @@ export type ConfirmationModalOptions = ExtendedModalOptions;
 
 export interface ConfirmationModalProps
   extends Omit<ExtendedModalProps, 'buttons'> {
+  onClose?(): void;
   onSubmit?(): void;
 }
 
@@ -19,7 +20,7 @@ export function createConfirmationModal(options: ConfirmationModalOptions) {
   return {
     ...modal,
     Component(props: ConfirmationModalProps): JSX.Element {
-      const { onSubmit, ...rest } = props;
+      const { onClose, onSubmit, ...rest } = props;
 
       return (
         <modal.Component
@@ -28,6 +29,7 @@ export function createConfirmationModal(options: ConfirmationModalOptions) {
             {
               children: 'Annuler',
               priority: 'secondary',
+              onClick: onClose,
               className: 'fr-mr-2w'
             },
             {

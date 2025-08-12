@@ -209,11 +209,12 @@ function HousingList(props: HousingListProps) {
             >
               <Button
                 title="Mettre à jour"
-                iconId="fr-icon-edit-line"
                 size="small"
                 priority="secondary"
                 onClick={() => setUpdatingHousing(row.original)}
-              />
+              >
+                Éditer
+              </Button>
             </Stack>
           );
         }

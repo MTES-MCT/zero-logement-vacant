@@ -19,3 +19,6 @@ sources:
       - name: groups
       - name: groups_housing
       - name: geo_perimeters
+      - name: notes
+      - name: housing_notes
+      - name: owner_notes

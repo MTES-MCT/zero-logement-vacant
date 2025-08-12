@@ -4,6 +4,7 @@ import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import createCampaignCreationInfoModal from '../../components/Campaign/CampaignCreationInfoModal';
 import createCampaignCreationModal from '../../components/Campaign/CampaignCreationModal';
@@ -11,7 +12,6 @@ import createGroupAddHousingModal from '../../components/Group/GroupAddHousingMo
 import createGroupCreationModal from '../../components/Group/GroupCreationModal';
 import createGroupOrCampaignCreationModal from '../../components/Group/GroupOrCampaignCreationModal';
 import { HousingDisplaySwitch } from '../../components/HousingDisplaySwitch/HousingDisplaySwitch';
-
 import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingFiltersBadges';
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import HousingCreationModal from '../../components/modals/HousingCreationModal/HousingCreationModal';
@@ -30,7 +30,6 @@ import { useCountHousingQuery } from '../../services/housing.service';
 import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
-import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
 
 const campaignCreationInfoModal = createCampaignCreationInfoModal();
 const campaignCreationModal = createCampaignCreationModal();
@@ -131,7 +130,7 @@ const HousingListView = () => {
 
   return (
     <HousingEditionProvider>
-      <Grid container position="relative">
+      <Grid container>
         <HousingListFiltersSidemenu
           filters={filters}
           expand={expand}
@@ -139,20 +138,19 @@ const HousingListView = () => {
           onReset={onResetFilters}
           onClose={() => setExpand(false)}
         />
+
         <Grid container flexDirection="column" px={3} py={4} size="grow">
           {alert && (
-            <Grid size="grow">
-              <Alert
-                severity="success"
-                description={alert}
-                closable
-                small
-                className="fr-mb-2w"
-              />
-            </Grid>
+            <Alert
+              severity="success"
+              description={alert}
+              closable
+              small
+              className="fr-mb-2w"
+            />
           )}
 
-          <Grid container mb={1} spacing={2} size={12}>
+          <Grid container mb={1} spacing={2}>
             <Grid size="grow">
               <AppSearchBar
                 onSearch={searchWithQuery}
@@ -182,116 +180,6 @@ const HousingListView = () => {
               >
                 Exporter ou contacter
               </Button>
-              <groupOrCampaignCreationModal.Component
-                count={count}
-                isCounting={isCounting}
-                onCampaign={() => {
-                  groupOrCampaignCreationModal.close();
-                  campaignCreationInfoModal.open();
-                }}
-                onGroup={() => {
-                  groupOrCampaignCreationModal.close();
-                  groupAddHousingModal.open();
-                }}
-              />
-              <campaignCreationInfoModal.Component
-                count={count}
-                onBack={() => {
-                  campaignCreationInfoModal.close();
-                  groupOrCampaignCreationModal.open();
-                }}
-                onConfirm={() => {
-                  campaignCreationInfoModal.close();
-                  campaignCreationModal.open();
-                }}
-              />
-              <campaignCreationModal.Component
-                count={count}
-                onBack={() => {
-                  campaignCreationModal.close();
-                  campaignCreationInfoModal.open();
-                }}
-                onConfirm={(payload) => {
-                  createCampaign({
-                    ...payload,
-                    housing: {
-                      all: selected.all,
-                      ids: selected.ids,
-                      filters: {
-                        ...filters,
-                        status: activeStatus.value
-                      }
-                    }
-                  })
-                    .unwrap()
-                    .then((campaign) => {
-                      campaignCreationModal.close();
-                      navigate(`/campagnes/${campaign.id}`);
-                    });
-                }}
-              />
-              <groupAddHousingModal.Component
-                count={count}
-                isCounting={isCounting}
-                onBack={() => {
-                  groupAddHousingModal.close();
-                  groupOrCampaignCreationModal.open();
-                }}
-                onExistingGroup={(group) => {
-                  addGroupHousing({
-                    id: group.id,
-                    all: selected.all,
-                    ids: selected.ids,
-                    filters: {
-                      ...filters,
-                      status: activeStatus.value
-                    }
-                  })
-                    .unwrap()
-                    .then(() => {
-                      groupAddHousingModal.close();
-                      navigate(`/groupes/${group.id}`);
-                    });
-                }}
-                onNewGroup={() => {
-                  groupAddHousingModal.close();
-                  groupCreationModal.open();
-                }}
-              />
-              <groupCreationModal.Component
-                count={count}
-                isCounting={isCounting}
-                onBack={() => {
-                  groupCreationModal.close();
-                  groupAddHousingModal.open();
-                }}
-                onConfirm={({ title, description }) => {
-                  createGroup({
-                    title,
-                    description,
-                    housing: {
-                      all: selected.all,
-                      ids: selected.ids,
-                      filters: {
-                        ...filters,
-                        status: activeStatus.value
-                      }
-                    }
-                  })
-                    .unwrap()
-                    .then(({ group, status }) => {
-                      groupCreationModal.close();
-                      navigate(`/groupes/${group.id}`, {
-                        state: {
-                          alert:
-                            status === 202
-                              ? 'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
-                              : 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
-                        }
-                      });
-                    });
-                }}
-              />
             </Grid>
           </Grid>
 
@@ -321,6 +209,121 @@ const HousingListView = () => {
           </Grid>
         </Grid>
       </Grid>
+
+      <groupOrCampaignCreationModal.Component
+        count={count}
+        isCounting={isCounting}
+        onCampaign={() => {
+          groupOrCampaignCreationModal.close();
+          campaignCreationInfoModal.open();
+        }}
+        onGroup={() => {
+          groupOrCampaignCreationModal.close();
+          groupAddHousingModal.open();
+        }}
+      />
+
+      <campaignCreationInfoModal.Component
+        count={count}
+        onBack={() => {
+          campaignCreationInfoModal.close();
+          groupOrCampaignCreationModal.open();
+        }}
+        onConfirm={() => {
+          campaignCreationInfoModal.close();
+          campaignCreationModal.open();
+        }}
+      />
+
+      <campaignCreationModal.Component
+        count={count}
+        onBack={() => {
+          campaignCreationModal.close();
+          campaignCreationInfoModal.open();
+        }}
+        onConfirm={(payload) => {
+          createCampaign({
+            ...payload,
+            housing: {
+              all: selected.all,
+              ids: selected.ids,
+              filters: {
+                ...filters,
+                status: activeStatus.value
+              }
+            }
+          })
+            .unwrap()
+            .then((campaign) => {
+              campaignCreationModal.close();
+              navigate(`/campagnes/${campaign.id}`);
+            });
+        }}
+      />
+
+      <groupAddHousingModal.Component
+        count={count}
+        isCounting={isCounting}
+        onBack={() => {
+          groupAddHousingModal.close();
+          groupOrCampaignCreationModal.open();
+        }}
+        onExistingGroup={(group) => {
+          addGroupHousing({
+            id: group.id,
+            all: selected.all,
+            ids: selected.ids,
+            filters: {
+              ...filters,
+              status: activeStatus.value
+            }
+          })
+            .unwrap()
+            .then(() => {
+              groupAddHousingModal.close();
+              navigate(`/groupes/${group.id}`);
+            });
+        }}
+        onNewGroup={() => {
+          groupAddHousingModal.close();
+          groupCreationModal.open();
+        }}
+      />
+
+      <groupCreationModal.Component
+        count={count}
+        isCounting={isCounting}
+        onBack={() => {
+          groupCreationModal.close();
+          groupAddHousingModal.open();
+        }}
+        onConfirm={({ title, description }) => {
+          createGroup({
+            title,
+            description,
+            housing: {
+              all: selected.all,
+              ids: selected.ids,
+              filters: {
+                ...filters,
+                status: activeStatus.value
+              }
+            }
+          })
+            .unwrap()
+            .then(({ group, status }) => {
+              groupCreationModal.close();
+              navigate(`/groupes/${group.id}`, {
+                state: {
+                  alert:
+                    status === 202
+                      ? 'Votre nouveau groupe a bien été créé. Les logements vont être ajoutés au fur et à mesure...'
+                      : 'Votre nouveau groupe a bien été créé et les logements sélectionnés ont bien été ajoutés.'
+                }
+              });
+            });
+        }}
+      />
     </HousingEditionProvider>
   );
 };

@@ -1,13 +1,14 @@
+import dotenvx from '@dotenvx/dotenvx';
 import convict from 'convict';
 import formats from 'convict-format-with-validator';
-import dotenv from 'dotenv';
 import { StringValue } from 'ms';
 import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
-dotenv.config({
-  path: path.join(import.meta.dirname, '..', '..', '.env')
+dotenvx.config({
+  convention: 'nextjs',
+  path: path.resolve(import.meta.dirname, '../..')
 });
 
 const isProduction = process.env.NODE_ENV === 'production';

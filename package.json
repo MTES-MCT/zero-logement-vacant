@@ -26,6 +26,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.48.4",
     "@eslint/compat": "^1.2.4",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.17.0",

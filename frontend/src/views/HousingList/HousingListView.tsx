@@ -140,7 +140,7 @@ const HousingListView = () => {
           onClose={() => setExpand(false)}
         />
 
-        <Stack px={3} py={4} sx={{ flexGrow: 1 }}>
+        <Grid container px={3} py={4} size={12}>
           {alert && (
             <Alert
               severity="success"
@@ -206,7 +206,7 @@ const HousingListView = () => {
           ) : (
             <HousingListTabs filters={filters} />
           )}
-        </Stack>
+        </Grid>
       </Stack>
 
       <groupOrCampaignCreationModal.Component

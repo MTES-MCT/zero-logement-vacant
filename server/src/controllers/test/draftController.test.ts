@@ -167,7 +167,11 @@ describe('Draft API', () => {
       logo: fc.constant([]),
       writtenAt: fc.option(
         fc
-          .date({ min: new Date('0001-01-01'), max: new Date('9999-12-31') })
+          .date({
+            min: new Date('0001-01-01'),
+            max: new Date('9999-12-31'),
+            noInvalidDate: true
+          })
           .map((date) => date.toJSON().substring(0, 10))
       ),
       writtenFrom: fc.option(fc.string({ minLength: 1 })),

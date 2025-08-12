@@ -188,11 +188,10 @@ const createValidators: ValidationChain[] = [
   body('localId').isString().isLength({ min: 12, max: 12 })
 ];
 async function create(request: Request, response: Response) {
-  const { auth, body } = request as AuthenticatedRequest;
-  const geoCode = body.localId.substring(0, 5);
+  const { auth, body, establishment } = request as AuthenticatedRequest;
 
   const existing = await housingRepository.findOne({
-    geoCode,
+    geoCode: establishment.geoCodes,
     localId: body.localId
   });
   if (existing) {

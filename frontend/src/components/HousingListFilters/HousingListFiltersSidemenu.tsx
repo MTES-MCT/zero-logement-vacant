@@ -540,18 +540,10 @@ function HousingListFiltersSidemenu(props: Props) {
                 label="Périmètre inclus"
                 multiple
                 options={geoPerimeters ?? []}
-                value={
-                  filters.geoPerimetersIncluded
-                    ?.map((kind) =>
-                      geoPerimeters?.find(
-                        (perimeter) => perimeter.kind === kind
-                      )
-                    )
-                    ?.filter(isDefined) ?? []
-                }
+                value={filters.geoPerimetersIncluded ?? []}
                 onChange={(values) => {
                   onChangeFilters({
-                    geoPerimetersIncluded: values.map((value) => value.kind)
+                    geoPerimetersIncluded: values
                   });
                   posthog.capture('filtre-perimetre-inclus');
                 }}
@@ -562,18 +554,10 @@ function HousingListFiltersSidemenu(props: Props) {
                 label="Périmètre exclus"
                 multiple
                 options={geoPerimeters ?? []}
-                value={
-                  filters.geoPerimetersExcluded
-                    ?.map((kind) =>
-                      geoPerimeters?.find(
-                        (perimeter) => perimeter.kind === kind
-                      )
-                    )
-                    ?.filter(isDefined) ?? []
-                }
+                value={filters.geoPerimetersExcluded ?? []}
                 onChange={(values) => {
                   onChangeFilters({
-                    geoPerimetersExcluded: values.map((value) => value.kind)
+                    geoPerimetersExcluded: values
                   });
                   posthog.capture('filtre-perimetre-exclus');
                 }}

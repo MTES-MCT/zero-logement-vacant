@@ -14,14 +14,14 @@
     }
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.658.1",
-    "effect": "^3.17.0",
-    "pino": "^9.4.0",
-    "pino-pretty": "^11.2.2",
-    "ts-essentials": "^10.0.2"
+    "@aws-sdk/client-s3": "^3.864.0",
+    "effect": "^3.17.7",
+    "pino": "^9.8.0",
+    "pino-pretty": "^11.3.0",
+    "ts-essentials": "^10.1.1"
   },
   "devDependencies": {
-    "@tsconfig/node20": "^20.1.4",
-    "@types/node": "^20.16.10"
+    "@tsconfig/node20": "^20.1.6",
+    "@types/node": "^20.19.10"
   }
 }

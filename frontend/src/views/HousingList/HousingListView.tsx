@@ -1,10 +1,10 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
 import AppSearchBar from '../../components/_app/AppSearchBar/AppSearchBar';
 import createCampaignCreationInfoModal from '../../components/Campaign/CampaignCreationInfoModal';
 import createCampaignCreationModal from '../../components/Campaign/CampaignCreationModal';
@@ -30,7 +30,6 @@ import { useCountHousingQuery } from '../../services/housing.service';
 import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
-import { HousingEditionProvider } from '~/components/HousingEdition/useHousingEdition';
 
 const campaignCreationInfoModal = createCampaignCreationInfoModal();
 const campaignCreationModal = createCampaignCreationModal();
@@ -131,7 +130,7 @@ const HousingListView = () => {
 
   return (
     <HousingEditionProvider>
-      <Stack direction="row">
+      <Grid container>
         <HousingListFiltersSidemenu
           filters={filters}
           expand={expand}
@@ -140,7 +139,7 @@ const HousingListView = () => {
           onClose={() => setExpand(false)}
         />
 
-        <Grid container px={3} py={4} size={12}>
+        <Grid container flexDirection="column" px={3} py={4} size="grow">
           {alert && (
             <Alert
               severity="success"
@@ -151,7 +150,7 @@ const HousingListView = () => {
             />
           )}
 
-          <Grid container mb={1} spacing={2} size={12}>
+          <Grid container mb={1} spacing={2}>
             <Grid size="grow">
               <AppSearchBar
                 onSearch={searchWithQuery}
@@ -201,13 +200,15 @@ const HousingListView = () => {
             onClose={() => setShowExportAlert(false)}
           />
 
-          {view === 'map' ? (
-            <HousingListMap filters={filters} />
-          ) : (
-            <HousingListTabs filters={filters} />
-          )}
+          <Grid mb={1} size={12}>
+            {view === 'map' ? (
+              <HousingListMap filters={filters} />
+            ) : (
+              <HousingListTabs filters={filters} />
+            )}
+          </Grid>
         </Grid>
-      </Stack>
+      </Grid>
 
       <groupOrCampaignCreationModal.Component
         count={count}

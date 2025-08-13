@@ -25,8 +25,9 @@ const HousingAdditionalOwnerSearch = ({ onSelect }: Props) => {
   return (
     <>
       <AppSearchBar
-        onSearch={searchAdditionalOwners}
+        label="Rechercher un propriétaire"
         placeholder="Rechercher un propriétaire dans la base de données"
+        onSearch={searchAdditionalOwners}
       />
       <HousingAdditionalOwnerSearchResults onSelect={onSelect} />
     </>

@@ -104,6 +104,9 @@ function GeoPerimetersTable(props: GeoPerimetersTableProps) {
         columns={cols}
         data={perimeters}
         getRowId={(geoPerimeter) => geoPerimeter.id}
+        getRowSelectionLabel={(geoPerimeter) =>
+          `Sélectionner le périmètre ${geoPerimeter.name}`
+        }
         selection={selection.selected}
         onSelectionChange={selection.setSelected}
       />

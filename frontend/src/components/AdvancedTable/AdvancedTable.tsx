@@ -36,6 +36,12 @@ export type AdvancedTableProps<Data extends object> = Pick<
     tableProps?: Omit<TableProps, 'headers' | 'data'>;
     selection?: Selection;
     onSelectionChange?(selection: Selection): void;
+    /**
+     * Generate an accessible label for row selection checkbox
+     * @param row The table row data
+     * @returns Accessible label for the checkbox
+     */
+    getRowSelectionLabel?(row: Data): string;
   };
 
 interface PaginationProps {
@@ -143,6 +149,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                             label: null,
                             nativeInputProps: {
                               checked: all,
+                              'aria-label': 'Sélectionner tous les éléments',
                               onChange: () => {
                                 setAll(!all);
                               }
@@ -180,6 +187,9 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                               nativeInputProps: {
                                 value: row.id,
                                 checked: all !== row.getIsSelected(),
+                                'aria-label':
+                                  props.getRowSelectionLabel?.(row.original) ??
+                                  'Sélectionner cet élément',
                                 onChange: () => {
                                   row.toggleSelected();
                                 }

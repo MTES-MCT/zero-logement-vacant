@@ -4,7 +4,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 import { useSelection } from '../../../hooks/useSelection';
-import { GeoPerimeter } from '../../../models/GeoPerimeter';
+import { type GeoPerimeter } from '../../../models/GeoPerimeter';
 import AppLink from '../../_app/AppLink/AppLink';
 import SelectableListHeader from '../../SelectableListHeader/SelectableListHeader';
 import SelectableListHeaderActions from '../../SelectableListHeader/SelectableListHeaderActions';
@@ -109,6 +109,6 @@ function GeoPerimetersTable(props: GeoPerimetersTableProps) {
       />
     </>
   );
-};
+}
 
 export default GeoPerimetersTable;

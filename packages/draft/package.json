@@ -2,6 +2,9 @@
   "name": "@zerologementvacant/draft",
   "version": "0.0.1",
   "type": "module",
+  "scripts": {
+    "postbuild": "copyfiles -V -u 1 'src/**/*.css' 'src/**/*.hbs' 'src/**/*.json' 'src/fonts/**/*.otf' dist/lib"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": {

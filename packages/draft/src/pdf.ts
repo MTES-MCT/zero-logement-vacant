@@ -82,15 +82,18 @@ class PdfPageManager {
   }
 
   async generatePdfFromHtml(
-    html: string, 
-    width: number, 
+    html: string,
+    width: number,
     height: number,
     id: string = 'content'
   ): Promise<Buffer> {
     return this.executeWithRetry(async () => {
       await this.page.setViewport({ width, height });
-      await this.page.setContent(`<div id="${id}" style="margin: 0; padding: 0; display: inline-block">${html}</div>`);
-      
+      await this.page.setContent(
+        `<div id="${id}" style="margin: 0; padding: 0; display: inline-block">${html}</div>`
+      );
+      await this.page.addStyleTag({ content: fontCss });
+
       // Wait for content to load
       try {
         await this.page.waitForSelector(`#${id}`, { timeout: 5000 });
@@ -102,32 +105,38 @@ class PdfPageManager {
         printBackground: true,
         width: `${width}px`,
         height: `${height}px`,
-        pageRanges: '1',
+        pageRanges: '1'
       });
     }, `generatePdfFromHtml for ${id}`);
   }
 
   async measureHtmlDimensions(
-    html: string, 
+    html: string,
     containerId: string = 'block'
   ): Promise<{ width: number; height: number } | null> {
     return this.executeWithRetry(async () => {
-      await this.page.setContent(`<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block">${html}</div>`);
-      
+      await this.page.setContent(
+        `<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block">${html}</div>`
+      );
+      await this.page.addStyleTag({ content: fontCss });
+
       try {
         await this.page.waitForSelector(`#${containerId}`, { timeout: 5000 });
         const element = await this.page.$(`#${containerId}`);
         const box = await element?.boundingBox();
         return box ? { width: box.width, height: box.height } : null;
       } catch (error) {
-        this.logger.warn(`Error measuring dimensions for ${containerId}:`, error);
+        this.logger.warn(
+          `Error measuring dimensions for ${containerId}:`,
+          error
+        );
         return null;
       }
     }, `measureHtmlDimensions for ${containerId}`);
   }
 
   private async executeWithRetry<T>(
-    operation: () => Promise<T>, 
+    operation: () => Promise<T>,
     operationName: string
   ): Promise<T> {
     for (let attempt = 1; attempt <= BROWSER_CONFIG.maxRetries; attempt++) {
@@ -135,13 +144,17 @@ class PdfPageManager {
         return await operation();
       } catch (error) {
         this.logger.warn(`${operationName} attempt ${attempt} failed:`, error);
-        
+
         if (attempt === BROWSER_CONFIG.maxRetries) {
-          throw new Error(`${operationName} failed after ${BROWSER_CONFIG.maxRetries} attempts: ${error}`);
+          throw new Error(
+            `${operationName} failed after ${BROWSER_CONFIG.maxRetries} attempts: ${error}`
+          );
         }
-        
+
         // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, BROWSER_CONFIG.retryDelay * attempt));
+        await new Promise((resolve) =>
+          setTimeout(resolve, BROWSER_CONFIG.retryDelay * attempt)
+        );
       }
     }
     throw new Error(`Unexpected error in ${operationName}`);
@@ -159,7 +172,10 @@ function createTransformer(opts: TransformerOptions) {
 
       for (const pdf of pdfs) {
         const pdfDoc = await PDFDocument.load(pdf);
-        const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+        const pages = await mergedPdf.copyPages(
+          pdfDoc,
+          pdfDoc.getPageIndices()
+        );
         pages.forEach((page: PDFPage) => mergedPdf.addPage(page));
       }
 
@@ -190,7 +206,7 @@ function createTransformer(opts: TransformerOptions) {
         ],
         defaultViewport: { width: 1024, height: 768 },
         devtools: false,
-        headless: true
+        headless: false
       });
 
       try {
@@ -198,26 +214,32 @@ function createTransformer(opts: TransformerOptions) {
         const reusablePage = await browser.newPage();
         const pdfManager = new PdfPageManager(reusablePage, logger);
 
-        const textBlocks = await splitHtmlIntoPages({ 
-          fullHtml: data.body ?? '', 
-          browser, 
-          maxWidth: BODY_WIDTH, 
-          firstPageMaxHeight: FIRST_PAGE_BODY_HEIGHT, 
-          otherPagesMaxHeight: OTHER_PAGE_BODY_HEIGHT 
+        const textBlocks = await splitHtmlIntoPages({
+          fullHtml: data.body ?? '',
+          browser,
+          maxWidth: BODY_WIDTH,
+          firstPageMaxHeight: FIRST_PAGE_BODY_HEIGHT,
+          otherPagesMaxHeight: OTHER_PAGE_BODY_HEIGHT
         });
-        
+
         logger.info(`Number of pages generated: ${textBlocks.length}`);
 
         const templates: any[] = [];
         const inputs: Record<string, string>[] = [];
 
         // Utility functions
-        function formatWrittenInfo(writtenFrom?: string | Date, writtenAt?: string): string {
+        function formatWrittenInfo(
+          writtenFrom?: string | Date,
+          writtenAt?: string
+        ): string {
           if (!writtenAt) return '';
 
           let formattedDate = '';
           if (writtenFrom) {
-            const date = typeof writtenFrom === 'string' ? new Date(writtenFrom) : writtenFrom;
+            const date =
+              typeof writtenFrom === 'string'
+                ? new Date(writtenFrom)
+                : writtenFrom;
             formattedDate = format(date, 'd MMMM yyyy', { locale: frLocale });
           }
 
@@ -226,11 +248,18 @@ function createTransformer(opts: TransformerOptions) {
             : `À ${writtenAt}`;
         }
 
-        function formatImageContent(image: { content: string } | undefined): string {
+        function formatImageContent(
+          image: { content: string } | undefined
+        ): string {
           return image?.content
-            ? image.content.replace(/^data:image\/(jpeg|png)(;charset=utf-8)?;base64,/, (match: string, format: string) => {
-              return `data:image/${format};base64,`;
-            }).replace(/\s/g, '')
+            ? image.content
+                .replace(
+                  /^data:image\/(jpeg|png)(;charset=utf-8)?;base64,/,
+                  (match: string, format: string) => {
+                    return `data:image/${format};base64,`;
+                  }
+                )
+                .replace(/\s/g, '')
             : '';
         }
 
@@ -239,7 +268,8 @@ function createTransformer(opts: TransformerOptions) {
 
         // Generate PDF elements using the reusable page
         logger.info('Generating sender PDF...');
-        let senderHTML = "<div style='text-align: end; font-style: normal;font-weight: 400'>";
+        let senderHTML =
+          "<div style='text-align: end; font-style: normal;font-weight: 400'>";
         if (data.sender) {
           if (data.sender.name) {
             senderHTML += `${data.sender.name}`;
@@ -261,15 +291,32 @@ function createTransformer(opts: TransformerOptions) {
           }
         }
         senderHTML += '</div>';
-        const sender = await pdfManager.generatePdfFromHtml(senderHTML, 300, 300, 'sender');
+        const sender = await pdfManager.generatePdfFromHtml(
+          senderHTML,
+          300,
+          300,
+          'sender'
+        );
 
         logger.info('Generating written info PDF...');
         const dateHTML = `<div id='block' style='margin: 0; padding: 0; display: inline-block;'>${formatWrittenInfo(data.writtenAt ?? undefined, data.writtenFrom ?? undefined)}</div>`;
-        const writtenInfo = await pdfManager.generatePdfFromHtml(dateHTML, BODY_WIDTH, LINE_HEIGHT * 2, 'written-info');
+        const writtenInfo = await pdfManager.generatePdfFromHtml(
+          dateHTML,
+          BODY_WIDTH,
+          LINE_HEIGHT * 2,
+          'written-info'
+        );
 
         logger.info('Generating subject PDF...');
-        const subjectHTML = data.subject ? `<div id='block' style='margin: 0; padding: 0; display: inline-block;'><strong>Objet:&nbsp;</strong>${data.subject}</div>` : '';
-        const subject = await pdfManager.generatePdfFromHtml(subjectHTML, BODY_WIDTH, LINE_HEIGHT * 2, 'subject');
+        const subjectHTML = data.subject
+          ? `<div id='block' style='margin: 0; padding: 0; display: inline-block;'><strong>Objet:&nbsp;</strong>${data.subject}</div>`
+          : '';
+        const subject = await pdfManager.generatePdfFromHtml(
+          subjectHTML,
+          BODY_WIDTH,
+          LINE_HEIGHT * 2,
+          'subject'
+        );
 
         logger.info('Generating recipient PDF...');
         let recipientHTML = `<div style='font-style: normal;font-weight: 400'><strong>À l'attention de</strong>`;
@@ -280,11 +327,20 @@ function createTransformer(opts: TransformerOptions) {
           recipientHTML += `<br />${data.owner.address.join('<br>')}`;
         }
         recipientHTML += '</div>';
-        const recipient = await pdfManager.generatePdfFromHtml(recipientHTML, 300, 300, 'recipient');
+        const recipient = await pdfManager.generatePdfFromHtml(
+          recipientHTML,
+          300,
+          300,
+          'recipient'
+        );
 
         logger.info('Generating signatory PDF...');
-        let signatoryHTML = "";
-        if (data.sender && data.sender.signatories && data.sender.signatories.length > 0) {
+        let signatoryHTML = '';
+        if (
+          data.sender &&
+          data.sender.signatories &&
+          data.sender.signatories.length > 0
+        ) {
           signatoryHTML += `<div style="display: flex; gap: 40px;">`;
 
           for (const signatory of data.sender.signatories) {
@@ -311,106 +367,142 @@ function createTransformer(opts: TransformerOptions) {
 
           signatoryHTML += `</div>`;
         }
-        const signatory = await pdfManager.generatePdfFromHtml(signatoryHTML, 400, 200, 'signatory');
+        const signatory = await pdfManager.generatePdfFromHtml(
+          signatoryHTML,
+          400,
+          200,
+          'signatory'
+        );
 
         // Generate template schemas
-        const firstPageSchema = [{
-          name: "logo1",
-          type: "image",
-          position: { x: pixelsToPointsPNG(MARGIN_RIGHT), y: pixelsToPointsPNG(MARGIN_TOP) },
-          width: pixelsToPointsPNG(LOGO_WIDTH),
-          height: pixelsToPointsPNG(LOGO_WIDTH)
-        },
-        {
-          name: "logo2",
-          type: "image",
-          position: { x: pixelsToPointsPNG(MARGIN_RIGHT), y: pixelsToPointsPNG(MARGIN_TOP + 5 + LOGO_WIDTH) },
-          width: pixelsToPointsPNG(LOGO_WIDTH),
-          height: pixelsToPointsPNG(LOGO_WIDTH)
-        },
-        {
-          name: 'sender',
-          type: 'pdf',
-          position: { x: pixelsToPointsPDF(580), y: pixelsToPointsPDF(MARGIN_TOP) },
-          width: pixelsToPointsPDF(300),
-          height: pixelsToPointsPDF(300),
-        },
-        {
-          name: 'recipient',
-          type: 'pdf',
-          position: { x: pixelsToPointsPDF(500), y: pixelsToPointsPDF(200) },
-          width: pixelsToPointsPDF(300),
-          height: pixelsToPointsPDF(300),
-        },
-        {
-          name: "written_location",
-          type: "pdf",
-          position: { "x": pixelsToPointsPDF(MARGIN_RIGHT), "y": pixelsToPointsPDF(360) },
-          width: pixelsToPointsPDF(BODY_WIDTH),
-          height: pixelsToPointsPDF(LINE_HEIGHT * 2),
-        },
-        {
-          name: "subject",
-          type: "pdf",
-          position: { "x": pixelsToPointsPDF(MARGIN_RIGHT), "y": pixelsToPointsPDF(395) },
-          width: pixelsToPointsPDF(BODY_WIDTH),
-          height: pixelsToPointsPDF(LINE_HEIGHT * 2),
-        }];
+        const firstPageSchema = [
+          {
+            name: 'logo1',
+            type: 'image',
+            position: {
+              x: pixelsToPointsPNG(MARGIN_RIGHT),
+              y: pixelsToPointsPNG(MARGIN_TOP)
+            },
+            width: pixelsToPointsPNG(LOGO_WIDTH),
+            height: pixelsToPointsPNG(LOGO_WIDTH)
+          },
+          {
+            name: 'logo2',
+            type: 'image',
+            position: {
+              x: pixelsToPointsPNG(MARGIN_RIGHT),
+              y: pixelsToPointsPNG(MARGIN_TOP + 5 + LOGO_WIDTH)
+            },
+            width: pixelsToPointsPNG(LOGO_WIDTH),
+            height: pixelsToPointsPNG(LOGO_WIDTH)
+          },
+          {
+            name: 'sender',
+            type: 'pdf',
+            position: {
+              x: pixelsToPointsPDF(580),
+              y: pixelsToPointsPDF(MARGIN_TOP)
+            },
+            width: pixelsToPointsPDF(300),
+            height: pixelsToPointsPDF(300)
+          },
+          {
+            name: 'recipient',
+            type: 'pdf',
+            position: { x: pixelsToPointsPDF(500), y: pixelsToPointsPDF(200) },
+            width: pixelsToPointsPDF(300),
+            height: pixelsToPointsPDF(300)
+          },
+          {
+            name: 'written_location',
+            type: 'pdf',
+            position: {
+              x: pixelsToPointsPDF(MARGIN_RIGHT),
+              y: pixelsToPointsPDF(360)
+            },
+            width: pixelsToPointsPDF(BODY_WIDTH),
+            height: pixelsToPointsPDF(LINE_HEIGHT * 2)
+          },
+          {
+            name: 'subject',
+            type: 'pdf',
+            position: {
+              x: pixelsToPointsPDF(MARGIN_RIGHT),
+              y: pixelsToPointsPDF(395)
+            },
+            width: pixelsToPointsPDF(BODY_WIDTH),
+            height: pixelsToPointsPDF(LINE_HEIGHT * 2)
+          }
+        ];
 
-        const pagesSchema = [{
-          name: 'body',
-          type: 'pdf',
-          width: pixelsToPointsPDF(BODY_WIDTH),
-          height: 0, // height will be replaced by calculated height
-          position: { x: 0, y: 0 }, // will be replaced by calculated position
-        }];
+        const pagesSchema = [
+          {
+            name: 'body',
+            type: 'pdf',
+            width: pixelsToPointsPDF(BODY_WIDTH),
+            height: 0, // height will be replaced by calculated height
+            position: { x: 0, y: 0 } // will be replaced by calculated position
+          }
+        ];
 
-        const lastPageSchema = [{
-          name: 'signatory',
-          type: 'pdf',
-          position: { x: pixelsToPointsPDF(400), y: pixelsToPointsPDF(1100) },
-          width: pixelsToPointsPDF(400),
-          height: pixelsToPointsPDF(200),
-        }];
+        const lastPageSchema = [
+          {
+            name: 'signatory',
+            type: 'pdf',
+            position: { x: pixelsToPointsPDF(400), y: pixelsToPointsPDF(1100) },
+            width: pixelsToPointsPDF(400),
+            height: pixelsToPointsPDF(200)
+          }
+        ];
 
         // Generate content pages
         logger.info('Generating content pages...');
         for (let i = 0; i < textBlocks.length; i++) {
           logger.info(`Processing page ${i + 1}/${textBlocks.length}`);
-          
+
           const schema = [];
           let bodySchema: Schema;
-          
+
           if (i === 0) {
             schema.push(...firstPageSchema);
             bodySchema = Object.assign({}, pagesSchema[0]);
             bodySchema.width = pixelsToPointsPDF(BODY_WIDTH);
-            bodySchema.height = pixelsToPointsPDF(FIRST_PAGE_BODY_HEIGHT + LINE_HEIGHT);
-            bodySchema.position = { x: pixelsToPointsPDF(MARGIN_RIGHT), y: pixelsToPointsPDF(410) };
+            bodySchema.height = pixelsToPointsPDF(
+              FIRST_PAGE_BODY_HEIGHT + LINE_HEIGHT
+            );
+            bodySchema.position = {
+              x: pixelsToPointsPDF(MARGIN_RIGHT),
+              y: pixelsToPointsPDF(410)
+            };
             schema.push(bodySchema);
           } else if (i > 0) {
             bodySchema = Object.assign({}, pagesSchema[0]);
             bodySchema.width = pixelsToPointsPDF(BODY_WIDTH);
-            bodySchema.height = pixelsToPointsPDF(OTHER_PAGE_BODY_HEIGHT + LINE_HEIGHT);
-            bodySchema.position = { x: pixelsToPointsPDF(MARGIN_RIGHT), y: pixelsToPointsPDF(100) };
+            bodySchema.height = pixelsToPointsPDF(
+              OTHER_PAGE_BODY_HEIGHT + LINE_HEIGHT
+            );
+            bodySchema.position = {
+              x: pixelsToPointsPDF(MARGIN_RIGHT),
+              y: pixelsToPointsPDF(100)
+            };
             schema.push(bodySchema);
           }
-          
+
           if (i === textBlocks.length - 1) {
             schema.push(...lastPageSchema);
           }
-          
+
           const template: Template = {
             basePdf: BLANK_PDF,
-            schemas: [schema],
+            schemas: [schema]
           };
           templates.push(template);
 
           // Generate PDF for this text block
           const contentHtml = `<div id='block' style='margin: 0; padding: 0; display: inline-block; font-size: 0.75rem'>${textBlocks[i]}</div>`;
           const pdfBuffer = await pdfManager.generatePdfFromHtml(
-            contentHtml, 
-            BODY_WIDTH, 
+            contentHtml,
+            BODY_WIDTH,
             i === 0 ? FIRST_PAGE_BODY_HEIGHT : OTHER_PAGE_BODY_HEIGHT,
             `body-${i}`
           );
@@ -423,13 +515,13 @@ function createTransformer(opts: TransformerOptions) {
             written_location: `data:application/pdf;base64,${writtenInfo.toString('base64')}`,
             subject: `data:application/pdf;base64,${subject.toString('base64')}`,
             body: `data:application/pdf;base64,${pdfBuffer.toString('base64')}`,
-            signatory: `data:application/pdf;base64,${signatory.toString('base64')}`,
+            signatory: `data:application/pdf;base64,${signatory.toString('base64')}`
           };
           inputs.push(inputsData);
         }
 
         // Close the reusable page
-        await reusablePage.close();
+        // await reusablePage.close();
 
         logger.info('Generating final PDF pages...');
         // Generate PDF pages one by one
@@ -437,12 +529,12 @@ function createTransformer(opts: TransformerOptions) {
         for (let i = 0; i < templates.length; i++) {
           logger.info(`Generating final page ${i + 1}/${templates.length}`);
           const pdfBuffer = await generate({
-            template: templates[i], 
-            inputs: [inputs[i]], 
+            template: templates[i],
+            inputs: [inputs[i]],
             plugins: {
               text,
               image,
-              pdf: pdfPlugin,
+              pdf: pdfPlugin
             }
           });
           pdfBuffers.push(Buffer.from(pdfBuffer));
@@ -454,7 +546,10 @@ function createTransformer(opts: TransformerOptions) {
 
         for (const buffer of pdfBuffers) {
           const docToMerge = await PDFDocument.load(buffer);
-          const pages = await finalDoc.copyPages(docToMerge, docToMerge.getPageIndices());
+          const pages = await finalDoc.copyPages(
+            docToMerge,
+            docToMerge.getPageIndices()
+          );
           pages.forEach((page: PDFPage) => finalDoc.addPage(page));
         }
 
@@ -462,9 +557,8 @@ function createTransformer(opts: TransformerOptions) {
         logger.info('Final PDF successfully generated!');
 
         return Buffer.from(finalPDF);
-
       } finally {
-        await browser.close();
+        // await browser.close();
       }
     }
   };
@@ -488,7 +582,7 @@ export async function findMaxHtmlLengthThatFits({
   browser,
   maxHeight,
   maxWidth,
-  containerId = 'block',
+  containerId = 'block'
 }: FindFitOptions): Promise<number> {
   const safeIndices = getSafeCutPoints(fullHtml);
   let low = 0;
@@ -508,15 +602,18 @@ export async function findMaxHtmlLengthThatFits({
 
       try {
         // Reuse the same page
-        await testPage.setContent(`<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block">${partialHtml}</div>`);
-        
+        await testPage.setContent(
+          `<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block">${partialHtml}</div>`
+        );
+        await testPage.addStyleTag({ content: fontCss });
+
         // Wait for content to render with shorter timeout
         try {
           await testPage.waitForSelector(`#${containerId}`, { timeout: 3000 });
         } catch {
           // Continue even if selector is not found
         }
-        
+
         const element = await testPage.$(`#${containerId}`);
         const box = await element?.boundingBox();
 
@@ -532,7 +629,7 @@ export async function findMaxHtmlLengthThatFits({
       }
     }
   } finally {
-    await testPage.close();
+    // await testPage.close();
   }
 
   return bestLength;

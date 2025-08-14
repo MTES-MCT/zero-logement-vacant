@@ -20,10 +20,10 @@ const BROWSER_CONFIG = {
   protocolTimeout: 180_000, // 3 minutes
   pageTimeout: 60_000, // 1 minute
   maxRetries: 3,
-  retryDelay: 1000, // 1 second
+  retryDelay: 1000 // 1 second
 };
 
-const pixelsToPointsPNG = (px: number) => px * 72 / 340;
+const pixelsToPointsPNG = (px: number) => (px * 72) / 340;
 const pixelsToPointsPDF = (px: number) => px * 0.65;
 
 const MARGIN_RIGHT = 50; // pixels
@@ -206,7 +206,7 @@ function createTransformer(opts: TransformerOptions) {
         ],
         defaultViewport: { width: 1024, height: 768 },
         devtools: false,
-        headless: false
+        headless: true
       });
 
       try {
@@ -664,7 +664,7 @@ export async function splitHtmlIntoPages({
   browser,
   firstPageMaxHeight,
   otherPagesMaxHeight,
-  maxWidth,
+  maxWidth
 }: {
   fullHtml: string;
   browser: Browser;
@@ -687,7 +687,8 @@ export async function splitHtmlIntoPages({
     if (cutoff === 0) {
       // If no content fits, take at least one safe cut point
       const safePoints = getSafeCutPoints(remainingHtml);
-      const minCutoff = safePoints.length > 1 ? safePoints[1] : remainingHtml.length;
+      const minCutoff =
+        safePoints.length > 1 ? safePoints[1] : remainingHtml.length;
       const block = remainingHtml.slice(0, minCutoff);
       blocks.push(block);
       remainingHtml = remainingHtml.slice(minCutoff);
@@ -696,7 +697,7 @@ export async function splitHtmlIntoPages({
       blocks.push(block);
       remainingHtml = remainingHtml.slice(cutoff);
     }
-    
+
     isFirstPage = false;
   }
 

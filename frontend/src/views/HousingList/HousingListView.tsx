@@ -153,9 +153,10 @@ const HousingListView = () => {
           <Grid container mb={1} spacing={2}>
             <Grid size="grow">
               <AppSearchBar
-                onSearch={searchWithQuery}
                 initialQuery={filters.query}
+                label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
                 placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                onSearch={searchWithQuery}
               />
             </Grid>
             <Grid size="auto">

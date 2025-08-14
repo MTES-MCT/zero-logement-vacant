@@ -213,7 +213,11 @@ function createPerimetersModal() {
               >
                 <Grid size="grow">
                   <Stack direction="row" spacing={2}>
-                    <AppSearchBar onSearch={search} onKeySearch={searchAsync} />
+                    <AppSearchBar
+                      label="Rechercher un périmètre"
+                      onSearch={search}
+                      onKeySearch={searchAsync}
+                    />
                     <Button
                       onClick={() => {
                         uploadModal.open();

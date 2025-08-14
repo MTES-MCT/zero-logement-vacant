@@ -51,9 +51,10 @@ function CampaignInProgress(props: Readonly<Props>) {
         <Grid container mb={1} spacing={2} alignItems="flex-start" size={12}>
           <Grid size="grow">
             <AppSearchBar
-              onSearch={searchWithQuery}
               initialQuery={filters.query}
+              label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
               placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+              onSearch={searchWithQuery}
             />
           </Grid>
           <Grid size="auto">

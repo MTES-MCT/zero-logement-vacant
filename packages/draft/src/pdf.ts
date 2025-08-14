@@ -521,7 +521,7 @@ function createTransformer(opts: TransformerOptions) {
         }
 
         // Close the reusable page
-        // await reusablePage.close();
+        await reusablePage.close();
 
         logger.info('Generating final PDF pages...');
         // Generate PDF pages one by one
@@ -558,7 +558,7 @@ function createTransformer(opts: TransformerOptions) {
 
         return Buffer.from(finalPDF);
       } finally {
-        // await browser.close();
+        await browser.close();
       }
     }
   };
@@ -629,7 +629,7 @@ export async function findMaxHtmlLengthThatFits({
       }
     }
   } finally {
-    // await testPage.close();
+    await testPage.close();
   }
 
   return bestLength;

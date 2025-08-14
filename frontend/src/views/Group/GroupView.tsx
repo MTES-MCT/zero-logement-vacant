@@ -159,9 +159,10 @@ function GroupView() {
           <Grid container mb={1} spacing={2} size={12}>
             <Grid size="grow">
               <AppSearchBar
-                onSearch={(query) => onChangeFilters({ query })}
                 initialQuery={filters.query}
+                label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
                 placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                onSearch={(query) => onChangeFilters({ query })}
               />
             </Grid>
             <Grid size="auto">

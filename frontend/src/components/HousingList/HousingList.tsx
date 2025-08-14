@@ -237,6 +237,9 @@ function HousingList(props: HousingListProps) {
         columns={columns}
         data={housingList ?? []}
         getRowId={(housing) => housing.id}
+        getRowSelectionLabel={(housing) =>
+          `Sélectionner le logement "${housing.rawAddress.join(', ')}"`
+        }
         isLoading={isFetchHousings}
         page={page}
         pageCount={pageCount}

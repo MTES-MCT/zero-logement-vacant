@@ -29,7 +29,7 @@
     "@lexical/html": "^0.25.0",
     "@lexical/list": "^0.25.0",
     "@lexical/react": "^0.25.0",
-    "@lexical/text": "^0.25.0",
+    "@lexical/text": "^0.33.1",
     "@lexical/utils": "^0.25.0",
     "@maplibre/maplibre-gl-style-spec": "^23.2.3",
     "@mui/material": "^7.2.0",

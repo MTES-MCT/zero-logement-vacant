@@ -2,19 +2,19 @@ import { constants } from 'http2';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
-import { tokenProvider } from '~/test/testUtils';
+import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '~/repositories/establishmentRepository';
+import { formatUserApi, Users } from '~/repositories/userRepository';
 import {
   genDatafoncierHousing,
   genEstablishmentApi,
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
-import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
-import { formatUserApi, Users } from '~/repositories/userRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
+import { tokenProvider } from '~/test/testUtils';
 
 describe('Datafoncier housing controller', () => {
   let url: string;
@@ -52,7 +52,7 @@ describe('Datafoncier housing controller', () => {
       await DatafoncierHouses().insert(housing);
 
       const { status } = await request(url)
-        .get(testRoute(`1234512345678`))
+        .get(testRoute(housing.idlocal))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);

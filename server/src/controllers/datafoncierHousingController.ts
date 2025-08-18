@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import type { DatafoncierHousing } from '@zerologementvacant/models';
+import { type RequestHandler } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { constants } from 'http2';
 
@@ -7,18 +8,23 @@ import createDatafoncierHousingRepository from '~/repositories/datafoncierHousin
 
 const datafoncierHousingRepository = createDatafoncierHousingRepository();
 
-const findOne = async (request: Request, response: Response) => {
-  const { establishment } = request as AuthenticatedRequest;
+interface FindOneParams extends Record<string, string> {
+  localId: string;
+}
 
-  const geoCode = request.params.localId.substring(0, 5);
-  if (!establishment.geoCodes.includes(geoCode)) {
-    throw new HousingMissingError(request.params.id);
-  }
+const findOne: RequestHandler<FindOneParams, DatafoncierHousing> = async (
+  request,
+  response
+) => {
+  const { establishment } = request as AuthenticatedRequest<
+    FindOneParams,
+    DatafoncierHousing
+  >;
 
   const housing = await datafoncierHousingRepository.findOne({
-    idlocal: request.params.localId,
+    idlocal: request.params.localId
   });
-  if (!housing) {
+  if (!housing || !establishment.geoCodes.includes(housing.idcom)) {
     throw new HousingMissingError(request.params.id);
   }
 
@@ -26,5 +32,5 @@ const findOne = async (request: Request, response: Response) => {
 };
 
 export default {
-  findOne,
+  findOne
 };

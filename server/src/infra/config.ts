@@ -8,7 +8,8 @@ import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
 dotenvx.config({
   convention: 'nextjs',
-  path: path.resolve(import.meta.dirname, '../..')
+  path: path.resolve(import.meta.dirname, '../..'),
+  quiet: process.env.NODE_ENV === 'test'
 });
 
 const isProduction = process.env.NODE_ENV === 'production';

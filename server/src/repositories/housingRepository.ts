@@ -370,6 +370,10 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
     includes.push('owner');
   }
 
+  if (filters?.campaignIds?.length || filters?.campaignCount !== undefined) {
+    includes.push('campaigns');
+  }
+
   return (query: Knex.QueryBuilder) => {
     uniq(includes).forEach((include) => {
       joins[include](query);
@@ -539,16 +543,19 @@ function filteredQuery(opts: FilteredQueryOptions) {
         }
         const ids = filters.campaignIds?.filter((id) => id !== null);
         if (ids?.length) {
-          where.orWhereIn(`${housingTable}.id`, (subquery) => {
+          where.orWhereExists((subquery) => {
             subquery
               .select(`${campaignsHousingTable}.housing_id`)
               .from(campaignsHousingTable)
-              .join(
-                campaignsTable,
-                `${campaignsTable}.id`,
-                `${campaignsHousingTable}.campaign_id`
+              .whereIn(`${campaignsHousingTable}.campaign_id`, ids)
+              .where(
+                `${campaignsHousingTable}.housing_geo_code`,
+                db.ref(`${housingTable}.geo_code`)
               )
-              .whereIn(`${campaignsTable}.id`, ids);
+              .where(
+                `${campaignsHousingTable}.housing_id`,
+                db.ref(`${housingTable}.id`)
+              );
           });
         }
       });

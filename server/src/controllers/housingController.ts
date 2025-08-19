@@ -75,7 +75,7 @@ async function get(request: Request, response: Response) {
     geoCode: establishment.geoCodes,
     id,
     localId,
-    includes: ['events', 'owner', 'perimeters', 'campaigns']
+    includes: ['owner', 'perimeters', 'campaigns']
   });
   if (!housing) {
     throw new HousingMissingError(params.id);

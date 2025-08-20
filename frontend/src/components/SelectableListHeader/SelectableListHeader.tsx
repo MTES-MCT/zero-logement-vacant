@@ -37,7 +37,7 @@ function SelectableListHeader(props: SelectableListHeaderProps) {
 
   const selectedCount = hasSelected() && (
     <>
-      <span className={styles.selection}>
+      <span className={styles.selection} role="status">
         {selected} {pluralizeMany(props.entity)} {pluralizeMany('sélectionné')}
       </span>
       <button className={buttonClasses} onClick={props.onUnselectAll}>

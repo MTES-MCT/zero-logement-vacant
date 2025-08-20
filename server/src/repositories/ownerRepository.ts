@@ -2,7 +2,10 @@ import { AddressKinds, OwnerEntity } from '@zerologementvacant/models';
 import highland from 'highland';
 import { Knex } from 'knex';
 import _ from 'lodash';
+import { Readable } from 'node:stream';
+import { ReadableStream } from 'node:stream/web';
 import { match, Pattern } from 'ts-pattern';
+
 import { OwnerExportStreamApi } from '~/controllers/housingExportController';
 import db, {
   ConflictOptions,
@@ -55,10 +58,20 @@ interface OwnerFilters {
 interface FindOptions {
   filters?: OwnerFilters;
   groupBy?: Array<keyof OwnerDBO>;
+  includes?: OwnerInclude[];
 }
 
-const filteredQuery =
-  (filters?: OwnerFilters) => (query: Knex.QueryBuilder) => {
+function filter(filters?: OwnerFilters) {
+  return (query: Knex.QueryBuilder) => {
+    if (filters?.idpersonne) {
+      query.whereIn(
+        'idpersonne',
+        Array.isArray(filters.idpersonne)
+          ? filters.idpersonne
+          : [filters.idpersonne]
+      );
+    }
+
     if (filters?.campaignId) {
       query
         .join(
@@ -77,6 +90,7 @@ const filteredQuery =
         )
         .where(`${campaignsHousingTable}.campaign_id`, filters.campaignId);
     }
+
     if (filters?.groupId) {
       query
         .join(
@@ -96,6 +110,7 @@ const filteredQuery =
         .where(`${GROUPS_HOUSING_TABLE}.group_id`, filters.groupId);
     }
   };
+}
 
 const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
   const whereOptions = where<OwnerFilters>(['fullName']);
@@ -116,7 +131,7 @@ const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
   return owners.map(parseOwnerApi);
 };
 
-type OwnerInclude = 'banAddress';
+type OwnerInclude = 'banAddress' | 'housings';
 
 function include(includes: OwnerInclude[]) {
   const joins: Record<OwnerInclude, (query: Knex.QueryBuilder) => void> = {
@@ -127,7 +142,22 @@ function include(includes: OwnerInclude[]) {
             .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
             .andOnVal('address_kind', AddressKinds.Owner);
         })
-        .select(db.raw(`to_json(${banAddressesTable}.*) AS ban`))
+        .select(db.raw(`to_json(${banAddressesTable}.*) AS ban`)),
+    housings: (query) =>
+      query
+        .joinRaw(
+          `
+          LEFT JOIN LATERAL (
+            SELECT json_agg(${housingTable}.*) AS housings
+            FROM ${housingOwnersTable}
+            JOIN ${housingTable}
+              ON ${housingOwnersTable}.housing_geo_code = ${housingTable}.geo_code
+              AND ${housingOwnersTable}.housing_id = ${housingTable}.id
+            WHERE ${ownerTable}.id = ${housingOwnersTable}.owner_id
+          ) h ON true
+        `
+        )
+        .select('h.housings')
   };
 
   return (query: Knex.QueryBuilder) => {
@@ -137,16 +167,22 @@ function include(includes: OwnerInclude[]) {
   };
 }
 
-const stream = (opts?: StreamOptions): Stream<OwnerApi> => {
-  const stream = Owners()
-    .modify(groupBy<OwnerDBO>(opts?.groupBy))
-    .orderBy('full_name')
-    .stream();
-
-  return highland<OwnerDBO>(stream).map(parseOwnerApi);
-};
-
 type StreamOptions = FindOptions;
+
+function stream(
+  options?: StreamOptions
+): ReadableStream<OwnerApi & { housings?: ReadonlyArray<HousingApi> }> {
+  const stream = Owners()
+    .select(`${ownerTable}.*`)
+    .modify(include(options?.includes ?? []))
+    .modify(filter(options?.filters))
+    .modify(groupBy<OwnerDBO>(options?.groupBy))
+    .orderBy('full_name')
+    .stream()
+    .map(parseHousingOwnerApi);
+
+  return Readable.toWeb(stream);
+}
 
 type OwnerExportStreamDBO = OwnerDBO & {
   housing_list: HousingDBO[];
@@ -154,7 +190,7 @@ type OwnerExportStreamDBO = OwnerDBO & {
 
 const exportStream = (opts: StreamOptions): Stream<OwnerExportStreamApi> => {
   const stream = Owners()
-    .modify(filteredQuery(opts.filters))
+    .modify(filter(opts.filters))
     .select(
       `${ownerTable}.id`,
       `${ownerTable}.address_dgfip`,

@@ -155,12 +155,14 @@ export default function createWorker() {
             )
             .pipeThrough(
               tap((_, i) => {
-                logger.debug(`Generating PDF page ${i + 1} of ${housings.length}...`);
+                logger.debug(
+                  `Generating PDF page ${i + 1} of ${housings.length}...`
+                );
               })
             );
 
-            const pdfs = await collect(stream);
-            const finalPDF = await transformer.mergePDFs([...pdfs]);
+          const pdfs = await collect(stream);
+          const finalPDF = await transformer.mergePDFs([...pdfs]);
 
           if (!finalPDF) {
             throw new Error('Should be defined');
@@ -170,11 +172,9 @@ export default function createWorker() {
           const name = timestamp().concat('-', slugify(campaign.title));
 
           const archive = archiver('zip');
-          const buffer: ArrayBuffer = await api.campaign.exportCampaign(
-            campaign.id
-          );
+          const campaignExport = await api.campaign.exportCampaign(campaign.id);
           logger.debug('Campaign exported');
-          archive.append(Buffer.from(buffer), {
+          archive.append(Readable.fromWeb(campaignExport), {
             name: `${name}-destinataires.xlsx`
           });
           archive.append(finalPDF, { name: `${name}.pdf` });

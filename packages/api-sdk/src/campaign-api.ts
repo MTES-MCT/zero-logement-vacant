@@ -1,17 +1,18 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
-
 import {
   CampaignDTO,
-  CampaignUpdatePayloadDTO,
+  CampaignUpdatePayloadDTO
 } from '@zerologementvacant/models';
+import type { AxiosInstance, AxiosResponse } from 'axios';
+import { Readable } from 'node:stream';
+import { type ReadableStream } from 'node:stream/web';
 
 export interface CampaignAPI {
   get(id: CampaignDTO['id']): Promise<CampaignDTO | null>;
   update(
     id: CampaignDTO['id'],
-    campaign: CampaignUpdatePayloadDTO,
+    campaign: CampaignUpdatePayloadDTO
   ): Promise<CampaignDTO>;
-  exportCampaign(id: string): Promise<ArrayBuffer>;
+  exportCampaign(id: string): Promise<ReadableStream>;
 }
 
 export function createCampaignAPI(http: AxiosInstance): CampaignAPI {
@@ -22,17 +23,20 @@ export function createCampaignAPI(http: AxiosInstance): CampaignAPI {
     },
     async update(
       id: string,
-      campaign: CampaignUpdatePayloadDTO,
+      campaign: CampaignUpdatePayloadDTO
     ): Promise<CampaignDTO> {
       const response = await http.put<CampaignDTO>(
         `/campaigns/${id}`,
-        campaign,
+        campaign
       );
       return response.data;
     },
-    async exportCampaign(id: string): Promise<ArrayBuffer> {
-      const response: AxiosResponse<ArrayBuffer> = await http.get<ArrayBuffer>(`/campaigns/${id}/export`, { responseType: 'arraybuffer' });
-      return response.data;
-    },
+    async exportCampaign(id: string): Promise<ReadableStream> {
+      const response: AxiosResponse<Readable> = await http.get<Readable>(
+        `/campaigns/${id}/export`,
+        { responseType: 'stream' }
+      );
+      return Readable.toWeb(response.data);
+    }
   };
 }

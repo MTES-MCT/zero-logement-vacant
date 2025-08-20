@@ -25,7 +25,6 @@ import { Knex } from 'knex';
 import { uniq } from 'lodash-es';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
-
 import { match, Pattern } from 'ts-pattern';
 
 import db, { toRawArray, where } from '~/infra/database';
@@ -52,7 +51,6 @@ import { AddressDBO, banAddressesTable } from './banAddressesRepository';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
 import establishmentRepository from './establishmentRepository';
-import { EVENTS_TABLE, HOUSING_EVENTS_TABLE } from './eventRepository';
 import { geoPerimetersTable } from './geoRepository';
 import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
@@ -297,12 +295,7 @@ async function saveMany(
     });
 }
 
-type HousingInclude =
-  | 'owner'
-  | 'events'
-  | 'campaigns'
-  | 'perimeters'
-  | 'precisions';
+type HousingInclude = 'owner' | 'campaigns' | 'perimeters' | 'precisions';
 
 interface ListQueryOptions {
   filters: HousingFiltersApi;
@@ -323,23 +316,8 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
             .andOnVal('address_kind', AddressKinds.Owner);
         })
         .select(db.raw('to_json(ban.*) AS owner_ban_address')),
-    /**
-     * @deprecated Events should not be pulled to display the housings,
-     * for performance reasons.
-     * @param query
-     */
-    events: (query) =>
-      query.select('events.contact_count', 'events.last_contact').joinRaw(
-        `left join lateral (
-            select count(${EVENTS_TABLE}) as contact_count,
-                   max(${EVENTS_TABLE}.created_at) as last_contact
-            from ${HOUSING_EVENTS_TABLE}
-            join ${EVENTS_TABLE} on ${EVENTS_TABLE}.id = ${HOUSING_EVENTS_TABLE}.event_id
-            where ${housingTable}.id = ${HOUSING_EVENTS_TABLE}.housing_id
-          ) events on true`
-      ),
     campaigns: (query) => {
-      query.select('campaigns.campaign_ids').joinRaw(
+      query.select('c.campaign_ids').joinRaw(
         `LEFT JOIN LATERAL (
                SELECT coalesce(array_agg(distinct(campaign_id)), ARRAY[]::UUID[]) AS campaign_ids
                FROM ${campaignsHousingTable}, ${campaignsTable}
@@ -351,7 +329,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
                      ? ` AND ${campaignsTable}.establishment_id = ANY(:establishmentIds)`
                      : ''
                  }
-             ) campaigns on true`,
+             ) c on true`,
         {
           establishmentIds: filters?.establishmentIds ?? []
         }
@@ -392,10 +370,7 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
     includes.push('owner');
   }
 
-  const filterByCampaign = [filters?.campaignIds, filters?.campaignCount].some(
-    (filter) => filter !== undefined
-  );
-  if (filterByCampaign) {
+  if (filters?.campaignIds?.length || filters?.campaignCount !== undefined) {
     includes.push('campaigns');
   }
 
@@ -552,11 +527,36 @@ function filteredQuery(opts: FilteredQueryOptions) {
     if (filters.campaignIds?.length) {
       queryBuilder.where((where) => {
         if (filters.campaignIds?.includes(null)) {
-          where.orWhereRaw(`cardinality(${campaignsTable}.campaign_ids) = 0`);
+          where.orWhereNotExists((subquery) => {
+            subquery
+              .select('*')
+              .from(campaignsHousingTable)
+              .where(
+                `${campaignsHousingTable}.housing_geo_code`,
+                db.ref(`${housingTable}.geo_code`)
+              )
+              .where(
+                `${campaignsHousingTable}.housing_id`,
+                db.ref(`${housingTable}.id`)
+              );
+          });
         }
         const ids = filters.campaignIds?.filter((id) => id !== null);
         if (ids?.length) {
-          where.orWhereRaw(`${campaignsTable}.campaign_ids && ?`, [ids]);
+          where.orWhereExists((subquery) => {
+            subquery
+              .select(`${campaignsHousingTable}.housing_id`)
+              .from(campaignsHousingTable)
+              .whereIn(`${campaignsHousingTable}.campaign_id`, ids)
+              .where(
+                `${campaignsHousingTable}.housing_geo_code`,
+                db.ref(`${housingTable}.geo_code`)
+              )
+              .where(
+                `${campaignsHousingTable}.housing_id`,
+                db.ref(`${housingTable}.id`)
+              );
+          });
         }
       });
     }

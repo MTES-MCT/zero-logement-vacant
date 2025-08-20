@@ -1,12 +1,20 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import { FileUploadDTO } from '@zerologementvacant/models';
 import { isEqual } from 'lodash-es';
 import { useEffect, useState } from 'react';
 import * as yup from 'yup';
-import { Col, Container, Row } from '../../components/_dsfr';
+
+import {
+  Col,
+  Container as DeprecatedContainer,
+  Row
+} from '../../components/_dsfr';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
 import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
@@ -159,26 +167,29 @@ function CampaignDraft(props: Readonly<Props>) {
   }
 
   return (
-    <>
-      <Grid className={styles.steps} py={4} size={12}>
-        <Grid container offset={1}>
-          <Grid size={11}>
-            <Stepper
-              currentStep={1}
-              nextTitle="Téléchargement des fichiers et validation de la date d’envoi"
-              stepCount={2}
-              title="Vérification des adresses propriétaires et édition de votre courrier"
-            />
-          </Grid>
-          <Grid size={11}>
-            <div className={'float-right'}>
-              <SendButton form={form} onSend={send} />
-            </div>
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid component="article" container sx={{ py: 2 }} size={10} offset={1}>
-        <Grid alignItems="center" container component="header" mb={5} size="grow">
+    <Container sx={{ py: 4, position: 'relative' }} maxWidth="xl">
+      <Stack sx={{ mb: 4 }}>
+        <Stepper
+          currentStep={1}
+          nextTitle="Téléchargement des fichiers et validation de la date d’envoi"
+          stepCount={2}
+          title="Vérification des adresses propriétaires et édition de votre courrier"
+        />
+        <Box sx={{ alignSelf: 'flex-end' }}>
+          <SendButton form={form} onSend={send} />
+        </Box>
+      </Stack>
+
+      <hr />
+
+      <Grid component="article" container>
+        <Grid
+          alignItems="center"
+          container
+          component="header"
+          mb={5}
+          size="grow"
+        >
           <Grid mb={2} size={12}>
             <CampaignCreatedFromGroup campaign={props.campaign} />
           </Grid>
@@ -222,7 +233,7 @@ function CampaignDraft(props: Readonly<Props>) {
                     description='Rédigez votre courrier et insérez des champs personnalisés pour intégrer des informations sur les logements ou les propriétaires. Pour prévisualiser le format du courrier, cliquez sur "Visualiser mon brouillon". Une fois votre courrier rédigé, cliquez sur "Valider et passer au téléchargement" pour télécharger les courriers au format PDF.'
                     className="fr-mt-2w fr-mb-2w"
                   />
-                  <Container as="section" fluid>
+                  <DeprecatedContainer as="section" fluid>
                     <Row justifyContent="right" spacing="mb-2w">
                       <SaveButton
                         className="fr-mr-1w"
@@ -275,14 +286,14 @@ function CampaignDraft(props: Readonly<Props>) {
                       value={values.sender.signatories}
                       onChange={setSignatories}
                     />
-                  </Container>
+                  </DeprecatedContainer>
                 </form>
               )
             }
           ]}
         />
       </Grid>
-    </>
+    </Container>
   );
 }
 

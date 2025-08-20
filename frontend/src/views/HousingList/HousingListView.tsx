@@ -131,13 +131,15 @@ const HousingListView = () => {
   return (
     <HousingEditionProvider>
       <Grid container>
-        <HousingListFiltersSidemenu
-          filters={filters}
-          expand={expand}
-          onChange={onChangeFilters}
-          onReset={onResetFilters}
-          onClose={() => setExpand(false)}
-        />
+        <Grid size="auto">
+          <HousingListFiltersSidemenu
+            filters={filters}
+            expand={expand}
+            onChange={onChangeFilters}
+            onReset={onResetFilters}
+            onClose={() => setExpand(false)}
+          />
+        </Grid>
 
         <Grid container flexDirection="column" px={3} py={4} size="grow">
           {alert && (

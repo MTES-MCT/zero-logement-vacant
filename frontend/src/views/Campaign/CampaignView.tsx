@@ -1,12 +1,10 @@
-import Grid from '@mui/material/Grid';
-
-import CampaignInProgress from './CampaignInProgress';
-import { useCampaign } from '../../hooks/useCampaign';
-import CampaignDraft from './CampaignDraft';
-import CampaignSending from './CampaignSending';
 import { CampaignStatus } from '@zerologementvacant/models';
-import NotFoundView from '../NotFoundView';
+import { useCampaign } from '../../hooks/useCampaign';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import NotFoundView from '../NotFoundView';
+import CampaignDraft from './CampaignDraft';
+import CampaignInProgress from './CampaignInProgress';
+import CampaignSending from './CampaignSending';
 
 function CampaignView() {
   const { campaign, isLoadingCampaign } = useCampaign();
@@ -30,11 +28,7 @@ function CampaignView() {
   };
   const CampaignComponent = steps[campaign.status] || <NotFoundView />;
 
-  return (
-    <Grid container position="relative" sx={{ mb: 2 }}>
-      {CampaignComponent}
-    </Grid>
-  );
+  return CampaignComponent;
 }
 
 function Loading() {

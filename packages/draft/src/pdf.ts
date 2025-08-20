@@ -565,99 +565,270 @@ function createTransformer(opts: TransformerOptions) {
 }
 
 interface FindFitOptions {
-  fullHtml: string;
+  paragraphs: string[];
   browser: Browser;
   maxHeight: number;
   maxWidth: number;
   containerId?: string;
 }
 
+interface ParagraphInfo {
+  content: string;
+  height: number;
+  index: number;
+}
+
 /**
- * Optimized version that reuses a single page for all tests
- * Returns the maximum number of HTML characters that fit within a given area
- * without breaking the HTML code (properly closed tags).
+ * Handling of overly long paragraphs
  */
-export async function findMaxHtmlLengthThatFits({
-  fullHtml,
+export async function findMaxParagraphsThatFit({
+  paragraphs,
   browser,
   maxHeight,
   maxWidth,
   containerId = 'block'
 }: FindFitOptions): Promise<number> {
-  const safeIndices = getSafeCutPoints(fullHtml);
-  let low = 0;
-  let high = safeIndices.length - 1;
-  let bestLength = 0;
+  if (paragraphs.length === 0) return 0;
 
-  // Create a single page for all tests
+  // Create a single page for all measurements
   const testPage = await browser.newPage();
   testPage.setDefaultTimeout(BROWSER_CONFIG.pageTimeout);
   await testPage.addStyleTag({ content: fontCss });
 
   try {
-    while (low <= high) {
-      const mid = Math.floor((low + high) / 2);
-      const cutoffIndex = safeIndices[mid];
-      const partialHtml = fullHtml.slice(0, cutoffIndex);
+    const paragraphInfos: ParagraphInfo[] = [];
 
+    // Step 1: Measure the height of each paragraph individually
+    for (let i = 0; i < paragraphs.length; i++) {
       try {
-        // Reuse the same page
         await testPage.setContent(
-          `<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block">${partialHtml}</div>`
+          `<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block; width: ${maxWidth}px;">${paragraphs[i]}</div>`
         );
         await testPage.addStyleTag({ content: fontCss });
 
-        // Wait for content to render with shorter timeout
         try {
-          await testPage.waitForSelector(`#${containerId}`, { timeout: 3000 });
+          await testPage.waitForSelector(`#${containerId}`, { timeout: 1000 });
         } catch {
           // Continue even if selector is not found
         }
 
         const element = await testPage.$(`#${containerId}`);
         const box = await element?.boundingBox();
-
-        if (box && box.height <= maxHeight && box.width <= maxWidth) {
-          bestLength = cutoffIndex;
-          low = mid + 1;
+        
+        if (box) {
+          paragraphInfos.push({
+            content: paragraphs[i],
+            height: box.height,
+            index: i
+          });
         } else {
-          high = mid - 1;
+          // If we can't measure, assign a default height
+          paragraphInfos.push({
+            content: paragraphs[i],
+            height: LINE_HEIGHT,
+            index: i
+          });
         }
-      } catch {
-        // In case of error, consider it doesn't fit
-        high = mid - 1;
+      } catch (error) {
+        // In case of error, assign a default height
+        paragraphInfos.push({
+          content: paragraphs[i],
+          height: LINE_HEIGHT,
+          index: i
+        });
       }
     }
+
+    // Step 2: Calculate how many paragraphs fit based on heights
+    let cumulativeHeight = 0;
+    let maxParagraphs = 0;
+
+    for (let i = 0; i < paragraphInfos.length; i++) {
+      const newHeight = cumulativeHeight + paragraphInfos[i].height;
+      
+      if (newHeight <= maxHeight) {
+        cumulativeHeight = newHeight;
+        maxParagraphs = i + 1;
+      } else {
+        // If it's the first paragraph and it doesn't fit, force it anyway
+        if (i === 0) {
+          maxParagraphs = 1;
+        }
+        break;
+      }
+    }
+
+    // If no paragraph fits according to calculation, take at least the first one
+    if (maxParagraphs === 0 && paragraphs.length > 0) {
+      maxParagraphs = 1;
+    }
+
+    return maxParagraphs;
   } finally {
     await testPage.close();
   }
-
-  return bestLength;
 }
 
 /**
- * Returns the positions in the HTML where it can be safely cut without breaking the markup
+ * Parse HTML into smaller units with forced splitting of long paragraphs
+ * Guarantees that no content is lost even for very long texts
  */
-function getSafeCutPoints(html: string): number[] {
-  const regex = /<\/[^>]+>|<br\s*\/?>/gi; // split after closed tags or <br>
-  const indices: number[] = [];
-  let match: RegExpExecArray | null;
+function parseHtmlIntoParagraphs(html: string): string[] {
+  if (!html.trim()) return [];
 
-  while ((match = regex.exec(html)) !== null) {
-    indices.push(match.index + match[0].length);
+  // Normalize HTML
+  let cleanHtml = html
+    .replace(/\n\s*\n/g, '\n')  // Normalize multiple line breaks
+    .replace(/\s+/g, ' ')       // Normalize multiple spaces
+    .trim();
+  
+  const paragraphs: string[] = [];
+  
+  // Regex to identify complete block elements (without capture group)
+  const blockElementRegex = /<(?:p|div|h[1-6]|blockquote|ul|ol|li|table|tr|td|th|pre|article|section)[^>]*>[\s\S]*?<\/(?:p|div|h[1-6]|blockquote|ul|ol|li|table|tr|td|th|pre|article|section)>/gi;
+  
+  let lastIndex = 0;
+  let match;
+  
+  // Go through all found block elements
+  while ((match = blockElementRegex.exec(cleanHtml)) !== null) {
+    // Process text before this block element
+    if (match.index > lastIndex) {
+      const beforeText = cleanHtml.slice(lastIndex, match.index).trim();
+      if (beforeText) {
+        paragraphs.push(...splitLongText(beforeText));
+      }
+    }
+    
+    // Process the block element itself
+    const blockElement = match[0];
+    
+    // For lists, try to divide by <li> elements
+    if (blockElement.includes('<li>')) {
+      const listItems = blockElement.match(/<li[^>]*>[\s\S]*?<\/li>/gi);
+      if (listItems && listItems.length > 3) { // Only if more than 3 elements
+        // Extract list structure
+        const listStart = blockElement.substring(0, blockElement.indexOf('<li'));
+        const listEnd = blockElement.substring(blockElement.lastIndexOf('</li>') + 5);
+        
+        // Group elements by 2-3 to avoid too much fragmentation
+        const itemsPerGroup = 2;
+        for (let i = 0; i < listItems.length; i += itemsPerGroup) {
+          const groupItems = listItems.slice(i, i + itemsPerGroup);
+          paragraphs.push(listStart + groupItems.join('') + listEnd);
+        }
+      } else {
+        paragraphs.push(blockElement);
+      }
+    } else {
+      // Check if the block element is very long and split if necessary
+      if (blockElement.length > 800) {
+        const innerContent = blockElement.replace(/<[^>]*>/g, ''); // Extract text
+        if (innerContent.length > 600) {
+          // If textual content is very long, split the element
+          const tagMatch = blockElement.match(/^<([^>]+)>/);
+          const tagName = tagMatch ? tagMatch[0] : '<p>';
+          const closingTag = tagMatch ? `</${tagMatch[1].split(' ')[0]}>` : '</p>';
+          
+          const textChunks = splitLongText(innerContent);
+          for (const chunk of textChunks) {
+            paragraphs.push(`${tagName}${chunk}${closingTag}`);
+          }
+        } else {
+          paragraphs.push(blockElement);
+        }
+      } else {
+        paragraphs.push(blockElement);
+      }
+    }
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Process remaining text after the last block element
+  if (lastIndex < cleanHtml.length) {
+    const remainingText = cleanHtml.slice(lastIndex).trim();
+    if (remainingText) {
+      paragraphs.push(...splitLongText(remainingText));
+    }
   }
 
-  if (indices[indices.length - 1] !== html.length) {
-    indices.push(html.length);
+  // If no block elements were found, process all content
+  if (paragraphs.length === 0 && cleanHtml) {
+    paragraphs.push(...splitLongText(cleanHtml));
   }
 
-  return indices;
+  // Filter empty paragraphs and clean
+  return paragraphs
+    .filter(p => p && p.trim().length > 0)
+    .map(p => p.trim());
 }
 
 /**
- * Optimized version of splitHtmlIntoPages
- * Uses the search function to split a long HTML into paginated blocks,
- * with a specific height for the first page, and another for the subsequent ones.
+ * Utility function to split long text into smaller chunks
+ * Tries to split on sentences first, then on words if necessary
+ */
+function splitLongText(text: string): string[] {
+  if (!text || text.length <= 300) {
+    return text ? [`<p>${text}</p>`] : [];
+  }
+
+  const chunks: string[] = [];
+  
+  // Try to split on sentences first
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  
+  if (sentences.length > 1) {
+    let currentChunk = '';
+    
+    for (const sentence of sentences) {
+      const testChunk = currentChunk + (currentChunk ? ' ' : '') + sentence;
+      
+      if (testChunk.length > 300 && currentChunk) {
+        chunks.push(`<p>${currentChunk.trim()}</p>`);
+        currentChunk = sentence;
+      } else {
+        currentChunk = testChunk;
+      }
+    }
+    
+    if (currentChunk.trim()) {
+      chunks.push(`<p>${currentChunk.trim()}</p>`);
+    }
+  } else {
+    // If no distinct sentences, split by words
+    const words = text.split(' ');
+    let currentChunk = '';
+    
+    for (const word of words) {
+      const testChunk = currentChunk + (currentChunk ? ' ' : '') + word;
+      
+      if (testChunk.length > 300 && currentChunk) {
+        chunks.push(`<p>${currentChunk.trim()}</p>`);
+        currentChunk = word;
+      } else {
+        currentChunk = testChunk;
+      }
+    }
+    
+    if (currentChunk.trim()) {
+      chunks.push(`<p>${currentChunk.trim()}</p>`);
+    }
+  }
+  
+  // If no chunks were created (very rare case), force at least one
+  if (chunks.length === 0) {
+    chunks.push(`<p>${text.substring(0, 300)}</p>`);
+    if (text.length > 300) {
+      chunks.push(...splitLongText(text.substring(300)));
+    }
+  }
+  
+  return chunks;
+}
+
+/**
+ * Optimized version of splitHtmlIntoPages that works with complete paragraphs
  */
 export async function splitHtmlIntoPages({
   fullHtml,
@@ -672,41 +843,50 @@ export async function splitHtmlIntoPages({
   otherPagesMaxHeight: number;
   maxWidth: number;
 }): Promise<string[]> {
-  const blocks: string[] = [];
-  let remainingHtml = fullHtml;
+  if (!fullHtml.trim()) return [''];
+
+  // Parse HTML into distinct paragraphs
+  const allParagraphs = parseHtmlIntoParagraphs(fullHtml);
+  
+  if (allParagraphs.length === 0) return [''];
+
+  const pages: string[] = [];
+  let currentParagraphIndex = 0;
   let isFirstPage = true;
 
-  while (remainingHtml.length > 0) {
-    const cutoff = await findMaxHtmlLengthThatFits({
-      fullHtml: remainingHtml,
+  while (currentParagraphIndex < allParagraphs.length) {
+    const remainingParagraphs = allParagraphs.slice(currentParagraphIndex);
+    const maxHeight = isFirstPage ? firstPageMaxHeight : otherPagesMaxHeight;
+
+    const maxParagraphsForThisPage = await findMaxParagraphsThatFit({
+      paragraphs: remainingParagraphs,
       browser,
-      maxHeight: isFirstPage ? firstPageMaxHeight : otherPagesMaxHeight,
+      maxHeight,
       maxWidth
     });
 
-    if (cutoff === 0) {
-      // If no content fits, take at least one safe cut point
-      const safePoints = getSafeCutPoints(remainingHtml);
-      const minCutoff =
-        safePoints.length > 1 ? safePoints[1] : remainingHtml.length;
-      const block = remainingHtml.slice(0, minCutoff);
-      blocks.push(block);
-      remainingHtml = remainingHtml.slice(minCutoff);
+    if (maxParagraphsForThisPage === 0) {
+      // If even a single paragraph doesn't fit, take it anyway to avoid infinite loop
+      pages.push(remainingParagraphs[0]);
+      currentParagraphIndex += 1;
     } else {
-      const block = remainingHtml.slice(0, cutoff);
-      blocks.push(block);
-      remainingHtml = remainingHtml.slice(cutoff);
+      // Take the maximum number of paragraphs that fit
+      const pageContent = remainingParagraphs
+        .slice(0, maxParagraphsForThisPage)
+        .join('');
+      pages.push(pageContent);
+      currentParagraphIndex += maxParagraphsForThisPage;
     }
 
     isFirstPage = false;
   }
 
-  // If no content has been processed, ensure at least one block is returned
-  if (blocks.length === 0) {
-    blocks.push('');
+  // Ensure there's at least one page
+  if (pages.length === 0) {
+    pages.push('');
   }
 
-  return blocks;
+  return pages;
 }
 
 export default {

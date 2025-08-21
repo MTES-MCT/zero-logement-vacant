@@ -588,7 +588,15 @@ export async function findMaxParagraphsThatFit({
   maxWidth,
   containerId = 'block'
 }: FindFitOptions): Promise<number> {
+  // Ensure paragraphs is a real array and cap its length
+  const MAX_PARAGRAPHS = 1000;
+  if (!Array.isArray(paragraphs)) {
+    return 0;
+  }
   if (paragraphs.length === 0) return 0;
+  if (paragraphs.length > MAX_PARAGRAPHS) {
+    paragraphs = paragraphs.slice(0, MAX_PARAGRAPHS);
+  }
 
   // Create a single page for all measurements
   const testPage = await browser.newPage();

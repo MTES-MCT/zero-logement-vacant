@@ -1,4 +1,5 @@
-import { PropsWithChildren } from 'react';
+import { usePostHog } from 'posthog-js/react';
+import { PropsWithChildren, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 import { useUser } from '../../hooks/useUser';
@@ -9,15 +10,28 @@ import config from '../../utils/config';
 interface RequireAuthProps {}
 
 function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
-  const { isAuthenticated, user, jimoData } = useUser();
+  const { establishment, isAuthenticated, isUsual, isVisitor, user, jimoData } =
+    useUser();
   const location = useLocation();
+  const posthog = usePostHog();
 
   useFetchInterceptor();
+
+  useEffect(() => {
+    if (isUsual || isVisitor) {
+      if (user?.establishmentId) {
+        // Identify users by establishment to avoid tracking them individually
+        posthog.identify(user.establishmentId, {
+          name: establishment?.name
+        });
+      }
+    }
+  }, [isUsual, isVisitor, user]);
 
   if (isAuthenticated) {
     if (config.jimo.enabled && user) {
       window['jimo'].push(['do', 'identify', [user.id]]);
-      window['jimo'].push([ 'set', 'user:attributes', [ jimoData ]]);
+      window['jimo'].push(['set', 'user:attributes', [jimoData]]);
     }
     return props.children;
   }

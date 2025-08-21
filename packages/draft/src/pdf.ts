@@ -572,12 +572,6 @@ interface FindFitOptions {
   containerId?: string;
 }
 
-interface ParagraphInfo {
-  content: string;
-  height: number;
-  index: number;
-}
-
 /**
  * Enhanced version that tries to fit content intelligently
  * Prioritizes keeping paragraphs intact and only splits when absolutely necessary
@@ -621,7 +615,7 @@ export async function findMaxParagraphsThatFit({
         const element = await testPage.$(`#${containerId}`);
         const box = await element?.boundingBox();
         return box?.height ?? LINE_HEIGHT;
-      } catch (error) {
+      } catch {
         return LINE_HEIGHT;
       }
     };
@@ -667,7 +661,7 @@ function parseHtmlIntoParagraphs(html: string): string[] {
   }
 
   // Normalize HTML but preserve more structure
-  let cleanHtml = html
+  const cleanHtml = html
     .replace(/\n\s*\n/g, '\n')  // Normalize multiple line breaks
     .replace(/\s+/g, ' ')       // Normalize multiple spaces
     .trim();

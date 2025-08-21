@@ -579,7 +579,8 @@ interface ParagraphInfo {
 }
 
 /**
- * Handling of overly long paragraphs
+ * Enhanced version that tries to fit content intelligently
+ * Prioritizes keeping paragraphs intact and only splits when absolutely necessary
  */
 export async function findMaxParagraphsThatFit({
   paragraphs,
@@ -598,19 +599,16 @@ export async function findMaxParagraphsThatFit({
     paragraphs = paragraphs.slice(0, MAX_PARAGRAPHS);
   }
 
-  // Create a single page for all measurements
   const testPage = await browser.newPage();
   testPage.setDefaultTimeout(BROWSER_CONFIG.pageTimeout);
   await testPage.addStyleTag({ content: fontCss });
 
   try {
-    const paragraphInfos: ParagraphInfo[] = [];
-
-    // Step 1: Measure the height of each paragraph individually
-    for (let i = 0; i < paragraphs.length; i++) {
+    // Helper function to measure a single paragraph
+    const measureParagraph = async (content: string): Promise<number> => {
       try {
         await testPage.setContent(
-          `<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block; width: ${maxWidth}px;">${paragraphs[i]}</div>`
+          `<div id="${containerId}" style="margin: 0; padding: 0; display: inline-block; width: ${maxWidth}px;">${content}</div>`
         );
         await testPage.addStyleTag({ content: fontCss });
 
@@ -622,69 +620,53 @@ export async function findMaxParagraphsThatFit({
 
         const element = await testPage.$(`#${containerId}`);
         const box = await element?.boundingBox();
-        
-        if (box) {
-          paragraphInfos.push({
-            content: paragraphs[i],
-            height: box.height,
-            index: i
-          });
-        } else {
-          // If we can't measure, assign a default height
-          paragraphInfos.push({
-            content: paragraphs[i],
-            height: LINE_HEIGHT,
-            index: i
-          });
-        }
+        return box?.height ?? LINE_HEIGHT;
       } catch (error) {
-        // In case of error, assign a default height
-        paragraphInfos.push({
-          content: paragraphs[i],
-          height: LINE_HEIGHT,
-          index: i
-        });
+        return LINE_HEIGHT;
       }
-    }
+    };
 
-    // Step 2: Calculate how many paragraphs fit based on heights
+    // Strategy: Try to fit as many complete paragraphs as possible
     let cumulativeHeight = 0;
-    let maxParagraphs = 0;
+    let maxCompleteParagraphs = 0;
 
-    for (let i = 0; i < paragraphInfos.length; i++) {
-      const newHeight = cumulativeHeight + paragraphInfos[i].height;
+    for (let i = 0; i < paragraphs.length; i++) {
+      const paragraphHeight = await measureParagraph(paragraphs[i]);
+      const newHeight = cumulativeHeight + paragraphHeight;
       
       if (newHeight <= maxHeight) {
         cumulativeHeight = newHeight;
-        maxParagraphs = i + 1;
+        maxCompleteParagraphs = i + 1;
       } else {
-        // If it's the first paragraph and it doesn't fit, force it anyway
-        if (i === 0) {
-          maxParagraphs = 1;
-        }
         break;
       }
     }
 
-    // If no paragraph fits according to calculation, take at least the first one
-    if (maxParagraphs === 0 && paragraphs.length > 0) {
-      maxParagraphs = 1;
-    }
+    // Return the number of complete paragraphs that fit
+    // Even if it's 0, we'll handle the splitting in splitHtmlIntoPages
+    return maxCompleteParagraphs;
 
-    return maxParagraphs;
   } finally {
     await testPage.close();
   }
 }
 
 /**
- * Parse HTML into smaller units with forced splitting of long paragraphs
- * Guarantees that no content is lost even for very long texts
+ * Parse HTML into smaller units preserving paragraph integrity
+ * Splits only when absolutely necessary and at natural breakpoints
  */
 function parseHtmlIntoParagraphs(html: string): string[] {
   if (!html.trim()) return [];
 
-  // Normalize HTML
+  // First, check if the HTML is already well-structured
+  const hasBlockElements = /<(?:p|div|h[1-6]|blockquote|ul|ol|table|pre|article|section)[^>]*>/i.test(html);
+  
+  if (!hasBlockElements) {
+    // If it's just plain text, keep as single paragraph
+    return [`<p>${html.trim()}</p>`];
+  }
+
+  // Normalize HTML but preserve more structure
   let cleanHtml = html
     .replace(/\n\s*\n/g, '\n')  // Normalize multiple line breaks
     .replace(/\s+/g, ' ')       // Normalize multiple spaces
@@ -692,7 +674,7 @@ function parseHtmlIntoParagraphs(html: string): string[] {
   
   const paragraphs: string[] = [];
   
-  // Regex to identify complete block elements (without capture group)
+  // Regex to identify complete block elements
   const blockElementRegex = /<(?:p|div|h[1-6]|blockquote|ul|ol|li|table|tr|td|th|pre|article|section)[^>]*>[\s\S]*?<\/(?:p|div|h[1-6]|blockquote|ul|ol|li|table|tr|td|th|pre|article|section)>/gi;
   
   let lastIndex = 0;
@@ -704,50 +686,34 @@ function parseHtmlIntoParagraphs(html: string): string[] {
     if (match.index > lastIndex) {
       const beforeText = cleanHtml.slice(lastIndex, match.index).trim();
       if (beforeText) {
-        paragraphs.push(...splitLongText(beforeText));
+        paragraphs.push(`<p>${beforeText}</p>`);
       }
     }
     
-    // Process the block element itself
+    // Process the block element itself - keep intact unless extremely long
     const blockElement = match[0];
     
-    // For lists, try to divide by <li> elements
+    // For lists, only split if really necessary
     if (blockElement.includes('<li>')) {
       const listItems = blockElement.match(/<li[^>]*>[\s\S]*?<\/li>/gi);
-      if (listItems && listItems.length > 3) { // Only if more than 3 elements
+      if (listItems && listItems.length > 10) { // Higher threshold
         // Extract list structure
         const listStart = blockElement.substring(0, blockElement.indexOf('<li'));
         const listEnd = blockElement.substring(blockElement.lastIndexOf('</li>') + 5);
         
-        // Group elements by 2-3 to avoid too much fragmentation
-        const itemsPerGroup = 2;
+        // Group more elements together
+        const itemsPerGroup = 5;
         for (let i = 0; i < listItems.length; i += itemsPerGroup) {
           const groupItems = listItems.slice(i, i + itemsPerGroup);
           paragraphs.push(listStart + groupItems.join('') + listEnd);
         }
       } else {
+        // Keep the entire list together
         paragraphs.push(blockElement);
       }
     } else {
-      // Check if the block element is very long and split if necessary
-      if (blockElement.length > 800) {
-        const innerContent = blockElement.replace(/<[^>]*>/g, ''); // Extract text
-        if (innerContent.length > 600) {
-          // If textual content is very long, split the element
-          const tagMatch = blockElement.match(/^<([^>]+)>/);
-          const tagName = tagMatch ? tagMatch[0] : '<p>';
-          const closingTag = tagMatch ? `</${tagMatch[1].split(' ')[0]}>` : '</p>';
-          
-          const textChunks = splitLongText(innerContent);
-          for (const chunk of textChunks) {
-            paragraphs.push(`${tagName}${chunk}${closingTag}`);
-          }
-        } else {
-          paragraphs.push(blockElement);
-        }
-      } else {
-        paragraphs.push(blockElement);
-      }
+      // Keep paragraphs intact - don't split unless absolutely massive
+      paragraphs.push(blockElement);
     }
     
     lastIndex = match.index + match[0].length;
@@ -757,13 +723,13 @@ function parseHtmlIntoParagraphs(html: string): string[] {
   if (lastIndex < cleanHtml.length) {
     const remainingText = cleanHtml.slice(lastIndex).trim();
     if (remainingText) {
-      paragraphs.push(...splitLongText(remainingText));
+      paragraphs.push(`<p>${remainingText}</p>`);
     }
   }
 
-  // If no block elements were found, process all content
+  // If no block elements were found, keep all content together
   if (paragraphs.length === 0 && cleanHtml) {
-    paragraphs.push(...splitLongText(cleanHtml));
+    paragraphs.push(`<p>${cleanHtml}</p>`);
   }
 
   // Filter empty paragraphs and clean
@@ -773,70 +739,8 @@ function parseHtmlIntoParagraphs(html: string): string[] {
 }
 
 /**
- * Utility function to split long text into smaller chunks
- * Tries to split on sentences first, then on words if necessary
- */
-function splitLongText(text: string): string[] {
-  if (!text || text.length <= 300) {
-    return text ? [`<p>${text}</p>`] : [];
-  }
-
-  const chunks: string[] = [];
-  
-  // Try to split on sentences first
-  const sentences = text.split(/(?<=[.!?])\s+/);
-  
-  if (sentences.length > 1) {
-    let currentChunk = '';
-    
-    for (const sentence of sentences) {
-      const testChunk = currentChunk + (currentChunk ? ' ' : '') + sentence;
-      
-      if (testChunk.length > 300 && currentChunk) {
-        chunks.push(`<p>${currentChunk.trim()}</p>`);
-        currentChunk = sentence;
-      } else {
-        currentChunk = testChunk;
-      }
-    }
-    
-    if (currentChunk.trim()) {
-      chunks.push(`<p>${currentChunk.trim()}</p>`);
-    }
-  } else {
-    // If no distinct sentences, split by words
-    const words = text.split(' ');
-    let currentChunk = '';
-    
-    for (const word of words) {
-      const testChunk = currentChunk + (currentChunk ? ' ' : '') + word;
-      
-      if (testChunk.length > 300 && currentChunk) {
-        chunks.push(`<p>${currentChunk.trim()}</p>`);
-        currentChunk = word;
-      } else {
-        currentChunk = testChunk;
-      }
-    }
-    
-    if (currentChunk.trim()) {
-      chunks.push(`<p>${currentChunk.trim()}</p>`);
-    }
-  }
-  
-  // If no chunks were created (very rare case), force at least one
-  if (chunks.length === 0) {
-    chunks.push(`<p>${text.substring(0, 300)}</p>`);
-    if (text.length > 300) {
-      chunks.push(...splitLongText(text.substring(300)));
-    }
-  }
-  
-  return chunks;
-}
-
-/**
- * Optimized version of splitHtmlIntoPages that works with complete paragraphs
+ * Enhanced version of splitHtmlIntoPages with intelligent paragraph preservation
+ * Prioritizes keeping paragraphs intact and only splits when absolutely necessary
  */
 export async function splitHtmlIntoPages({
   fullHtml,
@@ -853,7 +757,7 @@ export async function splitHtmlIntoPages({
 }): Promise<string[]> {
   if (!fullHtml.trim()) return [''];
 
-  // Parse HTML into distinct paragraphs
+  // Parse HTML into distinct paragraphs (now more conservative)
   const allParagraphs = parseHtmlIntoParagraphs(fullHtml);
   
   if (allParagraphs.length === 0) return [''];
@@ -862,10 +766,105 @@ export async function splitHtmlIntoPages({
   let currentParagraphIndex = 0;
   let isFirstPage = true;
 
+  // Helper function to measure content height
+  const measureContentHeight = async (content: string): Promise<number> => {
+    const testPage = await browser.newPage();
+    testPage.setDefaultTimeout(BROWSER_CONFIG.pageTimeout);
+    await testPage.addStyleTag({ content: fontCss });
+    
+    try {
+      await testPage.setContent(
+        `<div id="measure" style="margin: 0; padding: 0; display: inline-block; width: ${maxWidth}px;">${content}</div>`
+      );
+      await testPage.addStyleTag({ content: fontCss });
+      
+      const element = await testPage.$('#measure');
+      const box = await element?.boundingBox();
+      return box?.height ?? LINE_HEIGHT;
+    } catch {
+      return LINE_HEIGHT;
+    } finally {
+      await testPage.close();
+    }
+  };
+
+  // Simple but effective splitting function
+  const splitParagraphIfNeeded = async (paragraph: string, maxHeight: number): Promise<string[]> => {
+    const fullHeight = await measureContentHeight(paragraph);
+    if (fullHeight <= maxHeight) {
+      return [paragraph];
+    }
+
+    // Extract text content from HTML
+    const textContent = paragraph.replace(/<[^>]*>/g, '');
+    
+    // Try splitting by sentences first
+    const sentences = textContent.split(/(?<=[.!?])\s+/);
+    
+    if (sentences.length > 1) {
+      // Find the best split point by testing from 80% down to 20%
+      for (let percentage = 0.8; percentage >= 0.2; percentage -= 0.1) {
+        const splitPoint = Math.floor(sentences.length * percentage);
+        if (splitPoint === 0) continue;
+        
+        const firstPart = sentences.slice(0, splitPoint).join(' ');
+        const secondPart = sentences.slice(splitPoint).join(' ');
+        
+        // Reconstruct HTML structure
+        const firstPartHtml = paragraph.replace(textContent, firstPart);
+        const secondPartHtml = paragraph.replace(textContent, secondPart);
+        
+        const firstHeight = await measureContentHeight(firstPartHtml);
+        
+        if (firstHeight <= maxHeight) {
+          // Recursively split the second part if needed
+          const remainingSplits = await splitParagraphIfNeeded(secondPartHtml, maxHeight);
+          return [firstPartHtml, ...remainingSplits];
+        }
+      }
+    }
+
+    // Fallback: split by words
+    const allWords = textContent.split(' ');
+    if (allWords.length > 10) {
+              // Try to keep 60% of content together, then 40%, etc.
+      for (let percentage = 0.6; percentage >= 0.2; percentage -= 0.1) {
+        const wordCount = Math.floor(allWords.length * percentage);
+        if (wordCount === 0) continue;
+        
+        const firstPart = allWords.slice(0, wordCount).join(' ');
+        const secondPart = allWords.slice(wordCount).join(' ');
+        
+        const firstPartHtml = paragraph.replace(textContent, firstPart);
+        const secondPartHtml = paragraph.replace(textContent, secondPart);
+        
+        const firstHeight = await measureContentHeight(firstPartHtml);
+        
+        if (firstHeight <= maxHeight) {
+          const remainingSplits = await splitParagraphIfNeeded(secondPartHtml, maxHeight);
+          return [firstPartHtml, ...remainingSplits];
+        }
+      }
+    }
+
+    // Last resort: split in half
+    const halfWords = textContent.split(' ');
+    const midPoint = Math.floor(halfWords.length / 2);
+    const firstPart = halfWords.slice(0, midPoint).join(' ');
+    const secondPart = halfWords.slice(midPoint).join(' ');
+    
+    const firstPartHtml = paragraph.replace(textContent, firstPart);
+    const secondPartHtml = paragraph.replace(textContent, secondPart);
+    
+    const remainingSplits = await splitParagraphIfNeeded(secondPartHtml, maxHeight);
+    return [firstPartHtml, ...remainingSplits];
+  };
+
   while (currentParagraphIndex < allParagraphs.length) {
     const remainingParagraphs = allParagraphs.slice(currentParagraphIndex);
     const maxHeight = isFirstPage ? firstPageMaxHeight : otherPagesMaxHeight;
 
+    // Try to fit complete paragraphs first
     const maxParagraphsForThisPage = await findMaxParagraphsThatFit({
       paragraphs: remainingParagraphs,
       browser,
@@ -874,11 +873,25 @@ export async function splitHtmlIntoPages({
     });
 
     if (maxParagraphsForThisPage === 0) {
-      // If even a single paragraph doesn't fit, take it anyway to avoid infinite loop
-      pages.push(remainingParagraphs[0]);
-      currentParagraphIndex += 1;
+      // No complete paragraphs fit, we MUST split the first one
+      const firstParagraph = remainingParagraphs[0];
+      const splitParts = await splitParagraphIfNeeded(firstParagraph, maxHeight);
+      
+      // Take the first part for this page
+      pages.push(splitParts[0]);
+      
+      // Important: Remove the original paragraph and add the remaining parts
+      allParagraphs.splice(currentParagraphIndex, 1); // Remove original
+      
+      // Add remaining parts at the current position
+      if (splitParts.length > 1) {
+        allParagraphs.splice(currentParagraphIndex, 0, ...splitParts.slice(1));
+      }
+      
+      // Don't increment currentParagraphIndex since we're processing the split parts next
+      
     } else {
-      // Take the maximum number of paragraphs that fit
+      // We can fit some complete paragraphs
       const pageContent = remainingParagraphs
         .slice(0, maxParagraphsForThisPage)
         .join('');
@@ -887,6 +900,11 @@ export async function splitHtmlIntoPages({
     }
 
     isFirstPage = false;
+    
+    // Safety check to avoid infinite loops
+    if (pages.length > 100) {
+      break;
+    }
   }
 
   // Ensure there's at least one page

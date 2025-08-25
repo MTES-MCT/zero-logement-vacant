@@ -245,7 +245,7 @@ function HousingList(props: HousingListProps) {
         pageCount={pageCount}
         perPage={perPage}
         selection={selected}
-        tableProps={{ noCaption: true, noScroll: true }}
+        tableProps={{ noCaption: true }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
         onSelectionChange={setSelected}

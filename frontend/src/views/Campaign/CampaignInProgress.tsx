@@ -40,37 +40,44 @@ function CampaignInProgress(props: Readonly<Props>) {
 
   return (
     <HousingListTabsProvider>
-      <HousingListFiltersSidemenu
-        filters={filters}
-        expand={expand}
-        onChange={onChangeFilters}
-        onReset={onResetFilters}
-        onClose={() => setExpand(false)}
-      />
-      <Grid container flexDirection="column" px={3} py={4} size="grow">
-        <Grid container mb={1} spacing={2} alignItems="flex-start" size={12}>
-          <Grid size="grow">
-            <AppSearchBar
-              initialQuery={filters.query}
-              label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-              placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
-              onSearch={searchWithQuery}
+      <Grid container>
+        <Grid size="auto">
+          <HousingListFiltersSidemenu
+            filters={filters}
+            expand={expand}
+            onChange={onChangeFilters}
+            onReset={onResetFilters}
+            onClose={() => setExpand(false)}
+          />
+        </Grid>
+        <Grid container size="grow" px={3} py={4}>
+          <Grid container mb={1} spacing={2} alignItems="flex-start" size={12}>
+            <Grid size="grow">
+              <AppSearchBar
+                initialQuery={filters.query}
+                label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
+                onSearch={searchWithQuery}
+              />
+            </Grid>
+            <Grid size="auto">
+              <HousingDisplaySwitch />
+            </Grid>
+          </Grid>
+
+          <Grid mb={3} size={12}>
+            <HousingFiltersBadges
+              filters={filters}
+              onChange={onChangeFilters}
             />
           </Grid>
-          <Grid size="auto">
-            <HousingDisplaySwitch />
-          </Grid>
-        </Grid>
 
-        <Grid mb={3} size={12}>
-          <HousingFiltersBadges filters={filters} onChange={onChangeFilters} />
+          {view === 'map' ? (
+            <HousingListMap filters={filters} />
+          ) : (
+            <HousingListTabs filters={filters} showCount={false} />
+          )}
         </Grid>
-
-        {view === 'map' ? (
-          <HousingListMap filters={filters} />
-        ) : (
-          <HousingListTabs filters={filters} showCount={false} />
-        )}
       </Grid>
     </HousingListTabsProvider>
   );

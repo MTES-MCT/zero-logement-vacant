@@ -1,31 +1,33 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Box from '@mui/material/Box';
-import LinearProgress from '@mui/material/LinearProgress';
 import Grid from '@mui/material/Grid';
+import LinearProgress from '@mui/material/LinearProgress';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { FormEvent, useEffect, useState } from 'react';
 
-import { Campaign } from '../../models/Campaign';
-import CampaignTitle from '../../components/Campaign/CampaignTitle';
+import Container from '@mui/material/Container';
+import { object } from 'yup';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
-import { useCampaign } from '../../hooks/useCampaign';
+import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
+import CampaignTitle from '../../components/Campaign/CampaignTitle';
+import DraftDownloader from '../../components/Draft/DraftDownloader';
 import DraftSendingDate, {
   sentAtSchema
 } from '../../components/Draft/DraftSendingDate';
+import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
-import { object } from 'yup';
-import Button from '@codegouvfr/react-dsfr/Button';
+import { useNotification } from '../../hooks/useNotification';
+import { Campaign } from '../../models/Campaign';
 import {
   useLazyGetCampaignQuery,
   useUpdateCampaignMutation
 } from '../../services/campaign.service';
-import { useNotification } from '../../hooks/useNotification';
-import DraftDownloader from '../../components/Draft/DraftDownloader';
-import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
 import config from '../../utils/config';
 import styles from './campaign.module.scss';
-import { Typography } from '@mui/material';
-import Stepper from '@codegouvfr/react-dsfr/Stepper';
 
 const modal = createModal({
   id: 'campaign-sending-modal',
@@ -91,36 +93,31 @@ function CampaignSending(props: Readonly<Props>) {
   }, [getCampaign, hasFile]);
 
   return (
-    <>
-      <Grid className={styles.steps} py={4} size={12}>
-        <Grid container offset={1}>
-          <Grid size={11}>
-            <Stepper
-                currentStep={2}
-                stepCount={2}
-                title="Téléchargement des fichiers et validation de la date d’envoi"
-              />
-              <p className={`fr-stepper__details ${styles.lastStep}`}>
-                <span className="fr-text--bold">
-                  Après l’étape de validation :
-                </span>
-                &nbsp;Suivi de campagne et passage de tous les logements &quot;Non
-                suivi&quot; au statut &quot;En attente de retour&quot;.
-              </p>
-          </Grid>
-          <Grid size={11}>
-            <div className={'float-right'}>
-              <Button
-                priority="primary"
-                disabled={disabled}
-                onClick={handleFormSubmit}
-              >
-                Enregistrer et passer au suivi
-              </Button>
-            </div>
-          </Grid>
-        </Grid>
-      </Grid>
+    <Container sx={{ py: 4, position: 'relative' }} maxWidth="xl">
+      <Stack sx={{ mb: 4 }}>
+        <Stepper
+          currentStep={2}
+          stepCount={2}
+          title="Téléchargement des fichiers et validation de la date d’envoi"
+        />
+        <p className={`fr-stepper__details ${styles.lastStep}`}>
+          <span className="fr-text--bold">Après l’étape de validation :</span>
+          &nbsp;Suivi de campagne et passage de tous les logements &quot;Non
+          suivi&quot; au statut &quot;En attente de retour&quot;.
+        </p>
+        <Box sx={{ alignSelf: 'flex-end' }}>
+          <Button
+            priority="primary"
+            disabled={disabled}
+            onClick={handleFormSubmit}
+          >
+            Enregistrer et passer au suivi
+          </Button>
+        </Box>
+      </Stack>
+
+      <hr />
+
       <Grid component="article" container size={10} offset={1}>
         <Grid component="header" mb={2} size={12}>
           <Grid component="section" mb={2} size={12}>
@@ -215,7 +212,7 @@ function CampaignSending(props: Readonly<Props>) {
           </Grid>
         </Grid>
       </Grid>
-    </>
+    </Container>
   );
 }
 

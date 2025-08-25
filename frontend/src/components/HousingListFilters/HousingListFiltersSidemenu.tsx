@@ -136,6 +136,7 @@ function HousingListFiltersSidemenu(props: Props) {
       <Drawer
         open={toggle.active}
         sx={(theme) => ({
+          height: '100%',
           zIndex: theme.zIndex.appBar - 1,
           '& .MuiDrawer-root': {
             position: 'relative',

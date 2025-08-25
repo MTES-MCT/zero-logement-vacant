@@ -1,22 +1,25 @@
-import { ChangeEvent, ChangeEventHandler } from 'react';
-import { object, string } from 'yup';
-
-import { useForm } from '../../hooks/useForm';
-import { Sender, SenderPayload } from '../../models/Sender';
-import styles from './draft.module.scss';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
-import { Col, Container, Row } from '../_dsfr';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { object, string, type InferType } from 'yup-next';
+
+import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
+import styles from './draft.module.scss';
 
 export const senderSchema = object({
-  name: string().trim(),
-  service: string().trim(),
-  firstName: string().trim(),
-  lastName: string().trim(),
-  address: string().trim(),
-  email: string().nullable().email('Veuillez renseigner un courriel valide'),
+  name: string().trim().defined().nullable(),
+  service: string().trim().defined().nullable(),
+  firstName: string().trim().defined().nullable(),
+  lastName: string().trim().defined().nullable(),
+  address: string().trim().defined().nullable(),
+  email: string()
+    .trim()
+    .email('Veuillez renseigner un courriel valide')
+    .defined()
+    .nullable(),
   phone: string()
-    .optional()
+    .trim()
+    .defined()
     .nullable()
     .matches(/^\d{10}$/, {
       message: 'Veuillez renseigner un numéro de téléphone valide',
@@ -24,96 +27,45 @@ export const senderSchema = object({
     })
 });
 
-interface Props {
-  form: ReturnType<typeof useForm>;
-  value: SenderPayload;
-  onChange(value: SenderPayload): void;
-}
+export type SenderSchema = InferType<typeof senderSchema>;
 
-function DraftSender(props: Readonly<Props>) {
-  const email = props.value.email ?? '';
-  const phone = props.value.phone ?? '';
-
-  function onChange(key: keyof Sender): ChangeEventHandler {
-    return (e: ChangeEvent<HTMLInputElement>) => {
-      if (props.value) {
-        props.onChange({
-          ...props.value,
-          [key]: e.target.value
-        });
-      }
-    };
-  }
-
+function DraftSender() {
   return (
-    <Container as="article" className={styles.article}>
+    <Stack component="article" className={styles.article}>
       <Typography component="h4" variant="h6" mb={2}>
         Coordonnées de l’expéditeur
       </Typography>
-      <AppTextInput
-        inputForm={props.form}
-        inputKey="sender.name"
+      <AppTextInputNext<SenderSchema['name']>
+        name="sender.name"
         label="Nom de la collectivité ou de l’administration"
-        value={props.value.name}
-        onChange={onChange('name')}
       />
-      <AppTextInput
-        inputForm={props.form}
-        inputKey="sender.service"
-        label="Service"
-        value={props.value.service}
-        onChange={onChange('service')}
-      />
-      <Row className={styles.row} gutters>
-        <Col n="6">
-          <AppTextInput
-            inputForm={props.form}
-            inputKey="sender.lastName"
-            label="Nom"
-            value={props.value.lastName}
-            onChange={onChange('lastName')}
-          />
-        </Col>
-        <Col n="6">
-          <AppTextInput
-            inputForm={props.form}
-            inputKey="sender.firstName"
-            label="Prénom"
-            value={props.value.firstName}
-            onChange={onChange('firstName')}
-          />
-        </Col>
-      </Row>
-      <AppTextInput
-        inputForm={props.form}
-        inputKey="sender.address"
-        label="Adresse"
-        value={props.value.address}
-        onChange={onChange('address')}
-      />
-      <Row gutters>
-        <Col n="6">
-          <AppTextInput
-            inputForm={props.form}
-            inputKey="sender.email"
+      <AppTextInputNext name="sender.service" label="Service" />
+      <Grid container className={styles.row} columnSpacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext name="sender.lastName" label="Nom" />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext name="sender.firstName" label="Prénom" />
+        </Grid>
+      </Grid>
+      <AppTextInputNext name="sender.address" label="Adresse" />
+      <Grid container columnSpacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext
+            name="sender.email"
             label="Adresse courriel"
-            value={email}
-            type="email"
-            onChange={onChange('email')}
+            nativeInputProps={{ type: 'email' }}
           />
-        </Col>
-        <Col n="6">
-          <AppTextInput
-            inputForm={props.form}
-            inputKey="sender.phone"
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext
+            name="sender.phone"
             label="Téléphone"
-            value={phone}
-            type="tel"
-            onChange={onChange('phone')}
+            nativeInputProps={{ type: 'tel' }}
           />
-        </Col>
-      </Row>
-    </Container>
+        </Grid>
+      </Grid>
+    </Stack>
   );
 }
 

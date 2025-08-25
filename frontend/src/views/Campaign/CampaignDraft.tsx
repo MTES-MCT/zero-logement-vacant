@@ -113,7 +113,17 @@ function CampaignDraft(props: Readonly<Props>) {
   const nextForm = useForm({
     values: {
       subject: draft?.subject ?? null,
-      body: draft?.body ?? null
+      body: draft?.body ?? null,
+      sender: {
+        name: draft?.sender?.name ?? null,
+        service: draft?.sender?.service ?? null,
+        firstName: draft?.sender?.firstName ?? null,
+        lastName: draft?.sender?.lastName ?? null,
+        address: draft?.sender?.address ?? null,
+        email: draft?.sender?.email ?? null,
+        phone: draft?.sender?.phone ?? null,
+        signatories: draft?.sender?.signatories ?? null
+      }
     },
     mode: 'onSubmit',
     resolver: yupResolver(schemaNext)
@@ -239,7 +249,12 @@ function CampaignDraft(props: Readonly<Props>) {
               label: 'Courrier',
               content: (
                 <FormProvider {...nextForm}>
-                  <form id="draft" name="draft" className="fr-mt-2w">
+                  <form
+                    id="draft"
+                    name="draft"
+                    className="fr-mt-2w"
+                    onSubmit={nextForm.handleSubmit(save)}
+                  >
                     <Alert
                       severity="info"
                       closable
@@ -278,11 +293,7 @@ function CampaignDraft(props: Readonly<Props>) {
                           />
                         </Col>
                         <Col n="7">
-                          <DraftSender
-                            form={form}
-                            value={values.sender}
-                            onChange={setSender}
-                          />
+                          <DraftSender />
                         </Col>
                       </Row>
                       <Row spacing="mb-2w">

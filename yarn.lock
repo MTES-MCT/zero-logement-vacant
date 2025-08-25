@@ -3094,6 +3094,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hookform/resolvers-next@npm:@hookform/resolvers@5.2.1":
+  version: 5.2.1
+  resolution: "@hookform/resolvers@npm:5.2.1"
+  dependencies:
+    "@standard-schema/utils": "npm:^0.3.0"
+  peerDependencies:
+    react-hook-form: ^7.55.0
+  checksum: 10c0/e8e48abc188b5139bc444e4495e2fb1680c6aafa31d79c5d7fa4d7d690b0fc2bac1dfbd99213cbc0c6c53c5c3c4e8c4dc28278dd87a3fa0176540795a6f2edde
+  languageName: node
+  linkType: hard
+
 "@hookform/resolvers@npm:^3.9.1":
   version: 3.10.0
   resolution: "@hookform/resolvers@npm:3.10.0"
@@ -7464,6 +7475,13 @@ __metadata:
   version: 1.0.0
   resolution: "@standard-schema/spec@npm:1.0.0"
   checksum: 10c0/a1ab9a8bdc09b5b47aa8365d0e0ec40cc2df6437be02853696a0e377321653b0d3ac6f079a8c67d5ddbe9821025584b1fb71d9cc041a6666a96f1fadf2ece15f
+  languageName: node
+  linkType: hard
+
+"@standard-schema/utils@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@standard-schema/utils@npm:0.3.0"
+  checksum: 10c0/6eb74cd13e52d5fc74054df51e37d947ef53f3ab9e02c085665dcca3c38c60ece8d735cebbdf18fbb13c775fbcb9becb3f53109b0e092a63f0f7389ce0993fd0
   languageName: node
   linkType: hard
 
@@ -11858,6 +11876,7 @@ __metadata:
     "@emotion/styled": "npm:^11.13.0"
     "@faker-js/faker": "npm:^8.4.1"
     "@hookform/resolvers": "npm:^3.9.1"
+    "@hookform/resolvers-next": "npm:@hookform/resolvers@5.2.1"
     "@lexical/html": "npm:^0.25.0"
     "@lexical/list": "npm:^0.25.0"
     "@lexical/react": "npm:^0.25.0"
@@ -11930,6 +11949,7 @@ __metadata:
     web-vitals: "npm:^1.1.2"
     whatwg-fetch: "npm:^3.6.20"
     yup: "npm:^0.32.11"
+    yup-next: "npm:yup@1.7.0"
   languageName: unknown
   linkType: soft
 
@@ -30947,6 +30967,18 @@ __metadata:
   version: 2.1.2
   resolution: "yoctocolors-cjs@npm:2.1.2"
   checksum: 10c0/a0e36eb88fea2c7981eab22d1ba45e15d8d268626e6c4143305e2c1628fa17ebfaa40cd306161a8ce04c0a60ee0262058eab12567493d5eb1409780853454c6f
+  languageName: node
+  linkType: hard
+
+"yup-next@npm:yup@1.7.0":
+  version: 1.7.0
+  resolution: "yup@npm:1.7.0"
+  dependencies:
+    property-expr: "npm:^2.0.5"
+    tiny-case: "npm:^1.0.3"
+    toposort: "npm:^2.0.2"
+    type-fest: "npm:^2.19.0"
+  checksum: 10c0/76760553b6813705092735ab1fe0049061545673b7cc9a8e554ef59c09db241888bdcca6c42b58bd0f8a707c1d9665ab1adb75a8e4cf380bfc89f17827f2b182
   languageName: node
   linkType: hard
 

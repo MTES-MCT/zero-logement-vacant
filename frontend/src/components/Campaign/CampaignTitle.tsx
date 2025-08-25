@@ -1,29 +1,43 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import { yupResolver } from '@hookform/resolvers/yup';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
-import { FormEvent, useState } from 'react';
-import { InferType, object } from 'yup';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as yup from 'yup';
 
-import { Col, Container, Row } from '../_dsfr';
+import { useNotification } from '~/hooks/useNotification';
 import { Campaign } from '../../models/Campaign';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+import { createConfirmationModal } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import styles from './campaign.module.scss';
-import { campaignTitleValidator, campaignDescriptionValidator, useForm } from '../../hooks/useForm';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
-import Typography from '@mui/material/Typography';
 
 type TitleAs = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
-const modal = createModal({
+const modal = createConfirmationModal({
   id: 'campaign-title-modal',
   isOpenedByDefault: false
 });
 
-const schema = object().shape({
-  title: campaignTitleValidator,
-  description: campaignDescriptionValidator
+const schema = yup.object({
+  title: yup
+    .string()
+    .max(
+      64,
+      'La longueur maximale du titre de la campagne est de 64 caractères.'
+    )
+    .required('Veuillez renseigner le titre de la campagne.'),
+  description: yup
+    .string()
+    .max(
+      1000,
+      'La longueur maximale de la description de la campagne est de 1000 caractères.'
+    )
+    .required('Veuillez renseigner la descripion de la campagne.')
 });
-type FormShape = InferType<typeof schema>;
+
+type FormSchema = yup.InferType<typeof schema>;
 
 interface Props {
   campaign: Campaign;
@@ -33,33 +47,47 @@ interface Props {
 }
 
 function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
-  const [updateCampaign] = useUpdateCampaignMutation();
+  const [updateCampaign, updateCampaignMutation] = useUpdateCampaignMutation();
 
-  const [title, setTitle] = useState(campaign.title);
-  const [description, setDescription] = useState(campaign.description);
-  const form = useForm(schema, {
-    title,
-    description
+  useNotification({
+    isError: updateCampaignMutation.isError,
+    isLoading: updateCampaignMutation.isLoading,
+    isSuccess: updateCampaignMutation.isSuccess,
+    message: {
+      error: 'Erreur lors de la mise à jour de la campagne.',
+      loading: 'Mise à jour de la campagne...',
+      success: 'La campagne a été mise à jour.'
+    },
+    toastId: 'campaign-title-update'
   });
 
-  function submit(event: FormEvent) {
-    event.preventDefault();
+  const form = useForm({
+    defaultValues: {
+      title: campaign.title,
+      description: campaign.description
+    },
+    mode: 'onSubmit',
+    resolver: yupResolver(schema)
+  });
 
-    form.validate(async () => {
-      await updateCampaign({
-        ...campaign,
-        title,
-        description,
-      }).unwrap();
-      modal.close();
-    });
+  function submit(): void {
+    const values = form.getValues();
+    updateCampaign({
+      ...campaign,
+      title: values.title,
+      description: values.description || ''
+    })
+      .unwrap()
+      .finally(() => {
+        modal.close();
+      });
   }
 
   return (
     <>
-      <Container
-        fluid
-        as="section"
+      <Stack
+        direction="row"
+        component="section"
         className={classNames(styles.container, className)}
       >
         <Typography
@@ -78,53 +106,26 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
         >
           Modifier le nom
         </Button>
-      </Container>
+      </Stack>
       <modal.Component
         title="Modifier le titre de la campagne"
-        buttons={[
-          {
-            children: 'Annuler',
-            className: 'fr-mr-2w',
-            priority: 'secondary'
-          },
-          {
-            onClick: submit,
-            children: 'Confirmer',
-            doClosesModal: false
-          }
-        ]}
+        onSubmit={form.handleSubmit(submit)}
       >
-        <form id="campaign-title-edition-form" onSubmit={submit}>
-          <Container as="section" fluid>
-            <Row gutters>
-              <Col n="10">
-                <AppTextInput<FormShape>
-                  inputForm={form}
-                  inputKey="title"
-                  label="Titre de la campagne"
-                  placeholder="Titre de la campagne (obligatoire)"
-                  required
-                  value={title}
-                  state={form.hasError('title') ? 'error' : 'default'}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Row gutters>
-              <Col n="10">
-                <AppTextInput<FormShape>
-                  textArea
-                  inputForm={form}
-                  inputKey="description"
-                  label="Description de la campagne"
-                  value={description}
-                  state={form.hasError('description') ? 'error' : 'default'}
-                  onChange={(e) => { setDescription(e.target.value); }}
-                />
-              </Col>
-            </Row>
-          </Container>
-        </form>
+        <FormProvider {...form}>
+          <form onSubmit={form.handleSubmit(submit)}>
+            <Stack>
+              <AppTextInputNext<FormSchema>
+                label="Titre de la campagne"
+                name="title"
+              />
+              <AppTextInputNext<FormSchema>
+                textArea
+                label="Description de la campagne"
+                name="description"
+              />
+            </Stack>
+          </form>
+        </FormProvider>
       </modal.Component>
     </>
   );

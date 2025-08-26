@@ -38,7 +38,6 @@ import { useForm as deprecatedUseForm } from '../../hooks/useForm';
 import useUnsavedChanges from '../../hooks/useUnsavedChanges';
 import { Campaign } from '../../models/Campaign';
 import { DraftCreationPayload } from '../../models/Draft';
-import { SenderPayload, SignatoriesPayload } from '../../models/Sender';
 import { useUpdateCampaignMutation } from '../../services/campaign.service';
 import {
   useCreateDraftMutation,
@@ -169,14 +168,6 @@ function CampaignDraft(props: Readonly<Props>) {
     setValues({ ...values, logo });
   }
 
-  function setSender(sender: SenderPayload): void {
-    setValues({ ...values, sender });
-  }
-
-  function setSignatories(signatories: SignatoriesPayload | null): void {
-    setSender({ ...values.sender, signatories });
-  }
-
   function setWritten(written: Written): void {
     setValues({
       ...values,
@@ -274,7 +265,9 @@ function CampaignDraft(props: Readonly<Props>) {
                             success:
                               'Votre campagne a été sauvegardée avec succès'
                           }}
-                          onSave={save}
+                          onSave={() => {
+                            console.log(nextForm.getValues());
+                          }}
                         />
                         <PreviewButton disabled={!exists} draft={draft} />
                       </Row>
@@ -301,11 +294,7 @@ function CampaignDraft(props: Readonly<Props>) {
                           <DraftBody />
                         </Col>
                       </Row>
-                      <DraftSignature
-                        form={form}
-                        value={values.sender.signatories}
-                        onChange={setSignatories}
-                      />
+                      <DraftSignature />
                     </DeprecatedContainer>
                   </form>
                 </FormProvider>

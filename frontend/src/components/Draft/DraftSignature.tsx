@@ -1,65 +1,49 @@
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import { ChangeEvent, ChangeEventHandler, useId } from 'react';
+import { FileUploadDTO, type SignatoriesDTO } from '@zerologementvacant/models';
+import { useId } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { match } from 'ts-pattern';
 
-import { FileUploadDTO } from '@zerologementvacant/models';
-import { useForm } from '../../hooks/useForm';
-import { SignatoriesPayload, SignatoryPayload } from '../../models/Sender';
-import styles from './draft.module.scss';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
+import type { DraftCreationPayload } from '~/models/Draft';
+import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import FileUpload from '../FileUpload/FileUpload';
+import styles from './draft.module.scss';
 import LogoViewer from './LogoViewer';
 
-interface Props {
-  form: ReturnType<typeof useForm>;
-  value: SignatoriesPayload | null;
-  onChange(value: SignatoriesPayload): void;
-}
-
-function DraftSignature(props: Readonly<Props>) {
-  function onChange(
-    index: number,
-    key: keyof SignatoryPayload
-  ): ChangeEventHandler {
-    return (e: ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value === '' ? null : e.target.value;
-      const signatory = props.value?.[index];
-      const signatories = props.value?.with(index, {
-        firstName: signatory?.firstName ?? null,
-        lastName: signatory?.lastName ?? null,
-        role: signatory?.role ?? null,
-        file: signatory?.file ?? null,
-        [key]: value
-        // Typescript does not understand that there are always 2 elements
-      }) as SignatoriesPayload;
-      props.onChange(signatories);
-    };
-  }
+function DraftSignature() {
+  const { watch, setValue } = useFormContext<DraftCreationPayload>();
+  const signatories = watch('sender.signatories');
 
   function onFileUpload(index: number, file: FileUploadDTO) {
-    const signatory: SignatoryPayload = props.value?.[index] ?? {
+    const currentSignatory = signatories?.[index] ?? {
       firstName: null,
       lastName: null,
       role: null,
       file: null
     };
-    const signatories =
-      props.value?.with(index, { ...signatory, file }) ?? null;
-    props.onChange(signatories as SignatoriesPayload);
+    const updatedSignatory = { ...currentSignatory, file };
+    const updatedSignatories = signatories?.with(index, updatedSignatory) ?? [
+      index === 0 ? updatedSignatory : null,
+      index === 1 ? updatedSignatory : null
+    ];
+    setValue('sender.signatories', updatedSignatories as SignatoriesDTO);
   }
 
   const uploadIds = [useId(), useId()];
 
   function onFileRemoval(index: number) {
-    const signatory: SignatoryPayload = props.value?.[index] ?? {
+    const currentSignatory = signatories?.[index] ?? {
       firstName: null,
       lastName: null,
       role: null,
       file: null
     };
-    const signatories = props?.value?.with(index, { ...signatory, file: null });
-    props.onChange(signatories as SignatoriesPayload);
+    const updatedSignatories = signatories?.with(index, {
+      ...currentSignatory,
+      file: null
+    });
+    setValue('sender.signatories', updatedSignatories as SignatoriesDTO);
     const input = document.getElementById(
       uploadIds[index]
     ) as HTMLInputElement | null;
@@ -84,7 +68,7 @@ function DraftSignature(props: Readonly<Props>) {
       size={10}
       offset={2}
     >
-      {props.value?.map((signatory, index) => (
+      {signatories?.map((signatory, index) => (
         <Grid
           container
           key={index}
@@ -99,31 +83,22 @@ function DraftSignature(props: Readonly<Props>) {
               </Typography>
             </Grid>
             <Grid size={6}>
-              <AppTextInput
-                inputForm={props.form}
-                inputKey={`signatories.${index}.firstName`}
+              <AppTextInputNext
+                name={`sender.signatories.${index}.firstName`}
                 label="Prénom du signataire"
-                value={signatory?.firstName ?? ''}
-                onChange={onChange(index, 'firstName')}
               />
             </Grid>
             <Grid size={6}>
-              <AppTextInput
-                inputForm={props.form}
-                inputKey="sender.signatoryLastName"
+              <AppTextInputNext
+                name={`sender.signatories.${index}.lastName`}
                 label="Nom du signataire"
-                value={signatory?.lastName ?? ''}
-                onChange={onChange(index, 'lastName')}
               />
             </Grid>
 
             <Grid size={12}>
-              <AppTextInput
-                inputForm={props.form}
-                inputKey="sender.signatoryRole"
+              <AppTextInputNext
+                name={`sender.signatories.${index}.role`}
                 label="Rôle du signataire"
-                value={signatory?.role ?? ''}
-                onChange={onChange(index, 'role')}
               />
             </Grid>
 

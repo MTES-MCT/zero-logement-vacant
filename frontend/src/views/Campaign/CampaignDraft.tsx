@@ -24,7 +24,6 @@ import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import DraftBody from '../../components/Draft/DraftBody';
 import DraftMailInfo, {
-  Written,
   writtenSchema
 } from '../../components/Draft/DraftMailInfo';
 import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
@@ -45,20 +44,18 @@ import {
 } from '../../services/draft.service';
 import styles from './campaign.module.scss';
 
-const schemaNext = yupNext.object({
-  subject: yupNext.string().defined().nullable().default(null),
-  body: yupNext.string().defined().nullable().default(null)
-});
-
-const schema = yup
+const schemaNext = yupNext
   .object({
-    subject: yup.string(),
-    body: yup.string(),
+    subject: yupNext.string().defined().nullable().default(null),
+    body: yupNext.string().defined().nullable().default(null),
     sender: senderSchema
   })
-  // Must do like that because the useForm hook has a validation bug
-  // where it creates an infinite render loop if passed a `written` object
   .concat(writtenSchema);
+
+const schema = yup.object({
+  subject: yup.string(),
+  body: yup.string()
+});
 
 interface Props {
   campaign: Campaign;
@@ -122,7 +119,9 @@ function CampaignDraft(props: Readonly<Props>) {
         email: draft?.sender?.email ?? null,
         phone: draft?.sender?.phone ?? null,
         signatories: draft?.sender?.signatories ?? null
-      }
+      },
+      writtenAt: draft?.writtenAt ?? null,
+      writtenFrom: draft?.writtenFrom ?? null
     },
     mode: 'onSubmit',
     resolver: yupResolver(schemaNext)
@@ -166,14 +165,6 @@ function CampaignDraft(props: Readonly<Props>) {
 
   function setLogo(logo: FileUploadDTO[]): void {
     setValues({ ...values, logo });
-  }
-
-  function setWritten(written: Written): void {
-    setValues({
-      ...values,
-      writtenAt: written.at,
-      writtenFrom: written.from
-    });
   }
 
   if (isLoadingDraft) {
@@ -278,12 +269,7 @@ function CampaignDraft(props: Readonly<Props>) {
                             value={values.logo}
                             onChange={setLogo}
                           />
-                          <DraftMailInfo
-                            form={form}
-                            writtenAt={values.writtenAt}
-                            writtenFrom={values.writtenFrom}
-                            onChange={setWritten}
-                          />
+                          <DraftMailInfo />
                         </Col>
                         <Col n="7">
                           <DraftSender />

@@ -10,11 +10,14 @@ import {
 import { useController } from 'react-hook-form';
 import { match, Pattern } from 'ts-pattern';
 
+type MapValue<T> = (value: T | null) => string;
+type ContramapValue<T> = (value: string) => T;
+
 export type AppTextInputNextProps<T> = InputProps & {
   name: string;
   // TODO: require these functions when T is not a string
-  mapValue?(value: T): string;
-  contramapValue?(value: string): T;
+  mapValue?: MapValue<T>;
+  contramapValue?: ContramapValue<T>;
 };
 /**
  * A text input based on the [DSFR Input](https://components.react-dsfr.codegouv.studio/?path=/docs/components-input--default) component and [react-hook-form](https://react-hook-form.com/).
@@ -125,5 +128,9 @@ function AppTextInputNext<T>(props: AppTextInputNextProps<T>) {
     />
   );
 }
+
+export const mapNull: MapValue<string | null> = (value) => value ?? '';
+export const contramapEmptyString: ContramapValue<string | null> = (value) =>
+  value || null;
 
 export default AppTextInputNext;

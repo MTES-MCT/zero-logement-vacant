@@ -1,62 +1,53 @@
-import { ChangeEvent } from 'react';
-import { object, string } from 'yup';
-
-import styles from './draft.module.scss';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
-import { useForm } from '../../hooks/useForm';
-import { DATE_REGEXP_OPTIONNAL } from '../../utils/dateUtils';
 import Typography from '@mui/material/Typography';
+import { useFormContext } from 'react-hook-form';
+import { object, string, type InferType } from 'yup-next';
+
+import { DATE_REGEXP_OPTIONNAL } from '~/utils/dateUtils';
+import AppTextInputNext, {
+  contramapEmptyString,
+  mapNull
+} from '~/components/_app/AppTextInput/AppTextInputNext';
+import styles from './draft.module.scss';
 
 export const writtenSchema = object({
-  writtenAt: string().matches(
-    DATE_REGEXP_OPTIONNAL,
-    'Veuillez renseigner une date au format yyyy-mm-dd'
-  ),
-  writtenFrom: string()
+  writtenAt: string()
+    .trim()
+    .matches(
+      DATE_REGEXP_OPTIONNAL,
+      'Veuillez renseigner une date au format yyyy-mm-dd'
+    )
+    .defined()
+    .nullable()
+    .default(null),
+  writtenFrom: string().trim().defined().nullable().default(null)
 });
 
-export interface Written {
-  at: string;
-  from: string;
-}
+type WrittenSchema = InferType<typeof writtenSchema>;
 
-interface Props {
-  form: ReturnType<typeof useForm>;
-  writtenAt: string;
-  writtenFrom: string;
-  onChange(value: Written): void;
-}
-
-function DraftMailInfo(props: Readonly<Props>) {
-  function onChange(key: keyof Written) {
-    return (e: ChangeEvent<HTMLInputElement & HTMLTextAreaElement>): void => {
-      props.onChange({
-        at: props.writtenAt,
-        from: props.writtenFrom,
-        [key]: e.target.value
-      });
-    };
-  }
+function DraftMailInfo() {
+  const { getValues } = useFormContext();
+  const values = getValues();
+  console.log('Values', values);
 
   return (
     <article className={styles.article}>
       <Typography component="h4" variant="h6" mb={2}>
         Informations sur le courrier
       </Typography>
-      <AppTextInput
-        inputForm={props.form}
-        inputKey="writtenAt"
+      <AppTextInputNext<WrittenSchema['writtenAt']>
+        name="writtenAt"
         label="En date du ..."
-        type="date"
-        value={props.writtenAt}
-        onChange={onChange('at')}
+        nativeInputProps={{
+          type: 'date'
+        }}
+        mapValue={mapNull}
+        contramapValue={contramapEmptyString}
       />
-      <AppTextInput
-        inputForm={props.form}
-        inputKey="writtenFrom"
+      <AppTextInputNext<WrittenSchema['writtenFrom']>
+        name="writtenFrom"
         label="Écrit à ..."
-        value={props.writtenFrom}
-        onChange={onChange('from')}
+        mapValue={mapNull}
+        contramapValue={contramapEmptyString}
       />
     </article>
   );

@@ -30,7 +30,7 @@ function SaveButton(props: Readonly<Props>) {
       disabled={props.isLoading}
       iconId="fr-icon-save-line"
       priority="secondary"
-      type="button"
+      type="submit"
       onClick={props.onSave}
     >
       Sauvegarder mon brouillon

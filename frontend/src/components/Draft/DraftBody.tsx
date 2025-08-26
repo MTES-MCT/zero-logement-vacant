@@ -1,28 +1,40 @@
-import { useForm } from '../../hooks/useForm';
-import styles from './draft.module.scss';
-import RichEditor from '../RichEditor/RichEditor';
-import AppTextInput from '../_app/AppTextInput/AppTextInput';
-import { Col, Container, Row } from '../_dsfr';
-import AppLink from '../_app/AppLink/AppLink';
+import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
+import { Controller } from 'react-hook-form';
+import { object, string } from 'yup-next';
 
-interface Props {
-  form: ReturnType<typeof useForm>;
-  subject: string;
-  body: string;
-  onChange(value: Body): void;
-}
+import RichEditor from '../RichEditor/RichEditor';
+import AppLink from '../_app/AppLink/AppLink';
+import AppTextInputNext, {
+  contramapEmptyString,
+  mapNull
+} from '../_app/AppTextInput/AppTextInputNext';
+import styles from './draft.module.scss';
 
-export interface Body {
-  subject: string;
-  body: string;
-}
+export const bodySchema = object({
+  subject: string().defined().nullable().default(null),
+  body: string().defined().nullable().default(null)
+});
 
-function DraftBody(props: Readonly<Props>) {
+function DraftBody() {
   return (
-    <Container as="article" className={styles.article} fluid>
-      <Row className="fr-mb-2w justify-space-between">
-        <Typography id="draft-body-label" component="h4" variant="h6">
+    <Grid
+      component="article"
+      container
+      className={styles.article}
+      rowSpacing="1rem"
+    >
+      <Grid
+        direction="row"
+        size={12}
+        sx={{ display: 'flex', justifyContent: 'space-between' }}
+      >
+        <Typography
+          id="draft-body-label"
+          component="h4"
+          variant="h6"
+          sx={{ display: 'inline-block' }}
+        >
           Contenu de votre courrier
         </Typography>
         <AppLink
@@ -32,36 +44,28 @@ function DraftBody(props: Readonly<Props>) {
         >
           Comment rédiger un bon courrier ?
         </AppLink>
-      </Row>
-      <Row className="fr-mb-2w">
-        <Col n="7">
-          <AppTextInput
-            inputForm={props.form}
-            inputKey="subject"
-            label="Objet"
-            value={props.subject}
-            onChange={(event) =>
-              props.onChange({
-                subject: event.target.value,
-                body: props.body
-              })
-            }
-          />
-        </Col>
-      </Row>
-      <Row>
-        <RichEditor
-          ariaLabelledBy="draft-body-label"
-          content={props.body}
-          onChange={(content) =>
-            props.onChange({
-              subject: props.subject,
-              body: content
-            })
-          }
+      </Grid>
+      <Grid size={7}>
+        <AppTextInputNext
+          name="subject"
+          label="Objet"
+          mapValue={mapNull}
+          contramapValue={contramapEmptyString}
         />
-      </Row>
-    </Container>
+      </Grid>
+      <Grid size={12}>
+        <Controller
+          name="body"
+          render={({ field }) => (
+            <RichEditor
+              ariaLabelledBy="draft-body-label"
+              content={field.value ?? ''}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      </Grid>
+    </Grid>
   );
 }
 

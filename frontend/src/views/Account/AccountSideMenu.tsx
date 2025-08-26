@@ -1,6 +1,7 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
+import { usePostHog } from 'posthog-js/react';
 import { useLocation } from 'react-router-dom';
 
 import AppLink from '../../components/_app/AppLink/AppLink';
@@ -15,6 +16,13 @@ const AccountSideMenu = () => {
   const { establishment } = useUser();
 
   const isCurrentLocation = location.pathname === '/compte';
+
+  const posthog = usePostHog();
+
+  function onLogOut() {
+    posthog.reset();
+    dispatch(logOut());
+  }
 
   return (
     <>
@@ -81,7 +89,7 @@ const AccountSideMenu = () => {
         to="#"
         iconId="fr-icon-logout-box-r-fill"
         iconPosition="left"
-        onClick={() => dispatch(logOut())}
+        onClick={onLogOut}
         size="md"
       >
         Se déconnecter

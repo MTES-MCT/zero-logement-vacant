@@ -397,7 +397,7 @@ describe('Housing view', () => {
       });
       await user.click(history);
       const panel = await screen.findByRole('tabpanel', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       const note = await within(panel).findByText('Note');
       expect(note).toBeVisible();
@@ -440,7 +440,7 @@ describe('Housing view', () => {
       });
 
       const tab = await screen.findByRole('tab', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       await user.click(tab);
       const type = await screen.findByRole('combobox', {

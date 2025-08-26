@@ -1,11 +1,20 @@
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { Controller } from 'react-hook-form';
+import { object, string } from 'yup-next';
 
 import RichEditor from '../RichEditor/RichEditor';
 import AppLink from '../_app/AppLink/AppLink';
-import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+import AppTextInputNext, {
+  contramapEmptyString,
+  mapNull
+} from '../_app/AppTextInput/AppTextInputNext';
 import styles from './draft.module.scss';
+
+export const bodySchema = object({
+  subject: string().defined().nullable().default(null),
+  body: string().defined().nullable().default(null)
+});
 
 function DraftBody() {
   return (
@@ -37,7 +46,12 @@ function DraftBody() {
         </AppLink>
       </Grid>
       <Grid size={7}>
-        <AppTextInputNext name="subject" label="Objet" />
+        <AppTextInputNext
+          name="subject"
+          label="Objet"
+          mapValue={mapNull}
+          contramapValue={contramapEmptyString}
+        />
       </Grid>
       <Grid size={12}>
         <Controller

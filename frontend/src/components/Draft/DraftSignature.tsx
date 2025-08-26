@@ -6,7 +6,10 @@ import { useFormContext } from 'react-hook-form';
 import { match } from 'ts-pattern';
 
 import type { DraftCreationPayload } from '~/models/Draft';
-import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
+import AppTextInputNext, {
+  contramapEmptyString,
+  mapNull
+} from '../_app/AppTextInput/AppTextInputNext';
 import FileUpload from '../FileUpload/FileUpload';
 import styles from './draft.module.scss';
 import LogoViewer from './LogoViewer';
@@ -86,12 +89,16 @@ function DraftSignature() {
               <AppTextInputNext
                 name={`sender.signatories.${index}.firstName`}
                 label="Prénom du signataire"
+                mapValue={mapNull}
+                contramapValue={contramapEmptyString}
               />
             </Grid>
             <Grid size={6}>
               <AppTextInputNext
                 name={`sender.signatories.${index}.lastName`}
                 label="Nom du signataire"
+                mapValue={mapNull}
+                contramapValue={contramapEmptyString}
               />
             </Grid>
 
@@ -99,6 +106,8 @@ function DraftSignature() {
               <AppTextInputNext
                 name={`sender.signatories.${index}.role`}
                 label="Rôle du signataire"
+                mapValue={mapNull}
+                contramapValue={contramapEmptyString}
               />
             </Grid>
 

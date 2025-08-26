@@ -1,32 +1,35 @@
+import Typography from '@mui/material/Typography';
+import { FileUploadDTO } from '@zerologementvacant/models';
+import classNames from 'classnames';
+import { useFormContext } from 'react-hook-form';
+import { array, mixed, object } from 'yup-next';
+
 import { Container, Row } from '../_dsfr';
 import FileUpload from '../FileUpload/FileUpload';
 import styles from './draft.module.scss';
-import { FileUploadDTO } from '@zerologementvacant/models';
-import classNames from 'classnames';
 import LogoViewer from './LogoViewer';
-import Typography from '@mui/material/Typography';
+import type { DraftCreationPayload } from '~/models/Draft';
 
-interface Props {
-  className?: string;
-  value: FileUploadDTO[];
-  onChange(value: FileUploadDTO[]): void;
-}
+export const logoSchema = object({
+  logo: array().of(mixed()).default([])
+});
 
-function DraftSenderLogo(props: Readonly<Props>) {
-  const { value: files } = props;
+function DraftSenderLogo() {
+  const { watch, setValue } = useFormContext<DraftCreationPayload>();
+  const files = watch('logo') as FileUploadDTO[];
 
   function onUpload(index: number) {
     return (file: FileUploadDTO): void => {
       const newFiles = [...files];
       newFiles[index] = file;
-      props.onChange(newFiles);
+      setValue('logo', newFiles);
     };
   }
 
   function deleteLogo(id: string, index: number) {
     return (): void => {
       const newFiles = [...files].filter((file) => file?.id !== id);
-      props.onChange(newFiles);
+      setValue('logo', newFiles);
       const elem = document.getElementById(
         `fileUploadLogo${index}-input`
       ) as HTMLInputElement;
@@ -37,11 +40,7 @@ function DraftSenderLogo(props: Readonly<Props>) {
   }
 
   return (
-    <Container
-      as="section"
-      className={classNames(styles.article, props.className)}
-      fluid
-    >
+    <Container as="section" className={classNames(styles.article)} fluid>
       <Row>
         <FileUpload
           id="fileUploadLogo0"
@@ -54,8 +53,8 @@ function DraftSenderLogo(props: Readonly<Props>) {
         />
         <LogoViewer
           index={0}
-          logo={props.value[0]}
-          onDelete={deleteLogo(props.value[0]?.id, 0)}
+          logo={files[0]}
+          onDelete={deleteLogo(files[0]?.id, 0)}
         />
       </Row>
       <Row spacing="mb-2w">
@@ -67,8 +66,8 @@ function DraftSenderLogo(props: Readonly<Props>) {
         />
         <LogoViewer
           index={1}
-          logo={props.value[1]}
-          onDelete={deleteLogo(props.value[1]?.id, 1)}
+          logo={files[1]}
+          onDelete={deleteLogo(files[1]?.id, 1)}
         />
       </Row>
     </Container>

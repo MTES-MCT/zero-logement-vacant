@@ -3,7 +3,10 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { object, string, type InferType } from 'yup-next';
 
-import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
+import AppTextInputNext, {
+  contramapEmptyString,
+  mapNull
+} from '~/components/_app/AppTextInput/AppTextInputNext';
 import styles from './draft.module.scss';
 
 export const senderSchema = object({
@@ -38,30 +41,56 @@ function DraftSender() {
       <AppTextInputNext<SenderSchema['name']>
         name="sender.name"
         label="Nom de la collectivité ou de l’administration"
+        mapValue={mapNull}
+        contramapValue={contramapEmptyString}
       />
-      <AppTextInputNext name="sender.service" label="Service" />
+      <AppTextInputNext<SenderSchema['service']>
+        name="sender.service"
+        label="Service"
+        mapValue={mapNull}
+        contramapValue={contramapEmptyString}
+      />
       <Grid container className={styles.row} columnSpacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext name="sender.lastName" label="Nom" />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext name="sender.firstName" label="Prénom" />
-        </Grid>
-      </Grid>
-      <AppTextInputNext name="sender.address" label="Adresse" />
-      <Grid container columnSpacing={2}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext
-            name="sender.email"
-            label="Adresse courriel"
-            nativeInputProps={{ type: 'email' }}
+          <AppTextInputNext<SenderSchema['lastName']>
+            name="sender.lastName"
+            label="Nom"
+            mapValue={mapNull}
+            contramapValue={contramapEmptyString}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <AppTextInputNext
+          <AppTextInputNext<SenderSchema['firstName']>
+            name="sender.firstName"
+            label="Prénom"
+            mapValue={mapNull}
+            contramapValue={contramapEmptyString}
+          />
+        </Grid>
+      </Grid>
+      <AppTextInputNext<SenderSchema['email']>
+        name="sender.address"
+        label="Adresse"
+        mapValue={mapNull}
+        contramapValue={contramapEmptyString}
+      />
+      <Grid container columnSpacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext<SenderSchema['email']>
+            name="sender.email"
+            label="Adresse courriel"
+            nativeInputProps={{ type: 'email' }}
+            mapValue={mapNull}
+            contramapValue={contramapEmptyString}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AppTextInputNext<SenderSchema['phone']>
             name="sender.phone"
             label="Téléphone"
             nativeInputProps={{ type: 'tel' }}
+            mapValue={mapNull}
+            contramapValue={contramapEmptyString}
           />
         </Grid>
       </Grid>

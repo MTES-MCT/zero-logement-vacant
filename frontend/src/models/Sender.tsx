@@ -3,15 +3,9 @@ import {
   SenderPayloadDTO,
   SignatoryDTO
 } from '@zerologementvacant/models';
-import { DeepNonNullable } from 'ts-essentials';
 
 export type Sender = SenderDTO;
-
-export type SenderPayload = DeepNonNullable<
-  Omit<SenderPayloadDTO, 'signatories'>
-> &
-  Pick<SenderPayloadDTO, 'signatories'>;
-
+export type SenderPayload = SenderPayloadDTO;
 export type SignatoryPayload = SignatoryDTO;
 export type SignatoriesPayload = [
   SignatoryPayload | null,

@@ -5,6 +5,7 @@ import { useId } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { match } from 'ts-pattern';
 
+import { array, mixed, object, string } from 'yup-next';
 import type { DraftCreationPayload } from '~/models/Draft';
 import AppTextInputNext, {
   contramapEmptyString,
@@ -13,6 +14,27 @@ import AppTextInputNext, {
 import FileUpload from '../FileUpload/FileUpload';
 import styles from './draft.module.scss';
 import LogoViewer from './LogoViewer';
+
+export const signatureSchema = object({
+  signatories: array()
+    .of(
+      object({
+        firstName: string().trim().defined().nullable(),
+        lastName: string().trim().defined().nullable(),
+        role: string().trim().defined().nullable(),
+        file: mixed().defined().nullable()
+      }).nullable()
+    )
+    .nullable()
+});
+
+type Signatory = {
+  firstName: string | null;
+  lastName: string | null;
+  role: string | null;
+  file: FileUploadDTO | null;
+};
+export type SignatureSchema = [Signatory | null, Signatory | null] | null;
 
 function DraftSignature() {
   const { watch, setValue } = useFormContext<DraftCreationPayload>();

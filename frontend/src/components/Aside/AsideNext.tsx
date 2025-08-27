@@ -1,19 +1,31 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
-import Drawer, { DrawerProps } from '@mui/material/Drawer';
+import Drawer, { type DrawerProps } from '@mui/material/Drawer';
 import Grid from '@mui/material/Grid';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
-interface AsideProps {
+interface CommonProps {
   drawerProps?: Omit<DrawerProps, 'open' | 'onClose'>;
   header?: ReactNode;
   main?: ReactNode;
   footer?: ReactNode;
   open: boolean;
   onClose(): void;
+  onSave?(): void;
+}
+
+interface FooterProps {
+  footer: ReactNode;
+  onSave?: never;
+}
+
+interface SaveProps {
+  footer: never;
   onSave(): void;
 }
+
+export type AsideProps = CommonProps & (FooterProps | SaveProps);
 
 function Aside(props: AsideProps) {
   return (
@@ -37,6 +49,7 @@ function Aside(props: AsideProps) {
               iconId="fr-icon-close-line"
               priority="tertiary no outline"
               onClick={props.onClose}
+              size="small"
             >
               Fermer
             </Button>

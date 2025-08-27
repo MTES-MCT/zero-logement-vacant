@@ -123,7 +123,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   }
 
   return (
-    <Stack sx={{ minWidth: '100%' }}>
+    <Stack sx={{ width: '100%' }}>
       <div
         className={fr.cx('fr-table', {
           [fr.cx('fr-table--no-scroll')]: props.tableProps?.noScroll,

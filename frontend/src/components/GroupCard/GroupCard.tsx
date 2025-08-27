@@ -13,7 +13,7 @@ interface GroupCardProps {
 }
 
 function GroupCard(props: GroupCardProps) {
-  const title = `Groupe de logements - ${props.group.title}`;
+  const title = `Groupe de logements - ${props.group.title} - nombre de logements : ${props.group.housingCount}, nombre de propriétaires : ${props.group.ownerCount}`;
 
   return (
     <Link to={`/groupes/${props.group.id}`} title={title}>

@@ -63,6 +63,7 @@ async function listByHousingId(
   logger.info('List housing events', { id: params.id });
 
   const housing = await housingRepository.findOne({
+    establishment: establishment.id,
     id: params.id,
     geoCode: establishment.geoCodes
   });

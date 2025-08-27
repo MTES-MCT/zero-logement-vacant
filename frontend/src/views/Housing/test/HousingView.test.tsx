@@ -393,7 +393,7 @@ describe('Housing view', () => {
       });
       await user.click(save);
       const history = await screen.findByRole('tab', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       await user.click(history);
       const panel = await screen.findByRole('tabpanel', {

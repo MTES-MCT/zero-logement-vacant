@@ -63,7 +63,7 @@ function HousingDetailsCard(props: HousingDetailsCardProps) {
           content: <MobilizationTab housing={props.housing} />
         },
         {
-          label: 'Historique et notes',
+          label: 'Notes et historique',
           content: <HistoryTab housing={props.housing} />
         }
       ]}

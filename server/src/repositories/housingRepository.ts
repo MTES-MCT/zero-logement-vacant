@@ -56,6 +56,7 @@ import { GROUPS_HOUSING_TABLE } from './groupRepository';
 import { housingOwnersTable } from './housingOwnerRepository';
 import { localitiesTable } from './localityRepository';
 import { OwnerDBO, ownerTable, parseOwnerApi } from './ownerRepository';
+import type { EstablishmentApi } from '~/models/EstablishmentApi';
 
 const logger = createLogger('housingRepository');
 
@@ -198,7 +199,8 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
 }
 
 interface FindOneOptions {
-  geoCode?: string | string[] | ReadonlyArray<string>;
+  establishment: EstablishmentApi['id'];
+  geoCode: string[];
   id?: string;
   localId?: string;
   includes?: HousingInclude[];
@@ -209,44 +211,16 @@ async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
     table: housingTable
   });
 
-  const housing = await Housing()
-    .select(
-      `${housingTable}.*`,
-      `${buildingTable}.housing_count`,
-      `${buildingTable}.vacant_housing_count`,
-      `${localitiesTable}.locality_kind`,
-      db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude_dgfip, ${housingTable}.longitude_dgfip), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.latitude else null end) as latitude_ban`
-      ),
-      db.raw(
-        `(case when st_distancesphere(ST_MakePoint(${housingTable}.latitude_dgfip, ${housingTable}.longitude_dgfip), ST_MakePoint(${banAddressesTable}.latitude, ${banAddressesTable}.longitude)) < 200 then ${banAddressesTable}.longitude else null end) as longitude_ban`
-      )
-    )
+  const housing: HousingDBO | null = await fastListQuery({
+    filters: {
+      localities: opts.geoCode,
+      establishmentIds: [opts.establishment]
+    },
+    includes: opts.includes
+  })
     .where(whereOptions(opts))
-    .modify((query) => {
-      if (opts.geoCode) {
-        if (Array.isArray(opts.geoCode)) {
-          query.whereIn(`${housingTable}.geo_code`, opts.geoCode);
-        } else {
-          query.where(`${housingTable}.geo_code`, opts.geoCode);
-        }
-      }
-    })
-    .modify(include(opts.includes ?? []))
-    .leftJoin(
-      localitiesTable,
-      `${housingTable}.geo_code`,
-      `${localitiesTable}.geo_code`
-    )
-    .leftJoin(
-      buildingTable,
-      `${housingTable}.building_id`,
-      `${buildingTable}.id`
-    )
-    .joinRaw(
-      `left join ${banAddressesTable} on ${banAddressesTable}.ref_id = ${housingTable}.id and ${banAddressesTable}.address_kind='Housing'`
-    )
     .first();
+
   return housing ? parseHousingApi(housing) : null;
 }
 

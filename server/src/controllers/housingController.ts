@@ -72,6 +72,7 @@ async function get(request: Request, response: Response) {
   const localId = params.id.length === 12 ? params.id : undefined;
 
   const housing = await housingRepository.findOne({
+    establishment: establishment.id,
     geoCode: establishment.geoCodes,
     id,
     localId,
@@ -191,6 +192,7 @@ async function create(request: Request, response: Response) {
   const { auth, body, establishment } = request as AuthenticatedRequest;
 
   const existing = await housingRepository.findOne({
+    establishment: establishment.id,
     geoCode: establishment.geoCodes,
     localId: body.localId
   });
@@ -298,6 +300,7 @@ async function update(
   >;
 
   const housing = await housingRepository.findOne({
+    establishment: establishment.id,
     id: params.id,
     geoCode: establishment.geoCodes,
     includes: ['owner']

@@ -10,7 +10,7 @@ import {
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 
 import type { Selection } from '~/hooks/useSelection';
 import { HousingStates } from '../../models/HousingState';

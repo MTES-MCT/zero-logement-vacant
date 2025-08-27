@@ -1,7 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as yup from 'yup';
+import { object, string } from 'yup';
 
 import { HousingCountDTO } from '@zerologementvacant/models';
 import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
@@ -17,13 +17,11 @@ export interface CampaignCreationModalProps {
   onConfirm(payload: Payload): void;
 }
 
-const schema = yup.object({
-  title: yup
-    .string()
+const schema = object({
+  title: string()
     .max(64, 'La longueur maximale du titre est de 64 caractères.')
     .required('Veuillez donner un nom à la campagne pour confirmer.'),
-  description: yup
-    .string()
+  description: string()
     .max(1000, 'La longueur maximale de la description est de 1000 caractères.')
     .required('Veuillez donner une description à la campagne pour confirmer.')
 });

@@ -1,7 +1,7 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import { useState } from 'react';
 import {
   campaignDescriptionValidator,

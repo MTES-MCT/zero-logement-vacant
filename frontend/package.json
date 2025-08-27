@@ -74,8 +74,8 @@
     "uuid": "^9.0.1",
     "web-vitals": "^1.1.2",
     "whatwg-fetch": "^3.6.20",
-    "yup": "^0.32.11",
-    "yup-next": "npm:yup@1.7.0"
+    "yup": "npm:yup@1.6.1",
+    "yup-deprecated": "npm:yup@0.32.11"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

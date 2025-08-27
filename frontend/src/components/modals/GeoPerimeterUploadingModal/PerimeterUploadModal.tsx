@@ -1,7 +1,7 @@
 import { Upload } from '@codegouvfr/react-dsfr/Upload';
 import Grid from '@mui/material/Grid';
 import { useState } from 'react';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 
 import { fileValidator, useForm } from '../../../hooks/useForm';
 import AppHelp from '../../_app/AppHelp/AppHelp';

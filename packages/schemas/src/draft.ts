@@ -1,43 +1,58 @@
-import { array, object, ObjectSchema, string } from 'yup';
+import { array, object, ObjectSchema, string, tuple } from 'yup';
 
 import {
-  DraftCreationPayloadDTO,
-  SenderPayloadDTO,
-  SignatoryDTO
+  SignatoryDTO,
+  type DraftCreationPayload,
+  type DraftUpdatePayload,
+  type SenderPayload
 } from '@zerologementvacant/models';
 import { dateString } from './date-string';
 import { fileUpload } from './file-upload';
 
 export const signatory: ObjectSchema<SignatoryDTO> = object({
-  firstName: string().nullable().defined(),
-  lastName: string().nullable().defined(),
-  role: string().nullable().defined(),
+  firstName: string().trim().nullable().defined(),
+  lastName: string().trim().nullable().defined(),
+  role: string().trim().nullable().defined(),
   file: fileUpload.nullable().defined()
 });
 
-// @ts-expect-error: expects 2 signatories, but it cannot be the case when
-// defining the schema.
-export const sender: ObjectSchema<SenderPayloadDTO> = object({
+export const sender: ObjectSchema<SenderPayload> = object({
   name: string().nullable().defined(),
   service: string().nullable().defined(),
   firstName: string().nullable().defined(),
   lastName: string().nullable().defined(),
   address: string().nullable().defined(),
-  email: string().nullable().defined(),
-  phone: string().nullable().defined(),
-  signatories: array()
-    .of(signatory.nullable().defined())
-    .length(2)
+  email: string()
+    .trim()
+    .email('Veuillez renseigner un courriel valide')
+    .defined()
+    .nullable(),
+  phone: string()
+    .trim()
+    .defined()
+    .nullable()
+    .matches(/^\d{10}$/, {
+      message: 'Veuillez renseigner un numéro de téléphone valide',
+      excludeEmptyString: true
+    }),
+  signatories: tuple([
+    signatory.nullable().defined(),
+    signatory.nullable().defined()
+  ])
     .nullable()
     .defined()
 });
 
-export const draft: ObjectSchema<DraftCreationPayloadDTO> = object({
-  campaign: string().defined().uuid(),
-  subject: string().nullable().defined(),
+export const draftUpdatePayload: ObjectSchema<DraftUpdatePayload> = object({
+  subject: string().trim().nullable().defined(),
   body: string().nullable().defined(),
   logo: array().of(fileUpload).nullable().defined(),
-  sender: sender.nullable().defined(),
+  sender: sender.defined(),
   writtenAt: dateString.nullable().defined(),
   writtenFrom: string().nullable().defined()
 });
+
+export const draftCreationPayload: ObjectSchema<DraftCreationPayload> =
+  draftUpdatePayload.shape({
+    campaign: string().uuid().defined()
+  });

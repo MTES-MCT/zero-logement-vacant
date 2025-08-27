@@ -1,4 +1,4 @@
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import { ObjectShape } from 'yup/lib/object';
 
 import { entriesDeep, keysDeep } from '../useForm.tsx';

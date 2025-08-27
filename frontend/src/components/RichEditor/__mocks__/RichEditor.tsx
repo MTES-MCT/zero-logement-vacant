@@ -1,5 +1,5 @@
 import { ComponentPropsWithoutRef } from 'react';
-import { object } from 'yup';
+import { object } from 'yup-deprecated';
 
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../../hooks/useForm';

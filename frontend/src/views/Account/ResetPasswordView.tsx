@@ -1,7 +1,7 @@
 import { Col, Container, Row, Text } from '../../components/_dsfr';
 import { FormEvent, useState } from 'react';
 import building from '../../assets/images/building.svg';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,

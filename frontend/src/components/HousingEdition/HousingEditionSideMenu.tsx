@@ -13,7 +13,7 @@ import {
 import { fromJS } from 'immutable';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import { useNotification } from '../../hooks/useNotification';
 import { Housing, HousingUpdate } from '../../models/Housing';
 import { HousingStates } from '../../models/HousingState';

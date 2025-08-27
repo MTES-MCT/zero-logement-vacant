@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { EstablishmentDTO } from '@zerologementvacant/models';
 import { FormEvent, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';

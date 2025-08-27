@@ -2,7 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 
 import { HousingCountDTO } from '@zerologementvacant/models';
 import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';

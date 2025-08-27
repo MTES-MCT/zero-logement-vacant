@@ -63,37 +63,6 @@ async function list(
   response.status(constants.HTTP_STATUS_OK).json(drafts.map(toDraftDTO));
 }
 
-const partialDraftValidators: ValidationChain[] = [
-  body('body').optional({ nullable: true }).isString(),
-  body('sender').optional({ nullable: true }).isObject(),
-  body('logo').optional({ nullable: true }).isArray({ min: 0, max: 2 }),
-  body('logo.*.*').optional().isString(),
-  body('sender.signatoryFile').optional({ nullable: true }).isObject(),
-  body('sender.signatoryFile.*').optional().isString()
-];
-const senderValidators: ValidationChain[] = [
-  ...['name', 'service', 'firstName', 'lastName', 'address'].map((prop) =>
-    body(`sender.${prop}`)
-      .optional({ nullable: true })
-      .isString()
-      .withMessage(`${prop} must be a string`)
-      .trim()
-  ),
-  ...[
-    'email',
-    'phone',
-    'signatoryLastName',
-    'signatoryFirstName',
-    'signatoryRole'
-  ].map((prop) =>
-    body(`sender.${prop}`)
-      .optional({ nullable: true })
-      .isString()
-      .withMessage(`${prop} must be a string`)
-      .trim()
-  )
-];
-
 async function create(
   request: Request<never, DraftDTO, DraftCreationPayloadDTO, never>,
   response: Response<DraftDTO>
@@ -293,41 +262,13 @@ async function update(request: Request, response: Response<DraftDTO>) {
 
   response.status(constants.HTTP_STATUS_OK).json(toDraftDTO(updated));
 }
-const updateValidators: ValidationChain[] = [
-  isUUIDParam('id'),
-  body('subject')
-    .optional({ nullable: true })
-    .isString()
-    .withMessage('subject is required'),
-  body('body')
-    .optional({ nullable: true })
-    .isString()
-    .withMessage('body is required'),
-  body('writtenAt')
-    .optional({ nullable: true })
-    .isString()
-    .withMessage('writtenAt must be a string')
-    .trim()
-    .isLength({ min: 10, max: 10 })
-    .isISO8601({ strict: true, strictSeparator: true }),
-  body('writtenFrom')
-    .optional({ nullable: true })
-    .isString()
-    .withMessage('writtenFrom must be a string')
-    .trim()
-    .withMessage('writtenFrom is required'),
-  body('sender').isObject().withMessage('Sender must be an object'),
-  ...partialDraftValidators,
-  ...senderValidators
-];
 
 const draftController = {
   list,
   create,
   preview,
   previewValidators,
-  update,
-  updateValidators
+  update
 };
 
 export default draftController;

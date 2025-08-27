@@ -1,7 +1,7 @@
 import { Col, Row } from '../../components/_dsfr';
 import { useState } from 'react';
 import AppHelp from '../../components/_app/AppHelp/AppHelp';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import { useForm } from '../../hooks/useForm';
 import { DefaultOption, SelectOption } from '../../models/SelectOption';
 import AppLink from '../../components/_app/AppLink/AppLink';

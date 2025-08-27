@@ -1,7 +1,7 @@
 import { isDate } from 'date-fns';
 import { Array, pipe, Predicate, Record } from 'effect';
 import { useEffect, useRef, useState } from 'react';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import { ObjectShape } from 'yup/lib/object';
 import { parseDateInput } from '../utils/dateUtils';
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Col, Container, Row, Text } from '../../_dsfr';
 import { Owner } from '../../../models/Owner';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import {
   birthDateValidator,
   emailValidator,

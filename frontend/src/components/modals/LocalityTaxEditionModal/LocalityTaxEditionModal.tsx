@@ -1,7 +1,7 @@
 import { ChangeEvent, useMemo, useState } from 'react';
 import { Col, Container, Row } from '../../_dsfr';
 
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import { useForm } from '../../../hooks/useForm';
 import { Locality, TaxKinds, TaxKindsLabels } from '../../../models/Locality';
 import AppHelp from '../../_app/AppHelp/AppHelp';

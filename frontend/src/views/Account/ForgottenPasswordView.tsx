@@ -1,7 +1,7 @@
 import { Col, Container, Row, Text } from '../../components/_dsfr';
 import building from '../../assets/images/building.svg';
 import { useState } from 'react';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import resetLinkService from '../../services/reset-link.service';
 import classNames from 'classnames';

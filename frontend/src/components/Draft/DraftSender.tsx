@@ -1,36 +1,15 @@
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { object, string, type InferType } from 'yup-next';
 
+import type { DraftUpdatePayload } from '@zerologementvacant/models';
 import AppTextInputNext, {
   contramapEmptyString,
   mapNull
 } from '~/components/_app/AppTextInput/AppTextInputNext';
 import styles from './draft.module.scss';
 
-export const senderSchema = object({
-  name: string().trim().defined().nullable(),
-  service: string().trim().defined().nullable(),
-  firstName: string().trim().defined().nullable(),
-  lastName: string().trim().defined().nullable(),
-  address: string().trim().defined().nullable(),
-  email: string()
-    .trim()
-    .email('Veuillez renseigner un courriel valide')
-    .defined()
-    .nullable(),
-  phone: string()
-    .trim()
-    .defined()
-    .nullable()
-    .matches(/^\d{10}$/, {
-      message: 'Veuillez renseigner un numéro de téléphone valide',
-      excludeEmptyString: true
-    })
-});
-
-export type SenderSchema = InferType<typeof senderSchema>;
+export type SenderSchema = DraftUpdatePayload['sender'];
 
 function DraftSender() {
   return (

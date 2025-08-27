@@ -2,7 +2,7 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import { InputProps } from '@codegouvfr/react-dsfr/Input';
 import Grid from '@mui/material/Grid';
 import { forwardRef, useImperativeHandle, useState } from 'react';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { useForm } from '../../../hooks/useForm';
 import { unwrapError } from '../../../store/store';

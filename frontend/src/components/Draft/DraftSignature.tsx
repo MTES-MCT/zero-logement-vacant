@@ -1,12 +1,14 @@
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import { FileUploadDTO, type SignatoriesDTO } from '@zerologementvacant/models';
+import {
+  type DraftUpdatePayload,
+  type FileUploadDTO,
+  type SignatoriesDTO
+} from '@zerologementvacant/models';
 import { useId } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { match } from 'ts-pattern';
 
-import { array, mixed, object, string } from 'yup-next';
-import type { DraftCreationPayload } from '~/models/Draft';
 import AppTextInputNext, {
   contramapEmptyString,
   mapNull
@@ -15,29 +17,8 @@ import FileUpload from '../FileUpload/FileUpload';
 import styles from './draft.module.scss';
 import LogoViewer from './LogoViewer';
 
-export const signatureSchema = object({
-  signatories: array()
-    .of(
-      object({
-        firstName: string().trim().defined().nullable(),
-        lastName: string().trim().defined().nullable(),
-        role: string().trim().defined().nullable(),
-        file: mixed().defined().nullable()
-      }).nullable()
-    )
-    .nullable()
-});
-
-type Signatory = {
-  firstName: string | null;
-  lastName: string | null;
-  role: string | null;
-  file: FileUploadDTO | null;
-};
-export type SignatureSchema = [Signatory | null, Signatory | null] | null;
-
 function DraftSignature() {
-  const { watch, setValue } = useFormContext<DraftCreationPayload>();
+  const { watch, setValue } = useFormContext<DraftUpdatePayload>();
   const signatories = watch('sender.signatories');
 
   function onFileUpload(index: number, file: FileUploadDTO) {

@@ -1,7 +1,7 @@
-import { FileUploadDTO } from './FileUploadDTO';
-import { SenderDTO, SenderPayloadDTO } from './SenderDTO';
-import { HousingDTO } from './HousingDTO';
-import { OwnerDTO } from './OwnerDTO';
+import type { FileUploadDTO } from './FileUploadDTO';
+import type { SenderDTO, SenderPayload } from './SenderDTO';
+import type { HousingDTO } from './HousingDTO';
+import type { OwnerDTO } from './OwnerDTO';
 
 export interface DraftDTO {
   id: string;
@@ -15,24 +15,24 @@ export interface DraftDTO {
   updatedAt: string;
 }
 
-export interface DraftCreationPayloadDTO
+export interface DraftCreationPayload
   extends Pick<
     DraftDTO,
     'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
   > {
   campaign: string;
-  sender: SenderPayloadDTO | null;
+  sender: SenderPayload | null;
 }
 
-export interface DraftUpdatePayloadDTO
+export interface DraftUpdatePayload
   extends Pick<
     DraftDTO,
-    'id' | 'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
+    'subject' | 'body' | 'logo' | 'writtenAt' | 'writtenFrom'
   > {
-  sender: SenderPayloadDTO;
+  sender: SenderPayload;
 }
 
-export interface DraftPreviewPayloadDTO {
+export interface DraftPreviewPayload {
   housing: HousingDTO;
   owner: OwnerDTO;
 }

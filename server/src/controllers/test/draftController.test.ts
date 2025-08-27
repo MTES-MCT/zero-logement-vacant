@@ -3,8 +3,41 @@ import { fc, test } from '@fast-check/vitest';
 import { constants } from 'http2';
 import request from 'supertest';
 
+import {
+  DraftCreationPayloadDTO,
+  DraftDTO,
+  DraftUpdatePayloadDTO,
+  SenderPayloadDTO,
+  SignatoriesDTO,
+  SignatoryDTO,
+  type DraftCreationPayload,
+  type SenderPayload
+} from '@zerologementvacant/models';
+import fp from 'lodash/fp';
 import { createServer } from '~/infra/server';
+import { CampaignApi } from '../../models/CampaignApi';
 import { DraftApi, toDraftDTO } from '../../models/DraftApi';
+import { SenderApi } from '../../models/SenderApi';
+import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
+import {
+  Campaigns,
+  formatCampaignApi
+} from '../../repositories/campaignRepository';
+import {
+  DraftRecordDBO,
+  Drafts,
+  formatDraftApi
+} from '../../repositories/draftRepository';
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '../../repositories/establishmentRepository';
+import {
+  formatSenderApi,
+  SenderDBO,
+  Senders
+} from '../../repositories/senderRepository';
+import { formatUserApi, Users } from '../../repositories/userRepository';
 import {
   genCampaignApi,
   genDraftApi,
@@ -13,37 +46,6 @@ import {
   genUserApi
 } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
-import { CampaignApi } from '../../models/CampaignApi';
-import {
-  DraftRecordDBO,
-  Drafts,
-  formatDraftApi
-} from '../../repositories/draftRepository';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '../../repositories/campaignRepository';
-import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
-import {
-  DraftCreationPayloadDTO,
-  DraftDTO,
-  DraftUpdatePayloadDTO,
-  SenderPayloadDTO,
-  SignatoriesDTO,
-  SignatoryDTO
-} from '@zerologementvacant/models';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../../repositories/establishmentRepository';
-import { formatUserApi, Users } from '../../repositories/userRepository';
-import { SenderApi } from '../../models/SenderApi';
-import fp from 'lodash/fp';
-import {
-  formatSenderApi,
-  SenderDBO,
-  Senders
-} from '../../repositories/senderRepository';
 
 describe('Draft API', () => {
   let url: string;
@@ -138,7 +140,7 @@ describe('Draft API', () => {
     let campaign: CampaignApi;
     let draft: DraftApi;
     let sender: SenderApi;
-    let senderPayload: SenderPayloadDTO;
+    let senderPayload: SenderPayload;
 
     beforeEach(async () => {
       campaign = genCampaignApi(establishment.id, user.id);
@@ -160,7 +162,7 @@ describe('Draft API', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
     });
 
-    test.prop<DraftCreationPayloadDTO>({
+    test.prop<DraftCreationPayload>({
       campaign: fc.uuid({ version: 4 }),
       subject: fc.option(fc.string({ minLength: 1 })),
       body: fc.option(fc.string({ minLength: 1 })),

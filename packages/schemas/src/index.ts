@@ -1,9 +1,15 @@
 import { buildingFilters } from './building-filters';
 import { campaignCreationPayload } from './campaign-creation-payload';
 import { dateString } from './date-string';
-import { draft } from './draft';
+import {
+  draftCreationPayload,
+  draftUpdatePayload,
+  sender,
+  signatory
+} from './draft';
 import { email } from './email';
 import { establishmentFilters } from './establishment-filters';
+import { fileUpload } from './file-upload';
 import { geoCode } from './geo-code';
 import { groupCreationPayload } from './group-creation-payload';
 import { housingBatchUpdatePayload } from './housing-batch-update-payload';
@@ -21,9 +27,11 @@ const schemas = {
   buildingFilters,
   campaignCreationPayload,
   dateString,
-  draft,
+  draftCreationPayload,
+  draftUpdatePayload,
   email,
   establishmentFilters,
+  fileUpload,
   geoCode,
   groupCreationPayload,
   housingBatchUpdatePayload,
@@ -33,6 +41,8 @@ const schemas = {
   notePayload,
   password,
   passwordConfirmation,
+  sender,
+  signatory,
   siren
 };
 

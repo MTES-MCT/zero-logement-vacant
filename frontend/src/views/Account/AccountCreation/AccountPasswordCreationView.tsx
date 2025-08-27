@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Navigate, useNavigate } from 'react-router-dom';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 
 import {
   passwordConfirmationValidator,

@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 
 import { emailValidator } from '../../../hooks/useForm';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';

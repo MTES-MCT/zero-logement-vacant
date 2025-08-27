@@ -1,21 +1,18 @@
 import Typography from '@mui/material/Typography';
-import { FileUploadDTO } from '@zerologementvacant/models';
+import {
+  FileUploadDTO,
+  type DraftUpdatePayload
+} from '@zerologementvacant/models';
 import classNames from 'classnames';
 import { useFormContext } from 'react-hook-form';
-import { array, mixed, object } from 'yup-next';
 
 import { Container, Row } from '../_dsfr';
 import FileUpload from '../FileUpload/FileUpload';
 import styles from './draft.module.scss';
 import LogoViewer from './LogoViewer';
-import type { DraftCreationPayload } from '~/models/Draft';
-
-export const logoSchema = object({
-  logo: array().of(mixed()).default([])
-});
 
 function DraftSenderLogo() {
-  const { watch, setValue } = useFormContext<DraftCreationPayload>();
+  const { watch, setValue } = useFormContext<DraftUpdatePayload>();
   const files = watch('logo') as FileUploadDTO[];
 
   function onUpload(index: number) {

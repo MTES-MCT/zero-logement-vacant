@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import { FormEvent, useEffect, useState } from 'react';
 
 import Container from '@mui/material/Container';
-import { object } from 'yup';
+import { object } from 'yup-deprecated';
 import CampaignCounts from '../../components/Campaign/CampaignCounts';
 import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedFromGroup';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';

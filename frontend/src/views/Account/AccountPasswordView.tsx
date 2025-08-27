@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Col, Container, Row } from '../../components/_dsfr';
 
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator,

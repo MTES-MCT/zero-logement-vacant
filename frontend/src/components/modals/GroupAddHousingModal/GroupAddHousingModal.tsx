@@ -10,7 +10,7 @@ import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import AppInfo from '../../_app/AppInfo/AppInfo';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import { useForm } from '../../../hooks/useForm';
 
 interface Props {

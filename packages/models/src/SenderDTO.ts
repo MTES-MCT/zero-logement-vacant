@@ -28,7 +28,7 @@ export function isEmpty(signatory: SignatoryDTO): boolean {
   return pipe(signatory, Record.every(Predicate.isNull));
 }
 
-export type SenderPayloadDTO = Pick<
+export type SenderPayload = Pick<
   SenderDTO,
   | 'name'
   | 'service'

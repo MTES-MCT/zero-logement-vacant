@@ -217,14 +217,16 @@ router.get('/drafts', draftController.list);
 router.post(
   '/drafts',
   validatorNext.validate({
-    body: schemas.draft
+    body: schemas.draftCreationPayload
   }),
   draftController.create
 );
 router.put(
   '/drafts/:id',
-  draftController.updateValidators,
-  validator.validate,
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.draftUpdatePayload
+  }),
   draftController.update
 );
 router.post(

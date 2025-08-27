@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import { Group } from '../../../models/Group';

@@ -4,7 +4,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import classNames from 'classnames';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as yup from 'yup';
+import { object, string, type InferType } from 'yup';
 
 import { useNotification } from '~/hooks/useNotification';
 import { Campaign } from '../../models/Campaign';
@@ -20,16 +20,14 @@ const modal = createConfirmationModal({
   isOpenedByDefault: false
 });
 
-const schema = yup.object({
-  title: yup
-    .string()
+const schema = object({
+  title: string()
     .max(
       64,
       'La longueur maximale du titre de la campagne est de 64 caractères.'
     )
     .required('Veuillez renseigner le titre de la campagne.'),
-  description: yup
-    .string()
+  description: string()
     .max(
       1000,
       'La longueur maximale de la description de la campagne est de 1000 caractères.'
@@ -37,7 +35,7 @@ const schema = yup.object({
     .required('Veuillez renseigner la descripion de la campagne.')
 });
 
-type FormSchema = yup.InferType<typeof schema>;
+type FormSchema = InferType<typeof schema>;
 
 interface Props {
   campaign: Campaign;

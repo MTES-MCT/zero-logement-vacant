@@ -13,7 +13,7 @@ import { filter, groupBy } from 'effect/Array';
 import { useState } from 'react';
 import { useList } from 'react-use';
 
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import {
   banAddressValidator,
   dateValidator,

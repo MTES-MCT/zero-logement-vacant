@@ -5,7 +5,7 @@ import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import { Typography } from '@mui/material';
 import { useState } from 'react';
 
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 import {
   banAddressValidator,
   birthDateValidator,

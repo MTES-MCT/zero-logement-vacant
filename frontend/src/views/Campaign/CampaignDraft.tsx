@@ -6,8 +6,9 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
+import schemas from '@zerologementvacant/schemas';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as yupNext from 'yup-next';
+import { type InferType } from 'yup';
 
 import SendButton from '~/components/Draft/SendButton';
 import createSendModal from '~/components/Draft/SendModal';
@@ -21,16 +22,10 @@ import CampaignCreatedFromGroup from '../../components/Campaign/CampaignCreatedF
 import CampaignRecipients from '../../components/Campaign/CampaignRecipients';
 import CampaignTitle from '../../components/Campaign/CampaignTitle';
 import DraftBody from '../../components/Draft/DraftBody';
-import DraftMailInfo, {
-  writtenSchema
-} from '../../components/Draft/DraftMailInfo';
-import DraftSender, { senderSchema } from '../../components/Draft/DraftSender';
-import DraftSenderLogo, {
-  logoSchema
-} from '../../components/Draft/DraftSenderLogo';
-import DraftSignature, {
-  signatureSchema
-} from '../../components/Draft/DraftSignature';
+import DraftMailInfo from '../../components/Draft/DraftMailInfo';
+import DraftSender from '../../components/Draft/DraftSender';
+import DraftSenderLogo from '../../components/Draft/DraftSenderLogo';
+import DraftSignature from '../../components/Draft/DraftSignature';
 import PreviewButton from '../../components/Draft/PreviewButton';
 import SaveButton from '../../components/SaveButton/SaveButton';
 import { useCampaign } from '../../hooks/useCampaign';
@@ -43,16 +38,7 @@ import {
 } from '../../services/draft.service';
 import styles from './campaign.module.scss';
 
-const schemaNext = yupNext
-  .object({
-    subject: yupNext.string().defined().nullable().default(null),
-    body: yupNext.string().defined().nullable().default(null),
-    sender: senderSchema.concat(signatureSchema)
-  })
-  .concat(logoSchema)
-  .concat(writtenSchema);
-
-type FormSchema = yupNext.InferType<typeof schemaNext>;
+type FormSchema = InferType<typeof schemas.draftUpdatePayload>;
 
 const sendModal = createSendModal();
 
@@ -82,7 +68,7 @@ function CampaignDraft(props: Readonly<CampaignDraftProps>) {
       writtenFrom: draft?.writtenFrom ?? null
     },
     mode: 'onSubmit',
-    resolver: yupResolver(schemaNext)
+    resolver: yupResolver(schemas.draftUpdatePayload)
   });
 
   const hasChanges = form.formState.isDirty;
@@ -128,7 +114,11 @@ function CampaignDraft(props: Readonly<CampaignDraftProps>) {
           title="Vérification des adresses propriétaires et édition de votre courrier"
         />
         <Box sx={{ alignSelf: 'flex-end' }}>
-          <SendButton onClick={sendModal.open} />
+          <SendButton
+            onClick={form.handleSubmit(() => {
+              sendModal.open();
+            })}
+          />
           <sendModal.Component onSend={send} />
         </Box>
       </Stack>
@@ -193,7 +183,6 @@ function CampaignDraft(props: Readonly<CampaignDraftProps>) {
                       className="fr-mt-2w fr-mb-2w"
                     />
                     <DeprecatedContainer as="section" fluid>
-                      {JSON.stringify(form.getValues())}
                       <Row justifyContent="right" spacing="mb-2w">
                         <SaveButton
                           className="fr-mr-1w"

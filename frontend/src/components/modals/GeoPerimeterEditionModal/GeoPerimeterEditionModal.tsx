@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as yup from 'yup';
+import * as yup from 'yup-deprecated';
 
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import { GeoPerimeter } from '../../../models/GeoPerimeter';

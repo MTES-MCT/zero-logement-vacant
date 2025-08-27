@@ -3,7 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Grid, Typography } from '@mui/material';
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { InferType, number, object, string } from 'yup';
+import { InferType, number, object, string } from 'yup-deprecated';
 
 import { useNotification } from '../../hooks/useNotification';
 import { Owner } from '../../models/Owner';

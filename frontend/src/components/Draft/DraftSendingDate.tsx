@@ -1,4 +1,4 @@
-import { string } from 'yup';
+import { string } from 'yup-deprecated';
 
 import { useForm } from '../../hooks/useForm';
 import { Container } from '../_dsfr';

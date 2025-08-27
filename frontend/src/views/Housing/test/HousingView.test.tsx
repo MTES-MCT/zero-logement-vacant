@@ -412,7 +412,7 @@ describe('Housing view', () => {
       });
 
       const tab = await screen.findByRole('tab', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       await user.click(tab);
       const createNote = await screen.findByRole('button', {
@@ -471,7 +471,7 @@ describe('Housing view', () => {
       });
 
       const tab = await screen.findByRole('tab', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       await user.click(tab);
       const author = await screen.findByRole('combobox', {
@@ -506,7 +506,7 @@ describe('Housing view', () => {
       });
 
       const tab = await screen.findByRole('tab', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       await user.click(tab);
       const input = await screen.findByLabelText('Date de création');
@@ -526,7 +526,7 @@ describe('Housing view', () => {
       });
 
       const tab = await screen.findByRole('tab', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       await user.click(tab);
       let type = await screen.findByRole('combobox', {
@@ -572,7 +572,7 @@ describe('Housing view', () => {
       });
 
       const history = await screen.findByRole('tab', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       await user.click(history);
       const edit = await screen.findByRole('button', {
@@ -610,7 +610,7 @@ describe('Housing view', () => {
       });
 
       const history = await screen.findByRole('tab', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       await user.click(history);
 
@@ -642,7 +642,7 @@ describe('Housing view', () => {
       const { note } = renderViewAs(UserRole.ADMIN);
 
       const history = await screen.findByRole('tab', {
-        name: 'Historique et notes'
+        name: 'Notes et historique'
       });
       await user.click(history);
       const remove = await screen.findByRole('button', {

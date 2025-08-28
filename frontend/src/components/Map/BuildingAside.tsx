@@ -107,7 +107,14 @@ function BuildingAside(props: BuildingAsideProps) {
               }
             >
               <Stack sx={{ alignItems: 'flex-start' }}>
-                <Label>Propriétaire principal</Label>
+                <Label>
+                  <span
+                    className={fr.cx('fr-icon--sm', 'fr-icon-user-fill')}
+                    style={{ marginRight: '0.25rem' }}
+                    aria-hidden
+                  />
+                  <span>Propriétaire principal</span>
+                </Label>
                 <AppLink isSimple to={`/proprietaires/${housing.owner.id}`}>
                   {housing.owner.fullName}
                 </AppLink>

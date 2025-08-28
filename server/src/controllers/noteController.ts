@@ -24,6 +24,7 @@ const findByHousing: RequestHandler<PathParams, NoteDTO[]> = async (
 
   logger.debug('Finding notes by housing...', { housing: params.id });
   const housing = await housingRepository.findOne({
+    establishment: establishment.id,
     geoCode: establishment.geoCodes,
     id: params.id
   });
@@ -52,6 +53,7 @@ async function createByHousing(
   logger.debug('Create a note by housing', { housing: params.id, note: body });
 
   const housing = await housingRepository.findOne({
+    establishment: establishment.id,
     geoCode: establishment.geoCodes,
     id: params.id
   });

@@ -12083,6 +12083,7 @@ __metadata:
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:^3.2.6"
     classnames: "npm:^2.5.1"
+    copyfiles: "npm:^2.4.1"
     date-fns: "npm:^2.30.0"
     effect: "npm:^3.17.7"
     fetch-intercept: "npm:^2.4.0"

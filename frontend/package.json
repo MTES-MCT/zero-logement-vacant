@@ -5,7 +5,7 @@
   "scripts": {
     "icons": "react-dsfr update-icons",
     "prebuild": "yarn icons",
-    "postbuild": "tsx src/scripts/generate-building-images.ts",
+    "postbuild": "tsx src/scripts/generate-building-images.ts && cp -r public/map dist/map",
     "predev": "yarn icons",
     "postinstall": "copy-dsfr-to-public"
   },

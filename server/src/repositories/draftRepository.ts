@@ -12,6 +12,7 @@ import {
 import { download } from '~/controllers/fileRepository';
 import async from 'async';
 import { FileUploadDTO } from '@zerologementvacant/models';
+import { Predicate, Tuple } from 'effect';
 
 const logger = createLogger('draftRepository');
 
@@ -128,7 +129,7 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
   id: draft.id,
   subject: draft.subject,
   body: draft.body,
-  logo: draft.logo?.map((logo) => logo.id) ?? null,
+  logo: draft.logo?.filter(Predicate.isNotNull)?.map((logo) => logo.id) ?? null,
   written_at: draft.writtenAt,
   written_from: draft.writtenFrom,
   establishment_id: draft.establishmentId,
@@ -138,11 +139,13 @@ export const formatDraftApi = (draft: DraftApi): DraftRecordDBO => ({
 });
 
 export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
-  let logo: FileUploadDTO[] | null = null;
+  let logo: [FileUploadDTO, FileUploadDTO] | null = null;
 
   if (Array.isArray(draft.logo)) {
     try {
-      logo = await Promise.all(draft.logo.map(download));
+      logo = (await Promise.all(
+        Tuple.map(draft.logo, (logo) => download(logo))
+      )) as [FileUploadDTO, FileUploadDTO];
     } catch {
       logo = null;
     }
@@ -159,7 +162,7 @@ export const parseDraftApi = async (draft: DraftDBO): Promise<DraftApi> => {
     senderId: draft.sender_id,
     sender: await parseSenderApi(draft.sender),
     createdAt: draft.created_at.toJSON(),
-    updatedAt: draft.updated_at.toJSON(),
+    updatedAt: draft.updated_at.toJSON()
   };
 };
 

@@ -4,13 +4,11 @@ import { constants } from 'http2';
 import request from 'supertest';
 
 import {
-  DraftCreationPayloadDTO,
+  DraftCreationPayload,
   DraftDTO,
-  DraftUpdatePayloadDTO,
-  SenderPayloadDTO,
   SignatoriesDTO,
   SignatoryDTO,
-  type DraftCreationPayload,
+  type DraftUpdatePayload,
   type SenderPayload
 } from '@zerologementvacant/models';
 import fp from 'lodash/fp';
@@ -46,6 +44,7 @@ import {
   genUserApi
 } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
+import { Predicate } from 'effect';
 
 describe('Draft API', () => {
   let url: string;
@@ -123,7 +122,7 @@ describe('Draft API', () => {
 
       const draftDTO = toDraftDTO(firstDraft);
       // Overwriting because S3 is not mocked, causing it to fail, and there is no logo available
-      draftDTO.logo = [];
+      draftDTO.logo = null;
       draftDTO.sender.signatories?.forEach((signatory) => {
         if (signatory) {
           signatory.file = null;
@@ -166,7 +165,7 @@ describe('Draft API', () => {
       campaign: fc.uuid({ version: 4 }),
       subject: fc.option(fc.string({ minLength: 1 })),
       body: fc.option(fc.string({ minLength: 1 })),
-      logo: fc.constant([]),
+      logo: fc.constant(null),
       writtenAt: fc.option(
         fc
           .date({
@@ -178,7 +177,7 @@ describe('Draft API', () => {
       ),
       writtenFrom: fc.option(fc.string({ minLength: 1 })),
       sender: fc.option(
-        fc.record<SenderPayloadDTO>({
+        fc.record<SenderPayload>({
           name: fc.option(fc.string({ minLength: 1 })),
           service: fc.option(fc.string({ minLength: 1 })),
           firstName: fc.option(fc.string({ minLength: 1 })),
@@ -219,11 +218,10 @@ describe('Draft API', () => {
 
     it('should fail if the campaign to attach is missing', async () => {
       const missingCampaign = genCampaignApi(anotherEstablishment.id, user.id);
-      const payload: DraftCreationPayloadDTO = {
+      const payload: DraftCreationPayload = {
         subject: draft.subject,
         body: draft.body,
-        // TODO: test with logo
-        logo: [],
+        logo: null,
         campaign: missingCampaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
@@ -239,10 +237,10 @@ describe('Draft API', () => {
     });
 
     it('should create a draft', async () => {
-      const payload: DraftCreationPayloadDTO = {
+      const payload: DraftCreationPayload = {
         subject: draft.subject,
         body: draft.body,
-        logo: [],
+        logo: null,
         campaign: campaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
@@ -279,7 +277,9 @@ describe('Draft API', () => {
         id: body.id,
         subject: payload.subject,
         body: payload.body,
-        logo: payload.logo?.map((logo) => logo.id) ?? null,
+        logo:
+          payload.logo?.filter(Predicate.isNotNull)?.map((logo) => logo.id) ??
+          null,
         sender_id: expect.any(String),
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
@@ -290,10 +290,10 @@ describe('Draft API', () => {
     });
 
     it('should attach the draft to a campaign', async () => {
-      const payload: DraftCreationPayloadDTO = {
+      const payload: DraftCreationPayload = {
         subject: draft.subject,
         body: draft.body,
-        logo: [],
+        logo: null,
         campaign: campaign.id,
         sender: senderPayload,
         writtenAt: draft.writtenAt,
@@ -319,16 +319,15 @@ describe('Draft API', () => {
 
     let draft: DraftApi;
     let sender: SenderApi;
-    let payload: DraftUpdatePayloadDTO;
+    let payload: DraftUpdatePayload;
 
     beforeEach(async () => {
       sender = genSenderApi(establishment);
       draft = genDraftApi(establishment, sender);
       payload = {
-        id: draft.id,
         subject: faker.lorem.sentence(),
         body: faker.lorem.paragraph(),
-        logo: [],
+        logo: null,
         sender: fp.omit(['id', 'createdAt', 'updatedAt'], sender),
         writtenAt: faker.date.recent().toISOString().substring(0, 10),
         writtenFrom: faker.location.city()
@@ -416,7 +415,9 @@ describe('Draft API', () => {
         id: draft.id,
         subject: payload.subject,
         body: payload.body,
-        logo: payload.logo?.map((logo) => logo.id) ?? null,
+        logo:
+          payload.logo?.filter(Predicate.isNotNull)?.map((logo) => logo.id) ??
+          null,
         written_at: payload.writtenAt,
         written_from: payload.writtenFrom,
         created_at: expect.any(Date),

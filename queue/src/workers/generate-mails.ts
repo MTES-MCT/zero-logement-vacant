@@ -1,5 +1,4 @@
 import { Upload } from '@aws-sdk/lib-storage';
-
 import { createSDK } from '@zerologementvacant/api-sdk';
 import { pdf } from '@zerologementvacant/draft';
 import {
@@ -8,11 +7,12 @@ import {
   replaceVariables
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
-import { createS3, map, collect, tap } from '@zerologementvacant/utils/node';
+import { collect, createS3, map, tap } from '@zerologementvacant/utils/node';
 import archiver from 'archiver';
 import { Worker, WorkerOptions } from 'bullmq';
 import { Readable } from 'node:stream';
 import { parseRedisUrl } from 'parse-redis-url-simple';
+
 import config from '../config';
 import { Jobs } from '../jobs';
 import { createLogger } from '../logger';
@@ -111,11 +111,7 @@ export default function createWorker() {
 
                 return transformer.generatePDF({
                   subject: draft.subject ?? '',
-                  logo:
-                    draft.logo?.map((logo) => ({
-                      id: logo.id,
-                      content: logo.content
-                    })) ?? null,
+                  logo: draft.logo?.filter((logo) => logo !== null) ?? null,
                   watermark: false,
                   body: draft.body
                     ? replaceVariables(draft.body, {

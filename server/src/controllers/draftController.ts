@@ -10,6 +10,7 @@ import {
   replaceVariables
 } from '@zerologementvacant/models';
 import { not } from '@zerologementvacant/utils';
+import { Predicate } from 'effect';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
@@ -135,7 +136,10 @@ async function preview(
   const transformer = pdf.createTransformer({ logger });
   const pdfBuffer = await transformer.generatePDF({
     subject: draft.subject,
-    logo: draft.logo?.map((logo) => pick(logo, 'id', 'content')) ?? null,
+    logo:
+      draft.logo
+        ?.filter(Predicate.isNotNull)
+        ?.map((logo) => pick(logo, 'id', 'content')) ?? null,
     body: draft.body
       ? replaceVariables(draft.body, {
           housing: body.housing,

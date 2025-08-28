@@ -821,7 +821,7 @@ export function genDraftApi(
     id: uuidv4(),
     subject: faker.lorem.sentence(),
     body: faker.lorem.paragraph(),
-    logo: [],
+    logo: null,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     sender,

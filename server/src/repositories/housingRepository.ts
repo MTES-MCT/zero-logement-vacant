@@ -199,7 +199,12 @@ async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
 }
 
 interface FindOneOptions {
-  establishment: EstablishmentApi['id'];
+  /**
+   * Required if you want to restrict
+   * the housing’s campaigns to a specific establishment.
+   * Otherwise, all campaigns will be included.
+   */
+  establishment?: EstablishmentApi['id'];
   geoCode: string[];
   id?: string;
   localId?: string;
@@ -214,7 +219,7 @@ async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
   const housing: HousingDBO | null = await fastListQuery({
     filters: {
       localities: opts.geoCode,
-      establishmentIds: [opts.establishment]
+      establishmentIds: opts.establishment ? [opts.establishment] : undefined
     },
     includes: opts.includes
   })

@@ -226,7 +226,7 @@ export function genDatafoncierHousingDTO(
 
 export function genDraftDTO(
   sender: SenderDTO,
-  logo?: FileUploadDTO[]
+  logo?: [FileUploadDTO, FileUploadDTO]
 ): DraftDTO {
   return {
     id: faker.string.uuid(),

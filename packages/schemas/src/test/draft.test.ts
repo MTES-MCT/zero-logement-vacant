@@ -28,7 +28,12 @@ describe('Draft schema', () => {
     test.prop<DraftUpdatePayload>({
       subject: fc.option(fc.stringMatching(/\S+/)),
       body: fc.option(fc.stringMatching(/\S+/)),
-      logo: fc.option(fc.array(fileUpload(), { minLength: 1, maxLength: 2 })),
+      logo: fc.option(
+        fc.tuple(
+          fc.option<FileUploadDTO>(fileUpload()),
+          fc.option<FileUploadDTO>(fileUpload())
+        )
+      ),
       sender: fc.record({
         name: fc.option(fc.stringMatching(/\S+/)),
         service: fc.option(fc.stringMatching(/\S+/)),

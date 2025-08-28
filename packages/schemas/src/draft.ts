@@ -1,4 +1,4 @@
-import { array, object, ObjectSchema, string, tuple } from 'yup';
+import { object, ObjectSchema, string, tuple } from 'yup';
 
 import {
   SignatoryDTO,
@@ -46,7 +46,12 @@ export const sender: ObjectSchema<SenderPayload> = object({
 export const draftUpdatePayload: ObjectSchema<DraftUpdatePayload> = object({
   subject: string().trim().nullable().defined(),
   body: string().nullable().defined(),
-  logo: array().of(fileUpload).nullable().defined(),
+  logo: tuple([
+    fileUpload.nullable().defined(),
+    fileUpload.nullable().defined()
+  ])
+    .nullable()
+    .defined(),
   sender: sender.defined(),
   writtenAt: dateString.nullable().defined(),
   writtenFrom: string().nullable().defined()

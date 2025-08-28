@@ -7,7 +7,7 @@ export interface DraftDTO {
   id: string;
   subject: string | null;
   body: string | null;
-  logo: FileUploadDTO[] | null;
+  logo: [FileUploadDTO | null, FileUploadDTO | null] | null;
   sender: SenderDTO;
   writtenAt: string | null;
   writtenFrom: string | null;

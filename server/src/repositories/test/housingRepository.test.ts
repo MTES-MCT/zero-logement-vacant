@@ -2296,7 +2296,7 @@ describe('Housing repository', () => {
 
     it('should find by id', async () => {
       const actual = await housingRepository.findOne({
-        geoCode: housing.geoCode,
+        geoCode: [housing.geoCode],
         id: housing.id
       });
 
@@ -2305,7 +2305,7 @@ describe('Housing repository', () => {
 
     it('should find by local id', async () => {
       const actual = await housingRepository.findOne({
-        geoCode: housing.geoCode,
+        geoCode: [housing.geoCode],
         localId: housing.localId
       });
 
@@ -2314,7 +2314,7 @@ describe('Housing repository', () => {
 
     it('should not include owner by default', async () => {
       const actual = await housingRepository.findOne({
-        geoCode: housing.geoCode,
+        geoCode: [housing.geoCode],
         id: housing.id
       });
 
@@ -2323,7 +2323,7 @@ describe('Housing repository', () => {
 
     it('should include owner on demand', async () => {
       const actual = await housingRepository.findOne({
-        geoCode: housing.geoCode,
+        geoCode: [housing.geoCode],
         id: housing.id,
         includes: ['owner']
       });
@@ -2334,7 +2334,7 @@ describe('Housing repository', () => {
 
     it('should include the BAN address', async () => {
       const actual = await housingRepository.findOne({
-        geoCode: housing.geoCode,
+        geoCode: [housing.geoCode],
         id: housing.id,
         includes: ['owner']
       });

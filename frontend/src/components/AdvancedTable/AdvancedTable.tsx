@@ -1,25 +1,27 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import {
   Pagination as TablePagination,
-  PaginationProps as TablePaginationProps
+  type PaginationProps as TablePaginationProps
 } from '@codegouvfr/react-dsfr/Pagination';
-import Select, { SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
-import { TableProps } from '@codegouvfr/react-dsfr/Table';
+import Select, { type SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
+import { type TableProps } from '@codegouvfr/react-dsfr/Table';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import {
   flexRender,
   getCoreRowModel,
-  RowSelectionState,
-  TableOptions,
+  getPaginationRowModel,
+  type RowSelectionState,
+  type TableOptions,
   useReactTable
 } from '@tanstack/react-table';
-import { memo, MouseEvent } from 'react';
+import { memo, type MouseEvent } from 'react';
 
-import { Selection } from '../../hooks/useSelection';
+import { type Selection } from '../../hooks/useSelection';
 import SingleCheckbox from '../_app/AppCheckbox/SingleCheckbox';
 import styles from './advanced-table.module.scss';
+import classNames from 'classnames';
 
 export type AdvancedTableProps<Data extends object> = Pick<
   TableOptions<Data>,
@@ -35,6 +37,12 @@ export type AdvancedTableProps<Data extends object> = Pick<
     tableProps?: Omit<TableProps, 'headers' | 'data'>;
     selection?: Selection;
     onSelectionChange?(selection: Selection): void;
+    /**
+     * Generate an accessible label for row selection checkbox
+     * @param row The table row data
+     * @returns Accessible label for the checkbox
+     */
+    getRowSelectionLabel?(row: Data): string;
   };
 
 interface PaginationProps {
@@ -75,12 +83,18 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 
   const enableSelection = props.selection !== undefined;
 
+  const paginate = props.paginate ?? true;
+  const manualPagination = [props.page, props.pageCount, props.perPage].some(
+    (prop) => prop !== undefined
+  );
+
   const table = useReactTable<Data>({
-    manualPagination: true,
+    manualPagination: manualPagination,
     manualSorting: true,
     ...props,
     data: props.data ?? [],
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     enableRowSelection: enableSelection,
     enableMultiRowSelection: enableSelection,
     state: {
@@ -98,8 +112,6 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   const headers = table.getLeafHeaders();
   const rows = table.getRowModel().rows;
 
-  const paginate = props.paginate ?? true;
-
   if (props?.isLoading) {
     return (
       <Skeleton
@@ -112,7 +124,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   }
 
   return (
-    <Stack sx={{ maxWidth: '100%' }}>
+    <Stack sx={{ width: '100%' }}>
       <div
         className={fr.cx('fr-table', {
           [fr.cx('fr-table--no-scroll')]: props.tableProps?.noScroll,
@@ -138,6 +150,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                             label: null,
                             nativeInputProps: {
                               checked: all,
+                              'aria-label': 'Sélectionner tous les éléments',
                               onChange: () => {
                                 setAll(!all);
                               }
@@ -175,6 +188,9 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                               nativeInputProps: {
                                 value: row.id,
                                 checked: all !== row.getIsSelected(),
+                                'aria-label':
+                                  props.getRowSelectionLabel?.(row.original) ??
+                                  'Sélectionner cet élément',
                                 onChange: () => {
                                   row.toggleSelected();
                                 }
@@ -186,7 +202,13 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 
                       {row.getVisibleCells().map((cell, j) => {
                         return (
-                          <td key={j} className={styles.cell}>
+                          <td
+                            key={j}
+                            className={classNames(
+                              styles.cell,
+                              fr.cx('fr-cell--multiline')
+                            )}
+                          >
                             <Box
                               sx={{
                                 display: 'flex',
@@ -221,22 +243,44 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
             className={fr.cx('fr-mr-2w')}
             label={null}
             nativeSelectProps={{
-              value: props.perPage?.toString(),
+              value: manualPagination
+                ? props.perPage?.toString()
+                : table.getState().pagination.pageSize.toString(),
               onChange: (event) => {
-                props.onPerPageChange?.(Number(event.target.value));
+                if (manualPagination) {
+                  props.onPerPageChange?.(Number(event.target.value));
+                } else {
+                  table.setPagination({
+                    ...table.getState().pagination,
+                    pageSize: Number(event.target.value)
+                  });
+                }
               }
             }}
             options={PER_PAGE_OPTIONS}
           />
           <TablePagination
             {...props.paginationProps}
-            count={props.pageCount ?? 1}
-            defaultPage={props.page}
+            count={
+              manualPagination ? (props.pageCount ?? 1) : table.getPageCount()
+            }
+            defaultPage={
+              manualPagination
+                ? props.page
+                : table.getState().pagination.pageIndex + 1
+            }
             getPageLinkProps={(page: number) => ({
               to: '#',
               onClick: (event: MouseEvent) => {
                 event.preventDefault();
-                props.onPageChange?.(page);
+                if (manualPagination) {
+                  props.onPageChange?.(page);
+                } else {
+                  table.setPagination({
+                    ...table.getState().pagination,
+                    pageIndex: page - 1
+                  });
+                }
               }
             })}
             showFirstLast

@@ -209,11 +209,12 @@ function HousingList(props: HousingListProps) {
             >
               <Button
                 title="Mettre à jour"
-                iconId="fr-icon-edit-line"
                 size="small"
                 priority="secondary"
                 onClick={() => setUpdatingHousing(row.original)}
-              />
+              >
+                Éditer
+              </Button>
             </Stack>
           );
         }
@@ -236,12 +237,15 @@ function HousingList(props: HousingListProps) {
         columns={columns}
         data={housingList ?? []}
         getRowId={(housing) => housing.id}
+        getRowSelectionLabel={(housing) =>
+          `Sélectionner le logement "${housing.rawAddress.join(', ')}"`
+        }
         isLoading={isFetchHousings}
         page={page}
         pageCount={pageCount}
         perPage={perPage}
         selection={selected}
-        tableProps={{ noCaption: true, noScroll: true }}
+        tableProps={{ noCaption: true }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
         onSelectionChange={setSelected}

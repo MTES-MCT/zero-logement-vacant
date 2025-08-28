@@ -1,42 +1,12 @@
-// job-manager-cli.ts
+// job-manager-cli.js
 import 'dotenv/config';
 import IORedis from 'ioredis';
-import { Queue, Job } from 'bullmq';
-
-interface JobError {
-  reason: string;
-  stack?: string[] | null;
-  note?: string;
-}
-
-interface DelayInfo {
-  delay?: number;
-  processedOn?: number;
-  finishedOn?: number;
-}
-
-interface JobResult {
-  id: string;
-  name: string;
-  status: string;
-  timestamp: number;
-  attemptsMade: number;
-  data: any;
-  error: JobError | null;
-  delayInfo: DelayInfo | null;
-}
-
-interface RetryResult {
-  success: number;
-  errors: string[];
-}
-
-type JobStatus = 'waiting' | 'delayed' | 'active' | 'completed' | 'failed';
+import { Queue } from 'bullmq';
 
 /**
  * Validates if a string is a valid UUID
  */
-function isValidUUID(str: string): boolean {
+function isValidUUID(str) {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);
 }
@@ -45,11 +15,11 @@ function isValidUUID(str: string): boolean {
  * Searches for all jobs with job.data.campaignId = campaignId
  */
 async function findJobsByCampaign(
-  queue: Queue,
-  campaignId: string,
-  statuses: JobStatus[] = ['waiting', 'delayed', 'active', 'completed', 'failed']
-): Promise<JobResult[]> {
-  const results: JobResult[] = [];
+  queue,
+  campaignId,
+  statuses = ['waiting', 'delayed', 'active', 'completed', 'failed']
+) {
+  const results = [];
   const BATCH_SIZE = 100; // Process jobs in batches
 
   for (const status of statuses) {
@@ -77,8 +47,8 @@ async function findJobsByCampaign(
             foundJobsForStatus++;
             
             // Get error information and additional details
-            let errorInfo: JobError | null = null;
-            let delayInfo: DelayInfo | null = null;
+            let errorInfo = null;
+            let delayInfo = null;
             
             if (status === 'failed' && job.failedReason) {
               errorInfo = {
@@ -106,8 +76,8 @@ async function findJobsByCampaign(
             }
             
             results.push({
-              id: job.id!,
-              name: job.name!,
+              id: job.id,
+              name: job.name,
               status: status,
               timestamp: job.timestamp,
               attemptsMade: job.attemptsMade,
@@ -144,12 +114,12 @@ async function findJobsByCampaign(
  * Creates and launches a new job
  */
 async function createJob(
-  queue: Queue,
-  jobName: string,
-  campaignId: string,
-  establishmentId: string,
-  additionalData: Record<string, any> = {}
-): Promise<Job> {
+  queue,
+  jobName,
+  campaignId,
+  establishmentId,
+  additionalData = {}
+) {
   const jobData = {
     campaignId,
     establishmentId,
@@ -163,11 +133,11 @@ async function createJob(
 /**
  * Retries failed and delayed jobs for a specific campaign
  */
-async function retryJobsByCampaign(queue: Queue, campaignId: string): Promise<RetryResult> {
+async function retryJobsByCampaign(queue, campaignId) {
   console.log(`Looking for failed and delayed jobs with campaignId: ${campaignId}`);
   
   // Find failed and delayed jobs for this campaign
-  const jobsToRetry = await findJobsByCampaign(queue, campaignId, ['failed', 'delayed']);
+  const jobsToRetry = await findJobsByCampaign(queue, campaignId, ['failed', 'delayed', 'completed']);
   
   if (jobsToRetry.length === 0) {
     console.log('No failed or delayed jobs found for this campaign.');
@@ -177,11 +147,13 @@ async function retryJobsByCampaign(queue: Queue, campaignId: string): Promise<Re
   console.log(`Found ${jobsToRetry.length} job(s) to retry:`);
   const failedCount = jobsToRetry.filter(j => j.status === 'failed').length;
   const delayedCount = jobsToRetry.filter(j => j.status === 'delayed').length;
+  const completedCount = jobsToRetry.filter(j => j.status === 'completed').length;
   console.log(`  - ${failedCount} failed job(s)`);
   console.log(`  - ${delayedCount} delayed job(s)`);
+  console.log(`  - ${completedCount} completed job(s)`);
   
   let successCount = 0;
-  const errors: string[] = [];
+  const errors = [];
 
   for (const jobInfo of jobsToRetry) {
     try {
@@ -204,6 +176,17 @@ async function retryJobsByCampaign(queue: Queue, campaignId: string): Promise<Re
         await job.promote();
         successCount++;
         console.log(`✅ Promoted delayed job ${job.id} (${job.name}) to run immediately`);
+      } else if (jobInfo.status === 'completed') {
+        // For completed jobs, we create a new job
+        console.log(`ℹ️  Job ${job.id} (${job.name}) is completed. Creating a new job with the same data.`);
+        console.log(`   Original job data: ${JSON.stringify(job.data)}`);
+        const newJob = await queue.add(
+          job.name,
+          job.data,
+          job.opts
+        );
+        successCount++;
+        console.log(`✅ Re-processed completed job ${job.id} (${job.name}), new job: ${newJob.id} (${newJob.name})`);
       }
       
     } catch (error) {
@@ -220,7 +203,7 @@ async function retryJobsByCampaign(queue: Queue, campaignId: string): Promise<Re
 /**
  * Retries a specific job by ID
  */
-async function retryJobById(queue: Queue, jobId: string): Promise<boolean> {
+async function retryJobById(queue, jobId) {
   try {
     const job = await queue.getJob(jobId);
     
@@ -256,15 +239,15 @@ async function retryJobById(queue: Queue, jobId: string): Promise<boolean> {
 /**
  * Displays help information
  */
-function showHelp(): void {
+function showHelp() {
   console.log(`
 Job Manager CLI
 
 Usage:
-  npx ts-node job-manager-cli.ts search <queueName> <campaignId>
-  npx ts-node job-manager-cli.ts create <queueName> <jobName> <campaignId> <establishmentId>
-  npx ts-node job-manager-cli.ts retry <queueName> <campaignId>
-  npx ts-node job-manager-cli.ts retry <queueName> --job-id <jobId>
+  node job-manager-cli.js search <queueName> <campaignId>
+  node job-manager-cli.js create <queueName> <jobName> <campaignId> <establishmentId>
+  node job-manager-cli.js retry <queueName> <campaignId>
+  node job-manager-cli.js retry <queueName> --job-id <jobId>
 
 Commands:
   search    Search for jobs by campaignId
@@ -279,14 +262,14 @@ Arguments:
   jobId            Specific job ID to retry
 
 Examples:
-  npx ts-node job-manager-cli.ts search email-queue 123e4567-e89b-12d3-a456-426614174000
-  npx ts-node job-manager-cli.ts create email-queue send-newsletter 123e4567-e89b-12d3-a456-426614174000 987fcdeb-51d3-4a2b-9876-543210987654
-  npx ts-node job-manager-cli.ts retry email-queue 123e4567-e89b-12d3-a456-426614174000
-  npx ts-node job-manager-cli.ts retry email-queue --job-id 12345
+  node job-manager-cli.js search email-queue 123e4567-e89b-12d3-a456-426614174000
+  node job-manager-cli.js create email-queue send-newsletter 123e4567-e89b-12d3-a456-426614174000 987fcdeb-51d3-4a2b-9876-543210987654
+  node job-manager-cli.js retry email-queue 123e4567-e89b-12d3-a456-426614174000
+  node job-manager-cli.js retry email-queue --job-id 12345
 `);
 }
 
-async function main(): Promise<void> {
+async function main() {
   const args = process.argv.slice(2);
   
   if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
@@ -301,7 +284,7 @@ async function main(): Promise<void> {
     
     if (!queueName || !campaignId) {
       console.error('Error: Missing required arguments for search command');
-      console.error('Usage: npx ts-node job-manager-cli.ts search <queueName> <campaignId>');
+      console.error('Usage: node job-manager-cli.js search <queueName> <campaignId>');
       process.exit(1);
     }
 
@@ -363,7 +346,7 @@ async function main(): Promise<void> {
     
     if (!queueName || !jobName || !campaignId || !establishmentId) {
       console.error('Error: Missing required arguments for create command');
-      console.error('Usage: npx ts-node job-manager-cli.ts create <queueName> <jobName> <campaignId> <establishmentId>');
+      console.error('Usage: node job-manager-cli.js create <queueName> <jobName> <campaignId> <establishmentId>');
       process.exit(1);
     }
 
@@ -397,8 +380,8 @@ async function main(): Promise<void> {
     
     if (!queueName) {
       console.error('Error: Missing queue name for retry command');
-      console.error('Usage: npx ts-node job-manager-cli.ts retry <queueName> <campaignId>');
-      console.error('   or: npx ts-node job-manager-cli.ts retry <queueName> --job-id <jobId>');
+      console.error('Usage: node job-manager-cli.js retry <queueName> <campaignId>');
+      console.error('   or: node job-manager-cli.js retry <queueName> --job-id <jobId>');
       process.exit(1);
     }
 
@@ -410,7 +393,7 @@ async function main(): Promise<void> {
       if (campaignIdOrFlag === '--job-id') {
         if (!jobId) {
           console.error('Error: Missing job ID');
-          console.error('Usage: npx ts-node job-manager-cli.ts retry <queueName> --job-id <jobId>');
+          console.error('Usage: node job-manager-cli.js retry <queueName> --job-id <jobId>');
           process.exit(1);
         }
         
@@ -423,7 +406,7 @@ async function main(): Promise<void> {
         
         if (!campaignId) {
           console.error('Error: Missing campaignId');
-          console.error('Usage: npx ts-node job-manager-cli.ts retry <queueName> <campaignId>');
+          console.error('Usage: node job-manager-cli.js retry <queueName> <campaignId>');
           process.exit(1);
         }
 

@@ -1,8 +1,9 @@
 import { SegmentedControl } from '@codegouvfr/react-dsfr/SegmentedControl';
-import { useAppDispatch } from '../../hooks/useStore';
-import housingSlice from '../../store/reducers/housingReducer';
+import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
+import housingSlice from '~/store/reducers/housingReducer';
 
 export function HousingDisplaySwitch() {
+  const { view } = useAppSelector((state) => state.housing);
   const dispatch = useAppDispatch();
 
   const { changeView } = housingSlice.actions;
@@ -23,19 +24,20 @@ export function HousingDisplaySwitch() {
           iconId: 'fr-icon-table-2',
           label: 'Tableau',
           nativeInputProps: {
-            defaultChecked: true,
+            checked: view === 'list',
             title: 'Vue tableau',
-            onClick: toList,
-          },
+            onChange: toList
+          }
         },
         {
           iconId: 'fr-icon-map-pin-2-line',
           label: 'Carte',
           nativeInputProps: {
+            checked: view === 'map',
             title: 'Vue carte',
-            onClick: toMap,
-          },
-        },
+            onChange: toMap
+          }
+        }
       ]}
     />
   );

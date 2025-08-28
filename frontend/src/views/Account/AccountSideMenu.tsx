@@ -1,11 +1,13 @@
-import { Text } from '../../components/_dsfr';
+import { fr } from '@codegouvfr/react-dsfr';
+import Typography from '@mui/material/Typography';
+import classNames from 'classnames';
+import { usePostHog } from 'posthog-js/react';
+import { useLocation } from 'react-router-dom';
+
 import AppLink from '../../components/_app/AppLink/AppLink';
 import { useAppDispatch } from '../../hooks/useStore';
-import { logOut } from '../../store/actions/authenticationAction';
 import { useUser } from '../../hooks/useUser';
-import { useLocation } from 'react-router-dom';
-import classNames from 'classnames';
-import styles from './account-side-menu.module.scss';
+import { logOut } from '../../store/actions/authenticationAction';
 
 const AccountSideMenu = () => {
   const location = useLocation();
@@ -15,11 +17,24 @@ const AccountSideMenu = () => {
 
   const isCurrentLocation = location.pathname === '/compte';
 
+  const posthog = usePostHog();
+
+  function onLogOut() {
+    posthog.reset();
+    dispatch(logOut());
+  }
+
   return (
     <>
-      <Text className="color-grey-625" size="sm" bold spacing="mb-0">
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 700,
+          color: fr.colors.decisions.text.default.grey.default
+        }}
+      >
         Votre compte
-      </Text>
+      </Typography>
       <div className="fr-py-2w">
         <AppLink
           className={classNames('fr-ml-0', { 'weight-700': isCurrentLocation })}
@@ -32,9 +47,15 @@ const AccountSideMenu = () => {
         </AppLink>
       </div>
       <hr className="fr-py-1w" />
-      <Text className={`color-grey-625 ${styles.establishmentName}`} size="sm" bold spacing="mb-0">
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 700,
+          color: fr.colors.decisions.text.default.grey.default
+        }}
+      >
         {establishment?.name}
-      </Text>
+      </Typography>
       <div className="fr-py-2w">
         <AppLink
           to={{ pathname: 'https://consultdf.cerema.fr/consultdf/' }}
@@ -68,7 +89,7 @@ const AccountSideMenu = () => {
         to="#"
         iconId="fr-icon-logout-box-r-fill"
         iconPosition="left"
-        onClick={() => dispatch(logOut())}
+        onClick={onLogOut}
         size="md"
       >
         Se déconnecter

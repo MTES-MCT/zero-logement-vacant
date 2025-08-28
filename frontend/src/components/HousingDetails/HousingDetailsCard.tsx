@@ -1,10 +1,9 @@
-import { fr } from '@codegouvfr/react-dsfr';
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Tag from '@codegouvfr/react-dsfr/Tag';
+import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { fromHousing, Occupancy } from '@zerologementvacant/models';
 import classNames from 'classnames';
@@ -64,7 +63,7 @@ function HousingDetailsCard(props: HousingDetailsCardProps) {
           content: <MobilizationTab housing={props.housing} />
         },
         {
-          label: 'Historique et notes',
+          label: 'Notes et historique',
           content: <HistoryTab housing={props.housing} />
         }
       ]}
@@ -244,7 +243,6 @@ function HousingTab(props: TabProps) {
               <Map
                 housingList={[props.housing]}
                 showMapSettings={false}
-
                 style={{ minHeight: '21rem' }}
               />
               <Stack component="section" sx={{ alignItems: 'flex-end' }}>
@@ -440,12 +438,7 @@ function HousingAttribute(props: HousingAttributeProps) {
           <Typography aria-labelledby={label}>{value}</Typography>
         ))
         .with(Pattern.nullish, () => (
-          <Typography
-            aria-labelledby={label}
-            sx={{ color: fr.colors.decisions.text.disabled.grey.default }}
-          >
-            {fallback}
-          </Typography>
+          <Typography aria-labelledby={label}>{fallback}</Typography>
         ))
         .otherwise((value) => (
           <span aria-labelledby={label}>{value}</span>

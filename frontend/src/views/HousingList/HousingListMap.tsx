@@ -1,14 +1,16 @@
+import Stack from '@mui/material/Stack';
 import { useState } from 'react';
-import { ViewState } from 'react-map-gl/maplibre';
+import { type ViewState } from 'react-map-gl/maplibre';
+
 import { Text } from '../../components/_dsfr';
 import Label from '../../components/Label/Label';
-import Map, { MapProps } from '../../components/Map/Map';
+import Map, { type MapProps } from '../../components/Map/Map';
 import { useHousingList } from '../../hooks/useHousingList';
-import { GeoPerimeter } from '../../models/GeoPerimeter';
+import { type GeoPerimeter } from '../../models/GeoPerimeter';
 import { displayHousingCount } from '../../models/HousingCount';
 import {
   hasPerimetersFilter,
-  HousingFilters
+  type HousingFilters
 } from '../../models/HousingFilters';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
 import { useCountHousingQuery } from '../../services/housing.service';
@@ -72,7 +74,7 @@ const HousingListMap = ({ filters }: Props) => {
   }
 
   return (
-    <>
+    <Stack direction="column">
       <Text spacing="mb-0">
         {displayHousingCount({
           filteredHousingCount,
@@ -93,7 +95,7 @@ const HousingListMap = ({ filters }: Props) => {
         onMove={onMove}
         viewState={mapViewState}
       />
-    </>
+    </Stack>
   );
 };
 

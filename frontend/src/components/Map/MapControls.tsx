@@ -1,7 +1,10 @@
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useUser } from '../../hooks/useUser';
-import GeoPerimetersModalLink from '../modals/GeoPerimetersModal/GeoPerimetersModalLink';
+import PerimetersModalOpener from '../modals/GeoPerimetersModal/PerimetersModalOpener';
+import createPerimetersModal from '../modals/GeoPerimetersModal/PerimetersModal';
 import styles from './map-controls.module.scss';
+
+const perimetersModal = createPerimetersModal();
 
 interface Props {
   clusterize: boolean;
@@ -30,7 +33,10 @@ function MapControls(props: Props) {
         onChange={props.onPerimetersChange}
       />
 
-      {!isVisitor && <GeoPerimetersModalLink />}
+      <perimetersModal.Component />
+      {!isVisitor && (
+        <PerimetersModalOpener className="fr-my-1w" modal={perimetersModal} />
+      )}
 
       <hr />
 

@@ -6,6 +6,7 @@ import ownerRepository, {
   Owners,
   ownerTable
 } from '../ownerRepository';
+import { collect } from '@zerologementvacant/utils/node';
 
 describe('Owner repository', () => {
   describe('find', () => {
@@ -73,13 +74,13 @@ describe('Owner repository', () => {
         }));
       await Owners().insert(owners.map(formatOwnerApi));
 
-      const actual = await ownerRepository
-        .stream({
+      const actual = await collect(
+        ownerRepository.stream({
           groupBy: ['full_name']
         })
-        .collect()
-        .toPromise(Promise);
+      );
 
+      expect(actual.length).toBeGreaterThan(0);
       expect(actual).toSatisfyAll<OwnerApi>((owner) => {
         return !actual
           .filter((owner: OwnerApi) => owner.id !== owner.id)

@@ -28,13 +28,18 @@ function BuildingAside(props: BuildingAsideProps) {
 
   const min = 1;
   const max = building?.housingCount ?? 1;
-  const [counter, { dec, inc }] = useCounter(1, max, min);
+  const [counter, { dec, inc, reset }] = useCounter(1, max, min);
   const housing = housings.at(counter - 1);
 
   const establishmentCampaignsQuery = useFindCampaignsQuery();
   const campaigns = establishmentCampaignsQuery.data?.filter((campaign) => {
     return housing?.campaignIds?.includes(campaign.id);
   });
+
+  function close() {
+    reset();
+    props.onClose();
+  }
 
   return (
     <Aside
@@ -56,6 +61,7 @@ function BuildingAside(props: BuildingAsideProps) {
           </Typography>
         )
       }
+      onClose={close}
       main={
         !housing ? null : (
           <Stack spacing="1.5rem">
@@ -161,7 +167,7 @@ function BuildingAside(props: BuildingAsideProps) {
             {
               priority: 'secondary',
               children: 'Fermer',
-              onClick: props.onClose
+              onClick: close
             },
             {
               priority: 'primary',

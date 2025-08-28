@@ -5,7 +5,7 @@
   "scripts": {
     "icons": "react-dsfr update-icons",
     "prebuild": "yarn icons",
-    "postbuild": "tsx src/scripts/generate-building-images.ts && cp -r public/map dist/map",
+    "postbuild": "tsx src/scripts/generate-building-images.ts && copyfiles -V -u 1 'public/map/*.png' dist",
     "predev": "yarn icons",
     "postinstall": "copy-dsfr-to-public"
   },
@@ -91,6 +91,7 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@types/uuid": "^9.0.8",
+    "copyfiles": "^2.4.1",
     "happy-dom": "^18.0.1",
     "jest-extended": "^4.0.2",
     "jest-sorted": "^1.0.15",

@@ -1,9 +1,9 @@
 import { pdf } from '@zerologementvacant/draft';
 import {
-  DraftCreationPayloadDTO,
+  DraftCreationPayload,
   DraftDTO,
-  DraftPreviewPayloadDTO,
-  DraftUpdatePayloadDTO,
+  DraftPreviewPayload,
+  DraftUpdatePayload,
   getAddress,
   HOUSING_KIND_VALUES,
   isEmpty,
@@ -64,13 +64,13 @@ async function list(
 }
 
 async function create(
-  request: Request<never, DraftDTO, DraftCreationPayloadDTO, never>,
+  request: Request<never, DraftDTO, DraftCreationPayload, never>,
   response: Response<DraftDTO>
 ) {
   const { auth, body } = request as AuthenticatedRequest<
     never,
     DraftDTO,
-    DraftCreationPayloadDTO,
+    DraftCreationPayload,
     never
   >;
 
@@ -116,13 +116,13 @@ async function create(
 }
 
 async function preview(
-  request: Request<DraftParams, Buffer, DraftPreviewPayloadDTO>,
+  request: Request<DraftParams, Buffer, DraftPreviewPayload>,
   response: Response<Buffer>
 ): Promise<void> {
   const { auth, body, params } = request as AuthenticatedRequest<
     DraftParams,
     Buffer,
-    DraftPreviewPayloadDTO
+    DraftPreviewPayload
   >;
   const draft = await draftRepository.findOne({
     id: params.id,
@@ -135,7 +135,7 @@ async function preview(
   const transformer = pdf.createTransformer({ logger });
   const pdfBuffer = await transformer.generatePDF({
     subject: draft.subject,
-    logo: draft.logo?.map(logo => pick(logo, 'id', 'content')) ?? null,
+    logo: draft.logo?.map((logo) => pick(logo, 'id', 'content')) ?? null,
     body: draft.body
       ? replaceVariables(draft.body, {
           housing: body.housing,
@@ -218,7 +218,7 @@ const previewValidators: ValidationChain[] = [
 
 async function update(request: Request, response: Response<DraftDTO>) {
   const { auth, params } = request as AuthenticatedRequest;
-  const body = request.body as DraftUpdatePayloadDTO;
+  const body = request.body as DraftUpdatePayload;
 
   const draft = await draftRepository.findOne({
     id: params.id,

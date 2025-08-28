@@ -236,7 +236,7 @@ jobs:
         run: |
           clever env set CC_OVERRIDE_BUILDCACHE "frontend/dist/" -a $APP_ALIAS
           clever env set CC_POST_BUILD_HOOK "ls -al $CC_OVERRIDE_BUILDCACHE" -a $APP_ALIAS
-          clever env set CC_PRE_BUILD_HOOK 'corepack install && corepack yarn --immutable && corepack yarn nx run $WORKSPACE:prebuild && corepack yarn nx run $WORKSPACE:build && corepack yarn nx run $WORKSPACE:postbuild' -a $APP_ALIAS
+          clever env set CC_PRE_BUILD_HOOK 'corepack install && corepack yarn --immutable && corepack yarn nx run $WORKSPACE:prebuild && corepack yarn nx run $WORKSPACE:build' -a $APP_ALIAS
           clever env set CC_WEBROOT "/frontend/dist" -a $APP_ALIAS
           clever env set VITE_API_URL https://$PR_NAME-api.cleverapps.io -a $APP_ALIAS
           clever env set WORKSPACE "@zerologementvacant/front" -a $APP_ALIAS

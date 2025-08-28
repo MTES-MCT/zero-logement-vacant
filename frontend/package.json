@@ -3,9 +3,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "icons": "react-dsfr update-icons",
+    "icons": "react-dsfr update-icons && tsx src/scripts/generate-building-images.ts",
     "prebuild": "yarn icons",
-    "postbuild": "tsx src/scripts/generate-building-images.ts",
     "predev": "yarn icons",
     "postinstall": "copy-dsfr-to-public"
   },

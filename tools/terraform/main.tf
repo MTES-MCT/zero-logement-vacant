@@ -108,7 +108,7 @@ module "queue" {
   s3 = {
     access_key_id     = module.s3.key_id
     bucket            = module.s3.bucket
-    endpoint          = module.s3.host
+    endpoint          = module.s3.endpoint
     region            = var.region
     id                = module.s3.id
     secret_access_key = module.s3.key_secret

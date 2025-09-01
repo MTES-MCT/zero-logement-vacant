@@ -82,6 +82,7 @@ module "front" {
 
   depends_on = [module.api]
 
+  api_host     = "${module.api.url}/api"
   api_url      = module.api.url
   branch       = var.branch
   project_name = var.project_name

@@ -16,7 +16,7 @@ resource "clevercloud_static" "front" {
   # Set to XS after build_flavor gets fixed
   smallest_flavor = "M"
   biggest_flavor  = "M"
-  additional_vhosts = [
+  vhosts = [
     "${var.project_name}-front.cleverapps.io"
   ]
 
@@ -26,13 +26,13 @@ resource "clevercloud_static" "front" {
   }
 
   environment = {
-    CC_OVERRIDE_BUILDCACHE = "frontend/build/"
+    CC_OVERRIDE_BUILDCACHE = "frontend/dist/"
     CC_NODE_BUILD_TOOL     = "custom"
-    CC_CUSTOM_BUILD_TOOL   = "corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build "
-    CC_PRE_BUILD_HOOK      = "corepack enable && corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build "
+    CC_CUSTOM_BUILD_TOOL   = "corepack yarn --immutable && corepack yarn nx run $WORKSPACE:build"
+    CC_PRE_BUILD_HOOK      = "corepack install && corepack yarn --immutable && corepack yarn nx run $WORKSPACE:prebuild && corepack yarn nx run $WORKSPACE:build && corepack yarn nx run $WORKSPACE:postbuild"
     CC_POST_BUILD_HOOK     = "ls -al $CC_OVERRIDE_BUILDCACHE"
-    CC_RUN_COMMAND         = "corepack yarn workspace $WORKSPACE start"
-    CC_WEBROOT             = "/frontend/build"
+    CC_RUN_COMMAND         = "corepack yarn nx run $WORKSPACE:start"
+    CC_WEBROOT             = "/frontend/dist"
 
     NODE_ENV                  = "production"
     REACT_APP_API_URL         = var.api_url
@@ -41,8 +41,8 @@ resource "clevercloud_static" "front" {
     REACT_APP_MATOMO_URL_BASE = "unused"
     WORKSPACE                 = "@zerologementvacant/front"
 
-    YARN_ENABLE_GLOBAL_CACHE       = "true"
+    YARN_ENABLE_GLOBAL_CACHE       = "false"
     YARN_ENABLE_IMMUTABLE_INSTALLS = "true"
-    YARN_GLOBAL_FOLDER             = ".yarn"
+    YARN_GLOBAL_FOLDER             = "$APP_HOME/.yarn"
   }
 }

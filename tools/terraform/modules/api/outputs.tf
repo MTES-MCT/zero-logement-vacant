@@ -1,4 +1,4 @@
 output "url" {
   description = "Public URL for the API"
-  value       = "https://${clevercloud_nodejs.api.additional_vhosts[0]}"
+  value       = "https://${one(clevercloud_nodejs.api.vhosts)}"
 }

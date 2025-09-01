@@ -20,7 +20,7 @@ resource "clevercloud_nodejs" "queue" {
   smallest_flavor    = "M"
   biggest_flavor     = "M"
   package_manager    = "custom"
-  additional_vhosts  = [local.host]
+  vhosts  = [local.host]
 
   deployment {
     repository = "https://github.com/MTES-MCT/zero-logement-vacant"
@@ -30,11 +30,11 @@ resource "clevercloud_nodejs" "queue" {
   environment = {
     CC_HEALTH_CHECK_PATH   = "/"
     CC_OVERRIDE_BUILDCACHE = ".:../.cache/puppeteer"
-    CC_CUSTOM_BUILD_TOOL   = "corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build "
+    CC_CUSTOM_BUILD_TOOL   = "corepack yarn --immutable && corepack yarn nx run $WORKSPACE:build"
     CC_NODE_BUILD_TOOL     = "custom"
-    CC_PRE_BUILD_HOOK      = "corepack enable"
-    CC_PRE_RUN_HOOK        = "corepack yarn workspace $WORKSPACE prestart"
-    CC_RUN_COMMAND         = "corepack yarn workspace $WORKSPACE start"
+    CC_PRE_BUILD_HOOK      = "corepack install"
+    CC_PRE_RUN_HOOK        = "corepack yarn nx run $WORKSPACE:prestart"
+    CC_RUN_COMMAND         = "corepack yarn nx run $WORKSPACE:start"
 
     API_HOST                 = var.api_url
     AUTH_SECRET              = var.auth_secret
@@ -49,9 +49,10 @@ resource "clevercloud_nodejs" "queue" {
     S3_REGION                = var.s3.region
     S3_SECRET_ACCESS_KEY     = var.s3.secret_access_key
     WORKSPACE                = "@zerologementvacant/queue"
+    SENTRY_DSN               = "https://abcdefghijklmnopqrstuvwxyz123456.ingest.sentry.io/1234567"
 
-    YARN_ENABLE_GLOBAL_CACHE       = "true"
+    YARN_ENABLE_GLOBAL_CACHE       = "false"
     YARN_ENABLE_IMMUTABLE_INSTALLS = "true"
-    YARN_GLOBAL_FOLDER             = ".yarn"
+    YARN_GLOBAL_FOLDER             = "$APP_HOME/.yarn"
   }
 }

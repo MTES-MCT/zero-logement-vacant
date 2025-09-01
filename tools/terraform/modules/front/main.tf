@@ -35,10 +35,11 @@ resource "clevercloud_static" "front" {
     CC_WEBROOT             = "/frontend/dist"
 
     NODE_ENV                  = "production"
-    REACT_APP_API_URL         = var.api_url
-    REACT_APP_MATOMO_ENABLED  = "false"
-    REACT_APP_MATOMO_SITE_ID  = "42"
-    REACT_APP_MATOMO_URL_BASE = "unused"
+    API_HOST                  = var.api_host
+    VITE_API_URL              = var.api_url
+    VITE_APP_MATOMO_ENABLED   = "false"
+    VITE_APP_MATOMO_SITE_ID   = "42"
+    VITE_APP_MATOMO_URL_BASE  = "unused"
     WORKSPACE                 = "@zerologementvacant/front"
 
     YARN_ENABLE_GLOBAL_CACHE       = "false"

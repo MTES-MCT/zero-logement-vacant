@@ -1,3 +1,7 @@
+variable "api_host" {
+  description = "API HOST"
+}
+
 variable "api_url" {
   description = "API URL"
 }

@@ -57,7 +57,6 @@ function OwnerAddressEdition(props: Props) {
           }}
         >
           L’adresse de la Base Adresse Nationale diffère de celle de la DGFIP.
-          Veuillez vérifier attentivement ces informations ou ignorez l’alerte.
         </CallOut>
       )}
     </>

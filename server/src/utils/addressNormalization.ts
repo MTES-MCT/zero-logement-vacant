@@ -14,7 +14,7 @@ export const FANTOIR_ABBREVIATIONS: Record<string, string[]> = {
   // Other common FANTOIR abbreviations
   'rue': ['r'],
   'route': ['rte', 'rt'],
-  'chemin': ['ch', 'chem'],
+  'chemin': ['ch', 'che', 'chem'],
   'impasse': ['imp'],
   'allée': ['all', 'allee'],
   'square': ['sq'],

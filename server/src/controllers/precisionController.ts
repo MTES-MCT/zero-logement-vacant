@@ -44,6 +44,7 @@ const findByHousing: RequestHandler<PathParams, Precision[]> = async (
 
   const [housing, precisions] = await Promise.all([
     housingRepository.findOne({
+      establishment: establishment.id,
       geoCode: establishment.geoCodes,
       id: params.id
     }),
@@ -73,6 +74,7 @@ const updatePrecisionsByHousing: RequestHandler<
 
   const [housing, precisions] = await Promise.all([
     housingRepository.findOne({
+      establishment: establishment.id,
       geoCode: establishment.geoCodes,
       id: params.id
     }),

@@ -1,25 +1,27 @@
 import * as turf from '@turf/turf';
-import { CSSProperties, memo, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, memo, useEffect, useMemo, useState } from 'react';
 import ReactiveMap, {
   NavigationControl,
   useMap,
-  ViewState,
-  ViewStateChangeEvent
+  type ViewState,
+  type ViewStateChangeEvent
 } from 'react-map-gl/maplibre';
+import { useNavigate } from 'react-router-dom';
+
 import { useMapImage } from '../../hooks/useMapImage';
 import {
-  Building,
+  type Building,
   groupByBuilding,
-  HousingByBuilding
+  type HousingByBuilding
 } from '../../models/Building';
-import { GeoPerimeter } from '../../models/GeoPerimeter';
+import type { GeoPerimeter } from '../../models/GeoPerimeter';
 import {
   hasCoordinates,
-  Housing,
-  HousingWithCoordinates
+  type Housing,
+  type HousingWithCoordinates
 } from '../../models/Housing';
+import BuildingAside from './BuildingAside';
 import Clusters from './Clusters';
-import HousingPopup from './HousingPopup';
 import MapControls from './MapControls';
 import Perimeters from './Perimeters';
 import Points from './Points';
@@ -44,6 +46,7 @@ export interface MapProps {
 }
 
 function Map(props: MapProps) {
+  const navigate = useNavigate();
   const [viewState, setViewState] = useState<ViewState>({
     longitude: props.viewState?.longitude ?? 2,
     latitude: props.viewState?.latitude ?? 47,
@@ -64,7 +67,6 @@ function Map(props: MapProps) {
   }
 
   const { housingMap: map } = useMap();
-  const [openPopups, setOpenPopups] = useState<Record<string, boolean>>({});
 
   const housingList = useMemo<HousingWithCoordinates[]>(
     () => props.housingList?.filter(hasCoordinates) ?? [],
@@ -124,86 +126,103 @@ function Map(props: MapProps) {
     }
   }, [map, points]);
 
-  function popUp(building: Building): void {
-    setOpenPopups((state) => ({
-      ...state,
-      [building.id]: true
-    }));
-  }
+  const [selected, setSelected] = useState<Building | null>(null);
+  const isOpen = selected !== null;
 
-  function popOut(building: Building) {
-    return (): void => {
-      setOpenPopups((state) => ({
-        ...state,
-        [building.id]: false
-      }));
-    };
+  function select(building: Building | null) {
+    if (building) {
+      map?.flyTo({
+        center: {
+          lon: building.longitude,
+          lat: building.latitude
+        }
+      });
+      setSelected(building);
+    }
   }
-
-  const popups = Object.values(buildingsById)
-    .filter((building) => openPopups[building.id])
-    .map((building) => (
-      <HousingPopup
-        building={building}
-        key={`popup-${building.id}`}
-        onClose={popOut(building)}
-      />
-    ));
 
   return (
-    <ReactiveMap
-      {...viewState}
-      attributionControl
-      id="housingMap"
-      mapStyle={STYLE.uri}
-      minZoom={props.minZoom}
-      maxZoom={props.maxZoom}
-      onMove={onMove}
-      reuseMaps
-      style={{
-        minHeight: '600px',
-        height: 'auto',
-        fontFamily: 'Marianne, sans-serif',
-        ...props.style
-      }}
-    >
-      <Perimeters
-        id="remaining-perimeters"
-        isVisible={showPerimeters}
-        map={map}
-        perimeters={perimeters}
+    <>
+      <ReactiveMap
+        {...viewState}
+        attributionControl={{}}
+        id="housingMap"
+        mapStyle={STYLE.uri}
+        minZoom={props.minZoom}
+        maxZoom={props.maxZoom}
+        onMove={onMove}
+        reuseMaps
+        style={{
+          minHeight: '600px',
+          height: 'auto',
+          fontFamily: 'Marianne, sans-serif',
+          ...props.style
+        }}
+      >
+        <Perimeters
+          id="remaining-perimeters"
+          isVisible={showPerimeters}
+          map={map}
+          perimeters={perimeters}
+        />
+        <Perimeters
+          id="excluded-perimeters"
+          backgroundColor={props.hasPerimetersFilter ? '#ffe9e6' : undefined}
+          borderColor={props.hasPerimetersFilter ? '#ce0500' : undefined}
+          isVisible={showPerimeters}
+          map={map}
+          perimeters={excludedPerimeters}
+        />
+        <Perimeters
+          id="included-perimeters"
+          backgroundColor={props.hasPerimetersFilter ? '#b8fec9' : undefined}
+          borderColor={props.hasPerimetersFilter ? '#18753c' : undefined}
+          isVisible={showPerimeters}
+          map={map}
+          perimeters={includedPerimeters}
+        />
+        {clusterize ? (
+          <Clusters
+            id="housing"
+            points={points}
+            map={map}
+            selected={selected}
+            onClick={select}
+          />
+        ) : (
+          <Points
+            id="housing"
+            points={points}
+            map={map}
+            selected={selected}
+            onClick={select}
+          />
+        )}
+        <MapControls
+          clusterize={clusterize}
+          perimeters={showPerimeters}
+          show={props.showMapSettings}
+          onClusterizeChange={setClusterize}
+          onPerimetersChange={setShowPerimeters}
+        />
+        <NavigationControl
+          showCompass={false}
+          showZoom
+          visualizePitch={false}
+        />
+      </ReactiveMap>
+
+      <BuildingAside
+        building={selected}
+        open={isOpen}
+        onClose={() => {
+          setSelected(null);
+        }}
+        onView={(housing) => {
+          navigate(`/logements/${housing.id}`);
+        }}
       />
-      <Perimeters
-        id="excluded-perimeters"
-        backgroundColor={props.hasPerimetersFilter ? '#ffe9e6' : undefined}
-        borderColor={props.hasPerimetersFilter ? '#ce0500' : undefined}
-        isVisible={showPerimeters}
-        map={map}
-        perimeters={excludedPerimeters}
-      />
-      <Perimeters
-        id="included-perimeters"
-        backgroundColor={props.hasPerimetersFilter ? '#b8fec9' : undefined}
-        borderColor={props.hasPerimetersFilter ? '#18753c' : undefined}
-        isVisible={showPerimeters}
-        map={map}
-        perimeters={includedPerimeters}
-      />
-      {clusterize ? (
-        <Clusters id="housing" points={points} map={map} onClick={popUp} />
-      ) : (
-        <Points id="housing" points={points} map={map} onClick={popUp} />
-      )}
-      {popups}
-      <MapControls
-        clusterize={clusterize}
-        perimeters={showPerimeters}
-        show={props.showMapSettings}
-        onClusterizeChange={setClusterize}
-        onPerimetersChange={setShowPerimeters}
-      />
-      <NavigationControl showCompass={false} showZoom visualizePitch={false} />
-    </ReactiveMap>
+    </>
   );
 }
 

@@ -7,13 +7,14 @@ import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { fromHousing, Occupancy } from '@zerologementvacant/models';
 import classNames from 'classnames';
-import { ReactNode, useId } from 'react';
+import { Predicate } from 'effect';
+import { type ReactNode, useId } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import {
   formatOwnershipKind,
   getBuildingLocation,
-  Housing,
+  type Housing,
   lastUpdate
 } from '../../models/Housing';
 import { CADASTRAL_CLASSIFICATION_OPTIONS } from '../../models/HousingFilters';
@@ -368,30 +369,37 @@ function MobilizationTab(props: TabProps) {
           label="Dernière mise à jour"
           value={updated ?? 'Aucune mise à jour'}
         />
-        <HousingAttribute
-          label={`Campagnes (${props.housing.campaignIds.length})`}
-          value={match(findCampaignsQuery)
-            .returnType<ReactNode>()
-            .with({ isLoading: true }, () => (
-              <Skeleton animation="wave" variant="text" />
-            ))
-            .with(
-              { isLoading: false, data: Pattern.nonNullable },
-              ({ data: campaigns }) => {
-                const housingCampaigns = campaigns.filter((campaign) =>
-                  props.housing.campaignIds.includes(campaign.id)
-                );
-                return housingCampaigns.length === 0 ? (
-                  <Typography>Aucune campagne</Typography>
-                ) : (
-                  housingCampaigns.map((campaign) => (
-                    <Typography key={campaign.id}>{campaign.title}</Typography>
-                  ))
-                );
-              }
-            )
-            .otherwise(() => null)}
-        />
+        {match(findCampaignsQuery)
+          .returnType<ReactNode>()
+          .with({ isLoading: true }, () => (
+            <Skeleton animation="wave" variant="text" />
+          ))
+          .with(
+            { isLoading: false, data: Pattern.nonNullable },
+            ({ data: campaigns }) => {
+              const housingCampaigns = props.housing.campaignIds
+                .map((id) => campaigns.find((campaign) => campaign.id === id))
+                .filter(Predicate.isNotUndefined);
+
+              return (
+                <HousingAttribute
+                  label={`Campagnes (${housingCampaigns.length})`}
+                  value={
+                    housingCampaigns.length === 0 ? (
+                      <Typography>Aucune campagne</Typography>
+                    ) : (
+                      housingCampaigns.map((campaign) => (
+                        <Typography key={campaign.id}>
+                          {campaign.title}
+                        </Typography>
+                      ))
+                    )
+                  }
+                />
+              );
+            }
+          )
+          .otherwise(() => null)}
       </Stack>
 
       <Stack component="article">

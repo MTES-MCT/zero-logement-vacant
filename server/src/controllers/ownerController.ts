@@ -67,6 +67,7 @@ async function listByHousing(request: Request, response: Response) {
   logger.info('List owner for housing', housingId);
 
   const housing = await housingRepository.findOne({
+    establishment: establishment.id,
     id: housingId,
     geoCode: establishment.geoCodes
   });
@@ -265,6 +266,7 @@ async function updateHousingOwners(
   logger.debug('Updating housing owners...', { housing: params.housingId });
 
   const housing = await housingRepository.findOne({
+    establishment: establishment.id,
     id: params.housingId,
     geoCode: establishment.geoCodes
   });

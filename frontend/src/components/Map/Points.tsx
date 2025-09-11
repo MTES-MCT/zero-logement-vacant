@@ -6,14 +6,18 @@ import { useMapLayerClick } from '../../hooks/useMapLayerClick';
 import HousingPoints from './HousingPoints';
 import BuildingPoints from './BuildingPoints';
 
-interface Props<T> {
+
+type IdentifiableGeoJson = GeoJsonProperties & { id: string };
+
+interface Props<T extends IdentifiableGeoJson> {
   id: string;
   map?: MapRef;
-  onClick?: (value: T) => void;
   points: Feature<Point, T>[];
+  selected: T | null;
+  onClick?: (value: T) => void;
 }
 
-function Points<T extends GeoJsonProperties>(props: Props<T>) {
+function Points<T extends IdentifiableGeoJson>(props: Props<T>) {
   const points = turf.featureCollection(props.points);
 
   useMapLayerClick({
@@ -26,10 +30,12 @@ function Points<T extends GeoJsonProperties>(props: Props<T>) {
     <Source id={props.id} type="geojson" data={points}>
       <HousingPoints
         filter={['==', ['get', 'housingCount'], 1]}
+        selected={props.selected?.id ?? null}
         source={props.id}
       />
       <BuildingPoints
         filter={['>=', ['get', 'housingCount'], 2]}
+        selected={props.selected?.id ?? null}
         source={props.id}
       />
     </Source>

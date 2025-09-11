@@ -5,8 +5,12 @@ import { HousingStatus } from '../../models/HousingState';
 
 interface Props {
   filter?: FilterSpecification;
+  selected: string | null;
   source: string;
 }
+
+const SELECTED_SIZE_COEFFICIENT = 2;
+const DEFAULT_SIZE_COEFFICIENT = 1;
 
 function BuildingPoints(props: Props) {
   return (
@@ -32,7 +36,12 @@ function BuildingPoints(props: Props) {
           // Default value
           `square-fill-${HousingStatus.NeverContacted}`
         ],
-        'icon-size': 1
+        'icon-size': [
+          'case',
+          ['==', ['get', 'id'], props.selected ?? ''],
+          SELECTED_SIZE_COEFFICIENT,
+          DEFAULT_SIZE_COEFFICIENT
+        ]
       }}
       source={props.source}
     />

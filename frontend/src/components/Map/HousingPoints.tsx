@@ -5,8 +5,12 @@ import statusColors from './status-colors';
 
 interface Props {
   filter?: FilterSpecification;
+  selected: string | null;
   source: string;
 }
+
+const SELECTED_SIZE = 16;
+const DEFAULT_SIZE = 8;
 
 function HousingPoints(props: Props) {
   return (
@@ -24,7 +28,12 @@ function HousingPoints(props: Props) {
           // Default
           statusColors.defaultBackgroundColor
         ],
-        'circle-radius': 8,
+        'circle-radius': [
+          'case',
+          ['==', ['get', 'id'], props.selected ?? ''],
+          SELECTED_SIZE,
+          DEFAULT_SIZE
+        ],
         'circle-stroke-width': 1,
         'circle-stroke-color': [
           'match',

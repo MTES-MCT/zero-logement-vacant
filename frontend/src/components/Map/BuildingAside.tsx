@@ -14,7 +14,7 @@ import type { Building } from '~/models/Building';
 import type { Housing } from '~/models/Housing';
 import { useFindCampaignsQuery } from '~/services/campaign.service';
 
-const ASIDE_WIDTH = 700;
+const ASIDE_WIDTH = 500;
 
 export type BuildingAsideProps = Pick<AsideProps, 'open' | 'onClose'> & {
   building: Building | null;
@@ -133,17 +133,21 @@ function BuildingAside(props: BuildingAsideProps) {
 
               <Stack sx={{ alignItems: 'flex-start' }}>
                 <Label>Campagnes</Label>
-                <Stack direction="column">
-                  {campaigns?.map((campaign) => (
-                    <AppLink
-                      key={campaign.id}
-                      isSimple
-                      to={`/campagnes/${campaign.id}`}
-                    >
-                      {campaign.title}
-                    </AppLink>
-                  ))}
-                </Stack>
+                {campaigns?.length === 0 ? (
+                  <Typography variant="body2">Pas d’information</Typography>
+                ) : (
+                  <Stack direction="column">
+                    {campaigns?.map((campaign) => (
+                      <AppLink
+                        key={campaign.id}
+                        isSimple
+                        to={`/campagnes/${campaign.id}`}
+                      >
+                        {campaign.title}
+                      </AppLink>
+                    ))}
+                  </Stack>
+                )}
               </Stack>
 
               <Stack sx={{ alignItems: 'flex-start' }}>
@@ -166,7 +170,7 @@ function BuildingAside(props: BuildingAsideProps) {
           buttons={[
             {
               priority: 'secondary',
-              children: 'Fermer',
+              children: 'Annuler',
               onClick: close
             },
             {

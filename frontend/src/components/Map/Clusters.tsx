@@ -6,11 +6,14 @@ import { useMapLayerClick } from '../../hooks/useMapLayerClick';
 import HousingPoints from './HousingPoints';
 import BuildingPoints from './BuildingPoints';
 
+type IdentifiableGeoJson = GeoJsonProperties & { id: string };
+
 interface Props<T> {
   id: string;
   map?: MapRef;
   clusterize?: boolean;
   maxZoom?: number;
+  selected: T | null;
   onClick?: (value: T) => void;
   points: Feature<Point, T>[];
   /**
@@ -24,7 +27,7 @@ interface Props<T> {
   radius?: Record<number, number>;
 }
 
-function Clusters<T extends GeoJsonProperties>(props: Props<T>) {
+function Clusters<T extends IdentifiableGeoJson>(props: Props<T>) {
   const maxZoom = props.maxZoom ?? 16;
   // Flatten and remove the zero
   const radius = !props.radius
@@ -77,6 +80,7 @@ function Clusters<T extends GeoJsonProperties>(props: Props<T>) {
           ['!', ['has', 'point_count']],
           ['==', ['get', 'housingCount'], 1]
         ]}
+        selected={props.selected?.id ?? null}
         source={props.id}
       />
       <BuildingPoints
@@ -85,6 +89,7 @@ function Clusters<T extends GeoJsonProperties>(props: Props<T>) {
           ['!', ['has', 'point_count']],
           ['>=', ['get', 'housingCount'], 2]
         ]}
+        selected={props.selected?.id ?? null}
         source={props.id}
       />
     </Source>

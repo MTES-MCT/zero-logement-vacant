@@ -129,6 +129,18 @@ function Map(props: MapProps) {
   const [selected, setSelected] = useState<Building | null>(null);
   const isOpen = selected !== null;
 
+  function select(building: Building | null) {
+    if (building) {
+      map?.flyTo({
+        center: {
+          lon: building.longitude,
+          lat: building.latitude
+        }
+      });
+      setSelected(building);
+    }
+  }
+
   return (
     <>
       <ReactiveMap
@@ -174,14 +186,16 @@ function Map(props: MapProps) {
             id="housing"
             points={points}
             map={map}
-            onClick={setSelected}
+            selected={selected}
+            onClick={select}
           />
         ) : (
           <Points
             id="housing"
             points={points}
             map={map}
-            onClick={setSelected}
+            selected={selected}
+            onClick={select}
           />
         )}
         <MapControls

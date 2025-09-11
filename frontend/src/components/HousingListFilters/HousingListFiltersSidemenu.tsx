@@ -57,7 +57,6 @@ import PerimeterSearchableSelect from './PerimeterSearchableSelect';
 import RoomCountSelect from './RoomCountSelect';
 import SecondaryOwnerSelect from './SecondaryOwnerSelect';
 import SurfaceSelect from './SurfaceSelect';
-import TaxSelect from './TaxSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
 import createPerimetersModal from '../modals/GeoPerimetersModal/PerimetersModal';
@@ -661,16 +660,6 @@ function HousingListFiltersSidemenu(props: Props) {
                 onChange={(values) => {
                   onChangeFilters({ roomsCounts: values });
                   posthog.capture('filtre-nombre-de-pieces');
-                }}
-              />
-            </Grid>
-            <Grid component="article" mb={2} size={12}>
-              <TaxSelect
-                multiple
-                value={filters.isTaxedValues ?? []}
-                onChange={(values) => {
-                  onChangeFilters({ isTaxedValues: values });
-                  posthog.capture('filtre-taxe');
                 }}
               />
             </Grid>

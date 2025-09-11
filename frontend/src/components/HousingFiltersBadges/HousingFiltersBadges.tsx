@@ -45,7 +45,6 @@ import {
   ownershipKindsOptions,
   roomsCountOptions,
   statusOptions,
-  taxedOptions,
   vacancyRateOptions,
   vacancyYearOptions
 } from '../../models/HousingFilters';
@@ -202,16 +201,6 @@ function HousingFiltersBadges(props: HousingFiltersBadgesProps) {
         values={filters.lastMutationYears}
         small={small}
         onChange={(values) => onChange?.({ lastMutationYears: values })}
-      />
-      <FilterBadges
-        options={taxedOptions}
-        values={filters.isTaxedValues?.map((value) =>
-          value ? 'true' : 'false'
-        )}
-        small={small}
-        onChange={(values) =>
-          onChange?.({ isTaxedValues: values.map((value) => value === 'true') })
-        }
       />
       <FilterBadges
         options={ownershipKindsOptions}

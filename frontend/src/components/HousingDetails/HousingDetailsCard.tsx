@@ -1,5 +1,4 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -139,13 +138,6 @@ function HousingTab(props: TabProps) {
                     props.housing.cadastralClassification
                   ].label
             }
-          />
-          <HousingAttribute
-            label="Taxe sur la vacance"
-            value={match(props.housing.taxed)
-              .with(true, () => <Tag small>Oui</Tag>)
-              .with(false, () => <Tag small>Non</Tag>)
-              .otherwise(() => null)}
           />
           <HousingAttribute
             label="Identifiant fiscal départemental"

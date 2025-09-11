@@ -1349,29 +1349,6 @@ describe('Housing list view', () => {
       });
     });
 
-    describe('Taxed filter', () => {
-      it('should display a badge', async () => {
-        renderView();
-
-        const accordion = await screen.findByRole('button', {
-          name: 'Logement'
-        });
-        await user.click(accordion);
-
-        const taxed = await screen.findByRole('combobox', {
-          name: 'Taxe sur la vacance'
-        });
-        await user.click(taxed);
-        const options = await screen.findByRole('listbox');
-        const option = await within(options).findByText('Oui');
-        await user.click(option);
-        await user.keyboard('{Escape}');
-
-        const badge = await screen.findByText('Taxe sur la vacance : oui');
-        expect(badge).toBeVisible();
-      });
-    });
-
     describe('Cadastral classification filter', () => {
       it('should display a badge', async () => {
         renderView();

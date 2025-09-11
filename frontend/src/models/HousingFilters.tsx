@@ -667,11 +667,6 @@ export const VACANCY_YEAR_OPTIONS: Record<
   }
 };
 
-export const taxedOptions: SelectOption[] = [
-  { value: 'true', label: 'Oui', badgeLabel: 'Taxe sur la vacance : oui' },
-  { value: 'false', label: 'Non', badgeLabel: 'Taxe sur la vacance : non' }
-];
-
 /**
  * @deprecated Use {@link OWNERSHIP_KIND_OPTIONS} instead.
  */

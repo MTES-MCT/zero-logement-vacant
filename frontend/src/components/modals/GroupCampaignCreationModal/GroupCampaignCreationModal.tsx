@@ -92,10 +92,7 @@ function GroupCampaignCreationModal(props: Props) {
           inputKey="description"
         />
         <Text>
-          La liste a été établie à partir du groupe 
-          <Text as="span" bold>
-            {props.group.title}
-          </Text>
+          La liste a été établie à partir du groupe &nbsp;<Text as="span" bold>{props.group.title}</Text>
           .
         </Text>
       </Container>

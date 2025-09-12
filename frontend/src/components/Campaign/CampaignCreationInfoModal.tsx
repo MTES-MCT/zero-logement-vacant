@@ -46,12 +46,9 @@ function createCampaignCreationInfoModal() {
                 suffix
               />
             )}
-
-            <Alert
-              description="Créer une campagne alimente les statistiques nationales et valorise vos actions auprès des partenaires comme l’ANAH et la Direction générale de l'aménagement, du logement et de la nature au sein du Ministère. Ces données anonymisées renforcent les politiques contre la vacance et les passoires énergétiques au niveau national. Si vous souhaitiez uniquement exporter, cliquez sur “Revenir en arrière”."
-              severity="info"
-              title="Information importante avant de créer votre campagne"
-            />
+            <Text size="lg">
+        Créer une campagne alimente les statistiques nationales et valorise vos actions auprès des partenaires comme l’ANAH et la Direction générale de l'aménagement, du logement et de la nature au sein du Ministère. Ces données anonymisées renforcent les politiques contre la vacance et les passoires énergétiques au niveau national. Si vous souhaitiez uniquement exporter, cliquez sur “Retour”.
+            </Text>
           </Stack>
         </modal.Component>
       );

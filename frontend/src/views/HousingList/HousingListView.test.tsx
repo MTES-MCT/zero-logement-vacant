@@ -375,7 +375,7 @@ describe('Housing list view', () => {
       });
       await user.click(addToGroup);
       const back = await screen.findByRole('button', {
-        name: 'Revenir en arrière'
+        name: 'Retour'
       });
       await user.click(back);
       const modal = await screen.findByRole('dialog', {
@@ -405,7 +405,7 @@ describe('Housing list view', () => {
       });
       await user.click(newGroup);
       const back = await screen.findByRole('button', {
-        name: 'Revenir en arrière'
+        name: 'Retour'
       });
       await user.click(back);
       const modal = await screen.findByRole('dialog', {

@@ -48,6 +48,7 @@ import {
   PRECISION_TABLE
 } from '~/repositories/precisionRepository';
 import { AddressDBO, banAddressesTable } from './banAddressesRepository';
+import { createArrayAddressSearchCondition } from '~/utils/addressNormalization';
 import { campaignsHousingTable } from './campaignHousingRepository';
 import { campaignsTable } from './campaignRepository';
 import establishmentRepository from './establishmentRepository';
@@ -925,14 +926,23 @@ function filteredQuery(opts: FilteredQueryOptions) {
             `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
             query?.split(' ').reverse().join(' ')
           );
-          whereBuilder.orWhereRaw(
-            `replace(upper(unaccent(array_to_string(${housingTable}.address_dgfip, '%'))), ' ', '') like '%' || replace(upper(unaccent(?)), ' ','') || '%'`,
-            query
+          
+          // Enhanced address search with FANTOIR normalization
+          const housingAddressSearch = createArrayAddressSearchCondition(
+            `${housingTable}.address_dgfip`, 
+            '%', 
+            query, 
+            'housing_addr'
           );
-          whereBuilder.orWhereRaw(
-            `upper(unaccent(array_to_string(${ownerTable}.address_dgfip, '%'))) like '%' || upper(unaccent(?)) || '%'`,
-            query
+          whereBuilder.orWhereRaw(housingAddressSearch.condition, housingAddressSearch.parameters);
+          
+          const ownerAddressSearch = createArrayAddressSearchCondition(
+            `${ownerTable}.address_dgfip`, 
+            '%', 
+            query, 
+            'owner_addr'
           );
+          whereBuilder.orWhereRaw(ownerAddressSearch.condition, ownerAddressSearch.parameters);
         }
         whereBuilder.orWhereIn(
           'invariant',

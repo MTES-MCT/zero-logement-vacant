@@ -59,17 +59,10 @@ function GroupCampaignCreationModal(props: Props) {
       onSubmit={submit}
     >
       <Container as="main" fluid>
-        <Alert
-          severity="info"
-          title="Une campagne va être créée sur la base de ce groupe."
-          description="Une fois la campagne créée, les nouveaux logements ajoutés ultérieurement au groupe ne seront pas pris en compte dans la campagne."
-          closable
-          className="fr-mb-2w"
-        />
         <Text>
           <span data-testid="housing-infos">
-            Vous êtes sur le point de créer une campagne comportant{' '}
-            <b>{displayCount(props.housingCount, 'logement')}.</b>
+            Vous êtes sur le point de créer une campagne sur la base de ce groupe comportant{' '}
+            <b>{displayCount(props.housingCount, 'logement')}.</b> Une fois la campagne créée, les nouveaux logements ajoutés ultérieurement au groupe ne seront pas pris en compte dans la campagne.
           </span>
         </Text>
         <AppTextInput<FormShape>

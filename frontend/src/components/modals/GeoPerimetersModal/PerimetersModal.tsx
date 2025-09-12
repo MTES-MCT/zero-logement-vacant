@@ -179,7 +179,7 @@ function createPerimetersModal() {
 
           <perimetersModal.Component
             title={`Vos périmètres géographiques (${geoPerimeters?.length ?? 0})`}
-            size="large"
+            size="extra-extra-large"
             buttons={[
               {
                 children: 'Fermer',

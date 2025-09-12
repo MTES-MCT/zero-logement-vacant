@@ -2,7 +2,7 @@ terraform {
   required_providers {
     clevercloud = {
       source  = "clevercloud/clevercloud"
-      version = "0.9.0"
+      version = "1.0.1"
     }
     random = {
       source  = "hashicorp/random"

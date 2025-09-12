@@ -1,5 +1,4 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
-import Tag from '@codegouvfr/react-dsfr/Tag';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -7,13 +6,14 @@ import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { fromHousing, Occupancy } from '@zerologementvacant/models';
 import classNames from 'classnames';
-import { ReactNode, useId } from 'react';
+import { Predicate } from 'effect';
+import { type ReactNode, useId } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import {
   formatOwnershipKind,
   getBuildingLocation,
-  Housing,
+  type Housing,
   lastUpdate
 } from '../../models/Housing';
 import { CADASTRAL_CLASSIFICATION_OPTIONS } from '../../models/HousingFilters';
@@ -63,7 +63,7 @@ function HousingDetailsCard(props: HousingDetailsCardProps) {
           content: <MobilizationTab housing={props.housing} />
         },
         {
-          label: 'Historique et notes',
+          label: 'Notes et historique',
           content: <HistoryTab housing={props.housing} />
         }
       ]}
@@ -138,13 +138,6 @@ function HousingTab(props: TabProps) {
                     props.housing.cadastralClassification
                   ].label
             }
-          />
-          <HousingAttribute
-            label="Taxe sur la vacance"
-            value={match(props.housing.taxed)
-              .with(true, () => <Tag small>Oui</Tag>)
-              .with(false, () => <Tag small>Non</Tag>)
-              .otherwise(() => null)}
           />
           <HousingAttribute
             label="Identifiant fiscal départemental"
@@ -368,30 +361,37 @@ function MobilizationTab(props: TabProps) {
           label="Dernière mise à jour"
           value={updated ?? 'Aucune mise à jour'}
         />
-        <HousingAttribute
-          label={`Campagnes (${props.housing.campaignIds.length})`}
-          value={match(findCampaignsQuery)
-            .returnType<ReactNode>()
-            .with({ isLoading: true }, () => (
-              <Skeleton animation="wave" variant="text" />
-            ))
-            .with(
-              { isLoading: false, data: Pattern.nonNullable },
-              ({ data: campaigns }) => {
-                const housingCampaigns = campaigns.filter((campaign) =>
-                  props.housing.campaignIds.includes(campaign.id)
-                );
-                return housingCampaigns.length === 0 ? (
-                  <Typography>Aucune campagne</Typography>
-                ) : (
-                  housingCampaigns.map((campaign) => (
-                    <Typography key={campaign.id}>{campaign.title}</Typography>
-                  ))
-                );
-              }
-            )
-            .otherwise(() => null)}
-        />
+        {match(findCampaignsQuery)
+          .returnType<ReactNode>()
+          .with({ isLoading: true }, () => (
+            <Skeleton animation="wave" variant="text" />
+          ))
+          .with(
+            { isLoading: false, data: Pattern.nonNullable },
+            ({ data: campaigns }) => {
+              const housingCampaigns = props.housing.campaignIds
+                .map((id) => campaigns.find((campaign) => campaign.id === id))
+                .filter(Predicate.isNotUndefined);
+
+              return (
+                <HousingAttribute
+                  label={`Campagnes (${housingCampaigns.length})`}
+                  value={
+                    housingCampaigns.length === 0 ? (
+                      <Typography>Aucune campagne</Typography>
+                    ) : (
+                      housingCampaigns.map((campaign) => (
+                        <Typography key={campaign.id}>
+                          {campaign.title}
+                        </Typography>
+                      ))
+                    )
+                  }
+                />
+              );
+            }
+          )
+          .otherwise(() => null)}
       </Stack>
 
       <Stack component="article">

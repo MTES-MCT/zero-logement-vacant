@@ -101,7 +101,7 @@ export function createSourceHousingOwnerCommand() {
                 async findOne(geoCode, localId): Promise<HousingApi | null> {
                   return housingRepository.findOne({
                     localId,
-                    geoCode
+                    geoCode: [geoCode]
                   });
                 }
               },

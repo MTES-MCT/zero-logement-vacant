@@ -2,8 +2,16 @@
 (
 SELECT
 events.housing_id,
-events.new_status AS status,
-events.event_status_label AS status_label,
+CASE  
+  WHEN events.status_changed = TRUE THEN CAST(events.new_status AS VARCHAR)
+  WHEN events.occupancy_changed = TRUE THEN CAST(events.new_occupancy AS VARCHAR)
+  ELSE NULL
+END AS status,
+CASE  
+  WHEN events.status_changed = TRUE THEN events.event_status_label
+  WHEN events.occupancy_changed = TRUE THEN CAST(events.new_occupancy AS VARCHAR)
+  ELSE NULL
+END AS status_label,
 events.new_sub_status,
 events.created_at,
 ROW_NUMBER () OVER (PARTITION BY events.housing_id ORDER BY events.created_at DESC) AS row_num

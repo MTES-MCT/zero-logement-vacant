@@ -21,6 +21,7 @@ import { memo, type MouseEvent } from 'react';
 import { type Selection } from '../../hooks/useSelection';
 import SingleCheckbox from '../_app/AppCheckbox/SingleCheckbox';
 import styles from './advanced-table.module.scss';
+import classNames from 'classnames';
 
 export type AdvancedTableProps<Data extends object> = Pick<
   TableOptions<Data>,
@@ -201,7 +202,13 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 
                       {row.getVisibleCells().map((cell, j) => {
                         return (
-                          <td key={j} className={styles.cell}>
+                          <td
+                            key={j}
+                            className={classNames(
+                              styles.cell,
+                              fr.cx('fr-cell--multiline')
+                            )}
+                          >
                             <Box
                               sx={{
                                 display: 'flex',

@@ -33,11 +33,9 @@ function SendButton(props: Readonly<Props>) {
       onOpen={open}
       onSubmit={submit}
     >
-      <Alert
-        description='Une fois votre campagne validée, la liste des destinataires et le contenu des courriers ne pourront plus être modifiés. Cliquez sur "Confirmer" pour valider ou sur "Annuler" pour revenir en arrière.'
-        severity="warning"
-        small
-      />
+      <Text size="lg">
+        Une fois votre campagne validée, la liste des destinataires et le contenu des courriers ne pourront plus être modifiés. Cliquez sur "Confirmer" pour valider ou sur "Annuler" pour revenir en arrière.
+      </Text>
     </ConfirmationModal>
   );
 }

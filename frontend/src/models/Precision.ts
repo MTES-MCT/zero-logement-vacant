@@ -34,15 +34,15 @@ export const PRECISION_CATEGORY_LABELS: Record<
     label: 'Tiers en cause',
     icon: 'ri-exchange-2-line'
   },
-  mutation: {
+  'mutation': {
     label: 'Mutation',
     icon: 'ri-user-shared-line'
   },
-  occupation: {
+  'occupation': {
     label: 'Occupation',
     icon: 'ri-user-location-line'
   },
-  travaux: {
+  'travaux': {
     label: 'Travaux',
     icon: 'ri-barricade-line'
   }

@@ -135,13 +135,8 @@ function CampaignListView() {
         ]}
       >
         <Typography>
-          Êtes-vous sûr de vouloir supprimer cette campagne ?
+          Êtes-vous sûr de vouloir supprimer cette campagne ? Les statuts des logements "En attente de retour" repasseront en "Non suivi". Les autres statuts mis à jour ne seront pas modifiés.
         </Typography>
-        <Alert
-          description='Les statuts des logements "En attente de retour" repasseront en "Non suivi". Les autres statuts mis à jour ne seront pas modifiés.'
-          severity="info"
-          small
-        />
       </removeCampaignModal.Component>
     </MainContainer>
   );

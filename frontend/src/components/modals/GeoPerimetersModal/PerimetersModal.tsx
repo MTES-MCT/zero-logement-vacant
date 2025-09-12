@@ -191,19 +191,9 @@ function createPerimetersModal() {
             ]}
           >
             <Grid container>
-              <AppHelp className={styles.help}>
-                <Typography>
-                  Afin de pouvoir filtrer les logements d’un périmètre (OPAH,
-                  ORT, Permis de louer, etc.), déposez un fichier géographique
-                  (SIG) au format .zip comprenant l’ensemble des extensions qui
-                  constituent le fichier (.cpg, .dbf, .shp, etc.).
-                </Typography>
-                <Typography className="italic">
-                  Attention : votre périmètre doit comprendre au maximum 500
-                  entités. Vérifiez le format de votre périmètre avant de
-                  l’intégrer.
-                </Typography>
-              </AppHelp>
+                <Text size="lg">
+                 Déposer un fichier .zip avec toutes ses extensions (.cpg, .dbf, .shp, etc.) vous permet de filtrer les logements par périmètre (OPAH, ORT, Permis de louer, etc.) — vérifiez simplement qu’il contient au maximum 500 entités avant de l’importer.
+                </Text>
               <Grid
                 container
                 className="fr-mt-3w fr-mb-1w"

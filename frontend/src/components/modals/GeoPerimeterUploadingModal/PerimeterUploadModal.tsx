@@ -52,14 +52,10 @@ function createPerimeterUploadModal() {
           onSubmit={submitFile}
           {...rest}
         >
-          <AppHelp className={styles.help}>
-            Pour utiliser le filtre “Périmètre” dans la base de données, vous
-            pouvez déposer le ou les périmètres géographiques* qui vous
-            intéressent : il peut s’agir d’un périmètre correspondant à un
-            dispositif de type OPAH ou ORT, mais également d’un quartier en
-            particulier, selon vos besoins.
-          </AppHelp>
-          <Grid container>
+          <Text size="lg">
+          Déposer un ou plusieurs périmètres géographiques (dispositif OPAH/ORT, quartier spécifique, zonage, etc.) permet d’utiliser le filtre « Périmètre » pour cibler vos recherches.
+          </Text>
+            <Grid container>
             <Grid size={8}>
               <Upload
                 nativeInputProps={{

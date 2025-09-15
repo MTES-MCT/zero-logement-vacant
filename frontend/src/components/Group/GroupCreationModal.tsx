@@ -64,7 +64,7 @@ function createGroupCreationModal() {
           <modal.Component
             buttons={[
               {
-                children: 'Revenir en arrière',
+                children: 'Retour',
                 doClosesModal: false,
                 priority: 'secondary',
                 onClick: back

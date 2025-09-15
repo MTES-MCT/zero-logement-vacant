@@ -76,7 +76,7 @@ function createGroupAddHousingModal() {
           <modal.Component
             buttons={[
               {
-                children: 'Revenir en arrière',
+                children: 'Retour',
                 className: 'fr-mr-2w',
                 priority: 'secondary',
                 doClosesModal: false,

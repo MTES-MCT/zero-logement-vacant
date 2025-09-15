@@ -4,7 +4,6 @@ import * as yup from 'yup';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import { Group } from '../../../models/Group';
 import { useForm } from '../../../hooks/useForm';
-import AppInfo from '../../_app/AppInfo/AppInfo';
 import HousingCount from '../../HousingCount/HousingCount';
 import { Col, Row } from '../../_dsfr';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';

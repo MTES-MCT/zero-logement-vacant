@@ -97,7 +97,7 @@ function GroupEditionModal(props: Props) {
             <AppTextInput<FormShape>
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              label="Nom du groupe"
+              label="Nom du groupe (obligatoire)"
               inputForm={form}
               inputKey="title"
               required
@@ -106,15 +106,11 @@ function GroupEditionModal(props: Props) {
               value={description}
               textArea
               onChange={(e) => setDescription(e.target.value)}
-              label="Description"
+              label="Description (obligatoire)"
               inputForm={form}
               inputKey="description"
               required
             />
-            <AppInfo>
-              Vous pouvez par exemple définir à quoi sert ce groupe et comment
-              vous l’avez construit
-            </AppInfo>
           </Col>
         </Row>
       </form>

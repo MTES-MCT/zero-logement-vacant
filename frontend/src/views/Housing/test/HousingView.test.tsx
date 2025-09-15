@@ -159,7 +159,7 @@ describe('Housing view', () => {
       });
       const [firstAccordion] = accordions;
       await user.click(firstAccordion);
-      const inputs = await within(modal).findAllByLabelText(/^Nom prénom/);
+      const inputs = await within(modal).findAllByLabelText(/^Nom et prénom/);
       const [input] = inputs;
       const newName = faker.person.fullName();
       await user.clear(input);
@@ -232,7 +232,7 @@ describe('Housing view', () => {
         /^Sélectionner les droits de propriétés/
       );
       await user.selectOptions(rank, String(housingOwners.length + 1));
-      const identity = await within(modal).findByLabelText(/^Identité/);
+      const identity = await within(modal).findByLabelText(/^Nom et prénom/);
       await user.type(identity, newOwner.fullName);
       const birthDate =
         await within(modal).findByLabelText(/^Date de naissance/);

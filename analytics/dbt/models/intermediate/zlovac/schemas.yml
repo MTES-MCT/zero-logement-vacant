@@ -2,26 +2,33 @@ version: 2
 
 models:
   - name: int_zlovac_housing
-    +enabled: table
     config:
       materialized: view
+      meta:
+        +enabled: table
   - name: int_zlovac
-    +enabled: false
     config:
       materialized: table
+      meta:
+        +enabled: false
   - name: int_zlovac_unique_owners
-    +enabled: false
     config:
       materialized: view
+      meta:
+        +enabled: false
   - name: int_zlovac_owners
-    +enabled: false
     config:
       materialized: table
+      meta:
+        +enabled: false
   - name: int_zlovac_owner_housing
     description: "Description de ce que fait le modèle lovac, par exemple, analyse des locaux vacants."
-    +enabled: false
+    config:
+      meta:
+        +enabled: false
   - name: int_zlovac_owner_housing_scored
-    +enabled: false
     config:
       materialized: table
       tags: ['python']
+      meta:
+        +enabled: false

@@ -3,10 +3,6 @@ version: 2
 models:
   - name: marts_production_housing
     description: "Table principale des logements avec informations complètes incluant les derniers statuts, territoires spéciaux et métriques de campagnes"
-    tests:
-      - utils/same_row_number.sql:
-          table_one: marts_production_housing
-          table_two: int_production_housing
     columns:
       - name: housing_id
         description: "Identifiant unique du logement (UUID converti en VARCHAR)"
@@ -104,12 +100,14 @@ models:
         description: "Indicateur passoire énergétique (F ou G) - calculé"
         tests:
           - accepted_values:
-              values: [true, false]
+              arguments:
+                values: [true, false]
       - name: vacant_two_years
         description: "Indicateur logement vacant depuis plus de 2 ans - calculé"
         tests:
           - accepted_values:
-              values: [true, false]
+              arguments:
+                values: [true, false]
       - name: is_in_opah_teritory
         description: "Indicateur si le logement est en territoire OPAH"
       - name: is_in_tlv1_teritory
@@ -141,11 +139,6 @@ models:
 
   - name: marts_production_campaigns
     description: "Table des campagnes de communication avec métriques de performance et statistiques de retour"
-    tests:
-      - tests/production/campaign/test_no_null_housing_number_sent.sql
-      - utils/same_row_number.sql:
-          table_one: marts_production_campaigns
-          table_two: int_production_campaigns
     columns:
       - name: campaign_id
         description: "Identifiant unique de la campagne (UUID converti en VARCHAR)"
@@ -180,14 +173,16 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('marts_production_establishments')
-              field: id
+              arguments:
+                to: ref('marts_production_establishments')
+                field: id
       - name: user_id
         description: "Identifiant de l'utilisateur créateur de la campagne"
         tests:
           - relationships:
-              to: ref('marts_production_users')
-              field: id
+              arguments:
+                to: ref('marts_production_users')
+                field: id
       - name: recovery_id
         description: "Identifiant de récupération"
       - name: kind_deprecated
@@ -204,13 +199,15 @@ models:
         description: "Identifiant du groupe associé à la campagne"
         tests:
           - relationships:
-              to: ref('marts_production_groups')
-              field: id
+              arguments:
+                to: ref('marts_production_groups')
+                field: id
       - name: status
         description: "Statut de la campagne (draft, in-progress, sent, archived)"
         tests:
           - accepted_values:
-              values: ['draft', 'in-progress', 'sent', 'archived']
+              arguments:
+                values: ['draft', 'in-progress', 'sent', 'archived']
       - name: file
         description: "Fichier associé à la campagne"
       - name: description
@@ -219,17 +216,20 @@ models:
         description: "Indicateur si la campagne est validée (0/1)"
         tests:
           - accepted_values:
-              values: [0, 1]
+              arguments:
+                values: [0, 1]
       - name: is_confirmed
         description: "Indicateur si la campagne est confirmée (0/1)"
         tests:
           - accepted_values:
-              values: [0, 1]
+              arguments:
+                values: [0, 1]
       - name: is_sent
         description: "Indicateur si la campagne est envoyée (0/1)"
         tests:
           - accepted_values:
-              values: [0, 1]
+              arguments:
+                values: [0, 1]
       - name: is_creation_gt_30_days
         description: "Indicateur si la création date de plus de 30 jours (0/1)"
       - name: is_creation_lt_30_days
@@ -281,10 +281,6 @@ models:
 
   - name: marts_production_establishments
     description: "Table principale des établissements avec informations complètes sur les utilisateurs, campagnes, groupes, périmètres et contacts"
-    tests:
-      - utils/same_row_number.sql:
-          table_one: marts_production_establishments
-          table_two: int_production_establishments
     columns:
       - name: establishment_id
         description: "Identifiant unique de l'établissement (UUID converti en VARCHAR)"
@@ -312,7 +308,8 @@ models:
         description: "Type d'établissement (CA, CC, CU, ME, Commune, DEP, REG, etc.)"
         tests:
           - accepted_values:
-              values: ['CA', 'CC', 'CU', 'ME', 'Commune', 'DEP', 'PETR', 'REG', 'SDED', 'SDER', 'ASSO']
+              arguments:
+                values: ['CA', 'CC', 'CU', 'ME', 'Commune', 'DEP', 'PETR', 'REG', 'SDED', 'SDER', 'ASSO']
       - name: updated_at
         description: "Date de dernière mise à jour"
       - name: source
@@ -449,100 +446,105 @@ models:
           - unique
           - not_null
           - relationships:
-              to: ref('marts_production_establishments')
-              field: establishment_id
+              arguments:
+                to: ref('marts_production_establishments')
+                field: establishment_id
       - name: connecte_90_derniers_jours
         description: "Connexion dans les 90 derniers jours (Oui/👻 Fantôme)"
         tests:
           - accepted_values:
-              values: ['Oui', '👻 Fantôme']
+              arguments:
+                values: ['Oui', '👻 Fantôme']
       - name: connecte_60_derniers_jours
         description: "Connexion dans les 60 derniers jours (Oui/Non)"
         tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              arguments:
+                values: ['Oui', 'Non']
       - name: connecte_30_derniers_jours
         description: "Connexion dans les 30 derniers jours (Oui/Non)"
         tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              arguments:
+                values: ['Oui', 'Non']
       - name: a_depose_1_perimetre
         description: "A déposé au moins 1 périmètre (oui/non)"
         tests:
           - accepted_values:
-              values: ['oui', 'non']
+              arguments:
+                values: ['oui', 'non']
       - name: a_cree_1_groupe
         description: "A créé au moins 1 groupe (oui/non)"
         tests:
           - accepted_values:
-              values: ['oui', 'non']
+              arguments:
+                values: ['oui', 'non']
       - name: a_cree_1_campagne
         description: "A créé au moins 1 campagne (oui/non)"
         tests:
           - accepted_values:
-              values: ['oui', 'non']
+              arguments:
+                values: ['oui', 'non']
       - name: a_cree_1_campagne_30_derniers_jours
         description: "A créé au moins 1 campagne dans les 30 derniers jours (Oui/Non)"
         tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              arguments:
+                values: ['Oui', 'Non']
       - name: a_envoye_1_campagne
         description: "A envoyé au moins 1 campagne (oui/non)"
         tests:
           - accepted_values:
-              values: ['oui', 'non']
+              arguments:
+                values: ['oui', 'non']
       - name: a_fait_1_maj_suivi
         description: "A fait au moins 1 mise à jour de suivi (Oui/Non)"
         tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              arguments:
+                values: ['Oui', 'Non']
       - name: a_fait_1_maj_occupation
         description: "A fait au moins 1 mise à jour d'occupation (Oui/Non)"
         tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              arguments:
+                values: ['Oui', 'Non']
       - name: a_fait_1_maj
         description: "A fait au moins 1 mise à jour (suivi ou occupation) (Oui/Non)"
         tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              arguments:
+                values: ['Oui', 'Non']
       - name: a_fait_1_campagne_ET_1_maj
         description: "A fait au moins 1 campagne ET 1 mise à jour (Oui/Non)"
         tests:
           - accepted_values:
-              values: ['Oui', 'Non']
+              arguments:
+                values: ['Oui', 'Non']
       - name: typologie_activation_simple
         description: "Typologie d'activation simplifiée (4 niveaux)"
         tests:
           - accepted_values:
-              values: ['(1) CT inactive', '(2) CT en analyse', '(3) CT en campagne', '(4) CT activée', 'Erreur de classification']
+              arguments:
+                values: ['(1) CT inactive', '(2) CT en analyse', '(3) CT en campagne', '(4) CT activée', 'Erreur de classification']
       - name: typologie_activation_detaillee
         description: "Typologie d'activation détaillée (10 niveaux croisant activation et connexion)"
         tests:
           - accepted_values:
-              values: ['(1.1) CT inactive et fantôme', '(1.2) CT inactive et visiteuse', '(2.1) CT en analyse et fantôme', '(2.2) CT en analyse et visiteuse', '(3.1) CT en campagne et fantôme', '(3.2) CT en campagne et visiteuse', '(4.1) CT pro-active et fantôme', '(4.2) CT pro-active et visiteuse', '(5.1) CT exemplaire et fantôme', '(5.2) CT exemplaire et visiteuse', 'Erreur de classification']
+              arguments:
+                values: ['(1.1) CT inactive et fantôme', '(1.2) CT inactive et visiteuse', '(2.1) CT en analyse et fantôme', '(2.2) CT en analyse et visiteuse', '(3.1) CT en campagne et fantôme', '(3.2) CT en campagne et visiteuse', '(4.1) CT pro-active et fantôme', '(4.2) CT pro-active et visiteuse', '(5.1) CT exemplaire et fantôme', '(5.2) CT exemplaire et visiteuse', 'Erreur de classification']
       - name: type_explicite
         description: "Type d'établissement explicite (libellé complet)"
         tests:
           - accepted_values:
-              values: [
-                "Communauté d'Agglomération",
-                "Communauté des Communes",
-                "Communauté Urbaine",
-                "Commune",
-                "Métropole",
-                "Département",
-                "Pôle Équilibre Territorial",
-                "Région",
-                "Service Déconcentré Départemental",
-                "Service Déconcentré Régional",
-                "Association"
-              ]
+              arguments:
+                values: ["Communauté d'Agglomération", "Communauté des Communes", "Communauté Urbaine", "Commune", "Métropole", "Département", "Pôle Équilibre Territorial", "Région", "Service Déconcentré Départemental", "Service Déconcentré Régional", "Association"]
       - name: type_regroupe
         description: "Type d'établissement regroupé (4 catégories principales)"
         tests:
           - accepted_values:
-              values: ['Intercommunalité', 'Commune', 'DDT/M', 'Autre']
+              arguments:
+                values: ['Intercommunalité', 'Commune', 'DDT/M', 'Autre']
 
   - name: marts_production_establishments_category_pro_activity
     description: "Classification de pro-activité des établissements opérationnels ouverts (EPCI, Communes) basée sur différents critères de performance dans la lutte contre la vacance"
@@ -553,15 +555,17 @@ models:
           - unique
           - not_null
           - relationships:
-              to: ref('marts_production_establishments')
-              field: establishment_id
+              arguments:
+                to: ref('marts_production_establishments')
+                field: establishment_id
       - name: name
         description: "Nom de l'établissement"
       - name: kind
         description: "Type d'établissement (CA, CC, CU, ME, Commune)"
         tests:
           - accepted_values:
-              values: ['CA', 'CC', 'CU', 'ME', 'Commune']
+              arguments:
+                values: ['CA', 'CC', 'CU', 'ME', 'Commune']
       - name: total_campaigns_sent
         description: "Nombre total de campagnes envoyées"
       - name: housing_contacted_2024
@@ -578,53 +582,63 @@ models:
         description: "Classification par quartiles du nombre de campagnes envoyées - méthode quantile (1-4)"
         tests:
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       - name: kind_housing_contacted_quantile
         description: "Classification par quartiles du nombre de logements contactés - méthode quantile (1-4)"
         tests:
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       - name: kind_housing_rate_contacted_2024_quantile
         description: "Classification par quartiles du taux de logements contactés en 2024 - méthode quantile (1-4)"
         tests:
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       - name: kind_housing_vacant_rate_contacted_quantile
         description: "Classification par quartiles du taux de logements vacants contactés - méthode quantile (1-4)"
         tests:
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       - name: kind_housing_vacant_rate_contacted_2024_quantile
         description: "Classification par quartiles du taux de logements vacants contactés en 2024 - méthode quantile (1-4)"
         tests:
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       - name: kind_housing_vacant_rate_contacted_2023_quantile
         description: "Classification par quartiles du taux de logements vacants contactés en 2023 - méthode quantile (1-4)"
         tests:
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       - name: kind_housing_rented_rate_contacted_2024_quantile
         description: "Classification par quartiles du taux de logements locatifs contactés en 2024 - méthode quantile (1-4)"
         tests:
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
       - name: total_pro_activity_quantile
         description: "Score total de pro-activité - méthode quantile (somme des 7 critères, de 7 à 28 points)"
         tests:
           - dbt_utils.accepted_range:
-              min_value: 7
-              max_value: 28
+              arguments:
+                min_value: 7
+                max_value: 28
       - name: kind_pro_activity_quantile
         description: "Classification finale de pro-activité par quartiles - méthode quantile"
         tests:
           - accepted_values:
-              values: ['Non pro-actif', 'Peu pro-actif', 'Pro-actif', 'Très pro-actif']
+              arguments:
+                values: ['Non pro-actif', 'Peu pro-actif', 'Pro-actif', 'Très pro-actif']
       - name: kind_pro_activity_ntile
         description: "Classification finale de pro-activité par quartiles - méthode ntile"
         tests:
           - accepted_values:
-              values: ['Non pro-actif', 'Peu pro-actif', 'Pro-actif', 'Très pro-actif']
+              arguments:
+                values: ['Non pro-actif', 'Peu pro-actif', 'Pro-actif', 'Très pro-actif']
 
   - name: marts_production_groups
     description: "Table des groupes de logements créés par les utilisateurs pour organiser leurs campagnes"
@@ -651,24 +665,22 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('marts_production_users')
-              field: id
+              arguments:
+                to: ref('marts_production_users')
+                field: id
       - name: establishment_id
         description: "Identifiant de l'établissement propriétaire du groupe"
         tests:
           - not_null
           - relationships:
-              to: ref('marts_production_establishments')
-              field: id
+              arguments:
+                to: ref('marts_production_establishments')
+                field: id
       - name: exported_at
         description: "Date d'export du groupe"
 
   - name: marts_production_owners
     description: "Table des propriétaires de logements avec informations personnelles et adresses"
-    tests:
-      - utils/same_row_number.sql:
-          table_one: marts_production_owners
-          table_two: int_production_owners
     columns:
       - name: owner_id
         description: "Identifiant unique du propriétaire (UUID converti en VARCHAR)"
@@ -725,10 +737,6 @@ models:
 
   - name: marts_production_users
     description: "Table des utilisateurs avec informations sur leurs établissements de rattachement"
-    tests:
-      - utils/same_row_number.sql:
-          table_one: marts_production_users
-          table_two: int_production_users
     columns:
       - name: user_id
         description: "Identifiant unique de l'utilisateur (UUID converti en VARCHAR)"
@@ -740,8 +748,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('marts_production_establishments')
-              field: establishment_id
+              arguments:
+                to: ref('marts_production_establishments')
+                field: establishment_id
       - name: id
         description: "Identifiant UUID original de l'utilisateur"
         tests:

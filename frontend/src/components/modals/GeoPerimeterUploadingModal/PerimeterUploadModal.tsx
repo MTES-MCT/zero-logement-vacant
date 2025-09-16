@@ -3,10 +3,9 @@ import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import * as yup from 'yup';
 
+import Typography from '@mui/material/Typography';
 import { fileValidator, useForm } from '../../../hooks/useForm';
-import AppHelp from '../../_app/AppHelp/AppHelp';
 import { createConfirmationModal } from '../ConfirmationModal/ConfirmationModalNext';
-import styles from './geo-perimeter-uploading-modal.module.scss';
 
 export interface GeoPerimeterUploadingModalProps {
   onClose(): void;
@@ -52,10 +51,12 @@ function createPerimeterUploadModal() {
           onSubmit={submitFile}
           {...rest}
         >
-          <Text size="lg">
-          Déposer un ou plusieurs périmètres géographiques (dispositif OPAH/ORT, quartier spécifique, zonage, etc.) permet d’utiliser le filtre « Périmètre » pour cibler vos recherches.
-          </Text>
-            <Grid container>
+          <Typography variant="subtitle2" sx={{ mb: 2 }}>
+            Déposer un ou plusieurs périmètres géographiques (dispositif
+            OPAH/ORT, quartier spécifique, zonage, etc.) permet d’utiliser le
+            filtre « Périmètre » pour cibler vos recherches.
+          </Typography>
+          <Grid container>
             <Grid size={8}>
               <Upload
                 nativeInputProps={{

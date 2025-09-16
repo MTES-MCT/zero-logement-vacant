@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 import { useMemo, useState } from 'react';
 
 import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
-import { GeoPerimeter } from '../../../models/GeoPerimeter';
+import { type GeoPerimeter } from '../../../models/GeoPerimeter';
 import {
   useDeleteGeoPerimetersMutation,
   useListGeoPerimetersQuery,
@@ -15,7 +15,6 @@ import {
   useUploadGeoPerimeterFileMutation
 } from '../../../services/geo.service';
 import { displayCount, pluralize } from '../../../utils/stringUtils';
-import AppHelp from '../../_app/AppHelp/AppHelp';
 import AppSearchBar from '../../_app/AppSearchBar/AppSearchBar';
 import GeoPerimeterCard from '../../GeoPerimeterCard/GeoPerimeterCard';
 import { createExtendedModal } from '../ConfirmationModal/ExtendedModal';
@@ -23,7 +22,6 @@ import createPerimeterEditionModal, {
   type PerimeterEditionPayload
 } from '../GeoPerimeterEditionModal/GeoPerimeterEditionModal';
 import createPerimeterUploadModal from '../GeoPerimeterUploadingModal/PerimeterUploadModal';
-import styles from './geo-perimeters-modal.module.scss';
 import GeoPerimetersTable from './GeoPerimetersTable';
 
 const confirmationModal = createConfirmationModal({
@@ -191,9 +189,12 @@ function createPerimetersModal() {
             ]}
           >
             <Grid container>
-                <Text size="lg">
-                 Déposer un fichier .zip avec toutes ses extensions (.cpg, .dbf, .shp, etc.) vous permet de filtrer les logements par périmètre (OPAH, ORT, Permis de louer, etc.) — vérifiez simplement qu’il contient au maximum 500 entités avant de l’importer.
-                </Text>
+              <Typography variant="subtitle2">
+                Déposer un fichier .zip avec toutes ses extensions (.cpg, .dbf,
+                .shp, etc.) vous permet de filtrer les logements par périmètre
+                (OPAH, ORT, Permis de louer, etc.) — vérifiez simplement qu’il
+                contient au maximum 500 entités avant de l’importer.
+              </Typography>
               <Grid
                 container
                 className="fr-mt-3w fr-mb-1w"

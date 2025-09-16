@@ -7,7 +7,7 @@ import Grid from '@mui/material/Grid';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import Container from '@mui/material/Container';
 import { object } from 'yup';
@@ -21,7 +21,7 @@ import DraftSendingDate, {
 import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import { useNotification } from '../../hooks/useNotification';
-import { Campaign } from '../../models/Campaign';
+import { type Campaign } from '../../models/Campaign';
 import {
   useLazyGetCampaignQuery,
   useUpdateCampaignMutation
@@ -189,14 +189,14 @@ function CampaignSending(props: Readonly<Props>) {
                 }
               ]}
             >
-              <Text size="lg">
-                  Une fois la date d’envoi confirmée, vous ne pourrez plus
-                  télécharger vos courriers et vos destinataires. Si vous avez
-                  bien effectué le téléchargement, vous pouvez cliquer sur
-                  “Confirmer” et commencer le suivi de votre campagne. Sinon,
-                  cliquez sur “Annuler” pour revenir en arrière et télécharger
-                  les courriers et destinataires avant de confirmer.
-              </Text>
+              <Typography variant="subtitle2">
+                Une fois la date d’envoi confirmée, vous ne pourrez plus
+                télécharger vos courriers et vos destinataires. Si vous avez
+                bien effectué le téléchargement, vous pouvez cliquer sur
+                “Confirmer” et commencer le suivi de votre campagne. Sinon,
+                cliquez sur “Annuler” pour revenir en arrière et télécharger les
+                courriers et destinataires avant de confirmer.
+              </Typography>
             </modal.Component>
             <form>
               <DraftSendingDate

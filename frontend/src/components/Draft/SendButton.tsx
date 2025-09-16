@@ -1,7 +1,7 @@
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import Typography from '@mui/material/Typography';
 
-import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 import { useForm } from '../../hooks/useForm';
+import ConfirmationModal from '../modals/ConfirmationModal/ConfirmationModal';
 
 interface Props {
   className?: string;
@@ -33,9 +33,11 @@ function SendButton(props: Readonly<Props>) {
       onOpen={open}
       onSubmit={submit}
     >
-      <Text size="lg">
-        Une fois votre campagne validée, la liste des destinataires et le contenu des courriers ne pourront plus être modifiés. Cliquez sur "Confirmer" pour valider ou sur "Annuler" pour revenir en arrière.
-      </Text>
+      <Typography variant="subtitle2">
+        Une fois votre campagne validée, la liste des destinataires et le
+        contenu des courriers ne pourront plus être modifiés. Cliquez sur
+        “Confirmer” pour valider ou sur “Annuler” pour revenir en arrière.
+      </Typography>
     </ConfirmationModal>
   );
 }

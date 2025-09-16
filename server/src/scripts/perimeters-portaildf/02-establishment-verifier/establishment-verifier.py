@@ -4,12 +4,11 @@ Verify structure permissions (establishments table)
 
 Business rules
 --------------
-1. If an establishment's SIREN is missing from the JSONL file
-   → mark it as logically deleted (`deleted_at = NOW()`).
+If `acces_lovac` is NULL **or** older than today
+→ suspend the establishment (`suspended_at = NOW()`,
+  `suspended_cause = 'droits structure expires'`).
 
-2. If `acces_lovac` is NULL **or** older than today
-   → suspend the establishment (`suspended_at = NOW()`,
-     `suspended_cause = 'droits structure expires'`).
+Note: This script NO LONGER marks establishments as deleted.
 """
 
 import json
@@ -55,7 +54,7 @@ class DbEstablishment:
 @dataclass
 class Action:
     establishment_id: str
-    action_type: str              # 'delete' or 'suspend'
+    action_type: str              # 'suspend' only (no longer 'delete')
     executed_at: str
     suspended_cause: Optional[str] = None
 
@@ -124,6 +123,8 @@ def load_structures(jsonl_file: str) -> Dict[str, StructureFileRecord]:
 
 def check_establishments_schema(db_config: DatabaseConfig) -> bool:
     """Ensure required columns exist on `public.establishments`."""
+    # Note: We still check for deleted_at to ensure compatibility,
+    # but we don't update it
     required_cols = {'deleted_at', 'suspended_at', 'suspended_cause', 'siren'}
     try:
         with psycopg2.connect(**db_config.__dict__) as conn, conn.cursor() as cur:
@@ -191,19 +192,19 @@ def analyze_establishment_status(
     now_iso: str,
 ) -> Optional[Action]:
     """
-    Decide whether an establishment must be deleted or suspended.
+    Decide whether an establishment must be suspended.
+    
+    Note: This function no longer handles deletion logic.
+    Missing SIRENs from the JSONL file are ignored.
     """
-    # Rule 1 : SIREN missing → delete
+    # If SIREN is missing from file, we do nothing (no deletion)
     if struct_file is None:
-        if est.deleted_at is None:
-            return Action(establishment_id=est.id,
-                          action_type='delete',
-                          executed_at=now_iso)
         return None
 
-    # Rule 2 : acces_lovac is NULL or expired → suspend
+    # Rule : acces_lovac is NULL or expired → suspend
     lovac = struct_file.acces_lovac
     if lovac is None or date_in_past(lovac):
+        # Only suspend if not already suspended
         if est.suspended_at is None:
             return Action(establishment_id=est.id,
                           action_type='suspend',
@@ -224,31 +225,21 @@ def apply_actions(actions: List[Action], db_config: DatabaseConfig, dry_run: boo
     if dry_run:
         logger.info(f'DRY RUN — {len(actions)} updates to perform:')
         for a in actions:
-            if a.action_type == 'delete':
-                logger.info(f'  DELETE  → {a.establishment_id}')
-            else:
-                logger.info(f'  SUSPEND → {a.establishment_id} ({a.suspended_cause})')
+            logger.info(f'  SUSPEND → {a.establishment_id} ({a.suspended_cause})')
         return
 
     try:
         with psycopg2.connect(**db_config.__dict__) as conn, conn.cursor() as cur:
             for a in actions:
-                if a.action_type == 'delete':
-                    cur.execute(
-                        'UPDATE public.establishments '
-                        'SET deleted_at = %s '
-                        'WHERE id = %s AND deleted_at IS NULL',
-                        (a.executed_at, a.establishment_id),
-                    )
-                else:  # suspend
-                    cur.execute(
-                        'UPDATE public.establishments '
-                        'SET suspended_at = %s, suspended_cause = %s '
-                        'WHERE id = %s '
-                        '  AND deleted_at IS NULL '
-                        '  AND suspended_at IS NULL',
-                        (a.executed_at, a.suspended_cause, a.establishment_id),
-                    )
+                # Only handle suspension (no deletion)
+                cur.execute(
+                    'UPDATE public.establishments '
+                    'SET suspended_at = %s, suspended_cause = %s '
+                    'WHERE id = %s '
+                    '  AND deleted_at IS NULL '
+                    '  AND suspended_at IS NULL',
+                    (a.executed_at, a.suspended_cause, a.establishment_id),
+                )
             conn.commit()
         logger.info(f'Updates applied: {len(actions)}')
     except psycopg2.Error as e:
@@ -350,12 +341,14 @@ def main(jsonl_file, db_host, db_port, db_name, db_user, db_password, dry_run, v
     Verify structure permissions against establishments database.
     
     This tool checks structure permissions by comparing SIREN data from a JSONL
-    file with establishments in the database. It applies business rules to mark
-    establishments as deleted or suspended based on access rights.
+    file with establishments in the database. It suspends establishments based
+    on expired access rights.
     
-    Business Rules:
-    1. Missing SIREN → mark as deleted
-    2. Expired or null LOVAC access → suspend establishment
+    Business Rule:
+    - Expired or null LOVAC access → suspend establishment
+    
+    Note: This script does NOT mark establishments as deleted,
+    even if their SIREN is missing from the JSONL file.
     
     Examples:
     

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to automatically deactivate users according to business rules:
-- deleted_at if user is absent from JSON Lines
+Script to automatically suspend users according to business rules:
 - suspended_at if rights expired, structure expired, or invalid ToS
 
 Modern configuration with CLI, environment variables and validation.
@@ -79,12 +78,11 @@ class DatabaseUser:
 
 @dataclass
 class DeactivationAction:
-    """Represents a deactivation action to perform."""
+    """Represents a suspension action to perform."""
     user_id: int
     email: str
-    action_type: str  # 'delete' or 'suspend'
+    action_type: str  # 'suspend' only
     reasons: List[str]
-    deleted_at: Optional[str] = None
     suspended_at: Optional[str] = None
     suspended_cause: Optional[str] = None
 
@@ -224,7 +222,7 @@ def check_database_schema(db_config: DatabaseConfig) -> bool:
                 """)
                 
                 existing_columns = [row[0] for row in cursor.fetchall()]
-                required_columns = ['suspended_at', 'suspended_cause', 'deleted_at']
+                required_columns = ['suspended_at', 'suspended_cause']
                 missing_columns = [col for col in required_columns if col not in existing_columns]
                 
                 logger.info(f"Existing columns in 'users': {', '.join(existing_columns)}")
@@ -369,16 +367,8 @@ def analyze_user_status(
     now = datetime.now()
     reasons = []
     
-    # Rule 1: User absent from JSON Lines
+    # Skip if user not in API (no deletion rule anymore)
     if api_user is None:
-        if db_user.deleted_at is None:  # Not already deleted
-            return DeactivationAction(
-                user_id=db_user.id,
-                email=db_user.email,
-                action_type='delete',
-                reasons=['user absent from API'],
-                deleted_at=now.isoformat()
-            )
         return None
     
     # If user is already deleted, do nothing
@@ -387,7 +377,7 @@ def analyze_user_status(
     
     # Check suspension conditions
     
-    # Rule 2: Expiration date in the past
+    # Rule 1: Expiration date in the past
     if api_user.expiration_date:
         try:
             exp_date = dateutil.parser.parse(api_user.expiration_date.replace('Z', '+00:00'))
@@ -398,11 +388,11 @@ def analyze_user_status(
         except Exception:
             reasons.append("invalid expiration date")
     
-    # Rule 3: Invalid Terms of Service
+    # Rule 2: Invalid Terms of Service
     if api_user.valid_tos is None:
         reasons.append("cgu vides")
     
-    # Rule 4: Expired structure rights
+    # Rule 3: Expired structure rights
     if api_user.structure:
         logger.info(f"Checking structure {api_user.structure} for {db_user.email}...")
         structure_access_valid = check_structure_access(api_user.structure, structures)
@@ -429,7 +419,7 @@ def analyze_user_status(
 
 def apply_deactivation_actions(actions: List[DeactivationAction], db_config: DatabaseConfig, dry_run: bool = False) -> None:
     """
-    Apply deactivation actions to the database.
+    Apply suspension actions to the database.
     
     Args:
         actions: List of actions to perform
@@ -443,47 +433,27 @@ def apply_deactivation_actions(actions: List[DeactivationAction], db_config: Dat
     if dry_run:
         logger.info(f"DRY RUN MODE - {len(actions)} actions would be performed:")
         for action in actions:
-            if action.action_type == 'delete':
-                logger.info(f"  DELETE: {action.email} - {', '.join(action.reasons)}")
-            else:
-                logger.info(f"  SUSPEND: {action.email} - {action.suspended_cause}")
+            logger.info(f"  SUSPEND: {action.email} - {action.suspended_cause}")
         return
     
     try:
         with psycopg2.connect(**db_config.__dict__) as conn:
             with conn.cursor() as cursor:
-                delete_actions = [a for a in actions if a.action_type == 'delete']
-                suspend_actions = [a for a in actions if a.action_type == 'suspend']
+                # Process suspensions only
+                suspend_query = """
+                UPDATE users 
+                SET suspended_at = %s, suspended_cause = %s 
+                WHERE id = %s AND deleted_at IS NULL
+                """
                 
-                # Process deletions
-                if delete_actions:
-                    delete_query = """
-                    UPDATE users 
-                    SET deleted_at = %s 
-                    WHERE id = %s AND deleted_at IS NULL
-                    """
-                    
-                    for action in delete_actions:
-                        cursor.execute(delete_query, (action.deleted_at, action.user_id))
-                    
-                    logger.info(f"{len(delete_actions)} users marked as deleted")
+                for action in actions:
+                    cursor.execute(suspend_query, (
+                        action.suspended_at, 
+                        action.suspended_cause, 
+                        action.user_id
+                    ))
                 
-                # Process suspensions
-                if suspend_actions:
-                    suspend_query = """
-                    UPDATE users 
-                    SET suspended_at = %s, suspended_cause = %s 
-                    WHERE id = %s AND deleted_at IS NULL
-                    """
-                    
-                    for action in suspend_actions:
-                        cursor.execute(suspend_query, (
-                            action.suspended_at, 
-                            action.suspended_cause, 
-                            action.user_id
-                        ))
-                    
-                    logger.info(f"{len(suspend_actions)} users suspended")
+                logger.info(f"{len(actions)} users suspended")
                 
                 conn.commit()
                 logger.info("All changes have been applied")
@@ -505,18 +475,14 @@ def generate_report(actions: List[DeactivationAction]) -> None:
     if not actions:
         return
     
-    delete_actions = [a for a in actions if a.action_type == 'delete']
-    suspend_actions = [a for a in actions if a.action_type == 'suspend']
-    
-    logger.info(f"=== DEACTIVATION REPORT ===")
-    logger.info(f"Users deleted: {len(delete_actions)}")
-    logger.info(f"Users suspended: {len(suspend_actions)}")
+    logger.info(f"=== SUSPENSION REPORT ===")
+    logger.info(f"Users suspended: {len(actions)}")
     logger.info(f"Total actions: {len(actions)}")
     
-    if suspend_actions:
+    if actions:
         # Analyze suspension reasons
         reason_counts = {}
-        for action in suspend_actions:
+        for action in actions:
             for reason in action.reasons:
                 reason_counts[reason] = reason_counts.get(reason, 0) + 1
         
@@ -531,7 +497,7 @@ def run_deactivation(
     dry_run: bool = False
 ) -> None:
     """
-    Main deactivation function.
+    Main suspension function.
     
     Args:
         users_file: Path to users JSON Lines file
@@ -539,7 +505,7 @@ def run_deactivation(
         db_config: Database configuration
         dry_run: If True, only show what would be done
     """
-    logger.info("=== AUTOMATIC DEACTIVATION SCRIPT ===")
+    logger.info("=== AUTOMATIC USER SUSPENSION SCRIPT ===")
     
     try:
         # 1. Load API users
@@ -642,21 +608,22 @@ def run_deactivation(
     is_flag=True,
     help='Enable verbose logging'
 )
-@click.version_option(version='2.1.0')
+@click.version_option(version='2.2.0')
 def main(users_file, structures_file, db_host, db_port, db_name, db_user, db_password, 
          dry_run, verbose):
     """
-    Automatically deactivate users according to business rules.
+    Automatically suspend users according to business rules.
     
     This script compares users from a JSON Lines file with users in the database
-    and applies deactivation rules based on presence, expiration dates, and
-    structure access rights from a local structures file.
+    and applies suspension rules based on expiration dates and structure access 
+    rights from a local structures file.
     
     Business Rules:
-    1. User absent from JSON Lines → mark as deleted
-    2. droits utilisateur expires → suspend user
-    3. cgu vides → suspend user
-    4. droits structure expires → suspend user
+    1. droits utilisateur expires → suspend user
+    2. cgu vides → suspend user
+    3. droits structure expires → suspend user
+    
+    Note: Users absent from JSON Lines are NO LONGER marked as deleted.
     
     Examples:
     

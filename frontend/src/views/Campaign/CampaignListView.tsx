@@ -1,18 +1,17 @@
-import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import CampaignTable from '../../components/Campaign/CampaignTable';
 import MainContainer from '../../components/MainContainer/MainContainer';
-import { Campaign } from '../../models/Campaign';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useNotification } from '../../hooks/useNotification';
+import { type Campaign } from '../../models/Campaign';
 import {
   useRemoveCampaignMutation,
   useUpdateCampaignMutation
 } from '../../services/campaign.service';
-import { useNotification } from '../../hooks/useNotification';
-import CampaignTable from '../../components/Campaign/CampaignTable';
 
 const archiveCampaignModal = createModal({
   id: 'archive-campaign-modal',
@@ -135,7 +134,9 @@ function CampaignListView() {
         ]}
       >
         <Typography>
-          Êtes-vous sûr de vouloir supprimer cette campagne ? Les statuts des logements "En attente de retour" repasseront en "Non suivi". Les autres statuts mis à jour ne seront pas modifiés.
+          Êtes-vous sûr de vouloir supprimer cette campagne ? Les statuts des
+          logements “En attente de retour” repasseront en “Non suivi”. Les
+          autres statuts mis à jour ne seront pas modifiés.
         </Typography>
       </removeCampaignModal.Component>
     </MainContainer>

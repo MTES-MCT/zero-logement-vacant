@@ -487,10 +487,10 @@ run({
   files: {
     input: path.resolve(
       import.meta.dirname,
-      'preprocessed-housing-owners-2.jsonl'
+      'preprocessed-housing-owners.jsonl'
     ),
-    conflicts: path.resolve(import.meta.dirname, 'conflicts-2.jsonl'),
-    output: path.resolve(import.meta.dirname, 'results-2.jsonl')
+    conflicts: path.resolve(import.meta.dirname, 'conflicts.jsonl'),
+    output: path.resolve(import.meta.dirname, 'results.jsonl')
   },
   from: 'file'
 });

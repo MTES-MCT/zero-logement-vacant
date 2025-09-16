@@ -21,6 +21,7 @@ async function get(email: string): Promise<ProspectApi | null> {
       `${prospectsTable}.establishment_siren`
     )
     .select('e.id as establishment_id', 'e.siren as establishment_siren')
+    .orderBy('expires_at', 'desc')
     .first();
 
   return prospect ? parseProspectApi(prospect) : null;

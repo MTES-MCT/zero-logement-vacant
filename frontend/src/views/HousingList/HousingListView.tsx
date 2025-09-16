@@ -68,6 +68,7 @@ const HousingListView = () => {
     setAlert(
       'Le logement sélectionné a bien été ajouté à votre parc de logements.'
     );
+    setIsAlertVisible(true);
   }
 
   const { isVisitor } = useUser();

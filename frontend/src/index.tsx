@@ -66,9 +66,9 @@ root.render(
           borderRadius: '8px',
           margin: '20px'
         }}>
-          <h2>Something went wrong</h2>
+          <h2>Une erreur s'est produite</h2>
           <details style={{ whiteSpace: 'pre-wrap', marginTop: '10px' }}>
-            <summary>Error details</summary>
+            <summary>Détails de l'erreur</summary>
             {error?.toString()}
           </details>
           <button 
@@ -83,7 +83,7 @@ root.render(
               cursor: 'pointer'
             }}
           >
-            Try again
+            Réessayer
           </button>
         </div>
       )}

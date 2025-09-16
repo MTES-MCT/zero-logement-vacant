@@ -123,8 +123,7 @@ function init(): void {
 // Helper function to get user info (customize based on your auth system)
 function getUserInfo() {
   try {
-    // This should be adapted to your authentication system
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem('authUser');
     if (user) {
       const parsed = JSON.parse(user);
       return {

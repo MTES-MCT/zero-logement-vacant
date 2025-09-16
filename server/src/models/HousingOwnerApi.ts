@@ -4,7 +4,7 @@ import {
   PropertyRight,
   type BaseHousingOwnerDTO
 } from '@zerologementvacant/models';
-import { Equivalence } from 'effect';
+import { Array, Equivalence, pipe } from 'effect';
 
 import { HousingRecordApi } from './HousingApi';
 import { OwnerApi, toOwnerDTO } from './OwnerApi';
@@ -59,6 +59,54 @@ export const HOUSING_OWNER_RANK_EQUIVALENCE: Equivalence.Equivalence<HousingOwne
     ownerId: Equivalence.string,
     rank: Equivalence.number
   });
+
+/**
+ * List housing owners that have been added.
+ * @param before The housing owners before the change
+ * @param after The housing owners after the change
+ * @returns A list that have been added
+ */
+export function listAddedHousingOwners(
+  before: ReadonlyArray<HousingOwnerApi>,
+  after: ReadonlyArray<HousingOwnerApi>
+): ReadonlyArray<HousingOwnerApi> {
+  return Array.differenceWith(HOUSING_OWNER_EQUIVALENCE)(after, before);
+}
+
+/**
+ * List housing owners that have been removed.
+ * @param before The housing owners before the update
+ * @param after The housing owners after the update
+ * @returns A list of housing owners that have been removed
+ */
+export function listRemovedHousingOwners(
+  before: ReadonlyArray<HousingOwnerApi>,
+  after: ReadonlyArray<HousingOwnerApi>
+): ReadonlyArray<HousingOwnerApi> {
+  return Array.differenceWith(HOUSING_OWNER_EQUIVALENCE)(before, after);
+}
+
+/**
+ * List housing owners that have changed rank.
+ * @param before The housing owners before the update
+ * @param after The housing owners after the update
+ * @returns A list of housing owners that have changed rank
+ */
+export function listUpdatedHousingOwners(
+  before: ReadonlyArray<HousingOwnerApi>,
+  after: ReadonlyArray<HousingOwnerApi>
+): ReadonlyArray<HousingOwnerApi> {
+  return pipe(
+    Array.intersectionWith(HOUSING_OWNER_EQUIVALENCE)(before, after),
+    Array.filter((existingHousingOwner) => {
+      return !Array.containsWith(HOUSING_OWNER_RANK_EQUIVALENCE)(
+        after,
+        existingHousingOwner
+      );
+    })
+  );
+}
+
 
 /**
  * @deprecated

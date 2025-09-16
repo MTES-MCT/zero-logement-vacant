@@ -120,7 +120,7 @@ const OwnerEditionModal = ({ owner, onCancel }: Props) => {
             <AppTextInput<FormShape>
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              label="Identité (nom, prénom) (obligatoire)"
+              label="Nom et prénom (obligatoire)"
               inputForm={form}
               inputKey="fullName"
               required

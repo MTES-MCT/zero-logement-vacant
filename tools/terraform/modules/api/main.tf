@@ -20,7 +20,7 @@ resource "clevercloud_nodejs" "api" {
   smallest_flavor    = "M"
   biggest_flavor     = "M"
   package_manager    = "custom"
-  additional_vhosts  = [local.host]
+  vhosts  = [local.host]
 
   deployment {
     repository = "https://github.com/MTES-MCT/zero-logement-vacant"
@@ -28,7 +28,8 @@ resource "clevercloud_nodejs" "api" {
   }
 
   environment = {
-    CC_CUSTOM_BUILD_TOOL   = "corepack yarn workspaces focus $WORKSPACE && corepack yarn workspaces foreach --from=$WORKSPACE -Rt run build "
+    CC_CUSTOM_BUILD_TOOL   = "corepack yarn --immutable && corepack yarn nx run $WORKSPACE:build"
+    CC_RUN_COMMAND = "corepack yarn nx run $WORKSPACE:start"
     CC_HEALTH_CHECK_PATH   = "/"
     CC_NODE_BUILD_TOOL     = "custom"
     CC_OVERRIDE_BUILDCACHE = ".:../.cache/puppeteer"
@@ -51,6 +52,7 @@ resource "clevercloud_nodejs" "api" {
     MAILER_PORT          = var.mailer.port
     MAILER_PROVIDER      = var.mailer.provider
     MAILER_USER          = var.mailer.user
+    METABASE_API_TOKEN   = "unused"
     METABASE_TOKEN       = "unused"
     NODE_ENV             = "production"
     PORT                 = "8080"

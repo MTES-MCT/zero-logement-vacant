@@ -56,15 +56,51 @@ const root = ReactDOM.createRoot(container!);
 
 root.render(
   <StrictMode>
-    <ThemeProvider>
-      <MapProvider>
-        <PostHogProvider client={posthog}>
-          <StoreProvider store={store}>
-            <Notification />
-            <App />
-          </StoreProvider>
+    <sentry.ErrorBoundary 
+      fallback={({ error, resetError }) => (
+        <div style={{ 
+          padding: '20px', 
+          textAlign: 'center',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #dee2e6',
+          borderRadius: '8px',
+          margin: '20px'
+        }}>
+          <h2>Une erreur s'est produite</h2>
+          <details style={{ whiteSpace: 'pre-wrap', marginTop: '10px' }}>
+            <summary>Détails de l'erreur</summary>
+            {error?.toString()}
+          </details>
+          <button 
+            onClick={resetError}
+            style={{
+              marginTop: '10px',
+              padding: '8px 16px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Réessayer
+          </button>
+        </div>
+      )}
+      beforeCapture={(scope) => {
+        scope.setTag('errorBoundary', 'root');
+      }}
+    >
+      <ThemeProvider>
+        <MapProvider>
+          <PostHogProvider client={posthog}>
+            <StoreProvider store={store}>
+              <Notification />
+              <App />
+            </StoreProvider>
         </PostHogProvider>
-      </MapProvider>
-    </ThemeProvider>
+        </MapProvider>
+      </ThemeProvider>
+    </sentry.ErrorBoundary>
   </StrictMode>
 );

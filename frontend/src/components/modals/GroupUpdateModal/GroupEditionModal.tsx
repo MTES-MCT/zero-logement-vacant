@@ -4,7 +4,6 @@ import * as yup from 'yup';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import { Group } from '../../../models/Group';
 import { useForm } from '../../../hooks/useForm';
-import AppInfo from '../../_app/AppInfo/AppInfo';
 import HousingCount from '../../HousingCount/HousingCount';
 import { Col, Row } from '../../_dsfr';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
@@ -97,7 +96,7 @@ function GroupEditionModal(props: Props) {
             <AppTextInput<FormShape>
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              label="Nom du groupe"
+              label="Nom du groupe (obligatoire)"
               inputForm={form}
               inputKey="title"
               required
@@ -106,15 +105,11 @@ function GroupEditionModal(props: Props) {
               value={description}
               textArea
               onChange={(e) => setDescription(e.target.value)}
-              label="Description"
+              label="Description (obligatoire)"
               inputForm={form}
               inputKey="description"
               required
             />
-            <AppInfo>
-              Vous pouvez par exemple définir à quoi sert ce groupe et comment
-              vous l’avez construit
-            </AppInfo>
           </Col>
         </Row>
       </form>

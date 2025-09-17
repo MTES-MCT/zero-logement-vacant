@@ -1,4 +1,3 @@
-
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
@@ -27,25 +26,24 @@ test-paths: ["tests"]
 seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
-
-target-path: "target"  # directory which will store compiled SQL files
 clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
 
 models:
-  +full_refresh: true 
+  +full_refresh: true
   zlv_dbt_project:
     staging:
-      schema: stg
       +materialized: view
+      +schema: stg
     intermediate:
-      schema: int
       +materialized: view
+      +schema: int
     marts:
-      schema: marts
       +materialized: table
 
+      +schema: marts
 flags:
-  require_explicit_package_overrides_for_builtin_materializations: False
-  source_freshness_run_project_hooks: True
+  require_explicit_package_overrides_for_builtin_materializations: false
+  source_freshness_run_project_hooks: true
+  require_generic_test_arguments_property: true

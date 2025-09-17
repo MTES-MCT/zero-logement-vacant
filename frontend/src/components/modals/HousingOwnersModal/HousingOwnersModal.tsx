@@ -278,7 +278,7 @@ function HousingOwnersModal({
                 })
               }
               required
-              label="Nom prénom"
+              label="Nom et prénom (obligatoire)"
               inputForm={form}
               disabled={housingOwner.rank === -2}
               // @ts-expect-error: dynamic key
@@ -295,7 +295,7 @@ function HousingOwnersModal({
                   birthDate: e.target.value
                 })
               }
-              label="Date de naissance"
+              label="Date de naissance (obligatoire)"
               inputForm={form}
               disabled={housingOwner.rank === -2}
               // @ts-expect-error: dynamic key

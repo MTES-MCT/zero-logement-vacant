@@ -108,19 +108,19 @@ function CampaignTitle({ campaign, className, as, look }: Readonly<Props>) {
         </Button>
       </Stack>
       <modal.Component
-        title="Modifier le titre de la campagne"
+        title="Modifier les informations de la campagne"
         onSubmit={form.handleSubmit(submit)}
       >
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(submit)}>
             <Stack>
               <AppTextInputNext<FormSchema>
-                label="Titre de la campagne"
+                label="Titre de la campagne (obligatoire)"
                 name="title"
               />
               <AppTextInputNext<FormSchema>
                 textArea
-                label="Description de la campagne"
+                label="Description de la campagne (obligatoire)"
                 name="description"
               />
             </Stack>

@@ -27,7 +27,9 @@ sources:
           - name: FF_IDBAT
             description: "Description of what FF_IDBAT represents."
           - name: FF_IDCOM
-            you_description: "Description of what FF_IDCOM represents."
+            config:
+              meta:
+                you_description: "Description of what FF_IDCOM represents."
           - name: FF_IDPAR
             description: "Description of what FF_IDPAR represents."
           - name: FF_IDSEC

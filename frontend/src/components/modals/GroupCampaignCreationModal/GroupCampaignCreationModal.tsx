@@ -75,8 +75,7 @@ function GroupCampaignCreationModal(props: Props) {
         <AppTextInput<FormShape>
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          label="Titre de la campagne"
-          placeholder="Titre de la campagne (obligatoire)"
+          label="Titre de la campagne (obligatoire)"
           inputForm={form}
           inputKey="title"
           required
@@ -87,15 +86,11 @@ function GroupCampaignCreationModal(props: Props) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           label="Description de la campagne"
-          placeholder="Description de la campagne"
           inputForm={form}
           inputKey="description"
         />
         <Text>
-          La liste a été établie à partir du groupe 
-          <Text as="span" bold>
-            {props.group.title}
-          </Text>
+          La liste a été établie à partir du groupe &nbsp;<Text as="span" bold>{props.group.title}</Text>
           .
         </Text>
       </Container>

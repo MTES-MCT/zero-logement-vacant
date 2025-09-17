@@ -2,14 +2,12 @@
 COUNT (DISTINCT CASE
 WHEN e.created_at < (pc.sent_at + INTERVAL '{{ n_month }} months')
 AND (e.status_changed IS TRUE OR e.occupancy_changed IS TRUE)
-AND e.category = 'Followup'
 THEN pch.housing_id
 END) AS return_count_{{ n_month }}_months,
 
 (COUNT (DISTINCT CASE
 WHEN e.created_at < (pc.sent_at + INTERVAL '{{ n_month }} months')
 AND (e.status_changed IS TRUE OR e.occupancy_changed IS TRUE)
-AND e.category = 'Followup'
 THEN pch.housing_id
 END) * 100.0 / NULLIF (MAX (cc.count_housing),
 0)) AS return_rate_{{ n_month }}_months

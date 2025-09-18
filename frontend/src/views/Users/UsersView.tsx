@@ -1,26 +1,23 @@
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import MainContainer from '../../components/MainContainer/MainContainer';
-import { useFindOneDashboardQuery } from '../../services/dashboard.service';
+import { Stack, Typography } from '@mui/material';
 
-const UsersView = () => {
-  useDocumentTitle('Utilisateurs');
+import UserTable from '~/components/Users/UserTable';
+import { useDocumentTitle } from '~/hooks/useDocumentTitle';
+import { useFindUsersQuery } from '~/services/user.service';
 
-  const { data: dashboard, isSuccess } = useFindOneDashboardQuery({
-    id: '6-utilisateurs-de-zlv-sur-votre-structure',
-  });
+function UsersView() {
+  useDocumentTitle('Utilisateurs rattachés à votre structure');
+
+  const { data: users, isLoading } = useFindUsersQuery();
 
   return (
-    <MainContainer>
-      {isSuccess && (
-        <iframe
-          src={dashboard.url}
-          width="100%"
-          height="700"
-          title="Utilisateurs"
-        ></iframe>
-      )}
-    </MainContainer>
+    <Stack component="section" spacing="1.5rem">
+      <Typography component="h1" variant="h3">
+        Utilisateurs rattachés à votre structure
+      </Typography>
+
+      <UserTable isLoading={isLoading} users={users ?? []} />
+    </Stack>
   );
-};
+}
 
 export default UsersView;

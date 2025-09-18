@@ -36,7 +36,7 @@ function UserTable(props: UserTableProps) {
       }
     }),
     columnHelper.accessor('updatedAt', {
-      header: 'Dernière modification',
+      header: 'Dernière mise à jour',
       cell: ({ getValue }) => {
         const value = getValue();
         return value ? date(value) : null;

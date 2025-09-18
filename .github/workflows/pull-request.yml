@@ -65,15 +65,14 @@ jobs:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
       - name: Build
-        run: yarn nx affected -t build --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected --exclude=zero-logement-vacant -t build --base ${{ github.event.pull_request.base.sha }}
         env:
           METABASE_TOKEN: token
 
       - name: Lint
-        run: yarn nx affected -t lint --base ${{ github.event.pull_request.base.sha }}
-
+        run: yarn nx affected --exclude=zero-logement-vacant -t lint --base ${{ github.event.pull_request.base.sha }}
       - name: Test
-        run: yarn nx affected -t test --base ${{ github.event.pull_request.base.sha }}
+        run: yarn nx affected --exclude=zero-logement-vacant -t test --base ${{ github.event.pull_request.base.sha }}
         env:
           LOG_LEVEL: fatal
           NODE_OPTIONS: --experimental-transform-types

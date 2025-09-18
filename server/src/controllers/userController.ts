@@ -1,9 +1,11 @@
-import { UserRole } from '@zerologementvacant/models';
+import { isAdmin, UserRole, type UserDTO } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
-import { Request, Response } from 'express';
+import { Request, Response, type RequestHandler } from 'express';
+import type { AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
+
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ProspectInvalidError from '~/errors/prospectInvalidError';
 import ProspectMissingError from '~/errors/prospectMissingError';
@@ -17,6 +19,27 @@ import prospectRepository from '~/repositories/prospectRepository';
 import userRepository from '~/repositories/userRepository';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import mailService from '~/services/mailService';
+
+const list: RequestHandler<never, ReadonlyArray<UserDTO>> = async (
+  request,
+  response
+) => {
+  const { query, user, establishment } = request as AuthenticatedRequest<
+    never,
+    ReadonlyArray<UserDTO>
+  >;
+  logger.info('List users', {
+    query
+  });
+
+  const users = await userRepository.find({
+    filters: {
+      establishmentIds: isAdmin(user) ? [] : [establishment.id]
+    }
+  });
+
+  response.status(constants.HTTP_STATUS_OK).json(users.map(toUserDTO));
+};
 
 const createUserValidators = [
   body('email').isEmail().withMessage('Must be an email'),
@@ -122,6 +145,7 @@ async function get(request: Request, response: Response): Promise<Response> {
 const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 
 const userController = {
+  list,
   createUserValidators,
   createUser,
   get,

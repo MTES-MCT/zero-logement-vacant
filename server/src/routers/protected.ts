@@ -328,6 +328,9 @@ router.get(
   accountController.changeEstablishment
 );
 
+/* Users */
+
+router.get('/users', userController.list);
 router.get(
   '/users/:userId',
   [isUUIDParam('userId')],

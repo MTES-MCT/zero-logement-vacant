@@ -1,4 +1,5 @@
-import { UserRole } from '@zerologementvacant/models';
+import { fakerFR as faker } from '@faker-js/faker';
+import { UserRole, type UserDTO } from '@zerologementvacant/models';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
@@ -32,15 +33,89 @@ import { tokenProvider } from '~/test/testUtils';
 
 let url: string;
 
-beforeAll(async () => {
-  url = await createServer().testing();
-});
-
 describe('User API', () => {
   const establishment = genEstablishmentApi();
+  const visitor: UserApi = {
+    ...genUserApi(establishment.id),
+    role: UserRole.VISITOR
+  };
+  const user: UserApi = {
+    ...genUserApi(establishment.id),
+    role: UserRole.USUAL
+  };
+  const admin: UserApi = {
+    ...genUserApi(establishment.id),
+    role: UserRole.ADMIN
+  };
+
+  beforeAll(async () => {
+    url = await createServer().testing();
+  });
 
   beforeAll(async () => {
     await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert([visitor, user, admin].map(formatUserApi));
+  });
+
+  describe('GET /users', () => {
+    const route = '/api/users';
+
+    describe('As an unauthenticated user', () => {
+      it('should be missing', async () => {
+        const { status } = await request(url).get(route);
+
+        expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+      });
+    });
+
+    describe('As an authenticated vistor', () => {
+      it('should return the establishment’s users', async () => {
+        const { body, status } = await request(url)
+          .get(route)
+          .use(tokenProvider(visitor));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toSatisfyAll<UserDTO>(
+          (user) => user.establishmentId === establishment.id
+        );
+      });
+    });
+
+    describe('As an authenticated user', () => {
+      it('should return the establishment’s users', async () => {
+        const { body, status } = await request(url)
+          .get(route)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toSatisfyAll<UserDTO>(
+          (user) => user.establishmentId === establishment.id
+        );
+      });
+    });
+
+    describe('As an authenticated admin', () => {
+      it('should return all the users', async () => {
+        const otherEstablishment = genEstablishmentApi();
+        const otherUsers: ReadonlyArray<UserApi> = faker.helpers.multiple(() =>
+          genUserApi(otherEstablishment.id)
+        );
+        await Establishments().insert(
+          formatEstablishmentApi(otherEstablishment)
+        );
+        await Users().insert(otherUsers.map(formatUserApi));
+
+        const { body, status } = await request(url)
+          .get(route)
+          .use(tokenProvider(admin));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.length).toBeGreaterThan(1);
+        expect(body).toSatisfyAny(
+          (user: UserDTO) => user.establishmentId !== establishment.id
+        );
+      });
+    });
   });
 
   describe('POST /users/creations', () => {

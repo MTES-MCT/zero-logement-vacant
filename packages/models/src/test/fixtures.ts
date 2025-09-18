@@ -481,6 +481,8 @@ export function genUserDTO(
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     activatedAt: faker.date.recent().toJSON(),
+    lastAuthenticatedAt: faker.date.recent().toJSON(),
+    updatedAt: faker.date.recent().toJSON(),
     establishmentId: establishment?.id ?? null,
     role
   };

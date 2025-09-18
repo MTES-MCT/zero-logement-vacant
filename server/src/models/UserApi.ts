@@ -8,8 +8,6 @@ export type UserApi = UserDTO & {
   position: string | null;
   timePerWeek: string | null;
   // Timestamps
-  lastAuthenticatedAt: string | null;
-  updatedAt: string;
   deletedAt: string | null;
 };
 
@@ -34,7 +32,9 @@ export function toUserDTO(user: UserApi): UserDTO {
     lastName: user.lastName,
     role: user.role,
     establishmentId: user.establishmentId,
-    activatedAt: user.activatedAt
+    activatedAt: user.activatedAt,
+    lastAuthenticatedAt: user.lastAuthenticatedAt,
+    updatedAt: user.updatedAt
   };
 }
 

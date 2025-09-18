@@ -3,10 +3,9 @@ import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import * as yup from 'yup';
 
+import Typography from '@mui/material/Typography';
 import { fileValidator, useForm } from '../../../hooks/useForm';
-import AppHelp from '../../_app/AppHelp/AppHelp';
 import { createConfirmationModal } from '../ConfirmationModal/ConfirmationModalNext';
-import styles from './geo-perimeter-uploading-modal.module.scss';
 
 export interface GeoPerimeterUploadingModalProps {
   onClose(): void;
@@ -52,13 +51,11 @@ function createPerimeterUploadModal() {
           onSubmit={submitFile}
           {...rest}
         >
-          <AppHelp className={styles.help}>
-            Pour utiliser le filtre “Périmètre” dans la base de données, vous
-            pouvez déposer le ou les périmètres géographiques* qui vous
-            intéressent : il peut s’agir d’un périmètre correspondant à un
-            dispositif de type OPAH ou ORT, mais également d’un quartier en
-            particulier, selon vos besoins.
-          </AppHelp>
+          <Typography variant="subtitle2" sx={{ mb: 2 }}>
+            Déposer un ou plusieurs périmètres géographiques (dispositif
+            OPAH/ORT, quartier spécifique, zonage, etc.) permet d’utiliser le
+            filtre « Périmètre » pour cibler vos recherches.
+          </Typography>
           <Grid container>
             <Grid size={8}>
               <Upload

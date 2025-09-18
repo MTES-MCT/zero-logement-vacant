@@ -58,8 +58,8 @@ describe('Group campaign creation modal', () => {
       name: /^Créer une campagne/
     });
     expect(housingInfosTextElement).toBeInTheDocument();
-    expect(housingInfosTextElement.textContent).toBe(
-      'Vous êtes sur le point de créer une campagne comportant 2 logements.'
+    expect(housingInfosTextElement.textContent).toMatch(
+      'Vous êtes sur le point de créer une campagne sur la base de ce groupe comportant 2 logements'
     );
     expect(campaignTitleInputElement).toBeInTheDocument();
     expect(createButton).toBeInTheDocument();

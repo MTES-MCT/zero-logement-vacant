@@ -56,22 +56,24 @@ const root = ReactDOM.createRoot(container!);
 
 root.render(
   <StrictMode>
-    <sentry.ErrorBoundary 
+    <sentry.ErrorBoundary
       fallback={({ error, resetError }) => (
-        <div style={{ 
-          padding: '20px', 
-          textAlign: 'center',
-          backgroundColor: '#f8f9fa',
-          border: '1px solid #dee2e6',
-          borderRadius: '8px',
-          margin: '20px'
-        }}>
+        <div
+          style={{
+            padding: '20px',
+            textAlign: 'center',
+            backgroundColor: '#f8f9fa',
+            border: '1px solid #dee2e6',
+            borderRadius: '8px',
+            margin: '20px'
+          }}
+        >
           <h2>Une erreur s&apos;est produite</h2>
           <details style={{ whiteSpace: 'pre-wrap', marginTop: '10px' }}>
             <summary>Détails de l&apos;erreur</summary>
             {error?.toString()}
           </details>
-          <button 
+          <button
             onClick={resetError}
             style={{
               marginTop: '10px',
@@ -98,7 +100,7 @@ root.render(
               <Notification />
               <App />
             </StoreProvider>
-        </PostHogProvider>
+          </PostHogProvider>
         </MapProvider>
       </ThemeProvider>
     </sentry.ErrorBoundary>

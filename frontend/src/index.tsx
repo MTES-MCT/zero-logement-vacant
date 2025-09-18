@@ -66,9 +66,9 @@ root.render(
           borderRadius: '8px',
           margin: '20px'
         }}>
-          <h2>Une erreur s'est produite</h2>
+          <h2>Une erreur s&apos;est produite</h2>
           <details style={{ whiteSpace: 'pre-wrap', marginTop: '10px' }}>
-            <summary>Détails de l'erreur</summary>
+            <summary>Détails de l&apos;erreur</summary>
             {error?.toString()}
           </details>
           <button 

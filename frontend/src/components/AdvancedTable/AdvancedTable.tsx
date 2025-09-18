@@ -12,20 +12,30 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   type RowSelectionState,
   type TableOptions,
   useReactTable
 } from '@tanstack/react-table';
+import classNames from 'classnames';
 import { memo, type MouseEvent } from 'react';
 
-import { type Selection } from '../../hooks/useSelection';
-import SingleCheckbox from '../_app/AppCheckbox/SingleCheckbox';
-import styles from './advanced-table.module.scss';
-import classNames from 'classnames';
+import { type Selection } from '~/hooks/useSelection';
+import SingleCheckbox from '~/components/_app/AppCheckbox/SingleCheckbox';
+import styles from '~/components/AdvancedTable/advanced-table.module.scss';
+import SortButton from '~/components/AdvancedTable/SortButton';
 
 export type AdvancedTableProps<Data extends object> = Pick<
   TableOptions<Data>,
-  'columns' | 'getRowId'
+  | 'columns'
+  | 'getRowId'
+  | 'state'
+  // Sort
+  | 'enableSorting'
+  | 'enableSortingRemoval'
+  | 'enableMultiSort'
+  | 'manualSorting'
+  | 'onSortingChange'
 > &
   PaginationProps & {
     data?: Data[];
@@ -90,11 +100,14 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 
   const table = useReactTable<Data>({
     manualPagination: manualPagination,
-    manualSorting: true,
     ...props,
     data: props.data ?? [],
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    // Sort
+    enableSorting: props.enableSorting ?? false,
+    getSortedRowModel: getSortedRowModel(),
+    // Row Selection
     enableRowSelection: enableSelection,
     enableMultiRowSelection: enableSelection,
     state: {
@@ -111,6 +124,8 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   });
   const headers = table.getLeafHeaders();
   const rows = table.getRowModel().rows;
+
+  console.log(table.options);
 
   if (props?.isLoading) {
     return (
@@ -162,10 +177,27 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 
                     {headers.map((header, i) => (
                       <th key={i} scope="col">
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        <Stack
+                          direction="row"
+                          sx={{
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                          }}
+                          spacing={1}
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+
+                          {header.column.getCanSort() ? (
+                            <SortButton
+                              direction={header.column.getIsSorted()}
+                              title={`Trier par ${header.id}`}
+                              onCycleSort={() => header.column.toggleSorting()}
+                            />
+                          ) : null}
+                        </Stack>
                       </th>
                     ))}
                   </tr>

@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   MainNavigation,
-  MainNavigationProps
+  type MainNavigationProps
 } from '@codegouvfr/react-dsfr/MainNavigation';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -15,7 +15,7 @@ import { useFilters } from '../../hooks/useFilters';
 import { useAppDispatch } from '../../hooks/useStore';
 import { useUser } from '../../hooks/useUser';
 import {
-  Establishment,
+  type Establishment,
   fromEstablishmentDTO,
   toEstablishmentDTO
 } from '../../models/Establishment';
@@ -25,7 +25,7 @@ import { changeEstablishment } from '../../store/actions/authenticationAction';
 import AccountSideMenu from '../../views/Account/AccountSideMenu';
 import { Container } from '../_dsfr';
 import Collapse from '../Collapse/Collapse';
-import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import styles from './small-header.module.scss';
 
 function SmallHeader() {

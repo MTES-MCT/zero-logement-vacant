@@ -183,7 +183,8 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                             alignItems: 'center',
                             justifyContent: 'space-between'
                           }}
-                          spacing={1}
+                          spacing="1rem"
+                          useFlexGap
                         >
                           {flexRender(
                             header.column.columnDef.header,

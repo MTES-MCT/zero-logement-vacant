@@ -129,18 +129,22 @@ async function createUser(request: Request, response: Response) {
   });
 }
 
-async function get(request: Request, response: Response): Promise<Response> {
-  const userId = request.params.userId;
+const get: RequestHandler<{ id: string }, UserDTO> = async (
+  request,
+  response
+): Promise<void> => {
+  const { params } = request;
+  logger.info('Get user', {
+    id: params.id
+  });
 
-  logger.info('Get user', userId);
-
-  const user = await userRepository.get(userId);
+  const user = await userRepository.get(params.id);
   if (!user) {
-    throw new UserMissingError(userId);
+    throw new UserMissingError(params.id);
   }
 
-  return response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
-}
+  response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
+};
 
 const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 

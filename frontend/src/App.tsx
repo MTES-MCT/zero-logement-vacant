@@ -30,7 +30,8 @@ import OwnerView from './views/Owner/OwnerView';
 import ResourcesView from './views/Resources/ResourcesView';
 import StatusView from './views/Resources/StatusView';
 import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
-import UsersView from './views/Users/UsersView';
+import UsersView from './views/Account/Profile/UsersView';
+import ProfileLayout from '~/views/Account/Profile/ProfileLayout';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -73,14 +74,18 @@ const router = sentry.createBrowserRouter(
         <Route path="/ressources/statuts" element={<StatusView />} />
         <Route path="/ressources" element={<ResourcesView />} />
 
-        <Route path="/compte" element={<AccountView />} />
-        <Route path="/compte/mot-de-passe" element={<AccountPasswordView />} />
+        {/* Profile views */}
+        <Route element={<ProfileLayout />}>
+          <Route path="/compte" element={<AccountView />} />
+          <Route path="/utilisateurs" element={<UsersView />} />
+          <Route
+            path="/autres-structures"
+            element={<TerritoryEstablishmentsView />}
+          />
+        </Route>
 
-        <Route path="/utilisateurs" element={<UsersView />} />
-        <Route
-          path="/autres-etablissements"
-          element={<TerritoryEstablishmentsView />}
-        />
+        {/* Deprecated */}
+        <Route path="/compte/mot-de-passe" element={<AccountPasswordView />} />
       </Route>
 
       <Route element={<GuestLayout />}>

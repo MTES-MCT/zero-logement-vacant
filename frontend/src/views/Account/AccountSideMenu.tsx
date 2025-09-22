@@ -47,7 +47,7 @@ function AccountSideMenu() {
           to: '/utilisateurs'
         }),
         createLink({
-          text: 'Autres structures de mon territoire',
+          text: 'Autres structures sur votre territoire',
           to: '/autres-structures'
         })
       ]

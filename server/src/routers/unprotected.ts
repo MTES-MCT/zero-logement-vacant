@@ -55,7 +55,7 @@ router.post(
   rateLimiter(),
   userController.createUserValidators,
   validator.validate,
-  userController.createUser
+  userController.create
 );
 router.post(
   '/authenticate',

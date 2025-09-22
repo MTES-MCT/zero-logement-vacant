@@ -1,12 +1,18 @@
-import { isAdmin, UserRole, type UserDTO } from '@zerologementvacant/models';
+import {
+  isAdmin,
+  UserRole,
+  type UserDTO,
+  type UserUpdatePayload
+} from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { Request, Response, type RequestHandler } from 'express';
-import type { AuthenticatedRequest } from 'express-jwt';
+import { type AuthenticatedRequest } from 'express-jwt';
 import { body, param, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
 import { v4 as uuidv4 } from 'uuid';
 
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
+import ForbiddenError from '~/errors/forbiddenError';
 import ProspectInvalidError from '~/errors/prospectInvalidError';
 import ProspectMissingError from '~/errors/prospectMissingError';
 import TestAccountError from '~/errors/testAccountError';
@@ -67,7 +73,7 @@ interface CreateUserBody {
   lastName?: string;
 }
 
-async function createUser(request: Request, response: Response) {
+async function create(request: Request, response: Response) {
   const body = request.body as CreateUserBody;
 
   if (isTestAccount(body.email)) {
@@ -129,7 +135,11 @@ async function createUser(request: Request, response: Response) {
   });
 }
 
-const get: RequestHandler<{ id: string }, UserDTO> = async (
+interface PathParams extends Record<string, string> {
+  id: string;
+}
+
+const get: RequestHandler<PathParams, UserDTO> = async (
   request,
   response
 ): Promise<void> => {
@@ -146,13 +156,50 @@ const get: RequestHandler<{ id: string }, UserDTO> = async (
   response.status(constants.HTTP_STATUS_OK).json(toUserDTO(user));
 };
 
+const update: RequestHandler<PathParams, UserDTO, UserUpdatePayload> = async (
+  request,
+  response
+): Promise<void> => {
+  const {
+    user: authUser,
+    body,
+    params
+  } = request as AuthenticatedRequest<PathParams, UserDTO, UserUpdatePayload>;
+  logger.info('Update user', {
+    id: params.id
+  });
+
+  if (authUser.role === UserRole.USUAL && authUser.id !== params.id) {
+    throw new ForbiddenError();
+  }
+
+  const user = await userRepository.get(params.id);
+  if (!user) {
+    throw new UserMissingError(params.id);
+  }
+
+  const updated: UserApi = {
+    ...user,
+    firstName: body.firstName,
+    lastName: body.lastName,
+    phone: body.phone,
+    position: body.position,
+    timePerWeek: body.timePerWeek,
+    updatedAt: new Date().toJSON()
+  };
+  await userRepository.update(updated);
+
+  response.status(constants.HTTP_STATUS_OK).json(toUserDTO(updated));
+};
+
 const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 
 const userController = {
   list,
   createUserValidators,
-  createUser,
+  create,
   get,
+  update,
   userIdValidator
 };
 

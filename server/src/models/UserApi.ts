@@ -4,9 +4,6 @@ export const SALT_LENGTH = 10;
 
 export type UserApi = UserDTO & {
   password: string;
-  phone: string | null;
-  position: string | null;
-  timePerWeek: string | null;
   // Timestamps
   deletedAt: string | null;
 };
@@ -30,6 +27,9 @@ export function toUserDTO(user: UserApi): UserDTO {
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
+    phone: user.phone,
+    position: user.position,
+    timePerWeek: user.timePerWeek,
     role: user.role,
     establishmentId: user.establishmentId,
     activatedAt: user.activatedAt,

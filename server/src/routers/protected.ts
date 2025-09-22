@@ -332,10 +332,20 @@ router.get(
 
 router.get('/users', userController.list);
 router.get(
-  '/users/:userId',
-  [isUUIDParam('userId')],
-  validator.validate,
+  '/users/:id',
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   userController.get
+);
+router.put(
+  '/users/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.userUpdatePayload
+  }),
+  userController.update
 );
 
 // TODO: should be /geo-perimeters

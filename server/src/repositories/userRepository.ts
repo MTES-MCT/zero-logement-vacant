@@ -33,7 +33,7 @@ async function getByEmail(email: string): Promise<UserApi | null> {
 }
 
 async function update(user: UserApi): Promise<void> {
-  logger.debug('Update user', { id: user.id });
+  logger.debug('Updating user...', { id: user.id });
   await Users().where({ id: user.id }).update(formatUserApi(user));
 }
 

@@ -1,5 +1,11 @@
-import { fakerFR as faker } from '@faker-js/faker';
-import { UserRole, type UserDTO } from '@zerologementvacant/models';
+import { fc, test } from '@fast-check/vitest';
+import { faker } from '@faker-js/faker/locale/fr';
+import {
+  TIME_PER_WEEK_VALUES,
+  UserRole,
+  type UserDTO,
+  type UserUpdatePayload
+} from '@zerologementvacant/models';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
@@ -306,6 +312,158 @@ describe('User API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toMatchObject({
         id: user.id
+      });
+    });
+  });
+
+  describe('PUT /users/{id}', () => {
+    const visitor: UserApi = {
+      ...genUserApi(establishment.id),
+      role: UserRole.VISITOR
+    };
+    const user: UserApi = {
+      ...genUserApi(establishment.id),
+      role: UserRole.USUAL
+    };
+    const admin: UserApi = {
+      ...genUserApi(establishment.id),
+      role: UserRole.ADMIN
+    };
+    const testRoute = (id: string) => `/api/users/${id}`;
+
+    beforeAll(async () => {
+      await Users().insert([visitor, user, admin].map(formatUserApi));
+    });
+
+    describe('As an unauthenticated guest', () => {
+      it('should be unauthorized', async () => {
+        const { status } = await request(url)
+          .put(testRoute(user.id))
+          .send({
+            firstName: 'Updated',
+            lastName: 'Name'
+          })
+          .type('json');
+
+        expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+      });
+    });
+
+    describe('As an authenticated visitor', () => {
+      it('should be forbidden', async () => {
+        const { status } = await request(url)
+          .put(testRoute(user.id))
+          .send({
+            firstName: 'Updated',
+            lastName: 'Name'
+          })
+          .type('json')
+          .use(tokenProvider(visitor));
+
+        expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      });
+    });
+
+    describe('As an authenticated user', () => {
+      it('should be forbidden to update another user', async () => {
+        const { status } = await request(url)
+          .put(testRoute(visitor.id))
+          .send({
+            firstName: 'Updated',
+            lastName: 'Name'
+          })
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      });
+
+      it('should be able to update themselves', async () => {
+        const payload: UserUpdatePayload = {
+          firstName: faker.person.firstName(),
+          lastName: faker.person.lastName(),
+          phone: faker.phone.number(),
+          position: faker.person.jobTitle(),
+          timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
+        };
+
+        const { body, status } = await request(url)
+          .put(testRoute(user.id))
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toMatchObject<Partial<UserDTO>>({
+          ...payload,
+          id: user.id
+        });
+      });
+    });
+
+    describe('As an authenticated admin', () => {
+      it('should be able to update any user', async () => {
+        const payload: UserUpdatePayload = {
+          firstName: faker.person.firstName(),
+          lastName: faker.person.lastName(),
+          phone: faker.phone.number(),
+          position: faker.person.jobTitle(),
+          timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
+        };
+
+        const { body, status } = await request(url)
+          .put(testRoute(user.id))
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(admin));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toMatchObject<Partial<UserDTO>>({
+          ...payload,
+          id: user.id
+        });
+      });
+    });
+
+    describe('Validation', () => {
+      it('should return 404 for a missing user', async () => {
+        const { status } = await request(url)
+          .put(testRoute(faker.string.uuid()))
+          .send({
+            firstName: 'Test'
+          })
+          .type('json')
+          .use(tokenProvider(admin));
+
+        expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+      });
+
+      it('should require a valid user id', async () => {
+        const { status } = await request(url)
+          .put(testRoute(faker.string.alphanumeric(10)))
+          .send({
+            firstName: 'Test'
+          })
+          .type('json')
+          .use(tokenProvider(admin));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      });
+
+      test.prop<UserUpdatePayload>({
+        firstName: fc.string({ minLength: 1, maxLength: 255 }),
+        lastName: fc.string({ minLength: 1, maxLength: 255 }),
+        phone: fc.option(fc.string({ minLength: 1, maxLength: 50 })),
+        position: fc.option(fc.string({ minLength: 1, maxLength: 255 })),
+        timePerWeek: fc.option(fc.constantFrom(...TIME_PER_WEEK_VALUES))
+      })('should validate inputs', async (payload) => {
+        const { status } = await request(url)
+          .put(testRoute(user.id))
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(admin));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
       });
     });
   });

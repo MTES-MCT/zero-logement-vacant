@@ -5,6 +5,7 @@ import memoize from 'memoizee';
 
 import AuthenticationMissingError from '~/errors/authenticationMissingError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
+import ForbiddenError from '~/errors/forbiddenError';
 import UserMissingError from '~/errors/userMissingError';
 import config from '~/infra/config';
 import establishmentRepository from '~/repositories/establishmentRepository';
@@ -63,13 +64,13 @@ export function userCheck(options?: CheckOptions) {
     request.establishment = establishment;
     next();
   };
-};
+}
 
 export function hasRole(roles: UserRole[]) {
   return (request: Request, response: Response, next: NextFunction) => {
     const { user } = request as AuthenticatedRequest;
     if (!roles.includes(user.role)) {
-      throw new AuthenticationMissingError();
+      throw new ForbiddenError();
     }
     next();
   };

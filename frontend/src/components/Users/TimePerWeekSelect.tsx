@@ -15,15 +15,20 @@ export type TimePerWeekSelectProps<Multiple extends boolean> = Pick<
 function TimePerWeekSelect<Multiple extends boolean = false>(
   props: TimePerWeekSelectProps<Multiple>
 ) {
-  const options = [null, ...TIME_PER_WEEK_VALUES];
+  const EMPTY_OPTION_LABEL = 'Sélectionner une valeur';
+  const EMPTY_OPTION_VALUE = null;
+  const options = [EMPTY_OPTION_VALUE, ...TIME_PER_WEEK_VALUES];
 
   return (
     <AppSelectNext
       {...props}
       options={options}
       label="Temps par semaine dédié à la vacance"
-      getOptionLabel={(option) => option}
+      getOptionLabel={(option) =>
+        option === null ? EMPTY_OPTION_LABEL : option
+      }
       displayEmpty
+      emptyLabel={EMPTY_OPTION_LABEL}
     />
   );
 }

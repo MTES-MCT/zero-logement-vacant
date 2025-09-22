@@ -23,6 +23,7 @@ export type AppSelectNextProps<Value, Multiple extends boolean> = Pick<
   error?: string;
   invalid?: boolean;
   grouped?: boolean;
+  emptyLabel?: string;
   getOptionKey?(value: Value): Key;
   getOptionLabel?(value: Value): ReactNode;
   getOptionValue?(value: Value): string;
@@ -52,7 +53,7 @@ function AppSelectNext<Value, Multiple extends boolean = false>(
   const disabled = props.disabled ?? props.options.length === 0;
   const displayEmpty = props.displayEmpty ?? multiple;
 
-  const emptyValue = multiple ? 'Tous' : '';
+  const emptyValue = multiple ? 'Tous' : (props.emptyLabel ?? '');
 
   const value: SelectValue<Value, any> =
     props.options.length === 0 ? null : props.value;

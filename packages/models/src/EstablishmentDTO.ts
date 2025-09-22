@@ -1,5 +1,6 @@
 import { EstablishmentKind } from './EstablishmentKind';
 import { EstablishmentSource } from './EstablishmentSource';
+import type { UserDTO } from './UserDTO';
 
 export interface EstablishmentDTO {
   id: string;
@@ -10,6 +11,10 @@ export interface EstablishmentDTO {
   geoCodes: string[];
   kind: EstablishmentKind;
   source: EstablishmentSource;
+  /**
+   * Filled only when the caller has the required permissions.
+   */
+  users?: ReadonlyArray<UserDTO>;
 }
 
 export function isChild(geoCodes: ReadonlySet<string>) {

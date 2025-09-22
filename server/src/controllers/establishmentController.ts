@@ -4,7 +4,8 @@ import { constants } from 'http2';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import {
   EstablishmentDTO,
-  EstablishmentFiltersDTO
+  EstablishmentFiltersDTO,
+  UserRole
 } from '@zerologementvacant/models';
 import { createLogger } from '~/infra/logger';
 
@@ -19,13 +20,18 @@ async function list(
   >,
   response: Response<ReadonlyArray<EstablishmentDTO>>
 ) {
-  const { query } = request;
+  const { query, user } = request;
   logger.info('List establishments', {
     query
   });
 
   const establishments = await establishmentRepository.find({
-    filters: query
+    filters: query,
+    includes:
+      // Include the establishment’s users only for admin and usual roles
+      !!user && [UserRole.ADMIN, UserRole.USUAL].includes(user.role)
+        ? ['users']
+        : []
   });
   response.status(constants.HTTP_STATUS_OK).json(establishments);
 }

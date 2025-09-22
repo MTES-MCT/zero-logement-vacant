@@ -10,17 +10,25 @@ import config from '~/infra/config';
 import establishmentRepository from '~/repositories/establishmentRepository';
 import userRepository from '~/repositories/userRepository';
 
-export const jwtCheck = (credentialsRequired: boolean) =>
-  expressjwt({
+interface CheckOptions {
+  /**
+   * @default true
+   */
+  required?: boolean;
+}
+
+export function jwtCheck(options?: CheckOptions) {
+  return expressjwt({
     secret: config.auth.secret,
     algorithms: ['HS256'],
-    credentialsRequired,
+    credentialsRequired: options?.required ?? true,
     getToken: (request: Request) =>
       (request.headers['x-access-token'] ??
         request.query['x-access-token']) as string
   });
+}
 
-export const userCheck = () => {
+export function userCheck(options?: CheckOptions) {
   const getUser = memoize(userRepository.get, {
     promise: true,
     primitive: true
@@ -30,13 +38,12 @@ export const userCheck = () => {
     primitive: true
   });
 
-  return async function (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) {
+  return async (request: Request, _: Response, next: NextFunction) => {
     if (!request.auth || !request.auth.userId) {
-      throw new AuthenticationMissingError();
+      if (options?.required) {
+        throw new AuthenticationMissingError();
+      }
+      return next();
     }
 
     const [user, establishment] = await Promise.all([

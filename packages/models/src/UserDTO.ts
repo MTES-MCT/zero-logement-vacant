@@ -6,6 +6,9 @@ export interface UserDTO {
   email: string;
   firstName: string | null;
   lastName: string | null;
+  phone: string | null;
+  position: string | null;
+  timePerWeek: TimePerWeek | null;
   establishmentId: string | null;
   role: UserRole;
   activatedAt: string;
@@ -13,6 +16,19 @@ export interface UserDTO {
   updatedAt: string;
 }
 
+export type UserCreationPayload = Pick<
+  UserDTO,
+  'email' | 'firstName' | 'lastName' | 'phone' | 'position' | 'timePerWeek'
+>;
+
+export type UserUpdatePayload = Pick<
+  UserDTO,
+  'firstName' | 'lastName' | 'phone' | 'position' | 'timePerWeek'
+>;
+
+/**
+ * @deprecated Use {@link UserDTO} instead.
+ */
 export interface UserAccountDTO {
   firstName: string | null;
   lastName: string | null;

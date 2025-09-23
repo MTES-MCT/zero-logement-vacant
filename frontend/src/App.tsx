@@ -29,7 +29,7 @@ import NotFoundView from './views/NotFoundView';
 import OwnerView from './views/Owner/OwnerView';
 import ResourcesView from './views/Resources/ResourcesView';
 import StatusView from './views/Resources/StatusView';
-import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
+import TerritoryEstablishmentsView from './views/Account/Profile/TerritoryEstablishmentsView';
 import UsersView from './views/Account/Profile/UsersView';
 import ProfileLayout from '~/views/Account/Profile/ProfileLayout';
 

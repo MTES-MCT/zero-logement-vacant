@@ -31,6 +31,7 @@ import { SenderDTO, SignatoryDTO } from '../SenderDTO';
 import { SignupLinkDTO } from '../SignupLinkDTO';
 import { UserDTO } from '../UserDTO';
 import { UserRole } from '../UserRole';
+import { TIME_PER_WEEK_VALUES } from '../TimePerWeek';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -480,6 +481,9 @@ export function genUserDTO(
     email: faker.internet.email(),
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES),
     activatedAt: faker.date.recent().toJSON(),
     lastAuthenticatedAt: faker.date.recent().toJSON(),
     updatedAt: faker.date.recent().toJSON(),

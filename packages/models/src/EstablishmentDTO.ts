@@ -29,6 +29,7 @@ export function isDepartmentalEstablishment(
   const departments: ReadonlyArray<EstablishmentKind> = [
     'DEP',
     'SDED',
+    // TODO: wrong data?
     'SDER',
     'SIVOM',
     'REG',

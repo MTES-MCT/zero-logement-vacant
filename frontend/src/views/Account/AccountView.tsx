@@ -67,7 +67,7 @@ const AccountView = () => {
         />
       </Stack>
 
-      <AccountForm user={user} userAccount={userAccount} />
+      <AccountForm />
     </Stack>
   );
 };

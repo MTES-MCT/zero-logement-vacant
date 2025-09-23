@@ -1,4 +1,4 @@
-import type { UserDTO } from '@zerologementvacant/models';
+import type { UserUpdatePayload, UserDTO } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns/fp';
 
 import { fromUserDTO, type DraftUser, type User } from '~/models/User';
@@ -32,6 +32,17 @@ export const userApi = zlvApi.injectEndpoints({
           : []
     }),
 
+    updateUser: builder.mutation<User, UserUpdatePayload & { id: string }>({
+      query: ({ id, ...payload }) => ({
+        method: 'PUT',
+        url: `users/${id}`,
+        body: payload
+      }),
+      transformResponse: (user: UserDTO) => fromUserDTO(user),
+      invalidatesTags: (result) =>
+        result ? [{ type: 'User', id: result.id }] : []
+    }),
+
     createUser: builder.mutation<User, DraftUser>({
       query: (draftUser) => ({
         url: 'users/creation',
@@ -50,5 +61,9 @@ const parseUser = (u: any): User =>
     activatedAt: parseISO(u.activatedAt)
   }) as User;
 
-export const { useFindUsersQuery, useGetUserQuery, useCreateUserMutation } =
-  userApi;
+export const {
+  useFindUsersQuery,
+  useGetUserQuery,
+  useUpdateUserMutation,
+  useCreateUserMutation
+} = userApi;

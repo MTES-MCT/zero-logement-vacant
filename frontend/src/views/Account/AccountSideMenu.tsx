@@ -9,13 +9,21 @@ function AccountSideMenu() {
   }
 
   function createLink(options: CreateLinkOptions): SideMenuProps.Item.Link {
+    const linkProps = options.to.startsWith('http')
+      ? {
+          href: options.to,
+          target: '_blank',
+          rel: 'noopener noreferrer'
+        }
+      : {
+          to: {
+            pathname: options.to
+          }
+        };
+
     return {
       text: options.text,
-      linkProps: {
-        to: {
-          pathname: options.to
-        }
-      },
+      linkProps: linkProps,
       isActive: location.pathname === options.to
     };
   }
@@ -52,6 +60,10 @@ function AccountSideMenu() {
         createLink({
           text: 'Autres structures sur votre territoire',
           to: '/autres-structures'
+        }),
+        createLink({
+          text: 'Gérer les utilisateurs (redirige vers le Portail des Données Foncières)',
+          to: 'https://consultdf.cerema.fr/consultdf/'
         })
       ]
     })

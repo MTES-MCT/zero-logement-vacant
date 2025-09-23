@@ -4,6 +4,8 @@ import {
 } from '@zerologementvacant/models';
 import { object, string, type ObjectSchema } from 'yup';
 
+import { password } from './password';
+
 export const userUpdatePayload: ObjectSchema<UserUpdatePayload> = object({
   firstName: string().trim().nullable().optional().default(null),
   lastName: string().trim().nullable().optional().default(null),
@@ -13,5 +15,9 @@ export const userUpdatePayload: ObjectSchema<UserUpdatePayload> = object({
     .oneOf(TIME_PER_WEEK_VALUES)
     .nullable()
     .optional()
-    .default(null)
+    .default(null),
+  password: object({
+    before: string().required('Le mot de passe actuel est requis.'),
+    after: password.required('Le nouveau mot de passe est requis.')
+  }).optional()
 });

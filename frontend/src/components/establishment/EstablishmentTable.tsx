@@ -1,4 +1,6 @@
-import { createColumnHelper } from '@tanstack/react-table';
+import { createColumnHelper, SortingState } from '@tanstack/react-table';
+import { byKind } from '@zerologementvacant/models';
+import { useState } from 'react';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 import type { Establishment } from '~/models/Establishment';
@@ -14,7 +16,8 @@ function EstablishmentTable(props: EstablishmentTableProps) {
   const columnHelper = createColumnHelper<Establishment>();
   const columns = [
     columnHelper.accessor('name', {
-      header: 'Structures'
+      header: 'Structures',
+      sortingFn: (a, b) => byKind(a.original.kind, b.original.kind)
     }),
     columnHelper.accessor('users', {
       header: "Nombre d'utilisateurs",
@@ -34,6 +37,10 @@ function EstablishmentTable(props: EstablishmentTableProps) {
     })
   ];
 
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'name', desc: true }
+  ]);
+
   return (
     <AdvancedTable
       columns={columns}
@@ -42,6 +49,10 @@ function EstablishmentTable(props: EstablishmentTableProps) {
       isLoading={isLoading}
       enableSorting
       enableSortingRemoval
+      state={{
+        sorting
+      }}
+      onSortingChange={setSorting}
     />
   );
 }

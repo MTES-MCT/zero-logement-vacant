@@ -126,8 +126,6 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   const headers = table.getLeafHeaders();
   const rows = table.getRowModel().rows;
 
-  console.log(table.options);
-
   if (props?.isLoading) {
     return (
       <Skeleton

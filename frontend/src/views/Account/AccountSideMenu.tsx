@@ -23,6 +23,7 @@ function AccountSideMenu() {
   interface CreateSubMenuOptions {
     text: string;
     items: SideMenuProps.Item[];
+    expandedByDefault?: boolean;
   }
 
   function createSubMenu(
@@ -30,7 +31,8 @@ function AccountSideMenu() {
   ): SideMenuProps.Item.SubMenu {
     return {
       text: options.text,
-      items: options.items
+      items: options.items,
+      expandedByDefault: options.expandedByDefault
     };
   }
 
@@ -41,6 +43,7 @@ function AccountSideMenu() {
     }),
     createSubMenu({
       text: 'Mes établissements',
+      expandedByDefault: true,
       items: [
         createLink({
           text: 'Utilisateurs rattachés à votre structure',

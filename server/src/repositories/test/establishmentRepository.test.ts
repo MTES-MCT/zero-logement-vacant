@@ -78,6 +78,47 @@ describe('Establishment repository', () => {
       expect(actual.every((e) => targetSirens.includes(e.siren))).toBe(true);
     });
 
+    it('should filter establishments by geoCodes', async () => {
+      const establishmentsWithGeoCodes = [
+        { ...genEstablishmentApi(), geoCodes: ['75001', '75002'] },
+        { ...genEstablishmentApi(), geoCodes: ['69001', '69002'] },
+        { ...genEstablishmentApi(), geoCodes: ['13001', '13002'] }
+      ];
+      await Establishments().insert(
+        establishmentsWithGeoCodes.map(formatEstablishmentApi)
+      );
+      const targetGeoCodes = ['75001', '69001'];
+
+      const actual = await establishmentRepository.find({
+        filters: {
+          geoCodes: targetGeoCodes
+        }
+      });
+
+      expect(actual.length).toBeGreaterThanOrEqual(2);
+      expect(actual).toSatisfyAll<EstablishmentApi>((establishment) => {
+        return establishment.geoCodes.some((geoCode) =>
+          targetGeoCodes.includes(geoCode)
+        );
+      });
+    });
+
+    it('should return empty array when no establishments match geoCodes', async () => {
+      const establishment = {
+        ...genEstablishmentApi(),
+        geoCodes: ['75001', '75002']
+      };
+      await Establishments().insert(formatEstablishmentApi(establishment));
+
+      const actual = await establishmentRepository.find({
+        filters: {
+          geoCodes: ['99999']
+        }
+      });
+
+      expect(actual).toBeArrayOfSize(0);
+    });
+
     it('should filter active establishments', async () => {
       const establishments = faker.helpers.multiple(() =>
         genEstablishmentApi()

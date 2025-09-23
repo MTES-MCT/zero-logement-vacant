@@ -24,7 +24,12 @@ export type UserCreationPayload = Pick<
 export type UserUpdatePayload = Pick<
   UserDTO,
   'firstName' | 'lastName' | 'phone' | 'position' | 'timePerWeek'
->;
+> & {
+  password?: {
+    before: string;
+    after: string;
+  };
+};
 
 /**
  * @deprecated Use {@link UserDTO} instead.

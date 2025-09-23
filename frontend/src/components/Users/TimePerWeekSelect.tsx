@@ -15,7 +15,7 @@ export type TimePerWeekSelectProps<Multiple extends boolean> = Pick<
 function TimePerWeekSelect<Multiple extends boolean = false>(
   props: TimePerWeekSelectProps<Multiple>
 ) {
-  const EMPTY_OPTION_LABEL = 'Sélectionner une valeur';
+  const EMPTY_OPTION_LABEL = 'Sélectionner une option';
   const EMPTY_OPTION_VALUE = null;
   const options = [EMPTY_OPTION_VALUE, ...TIME_PER_WEEK_VALUES];
 

@@ -111,6 +111,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
     enableRowSelection: enableSelection,
     enableMultiRowSelection: enableSelection,
     state: {
+      ...props.state,
       rowSelection: rowSelection
     },
     onRowSelectionChange(updater) {

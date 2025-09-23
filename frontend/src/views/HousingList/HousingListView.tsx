@@ -63,10 +63,12 @@ const HousingListView = () => {
   const location: { state?: RouterState } = useLocation();
   const navigate = useNavigate();
   const [alert, setAlert] = useState(location.state?.alert ?? '');
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
   function onFinish() {
     setAlert(
       'Le logement sélectionné a bien été ajouté à votre parc de logements.'
     );
+    setIsAlertVisible(true);
   }
 
   const { isVisitor } = useUser();
@@ -142,15 +144,18 @@ const HousingListView = () => {
         </Grid>
 
         <Grid container flexDirection="column" px={3} py={4} size="grow">
-          {alert && (
-            <Alert
-              severity="success"
-              description={alert}
-              closable
-              small
-              className="fr-mb-2w"
-            />
-          )}
+          <Alert
+            severity="success"
+            description={alert}
+            closable
+            small
+            className="fr-mb-2w"
+            isClosed={!isAlertVisible}
+            onClose={() => {
+              setIsAlertVisible(false);
+            }}
+            {...{ role: 'status' }}
+          />
 
           <Grid container mb={1} spacing={2}>
             <Grid size="grow">

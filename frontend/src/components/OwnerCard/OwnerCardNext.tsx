@@ -93,7 +93,7 @@ function OwnerCardNext(props: OwnerCardProps) {
 
         <OwnerAttribute
           icon="fr-icon-home-4-line"
-          label="Adresse postale (source : BAN)"
+          label="Adresse postale (source : Base Adresse Nationale)"
           value={
             !props.owner.banAddress
               ? null

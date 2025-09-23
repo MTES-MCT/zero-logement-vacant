@@ -50,7 +50,13 @@ data/
 data/*
 analytics/plugins/
 
-
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
 
 .nx/cache
 .nx/workspace-data

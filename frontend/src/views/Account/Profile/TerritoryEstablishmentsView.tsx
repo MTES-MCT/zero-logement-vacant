@@ -21,7 +21,7 @@ function TerritoryEstablishmentsView() {
   return (
     <Stack component="section" spacing="1.5rem">
       <Typography component="h1" variant="h3">
-        Utilisateurs rattachés à votre structure
+        Autres structures sur votre territoire
       </Typography>
 
       <EstablishmentTable

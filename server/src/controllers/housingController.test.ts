@@ -1060,7 +1060,7 @@ describe('Housing API', () => {
         .type('json')
         .use(tokenProvider(visitor));
 
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
 
     it('should return the housing', async () => {

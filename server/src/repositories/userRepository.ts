@@ -1,3 +1,4 @@
+import type { TimePerWeek } from '@zerologementvacant/models';
 import { Knex } from 'knex';
 
 import db, { notDeleted } from '~/infra/database';
@@ -106,7 +107,7 @@ export interface UserDBO {
   updated_at: Date | string;
   phone: string | null;
   position: string | null;
-  time_per_week: string | null;
+  time_per_week: TimePerWeek | null;
 }
 
 export const parseUserApi = (userDBO: UserDBO): UserApi => ({

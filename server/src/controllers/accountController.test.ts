@@ -1,10 +1,12 @@
-import { UserRole } from '@zerologementvacant/models';
+import { fc, test } from '@fast-check/vitest';
+import { TIME_PER_WEEK_VALUES, UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { subDays } from 'date-fns';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { vi } from 'vitest';
+
 import { createServer } from '~/infra/server';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
@@ -191,32 +193,23 @@ describe('Account controller', () => {
   describe('Update password', () => {
     const testRoute = '/api/account/password';
 
-    it('should receive valid current and new passwords', async () => {
-      async function test(payload: Record<string, unknown>) {
-        const { status } = await request(url)
-          .put(testRoute)
-          .send(payload)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      }
-
-      await test({ currentPassword: '', newPassword: '123QWEasd' });
-      await test({ currentPassword: '     ', newPassword: '123QWEasd' });
-      await test({ currentPassword: user.password, newPassword: '' });
-      await test({ currentPassword: user.password, newPassword: '    ' });
-    });
-
-    it('should fail if the current password and the given one are different', async () => {
+    test.prop({
+      currentPassword: fc.string(),
+      newPassword: fc.string({ minLength: 8 }),
+      newPasswordConfirmation: fc.string(),
+      firstName: fc.string(),
+      lastName: fc.string(),
+      phone: fc.string(),
+      position: fc.string(),
+      timePerWeek: fc.constantFrom(...TIME_PER_WEEK_VALUES, null)
+    })('should validate inputs', async (inputs) => {
       const { status } = await request(url)
         .put(testRoute)
-        .send({
-          currentPassword: 'NotTheirCurrentPassword',
-          newPassword: '123QWEasd'
-        })
+        .send(inputs)
+        .type('json')
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      expect(status).toBe(constants.HTTP_STATUS_OK);
     });
 
     it('should succeed to change the password', async () => {

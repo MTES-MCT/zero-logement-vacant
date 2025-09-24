@@ -35,7 +35,7 @@ import { isUUIDParam } from '~/utils/validators';
 
 const router = Router();
 
-router.use(jwtCheck(true));
+router.use(jwtCheck());
 router.use(userCheck());
 
 router.post('/files', upload(), fileController.create);
@@ -314,12 +314,6 @@ router.put(
   accountController.updateAccountValidators,
   validator.validate,
   accountController.updateAccount
-);
-router.put(
-  '/account/password',
-  accountController.updatePasswordValidators,
-  validator.validate,
-  accountController.updatePassword
 );
 router.get(
   '/account/establishments/:establishmentId',

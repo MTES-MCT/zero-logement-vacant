@@ -152,7 +152,7 @@ describe('Establishment API', () => {
         await Users().insert(formatUserApi(user));
       });
 
-      it('should include users on demand if the user is authenticated', async () => {
+      it('should include users if the user is authenticated', async () => {
         const { body, status } = await request(url)
           .get(testRoute)
           .use(tokenProvider(user));
@@ -160,17 +160,6 @@ describe('Establishment API', () => {
         expect(status).toBe(constants.HTTP_STATUS_OK);
         expect(body).toSatisfyAll<EstablishmentDTO>((establishment) => {
           return establishment.users !== undefined;
-        });
-      });
-
-      it('should not include users by default', async () => {
-        const { body, status } = await request(url)
-          .get(testRoute)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_OK);
-        expect(body).toSatisfyAll<EstablishmentDTO>((establishment) => {
-          return establishment.users === undefined;
         });
       });
 

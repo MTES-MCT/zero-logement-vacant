@@ -7,7 +7,6 @@ import { constants } from 'http2';
 import jwt from 'jsonwebtoken';
 import AuthenticationFailedError from '~/errors/authenticationFailedError';
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
-import PasswordInvalidError from '~/errors/passwordInvalidError';
 import ResetLinkExpiredError from '~/errors/resetLinkExpiredError';
 import ResetLinkMissingError from '~/errors/resetLinkMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
@@ -27,6 +26,10 @@ import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userRepository from '~/repositories/userRepository';
 import { createMetabaseAPI } from '~/services/metabaseService/metabase-api';
 import { emailValidator, passwordCreationValidator } from '~/utils/validators';
+
+// TODO: rename the file to authController.ts
+// TODO: remove get, updateAccount
+// because they shall be implemented in userController
 
 const signInValidators: ValidationChain[] = [
   emailValidator(),
@@ -130,6 +133,11 @@ const updateAccountValidators: ValidationChain[] = [
   body('timePerWeek').isString()
 ];
 
+/**
+ * @deprecated Use {@link userController.update} instead
+ * @param request
+ * @param response
+ */
 async function updateAccount(request: Request, response: Response) {
   const { user } = request as AuthenticatedRequest;
   const account = request.body as UserAccountDTO;
@@ -143,28 +151,6 @@ async function updateAccount(request: Request, response: Response) {
   });
   response.status(constants.HTTP_STATUS_OK).send();
 }
-
-async function updatePassword(request: Request, response: Response) {
-  const user = (request as AuthenticatedRequest).user;
-  const currentPassword = request.body.currentPassword;
-  const newPassword = request.body.newPassword;
-
-  logger.info('Update password for ', user.id);
-
-  const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-  if (!isPasswordValid) {
-    throw new PasswordInvalidError();
-  }
-
-  const hash = await bcrypt.hash(newPassword, SALT_LENGTH);
-  await userRepository.update({ ...user, password: hash });
-
-  response.status(constants.HTTP_STATUS_OK).send();
-}
-const updatePasswordValidators: ValidationChain[] = [
-  body('currentPassword').isString().notEmpty({ ignore_whitespace: true }),
-  passwordCreationValidator('newPassword')
-];
 
 async function resetPassword(request: Request, response: Response) {
   const { key, password } = request.body;
@@ -200,8 +186,6 @@ export default {
   get,
   updateAccount,
   updateAccountValidators,
-  updatePassword,
-  updatePasswordValidators,
   resetPassword,
   resetPasswordValidators,
   changeEstablishment

@@ -338,12 +338,17 @@ describe('User API', () => {
 
     describe('As an unauthenticated guest', () => {
       it('should be unauthorized', async () => {
+        const payload: UserUpdatePayload = {
+          firstName: faker.person.firstName(),
+          lastName: faker.person.lastName(),
+          phone: faker.phone.number(),
+          position: faker.person.jobTitle(),
+          timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
+        };
+
         const { status } = await request(url)
           .put(testRoute(user.id))
-          .send({
-            firstName: 'Updated',
-            lastName: 'Name'
-          })
+          .send(payload)
           .type('json');
 
         expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
@@ -352,12 +357,17 @@ describe('User API', () => {
 
     describe('As an authenticated visitor', () => {
       it('should be forbidden', async () => {
+        const payload: UserUpdatePayload = {
+          firstName: faker.person.firstName(),
+          lastName: faker.person.lastName(),
+          phone: faker.phone.number(),
+          position: faker.person.jobTitle(),
+          timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
+        };
+
         const { status } = await request(url)
           .put(testRoute(user.id))
-          .send({
-            firstName: 'Updated',
-            lastName: 'Name'
-          })
+          .send(payload)
           .type('json')
           .use(tokenProvider(visitor));
 
@@ -367,12 +377,17 @@ describe('User API', () => {
 
     describe('As an authenticated user', () => {
       it('should be forbidden to update another user', async () => {
+        const payload: UserUpdatePayload = {
+          firstName: faker.person.firstName(),
+          lastName: faker.person.lastName(),
+          phone: faker.phone.number(),
+          position: faker.person.jobTitle(),
+          timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
+        };
+
         const { status } = await request(url)
           .put(testRoute(visitor.id))
-          .send({
-            firstName: 'Updated',
-            lastName: 'Name'
-          })
+          .send(payload)
           .type('json')
           .use(tokenProvider(user));
 

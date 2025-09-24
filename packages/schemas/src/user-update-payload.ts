@@ -19,5 +19,7 @@ export const userUpdatePayload: ObjectSchema<UserUpdatePayload> = object({
   password: object({
     before: string().required('Le mot de passe actuel est requis.'),
     after: password.required('Le nouveau mot de passe est requis.')
-  }).optional()
+  })
+    .optional()
+    .default(undefined)
 });

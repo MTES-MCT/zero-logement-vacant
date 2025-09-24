@@ -1,6 +1,7 @@
-import { createColumnHelper } from '@tanstack/react-table';
+import { createColumnHelper, type SortingState } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useState } from 'react';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 import { type User } from '~/models/User';
@@ -12,6 +13,10 @@ export interface UserTableProps {
 
 function UserTable(props: UserTableProps) {
   const { isLoading, users } = props;
+
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'activatedAt', desc: true }
+  ]);
 
   const date = (d: Date | string) =>
     format(new Date(d), 'PPP p', { locale: fr });
@@ -52,6 +57,8 @@ function UserTable(props: UserTableProps) {
       isLoading={isLoading}
       enableSorting
       enableSortingRemoval
+      state={{ sorting }}
+      onSortingChange={setSorting}
     />
   );
 }

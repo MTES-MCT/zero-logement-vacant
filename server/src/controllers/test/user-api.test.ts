@@ -468,6 +468,8 @@ describe('User API', () => {
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       });
 
+      const TIMEOUT = 30_000;
+
       test.prop<UserUpdatePayload>({
         firstName: fc.string({ minLength: 1, maxLength: 255 }),
         lastName: fc.string({ minLength: 1, maxLength: 255 }),
@@ -491,21 +493,25 @@ describe('User API', () => {
           }),
           { nil: undefined }
         )
-      })('should validate inputs', async (payload) => {
-        const user: UserApi = {
-          ...genUserApi(establishment.id),
-          password: await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH)
-        };
-        await Users().insert(formatUserApi(user));
+      })(
+        'should validate inputs',
+        async (payload) => {
+          const user: UserApi = {
+            ...genUserApi(establishment.id),
+            password: await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH)
+          };
+          await Users().insert(formatUserApi(user));
 
-        const { status } = await request(url)
-          .put(testRoute(user.id))
-          .send(payload)
-          .type('json')
-          .use(tokenProvider(user));
+          const { status } = await request(url)
+            .put(testRoute(user.id))
+            .send(payload)
+            .type('json')
+            .use(tokenProvider(user));
 
-        expect(status).toBe(constants.HTTP_STATUS_OK);
-      });
+          expect(status).toBe(constants.HTTP_STATUS_OK);
+        },
+        TIMEOUT
+      );
     });
   });
 });

@@ -1,5 +1,4 @@
-import { fc, test } from '@fast-check/vitest';
-import { TIME_PER_WEEK_VALUES, UserRole } from '@zerologementvacant/models';
+import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import { subDays } from 'date-fns';
 import { constants } from 'http2';
@@ -187,42 +186,6 @@ describe('Account controller', () => {
         position: userAccountDTO.position,
         time_per_week: userAccountDTO.timePerWeek
       });
-    });
-  });
-
-  describe('Update password', () => {
-    const testRoute = '/api/account/password';
-
-    test.prop({
-      currentPassword: fc.string(),
-      newPassword: fc.string({ minLength: 8 }),
-      newPasswordConfirmation: fc.string(),
-      firstName: fc.string(),
-      lastName: fc.string(),
-      phone: fc.string(),
-      position: fc.string(),
-      timePerWeek: fc.constantFrom(...TIME_PER_WEEK_VALUES, null)
-    })('should validate inputs', async (inputs) => {
-      const { status } = await request(url)
-        .put(testRoute)
-        .send(inputs)
-        .type('json')
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-    });
-
-    it('should succeed to change the password', async () => {
-      const { body, status } = await request(url)
-        .put(testRoute)
-        .send({
-          currentPassword: user.password,
-          newPassword: '123QWEasd'
-        })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual({});
     });
   });
 

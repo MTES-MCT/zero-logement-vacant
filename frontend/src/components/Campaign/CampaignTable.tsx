@@ -1,19 +1,19 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import Button, { type ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { createColumnHelper } from '@tanstack/react-table';
+import { createColumnHelper, type SortingState } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { PropsWithChildren, useMemo, useState } from 'react';
+import { Record } from 'effect';
+import { useMemo, useState } from 'react';
+
 import { usePagination } from '../../hooks/usePagination';
-import { useSort } from '../../hooks/useSort';
 import { useUser } from '../../hooks/useUser';
-import { Campaign, CampaignSort } from '../../models/Campaign';
+import { type Campaign } from '../../models/Campaign';
 import { useFindCampaignsQuery } from '../../services/campaign.service';
 import { DefaultPagination } from '../../store/reducers/housingReducer';
 import { displayCount } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
-
 import AdvancedTable from '../AdvancedTable/AdvancedTable';
 import CampaignStatusBadge from './CampaignStatusBadge';
 
@@ -36,26 +36,20 @@ function CampaignTable(props: CampaignTableProps) {
       setPagination
     }
   );
-  const { sort, getSortButton } = useSort<CampaignSort>({
-    default: {
-      createdAt: 'desc'
-    }
+
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'createdAt', desc: true }
+  ]);
+  const { data: campaigns, isLoading } = useFindCampaignsQuery({
+    sort: Record.fromEntries(
+      sorting.map((s) => [s.id, s.desc ? 'desc' : 'asc'])
+    )
   });
-  const { data: campaigns, isLoading } = useFindCampaignsQuery({ sort });
 
   const columns = useMemo(
     () => [
       columnHelper.accessor('title', {
-        header: () => (
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            spacing={1}
-          >
-            <HeaderTitle>Titre</HeaderTitle>
-            {getSortButton('title', 'Trier par titre')}
-          </Stack>
-        ),
+        header: 'Titre',
         cell: ({ row }) => {
           const campaign = row.original;
           return (
@@ -74,16 +68,7 @@ function CampaignTable(props: CampaignTableProps) {
         }
       }),
       columnHelper.accessor('status', {
-        header: () => (
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            spacing={1}
-          >
-            <HeaderTitle>Statut</HeaderTitle>
-            {getSortButton('status', 'Trier par statut')}
-          </Stack>
-        ),
+        header: 'Statut',
         cell: ({ cell }) => (
           <CampaignStatusBadge
             badgeProps={{ small: true }}
@@ -92,29 +77,11 @@ function CampaignTable(props: CampaignTableProps) {
         )
       }),
       columnHelper.accessor('createdAt', {
-        header: () => (
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            spacing={1}
-          >
-            <HeaderTitle>Date de création</HeaderTitle>
-            {getSortButton('createdAt', 'Trier par date de création')}
-          </Stack>
-        ),
+        header: 'Date de création',
         cell: ({ cell }) => format(new Date(cell.getValue()), 'dd/MM/yyyy')
       }),
       columnHelper.accessor('sentAt', {
-        header: () => (
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            spacing={1}
-          >
-            <HeaderTitle>Date d’envoi</HeaderTitle>
-            {getSortButton('sentAt', 'Trier par date d’envoi')}
-          </Stack>
-        ),
+        header: 'Date d’envoi',
         cell: ({ cell }) => {
           const value = cell.getValue();
           return value ? format(new Date(value), 'dd/MM/yyyy') : null;
@@ -190,7 +157,7 @@ function CampaignTable(props: CampaignTableProps) {
         }
       })
     ],
-    [getSortButton, isVisitor, onArchive, onRemove]
+    [isVisitor, onArchive, onRemove]
   );
 
   return (
@@ -214,19 +181,16 @@ function CampaignTable(props: CampaignTableProps) {
         page={page}
         pageCount={pageCount}
         perPage={perPage}
+        enableSorting
+        enableSortingRemoval
+        manualSorting
+        state={{ sorting }}
         tableProps={{ noCaption: true, fixed: true }}
+        onSortingChange={setSorting}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
       />
     </>
-  );
-}
-
-function HeaderTitle(props: PropsWithChildren) {
-  return (
-    <Typography sx={{ fontSize: '0.875rem', fontWeight: 700 }}>
-      {props.children}
-    </Typography>
   );
 }
 

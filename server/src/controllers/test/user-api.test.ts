@@ -6,6 +6,7 @@ import {
   type UserDTO,
   type UserUpdatePayload
 } from '@zerologementvacant/models';
+import bcrypt from 'bcryptjs';
 import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
@@ -15,7 +16,7 @@ import db from '~/infra/database';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { ProspectApi } from '~/models/ProspectApi';
-import { UserApi } from '~/models/UserApi';
+import { SALT_LENGTH, UserApi } from '~/models/UserApi';
 import {
   Establishments,
   formatEstablishmentApi
@@ -426,6 +427,8 @@ describe('User API', () => {
     });
 
     describe('Validation', () => {
+      const TEST_PASSWORD = '1234QWERasdf';
+
       it('should return 404 for a missing user', async () => {
         const { status } = await request(url)
           .put(testRoute(faker.string.uuid()))
@@ -455,13 +458,36 @@ describe('User API', () => {
         lastName: fc.string({ minLength: 1, maxLength: 255 }),
         phone: fc.option(fc.string({ minLength: 1, maxLength: 50 })),
         position: fc.option(fc.string({ minLength: 1, maxLength: 255 })),
-        timePerWeek: fc.option(fc.constantFrom(...TIME_PER_WEEK_VALUES))
+        timePerWeek: fc.option(fc.constantFrom(...TIME_PER_WEEK_VALUES)),
+        password: fc.option(
+          fc.record({
+            before: fc.constant(TEST_PASSWORD),
+            after: fc
+              .tuple(
+                fc.stringMatching(/[a-z]/g),
+                fc.stringMatching(/[A-Z]/g),
+                fc.stringMatching(/[0-9]/g),
+                fc.stringMatching(/\S{9,255}/g)
+              )
+              .map(
+                ([lowercase, uppercase, number, rest]) =>
+                  lowercase + uppercase + number + rest
+              )
+          }),
+          { nil: undefined }
+        )
       })('should validate inputs', async (payload) => {
+        const user: UserApi = {
+          ...genUserApi(establishment.id),
+          password: await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH)
+        };
+        await Users().insert(formatUserApi(user));
+
         const { status } = await request(url)
           .put(testRoute(user.id))
           .send(payload)
           .type('json')
-          .use(tokenProvider(admin));
+          .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
       });

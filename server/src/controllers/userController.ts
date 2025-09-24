@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import EstablishmentMissingError from '~/errors/establishmentMissingError';
 import ForbiddenError from '~/errors/forbiddenError';
+import PasswordInvalidError from '~/errors/passwordInvalidError';
 import ProspectInvalidError from '~/errors/prospectInvalidError';
 import ProspectMissingError from '~/errors/prospectMissingError';
 import TestAccountError from '~/errors/testAccountError';
@@ -178,8 +179,24 @@ const update: RequestHandler<PathParams, UserDTO, UserUpdatePayload> = async (
     throw new UserMissingError(params.id);
   }
 
+  // When a password change is requested, the current password
+  // must be provided and valid. Also, passwords must match.
+  const passwordEquals = body.password
+    ? await bcrypt.compare(body.password.before, user.password)
+    : false;
+  if (body.password && !passwordEquals) {
+    throw new PasswordInvalidError();
+  }
+
+  const password = body.password
+    ? {
+        password: await bcrypt.hash(body.password.after, SALT_LENGTH)
+      }
+    : {};
+
   const updated: UserApi = {
     ...user,
+    ...password,
     firstName: body.firstName,
     lastName: body.lastName,
     phone: body.phone,

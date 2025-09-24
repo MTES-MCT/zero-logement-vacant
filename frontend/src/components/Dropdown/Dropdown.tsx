@@ -14,9 +14,9 @@ type DropdownProps = {
 };
 
 function Dropdown(props: DropdownProps) {
-  const { buttonProps, label, popoverProps: menuProps } = props;
+  const { buttonProps, label, popoverProps } = props;
   const buttonId = useId();
-  const menuId = useId();
+  const popoverId = useId();
 
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const isOpen = !!anchor;
@@ -34,15 +34,15 @@ function Dropdown(props: DropdownProps) {
       <Button
         {...buttonProps}
         id={buttonId}
-        aria-describedby={menuId}
+        aria-describedby={popoverId}
         onClick={onClick}
       >
         {label}
       </Button>
 
       <Popover
-        {...menuProps}
-        id={menuId}
+        {...popoverProps}
+        id={popoverId}
         anchorEl={anchor}
         open={isOpen}
         onClose={onClose}

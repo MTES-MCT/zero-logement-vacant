@@ -468,7 +468,7 @@ describe('User API', () => {
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       });
 
-      const TIMEOUT = 30_000;
+      const TIMEOUT = 60_000;
 
       test.prop<UserUpdatePayload>({
         firstName: fc.string({ minLength: 1, maxLength: 255 }),

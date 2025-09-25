@@ -35,7 +35,7 @@ import { isUUIDParam } from '~/utils/validators';
 
 const router = Router();
 
-router.use(jwtCheck(true));
+router.use(jwtCheck());
 router.use(userCheck());
 
 router.post('/files', upload(), fileController.create);
@@ -315,12 +315,6 @@ router.put(
   validator.validate,
   accountController.updateAccount
 );
-router.put(
-  '/account/password',
-  accountController.updatePasswordValidators,
-  validator.validate,
-  accountController.updatePassword
-);
 router.get(
   '/account/establishments/:establishmentId',
   [isUUIDParam('establishmentId')],
@@ -328,11 +322,24 @@ router.get(
   accountController.changeEstablishment
 );
 
+/* Users */
+
+router.get('/users', userController.list);
 router.get(
-  '/users/:userId',
-  [isUUIDParam('userId')],
-  validator.validate,
+  '/users/:id',
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
   userController.get
+);
+router.put(
+  '/users/:id',
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id }),
+    body: schemas.userUpdatePayload
+  }),
+  userController.update
 );
 
 // TODO: should be /geo-perimeters

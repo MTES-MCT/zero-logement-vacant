@@ -1,7 +1,12 @@
-import { UserDTO, UserRole } from '@zerologementvacant/models';
+import {
+  type UserAccountDTO,
+  type UserDTO,
+  UserRole
+} from '@zerologementvacant/models';
 import { Equivalence } from 'effect';
 
-import { Establishment } from './Establishment';
+import type { Establishment } from '~/models/Establishment';
+import type { Sort } from '~/models/Sort';
 
 export interface AuthUser {
   user: User;
@@ -13,6 +18,12 @@ export interface AuthUser {
 export interface User extends Omit<UserDTO, 'activatedAt'> {
   activatedAt: Date;
 }
+
+export type UserSortable = Pick<
+  User,
+  'email' | 'activatedAt' | 'lastAuthenticatedAt' | 'updatedAt'
+>;
+export type UserSort = Sort<UserSortable>;
 
 export const USER_EQUIVALENCE = Equivalence.struct({
   id: Equivalence.string
@@ -35,11 +46,14 @@ export const fromUserDTO = (user: UserDTO): User => ({
   email: user.email,
   firstName: user.firstName,
   lastName: user.lastName,
-  // TODO: avoid !
-  establishmentId: user.establishmentId!,
+  phone: user.phone,
+  position: user.position,
+  timePerWeek: user.timePerWeek,
+  establishmentId: user.establishmentId,
   role: user.role,
-  // TODO: avoid !
-  activatedAt: new Date(user.activatedAt!)
+  activatedAt: new Date(user.activatedAt),
+  lastAuthenticatedAt: user.lastAuthenticatedAt,
+  updatedAt: user.updatedAt
 });
 
 export const toUserDTO = (user: User): UserDTO => ({
@@ -47,18 +61,17 @@ export const toUserDTO = (user: User): UserDTO => ({
   email: user.email,
   firstName: user.firstName,
   lastName: user.lastName,
+  phone: user.phone,
+  position: user.position,
+  timePerWeek: user.timePerWeek,
   establishmentId: user.establishmentId,
   role: user.role,
-  activatedAt: user.activatedAt.toJSON()
+  activatedAt: user.activatedAt.toJSON(),
+  lastAuthenticatedAt: user.lastAuthenticatedAt,
+  updatedAt: user.updatedAt
 });
 
-export interface UserAccount {
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  position?: string;
-  timePerWeek?: string;
-}
+export type UserAccount = UserAccountDTO;
 
 export interface DraftUser {
   email: string;

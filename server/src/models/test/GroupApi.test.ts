@@ -28,6 +28,11 @@ describe('GroupApi', () => {
               email: group.createdBy.email,
               firstName: group.createdBy.firstName,
               lastName: group.createdBy.lastName,
+              phone: group.createdBy.phone,
+              position: group.createdBy.position,
+              timePerWeek: group.createdBy.timePerWeek,
+              updatedAt: group.createdBy.updatedAt,
+              lastAuthenticatedAt: group.createdBy.lastAuthenticatedAt,
               role: group.createdBy.role,
               activatedAt: group.createdBy.activatedAt,
               establishmentId: group.createdBy.establishmentId

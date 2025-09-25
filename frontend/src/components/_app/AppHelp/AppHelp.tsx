@@ -7,6 +7,11 @@ interface HelpProps {
   className?: string;
 }
 
+/**
+ * @deprecated Use Alert from @codegouvfr/react-dsfr instead
+ * @param props
+ * @returns 
+ */
 function AppHelp(props: PropsWithChildren<HelpProps>) {
   const divClasses = classNames(props.className, styles.help);
   const iconClasses = classNames(

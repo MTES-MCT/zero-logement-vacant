@@ -17,6 +17,7 @@ import validator from '~/middlewares/validator';
 import serverSentEventController from '~/controllers/serverSentEventController';
 import validatorNext from '~/middlewares/validator-next';
 import schemas from '@zerologementvacant/schemas';
+import { jwtCheck, userCheck } from '~/middlewares/auth';
 
 const router = Router();
 
@@ -54,7 +55,7 @@ router.post(
   rateLimiter(),
   userController.createUserValidators,
   validator.validate,
-  userController.createUser
+  userController.create
 );
 router.post(
   '/authenticate',
@@ -110,6 +111,8 @@ router.put(
 
 router.get(
   '/establishments',
+  jwtCheck({ required: false }),
+  userCheck({ required: false }),
   validatorNext.validate({
     query: schemas.establishmentFilters
   }),

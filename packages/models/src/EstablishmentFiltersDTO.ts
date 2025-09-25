@@ -7,5 +7,9 @@ export type EstablishmentFiltersDTO = Partial<
   name?: EstablishmentDTO['name'];
   kind?: EstablishmentDTO['kind'][];
   siren?: EstablishmentDTO['siren'][];
+  /**
+   * Filter on active establishments (having at least one user)
+   */
+  active?: boolean;
   query?: string;
 };

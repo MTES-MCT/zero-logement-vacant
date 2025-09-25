@@ -106,7 +106,7 @@ describe('Note API', () => {
         .post(testRoute(housing.id))
         .use(tokenProvider(visitor));
 
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
 
     test.prop<NotePayloadDTO>({
@@ -191,7 +191,7 @@ describe('Note API', () => {
         .send({ content: 'Updated content' })
         .use(tokenProvider(visitor));
 
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
 
     it('should be forbidden for another user than the creator', async () => {
@@ -284,7 +284,7 @@ describe('Note API', () => {
         .delete(testRoute(note.id))
         .use(tokenProvider(visitor));
 
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
 
     it('should be forbidden for another user than the creator', async () => {

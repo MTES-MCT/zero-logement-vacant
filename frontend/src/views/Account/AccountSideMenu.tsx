@@ -1,101 +1,77 @@
-import { fr } from '@codegouvfr/react-dsfr';
-import Typography from '@mui/material/Typography';
-import classNames from 'classnames';
-import { usePostHog } from 'posthog-js/react';
+import SideMenu, { type SideMenuProps } from '@codegouvfr/react-dsfr/SideMenu';
 import { useLocation } from 'react-router-dom';
 
-import AppLink from '../../components/_app/AppLink/AppLink';
-import { useAppDispatch } from '../../hooks/useStore';
-import { useUser } from '../../hooks/useUser';
-import { logOut } from '../../store/actions/authenticationAction';
+import { useUser } from '~/hooks/useUser';
 
-const AccountSideMenu = () => {
+function AccountSideMenu() {
   const location = useLocation();
-  const dispatch = useAppDispatch();
-
   const { establishment } = useUser();
 
-  const isCurrentLocation = location.pathname === '/compte';
-
-  const posthog = usePostHog();
-
-  function onLogOut() {
-    posthog.reset();
-    dispatch(logOut());
+  interface CreateLinkOptions {
+    text: string;
+    to: string;
   }
 
+  function createLink(options: CreateLinkOptions): SideMenuProps.Item.Link {
+    const linkProps = options.to.startsWith('http')
+      ? {
+          href: options.to,
+          target: '_blank',
+          rel: 'noopener noreferrer'
+        }
+      : {
+          to: {
+            pathname: options.to
+          }
+        };
+
+    return {
+      text: options.text,
+      linkProps: linkProps,
+      isActive: location.pathname === options.to
+    };
+  }
+
+  interface CreateSubMenuOptions {
+    text: string;
+    items: SideMenuProps.Item[];
+    expandedByDefault?: boolean;
+  }
+
+  function createSubMenu(
+    options: CreateSubMenuOptions
+  ): SideMenuProps.Item.SubMenu {
+    return {
+      text: options.text,
+      items: options.items,
+      expandedByDefault: options.expandedByDefault
+    };
+  }
+
+  const menuItems: SideMenuProps.Item[] = [
+    createLink({
+      text: 'Gérer mon profil',
+      to: '/compte'
+    }),
+    createSubMenu({
+      text: establishment?.name ?? '',
+      expandedByDefault: true,
+      items: [
+        createLink({
+          text: 'Utilisateurs rattachés à votre structure',
+          to: '/utilisateurs'
+        }),
+        createLink({
+          text: 'Autres structures sur votre territoire',
+          to: '/autres-structures'
+        })
+      ]
+    })
+  ];
+
   return (
-    <>
-      <Typography
-        variant="body2"
-        sx={{
-          fontWeight: 700,
-          color: fr.colors.decisions.text.default.grey.default
-        }}
-      >
-        Votre compte
-      </Typography>
-      <div className="fr-py-2w">
-        <AppLink
-          className={classNames('fr-ml-0', { 'weight-700': isCurrentLocation })}
-          isSimple={isCurrentLocation}
-          to="/compte"
-          iconId="fr-icon-user-fill"
-          iconPosition="left"
-        >
-          Gérer votre profil
-        </AppLink>
-      </div>
-      <hr className="fr-py-1w" />
-      <Typography
-        variant="body2"
-        sx={{
-          fontWeight: 700,
-          color: fr.colors.decisions.text.default.grey.default
-        }}
-      >
-        {establishment?.name}
-      </Typography>
-      <div className="fr-py-2w">
-        <AppLink
-          to={{ pathname: 'https://consultdf.cerema.fr/consultdf/' }}
-          target="_blank"
-          iconId="fr-icon-group-fill"
-          iconPosition="left"
-        >
-          Gérer les utilisateurs (portail DF)
-        </AppLink>
-      </div>
-      <div className="fr-pb-2w">
-        <AppLink
-          to="/utilisateurs"
-          iconId="fr-icon-group-fill"
-          iconPosition="left"
-        >
-          Voir les utilisateurs
-        </AppLink>
-      </div>
-      <div className="fr-pb-2w">
-        <AppLink
-          to="/autres-etablissements"
-          iconId="fr-icon-group-fill"
-          iconPosition="left"
-        >
-          Voir les autres structures
-        </AppLink>
-      </div>
-      <hr className="fr-py-1w" />
-      <AppLink
-        to="#"
-        iconId="fr-icon-logout-box-r-fill"
-        iconPosition="left"
-        onClick={onLogOut}
-        size="md"
-      >
-        Se déconnecter
-      </AppLink>
-    </>
+    <SideMenu burgerMenuButtonText="Menu" items={menuItems} fullHeight sticky />
   );
-};
+}
 
 export default AccountSideMenu;

@@ -241,6 +241,7 @@ function HousingList(props: HousingListProps) {
           `Sélectionner le logement "${housing.rawAddress.join(', ')}"`
         }
         isLoading={isFetchHousings}
+        manualSorting
         page={page}
         pageCount={pageCount}
         perPage={perPage}

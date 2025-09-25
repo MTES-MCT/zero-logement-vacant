@@ -91,7 +91,6 @@ function HousingHeader(props: HousingHeaderProps) {
         {isVisitor ? null : (
           <>
             <Tooltip
-              mode="manual"
               align="end"
               place="bottom"
               title={

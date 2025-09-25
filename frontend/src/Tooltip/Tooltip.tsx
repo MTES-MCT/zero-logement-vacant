@@ -38,17 +38,19 @@ function Tooltip(props: TooltipProps) {
       return;
     }
 
-    ref.current.addEventListener(
-      'dsfr.show',
-      (event) => {
-        // @ts-expect-error dsfr is not typed on window
-        const tooltip = window.dsfr(event.target).tooltip;
-        tooltip.mode = 'placement_manual';
-        tooltip.align = placement.align;
-        tooltip.place = placement.place;
-      },
-      { once: true }
-    );
+    function modifyTooltip(event: Event): void {
+      // @ts-expect-error dsfr is not typed on window
+      const tooltip = window.dsfr(event.target).tooltip;
+      tooltip.mode = 'placement_manual';
+      tooltip.align = placement.align;
+      tooltip.place = placement.place;
+    }
+
+    ref.current.addEventListener('dsfr.show', modifyTooltip, { once: true });
+
+    return () => {
+      ref.current?.removeEventListener('dsfr.show', modifyTooltip);
+    };
   }, [ref.current]);
 
   return <DSFRTooltip {...props} ref={ref} id={id} />;

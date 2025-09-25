@@ -113,7 +113,6 @@ function CampaignSending(props: Readonly<Props>) {
           sx={{ alignItems: 'center', alignSelf: 'flex-end' }}
         >
           <Tooltip
-            mode="manual"
             place="top"
             align="end"
             title={

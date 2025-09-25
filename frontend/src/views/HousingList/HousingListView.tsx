@@ -169,7 +169,6 @@ const HousingListView = () => {
             </Grid>
             <Grid size="auto" sx={{ display: 'flex', alignItems: 'center' }}>
               <Tooltip
-                mode="manual"
                 align="start"
                 place="bottom"
                 title="Copiez-collez vos invariants fiscaux facilement dans la barre de recherche pour gagner du temps !"

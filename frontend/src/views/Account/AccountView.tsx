@@ -33,6 +33,10 @@ const AccountView = () => {
       </Box>
 
       <Stack spacing="0.75rem">
+        <Typography component="h2" variant="h6">
+          Mon adresse e-mail de connexion
+        </Typography>
+
         <Box>
           <LabelNext sx={{ fontWeight: '700', lineHeight: '1.5rem' }}>
             <span

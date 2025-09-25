@@ -162,7 +162,7 @@ function AccountForm() {
         <Stack spacing={4} useFlexGap sx={{ maxWidth: '25rem' }}>
           <Box>
             <Typography component="h2" variant="h6" mb={2}>
-              Réinitialisation de votre mot de passe
+              Réinitialisation de mon mot de passe
             </Typography>
 
             <Stack spacing="-0.75rem">
@@ -193,7 +193,7 @@ function AccountForm() {
 
           <Box>
             <Typography component="h2" variant="h6" mb={2}>
-              Informations personnelles
+              Mes informations personnelles
             </Typography>
 
             <Stack spacing="-0.75rem">

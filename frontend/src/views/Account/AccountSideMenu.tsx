@@ -1,8 +1,12 @@
 import SideMenu, { type SideMenuProps } from '@codegouvfr/react-dsfr/SideMenu';
 import { useLocation } from 'react-router-dom';
 
+import { useUser } from '~/hooks/useUser';
+
 function AccountSideMenu() {
   const location = useLocation();
+  const { establishment } = useUser();
+
   interface CreateLinkOptions {
     text: string;
     to: string;
@@ -50,7 +54,7 @@ function AccountSideMenu() {
       to: '/compte'
     }),
     createSubMenu({
-      text: 'Mes établissements',
+      text: establishment?.name ?? '',
       expandedByDefault: true,
       items: [
         createLink({
@@ -60,10 +64,6 @@ function AccountSideMenu() {
         createLink({
           text: 'Autres structures sur votre territoire',
           to: '/autres-structures'
-        }),
-        createLink({
-          text: 'Gérer les utilisateurs (redirige vers le Portail des Données Foncières)',
-          to: 'https://consultdf.cerema.fr/consultdf/'
         })
       ]
     })

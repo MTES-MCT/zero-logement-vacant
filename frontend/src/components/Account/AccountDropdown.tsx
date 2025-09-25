@@ -1,10 +1,11 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
+import styled from '@emotion/styled';
 import { Divider } from '@mui/material';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
+import { useState } from 'react';
 
 import Dropdown from '~/components/Dropdown/Dropdown';
 import { useUser } from '~/hooks/useUser';
@@ -20,6 +21,16 @@ const MutedButton = styled(Button)({
 function AccountDropdown() {
   const { displayName, establishment, user, logOut } = useUser();
 
+  const [open, setOpen] = useState(false);
+
+  function doOpen() {
+    setOpen(true);
+  }
+
+  function doClose() {
+    setOpen(false);
+  }
+
   if (!user || !establishment) {
     return null;
   }
@@ -27,12 +38,6 @@ function AccountDropdown() {
   return (
     <Dropdown
       label={displayName()}
-      buttonProps={{
-        priority: 'tertiary',
-        size: 'small',
-        iconId: 'fr-icon-arrow-down-s-line',
-        iconPosition: 'right'
-      }}
       popoverProps={{
         anchorOrigin: {
           vertical: 'bottom',
@@ -43,6 +48,9 @@ function AccountDropdown() {
           horizontal: 'right'
         }
       }}
+      open={open}
+      onOpen={doOpen}
+      onClose={doClose}
     >
       <Stack
         direction="column"
@@ -67,24 +75,14 @@ function AccountDropdown() {
           <Divider aria-hidden="true" sx={{ padding: 0 }} />
 
           <MutedButton
-            linkProps={{ to: '/compte' }}
+            linkProps={{
+              to: '/compte',
+              onClick: doClose
+            }}
             size="small"
             priority="tertiary no outline"
-            sx={{ width: '100%' }}
           >
             Gérer mon profil
-          </MutedButton>
-
-          <Divider aria-hidden="true" sx={{ padding: 0 }} />
-
-          <MutedButton
-            priority="tertiary no outline"
-            size="small"
-            iconId="ri-shut-down-line"
-            iconPosition="left"
-            onClick={logOut}
-          >
-            Se déconnecter
           </MutedButton>
 
           <Divider aria-hidden="true" sx={{ padding: 0 }} />
@@ -98,34 +96,49 @@ function AccountDropdown() {
           <Divider aria-hidden="true" sx={{ padding: 0 }} />
 
           <MutedButton
-            linkProps={{ to: '/utilisateurs' }}
+            linkProps={{
+              to: '/utilisateurs',
+              onClick: doClose
+            }}
             priority="tertiary no outline"
             size="small"
           >
-            Voir les utilisateurs
+            Utilisateurs rattachés à votre structure
           </MutedButton>
 
           <Divider aria-hidden="true" sx={{ padding: 0 }} />
 
           <MutedButton
-            linkProps={{ to: '/autres-structures' }}
+            linkProps={{
+              to: '/autres-structures',
+              onClick: doClose
+            }}
             priority="tertiary no outline"
             size="small"
           >
-            Voir les autres structures
-          </MutedButton>
-
-          <Divider aria-hidden="true" sx={{ padding: 0 }} />
-
-          <MutedButton
-            linkProps={{ href: 'https://consultdf.cerema.fr/consultdf/' }}
-            priority="tertiary no outline"
-            size="small"
-          >
-            Gérer les utilisateurs (redirige vers le Portail des Données
-            Foncières)
+            Autres structures sur votre territoire
           </MutedButton>
         </Box>
+
+        <Stack
+          direction="row"
+          sx={{
+            px: '1rem',
+            pb: '1rem',
+            justifyContent: 'center'
+          }}
+        >
+          <Button
+            priority="tertiary"
+            size="small"
+            iconId="ri-shut-down-line"
+            iconPosition="left"
+            style={{ width: '100%', justifyContent: 'center' }}
+            onClick={logOut}
+          >
+            Se déconnecter
+          </Button>
+        </Stack>
       </Stack>
     </Dropdown>
   );

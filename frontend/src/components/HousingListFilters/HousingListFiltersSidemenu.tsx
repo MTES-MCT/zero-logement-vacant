@@ -210,7 +210,7 @@ function HousingListFiltersSidemenu(props: Props) {
                       <Typography
                         component="p"
                         variant="caption"
-                        sx={{ fontWeight: 700 }}
+                        sx={{ fontWeight: 700, mb: '1rem' }}
                       >
                         À l’aide des filtres, ciblez les logements qui vous
                         intéressent en particulier !

@@ -17,10 +17,20 @@ function EstablishmentTable(props: EstablishmentTableProps) {
   const columns = [
     columnHelper.accessor('name', {
       header: 'Structures',
+      meta: {
+        sort: {
+          title: 'Trier par nom'
+        }
+      },
       sortingFn: (a, b) => byKind(a.original.kind, b.original.kind)
     }),
     columnHelper.accessor('users', {
       header: "Nombre d'utilisateurs",
+      meta: {
+        sort: {
+          title: "Trier par nombre d'utilisateurs"
+        }
+      },
       cell: ({ getValue }) => {
         const users = getValue();
         return users ? users.length : 0;

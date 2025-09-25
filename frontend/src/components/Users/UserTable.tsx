@@ -24,10 +24,20 @@ function UserTable(props: UserTableProps) {
   const columnHelper = createColumnHelper<User>();
   const columns = [
     columnHelper.accessor('email', {
-      header: 'E-mail'
+      header: 'E-mail',
+      meta: {
+        sort: {
+          title: 'Trier par e-mail'
+        }
+      }
     }),
     columnHelper.accessor('activatedAt', {
       header: 'Création compte',
+      meta: {
+        sort: {
+          title: 'Trier par date de création'
+        }
+      },
       cell: ({ getValue }) => {
         const value = getValue();
         return value ? date(value) : null;
@@ -35,6 +45,11 @@ function UserTable(props: UserTableProps) {
     }),
     columnHelper.accessor('lastAuthenticatedAt', {
       header: 'Dernière connexion',
+      meta: {
+        sort: {
+          title: 'Trier par date de dernière connexion'
+        }
+      },
       cell: ({ getValue }) => {
         const value = getValue();
         return value ? date(value) : null;
@@ -42,6 +57,11 @@ function UserTable(props: UserTableProps) {
     }),
     columnHelper.accessor('updatedAt', {
       header: 'Dernière mise à jour',
+      meta: {
+        sort: {
+          title: 'Trier par date de dernière mise à jour'
+        }
+      },
       cell: ({ getValue }) => {
         const value = getValue();
         return value ? date(value) : null;

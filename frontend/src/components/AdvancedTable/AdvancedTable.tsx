@@ -13,6 +13,7 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type RowData,
   type RowSelectionState,
   type TableOptions,
   useReactTable
@@ -193,7 +194,10 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                           {header.column.getCanSort() ? (
                             <SortButton
                               direction={header.column.getIsSorted()}
-                              title={`Trier par ${header.id}`}
+                              title={
+                                header.column.columnDef.meta?.sort?.title ??
+                                `Trier par ${header.id}`
+                              }
                               onCycleSort={() => header.column.toggleSorting()}
                             />
                           ) : null}
@@ -321,6 +325,15 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
       ) : null}
     </Stack>
   );
+}
+
+declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    sort?: {
+      title: string;
+    };
+  }
 }
 
 AdvancedTable.displayName = 'AdvancedTable';

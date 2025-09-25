@@ -50,6 +50,11 @@ function CampaignTable(props: CampaignTableProps) {
     () => [
       columnHelper.accessor('title', {
         header: 'Titre',
+        meta: {
+          sort: {
+            title: 'Trier par titre'
+          }
+        },
         cell: ({ row }) => {
           const campaign = row.original;
           return (
@@ -69,6 +74,11 @@ function CampaignTable(props: CampaignTableProps) {
       }),
       columnHelper.accessor('status', {
         header: 'Statut',
+        meta: {
+          sort: {
+            title: 'Trier par statut'
+          }
+        },
         cell: ({ cell }) => (
           <CampaignStatusBadge
             badgeProps={{ small: true }}
@@ -78,10 +88,20 @@ function CampaignTable(props: CampaignTableProps) {
       }),
       columnHelper.accessor('createdAt', {
         header: 'Date de création',
+        meta: {
+          sort: {
+            title: 'Trier par date de création'
+          }
+        },
         cell: ({ cell }) => format(new Date(cell.getValue()), 'dd/MM/yyyy')
       }),
       columnHelper.accessor('sentAt', {
         header: 'Date d’envoi',
+        meta: {
+          sort: {
+            title: 'Trier par date d’envoi'
+          }
+        },
         cell: ({ cell }) => {
           const value = cell.getValue();
           return value ? format(new Date(value), 'dd/MM/yyyy') : null;

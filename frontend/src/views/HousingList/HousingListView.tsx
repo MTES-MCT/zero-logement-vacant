@@ -30,6 +30,7 @@ import { useCountHousingQuery } from '../../services/housing.service';
 import HousingListMap from './HousingListMap';
 import HousingListTabs from './HousingListTabs';
 import { useHousingListTabs } from './HousingListTabsProvider';
+import Tooltip from '~/Tooltip/Tooltip';
 
 const campaignCreationInfoModal = createCampaignCreationInfoModal();
 const campaignCreationModal = createCampaignCreationModal();
@@ -164,6 +165,14 @@ const HousingListView = () => {
                 label="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
                 placeholder="Rechercher (propriétaire, identifiant fiscal, ref. cadastrale...)"
                 onSearch={searchWithQuery}
+              />
+            </Grid>
+            <Grid size="auto" sx={{ display: 'flex', alignItems: 'center' }}>
+              <Tooltip
+                mode="manual"
+                align="start"
+                place="bottom"
+                title="Copiez-collez vos invariants fiscaux facilement dans la barre de recherche pour gagner du temps !"
               />
             </Grid>
             <Grid size="auto">

@@ -28,6 +28,7 @@ import {
 } from '../../services/campaign.service';
 import config from '../../utils/config';
 import styles from './campaign.module.scss';
+import Tooltip from '~/Tooltip/Tooltip';
 
 const modal = createModal({
   id: 'campaign-sending-modal',
@@ -105,7 +106,37 @@ function CampaignSending(props: Readonly<Props>) {
           &nbsp;Suivi de campagne et passage de tous les logements &quot;Non
           suivi&quot; au statut &quot;En attente de retour&quot;.
         </p>
-        <Box sx={{ alignSelf: 'flex-end' }}>
+        <Stack
+          direction="row"
+          spacing="1rem"
+          useFlexGap
+          sx={{ alignItems: 'center', alignSelf: 'flex-end' }}
+        >
+          <Tooltip
+            mode="manual"
+            place="top"
+            align="end"
+            title={
+              <>
+                <Typography
+                  component="p"
+                  variant="caption"
+                  sx={{ fontWeight: 700, mb: '1rem' }}
+                >
+                  Indiquez la date d’envoi des courriers pour enregistrer la
+                  campagne !
+                </Typography>
+                <Typography component="p" variant="caption">
+                  Cela permettra d’indiquer que la campagne a été envoyée et les
+                  logements “Non suivi” passeront automatiquement dans le statut
+                  “En attente de retour”. Les logements seront ainsi enregistrés
+                  comme ayant fait l’objet d’une prise de contact auprès des
+                  propriétaires, ce qui vous permettra de suivre et partager les
+                  retours suite à l’envoi des courriers.
+                </Typography>
+              </>
+            }
+          />
           <Button
             priority="primary"
             disabled={disabled}
@@ -113,7 +144,7 @@ function CampaignSending(props: Readonly<Props>) {
           >
             Enregistrer et passer au suivi
           </Button>
-        </Box>
+        </Stack>
       </Stack>
 
       <hr />

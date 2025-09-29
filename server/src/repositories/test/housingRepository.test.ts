@@ -564,13 +564,16 @@ describe('Housing repository', () => {
           {
             name: 'less than 40 years old',
             filter: ['lt40'],
-            predicate: (owner) =>
-              differenceInYears(new Date(), owner.birthDate as string) < 40
+            predicate: (owner) => {
+              if (!owner.birthDate) return false;
+              return differenceInYears(new Date(), owner.birthDate as string) < 40;
+            }
           },
           {
             name: 'between 40 and 59 years old',
             filter: ['40to59'],
             predicate: (owner: OwnerApi) => {
+              if (!owner.birthDate) return false;
               const diff = differenceInYears(
                 new Date(),
                 owner.birthDate as string
@@ -582,6 +585,7 @@ describe('Housing repository', () => {
             name: 'between 60 and 74 years old',
             filter: ['60to74'],
             predicate: (owner: OwnerApi) => {
+              if (!owner.birthDate) return false;
               const diff = differenceInYears(
                 new Date(),
                 owner.birthDate as string
@@ -593,6 +597,7 @@ describe('Housing repository', () => {
             name: 'between 75 and 99 years old',
             filter: ['75to99'],
             predicate: (owner: OwnerApi) => {
+              if (!owner.birthDate) return false;
               const diff = differenceInYears(
                 new Date(),
                 owner.birthDate as string
@@ -603,8 +608,10 @@ describe('Housing repository', () => {
           {
             name: '100 years old and more',
             filter: ['gte100'],
-            predicate: (owner) =>
-              differenceInYears(new Date(), owner.birthDate as string) >= 100
+            predicate: (owner) => {
+              if (!owner.birthDate) return false;
+              return differenceInYears(new Date(), owner.birthDate as string) >= 100;
+            }
           }
         ];
 

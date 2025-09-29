@@ -1,7 +1,9 @@
 import { UserRole } from '@zerologementvacant/models';
-import { useAppSelector } from './useStore';
+import { useAppDispatch, useAppSelector } from './useStore';
+import authenticationSlice from '~/store/reducers/authenticationReducer';
 
-export const useUser = () => {
+export function useUser() {
+  const dispatch = useAppDispatch();
   const { logIn } = useAppSelector((state) => state.authentication);
   const { data, error, isError, isLoading, isUninitialized, isSuccess } = logIn;
   const establishment = data?.establishment;
@@ -28,8 +30,13 @@ export const useUser = () => {
     return '';
   }
 
+  function logOut() {
+    dispatch(authenticationSlice.actions.logOut());
+  }
+
   return {
     displayName,
+    logOut,
     establishment,
     user,
     isAdmin,

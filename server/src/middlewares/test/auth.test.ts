@@ -67,7 +67,7 @@ describe('Auth', () => {
 
       const { status } = await request(app).get('/');
 
-      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
   });
 });

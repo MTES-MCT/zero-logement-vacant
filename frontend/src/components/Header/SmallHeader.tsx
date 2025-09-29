@@ -2,37 +2,34 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import {
   MainNavigation,
-  MainNavigationProps
+  type MainNavigationProps
 } from '@codegouvfr/react-dsfr/MainNavigation';
+import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
 import LoadingBar from 'react-redux-loading-bar';
 import { Link, useLocation } from 'react-router-dom';
 
+import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import logo from '../../assets/images/zlv.svg';
 import { useFilters } from '../../hooks/useFilters';
 import { useAppDispatch } from '../../hooks/useStore';
 import { useUser } from '../../hooks/useUser';
 import {
-  Establishment,
+  type Establishment,
   fromEstablishmentDTO,
   toEstablishmentDTO
 } from '../../models/Establishment';
 import { getUserNavItem, UserNavItems } from '../../models/UserNavItem';
 import { zlvApi } from '../../services/api.service';
 import { changeEstablishment } from '../../store/actions/authenticationAction';
-import AccountSideMenu from '../../views/Account/AccountSideMenu';
-import { Container } from '../_dsfr';
-import Collapse from '../Collapse/Collapse';
-import EstablishmentSearchableSelect from '../EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import AccountDropdown from '~/components/Account/AccountDropdown';
 import styles from './small-header.module.scss';
 
 function SmallHeader() {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { displayName, establishment, isAdmin, isVisitor, isAuthenticated } =
-    useUser();
+  const { establishment, isAdmin, isVisitor, isAuthenticated } = useUser();
 
   function getMainNavigationItem(
     navItem: UserNavItems
@@ -155,21 +152,7 @@ function SmallHeader() {
             ) : null}
 
             {isAuthenticated ? (
-              <Collapse
-                icon="fr-icon-user-fill"
-                dropdown
-                title={displayName()}
-                content={
-                  <Container
-                    as="header"
-                    className="bg-white bordered"
-                    spacing="px-2w pt-1w pb-2w"
-                    fluid
-                  >
-                    <AccountSideMenu />
-                  </Container>
-                }
-              />
+              <AccountDropdown />
             ) : (
               <Button
                 iconId="fr-icon-user-fill"

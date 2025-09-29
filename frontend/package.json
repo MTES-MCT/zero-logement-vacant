@@ -26,6 +26,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^3.10.0",
+    "@hookform/resolvers-next": "npm:@hookform/resolvers@^5.2.2",
     "@lexical/html": "^0.34.0",
     "@lexical/list": "^0.34.0",
     "@lexical/react": "^0.34.0",
@@ -72,7 +73,8 @@
     "uuid": "^9.0.1",
     "web-vitals": "^5.1.0",
     "whatwg-fetch": "^3.6.20",
-    "yup": "^0.32.11"
+    "yup": "^0.32.11",
+    "yup-next": "npm:yup@^1.7.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",

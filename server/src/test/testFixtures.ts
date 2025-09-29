@@ -119,7 +119,9 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
     id: uuidv4(),
     geoCode,
     name: faker.location.city(),
-    kind: faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES]),
+    kind: LOCALITY_KIND_VALUES.length > 0
+      ? faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES])
+      : null,
     taxKind: TaxKindsApi.None
   };
 };

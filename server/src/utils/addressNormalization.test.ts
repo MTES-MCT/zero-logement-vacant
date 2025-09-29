@@ -1,4 +1,3 @@
-import { describe, it, expect } from '@jest/globals';
 import { normalizeAddressQuery, createArrayAddressSearchCondition } from './addressNormalization';
 
 describe('addressNormalization', () => {

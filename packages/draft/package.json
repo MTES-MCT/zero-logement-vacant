@@ -35,7 +35,7 @@
     "ts-jest": "^29.4.1"
   },
   "dependencies": {
-    "@codegouvfr/react-dsfr": "1.23.3",
+    "@codegouvfr/react-dsfr": "1.27.0",
     "@pdfme/common": "^5.4.2",
     "@pdfme/generator": "^5.4.2",
     "@pdfme/schemas": "^5.4.2",

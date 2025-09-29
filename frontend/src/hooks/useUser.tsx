@@ -8,7 +8,6 @@ export function useUser() {
   const { data, error, isError, isLoading, isUninitialized, isSuccess } = logIn;
   const establishment = data?.establishment;
   const user = data?.user;
-  const jimoData = data?.jimoData;
 
   const isAuthenticated =
     !!data?.accessToken && !!data?.user && !!data?.establishment;
@@ -48,7 +47,6 @@ export function useUser() {
     isError,
     isLoading,
     isUninitialized,
-    isSuccess,
-    jimoData
+    isSuccess
   };
 };

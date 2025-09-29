@@ -73,7 +73,6 @@ export function genAuthUser(user: User): AuthUser {
       geoCodes: [faker.location.zipCode()],
       source: 'manual'
     },
-    jimoData: {}
   };
 }
 

@@ -108,22 +108,23 @@ function HousingList(props: HousingListProps) {
             sort={getSortButton('owner', 'Trier par propriétaire principal')}
           />
         ),
-        cell: ({ cell, row }) => (
-          <>
-            <AppLink
-              isSimple
-              size="sm"
-              to={`/proprietaires/${row.original.owner.id}`}
-            >
-              {cell.getValue()}
-            </AppLink>
-            {row.original.owner.administrator && (
-              <Typography variant="body2">
-                {row.original.owner.administrator}
-              </Typography>
-            )}
-          </>
-        )
+        cell: ({ cell, row }) =>
+          !row.original.owner ? null : (
+            <>
+              <AppLink
+                isSimple
+                size="sm"
+                to={`/proprietaires/${row.original.owner.id}`}
+              >
+                {cell.getValue()}
+              </AppLink>
+              {row.original.owner.administrator && (
+                <Typography variant="body2">
+                  {row.original.owner.administrator}
+                </Typography>
+              )}
+            </>
+          )
       }),
       columnHelper.accessor('occupancy', {
         header: () => (
@@ -146,7 +147,7 @@ function HousingList(props: HousingListProps) {
         cell: ({ cell }) => {
           return (
             <Stack>
-              {Set(cell.getValue())
+              {Set(cell.getValue() ?? [])
                 .map((id) => {
                   return campaignList?.find((campaign) => campaign.id === id);
                 })

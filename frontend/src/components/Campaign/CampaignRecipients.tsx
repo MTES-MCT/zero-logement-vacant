@@ -117,17 +117,18 @@ function CampaignRecipients(props: Props) {
       }),
       columnHelper.accessor('owner.fullName', {
         header: () => <AdvancedTableHeader title="Propriétaire principal" />,
-        cell: ({ cell, row }) => (
-          <AppLink
-            isSimple
-            size="sm"
-            to={`/proprietaires/${row.original.owner.id}`}
-          >
-            {cell.getValue()}
-          </AppLink>
-        )
+        cell: ({ cell, row }) =>
+          !row.original.owner ? null : (
+            <AppLink
+              isSimple
+              size="sm"
+              to={`/proprietaires/${row.original.owner.id}`}
+            >
+              {cell.getValue()}
+            </AppLink>
+          )
       }),
-      columnHelper.accessor((row) => row.owner.banAddress, {
+      columnHelper.accessor((row) => row.owner?.banAddress ?? null, {
         id: 'address',
         header: () => (
           <AdvancedTableHeader title="Adresse BAN du propriétaire" />
@@ -160,6 +161,10 @@ function CampaignRecipients(props: Props) {
           </Typography>
         ),
         cell: ({ row }) => {
+          if (!row.original.owner) {
+            return null;
+          }
+
           return (
             <Stack
               direction="row"

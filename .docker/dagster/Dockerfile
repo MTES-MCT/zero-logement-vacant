@@ -16,11 +16,10 @@ RUN apt-get update && \
 
 RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/bin
 
-COPY analytics/uv.lock . 
-COPY analytics/pyproject.toml . 
+COPY analytics/dagster/uv.lock . 
+COPY analytics/dagster/pyproject.toml . 
 
 RUN uv sync --frozen
-
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
 

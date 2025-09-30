@@ -132,6 +132,20 @@ describe('Housing repository', () => {
       await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
     });
 
+    it('should return housings that have no main owner', async () => {
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+
+      const housings = await housingRepository.find({
+        filters: {
+          housingIds: [housing.id]
+        },
+        includes: ['owner']
+      });
+
+      expect(housings).toSatisfyAny((housing) => !!housing.owner);
+    });
+    
     it('should sort by geo code and id by default', async () => {
       const actual = await housingRepository.find({
         filters: {}

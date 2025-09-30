@@ -1,4 +1,4 @@
-import {
+import type {
   HousingOwnerDTO,
   OwnerCreationPayload,
   OwnerDTO,
@@ -9,10 +9,10 @@ import { fromAddressDTO } from '../models/Address';
 import {
   fromHousingOwnerDTO,
   fromOwnerDTO,
-  HousingOwner,
-  Owner
+  type HousingOwner,
+  type Owner
 } from '../models/Owner';
-import { PaginatedResult } from '../models/PaginatedResult';
+import type { PaginatedResult } from '../models/PaginatedResult';
 import { toTitleCase } from '../utils/stringUtils';
 import { zlvApi } from './api.service';
 
@@ -60,7 +60,7 @@ export const ownerApi = zlvApi.injectEndpoints({
     }),
 
     findOwnersByHousing: builder.query<HousingOwner[], string>({
-      query: (housingId) => `owners/housing/${housingId}`,
+      query: (id) => `housings/${id}/owners`,
       providesTags: (result) =>
         result
           ? [

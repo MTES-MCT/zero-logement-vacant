@@ -8,7 +8,13 @@ import {
   replaceVariables
 } from '@zerologementvacant/models';
 import { slugify, timestamp } from '@zerologementvacant/utils';
-import { createS3, map, collect, tap } from '@zerologementvacant/utils/node';
+import {
+  createS3,
+  map,
+  collect,
+  tap,
+  filter
+} from '@zerologementvacant/utils/node';
 import archiver from 'archiver';
 import { Worker, WorkerOptions } from 'bullmq';
 import { Readable } from 'node:stream';
@@ -105,6 +111,15 @@ export default function createWorker() {
               controller.close();
             }
           })
+            .pipeThrough(
+              filter(
+                (
+                  housing
+                ): housing is Omit<HousingDTO, 'owner'> & {
+                  owner: NonNullable<HousingDTO['owner']>;
+                } => housing.owner !== null
+              )
+            )
             .pipeThrough(
               map((housing) => {
                 const address = getAddress(housing.owner);

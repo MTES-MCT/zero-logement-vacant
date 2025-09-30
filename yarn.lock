@@ -2242,9 +2242,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codegouvfr/react-dsfr@npm:1.23.3":
-  version: 1.23.3
-  resolution: "@codegouvfr/react-dsfr@npm:1.23.3"
+"@codegouvfr/react-dsfr@npm:1.28.0":
+  version: 1.28.0
+  resolution: "@codegouvfr/react-dsfr@npm:1.28.0"
   dependencies:
     tsafe: "npm:^1.8.5"
     yargs-parser: "npm:^21.1.1"
@@ -2257,7 +2257,7 @@ __metadata:
     copy-dsfr-to-public: bin/copy-dsfr-to-public.js
     only-include-used-icons: bin/only-include-used-icons.js
     react-dsfr: bin/react-dsfr.js
-  checksum: 10c0/e348090a2af6678f2ca4c4117835367d396de185386bd27a45ed4f55a892ccac1013cd56a12332749cf31cea17e56550999b30721efe0d17e114d19c3ea65b55
+  checksum: 10c0/968d9c7af6a7f8748173ca707d3d60d81adb42deee6b2147991db747c122d55e01a914d30c314a38092b0dd5435e90e4c4ef935a690172301fed94eec04c269c
   languageName: node
   linkType: hard
 
@@ -12017,7 +12017,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/draft@workspace:packages/draft"
   dependencies:
-    "@codegouvfr/react-dsfr": "npm:1.23.3"
+    "@codegouvfr/react-dsfr": "npm:1.28.0"
     "@pdfme/common": "npm:^5.4.2"
     "@pdfme/generator": "npm:^5.4.2"
     "@pdfme/schemas": "npm:^5.4.2"
@@ -12062,7 +12062,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/front@workspace:frontend"
   dependencies:
-    "@codegouvfr/react-dsfr": "npm:1.23.3"
+    "@codegouvfr/react-dsfr": "npm:1.28.0"
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.1"
     "@faker-js/faker": "npm:^8.4.1"
@@ -31155,6 +31155,8 @@ __metadata:
   resolution: "zero-logement-vacant@workspace:."
   dependencies:
     "@dotenvx/dotenvx": "npm:^1.48.4"
+    "@emotion/react": "npm:^11.14.0"
+    "@emotion/styled": "npm:^11.14.1"
     "@eslint/compat": "npm:^1.3.2"
     "@eslint/eslintrc": "npm:^3.3.1"
     "@eslint/js": "npm:^9.33.0"

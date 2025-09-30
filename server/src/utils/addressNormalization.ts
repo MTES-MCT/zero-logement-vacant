@@ -95,6 +95,8 @@ export function normalizeAddressQuery(query: string): string[] {
   if (!query || query.length < 2) return [query];
 
   const normalized = query.toLowerCase()
+    .normalize('NFD') // Decompose accented characters
+    .replace(/[\u0300-\u036f]/g, '') // Remove accent marks
     .replace(/[^\w\s\-']/g, ' ') // Remove punctuation except dashes and apostrophes
     .replace(/\s+/g, ' ') // Normalize spaces
     .trim();

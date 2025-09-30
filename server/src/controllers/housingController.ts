@@ -33,7 +33,7 @@ import {
   HousingSortableApi,
   isContacted,
   toHousingDTO,
-  type HousingId
+  type HousingId,
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';

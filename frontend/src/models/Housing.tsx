@@ -1,25 +1,20 @@
 import {
-  CadastralClassification,
-  DataFileYear,
-  EnergyConsumption,
-  HousingDTO,
+  type EnergyConsumption,
+  type HousingDTO,
   HousingKind,
-  HousingSource,
   HousingStatus,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   Occupancy
 } from '@zerologementvacant/models';
-import { differenceInDays, format } from 'date-fns';
 import { List } from 'immutable';
 import { match, Pattern } from 'ts-pattern';
 
-import { Compare } from '../utils/compareUtils';
-import { stringSort } from '../utils/stringUtils';
-import { LocalityKinds } from './Locality';
-import { Note } from './Note';
-import { Owner, toOwnerDTO } from './Owner';
-import { Sort } from './Sort';
+import { Compare } from '~/utils/compareUtils';
+import { stringSort } from '~/utils/stringUtils';
+import type { Note } from '~/models/Note';
+import { type Owner, toOwnerDTO } from '~/models/Owner';
+import type { Sort } from '~/models/Sort';
 
 export interface Housing
   extends Pick<
@@ -28,47 +23,38 @@ export interface Housing
     | 'lastMutationDate'
     | 'lastTransactionDate'
     | 'lastTransactionValue'
+    | 'id'
+    | 'invariant'
+    | 'localId'
+    | 'geoCode'
+    | 'rawAddress'
+    | 'longitude'
+    | 'latitude'
+    | 'cadastralClassification'
+    | 'cadastralReference'
+    | 'uncomfortable'
+    | 'livingArea'
+    | 'housingKind'
+    | 'roomsCount'
+    | 'buildingYear'
+    | 'taxed'
+    | 'buildingLocation'
+    | 'ownershipKind'
+    | 'dataFileYears'
+    | 'campaignIds'
+    | 'status'
+    | 'subStatus'
+    | 'energyConsumption'
+    | 'energyConsumptionAt'
+    | 'occupancy'
+    | 'occupancyIntended'
+    | 'source'
+    | 'vacancyStartYear'
   > {
-  id: string;
-  // Identifiant fiscal départemental
-  invariant: string;
-  // Identifiant fiscal national
-  localId: string;
-  geoCode: string;
-  cadastralReference: string;
   buildingId: string | null;
-  buildingLocation?: string;
   buildingGroupId?: string;
-  rawAddress: string[];
-  latitude?: number;
-  longitude?: number;
-  /**
-   * @deprecated Should be fetched from the Locality API.
-   */
-  localityKind: LocalityKinds;
   geoPerimeters?: string[];
-  owner: Owner;
-  livingArea: number | null;
-  housingKind: HousingKind;
-  roomsCount: number;
-  buildingYear?: number;
-  vacancyStartYear: number | null;
-  uncomfortable: boolean;
-  cadastralClassification: CadastralClassification | null;
-  taxed: boolean | null;
-  ownershipKind: string;
-  buildingHousingCount?: number;
-  buildingVacancyRate?: number;
-  dataFileYears: DataFileYear[];
-  campaignIds: string[];
-  status: HousingStatus;
-  subStatus?: string | null;
-  lastContact?: Date;
-  energyConsumption: string | null;
-  energyConsumptionAt: Date | null;
-  occupancy: Occupancy;
-  occupancyIntended: Occupancy | null;
-  source: HousingSource | null;
+  owner: Owner | null;
 }
 
 export interface SelectedHousing {
@@ -189,13 +175,7 @@ export function hasCoordinates(
  * but from the events and notes instead.
  * @param housing
  */
-export const lastUpdate = (housing: Housing): string | null =>
-  housing.lastContact
-    ? `${format(housing.lastContact, 'dd/MM/yyyy')} (${differenceInDays(
-        new Date(),
-        housing.lastContact
-      )} jours)`
-    : null;
+export const lastUpdate = (): string | null => null;
 
 export enum OccupancyKind {
   Vacant = 'V',

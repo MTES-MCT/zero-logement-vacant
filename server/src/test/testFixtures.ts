@@ -387,7 +387,6 @@ export const genHousingApi = (
     buildingGroupId: null,
     buildingHousingCount: null,
     geoPerimeters: [],
-    lastContact: null,
     precisions: [],
     rentalValue: faker.number.int({ min: 500, max: 1000 }),
     deprecatedPrecisions: [],

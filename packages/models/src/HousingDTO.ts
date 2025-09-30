@@ -8,7 +8,6 @@ import { Occupancy } from './Occupancy';
 import { OwnerDTO } from './OwnerDTO';
 import type { HousingFiltersDTO } from './HousingFiltersDTO';
 
-// TODO: complete this type
 export interface HousingDTO {
   id: string;
   invariant: string;
@@ -43,7 +42,7 @@ export interface HousingDTO {
   occupancy: Occupancy;
   occupancyIntended: Occupancy | null;
   source: HousingSource | null;
-  owner: OwnerDTO;
+  owner: OwnerDTO | null;
   readonly lastMutationType: MutationType | null;
   lastMutationDate: string | null;
   lastTransactionDate: string | null;

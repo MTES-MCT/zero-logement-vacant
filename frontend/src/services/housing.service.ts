@@ -1,4 +1,4 @@
-import {
+import type {
   HousingBatchUpdatePayload,
   HousingDTO,
   HousingFiltersDTO,
@@ -6,13 +6,12 @@ import {
   PaginationOptions
 } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
-import { Housing, HousingSort } from '../models/Housing';
-import { HousingCount } from '../models/HousingCount';
-import { HousingFilters } from '../models/HousingFilters';
-import { HousingPaginatedResult } from '../models/PaginatedResult';
-import { SortOptions, toQuery } from '../models/Sort';
-import { AbortOptions } from '../utils/fetchUtils';
-import { toTitleCase } from '../utils/stringUtils';
+import type { Housing, HousingSort } from '../models/Housing';
+import type { HousingCount } from '../models/HousingCount';
+import type { HousingFilters } from '../models/HousingFilters';
+import type { HousingPaginatedResult } from '../models/PaginatedResult';
+import { type SortOptions, toQuery } from '../models/Sort';
+import type { AbortOptions } from '../utils/fetchUtils';
 import { zlvApi } from './api.service';
 import { parseOwner } from './owner.service';
 
@@ -27,9 +26,7 @@ export interface FindOptions
 export function parseHousing(h: any): Housing {
   return {
     ...h,
-    rawAddress: h.rawAddress
-      .filter((_: string) => _)
-      .map((_: string) => toTitleCase(_)),
+    rawAddress: h.rawAddress.filter((_: string) => _),
     owner: h.owner?.id ? parseOwner(h.owner) : undefined,
     lastContact: h.lastContact ? parseISO(h.lastContact) : undefined,
     energyConsumptionAt: h.energyConsumptionAt

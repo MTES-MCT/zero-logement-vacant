@@ -1,30 +1,29 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
 import {
-  BaseHousingOwnerDTO,
-  CampaignDTO,
-  DatafoncierHousing,
-  DraftDTO,
-  EstablishmentDTO,
-  EventUnionDTO,
-  GroupDTO,
-  HousingDTO,
-  NoteDTO,
-  OwnerDTO,
-  OwnerRank,
-  Precision,
+  type BaseHousingOwnerDTO,
+  type CampaignDTO,
+  type DatafoncierHousing,
+  type DraftDTO,
+  type EstablishmentDTO,
+  type EventUnionDTO,
+  type GroupDTO,
+  type HousingDTO,
+  type NoteDTO,
+  type OwnerDTO,
+  type OwnerRank,
+  type Precision,
   PRECISION_CATEGORY_VALUES,
   PROPERTY_RIGHT_VALUES,
-  ProspectDTO,
-  SignupLinkDTO,
-  UserDTO
+  type ProspectDTO,
+  type SignupLinkDTO,
+  type UserDTO
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
   genDatafoncierHousingDTO,
   genDraftDTO,
   genGroupDTO,
-  genHousingDTO,
   genOwnerDTO,
   genSenderDTO,
   genUserDTO
@@ -49,9 +48,7 @@ const groups: GroupDTO[] = Array.from({ length: 5 }, () =>
 
 const owners: OwnerDTO[] = Array.from({ length: 30 }, genOwnerDTO);
 
-const housings: HousingDTO[] = Array.from({ length: 20 }).map(() =>
-  genHousingDTO(faker.helpers.arrayElement(owners))
-);
+const housings: HousingDTO[] = [];
 
 const campaignDrafts = new Map<
   CampaignDTO['id'],

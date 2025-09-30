@@ -75,7 +75,9 @@ export interface BuildingLocation {
   local: string;
 }
 
-export const getBuildingLocation = (housing: Housing) => {
+export const getBuildingLocation = (
+  housing: Pick<Housing, 'buildingLocation'>
+) => {
   const idx =
     housing.buildingLocation?.length === 11
       ? 1
@@ -289,7 +291,7 @@ export function toHousingDTO(housing: Housing): HousingDTO {
     occupancy: housing.occupancy,
     occupancyIntended: housing.occupancyIntended,
     source: housing.source,
-    owner: toOwnerDTO(housing.owner),
+    owner: housing.owner ? toOwnerDTO(housing.owner) : null,
     lastMutationType: housing.lastMutationType,
     lastMutationDate: housing.lastMutationDate,
     lastTransactionDate: housing.lastTransactionDate,

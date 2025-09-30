@@ -16,7 +16,9 @@ RUN apt-get update && \
 
 RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/bin
 
-COPY analytics/uv.lock analytics/pyproject.toml . 
+COPY analytics/uv.lock . 
+COPY analytics/pyproject.toml . 
+
 RUN uv sync --frozen
 
 

@@ -17,12 +17,13 @@ RUN apt-get update && \
 # Installer Clever Tools
 RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/bin
 
-# Installer les packages Python requis
-RUN pip install dagster-webserver dagster-postgres dagster-aws
+# Installer uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:$PATH"
 
 # Copier les fichiers de configuration et le code source
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen
 
 # Définir la variable d'environnement pour Dagster
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
@@ -43,4 +44,4 @@ COPY docker/nginx/nginx.conf /etc/nginx/sites-available/default
 EXPOSE 8080
 
 # Définir la commande de démarrage
-CMD nginx -g 'daemon off;' & dagster-webserver -h 0.0.0.0 -p 3000
+CMD nginx -g 'daemon off;' & uv run dagster-webserver -h 0.0.0.0 -p 3000

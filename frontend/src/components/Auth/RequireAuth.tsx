@@ -4,13 +4,12 @@ import { Navigate, useLocation } from 'react-router-dom';
 
 import { useUser } from '../../hooks/useUser';
 import { useFetchInterceptor } from '../../hooks/useFetchInterceptor';
-import config from '../../utils/config';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RequireAuthProps {}
 
 function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
-  const { establishment, isAuthenticated, isUsual, isVisitor, user, jimoData } =
+  const { establishment, isAuthenticated, isUsual, isVisitor, user } =
     useUser();
   const location = useLocation();
   const posthog = usePostHog();
@@ -29,10 +28,6 @@ function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
   }, [isUsual, isVisitor, user]);
 
   if (isAuthenticated) {
-    if (config.jimo.enabled && user) {
-      window['jimo'].push(['do', 'identify', [user.id]]);
-      window['jimo'].push(['set', 'user:attributes', [jimoData]]);
-    }
     return props.children;
   }
 

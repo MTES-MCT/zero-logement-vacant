@@ -24,7 +24,6 @@ import {
 import establishmentRepository from '~/repositories/establishmentRepository';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
 import userRepository from '~/repositories/userRepository';
-import { createMetabaseAPI } from '~/services/metabaseService/metabase-api';
 import { emailValidator, passwordCreationValidator } from '~/utils/validators';
 
 // TODO: rename the file to authController.ts
@@ -88,14 +87,10 @@ async function signInToEstablishment(
     { expiresIn: config.auth.expiresIn }
   );
 
-  const metabaseAPI = createMetabaseAPI();
-  const jimoData = await metabaseAPI.fetchMetabaseData(290, user.id); // used for user segmentation in JIMO
-
   response.status(constants.HTTP_STATUS_OK).json({
     user: toUserDTO(user),
     establishment,
-    accessToken,
-    jimoData: jimoData
+    accessToken
   });
 }
 

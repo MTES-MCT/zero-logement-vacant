@@ -15,13 +15,6 @@ const config = {
         : process.env.NODE_ENV === 'production',
     apiKey: import.meta.env.VITE_POSTHOG_API_KEY ?? ''
   },
-  jimo: {
-    enabled:
-      import.meta.env.VITE_JIMO_ENABLED !== undefined
-        ? import.meta.env.VITE_JIMO_ENABLED === 'true'
-        : process.env.NODE_ENV === 'production',
-    projectId: import.meta.env.VITE_JIMO_PROJECT_ID ?? ''
-  },
   sentry: {
     enabled:
       import.meta.env.VITE_SENTRY_ENABLED !== undefined

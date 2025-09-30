@@ -100,8 +100,8 @@ export const ownerHandlers: RequestHandler[] = [
     }
   ),
 
-  http.get<PathParams, never, HousingOwnerDTO[]>(
-    `${config.apiEndpoint}/api/owners/housing/:id`,
+  http.get<PathParams, never, ReadonlyArray<HousingOwnerDTO>>(
+    `${config.apiEndpoint}/api/housings/:id/owners`,
     ({ params }) => {
       const housing = data.housings.find((housing) => housing.id === params.id);
       if (!housing) {
@@ -110,9 +110,8 @@ export const ownerHandlers: RequestHandler[] = [
         });
       }
 
-      const housingOwners = data.housingOwners
-        .get(housing.id)
-        ?.map((housingOwner) => {
+      const housingOwners: ReadonlyArray<HousingOwnerDTO> =
+        data.housingOwners.get(housing.id)?.map((housingOwner) => {
           const owner = data.owners.find(
             (owner) => owner.id === housingOwner.id
           );
@@ -123,7 +122,7 @@ export const ownerHandlers: RequestHandler[] = [
             });
           }
           return { ...housingOwner, ...owner };
-        });
+        }) ?? [];
       return HttpResponse.json(housingOwners, {
         status: constants.HTTP_STATUS_OK
       });

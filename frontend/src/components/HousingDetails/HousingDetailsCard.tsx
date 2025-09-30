@@ -335,7 +335,7 @@ function HousingTab(props: TabProps) {
 function MobilizationTab(props: TabProps) {
   const findCampaignsQuery = useFindCampaignsQuery();
 
-  const updated = lastUpdate(props.housing);
+  const updated = lastUpdate();
 
   return (
     <Stack component="section" spacing="2rem">
@@ -369,9 +369,12 @@ function MobilizationTab(props: TabProps) {
           .with(
             { isLoading: false, data: Pattern.nonNullable },
             ({ data: campaigns }) => {
-              const housingCampaigns = props.housing.campaignIds
-                .map((id) => campaigns.find((campaign) => campaign.id === id))
-                .filter(Predicate.isNotUndefined);
+              const housingCampaigns =
+                props.housing.campaignIds
+                  ?.map((id) =>
+                    campaigns.find((campaign) => campaign.id === id)
+                  )
+                  ?.filter(Predicate.isNotUndefined) ?? [];
 
               return (
                 <HousingAttribute

@@ -13,6 +13,8 @@ import { OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
 import { Sort } from '~/models/SortApi';
 import { diff } from '~/utils/diff';
 
+export type HousingId = Pick<HousingDTO, 'geoCode' | 'id'>;
+
 export interface HousingRecordApi extends Omit<HousingDTO, 'owner'> {
   plotId: string | null;
   buildingId: string | null;

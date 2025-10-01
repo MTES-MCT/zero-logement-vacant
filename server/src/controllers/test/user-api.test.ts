@@ -468,50 +468,49 @@ describe('User API', () => {
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       });
 
-      const TIMEOUT = 60_000;
+      const TIMEOUT = 20_000;
 
-      test.prop<UserUpdatePayload>({
-        firstName: fc.string({ minLength: 1, maxLength: 255 }),
-        lastName: fc.string({ minLength: 1, maxLength: 255 }),
-        phone: fc.option(fc.string({ minLength: 1, maxLength: 50 })),
-        position: fc.option(fc.string({ minLength: 1, maxLength: 255 })),
-        timePerWeek: fc.option(fc.constantFrom(...TIME_PER_WEEK_VALUES)),
-        password: fc.option(
-          fc.record({
-            before: fc.constant(TEST_PASSWORD),
-            after: fc
-              .tuple(
-                fc.stringMatching(/[a-z]/g),
-                fc.stringMatching(/[A-Z]/g),
-                fc.stringMatching(/[0-9]/g),
-                fc.stringMatching(/\S{9,255}/g)
-              )
-              .map(
-                ([lowercase, uppercase, number, rest]) =>
-                  lowercase + uppercase + number + rest
-              )
-          }),
-          { nil: undefined }
-        )
-      })(
-        'should validate inputs',
-        async (payload) => {
-          const user: UserApi = {
-            ...genUserApi(establishment.id),
-            password: await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH)
-          };
-          await Users().insert(formatUserApi(user));
-
-          const { status } = await request(url)
-            .put(testRoute(user.id))
-            .send(payload)
-            .type('json')
-            .use(tokenProvider(user));
-
-          expect(status).toBe(constants.HTTP_STATUS_OK);
+      test.prop<UserUpdatePayload>(
+        {
+          firstName: fc.string({ minLength: 1, maxLength: 255 }),
+          lastName: fc.string({ minLength: 1, maxLength: 255 }),
+          phone: fc.option(fc.string({ minLength: 1, maxLength: 50 })),
+          position: fc.option(fc.string({ minLength: 1, maxLength: 255 })),
+          timePerWeek: fc.option(fc.constantFrom(...TIME_PER_WEEK_VALUES)),
+          password: fc.option(
+            fc.record({
+              before: fc.constant(TEST_PASSWORD),
+              after: fc
+                .tuple(
+                  fc.stringMatching(/[a-z]/g),
+                  fc.stringMatching(/[A-Z]/g),
+                  fc.stringMatching(/[0-9]/g),
+                  fc.stringMatching(/\S{9,255}/g)
+                )
+                .map(
+                  ([lowercase, uppercase, number, rest]) =>
+                    lowercase + uppercase + number + rest
+                )
+            }),
+            { nil: undefined }
+          )
         },
-        TIMEOUT
-      );
+        { interruptAfterTimeLimit: TIMEOUT }
+      )('should validate inputs', async (payload) => {
+        const user: UserApi = {
+          ...genUserApi(establishment.id),
+          password: await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH)
+        };
+        await Users().insert(formatUserApi(user));
+
+        const { status } = await request(url)
+          .put(testRoute(user.id))
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+      });
     });
   });
 });

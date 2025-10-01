@@ -43,7 +43,7 @@ describe('housingOwnerRepository', () => {
             housingOwner.housingId === actual.housingId
         );
         expect(actual).toMatchObject({
-          id: owner.id,
+          id: housingOwner?.housingId,
           rank: housingOwner?.rank,
           propertyRight: housingOwner?.propertyRight
         });

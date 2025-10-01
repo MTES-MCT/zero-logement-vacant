@@ -2,7 +2,6 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useParams } from 'react-router-dom';
-import OwnerHousingCardGrid from '~/components/Owner/OwnerHousingCardGrid';
 
 import OwnerCardNext from '~/components/OwnerCard/OwnerCardNext';
 import { useGetOwnerQuery } from '~/services/owner.service';
@@ -23,9 +22,7 @@ function OwnerView() {
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 8 }}>
-          <OwnerHousingCardGrid />
-        </Grid>
+        <Grid size={{ xs: 12, md: 8 }}>TODO</Grid>
       </Grid>
     </Container>
   );

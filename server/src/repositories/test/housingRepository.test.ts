@@ -115,16 +115,23 @@ describe('Housing repository', () => {
   });
 
   describe('find', () => {
-    const housings = Array.from({ length: 10 }, () => genHousingApi());
-    const owners = housings.map((housing) => housing.owner);
-    const housingOwners: HousingOwnerApi[] = housings.map((housing) => ({
-      ...housing.owner,
-      ownerId: housing.owner.id,
-      housingGeoCode: housing.geoCode,
-      housingId: housing.id,
-      rank: 1,
-      propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
-    }));
+    const housings = faker.helpers.multiple(() => genHousingApi());
+    const owners = housings
+      .map((housing) => housing.owner)
+      .filter((owner) => !!owner);
+    const housingOwners: HousingOwnerApi[] = housings
+      .filter(
+        (housing): housing is Omit<HousingApi, 'owner'> & { owner: OwnerApi } =>
+          !!housing.owner
+      )
+      .map((housing) => ({
+        ...housing.owner,
+        ownerId: housing.owner.id,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        rank: 1,
+        propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
+      }));
 
     beforeAll(async () => {
       await Housing().insert(housings.map(formatHousingRecordApi));
@@ -143,9 +150,9 @@ describe('Housing repository', () => {
         includes: ['owner']
       });
 
-      expect(housings).toSatisfyAny((housing) => !!housing.owner);
+      expect(housings).toSatisfyAny((housing) => !housing.owner);
     });
-    
+
     it('should sort by geo code and id by default', async () => {
       const actual = await housingRepository.find({
         filters: {}
@@ -568,29 +575,31 @@ describe('Housing repository', () => {
         const tests: ReadonlyArray<{
           name: string;
           filter: Array<OwnerAge | null>;
-          predicate(owner: OwnerApi): boolean;
+          predicate(owner: OwnerApi | null): boolean;
         }> = [
           {
             name: 'unfilled birth date',
             filter: [null],
-            predicate: (owner) => owner.birthDate === null
+            predicate: (owner) => !owner || owner.birthDate === null
           },
           {
             name: 'less than 40 years old',
             filter: ['lt40'],
-            predicate: (owner) => {
-              if (!owner.birthDate) return false;
-              return differenceInYears(new Date(), owner.birthDate as string) < 40;
-            }
+            predicate: (owner) =>
+              !!owner?.birthDate &&
+              differenceInYears(new Date(), new Date(owner.birthDate)) < 40
           },
           {
             name: 'between 40 and 59 years old',
             filter: ['40to59'],
-            predicate: (owner: OwnerApi) => {
-              if (!owner.birthDate) return false;
+            predicate: (owner) => {
+              if (!owner?.birthDate) {
+                return false;
+              }
+
               const diff = differenceInYears(
                 new Date(),
-                owner.birthDate as string
+                new Date(owner.birthDate)
               );
               return 40 <= diff && diff <= 59;
             }
@@ -598,11 +607,14 @@ describe('Housing repository', () => {
           {
             name: 'between 60 and 74 years old',
             filter: ['60to74'],
-            predicate: (owner: OwnerApi) => {
-              if (!owner.birthDate) return false;
+            predicate: (owner) => {
+              if (!owner?.birthDate) {
+                return false;
+              }
+
               const diff = differenceInYears(
                 new Date(),
-                owner.birthDate as string
+                new Date(owner.birthDate)
               );
               return 60 <= diff && diff <= 74;
             }
@@ -610,11 +622,14 @@ describe('Housing repository', () => {
           {
             name: 'between 75 and 99 years old',
             filter: ['75to99'],
-            predicate: (owner: OwnerApi) => {
-              if (!owner.birthDate) return false;
+            predicate: (owner) => {
+              if (!owner?.birthDate) {
+                return false;
+              }
+
               const diff = differenceInYears(
                 new Date(),
-                owner.birthDate as string
+                new Date(owner.birthDate)
               );
               return 75 <= diff && diff <= 99;
             }
@@ -623,8 +638,13 @@ describe('Housing repository', () => {
             name: '100 years old and more',
             filter: ['gte100'],
             predicate: (owner) => {
-              if (!owner.birthDate) return false;
-              return differenceInYears(new Date(), owner.birthDate as string) >= 100;
+              if (!owner?.birthDate) {
+                return false;
+              }
+
+              return (
+                differenceInYears(new Date(), new Date(owner.birthDate)) >= 100
+              );
             }
           }
         ];
@@ -638,8 +658,8 @@ describe('Housing repository', () => {
           });
 
           expect(actual.length).toBeGreaterThan(0);
-          expect(actual).toSatisfyAll<HousingApi>(
-            (housing) => !!housing.owner && predicate(housing.owner)
+          expect(actual).toSatisfyAll<HousingApi>((housing) =>
+            predicate(housing.owner ?? null)
           );
         });
       });
@@ -709,7 +729,7 @@ describe('Housing repository', () => {
 
           expect(actual.length).toBeGreaterThan(0);
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
-            return housing.owner?.kind === null;
+            return !housing.owner || housing.owner?.kind === null;
           });
         });
 
@@ -815,6 +835,7 @@ describe('Housing repository', () => {
               name: `housings that have ${count} secondary owner(s)`,
               filter: [String(count)],
               predicate(housingOwners: ReadonlyArray<HousingOwnerDBO>) {
+                console.log(housingOwners);
                 return (
                   housingOwners.filter((housingOwner) => housingOwner.rank >= 2)
                     .length === count
@@ -2339,7 +2360,7 @@ describe('Housing repository', () => {
         id: housing.id
       });
 
-      expect(actual).toHaveProperty('owner', undefined);
+      expect(actual).toHaveProperty('owner', null);
     });
 
     it('should include owner on demand', async () => {

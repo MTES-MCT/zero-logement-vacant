@@ -60,6 +60,8 @@ import SurfaceSelect from './SurfaceSelect';
 import VacancyRateSelect from './VacancyRateSelect';
 import VacancyYearSelect from './VacancyYearSelect';
 import createPerimetersModal from '../modals/GeoPerimetersModal/PerimetersModal';
+import Stack from '@mui/material/Stack';
+import Tooltip from '~/Tooltip/Tooltip';
 
 interface TitleWithIconProps {
   icon: FrIconClassName | RiIconClassName;
@@ -189,9 +191,40 @@ function HousingListFiltersSidemenu(props: Props) {
             justifyContent="space-between"
           >
             <Grid component="section" size="auto">
-              <Typography component="h2" variant="h6" mb={3}>
-                Filtres
-              </Typography>
+              <Stack
+                direction="row"
+                alignItems="baseline"
+                spacing="0.75rem"
+                useFlexGap
+              >
+                <Typography component="h2" variant="h6">
+                  Filtres
+                </Typography>
+                <Tooltip
+                  align="start"
+                  place="top"
+                  title={
+                    <>
+                      <Typography
+                        component="p"
+                        variant="caption"
+                        sx={{ fontWeight: 700, mb: '1rem' }}
+                      >
+                        À l’aide des filtres, ciblez les logements qui vous
+                        intéressent en particulier !
+                      </Typography>
+                      <Typography component="p" variant="caption">
+                        Il est possible de naviguer entre les différentes
+                        sources de données (millésimes précédents ou fichiers
+                        différents) à l’aide du filtre portant sur les “Fichiers
+                        sources”. Vous pouvez par exemple afficher les logements
+                        du parc locatif privé en sélectionnant les Fichiers
+                        Fonciers.
+                      </Typography>
+                    </>
+                  }
+                />
+              </Stack>
             </Grid>
             <Grid component="section" size="auto">
               <Button

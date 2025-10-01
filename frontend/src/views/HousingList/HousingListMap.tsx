@@ -2,10 +2,10 @@ import Stack from '@mui/material/Stack';
 import { useState } from 'react';
 import { type ViewState } from 'react-map-gl/maplibre';
 
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 import { Text } from '../../components/_dsfr';
 import Label from '../../components/Label/Label';
 import Map, { type MapProps } from '../../components/Map/Map';
-import { useHousingList } from '../../hooks/useHousingList';
 import { type GeoPerimeter } from '../../models/GeoPerimeter';
 import { displayHousingCount } from '../../models/HousingCount';
 import {
@@ -13,7 +13,10 @@ import {
   type HousingFilters
 } from '../../models/HousingFilters';
 import { useListGeoPerimetersQuery } from '../../services/geo.service';
-import { useCountHousingQuery } from '../../services/housing.service';
+import {
+  useCountHousingQuery,
+  useFindHousingQuery
+} from '../../services/housing.service';
 import {
   excludeWith,
   includeExcludeWith,
@@ -27,12 +30,29 @@ const HousingListMap = ({ filters }: Props) => {
   const [mapViewState, setMapViewState] = useState<MapProps['viewState']>();
 
   const { data: perimeters } = useListGeoPerimetersQuery();
-  const { housingList } = useHousingList({
-    filters,
-    pagination: {
-      paginate: false
-    }
-  });
+  const isNewHousingOwnerPagesEnabled = useFeatureFlagEnabled(
+      'new-housing-owner-pages'
+    );
+    const { data: housingList } = useFindHousingQuery(
+      {
+        filters,
+        pagination: {
+          paginate: false
+        }
+      },
+      {
+        selectFromResult: ({ data, ...response }) => ({
+          ...response,
+          data: {
+            ...data,
+            // Keep ownerless housings if the feature flag is enabled
+            entities: data?.entities?.filter((housing) =>
+              isNewHousingOwnerPagesEnabled ? true : !!housing.owner
+            )
+          }
+        })
+      }
+    );
 
   const { data: housingCount } = useCountHousingQuery({
     dataFileYearsIncluded: filters.dataFileYearsIncluded,

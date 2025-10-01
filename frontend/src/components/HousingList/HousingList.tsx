@@ -32,6 +32,7 @@ import { HousingEditionProvider } from '../HousingEdition/useHousingEdition';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import OccupancyTag from '../OccupancyTag/OccupancyTag';
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -52,11 +53,29 @@ function HousingList(props: HousingListProps) {
   const [sort, setSort] = useState<HousingSort>();
   const [updatingHousing, setUpdatingHousing] = useState<Housing>();
 
-  const { data: housings, isFetching: isFetchHousings } = useFindHousingQuery({
-    filters,
-    pagination,
-    sort
-  });
+  const isNewHousingOwnerPagesEnabled = useFeatureFlagEnabled(
+    'new-housing-owner-pages'
+  );
+  const { data: housings, isFetching: isFetchHousings } = useFindHousingQuery(
+    {
+      filters,
+      pagination,
+      sort
+    },
+    {
+      selectFromResult: ({ data, ...response }) => ({
+        ...response,
+        data: {
+          ...data,
+          // Keep ownerless housings if the feature flag is enabled
+          entities: data?.entities?.filter((housing) =>
+            isNewHousingOwnerPagesEnabled ? true : !!housing.owner
+          )
+        }
+      })
+    }
+  );
+
   const housingList = housings?.entities;
 
   const { data: count } = useCountHousingQuery(filters);

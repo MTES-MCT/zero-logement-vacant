@@ -15,12 +15,12 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "clean": "nx run-many -t clean",
-    "typecheck": "nx run-many -t typecheck",
-    "build": "nx run-many -t build",
-    "lint": "nx run-many -t lint",
-    "test": "nx run-many -t test",
-    "coverage": "nx run-many -t test --coverage"
+    "clean": "nx run-many -t clean --exclude=zero-logement-vacant",
+    "typecheck": "nx run-many -t typecheck --exclude=zero-logement-vacant",
+    "build": "nx run-many -t build --exclude=zero-logement-vacant",
+    "lint": "nx run-many -t lint --exclude=zero-logement-vacant",
+    "test": "nx run-many -t test --exclude=zero-logement-vacant",
+    "coverage": "nx run-many -t test --exclude=zero-logement-vacant --coverage"
   },
   "keywords": [],
   "author": "",

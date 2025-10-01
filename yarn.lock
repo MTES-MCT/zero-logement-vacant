@@ -2261,18 +2261,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bull-board/api@npm:6.12.0":
-  version: 6.12.0
-  resolution: "@bull-board/api@npm:6.12.0"
-  dependencies:
-    redis-info: "npm:^3.1.0"
-  peerDependencies:
-    "@bull-board/ui": 6.12.0
-  checksum: 10c0/9b639a12ff75d6724b441a6c11373e92e1a146960bdda4842a8bd6847611208059c557f63f0ed37301f90948c8f13c774e526e53d252cab8c9b49e4f9dd37057
-  languageName: node
-  linkType: hard
-
-"@bull-board/api@npm:6.13.0, @bull-board/api@npm:^6.12.0":
+"@bull-board/api@npm:6.13.0":
   version: 6.13.0
   resolution: "@bull-board/api@npm:6.13.0"
   dependencies:
@@ -2283,28 +2272,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bull-board/express@npm:^6.12.0":
-  version: 6.12.0
-  resolution: "@bull-board/express@npm:6.12.0"
+"@bull-board/express@npm:6.13.0":
+  version: 6.13.0
+  resolution: "@bull-board/express@npm:6.13.0"
   dependencies:
-    "@bull-board/api": "npm:6.12.0"
-    "@bull-board/ui": "npm:6.12.0"
+    "@bull-board/api": "npm:6.13.0"
+    "@bull-board/ui": "npm:6.13.0"
     ejs: "npm:^3.1.10"
     express: "npm:^4.21.1 || ^5.0.0"
-  checksum: 10c0/0be316f27b11976c8d104626461c98b1ec4bc46f305e03e2f495607144519c5bd75fda16badae9a4b1aace803164623e4f4104661e8fb7ed2e07bbd2922deb9b
+  checksum: 10c0/766125212b63d9ac802af863e4710875c876c84c03e29efa45b4fc7835bf4122db89b9b6e7cbc89db0087d5afe61fd476d1701933f75b9ab92537e08a1bb75e2
   languageName: node
   linkType: hard
 
-"@bull-board/ui@npm:6.12.0":
-  version: 6.12.0
-  resolution: "@bull-board/ui@npm:6.12.0"
-  dependencies:
-    "@bull-board/api": "npm:6.12.0"
-  checksum: 10c0/ac483ff92f3f67360298abc982fe4a5d3e7871cf2bc0bada7e9aecce710171efcd236d55c8adb36861796ad93ba550815bfb418ec6221ebe5f6b35c49bc8f101
-  languageName: node
-  linkType: hard
-
-"@bull-board/ui@npm:^6.12.0":
+"@bull-board/ui@npm:6.13.0":
   version: 6.13.0
   resolution: "@bull-board/ui@npm:6.13.0"
   dependencies:
@@ -12540,9 +12520,9 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.864.0"
     "@aws-sdk/lib-storage": "npm:^3.864.0"
-    "@bull-board/api": "npm:^6.12.0"
-    "@bull-board/express": "npm:^6.12.0"
-    "@bull-board/ui": "npm:^6.12.0"
+    "@bull-board/api": "npm:6.13.0"
+    "@bull-board/express": "npm:6.13.0"
+    "@bull-board/ui": "npm:6.13.0"
     "@faker-js/faker": "npm:^8.4.1"
     "@godaddy/terminus": "npm:^4.12.1"
     "@sentry/integrations": "npm:^7.120.4"

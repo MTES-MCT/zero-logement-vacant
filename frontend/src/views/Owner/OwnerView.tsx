@@ -16,18 +16,22 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useOwner } from '../../hooks/useOwner';
 import styles from './owner.module.scss';
 
+/**
+ * @deprecated Use {@link OwnerViewNext} instead.
+ * This file will be removed in a future release
+ * after the feature flag is removed.
+ * @returns
+ */
 function OwnerView() {
-  const { count, owner, findHousingsQuery } = useOwner({
+  const { count, owner } = useOwner({
     include: ['housings']
   });
   useDocumentTitle(
     owner ? `Fiche propriétaire - ${owner.fullName}` : 'Page non trouvée'
   );
 
-  const { ownerId } = useParams<{ ownerId: string }>();
-  const { data: ownerHousings } = useFindOwnerHousingsQuery(
-    ownerId ?? skipToken
-  );
+  const { id } = useParams<{ id: string }>();
+  const { data: ownerHousings } = useFindOwnerHousingsQuery(id ?? skipToken);
 
   const [ownerEditionModalKey, setOwnerEditionModalKey] = useState(
     new Date().getTime()
@@ -75,14 +79,6 @@ function OwnerView() {
               </Typography>
             </Grid>
           </Grid>
-          {findHousingsQuery.isLoading && (
-            <Skeleton
-              animation="wave"
-              variant="rectangular"
-              width="100%"
-              height="20rem"
-            />
-          )}
 
           {ownerHousings?.map((ownerHousing) => (
             <Grid component="article" key={ownerHousing.id} size={6}>

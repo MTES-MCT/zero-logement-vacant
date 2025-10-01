@@ -21,6 +21,8 @@ import LabelNext from '../Label/LabelNext';
 import styles from './owner-card.module.scss';
 
 interface OwnerCardProps {
+  title: string;
+  subtitle?: string;
   owner: Owner | null;
   isLoading: boolean;
   housingCount: number | undefined;
@@ -67,24 +69,27 @@ function OwnerCardNext(props: OwnerCardProps) {
         component="header"
         direction="row"
         sx={{ justifyContent: 'space-between', mt: '0.5rem' }}
+        useFlexGap
       >
         <Typography component="h2" variant="h5">
-          Propriétaires
+          {props.title}
         </Typography>
         {props.modify}
       </Stack>
 
       <Stack component="article" spacing="0.75rem">
-        <Stack component="header">
-          <Typography
-            component="h3"
-            variant="body1"
-            sx={{ fontSize: '1.125rem', fontWeight: 700, mb: '0.5rem' }}
-          >
-            Propriétaire principal
-          </Typography>
-          <hr className="fr-pb-1v" />
-        </Stack>
+        {!props.subtitle ? null : (
+          <Stack component="header">
+            <Typography
+              component="h3"
+              variant="body1"
+              sx={{ fontSize: '1.125rem', fontWeight: 700, mb: '0.5rem' }}
+            >
+              {props.subtitle}
+            </Typography>
+            <hr className="fr-pb-1v" />
+          </Stack>
+        )}
 
         <OwnerAttribute
           icon="fr-icon-user-fill"

@@ -1,8 +1,5 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import async from 'async';
 import { useState } from 'react';
@@ -102,28 +99,9 @@ function HousingView() {
             sx={{ display: 'flex', flexFlow: 'column nowrap' }}
             size={4}
           >
-            <Stack
-              direction="row"
-              spacing="1rem"
-              useFlexGap
-              sx={{ justifyContent: 'space-between' }}
-            >
-              <Typography component="h2" variant="h5">
-                Propriétaires
-              </Typography>
-
-              {housingOwners?.length ? (
-                <Button
-                  iconId="fr-icon-edit-fill"
-                  priority="tertiary"
-                  title="Modifier les propriétaires"
-                >
-                  Modifier
-                </Button>
-              ) : null}
-            </Stack>
-
             <OwnerCardNext
+              title="Propriétaires"
+              subtitle="Propriétaire principal"
               owner={owner}
               isLoading={findOwnersQuery.isLoading}
               housingCount={count?.housing}

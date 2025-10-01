@@ -76,13 +76,6 @@ const LoginView = () => {
         <Col>
           {auth.isLoggedOut && (
             <Col n="12">
-              <Alert
-                title="Déconnexion"
-                description="Vous êtes déconnecté. Veuillez saisir votre email et votre mot de passe pour vous connecter de nouveau."
-                className="fr-my-3w"
-                severity="warning"
-                closable
-              />
             </Col>
           )}
           {auth.logIn.isError ? (

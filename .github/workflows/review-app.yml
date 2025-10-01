@@ -23,7 +23,7 @@ env:
   CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
   CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
   ORGA_ID: ${{ secrets.CLEVER_ORG }}
-  PR_NAME: pr${{ github.event.inputs.pull_request_number }}
+  PR_NAME: pr${{ github.event.inputs.pull_request_number || github.event.number }}
   MAILER_HOST: ${{ secrets.MAILER_HOST }}
   MAILER_PORT: ${{ secrets.MAILER_PORT }}
   MAILER_USER: ${{ secrets.MAILER_USER }}
@@ -33,8 +33,57 @@ env:
   METABASE_API_TOKEN: ${{ secrets.METABASE_API_TOKEN }}
 
 jobs:
+  check-duplicates:
+    if: github.event.inputs.action_type == 'Créer'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
+      - name: Check for existing applications
+        run: |
+          echo "🔍 Checking for existing review apps for PR ${{ github.event.inputs.pull_request_number || github.event.number }}..."
+
+          # Check for existing applications
+          EXISTING_APPS=$(clever applications --org $ORGA_ID --format json | jq -r '.[].name' | grep "^$PR_NAME-" || true)
+
+          if [ ! -z "$EXISTING_APPS" ]; then
+            echo "❌ ERROR: Found existing applications for this PR:"
+            echo "$EXISTING_APPS"
+            echo ""
+            echo "To avoid duplicates, please:"
+            echo "1. Delete the existing review apps first using the 'Supprimer' action"
+            echo "2. Or use the 'Mettre à jour' action to update existing apps"
+            echo ""
+            echo "Existing applications found:"
+            echo "$EXISTING_APPS" | while read app; do
+              echo "  - $app"
+            done
+            exit 1
+          fi
+
+          # Check for existing addons
+          EXISTING_ADDONS=$(clever addon list --org $ORGA_ID --format json | jq -r '.[].name' | grep "^$PR_NAME-" || true)
+
+          if [ ! -z "$EXISTING_ADDONS" ]; then
+            echo "❌ ERROR: Found existing addons for this PR:"
+            echo "$EXISTING_ADDONS"
+            echo ""
+            echo "To avoid duplicates, please delete the existing addons first using the 'Supprimer' action"
+            echo ""
+            echo "Existing addons found:"
+            echo "$EXISTING_ADDONS" | while read addon; do
+              echo "  - $addon"
+            done
+            exit 1
+          fi
+
+          echo "✅ No existing applications or addons found for PR ${{ github.event.inputs.pull_request_number || github.event.number }}"
+          echo "Proceeding with creation..."
+
   deploy-addons:
     if: github.event.inputs.action_type == 'Créer'
+    needs: [check-duplicates]
     runs-on: ubuntu-latest
     steps:
       - name: Install clever-tools
@@ -48,13 +97,13 @@ jobs:
 
   deploy-api:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [deploy-addons]
+    needs: [check-duplicates, deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-api
-      url: https://pr${{ github.event.inputs.pull_request_number }}-api.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-api.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
     steps:
       - name: Extract branch name
         shell: bash
@@ -132,13 +181,13 @@ jobs:
 
   deploy-queue:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [deploy-addons]
+    needs: [check-duplicates, deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-queue
-      url: https://pr${{ github.event.inputs.pull_request_number }}-queue.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
     steps:
       - name: Extract branch name
         shell: bash
@@ -199,13 +248,13 @@ jobs:
 
   deploy-front:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [deploy-addons]
+    needs: [check-duplicates, deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-front
-      url: https://pr${{ github.event.inputs.pull_request_number }}-front.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-front.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
     steps:
       - name: Extract branch name
         shell: bash
@@ -256,10 +305,10 @@ jobs:
     if: github.event.inputs.action_type == 'Mettre à jour'
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-api
-      url: https://pr${{ github.event.inputs.pull_request_number }}-api.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-api.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
     steps:
       - name: Extract branch name
         shell: bash
@@ -293,10 +342,10 @@ jobs:
     if: github.event.inputs.action_type == 'Mettre à jour'
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-front
-      url: https://pr${{ github.event.inputs.pull_request_number }}-front.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-front.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
     steps:
       - name: Extract branch name
         shell: bash
@@ -330,10 +379,10 @@ jobs:
     if: github.event.inputs.action_type == 'Mettre à jour'
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-queue
-      url: https://pr${{ github.event.inputs.pull_request_number }}-queue.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
     steps:
       - name: Extract branch name
         shell: bash
@@ -367,7 +416,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
+      APP_ALIAS: ${{ env.PR_NAME }}-queue
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
@@ -381,7 +430,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
+      APP_ALIAS: ${{ env.PR_NAME }}-api
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
@@ -395,7 +444,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
+      APP_ALIAS: ${{ env.PR_NAME }}-front
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools

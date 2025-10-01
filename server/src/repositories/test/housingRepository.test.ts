@@ -835,6 +835,7 @@ describe('Housing repository', () => {
               name: `housings that have ${count} secondary owner(s)`,
               filter: [String(count)],
               predicate(housingOwners: ReadonlyArray<HousingOwnerDBO>) {
+                console.log(housingOwners);
                 return (
                   housingOwners.filter((housingOwner) => housingOwner.rank >= 2)
                     .length === count

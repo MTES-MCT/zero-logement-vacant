@@ -23,35 +23,30 @@ function Tooltip(props: TooltipProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const id = useId();
 
+
   useEffect(() => {
     const element = ref.current;
-    if (!element || !!props.align || !!props.place) {
+    if (!element) {
       return;
     }
 
-    function placeTooltip(placement: ManualPlacement) {
-      return (event: Event): void => {
-        // @ts-expect-error dsfr is not typed on window
-        const tooltip = window.dsfr(event.target).tooltip;
-        tooltip.mode = 'placement_manual';
-        tooltip.align = props.align ? `align_${placement.align}` : undefined;
-        tooltip.place = props.place ? `place_${placement.place}` : undefined;
-      };
+    function placeTooltip(event: Event): void {
+      // @ts-expect-error dsfr is not typed on window
+      const tooltip = window.dsfr(event.target).tooltip;
+      tooltip.mode =
+        !!props.align || !!props.place ? 'placement_manual' : 'placement_auto';
+      tooltip.align = props.align ? `align_${props.align}` : undefined;
+      tooltip.place = props.place ? `place_${props.place}` : undefined;
     }
 
-    const modify = placeTooltip({
-      align: props.align,
-      place: props.place
-    });
-
-    element.addEventListener('dsfr.show', modify, {
+    element.parentElement?.addEventListener('dsfr.show', placeTooltip, {
       once: true
     });
 
     return () => {
-      element?.removeEventListener('dsfr.show', modify);
+      element.parentElement?.removeEventListener('dsfr.show', placeTooltip);
     };
-  }, [ref.current, props.align, props.place]);
+  }, []);
 
   return <DSFRTooltip {...props} ref={ref} id={id} />;
 }

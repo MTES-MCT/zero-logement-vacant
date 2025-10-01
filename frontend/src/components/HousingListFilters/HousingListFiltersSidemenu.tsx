@@ -201,7 +201,6 @@ function HousingListFiltersSidemenu(props: Props) {
                   Filtres
                 </Typography>
                 <Tooltip
-                  kind="hover"
                   align="start"
                   place="top"
                   title={

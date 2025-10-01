@@ -1322,7 +1322,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   lastTransactionValue: housing.last_transaction_value
 });
 
-type READ_ONLY_FIELDS = 'last_mutation_type';
+type READ_ONLY_FIELDS = 'last_mutation_type' | 'plot_area' | 'occupancy_history';
 
 export const formatHousingRecordApi = (
   housing: HousingRecordApi

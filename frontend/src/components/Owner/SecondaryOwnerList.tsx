@@ -7,6 +7,11 @@ export interface SecondaryOwnerListProps {
   housingId: string;
 }
 
+/**
+ * @deprecated Use {@link SecondaryOwnerListNext} instead.
+ * @param props
+ * @returns 
+ */
 function SecondaryOwnerList(props: SecondaryOwnerListProps) {
   const { data: housingOwners, isLoading } = useFindOwnersByHousingQuery(
     props.housingId

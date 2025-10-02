@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useParams } from 'react-router-dom';
 
-import OwnerCardNext from '~/components/OwnerCard/OwnerCardNext';
+import OwnerCardNext from '~/components/Owner/OwnerCardNext';
 import OwnerHousingCardGrid from '~/components/Owner/OwnerHousingCardGrid';
 import { useGetOwnerQuery } from '~/services/owner.service';
 

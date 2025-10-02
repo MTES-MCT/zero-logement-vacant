@@ -17,7 +17,7 @@ import { useHousing } from '../../hooks/useHousing';
 import {
   hasOwnerChanges,
   hasRankChanges,
-  HousingOwner
+  type HousingOwner
 } from '../../models/Owner';
 import { useCountHousingQuery } from '../../services/housing.service';
 import {
@@ -33,7 +33,7 @@ function HousingView() {
       ? `Fiche logement - ${housing.rawAddress.join(' ')}`
       : 'Page non trouvée'
   );
-  const { owner, housingOwners } = useHousingOwners(housingId);
+  const { owner, housingOwners, findOwnersQuery } = useHousingOwners(housingId);
   const { data: count } = useCountHousingQuery(
     housing?.owner?.id ? { ownerIds: [housing.owner.id] } : skipToken
   );
@@ -100,7 +100,10 @@ function HousingView() {
             size={4}
           >
             <OwnerCardNext
+              title="Propriétaires"
+              subtitle="Propriétaire principal"
               owner={owner}
+              isLoading={findOwnersQuery.isLoading}
               housingCount={count?.housing}
               modify={
                 housingOwners ? (

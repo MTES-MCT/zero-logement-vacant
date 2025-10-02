@@ -3,20 +3,21 @@ import {
   isSecondaryOwner
 } from '@zerologementvacant/models';
 
-import { Housing } from '../../models/Housing';
-import { useFindOwnersByHousingQuery } from '../../services/owner.service';
+import { type Housing } from '~/models/Housing';
+import { useFindOwnersByHousingQuery } from '~/services/owner.service';
 
 export function useHousingOwners(housingId: Housing['id']) {
-  const { data: housingOwners, ...query } =
-    useFindOwnersByHousingQuery(housingId);
-  const owner = housingOwners?.find((owner) => owner.rank === 1);
+  const findOwnersQuery = useFindOwnersByHousingQuery(housingId);
+
+  const housingOwners = findOwnersQuery.data;
+  const owner = housingOwners?.find((owner) => owner.rank === 1) ?? null;
   const secondaryOwners = housingOwners?.filter(isSecondaryOwner);
   const inactiveOwners = housingOwners?.filter((housingOwner) =>
     isInactiveOwnerRank(housingOwner.rank)
   );
 
   return {
-    query,
+    findOwnersQuery,
     owner,
     housingOwners,
     secondaryOwners,

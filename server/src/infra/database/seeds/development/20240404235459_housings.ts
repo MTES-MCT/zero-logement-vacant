@@ -3,10 +3,11 @@ import * as turf from '@turf/turf';
 
 import {
   AddressKinds,
-  OwnerRank,
+  OWNER_RANKS,
   PROPERTY_RIGHT_VALUES
 } from '@zerologementvacant/models';
 import async from 'async';
+import { Array, pipe } from 'effect';
 import { Feature, MultiPolygon, Polygon, Position } from 'geojson';
 import { Knex } from 'knex';
 import { memoize } from 'lodash-es';
@@ -14,7 +15,7 @@ import { ElementOf } from 'ts-essentials';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerApi } from '~/models/OwnerApi';
+import type { OwnerApi } from '~/models/OwnerApi';
 import {
   banAddressesTable,
   formatAddressApi
@@ -29,19 +30,22 @@ import {
   formatHousingRecordApi,
   housingTable
 } from '~/repositories/housingRepository';
-import { formatOwnerApi, ownerTable } from '~/repositories/ownerRepository';
+import {
+  Owners,
+  parseOwnerApi
+} from '~/repositories/ownerRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
-import { genHousingApi, genOwnerApi } from '~/test/testFixtures';
+import { genHousingApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   const ban = createBanAPI();
 
   await knex.raw(`TRUNCATE TABLE ${housingOwnersTable} CASCADE`);
   await knex.raw(`TRUNCATE TABLE ${housingTable} CASCADE`);
-  await knex.raw(`TRUNCATE TABLE ${ownerTable} CASCADE`);
 
   const establishments = await Establishments(knex).where({ available: true });
   const buildings = await Buildings(knex).limit(1000);
+  const owners = (await Owners(knex).select()).map(parseOwnerApi);
 
   await async.forEachSeries(establishments, async (establishment) => {
     const geoCodes = faker.helpers.arrayElements(
@@ -125,58 +129,33 @@ export async function seed(knex: Knex): Promise<void> {
       housingAddresses.map(formatAddressApi)
     );
 
-    // Insert owners
-    const owners: ReadonlyArray<OwnerApi> = faker.helpers.multiple(
-      () => genOwnerApi(),
-      {
-        count: {
-          min: 100,
-          max: 5000
-        }
-      }
-    );
-    console.log(`Inserting ${owners.length} owners...`, {
-      establishment: establishment.name
-    });
-    await knex.batchInsert(ownerTable, owners.map(formatOwnerApi));
-
     // Link owners to housings
     const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(
       (housing) => {
-        const activeOwners = faker.helpers.arrayElements(owners, {
+        const ranks = faker.helpers.arrayElements(OWNER_RANKS, {
           min: 1,
-          max: 6
+          max: OWNER_RANKS.length
         });
-        const archivedOwners: ReadonlyArray<HousingOwnerApi> = faker.helpers
-          .arrayElements(
-            owners.filter(
-              (owner) =>
-                !activeOwners.some((activeOwner) => activeOwner.id === owner.id)
-            ),
-            {
-              min: 1,
-              max: 2
-            }
-          )
-          .map((archivedOwner) => ({
-            ...archivedOwner,
-            ownerId: archivedOwner.id,
-            housingGeoCode: housing.geoCode,
-            housingId: housing.id,
-            rank: -2,
-            propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
-          }));
+        const selectedOwners = faker.helpers.arrayElements(
+          owners,
+          ranks.length
+        );
+        const housingOwners: ReadonlyArray<HousingOwnerApi> = pipe(
+          ranks,
+          Array.map((rank) => {
+            const owner = selectedOwners.pop() as OwnerApi;
+            return {
+              ...owner,
+              ownerId: owner.id,
+              housingGeoCode: housing.geoCode,
+              housingId: housing.id,
+              rank: rank,
+              propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
+            };
+          })
+        );
 
-        return activeOwners
-          .map<HousingOwnerApi>((owner, index) => ({
-            ...owner,
-            ownerId: owner.id,
-            housingGeoCode: housing.geoCode,
-            housingId: housing.id,
-            rank: (index + 1) as OwnerRank,
-            propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
-          }))
-          .concat(archivedOwners);
+        return housingOwners;
       }
     );
     console.log(`Inserting ${housingOwners.length} housing owners...`, {

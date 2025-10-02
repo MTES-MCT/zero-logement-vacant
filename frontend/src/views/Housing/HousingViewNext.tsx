@@ -9,7 +9,7 @@ import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCa
 import { HousingEditionProvider } from '../../components/HousingEdition/useHousingEdition';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import InactiveOwnerList from '../../components/Owner/InactiveOwnerList';
-import SecondaryOwnerList from '../../components/Owner/SecondaryOwnerList';
+import SecondaryOwnerListNext from '~/components/Owner/SecondaryOwnerListNext';
 import { useHousingOwners } from '../../components/Owner/useHousingOwners';
 import OwnerCardNext from '../../components/Owner/OwnerCardNext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -119,7 +119,7 @@ function HousingView() {
                 ) : null
               }
             />
-            <SecondaryOwnerList housingId={housingId} />
+            <SecondaryOwnerListNext housingId={housingId} />
             <InactiveOwnerList housingId={housingId} />
           </Grid>
         </Grid>

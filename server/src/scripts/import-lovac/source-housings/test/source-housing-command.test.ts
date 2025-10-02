@@ -210,7 +210,7 @@ describe('Source housing command', () => {
     };
     const admin: UserApi = {
       ...genUserApi(establishment.id),
-      email: 'admin@zerologementvacant.beta.gouv.fr'
+      email: `${faker.internet.userName().toLowerCase()}@zerologementvacant.beta.gouv.fr`
     };
     const auth: UserApi = {
       ...genUserApi(establishment.id),

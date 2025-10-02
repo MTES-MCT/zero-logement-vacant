@@ -1,10 +1,4 @@
 fileignoreconfig:
-- filename: frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx
-  checksum: a28fb2302d2d59d11ca517bc6d01ea8ab7b0c68a86bf1db14abc0735a90e8e8e
-- filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
-  checksum: 807543f1702293bc91e3d6c0646f74d1686b824cbbf87ae6bf007e3aa9b8d74a
-- filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
-  checksum: daf7e5430b47f26bc8b49c5cc2e23fbfd3dea4594d398c128bc77a5b963aa227
 - filename: analytics/dagster/src/assets/dwh/ingest/ingest_postgres_asset.py
   checksum: b379fbb88e46511c62682abf4cb422e730c4210f6dadc9d5ca648dfd68ff8f88
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
@@ -23,6 +17,8 @@ fileignoreconfig:
   checksum: cfcc1023edac4d29c305f00a4bd86f27d491e4e9535bec2bd905a917b3f396b7
 - filename: frontend/src/components/Draft/DraftSignature.tsx
   checksum: 8abd2b819601d46cc6a3d0a61a60b76391601f2d89d9126f5167b684878bd2d1
+- filename: frontend/src/components/HousingListFilters/HousingListFiltersSidemenu.tsx
+  checksum: a28fb2302d2d59d11ca517bc6d01ea8ab7b0c68a86bf1db14abc0735a90e8e8e
 - filename: frontend/src/components/Precision/PrecisionSelect.tsx
   checksum: 87f64313946005d36c5d112df8c63ef628138b591bd24dfceec0b8bbc7110899
 - filename: frontend/src/index.tsx
@@ -41,6 +37,8 @@ fileignoreconfig:
   checksum: 73a5c525402f4354bc0ad41cf33aa17dadade2ba05608bfe9894b659b2a51246
 - filename: server/src/controllers/housingExportController.ts
   checksum: cb506387b49506b7ba0ed426001c221b80aff9f953e544d52c1c6d287741cf64
+- filename: server/src/controllers/test/user-api.test.ts
+  checksum: 67d6c9c214ecbd872172a5eedfc1b137c94089fa2b62015ab0668ba1c8684fdb
 - filename: server/src/infra/database/scripts/010-load-sder-sded.sql
   checksum: 780da83bced54995ae72c9f963c8bdeea7217b22793fd33c966bd8b28073acad
 - filename: server/src/infra/database/seeds/development/20240404235457_users.ts

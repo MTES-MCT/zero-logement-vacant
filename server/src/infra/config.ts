@@ -11,7 +11,10 @@ const fromProjectRoot = (...paths: ReadonlyArray<string>): string =>
 
 dotenvx.config({
   convention: 'nextjs',
-  path: [fromProjectRoot('.env.test'), fromProjectRoot('.env')],
+  path: [
+    fromProjectRoot(`.env.${process.env.NODE_ENV}`),
+    fromProjectRoot('.env')
+  ],
   quiet: process.env.NODE_ENV === 'test'
 });
 

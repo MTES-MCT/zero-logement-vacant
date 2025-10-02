@@ -8,7 +8,7 @@ import HousingHeader from '../../components/Housing/HousingHeader';
 import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCard';
 import { HousingEditionProvider } from '../../components/HousingEdition/useHousingEdition';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
-import InactiveOwnerList from '../../components/Owner/InactiveOwnerList';
+import InactiveOwnerListNext from '~/components/Owner/InactiveOwnerListNext';
 import SecondaryOwnerListNext from '~/components/Owner/SecondaryOwnerListNext';
 import { useHousingOwners } from '../../components/Owner/useHousingOwners';
 import OwnerCardNext from '../../components/Owner/OwnerCardNext';
@@ -120,7 +120,7 @@ function HousingView() {
               }
             />
             <SecondaryOwnerListNext housingId={housingId} />
-            <InactiveOwnerList housingId={housingId} />
+            <InactiveOwnerListNext housingId={housingId} />
           </Grid>
         </Grid>
       </Container>

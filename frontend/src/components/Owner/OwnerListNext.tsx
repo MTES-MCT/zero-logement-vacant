@@ -1,8 +1,8 @@
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 
-import { type HousingOwner } from '~/models/Owner';
 import OtherOwnerCardNext from '~/components/Owner/OtherOwnerCardNext';
+import { type HousingOwner } from '~/models/Owner';
 
 interface OwnerListProps {
   owners: ReadonlyArray<HousingOwner>;

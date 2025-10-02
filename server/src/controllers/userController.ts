@@ -2,6 +2,7 @@ import {
   isAdmin,
   UserRole,
   type UserDTO,
+  type UserFilters,
   type UserUpdatePayload
 } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
@@ -27,13 +28,19 @@ import userRepository from '~/repositories/userRepository';
 import { isTestAccount } from '~/services/ceremaService/consultUserService';
 import mailService from '~/services/mailService';
 
-const list: RequestHandler<never, ReadonlyArray<UserDTO>> = async (
-  request,
-  response
-) => {
+type ListQuery = UserFilters;
+
+const list: RequestHandler<
+  never,
+  ReadonlyArray<UserDTO>,
+  never,
+  ListQuery
+> = async (request, response) => {
   const { query, user, establishment } = request as AuthenticatedRequest<
     never,
-    ReadonlyArray<UserDTO>
+    ReadonlyArray<UserDTO>,
+    never,
+    ListQuery
   >;
   logger.info('List users', {
     query
@@ -41,7 +48,7 @@ const list: RequestHandler<never, ReadonlyArray<UserDTO>> = async (
 
   const users = await userRepository.find({
     filters: {
-      establishmentIds: isAdmin(user) ? [] : [establishment.id]
+      establishments: isAdmin(user) ? query.establishments : [establishment.id]
     }
   });
 

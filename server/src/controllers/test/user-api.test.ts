@@ -122,6 +122,19 @@ describe('User API', () => {
           (user: UserDTO) => user.establishmentId !== establishment.id
         );
       });
+
+      it('should filter by establishment', async () => {
+        const { body, status } = await request(url)
+          .get(route)
+          .query({ establishments: [establishment.id] })
+          .use(tokenProvider(admin));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.length).toBeGreaterThan(0);
+        expect(body).toSatisfyAll<UserDTO>(
+          (user) => user.establishmentId === establishment.id
+        );
+      });
     });
   });
 

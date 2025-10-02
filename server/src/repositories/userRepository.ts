@@ -1,11 +1,10 @@
-import type { TimePerWeek } from '@zerologementvacant/models';
+import type { TimePerWeek, UserFilters } from '@zerologementvacant/models';
 import { Knex } from 'knex';
 
 import db, { notDeleted } from '~/infra/database';
 import { logger } from '~/infra/logger';
 import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
 import { UserApi } from '~/models/UserApi';
-import { UserFiltersApi } from '~/models/UserFiltersApi';
 
 export const usersTable = 'users';
 
@@ -47,7 +46,7 @@ async function insert(userApi: UserApi): Promise<UserApi> {
 }
 
 interface FindOptions {
-  filters?: UserFiltersApi;
+  filters?: UserFilters;
   pagination?: PaginationApi;
 }
 
@@ -55,8 +54,8 @@ async function find(opts?: FindOptions): Promise<UserApi[]> {
   const users: UserDBO[] = await db<UserDBO>(usersTable)
     .where(notDeleted)
     .modify((builder) => {
-      if (opts?.filters?.establishmentIds?.length) {
-        builder.whereIn('establishment_id', opts.filters.establishmentIds);
+      if (opts?.filters?.establishments?.length) {
+        builder.whereIn('establishment_id', opts.filters.establishments);
       }
     })
     // TODO: flexible sort
@@ -67,13 +66,13 @@ async function find(opts?: FindOptions): Promise<UserApi[]> {
 }
 
 interface CountOptions {
-  filters?: UserFiltersApi;
+  filters?: UserFilters;
 }
 
-function filter(filters?: UserFiltersApi) {
+function filter(filters?: UserFilters) {
   return (builder: Knex.QueryBuilder<UserDBO>) => {
-    if (filters?.establishmentIds?.length) {
-      builder.whereIn('establishment_id', filters.establishmentIds);
+    if (filters?.establishments?.length) {
+      builder.whereIn('establishment_id', filters.establishments);
     }
   };
 }

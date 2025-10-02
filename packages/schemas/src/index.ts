@@ -13,6 +13,7 @@ import { id } from './id';
 import { notePayload } from './note-payload';
 import { password, passwordConfirmation } from './password';
 import { siren } from './siren';
+import { userFilters } from './user-filters';
 import { userUpdatePayload } from './user-update-payload';
 
 export { GEO_CODE_REGEXP } from './geo-code';
@@ -35,6 +36,7 @@ const schemas = {
   password,
   passwordConfirmation,
   siren,
+  userFilters,
   userUpdatePayload
 };
 

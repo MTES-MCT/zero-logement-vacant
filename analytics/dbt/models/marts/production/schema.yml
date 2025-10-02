@@ -98,13 +98,13 @@ models:
         description: "Code INSEE de la commune"
       - name: energy_sieve
         description: "Indicateur passoire énergétique (F ou G) - calculé"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: [true, false]
       - name: vacant_two_years
         description: "Indicateur logement vacant depuis plus de 2 ans - calculé"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: [true, false]
@@ -204,7 +204,7 @@ models:
                 field: id
       - name: status
         description: "Statut de la campagne (draft, in-progress, sent, archived)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['draft', 'in-progress', 'sent', 'archived']
@@ -214,19 +214,19 @@ models:
         description: "Description de la campagne"
       - name: is_validated
         description: "Indicateur si la campagne est validée (0/1)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: [0, 1]
       - name: is_confirmed
         description: "Indicateur si la campagne est confirmée (0/1)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: [0, 1]
       - name: is_sent
         description: "Indicateur si la campagne est envoyée (0/1)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: [0, 1]
@@ -306,7 +306,7 @@ models:
         description: "Codes géographiques des communes couvertes (array)"
       - name: kind
         description: "Type d'établissement (CA, CC, CU, ME, Commune, DEP, REG, etc.)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['CA', 'CC', 'CU', 'ME', 'Commune', 'DEP', 'PETR', 'REG', 'SDED', 'SDER', 'ASSO']
@@ -451,97 +451,97 @@ models:
                 field: establishment_id
       - name: connecte_90_derniers_jours
         description: "Connexion dans les 90 derniers jours (Oui/👻 Fantôme)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['Oui', '👻 Fantôme']
       - name: connecte_60_derniers_jours
         description: "Connexion dans les 60 derniers jours (Oui/Non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['Oui', 'Non']
       - name: connecte_30_derniers_jours
         description: "Connexion dans les 30 derniers jours (Oui/Non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['Oui', 'Non']
       - name: a_depose_1_perimetre
         description: "A déposé au moins 1 périmètre (oui/non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['oui', 'non']
       - name: a_cree_1_groupe
         description: "A créé au moins 1 groupe (oui/non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['oui', 'non']
       - name: a_cree_1_campagne
         description: "A créé au moins 1 campagne (oui/non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['oui', 'non']
       - name: a_cree_1_campagne_30_derniers_jours
         description: "A créé au moins 1 campagne dans les 30 derniers jours (Oui/Non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['Oui', 'Non']
       - name: a_envoye_1_campagne
         description: "A envoyé au moins 1 campagne (oui/non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['oui', 'non']
       - name: a_fait_1_maj_suivi
         description: "A fait au moins 1 mise à jour de suivi (Oui/Non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['Oui', 'Non']
       - name: a_fait_1_maj_occupation
         description: "A fait au moins 1 mise à jour d'occupation (Oui/Non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['Oui', 'Non']
       - name: a_fait_1_maj
         description: "A fait au moins 1 mise à jour (suivi ou occupation) (Oui/Non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['Oui', 'Non']
       - name: a_fait_1_campagne_ET_1_maj
         description: "A fait au moins 1 campagne ET 1 mise à jour (Oui/Non)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['Oui', 'Non']
       - name: typologie_activation_simple
         description: "Typologie d'activation simplifiée (4 niveaux)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['(1) CT inactive', '(2) CT en analyse', '(3) CT en campagne', '(4) CT activée', 'Erreur de classification']
       - name: typologie_activation_detaillee
         description: "Typologie d'activation détaillée (10 niveaux croisant activation et connexion)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['(1.1) CT inactive et fantôme', '(1.2) CT inactive et visiteuse', '(2.1) CT en analyse et fantôme', '(2.2) CT en analyse et visiteuse', '(3.1) CT en campagne et fantôme', '(3.2) CT en campagne et visiteuse', '(4.1) CT pro-active et fantôme', '(4.2) CT pro-active et visiteuse', '(5.1) CT exemplaire et fantôme', '(5.2) CT exemplaire et visiteuse', 'Erreur de classification']
       - name: type_explicite
         description: "Type d'établissement explicite (libellé complet)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ["Communauté d'Agglomération", "Communauté des Communes", "Communauté Urbaine", "Commune", "Métropole", "Département", "Pôle Équilibre Territorial", "Région", "Service Déconcentré Départemental", "Service Déconcentré Régional", "Association"]
       - name: type_regroupe
         description: "Type d'établissement regroupé (4 catégories principales)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['Intercommunalité', 'Commune', 'DDT/M', 'Autre']
@@ -562,7 +562,7 @@ models:
         description: "Nom de l'établissement"
       - name: kind
         description: "Type d'établissement (CA, CC, CU, ME, Commune)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: ['CA', 'CC', 'CU', 'ME', 'Commune']
@@ -580,19 +580,19 @@ models:
         description: "Taux de logements locatifs contactés en 2024 par rapport au parc locatif FF 23"
       - name: kind_campaigns_sent_quantile
         description: "Classification par quartiles du nombre de campagnes envoyées - méthode quantile (1-4)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: [1, 2, 3, 4]
       - name: kind_housing_contacted_quantile
         description: "Classification par quartiles du nombre de logements contactés - méthode quantile (1-4)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: [1, 2, 3, 4]
       - name: kind_housing_rate_contacted_2024_quantile
         description: "Classification par quartiles du taux de logements contactés en 2024 - méthode quantile (1-4)"
-        tests:
+        data_tests:
           - accepted_values:
               arguments:
                 values: [1, 2, 3, 4]

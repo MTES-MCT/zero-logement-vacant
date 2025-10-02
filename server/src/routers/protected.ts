@@ -324,7 +324,13 @@ router.get(
 
 /* Users */
 
-router.get('/users', userController.list);
+router.get(
+  '/users',
+  validatorNext.validate({
+    query: schemas.userFilters
+  }),
+  userController.list
+);
 router.get(
   '/users/:id',
   validatorNext.validate({

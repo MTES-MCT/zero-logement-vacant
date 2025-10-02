@@ -1,15 +1,26 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { Stack, Typography } from '@mui/material';
+import { skipToken } from '@reduxjs/toolkit/query';
 import AppLink from '~/components/_app/AppLink/AppLink';
 
 import UserTable from '~/components/Users/UserTable';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
+import { useUser } from '~/hooks/useUser';
 import { useFindUsersQuery } from '~/services/user.service';
 
 function UsersView() {
   useDocumentTitle('Utilisateurs rattachés à votre structure');
 
-  const { data: users, isLoading } = useFindUsersQuery();
+  const { establishment } = useUser();
+  const { data: users, isLoading } = useFindUsersQuery(
+    establishment
+      ? {
+          filters: {
+            establishments: [establishment?.id]
+          }
+        }
+      : skipToken
+  );
 
   return (
     <Stack component="section" spacing="1.5rem">

@@ -171,7 +171,7 @@ const HousingListView = () => {
               <Tooltip
                 align="start"
                 place="bottom"
-                title="Copiez-collez vos invariants fiscaux facilement dans la barre de recherche pour gagner du temps !"
+                title="Pour retrouver une liste de logements, copiez-collez dans la barre de recherche la liste de leurs identifiants fiscaux séparés par un espace. Exemple : « 750123456789 750123456790 750123456791 »"
               />
             </Grid>
             <Grid size="auto">

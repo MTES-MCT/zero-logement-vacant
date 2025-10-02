@@ -1,3 +1,3 @@
 export interface UserFilters {
-  establishmentIds?: string[];
+  establishments?: string[];
 }

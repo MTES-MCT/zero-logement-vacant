@@ -1,13 +1,28 @@
-import type { UserUpdatePayload, UserDTO } from '@zerologementvacant/models';
+import type {
+  UserUpdatePayload,
+  UserDTO,
+  UserFilters
+} from '@zerologementvacant/models';
 import { parseISO } from 'date-fns/fp';
 
 import { fromUserDTO, type DraftUser, type User } from '~/models/User';
 import { zlvApi } from '~/services/api.service';
 
+export interface FindOptions {
+  filters?: UserFilters;
+}
+
 export const userApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
-    findUsers: builder.query<User[], void>({
-      query: () => 'users',
+    findUsers: builder.query<User[], FindOptions | void>({
+      query: (options) => ({
+        url: 'users',
+        params: options
+          ? {
+              ...options?.filters
+            }
+          : {}
+      }),
       transformResponse: (users: UserDTO[]) => users.map(fromUserDTO),
       providesTags: (users) =>
         users

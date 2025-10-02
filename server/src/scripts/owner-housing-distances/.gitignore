@@ -1,0 +1,46 @@
+# Logs and temporary files
+logs/
+*.log
+
+# Input/output CSV files
+*.csv
+!requirements.txt
+
+# Python cache and virtual environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+.env/
+
+# Model files and caches
+*.pkl
+*.joblib
+*.model
+*.bin
+best_model_config.json
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.DS_Store
+
+# Database dumps
+*.dump
+*.sql
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Output directories
+output/
+results/
+exports/

@@ -14,7 +14,6 @@ import { ElementOf } from 'ts-essentials';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerApi } from '~/models/OwnerApi';
 import {
   banAddressesTable,
   formatAddressApi
@@ -29,9 +28,13 @@ import {
   formatHousingRecordApi,
   housingTable
 } from '~/repositories/housingRepository';
-import { formatOwnerApi, ownerTable } from '~/repositories/ownerRepository';
+import {
+  Owners,
+  ownerTable,
+  parseOwnerApi
+} from '~/repositories/ownerRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
-import { genHousingApi, genOwnerApi } from '~/test/testFixtures';
+import { genHousingApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   const ban = createBanAPI();
@@ -125,26 +128,13 @@ export async function seed(knex: Knex): Promise<void> {
       housingAddresses.map(formatAddressApi)
     );
 
-    // Insert owners
-    const owners: ReadonlyArray<OwnerApi> = faker.helpers.multiple(
-      () => genOwnerApi(),
-      {
-        count: {
-          min: 100,
-          max: 5000
-        }
-      }
-    );
-    console.log(`Inserting ${owners.length} owners...`, {
-      establishment: establishment.name
-    });
-    await knex.batchInsert(ownerTable, owners.map(formatOwnerApi));
-
     // Link owners to housings
+    const owners = (await Owners(knex).select()).map(parseOwnerApi);
     const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(
       (housing) => {
         const activeOwners = faker.helpers.arrayElements(owners, {
-          min: 1,
+          // Allow ownerless housings
+          min: 0,
           max: 6
         });
         const archivedOwners: ReadonlyArray<HousingOwnerApi> = faker.helpers

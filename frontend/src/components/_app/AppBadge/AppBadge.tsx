@@ -1,8 +1,10 @@
-import Badge, { BadgeProps } from '@codegouvfr/react-dsfr/Badge';
+import Badge, { type BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 import classNames from 'classnames';
 
+import type { ColorFamily } from '~/models/ColorFamily';
+
 export type AppBadgeProps = BadgeProps & {
-  colorFamily?: string;
+  colorFamily?: ColorFamily;
 };
 
 function AppBadge({ colorFamily, ...badgeProps }: AppBadgeProps) {

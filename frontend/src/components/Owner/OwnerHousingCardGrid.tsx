@@ -1,4 +1,5 @@
 import Grid from '@mui/material/Grid';
+import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
@@ -16,7 +17,26 @@ function OwnerHousingCardGrid() {
   );
 
   if (isLoading) {
-    return <Typography>Loading...</Typography>;
+    return (
+      <Stack spacing="1.5rem" useFlexGap>
+        <Skeleton
+          animation="wave"
+          variant="text"
+          sx={{ fontSize: '1.75rem' }}
+        />
+        <Grid container spacing="1rem">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Grid key={i} size={{ xs: 12, md: 6 }}>
+              <Skeleton
+                animation="wave"
+                variant="rectangular"
+                height="30.25rem"
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </Stack>
+    );
   }
 
   if (!ownerHousings || ownerHousings.length === 0) {
@@ -56,7 +76,7 @@ function OwnerHousingCardGrid() {
         {identified} dans Zéro Logement Vacant
       </Typography>
 
-      <Grid container spacing={2}>
+      <Grid container spacing="1rem">
         {ownerHousings.map((ownerHousing) => (
           <Grid key={ownerHousing.id} size={{ xs: 12, md: 6 }}>
             <OwnerHousingCard

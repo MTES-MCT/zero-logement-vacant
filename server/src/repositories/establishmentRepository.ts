@@ -6,9 +6,10 @@ import {
   EstablishmentKind,
   EstablishmentSource
 } from '@zerologementvacant/models';
-import db, { likeUnaccent } from '~/infra/database';
+import db, { likeUnaccent, notDeleted } from '~/infra/database';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { createLogger } from '~/infra/logger';
+import { usersTable, parseUserApi, UserDBO } from './userRepository';
 
 export const establishmentsTable = 'establishments';
 export const Establishments = (transaction = db) =>
@@ -18,6 +19,7 @@ const logger = createLogger('establishmentRepository');
 
 type FindOptions = {
   filters?: EstablishmentFiltersDTO;
+  includes?: EstablishmentInclude[];
 };
 
 async function find(
@@ -25,25 +27,33 @@ async function find(
 ): Promise<ReadonlyArray<EstablishmentApi>> {
   logger.debug('Find establishments', opts);
 
-  const establishments: EstablishmentDBO[] = await Establishments()
-    .modify(filter(opts?.filters))
-    .orderBy('name');
+  const establishments: EstablishmentDBO[] =
+    await listQuery(opts).orderBy('name');
 
   return establishments.map(parseEstablishmentApi);
 }
 
-async function get(id: string): Promise<EstablishmentApi | null> {
+interface GetOptions {
+  includes?: EstablishmentInclude[];
+}
+
+async function get(
+  id: string,
+  options?: GetOptions
+): Promise<EstablishmentApi | null> {
   logger.debug('Get establishment', { id });
 
-  const establishment = await Establishments()
-    .where(`${establishmentsTable}.id`, id)
-    .first();
+  const establishment = await listQuery({
+    filters: { id: [id] },
+    includes: options?.includes
+  }).first();
 
   return establishment ? parseEstablishmentApi(establishment) : null;
 }
 
 interface FindOneOptions {
   siren?: number;
+  includes?: EstablishmentInclude[];
 }
 
 async function findOne(
@@ -51,10 +61,10 @@ async function findOne(
 ): Promise<EstablishmentApi | null> {
   logger.info('Find establishment by', options);
 
-  const result = await Establishments()
-    .from(establishmentsTable)
-    .where(`${establishmentsTable}.siren`, options.siren)
-    .first();
+  const result = await listQuery({
+    filters: { siren: options.siren ? [options.siren.toString()] : undefined },
+    includes: options.includes
+  }).first();
 
   return result ? parseEstablishmentApi(result) : null;
 }
@@ -73,10 +83,11 @@ async function setAvailable(establishment: EstablishmentApi): Promise<void> {
 
 interface StreamOptions {
   updatedAfter?: Date;
+  includes?: EstablishmentInclude[];
 }
 
 async function stream(options?: StreamOptions) {
-  const stream = Establishments()
+  const stream = listQuery({ includes: options?.includes })
     .orderBy('name')
     .modify((query) => {
       if (options?.updatedAfter) {
@@ -96,13 +107,61 @@ async function save(establishment: EstablishmentDBO): Promise<void> {
   logger.info('Saved establishment', { establishment: establishment.id });
 }
 
+interface ListOptions {
+  filters?: EstablishmentFiltersDTO;
+  includes?: EstablishmentInclude[];
+}
+
+function listQuery(opts?: ListOptions) {
+  return Establishments()
+    .select(`${establishmentsTable}.*`)
+    .modify(filter(opts?.filters))
+    .modify(include(opts?.includes ?? []));
+}
+
+type EstablishmentInclude = 'users';
+
+function include(includes: EstablishmentInclude[]) {
+  const joins: Record<
+    EstablishmentInclude,
+    (query: Knex.QueryBuilder) => void
+  > = {
+    users: (query) =>
+      query.select('u.users').joinRaw(
+        `LEFT JOIN LATERAL (
+          SELECT COALESCE(json_agg(${usersTable}.*), '[]'::json) AS users
+          FROM ${usersTable}
+          WHERE ${usersTable}.establishment_id = ${establishmentsTable}.id
+            AND ${usersTable}.deleted_at IS NULL
+        ) u ON true`
+      )
+  };
+
+  return (query: Knex.QueryBuilder) => {
+    includes.forEach((includeType) => {
+      joins[includeType](query);
+    });
+  };
+}
+
 function filter(filters?: EstablishmentFiltersDTO) {
   return (builder: Knex.QueryBuilder<EstablishmentDBO>) => {
     if (filters?.id) {
       builder.whereIn('id', filters.id);
     }
-    if (filters?.available) {
-      builder.where('available', true);
+    if (filters?.available !== undefined) {
+      builder.where('available', filters.available);
+    }
+    if (filters?.active) {
+      builder.whereExists((subquery) => {
+        subquery
+          .select('id')
+          .from(usersTable)
+          .where({
+            establishment_id: db.ref(`${establishmentsTable}.id`)
+          })
+          .where(notDeleted);
+      });
     }
     if (filters?.query?.length) {
       builder.whereRaw(likeUnaccent('name', filters.query));
@@ -134,6 +193,7 @@ export interface EstablishmentDBO {
   kind: EstablishmentKind;
   source: EstablishmentSource;
   updated_at: Date;
+  users?: UserDBO[];
 }
 
 export const formatEstablishmentApi = (
@@ -162,7 +222,8 @@ export const parseEstablishmentApi = (
   available: establishment.available,
   geoCodes: establishment.localities_geo_code,
   kind: establishment.kind,
-  source: establishment.source
+  source: establishment.source,
+  users: establishment.users?.map(parseUserApi)
 });
 
 export default {

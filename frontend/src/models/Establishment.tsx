@@ -1,4 +1,4 @@
-import { EstablishmentDTO } from '@zerologementvacant/models';
+import type { EstablishmentDTO } from '@zerologementvacant/models';
 
 import { normalizeUrlSegment } from '../utils/fetchUtils';
 

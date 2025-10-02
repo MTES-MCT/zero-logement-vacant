@@ -5,6 +5,7 @@ import { constants } from 'http2';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { vi } from 'vitest';
+
 import { createServer } from '~/infra/server';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
@@ -185,51 +186,6 @@ describe('Account controller', () => {
         position: userAccountDTO.position,
         time_per_week: userAccountDTO.timePerWeek
       });
-    });
-  });
-
-  describe('Update password', () => {
-    const testRoute = '/api/account/password';
-
-    it('should receive valid current and new passwords', async () => {
-      async function test(payload: Record<string, unknown>) {
-        const { status } = await request(url)
-          .put(testRoute)
-          .send(payload)
-          .use(tokenProvider(user));
-
-        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-      }
-
-      await test({ currentPassword: '', newPassword: '123QWEasd' });
-      await test({ currentPassword: '     ', newPassword: '123QWEasd' });
-      await test({ currentPassword: user.password, newPassword: '' });
-      await test({ currentPassword: user.password, newPassword: '    ' });
-    });
-
-    it('should fail if the current password and the given one are different', async () => {
-      const { status } = await request(url)
-        .put(testRoute)
-        .send({
-          currentPassword: 'NotTheirCurrentPassword',
-          newPassword: '123QWEasd'
-        })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
-    });
-
-    it('should succeed to change the password', async () => {
-      const { body, status } = await request(url)
-        .put(testRoute)
-        .send({
-          currentPassword: user.password,
-          newPassword: '123QWEasd'
-        })
-        .use(tokenProvider(user));
-
-      expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body).toStrictEqual({});
     });
   });
 

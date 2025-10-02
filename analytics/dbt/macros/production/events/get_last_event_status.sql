@@ -3,13 +3,23 @@
 SELECT
 events.housing_id,
 CASE  
+  {% if event_name == 'occupation' %}
+  WHEN events.occupancy_changed = TRUE THEN CAST(events.new_occupancy AS VARCHAR)
+  WHEN events.status_changed = TRUE THEN CAST(events.new_status AS VARCHAR)
+  {% else %}
   WHEN events.status_changed = TRUE THEN CAST(events.new_status AS VARCHAR)
   WHEN events.occupancy_changed = TRUE THEN CAST(events.new_occupancy AS VARCHAR)
+  {% endif %}
   ELSE NULL
 END AS status,
 CASE  
+  {% if event_name == 'occupation' %}
+  WHEN events.occupancy_changed = TRUE THEN CAST(events.new_occupancy AS VARCHAR)
+  WHEN events.status_changed = TRUE THEN events.event_status_label
+  {% else %}
   WHEN events.status_changed = TRUE THEN events.event_status_label
   WHEN events.occupancy_changed = TRUE THEN CAST(events.new_occupancy AS VARCHAR)
+  {% endif %}
   ELSE NULL
 END AS status_label,
 events.new_sub_status,

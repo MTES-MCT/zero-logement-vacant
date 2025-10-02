@@ -6,9 +6,12 @@ import path from 'node:path';
 
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
 
+const fromProjectRoot = (...paths: ReadonlyArray<string>): string =>
+  path.resolve(import.meta.dirname, '../..', ...paths);
+
 dotenvx.config({
   convention: 'nextjs',
-  path: path.resolve(import.meta.dirname, '../..'),
+  path: [fromProjectRoot('.env.test'), fromProjectRoot('.env')],
   quiet: process.env.NODE_ENV === 'test'
 });
 

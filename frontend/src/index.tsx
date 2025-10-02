@@ -16,12 +16,6 @@ import sentry from './utils/sentry';
 
 sentry.init();
 
-declare global {
-  interface Window {
-    JIMO_PROJECT_ID: string;
-    jimo: any[];
-  }
-}
 
 startReactDsfr({
   defaultColorScheme: 'light',
@@ -41,37 +35,30 @@ if (config.posthog.enabled) {
   });
 }
 
-if (config.jimo.enabled) {
-  window.jimo = [];
-  const s = document.createElement('script');
-  s.type = 'text/javascript';
-  s.async = true;
-  s.src = 'https://undercity.usejimo.com/jimo-invader.js';
-  window['JIMO_PROJECT_ID'] = config.jimo.projectId;
-  document.getElementsByTagName('head')[0].appendChild(s);
-}
 
 const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container!);
 
 root.render(
   <StrictMode>
-    <sentry.ErrorBoundary 
+    <sentry.ErrorBoundary
       fallback={({ error, resetError }) => (
-        <div style={{ 
-          padding: '20px', 
-          textAlign: 'center',
-          backgroundColor: '#f8f9fa',
-          border: '1px solid #dee2e6',
-          borderRadius: '8px',
-          margin: '20px'
-        }}>
-          <h2>Une erreur s'est produite</h2>
+        <div
+          style={{
+            padding: '20px',
+            textAlign: 'center',
+            backgroundColor: '#f8f9fa',
+            border: '1px solid #dee2e6',
+            borderRadius: '8px',
+            margin: '20px'
+          }}
+        >
+          <h2>Une erreur s&apos;est produite</h2>
           <details style={{ whiteSpace: 'pre-wrap', marginTop: '10px' }}>
-            <summary>Détails de l'erreur</summary>
+            <summary>Détails de l&apos;erreur</summary>
             {error?.toString()}
           </details>
-          <button 
+          <button
             onClick={resetError}
             style={{
               marginTop: '10px',
@@ -98,7 +85,7 @@ root.render(
               <Notification />
               <App />
             </StoreProvider>
-        </PostHogProvider>
+          </PostHogProvider>
         </MapProvider>
       </ThemeProvider>
     </sentry.ErrorBoundary>

@@ -24,6 +24,7 @@ import {
   PRECISION_CATEGORY_VALUES,
   PROPERTY_RIGHT_VALUES,
   READ_WRITE_OCCUPANCY_VALUES,
+  TIME_PER_WEEK_VALUES,
   UserAccountDTO
 } from '@zerologementvacant/models';
 
@@ -118,7 +119,9 @@ export const genLocalityApi = (geoCode = genGeoCode()): LocalityApi => {
     id: uuidv4(),
     geoCode,
     name: faker.location.city(),
-    kind: faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES]),
+    kind: LOCALITY_KIND_VALUES.length > 0
+      ? faker.helpers.arrayElement([null, ...LOCALITY_KIND_VALUES])
+      : null,
     taxKind: TaxKindsApi.None
   };
 };
@@ -152,7 +155,7 @@ export const genUserAccountDTO: UserAccountDTO = {
   lastName: faker.person.lastName(),
   phone: faker.phone.number(),
   position: faker.person.jobType(),
-  timePerWeek: randomstring.generate()
+  timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES)
 };
 
 export const genProspectApi = (

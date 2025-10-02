@@ -4,8 +4,9 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import Tooltip from '~/Tooltip/Tooltip';
 import { useUser } from '../../hooks/useUser';
-import { getSource, Housing } from '../../models/Housing';
+import { getSource, type Housing } from '../../models/Housing';
 import HousingEditionSideMenu from '../HousingEdition/HousingEditionSideMenu';
 import { useHousingEdition } from '../HousingEdition/useHousingEdition';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
@@ -86,26 +87,53 @@ function HousingHeader(props: HousingHeaderProps) {
         </Typography>
       </Stack>
 
-      {isVisitor ? null : (
-        <>
-          <Button
-            size="large"
-            title="Mettre à jour le logement"
-            onClick={() => {
-              setEditing(true);
-            }}
-          >
-            Mettre à jour
-          </Button>
-          <HousingEditionSideMenu
-            housing={props.housing}
-            expand={editing}
-            onClose={() => {
-              setEditing(false);
-            }}
-          />
-        </>
-      )}
+      <Stack direction="row" spacing="1rem" sx={{ alignItems: 'center' }}>
+        {isVisitor ? null : (
+          <>
+            <Tooltip
+              align="end"
+              place="bottom"
+              title={
+                <>
+                  <Typography
+                    component="p"
+                    variant="caption"
+                    sx={{ fontWeight: 700, mb: '1rem' }}
+                  >
+                    Éditez les informations sur ZLV pour contribuer à la
+                    fiabilisation de votre base de données !
+                  </Typography>
+                  <Typography component="p" variant="caption">
+                    Les données mises à jour sur ZLV sont conservées d’une année
+                    sur l’autre et partagées avec l’ensemble des personnes ayant
+                    accès à ZLV sur votre territoire de compétences
+                    (collectivités territoriales et services de l’Etat). Ces
+                    données ne sont pas remontées aux services des impôts, les
+                    mises à jour n’ont donc pas d’impact sur la situation
+                    fiscale des logements.
+                  </Typography>
+                </>
+              }
+            />
+            <Button
+              size="large"
+              title="Mettre à jour le logement"
+              onClick={() => {
+                setEditing(true);
+              }}
+            >
+              Mettre à jour
+            </Button>
+            <HousingEditionSideMenu
+              housing={props.housing}
+              expand={editing}
+              onClose={() => {
+                setEditing(false);
+              }}
+            />
+          </>
+        )}
+      </Stack>
     </Stack>
   );
 }

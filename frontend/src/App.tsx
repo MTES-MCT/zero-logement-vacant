@@ -7,15 +7,17 @@ import {
   RouterProvider
 } from 'react-router-dom';
 
+import ProfileLayout from '~/views/Account/Profile/ProfileLayout';
 import './App.scss';
 import { useAppDispatch, useAppSelector } from './hooks/useStore';
 import AuthenticatedLayout from './layouts/AuthenticatedLayout';
 import GuestLayout from './layouts/GuestLayout';
 import sentry from './utils/sentry';
 import AccountCreationView from './views/Account/AccountCreationView';
-import AccountPasswordView from './views/Account/AccountPasswordView';
 import AccountView from './views/Account/AccountView';
 import ForgottenPasswordView from './views/Account/ForgottenPasswordView';
+import TerritoryEstablishmentsView from './views/Account/Profile/TerritoryEstablishmentsView';
+import UsersView from './views/Account/Profile/UsersView';
 import ResetPasswordView from './views/Account/ResetPasswordView';
 import AnalysisView from './views/Analysis/AnalysisView';
 import CampaignListView from './views/Campaign/CampaignListView';
@@ -29,8 +31,6 @@ import NotFoundView from './views/NotFoundView';
 import OwnerView from './views/Owner/OwnerView';
 import ResourcesView from './views/Resources/ResourcesView';
 import StatusView from './views/Resources/StatusView';
-import TerritoryEstablishmentsView from './views/TerritoryEstablishments/TerritoryEstablishmentsView';
-import UsersView from './views/Users/UsersView';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -73,14 +73,15 @@ const router = sentry.createBrowserRouter(
         <Route path="/ressources/statuts" element={<StatusView />} />
         <Route path="/ressources" element={<ResourcesView />} />
 
-        <Route path="/compte" element={<AccountView />} />
-        <Route path="/compte/mot-de-passe" element={<AccountPasswordView />} />
-
-        <Route path="/utilisateurs" element={<UsersView />} />
-        <Route
-          path="/autres-etablissements"
-          element={<TerritoryEstablishmentsView />}
-        />
+        {/* Profile views */}
+        <Route element={<ProfileLayout />}>
+          <Route path="/compte" element={<AccountView />} />
+          <Route path="/utilisateurs" element={<UsersView />} />
+          <Route
+            path="/autres-structures"
+            element={<TerritoryEstablishmentsView />}
+          />
+        </Route>
       </Route>
 
       <Route element={<GuestLayout />}>

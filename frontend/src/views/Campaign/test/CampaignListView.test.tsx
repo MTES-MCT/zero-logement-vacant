@@ -52,11 +52,11 @@ describe('CampaignListView', () => {
     it('should sort by title', async () => {
       setup();
 
-      await resetSort();
       const table = await screen.findByRole('table');
       const sort = await within(table).findByRole('button', {
         name: 'Trier par titre'
       });
+      await user.click(sort);
       await user.click(sort);
       const links = await within(table).findAllByRole('link', {
         name: (content) =>

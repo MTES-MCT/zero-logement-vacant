@@ -5,16 +5,21 @@ import request from 'supertest';
 
 import {
   ESTABLISHMENT_KIND_VALUES,
-  EstablishmentFiltersDTO
+  EstablishmentFiltersDTO,
+  UserRole,
+  type EstablishmentDTO
 } from '@zerologementvacant/models';
 import { GEO_CODE_REGEXP } from '@zerologementvacant/schemas';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
-import { genEstablishmentApi } from '~/test/testFixtures';
+import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
+import { tokenProvider } from '~/test/testUtils';
+import { formatUserApi, Users } from '~/repositories/userRepository';
+import type { UserApi } from '~/models/UserApi';
 
 describe('Establishment API', () => {
   let url: string;
@@ -132,6 +137,41 @@ describe('Establishment API', () => {
       expect(body).toPartiallyContain({
         id: firstEstablishment.id,
         name: firstEstablishment.name
+      });
+    });
+
+    describe('Include users', () => {
+      const establishment = genEstablishmentApi();
+      const user: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.USUAL
+      };
+
+      beforeAll(async () => {
+        await Establishments().insert(formatEstablishmentApi(establishment));
+        await Users().insert(formatUserApi(user));
+      });
+
+      it('should include users if the user is authenticated', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toSatisfyAll<EstablishmentDTO>((establishment) => {
+          return establishment.users !== undefined;
+        });
+      });
+
+      it('should not include users if the user is anonymous', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query({ include: 'users' });
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toSatisfyAll<EstablishmentDTO>((establishment) => {
+          return establishment.users === undefined;
+        });
       });
     });
   });

@@ -7,6 +7,7 @@ ENV ZLV_HTTP_USERNAME=$ZLV_HTTP_USERNAME
 ENV ZLV_HTTP_PASSWORD=$ZLV_HTTP_PASSWORD
 
 COPY --from=clevercloud/clever-tools /bin/clever /usr/local/bin/clever
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN apt-get update && \
     apt-get install -y nginx apache2-utils curl gnupg && \
@@ -15,10 +16,10 @@ RUN apt-get update && \
 
 RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/bin
 
-COPY analytics/dagster/requirements.txt .
+COPY analytics/dagster/uv.lock . 
+COPY analytics/dagster/pyproject.toml . 
 
-
-RUN pip install -r requirements.txt
+RUN uv sync --frozen
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
 
@@ -32,7 +33,7 @@ COPY analytics/dbt /opt/dagster/dbt
 
 WORKDIR /opt/dagster/dbt
 
-RUN dbt deps && dbt parse && dbt compile
+RUN uv run dbt deps && uv run dbt parse && uv run dbt compile
 
 WORKDIR $DAGSTER_HOME
 
@@ -44,4 +45,4 @@ COPY .docker/dagster/nginx/nginx.conf /etc/nginx/sites-available/default
 
 EXPOSE 8080 3000
 
-CMD service nginx start && dagster dev -h 0.0.0.0 -p 3000
+CMD service nginx start && uv run dagster dev -h 0.0.0.0 -p 3000

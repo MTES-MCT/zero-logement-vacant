@@ -1,11 +1,11 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import {
-  AutocompleteProps,
-  AutocompleteValue
+  type AutocompleteProps,
+  type AutocompleteValue
 } from '@mui/material/Autocomplete';
 
-import { EstablishmentDTO } from '@zerologementvacant/models';
-import { ReactNode } from 'react';
+import type { EstablishmentDTO } from '@zerologementvacant/models';
+import { type ReactNode } from 'react';
 import { useLazyFindEstablishmentsQuery } from '../../services/establishment.service';
 import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
 

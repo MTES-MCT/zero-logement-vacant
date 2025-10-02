@@ -3,15 +3,15 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
 
-import { EstablishmentDTO } from '@zerologementvacant/models';
-import { FormEvent, useState } from 'react';
+import type { EstablishmentDTO } from '@zerologementvacant/models';
+import { type FormEvent, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
 import { Col, Container, Row, Text } from '../../components/_dsfr';
-import EstablishmentSearchableSelect from '../../components/EstablishmentSearchableSelect/EstablishmentSearchableSelect';
+import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { emailValidator, useForm } from '../../hooks/useForm';
 import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
@@ -76,13 +76,6 @@ const LoginView = () => {
         <Col>
           {auth.isLoggedOut && (
             <Col n="12">
-              <Alert
-                title="Déconnexion"
-                description="Vous êtes déconnecté. Veuillez saisir votre email et votre mot de passe pour vous connecter de nouveau."
-                className="fr-my-3w"
-                severity="warning"
-                closable
-              />
             </Col>
           )}
           {auth.logIn.isError ? (

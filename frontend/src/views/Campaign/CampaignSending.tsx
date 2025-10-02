@@ -7,7 +7,7 @@ import Grid from '@mui/material/Grid';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import Container from '@mui/material/Container';
 import { object } from 'yup';
@@ -21,13 +21,14 @@ import DraftSendingDate, {
 import { useCampaign } from '../../hooks/useCampaign';
 import { useForm } from '../../hooks/useForm';
 import { useNotification } from '../../hooks/useNotification';
-import { Campaign } from '../../models/Campaign';
+import { type Campaign } from '../../models/Campaign';
 import {
   useLazyGetCampaignQuery,
   useUpdateCampaignMutation
 } from '../../services/campaign.service';
 import config from '../../utils/config';
 import styles from './campaign.module.scss';
+import Tooltip from '~/Tooltip/Tooltip';
 
 const modal = createModal({
   id: 'campaign-sending-modal',
@@ -105,7 +106,36 @@ function CampaignSending(props: Readonly<Props>) {
           &nbsp;Suivi de campagne et passage de tous les logements &quot;Non
           suivi&quot; au statut &quot;En attente de retour&quot;.
         </p>
-        <Box sx={{ alignSelf: 'flex-end' }}>
+        <Stack
+          direction="row"
+          spacing="1rem"
+          useFlexGap
+          sx={{ alignItems: 'center', alignSelf: 'flex-end' }}
+        >
+          <Tooltip
+            place="top"
+            align="end"
+            title={
+              <>
+                <Typography
+                  component="p"
+                  variant="caption"
+                  sx={{ fontWeight: 700, mb: '1rem' }}
+                >
+                  Indiquez la date d’envoi des courriers pour enregistrer la
+                  campagne !
+                </Typography>
+                <Typography component="p" variant="caption">
+                  Cela permettra d’indiquer que la campagne a été envoyée et les
+                  logements “Non suivi” passeront automatiquement dans le statut
+                  “En attente de retour”. Les logements seront ainsi enregistrés
+                  comme ayant fait l’objet d’une prise de contact auprès des
+                  propriétaires, ce qui vous permettra de suivre et partager les
+                  retours suite à l’envoi des courriers.
+                </Typography>
+              </>
+            }
+          />
           <Button
             priority="primary"
             disabled={disabled}
@@ -113,7 +143,7 @@ function CampaignSending(props: Readonly<Props>) {
           >
             Enregistrer et passer au suivi
           </Button>
-        </Box>
+        </Stack>
       </Stack>
 
       <hr />
@@ -189,16 +219,14 @@ function CampaignSending(props: Readonly<Props>) {
                 }
               ]}
             >
-              <div className="fr-alert fr-alert--warning fr-alert--sm">
-                <p>
-                  Une fois la date d’envoi confirmée, vous ne pourrez plus
-                  télécharger vos courriers et vos destinataires. Si vous avez
-                  bien effectué le téléchargement, vous pouvez cliquer sur
-                  “Confirmer” et commencer le suivi de votre campagne. Sinon,
-                  cliquez sur “Annuler” pour revenir en arrière et télécharger
-                  les courriers et destinataires avant de confirmer.
-                </p>
-              </div>
+              <Typography variant="subtitle2">
+                Une fois la date d’envoi confirmée, vous ne pourrez plus
+                télécharger vos courriers et vos destinataires. Si vous avez
+                bien effectué le téléchargement, vous pouvez cliquer sur
+                “Confirmer” et commencer le suivi de votre campagne. Sinon,
+                cliquez sur “Annuler” pour revenir en arrière et télécharger les
+                courriers et destinataires avant de confirmer.
+              </Typography>
             </modal.Component>
             <form>
               <DraftSendingDate

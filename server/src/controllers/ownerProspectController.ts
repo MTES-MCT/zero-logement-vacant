@@ -56,7 +56,7 @@ async function create(request: Request, response: Response) {
     });
     if (establishments.length > 0) {
       const byEstablishment = {
-        establishmentIds: establishments.map((_) => _.id)
+        establishments: establishments.map((_) => _.id)
       };
 
       const users = await userRepository.find({

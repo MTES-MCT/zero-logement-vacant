@@ -13,9 +13,9 @@ function TerritoryEstablishmentsView() {
     {
       available: true,
       active: true,
-      geoCodes: establishment?.geoCodes
+      related: establishment?.id
     },
-    { skip: !establishment?.geoCodes?.length }
+    { skip: !establishment?.id }
   );
 
   return (

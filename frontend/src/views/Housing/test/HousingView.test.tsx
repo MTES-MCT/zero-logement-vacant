@@ -55,12 +55,17 @@ describe('Housing view', () => {
   });
 
   interface RenderViewOptions {
-    user: User;
+    user?: User;
     notes?: ReadonlyArray<Note>;
+    /**
+     * @default true
+     */
+    createHousing?: boolean;
   }
 
   function renderView(housing: HousingDTO, options?: RenderViewOptions) {
-    if (housing) {
+    const createHousing = options?.createHousing ?? true;
+    if (housing && createHousing) {
       data.housings.push(housing);
     }
     if (options?.notes?.length) {
@@ -91,7 +96,9 @@ describe('Housing view', () => {
     const owner = genOwnerDTO();
     const missingHousing = genHousingDTO(owner);
 
-    renderView(missingHousing);
+    renderView(missingHousing, {
+      createHousing: false
+    });
 
     const error = await screen.findByRole('heading', {
       name: 'Page non trouvée'

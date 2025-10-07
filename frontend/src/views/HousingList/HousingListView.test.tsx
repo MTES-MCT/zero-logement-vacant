@@ -1265,7 +1265,8 @@ describe('Housing list view', () => {
           slice,
           Array.flatMap(
             (campaign) => data.campaignHousings.get(campaign.id) ?? []
-          )
+          ),
+          Array.dedupeWith((a, b) => a.id === b.id)
         );
         const count = await within(panel).findByText(
           `${filteredHousings.length} logements (${filteredHousings.length} propriétaires) filtrés sur un total de ${housings.length} logements`

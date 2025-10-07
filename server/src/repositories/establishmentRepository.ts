@@ -149,6 +149,9 @@ function filter(filters?: EstablishmentFiltersDTO) {
     if (filters?.id) {
       builder.whereIn('id', filters.id);
     }
+    if (filters?.available !== undefined) {
+      builder.where('available', filters.available);
+    }
     if (filters?.active) {
       builder.whereExists((subquery) => {
         subquery

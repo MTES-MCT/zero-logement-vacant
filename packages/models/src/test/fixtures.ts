@@ -4,7 +4,7 @@ import { MarkRequired } from 'ts-essentials';
 
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
-import { CampaignDTO } from '../CampaignDTO';
+import { CAMPAIGN_STATUS_VALUES, CampaignDTO } from '../CampaignDTO';
 import { DatafoncierHousing } from '../DatafoncierHousing';
 import { DraftDTO } from '../DraftDTO';
 import { ENERGY_CONSUMPTION_VALUES } from '../EnergyConsumption';
@@ -75,7 +75,7 @@ export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
     title: faker.commerce.productName(),
     description: faker.commerce.productDescription(),
     filters: {},
-    status: 'draft',
+    status: faker.helpers.arrayElement(CAMPAIGN_STATUS_VALUES),
     createdAt: faker.date.past().toJSON(),
     groupId: group?.id
   };

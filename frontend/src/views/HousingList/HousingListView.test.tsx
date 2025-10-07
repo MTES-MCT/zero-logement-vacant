@@ -1,84 +1,148 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
 import {
+  ACTIVE_OWNER_RANKS,
   CAMPAIGN_STATUS_LABELS,
   CAMPAIGN_STATUS_VALUES,
-  CampaignDTO,
-  CampaignStatus,
-  DatafoncierHousing,
-  HousingDTO,
-  HousingKind
+  type CampaignDTO,
+  type CampaignStatus,
+  type DatafoncierHousing,
+  type GroupDTO,
+  HOUSING_KIND_VALUES,
+  type HousingDTO,
+  HousingKind,
+  type HousingOwnerDTO,
+  isPrimaryOwner,
+  type OwnerDTO,
+  type OwnerRank,
+  type UserDTO,
+  UserRole
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
   genDatafoncierHousingDTO,
   genGroupDTO,
   genHousingDTO,
+  genHousingOwnerDTO,
   genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import async from 'async';
-import fp from 'lodash/fp';
+import { Array, pipe, Predicate } from 'effect';
 import * as randomstring from 'randomstring';
 import { Provider } from 'react-redux';
-import {
-  createMemoryRouter,
-  MemoryRouter as Router,
-  RouterProvider
-} from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { vi } from 'vitest';
+
 import data from '../../mocks/handlers/data';
-import { AppStore } from '../../store/store';
 import configureTestStore from '../../utils/test/storeUtils';
 import CampaignView from '../Campaign/CampaignView';
-import GroupView from '../Group/GroupView';
 import HousingListTabsProvider from './HousingListTabsProvider';
 import HousingListView from './HousingListView';
 
 vi.mock('../../components/Aside/Aside.tsx');
 
+interface RenderViewOptions {
+  auth: UserDTO;
+  housings: ReadonlyArray<HousingDTO>;
+  owners: ReadonlyArray<OwnerDTO>;
+  housingOwners: ReadonlyArray<
+    HousingOwnerDTO & { housingId: string; ownerId: string }
+  >;
+  groups: ReadonlyArray<GroupDTO>;
+  campaigns: ReadonlyArray<CampaignDTO>;
+  campaignHousings: ReadonlyArray<{
+    campaign: CampaignDTO;
+    housings: ReadonlyArray<HousingDTO>;
+  }>;
+}
+
 describe('Housing list view', () => {
   const user = userEvent.setup();
-  let store: AppStore;
 
-  beforeEach(() => {
-    store = configureTestStore();
-  });
+  function renderView(options: RenderViewOptions) {
+    data.users.push(options.auth);
+    data.groups.push(...options.groups);
+    data.housings.push(...options.housings);
+    data.owners.push(...options.owners);
+    options.housingOwners.forEach((housingOwner) => {
+      const existingHousingOwners =
+        data.housingOwners.get(housingOwner.housingId) ?? [];
+      data.housingOwners.set(housingOwner.housingId, [
+        ...existingHousingOwners,
+        housingOwner
+      ]);
+    });
+    data.campaigns.push(...options.campaigns);
+    options.campaignHousings.forEach(({ campaign, housings }) => {
+      data.campaignHousings.set(campaign.id, housings);
+      housings.forEach((housing) => {
+        const existingCampaigns = data.housingCampaigns.get(housing.id) ?? [];
+        data.housingCampaigns.set(housing.id, [...existingCampaigns, campaign]);
+      });
+    });
 
-  function setup(): void {
     const store = configureTestStore();
-    const router = createMemoryRouter([
-      { path: '/', element: <HousingListView /> }
-    ]);
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/',
+          element: (
+            <HousingListTabsProvider>
+              <HousingListView />
+            </HousingListTabsProvider>
+          )
+        },
+        {
+          path: '/groupes/:id',
+          element: 'Groupe'
+        },
+        { path: '/campagnes/:id', element: <CampaignView /> }
+      ],
+      {
+        initialEntries: ['/']
+      }
+    );
 
     render(
       <Provider store={store}>
-        <HousingListTabsProvider>
-          <RouterProvider router={router} />
-        </HousingListTabsProvider>
+        <RouterProvider router={router} />
       </Provider>
     );
+
+    return { router };
   }
 
   it('should filter by housing kind', async () => {
-    const apartments = data.housings.filter(
-      (housing) => housing.housingKind === HousingKind.APARTMENT
-    );
-    const owners = fp.uniqBy(
-      'id',
-      apartments.map((housing) => housing.owner)
-    );
-    render(
-      <Provider store={store}>
-        <Router>
-          <HousingListTabsProvider>
-            <HousingListView />
-          </HousingListTabsProvider>
-        </Router>
-      </Provider>
-    );
+    const auth = genUserDTO();
+    const housings = HOUSING_KIND_VALUES.flatMap((housingKind) => {
+      return faker.helpers
+        .multiple(() => genHousingDTO(null))
+        .map((housing) => ({ ...housing, housingKind }));
+    });
+    const owners = faker.helpers.multiple(() => genOwnerDTO(), {
+      count: housings.length
+    });
+    const housingOwners = housings.map((housing, i) => {
+      const owner = owners[i];
+      return {
+        ...genHousingOwnerDTO(owner),
+        rank: 1 as const,
+        housingId: housing.id,
+        ownerId: owner.id
+      };
+    });
+
+    renderView({
+      auth,
+      housings,
+      owners,
+      housingOwners,
+      groups: [],
+      campaigns: [],
+      campaignHousings: []
+    });
 
     const accordion = await screen.findByRole('button', { name: /^Logement/ });
     await user.click(accordion);
@@ -89,14 +153,30 @@ describe('Housing list view', () => {
     const options = await screen.findByRole('listbox');
     const option = await within(options).findByText('Appartement');
     await user.click(option);
-    const text = `${apartments.length} logements (${owners.length} propriétaires) filtrés sur un total de ${data.housings.length} logements`;
-    const label = await screen.findByText(text);
+    const filteredHousings = housings.filter(
+      (housing) => housing.housingKind === HousingKind.APARTMENT
+    );
+    const label = await screen.findByText(
+      `${filteredHousings.length} logements (${filteredHousings.length} propriétaires) filtrés sur un total de ${housings.length} logements`
+    );
     expect(label).toBeVisible();
   });
 
   describe('Select housings', () => {
     it('should select all housings when the top checkbox gets checked', async () => {
-      setup();
+      const auth = genUserDTO();
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+
+      renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners: [],
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const [row] = await screen.findAllByRole('columnheader');
       const checkboxes = await within(row).findAllByRole('checkbox');
@@ -108,7 +188,19 @@ describe('Housing list view', () => {
     });
 
     it('should unselect all housings when the top checkbox is checked and clicked again', async () => {
-      setup();
+      const auth = genUserDTO();
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+
+      renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners: [],
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const [row] = await screen.findAllByRole('row');
       const checkboxes = await within(row).findAllByRole('checkbox');
@@ -131,16 +223,17 @@ describe('Housing list view', () => {
 
     it('should fail if the housing was not found in datafoncier', async () => {
       const localId = randomstring.generate(12);
+      const auth = genUserDTO();
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListTabsProvider>
-              <HousingListView />
-            </HousingListTabsProvider>
-          </Router>
-        </Provider>
-      );
+      renderView({
+        auth,
+        housings: [],
+        owners: [],
+        housingOwners: [],
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const button = screen.getByText('Ajouter un logement', {
         selector: 'button'
@@ -161,43 +254,42 @@ describe('Housing list view', () => {
     });
 
     it('should fail if the housing already exists in our database', async () => {
+      const auth = genUserDTO();
       const owner = genOwnerDTO();
       const housing: HousingDTO = {
-        ...genHousingDTO(owner),
+        ...genHousingDTO(null),
         localId: datafoncierHousing.idlocal
       };
-      data.housings.push(housing);
-      data.owners.push(owner);
-      data.housingOwners.set(housing.id, [
-        {
-          id: owner.id,
-          rank: 1,
-          locprop: null,
-          idprocpte: null,
-          idprodroit: null,
-          propertyRight: null
-        }
-      ]);
       expect(housing.localId).toBeDefined();
 
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListTabsProvider>
-              <HousingListView />
-            </HousingListTabsProvider>
-          </Router>
-        </Provider>
-      );
+      renderView({
+        auth,
+        housings: [housing],
+        owners: [owner],
+        housingOwners: [
+          {
+            ...genHousingOwnerDTO(owner),
+            housingId: housing.id,
+            ownerId: owner.id,
+            rank: 1
+          }
+        ],
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const button = screen.getByText('Ajouter un logement', {
         selector: 'button'
       });
       await user.click(button);
-      const modal = await screen.findByRole('dialog');
-      const input = await within(modal).findByLabelText(
-        /^Saisissez l’identifiant fiscal national/
-      );
+      const modal = await screen.findByRole('dialog', {
+        name: /^Ajouter un logement/
+      });
+      screen.debug(modal);
+      const input = await within(modal).findByRole('textbox', {
+        name: /^Saisissez l’identifiant fiscal national/
+      });
       await user.type(input, datafoncierHousing.idlocal);
       await user.click(within(modal).getByText('Confirmer'));
       const alert = await within(modal).findByText(
@@ -207,15 +299,17 @@ describe('Housing list view', () => {
     });
 
     it('should succeed otherwise', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListTabsProvider>
-              <HousingListView />
-            </HousingListTabsProvider>
-          </Router>
-        </Provider>
-      );
+      const auth = genUserDTO();
+
+      renderView({
+        auth,
+        housings: [],
+        owners: [],
+        housingOwners: [],
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const button = await screen.findByRole('button', {
         name: /^Ajouter un logement/
@@ -245,8 +339,33 @@ describe('Housing list view', () => {
   });
 
   describe('Update several housings', () => {
-    it('update occupancies', async () => {
-      setup();
+    it('should update occupancies', async () => {
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+      const group = genGroupDTO(auth);
+
+      renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [group],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const housingTable = await screen.findByRole('table');
       const [checkbox] = await within(housingTable).findAllByRole('checkbox');
@@ -281,43 +400,35 @@ describe('Housing list view', () => {
       expect(alert).toBeVisible();
     });
   });
-  
+
   describe('Group creation', () => {
-    function renderView() {
-      const router = createMemoryRouter(
-        [
-          {
-            path: '/parc-de-logements',
-            element: (
-              <HousingListTabsProvider>
-                <HousingListView />
-              </HousingListTabsProvider>
-            )
-          },
-          { path: '/groupes/:id', element: <GroupView /> }
-        ],
-        {
-          initialEntries: ['/parc-de-logements']
-        }
-      );
-      render(
-        <Provider store={store}>
-          <RouterProvider router={router} />
-        </Provider>
-      );
-
-      return {
-        router
-      };
-    }
-
     it('should add housings to an existing group', async () => {
-      const creator = genUserDTO();
-      data.users.push(creator);
-      const group = genGroupDTO(creator);
-      data.groups.push(group);
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+      const group = genGroupDTO(auth);
 
-      const { router } = renderView();
+      const { router } = renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [group],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
@@ -359,7 +470,32 @@ describe('Housing list view', () => {
     it.todo('should add housings to a new group');
 
     it('should go back to the first step', async () => {
-      renderView();
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+      const group = genGroupDTO(auth);
+
+      renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [group],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
@@ -385,7 +521,32 @@ describe('Housing list view', () => {
     });
 
     it('should go back to the previous step', async () => {
-      renderView();
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+      const group = genGroupDTO(auth);
+
+      renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [group],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
@@ -415,7 +576,32 @@ describe('Housing list view', () => {
     });
 
     it('should create a new group', async () => {
-      const { router } = renderView();
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+      const group = genGroupDTO(auth);
+
+      const { router } = renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [group],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
@@ -452,7 +638,17 @@ describe('Housing list view', () => {
     it.todo('should require a title and a description');
 
     it('should display an alert if trying to export without selecting housings', async () => {
-      renderView();
+      const auth = genUserDTO();
+
+      renderView({
+        auth,
+        housings: [],
+        owners: [],
+        housingOwners: [],
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const exportOrContact = await screen.findByRole('button', {
         name: 'Exporter ou contacter'
@@ -464,34 +660,32 @@ describe('Housing list view', () => {
   });
 
   describe('Campaign creation', () => {
-    function renderView() {
-      const router = createMemoryRouter(
-        [
-          {
-            path: '/parc-de-logements',
-            element: (
-              <HousingListTabsProvider>
-                <HousingListView />
-              </HousingListTabsProvider>
-            )
-          },
-          { path: '/campagnes/:id', element: <CampaignView /> }
-        ],
-        { initialEntries: ['/parc-de-logements'] }
-      );
-      render(
-        <Provider store={store}>
-          <RouterProvider router={router} />
-        </Provider>
-      );
-
-      return {
-        router
-      };
-    }
-
     it('should create a campaign', async () => {
-      const { router } = renderView();
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+
+      const { router } = renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
@@ -541,7 +735,31 @@ describe('Housing list view', () => {
     });
 
     it('should require a title', async () => {
-      renderView();
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+
+      renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
@@ -585,7 +803,31 @@ describe('Housing list view', () => {
     });
 
     it('should restrict require the description', async () => {
-      renderView();
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+
+      renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
@@ -633,7 +875,31 @@ describe('Housing list view', () => {
     });
 
     it('should restrict the title to 64 characters', async () => {
-      renderView();
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+
+      renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
@@ -681,7 +947,31 @@ describe('Housing list view', () => {
     });
 
     it('should restrict the description to 1000 characters', async () => {
-      renderView();
+      const auth = genUserDTO(UserRole.USUAL);
+      const owners = faker.helpers.multiple(() => genOwnerDTO());
+      const housings = faker.helpers.multiple(() => genHousingDTO(null));
+      const housingOwners = housings.flatMap((housing) => {
+        const subset = faker.helpers.arrayElements(owners, {
+          min: 1,
+          max: ACTIVE_OWNER_RANKS.length
+        });
+        return subset.map((owner, i) => ({
+          ...genHousingOwnerDTO(owner),
+          housingId: housing.id,
+          ownerId: owner.id,
+          rank: ACTIVE_OWNER_RANKS[i]
+        }));
+      });
+
+      renderView({
+        auth,
+        housings,
+        owners,
+        housingOwners,
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const panel = await screen.findByRole('tabpanel', {
         name: /Tous/
@@ -738,30 +1028,34 @@ describe('Housing list view', () => {
 
   describe('Housing tabs', () => {
     it('should select a default tab', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListTabsProvider>
-              <HousingListView />
-            </HousingListTabsProvider>
-          </Router>
-        </Provider>
-      );
+      const auth = genUserDTO();
+
+      renderView({
+        auth,
+        housings: [],
+        owners: [],
+        housingOwners: [],
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const tab = await screen.findByRole('tab', { selected: true });
       expect(tab).toHaveTextContent(/^Tous/);
     });
 
     it('should open another tab', async () => {
-      render(
-        <Provider store={store}>
-          <Router>
-            <HousingListTabsProvider>
-              <HousingListView />
-            </HousingListTabsProvider>
-          </Router>
-        </Provider>
-      );
+      const auth = genUserDTO();
+
+      renderView({
+        auth,
+        housings: [],
+        owners: [],
+        housingOwners: [],
+        groups: [],
+        campaigns: [],
+        campaignHousings: []
+      });
 
       const tab = await screen.findByRole('tab', {
         selected: false,
@@ -773,36 +1067,19 @@ describe('Housing list view', () => {
   });
 
   describe('Filters', () => {
-    function renderView() {
-      const router = createMemoryRouter(
-        [
-          {
-            path: '/parc-de-logements',
-            element: (
-              <HousingListTabsProvider>
-                <HousingListView />
-              </HousingListTabsProvider>
-            )
-          }
-        ],
-        {
-          initialEntries: ['/parc-de-logements']
-        }
-      );
-      render(
-        <Provider store={store}>
-          <RouterProvider router={router} />
-        </Provider>
-      );
-
-      return {
-        router
-      };
-    }
-
     describe('Status filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Mobilisation'
@@ -823,7 +1100,17 @@ describe('Housing list view', () => {
 
     describe('Substatus filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Mobilisation'
@@ -856,44 +1143,54 @@ describe('Housing list view', () => {
     });
 
     describe('Campaign filter', () => {
-      const campaigns: ReadonlyArray<CampaignDTO> = CAMPAIGN_STATUS_VALUES.map(
-        (status) => {
-          return Array.from({ length: 3 }, () => genCampaignDTO()).map(
-            (campaign) => ({ ...campaign, status })
-          );
-        }
-      ).flat();
-
-      beforeAll(() => {
-        data.campaigns.push(...campaigns);
-        const owner = genOwnerDTO();
-        data.owners.push(owner);
-        campaigns.forEach((campaign) => {
-          const housings = Array.from({ length: 3 }, () =>
-            genHousingDTO(owner)
-          );
-          data.housings.push(...housings);
-          housings.forEach((housing) => {
-            data.housingCampaigns.set(housing.id, [campaign]);
-            data.housingOwners.set(housing.id, [
-              {
-                id: owner.id,
-                rank: 1,
-                idprodroit: null,
-                idprocpte: null,
-                locprop: null,
-                propertyRight: null
-              }
-            ]);
-          });
-          data.campaignHousings.set(campaign.id, housings);
-        });
-      });
-
       it('should filter by a single campaign', async () => {
-        renderView();
+        const auth = genUserDTO();
+        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+          count: 10
+        });
+        const owners = faker.helpers.multiple(() => genOwnerDTO(), {
+          count: housings.length
+        });
+        const housingOwners = housings.flatMap((housing, i) => {
+          const owner = owners[i];
+          return {
+            ...genHousingOwnerDTO(owner),
+            housingId: housing.id,
+            ownerId: owner.id,
+            rank: 1
+          };
+        });
+        const campaigns = faker.helpers.multiple(() => genCampaignDTO());
+        const campaignHousings = campaigns.map((campaign) => ({
+          campaign,
+          housings: faker.helpers.arrayElements(housings, 2)
+        }));
+
+        renderView({
+          auth,
+          housings,
+          owners,
+          housingOwners,
+          groups: [],
+          campaigns,
+          campaignHousings
+        });
 
         const [campaign] = campaigns;
+        const filteredHousings = data.campaignHousings.get(campaign.id) ?? [];
+        const filteredOwners = pipe(
+          filteredHousings,
+          Array.map((filteredHousing) => {
+            return (
+              data.housingOwners
+                .get(filteredHousing.id)
+                ?.find(isPrimaryOwner) ?? null
+            );
+          }),
+          Array.filter(Predicate.isNotNull),
+          Array.dedupeWith((a, b) => a.id === b.id)
+        );
+
         const mobilization = await screen.findByRole('button', {
           name: 'Mobilisation'
         });
@@ -910,13 +1207,43 @@ describe('Housing list view', () => {
           name: /^Tous/
         });
         const count = await within(panel).findByText(
-          /^\d+ logements \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
+          `${filteredHousings.length} logements (${filteredOwners.length} propriétaires) filtrés sur un total de ${housings.length} logements`
         );
         expect(count).toBeVisible();
       });
 
       it('should filter by several campaigns', async () => {
-        renderView();
+        const auth = genUserDTO(UserRole.USUAL);
+        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+          count: 10
+        });
+        const owners = faker.helpers.multiple(() => genOwnerDTO(), {
+          count: housings.length
+        });
+        const housingOwners = housings.flatMap((housing, i) => {
+          const owner = owners[i];
+          return {
+            ...genHousingOwnerDTO(owner),
+            housingId: housing.id,
+            ownerId: owner.id,
+            rank: i as OwnerRank
+          };
+        });
+        const campaigns = faker.helpers.multiple(() => genCampaignDTO());
+        const campaignHousings = campaigns.map((campaign) => ({
+          campaign,
+          housings: faker.helpers.arrayElements(housings, 2)
+        }));
+
+        renderView({
+          auth,
+          housings,
+          owners,
+          housingOwners,
+          groups: [],
+          campaigns,
+          campaignHousings
+        });
 
         const mobilization = await screen.findByRole('button', {
           name: 'Mobilisation'
@@ -926,7 +1253,7 @@ describe('Housing list view', () => {
         await user.click(filter);
         const options = await screen.findByRole('listbox');
         const slice = campaigns.slice(0, 2);
-        await async.forEachSeries(slice as CampaignDTO[], async (campaign) => {
+        await async.forEachSeries(slice, async (campaign) => {
           const option = await within(options).findByText(campaign.title);
           await user.click(option);
         });
@@ -934,14 +1261,54 @@ describe('Housing list view', () => {
         const panel = await screen.findByRole('tabpanel', {
           name: /^Tous/
         });
+        const filteredHousings = pipe(
+          slice,
+          Array.flatMap(
+            (campaign) => data.campaignHousings.get(campaign.id) ?? []
+          )
+        );
         const count = await within(panel).findByText(
-          /^(\d+|un) logements? \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
+          `${filteredHousings.length} logements (${filteredHousings.length} propriétaires) filtrés sur un total de ${housings.length} logements`
         );
         expect(count).toBeVisible();
       });
 
       it('should remove the filter by campaigns', async () => {
-        renderView();
+        const auth = genUserDTO(UserRole.USUAL);
+        const housings = faker.helpers.multiple(
+          () => genHousingDTO(genOwnerDTO()),
+          { count: 10 }
+        );
+        const owners = faker.helpers.multiple(() => genOwnerDTO(), {
+          count: housings.length
+        });
+        const housingOwners = housings.flatMap((housing, i) => {
+          const owner = owners[i];
+          return {
+            ...genHousingOwnerDTO(owner),
+            housingId: housing.id,
+            ownerId: owner.id,
+            rank: 1 as const
+          };
+        });
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
+          ...genCampaignDTO(),
+          status
+        }));
+        const campaignHousings = campaigns.map((campaign) => ({
+          campaign,
+          housings: faker.helpers.arrayElements(housings, 2)
+        }));
+
+        renderView({
+          auth,
+          housings,
+          owners,
+          housingOwners,
+          groups: [],
+          campaigns,
+          campaignHousings
+        });
 
         const mobilization = await screen.findByRole('button', {
           name: 'Mobilisation'
@@ -956,18 +1323,28 @@ describe('Housing list view', () => {
         let listbox = await screen.findByRole('listbox', {
           name: /^Campagne/
         });
-        const options = campaigns
-          .slice(0, 3)
-          .map((campaign) => within(listbox).getByText(campaign.title));
-        await async.forEachSeries(options, async (option) => {
-          await user.click(option);
-        });
+        const [campaign] = campaigns;
+        let option = within(listbox).getByText(campaign.title);
+        await user.click(option);
         await user.keyboard('{Escape}');
         const panel = await screen.findByRole('tabpanel', {
           name: /Tous/
         });
+        const filteredHousings = data.campaignHousings.get(campaign.id) ?? [];
+        const filteredOwners = pipe(
+          filteredHousings,
+          Array.map((filteredHousing) => {
+            return (
+              data.housingOwners
+                .get(filteredHousing.id)
+                ?.find(isPrimaryOwner) ?? null
+            );
+          }),
+          Array.filter(Predicate.isNotNull),
+          Array.dedupeWith((a, b) => a.id === b.id)
+        );
         let count = await within(panel).findByText(
-          /^(\d+|un) logements? \((\d+|un) propriétaires?\) filtrés sur un total de \d+ logements$/
+          `${filteredHousings.length} logements (${filteredOwners.length} propriétaires) filtrés sur un total de ${housings.length} logements`
         );
         expect(count).toBeVisible();
 
@@ -976,23 +1353,51 @@ describe('Housing list view', () => {
         listbox = await screen.findByRole('listbox', {
           name: /^Campagne/
         });
-        const selectedOptions = await within(listbox).findAllByRole('option', {
-          selected: true
-        });
-        await async.forEachSeries(selectedOptions, async (option) => {
-          await user.click(option);
-        });
+        option = within(listbox).getByText(campaign.title);
+        await user.click(option);
         await user.keyboard('{Escape}');
         count = await within(panel).findByText(
-          /^(\d+|un) logements? \((\d+|un) propriétaires?\)$/
+          `${housings.length} logements (${owners.length} propriétaires)`
         );
         expect(count).toBeVisible();
       });
 
       it('should filter by a status', async () => {
         const status: CampaignStatus = 'draft';
+        const auth = genUserDTO();
+        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+          count: 10
+        });
+        const owners = faker.helpers.multiple(() => genOwnerDTO(), {
+          count: housings.length
+        });
+        const housingOwners = housings.flatMap((housing, i) => {
+          const owner = owners[i];
+          return {
+            ...genHousingOwnerDTO(owner),
+            housingId: housing.id,
+            ownerId: owner.id,
+            rank: 1 as const
+          };
+        });
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
+          ...genCampaignDTO(),
+          status
+        }));
+        const campaignHousings = campaigns.map((campaign) => ({
+          campaign,
+          housings: faker.helpers.arrayElements(housings, 2)
+        }));
 
-        renderView();
+        renderView({
+          auth,
+          housings,
+          owners,
+          housingOwners,
+          groups: [],
+          campaigns,
+          campaignHousings
+        });
 
         const mobilization = await screen.findByRole('button', {
           name: 'Mobilisation'
@@ -1009,16 +1414,57 @@ describe('Housing list view', () => {
         const panel = await screen.findByRole('tabpanel', {
           name: /^Tous/
         });
+        const filteredHousings = pipe(
+          campaigns,
+          Array.filter((campaign) => campaign.status === status),
+          Array.flatMap((campaign) => {
+            return data.campaignHousings.get(campaign.id) ?? [];
+          }),
+          Array.dedupeWith((a, b) => a.id === b.id)
+        );
         const count = await within(panel).findByText(
-          /^(\d+|un) logements? \(\d+ propriétaires\) filtrés sur un total de \d+ logements$/
+          `${filteredHousings.length} logements (${filteredHousings.length} propriétaires) filtrés sur un total de ${housings.length} logements`
         );
         expect(count).toBeVisible();
       });
 
       it('should remove the filter by status', async () => {
         const status: CampaignStatus = 'draft';
+        const auth = genUserDTO();
+        const owners = faker.helpers.multiple(() => genOwnerDTO());
+        const housings = faker.helpers.multiple(() => genHousingDTO(null), {
+          count: 10
+        });
+        const housingOwners = housings.flatMap((housing) => {
+          const subset = faker.helpers.arrayElements(owners, {
+            min: 1,
+            max: ACTIVE_OWNER_RANKS.length
+          });
+          return subset.map((owner, i) => ({
+            ...genHousingOwnerDTO(owner),
+            housingId: housing.id,
+            ownerId: owner.id,
+            rank: ACTIVE_OWNER_RANKS[i]
+          }));
+        });
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
+          ...genCampaignDTO(),
+          status
+        }));
+        const campaignHousings = campaigns.map((campaign) => ({
+          campaign,
+          housings: faker.helpers.arrayElements(housings, 2)
+        }));
 
-        renderView();
+        renderView({
+          auth,
+          housings,
+          owners,
+          housingOwners,
+          groups: [],
+          campaigns,
+          campaignHousings
+        });
 
         // Select an option
         const mobilization = await screen.findByRole('button', {
@@ -1059,8 +1505,43 @@ describe('Housing list view', () => {
 
       it('should select a status and its campaigns if at least one of the campaigns is not selected', async () => {
         const status: CampaignStatus = 'draft';
+        const auth = genUserDTO();
+        const housings = faker.helpers.multiple(() => genHousingDTO(null));
+        const owners = faker.helpers.multiple(() => genOwnerDTO(), {
+          count: housings.length
+        });
+        const housingOwners = housings.flatMap((housing, i) => {
+          const owner = owners[i];
+          return {
+            ...genHousingOwnerDTO(owner),
+            housingId: housing.id,
+            ownerId: owner.id,
+            rank: 1 as const
+          };
+        });
+        const campaigns = faker.helpers.multiple(() => genCampaignDTO(), {
+          count: {
+            min: 2,
+            max: 5
+          }
+        });
+        const campaignHousings = campaigns.map((campaign) => ({
+          campaign,
+          housings: faker.helpers.arrayElements(housings, {
+            min: 1,
+            max: housings.length
+          })
+        }));
 
-        renderView();
+        renderView({
+          auth,
+          housings,
+          owners,
+          housingOwners,
+          groups: [],
+          campaigns,
+          campaignHousings
+        });
 
         const mobilization = await screen.findByRole('button', {
           name: /^Mobilisation/
@@ -1074,7 +1555,7 @@ describe('Housing list view', () => {
         );
         // Select the status
         await user.click(option);
-        data.campaigns
+        campaigns
           .filter((campaign) => campaign.status === status)
           .map((campaign) => {
             return within(options).getByRole('checkbox', {
@@ -1088,8 +1569,39 @@ describe('Housing list view', () => {
 
       it('should unselect a status and its campaigns if all the campaigns of this status are selected', async () => {
         const status: CampaignStatus = 'draft';
+        const auth = genUserDTO();
+        const owners = faker.helpers.multiple(() => genOwnerDTO());
+        const housings = faker.helpers.multiple(() => genHousingDTO(null));
+        const housingOwners = housings.flatMap((housing) => {
+          const subset = faker.helpers.arrayElements(owners, {
+            min: 1,
+            max: ACTIVE_OWNER_RANKS.length
+          });
+          return subset.map((owner, i) => ({
+            ...genHousingOwnerDTO(owner),
+            housingId: housing.id,
+            ownerId: owner.id,
+            rank: ACTIVE_OWNER_RANKS[i]
+          }));
+        });
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
+          ...genCampaignDTO(),
+          status
+        }));
+        const campaignHousings = campaigns.map((campaign) => ({
+          campaign,
+          housings: faker.helpers.arrayElements(housings, 2)
+        }));
 
-        renderView();
+        renderView({
+          auth,
+          housings,
+          owners,
+          housingOwners,
+          groups: [],
+          campaigns,
+          campaignHousings
+        });
 
         const filter = await screen.findByLabelText(/^Campagne/);
         await user.click(filter);
@@ -1098,7 +1610,7 @@ describe('Housing list view', () => {
           CAMPAIGN_STATUS_LABELS[status]
         );
         await user.click(option);
-        const checkboxes = data.campaigns
+        const checkboxes = campaigns
           .filter((campaign) => campaign.status === status)
           .map((campaign) => {
             return within(options).getByRole('checkbox', {
@@ -1115,7 +1627,17 @@ describe('Housing list view', () => {
 
     describe('Vacancy year filter', () => {
       it('should disable the input if `Vacant` is not selected', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: /^Vie du logement$/,
@@ -1129,7 +1651,17 @@ describe('Housing list view', () => {
       });
 
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Vie du logement'
@@ -1163,7 +1695,17 @@ describe('Housing list view', () => {
 
     describe('Housing kind filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: /^Logement/
@@ -1183,7 +1725,17 @@ describe('Housing list view', () => {
 
     describe('Locality kind filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Localisation'
@@ -1210,7 +1762,17 @@ describe('Housing list view', () => {
 
     describe('Housing count filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Bâtiment/DPE'
@@ -1235,7 +1797,17 @@ describe('Housing list view', () => {
 
     describe('Vacancy rate filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Bâtiment/DPE'
@@ -1257,7 +1829,17 @@ describe('Housing list view', () => {
 
     describe('Energy consumption filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Bâtiment/DPE'
@@ -1280,7 +1862,17 @@ describe('Housing list view', () => {
 
     describe('Building period filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Bâtiment/DPE'
@@ -1305,7 +1897,17 @@ describe('Housing list view', () => {
 
     describe('Surface filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Logement'
@@ -1328,7 +1930,17 @@ describe('Housing list view', () => {
 
     describe('Room count filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Logement'
@@ -1351,7 +1963,17 @@ describe('Housing list view', () => {
 
     describe('Cadastral classification filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Logement'
@@ -1376,7 +1998,17 @@ describe('Housing list view', () => {
 
     describe('Ownership kind filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Bâtiment/DPE'
@@ -1401,7 +2033,17 @@ describe('Housing list view', () => {
 
     describe('Owner kind filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Propriétaires'
@@ -1426,7 +2068,17 @@ describe('Housing list view', () => {
 
     describe('Owner age filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Propriétaires'
@@ -1449,7 +2101,17 @@ describe('Housing list view', () => {
 
     describe('Multi-owner filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Propriétaires'
@@ -1472,7 +2134,17 @@ describe('Housing list view', () => {
 
     describe('Secondary owner filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Propriétaires'
@@ -1497,7 +2169,17 @@ describe('Housing list view', () => {
 
     describe('Included data file years filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Fichiers sources'
@@ -1522,7 +2204,17 @@ describe('Housing list view', () => {
 
     describe('Excluded data file years filter', () => {
       it('should display a badge', async () => {
-        renderView();
+        const auth = genUserDTO();
+
+        renderView({
+          auth,
+          housings: [],
+          owners: [],
+          housingOwners: [],
+          groups: [],
+          campaigns: [],
+          campaignHousings: []
+        });
 
         const accordion = await screen.findByRole('button', {
           name: 'Fichiers sources'

@@ -11,7 +11,8 @@ import type {
 } from '@zerologementvacant/models';
 import {
   genHousingDTO,
-  genOwnerDTO
+  genOwnerDTO,
+  genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { Array, pipe, Struct } from 'effect';
 import { constants } from 'http2';
@@ -89,8 +90,7 @@ export const housingHandlers: RequestHandler[] = [
 
       const owners: number = pipe(
         subset,
-        Array.map((housing) => housing.owner),
-        Array.filter((owner) => owner !== null),
+        Array.flatMap((housing) => data.housingOwners.get(housing.id) ?? []),
         Array.dedupeWith((a, b) => a.id === b.id),
         Array.length
       );
@@ -151,7 +151,7 @@ export const housingHandlers: RequestHandler[] = [
       const payload = await request.json();
 
       // Get a random user, for now
-      const user = faker.helpers.arrayElement(data.users);
+      const user = faker.helpers.arrayElement(data.users) ?? genUserDTO();
       const housings = pipe(data.housings);
 
       housings.forEach((housing) => {

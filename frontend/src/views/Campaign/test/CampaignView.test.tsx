@@ -22,29 +22,32 @@ import { sources } from '../../../../test/event-source-mock';
 import Notification from '../../../components/Notification/Notification';
 
 import data from '../../../mocks/handlers/data';
-import { AppStore } from '../../../store/store';
 import config from '../../../utils/config';
 
 import configureTestStore from '../../../utils/test/storeUtils';
 import CampaignView from '../CampaignView';
 
+interface RenderViewOptions {
+  campaign: CampaignDTO;
+  sender?: SenderDTO;
+  draft?: DraftDTO;
+  owner?: OwnerDTO;
+  housings?: ReadonlyArray<HousingDTO>;
+}
+
 describe('Campaign view', () => {
   const user = userEvent.setup();
 
-  let campaign: CampaignDTO;
-  let sender: SenderDTO;
-  let draft: DraftDTO;
-  let owner: OwnerDTO;
-  let housings: HousingDTO[];
-
-  let store: AppStore;
+  const campaign: CampaignDTO = {
+    ...genCampaignDTO(),
+    status: 'draft'
+  };
+  const sender: SenderDTO = genSenderDTO();
+  const draft: DraftDTO = genDraftDTO(sender);
+  const owner = genOwnerDTO();
+  const housings = faker.helpers.multiple(() => genHousingDTO(owner));
 
   beforeEach(() => {
-    campaign = genCampaignDTO();
-    sender = genSenderDTO();
-    draft = genDraftDTO(sender);
-    owner = genOwnerDTO();
-
     owner.banAddress = {
       street: '1 rue de la vallée',
       postalCode: '85130',
@@ -54,25 +57,46 @@ describe('Campaign view', () => {
       label: 'Home Address',
       score: 0.7
     };
-
-    housings = Array.from({ length: 3 }, () => genHousingDTO(owner));
-
-    data.housings.push(...housings);
-    data.campaigns.push(campaign);
-    housings.forEach((housing) => {
-      data.campaignHousings.set(campaign.id, housings);
-      data.housingCampaigns.set(housing.id, [campaign]);
-    });
-    data.drafts.push(draft);
-    data.campaignDrafts.set(campaign.id, [draft]);
-    data.draftCampaigns.set(draft.id, campaign);
   });
 
-  beforeEach(() => {
-    store = configureTestStore();
-  });
+  function renderView(options: RenderViewOptions): void {
+    data.campaigns.push(options.campaign);
+
+    if (options.housings) {
+      data.housings.push(...options.housings);
+      data.campaignHousings.set(options.campaign.id, options.housings);
+      options.housings.forEach((housing) => {
+        const existingCampaigns = data.housingCampaigns.get(housing.id) ?? [];
+        data.housingCampaigns.set(housing.id, [
+          ...existingCampaigns,
+          options.campaign
+        ]);
+      });
+    }
+
+    if (options.draft) {
+      data.drafts.push(options.draft);
+      data.campaignDrafts.set(options.campaign.id, [options.draft]);
+      data.draftCampaigns.set(options.draft.id, options.campaign);
+    }
+
+    const store = configureTestStore();
+    const router = createMemoryRouter(
+      [{ path: '/campagnes/:id', element: <CampaignView /> }],
+      {
+        initialEntries: [`/campagnes/${options.campaign.id}`]
+      }
+    );
+    render(
+      <Provider store={store}>
+        <Notification />
+        <RouterProvider router={router} />
+      </Provider>
+    );
+  }
 
   it('should display "Page non trouvée" if the campaign does not exist', async () => {
+    const store = configureTestStore();
     const router = createMemoryRouter(
       [{ path: '/campagnes/:id', element: <CampaignView /> }],
       {
@@ -90,23 +114,8 @@ describe('Campaign view', () => {
     expect(page).toBeVisible();
   });
 
-  function renderComponent(): void {
-    const router = createMemoryRouter(
-      [{ path: '/campagnes/:id', element: <CampaignView /> }],
-      {
-        initialEntries: [`/campagnes/${campaign.id}`]
-      }
-    );
-    render(
-      <Provider store={store}>
-        <Notification />
-        <RouterProvider router={router} />
-      </Provider>
-    );
-  }
-
   it('should render', async () => {
-    renderComponent();
+    renderView({ campaign, housings, draft });
 
     const title = await screen.findByRole('heading', { name: campaign.title });
     expect(title).toBeVisible();
@@ -115,7 +124,7 @@ describe('Campaign view', () => {
   it('should rename the campaign', async () => {
     const title = 'New title';
 
-    renderComponent();
+    renderView({ campaign, housings, draft });
 
     const rename = await screen.findByRole('button', {
       name: /^Modifier le nom/
@@ -138,8 +147,9 @@ describe('Campaign view', () => {
   it('should confirm a recipient removal', async () => {
     const index = housings.length - 1;
     const housing = housings[index];
+    campaign.status = 'draft';
 
-    renderComponent();
+    renderView({ campaign, housings, draft });
 
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
@@ -164,7 +174,9 @@ describe('Campaign view', () => {
   });
 
   it('should save the draft if at least one field is filled', async () => {
-    renderComponent();
+    campaign.status = 'draft';
+
+    renderView({ campaign, housings, draft });
 
     const form = await screen.findByRole('form');
     const name = await within(form).findByLabelText(
@@ -180,7 +192,7 @@ describe('Campaign view', () => {
   });
 
   it.skip('should update the draft on button click', async () => {
-    renderComponent();
+    renderView({ campaign, housings, draft });
 
     // Fill the form
     const form = await screen.findByRole('form');
@@ -254,7 +266,12 @@ describe('Campaign view', () => {
   });
 
   it('should validate the campaign', async () => {
-    renderComponent();
+    const campaign: CampaignDTO = {
+      ...genCampaignDTO(),
+      status: 'draft'
+    };
+
+    renderView({ campaign, housings, draft });
 
     const send = await screen.findByRole('button', {
       name: /^Valider et passer au téléchargement/
@@ -270,7 +287,12 @@ describe('Campaign view', () => {
   });
 
   it('should edit a recipient’s address', async () => {
-    renderComponent();
+    const campaign: CampaignDTO = {
+      ...genCampaignDTO(),
+      status: 'draft'
+    };
+
+    renderView({ campaign, housings, draft });
 
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
     await user.click(tab);
@@ -289,8 +311,13 @@ describe('Campaign view', () => {
     await user.click(save);
   });
 
-  it("should dismiss the warning message when the user clicks the 'Ignore' button while editing the recipient’s address", async () => {
-    renderComponent();
+  it("should dismiss the warning message when the user clicks the 'Ignore' button while editing the recipient's address", async () => {
+    const campaign: CampaignDTO = {
+      ...genCampaignDTO(),
+      status: 'draft'
+    };
+
+    renderView({ campaign, housings, draft });
     localStorage.clear();
 
     const tab = await screen.findByRole('tab', { name: /^Destinataires/ });
@@ -307,12 +334,16 @@ describe('Campaign view', () => {
   });
 
   it('should update the page when the campaign has been generated', async () => {
-    const campaign: CampaignDTO = { ...genCampaignDTO(), status: 'sending' };
-    data.campaigns.push(campaign);
+    const testCampaign: CampaignDTO = {
+      ...genCampaignDTO(),
+      status: 'sending'
+    };
+    data.campaigns.push(testCampaign);
+    const store = configureTestStore();
     const router = createMemoryRouter(
       [{ path: '/campagnes/:id', element: <CampaignView /> }],
       {
-        initialEntries: [`/campagnes/${campaign.id}`]
+        initialEntries: [`/campagnes/${testCampaign.id}`]
       }
     );
 
@@ -326,9 +357,9 @@ describe('Campaign view', () => {
     await screen.findByRole('heading', {
       name: /Téléchargez vos fichiers/
     });
-    campaign.file = faker.image.url();
+    testCampaign.file = faker.image.url();
     const event = new MessageEvent('campaign-generate', {
-      data: JSON.stringify({ id: campaign.id })
+      data: JSON.stringify({ id: testCampaign.id })
     });
     sources.get(`${config.apiEndpoint}/api/sse`)?.emit(event.type, event);
     const title = await screen.findByRole('heading', {

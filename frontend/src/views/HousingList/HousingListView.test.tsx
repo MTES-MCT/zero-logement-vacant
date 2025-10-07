@@ -1519,12 +1519,10 @@ describe('Housing list view', () => {
             rank: 1 as const
           };
         });
-        const campaigns = faker.helpers.multiple(() => genCampaignDTO(), {
-          count: {
-            min: 2,
-            max: 5
-          }
-        });
+        const campaigns = CAMPAIGN_STATUS_VALUES.map((status) => ({
+          ...genCampaignDTO(),
+          status
+        }));
         const campaignHousings = campaigns.map((campaign) => ({
           campaign,
           housings: faker.helpers.arrayElements(housings, {

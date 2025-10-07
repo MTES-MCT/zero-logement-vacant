@@ -44,11 +44,14 @@ describe('Housing owner API', () => {
   });
 
   describe('GET /owners/:id/housings', () => {
-    const testRoute = (id: string) => `/owners/${id}/housings`;
+    const testRoute = (id: string) => `/api/owners/${id}/housings`;
 
-    const housings = faker.helpers.multiple(() => genHousingApi(), {
-      count: { min: 2, max: 5 }
-    });
+    const housings = faker.helpers.multiple(
+      () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+      {
+        count: { min: 2, max: 5 }
+      }
+    );
     const owner = genOwnerApi();
     const housingOwners = housings.map<HousingOwnerApi>((housing) => ({
       ...owner,

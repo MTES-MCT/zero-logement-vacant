@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { Array } from 'effect';
+import { Array, pipe } from 'effect';
 import { MarkRequired } from 'ts-essentials';
 
 import { AddressDTO, AddressKinds } from '../AddressDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
-import { CampaignDTO } from '../CampaignDTO';
+import { CAMPAIGN_STATUS_VALUES, CampaignDTO } from '../CampaignDTO';
 import { DatafoncierHousing } from '../DatafoncierHousing';
 import { DraftDTO } from '../DraftDTO';
 import { ENERGY_CONSUMPTION_VALUES } from '../EnergyConsumption';
@@ -75,7 +75,7 @@ export function genCampaignDTO(group?: GroupDTO): CampaignDTO {
     title: faker.commerce.productName(),
     description: faker.commerce.productDescription(),
     filters: {},
-    status: 'draft',
+    status: faker.helpers.arrayElement(CAMPAIGN_STATUS_VALUES),
     createdAt: faker.date.past().toJSON(),
     groupId: group?.id
   };
@@ -289,15 +289,19 @@ export function genGroupDTO(
     title: faker.commerce.productName(),
     description: faker.lorem.sentence(),
     housingCount: housings?.length ?? 0,
-    ownerCount:
-      Array.dedupeWith(owners ?? [], (a, b) => a.id === b.id).length ?? 0,
+    ownerCount: pipe(
+      owners ?? [],
+      Array.filter((owner) => owner !== null),
+      Array.dedupeWith((a, b) => a.id === b.id),
+      (owners) => owners.length
+    ),
     createdAt: new Date().toJSON(),
     createdBy: creator,
     archivedAt: null
   };
 }
 
-export function genHousingDTO(owner: OwnerDTO): HousingDTO {
+export function genHousingDTO(owner: OwnerDTO | null): HousingDTO {
   // faker.location.zipCode() sometimes returns the department "20"
   const geoCode = faker.helpers.fromRegExp(/[1-9][0-9]{4}/);
   const department = geoCode.substring(0, 2);

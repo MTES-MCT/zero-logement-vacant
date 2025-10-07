@@ -1,17 +1,18 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import {
+import type {
   HousingCountDTO,
   HousingDTO,
   HousingFiltersDTO,
   HousingPayloadDTO,
   HousingUpdatePayloadDTO,
   Paginated,
-  type HousingBatchUpdatePayload,
-  type NoteDTO
+  HousingBatchUpdatePayload,
+  NoteDTO
 } from '@zerologementvacant/models';
 import {
   genHousingDTO,
-  genOwnerDTO
+  genOwnerDTO,
+  genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { Array, pipe, Struct } from 'effect';
 import { constants } from 'http2';
@@ -62,6 +63,7 @@ export const housingHandlers: RequestHandler[] = [
       });
     }
   ),
+
   http.get<Record<string, never>, HousingPayload, HousingCountDTO>(
     `${config.apiEndpoint}/api/housing/count`,
     async ({ request }) => {
@@ -86,10 +88,12 @@ export const housingHandlers: RequestHandler[] = [
         filterByStatus(statuses)
       );
 
-      const owners: number = Array.dedupeWith(
-        subset.map((housing) => housing.owner),
-        (a, b) => a.id === b.id
-      ).length;
+      const owners: number = pipe(
+        subset,
+        Array.flatMap((housing) => data.housingOwners.get(housing.id) ?? []),
+        Array.dedupeWith((a, b) => a.id === b.id),
+        Array.length
+      );
 
       return HttpResponse.json({
         housing: subset.length,
@@ -140,7 +144,6 @@ export const housingHandlers: RequestHandler[] = [
       });
     }
   ),
-
   // Bulk update housings
   http.put<never, HousingBatchUpdatePayload, ReadonlyArray<HousingDTO>>(
     `${config.apiEndpoint}/api/housing`,
@@ -148,7 +151,7 @@ export const housingHandlers: RequestHandler[] = [
       const payload = await request.json();
 
       // Get a random user, for now
-      const user = faker.helpers.arrayElement(data.users);
+      const user = faker.helpers.arrayElement(data.users) ?? genUserDTO();
       const housings = pipe(data.housings);
 
       housings.forEach((housing) => {
@@ -179,7 +182,6 @@ export const housingHandlers: RequestHandler[] = [
       return HttpResponse.json(housings);
     }
   ),
-
   // Get a housing by id
   http.get<HousingParams, never, HousingDTO | null | Error>(
     `${config.apiEndpoint}/api/housing/:id`,
@@ -203,29 +205,26 @@ export const housingHandlers: RequestHandler[] = [
       const owner = data.owners.find(
         (owner) => owner.id === mainHousingOwner?.id
       );
-      if (!owner) {
-        return HttpResponse.json(null, {
-          status: constants.HTTP_STATUS_NOT_FOUND
-        });
-      }
       return HttpResponse.json({
         ...housing,
-        owner: Struct.pick(
-          owner,
-          'id',
-          'rawAddress',
-          'fullName',
-          'administrator',
-          'birthDate',
-          'email',
-          'phone',
-          'banAddress',
-          'additionalAddress',
-          'kind',
-          'kindDetail',
-          'createdAt',
-          'updatedAt'
-        )
+        owner: !owner
+          ? null
+          : Struct.pick(
+              owner,
+              'id',
+              'rawAddress',
+              'fullName',
+              'administrator',
+              'birthDate',
+              'email',
+              'phone',
+              'banAddress',
+              'additionalAddress',
+              'kind',
+              'kindDetail',
+              'createdAt',
+              'updatedAt'
+            )
       });
     }
   ),

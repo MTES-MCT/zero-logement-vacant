@@ -3,8 +3,7 @@ import { OwnerDTO } from './OwnerDTO';
 import { PropertyRight } from './PropertyRight';
 
 export interface BaseHousingOwnerDTO {
-  // TODO: move OwnerRank from server/ to models/ and use it here
-  rank: -2 | -1 | 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  rank: OwnerRank;
   idprocpte: string | null;
   idprodroit: string | null;
   locprop: number | null;
@@ -67,6 +66,12 @@ export function isInactiveOwnerRank(
     isIncorrectOwnerRank(rank) ||
     isAwaitingOwnerRank(rank)
   );
+}
+
+export function isPrimaryOwner(
+  housingOwner: Pick<HousingOwnerDTO, 'rank'>
+): boolean {
+  return housingOwner.rank === 1;
 }
 
 export function isSecondaryOwner(

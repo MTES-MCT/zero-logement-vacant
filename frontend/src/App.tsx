@@ -31,6 +31,8 @@ import NotFoundView from './views/NotFoundView';
 import OwnerView from './views/Owner/OwnerView';
 import ResourcesView from './views/Resources/ResourcesView';
 import StatusView from './views/Resources/StatusView';
+import OwnerViewNext from '~/views/Owner/OwnerViewNext';
+import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -60,16 +62,19 @@ const router = sentry.createBrowserRouter(
         <Route path="/groupes/:id" element={<GroupView />} />
         <Route path="/campagnes" element={<CampaignListView />} />
         <Route path="/campagnes/:id" element={<CampaignView />} />
+
         <Route
-          path="/proprietaires/:ownerId/logements/:housingId"
-          element={<HousingView />}
-        />
-        <Route path="/proprietaires/:ownerId" element={<OwnerView />} />
-        <Route
-          path="/logements/:housingId/proprietaires/:ownerId"
-          element={<OwnerView />}
+          path="/proprietaires/:id"
+          element={
+            <FeatureFlagLayout
+              flag="new-housing-owner-pages"
+              then={<OwnerViewNext />}
+              else={<OwnerView />}
+            />
+          }
         />
         <Route path="/logements/:housingId" element={<HousingView />} />
+
         <Route path="/ressources/statuts" element={<StatusView />} />
         <Route path="/ressources" element={<ResourcesView />} />
 

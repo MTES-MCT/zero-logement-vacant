@@ -1,9 +1,11 @@
 import {
   HousingOwnerDTO,
   OwnerRank,
-  PropertyRight
+  PropertyRight,
+  type BaseHousingOwnerDTO
 } from '@zerologementvacant/models';
 import { Equivalence } from 'effect';
+
 import { HousingRecordApi } from './HousingApi';
 import { OwnerApi, toOwnerDTO } from './OwnerApi';
 
@@ -30,6 +32,10 @@ export interface HousingOwnerApi extends OwnerApi {
   locprop?: number | null;
   propertyRight: PropertyRight | null;
 }
+
+export type OwnerHousingApi = BaseHousingOwnerDTO & {
+  housing: HousingRecordApi;
+};
 
 /**
  * Consider two housing owners equivalent

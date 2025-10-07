@@ -227,7 +227,15 @@ async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
     .where(whereOptions(opts))
     .first();
 
-  return housing ? parseHousingApi(housing) : null;
+  return housing
+    ? parseHousingApi({
+        ...housing,
+        owner:
+          opts.includes?.includes('owner') && !housing.owner
+            ? null
+            : housing.owner
+      })
+    : null;
 }
 
 interface SaveOptions {
@@ -286,8 +294,12 @@ function include(includes: HousingInclude[], filters?: HousingFiltersApi) {
   const joins: Record<HousingInclude, (query: Knex.QueryBuilder) => void> = {
     owner: (query) =>
       query
-        .join(housingOwnersTable, ownerHousingJoinClause)
-        .join(ownerTable, `${housingOwnersTable}.owner_id`, `${ownerTable}.id`)
+        .leftJoin(housingOwnersTable, ownerHousingJoinClause)
+        .leftJoin(
+          ownerTable,
+          `${housingOwnersTable}.owner_id`,
+          `${ownerTable}.id`
+        )
         .select(`${ownerTable}.id as owner_id`)
         .select(db.raw(`to_json(${ownerTable}.*) AS owner`))
         .leftJoin({ ban: banAddressesTable }, (join) => {
@@ -926,23 +938,29 @@ function filteredQuery(opts: FilteredQueryOptions) {
             `upper(unaccent(administrator)) like '%' || upper(unaccent(?)) || '%'`,
             query?.split(' ').reverse().join(' ')
           );
-          
+
           // Enhanced address search with FANTOIR normalization
           const housingAddressSearch = createArrayAddressSearchCondition(
-            `${housingTable}.address_dgfip`, 
-            '%', 
-            query, 
+            `${housingTable}.address_dgfip`,
+            '%',
+            query,
             'housing_addr'
           );
-          whereBuilder.orWhereRaw(housingAddressSearch.condition, housingAddressSearch.parameters);
-          
+          whereBuilder.orWhereRaw(
+            housingAddressSearch.condition,
+            housingAddressSearch.parameters
+          );
+
           const ownerAddressSearch = createArrayAddressSearchCondition(
-            `${ownerTable}.address_dgfip`, 
-            '%', 
-            query, 
+            `${ownerTable}.address_dgfip`,
+            '%',
+            query,
             'owner_addr'
           );
-          whereBuilder.orWhereRaw(ownerAddressSearch.condition, ownerAddressSearch.parameters);
+          whereBuilder.orWhereRaw(
+            ownerAddressSearch.condition,
+            ownerAddressSearch.parameters
+          );
         }
         whereBuilder.orWhereIn(
           'invariant',
@@ -1117,13 +1135,10 @@ export interface HousingRecordDBO {
   invariant: string;
   local_id: string;
   building_id: string | null;
-  building_group_id: string | null;
-  plot_id: string | null;
-  geo_code: string;
   address_dgfip: string[];
+  geo_code: string;
   longitude_dgfip: number | null;
   latitude_dgfip: number | null;
-  geolocation: string | null;
   cadastral_classification: number | null;
   uncomfortable: boolean;
   vacancy_start_year: number | null;
@@ -1132,6 +1147,7 @@ export interface HousingRecordDBO {
   living_area: number | null;
   cadastral_reference: string | null;
   building_year: number | null;
+  mutation_date: Date | string | null;
   taxed: boolean | null;
   /**
    * @deprecated See the tables `precisions` and `housing_precisions`
@@ -1141,11 +1157,6 @@ export interface HousingRecordDBO {
    * @deprecated See {@link data_file_years}
    */
   data_years: number[];
-  /**
-   * @example ['ff-2023', 'lovac-2024']
-   */
-  data_file_years: DataFileYear[] | null;
-  data_source: HousingSource | null;
   beneficiary_count: number | null;
   building_location: string | null;
   rental_value: number | null;
@@ -1156,16 +1167,25 @@ export interface HousingRecordDBO {
    * @deprecated See {@link HousingDBO.precisions}
    */
   deprecated_precisions: string[] | null;
-  occupancy: Occupancy;
-  occupancy_source: Occupancy;
-  occupancy_intended: Occupancy | null;
   energy_consumption_bdnb: EnergyConsumption | null;
+  occupancy_source: Occupancy;
+  occupancy: Occupancy;
+  occupancy_intended: Occupancy | null;
+  plot_id: string | null;
   energy_consumption_at_bdnb: Date | string | null;
-  mutation_date: Date | string | null;
-  readonly last_mutation_type: Mutation['type'] | null;
+  building_group_id: string | null;
+  data_source: HousingSource | null;
+  /**
+   * @example ['ff-2023', 'lovac-2024']
+   */
+  data_file_years: DataFileYear[] | null;
+  geolocation: string | null;
+  plot_area: number | null;
   last_mutation_date: Date | string | null;
   last_transaction_date: Date | string | null;
   last_transaction_value: number | null;
+  occupancy_history: string | null;
+  readonly last_mutation_type: Mutation['type'] | null;
 }
 
 export interface HousingDBO extends HousingRecordDBO {
@@ -1173,16 +1193,66 @@ export interface HousingDBO extends HousingRecordDBO {
   vacant_housing_count?: number;
   owner_id: string;
   owner_birth_date?: Date;
-  owner?: OwnerDBO;
+  owner?: OwnerDBO | null;
   owner_ban_address?: AddressDBO;
   locality_kind?: string;
   geo_perimeters?: string[];
   campaign_ids?: string[];
   contact_count?: number;
-  last_contact?: Date | string;
   precisions?: Precision[];
   // TODO: fix and fill this type
 }
+
+export const parseHousingRecordApi = (
+  housing: HousingRecordDBO
+): HousingRecordApi => ({
+  id: housing.id,
+  invariant: housing.invariant,
+  localId: housing.local_id,
+  plotId: housing.plot_id,
+  buildingGroupId: housing.building_group_id,
+  buildingId: housing.building_id,
+  buildingYear: housing.building_year,
+  buildingLocation: housing.building_location,
+  rawAddress: housing.address_dgfip,
+  longitude: housing.longitude_dgfip,
+  latitude: housing.latitude_dgfip,
+  geoCode: housing.geo_code,
+  geolocation: housing.geolocation,
+  cadastralClassification: housing.cadastral_classification,
+  uncomfortable: housing.uncomfortable,
+  vacancyStartYear: housing.vacancy_start_year,
+  housingKind: housing.housing_kind,
+  roomsCount: housing.rooms_count,
+  livingArea: housing.living_area,
+  cadastralReference: housing.cadastral_reference,
+  beneficiaryCount: housing.beneficiary_count,
+  rentalValue: housing.rental_value,
+  taxed: housing.taxed,
+  ownershipKind: housing.condominium,
+  dataYears: housing.data_years,
+  dataFileYears: housing.data_file_years ?? [],
+  source: housing.data_source,
+  status: housing.status,
+  subStatus: housing.sub_status,
+  deprecatedVacancyReasons: housing.deprecated_vacancy_reasons,
+  deprecatedPrecisions: housing.deprecated_precisions,
+  energyConsumption: housing.energy_consumption_bdnb,
+  energyConsumptionAt: housing.energy_consumption_at_bdnb
+    ? new Date(housing.energy_consumption_at_bdnb)
+    : null,
+  occupancy: housing.occupancy,
+  occupancyRegistered: housing.occupancy_source,
+  occupancyIntended: housing.occupancy_intended,
+  lastMutationType: housing.last_mutation_type,
+  lastMutationDate: housing.last_mutation_date
+    ? new Date(housing.last_mutation_date).toJSON()
+    : null,
+  lastTransactionDate: housing.last_transaction_date
+    ? new Date(housing.last_transaction_date).toJSON()
+    : null,
+  lastTransactionValue: housing.last_transaction_value
+});
 
 export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   id: housing.id,
@@ -1238,12 +1308,9 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
         ...housing.owner_ban_address,
         ban: housing.owner_ban_address
       })
-    : undefined,
+    : null,
   campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
   contactCount: Number(housing.contact_count),
-  lastContact: housing.last_contact
-    ? new Date(housing.last_contact)
-    : undefined,
   source: housing.data_source,
   lastMutationType: housing.last_mutation_type,
   lastMutationDate: housing.last_mutation_date
@@ -1255,7 +1322,7 @@ export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
   lastTransactionValue: housing.last_transaction_value
 });
 
-type READ_ONLY_FIELDS = 'last_mutation_type';
+type READ_ONLY_FIELDS = 'last_mutation_type' | 'plot_area' | 'occupancy_history';
 
 export const formatHousingRecordApi = (
   housing: HousingRecordApi

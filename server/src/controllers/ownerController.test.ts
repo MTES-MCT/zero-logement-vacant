@@ -64,8 +64,8 @@ describe('Owner API', () => {
     await Users().insert(formatUserApi(user));
   });
 
-  describe('GET /owners/housing/{id}', () => {
-    const testRoute = (housingId: string) => `/api/owners/housing/${housingId}`;
+  describe('GET /housings/{id}/owners', () => {
+    const testRoute = (id: string) => `/api/housings/${id}/owners`;
 
     const housing = genHousingApi(oneOf(establishment.geoCodes));
     const owners: OwnerApi[] = Array.from({ length: 3 }, () => genOwnerApi());

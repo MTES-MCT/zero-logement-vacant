@@ -8,14 +8,12 @@ import {
 import { Array, Equivalence, Order, pipe } from 'effect';
 import { assert, MarkRequired } from 'ts-essentials';
 
-import OwnerMissingError from '~/errors/ownerMissingError';
-
 import { HousingEventApi, isUserModified } from '~/models/EventApi';
 import { OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
 import { Sort } from '~/models/SortApi';
 import { diff } from '~/utils/diff';
 
-export type HousingId = Pick<HousingRecordApi, 'geoCode' | 'id'>;
+export type HousingId = Pick<HousingDTO, 'geoCode' | 'id'>;
 
 export interface HousingRecordApi extends Omit<HousingDTO, 'owner'> {
   plotId: string | null;
@@ -36,12 +34,11 @@ export interface HousingRecordApi extends Omit<HousingDTO, 'owner'> {
 export interface HousingApi extends HousingRecordApi {
   localityKind?: string | null;
   geoPerimeters?: string[] | null;
-  owner?: OwnerApi;
+  owner?: OwnerApi | null;
   buildingHousingCount?: number | null;
   buildingVacancyRate?: number | null;
   campaignIds?: string[] | null;
   contactCount?: number | null;
-  lastContact?: Date | null;
   /**
    * Added by joining with the `housing_precisions` and `precisions` tables
    */
@@ -49,10 +46,6 @@ export interface HousingApi extends HousingRecordApi {
 }
 
 export function toHousingDTO(housing: HousingApi): HousingDTO {
-  if (!housing.owner) {
-    throw new OwnerMissingError();
-  }
-
   return {
     id: housing.id,
     invariant: housing.invariant,
@@ -84,7 +77,7 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     occupancy: housing.occupancy,
     occupancyIntended: housing.occupancyIntended,
     source: housing.source,
-    owner: toOwnerDTO(housing.owner),
+    owner: housing.owner ? toOwnerDTO(housing.owner) : null,
     lastMutationType: housing.lastMutationType,
     lastMutationDate: housing.lastMutationDate,
     lastTransactionDate: housing.lastTransactionDate,

@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, expect, vi } from 'vitest';
 import { mockAPI } from './src/mocks/mock-api';
 
 import EventSourceMock from './test/event-source-mock';
+import data from './src/mocks/handlers/data';
 
 expect.extend(extended);
 // expect.extend(sorted);
@@ -28,6 +29,7 @@ beforeAll(() => {
 
 afterEach(() => {
   mockAPI.resetHandlers();
+  data.reset();
 });
 
 afterAll(() => {

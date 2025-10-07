@@ -11,11 +11,12 @@ function TerritoryEstablishmentsView() {
   const { establishment } = useUser();
   const { data: establishments, isLoading } = useFindEstablishmentsQuery(
     {
-      available: true,
       active: true,
       related: establishment?.id
     },
-    { skip: !establishment?.id }
+    {
+      skip: !establishment?.id
+    }
   );
 
   return (

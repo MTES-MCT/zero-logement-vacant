@@ -149,9 +149,6 @@ function filter(filters?: EstablishmentFiltersDTO) {
     if (filters?.id) {
       builder.whereIn('id', filters.id);
     }
-    if (filters?.available !== undefined) {
-      builder.where('available', filters.available);
-    }
     if (filters?.active) {
       builder.whereExists((subquery) => {
         subquery
@@ -167,10 +164,12 @@ function filter(filters?: EstablishmentFiltersDTO) {
       builder.whereRaw(likeUnaccent('name', filters.query));
     }
     if (filters?.related) {
-      builder.whereRaw(
-        `localities_geo_code && (SELECT localities_geo_code FROM ${establishmentsTable} WHERE id = ?)`,
-        [filters.related]
-      );
+      builder
+        .where('id', '!=', filters.related)
+        .whereRaw(
+          `localities_geo_code && (SELECT localities_geo_code FROM ${establishmentsTable} WHERE id = ?)`,
+          [filters.related]
+        );
     }
     if (filters?.geoCodes) {
       builder.whereRaw('? && localities_geo_code', [filters.geoCodes]);
@@ -194,6 +193,10 @@ export interface EstablishmentDBO {
   id: string;
   name: string;
   siren: number;
+  /**
+   * @deprecated An establishment is considered available
+   * if it has at least one active user.
+   */
   available: boolean;
   localities_geo_code: string[];
   kind: EstablishmentKind;

@@ -1,14 +1,16 @@
 import { HousingStatus as HousingStatusDTO } from '@zerologementvacant/models';
-import { ReactNode } from 'react';
-import { isDefined } from '../utils/compareUtils';
-import { Housing } from './Housing';
-import { SelectOption } from './SelectOption';
+import type { ReactNode } from 'react';
+
+import type { ColorFamily } from '~/models/ColorFamily';
+import type { Housing } from '~/models/Housing';
+import type { SelectOption } from '~/models/SelectOption';
+import { isDefined } from '~/utils/compareUtils';
 
 export interface HousingState {
   status: HousingStatusDTO;
   title: string;
   subStatusList?: HousingSubStatus[];
-  colorFamily: string;
+  colorFamily: ColorFamily;
   hint?: ReactNode;
 }
 
@@ -80,7 +82,7 @@ export const HousingStates: HousingState[] = [
     status: HousingStatusDTO.BLOCKED,
     title: 'Bloqué',
     hint: 'La situation ne peut pas évoluer à court ou moyen terme.',
-    colorFamily: 'purple-glycine-sun',
+    colorFamily: 'purple-glycine',
     subStatusList: [
       { title: 'Blocage involontaire du propriétaire' },
       { title: 'Blocage volontaire du propriétaire' },

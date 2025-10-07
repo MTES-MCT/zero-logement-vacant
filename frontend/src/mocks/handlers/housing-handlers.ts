@@ -101,24 +101,23 @@ export const housingHandlers: RequestHandler[] = [
       });
     }
   ),
-
-  // Add a housing
-  http.post<never, HousingPayloadDTO, HousingDTO | Error>(
-    `${config.apiEndpoint}/api/housing`,
-    async ({ request }) => {
-      const payload = await request.json();
-      const datafoncierHousing = data.datafoncierHousings.find(
-        (datafoncierHousing) => datafoncierHousing.idlocal === payload.localId
-      );
-      if (!datafoncierHousing) {
-        return HttpResponse.json(
-          {
-            name: 'HousingMissingError',
-            message: `Housing ${payload.localId} missing`
-          },
-          { status: constants.HTTP_STATUS_NOT_FOUND }
+    // Add a housing
+    http.post<never, HousingPayloadDTO, HousingDTO | Error>(
+      `${config.apiEndpoint}/api/housing`,
+      async ({ request }) => {
+        const payload = await request.json();
+        const datafoncierHousing = data.datafoncierHousings.find(
+          (datafoncierHousing) => datafoncierHousing.idlocal === payload.localId
         );
-      }
+        if (!datafoncierHousing) {
+          return HttpResponse.json(
+            {
+              name: 'HousingMissingError',
+              message: `Housing ${payload.localId} missing`
+            },
+            { status: constants.HTTP_STATUS_NOT_FOUND }
+          );
+        }
 
       const owner = genOwnerDTO();
       const housing: HousingDTO = {
@@ -154,30 +153,30 @@ export const housingHandlers: RequestHandler[] = [
       const user = faker.helpers.arrayElement(data.users) ?? genUserDTO();
       const housings = pipe(data.housings);
 
-      housings.forEach((housing) => {
-        housing.occupancy = payload.occupancy ?? housing.occupancy;
-        housing.occupancyIntended =
-          payload.occupancyIntended ?? housing.occupancyIntended;
-        housing.status = payload.status ?? housing.status;
-        housing.subStatus = payload.subStatus ?? housing.subStatus;
+        housings.forEach((housing) => {
+          housing.occupancy = payload.occupancy ?? housing.occupancy;
+          housing.occupancyIntended =
+            payload.occupancyIntended ?? housing.occupancyIntended;
+          housing.status = payload.status ?? housing.status;
+          housing.subStatus = payload.subStatus ?? housing.subStatus;
 
-        if (payload.note) {
-          const note: NoteDTO = {
-            id: faker.string.uuid(),
-            content: payload.note,
-            createdAt: new Date().toJSON(),
-            createdBy: user.id,
-            creator: user,
-            noteKind: 'Note courante',
-            updatedAt: null
-          };
-          data.notes.push(note);
-          const notes = (data.housingNotes.get(housing.id) ?? []).concat(
-            note.id
-          );
-          data.housingNotes.set(housing.id, notes);
-        }
-      });
+          if (payload.note) {
+            const note: NoteDTO = {
+              id: faker.string.uuid(),
+              content: payload.note,
+              createdAt: new Date().toJSON(),
+              createdBy: user.id,
+              creator: user,
+              noteKind: 'Note courante',
+              updatedAt: null
+            };
+            data.notes.push(note);
+            const notes = (data.housingNotes.get(housing.id) ?? []).concat(
+              note.id
+            );
+            data.housingNotes.set(housing.id, notes);
+          }
+        });
 
       return HttpResponse.json(housings);
     }

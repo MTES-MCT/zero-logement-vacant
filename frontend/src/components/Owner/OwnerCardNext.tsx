@@ -18,7 +18,7 @@ import { age, birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
 import LabelNext from '../Label/LabelNext';
-import styles from './owner-card.module.scss';
+import styles from '../OwnerCard/owner-card.module.scss';
 
 interface OwnerCardProps {
   title: string;

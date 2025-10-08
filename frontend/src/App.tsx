@@ -24,6 +24,7 @@ import CampaignListView from './views/Campaign/CampaignListView';
 import CampaignView from './views/Campaign/CampaignView';
 import GroupView from './views/Group/GroupView';
 import HousingView from './views/Housing/HousingView';
+import HousingViewNext from '~/views/Housing/HousingViewNext';
 import HousingListTabsProvider from './views/HousingList/HousingListTabsProvider';
 import HousingListView from './views/HousingList/HousingListView';
 import LoginView from './views/Login/LoginView';
@@ -73,7 +74,16 @@ const router = sentry.createBrowserRouter(
             />
           }
         />
-        <Route path="/logements/:housingId" element={<HousingView />} />
+        <Route
+          path="/logements/:housingId"
+          element={
+            <FeatureFlagLayout
+              flag="new-housing-owner-pages"
+              then={<HousingViewNext />}
+              else={<HousingView />}
+            />
+          }
+        />
 
         <Route path="/ressources/statuts" element={<StatusView />} />
         <Route path="/ressources" element={<ResourcesView />} />

@@ -109,6 +109,11 @@ function HousingList(props: HousingListProps) {
     () => [
       columnHelper.accessor('rawAddress', {
         header: () => <AdvancedTableHeader title="Adresse logement" />,
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell, row }) => {
           return (
             <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
@@ -127,6 +132,11 @@ function HousingList(props: HousingListProps) {
             sort={getSortButton('owner', 'Trier par propriétaire principal')}
           />
         ),
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell, row }) =>
           !row.original.owner ? null : (
             <>
@@ -266,7 +276,10 @@ function HousingList(props: HousingListProps) {
         pageCount={pageCount}
         perPage={perPage}
         selection={selected}
-        tableProps={{ noCaption: true }}
+        tableProps={{
+          noCaption: true,
+          fixedRowHeight: true
+        }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
         onSelectionChange={setSelected}

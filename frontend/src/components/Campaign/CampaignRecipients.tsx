@@ -120,6 +120,11 @@ function CampaignRecipients(props: Props) {
     () => [
       columnHelper.accessor('rawAddress', {
         header: () => <AdvancedTableHeader title="Adresse logement" />,
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell, row }) => {
           return (
             <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
@@ -135,6 +140,11 @@ function CampaignRecipients(props: Props) {
       }),
       columnHelper.accessor('owner.fullName', {
         header: () => <AdvancedTableHeader title="Propriétaire principal" />,
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell, row }) =>
           !row.original.owner ? null : (
             <AppLink
@@ -167,6 +177,11 @@ function CampaignRecipients(props: Props) {
       }),
       columnHelper.accessor('owner.additionalAddress', {
         header: () => <AdvancedTableHeader title="Complément d’adresse" />,
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell }) => (
           <Typography variant="body2">{cell.getValue()}</Typography>
         )
@@ -232,7 +247,7 @@ function CampaignRecipients(props: Props) {
         page={page}
         pageCount={pageCount}
         perPage={perPage}
-        tableProps={{ noCaption: true }}
+        tableProps={{ noCaption: true, size: 'lg' }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
       />

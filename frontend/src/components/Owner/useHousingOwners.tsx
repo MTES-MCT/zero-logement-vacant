@@ -1,3 +1,4 @@
+import { skipToken } from '@reduxjs/toolkit/query';
 import {
   isInactiveOwnerRank,
   isSecondaryOwner
@@ -6,8 +7,8 @@ import {
 import { type Housing } from '~/models/Housing';
 import { useFindOwnersByHousingQuery } from '~/services/owner.service';
 
-export function useHousingOwners(housingId: Housing['id']) {
-  const findOwnersQuery = useFindOwnersByHousingQuery(housingId);
+export function useHousingOwners(housingId: Housing['id'] | typeof skipToken) {
+  const findOwnersQuery = useFindOwnersByHousingQuery(housingId ?? skipToken);
 
   const housingOwners = findOwnersQuery.data;
   const owner = housingOwners?.find((owner) => owner.rank === 1) ?? null;

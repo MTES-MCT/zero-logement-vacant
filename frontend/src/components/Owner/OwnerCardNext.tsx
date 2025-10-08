@@ -3,9 +3,9 @@ import {
   type FrIconClassName,
   type RiIconClassName
 } from '@codegouvfr/react-dsfr';
-import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
+import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -21,8 +21,7 @@ import LabelNext from '../Label/LabelNext';
 import styles from '../OwnerCard/owner-card.module.scss';
 
 interface OwnerCardProps {
-  title: string;
-  subtitle?: string;
+  title?: string;
   owner: Owner | null;
   isLoading: boolean;
   housingCount: number | undefined;
@@ -47,47 +46,37 @@ function OwnerCardNext(props: OwnerCardProps) {
 
   if (!props.owner) {
     return (
-      <Stack sx={{ alignItems: 'center', px: '4rem', textAlign: 'center' }}>
-        <Avatar width="7.5rem" height="7.5rem" />
-        <Typography variant="subtitle2" sx={{ fontWeight: 500, mb: '1rem' }}>
-          Il n’y a pas de propriétaire actuel connu pour ce logement
-        </Typography>
-        <Button
-          priority="secondary"
-          iconId="fr-icon-add-line"
-          onClick={props.onAdd}
-        >
-          Ajouter un propriétaire
-        </Button>
+      <Stack component="section" spacing="1.5rem" useFlexGap>
+        <Stack sx={{ alignItems: 'center', px: '4rem', textAlign: 'center' }}>
+          <Avatar width="7.5rem" height="7.5rem" />
+          <Typography variant="subtitle2" sx={{ fontWeight: 500, mb: '1rem' }}>
+            Il n’y a pas de propriétaire actuel connu pour ce logement
+          </Typography>
+          <Button
+            priority="secondary"
+            iconId="fr-icon-add-line"
+            onClick={props.onAdd}
+          >
+            Ajouter un propriétaire
+          </Button>
+        </Stack>
       </Stack>
     );
   }
 
   return (
-    <Stack component="section">
-      <Stack
-        component="header"
-        direction="row"
-        sx={{ justifyContent: 'space-between', mt: '0.5rem' }}
-        useFlexGap
-      >
-        <Typography component="h2" variant="h5">
-          {props.title}
-        </Typography>
-        {props.modify}
-      </Stack>
-
+    <Stack component="section" spacing="0.5rem" useFlexGap>
       <Stack component="article" spacing="0.75rem">
-        {!props.subtitle ? null : (
+        {!props.title ? null : (
           <Stack component="header">
             <Typography
               component="h3"
               variant="body1"
               sx={{ fontSize: '1.125rem', fontWeight: 700, mb: '0.5rem' }}
             >
-              {props.subtitle}
+              {props.title}
             </Typography>
-            <hr className="fr-pb-1v" />
+            <hr />
           </Stack>
         )}
 

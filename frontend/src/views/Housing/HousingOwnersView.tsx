@@ -6,6 +6,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { Predicate } from 'effect';
 import { useParams } from 'react-router-dom';
 
+import HousingOwnersEmpty from '~/components/HousingOwnersEmpty/HousingOwnersEmpty';
 import HousingOwnerTable from '~/components/Owner/HousingOwnerTable';
 import { useHousingOwners } from '~/components/Owner/useHousingOwners';
 import { useGetHousingQuery } from '~/services/housing.service';
@@ -47,19 +48,30 @@ function HousingOwnersView() {
       </Stack>
 
       <Stack component="section" spacing="1.5rem" useFlexGap>
-        <HousingOwnerTable
-          title="Propriétaires"
-          owners={activeOwners}
-          isLoading={findOwnersQuery.isLoading}
-          columns={['name', 'kind', 'propertyRight', 'rank', 'addressStatus']}
-        />
+        {!activeOwners.length ? (
+          <HousingOwnersEmpty
+            title={`Il n’y a pas de propriétaire${inactiveOwners?.length ? ' actuel' : ''} connu pour ce logement`}
+            buttonProps={{
+              priority: 'primary'
+            }}
+          />
+        ) : (
+          <HousingOwnerTable
+            title="Propriétaires"
+            owners={activeOwners}
+            isLoading={findOwnersQuery.isLoading}
+            columns={['name', 'kind', 'propertyRight', 'rank', 'addressStatus']}
+          />
+        )}
 
-        <HousingOwnerTable
-          title="Propriétaires archivés"
-          owners={inactiveOwners ?? []}
-          isLoading={findOwnersQuery.isLoading}
-          columns={['name', 'kind', 'status']}
-        />
+        {!inactiveOwners?.length ? null : (
+          <HousingOwnerTable
+            title="Propriétaires archivés"
+            owners={inactiveOwners ?? []}
+            isLoading={findOwnersQuery.isLoading}
+            columns={['name', 'kind', 'status']}
+          />
+        )}
       </Stack>
     </Container>
   );

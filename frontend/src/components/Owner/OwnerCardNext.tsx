@@ -5,13 +5,13 @@ import {
 } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { formatAddress } from '@zerologementvacant/models';
 import { type ReactNode, useId } from 'react';
+import HousingOwnersEmpty from '~/components/HousingOwnersEmpty/HousingOwnersEmpty';
 import { isBanEligible } from '../../models/Address';
 import type { Owner } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
@@ -46,21 +46,7 @@ function OwnerCardNext(props: OwnerCardProps) {
 
   if (!props.owner) {
     return (
-      <Stack component="section" spacing="1.5rem" useFlexGap>
-        <Stack sx={{ alignItems: 'center', px: '4rem', textAlign: 'center' }}>
-          <Avatar width="7.5rem" height="7.5rem" />
-          <Typography variant="subtitle2" sx={{ fontWeight: 500, mb: '1rem' }}>
-            Il n’y a pas de propriétaire actuel connu pour ce logement
-          </Typography>
-          <Button
-            priority="secondary"
-            iconId="fr-icon-add-line"
-            onClick={props.onAdd}
-          >
-            Ajouter un propriétaire
-          </Button>
-        </Stack>
-      </Stack>
+      <HousingOwnersEmpty title="Il n’y a pas de propriétaire actuel connu pour ce logement" />
     );
   }
 

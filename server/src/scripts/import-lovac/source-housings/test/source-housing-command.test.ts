@@ -274,7 +274,9 @@ describe('Source housing command', () => {
       ...formatHousingRecordApi(genHousingApi()),
       id: housing.id,
       local_id: housing.local_id,
-      geo_code: housing.geo_code
+      geo_code: housing.geo_code,
+      plot_area: null,
+      occupancy_history: null
     };
 
     await ReadableStream.from([updated]).pipeTo(

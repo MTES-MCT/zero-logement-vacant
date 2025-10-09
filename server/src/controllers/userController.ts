@@ -216,6 +216,33 @@ const update: RequestHandler<PathParams, UserDTO, UserUpdatePayload> = async (
   response.status(constants.HTTP_STATUS_OK).json(toUserDTO(updated));
 };
 
+const remove: RequestHandler<PathParams, void> = async (
+  request,
+  response
+): Promise<void> => {
+  const { user: authUser, params } = request as AuthenticatedRequest<
+    PathParams,
+    void
+  >;
+  logger.info('Remove user', {
+    id: params.id
+  });
+
+  // Only admins can delete users
+  if (!isAdmin(authUser)) {
+    throw new ForbiddenError();
+  }
+
+  const user = await userRepository.get(params.id);
+  if (!user) {
+    throw new UserMissingError(params.id);
+  }
+
+  await userRepository.remove(params.id);
+
+  response.status(constants.HTTP_STATUS_NO_CONTENT).send();
+};
+
 const userIdValidator: ValidationChain[] = [param('userId').isUUID()];
 
 const userController = {
@@ -224,6 +251,7 @@ const userController = {
   create,
   get,
   update,
+  remove,
   userIdValidator
 };
 

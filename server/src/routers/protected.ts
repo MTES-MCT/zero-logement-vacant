@@ -361,6 +361,14 @@ router.put(
   }),
   userController.update
 );
+router.delete(
+  '/users/:id',
+  hasRole([UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  userController.remove
+);
 
 // TODO: should be /geo-perimeters
 router.get('/geo/perimeters', geoController.listGeoPerimeters);

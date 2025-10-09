@@ -1,4 +1,3 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -12,9 +11,9 @@ import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCa
 import { HousingEditionProvider } from '../../components/HousingEdition/useHousingEdition';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import InactiveOwnerList from '../../components/Owner/InactiveOwnerList';
+import OwnerCardNext from '../../components/Owner/OwnerCardNext';
 import SecondaryOwnerList from '../../components/Owner/SecondaryOwnerList';
 import { useHousingOwners } from '../../components/Owner/useHousingOwners';
-import OwnerCardNext from '../../components/Owner/OwnerCardNext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useHousing } from '../../hooks/useHousing';
 import {
@@ -112,37 +111,27 @@ function HousingView() {
                 Propriétaires
               </Typography>
 
-              {housingOwners?.length ? (
-                <Button
-                  iconId="fr-icon-edit-fill"
-                  priority="tertiary"
-                  title="Modifier les propriétaires"
-                >
-                  Modifier
-                </Button>
+              {housingOwners ? (
+                <HousingOwnersModal
+                  housingId={housingId}
+                  housingOwners={housingOwners}
+                  onSubmit={submitHousingOwnersUpdate}
+                  key={housingOwnersModalKey}
+                  onCancel={() =>
+                    setHousingOwnersModalKey(new Date().getTime())
+                  }
+                />
               ) : null}
             </Stack>
 
-            <OwnerCardNext
-              title="Propriétaires"
-              subtitle="Propriétaire principal"
-              owner={owner}
-              isLoading={findOwnersQuery.isLoading}
-              housingCount={count?.housing}
-              modify={
-                housingOwners ? (
-                  <HousingOwnersModal
-                    housingId={housingId}
-                    housingOwners={housingOwners}
-                    onSubmit={submitHousingOwnersUpdate}
-                    key={housingOwnersModalKey}
-                    onCancel={() =>
-                      setHousingOwnersModalKey(new Date().getTime())
-                    }
-                  />
-                ) : null
-              }
-            />
+            <Stack sx={{ mt: '-1.5rem' }}>
+              <OwnerCardNext
+                title="Propriétaire principal"
+                owner={owner}
+                isLoading={findOwnersQuery.isLoading}
+                housingCount={count?.housing}
+              />
+            </Stack>
             <SecondaryOwnerList housingId={housingId} />
             <InactiveOwnerList housingId={housingId} />
           </Grid>

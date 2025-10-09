@@ -26,12 +26,13 @@ const listByOwner: RequestHandler<
   PathParams,
   ReadonlyArray<OwnerHousingDTO>
 > = async (request, response): Promise<void> => {
-  const { params } = request as AuthenticatedRequest<
+  const { establishment, params } = request as AuthenticatedRequest<
     PathParams,
     ReadonlyArray<OwnerHousingDTO>
   >;
   logger.info('List housings by owners', {
-    params
+    params,
+    establishment,
   });
 
   const owner = await ownerRepository.get(params.id);
@@ -39,7 +40,9 @@ const listByOwner: RequestHandler<
     throw new OwnerMissingError(params.id);
   }
 
-  const ownerHousings = await housingOwnerRepository.findByOwner(owner);
+  const ownerHousings = await housingOwnerRepository.findByOwner(owner, {
+    geoCodes: establishment.geoCodes
+  });
 
   response
     .status(constants.HTTP_STATUS_OK)

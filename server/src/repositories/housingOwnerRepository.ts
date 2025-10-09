@@ -16,8 +16,13 @@ export const housingOwnersTable = 'owners_housing';
 export const HousingOwners = (transaction = db) =>
   transaction<HousingOwnerDBO>(housingOwnersTable);
 
+export interface FindByOwnerOptions {
+  geoCodes?: ReadonlyArray<string>;
+}
+
 async function findByOwner(
-  owner: OwnerApi
+  owner: OwnerApi,
+  options?: FindByOwnerOptions
 ): Promise<
   ReadonlyArray<Omit<HousingOwnerApi, keyof OwnerApi> & HousingRecordApi>
 > {
@@ -28,6 +33,14 @@ async function findByOwner(
       .select(`${housingOwnersTable}.*`)
       .where({
         owner_id: owner.id
+      })
+      .modify(query => {
+        if (options?.geoCodes?.length) {
+          query.whereIn(
+            `${housingOwnersTable}.housing_geo_code`,
+            options.geoCodes
+          );
+        }
       })
       .join(housingTable, (join) => {
         join

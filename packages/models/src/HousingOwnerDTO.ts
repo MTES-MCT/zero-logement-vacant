@@ -15,6 +15,7 @@ export type OwnerHousingDTO = BaseHousingOwnerDTO & HousingDTO;
 
 export type HousingOwnerPayloadDTO = BaseHousingOwnerDTO & Pick<OwnerDTO, 'id'>;
 
+export const DECEASED_OWNER_RANK = -3 as const;
 export const AWAITING_OWNER_RANK = -2 as const;
 export const INCORRECT_OWNER_RANK = -1 as const;
 export const PREVIOUS_OWNER_RANK = 0 as const;
@@ -30,11 +31,13 @@ export const OWNER_RANKS = [
   PREVIOUS_OWNER_RANK,
   ...ACTIVE_OWNER_RANKS
 ] as const;
+export type DeceasedOwnerRank = typeof DECEASED_OWNER_RANK;
 export type AwaitingOwnerRank = typeof AWAITING_OWNER_RANK;
 export type IncorrectOwnerRank = typeof INCORRECT_OWNER_RANK;
 export type PreviousOwnerRank = typeof PREVIOUS_OWNER_RANK;
 export type ActiveOwnerRank = (typeof ACTIVE_OWNER_RANKS)[number];
 export type InactiveOwnerRank =
+  | DeceasedOwnerRank
   | AwaitingOwnerRank
   | IncorrectOwnerRank
   | PreviousOwnerRank;

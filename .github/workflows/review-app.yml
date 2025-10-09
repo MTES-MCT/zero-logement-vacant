@@ -22,8 +22,8 @@ on:
 env:
   CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
   CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-  ORGA_ID: ${{ secrets.CLEVER_ORG }}
-  PR_NAME: pr${{ github.event.inputs.pull_request_number }}
+  CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
+  PR_NAME: pr${{ github.event.inputs.pull_request_number || github.event.number }}
   MAILER_HOST: ${{ secrets.MAILER_HOST }}
   MAILER_PORT: ${{ secrets.MAILER_PORT }}
   MAILER_USER: ${{ secrets.MAILER_USER }}
@@ -31,30 +31,111 @@ env:
   TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
   METABASE_DOMAIN: ${{ secrets.METABASE_DOMAIN }}
   METABASE_API_TOKEN: ${{ secrets.METABASE_API_TOKEN }}
+  E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+  E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
 
 jobs:
-  deploy-addons:
+  check-duplicates:
     if: github.event.inputs.action_type == 'Créer'
     runs-on: ubuntu-latest
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
 
+      - name: Check for existing applications
+        run: |
+          echo "🔍 Checking for existing review apps for PR ${{ github.event.inputs.pull_request_number || github.event.number }}..."
+
+          # Debug: Check if environment variables are set
+          echo "CLEVER_TOKEN is set: ${CLEVER_TOKEN:+yes}"
+          echo "CLEVER_SECRET is set: ${CLEVER_SECRET:+yes}"
+          echo "CLEVER_ORG is set: ${CLEVER_ORG:+yes}"
+
+          # Test authentication first
+          echo "🔐 Testing authentication..."
+          PROFILE_OUTPUT=$(clever profile 2>&1)
+          echo "Profile output: $PROFILE_OUTPUT"
+
+          if ! echo "$PROFILE_OUTPUT" | grep -q "You're currently logged in"; then
+            echo "❌ ERROR: Not authenticated with Clever Cloud"
+            echo "Please ensure CLEVER_TOKEN and CLEVER_SECRET are properly configured"
+            echo "Current CLEVER_TOKEN starts with: ${CLEVER_TOKEN:0:10}..."
+            echo "Profile command output: $PROFILE_OUTPUT"
+            exit 1
+          fi
+
+          # Check for existing applications
+          echo "📋 Checking applications..."
+          APPS_JSON=$(clever curl https://api.clever-cloud.com/v2/organisations/$CLEVER_ORG/applications) || {
+            echo "❌ ERROR: Failed to list applications"
+            exit 1
+          }
+
+          EXISTING_APPS=$(echo "$APPS_JSON" | jq -r '.[].name' | grep "^$PR_NAME-" || true)
+
+          if [ ! -z "$EXISTING_APPS" ]; then
+            echo "❌ ERROR: Found existing applications for this PR:"
+            echo "$EXISTING_APPS"
+            echo ""
+            echo "To avoid duplicates, please:"
+            echo "1. Delete the existing review apps first using the 'Supprimer' action"
+            echo "2. Or use the 'Mettre à jour' action to update existing apps"
+            echo ""
+            echo "Existing applications found:"
+            echo "$EXISTING_APPS" | while read app; do
+              echo "  - $app"
+            done
+            exit 1
+          fi
+
+          # Check for existing addons
+          echo "📦 Checking addons..."
+          ADDONS_JSON=$(clever curl https://api.clever-cloud.com/v2/organisations/$CLEVER_ORG/addons) || {
+            echo "❌ ERROR: Failed to list addons"
+            exit 1
+          }
+
+          EXISTING_ADDONS=$(echo "$ADDONS_JSON" | jq -r '.[].name' | grep "^$PR_NAME-" || true)
+
+          if [ ! -z "$EXISTING_ADDONS" ]; then
+            echo "❌ ERROR: Found existing addons for this PR:"
+            echo "$EXISTING_ADDONS"
+            echo ""
+            echo "To avoid duplicates, please delete the existing addons first using the 'Supprimer' action"
+            echo ""
+            echo "Existing addons found:"
+            echo "$EXISTING_ADDONS" | while read addon; do
+              echo "  - $addon"
+            done
+            exit 1
+          fi
+
+          echo "✅ No existing applications or addons found for PR ${{ github.event.inputs.pull_request_number || github.event.number }}"
+          echo "Proceeding with creation..."
+
+  deploy-addons:
+    if: github.event.inputs.action_type == 'Créer'
+    needs: [check-duplicates]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install clever-tools
+        run: npm install -g clever-tools
+
       - name: Create postgres addon
-        run: clever addon create postgresql-addon $PR_NAME-postgres --org $ORGA_ID --plan xxs_sml --region par
+        run: clever addon create postgresql-addon $PR_NAME-postgres --org $CLEVER_ORG --plan xxs_sml --region par
 
       - name: Create redis addon
-        run: clever addon create redis-addon $PR_NAME-redis --org $ORGA_ID --plan s_mono --region par
+        run: clever addon create redis-addon $PR_NAME-redis --org $CLEVER_ORG --plan s_mono --region par
 
   deploy-api:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [deploy-addons]
+    needs: [check-duplicates, deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-api
-      url: https://pr${{ github.event.inputs.pull_request_number }}-api.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-api.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
     steps:
       - name: Extract branch name
         shell: bash
@@ -74,7 +155,7 @@ jobs:
 
       - name: Create the app
         run: |
-          clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
+          clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $CLEVER_ORG
           clever service link-addon "Cellar staging" -a $APP_ALIAS
           clever service link-addon "Nx Configuration provider" -a $APP_ALIAS
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
@@ -82,42 +163,128 @@ jobs:
 
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
-          echo "List the app’s environment variables and export them"
-          clever env -a $APP_ALIAS | grep -v '^#' | tr -d '"' >> "$GITHUB_ENV"
+      - name: Wait for PostgreSQL addon to be ready
+        run: |
+          echo "Waiting for PostgreSQL addon to be fully provisioned..."
+          POSTGRES_URI=""
+          for i in {1..20}; do
+            echo "Attempt $i/20: Checking if PostgreSQL addon is ready..."
+
+            # Check if addon exists using clever addon list
+            echo "🔍 Listing all addons..."
+            clever addon list --org $CLEVER_ORG
+
+            ADDON_STATUS=$(clever addon list --org $CLEVER_ORG | grep "$PR_NAME-postgres" || echo "")
+            if [ ! -z "$ADDON_STATUS" ]; then
+              echo "✅ Found addon: $ADDON_STATUS"
+
+              # Get addon ID from the list output - it's the last field that starts with addon_
+              ADDON_ID=$(echo "$ADDON_STATUS" | grep -o 'addon_[a-f0-9-]*')
+              echo "📋 Addon ID extracted: $ADDON_ID"
+              echo "📋 Full addon status line: $ADDON_STATUS"
+
+              # Get the connection URI directly from addon environment
+              echo "🔍 Getting addon environment variables..."
+              ADDON_ENV=$(clever addon env $ADDON_ID --org $CLEVER_ORG 2>&1)
+              echo "📋 Full addon env output:"
+              echo "$ADDON_ENV"
+
+              # Look for POSTGRESQL_ADDON_URI in the output
+              if echo "$ADDON_ENV" | grep -q "POSTGRESQL_ADDON_URI="; then
+                POSTGRES_URI=$(echo "$ADDON_ENV" | grep "POSTGRESQL_ADDON_URI=" | cut -d'"' -f2)
+                echo "✅ PostgreSQL URI found! URI: ${POSTGRES_URI:0:30}..."
+                if [[ "$POSTGRES_URI" =~ ^postgresql:// ]]; then
+                  echo "✅ URI format is valid!"
+                  break
+                else
+                  echo "❌ URI format is invalid: $POSTGRES_URI"
+                fi
+              else
+                echo "⏳ POSTGRESQL_ADDON_URI not found in addon env..."
+                echo "Looking for any postgresql:// patterns..."
+                echo "$ADDON_ENV" | grep -i postgresql || echo "No postgresql patterns found"
+              fi
+            else
+              echo "⏳ Addon '$PR_NAME-postgres' not found in list yet..."
+              echo "📋 Current addon list:"
+              clever addon list --org $CLEVER_ORG | head -5
+            fi
+
+            echo "⏳ Waiting 15 seconds before next check..."
+            sleep 15
+          done
+
+          if [ -z "$POSTGRES_URI" ]; then
+            echo "❌ ERROR: PostgreSQL addon not ready after 5 minutes"
+            echo "Final addon list:"
+            clever addon list --org $CLEVER_ORG
+            exit 1
+          fi
+
+          echo "POSTGRES_URI=$POSTGRES_URI" >> "$GITHUB_ENV"
+
+      - name: Get Cellar addon variables
+        run: |
+          echo "🔍 Getting Cellar addon variables..."
+
+          # Find Cellar staging addon
+          CELLAR_ADDON=$(clever addon list --org $CLEVER_ORG | grep -i "cellar.*staging" || echo "")
+          if [ ! -z "$CELLAR_ADDON" ]; then
+            CELLAR_ADDON_ID=$(echo "$CELLAR_ADDON" | grep -o 'addon_[a-f0-9-]*')
+            echo "📋 Cellar addon ID: $CELLAR_ADDON_ID"
+
+            # Get Cellar environment variables
+            CELLAR_ENV=$(clever addon env $CELLAR_ADDON_ID --org $CLEVER_ORG 2>&1)
+            echo "📋 Cellar env variables found"
+
+            # Extract Cellar variables
+            CELLAR_ADDON_KEY_ID=$(echo "$CELLAR_ENV" | grep "CELLAR_ADDON_KEY_ID=" | cut -d'"' -f2)
+            CELLAR_ADDON_KEY_SECRET=$(echo "$CELLAR_ENV" | grep "CELLAR_ADDON_KEY_SECRET=" | cut -d'"' -f2)
+            CELLAR_ADDON_HOST=$(echo "$CELLAR_ENV" | grep "CELLAR_ADDON_HOST=" | cut -d'"' -f2)
+
+            echo "CELLAR_ADDON_KEY_ID=$CELLAR_ADDON_KEY_ID" >> "$GITHUB_ENV"
+            echo "CELLAR_ADDON_KEY_SECRET=$CELLAR_ADDON_KEY_SECRET" >> "$GITHUB_ENV"
+            echo "CELLAR_ADDON_HOST=$CELLAR_ADDON_HOST" >> "$GITHUB_ENV"
+
+            echo "✅ Cellar variables retrieved successfully"
+          else
+            echo "❌ Cellar staging addon not found"
+            exit 1
+          fi
 
       - name: Set environment variables
         run: |
+          clever env set WORKSPACE "@zerologementvacant/server" -a $APP_ALIAS
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
-          clever env set CC_OVERRIDE_BUILDCACHE '.:../.cache/puppeteer' -a $APP_ALIAS
-          clever env set CC_PRE_RUN_HOOK 'corepack yarn workspace $WORKSPACE migrate && corepack yarn workspace $WORKSPACE seed' -a $APP_ALIAS
+          clever env set CC_OVERRIDE_BUILDCACHE ".:../.cache/puppeteer" -a $APP_ALIAS
+          clever env set CC_PRE_RUN_HOOK "corepack yarn workspace \$WORKSPACE migrate && corepack yarn workspace \$WORKSPACE seed" -a $APP_ALIAS
           clever env set CEREMA_API "https://api.cerema.fr" -a $APP_ALIAS
           clever env set CEREMA_ENABLED "false" -a $APP_ALIAS
           clever env set CEREMA_USERNAME "unused" -a $APP_ALIAS
           clever env set CEREMA_PASSWORD "unused" -a $APP_ALIAS
           clever env set DATABASE_ENV "development" -a $APP_ALIAS
-          clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
-          clever env set E2E_EMAIL $E2E_EMAIL -a $APP_ALIAS
-          clever env set E2E_PASSWORD $E2E_PASSWORD -a $APP_ALIAS
+          clever env set DATABASE_URL "$POSTGRES_URI" -a $APP_ALIAS
+          clever env set E2E_EMAIL "$E2E_EMAIL" -a $APP_ALIAS
+          clever env set E2E_PASSWORD "$E2E_PASSWORD" -a $APP_ALIAS
           clever env set HOST "https://$APP_ALIAS.cleverapps.io" -a $APP_ALIAS
           clever env set METABASE_TOKEN "unused" -a $APP_ALIAS
           clever env set PORT "8080" -a $APP_ALIAS
-          clever env set S3_ACCESS_KEY_ID $CELLAR_ADDON_KEY_ID -a $APP_ALIAS
-          clever env set S3_BUCKET zerologementvacant-pr -a $APP_ALIAS
+          clever env set S3_ACCESS_KEY_ID "$CELLAR_ADDON_KEY_ID" -a $APP_ALIAS
+          clever env set S3_BUCKET "zerologementvacant-pr" -a $APP_ALIAS
           clever env set S3_ENDPOINT "https://$CELLAR_ADDON_HOST" -a $APP_ALIAS
           clever env set S3_REGION "cellar-c2" -a $APP_ALIAS
-          clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
+          clever env set S3_SECRET_ACCESS_KEY "$CELLAR_ADDON_KEY_SECRET" -a $APP_ALIAS
           clever env set SENTRY_ENABLED "false" -a $APP_ALIAS
           clever env set TZ "Etc/UTC" -a $APP_ALIAS
-          clever env set WORKSPACE "@zerologementvacant/server" -a $APP_ALIAS
-          clever env set MAILER_HOST $MAILER_HOST -a $APP_ALIAS
-          clever env set MAILER_PORT $MAILER_PORT -a $APP_ALIAS
-          clever env set MAILER_USER $MAILER_USER -a $APP_ALIAS
-          clever env set MAILER_PASSWORD $MAILER_PASSWORD -a $APP_ALIAS
+          clever env set MAILER_HOST "$MAILER_HOST" -a $APP_ALIAS
+          clever env set MAILER_PORT "$MAILER_PORT" -a $APP_ALIAS
+          clever env set MAILER_USER "$MAILER_USER" -a $APP_ALIAS
+          clever env set MAILER_PASSWORD "$MAILER_PASSWORD" -a $APP_ALIAS
           clever env set MAILER_PROVIDER "nodemailer" -a $APP_ALIAS
-          clever env set TEST_PASSWORD $TEST_PASSWORD -a $APP_ALIAS
-          clever env set METABASE_DOMAIN $METABASE_DOMAIN -a $APP_ALIAS
-          clever env set METABASE_API_TOKEN $METABASE_API_TOKEN -a $APP_ALIAS
+          clever env set TEST_PASSWORD "$TEST_PASSWORD" -a $APP_ALIAS
+          clever env set METABASE_DOMAIN "$METABASE_DOMAIN" -a $APP_ALIAS
+          clever env set METABASE_API_TOKEN "$METABASE_API_TOKEN" -a $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor L -a $APP_ALIAS
@@ -132,13 +299,13 @@ jobs:
 
   deploy-queue:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [deploy-addons]
+    needs: [check-duplicates, deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-queue
-      url: https://pr${{ github.event.inputs.pull_request_number }}-queue.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
     steps:
       - name: Extract branch name
         shell: bash
@@ -158,7 +325,7 @@ jobs:
 
       - name: Create the app
         run: |
-          clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $ORGA_ID
+          clever create $APP_ALIAS --type node --alias $APP_ALIAS --region par --org $CLEVER_ORG
           clever service link-addon "Cellar staging" -a $APP_ALIAS
           clever service link-addon "Nx Configuration provider" -a $APP_ALIAS
           clever service link-addon $PR_NAME-postgres -a $APP_ALIAS
@@ -166,24 +333,109 @@ jobs:
 
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
-          echo "List the app’s environment variables and export them"
-          clever env -a $APP_ALIAS | grep -v '^#' | tr -d '"' >> "$GITHUB_ENV"
+      - name: Wait for PostgreSQL addon to be ready
+        run: |
+          echo "Waiting for PostgreSQL addon to be fully provisioned..."
+          POSTGRES_URI=""
+          for i in {1..20}; do
+            echo "Attempt $i/20: Checking if PostgreSQL addon is ready..."
 
+            # Check if addon exists using clever addon list
+            echo "🔍 Listing all addons..."
+            clever addon list --org $CLEVER_ORG
+
+            ADDON_STATUS=$(clever addon list --org $CLEVER_ORG | grep "$PR_NAME-postgres" || echo "")
+            if [ ! -z "$ADDON_STATUS" ]; then
+              echo "✅ Found addon: $ADDON_STATUS"
+
+              # Get addon ID from the list output - it's the last field that starts with addon_
+              ADDON_ID=$(echo "$ADDON_STATUS" | grep -o 'addon_[a-f0-9-]*')
+              echo "📋 Addon ID extracted: $ADDON_ID"
+              echo "📋 Full addon status line: $ADDON_STATUS"
+
+              # Get the connection URI directly from addon environment
+              echo "🔍 Getting addon environment variables..."
+              ADDON_ENV=$(clever addon env $ADDON_ID --org $CLEVER_ORG 2>&1)
+              echo "📋 Full addon env output:"
+              echo "$ADDON_ENV"
+
+              # Look for POSTGRESQL_ADDON_URI in the output
+              if echo "$ADDON_ENV" | grep -q "POSTGRESQL_ADDON_URI="; then
+                POSTGRES_URI=$(echo "$ADDON_ENV" | grep "POSTGRESQL_ADDON_URI=" | cut -d'"' -f2)
+                echo "✅ PostgreSQL URI found! URI: ${POSTGRES_URI:0:30}..."
+                if [[ "$POSTGRES_URI" =~ ^postgresql:// ]]; then
+                  echo "✅ URI format is valid!"
+                  break
+                else
+                  echo "❌ URI format is invalid: $POSTGRES_URI"
+                fi
+              else
+                echo "⏳ POSTGRESQL_ADDON_URI not found in addon env..."
+                echo "Looking for any postgresql:// patterns..."
+                echo "$ADDON_ENV" | grep -i postgresql || echo "No postgresql patterns found"
+              fi
+            else
+              echo "⏳ Addon '$PR_NAME-postgres' not found in list yet..."
+              echo "📋 Current addon list:"
+              clever addon list --org $CLEVER_ORG | head -5
+            fi
+
+            echo "⏳ Waiting 15 seconds before next check..."
+            sleep 15
+          done
+
+          if [ -z "$POSTGRES_URI" ]; then
+            echo "❌ ERROR: PostgreSQL addon not ready after 5 minutes"
+            echo "Final addon list:"
+            clever addon list --org $CLEVER_ORG
+            exit 1
+          fi
+
+          echo "POSTGRES_URI=$POSTGRES_URI" >> "$GITHUB_ENV"
+
+      - name: Get Cellar addon variables
+        run: |
+          echo "🔍 Getting Cellar addon variables..."
+
+          # Find Cellar staging addon
+          CELLAR_ADDON=$(clever addon list --org $CLEVER_ORG | grep -i "cellar.*staging" || echo "")
+          if [ ! -z "$CELLAR_ADDON" ]; then
+            CELLAR_ADDON_ID=$(echo "$CELLAR_ADDON" | grep -o 'addon_[a-f0-9-]*')
+            echo "📋 Cellar addon ID: $CELLAR_ADDON_ID"
+
+            # Get Cellar environment variables
+            CELLAR_ENV=$(clever addon env $CELLAR_ADDON_ID --org $CLEVER_ORG 2>&1)
+            echo "📋 Cellar env variables found"
+
+            # Extract Cellar variables
+            CELLAR_ADDON_KEY_ID=$(echo "$CELLAR_ENV" | grep "CELLAR_ADDON_KEY_ID=" | cut -d'"' -f2)
+            CELLAR_ADDON_KEY_SECRET=$(echo "$CELLAR_ENV" | grep "CELLAR_ADDON_KEY_SECRET=" | cut -d'"' -f2)
+            CELLAR_ADDON_HOST=$(echo "$CELLAR_ENV" | grep "CELLAR_ADDON_HOST=" | cut -d'"' -f2)
+
+            echo "CELLAR_ADDON_KEY_ID=$CELLAR_ADDON_KEY_ID" >> "$GITHUB_ENV"
+            echo "CELLAR_ADDON_KEY_SECRET=$CELLAR_ADDON_KEY_SECRET" >> "$GITHUB_ENV"
+            echo "CELLAR_ADDON_HOST=$CELLAR_ADDON_HOST" >> "$GITHUB_ENV"
+
+            echo "✅ Cellar variables retrieved successfully"
+          else
+            echo "❌ Cellar staging addon not found"
+            exit 1
+          fi
 
       - name: Set environment variables
         run: |
-          clever env set API_HOST https://$PR_NAME-api.cleverapps.io/api -a $APP_ALIAS
+          clever env set WORKSPACE "@zerologementvacant/queue" -a $APP_ALIAS
+          clever env set API_HOST "https://$PR_NAME-api.cleverapps.io/api" -a $APP_ALIAS
           clever env set AUTH_SECRET "secret" -a $APP_ALIAS
           clever env set CC_HEALTH_CHECK_PATH "/" -a $APP_ALIAS
-          clever env set CC_OVERRIDE_BUILDCACHE '.:../.cache/puppeteer' -a $APP_ALIAS
-          clever env set CC_PRE_RUN_HOOK 'corepack yarn nx run $WORKSPACE:prestart'
-          clever env set DATABASE_URL $POSTGRESQL_ADDON_URI -a $APP_ALIAS
-          clever env set S3_ACCESS_KEY_ID $CELLAR_ADDON_KEY_ID -a $APP_ALIAS
-          clever env set S3_BUCKET zerologementvacant-pr -a $APP_ALIAS
+          clever env set CC_OVERRIDE_BUILDCACHE ".:../.cache/puppeteer" -a $APP_ALIAS
+          clever env set CC_PRE_RUN_HOOK "corepack yarn nx run \$WORKSPACE:prestart" -a $APP_ALIAS
+          clever env set DATABASE_URL "$POSTGRES_URI" -a $APP_ALIAS
+          clever env set S3_ACCESS_KEY_ID "$CELLAR_ADDON_KEY_ID" -a $APP_ALIAS
+          clever env set S3_BUCKET "zerologementvacant-pr" -a $APP_ALIAS
           clever env set S3_ENDPOINT "https://$CELLAR_ADDON_HOST" -a $APP_ALIAS
           clever env set S3_REGION "cellar-c2" -a $APP_ALIAS
-          clever env set S3_SECRET_ACCESS_KEY $CELLAR_ADDON_KEY_SECRET -a $APP_ALIAS
-          clever env set WORKSPACE "@zerologementvacant/queue" -a $APP_ALIAS
+          clever env set S3_SECRET_ACCESS_KEY "$CELLAR_ADDON_KEY_SECRET" -a $APP_ALIAS
           clever env set SENTRY_ENABLED "false" -a $APP_ALIAS
 
       - name: Scale up for deployment
@@ -199,13 +451,13 @@ jobs:
 
   deploy-front:
     if: github.event.inputs.action_type == 'Créer'
-    needs: [deploy-addons]
+    needs: [check-duplicates, deploy-addons]
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-front
-      url: https://pr${{ github.event.inputs.pull_request_number }}-front.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-front.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
     steps:
       - name: Extract branch name
         shell: bash
@@ -225,7 +477,7 @@ jobs:
 
       - name: Create the app
         run: |
-          clever create $APP_ALIAS --type static-apache --alias $APP_ALIAS --region par --org $ORGA_ID
+          clever create $APP_ALIAS --type static-apache --alias $APP_ALIAS --region par --org $CLEVER_ORG
 
           clever config update -a $APP_ALIAS --enable-zero-downtime --enable-cancel-on-push --enable-force-https
 
@@ -234,12 +486,12 @@ jobs:
 
       - name: Set environment variables
         run: |
-          clever env set CC_OVERRIDE_BUILDCACHE "frontend/dist/" -a $APP_ALIAS
-          clever env set CC_POST_BUILD_HOOK "ls -al $CC_OVERRIDE_BUILDCACHE" -a $APP_ALIAS
-          clever env set CC_PRE_BUILD_HOOK 'corepack install && corepack yarn --immutable && corepack yarn nx run $WORKSPACE:prebuild && corepack yarn nx run $WORKSPACE:build' -a $APP_ALIAS
-          clever env set CC_WEBROOT "/frontend/dist" -a $APP_ALIAS
-          clever env set VITE_API_URL https://$PR_NAME-api.cleverapps.io -a $APP_ALIAS
           clever env set WORKSPACE "@zerologementvacant/front" -a $APP_ALIAS
+          clever env set CC_OVERRIDE_BUILDCACHE "frontend/dist/" -a $APP_ALIAS
+          clever env set CC_POST_BUILD_HOOK "ls -al \$CC_OVERRIDE_BUILDCACHE" -a $APP_ALIAS
+          clever env set CC_PRE_BUILD_HOOK "corepack install && corepack yarn --immutable && corepack yarn nx run \$WORKSPACE:prebuild && corepack yarn nx run \$WORKSPACE:build" -a $APP_ALIAS
+          clever env set CC_WEBROOT "/frontend/dist" -a $APP_ALIAS
+          clever env set VITE_API_URL "https://$PR_NAME-api.cleverapps.io" -a $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor L -a $APP_ALIAS
@@ -256,10 +508,10 @@ jobs:
     if: github.event.inputs.action_type == 'Mettre à jour'
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-api
-      url: https://pr${{ github.event.inputs.pull_request_number }}-api.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-api.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
     steps:
       - name: Extract branch name
         shell: bash
@@ -278,7 +530,7 @@ jobs:
         run: npm install -g clever-tools
 
       - name: Link app
-        run: clever link -o $ORGA_ID $APP_ALIAS
+        run: clever link -o $CLEVER_ORG $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor L -a $APP_ALIAS
@@ -293,10 +545,10 @@ jobs:
     if: github.event.inputs.action_type == 'Mettre à jour'
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-front
-      url: https://pr${{ github.event.inputs.pull_request_number }}-front.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-front.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
     steps:
       - name: Extract branch name
         shell: bash
@@ -315,7 +567,7 @@ jobs:
         run: npm install -g clever-tools
 
       - name: Link app
-        run: clever link -o $ORGA_ID $APP_ALIAS
+        run: clever link -o $CLEVER_ORG $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor L -a $APP_ALIAS
@@ -330,10 +582,10 @@ jobs:
     if: github.event.inputs.action_type == 'Mettre à jour'
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.inputs.pull_request_number }}-queue
-      url: https://pr${{ github.event.inputs.pull_request_number }}-queue.cleverapps.io
+      name: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
+      url: https://pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue.cleverapps.io
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
     steps:
       - name: Extract branch name
         shell: bash
@@ -352,7 +604,7 @@ jobs:
         run: npm install -g clever-tools
 
       - name: Link app
-        run: clever link -o $ORGA_ID $APP_ALIAS
+        run: clever link -o $CLEVER_ORG $APP_ALIAS
 
       - name: Scale up for deployment
         run: clever scale --flavor L -a $APP_ALIAS
@@ -367,42 +619,42 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-queue
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-queue
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
 
       - name: Delete the app
         run: |
-          clever link -o $ORGA_ID $APP_ALIAS
+          clever link -o $CLEVER_ORG $APP_ALIAS
           clever delete -a $APP_ALIAS --yes
 
   delete-api:
     runs-on: ubuntu-latest
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-api
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-api
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
 
       - name: Delete the app
         run: |
-          clever link -o $ORGA_ID $APP_ALIAS
+          clever link -o $CLEVER_ORG $APP_ALIAS
           clever delete -a $APP_ALIAS --yes
 
   delete-front:
     runs-on: ubuntu-latest
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
-      APP_ALIAS: pr${{ github.event.inputs.pull_request_number }}-front
+      APP_ALIAS: pr${{ github.event.inputs.pull_request_number || github.event.number }}-front
     steps:
       - name: Install clever-tools
         run: npm install -g clever-tools
 
       - name: Delete the app
         run: |
-          clever link -o $ORGA_ID $APP_ALIAS
+          clever link -o $CLEVER_ORG $APP_ALIAS
           clever delete -a $APP_ALIAS --yes
 
   delete-addons:
@@ -414,5 +666,5 @@ jobs:
 
       - name: Delete the app
         run: |
-          clever addon delete $PR_NAME-postgres -o $ORGA_ID --yes
-          clever addon delete $PR_NAME-redis -o $ORGA_ID --yes
+          clever addon delete $PR_NAME-postgres -o $CLEVER_ORG --yes
+          clever addon delete $PR_NAME-redis -o $CLEVER_ORG --yes

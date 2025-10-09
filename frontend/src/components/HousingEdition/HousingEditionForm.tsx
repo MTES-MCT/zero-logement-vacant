@@ -197,7 +197,7 @@ const HousingEditionForm = forwardRef(function HousingEditionForm(
   const tabs = useMemo(
     () => [
       { label: 'Occupation', content: <OccupationTab /> },
-      { label: 'Mobilisation', content: <MobilizationTab /> },
+      { label: 'Suivi', content: <MobilizationTab /> },
       { label: 'Note', content: <NoteTab /> },
     ],
     [
@@ -233,8 +233,8 @@ const HousingEditionForm = forwardRef(function HousingEditionForm(
         <Container as="section" fluid>
           En confirmant, vous écraserez et remplacerez les données actuelles sur les champs suivants :
           <ul className="fr-mt-2w">
-            {isStatusDirty && <li>Mobilisation du logement – Statut de suivi</li>}
-            {isSubStatusDirty && <li>Mobilisation du logement – Sous‑statut de suivi</li>}
+            {isStatusDirty && <li>Suivi du logement – Statut de suivi</li>}
+            {isSubStatusDirty && <li>Suivi du logement – Sous‑statut de suivi</li>}
             {occupancy !== undefined && <li>Occupation du logement – Occupation actuelle</li>}
             {occupancyIntended !== undefined && (
               <li>Occupation du logement – Occupation prévisionnelle</li>

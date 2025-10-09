@@ -141,7 +141,7 @@ function UserTable(props: UserTableProps) {
       >
         {userToDelete && (
           <p>
-            Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{userToDelete.email}</strong> ?
+            Êtes-vous sûr de vouloir supprimer l&apos;utilisateur <strong>{userToDelete.email}</strong> ?
             <br />
             Cette action est irréversible.
           </p>

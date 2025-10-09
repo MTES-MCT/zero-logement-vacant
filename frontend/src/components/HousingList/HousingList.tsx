@@ -128,8 +128,8 @@ function HousingList(props: HousingListProps) {
       columnHelper.accessor('owner.fullName', {
         header: () => (
           <AdvancedTableHeader
-            title="Propriétaire principal"
-            sort={getSortButton('owner', 'Trier par propriétaire principal')}
+            title="Propriétaire"
+            sort={getSortButton('owner', 'Trier alphabétiquement par propriétaire')}
           />
         ),
         meta: {

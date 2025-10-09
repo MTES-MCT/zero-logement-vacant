@@ -369,11 +369,11 @@ describe('Housing view', () => {
       });
       await user.click(update);
       const mobilizationTab = await screen.findByRole('tab', {
-        name: 'Mobilisation'
+        name: 'Suivi'
       });
       await user.click(mobilizationTab);
       const mobilizationPanel = await screen.findByRole('tabpanel', {
-        name: 'Mobilisation'
+        name: 'Suivi'
       });
       const status =
         await within(mobilizationPanel).findByLabelText(/Statut de suivi/);

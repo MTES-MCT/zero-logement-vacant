@@ -191,7 +191,7 @@ function HousingListEditionSideMenu(props: Props) {
           <Tabs
             tabs={[
               { tabId: 'occupancy', label: 'Occupation' },
-              { tabId: 'mobilization', label: 'Mobilisation' },
+              { tabId: 'mobilization', label: 'Suivi' },
               { tabId: 'note', label: 'Note' }
             ]}
             selectedTabId={tab}
@@ -211,10 +211,10 @@ function HousingListEditionSideMenu(props: Props) {
               </Typography>
               <ul>
                 {form.formState.dirtyFields.status && (
-                  <li>Mobilisation du logement — Statut de suivi</li>
+                  <li>Suivi du logement — Statut de suivi</li>
                 )}
                 {form.formState.dirtyFields.subStatus && (
-                  <li>Mobilisation du logement — Sous-statut de suivi</li>
+                  <li>Suivi du logement — Sous-statut de suivi</li>
                 )}
                 {form.formState.dirtyFields.occupancy && (
                   <li>Occupation du logement — Occupation actuelle</li>

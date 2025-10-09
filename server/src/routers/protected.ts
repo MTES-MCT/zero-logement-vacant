@@ -363,7 +363,7 @@ router.put(
 );
 router.delete(
   '/users/:id',
-  hasRole([UserRole.ADMIN]),
+  hasRole([UserRole.USUAL, UserRole.ADMIN]),
   validatorNext.validate({
     params: object({ id: schemas.id })
   }),

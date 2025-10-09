@@ -220,7 +220,7 @@ const remove: RequestHandler<PathParams, void> = async (
   request,
   response
 ): Promise<void> => {
-  const { user: authUser, params } = request as AuthenticatedRequest<
+  const { user: authUser, establishment, params } = request as AuthenticatedRequest<
     PathParams,
     void
   >;
@@ -228,14 +228,15 @@ const remove: RequestHandler<PathParams, void> = async (
     id: params.id
   });
 
-  // Only admins can delete users
-  if (!isAdmin(authUser)) {
-    throw new ForbiddenError();
-  }
-
   const user = await userRepository.get(params.id);
   if (!user) {
     throw new UserMissingError(params.id);
+  }
+
+  // Check if the user to delete belongs to the same establishment
+  // Only admins can delete users from other establishments
+  if (!isAdmin(authUser) && user.establishmentId !== establishment.id) {
+    throw new ForbiddenError();
   }
 
   await userRepository.remove(params.id);

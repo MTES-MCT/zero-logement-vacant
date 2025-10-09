@@ -122,7 +122,7 @@ function HousingHeader(props: HousingHeaderProps) {
                 setEditing(true);
               }}
             >
-              Mettre à jour
+              Éditer
             </Button>
             <HousingEditionSideMenu
               housing={props.housing}

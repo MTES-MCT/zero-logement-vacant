@@ -327,7 +327,7 @@ function HousingListFiltersSidemenu(props: Props) {
             label={
               <TitleWithIcon
                 icon="fr-icon-folder-2-line"
-                title="Mobilisation"
+                title="Suivi et campagnes"
               />
             }
           >

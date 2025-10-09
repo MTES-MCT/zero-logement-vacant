@@ -1,11 +1,12 @@
-import { AddressDTO, AddressKinds } from '@zerologementvacant/models';
+import { type AddressDTO, AddressKinds } from '@zerologementvacant/models';
 import { Struct } from 'effect';
-import config from '../utils/config';
-import { Owner } from './Owner';
+
+import type { Owner } from '~/models/Owner';
+import config from '~/utils/config';
 
 export type Address = Omit<AddressDTO, 'refId' | 'addressKind' | 'cityCode'>;
 
-export const isBanEligible = (address?: Pick<Address, 'score'>) => {
+export const isBanEligible = (address?: Pick<Address, 'score'>): boolean => {
   return (
     address?.score !== undefined && address.score >= config.banEligibleScore
   );

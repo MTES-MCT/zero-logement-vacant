@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import { constants } from 'http2';
 
-import establishmentRepository from '~/repositories/establishmentRepository';
 import {
   EstablishmentDTO,
   EstablishmentFiltersDTO,
   UserRole
 } from '@zerologementvacant/models';
 import { createLogger } from '~/infra/logger';
+import establishmentRepository from '~/repositories/establishmentRepository';
 
 const logger = createLogger('establishmentController');
 
@@ -25,10 +25,11 @@ async function list(
     query
   });
 
+  const filters: EstablishmentFiltersDTO = query;
   const establishments = await establishmentRepository.find({
-    filters: query,
+    filters,
     includes:
-      // Include the establishment’s users only for admin and usual roles
+      // Include the establishment's users only for admin and usual roles
       !!user && [UserRole.ADMIN, UserRole.USUAL].includes(user.role)
         ? ['users']
         : []

@@ -292,7 +292,7 @@ export function genBuildingApi(): BuildingApi {
 export const genHousingApi = (
   geoCode: string = genGeoCode(),
   building?: BuildingApi
-): MarkRequired<HousingApi, 'owner'> => {
+): Omit<HousingApi, 'owner'> & { owner: OwnerApi } => {
   const id = uuidv4();
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);

@@ -23,7 +23,6 @@ import { memo, type MouseEvent } from 'react';
 
 import { type Selection } from '~/hooks/useSelection';
 import SingleCheckbox from '~/components/_app/AppCheckbox/SingleCheckbox';
-import styles from '~/components/AdvancedTable/advanced-table.module.scss';
 import SortButton from '~/components/AdvancedTable/SortButton';
 
 export type AdvancedTableProps<Data extends object> = Pick<
@@ -45,7 +44,10 @@ export type AdvancedTableProps<Data extends object> = Pick<
       TablePaginationProps,
       'count' | 'defaultPage' | 'getPageLinkProps'
     >;
-    tableProps?: Omit<TableProps, 'headers' | 'data'>;
+    tableProps?: Omit<TableProps, 'headers' | 'data'> & {
+      fixedRowHeight?: boolean;
+      size?: 'sm' | 'md' | 'lg';
+    };
     selection?: Selection;
     onSelectionChange?(selection: Selection): void;
     /**
@@ -141,12 +143,18 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   return (
     <Stack sx={{ width: '100%' }}>
       <div
-        className={fr.cx('fr-table', {
-          [fr.cx('fr-table--no-scroll')]: props.tableProps?.noScroll,
-          [fr.cx('fr-table--layout-fixed')]: props.tableProps?.fixed,
-          [fr.cx('fr-table--bordered')]: props.tableProps?.bordered,
-          [fr.cx('fr-table--no-caption')]: props.tableProps?.noCaption
-        })}
+        className={classNames(
+          fr.cx('fr-table', {
+            [fr.cx('fr-table--no-scroll')]: props.tableProps?.noScroll,
+            [fr.cx('fr-table--layout-fixed')]: props.tableProps?.fixed,
+            [fr.cx('fr-table--bordered')]: props.tableProps?.bordered,
+            [fr.cx('fr-table--no-caption')]: props.tableProps?.noCaption
+          }),
+          props.tableProps?.size
+            ? `fr-table--${props.tableProps.size}`
+            : null,
+          props.tableProps?.className
+        )}
       >
         <div className={fr.cx('fr-table__wrapper')}>
           <div className={fr.cx('fr-table__container')}>
@@ -212,7 +220,10 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                       key={i}
                       aria-selected={all !== row.getIsSelected()}
                       style={{
-                        ['--row-height' as any]: '6.25rem'
+                        ['--row-height' as any]: props.tableProps
+                          ?.fixedRowHeight
+                          ? '6.25rem'
+                          : undefined
                       }}
                     >
                       {!row.getCanMultiSelect() ? null : (
@@ -240,17 +251,19 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                         return (
                           <td
                             key={j}
-                            className={classNames(
-                              styles.cell,
-                              fr.cx('fr-cell--multiline')
-                            )}
+                            className={classNames({
+                              [fr.cx('fr-cell--multiline')]:
+                                cell.column.columnDef.meta?.styles?.multiline
+                            })}
                           >
                             <Box
                               sx={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 width: '100%',
-                                height: '5.25rem',
+                                height: props.tableProps?.fixedRowHeight
+                                  ? '5.25rem'
+                                  : undefined,
                                 overflowY: 'auto'
                               }}
                             >
@@ -330,6 +343,9 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
+    styles?: {
+      multiline?: boolean;
+    };
     sort?: {
       title: string;
     };

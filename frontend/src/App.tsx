@@ -24,6 +24,7 @@ import CampaignListView from './views/Campaign/CampaignListView';
 import CampaignView from './views/Campaign/CampaignView';
 import GroupView from './views/Group/GroupView';
 import HousingView from './views/Housing/HousingView';
+import HousingViewNext from '~/views/Housing/HousingViewNext';
 import HousingListTabsProvider from './views/HousingList/HousingListTabsProvider';
 import HousingListView from './views/HousingList/HousingListView';
 import LoginView from './views/Login/LoginView';
@@ -33,6 +34,7 @@ import ResourcesView from './views/Resources/ResourcesView';
 import StatusView from './views/Resources/StatusView';
 import OwnerViewNext from '~/views/Owner/OwnerViewNext';
 import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
+import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -73,7 +75,26 @@ const router = sentry.createBrowserRouter(
             />
           }
         />
-        <Route path="/logements/:housingId" element={<HousingView />} />
+        <Route
+          path="/logements/:housingId"
+          element={
+            <FeatureFlagLayout
+              flag="new-housing-owner-pages"
+              then={<HousingViewNext />}
+              else={<HousingView />}
+            />
+          }
+        />
+        <Route
+          path="/logements/:id/proprietaires"
+          element={
+            <FeatureFlagLayout
+              flag="new-housing-owner-pages"
+              then={<HousingOwnersView />}
+              else={null}
+            />
+          }
+        />
 
         <Route path="/ressources/statuts" element={<StatusView />} />
         <Route path="/ressources" element={<ResourcesView />} />

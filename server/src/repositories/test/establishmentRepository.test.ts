@@ -119,6 +119,29 @@ describe('Establishment repository', () => {
       expect(actual).toBeArrayOfSize(0);
     });
 
+    it('should filter establishments related to the given one', async () => {
+      const establishments: ReadonlyArray<EstablishmentApi> = [
+        genEstablishmentApi('75001', '75002'),
+        genEstablishmentApi('75002', '75003'),
+        genEstablishmentApi('69001', '69002')
+      ];
+      await Establishments().insert(establishments.map(formatEstablishmentApi));
+      const related = establishments[0];
+
+      const actuals = await establishmentRepository.find({
+        filters: {
+          related: related.id
+        }
+      });
+
+      expect(actuals.length).toBeGreaterThan(0);
+      expect(actuals).toSatisfyAll<EstablishmentApi>((actual) => {
+        return actual.geoCodes.some((geoCode) =>
+          related.geoCodes.includes(geoCode)
+        );
+      });
+    });
+
     it('should filter active establishments', async () => {
       const establishments = faker.helpers.multiple(() =>
         genEstablishmentApi()

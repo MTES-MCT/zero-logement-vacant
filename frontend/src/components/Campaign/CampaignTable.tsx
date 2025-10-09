@@ -53,6 +53,9 @@ function CampaignTable(props: CampaignTableProps) {
         meta: {
           sort: {
             title: 'Trier par titre'
+          },
+          styles: {
+            multiline: true
           }
         },
         cell: ({ row }) => {
@@ -205,7 +208,7 @@ function CampaignTable(props: CampaignTableProps) {
         enableSortingRemoval
         manualSorting
         state={{ sorting }}
-        tableProps={{ noCaption: true, fixed: true }}
+        tableProps={{ noCaption: true }}
         onSortingChange={setSorting}
         onPageChange={changePage}
         onPerPageChange={changePerPage}

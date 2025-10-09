@@ -68,7 +68,8 @@ describe('Establishment API', () => {
       ),
       query: fc.option(fc.stringMatching(/^[a-zA-Z0-9\s]*$/), {
         nil: undefined
-      })
+      }),
+      related: fc.option(fc.uuid({ version: 4 }), { nil: undefined })
     })('should validate inputs', async (query) => {
       const { status } = await request(url)
         .get(testRoute)
@@ -79,7 +80,8 @@ describe('Establishment API', () => {
           name: query.name,
           geoCodes: query.geoCodes?.join(','),
           siren: query.siren?.join(','),
-          query: query.query
+          query: query.query,
+          related: query.related
         });
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
@@ -137,6 +139,29 @@ describe('Establishment API', () => {
       expect(body).toPartiallyContain({
         id: firstEstablishment.id,
         name: firstEstablishment.name
+      });
+    });
+
+    it('should list establishments by related establishment', async () => {
+      const establishments: ReadonlyArray<EstablishmentApi> = [
+        genEstablishmentApi('75001', '75002'),
+        genEstablishmentApi('75002', '75003'),
+        genEstablishmentApi('69001', '69002')
+      ];
+      await Establishments().insert(establishments.map(formatEstablishmentApi));
+
+      const [relatedEstablishment] = establishments;
+
+      const { body, status } = await request(url).get(testRoute).query({
+        related: relatedEstablishment.id
+      });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.length).toBeGreaterThan(0);
+      expect(body).toSatisfyAll<EstablishmentDTO>((actual) => {
+        return actual.geoCodes.some((actualGeoCode) =>
+          relatedEstablishment.geoCodes.includes(actualGeoCode)
+        );
       });
     });
 

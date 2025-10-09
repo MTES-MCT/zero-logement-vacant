@@ -1,12 +1,12 @@
 import CallOut from '@codegouvfr/react-dsfr/CallOut';
 import { useState } from 'react';
 
-import { Address, isBanEligible } from '../../models/Address';
-import { AddressSearchResult } from '../../services/address.service';
+import { type Address, isBanEligible } from '../../models/Address';
+import type { AddressSearchResult } from '../../services/address.service';
 import AddressSearchableSelectNext from '../AddressSearchableSelect/AddressSearchableSelectNext';
 
 interface Props {
-  banAddress?: Address;
+  banAddress?: Address | null;
   disabled?: boolean;
   errorMessage?: string;
   help?: boolean;
@@ -46,19 +46,21 @@ function OwnerAddressEdition(props: Props) {
         onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
       />
-      {props.warningVisible && !isBanEligible(props.banAddress) && (
-        <CallOut
-          className="fr-mt-3w"
-          buttonProps={{
-            children: 'Ignorer',
-            onClick: () => {
-              props.setWarningVisible(false);
-            }
-          }}
-        >
-          L’adresse de la Base Adresse Nationale diffère de celle de la DGFIP.
-        </CallOut>
-      )}
+      {props.warningVisible &&
+        props.banAddress &&
+        !isBanEligible(props.banAddress) && (
+          <CallOut
+            className="fr-mt-3w"
+            buttonProps={{
+              children: 'Ignorer',
+              onClick: () => {
+                props.setWarningVisible(false);
+              }
+            }}
+          >
+            L’adresse de la Base Adresse Nationale diffère de celle de la DGFIP.
+          </CallOut>
+        )}
     </>
   );
 }

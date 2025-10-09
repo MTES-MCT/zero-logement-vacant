@@ -201,7 +201,7 @@ function HousingList(props: HousingListProps) {
           id: 'status',
           header: () => (
             <AdvancedTableHeader
-              title="Statuts de suivi"
+              title="Suivi"
               sort={getSortButton('status', 'Trier par statut de suivi')}
             />
           ),

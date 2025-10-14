@@ -224,7 +224,7 @@ export const genOwnerApi = (): OwnerApi => {
 export const genAddressApi = (
   refId: string,
   addressKind: AddressKinds
-): AddressApi => {
+): MarkRequired<AddressApi, 'longitude' | 'latitude'> => {
   const houseNumber = faker.location.buildingNumber();
   const street = faker.location.street();
   const postalCode = faker.location.zipCode();

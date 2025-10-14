@@ -54,11 +54,13 @@ export function genAddressDTO(
   return {
     refId,
     addressKind,
+    banId: faker.string.uuid(),
     label: faker.location.streetAddress({ useFullAddress: true }),
     houseNumber: faker.location.buildingNumber(),
     street: faker.location.street(),
     postalCode: faker.location.zipCode(),
     city: faker.location.city(),
+    cityCode: faker.location.zipCode(),
     latitude: faker.location.latitude(),
     longitude: faker.location.longitude(),
     score: faker.number.float({
@@ -419,7 +421,7 @@ export function genOwnerDTO(): OwnerDTO {
       firstName,
       lastName
     }),
-    phone: faker.phone.number(),
+    phone: faker.phone.number().replace(/\s+/g, ''),
     kind: faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS)),
     kindDetail: null,
     createdAt: faker.date.past().toJSON(),

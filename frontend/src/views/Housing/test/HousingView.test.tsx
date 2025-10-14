@@ -337,7 +337,7 @@ describe('Housing view', () => {
       renderView(housing);
 
       const update = await screen.findByRole('button', {
-        name: /Mettre à jour/,
+        name: /Éditer/,
         description: 'Mettre à jour le logement'
       });
       await user.click(update);
@@ -365,7 +365,7 @@ describe('Housing view', () => {
       renderView(housing);
 
       const [update] = await screen.findAllByRole('button', {
-        name: /Mettre à jour/
+        name: /Éditer/
       });
       await user.click(update);
       const mobilizationTab = await screen.findByRole('tab', {
@@ -400,7 +400,7 @@ describe('Housing view', () => {
       renderView(housing);
 
       const [update] = await screen.findAllByRole('button', {
-        name: /Mettre à jour/
+        name: /Éditer/
       });
       await user.click(update);
       const noteTab = await screen.findByRole('tab', {

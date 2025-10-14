@@ -121,11 +121,13 @@ function EventsHistory({ events, notes }: Props) {
           );
           return isEvent(eventOrNote) ? (
             <IndividualEventCard
+              key={eventOrNote.id}
               event={eventOrNote}
               establishment={establishment ?? null}
             />
           ) : (
             <NoteCard
+              key={eventOrNote.id}
               note={eventOrNote}
               establishment={establishment ?? null}
             />

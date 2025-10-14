@@ -107,6 +107,7 @@ function AddressSearchableSelectNext(props: AddressSearchableSelectNextProps) {
         <CallOut
           buttonProps={{
             children: 'Ignorer',
+            priority: 'secondary',
             onClick: props.onIgnoreWarning
           }}
         >

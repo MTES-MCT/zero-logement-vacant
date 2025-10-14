@@ -61,13 +61,19 @@ export function isAwaitingOwnerRank(
 ): rank is AwaitingOwnerRank {
   return rank === -2;
 }
+export function isDeceasedOwnerRank(
+  rank: OwnerRank
+): rank is AwaitingOwnerRank {
+  return rank === -3;
+}
 export function isInactiveOwnerRank(
   rank: OwnerRank
 ): rank is InactiveOwnerRank {
   return (
     isPreviousOwnerRank(rank) ||
     isIncorrectOwnerRank(rank) ||
-    isAwaitingOwnerRank(rank)
+    isAwaitingOwnerRank(rank) ||
+    isDeceasedOwnerRank(rank)
   );
 }
 

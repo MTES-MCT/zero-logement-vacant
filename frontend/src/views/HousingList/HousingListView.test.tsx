@@ -1082,7 +1082,7 @@ describe('Housing list view', () => {
         });
 
         const accordion = await screen.findByRole('button', {
-          name: 'Mobilisation'
+          name: 'Suivi et campagnes'
         });
         await user.click(accordion);
         const status = await screen.findByRole('combobox', {
@@ -1113,7 +1113,7 @@ describe('Housing list view', () => {
         });
 
         const accordion = await screen.findByRole('button', {
-          name: 'Mobilisation'
+          name: 'Suivi et campagnes'
         });
         await user.click(accordion);
         const status = await screen.findByRole('combobox', {
@@ -1192,7 +1192,7 @@ describe('Housing list view', () => {
         );
 
         const mobilization = await screen.findByRole('button', {
-          name: 'Mobilisation'
+          name: 'Suivi et campagnes'
         });
         await user.click(mobilization);
         const filter = await screen.findByLabelText(/^Campagne/);
@@ -1246,7 +1246,7 @@ describe('Housing list view', () => {
         });
 
         const mobilization = await screen.findByRole('button', {
-          name: 'Mobilisation'
+          name: 'Suivi et campagnes'
         });
         await user.click(mobilization);
         const filter = await screen.findByLabelText(/^Campagne/);
@@ -1312,7 +1312,7 @@ describe('Housing list view', () => {
         });
 
         const mobilization = await screen.findByRole('button', {
-          name: 'Mobilisation'
+          name: 'Suivi et campagnes'
         });
         await user.click(mobilization);
 
@@ -1401,7 +1401,7 @@ describe('Housing list view', () => {
         });
 
         const mobilization = await screen.findByRole('button', {
-          name: 'Mobilisation'
+          name: 'Suivi et campagnes'
         });
         await user.click(mobilization);
         const filter = await screen.findByLabelText(/^Campagne/);
@@ -1469,7 +1469,7 @@ describe('Housing list view', () => {
 
         // Select an option
         const mobilization = await screen.findByRole('button', {
-          name: 'Mobilisation'
+          name: 'Suivi et campagnes'
         });
         await user.click(mobilization);
         const filter = await screen.findByLabelText(/^Campagne/);
@@ -1543,7 +1543,7 @@ describe('Housing list view', () => {
         });
 
         const mobilization = await screen.findByRole('button', {
-          name: /^Mobilisation/
+          name: /^Suivi/
         });
         await user.click(mobilization);
         const filter = await screen.findByLabelText(/^Campagne/);

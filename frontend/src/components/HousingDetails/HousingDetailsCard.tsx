@@ -59,7 +59,7 @@ function HousingDetailsCard(props: HousingDetailsCardProps) {
           isDefault: true
         },
         {
-          label: 'Mobilisation',
+          label: 'Suivi',
           content: <MobilizationTab housing={props.housing} />
         },
         {
@@ -345,7 +345,7 @@ function MobilizationTab(props: TabProps) {
           variant="body1"
           sx={{ fontSize: '1.125rem', fontWeight: 700 }}
         >
-          Informations sur la mobilisation
+          Informations sur le suivi du logement
         </Typography>
 
         <HousingAttribute

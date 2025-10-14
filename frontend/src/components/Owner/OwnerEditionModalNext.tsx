@@ -91,15 +91,17 @@ function createOwnerEditionModalNext() {
         }
       });
 
+      const { isDirty } = form.formState;
+
       function onCancel() {
         modal.close();
-        if (form.formState.isDirty) {
+        if (isDirty) {
           form.reset();
         }
       }
 
       function onSubmit(payload: Schema) {
-        if (!form.formState.isDirty) {
+        if (!isDirty) {
           modal.close();
           return;
         }
@@ -144,7 +146,7 @@ function createOwnerEditionModalNext() {
                 },
                 {
                   children: 'Enregistrer',
-                  // onClick: form.handleSubmit(onSubmit),
+                  onClick: form.handleSubmit(onSubmit),
                   doClosesModal: false
                 }
               ]}

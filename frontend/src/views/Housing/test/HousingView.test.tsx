@@ -337,7 +337,7 @@ describe('Housing view', () => {
       renderView(housing);
 
       const update = await screen.findByRole('button', {
-        name: /Mettre à jour/,
+        name: /Éditer/,
         description: 'Mettre à jour le logement'
       });
       await user.click(update);

@@ -12,6 +12,7 @@ import type {
   InactiveOwnerRank
 } from '@zerologementvacant/models';
 import HousingOwnersEmpty from '~/components/HousingOwnersEmpty/HousingOwnersEmpty';
+import HousingOwnerAdditionModals from '~/components/Owner/HousingOwnerAdditionModals/HousingOwnerAdditionModals';
 import HousingOwnerEditionAside, {
   type HousingOwnerEditionSchema
 } from '~/components/Owner/HousingOwnerEditionAside';
@@ -163,6 +164,11 @@ function HousingOwnersView() {
       )}
 
       <Stack component="section" spacing="1.5rem" useFlexGap>
+        <HousingOwnerAdditionModals
+          buttonProps={{ style: { alignSelf: 'flex-end' } }}
+          onOwnerSelect={() => {}}
+        />
+
         <HousingOwnerTable
           title="Propriétaires"
           housing={housing ?? null}

@@ -1,6 +1,6 @@
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface AdvancedTableHeaderProps {
   title: string;
@@ -12,7 +12,8 @@ function AdvancedTableHeader(props: AdvancedTableHeaderProps) {
     <Stack
       direction="row"
       sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-      spacing={1}
+      spacing="1rem"
+      useFlexGap
     >
       <Typography variant="body2" sx={{ fontWeight: 700 }}>
         {props.title}

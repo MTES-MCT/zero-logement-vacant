@@ -29,7 +29,7 @@ function MapControls(props: Props) {
     <section className={styles.controls}>
       <ToggleSwitch
         checked={props.perimeters}
-        label="Afficher vos périmètres déposés"
+        label="Afficher vos périmètres"
         onChange={props.onPerimetersChange}
       />
 

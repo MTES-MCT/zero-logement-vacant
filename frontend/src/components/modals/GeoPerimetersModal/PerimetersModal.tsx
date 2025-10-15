@@ -286,7 +286,7 @@ function createPerimetersModal() {
                     { capitalize: false }
                   )} sans nom de filtre renseigné ${
                     invalidGeoPerimeters.length === 1
-                      ? "il n'apparaît donc pas dans les filtres du Parc de logements.Pour l'afficher, renseignez le nom du filtre."
+                      ? "il n'apparaît donc pas dans les filtres du Parc de logements. Pour l'afficher, renseignez le nom du filtre."
                       : 'ils n’apparaissent donc pas dans les filtres du Parc de logements. Pour les afficher, renseignez le nom des filtres.'
                   } Exemple : « OPAH »`}
                   severity="warning"

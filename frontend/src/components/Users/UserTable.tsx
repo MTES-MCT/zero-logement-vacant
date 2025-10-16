@@ -1,52 +1,63 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { createModal } from '@codegouvfr/react-dsfr/Modal';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { createColumnHelper, type SortingState } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useState } from 'react';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
+import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
+import { useNotification } from '~/hooks/useNotification';
+import { createdBy, type User } from '~/models/User';
 import { useDeleteUserMutation } from '~/services/user.service';
-import { type User } from '~/models/User';
 
-const deleteUserModal = createModal({
+const deleteUserModal = createConfirmationModal({
   id: 'delete-user-modal',
   isOpenedByDefault: false
 });
 
 export interface UserTableProps {
+  allowRemoving: boolean;
   users: ReadonlyArray<User>;
   isLoading: boolean;
 }
 
 function UserTable(props: UserTableProps) {
-  const { isLoading, users } = props;
+  const { allowRemoving, isLoading, users } = props;
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'activatedAt', desc: true }
   ]);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+
+  const [removingUser, setRemovingUser] = useState<User | null>(null);
+  const [deleteUser, deleteUserMutation] = useDeleteUserMutation();
 
   const date = (d: Date | string) =>
     format(new Date(d), 'PPP p', { locale: fr });
 
-  const handleDeleteClick = (user: User) => {
-    setUserToDelete(user);
-    deleteUserModal.open();
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (userToDelete) {
-      try {
-        await deleteUser(userToDelete.id).unwrap();
-        deleteUserModal.close();
-        setUserToDelete(null);
-      } catch (error) {
-        console.error('Erreur lors de la suppression de l\'utilisateur', error);
-      }
+  useNotification({
+    toastId: 'delete-user-toast',
+    isError: deleteUserMutation.isError,
+    isLoading: deleteUserMutation.isLoading,
+    isSuccess: deleteUserMutation.isSuccess,
+    message: {
+      error: "Erreur lors de la suppression de l'utilisateur",
+      loading: 'Suppression de l’utilisateur en cours...',
+      success: 'Utilisateur supprimé !'
     }
-  };
+  });
+
+  function onCancel(): void {
+    deleteUserModal.close();
+  }
+
+  function onConfirm(): void {
+    if (removingUser) {
+      deleteUser(removingUser.id);
+      deleteUserModal.close();
+    }
+  }
 
   const columnHelper = createColumnHelper<User>();
   const columns = [
@@ -102,12 +113,20 @@ function UserTable(props: UserTableProps) {
           iconId="fr-icon-delete-line"
           priority="tertiary no outline"
           size="small"
-          title="Supprimer l'utilisateur"
-          onClick={() => handleDeleteClick(row.original)}
+          title={`Supprimer ${createdBy(row.original)}`}
+          aria-label={`Supprimer ${createdBy(row.original)}`}
+          onClick={() => {
+            setRemovingUser(row.original);
+            deleteUserModal.open();
+          }}
         />
       )
     })
   ];
+
+  const columnVisibility: VisibilityState = {
+    actions: allowRemoving
+  };
 
   return (
     <>
@@ -118,34 +137,27 @@ function UserTable(props: UserTableProps) {
         isLoading={isLoading}
         enableSorting
         enableSortingRemoval
-        state={{ sorting }}
+        state={{ sorting, columnVisibility }}
         onSortingChange={setSorting}
       />
+
       <deleteUserModal.Component
-        title="Supprimer l'utilisateur"
-        buttons={[
-          {
-            children: 'Annuler',
-            priority: 'secondary',
-            onClick: () => {
-              deleteUserModal.close();
-              setUserToDelete(null);
-            }
-          },
-          {
-            children: 'Supprimer',
-            onClick: handleDeleteConfirm,
-            disabled: isDeleting
-          }
-        ]}
+        title="Supprimer l’utilisateur"
+        onClose={onCancel}
+        onSubmit={onConfirm}
       >
-        {userToDelete && (
-          <p>
-            Êtes-vous sûr de vouloir supprimer l&apos;utilisateur <strong>{userToDelete.email}</strong> ?
-            <br />
-            Cette action est irréversible.
-          </p>
-        )}
+        {removingUser ? (
+          <Stack spacing="1.5rem" useFlexGap>
+            <Typography>
+              Êtes-vous sûr de vouloir supprimer l’utilisateur&nbsp;
+              <Typography component="span" sx={{ fontWeight: 700 }}>
+                {removingUser.email}
+              </Typography>
+              &nbsp;?
+            </Typography>
+            <Typography>Cette action est irréversible.</Typography>
+          </Stack>
+        ) : null}
       </deleteUserModal.Component>
     </>
   );

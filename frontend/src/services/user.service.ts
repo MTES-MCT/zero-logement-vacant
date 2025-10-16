@@ -68,10 +68,10 @@ export const userApi = zlvApi.injectEndpoints({
       invalidatesTags: [{ type: 'User', id: 'PARTIAL-LIST' }]
     }),
 
-    deleteUser: builder.mutation<void, string>({
-      query: (userId) => ({
+    deleteUser: builder.mutation<void, User['id']>({
+      query: (id) => ({
         method: 'DELETE',
-        url: `users/${userId}`
+        url: `users/${id}`
       }),
       invalidatesTags: [{ type: 'User', id: 'LIST' }]
     })

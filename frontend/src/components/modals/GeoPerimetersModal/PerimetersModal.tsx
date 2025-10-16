@@ -190,10 +190,12 @@ function createPerimetersModal() {
           >
             <Grid container>
               <Typography variant="subtitle2">
-                Déposer un fichier .zip avec toutes ses extensions (.cpg, .dbf,
-                .shp, etc.) vous permet de filtrer les logements par périmètre
-                (OPAH, ORT, Permis de louer, etc.) — vérifiez simplement qu’il
-                contient au maximum 500 entités avant de l’importer.
+                Pour afficher un périmètre (OPAH, ORT, Permis de louer, etc.)
+                dans les filtres du Parc de logements, vous devez déposer un
+                fichier géographique contenant ce périmètre, puis renseigner le
+                nom du filtre dans lequel vous souhaitez qu&apos;il apparaisse.
+                Vous pouvez regrouper plusieurs périmètres dans un même filtre
+                en leur attribuant le même nom de filtre.
               </Typography>
               <Grid
                 container
@@ -215,7 +217,7 @@ function createPerimetersModal() {
                       }}
                       priority="secondary"
                     >
-                      Déposer un périmètre (.zip)
+                      Déposer un périmètre
                     </Button>
                   </Stack>
                 </Grid>
@@ -244,7 +246,7 @@ function createPerimetersModal() {
               {isUploadSuccess && (
                 <Alert
                   severity="success"
-                  description="Le fichier a été déposé avec succès ! "
+                  description="Le fichier a été déposé avec succès !"
                   closable
                   small
                   className="fr-mb-2w"
@@ -287,11 +289,11 @@ function createPerimetersModal() {
                     invalidGeoPerimeters.length,
                     'périmètre',
                     { capitalize: false }
-                  )} qui ${
+                  )} sans nom de filtre renseigné ${
                     invalidGeoPerimeters.length === 1
-                      ? "n'est pas valide"
-                      : 'ne sont pas valides'
-                  } car le nom du filtre n'est pas renseigné`}
+                      ? "il n'apparaît donc pas dans les filtres du Parc de logements. Pour l'afficher, renseignez le nom du filtre."
+                      : 'ils n’apparaissent donc pas dans les filtres du Parc de logements. Pour les afficher, renseignez le nom des filtres.'
+                  } Exemple : « OPAH »`}
                   severity="warning"
                   small
                   className="fr-mb-2w"

@@ -1,7 +1,8 @@
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
-import { useUser } from '../../hooks/useUser';
-import PerimetersModalOpener from '../modals/GeoPerimetersModal/PerimetersModalOpener';
-import createPerimetersModal from '../modals/GeoPerimetersModal/PerimetersModal';
+
+import { useUser } from '~/hooks/useUser';
+import PerimetersModalOpener from '~/components/modals/GeoPerimetersModal/PerimetersModalOpener';
+import createPerimetersModal from '~/components/modals/GeoPerimetersModal/PerimetersModal';
 import styles from './map-controls.module.scss';
 
 const perimetersModal = createPerimetersModal();
@@ -13,8 +14,8 @@ interface Props {
    * @default true
    */
   show?: boolean;
-  onClusterizeChange: (checked: boolean) => void;
-  onPerimetersChange: (checked: boolean) => void;
+  onClusterizeChange(checked: boolean): void;
+  onPerimetersChange(checked: boolean): void;
 }
 
 function MapControls(props: Props) {
@@ -29,7 +30,7 @@ function MapControls(props: Props) {
     <section className={styles.controls}>
       <ToggleSwitch
         checked={props.perimeters}
-        label="Afficher vos périmètres déposés"
+        label="Afficher vos périmètres"
         onChange={props.onPerimetersChange}
       />
 

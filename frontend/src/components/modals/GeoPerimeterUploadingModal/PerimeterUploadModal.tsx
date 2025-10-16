@@ -3,9 +3,8 @@ import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import * as yup from 'yup';
 
-import Typography from '@mui/material/Typography';
-import { fileValidator, useForm } from '../../../hooks/useForm';
-import { createConfirmationModal } from '../ConfirmationModal/ConfirmationModalNext';
+import { fileValidator, useForm } from '~/hooks/useForm';
+import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
 
 export interface GeoPerimeterUploadingModalProps {
   onClose(): void;
@@ -51,11 +50,6 @@ function createPerimeterUploadModal() {
           onSubmit={submitFile}
           {...rest}
         >
-          <Typography variant="subtitle2" sx={{ mb: 2 }}>
-            Déposer un ou plusieurs périmètres géographiques (dispositif
-            OPAH/ORT, quartier spécifique, zonage, etc.) permet d’utiliser le
-            filtre « Périmètre » pour cibler vos recherches.
-          </Typography>
           <Grid container>
             <Grid size={8}>
               <Upload
@@ -64,7 +58,7 @@ function createPerimeterUploadModal() {
                 }}
                 multiple={false}
                 label="Ajouter un fichier"
-                hint="*fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”. "
+                hint="Format : fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.).”. "
                 stateRelatedMessage={message('file')}
               />
             </Grid>

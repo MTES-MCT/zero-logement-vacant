@@ -18,7 +18,9 @@ export type OwnerSearchModalProps = Omit<
   ExtendedModalProps,
   'children' | 'title'
 > & {
-  onSelect: (owner: Owner) => void;
+  address: string;
+  exclude: ReadonlyArray<Owner>;
+  onSelect(owner: Owner): void;
 };
 
 function createOwnerSearchModal() {
@@ -43,7 +45,17 @@ function createOwnerSearchModal() {
           page: 1,
           perPage: 10
         },
-        { skip: searchQuery.length < 3 }
+        {
+          skip: searchQuery.length < 3,
+          selectFromResult: (query) => ({
+            ...query,
+            data: query.data?.filter(
+              (owner) =>
+                // Exclude owners who are already linked to the housing
+                !props.exclude.some((excluded) => excluded.id === owner.id)
+            )
+          })
+        }
       );
 
       function handleSearch(query: string): void {
@@ -52,7 +64,6 @@ function createOwnerSearchModal() {
 
       function onSelectOwner(owner: Owner): void {
         props.onSelect(owner);
-        setSearchQuery('');
       }
 
       return (
@@ -61,7 +72,7 @@ function createOwnerSearchModal() {
           {...props}
           title={
             <Stack component="header">
-              <LabelNext>23 Rue des huîtres 50180 Le Marais</LabelNext>
+              <LabelNext>{props.address}</LabelNext>
               <Typography component="h1" variant="h4">
                 Ajouter un propriétaire
               </Typography>

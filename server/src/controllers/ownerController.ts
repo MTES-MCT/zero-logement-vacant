@@ -165,6 +165,8 @@ const create: RequestHandler<
   >;
   const owner: OwnerApi = {
     id: uuidv4(),
+    // Should be filled by the user...
+    idpersonne: null,
     fullName: body.fullName,
     rawAddress: body.rawAddress,
     banAddress: null,

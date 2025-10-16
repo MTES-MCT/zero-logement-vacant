@@ -1,11 +1,11 @@
-import {
+import type {
   BaseHousingOwnerDTO,
   HousingOwnerDTO,
   OwnerDTO
 } from '@zerologementvacant/models';
-import { contramap, DEFAULT_ORDER, Ord } from '@zerologementvacant/utils';
+import { contramap, DEFAULT_ORDER, type Ord } from '@zerologementvacant/utils';
 import { isEqual, pick, pickBy } from 'lodash-es';
-import { Address, fromAddressDTO, toOwnerAddressDTO } from './Address';
+import { type Address } from './Address';
 
 export interface DraftOwner {
   rawAddress: string[];
@@ -17,12 +17,13 @@ export interface DraftOwner {
 }
 
 export interface Owner extends Omit<OwnerDTO, 'banAddress'> {
-  banAddress?: Address;
+  banAddress: Address | null;
 }
 
 export function fromOwnerDTO(owner: OwnerDTO): Owner {
   return {
     id: owner.id,
+    idpersonne: owner.idpersonne,
     rawAddress: owner.rawAddress,
     fullName: owner.fullName,
     administrator: owner.administrator,
@@ -31,7 +32,7 @@ export function fromOwnerDTO(owner: OwnerDTO): Owner {
     phone: owner.phone,
     kind: owner.kind,
     kindDetail: owner.kindDetail,
-    banAddress: owner.banAddress ? fromAddressDTO(owner.banAddress) : undefined,
+    banAddress: owner.banAddress,
     additionalAddress: owner.additionalAddress,
     createdAt: owner.createdAt,
     updatedAt: owner.updatedAt
@@ -49,9 +50,7 @@ export function toOwnerDTO(owner: Owner): OwnerDTO {
     phone: owner.phone,
     kind: owner.kind,
     kindDetail: owner.kindDetail,
-    banAddress: owner.banAddress
-      ? toOwnerAddressDTO(owner, owner.banAddress)
-      : null,
+    banAddress: owner.banAddress ?? null,
     additionalAddress: owner.additionalAddress,
     createdAt: owner.createdAt,
     updatedAt: owner.updatedAt

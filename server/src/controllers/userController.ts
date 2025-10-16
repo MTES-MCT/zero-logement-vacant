@@ -220,10 +220,7 @@ const remove: RequestHandler<PathParams, void> = async (
   request,
   response
 ): Promise<void> => {
-  const { user: authUser, establishment, params } = request as AuthenticatedRequest<
-    PathParams,
-    void
-  >;
+  const { params } = request as AuthenticatedRequest<PathParams, void>;
   logger.info('Remove user', {
     id: params.id
   });
@@ -233,12 +230,7 @@ const remove: RequestHandler<PathParams, void> = async (
     throw new UserMissingError(params.id);
   }
 
-  // Check if the user to delete belongs to the same establishment
-  // Only admins can delete users from other establishments
-  if (!isAdmin(authUser) && user.establishmentId !== establishment.id) {
-    throw new ForbiddenError();
-  }
-
+  // Authorization is checked by the route middleware
   await userRepository.remove(params.id);
 
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();

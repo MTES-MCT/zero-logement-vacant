@@ -7,20 +7,112 @@ import ownerRepository, {
   ownerTable
 } from '../ownerRepository';
 import { collect } from '@zerologementvacant/utils/node';
+import { faker } from '@faker-js/faker';
 
 describe('Owner repository', () => {
   describe('find', () => {
-    it('should find owners by idpersonne', async () => {
-      const owners = Array.from({ length: 6 }, () => genOwnerApi());
+    it('should search by full name', async () => {
+      const owners = [
+        { ...genOwnerApi(), fullName: 'Jean Valjean' },
+        { ...genOwnerApi(), fullName: 'Jean Dupont' },
+        { ...genOwnerApi(), fullName: 'Pierre Jean' },
+        { ...genOwnerApi(), fullName: 'Kyan khojandi' }
+      ];
       await Owners().insert(owners.map(formatOwnerApi));
 
       const actual = await ownerRepository.find({
-        filters: {
-          idpersonne: owners.map((owner) => owner.idpersonne as string)
-        }
+        search: 'Jea'
       });
 
-      expect(actual).toBeArrayOfSize(owners.length);
+      expect(actual.length).toBeGreaterThanOrEqual(3);
+      expect(actual).not.toPartiallyContain({ fullName: 'Kyan khojandi' });
+    });
+
+    describe('Filter by idpersonne', () => {
+      it('should keep owners who have an idpersonne defined', async () => {
+        const owners: ReadonlyArray<OwnerApi> = [
+          { ...genOwnerApi(), idpersonne: faker.string.alphanumeric(10) },
+          { ...genOwnerApi(), idpersonne: null },
+          { ...genOwnerApi(), idpersonne: faker.string.alphanumeric(10) }
+        ];
+        await Owners().insert(owners.map(formatOwnerApi));
+
+        const actual = await ownerRepository.find({
+          filters: {
+            idpersonne: true
+          }
+        });
+
+        expect(actual).toSatisfyAll((owner) => !!owner.idpersonne);
+      });
+
+      it('should filter by idpersonne', async () => {
+        const owners = faker.helpers.multiple(() => genOwnerApi());
+        await Owners().insert(owners.map(formatOwnerApi));
+
+        const actual = await ownerRepository.find({
+          filters: {
+            idpersonne: owners.map((owner) => owner.idpersonne as string)
+          }
+        });
+
+        expect(actual).toBeArrayOfSize(owners.length);
+      });
+    });
+
+    describe('Includes', () => {
+      it('should include the BAN address', async () => {
+        const actual = await ownerRepository.find({
+          includes: ['banAddress']
+        });
+
+        expect(actual).toSatisfyAll<OwnerApi>(
+          (owner) => owner.banAddress !== undefined
+        );
+      });
+    });
+
+    describe('Pagination', () => {
+      it('should paginate by default', async () => {
+        const owners = faker.helpers.multiple(() => genOwnerApi(), {
+          count: 51
+        });
+        await Owners().insert(owners.map(formatOwnerApi));
+
+        const actual = await ownerRepository.find();
+
+        expect(actual.length).toBeLessThanOrEqual(50);
+      });
+
+      it('should disable pagination', async () => {
+        const owners = faker.helpers.multiple(() => genOwnerApi(), {
+          count: 51
+        });
+        await Owners().insert(owners.map(formatOwnerApi));
+
+        const actual = await ownerRepository.find({
+          pagination: { paginate: false }
+        });
+
+        expect(actual.length).toBeGreaterThanOrEqual(51);
+      });
+
+      it('should paginate explicitely', async () => {
+        const owners = faker.helpers.multiple(() => genOwnerApi(), {
+          count: 21
+        });
+        await Owners().insert(owners.map(formatOwnerApi));
+
+        const actual = await ownerRepository.find({
+          pagination: {
+            paginate: true,
+            page: 2,
+            perPage: 10
+          }
+        });
+
+        expect(actual.length).toBe(10);
+      });
     });
   });
 
@@ -60,6 +152,67 @@ describe('Owner repository', () => {
         rawAddress: owner.rawAddress,
         birthDate: owner.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null
       });
+    });
+  });
+
+  describe('count', () => {
+    it('should count all owners', async () => {
+      const owners = faker.helpers.multiple(() => genOwnerApi(), {
+        count: 15
+      });
+      await Owners().insert(owners.map(formatOwnerApi));
+
+      const actual = await ownerRepository.count();
+
+      expect(actual).toBeGreaterThanOrEqual(owners.length);
+    });
+
+    it('should count owners matching search', async () => {
+      const owners = [
+        { ...genOwnerApi(), fullName: 'Jean Valjean' },
+        { ...genOwnerApi(), fullName: 'Jean Dupont' },
+        { ...genOwnerApi(), fullName: 'Pierre Jean' },
+        { ...genOwnerApi(), fullName: 'Kyan khojandi' }
+      ];
+      await Owners().insert(owners.map(formatOwnerApi));
+
+      const actual = await ownerRepository.count({
+        search: 'Jea'
+      });
+
+      expect(actual).toBeGreaterThanOrEqual(3);
+    });
+
+    it('should count owners with idpersonne defined', async () => {
+      const owners: ReadonlyArray<OwnerApi> = [
+        { ...genOwnerApi(), idpersonne: faker.string.alphanumeric(10) },
+        { ...genOwnerApi(), idpersonne: null },
+        { ...genOwnerApi(), idpersonne: faker.string.alphanumeric(10) }
+      ];
+      await Owners().insert(owners.map(formatOwnerApi));
+
+      const actual = await ownerRepository.count({
+        filters: {
+          idpersonne: true
+        }
+      });
+
+      expect(actual).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should count owners by idpersonne', async () => {
+      const owners = faker.helpers.multiple(() => genOwnerApi(), {
+        count: 5
+      });
+      await Owners().insert(owners.map(formatOwnerApi));
+
+      const actual = await ownerRepository.count({
+        filters: {
+          idpersonne: owners.map((owner) => owner.idpersonne as string)
+        }
+      });
+
+      expect(actual).toBe(5);
     });
   });
 

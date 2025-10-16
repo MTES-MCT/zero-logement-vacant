@@ -12,6 +12,8 @@ import { Request, RequestHandler, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
 import { body, ValidationChain } from 'express-validator';
 import { constants } from 'http2';
+import type { ParsedQs } from 'qs';
+import { match } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
@@ -26,12 +28,68 @@ import {
   toHousingOwnerDTO
 } from '~/models/HousingOwnerApi';
 import { diffUpdatedOwner, OwnerApi, toOwnerDTO } from '~/models/OwnerApi';
+import { type PaginationApi } from '~/models/PaginationApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
 import housingRepository from '~/repositories/housingRepository';
 import ownerRepository from '~/repositories/ownerRepository';
 import { isArrayOf, isString } from '~/utils/validators';
+
+type ListOwnersQuery = ParsedQs & PaginationApi & {
+  search?: string;
+};
+
+const list: RequestHandler<
+  never,
+  ReadonlyArray<OwnerDTO>,
+  never,
+  ListOwnersQuery
+> = async (request, response): Promise<void> => {
+  const { query } = request;
+  logger.info('List owners', query);
+
+  const pagination = match(query)
+    .returnType<PaginationApi>()
+    .with({ paginate: undefined }, (query) => ({
+      paginate: true,
+      page: query.page,
+      perPage: query.perPage
+    }))
+    .otherwise((query) => query);
+
+  const [count, owners] = await Promise.all([
+    ownerRepository.count({
+      filters: {
+        idpersonne: true
+      },
+      search: query.search,
+      includes: ['banAddress'],
+      pagination: pagination
+    }),
+    ownerRepository.find({
+      filters: {
+        idpersonne: true
+      },
+      search: query.search,
+      includes: ['banAddress'],
+      pagination: pagination
+    })
+  ]);
+
+  const rangeStart = pagination.paginate
+    ? (pagination.page - 1) * pagination.perPage
+    : 0;
+  const rangeEnd = pagination.paginate
+    ? Math.min(rangeStart + pagination.perPage - 1, count - 1)
+    : Math.max(count - 1, 0);
+
+  response
+    .set('Accept-Ranges', 'owners')
+    .set('Content-Range', `owners ${rangeStart}-${rangeEnd}/${count}`)
+    .status(constants.HTTP_STATUS_PARTIAL_CONTENT)
+    .json(owners.map(toOwnerDTO));
+};
 
 interface PathParams extends Record<string, string> {
   id: string;
@@ -49,6 +107,11 @@ async function get(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(owner);
 }
 
+/**
+ * @deprecated Use {@link find} instead
+ * @param request
+ * @param response
+ */
 async function search(request: Request, response: Response) {
   const q = request.body.q;
   const page = request.body.page;
@@ -414,6 +477,7 @@ const ownerValidators: ValidationChain[] = [
 ];
 
 const ownerController = {
+  list,
   get,
   search,
   create,

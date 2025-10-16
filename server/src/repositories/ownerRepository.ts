@@ -610,7 +610,7 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     .otherwise((value) => value);
   return {
     id: owner.id,
-    idpersonne: owner.idpersonne ?? undefined,
+    idpersonne: owner.idpersonne,
     rawAddress: owner.address_dgfip,
     fullName: owner.full_name,
     administrator: owner.administrator ?? null,

@@ -42,6 +42,7 @@ export function fromOwnerDTO(owner: OwnerDTO): Owner {
 export function toOwnerDTO(owner: Owner): OwnerDTO {
   return {
     id: owner.id,
+    idpersonne: owner.idpersonne,
     rawAddress: owner.rawAddress,
     fullName: owner.fullName,
     administrator: owner.administrator,

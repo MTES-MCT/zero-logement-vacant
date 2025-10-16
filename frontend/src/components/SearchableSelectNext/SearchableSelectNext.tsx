@@ -1,21 +1,21 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
+import Input, { type InputProps } from '@codegouvfr/react-dsfr/Input';
 import {
   Autocomplete,
-  AutocompleteProps,
-  AutocompleteValue,
-  ChipTypeMap,
+  type AutocompleteProps,
+  type AutocompleteValue,
+  type ChipTypeMap,
   MenuItem,
   Typography
 } from '@mui/material';
 import classNames from 'classnames';
 import { List } from 'immutable';
 import {
-  ElementType,
+  type ElementType,
   Fragment,
-  ReactNode,
-  SyntheticEvent,
+  type ReactNode,
+  type SyntheticEvent,
   useState
 } from 'react';
 import { useDebounce } from 'react-use';
@@ -48,6 +48,10 @@ export type SearchableSelectNextProps<
      * Debounce calls to {@link search} (in milliseconds).
      */
     debounce?: number;
+    /**
+     * An error message.
+     */
+    error?: string;
     search?(query: string | undefined): Promise<void>;
     placeholder?: string;
 
@@ -245,6 +249,8 @@ function SearchableSelectNext<
             type: 'search'
           }}
           ref={params.InputProps.ref}
+          state={props.error ? 'error' : 'default'}
+          stateRelatedMessage={props.error}
         />
       )}
       renderOption={({ key, ...props }, option, state, ownerState) => (

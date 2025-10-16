@@ -16,7 +16,7 @@ function OwnerStatusTag(props: OwnerStatusBadgeProps) {
       -2,
       () => 'Propriétaire doublon LOVAC 2024 - En attente de traitement par ZLV'
     )
-    .with(-3, () => 'Propriétaire décédé(e)')
+    .with(-3, () => 'Propriétaire décédé')
     .otherwise(() => null);
 
   return (

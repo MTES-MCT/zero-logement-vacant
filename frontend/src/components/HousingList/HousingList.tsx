@@ -162,6 +162,11 @@ function HousingList(props: HousingListProps) {
             sort={getSortButton('occupancy', 'Trier par occupation')}
           />
         ),
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell }) => (
           <OccupancyTag
             occupancy={cell.getValue() as Occupancy}

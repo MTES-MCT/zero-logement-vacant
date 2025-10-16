@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { type Address, isBanEligible } from '../../models/Address';
 import type { AddressSearchResult } from '../../services/address.service';
-import AddressSearchableSelectNext from '../AddressSearchableSelect/AddressSearchableSelectNext';
+import AddressSearchableSelect from '../AddressSearchableSelect/AddressSearchableSelect';
 
 interface Props {
   banAddress?: Address | null;
@@ -21,7 +21,7 @@ function OwnerAddressEdition(props: Props) {
 
   return (
     <>
-      <AddressSearchableSelectNext
+      <AddressSearchableSelect
         disabled={props.disabled}
         state={props.errorMessage ? 'error' : 'default'}
         stateRelatedMessage={props.errorMessage}

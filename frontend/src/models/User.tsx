@@ -28,6 +28,7 @@ export const USER_EQUIVALENCE = Equivalence.struct({
   id: Equivalence.string
 });
 
+// TODO: rename this function
 export function createdBy(
   user: Pick<User, 'email' | 'firstName' | 'lastName'>
 ): string {

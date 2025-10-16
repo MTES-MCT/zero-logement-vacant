@@ -11,7 +11,7 @@ import { useFindUsersQuery } from '~/services/user.service';
 function UsersView() {
   useDocumentTitle('Utilisateurs rattachés à votre structure');
 
-  const { establishment } = useUser();
+  const { isAdmin, establishment } = useUser();
   const { data: users, isLoading } = useFindUsersQuery(
     establishment
       ? {
@@ -21,6 +21,8 @@ function UsersView() {
         }
       : skipToken
   );
+
+  const allowRemoving: boolean = isAdmin;
 
   return (
     <Stack component="section" spacing="1.5rem">
@@ -47,7 +49,11 @@ function UsersView() {
         small
       />
 
-      <UserTable isLoading={isLoading} users={users ?? []} />
+      <UserTable
+        allowRemoving={allowRemoving}
+        isLoading={isLoading}
+        users={users ?? []}
+      />
     </Stack>
   );
 }

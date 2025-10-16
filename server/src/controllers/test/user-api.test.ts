@@ -526,4 +526,46 @@ describe('User API', () => {
       });
     });
   });
+
+  describe('DELETE /users/{id}', () => {
+    const testRoute = (id: string) => `/api/users/${id}`;
+
+    describe('As an unauthenticated guest', () => {
+      it('should be unauthorized', async () => {
+        const { status } = await request(url).delete(testRoute(user.id));
+
+        expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+      });
+    });
+
+    describe('As an authenticated visitor', () => {
+      it('should be forbidden', async () => {
+        const { status } = await request(url)
+          .delete(testRoute(user.id))
+          .use(tokenProvider(visitor));
+
+        expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      });
+    });
+
+    describe('As an authenticated user', () => {
+      it('should be forbidden', async () => {
+        const { status } = await request(url)
+          .delete(testRoute(visitor.id))
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
+      });
+    });
+
+    describe('As an authenticated admin', () => {
+      it('should delete any user', async () => {
+        const { status } = await request(url)
+          .delete(testRoute(user.id))
+          .use(tokenProvider(admin));
+
+        expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      });
+    });
+  });
 });

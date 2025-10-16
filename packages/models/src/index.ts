@@ -38,6 +38,7 @@ export * from './NoteDTO';
 export * from './Occupancy';
 export * from './OwnerAge';
 export * from './OwnerDTO';
+export * from './OwnerFiltersDTO';
 export * from './OwnerKind';
 export * from './OwnershipKind';
 export * from './Pagination';

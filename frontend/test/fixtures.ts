@@ -1,10 +1,9 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
-  AddressKinds,
   CADASTRAL_CLASSIFICATION_VALUES,
-  DatafoncierHousing,
+  type DatafoncierHousing,
   ENERGY_CONSUMPTION_VALUES,
-  EventType,
+  type EventType,
   HOUSING_KIND_VALUES,
   HousingStatus,
   MUTATION_TYPE_VALUES,
@@ -21,16 +20,21 @@ import {
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import randomstring from 'randomstring';
-import { Address } from '../src/models/Address';
-import { Event, fromEventDTO } from '../src/models/Event';
-import { Group } from '../src/models/Group';
-import { Housing } from '../src/models/Housing';
+import type { Address } from '../src/models/Address';
+import { type Event, fromEventDTO } from '../src/models/Event';
+import type { Group } from '../src/models/Group';
+import type { Housing } from '../src/models/Housing';
 import { LocalityKinds } from '../src/models/Locality';
-import { fromNoteDTO, Note } from '../src/models/Note';
-import { fromOwnerDTO, Owner } from '../src/models/Owner';
-import { Prospect } from '../src/models/Prospect';
-import { SignupLink } from '../src/models/SignupLink';
-import { AuthUser, fromUserDTO, toUserDTO, User } from '../src/models/User';
+import { fromNoteDTO, type Note } from '../src/models/Note';
+import { fromOwnerDTO, type Owner } from '../src/models/Owner';
+import type { Prospect } from '../src/models/Prospect';
+import type { SignupLink } from '../src/models/SignupLink';
+import {
+  type AuthUser,
+  fromUserDTO,
+  toUserDTO,
+  type User
+} from '../src/models/User';
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -136,12 +140,7 @@ export function genHousing(): Housing {
 }
 
 export function genAddress(): Address {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { refId, addressKind, ...rest } = genAddressDTO(
-    '',
-    AddressKinds.Housing
-  );
-  return rest;
+  return genAddressDTO();
 }
 
 export function genSignupLink(email: string): SignupLink {

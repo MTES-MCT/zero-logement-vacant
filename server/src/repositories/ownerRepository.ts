@@ -13,12 +13,13 @@ import db, {
   onConflict,
   where
 } from '~/infra/database';
-import { logger } from '~/infra/logger';
+import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { PaginatedResultApi } from '~/models/PaginatedResultApi';
+import { paginate, type PaginationApi } from '~/models/PaginationApi';
 import { compact } from '~/utils/object';
 import {
   AddressDBO,
@@ -36,8 +37,105 @@ import {
 } from './housingRepository';
 import Stream = Highland.Stream;
 
+const logger = createLogger('ownerRepository');
+
 export const ownerTable = 'owners';
 export const Owners = (transaction = db) => transaction<OwnerDBO>(ownerTable);
+
+export interface OwnerRecordDBO {
+  id: string;
+  idpersonne: string | null;
+  full_name: string;
+  birth_date: Date | string | null;
+  administrator: string | null;
+  siren: string | null;
+  address_dgfip: string[] | null;
+  additional_address: string | null;
+  email: string | null;
+  phone: string | null;
+  data_source: string | null;
+  kind_class: string | null;
+  owner_kind_detail: string | null;
+  entity: OwnerEntity | null;
+  created_at: Date | string | null;
+  updated_at: Date | string | null;
+}
+
+export interface OwnerDBO extends OwnerRecordDBO {
+  ban?: AddressDBO;
+  /**
+   * @deprecated See {@link ban}
+   */
+  postal_code?: string;
+  /**
+   * @deprecated See {@link ban}
+   */
+  house_number?: string;
+  /**
+   * @deprecated See {@link ban}
+   */
+  street?: string;
+  /**
+   * @deprecated See {@link ban}
+   */
+  city?: string;
+  /**
+   * @deprecated See {@link ban}
+   */
+  score?: number;
+}
+
+interface OwnerFilters {
+  fullName?: string;
+  /**
+   * Pass a string or an array of strings to filter by idpersonne.
+   * Pass `true` to filter owners that have an idpersonne (not null).
+   */
+  idpersonne?: string | string[] | boolean;
+  campaignId?: string;
+  groupId?: string;
+}
+
+interface FindOptions {
+  search?: string;
+  filters?: OwnerFilters;
+  groupBy?: Array<keyof OwnerDBO>;
+  includes?: OwnerInclude[];
+  pagination?: PaginationApi;
+}
+
+async function find(opts?: FindOptions): Promise<OwnerApi[]> {
+  logger.debug('Finding owners...', opts);
+  const whereOptions = where<OwnerFilters>(['fullName']);
+
+  const owners = await Owners()
+    .select(`${ownerTable}.*`)
+    .where(whereOptions(opts?.filters ?? {}))
+    .modify(filter(opts?.filters))
+    .modify(search(opts?.search ?? null))
+    .modify(include(opts?.includes ?? []))
+    .modify(paginate(opts?.pagination))
+    .orderBy('full_name');
+
+  logger.debug(`Found ${owners.length} owners`, opts);
+  return owners.map(parseOwnerApi);
+}
+
+async function count(opts?: FindOptions): Promise<number> {
+  logger.debug('Counting owners...', opts);
+  const whereOptions = where<OwnerFilters>(['fullName']);
+
+  const result = await Owners()
+    .count('id')
+    .where(whereOptions(opts?.filters ?? {}))
+    .modify(filter(opts?.filters))
+    .modify(search(opts?.search ?? null))
+    .first();
+
+  const total = Number(result?.count ?? 0);
+  logger.debug(`Counted ${total} owners`, opts);
+  return total;
+}
 
 const get = async (ownerId: string): Promise<OwnerApi | null> => {
   const owner = await Owners()
@@ -47,125 +145,6 @@ const get = async (ownerId: string): Promise<OwnerApi | null> => {
     .first();
   return owner ? parseOwnerApi(owner) : null;
 };
-
-interface OwnerFilters {
-  fullName?: string;
-  idpersonne?: string | string[];
-  campaignId?: string;
-  groupId?: string;
-}
-
-interface FindOptions {
-  filters?: OwnerFilters;
-  groupBy?: Array<keyof OwnerDBO>;
-  includes?: OwnerInclude[];
-}
-
-function filter(filters?: OwnerFilters) {
-  return (query: Knex.QueryBuilder) => {
-    if (filters?.idpersonne) {
-      query.whereIn(
-        'idpersonne',
-        Array.isArray(filters.idpersonne)
-          ? filters.idpersonne
-          : [filters.idpersonne]
-      );
-    }
-
-    if (filters?.campaignId) {
-      query
-        .join(
-          housingOwnersTable,
-          `${ownerTable}.id`,
-          `${housingOwnersTable}.owner_id`
-        )
-        .join(housingTable, ownerHousingJoinClause)
-        .join(campaignsHousingTable, (query) =>
-          query
-            .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
-            .andOn(
-              `${housingTable}.geo_code`,
-              `${campaignsHousingTable}.housing_geo_code`
-            )
-        )
-        .where(`${campaignsHousingTable}.campaign_id`, filters.campaignId);
-    }
-
-    if (filters?.groupId) {
-      query
-        .join(
-          housingOwnersTable,
-          `${ownerTable}.id`,
-          `${housingOwnersTable}.owner_id`
-        )
-        .join(housingTable, ownerHousingJoinClause)
-        .join(GROUPS_HOUSING_TABLE, (query) =>
-          query
-            .on(`${housingTable}.id`, `${GROUPS_HOUSING_TABLE}.housing_id`)
-            .andOn(
-              `${housingTable}.geo_code`,
-              `${GROUPS_HOUSING_TABLE}.housing_geo_code`
-            )
-        )
-        .where(`${GROUPS_HOUSING_TABLE}.group_id`, filters.groupId);
-    }
-  };
-}
-
-const find = async (opts?: FindOptions): Promise<OwnerApi[]> => {
-  const whereOptions = where<OwnerFilters>(['fullName']);
-
-  const owners = await Owners()
-    .where(whereOptions(opts?.filters ?? {}))
-    .modify((query) => {
-      if (opts?.filters?.idpersonne) {
-        query.whereIn(
-          'idpersonne',
-          Array.isArray(opts.filters.idpersonne)
-            ? opts.filters.idpersonne
-            : [opts.filters.idpersonne]
-        );
-      }
-    })
-    .orderBy('full_name');
-  return owners.map(parseOwnerApi);
-};
-
-type OwnerInclude = 'banAddress' | 'housings';
-
-function include(includes: OwnerInclude[]) {
-  const joins: Record<OwnerInclude, (query: Knex.QueryBuilder) => void> = {
-    banAddress: (query) =>
-      query
-        .leftJoin(banAddressesTable, (query: any) => {
-          query
-            .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
-            .andOnVal('address_kind', AddressKinds.Owner);
-        })
-        .select(db.raw(`to_json(${banAddressesTable}.*) AS ban`)),
-    housings: (query) =>
-      query
-        .joinRaw(
-          `
-          LEFT JOIN LATERAL (
-            SELECT json_agg(${housingTable}.*) AS housings
-            FROM ${housingOwnersTable}
-            JOIN ${housingTable}
-              ON ${housingOwnersTable}.housing_geo_code = ${housingTable}.geo_code
-              AND ${housingOwnersTable}.housing_id = ${housingTable}.id
-            WHERE ${ownerTable}.id = ${housingOwnersTable}.owner_id
-          ) h ON true
-        `
-        )
-        .select('h.housings')
-  };
-
-  return (query: Knex.QueryBuilder) => {
-    _.uniq(includes).forEach((include) => {
-      joins[include](query);
-    });
-  };
-}
 
 type StreamOptions = FindOptions;
 
@@ -232,6 +211,27 @@ async function findOne(opts: FindOneOptions): Promise<OwnerApi | null> {
   return owner ? parseOwnerApi(owner) : null;
 }
 
+function search(query: string | null) {
+  return (builder: Knex.QueryBuilder) => {
+    if (query) {
+      const tsQuery = query
+        .trim()
+        .split(/\s+/)
+        .map((term) => `${term}:*`) // permet le préfixe (ex: dupont:* = dupont, dupontet...)
+        .join(' & '); // opérateur logique AND entre les mots
+
+      builder.whereRaw(`full_name_fts @@ to_tsquery('simple', ?)`, [tsQuery]);
+    }
+  };
+}
+
+/**
+ * @deprecated Use {@link find} with filters instead
+ * @param q
+ * @param page
+ * @param perPage
+ * @returns
+ */
 const searchOwners = async (
   q: string,
   page?: number,
@@ -503,48 +503,101 @@ const escapeValue = (value?: string) => {
   return value ? value.replace(/'/g, "''") : '';
 };
 
-export interface OwnerRecordDBO {
-  id: string;
-  idpersonne: string | null;
-  full_name: string;
-  birth_date: Date | string | null;
-  administrator: string | null;
-  siren: string | null;
-  address_dgfip: string[] | null;
-  // ban_address: string | null;
-  additional_address: string | null;
-  email: string | null;
-  phone: string | null;
-  data_source: string | null;
-  kind_class: string | null;
-  owner_kind_detail: string | null;
-  entity: OwnerEntity | null;
-  created_at: Date | string | null;
-  updated_at: Date | string | null;
+type OwnerInclude = 'banAddress' | 'housings';
+
+function include(includes: OwnerInclude[]) {
+  const joins: Record<OwnerInclude, (query: Knex.QueryBuilder) => void> = {
+    banAddress: (query) =>
+      query
+        .leftJoin(banAddressesTable, (query: any) => {
+          query
+            .on(`${ownerTable}.id`, `${banAddressesTable}.ref_id`)
+            .andOnVal('address_kind', AddressKinds.Owner);
+        })
+        .select(db.raw(`to_json(${banAddressesTable}.*) AS ban`)),
+    housings: (query) =>
+      query
+        .joinRaw(
+          `
+          LEFT JOIN LATERAL (
+            SELECT json_agg(${housingTable}.*) AS housings
+            FROM ${housingOwnersTable}
+            JOIN ${housingTable}
+              ON ${housingOwnersTable}.housing_geo_code = ${housingTable}.geo_code
+              AND ${housingOwnersTable}.housing_id = ${housingTable}.id
+            WHERE ${ownerTable}.id = ${housingOwnersTable}.owner_id
+          ) h ON true
+        `
+        )
+        .select('h.housings')
+  };
+
+  return (query: Knex.QueryBuilder) => {
+    _.uniq(includes).forEach((include) => {
+      joins[include](query);
+    });
+  };
 }
 
-export interface OwnerDBO extends OwnerRecordDBO {
-  ban?: AddressDBO;
-  /**
-   * @deprecated See {@link ban}
-   */
-  postal_code?: string;
-  /**
-   * @deprecated See {@link ban}
-   */
-  house_number?: string;
-  /**
-   * @deprecated See {@link ban}
-   */
-  street?: string;
-  /**
-   * @deprecated See {@link ban}
-   */
-  city?: string;
-  /**
-   * @deprecated See {@link ban}
-   */
-  score?: number;
+function filter(filters?: OwnerFilters) {
+  return (query: Knex.QueryBuilder) => {
+    if (filters?.idpersonne !== undefined) {
+      match(filters.idpersonne)
+        .with(true, () => {
+          query.whereNotNull('idpersonne');
+        })
+        .with(false, () => {
+          query.whereNull('idpersonne');
+        })
+        .with(Pattern.string, (value) => {
+          query.where('idpersonne', value);
+        })
+        .with(Pattern.array(Pattern.string), (value) => {
+          if (value.length > 0) {
+            query.whereIn('idpersonne', value);
+          }
+        })
+        .exhaustive();
+    }
+
+    if (filters?.campaignId) {
+      query
+        .join(
+          housingOwnersTable,
+          `${ownerTable}.id`,
+          `${housingOwnersTable}.owner_id`
+        )
+        .join(housingTable, ownerHousingJoinClause)
+        .join(campaignsHousingTable, (query) =>
+          query
+            .on(`${housingTable}.id`, `${campaignsHousingTable}.housing_id`)
+            .andOn(
+              `${housingTable}.geo_code`,
+              `${campaignsHousingTable}.housing_geo_code`
+            )
+        )
+        .where(`${campaignsHousingTable}.campaign_id`, filters.campaignId);
+    }
+
+    if (filters?.groupId) {
+      query
+        .join(
+          housingOwnersTable,
+          `${ownerTable}.id`,
+          `${housingOwnersTable}.owner_id`
+        )
+        .join(housingTable, ownerHousingJoinClause)
+        .join(GROUPS_HOUSING_TABLE, (query) =>
+          query
+            .on(`${housingTable}.id`, `${GROUPS_HOUSING_TABLE}.housing_id`)
+            .andOn(
+              `${housingTable}.geo_code`,
+              `${GROUPS_HOUSING_TABLE}.housing_geo_code`
+            )
+        )
+        .where(`${GROUPS_HOUSING_TABLE}.group_id`, filters.groupId);
+    }
+  };
 }
 
 export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
@@ -616,6 +669,7 @@ export const formatOwnerApi = (owner: OwnerApi): OwnerRecordDBO => ({
 
 export default {
   find,
+  count,
   stream,
   exportStream,
   get,

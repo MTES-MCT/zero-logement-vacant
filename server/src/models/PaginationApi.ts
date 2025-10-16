@@ -7,7 +7,7 @@ import { Pagination } from '@zerologementvacant/models';
 export type PaginationApi = PaginationEnabled | PaginationDisabled;
 
 export interface PaginationEnabled {
-  paginate: true;
+  paginate?: true;
   page: number;
   perPage: number;
 }
@@ -18,8 +18,7 @@ export interface PaginationDisabled {
 
 export const isPaginationEnabled = (
   pagination?: PaginationApi
-): pagination is PaginationEnabled =>
-  pagination !== undefined && pagination.paginate;
+): pagination is PaginationEnabled => pagination?.paginate !== false;
 
 export const MAX_PER_PAGE = 500;
 
@@ -50,7 +49,9 @@ export function createPagination(query: Pagination): PaginationApi {
     : { paginate: false };
 }
 
-export function paginationQuery(pagination?: PaginationApi) {
+export function paginationQuery(
+  pagination: PaginationApi = { paginate: true, page: 1, perPage: 50 }
+) {
   return (builder: Knex.QueryBuilder): void => {
     if (isPaginationEnabled(pagination)) {
       const { page, perPage } = pagination;
@@ -58,6 +59,9 @@ export function paginationQuery(pagination?: PaginationApi) {
     }
   };
 }
+
+// Alias the function
+export { paginationQuery as paginate };
 
 export default {
   create: createPagination,

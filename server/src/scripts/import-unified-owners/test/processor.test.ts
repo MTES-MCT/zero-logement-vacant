@@ -25,7 +25,7 @@ describe('Processor', () => {
     const owner = genOwnerApi();
     return {
       ...genHousingOwnerApi(housing, owner),
-      idpersonne: undefined,
+      idpersonne: null,
       idprocpte: undefined,
       idprodroit: undefined,
       rank: AWAITING_OWNER_RANK
@@ -126,7 +126,7 @@ describe('Processor', () => {
       const owner = genOwnerApi();
       const housingOwner: HousingOwnerApi = {
         ...genHousingOwnerApi(housing, owner),
-        idpersonne: undefined
+        idpersonne: null
       };
 
       const actual = isNationalOwner(housingOwner);
@@ -167,7 +167,7 @@ describe('Processor', () => {
       const owner = genOwnerApi();
       const housingOwner: HousingOwnerApi = {
         ...genHousingOwnerApi(housing, owner),
-        idpersonne: undefined
+        idpersonne: null
       };
 
       const actual = isDepartmentalOwner(housingOwner);

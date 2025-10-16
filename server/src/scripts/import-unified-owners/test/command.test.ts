@@ -28,7 +28,7 @@ describe('Unified owners command', () => {
     const housing = genHousingApi();
     const nationalOwner: OwnerApi = {
       ...genOwnerApi(),
-      idpersonne: undefined
+      idpersonne: null
     };
     const existingDepartmentalOwner: OwnerApi = {
       ...genOwnerApi(),

@@ -46,7 +46,7 @@ function Tooltip(props: TooltipProps) {
     return () => {
       element.parentElement?.removeEventListener('dsfr.show', placeTooltip);
     };
-  }, []);
+  }, [props.align, props.place]);
 
   return <DSFRTooltip {...props} ref={ref} id={id} />;
 }

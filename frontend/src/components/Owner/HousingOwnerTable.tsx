@@ -42,6 +42,7 @@ export interface HousingOwnerTableProps {
 }
 
 function HousingOwnerTable(props: HousingOwnerTableProps) {
+  const { onEdit } = props;
   const { isGuest, isVisitor } = useUser();
 
   function isProtected(column: HousingOwnerTableColumn): boolean {
@@ -116,7 +117,7 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
               'aria-label': `Éditer ${row.original.fullName}`
             }}
             onClick={() => {
-              props.onEdit?.(row.original);
+              onEdit?.(row.original);
             }}
           >
             Éditer
@@ -124,7 +125,7 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
         )
       })
     ],
-    [columnHelper, props.onEdit]
+    [columnHelper, onEdit]
   );
 
   if (props.owners.length === 0 && !props.isLoading) {

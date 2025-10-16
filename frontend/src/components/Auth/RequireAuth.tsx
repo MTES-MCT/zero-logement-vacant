@@ -1,5 +1,5 @@
 import { usePostHog } from 'posthog-js/react';
-import { PropsWithChildren, useEffect } from 'react';
+import { type PropsWithChildren, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 import { useUser } from '../../hooks/useUser';
@@ -25,7 +25,7 @@ function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
         });
       }
     }
-  }, [isUsual, isVisitor, user]);
+  }, [isUsual, isVisitor, user, posthog, establishment?.name]);
 
   if (isAuthenticated) {
     return props.children;

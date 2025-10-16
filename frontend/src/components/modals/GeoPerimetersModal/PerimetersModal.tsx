@@ -190,7 +190,12 @@ function createPerimetersModal() {
           >
             <Grid container>
               <Typography variant="subtitle2">
-                Pour afficher un périmètre (OPAH, ORT, Permis de louer, etc.) dans les filtres du Parc de logements, vous devez déposer un fichier géographique contenant ce périmètre, puis renseigner le nom du filtre dans lequel vous souhaitez qu'il apparaisse. Vous pouvez regrouper plusieurs périmètres dans un même filtre en leur attribuant le même nom de filtre.
+                Pour afficher un périmètre (OPAH, ORT, Permis de louer, etc.)
+                dans les filtres du Parc de logements, vous devez déposer un
+                fichier géographique contenant ce périmètre, puis renseigner le
+                nom du filtre dans lequel vous souhaitez qu&apos;il apparaisse.
+                Vous pouvez regrouper plusieurs périmètres dans un même filtre
+                en leur attribuant le même nom de filtre.
               </Typography>
               <Grid
                 container

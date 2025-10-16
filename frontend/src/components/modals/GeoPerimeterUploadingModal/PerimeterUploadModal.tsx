@@ -3,9 +3,8 @@ import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 import * as yup from 'yup';
 
-import Typography from '@mui/material/Typography';
-import { fileValidator, useForm } from '../../../hooks/useForm';
-import { createConfirmationModal } from '../ConfirmationModal/ConfirmationModalNext';
+import { fileValidator, useForm } from '~/hooks/useForm';
+import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
 
 export interface GeoPerimeterUploadingModalProps {
   onClose(): void;

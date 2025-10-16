@@ -5,7 +5,6 @@ import {
 } from '@codegouvfr/react-dsfr/Pagination';
 import Select, { type SelectProps } from '@codegouvfr/react-dsfr/SelectNext';
 import { type TableProps } from '@codegouvfr/react-dsfr/Table';
-import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import {
@@ -13,17 +12,17 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  useReactTable,
   type RowData,
   type RowSelectionState,
-  type TableOptions,
-  useReactTable
+  type TableOptions
 } from '@tanstack/react-table';
 import classNames from 'classnames';
-import { memo, type MouseEvent } from 'react';
+import { createRef, memo, useEffect, type MouseEvent } from 'react';
 
-import { type Selection } from '~/hooks/useSelection';
 import SingleCheckbox from '~/components/_app/AppCheckbox/SingleCheckbox';
 import SortButton from '~/components/AdvancedTable/SortButton';
+import { type Selection } from '~/hooks/useSelection';
 
 export type AdvancedTableProps<Data extends object> = Pick<
   TableOptions<Data>,
@@ -129,6 +128,25 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   const headers = table.getLeafHeaders();
   const rows = table.getRowModel().rows;
 
+  const rowRefs: Record<string, React.RefObject<HTMLTableRowElement>> = {};
+  rows.forEach((row) => {
+    rowRefs[row.id] = createRef<HTMLTableRowElement>();
+  });
+
+  useEffect(() => {
+    if (props.isLoading) {
+      return;
+    }
+
+    Object.values(rowRefs).forEach((ref) => {
+      // Set row height for the DSFR selection styles to work
+      ref.current?.style.setProperty(
+        '--row-height',
+        `${ref.current?.clientHeight}px`
+      );
+    });
+  }, [props.isLoading]);
+
   if (props?.isLoading) {
     return (
       <Skeleton
@@ -150,9 +168,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
             [fr.cx('fr-table--bordered')]: props.tableProps?.bordered,
             [fr.cx('fr-table--no-caption')]: props.tableProps?.noCaption
           }),
-          props.tableProps?.size
-            ? `fr-table--${props.tableProps.size}`
-            : null,
+          props.tableProps?.size ? `fr-table--${props.tableProps.size}` : null,
           props.tableProps?.className
         )}
       >
@@ -185,21 +201,21 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 
                     {headers.map((header, i) => (
                       <th key={i} scope="col">
-                        <Stack
-                          direction="row"
-                          sx={{
-                            alignItems: 'center',
-                            justifyContent: 'space-between'
-                          }}
-                          spacing="1rem"
-                          useFlexGap
-                        >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        {header.column.getCanSort() ? (
+                          <Stack
+                            direction="row"
+                            sx={{
+                              alignItems: 'center',
+                              justifyContent: 'flex-start'
+                            }}
+                            spacing="1rem"
+                            useFlexGap
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
 
-                          {header.column.getCanSort() ? (
                             <SortButton
                               direction={header.column.getIsSorted()}
                               title={
@@ -208,8 +224,13 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                               }
                               onCycleSort={() => header.column.toggleSorting()}
                             />
-                          ) : null}
-                        </Stack>
+                          </Stack>
+                        ) : (
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )
+                        )}
                       </th>
                     ))}
                   </tr>
@@ -219,12 +240,15 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                     <tr
                       key={i}
                       aria-selected={all !== row.getIsSelected()}
-                      style={{
-                        ['--row-height' as any]: props.tableProps
-                          ?.fixedRowHeight
-                          ? '6.25rem'
+                      ref={rowRefs[row.id]}
+                      style={
+                        props.tableProps?.fixedRowHeight
+                          ? {
+                              // Behaves like minHeight when used in a table
+                              height: '6.25rem'
+                            }
                           : undefined
-                      }}
+                      }
                     >
                       {!row.getCanMultiSelect() ? null : (
                         <th className={fr.cx('fr-cell--fixed')} scope="row">
@@ -256,24 +280,10 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                                 cell.column.columnDef.meta?.styles?.multiline
                             })}
                           >
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                width: '100%',
-                                height: props.tableProps?.fixedRowHeight
-                                  ? '5.25rem'
-                                  : undefined,
-                                overflowY: 'auto'
-                              }}
-                            >
-                              <Box sx={{ width: '100%' }}>
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext()
-                                )}
-                              </Box>
-                            </Box>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
                           </td>
                         );
                       })}

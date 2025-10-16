@@ -2,22 +2,48 @@ import type {
   HousingOwnerDTO,
   OwnerCreationPayload,
   OwnerDTO,
+  OwnerFiltersDTO,
   OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
-import { fromAddressDTO } from '../models/Address';
+
 import {
   fromHousingOwnerDTO,
   fromOwnerDTO,
   type HousingOwner,
   type Owner
-} from '../models/Owner';
-import type { PaginatedResult } from '../models/PaginatedResult';
-import { toTitleCase } from '../utils/stringUtils';
-import { zlvApi } from './api.service';
+} from '~/models/Owner';
+import type { PaginatedResult } from '~/models/PaginatedResult';
+import { zlvApi } from '~/services/api.service';
+import { toTitleCase } from '~/utils/stringUtils';
+
+type FindOwnersOptions = OwnerFiltersDTO & {
+  page?: number;
+  perPage?: number;
+};
 
 export const ownerApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
+    findOwnersNext: builder.query<ReadonlyArray<Owner>, FindOwnersOptions>({
+      query: (params) => ({
+        url: 'owners',
+        method: 'GET',
+        params
+      }),
+      transformResponse: (owners: ReadonlyArray<OwnerDTO>) =>
+        owners.map(fromOwnerDTO),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((owner) => ({
+                type: 'Owner' as const,
+                id: owner.id
+              })),
+              { type: 'Owner', id: 'LIST' }
+            ]
+          : [{ type: 'Owner', id: 'LIST' }]
+    }),
+
     getOwner: builder.query<Owner, string>({
       query: (id) => `owners/${id}`,
       transformResponse: (owner: OwnerDTO) => fromOwnerDTO(owner),
@@ -32,6 +58,9 @@ export const ownerApi = zlvApi.injectEndpoints({
           : []
     }),
 
+    /**
+     * @deprecated Use {@link useFindOwnersNextQuery} instead
+     */
     findOwners: builder.query<
       PaginatedResult<Owner>,
       { q: string; page: number; perPage: number }
@@ -122,7 +151,7 @@ export const ownerApi = zlvApi.injectEndpoints({
 export function parseOwner(owner: OwnerDTO): Owner {
   return {
     ...owner,
-    banAddress: owner.banAddress ? fromAddressDTO(owner.banAddress) : undefined,
+    banAddress: owner.banAddress,
     rawAddress: owner.rawAddress
       ? owner.rawAddress
           .filter((_: string) => _)
@@ -142,6 +171,7 @@ export const parseHousingOwner = (o: any): HousingOwner => ({
 
 export const {
   useGetOwnerQuery,
+  useFindOwnersNextQuery,
   useFindOwnersQuery,
   useFindOwnersByHousingQuery,
   useCreateOwnerMutation,

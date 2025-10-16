@@ -1,8 +1,6 @@
 import { Array, pipe, Predicate, String } from 'effect';
 
 export interface AddressDTO {
-  refId: string;
-  addressKind: AddressKinds;
   banId?: string;
   label: string;
   /**

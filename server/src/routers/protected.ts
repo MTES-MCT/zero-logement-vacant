@@ -235,6 +235,13 @@ router.post(
   draftController.preview
 );
 
+router.get(
+  '/owners',
+  validatorNext.validate({
+    query: schemas.ownerFilters.concat(paginationSchema)
+  }),
+  ownerController.list
+);
 router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);
 router.post(

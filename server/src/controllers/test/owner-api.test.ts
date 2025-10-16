@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
+import { fc, test } from '@fast-check/vitest';
 
 import {
   AddressDTO,
@@ -64,6 +65,141 @@ describe('Owner API', () => {
     await Users().insert(formatUserApi(user));
   });
 
+  describe('GET /owners', () => {
+    const testRoute = '/api/owners';
+
+    it('should be forbidden for unauthenticated users', async () => {
+      const { status } = await request(url).get(testRoute);
+
+      expect(status).toBe(constants.HTTP_STATUS_UNAUTHORIZED);
+    });
+
+    describe('As an authenticated user', () => {
+      const owners: OwnerApi[] = [
+        {
+          ...genOwnerApi(),
+          fullName: 'Jean Valjean',
+          idpersonne: faker.string.alphanumeric(10)
+        },
+        {
+          ...genOwnerApi(),
+          fullName: 'Jean Dupont',
+          idpersonne: faker.string.alphanumeric(10)
+        },
+        {
+          ...genOwnerApi(),
+          fullName: 'Pierre Martin',
+          idpersonne: faker.string.alphanumeric(10)
+        },
+        { ...genOwnerApi(), fullName: 'Marie Curie', idpersonne: null }
+      ];
+
+      beforeAll(async () => {
+        await Owners().insert(owners.map(formatOwnerApi));
+      });
+
+      test.prop<{ search?: string; page?: number; perPage?: number }>({
+        search: fc.option(fc.string(), { nil: undefined }),
+        page: fc.option(fc.integer({ min: 1 }), { nil: undefined }),
+        perPage: fc.option(fc.integer({ min: 1, max: 100 }), { nil: undefined })
+      })('should validate inputs', async (query) => {
+        const { status } = await request(url)
+          .get(testRoute)
+          .query(query)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+      });
+
+      it('should return owners with idpersonne only', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+        expect(body).toSatisfyAll<OwnerDTO>(
+          (owner) => owner.idpersonne !== undefined && owner.idpersonne !== null
+        );
+      });
+
+      it('should include BAN addresses', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+        expect(body).toSatisfyAll<OwnerDTO>((owner) => 'banAddress' in owner);
+      });
+
+      it('should filter by search parameter', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query({ search: 'Jean' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+        expect(body.length).toBeGreaterThanOrEqual(2);
+        expect(body).toSatisfyAll<OwnerDTO>((owner) =>
+          owner.fullName.toLowerCase().includes('jean')
+        );
+      });
+
+      it('should return correct Content-Range headers', async () => {
+        const { headers, status } = await request(url)
+          .get(testRoute)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+        expect(headers['accept-ranges']).toBe('owners');
+        expect(headers['content-range']).toMatch(/^owners \d+-\d+\/\d+$/);
+      });
+
+      it('should paginate results', async () => {
+        const { body, headers, status } = await request(url)
+          .get(testRoute)
+          .query({ page: 1, perPage: 2 })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+        expect(body.length).toBeLessThanOrEqual(2);
+        expect(headers['content-range']).toMatch(/^owners 0-1\/\d+$/);
+      });
+
+      it('should handle pagination on second page', async () => {
+        const { headers, status } = await request(url)
+          .get(testRoute)
+          .query({ page: 2, perPage: 2 })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+        expect(headers['content-range']).toMatch(/^owners \d+-\d+\/\d+$/);
+      });
+
+      it('should handle empty search results', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query({ search: faker.string.alphanumeric(50) })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+        expect(body).toEqual([]);
+      });
+
+      it('should combine search and pagination', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query({ search: 'Jean', page: 1, perPage: 1 })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+        expect(body.length).toBeLessThanOrEqual(1);
+        if (body.length > 0) {
+          expect(body[0].fullName.toLowerCase()).toContain('jean');
+        }
+      });
+    });
+  });
+
   describe('GET /housings/{id}/owners', () => {
     const testRoute = (id: string) => `/api/housings/${id}/owners`;
 
@@ -107,7 +243,7 @@ describe('Owner API', () => {
     it('should reject if the owner is missing', async () => {
       const payload: OwnerUpdatePayload = {
         ...owner,
-        banAddress: genAddressDTO(owner.id, AddressKinds.Owner),
+        banAddress: genAddressDTO(),
         phone: '+33 6 12 34 56 78'
       };
 
@@ -160,8 +296,6 @@ describe('Owner API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body.banAddress).toMatchObject<Partial<AddressDTO>>({
-        refId: owner.id,
-        addressKind: AddressKinds.Owner,
         label: payload.banAddress?.label,
         houseNumber: payload.banAddress?.houseNumber,
         street: payload.banAddress?.street,
@@ -183,7 +317,7 @@ describe('Owner API', () => {
         birthDate: faker.date.birthdate().toJSON(),
         phone: faker.phone.number(),
         email: faker.internet.email(),
-        banAddress: genAddressDTO(owner.id, AddressKinds.Owner),
+        banAddress: genAddressDTO(),
         additionalAddress: 'Les Cabannes'
       } satisfies OwnerUpdatePayload;
 

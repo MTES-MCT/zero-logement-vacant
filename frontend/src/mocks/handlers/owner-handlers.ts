@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import {
+import type {
   HousingOwnerDTO,
   HousingOwnerPayloadDTO,
   OwnerCreationPayload,
@@ -8,12 +8,14 @@ import {
   Paginated,
   Pagination
 } from '@zerologementvacant/models';
+import schemas from '@zerologementvacant/schemas';
 import { Array, pipe } from 'effect';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
+import qs from 'qs';
 
-import config from '../../utils/config';
-import data from './data';
+import data from '~/mocks/handlers/data';
+import config from '~/utils/config';
 
 interface PathParams {
   id: string;
@@ -25,7 +27,25 @@ interface SearchPayloadDTO {
   q: string;
 }
 
+const list = http.get<never, never, ReadonlyArray<OwnerDTO>>(
+  `${config.apiEndpoint}/api/owners`,
+  ({ request }) => {
+    const search = new URL(request.url).search.substring(1);
+    const query = schemas.ownerFilters.validateSync(qs.parse(search));
+
+    const owners = pipe(data.owners, (owners) =>
+      query.search ? Array.filter(owners, byName(query.search)) : owners
+    );
+
+    return HttpResponse.json(owners, {
+      status: constants.HTTP_STATUS_OK
+    });
+  }
+);
+
 export const ownerHandlers: RequestHandler[] = [
+  list,
+
   http.post<never, SearchPayloadDTO, Paginated<OwnerDTO>>(
     `${config.apiEndpoint}/api/owners`,
     async ({ request }) => {
@@ -56,6 +76,7 @@ export const ownerHandlers: RequestHandler[] = [
 
       const owner: OwnerDTO = {
         id: faker.string.uuid(),
+        idpersonne: faker.string.alphanumeric(10),
         rawAddress: payload.rawAddress,
         banAddress: null,
         additionalAddress: null,

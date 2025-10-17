@@ -11,7 +11,7 @@ const schema = object({
   metabase: object({
     siteURL: string().url().optional(),
     public: object({
-      statsDashboard: string().url().optional()
+      statsDashboard: string().optional()
     })
   }),
   posthog: object({

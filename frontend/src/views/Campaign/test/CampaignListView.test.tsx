@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
-import { CAMPAIGN_STATUS_LABELS } from '@zerologementvacant/models';
+import { byStatus, CAMPAIGN_STATUS_LABELS } from '@zerologementvacant/models';
 import { genCampaignDTO } from '@zerologementvacant/models/fixtures';
 import configureTestStore from '../../../utils/test/storeUtils';
 import CampaignListView from '../CampaignListView';
@@ -13,12 +13,12 @@ import { DEFAULT_ORDER } from '@zerologementvacant/utils';
 describe('CampaignListView', () => {
   const user = userEvent.setup();
 
-  beforeAll(() => {
+  beforeEach(() => {
     const campaigns = Array.from({ length: 10 }, () => genCampaignDTO());
     data.campaigns.push(...campaigns);
   });
 
-  function setup() {
+  function renderView() {
     const store = configureTestStore();
     const router = createMemoryRouter(
       [
@@ -50,7 +50,7 @@ describe('CampaignListView', () => {
 
   describe('Title', () => {
     it('should sort by title', async () => {
-      setup();
+      renderView();
 
       const table = await screen.findByRole('table');
       const sort = await within(table).findByRole('button', {
@@ -70,7 +70,7 @@ describe('CampaignListView', () => {
     });
 
     it('should link to the campaign page', async () => {
-      setup();
+      renderView();
 
       const table = await screen.findByRole('table');
       const links = await within(table).findAllByRole('link', {
@@ -86,9 +86,8 @@ describe('CampaignListView', () => {
 
   describe('Status', () => {
     it('should sort by status', async () => {
-      setup();
+      renderView();
 
-      await resetSort();
       const table = await screen.findByRole('table');
       const sort = await within(table).findByRole('button', {
         name: 'Trier par statut'
@@ -100,14 +99,15 @@ describe('CampaignListView', () => {
       expect(statuses.length).toBeGreaterThan(0);
       expect(statuses).toBeSorted({
         key: 'textContent',
-        descending: true
+        descending: true,
+        compare: byStatus
       });
     });
   });
 
   describe('Creation date', () => {
     it('should sort by creation date', async () => {
-      setup();
+      renderView();
 
       await resetSort();
       const table = await screen.findByRole('table');
@@ -144,7 +144,7 @@ describe('CampaignListView', () => {
           .then((count) => Number(count));
       }
 
-      setup();
+      renderView();
 
       const table = await screen.findByRole('table');
       const countBefore = await count();

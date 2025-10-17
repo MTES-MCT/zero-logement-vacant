@@ -3,8 +3,7 @@ import { OwnerDTO } from './OwnerDTO';
 import { PropertyRight } from './PropertyRight';
 
 export interface BaseHousingOwnerDTO {
-  // TODO: move OwnerRank from server/ to models/ and use it here
-  rank: -2 | -1 | 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  rank: OwnerRank;
   idprocpte: string | null;
   idprodroit: string | null;
   locprop: number | null;
@@ -16,6 +15,7 @@ export type OwnerHousingDTO = BaseHousingOwnerDTO & HousingDTO;
 
 export type HousingOwnerPayloadDTO = BaseHousingOwnerDTO & Pick<OwnerDTO, 'id'>;
 
+export const DECEASED_OWNER_RANK = -3 as const;
 export const AWAITING_OWNER_RANK = -2 as const;
 export const INCORRECT_OWNER_RANK = -1 as const;
 export const PREVIOUS_OWNER_RANK = 0 as const;
@@ -31,11 +31,13 @@ export const OWNER_RANKS = [
   PREVIOUS_OWNER_RANK,
   ...ACTIVE_OWNER_RANKS
 ] as const;
+export type DeceasedOwnerRank = typeof DECEASED_OWNER_RANK;
 export type AwaitingOwnerRank = typeof AWAITING_OWNER_RANK;
 export type IncorrectOwnerRank = typeof INCORRECT_OWNER_RANK;
 export type PreviousOwnerRank = typeof PREVIOUS_OWNER_RANK;
 export type ActiveOwnerRank = (typeof ACTIVE_OWNER_RANKS)[number];
 export type InactiveOwnerRank =
+  | DeceasedOwnerRank
   | AwaitingOwnerRank
   | IncorrectOwnerRank
   | PreviousOwnerRank;
@@ -59,14 +61,26 @@ export function isAwaitingOwnerRank(
 ): rank is AwaitingOwnerRank {
   return rank === -2;
 }
+export function isDeceasedOwnerRank(
+  rank: OwnerRank
+): rank is AwaitingOwnerRank {
+  return rank === -3;
+}
 export function isInactiveOwnerRank(
   rank: OwnerRank
 ): rank is InactiveOwnerRank {
   return (
     isPreviousOwnerRank(rank) ||
     isIncorrectOwnerRank(rank) ||
-    isAwaitingOwnerRank(rank)
+    isAwaitingOwnerRank(rank) ||
+    isDeceasedOwnerRank(rank)
   );
+}
+
+export function isPrimaryOwner(
+  housingOwner: Pick<HousingOwnerDTO, 'rank'>
+): boolean {
+  return housingOwner.rank === 1;
 }
 
 export function isSecondaryOwner(

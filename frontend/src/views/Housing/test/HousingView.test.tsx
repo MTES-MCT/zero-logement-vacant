@@ -3,12 +3,12 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import {
-  HousingDTO,
-  HousingOwnerDTO,
+  type HousingDTO,
+  type HousingOwnerDTO,
   HousingStatus,
   Occupancy,
-  OwnerDTO,
-  OwnerRank,
+  type OwnerDTO,
+  type OwnerRank,
   UserRole
 } from '@zerologementvacant/models';
 import {
@@ -23,8 +23,8 @@ import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { genAuthUser, genNote, genUser } from '../../../../test/fixtures';
 import data from '../../../mocks/handlers/data';
-import { Note, toNoteDTO } from '../../../models/Note';
-import { fromUserDTO, User } from '../../../models/User';
+import { type Note, toNoteDTO } from '../../../models/Note';
+import { fromUserDTO, type User } from '../../../models/User';
 import configureTestStore from '../../../utils/test/storeUtils';
 import HousingView from '../HousingView';
 
@@ -55,11 +55,19 @@ describe('Housing view', () => {
   });
 
   interface RenderViewOptions {
-    user: User;
+    user?: User;
     notes?: ReadonlyArray<Note>;
+    /**
+     * @default true
+     */
+    createHousing?: boolean;
   }
 
   function renderView(housing: HousingDTO, options?: RenderViewOptions) {
+    const createHousing = options?.createHousing ?? true;
+    if (housing && createHousing) {
+      data.housings.push(housing);
+    }
     if (options?.notes?.length) {
       data.notes.push(...options.notes.map(toNoteDTO));
       data.housingNotes.set(
@@ -88,7 +96,9 @@ describe('Housing view', () => {
     const owner = genOwnerDTO();
     const missingHousing = genHousingDTO(owner);
 
-    renderView(missingHousing);
+    renderView(missingHousing, {
+      createHousing: false
+    });
 
     const error = await screen.findByRole('heading', {
       name: 'Page non trouvée'
@@ -214,6 +224,20 @@ describe('Housing view', () => {
   });
 
   describe('Add owner', () => {
+    describe('If there is no main owner', () => {
+      it('should add an owner', async () => {
+        const housing: HousingDTO = genHousingDTO(null);
+
+        renderView(housing);
+
+        const add = await screen.findByRole('button', {
+          name: /^Ajouter un propriétaire/
+        });
+        await user.click(add);
+        // TODO
+      });
+    });
+
     it('should add an owner who is missing from the database', async () => {
       renderView(housing);
 
@@ -313,7 +337,7 @@ describe('Housing view', () => {
       renderView(housing);
 
       const update = await screen.findByRole('button', {
-        name: /Mettre à jour/,
+        name: /Éditer/,
         description: 'Mettre à jour le logement'
       });
       await user.click(update);
@@ -341,15 +365,15 @@ describe('Housing view', () => {
       renderView(housing);
 
       const [update] = await screen.findAllByRole('button', {
-        name: /Mettre à jour/
+        name: /Éditer/
       });
       await user.click(update);
       const mobilizationTab = await screen.findByRole('tab', {
-        name: 'Mobilisation'
+        name: 'Suivi'
       });
       await user.click(mobilizationTab);
       const mobilizationPanel = await screen.findByRole('tabpanel', {
-        name: 'Mobilisation'
+        name: 'Suivi'
       });
       const status =
         await within(mobilizationPanel).findByLabelText(/Statut de suivi/);
@@ -376,7 +400,7 @@ describe('Housing view', () => {
       renderView(housing);
 
       const [update] = await screen.findAllByRole('button', {
-        name: /Mettre à jour/
+        name: /Éditer/
       });
       await user.click(update);
       const noteTab = await screen.findByRole('tab', {

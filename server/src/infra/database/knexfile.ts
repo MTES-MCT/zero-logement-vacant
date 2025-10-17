@@ -28,7 +28,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
 }
 
 export class CustomSeedSource implements Knex.SeedSource<string> {
-  async getSeeds(): Promise<string[]> {
+  async getSeeds(options: Knex.SeederConfig): Promise<string[]> {
     const dirents = await fs.readdir(
       path.join(import.meta.dirname, 'seeds', config.db.env),
       {
@@ -39,6 +39,7 @@ export class CustomSeedSource implements Knex.SeedSource<string> {
     return dirents
       .filter((dirent) => dirent.isFile())
       .map((dirent) => dirent.name)
+      .filter((name) => (options.specific ? options.specific === name : true))
       .sort();
   }
 

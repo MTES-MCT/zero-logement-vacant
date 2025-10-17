@@ -221,7 +221,7 @@ function HousingEditionSideMenu(props: HousingEditionSideMenuProps) {
           <Tabs
             tabs={[
               { tabId: 'occupancy', label: 'Occupation' },
-              { tabId: 'mobilization', label: 'Mobilisation' },
+              { tabId: 'mobilization', label: 'Suivi' },
               { tabId: 'note', label: 'Note' }
             ]}
             selectedTabId={tab}

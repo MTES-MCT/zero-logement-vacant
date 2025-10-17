@@ -24,4 +24,5 @@ dependencies = [
     "boto3>=1.40.36",
     "thefuzz>=0.22.1",
     "psutil>=7.0.0",
+    "pyarrow>=21.0.0",
 ]

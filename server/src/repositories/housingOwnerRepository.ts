@@ -5,11 +5,55 @@ import { logger } from '~/infra/logger';
 import { HousingApi, HousingRecordApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
+import {
+  housingTable,
+  parseHousingRecordApi,
+  type HousingRecordDBO
+} from '~/repositories/housingRepository';
 
 export const housingOwnersTable = 'owners_housing';
 
 export const HousingOwners = (transaction = db) =>
   transaction<HousingOwnerDBO>(housingOwnersTable);
+
+export interface FindByOwnerOptions {
+  geoCodes?: ReadonlyArray<string>;
+}
+
+async function findByOwner(
+  owner: OwnerApi,
+  options?: FindByOwnerOptions
+): Promise<
+  ReadonlyArray<Omit<HousingOwnerApi, keyof OwnerApi> & HousingRecordApi>
+> {
+  logger.debug('Finding housing owners by owner...');
+
+  const ownerHousings: ReadonlyArray<HousingOwnerDBO & HousingRecordDBO> =
+    await HousingOwners()
+      .select(`${housingOwnersTable}.*`)
+      .where({
+        owner_id: owner.id
+      })
+      .modify(query => {
+        if (options?.geoCodes?.length) {
+          query.whereIn(
+            `${housingOwnersTable}.housing_geo_code`,
+            options.geoCodes
+          );
+        }
+      })
+      .join(housingTable, (join) => {
+        join
+          .on(`${housingOwnersTable}.housing_id`, `${housingTable}.id`)
+          .andOn(
+            `${housingOwnersTable}.housing_geo_code`,
+            `${housingTable}.geo_code`
+          );
+      })
+      .select(`${housingTable}.*`);
+
+  return ownerHousings.map(parseOwnerHousingApi);
+}
 
 async function insert(housingOwner: HousingOwnerApi): Promise<void> {
   logger.debug('Saving housing owner...', {
@@ -63,6 +107,33 @@ export interface HousingOwnerDBO {
   property_right: PropertyRight | null;
 }
 
+export function parseOwnerHousingApi(
+  ownerHousing: HousingOwnerDBO & HousingRecordDBO
+): Omit<HousingOwnerApi, keyof OwnerApi> & HousingRecordApi {
+  const owner: Omit<HousingOwnerApi, keyof OwnerApi> = {
+    housingGeoCode: ownerHousing.geo_code,
+    housingId: ownerHousing.id,
+    ownerId: ownerHousing.owner_id,
+    rank: ownerHousing.rank,
+    startDate: ownerHousing.start_date,
+    endDate: ownerHousing.end_date,
+    origin: ownerHousing.origin ?? undefined,
+    idprocpte: ownerHousing.idprocpte ?? undefined,
+    idprodroit: ownerHousing.idprodroit ?? undefined,
+    locprop:
+      ownerHousing.locprop_source !== null
+        ? Number(ownerHousing.locprop_source)
+        : undefined,
+    propertyRight: ownerHousing.property_right
+  };
+  const housing: HousingRecordApi = parseHousingRecordApi(ownerHousing);
+
+  return {
+    ...housing,
+    ...owner
+  };
+}
+
 export const formatOwnerHousingApi = (housing: HousingApi): HousingOwnerDBO => {
   if (!housing.owner) {
     throw new Error('Owner is required');
@@ -111,6 +182,7 @@ export const formatHousingOwnersApi = (
   }));
 
 const housingOwnerRepository = {
+  findByOwner,
   insert,
   saveMany
 };

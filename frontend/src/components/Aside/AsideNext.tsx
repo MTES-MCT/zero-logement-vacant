@@ -10,6 +10,7 @@ interface CommonProps {
   header?: ReactNode;
   main?: ReactNode;
   footer?: ReactNode;
+  width?: number | `${number}rem`;
   open: boolean;
   onClose(): void;
   onSave?(): void;
@@ -21,9 +22,11 @@ interface FooterProps {
 }
 
 interface SaveProps {
-  footer: never;
+  footer?: never;
   onSave(): void;
 }
+
+const DEFAULT_WIDTH = '40rem';
 
 export type AsideProps = CommonProps & (FooterProps | SaveProps);
 
@@ -36,6 +39,11 @@ function Aside(props: AsideProps) {
       slotProps={{
         backdrop: {
           invisible: true
+        },
+        paper: {
+          sx: {
+            width: props.width ?? DEFAULT_WIDTH
+          }
         }
       }}
       {...props.drawerProps}

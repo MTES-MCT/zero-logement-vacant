@@ -1,5 +1,7 @@
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 import async from 'async';
 import { useState } from 'react';
@@ -9,15 +11,15 @@ import HousingDetailsCard from '../../components/HousingDetails/HousingDetailsCa
 import { HousingEditionProvider } from '../../components/HousingEdition/useHousingEdition';
 import HousingOwnersModal from '../../components/modals/HousingOwnersModal/HousingOwnersModal';
 import InactiveOwnerList from '../../components/Owner/InactiveOwnerList';
+import OwnerCardNext from '../../components/Owner/OwnerCardNext';
 import SecondaryOwnerList from '../../components/Owner/SecondaryOwnerList';
 import { useHousingOwners } from '../../components/Owner/useHousingOwners';
-import OwnerCardNext from '../../components/OwnerCard/OwnerCardNext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useHousing } from '../../hooks/useHousing';
 import {
   hasOwnerChanges,
   hasRankChanges,
-  HousingOwner
+  type HousingOwner
 } from '../../models/Owner';
 import { useCountHousingQuery } from '../../services/housing.service';
 import {
@@ -33,7 +35,7 @@ function HousingView() {
       ? `Fiche logement - ${housing.rawAddress.join(' ')}`
       : 'Page non trouvée'
   );
-  const { owner, housingOwners } = useHousingOwners(housingId);
+  const { owner, housingOwners, findOwnersQuery } = useHousingOwners(housingId);
   const { data: count } = useCountHousingQuery(
     housing?.owner?.id ? { ownerIds: [housing.owner.id] } : skipToken
   );
@@ -99,23 +101,37 @@ function HousingView() {
             sx={{ display: 'flex', flexFlow: 'column nowrap' }}
             size={4}
           >
-            <OwnerCardNext
-              owner={owner}
-              housingCount={count?.housing}
-              modify={
-                housingOwners ? (
-                  <HousingOwnersModal
-                    housingId={housingId}
-                    housingOwners={housingOwners}
-                    onSubmit={submitHousingOwnersUpdate}
-                    key={housingOwnersModalKey}
-                    onCancel={() =>
-                      setHousingOwnersModalKey(new Date().getTime())
-                    }
-                  />
-                ) : null
-              }
-            />
+            <Stack
+              direction="row"
+              spacing="1rem"
+              useFlexGap
+              sx={{ justifyContent: 'space-between' }}
+            >
+              <Typography component="h2" variant="h5">
+                Propriétaires
+              </Typography>
+
+              {housingOwners ? (
+                <HousingOwnersModal
+                  housingId={housingId}
+                  housingOwners={housingOwners}
+                  onSubmit={submitHousingOwnersUpdate}
+                  key={housingOwnersModalKey}
+                  onCancel={() =>
+                    setHousingOwnersModalKey(new Date().getTime())
+                  }
+                />
+              ) : null}
+            </Stack>
+
+            <Stack sx={{ mt: '-1.5rem' }}>
+              <OwnerCardNext
+                title="Propriétaire principal"
+                owner={owner}
+                isLoading={findOwnersQuery.isLoading}
+                housingCount={count?.housing}
+              />
+            </Stack>
             <SecondaryOwnerList housingId={housingId} />
             <InactiveOwnerList housingId={housingId} />
           </Grid>

@@ -224,7 +224,7 @@ export const genOwnerApi = (): OwnerApi => {
 export const genAddressApi = (
   refId: string,
   addressKind: AddressKinds
-): AddressApi => {
+): MarkRequired<AddressApi, 'longitude' | 'latitude'> => {
   const houseNumber = faker.location.buildingNumber();
   const street = faker.location.street();
   const postalCode = faker.location.zipCode();
@@ -292,7 +292,7 @@ export function genBuildingApi(): BuildingApi {
 export const genHousingApi = (
   geoCode: string = genGeoCode(),
   building?: BuildingApi
-): MarkRequired<HousingApi, 'owner'> => {
+): Omit<HousingApi, 'owner'> & { owner: OwnerApi } => {
   const id = uuidv4();
   const department = geoCode.substring(0, 2);
   const locality = geoCode.substring(2, 5);
@@ -387,7 +387,6 @@ export const genHousingApi = (
     buildingGroupId: null,
     buildingHousingCount: null,
     geoPerimeters: [],
-    lastContact: null,
     precisions: [],
     rentalValue: faker.number.int({ min: 500, max: 1000 }),
     deprecatedPrecisions: [],

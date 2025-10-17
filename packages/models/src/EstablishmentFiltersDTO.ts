@@ -12,4 +12,9 @@ export type EstablishmentFiltersDTO = Partial<
    */
   active?: boolean;
   query?: string;
+  /**
+   * Filter establishments that share at least one geo code
+   * with the specified establishment
+   */
+  related?: EstablishmentDTO['id'];
 };

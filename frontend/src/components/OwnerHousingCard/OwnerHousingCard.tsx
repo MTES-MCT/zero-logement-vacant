@@ -1,19 +1,22 @@
 import { Icon, Text } from '../_dsfr';
-
-import { getBuildingLocation, Housing } from '../../models/Housing';
-import { capitalize } from '../../utils/stringUtils';
-import styles from './owner-housing-card.module.scss';
-import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import Card from '@codegouvfr/react-dsfr/Card';
 import Typography from '@mui/material/Typography';
-import { HousingStatus } from '@zerologementvacant/models';
+import {
+  HousingStatus,
+  type OwnerHousingDTO
+} from '@zerologementvacant/models';
+import { getBuildingLocation } from '../../models/Housing';
+import { capitalize } from '../../utils/stringUtils';
+import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
+import styles from './owner-housing-card.module.scss';
 
 interface OwnerHousingCardProps {
-  housing: Housing;
+  ownerHousing: OwnerHousingDTO;
 }
 
-function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
-  const buildingLocation = getBuildingLocation(housing);
+function OwnerHousingCard(props: OwnerHousingCardProps) {
+  const { ownerHousing } = props;
+  const buildingLocation = getBuildingLocation(ownerHousing);
   const additionalInfo = buildingLocation
     ? [
         buildingLocation.building,
@@ -23,7 +26,7 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
       ].join(', ')
     : undefined;
 
-  const to = `/logements/${housing.id}`;
+  const to = `/logements/${ownerHousing.id}`;
 
   return (
     <Card
@@ -37,11 +40,11 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
         <>
           {' '}
           <Typography component="h4" variant="h6" mb={0}>
-            {capitalize(housing.rawAddress[0])}
+            {capitalize(ownerHousing.rawAddress[0])}
           </Typography>
-          {housing.status !== undefined && (
+          {ownerHousing.status !== undefined && (
             <HousingStatusBadge
-              status={housing.status as unknown as HousingStatus}
+              status={ownerHousing.status as unknown as HousingStatus}
             />
           )}
         </>
@@ -52,7 +55,7 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
             <Text size="sm" className="zlv-label">
               Identifiant fiscal départemental
             </Text>
-            <Text className="fr-mb-0">{housing.invariant}</Text>
+            <Text className="fr-mb-0">{ownerHousing.invariant}</Text>
           </div>
           {additionalInfo && (
             <div>
@@ -66,7 +69,7 @@ function OwnerHousingCard({ housing }: OwnerHousingCardProps) {
             <Text size="sm" className="zlv-label">
               Surface
             </Text>
-            <Text className="fr-mb-0">{housing.livingArea} m²</Text>
+            <Text className="fr-mb-0">{ownerHousing.livingArea} m²</Text>
           </div>
           <div className={styles.link}>
             <Text as="span" spacing="mb-0 mr-1w">

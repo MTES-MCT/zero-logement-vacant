@@ -7,9 +7,9 @@ import {
   EstablishmentSource
 } from '@zerologementvacant/models';
 import db, { likeUnaccent, notDeleted } from '~/infra/database';
-import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { createLogger } from '~/infra/logger';
-import { usersTable, parseUserApi, UserDBO } from './userRepository';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { parseUserApi, UserDBO, usersTable } from './userRepository';
 
 export const establishmentsTable = 'establishments';
 export const Establishments = (transaction = db) =>
@@ -166,6 +166,14 @@ function filter(filters?: EstablishmentFiltersDTO) {
     if (filters?.query?.length) {
       builder.whereRaw(likeUnaccent('name', filters.query));
     }
+    if (filters?.related) {
+      builder
+        .where('id', '!=', filters.related)
+        .whereRaw(
+          `localities_geo_code && (SELECT localities_geo_code FROM ${establishmentsTable} WHERE id = ?)`,
+          [filters.related]
+        );
+    }
     if (filters?.geoCodes) {
       builder.whereRaw('? && localities_geo_code', [filters.geoCodes]);
     }
@@ -188,6 +196,10 @@ export interface EstablishmentDBO {
   id: string;
   name: string;
   siren: number;
+  /**
+   * @deprecated An establishment is considered available
+   * if it has at least one active user.
+   */
   available: boolean;
   localities_geo_code: string[];
   kind: EstablishmentKind;

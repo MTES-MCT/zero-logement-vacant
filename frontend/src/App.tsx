@@ -24,6 +24,7 @@ import CampaignListView from './views/Campaign/CampaignListView';
 import CampaignView from './views/Campaign/CampaignView';
 import GroupView from './views/Group/GroupView';
 import HousingView from './views/Housing/HousingView';
+import HousingViewNext from '~/views/Housing/HousingViewNext';
 import HousingListTabsProvider from './views/HousingList/HousingListTabsProvider';
 import HousingListView from './views/HousingList/HousingListView';
 import LoginView from './views/Login/LoginView';
@@ -31,6 +32,9 @@ import NotFoundView from './views/NotFoundView';
 import OwnerView from './views/Owner/OwnerView';
 import ResourcesView from './views/Resources/ResourcesView';
 import StatusView from './views/Resources/StatusView';
+import OwnerViewNext from '~/views/Owner/OwnerViewNext';
+import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
+import HousingOwnersView from '~/views/Housing/HousingOwnersView';
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
@@ -60,16 +64,38 @@ const router = sentry.createBrowserRouter(
         <Route path="/groupes/:id" element={<GroupView />} />
         <Route path="/campagnes" element={<CampaignListView />} />
         <Route path="/campagnes/:id" element={<CampaignView />} />
+
         <Route
-          path="/proprietaires/:ownerId/logements/:housingId"
-          element={<HousingView />}
+          path="/proprietaires/:id"
+          element={
+            <FeatureFlagLayout
+              flag="new-housing-owner-pages"
+              then={<OwnerViewNext />}
+              else={<OwnerView />}
+            />
+          }
         />
-        <Route path="/proprietaires/:ownerId" element={<OwnerView />} />
         <Route
-          path="/logements/:housingId/proprietaires/:ownerId"
-          element={<OwnerView />}
+          path="/logements/:housingId"
+          element={
+            <FeatureFlagLayout
+              flag="new-housing-owner-pages"
+              then={<HousingViewNext />}
+              else={<HousingView />}
+            />
+          }
         />
-        <Route path="/logements/:housingId" element={<HousingView />} />
+        <Route
+          path="/logements/:id/proprietaires"
+          element={
+            <FeatureFlagLayout
+              flag="new-housing-owner-pages"
+              then={<HousingOwnersView />}
+              else={null}
+            />
+          }
+        />
+
         <Route path="/ressources/statuts" element={<StatusView />} />
         <Route path="/ressources" element={<ResourcesView />} />
 

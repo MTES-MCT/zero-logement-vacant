@@ -18,5 +18,6 @@ export const establishmentFilters: ObjectSchema<EstablishmentFiltersDTO> = objec
     .transform(commaSeparatedString)
     .of(string().oneOf(ESTABLISHMENT_KIND_VALUES).required()),
   siren: array().transform(commaSeparatedString).of(siren.required()),
-  query: string().trim()
+  query: string().trim(),
+  related: string().uuid()
 });

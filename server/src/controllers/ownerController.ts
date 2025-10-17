@@ -60,26 +60,31 @@ async function search(request: Request, response: Response) {
   response.status(constants.HTTP_STATUS_OK).json(owners);
 }
 
-async function listByHousing(request: Request, response: Response) {
-  const housingId = request.params.housingId;
-  const establishment = (request as AuthenticatedRequest).establishment;
+const listByHousing: RequestHandler<
+  PathParams,
+  ReadonlyArray<HousingOwnerDTO>
+> = async (request, response): Promise<void> => {
+  const { establishment, params } = request as AuthenticatedRequest<
+    PathParams,
+    ReadonlyArray<HousingOwnerDTO>
+  >;
 
-  logger.info('List owner for housing', housingId);
+  logger.info('List owner for housing', { id: params.id });
 
   const housing = await housingRepository.findOne({
     establishment: establishment.id,
-    id: housingId,
+    id: params.id,
     geoCode: establishment.geoCodes
   });
   if (!housing) {
-    throw new HousingMissingError(housingId);
+    throw new HousingMissingError(params.id);
   }
 
   const housingOwners = await ownerRepository.findByHousing(housing);
   response
     .status(constants.HTTP_STATUS_OK)
     .json(housingOwners.map(toHousingOwnerDTO));
-}
+};
 
 const create: RequestHandler<
   never,

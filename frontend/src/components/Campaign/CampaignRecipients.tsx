@@ -26,6 +26,7 @@ import AppLink from '../_app/AppLink/AppLink';
 import AdvancedTable from '../AdvancedTable/AdvancedTable';
 import AdvancedTableHeader from '../AdvancedTable/AdvancedTableHeader';
 import OwnerEditionSideMenu from '../OwnerEditionSideMenu/OwnerEditionSideMenu';
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 
 interface Props {
   campaign: Campaign;
@@ -42,10 +43,27 @@ function CampaignRecipients(props: Props) {
   const filters = {
     campaignIds: [props.campaign.id]
   };
-  const { data: housings, isLoading } = useFindHousingQuery({
-    filters,
-    pagination
-  });
+  const isNewHousingOwnerPagesEnabled = useFeatureFlagEnabled(
+    'new-housing-owner-pages'
+  );
+  const { data: housings, isLoading } = useFindHousingQuery(
+    {
+      filters,
+      pagination
+    },
+    {
+      selectFromResult: ({ data, ...response }) => ({
+        ...response,
+        data: {
+          ...data,
+          // Keep ownerless housings if the feature flag is enabled
+          entities: data?.entities?.filter((housing) =>
+            isNewHousingOwnerPagesEnabled ? true : !!housing.owner
+          )
+        }
+      })
+    }
+  );
   const { data: count } = useCountHousingQuery(filters);
   const filteredCount = count?.housing ?? 0;
 
@@ -102,6 +120,11 @@ function CampaignRecipients(props: Props) {
     () => [
       columnHelper.accessor('rawAddress', {
         header: () => <AdvancedTableHeader title="Adresse logement" />,
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell, row }) => {
           return (
             <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
@@ -117,17 +140,23 @@ function CampaignRecipients(props: Props) {
       }),
       columnHelper.accessor('owner.fullName', {
         header: () => <AdvancedTableHeader title="Propriétaire principal" />,
-        cell: ({ cell, row }) => (
-          <AppLink
-            isSimple
-            size="sm"
-            to={`/proprietaires/${row.original.owner.id}`}
-          >
-            {cell.getValue()}
-          </AppLink>
-        )
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
+        cell: ({ cell, row }) =>
+          !row.original.owner ? null : (
+            <AppLink
+              isSimple
+              size="sm"
+              to={`/proprietaires/${row.original.owner.id}`}
+            >
+              {cell.getValue()}
+            </AppLink>
+          )
       }),
-      columnHelper.accessor((row) => row.owner.banAddress, {
+      columnHelper.accessor((row) => row.owner?.banAddress ?? null, {
         id: 'address',
         header: () => (
           <AdvancedTableHeader title="Adresse BAN du propriétaire" />
@@ -148,6 +177,11 @@ function CampaignRecipients(props: Props) {
       }),
       columnHelper.accessor('owner.additionalAddress', {
         header: () => <AdvancedTableHeader title="Complément d’adresse" />,
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell }) => (
           <Typography variant="body2">{cell.getValue()}</Typography>
         )
@@ -160,6 +194,10 @@ function CampaignRecipients(props: Props) {
           </Typography>
         ),
         cell: ({ row }) => {
+          if (!row.original.owner) {
+            return null;
+          }
+
           return (
             <Stack
               direction="row"
@@ -209,7 +247,7 @@ function CampaignRecipients(props: Props) {
         page={page}
         pageCount={pageCount}
         perPage={perPage}
-        tableProps={{ noCaption: true }}
+        tableProps={{ noCaption: true, size: 'lg' }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
       />

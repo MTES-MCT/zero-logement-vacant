@@ -18,6 +18,7 @@ import geoController from '~/controllers/geoController';
 import groupController from '~/controllers/groupController';
 import housingController from '~/controllers/housingController';
 import housingExportController from '~/controllers/housingExportController';
+import housingOwnerController from '~/controllers/housingOwnerController';
 import localityController from '~/controllers/localityController';
 import noteController from '~/controllers/noteController';
 import ownerController from '~/controllers/ownerController';
@@ -248,8 +249,21 @@ router.put(
   validator.validate,
   ownerController.update
 );
-router.get('/owners/housing/:housingId', ownerController.listByHousing);
+router.get(
+  '/housings/:id/owners',
+  validatorNext.validate({ params: object({ id: schemas.id }) }),
+  ownerController.listByHousing
+);
 router.put('/housing/:housingId/owners', ownerController.updateHousingOwners);
+
+// Housing owners
+router.get(
+  '/owners/:id/housings',
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  housingOwnerController.listByOwner
+);
 
 router.get(
   '/owner-prospects',
@@ -346,6 +360,14 @@ router.put(
     body: schemas.userUpdatePayload
   }),
   userController.update
+);
+router.delete(
+  '/users/:id',
+  hasRole([UserRole.ADMIN]),
+  validatorNext.validate({
+    params: object({ id: schemas.id })
+  }),
+  userController.remove
 );
 
 // TODO: should be /geo-perimeters

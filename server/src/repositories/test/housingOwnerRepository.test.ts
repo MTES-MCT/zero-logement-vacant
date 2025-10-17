@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { PROPERTY_RIGHT_VALUES } from '@zerologementvacant/models';
+import { OWNER_RANKS, PROPERTY_RIGHT_VALUES } from '@zerologementvacant/models';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import housingOwnerRepository, {
@@ -15,6 +15,42 @@ import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
 import { genHousingApi, genOwnerApi } from '~/test/testFixtures';
 
 describe('housingOwnerRepository', () => {
+  describe('findByOwner', () => {
+    it('should return a housing owner with their housings', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+      const housings = faker.helpers.multiple(() => genHousingApi());
+      await Housing().insert(housings.map(formatHousingRecordApi));
+      const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.map(
+        (housing) => ({
+          ...owner,
+          ownerId: owner.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id,
+          rank: faker.helpers.arrayElement(OWNER_RANKS),
+          propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
+        })
+      );
+      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
+
+      const actuals = await housingOwnerRepository.findByOwner(owner);
+
+      actuals.forEach((actual) => {
+        const housingOwner = housingOwners.find(
+          (housingOwner) =>
+            housingOwner.ownerId === actual.ownerId &&
+            housingOwner.housingGeoCode === actual.housingGeoCode &&
+            housingOwner.housingId === actual.housingId
+        );
+        expect(actual).toMatchObject({
+          id: housingOwner?.housingId,
+          rank: housingOwner?.rank,
+          propertyRight: housingOwner?.propertyRight
+        });
+      });
+    });
+  });
+
   describe('insert', () => {
     it('should ignore the conflict if the same owner is inserted twice at the same rank', async () => {
       const owner = genOwnerApi();

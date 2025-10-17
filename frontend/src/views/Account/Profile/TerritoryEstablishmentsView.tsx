@@ -11,11 +11,12 @@ function TerritoryEstablishmentsView() {
   const { establishment } = useUser();
   const { data: establishments, isLoading } = useFindEstablishmentsQuery(
     {
-      available: true,
       active: true,
-      geoCodes: establishment?.geoCodes
+      related: establishment?.id
     },
-    { skip: !establishment?.geoCodes?.length }
+    {
+      skip: !establishment?.id
+    }
   );
 
   return (

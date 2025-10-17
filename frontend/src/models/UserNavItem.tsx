@@ -23,8 +23,8 @@ export const getUserNavItem = (userNavItem: UserNavItems): UserNavItem => {
       return { url: '/ressources', label: 'Ressources', icon: 'fr-icon-information-line' };
     case UserNavItems.Analysis:
       return { label: 'Analyses', showNewBadge: true, icon: 'ri-bar-chart-2-line', url: '/analyses', items: [
-        { url: '/analyses/parc-vacant', label: 'Analyse du parc vacant' },
-        { url: '/analyses/lutte', label: 'Analyse de la lutte contre la vacance' }
+        { url: '/analyses/parc-vacant', label: 'Parc vacant de votre territoire' },
+        { url: '/analyses/lutte', label: 'Vos suivis et campagnes' }
       ] };
     default:
       return { url: '/', label: 'Accueil', icon: 'fr-icon-building-line' };

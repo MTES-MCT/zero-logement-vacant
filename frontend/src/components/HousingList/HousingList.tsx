@@ -32,6 +32,7 @@ import { HousingEditionProvider } from '../HousingEdition/useHousingEdition';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 import OccupancyTag from '../OccupancyTag/OccupancyTag';
 import SelectableListHeader from '../SelectableListHeader/SelectableListHeader';
+import { useFeatureFlagEnabled } from 'posthog-js/react';
 
 export interface HousingListProps {
   actions?: (housing: Housing) => ReactNode | ReactNode[];
@@ -52,11 +53,29 @@ function HousingList(props: HousingListProps) {
   const [sort, setSort] = useState<HousingSort>();
   const [updatingHousing, setUpdatingHousing] = useState<Housing>();
 
-  const { data: housings, isFetching: isFetchHousings } = useFindHousingQuery({
-    filters,
-    pagination,
-    sort
-  });
+  const isNewHousingOwnerPagesEnabled = useFeatureFlagEnabled(
+    'new-housing-owner-pages'
+  );
+  const { data: housings, isFetching: isFetchHousings } = useFindHousingQuery(
+    {
+      filters,
+      pagination,
+      sort
+    },
+    {
+      selectFromResult: ({ data, ...response }) => ({
+        ...response,
+        data: {
+          ...data,
+          // Keep ownerless housings if the feature flag is enabled
+          entities: data?.entities?.filter((housing) =>
+            isNewHousingOwnerPagesEnabled ? true : !!housing.owner
+          )
+        }
+      })
+    }
+  );
+
   const housingList = housings?.entities;
 
   const { data: count } = useCountHousingQuery(filters);
@@ -90,6 +109,11 @@ function HousingList(props: HousingListProps) {
     () => [
       columnHelper.accessor('rawAddress', {
         header: () => <AdvancedTableHeader title="Adresse logement" />,
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell, row }) => {
           return (
             <AppLink isSimple size="sm" to={`/logements/${row.original.id}`}>
@@ -104,26 +128,32 @@ function HousingList(props: HousingListProps) {
       columnHelper.accessor('owner.fullName', {
         header: () => (
           <AdvancedTableHeader
-            title="Propriétaire principal"
-            sort={getSortButton('owner', 'Trier par propriétaire principal')}
+            title="Propriétaire"
+            sort={getSortButton('owner', 'Trier alphabétiquement par propriétaire')}
           />
         ),
-        cell: ({ cell, row }) => (
-          <>
-            <AppLink
-              isSimple
-              size="sm"
-              to={`/proprietaires/${row.original.owner.id}`}
-            >
-              {cell.getValue()}
-            </AppLink>
-            {row.original.owner.administrator && (
-              <Typography variant="body2">
-                {row.original.owner.administrator}
-              </Typography>
-            )}
-          </>
-        )
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
+        cell: ({ cell, row }) =>
+          !row.original.owner ? null : (
+            <>
+              <AppLink
+                isSimple
+                size="sm"
+                to={`/proprietaires/${row.original.owner.id}`}
+              >
+                {cell.getValue()}
+              </AppLink>
+              {row.original.owner.administrator && (
+                <Typography variant="body2">
+                  {row.original.owner.administrator}
+                </Typography>
+              )}
+            </>
+          )
       }),
       columnHelper.accessor('occupancy', {
         header: () => (
@@ -132,6 +162,11 @@ function HousingList(props: HousingListProps) {
             sort={getSortButton('occupancy', 'Trier par occupation')}
           />
         ),
+        meta: {
+          styles: {
+            multiline: true
+          }
+        },
         cell: ({ cell }) => (
           <OccupancyTag
             occupancy={cell.getValue() as Occupancy}
@@ -146,7 +181,7 @@ function HousingList(props: HousingListProps) {
         cell: ({ cell }) => {
           return (
             <Stack>
-              {Set(cell.getValue())
+              {Set(cell.getValue() ?? [])
                 .map((id) => {
                   return campaignList?.find((campaign) => campaign.id === id);
                 })
@@ -171,7 +206,7 @@ function HousingList(props: HousingListProps) {
           id: 'status',
           header: () => (
             <AdvancedTableHeader
-              title="Statuts de suivi"
+              title="Suivi"
               sort={getSortButton('status', 'Trier par statut de suivi')}
             />
           ),
@@ -246,7 +281,10 @@ function HousingList(props: HousingListProps) {
         pageCount={pageCount}
         perPage={perPage}
         selection={selected}
-        tableProps={{ noCaption: true }}
+        tableProps={{
+          noCaption: true,
+          fixedRowHeight: true
+        }}
         onPageChange={changePage}
         onPerPageChange={changePerPage}
         onSelectionChange={setSelected}

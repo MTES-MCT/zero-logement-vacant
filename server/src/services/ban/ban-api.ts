@@ -90,7 +90,7 @@ class BanAPI implements BAN {
     const records: ReadonlyArray<BanAddress & P> = fromCSV(data, {
       columns: true
     });
-    return records.map<Address & P>(map);
+    return records.filter((record) => !!record.result_id).map<Address & P>(map);
   }
 }
 
@@ -133,7 +133,7 @@ function map<A>(address: BanAddress & A): Address & A {
     city: result_city,
     latitude: Number(latitude),
     longitude: Number(longitude),
-    score: Number(result_score)
+    score: result_score ? Number(result_score) : 0
   };
 }
 

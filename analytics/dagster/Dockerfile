@@ -7,6 +7,7 @@ ENV ZLV_HTTP_USERNAME=$ZLV_HTTP_USERNAME
 ENV ZLV_HTTP_PASSWORD=$ZLV_HTTP_PASSWORD
 
 COPY --from=clevercloud/clever-tools /bin/clever /usr/local/bin/clever
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # Installer les dépendances nécessaires
 RUN apt-get update && \
@@ -15,11 +16,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Installer Clever Tools
-RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/bin
-
-# Installer uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:$PATH"
+RUN curl -sL https://clever-tools.clever-cloud.com/releases/latest/clever-tools-latest_linux.tar.gz | tar xz -C /usr/local/binuv
 
 # Copier les fichiers de configuration et le code source
 COPY pyproject.toml uv.lock ./

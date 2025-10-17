@@ -15,10 +15,9 @@ function Footer() {
       }}
       brandTop={
         <>
-          Ministères <br />
-          Territoires <br />
-          Écologie <br /> 
-          Logement
+          Ministère<br />
+          chargé de la Ville<br />
+          et du Logement
         </>
       }
       classes={{

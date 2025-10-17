@@ -8,10 +8,9 @@ function Header() {
     <DSFRHeader
       brandTop={
         <>
-          Ministères <br />
-          Territoires <br />
-          Écologie <br /> 
-          Logement
+         Ministère<br />
+          chargé de la Ville<br />
+          et du Logement
         </>
       }
       className={styles.shadowless}

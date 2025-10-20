@@ -1,39 +1,39 @@
 #!/usr/bin/env python3
 """
-Script de traitement des fichiers JSON Line de DPE pour mise à jour PostgreSQL
-Version optimisée avec gestion d'erreurs améliorée et retry logic
+DPE JSON Line file processing script for PostgreSQL updates
+Optimized version with improved error handling and retry logic
 
-Dépendances requises:
+Required dependencies:
 pip install psycopg2-binary tqdm
 
-Améliorations apportées:
-- Gestion d'erreurs SSL/connexion améliorée
-- Retry logic automatique
-- Logs détaillés pour le debugging
-- Transactions plus courtes
-- Gestion robuste du pool de connexions
-- Timeout configurables
-- Validation des connexions avant utilisation
-- Détection automatique des fichiers déjà traités
+Improvements:
+- Enhanced SSL/connection error handling
+- Automatic retry logic
+- Detailed debugging logs
+- Shorter transactions
+- Robust connection pool management
+- Configurable timeouts
+- Connection validation before use
+- Automatic detection of already processed files
 
-Performances attendues:
-- Gain ~4-8x selon le nombre de CPU
-- Réduction significative des requêtes SQL
-- Utilisation optimale du CPU et de la DB
-- Robustesse face aux déconnexions
+Expected performance:
+- Gain ~4-8x depending on CPU count
+- Significant reduction in SQL queries
+- Optimal CPU and DB utilization
+- Resilience to disconnections
 
-Exemples d'utilisation:
+Usage examples:
 
-# Traitement complet de tous les départements
+# Complete processing of all departments
 python dpe_processor.py data.jsonl --db-name mydb --db-user user --db-password pass
 
-# Traitement d'un seul département (Paris) avec retry
+# Single department processing (Paris) with retry
 python dpe_processor.py data.jsonl --department 75 --db-name mydb --db-user user --db-password pass --retry-attempts 3
 
-# Test sur un échantillon du département 69 (Rhône) avec timeouts personnalisés
+# Test on sample from department 69 (Rhône) with custom timeouts
 python dpe_processor.py data.jsonl --department 69 --max-lines 1000 --dry-run --db-name mydb --db-user user --db-password pass --db-timeout 60
 
-# Traitement haute performance département 13 avec gestion SSL
+# High-performance processing department 13 with SSL management
 python dpe_processor.py data.jsonl --dept 13 --max-workers 4 --batch-size 1000 --db-name mydb --db-user user --db-password pass --disable-ssl
 """
 
@@ -62,50 +62,50 @@ import random
 
 
 class DPEProcessor:
-    def __init__(self, db_config: Dict, dry_run: bool = False, max_workers: int = None, 
+    def __init__(self, db_config: Dict, dry_run: bool = False, max_workers: int = None,
                  batch_size: int = 1000, retry_attempts: int = 3, db_timeout: int = 30):
         """
-        Initialise le processeur DPE optimisé avec gestion d'erreurs améliorée
-        
+        Initialize the optimized DPE processor with enhanced error handling
+
         Args:
-            db_config: Configuration de la base de données PostgreSQL
-            dry_run: Si True, ne fait que des logs sans modification DB
-            max_workers: Nombre de workers parallèles (défaut: CPU count)
-            batch_size: Taille des batches pour les requêtes SQL
-            retry_attempts: Nombre de tentatives en cas d'erreur de connexion
-            db_timeout: Timeout des connexions DB en secondes
+            db_config: PostgreSQL database configuration
+            dry_run: If True, only logs without DB modifications
+            max_workers: Number of parallel workers (default: CPU count)
+            batch_size: Batch size for SQL queries
+            retry_attempts: Number of retry attempts on connection error
+            db_timeout: DB connection timeout in seconds
         """
         self.db_config = db_config
         self.dry_run = dry_run
         self.logger = self._setup_logger()
         self.start_time = datetime.now()
-        self.max_workers = max_workers or min(cpu_count(), 4)  # Réduire pour éviter surcharge
+        self.max_workers = max_workers or min(cpu_count(), 4)  # Reduce to avoid overload
         self.batch_size = batch_size
         self.retry_attempts = retry_attempts
         self.db_timeout = db_timeout
-        
-        # Configuration renforcée pour les connexions PostgreSQL avec gestion SSL
+
+        # Enhanced configuration for PostgreSQL connections with SSL management
         enhanced_db_config = db_config.copy()
         enhanced_db_config.update({
             'connect_timeout': self.db_timeout,
-            'keepalives_idle': 300,  # Réduire pour éviter les timeouts
+            'keepalives_idle': 300,  # Reduce to avoid timeouts
             'keepalives_interval': 30,
             'keepalives_count': 3,
-            # Options application_name pour le debugging
+            # application_name option for debugging
             'application_name': f'dpe_processor_worker_{threading.current_thread().ident}'
         })
-        
-        # Gestion SSL optionnelle
+
+        # Optional SSL management
         if db_config.get('sslmode') is None:
-            enhanced_db_config['sslmode'] = 'prefer'  # Plus souple que require
+            enhanced_db_config['sslmode'] = 'prefer'  # More flexible than require
         
         self.enhanced_db_config = enhanced_db_config
-        
-        # Connection pool avec configuration robuste
+
+        # Connection pool with robust configuration
         self.connection_pool = None
         self._init_connection_pool()
-        
-        # Cache pour les requêtes préparées
+
+        # Cache for prepared queries
         self.prepared_queries = {}
         self.stats_lock = threading.Lock()
         self.connection_stats = {
@@ -114,8 +114,8 @@ class DPEProcessor:
             'retries': 0,
             'pool_errors': 0
         }
-        
-        # Statistiques thread-safe
+
+        # Thread-safe statistics
         self.stats = {
             'lines_processed': 0,
             'lines_filtered': 0,
@@ -139,24 +139,24 @@ class DPEProcessor:
         }
 
     def _setup_logger(self) -> logging.Logger:
-        """Configure le système de logging avec plus de détails"""
+        """Configure the logging system with more details"""
         logger = logging.getLogger('dpe_processor')
         logger.setLevel(logging.INFO)
-        
-        # Effacer les handlers existants
+
+        # Clear existing handlers
         for handler in logger.handlers[:]:
             logger.removeHandler(handler)
-        
-        # Handler pour fichier avec timestamp
+
+        # File handler with timestamp
         log_filename = f'dpe_processing_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
         file_handler = logging.FileHandler(log_filename, encoding='utf-8')
-        file_handler.setLevel(logging.DEBUG)  # Plus de détails dans le fichier
-        
-        # Handler pour console
+        file_handler.setLevel(logging.DEBUG)  # More details in file
+
+        # Console handler
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
-        
-        # Format plus détaillé
+
+        # More detailed format
         detailed_formatter = logging.Formatter(
             '%(asctime)s - [%(threadName)s] - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
         )
@@ -169,73 +169,73 @@ class DPEProcessor:
         logger.addHandler(console_handler)
         
         self.log_filename = log_filename
-        logger.info(f"Logs détaillés sauvegardés dans: {log_filename}")
-        
+        logger.info(f"Detailed logs saved to: {log_filename}")
+
         return logger
 
     def _init_connection_pool(self):
-        """Initialise le pool de connexions avec gestion d'erreurs robuste"""
+        """Initialize the connection pool with robust error handling"""
         max_attempts = 3
         for attempt in range(max_attempts):
             try:
-                self.logger.info(f"Initialisation du pool de connexions (tentative {attempt + 1}/{max_attempts})")
-                
-                # Test de connexion simple d'abord
+                self.logger.info(f"Initializing connection pool (attempt {attempt + 1}/{max_attempts})")
+
+                # Test simple connection first
                 test_conn = psycopg2.connect(**self.enhanced_db_config)
                 test_conn.close()
-                self.logger.info("Test de connexion réussi")
-                
-                # Créer le pool avec moins de connexions pour éviter la surcharge
-                pool_size = min(self.max_workers + 1, 4)  # Maximum 4 connexions
+                self.logger.info("Connection test successful")
+
+                # Create pool with fewer connections to avoid overload
+                pool_size = min(self.max_workers + 1, 4)  # Maximum 4 connections
                 self.connection_pool = ThreadedConnectionPool(
                     minconn=1,
                     maxconn=pool_size,
                     **self.enhanced_db_config
                 )
-                
-                self.logger.info(f"Pool de connexions créé: 1-{pool_size} connexions")
+
+                self.logger.info(f"Connection pool created: 1-{pool_size} connections")
                 return
-                
+
             except Exception as e:
-                self.logger.warning(f"Échec tentative {attempt + 1}: {e}")
+                self.logger.warning(f"Attempt {attempt + 1} failed: {e}")
                 if attempt == max_attempts - 1:
-                    self.logger.error("Impossible de créer le pool de connexions")
+                    self.logger.error("Unable to create connection pool")
                     raise
-                time.sleep(2)  # Attendre avant retry
+                time.sleep(2)  # Wait before retry
 
     def _get_db_connection_with_retry(self):
-        """Obtient une connexion DB avec retry automatique et validation"""
+        """Get DB connection with automatic retry and validation"""
         last_error = None
         
         for attempt in range(self.retry_attempts):
             try:
                 if not self.connection_pool or self.connection_pool.closed:
-                    self.logger.warning("Pool fermé, tentative de réinitialisation")
+                    self.logger.warning("Pool closed, attempting reinitialization")
                     self._init_connection_pool()
-                
-                # Obtenir connexion du pool
+
+                # Get connection from pool
                 conn = self.connection_pool.getconn()
-                
+
                 if conn is None:
-                    raise OperationalError("Impossible d'obtenir une connexion du pool")
-                
-                # Valider la connexion
+                    raise OperationalError("Unable to get connection from pool")
+
+                # Validate connection
                 if self._validate_connection(conn):
                     with self.stats_lock:
                         self.connection_stats['created'] += 1
                         if attempt > 0:
                             self.connection_stats['retries'] += 1
                             self.stats['retry_successes'] += 1
-                    
-                    self.logger.debug(f"Connexion obtenue (tentative {attempt + 1})")
+
+                    self.logger.debug(f"Connection obtained (attempt {attempt + 1})")
                     return conn
                 else:
-                    # Connexion invalide, la fermer et réessayer
+                    # Invalid connection, close and retry
                     try:
                         conn.close()
                     except Exception:
                         pass
-                    self.logger.warning(f"Connexion invalide détectée (tentative {attempt + 1})")
+                    self.logger.warning(f"Invalid connection detected (attempt {attempt + 1})")
                     
             except (OperationalError, InterfaceError, DatabaseError) as e:
                 last_error = e
@@ -244,41 +244,41 @@ class DPEProcessor:
                 with self.stats_lock:
                     self.stats['connection_errors'] += 1
                     self.connection_stats['failed'] += 1
-                
-                # Log détaillé de l'erreur
-                self.logger.warning(f"Erreur connexion (tentative {attempt + 1}/{self.retry_attempts}): {e}")
-                
-                # Attendre avec backoff exponentiel
+
+                # Detailed error log
+                self.logger.warning(f"Connection error (attempt {attempt + 1}/{self.retry_attempts}): {e}")
+
+                # Wait with exponential backoff
                 if attempt < self.retry_attempts - 1:
                     wait_time = (2 ** attempt) + random.uniform(0, 1)
-                    self.logger.info(f"Attente {wait_time:.1f}s avant retry...")
+                    self.logger.info(f"Waiting {wait_time:.1f}s before retry...")
                     time.sleep(wait_time)
-                    
-                    # Essayer de recréer le pool si erreur grave
+
+                    # Try to recreate pool if serious error
                     if 'ssl' in error_msg or 'eof' in error_msg or 'connection' in error_msg:
                         try:
-                            self.logger.info("Recréation du pool de connexions...")
+                            self.logger.info("Recreating connection pool...")
                             if hasattr(self, 'connection_pool') and self.connection_pool:
                                 self.connection_pool.closeall()
                             self._init_connection_pool()
                         except Exception as pool_error:
-                            self.logger.error(f"Échec recréation pool: {pool_error}")
+                            self.logger.error(f"Pool recreation failed: {pool_error}")
             
             except Exception as e:
                 last_error = e
-                self.logger.error(f"Erreur inattendue connexion: {e}")
+                self.logger.error(f"Unexpected connection error: {e}")
                 time.sleep(1)
-        
-        # Toutes les tentatives ont échoué
-        error_msg = f"Impossible d'établir une connexion DB après {self.retry_attempts} tentatives"
+
+        # All attempts failed
+        error_msg = f"Unable to establish DB connection after {self.retry_attempts} attempts"
         if last_error:
-            error_msg += f". Dernière erreur: {last_error}"
-        
+            error_msg += f". Last error: {last_error}"
+
         self.logger.error(error_msg)
         raise OperationalError(error_msg)
 
     def _validate_connection(self, conn) -> bool:
-        """Valide qu'une connexion est utilisable"""
+        """Validates that a connection is usable"""
         try:
             if conn.closed != 0:
                 return False

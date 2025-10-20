@@ -83,6 +83,17 @@ Main processing script that imports DPE data into PostgreSQL database.
 
 ## Prerequisites
 
+### ADEME API Key
+
+To use `import-ademe.py`, you need an ADEME API key:
+
+1. Create an account on [data.ademe.fr](https://data.ademe.fr)
+2. Generate an API key at [https://data.ademe.fr/me/api-keys](https://data.ademe.fr/me/api-keys)
+3. Set it as an environment variable:
+   ```shell
+   export ADEME_API_KEY="your_api_key_here"
+   ```
+
 ### Python Environment
 
 A Python virtual environment with required dependencies:

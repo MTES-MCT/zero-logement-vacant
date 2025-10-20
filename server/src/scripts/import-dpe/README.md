@@ -2,33 +2,16 @@
 
 This set of scripts imports DPE (Diagnostic de Performance Énergétique - Energy Performance Certificate) data from the ADEME API into the database.
 
-The import process consists of the following steps:
+The import process consists of two steps:
 
-- Download DPE data from the ADEME API
-- Process and deduplicate the data by department
-- Match DPE records with existing buildings using RNB IDs or BAN addresses
-- Update building records with DPE information (energy class, GES class, heating type, etc.)
+1. **Download** DPE data from the ADEME API using `import-ademe.py`
+2. **Import** data into PostgreSQL database using `import-dpe.py`
 
 ## Scripts
 
-### 1. `download-dpe.py`
+### 1. `import-ademe.py`
 
-Downloads all DPE data from the ADEME public API and saves it to CSV and JSONL files.
-
-**Features:**
-- Pagination handling with automatic retry
-- Progress tracking with real-time statistics
-- Dual output format (CSV and JSONL)
-- Optional filtering capabilities
-
-**Usage:**
-```shell
-python download-dpe.py
-```
-
-### 2. `import-ademe.py`
-
-Advanced client for the ADEME DPE API with resumption support.
+Downloads all DPE data from the ADEME API with authentication and resumption support.
 
 **Features:**
 - Automatic resume after interruption
@@ -61,9 +44,9 @@ client = AdemeApiClient(api_key="YOUR_API_KEY")
 total_records = client.fetch_all_data(output_file="dpe_data.jsonl")
 ```
 
-### 3. `import-dpe.py`
+### 2. `import-dpe.py`
 
-Main processing script that imports DPE data into PostgreSQL database.
+Processes and imports DPE data into PostgreSQL database.
 
 **Features:**
 - Department-based parallel processing
@@ -117,17 +100,19 @@ A PostgreSQL database must be migrated and accessible with the following credent
 
 ## Usage
 
-### Download DPE Data
+### Step 1: Download DPE Data
 
 ```shell
-python download-dpe.py
+# Set your API key
+export ADEME_API_KEY="your_api_key_here"
+
+# Download data
+python import-ademe.py
 ```
 
-This will create:
-- `dpe_ademe_complet.csv` - Full dataset in CSV format
-- `dpe_ademe_complet.jsonl` - Full dataset in JSONL format
+This will create `dpe_data_complete.jsonl` with automatic resume support if interrupted.
 
-### Import DPE Data into Database
+### Step 2: Import DPE Data into Database
 
 #### Complete Processing (All Departments)
 

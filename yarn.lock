@@ -12334,7 +12334,7 @@ __metadata:
     "@types/qs": "npm:^6.14.0"
     "@zerologementvacant/models": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
-    axios: "npm:^1.11.0"
+    axios: "npm:^1.12.0"
     convict: "npm:^6.2.4"
     dotenv: "npm:^16.6.1"
     jsonwebtoken: "npm:^9.0.2"
@@ -12438,7 +12438,7 @@ __metadata:
     date-fns: "npm:^2.30.0"
     effect: "npm:^3.17.7"
     fetch-intercept: "npm:^2.4.0"
-    happy-dom: "npm:^18.0.1"
+    happy-dom: "npm:^20.0.2"
     immutable: "npm:^5.1.3"
     jest-extended: "npm:^4.0.2"
     jest-sorted: "npm:^1.0.15"
@@ -12640,7 +12640,7 @@ __metadata:
     "@zerologementvacant/schemas": "workspace:*"
     "@zerologementvacant/utils": "workspace:*"
     async: "npm:^3.2.6"
-    axios: "npm:^1.11.0"
+    axios: "npm:^1.12.0"
     bcryptjs: "npm:^2.4.3"
     cli-progress: "npm:^3.12.0"
     commander: "npm:^14.0.0"
@@ -12679,7 +12679,7 @@ __metadata:
     multer: "npm:^2.0.2"
     multer-s3: "npm:^3.0.1"
     nock: "npm:^13.5.6"
-    nodemailer: "npm:^6.10.1"
+    nodemailer: "npm:^7.0.7"
     nodemon: "npm:^3.1.10"
     p-retry: "npm:^6.2.1"
     parse-redis-url-simple: "npm:^1.0.2"
@@ -13528,7 +13528,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.11.0, axios@npm:^1.8.2, axios@npm:^1.8.3":
+"axios@npm:^1.12.0":
+  version: 1.12.2
+  resolution: "axios@npm:1.12.2"
+  dependencies:
+    follow-redirects: "npm:^1.15.6"
+    form-data: "npm:^4.0.4"
+    proxy-from-env: "npm:^1.1.0"
+  checksum: 10c0/80b063e318cf05cd33a4d991cea0162f3573481946f9129efb7766f38fde4c061c34f41a93a9f9521f02b7c9565ccbc197c099b0186543ac84a24580017adfed
+  languageName: node
+  linkType: hard
+
+"axios@npm:^1.8.2, axios@npm:^1.8.3":
   version: 1.11.0
   resolution: "axios@npm:1.11.0"
   dependencies:
@@ -19344,14 +19355,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^18.0.1":
-  version: 18.0.1
-  resolution: "happy-dom@npm:18.0.1"
+"happy-dom@npm:^20.0.2":
+  version: 20.0.7
+  resolution: "happy-dom@npm:20.0.7"
   dependencies:
     "@types/node": "npm:^20.0.0"
     "@types/whatwg-mimetype": "npm:^3.0.2"
     whatwg-mimetype: "npm:^3.0.0"
-  checksum: 10c0/10f2115f5001fdaf1aedcbda89c15248a1c2e43a25d7e774cb641a35bf6763cef9097b438ef3c2248ab59a0ef33b3e88cb94da096f2bb0fc109ba3f43f7c66d4
+  checksum: 10c0/55783eb6a8b660d5dd093ed40bd4e5a7da0ec6827ffee544c7697cc753c23f29a432de09f5dfa3e9e8d99b10be26a630975689ad92522686a83b27811990532e
   languageName: node
   linkType: hard
 
@@ -24357,10 +24368,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:^6.10.1":
-  version: 6.10.1
-  resolution: "nodemailer@npm:6.10.1"
-  checksum: 10c0/e81fde258ea4f4e5646e9e3eebe89294d007939999d2d1a8c96c5488fa00bf659e46cf76fccb2697e9aa6ef9807a1ed47ff2aef6ad30b795e3849b6997066d16
+"nodemailer@npm:^7.0.7":
+  version: 7.0.9
+  resolution: "nodemailer@npm:7.0.9"
+  checksum: 10c0/029af0c89d64a521aa9969196e44c13ef289c7f419264eed8d63682610999e06205b0fc264ab8ac65941dc3eefd3c435f23337a32880614cc199744c9be6209a
   languageName: node
   linkType: hard
 
@@ -29494,8 +29505,8 @@ __metadata:
   linkType: hard
 
 "tar-fs@npm:^3.0.6":
-  version: 3.1.0
-  resolution: "tar-fs@npm:3.1.0"
+  version: 3.1.1
+  resolution: "tar-fs@npm:3.1.1"
   dependencies:
     bare-fs: "npm:^4.0.1"
     bare-path: "npm:^3.0.0"
@@ -29506,7 +29517,7 @@ __metadata:
       optional: true
     bare-path:
       optional: true
-  checksum: 10c0/760309677543c03fbc253b5ef1ab4bb2ceafb554471b6cbe4930d1633f35662ec26a1414c66fa6754f5aa7e8c65003f73849242f624c322d3dcba7a8888a6915
+  checksum: 10c0/0c677d711c4aa41f94e1a712aa647022ba1910ff84430739e5d9e95a615e3ea1b7112dc93164fc8ce30dc715befcf9cfdc64da27d4e7958d73c59bda06aa0d8e
   languageName: node
   linkType: hard
 
@@ -31069,9 +31080,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.3.6":
-  version: 6.3.6
-  resolution: "vite@npm:6.3.6"
+"vite@npm:^6.3.7":
+  version: 6.4.1
+  resolution: "vite@npm:6.4.1"
   dependencies:
     esbuild: "npm:^0.25.0"
     fdir: "npm:^6.4.4"
@@ -31120,7 +31131,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/add701f1e72596c002275782e38d0389ab400c1be330c93a3009804d62db68097a936ca1c53c3301df3aaacfe5e328eab547060f31ef9c49a277ae50df6ad4fb
+  checksum: 10c0/77bb4c5b10f2a185e7859cc9a81c789021bc18009b02900347d1583b453b58e4b19ff07a5e5a5b522b68fc88728460bb45a63b104d969e8c6a6152aea3b849f7
   languageName: node
   linkType: hard
 
@@ -32056,7 +32067,7 @@ __metadata:
     "@vitejs/plugin-react-swc": "npm:^3.11.0"
     "@vitest/coverage-v8": "npm:^3.2.4"
     "@vitest/ui": "npm:^3.2.4"
-    axios: "npm:^1.11.0"
+    axios: "npm:^1.12.0"
     cypress: "npm:^14.5.4"
     eslint: "npm:^8.57.1"
     eslint-config-prettier: "npm:^9.1.2"
@@ -32089,7 +32100,7 @@ __metadata:
     ts-node: "npm:^10.9.2"
     tslib: "npm:^2.8.1"
     typescript: "npm:^5.9.2"
-    vite: "npm:^6.3.6"
+    vite: "npm:^6.3.7"
     vitest: "npm:^3.2.4"
     webpack-cli: "npm:^5.1.4"
   languageName: unknown

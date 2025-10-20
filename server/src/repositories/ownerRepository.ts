@@ -619,7 +619,7 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
     phone: owner.phone ?? null,
     kind: owner.kind_class,
     kindDetail: owner.owner_kind_detail ?? null,
-    siren: owner.siren ?? undefined,
+    siren: owner.siren ?? null,
     banAddress: owner.ban ? parseAddressApi(owner.ban) : null,
     additionalAddress: owner.additional_address ?? null,
     entity: owner.entity,

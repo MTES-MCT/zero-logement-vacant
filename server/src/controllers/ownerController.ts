@@ -182,6 +182,7 @@ const create: RequestHandler<
     email: body.email,
     // TODO: obtain this from the frontend form
     entity: 'personnes-physiques',
+    siren: null,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON()
   };

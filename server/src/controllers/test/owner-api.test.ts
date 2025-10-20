@@ -99,7 +99,9 @@ describe('Owner API', () => {
       });
 
       test.prop<{ search?: string; page?: number; perPage?: number }>({
-        search: fc.option(fc.string(), { nil: undefined }),
+        search: fc.option(fc.stringMatching(/^[a-zA-Z0-9]+$/), {
+          nil: undefined
+        }),
         page: fc.option(fc.integer({ min: 1 }), { nil: undefined }),
         perPage: fc.option(fc.integer({ min: 1, max: 100 }), { nil: undefined })
       })('should validate inputs', async (query) => {

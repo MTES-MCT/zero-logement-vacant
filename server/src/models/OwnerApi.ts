@@ -4,7 +4,6 @@ import { Equivalence, pipe, Record, Struct } from 'effect';
 import { EventApi } from '~/models/EventApi';
 
 export interface OwnerApi extends OwnerDTO {
-  siren?: string;
   dataSource?: string;
   entity: OwnerEntity | null;
 }
@@ -24,6 +23,7 @@ export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
       'additionalAddress',
       'kind',
       'kindDetail',
+      'siren',
       'createdAt',
       'updatedAt'
     ),

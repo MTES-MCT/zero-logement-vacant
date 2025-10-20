@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   INACTIVE_OWNER_RANKS,
+  OWNER_KIND_LABELS,
   UserRole,
   type HousingDTO,
   type HousingOwnerDTO,
@@ -445,6 +446,46 @@ describe('HousingOwnersView', () => {
         name: /Rousseau/
       });
       expect(results).toHaveLength(1);
+    });
+
+    it('should display differently a owner who is not an individual', async () => {
+      const housing = genHousingDTO(null);
+      const owners: ReadonlyArray<OwnerDTO> = [
+        {
+          ...genOwnerDTO(),
+          fullName: 'SCI Test',
+          kind: OWNER_KIND_LABELS['sci-copro']
+        }
+      ];
+      const housingOwners: ReadonlyArray<HousingOwnerDTO> = [];
+
+      renderView({
+        housing,
+        owners,
+        housingOwners
+      });
+
+      const add = await screen.findByRole('button', {
+        name: 'Ajouter un propriétaire'
+      });
+      await user.click(add);
+      const dialog = await screen.findByRole('dialog', {
+        name: /Ajouter un propriétaire/
+      });
+      const searchDialog = await within(dialog).findByRole('searchbox');
+      await user.type(searchDialog, 'SCI Test{Enter}');
+      const select = await within(dialog).findByRole('button', {
+        name: /Sélectionner SCI Test/
+      });
+      await user.click(select);
+      const attachDialog = await screen.findByRole('dialog', {
+        name: /Ajouter un propriétaire/
+      });
+      const creationDate =
+        await within(attachDialog).findByText('Date de création');
+      expect(creationDate).toBeVisible();
+      const siren = await within(attachDialog).findByText('SIREN');
+      expect(siren).toBeVisible();
     });
 
     describe('If there is already a primary owner', () => {

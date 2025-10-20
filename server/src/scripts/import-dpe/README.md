@@ -32,11 +32,28 @@ Advanced client for the ADEME DPE API with resumption support.
 
 **Features:**
 - Automatic resume after interruption
-- Authentication with API key
+- Authentication with API key (via environment variable or argument)
 - JSON Lines streaming output
 - Connection retry logic
 
 **Usage:**
+```shell
+# Using environment variable (recommended)
+export ADEME_API_KEY="your_api_key_here"
+python import-ademe.py
+
+# Or using command-line argument
+python import-ademe.py --api-key YOUR_API_KEY
+
+# With custom options
+python import-ademe.py \
+  --api-key YOUR_API_KEY \
+  --output-file custom_output.jsonl \
+  --limit-per-page 5000 \
+  --max-pages 100
+```
+
+**Programmatic Usage:**
 ```python
 from import_ademe import AdemeApiClient
 

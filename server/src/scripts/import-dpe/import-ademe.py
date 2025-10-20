@@ -305,12 +305,28 @@ def main():
     """
     Main script function
     """
-    # Configuration
-    API_KEY = "dTp4bFdfMWNBRmZWR1Y4WFdjNzEwXzE6NmJBam5vcGJCbjBoemZnNEpIaVVl"  # Replace with your API key
+    import argparse
+
+    parser = argparse.ArgumentParser(description='ADEME DPE API Client')
+    parser.add_argument('--api-key', help='ADEME API key (or set ADEME_API_KEY environment variable)')
+    parser.add_argument('--output-file', default='dpe_data_complete.jsonl', help='Output JSONL file (default: dpe_data_complete.jsonl)')
+    parser.add_argument('--limit-per-page', type=int, default=10000, help='Items per page (default: 10000)')
+    parser.add_argument('--max-pages', type=int, help='Maximum number of pages to retrieve')
+
+    args = parser.parse_args()
+
+    # Get API key from argument or environment variable
+    API_KEY = args.api_key or os.getenv('ADEME_API_KEY')
 
     # API key verification
-    if API_KEY == "VOTRE_CLE_API_ICI":
-        print("⚠️  Please replace 'VOTRE_CLE_API_ICI' with your actual API key")
+    if not API_KEY:
+        print("⚠️  Error: API key required")
+        print("   Provide it via --api-key argument or ADEME_API_KEY environment variable")
+        print("\nUsage:")
+        print("   python import-ademe.py --api-key YOUR_KEY")
+        print("   OR")
+        print("   export ADEME_API_KEY=YOUR_KEY")
+        print("   python import-ademe.py")
         return
 
     # Client initialization
@@ -333,10 +349,14 @@ def main():
     print("\n=== Retrieving all data with automatic resume ===")
     print("💡 The script will automatically resume where it left off if interrupted")
 
-    total_records = client.fetch_all_data(output_file="dpe_data_complete.jsonl")
+    total_records = client.fetch_all_data(
+        output_file=args.output_file,
+        limit_per_page=args.limit_per_page,
+        max_pages=args.max_pages
+    )
 
     print(f"\n🎯 Retrieval completed!")
-    print(f"📁 File created: dpe_data_complete.jsonl")
+    print(f"📁 File created: {args.output_file}")
     print(f"📊 Total records: {total_records}")
 
 

@@ -43,6 +43,20 @@ function AddressSearchableSelect(props: Props) {
     [props.inputValue, props.open, previousInputValue]
   );
 
+  const value: AddressSearchResult | null = props.value?.banId
+    ? {
+        banId: props.value.banId,
+        label: props.value.label,
+        houseNumber: props.value.houseNumber,
+        street: props.value.street,
+        postalCode: props.value.postalCode,
+        city: props.value.city,
+        latitude: props.value.latitude ?? 0,
+        longitude: props.value.longitude ?? 0,
+        score: props.value.score ?? 0
+      }
+    : null;
+
   return (
     <Autocomplete
       className={props.className}
@@ -56,7 +70,7 @@ function AddressSearchableSelect(props: Props) {
       }}
       inputValue={props.inputValue}
       disablePortal={true}
-      value={props.value}
+      value={value}
       clearOnBlur
       openOnFocus
       clearText="Supprimer"

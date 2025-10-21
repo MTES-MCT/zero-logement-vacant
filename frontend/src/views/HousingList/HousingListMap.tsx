@@ -1,58 +1,46 @@
 import Stack from '@mui/material/Stack';
-import { useState } from 'react';
-import { type ViewState } from 'react-map-gl/maplibre';
-
 import { useFeatureFlagEnabled } from 'posthog-js/react';
+import { useMemo } from 'react';
+
 import { Text } from '../../components/_dsfr';
-import Label from '../../components/Label/Label';
-import Map, { type MapProps } from '../../components/Map/Map';
-import { type GeoPerimeter } from '../../models/GeoPerimeter';
-import { displayHousingCount } from '../../models/HousingCount';
+import Label from '~/components/Label/Label';
+import Map from '~/components/Map/Map';
+import { type GeoPerimeter } from '~/models/GeoPerimeter';
+import { displayHousingCount } from '~/models/HousingCount';
 import {
   hasPerimetersFilter,
   type HousingFilters
-} from '../../models/HousingFilters';
-import { useListGeoPerimetersQuery } from '../../services/geo.service';
+} from '~/models/HousingFilters';
+import { useListGeoPerimetersQuery } from '~/services/geo.service';
 import {
   useCountHousingQuery,
   useFindHousingQuery
-} from '../../services/housing.service';
+} from '~/services/housing.service';
 import {
   excludeWith,
   includeExcludeWith,
   includeWith
-} from '../../utils/arrayUtils';
+} from '~/utils/arrayUtils';
 
 interface Props {
   filters: HousingFilters;
 }
 const HousingListMap = ({ filters }: Props) => {
-  const [mapViewState, setMapViewState] = useState<MapProps['viewState']>();
-
   const { data: perimeters } = useListGeoPerimetersQuery();
   const isNewHousingOwnerPagesEnabled = useFeatureFlagEnabled(
-      'new-housing-owner-pages'
-    );
-    const { data: housingList } = useFindHousingQuery(
-      {
-        filters,
-        pagination: {
-          paginate: false
-        }
-      },
-      {
-        selectFromResult: ({ data, ...response }) => ({
-          ...response,
-          data: {
-            ...data,
-            // Keep ownerless housings if the feature flag is enabled
-            entities: data?.entities?.filter((housing) =>
-              isNewHousingOwnerPagesEnabled ? true : !!housing.owner
-            )
-          }
-        })
-      }
-    );
+    'new-housing-owner-pages'
+  );
+  const { data } = useFindHousingQuery({
+    filters,
+    pagination: {
+      paginate: false
+    }
+  });
+  const housingList = useMemo(() => {
+    return data?.entities?.filter((housing) => {
+      return isNewHousingOwnerPagesEnabled ? true : !!housing.owner;
+    });
+  }, [data?.entities, isNewHousingOwnerPagesEnabled]);
 
   const { data: housingCount } = useCountHousingQuery({
     dataFileYearsIncluded: filters.dataFileYearsIncluded,
@@ -64,10 +52,6 @@ const HousingListMap = ({ filters }: Props) => {
   const { data: count } = useCountHousingQuery(filters);
   const filteredHousingCount = count?.housing ?? 0;
   const filteredOwnerCount = count?.owners ?? 0;
-
-  function onMove(viewState: ViewState): void {
-    setMapViewState(viewState);
-  }
 
   const perimetersIncluded = filters.geoPerimetersIncluded?.length
     ? includeExcludeWith<GeoPerimeter, 'kind'>(
@@ -112,8 +96,6 @@ const HousingListMap = ({ filters }: Props) => {
         perimeters={remainingPerimeters}
         perimetersIncluded={perimetersIncluded}
         perimetersExcluded={perimetersExcluded}
-        onMove={onMove}
-        viewState={mapViewState}
       />
     </Stack>
   );

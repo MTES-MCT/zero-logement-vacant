@@ -3,6 +3,7 @@ import { AddressDTO, AddressPayloadDTO, formatAddress } from './AddressDTO';
 
 export interface OwnerDTO {
   id: string;
+  idpersonne: string | null;
   rawAddress: string[] | null;
   fullName: string;
   administrator: string | null;
@@ -16,6 +17,7 @@ export interface OwnerDTO {
   additionalAddress: string | null;
   kind: string | null;
   kindDetail: string | null;
+  siren: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -32,7 +34,9 @@ export type OwnerUpdatePayload = Pick<
   banAddress: AddressPayloadDTO | null;
 };
 
-export function getAddress(owner: OwnerDTO): string[] | null {
+export function getAddress(
+  owner: Pick<OwnerDTO, 'banAddress' | 'additionalAddress' | 'rawAddress'>
+): string[] {
   if (owner.banAddress) {
     return formatAddress(owner.banAddress, owner.additionalAddress);
   }

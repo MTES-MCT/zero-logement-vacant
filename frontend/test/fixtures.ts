@@ -1,36 +1,34 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import {
-  AddressKinds,
-  CADASTRAL_CLASSIFICATION_VALUES,
-  DatafoncierHousing,
-  ENERGY_CONSUMPTION_VALUES,
-  EventType,
-  HOUSING_KIND_VALUES,
-  HousingStatus,
-  MUTATION_TYPE_VALUES,
-  Occupancy,
+  type DatafoncierHousing,
+  type EventType,
   USER_ROLE_VALUES,
   UserRole
 } from '@zerologementvacant/models';
 import {
   genAddressDTO,
   genEventDTO,
+  genHousingDTO,
   genNoteDTO,
   genOwnerDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
 import randomstring from 'randomstring';
-import { Address } from '../src/models/Address';
-import { Event, fromEventDTO } from '../src/models/Event';
-import { Group } from '../src/models/Group';
-import { Housing } from '../src/models/Housing';
-import { LocalityKinds } from '../src/models/Locality';
-import { fromNoteDTO, Note } from '../src/models/Note';
-import { fromOwnerDTO, Owner } from '../src/models/Owner';
-import { Prospect } from '../src/models/Prospect';
-import { SignupLink } from '../src/models/SignupLink';
-import { AuthUser, fromUserDTO, toUserDTO, User } from '../src/models/User';
+import type { Address } from '../src/models/Address';
+import { type Event, fromEventDTO } from '../src/models/Event';
+import type { Group } from '../src/models/Group';
+import type { Housing } from '../src/models/Housing';
+import { fromNoteDTO, type Note } from '../src/models/Note';
+import { fromOwnerDTO, type Owner } from '../src/models/Owner';
+import type { Prospect } from '../src/models/Prospect';
+import type { SignupLink } from '../src/models/SignupLink';
+import {
+  type AuthUser,
+  fromUserDTO,
+  toUserDTO,
+  type User
+} from '../src/models/User';
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -72,7 +70,7 @@ export function genAuthUser(user: User): AuthUser {
       shortName: randomstring.generate(),
       geoCodes: [faker.location.zipCode()],
       source: 'manual'
-    },
+    }
   };
 }
 
@@ -88,60 +86,13 @@ export function genOwner(): Owner {
 
 export function genHousing(): Housing {
   return {
-    id: randomstring.generate(),
-    localId: randomstring.generate(),
-    geoCode: genNumber(5).toString(),
-    invariant: randomstring.generate(),
-    rawAddress: [randomstring.generate(), randomstring.generate()],
-    localityKind: LocalityKinds.ACV,
-    owner: genOwner(),
-    livingArea: genNumber(4),
-    housingKind: faker.helpers.arrayElement(HOUSING_KIND_VALUES),
-    roomsCount: genNumber(1),
-    buildingId: faker.string.uuid(),
-    buildingYear: genNumber(4),
-    vacancyStartYear: genNumber(4),
-    dataFileYears: ['lovac-2021'],
-    campaignIds: [],
-    cadastralReference: '',
-    uncomfortable: false,
-    cadastralClassification: faker.helpers.arrayElement(
-      CADASTRAL_CLASSIFICATION_VALUES
-    ),
-    taxed: false,
-    ownershipKind: 'single',
-    buildingVacancyRate: genNumber(2),
-    status: HousingStatus.NEVER_CONTACTED,
-    source: null,
-    occupancy: Occupancy.VACANT,
-    occupancyIntended: Occupancy.VACANT,
-    energyConsumption: faker.helpers.arrayElement(ENERGY_CONSUMPTION_VALUES),
-    energyConsumptionAt: new Date(),
-    lastMutationType: faker.helpers.arrayElement(MUTATION_TYPE_VALUES),
-    lastMutationDate: faker.date.past({ years: 20 }).toJSON(),
-    lastTransactionDate:
-      faker.helpers.maybe(() => faker.date.past({ years: 20 }).toJSON()) ??
-      null,
-    lastTransactionValue:
-      faker.helpers.maybe(() =>
-        Number(
-          faker.finance.amount({
-            min: 100_000,
-            max: 1_000_000,
-            dec: 0
-          })
-        )
-      ) ?? null
+    ...genHousingDTO(null),
+    buildingId: null,
   };
 }
 
 export function genAddress(): Address {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { refId, addressKind, ...rest } = genAddressDTO(
-    '',
-    AddressKinds.Housing
-  );
-  return rest;
+  return genAddressDTO();
 }
 
 export function genSignupLink(email: string): SignupLink {

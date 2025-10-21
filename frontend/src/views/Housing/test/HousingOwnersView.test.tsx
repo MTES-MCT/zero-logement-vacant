@@ -3,10 +3,12 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   INACTIVE_OWNER_RANKS,
+  OWNER_KIND_LABELS,
   UserRole,
   type HousingDTO,
   type HousingOwnerDTO,
-  type OwnerDTO
+  type OwnerDTO,
+  type OwnerRank
 } from '@zerologementvacant/models';
 import {
   genEstablishmentDTO,
@@ -386,5 +388,199 @@ describe('HousingOwnersView', () => {
       name: 'Propriétaire décédé'
     });
     expect(cell).toBeVisible();
+  });
+
+  describe('Link an owner to a housing', () => {
+    it('should display a message if no owner was found', async () => {
+      const housing = genHousingDTO(null);
+      const owners: ReadonlyArray<OwnerDTO> = [];
+      const housingOwners: ReadonlyArray<HousingOwnerDTO> = [];
+
+      renderView({
+        housing,
+        owners,
+        housingOwners
+      });
+
+      const add = await screen.findByRole('button', {
+        name: 'Ajouter un propriétaire'
+      });
+      await user.click(add);
+      const search = await screen.findByRole('searchbox');
+      await user.type(search, 'Rousseau{Enter}');
+      const error = await screen.findByText('Aucun propriétaire trouvé.');
+      expect(error).toBeVisible();
+    });
+
+    it('should hide owners that are already linked to this housing', async () => {
+      const housing = genHousingDTO(null);
+      const owners: ReadonlyArray<OwnerDTO> = [
+        { ...genOwnerDTO(), fullName: 'Jean Rousseau' },
+        { ...genOwnerDTO(), fullName: 'Marie Curie' },
+        { ...genOwnerDTO(), fullName: 'Victor Hugo' },
+        { ...genOwnerDTO(), fullName: 'Pauline Rousseau' }
+      ];
+      const housingOwners: ReadonlyArray<HousingOwnerDTO> = owners
+        .slice(0, 1)
+        .map((owner, index) => ({
+          ...genHousingOwnerDTO(owner),
+          rank: (index + 1) as OwnerRank
+        }));
+
+      renderView({
+        housing,
+        owners,
+        housingOwners
+      });
+
+      const add = await screen.findByRole('button', {
+        name: 'Ajouter un propriétaire'
+      });
+      await user.click(add);
+      const dialog = await screen.findByRole('dialog', {
+        name: /Ajouter un propriétaire/
+      });
+      const search = await within(dialog).findByRole('searchbox');
+      await user.type(search, 'Rousseau{Enter}');
+      const results = await within(dialog).findAllByRole('button', {
+        name: /Rousseau/
+      });
+      expect(results).toHaveLength(1);
+    });
+
+    it('should display differently a owner who is not an individual', async () => {
+      const housing = genHousingDTO(null);
+      const owners: ReadonlyArray<OwnerDTO> = [
+        {
+          ...genOwnerDTO(),
+          fullName: 'SCI Test',
+          kind: OWNER_KIND_LABELS['sci-copro']
+        }
+      ];
+      const housingOwners: ReadonlyArray<HousingOwnerDTO> = [];
+
+      renderView({
+        housing,
+        owners,
+        housingOwners
+      });
+
+      const add = await screen.findByRole('button', {
+        name: 'Ajouter un propriétaire'
+      });
+      await user.click(add);
+      const dialog = await screen.findByRole('dialog', {
+        name: /Ajouter un propriétaire/
+      });
+      const searchDialog = await within(dialog).findByRole('searchbox');
+      await user.type(searchDialog, 'SCI Test{Enter}');
+      const select = await within(dialog).findByRole('button', {
+        name: /Sélectionner SCI Test/
+      });
+      await user.click(select);
+      const attachDialog = await screen.findByRole('dialog', {
+        name: /Ajouter un propriétaire/
+      });
+      const creationDate =
+        await within(attachDialog).findByText('Date de création');
+      expect(creationDate).toBeVisible();
+      const siren = await within(attachDialog).findByText('SIREN');
+      expect(siren).toBeVisible();
+    });
+
+    describe('If there is already a primary owner', () => {
+      it('should add the owner as secondary to the housing ', async () => {
+        const housing = genHousingDTO(null);
+        const owners: ReadonlyArray<OwnerDTO> = faker.helpers.multiple(
+          () => genOwnerDTO(),
+          { count: 6 }
+        );
+        const housingOwners: ReadonlyArray<HousingOwnerDTO> = owners
+          .slice(0, 2)
+          .map((owner, index) => ({
+            ...genHousingOwnerDTO(owner),
+            rank: (index + 1) as OwnerRank
+          }));
+
+        renderView({
+          housing,
+          owners,
+          housingOwners
+        });
+
+        const add = await screen.findByRole('button', {
+          name: 'Ajouter un propriétaire'
+        });
+        await user.click(add);
+        const searchDialog = await screen.findByRole('dialog', {
+          name: /Ajouter un propriétaire/
+        });
+        const search = await within(searchDialog).findByRole('searchbox');
+        await user.type(search, `${owners[2].fullName}{Enter}`);
+        const select = await within(searchDialog).findByRole('button', {
+          name: `Sélectionner ${owners[2].fullName}`
+        });
+        await user.click(select);
+        const attachDialog = await screen.findByRole('dialog', {
+          name: /Ajouter un propriétaire/
+        });
+        const confirm = await within(attachDialog).findByRole('button', {
+          name: 'Confirmer'
+        });
+        await user.click(confirm);
+        const row = await screen.findByRole('row', {
+          name: new RegExp(`${owners[2].fullName}`)
+        });
+        const cell = await within(row).findByRole('cell', {
+          name: /Destinataire secondaire/i
+        });
+        expect(cell).toBeVisible();
+      });
+    });
+
+    describe('If there is no primary owner', () => {
+      it('should add the owner as primary to the housing', async () => {
+        const housing = genHousingDTO(null);
+        const owners: ReadonlyArray<OwnerDTO> = faker.helpers.multiple(
+          () => genOwnerDTO(),
+          { count: 6 }
+        );
+        const housingOwners: ReadonlyArray<HousingOwnerDTO> = [];
+
+        renderView({
+          housing,
+          owners,
+          housingOwners
+        });
+
+        const add = await screen.findByRole('button', {
+          name: 'Ajouter un propriétaire'
+        });
+        await user.click(add);
+        const searchDialog = await screen.findByRole('dialog', {
+          name: /Ajouter un propriétaire/
+        });
+        const search = await within(searchDialog).findByRole('searchbox');
+        await user.type(search, `${owners[0].fullName}{Enter}`);
+        const select = await within(searchDialog).findByRole('button', {
+          name: `Sélectionner ${owners[0].fullName}`
+        });
+        await user.click(select);
+        const attachDialog = await screen.findByRole('dialog', {
+          name: /Ajouter un propriétaire/
+        });
+        const confirm = await within(attachDialog).findByRole('button', {
+          name: 'Confirmer'
+        });
+        await user.click(confirm);
+        const row = await screen.findByRole('row', {
+          name: new RegExp(`${owners[0].fullName}`)
+        });
+        const cell = await within(row).findByRole('cell', {
+          name: /Destinataire principal/i
+        });
+        expect(cell).toBeVisible();
+      });
+    });
   });
 });

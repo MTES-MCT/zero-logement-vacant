@@ -47,7 +47,7 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
             fullName: sourceOwner.full_name,
             birthDate: sourceOwner.birth_date?.toJSON() ?? null,
             administrator: null,
-            siren: sourceOwner.siren ?? undefined,
+            siren: sourceOwner.siren ?? null,
             rawAddress: sourceOwner.dgfip_address
               ? [sourceOwner.dgfip_address]
               : null,
@@ -80,7 +80,7 @@ export function sourceOwnerProcessor(opts: ProcessorOptions) {
               ? new Date(existingOwner.birth_date).toJSON()
               : null,
           administrator: existingOwner.administrator ?? null,
-          siren: sourceOwner.siren ?? existingOwner.siren ?? undefined,
+          siren: sourceOwner.siren ?? existingOwner.siren ?? null,
           rawAddress: sourceOwner.dgfip_address
             ? [sourceOwner.dgfip_address]
             : null,

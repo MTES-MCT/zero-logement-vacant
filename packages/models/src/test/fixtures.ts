@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { Array, pipe } from 'effect';
 import { MarkRequired } from 'ts-essentials';
 
-import { AddressDTO, AddressKinds } from '../AddressDTO';
+import { AddressDTO } from '../AddressDTO';
 import { CADASTRAL_CLASSIFICATION_VALUES } from '../CadastralClassification';
 import { CAMPAIGN_STATUS_VALUES, CampaignDTO } from '../CampaignDTO';
 import { DatafoncierHousing } from '../DatafoncierHousing';
@@ -29,9 +29,9 @@ import { PROPERTY_RIGHT_VALUES } from '../PropertyRight';
 import { ProspectDTO } from '../ProspectDTO';
 import { SenderDTO, SignatoryDTO } from '../SenderDTO';
 import { SignupLinkDTO } from '../SignupLinkDTO';
+import { TIME_PER_WEEK_VALUES } from '../TimePerWeek';
 import { UserDTO } from '../UserDTO';
 import { UserRole } from '../UserRole';
-import { TIME_PER_WEEK_VALUES } from '../TimePerWeek';
 
 export function genGeoCode(): string {
   const geoCode = faker.helpers.arrayElement([
@@ -47,13 +47,8 @@ export function genGeoCode(): string {
   return needsReroll ? genGeoCode() : geoCode;
 }
 
-export function genAddressDTO(
-  refId: string,
-  addressKind: AddressKinds
-): AddressDTO {
+export function genAddressDTO(): AddressDTO {
   return {
-    refId,
-    addressKind,
     banId: faker.string.uuid(),
     label: faker.location.streetAddress({ useFullAddress: true }),
     houseNumber: faker.location.buildingNumber(),
@@ -399,17 +394,22 @@ export function genNoteDTO(creator: UserDTO): NoteDTO {
 
 export function genOwnerDTO(): OwnerDTO {
   const id = faker.string.uuid();
-  const address = genAddressDTO(id, AddressKinds.Owner);
+  const address = genAddressDTO();
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
+  const kind = faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS));
   return {
     id,
+    idpersonne:
+      faker.helpers.maybe(() => faker.string.alphanumeric(10), {
+        probability: 0.8
+      }) ?? null,
     administrator: null,
     rawAddress: [
       `${address.houseNumber} ${address.street}`,
       `${address.postalCode} ${address.city}`
     ],
-    banAddress: genAddressDTO(id, AddressKinds.Owner),
+    banAddress: genAddressDTO(),
     additionalAddress:
       faker.helpers.maybe(() => faker.location.county()) ?? null,
     birthDate: faker.date
@@ -422,8 +422,9 @@ export function genOwnerDTO(): OwnerDTO {
       lastName
     }),
     phone: faker.phone.number().replace(/\s+/g, ''),
-    kind: faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS)),
+    kind,
     kindDetail: null,
+    siren: kind === 'Particulier' ? null : faker.string.numeric(9),
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON()
   };

@@ -11,6 +11,7 @@ import { housingFilters } from './housing-filters';
 import { housingUpdatePayload } from './housing-update-payload';
 import { id } from './id';
 import { notePayload } from './note-payload';
+import { ownerFilters } from './owner-filters';
 import { password, passwordConfirmation } from './password';
 import { siren } from './siren';
 import { userFilters } from './user-filters';
@@ -33,6 +34,7 @@ const schemas = {
   housingUpdatePayload,
   id,
   notePayload,
+  ownerFilters,
   password,
   passwordConfirmation,
   siren,

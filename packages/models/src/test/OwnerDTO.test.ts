@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { AddressKinds } from '../AddressDTO';
-import { getAddress, OwnerDTO } from '../OwnerDTO';
 
+import { getAddress, OwnerDTO } from '../OwnerDTO';
 import { genAddressDTO, genOwnerDTO } from './fixtures';
 
 describe('OwnerDTO', () => {
@@ -12,7 +11,7 @@ describe('OwnerDTO', () => {
         ...genOwnerDTO(),
         id,
         additionalAddress: null,
-        banAddress: genAddressDTO(id, AddressKinds.Owner)
+        banAddress: genAddressDTO()
       };
 
       const actual = getAddress(owner);

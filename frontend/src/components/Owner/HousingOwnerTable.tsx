@@ -107,21 +107,27 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
       }),
       columnHelper.display({
         id: 'actions',
-        header: 'Actions',
+        header: () => (
+          <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
+            <Typography variant="body2">Actions</Typography>
+          </Stack>
+        ),
         cell: ({ row }) => (
-          <Button
-            priority="secondary"
-            size="small"
-            title={`Éditer ${row.original.fullName}`}
-            nativeButtonProps={{
-              'aria-label': `Éditer ${row.original.fullName}`
-            }}
-            onClick={() => {
-              onEdit?.(row.original);
-            }}
-          >
-            Éditer
-          </Button>
+          <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
+            <Button
+              priority="secondary"
+              size="small"
+              title={`Éditer ${row.original.fullName}`}
+              nativeButtonProps={{
+                'aria-label': `Éditer ${row.original.fullName}`
+              }}
+              onClick={() => {
+                onEdit?.(row.original);
+              }}
+            >
+              Éditer
+            </Button>
+          </Stack>
         )
       })
     ],

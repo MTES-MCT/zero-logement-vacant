@@ -167,8 +167,8 @@ function HousingOwnersModal({
           [`fullName-${housingOwner.id}`]: housingOwner.fullName,
           [`email-${housingOwner.id}`]: housingOwner.email,
           [`birthDate-${housingOwner.id}`]: housingOwner.birthDate,
-          [`banAddress-${housingOwner.id}`]: housingOwner.banAddress,
-          [`additionalAddress-${housingOwner.id}`]:
+          [`banAddress-${housingId}`]: housingOwner.banAddress,
+          [`additionalAddress-${housingId}`]:
             housingOwner.additionalAddress
         }),
         {}

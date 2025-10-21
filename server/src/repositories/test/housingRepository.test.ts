@@ -27,12 +27,14 @@ import {
   ROOM_COUNT_VALUES
 } from '@zerologementvacant/models';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
-import { isDefined, Predicate } from '@zerologementvacant/utils';
+import { isDefined } from '@zerologementvacant/utils';
 import async from 'async';
 import { differenceInYears, endOfYear } from 'date-fns';
+import { Array, Predicate, Record } from 'effect';
 import fp from 'lodash/fp';
 import { match } from 'ts-pattern';
 
+import { flow } from 'effect/Function';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
@@ -201,8 +203,9 @@ describe('Housing repository', () => {
 
     it('should include precisions on demand', async () => {
       const precisions: Precision[] = await Precisions().limit(3);
-      const housings: HousingApi[] = Array.from({ length: 3 }, () =>
-        genHousingApi()
+      const housings: HousingApi[] = faker.helpers.multiple(
+        () => genHousingApi(),
+        { count: 3 }
       );
       await Housing().insert(housings.map(formatHousingRecordApi));
       const housingPrecisions: HousingPrecisionDBO[] = precisions.flatMap(
@@ -231,9 +234,11 @@ describe('Housing repository', () => {
 
     describe('Filters', () => {
       it('should filter by housing ids', async () => {
-        const houses: HousingApi[] = Array.from({ length: 4 })
-          .map(() =>
-            genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+        const houses: HousingApi[] = faker.helpers
+          .multiple(
+            () =>
+              genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+            { count: 4 }
           )
           // Should not return this one
           .concat(genHousingApi());
@@ -252,8 +257,10 @@ describe('Housing repository', () => {
       });
 
       it('should exclude housing ids', async () => {
-        const housings: HousingApi[] = Array.from({ length: 4 }, () =>
-          genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+        const housings: HousingApi[] = faker.helpers.multiple(
+          () =>
+            genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+          { count: 4 }
         );
         const includedHousings = housings.slice(0, 1);
         const excludedHousings = housings.slice(1);
@@ -281,7 +288,9 @@ describe('Housing repository', () => {
         let intercommunality: EstablishmentApi;
 
         beforeEach(async () => {
-          const geoCodes = Array.from({ length: 3 }, () => genGeoCode());
+          const geoCodes = faker.helpers.multiple(() => genGeoCode(), {
+            count: 3
+          });
           intercommunality = {
             ...genEstablishmentApi(...geoCodes),
             name: 'Eurométropole de Strasbourg',
@@ -292,10 +301,11 @@ describe('Housing repository', () => {
             formatEstablishmentApi(intercommunality)
           );
           const housings: HousingApi[] = [
-            ...Array.from({ length: 3 }, () =>
-              genHousingApi(faker.helpers.arrayElement(geoCodes))
+            ...faker.helpers.multiple(
+              () => genHousingApi(faker.helpers.arrayElement(geoCodes)),
+              { count: 3 }
             ),
-            ...Array.from({ length: 3 }, () => genHousingApi())
+            ...faker.helpers.multiple(() => genHousingApi(), { count: 3 })
           ];
           await Housing().insert(housings.map(formatHousingRecordApi));
           const owner = genOwnerApi();
@@ -440,14 +450,16 @@ describe('Housing repository', () => {
       });
 
       it('should filter by group', async () => {
-        const groups = Array.from({ length: 2 }).map(() =>
-          genGroupApi(user, establishment)
+        const groups = faker.helpers.multiple(
+          () => genGroupApi(user, establishment),
+          { count: 2 }
         );
         await Groups().insert(groups.map(formatGroupApi));
         const housesByGroup = fp.fromPairs(
           groups.map((group) => {
-            const houses: HousingApi[] = Array.from({ length: 3 }).map(() =>
-              genHousingApi(oneOf(establishment.geoCodes))
+            const houses: HousingApi[] = faker.helpers.multiple(
+              () => genHousingApi(oneOf(establishment.geoCodes)),
+              { count: 3 }
             );
             return [group.id, houses];
           })
@@ -484,14 +496,17 @@ describe('Housing repository', () => {
         let campaigns: ReadonlyArray<CampaignApi>;
 
         beforeEach(async () => {
-          campaigns = Array.from({ length: 3 }, () =>
-            genCampaignApi(establishment.id, user.id)
+          campaigns = faker.helpers.multiple(
+            () => genCampaignApi(establishment.id, user.id),
+            { count: 3 }
           );
           await Campaigns().insert(campaigns.map(formatCampaignApi));
           const campaignHousings = campaigns.map((campaign) => {
             return {
               campaign: campaign,
-              housings: Array.from({ length: 3 }, () => genHousingApi())
+              housings: faker.helpers.multiple(() => genHousingApi(), {
+                count: 3
+              })
             };
           });
           const housings = campaignHousings.flatMap(({ housings }) => housings);
@@ -665,7 +680,9 @@ describe('Housing repository', () => {
       });
 
       it('should filter by owner ids', async () => {
-        const housings = Array.from({ length: 3 }, () => genHousingApi());
+        const housings = faker.helpers.multiple(() => genHousingApi(), {
+          count: 3
+        });
         await Housing().insert(housings.map(formatHousingRecordApi));
         await Owners().insert(
           housings.map((housing) => formatOwnerApi(housing.owner))
@@ -692,9 +709,9 @@ describe('Housing repository', () => {
         const kinds = OWNER_KIND_VALUES;
 
         beforeEach(async () => {
-          const housings = Array.from({ length: kinds.length }, () =>
-            genHousingApi()
-          );
+          const housings = faker.helpers.multiple(() => genHousingApi(), {
+            count: kinds.length
+          });
           await Housing().insert(housings.map(formatHousingRecordApi));
           const owners: OwnerApi[] = Object.values(OWNER_KIND_LABELS).map(
             (kind, i) => {
@@ -749,7 +766,9 @@ describe('Housing repository', () => {
 
       describe('by multi owners', () => {
         beforeEach(async () => {
-          const housings = Array.from({ length: 3 }, () => genHousingApi());
+          const housings = faker.helpers.multiple(() => genHousingApi(), {
+            count: 3
+          });
           await Housing().insert(housings.map(formatHousingRecordApi));
           const owner = genOwnerApi();
           const anotherOwner = genOwnerApi();
@@ -768,14 +787,14 @@ describe('Housing repository', () => {
         });
 
         function countOwners(
-          expected: Predicate<number>
+          expected: Predicate.Predicate<number>
         ): (housings: ReadonlyArray<HousingApi>) => boolean {
-          return fp.pipe(
-            fp.map((housing: HousingApi) => housing.owner),
-            fp.groupBy('id'),
-            fp.mapValues(fp.size),
-            fp.values,
-            fp.every(expected)
+          return flow(
+            Array.map((housing: HousingApi) => housing.owner),
+            Array.filter(Predicate.isNotNullable),
+            Array.groupBy((owner) => owner.id),
+            Record.map(Array.length),
+            Record.every(expected)
           );
         }
 
@@ -796,6 +815,10 @@ describe('Housing repository', () => {
           const actual = await housingRepository.find({
             filters: {
               multiOwners: filter
+            },
+            // Paginating would cause some owners to be missing from the result set
+            pagination: {
+              paginate: false
             }
           });
 
@@ -806,15 +829,16 @@ describe('Housing repository', () => {
 
       describe('by beneficiary count', () => {
         beforeEach(async () => {
-          const housings = Array.from(
-            { length: BENEFIARY_COUNT_VALUES.length },
-            () => genHousingApi()
-          );
+          const housings = faker.helpers.multiple(() => genHousingApi(), {
+            count: BENEFIARY_COUNT_VALUES.length
+          });
           await Housing().insert(housings.map(formatHousingRecordApi));
           const housingOwners = housings.map((housing, i) => {
             return {
               housing,
-              owners: Array.from({ length: i + 1 }, () => genOwnerApi())
+              owners: faker.helpers.multiple(() => genOwnerApi(), {
+                count: i + 1
+              })
             };
           });
           const owners = housingOwners.flatMap(
@@ -958,14 +982,12 @@ describe('Housing repository', () => {
 
       describe('by room count', () => {
         beforeEach(async () => {
-          const housings = Array.from({ length: 10 }).map<HousingApi>(
-            (_, i) => {
-              return {
-                ...genHousingApi(),
-                roomsCount: i + 1
-              };
-            }
-          );
+          const housings = faker.helpers
+            .multiple(() => genHousingApi(), { count: 10 })
+            .map((housing, i) => ({
+              ...housing,
+              roomsCount: i + 1
+            }));
           await Housing().insert(housings.map(formatHousingRecordApi));
         });
 
@@ -1109,10 +1131,10 @@ describe('Housing repository', () => {
 
       describe('by vacancy duration', () => {
         beforeEach(async () => {
-          const housingList: HousingApi[] = new Array(16)
-            .fill('0')
-            .map((_, i) => ({
-              ...genHousingApi(),
+          const housingList: HousingApi[] = faker.helpers
+            .multiple(() => genHousingApi(), { count: 16 })
+            .map((housing, i) => ({
+              ...housing,
               vacancyStartYear: ReferenceDataYear - i
             }))
             .concat([
@@ -1248,7 +1270,7 @@ describe('Housing repository', () => {
         const tests: ReadonlyArray<{
           name: string;
           filter: OwnershipKind[];
-          predicate: Predicate<HousingApi>;
+          predicate: Predicate.Predicate<HousingApi>;
         }> = [
           {
             name: 'housings that are single-owned',
@@ -1335,10 +1357,13 @@ describe('Housing repository', () => {
 
       describe('by housing count by building', () => {
         function createHousingByBuilding(building: BuildingApi): HousingApi[] {
-          return Array.from({ length: building.housingCount }).map(() => ({
-            ...genHousingApi(),
-            buildingId: building.id
-          }));
+          return faker.helpers.multiple(
+            () => ({
+              ...genHousingApi(),
+              buildingId: building.id
+            }),
+            { count: building.housingCount }
+          );
         }
 
         beforeEach(async () => {
@@ -1417,20 +1442,25 @@ describe('Housing repository', () => {
 
       describe('by vacancy rate by building', () => {
         function createHousingByBuilding(building: BuildingApi): HousingApi[] {
-          return Array.from({ length: building.vacantHousingCount }, () => ({
-            ...genHousingApi(building.id.substring(0, 5)),
-            occupancy: Occupancy.VACANT,
-            buildingId: building.id
-          })).concat(
-            Array.from(
-              { length: building.housingCount - building.vacantHousingCount },
+          return faker.helpers
+            .multiple(
               () => ({
-                ...genHousingApi(),
-                buildingId: building.id,
-                occupancy: Occupancy.UNKNOWN
-              })
+                ...genHousingApi(building.id.substring(0, 5)),
+                occupancy: Occupancy.VACANT,
+                buildingId: building.id
+              }),
+              { count: building.vacantHousingCount }
             )
-          );
+            .concat(
+              faker.helpers.multiple(
+                () => ({
+                  ...genHousingApi(),
+                  buildingId: building.id,
+                  occupancy: Occupancy.UNKNOWN
+                }),
+                { count: building.housingCount - building.vacantHousingCount }
+              )
+            );
         }
 
         beforeEach(async () => {
@@ -1579,10 +1609,13 @@ describe('Housing repository', () => {
             { ...genLocalityApi(), kind: 'PVD' }
           ];
           await Localities().insert(localities.map(formatLocalityApi));
-          const housingList = new Array(10).fill('0').map(() => {
-            const geoCode = oneOf(localities).geoCode;
-            return genHousingApi(geoCode);
-          });
+          const housingList = faker.helpers.multiple(
+            () => {
+              const geoCode = oneOf(localities).geoCode;
+              return genHousingApi(geoCode);
+            },
+            { count: 10 }
+          );
           await Housing().insert(housingList.map(formatHousingRecordApi));
 
           const actual = await housingRepository.find({
@@ -1691,7 +1724,9 @@ describe('Housing repository', () => {
 
       describe('by included data file year', () => {
         beforeEach(async () => {
-          const housings = Array.from({ length: 10 }, () => genHousingApi());
+          const housings = faker.helpers.multiple(() => genHousingApi(), {
+            count: 10
+          });
           await Housing().insert(housings.map(formatHousingRecordApi));
         });
 
@@ -1740,7 +1775,9 @@ describe('Housing repository', () => {
 
       describe('by excluded data file year', () => {
         beforeEach(() => {
-          const housings = Array.from({ length: 10 }, () => genHousingApi());
+          const housings = faker.helpers.multiple(() => genHousingApi(), {
+            count: 10
+          });
           return Housing().insert(housings.map(formatHousingRecordApi));
         });
 
@@ -1837,7 +1874,9 @@ describe('Housing repository', () => {
       });
 
       it('should query by an owner’s name', async () => {
-        const housingList = new Array(10).fill('0').map(() => genHousingApi());
+        const housingList = faker.helpers.multiple(() => genHousingApi(), {
+          count: 10
+        });
         await Housing().insert(housingList.map(formatHousingRecordApi));
         const owner: OwnerApi = {
           ...genOwnerApi(),
@@ -1894,7 +1933,7 @@ describe('Housing repository', () => {
           const tests: ReadonlyArray<{
             name: string;
             filter: Array<LastMutationYearFilter | null>;
-            predicate: Predicate<HousingApi>;
+            predicate: Predicate.Predicate<HousingApi>;
           }> = [
             {
               name: 'housings that were mutated in 2024',
@@ -2062,7 +2101,7 @@ describe('Housing repository', () => {
           const tests: ReadonlyArray<{
             name: string;
             filter: Array<LastMutationTypeFilter | null>;
-            predicate: Predicate<HousingApi>;
+            predicate: Predicate.Predicate<HousingApi>;
           }> = [
             {
               name: 'housings that were sold',
@@ -2398,8 +2437,9 @@ describe('Housing repository', () => {
   });
 
   describe('stream', () => {
-    const houses: HousingApi[] = Array.from({ length: 5 }).map(() =>
-      genHousingApi(oneOf(establishment.geoCodes))
+    const houses: HousingApi[] = faker.helpers.multiple(
+      () => genHousingApi(oneOf(establishment.geoCodes)),
+      { count: 5 }
     );
 
     beforeAll(async () => {

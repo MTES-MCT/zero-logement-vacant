@@ -9,9 +9,13 @@ import { useParams } from 'react-router-dom';
 
 import type {
   AwaitingOwnerRank,
-  InactiveOwnerRank
+  InactiveOwnerRank,
+  OwnerRank
 } from '@zerologementvacant/models';
+import { Array, Order, pipe } from 'effect';
+import type { NonEmptyArray } from 'effect/Array';
 import HousingOwnersEmpty from '~/components/HousingOwnersEmpty/HousingOwnersEmpty';
+import HousingOwnerAdditionModals from '~/components/Owner/HousingOwnerAdditionModals/HousingOwnerAdditionModals';
 import HousingOwnerEditionAside, {
   type HousingOwnerEditionSchema
 } from '~/components/Owner/HousingOwnerEditionAside';
@@ -23,7 +27,7 @@ import {
   rankToLabel,
   type OwnerRankLabel
 } from '~/models/HousingOwnerRank';
-import type { HousingOwner } from '~/models/Owner';
+import type { HousingOwner, Owner } from '~/models/Owner';
 import { useGetHousingQuery } from '~/services/housing.service';
 import {
   useUpdateHousingOwnersMutation,
@@ -39,6 +43,8 @@ function HousingOwnersView() {
     isError: isErrorHousing
   } = useGetHousingQuery(id ?? skipToken);
   const {
+    owner: primaryOwner,
+    housingOwners,
     secondaryOwners,
     activeOwners,
     inactiveOwners,
@@ -127,6 +133,38 @@ function HousingOwnersView() {
       });
   }
 
+  function onAddOwner(owner: Owner): void {
+    if (
+      !id ||
+      activeOwners.some((housingOwner) => housingOwner.id === owner.id)
+    ) {
+      return;
+    }
+
+    const firstAvailableRank: OwnerRank = !primaryOwner
+      ? 1
+      : pipe(
+          activeOwners as NonEmptyArray<HousingOwner>,
+          Array.map((housingOwner) => housingOwner.rank),
+          Array.max(Order.number),
+          // Get the next available rank
+          (rank) => (rank + 1) as OwnerRank
+        );
+    const housingOwners = activeOwners.concat(inactiveOwners ?? []).concat({
+      ...owner,
+      rank: firstAvailableRank,
+      idprocpte: null,
+      idprodroit: null,
+      locprop: null,
+      propertyRight: null
+    });
+
+    updateHousingOwners({
+      housingId: id,
+      housingOwners
+    });
+  }
+
   if (!id) {
     return null;
   }
@@ -163,6 +201,12 @@ function HousingOwnersView() {
       )}
 
       <Stack component="section" spacing="1.5rem" useFlexGap>
+        <HousingOwnerAdditionModals
+          address={housing?.rawAddress?.join(' ') ?? ''}
+          buttonProps={{ style: { alignSelf: 'flex-end' } }}
+          exclude={housingOwners ?? []}
+          onOwnerAddition={onAddOwner}
+        />
         <HousingOwnerTable
           title="Propriétaires"
           housing={housing ?? null}

@@ -4,7 +4,6 @@ import { Equivalence, pipe, Record, Struct } from 'effect';
 import { EventApi } from '~/models/EventApi';
 
 export interface OwnerApi extends OwnerDTO {
-  idpersonne?: string;
   siren?: string;
   dataSource?: string;
   entity: OwnerEntity | null;
@@ -15,6 +14,7 @@ export function toOwnerDTO(owner: OwnerApi): OwnerDTO {
     ...Struct.pick(
       owner,
       'id',
+      'idpersonne',
       'rawAddress',
       'fullName',
       'administrator',

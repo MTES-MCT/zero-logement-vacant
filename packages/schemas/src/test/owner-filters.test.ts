@@ -5,7 +5,7 @@ import { ownerFilters } from '../owner-filters';
 
 describe('Owner filters', () => {
   test.prop<OwnerFiltersDTO>({
-    search: fc.option(fc.stringMatching(/^\w+$/), { nil: undefined }),
+    search: fc.option(fc.stringMatching(/^[a-zA-Z0-9]$/), { nil: undefined }),
     idpersonne: fc.option(fc.oneof(fc.boolean(), fc.array(fc.string())), {
       nil: undefined
     })

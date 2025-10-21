@@ -44,7 +44,7 @@ describe('SourceOwnerProcessor', () => {
           fullName: sourceOwner.full_name,
           birthDate: sourceOwner.birth_date?.toJSON() ?? null,
           administrator: null,
-          siren: sourceOwner.siren ?? undefined,
+          siren: sourceOwner.siren ?? null,
           rawAddress: sourceOwner.dgfip_address
             ? [sourceOwner.dgfip_address]
             : null,
@@ -105,7 +105,7 @@ describe('SourceOwnerProcessor', () => {
               ? new Date(existingOwner.birthDate).toJSON()
               : null,
           administrator: existingOwner.administrator ?? null,
-          siren: existingOwner.siren ?? sourceOwner.siren ?? undefined,
+          siren: existingOwner.siren ?? sourceOwner.siren ?? null,
           rawAddress: sourceOwner.dgfip_address
             ? [sourceOwner.dgfip_address]
             : null,

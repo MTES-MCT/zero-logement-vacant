@@ -397,6 +397,7 @@ export function genOwnerDTO(): OwnerDTO {
   const address = genAddressDTO();
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
+  const kind = faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS));
   return {
     id,
     idpersonne:
@@ -421,8 +422,9 @@ export function genOwnerDTO(): OwnerDTO {
       lastName
     }),
     phone: faker.phone.number().replace(/\s+/g, ''),
-    kind: faker.helpers.arrayElement(Object.values(OWNER_KIND_LABELS)),
+    kind,
     kindDetail: null,
+    siren: kind === 'Particulier' ? null : faker.string.numeric(9),
     createdAt: faker.date.past().toJSON(),
     updatedAt: faker.date.recent().toJSON()
   };

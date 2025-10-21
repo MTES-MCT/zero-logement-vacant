@@ -215,6 +215,7 @@ export const genOwnerApi = (): OwnerApi => {
     administrator: null,
     banAddress: null,
     additionalAddress: randomstring.generate(),
+    siren: null,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON(),
     entity: faker.helpers.arrayElement(OWNER_ENTITY_VALUES)

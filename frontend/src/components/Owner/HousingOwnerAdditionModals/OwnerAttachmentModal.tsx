@@ -81,7 +81,7 @@ function createOwnerAttachmentModal() {
                 sx={{ alignItems: 'center' }}
               >
                 <Icon name="fr-icon-user-fill" size="sm" />
-                <LabelNext>Prénom et nom</LabelNext>
+                <LabelNext>Nom</LabelNext>
               </Stack>
               <Typography sx={{ fontWeight: 700 }}>
                 {props.owner?.fullName}
@@ -125,7 +125,12 @@ function createOwnerAttachmentModal() {
                 sx={{ alignItems: 'center' }}
               >
                 <Icon name="fr-icon-calendar-2-line" size="sm" />
-                <LabelNext>Date de naissance</LabelNext>
+                <LabelNext>
+                  Date de&nbsp;
+                  {props.owner?.kind === 'Particulier'
+                    ? 'naissance'
+                    : 'création'}
+                </LabelNext>
               </Stack>
               <Typography>
                 {props.owner?.birthDate
@@ -133,6 +138,23 @@ function createOwnerAttachmentModal() {
                   : 'Pas d’information'}
               </Typography>
             </Stack>
+
+            {props.owner?.kind !== 'Particulier' ? (
+              <Stack component="section">
+                <Stack
+                  direction="row"
+                  spacing="0.25rem"
+                  useFlexGap
+                  sx={{ alignItems: 'center' }}
+                >
+                  <Icon name="fr-icon-passport-line" size="sm" />
+                  <LabelNext>SIREN</LabelNext>
+                </Stack>
+                <Typography>
+                  {props.owner?.siren ? props.owner.siren : 'Pas d’information'}
+                </Typography>
+              </Stack>
+            ) : null}
 
             <Stack component="section">
               <Stack

@@ -1,11 +1,11 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import {
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type {
   DatafoncierHousing,
   HousingFiltersDTO,
   Pagination
 } from '@zerologementvacant/models';
-import { Selection } from '../../hooks/useSelection';
-import { HousingFilters } from '../../models/HousingFilters';
+import type { Selection } from '../../hooks/useSelection';
+import type { HousingFilters } from '../../models/HousingFilters';
 import config from '../../utils/config';
 
 export type ViewMode = 'list' | 'map';

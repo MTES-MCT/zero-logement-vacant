@@ -5,7 +5,7 @@ import HousingFiltersBadges from '../../components/HousingFiltersBadges/HousingF
 import HousingListFiltersSidemenu from '../../components/HousingListFilters/HousingListFiltersSidemenu';
 import { useFilters } from '../../hooks/useFilters';
 import { useAppSelector } from '../../hooks/useStore';
-import { Campaign } from '../../models/Campaign';
+import { type Campaign } from '../../models/Campaign';
 import HousingListMap from '../HousingList/HousingListMap';
 import HousingListTabs from '../HousingList/HousingListTabs';
 import HousingListTabsProvider from '../HousingList/HousingListTabsProvider';

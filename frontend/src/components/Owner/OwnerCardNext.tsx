@@ -46,7 +46,14 @@ function OwnerCardNext(props: OwnerCardProps) {
 
   if (!props.owner) {
     return (
-      <HousingOwnersEmpty title="Il n’y a pas de propriétaire actuel connu pour ce logement" />
+      <HousingOwnersEmpty
+        title="Il n’y a pas de propriétaire actuel connu pour ce logement"
+        buttonProps={{
+          onClick: () => {
+            
+          }
+        }}
+      />
     );
   }
 
@@ -109,7 +116,7 @@ function OwnerCardNext(props: OwnerCardProps) {
           }
         />
 
-        {!isBanEligible(props.owner.banAddress) && (
+        {!isBanEligible(props.owner.banAddress ?? undefined) && (
           <Alert
             small
             severity="info"

@@ -1,5 +1,5 @@
-import { configureStore, SerializedError } from '@reduxjs/toolkit';
-import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { configureStore, type SerializedError } from '@reduxjs/toolkit';
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { Predicate } from 'effect';
 import { loadingBarReducer } from 'react-redux-loading-bar';
 

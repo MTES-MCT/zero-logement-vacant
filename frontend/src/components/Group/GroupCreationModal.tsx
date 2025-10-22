@@ -4,10 +4,10 @@ import Skeleton from '@mui/material/Skeleton';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 
-import { HousingCountDTO } from '@zerologementvacant/models';
+import type { HousingCountDTO } from '@zerologementvacant/models';
 import { createExtendedModal } from '../modals/ConfirmationModal/ExtendedModal';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
-import { Group } from '../../models/Group';
+import type { Group } from '../../models/Group';
 import HousingCount from '../HousingCount/HousingCount';
 
 type Payload = Pick<Group, 'title' | 'description'>;

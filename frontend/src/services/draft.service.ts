@@ -1,16 +1,16 @@
 import {
-  DraftCreationPayloadDTO,
-  DraftDTO,
-  DraftUpdatePayloadDTO,
-  SenderPayloadDTO
+  type DraftCreationPayloadDTO,
+  type DraftDTO,
+  type DraftUpdatePayloadDTO,
+  type SenderPayloadDTO
 } from '@zerologementvacant/models';
 import { pipe, Record } from 'effect';
-import {
+import type {
   Draft,
   DraftCreationPayload,
   DraftUpdatePayload
 } from '../models/Draft';
-import { SenderPayload } from '../models/Sender';
+import type { SenderPayload } from '../models/Sender';
 import { zlvApi } from './api.service';
 
 export interface FindOptions {

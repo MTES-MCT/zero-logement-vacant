@@ -1,10 +1,10 @@
-import {
+import type {
   HousingDTO,
   NoteDTO,
   NotePayloadDTO
 } from '@zerologementvacant/models';
 
-import { fromNoteDTO, Note } from '../models/Note';
+import { fromNoteDTO, type Note } from '../models/Note';
 import { zlvApi } from './api.service';
 
 export const noteApi = zlvApi.injectEndpoints({

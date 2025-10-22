@@ -1,12 +1,12 @@
 import { Col, Container, Row, Select, Text } from '../../_dsfr';
 
-import { Group } from '../../../models/Group';
-import { ChangeEvent, useState } from 'react';
+import type { Group } from '../../../models/Group';
+import { type ChangeEvent, useState } from 'react';
 import { useFindGroupsQuery } from '../../../services/group.service';
-import { SelectOption } from '../../../models/SelectOption';
+import type { SelectOption } from '../../../models/SelectOption';
 import styles from './group-add-housing-modal.module.scss';
-import { GroupPayload } from '../../../models/GroupPayload';
-import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
+import type { GroupPayload } from '../../../models/GroupPayload';
+import { createModal, type ModalProps } from '@codegouvfr/react-dsfr/Modal';
 import Button from '@codegouvfr/react-dsfr/Button';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import AppInfo from '../../_app/AppInfo/AppInfo';

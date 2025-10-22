@@ -109,12 +109,12 @@ export default {
   perPageDefault: 50,
   posthog: {
     enabled: config.posthog.enabled,
-    apiKey: config.posthog.enabled ? config.posthog.apiKey : ''
+    apiKey: config.posthog.enabled ? config.posthog.apiKey as string : ''
   },
   sentry: {
     enabled: config.sentry.enabled,
-    dsn: config.sentry.dsn,
-    env: config.sentry.env,
+    dsn: (config.sentry as any).dsn,
+    env: (config.sentry as any).env,
     sampleRate: config.sentry.sampleRate,
     tracesSampleRate: config.sentry.tracesSampleRate
   }

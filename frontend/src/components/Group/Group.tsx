@@ -1,10 +1,10 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import Typography from '@mui/material/Typography';
-import { ReactNode } from 'react';
-import { Campaign } from '../../models/Campaign';
-import { Group as GroupModel } from '../../models/Group';
-import { GroupPayload } from '../../models/GroupPayload';
+import type { ReactNode } from 'react';
+import type { Campaign } from '../../models/Campaign';
+import type { Group as GroupModel } from '../../models/Group';
+import type { GroupPayload } from '../../models/GroupPayload';
 import { createdBy } from '../../models/User';
 import { dateShortFormat } from '../../utils/dateUtils';
 import { pluralize } from '../../utils/stringUtils';

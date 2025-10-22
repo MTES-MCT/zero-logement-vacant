@@ -3,7 +3,7 @@ import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { HOUSING_STATUS_VALUES } from '@zerologementvacant/models';
 import { kebabCase } from 'lodash-es';
 import { useStatusTabs } from '../../hooks/useStatusTabs';
-import { HousingFilters } from '../../models/HousingFilters';
+import { type HousingFilters } from '../../models/HousingFilters';
 
 import { getHousingState } from '../../models/HousingState';
 import HousingListTab from './HousingListTab';

@@ -533,7 +533,10 @@ describe('Housing view', () => {
         name: 'Notes et historique'
       });
       await user.click(tab);
-      const input = await screen.findByLabelText('Date de création');
+      const panel = await screen.findByRole('tabpanel', {
+        name: 'Notes et historique'
+      });
+      const input = await within(panel).findByLabelText('Date de création');
       await user.type(input, '01012020');
       const history = await screen.findAllByRole('region', {
         name: (name) => ['Note', 'Mise à jour'].includes(name)

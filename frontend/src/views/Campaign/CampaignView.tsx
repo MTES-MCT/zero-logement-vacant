@@ -1,4 +1,4 @@
-import { CampaignStatus } from '@zerologementvacant/models';
+import type { CampaignStatus } from '@zerologementvacant/models';
 import { useCampaign } from '../../hooks/useCampaign';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import NotFoundView from '../NotFoundView';

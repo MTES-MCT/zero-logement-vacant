@@ -1,4 +1,4 @@
-import { Children, JSXElementConstructor, ReactElement } from 'react';
+import { Children, type JSXElementConstructor, type ReactElement } from 'react';
 
 export function findChild(
   children: ReactElement | ReactElement[] | undefined,

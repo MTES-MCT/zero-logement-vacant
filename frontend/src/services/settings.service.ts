@@ -1,5 +1,5 @@
-import { SettingsDTO } from '@zerologementvacant/models';
-import { DeepPartial } from 'ts-essentials';
+import type { SettingsDTO } from '@zerologementvacant/models';
+import type { DeepPartial } from 'ts-essentials';
 import { zlvApi } from './api.service';
 
 interface FindOneOptions {

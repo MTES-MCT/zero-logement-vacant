@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import * as yup from 'yup';
 
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
-import { Group } from '../../../models/Group';
+import type { Group } from '../../../models/Group';
 import { useForm } from '../../../hooks/useForm';
 import HousingCount from '../../HousingCount/HousingCount';
 import { Col, Row } from '../../_dsfr';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
-import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
-import { GroupPayload } from '../../../models/GroupPayload';
+import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import type { GroupPayload } from '../../../models/GroupPayload';
 
 interface Props {
   title: string;

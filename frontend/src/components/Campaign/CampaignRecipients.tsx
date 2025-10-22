@@ -8,14 +8,14 @@ import { createColumnHelper } from '@tanstack/react-table';
 
 import {
   formatAddress as formatAddressDTO,
-  Pagination
+  type Pagination
 } from '@zerologementvacant/models';
-import { Fragment, ReactNode, useMemo, useState } from 'react';
+import { Fragment, type ReactNode, useMemo, useState } from 'react';
 import { useNotification } from '../../hooks/useNotification';
 import { usePagination } from '../../hooks/usePagination';
-import { Address, isBanEligible } from '../../models/Address';
-import { Campaign } from '../../models/Campaign';
-import { Housing } from '../../models/Housing';
+import { type Address, isBanEligible } from '../../models/Address';
+import type { Campaign } from '../../models/Campaign';
+import type { Housing } from '../../models/Housing';
 import { useRemoveCampaignHousingMutation } from '../../services/campaign.service';
 import {
   useCountHousingQuery,

@@ -4,18 +4,18 @@ import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { NotePayloadDTO } from '@zerologementvacant/models';
+import type { NotePayloadDTO } from '@zerologementvacant/models';
 import { format } from 'date-fns';
 import localeFR from 'date-fns/locale/fr';
 import { useMemo, useState } from 'react';
-import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
+import { FormProvider, type SubmitHandler, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
 import { useNotification } from '../../hooks/useNotification';
 import { useUser } from '../../hooks/useUser';
 
 import { object, string } from 'yup';
-import { Establishment } from '../../models/Establishment';
-import { Note } from '../../models/Note';
+import type { Establishment } from '../../models/Establishment';
+import type { Note } from '../../models/Note';
 import { formatAuthor } from '../../models/User';
 import {
   useRemoveNoteMutation,

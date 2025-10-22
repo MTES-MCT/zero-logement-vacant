@@ -60,7 +60,6 @@ function HousingView() {
       );
       const after = housingOwner;
       if (!before || hasOwnerChanges(before, after)) {
-        // @ts-expect-error: housingOwner has a wrong type
         await updateOwner(housingOwner).unwrap();
       }
     });

@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AddressSearchResult } from '../../services/address.service';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { AddressSearchResult } from '../../services/address.service';
 
 export interface OwnerProspectState {
   addressSearchResult?: AddressSearchResult;
@@ -16,8 +16,8 @@ const ownerProspectSlice = createSlice({
       action: PayloadAction<AddressSearchResult>
     ) => {
       state.addressSearchResult = action.payload;
-    },
-  },
+    }
+  }
 });
 
 export default ownerProspectSlice;

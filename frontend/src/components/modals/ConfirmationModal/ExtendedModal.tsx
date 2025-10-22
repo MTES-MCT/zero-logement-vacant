@@ -54,3 +54,5 @@ function isSizeExtension(
 ): size is SizeExtension {
   return size ? SIZE_EXTENSION_VALUES.includes(size as SizeExtension) : false;
 }
+
+export type Modal = ReturnType<typeof createExtendedModal>;

@@ -4,6 +4,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { useNavigate } from 'react-router-dom';
 
 import HousingHeader from '~/components/Housing/HousingHeader';
 import HousingDetailsCard from '~/components/HousingDetails/HousingDetailsCard';
@@ -29,6 +30,8 @@ function HousingView() {
   const { data: count } = useCountHousingQuery(
     housing?.owner?.id ? { ownerIds: [housing.owner.id] } : skipToken
   );
+
+  const navigate = useNavigate();
 
   if (getHousingQuery.isError && !housing) {
     return <NotFoundView />;
@@ -81,6 +84,13 @@ function HousingView() {
               owner={owner}
               isLoading={findOwnersQuery.isLoading}
               housingCount={count?.housing}
+              onAdd={() => {
+                navigate(`/logements/${housingId}/proprietaires`, {
+                  state: {
+                    search: true
+                  }
+                });
+              }}
             />
             <SecondaryOwnerListNext housingId={housingId} />
             <InactiveOwnerListNext housingId={housingId} />

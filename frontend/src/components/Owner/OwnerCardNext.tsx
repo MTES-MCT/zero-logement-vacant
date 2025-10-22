@@ -78,7 +78,7 @@ function OwnerCardNext(props: OwnerCardProps) {
             >
               {props.title}
             </Typography>
-            <hr />
+            <hr style={{ paddingBottom: '0.5rem' }} />
           </Stack>
         )}
 

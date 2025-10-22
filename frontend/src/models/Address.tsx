@@ -4,7 +4,9 @@ import config from '~/utils/config';
 
 export type Address = AddressDTO;
 
-export const isBanEligible = (address?: Pick<Address, 'score'>): boolean => {
+export const isBanEligible = (
+  address: Pick<Address, 'score'> | null | undefined
+): boolean => {
   return (
     address?.score !== undefined && address.score >= config.banEligibleScore
   );

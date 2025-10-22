@@ -126,7 +126,14 @@ function HousingView() {
             <Stack sx={{ mt: '-1.5rem' }}>
               <OwnerCardNext
                 title="Propriétaire principal"
-                owner={owner}
+                id={owner?.id ?? null}
+                name={owner?.fullName ?? null}
+                birthdate={owner?.birthDate ?? null}
+                dgfipAddress={owner?.rawAddress ?? null}
+                banAddress={owner?.banAddress ?? null}
+                additionalAddress={owner?.additionalAddress ?? null}
+                email={owner?.email ?? null}
+                phone={owner?.phone ?? null}
                 isLoading={findOwnersQuery.isLoading}
                 housingCount={count?.housing}
               />

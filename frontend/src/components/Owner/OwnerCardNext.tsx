@@ -8,23 +8,34 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { formatAddress, type PropertyRight } from '@zerologementvacant/models';
 
-import { formatAddress } from '@zerologementvacant/models';
-import { type ReactNode, useId } from 'react';
+import { useId, type ReactNode } from 'react';
+import { match, Pattern } from 'ts-pattern';
+import AppLink from '~/components/_app/AppLink/AppLink';
 import HousingOwnersEmpty from '~/components/HousingOwnersEmpty/HousingOwnersEmpty';
-import { isBanEligible } from '../../models/Address';
-import type { Owner } from '../../models/Owner';
-import { age, birthdate } from '../../utils/dateUtils';
-import { mailto } from '../../utils/stringUtils';
-import AppLink from '../_app/AppLink/AppLink';
-import LabelNext from '../Label/LabelNext';
-import styles from '../OwnerCard/owner-card.module.scss';
+import LabelNext from '~/components/Label/LabelNext';
+import OwnerKindTag from '~/components/Owner/OwnerKindTag';
+import styles from '~/components/OwnerCard/owner-card.module.scss';
+import { isBanEligible, type Address } from '~/models/Address';
+import { age, birthdate } from '~/utils/dateUtils';
+import { mailto } from '~/utils/stringUtils';
 
 interface OwnerCardProps {
   title?: string;
-  owner: Owner | null;
+  id: string | null;
+  name?: string | null;
+  birthdate: string | null;
+  kind?: string | null;
+  propertyRight?: PropertyRight | null;
+  siren?: string | null;
+  dgfipAddress: string[] | null;
+  banAddress: Address | null;
+  additionalAddress: string | null;
+  email: string | null;
+  phone: string | null;
   isLoading: boolean;
-  housingCount: number | undefined;
+  housingCount?: number | null;
   /**
    * @deprecated
    */
@@ -44,7 +55,7 @@ function OwnerCardNext(props: OwnerCardProps) {
     );
   }
 
-  if (!props.owner) {
+  if (!props.id) {
     return (
       <HousingOwnersEmpty
         title="Il n'y a pas de propriétaire actuel connu pour ce logement"
@@ -71,35 +82,64 @@ function OwnerCardNext(props: OwnerCardProps) {
           </Stack>
         )}
 
-        <OwnerAttribute
-          icon="fr-icon-user-fill"
-          label="Nom et prénom"
-          value={
-            <Typography sx={{ fontWeight: 700 }}>
-              {props.owner.fullName}
-            </Typography>
-          }
-        />
+        {match(props.name)
+          .with(undefined, () => null)
+          .otherwise((value) => (
+            <OwnerAttribute
+              icon="fr-icon-user-fill"
+              label="Nom et prénom"
+              value={<Typography sx={{ fontWeight: 700 }}>{value}</Typography>}
+            />
+          ))}
 
         <OwnerAttribute
           icon="fr-icon-calendar-2-line"
-          label="Date de naissance"
+          label={`Date de ${props.kind === 'Particulier' ? 'naissance' : 'création'}`}
           value={
-            !props.owner.birthDate ? null : (
+            !props.birthdate ? null : (
               <Typography>
-                {birthdate(props.owner.birthDate)} ({age(props.owner.birthDate)}
-                &nbsp;ans)
+                {birthdate(props.birthdate)} ({age(props.birthdate)}&nbsp;ans)
               </Typography>
             )
           }
         />
 
+        {match(props.kind)
+          .with(undefined, () => null)
+          .otherwise((value) => (
+            <OwnerAttribute
+              icon="ri-id-card-line"
+              label="Type de propriétaire"
+              value={<OwnerKindTag value={value} tagProps={{ small: false }} />}
+            />
+          ))}
+
+        {match(props.propertyRight)
+          .with(undefined, () => null)
+          .otherwise((value) => (
+            <OwnerAttribute
+              icon="ri-auction-line"
+              label="Nature du droit sur le bien"
+              value={value}
+            />
+          ))}
+
+        {match({ kind: props.kind, siren: props.siren })
+          .with({ kind: Pattern.not('Particulier') }, ({ siren }) => (
+            <OwnerAttribute
+              icon="fr-icon-passport-line"
+              label="SIREN"
+              value={siren}
+            />
+          ))
+          .otherwise(() => null)}
+
         <OwnerAttribute
           icon="fr-icon-bank-line"
           label="Adresse fiscale (source : DGFIP)"
           value={
-            !props.owner.rawAddress ? null : (
-              <Typography>{props.owner.rawAddress.join(', ')}</Typography>
+            !props.dgfipAddress ? null : (
+              <Typography>{props.dgfipAddress.join(', ')}</Typography>
             )
           }
         />
@@ -108,13 +148,13 @@ function OwnerCardNext(props: OwnerCardProps) {
           icon="fr-icon-home-4-line"
           label="Adresse postale (source : Base Adresse Nationale)"
           value={
-            !props.owner.banAddress
+            !props.banAddress
               ? null
-              : formatAddress(props.owner.banAddress).join(', ')
+              : formatAddress(props.banAddress).join(', ')
           }
         />
 
-        {!isBanEligible(props.owner.banAddress ?? undefined) && (
+        {!isBanEligible(props.banAddress) && (
           <Alert
             small
             severity="info"
@@ -138,8 +178,8 @@ function OwnerCardNext(props: OwnerCardProps) {
           icon="fr-icon-home-4-line"
           label="Complément d’adresse"
           value={
-            !props.owner.additionalAddress ? null : (
-              <Typography>{props.owner.additionalAddress}</Typography>
+            !props.additionalAddress ? null : (
+              <Typography>{props.additionalAddress}</Typography>
             )
           }
         />
@@ -148,10 +188,10 @@ function OwnerCardNext(props: OwnerCardProps) {
           icon="fr-icon-mail-line"
           label="Adresse e-mail"
           value={
-            !props.owner.email ? null : (
+            !props.email ? null : (
               <Typography>
-                <AppLink isSimple to={mailto(props.owner.email)}>
-                  {props.owner.email}
+                <AppLink isSimple to={mailto(props.email)}>
+                  {props.email}
                 </AppLink>
               </Typography>
             )
@@ -161,24 +201,23 @@ function OwnerCardNext(props: OwnerCardProps) {
         <OwnerAttribute
           icon="fr-icon-phone-line"
           label="Téléphone"
-          value={
-            !props.owner.phone ? null : (
-              <Typography>{props.owner.phone}</Typography>
-            )
-          }
+          value={!props.phone ? null : <Typography>{props.phone}</Typography>}
         />
 
-        <Button
-          title="Voir tous ses logements"
-          priority="secondary"
-          linkProps={{
-            to: `/proprietaires/${props.owner.id}`
-          }}
-          className={styles.housingBouton}
-        >
-          Voir tous ses logements
-          {props.housingCount ? ` (${props.housingCount})` : null}
-        </Button>
+        {match(props.housingCount)
+          .with(Pattern.number, (count) => (
+            <Button
+              title="Voir tous ses logements"
+              priority="secondary"
+              linkProps={{
+                to: `/proprietaires/${props.id}`
+              }}
+              className={styles.housingBouton}
+            >
+              Voir tous ses logements ({count})
+            </Button>
+          ))
+          .otherwise(() => null)}
       </Stack>
     </Stack>
   );

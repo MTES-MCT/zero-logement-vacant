@@ -265,7 +265,7 @@ function HousingOwnersView() {
       )}
 
       <Stack component="section" spacing="1.5rem" useFlexGap>
-        {secondaryOwners?.length === 0 ? null : (
+        {activeOwners?.length === 0 ? null : (
           <Button
             iconId="fr-icon-add-line"
             priority="secondary"

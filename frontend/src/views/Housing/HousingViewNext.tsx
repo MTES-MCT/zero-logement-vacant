@@ -4,6 +4,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { useNavigate } from 'react-router-dom';
 
 import HousingHeader from '~/components/Housing/HousingHeader';
 import HousingDetailsCard from '~/components/HousingDetails/HousingDetailsCard';
@@ -29,6 +30,8 @@ function HousingView() {
   const { data: count } = useCountHousingQuery(
     housing?.owner?.id ? { ownerIds: [housing.owner.id] } : skipToken
   );
+
+  const navigate = useNavigate();
 
   if (getHousingQuery.isError && !housing) {
     return <NotFoundView />;
@@ -78,9 +81,25 @@ function HousingView() {
 
             <OwnerCardNext
               title="Destinataire principal"
-              owner={owner}
+              id={owner?.id ?? null}
+              name={owner?.fullName ?? null}
+              birthdate={owner?.birthDate ?? null}
+              kind={owner?.kind ?? null}
+              propertyRight={owner?.propertyRight ?? null}
+              dgfipAddress={owner?.rawAddress ?? null}
+              banAddress={owner?.banAddress ?? null}
+              additionalAddress={owner?.additionalAddress ?? null}
+              email={owner?.email ?? null}
+              phone={owner?.phone ?? null}
               isLoading={findOwnersQuery.isLoading}
-              housingCount={count?.housing}
+              housingCount={count?.housing ?? null}
+              onAdd={() => {
+                navigate(`/logements/${housingId}/proprietaires`, {
+                  state: {
+                    search: true
+                  }
+                });
+              }}
             />
             <SecondaryOwnerListNext housingId={housingId} />
             <InactiveOwnerListNext housingId={housingId} />

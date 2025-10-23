@@ -1,10 +1,12 @@
 import Button, { type ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import type { MarkOptional } from 'ts-essentials';
 
+import { useEffect, useState } from 'react';
 import createOwnerSearchModal from '~/components/Owner/HousingOwnerAdditionModals/OwnerSearchModal';
+import { useModalReady } from '~/hooks/useModalReady';
 import type { Owner } from '~/models/Owner';
 import createOwnerAttachmentModal from './OwnerAttachmentModal';
-import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 type ReducedButtonProps = MarkOptional<
   ButtonProps.Common & ButtonProps.WithIcon & ButtonProps.AsButton,
@@ -14,7 +16,7 @@ type ReducedButtonProps = MarkOptional<
 export type HousingOwnerAdditionModalsProps = {
   address: string;
   buttonProps?: ReducedButtonProps;
-  exclude: ReadonlyArray<Owner>
+  exclude: ReadonlyArray<Owner>;
   onOwnerAddition(owner: Owner): void;
 };
 
@@ -43,6 +45,14 @@ function HousingOwnerAdditionModals(props: HousingOwnerAdditionModalsProps) {
     setOwner(null);
     ownerAttachmentModal.close();
   }
+
+  const isReady = useModalReady('owner-search-modal');
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.search && isReady) {
+      ownerSearchModal.open();
+    }
+  }, [location.state?.search, isReady]);
 
   return (
     <>

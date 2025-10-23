@@ -17,6 +17,7 @@ export type HousingOwnerAdditionModalsProps = {
   address: string;
   buttonProps?: ReducedButtonProps;
   exclude: ReadonlyArray<Owner>;
+  hide?: boolean;
   onOwnerAddition(owner: Owner): void;
 };
 
@@ -56,14 +57,16 @@ function HousingOwnerAdditionModals(props: HousingOwnerAdditionModalsProps) {
 
   return (
     <>
-      <Button
-        iconId="fr-icon-add-line"
-        priority="secondary"
-        {...props.buttonProps}
-        onClick={ownerSearchModal.open}
-      >
-        Ajouter un propriétaire
-      </Button>
+      {props.hide ? null : (
+        <Button
+          iconId="fr-icon-add-line"
+          priority="secondary"
+          {...props.buttonProps}
+          onClick={ownerSearchModal.open}
+        >
+          Ajouter un propriétaire
+        </Button>
+      )}
 
       <ownerSearchModal.Component
         address={props.address}

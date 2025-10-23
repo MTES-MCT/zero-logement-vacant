@@ -9,12 +9,18 @@ export interface InactiveOwnerListProps {
 }
 
 function InactiveOwnerListNext(props: InactiveOwnerListProps) {
-  const { data: housingOwners, isLoading } = useFindOwnersByHousingQuery(
-    props.housingId
-  );
+  const {
+    data: housingOwners,
+    isLoading,
+    isSuccess
+  } = useFindOwnersByHousingQuery(props.housingId);
 
   const inactiveOwners =
     housingOwners?.filter((owner) => isInactiveOwnerRank(owner.rank)) ?? [];
+
+  if (isSuccess && inactiveOwners.length === 0) {
+    return null;
+  }
 
   return (
     <Accordion label={`Propriétaires archivés (${inactiveOwners.length})`}>

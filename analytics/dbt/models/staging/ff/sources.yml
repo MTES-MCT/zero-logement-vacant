@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: duckdb_raw
-    schema: ff
+    schema: cerema
     tables:
       - name: raw_ff_2024_buildings
       - name: raw_ff_2024_housing

@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: duckdb_raw
-    schema: lovac
+    schema: cerema
     tables:
       - name: raw_lovac_2019
       - name: raw_lovac_2020

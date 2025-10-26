@@ -24,8 +24,7 @@ def setup_s3_connection(context, duckdb: DuckDBResource):
         context.log.info(f"Executing SQL: {query}")
         conn.execute(query)
         schema_query = """
-            CREATE SCHEMA IF NOT EXISTS ff;
-            CREATE SCHEMA IF NOT EXISTS lovac;
+            CREATE SCHEMA IF NOT EXISTS cerema;
         """
         context.log.info(f"Executing SQL: {schema_query}")
         conn.execute(schema_query)
@@ -46,7 +45,7 @@ def process_subset(name: str, context: AssetExecutionContext, duckdb: DuckDBReso
             f"build_{name}",
             deps=["setup_s3_connection"],
             kinds={"duckdb", "s3"},
-            group_name="lovac" if "lovac" in name else "ff",
+            group_name="cerema",
         )
         for name in all_tables_sql
     ],

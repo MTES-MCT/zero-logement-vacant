@@ -28,6 +28,8 @@ class Owner:
     address_dgfip: List[str]
     concatenated_address: str
     full_name: Optional[str] = None
+    ban_address: Optional[str] = None
+    ban_score: Optional[float] = None
 
 
 @dataclass
@@ -45,6 +47,9 @@ class AddressVerification:
     has_recipient: Optional[bool] = None
     recipient_name: Optional[str] = None
     recipient_similarity: Optional[float] = None
+    # BAN data for comparison
+    ban_address: Optional[str] = None
+    ban_score: Optional[float] = None
 
 
 def setup_logging(verbose: bool = False) -> logging.Logger:
@@ -143,11 +148,12 @@ def fetch_owners(conn: psycopg2.extensions.connection, limit: int) -> List[Owner
                 logger.info(f"Found address-related columns: {address_columns}")
                 return []
 
-            # Execute the main query with the correct table name
+            # Execute the main query with the correct table name, joining with ban_addresses
             query = f"""
-            SELECT id, address_dgfip, full_name
-            FROM {owners_table}
-            ORDER BY id
+            SELECT o.id, o.address_dgfip, o.full_name, ba.address as ban_address, ba.score as ban_score
+            FROM {owners_table} o
+            LEFT JOIN ban_addresses ba ON ba.ref_id = o.id
+            ORDER BY o.id
             LIMIT %s
             """
             logger.info(f"Executing query: {query} with limit {sample_size}")
@@ -165,7 +171,7 @@ def fetch_owners(conn: psycopg2.extensions.connection, limit: int) -> List[Owner
             }
 
             for i, row in enumerate(results):
-                logger.debug(f"Row {i+1}: id={row['id']}, address_dgfip={row['address_dgfip']}, full_name={row['full_name']}")
+                logger.debug(f"Row {i+1}: id={row['id']}, address_dgfip={row['address_dgfip']}, full_name={row['full_name']}, ban_address={row.get('ban_address')}, ban_score={row.get('ban_score')}")
 
                 # Detailed validation with logging
                 if row['address_dgfip'] is None:
@@ -197,7 +203,9 @@ def fetch_owners(conn: psycopg2.extensions.connection, limit: int) -> List[Owner
                     id=row['id'],
                     address_dgfip=row['address_dgfip'],
                     concatenated_address=concatenated.strip(),
-                    full_name=row['full_name']
+                    full_name=row['full_name'],
+                    ban_address=row.get('ban_address'),
+                    ban_score=row.get('ban_score')
                 ))
 
                 # Stop once we have enough valid owners
@@ -465,7 +473,9 @@ def verify_address(owner: Owner, api_key: str) -> AddressVerification:
             api_response=api_data,
             has_recipient=has_recipient,
             recipient_name=recipient_name,
-            recipient_similarity=recipient_similarity
+            recipient_similarity=recipient_similarity,
+            ban_address=owner.ban_address,
+            ban_score=owner.ban_score
         )
 
     except RateLimitExceedException:
@@ -486,6 +496,8 @@ def init_csv_file(output_file: str):
         'has_recipient',
         'recipient_name',
         'recipient_similarity',
+        'ban_address',
+        'ban_score',
         'verification_date'
     ]
 
@@ -511,6 +523,8 @@ def append_to_csv(verification: AddressVerification, output_file: str):
         'has_recipient',
         'recipient_name',
         'recipient_similarity',
+        'ban_address',
+        'ban_score',
         'verification_date'
     ]
 
@@ -528,6 +542,8 @@ def append_to_csv(verification: AddressVerification, output_file: str):
                 'has_recipient': verification.has_recipient if verification.has_recipient is not None else '',
                 'recipient_name': verification.recipient_name or '',
                 'recipient_similarity': verification.recipient_similarity or '',
+                'ban_address': verification.ban_address or '',
+                'ban_score': verification.ban_score or '',
                 'verification_date': datetime.now().isoformat()
             })
     except IOError as e:

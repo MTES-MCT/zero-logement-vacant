@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import { format } from 'date-fns';
-import React from 'react';
 import type { ReactElement } from 'react';
-import { isDefined } from '../../utils/compareUtils';
+import React from 'react';
 
+import { Predicate } from 'effect';
 import styles from './dpe.module.scss';
 
 interface Props {
@@ -19,7 +19,7 @@ function DPE(props: Props) {
 
   const additionalInfos: ReactElement[] = [
     props.madeAt ? <>{format(props.madeAt, 'dd/MM/yyyy')}</> : undefined
-  ].filter(isDefined);
+  ].filter(Predicate.isNotUndefined);
 
   return (
     <>

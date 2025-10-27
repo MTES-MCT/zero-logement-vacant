@@ -1,10 +1,10 @@
 import { HousingStatus as HousingStatusDTO } from '@zerologementvacant/models';
+import { Predicate } from 'effect';
 import type { ReactNode } from 'react';
 
 import type { ColorFamily } from '~/models/ColorFamily';
 import type { Housing } from '~/models/Housing';
 import type { SelectOption } from '~/models/SelectOption';
-import { isDefined } from '~/utils/compareUtils';
 
 export interface HousingState {
   status: HousingStatusDTO;
@@ -137,7 +137,7 @@ export function getSubStatusList(
     .map((status) => (typeof status === 'string' ? Number(status) : status))
     .map(getHousingState)
     .flatMap((state) => state.subStatusList)
-    .filter(isDefined)
+    .filter(Predicate.isNotUndefined)
     .map((substatus) => substatus.title);
 }
 

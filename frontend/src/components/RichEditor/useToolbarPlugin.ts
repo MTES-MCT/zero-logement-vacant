@@ -1,5 +1,5 @@
 import { $findMatchingParent } from '@lexical/utils';
-import { Array } from 'effect';
+import { Array, Predicate } from 'effect';
 import {
   $getSelection,
   $isElementNode,
@@ -7,8 +7,6 @@ import {
   type LexicalEditor
 } from 'lexical';
 import { useCallback, useEffect, useState } from 'react';
-
-import { isNotNull } from '../../utils/compareUtils';
 
 export interface ToolbarState {
   bold: boolean;
@@ -40,7 +38,7 @@ export function useToolbarPlugin(props: Props) {
             .getNodes()
             .map((node) => $findMatchingParent(node, $isElementNode));
       const formats = nodes
-        .filter(isNotNull)
+        .filter(Predicate.isNotNull)
         .map((node) => node.getFormatType())
         .filter(isAlign);
       const isUnique = Array.dedupe(formats).length === 1;

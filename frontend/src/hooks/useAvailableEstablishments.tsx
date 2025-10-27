@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { EstablishmentKind } from '@zerologementvacant/models';
+import type { EstablishmentKind } from '@zerologementvacant/models';
 import { useFindEstablishmentsQuery } from '../services/establishment.service';
 
 export const useAvailableEstablishments = () => {

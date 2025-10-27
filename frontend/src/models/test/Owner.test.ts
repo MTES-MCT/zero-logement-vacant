@@ -1,11 +1,11 @@
-import { OwnerRank } from '@zerologementvacant/models';
+import type { OwnerRank } from '@zerologementvacant/models';
 
-import { genOwner } from '../../../test/fixtures.ts';
+import { genOwner } from '../../../test/fixtures';
 import {
   byRank,
   hasOwnerChanges,
   hasRankChanges,
-  HousingOwner
+  type HousingOwner
 } from '../Owner';
 
 describe('Owner', () => {

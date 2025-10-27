@@ -1,12 +1,12 @@
-import { ChangeEvent, ChangeEventHandler } from 'react';
 import { object, string } from 'yup';
+import type { ChangeEvent, ChangeEventHandler } from 'react';
 
 import { useForm } from '../../hooks/useForm';
-import { Sender, SenderPayload } from '../../models/Sender';
 import styles from './draft.module.scss';
 import AppTextInput from '../_app/AppTextInput/AppTextInput';
 import { Col, Container, Row } from '../_dsfr';
 import Typography from '@mui/material/Typography';
+import type { Sender, SenderPayload } from '../../models/Sender';
 
 export const senderSchema = object({
   name: string().trim(),

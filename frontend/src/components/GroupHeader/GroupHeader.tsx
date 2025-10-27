@@ -9,9 +9,9 @@ import { useParams } from 'react-router-dom';
 
 import GroupCard from '../GroupCard/GroupCard';
 import { useFindGroupsQuery } from '../../services/group.service';
-import { Group } from '../../models/Group';
 import search from '../../assets/images/search.svg';
 import styles from './group-header.module.scss';
+import type { Group } from '../../models/Group';
 
 export const DISPLAY_GROUPS = 3;
 

@@ -2,7 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Typography from '@mui/material/Typography';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-import { Campaign } from '../../models/Campaign';
+import type { Campaign } from '../../models/Campaign';
 import { useGetGroupQuery } from '../../services/group.service';
 import AppLink from '../_app/AppLink/AppLink';
 

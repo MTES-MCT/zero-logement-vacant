@@ -4,9 +4,9 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
-import { GeoPerimeter } from '../../models/GeoPerimeter';
 import AppLink from '../_app/AppLink/AppLink';
 import { Icon, Row } from '../_dsfr';
+import type { GeoPerimeter } from '../../models/GeoPerimeter';
 
 interface Props {
   geoPerimeter: GeoPerimeter;

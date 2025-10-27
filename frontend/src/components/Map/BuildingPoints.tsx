@@ -1,5 +1,5 @@
-import { FilterSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { Layer } from 'react-map-gl/maplibre';
+import type { FilterSpecification } from '@maplibre/maplibre-gl-style-spec';
 
 import { HousingStatus } from '../../models/HousingState';
 

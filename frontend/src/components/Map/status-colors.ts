@@ -1,7 +1,7 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import { HousingStatus } from '@zerologementvacant/models';
 import { Array } from 'effect';
-import { NonEmptyArray } from 'ts-essentials';
+import type { NonEmptyArray } from 'ts-essentials';
 
 const hex = fr.colors.getHex({ isDark: false });
 const statuses = [

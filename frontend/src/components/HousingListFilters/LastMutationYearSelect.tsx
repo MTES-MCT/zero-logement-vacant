@@ -1,15 +1,12 @@
-import {
-  LAST_MUTATION_YEAR_FILTER_VALUES,
-  LastMutationYearFilter
-} from '@zerologementvacant/models';
+import { LAST_MUTATION_YEAR_FILTER_VALUES } from '@zerologementvacant/models';
+import type { LastMutationYearFilter } from '@zerologementvacant/models';
 
 import {
   LAST_MUTATION_YEAR_EMPTY_OPTION,
   LAST_MUTATION_YEAR_LABELS
 } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type LastMutationYearSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<LastMutationYearFilter | null, Multiple>,

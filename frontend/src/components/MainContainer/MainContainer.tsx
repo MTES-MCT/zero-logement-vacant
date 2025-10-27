@@ -1,6 +1,6 @@
 import { Container } from '../_dsfr';
-import { ReactNode } from 'react';
 import Typography from '@mui/material/Typography';
+import type { ReactNode } from 'react';
 
 export interface Props {
   title?: ReactNode | ReactNode[];

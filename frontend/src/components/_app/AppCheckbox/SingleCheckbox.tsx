@@ -1,4 +1,4 @@
-import Checkbox, { CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
+import Checkbox, { type CheckboxProps } from '@codegouvfr/react-dsfr/Checkbox';
 import classNames from 'classnames';
 import type { ElementOf } from 'ts-essentials';
 

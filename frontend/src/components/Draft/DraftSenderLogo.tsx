@@ -1,10 +1,10 @@
 import { Container, Row } from '../_dsfr';
 import FileUpload from '../FileUpload/FileUpload';
 import styles from './draft.module.scss';
-import { FileUploadDTO } from '@zerologementvacant/models';
 import classNames from 'classnames';
 import LogoViewer from './LogoViewer';
 import Typography from '@mui/material/Typography';
+import type { FileUploadDTO } from '@zerologementvacant/models';
 
 interface Props {
   className?: string;

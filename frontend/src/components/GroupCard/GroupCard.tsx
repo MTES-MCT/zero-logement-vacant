@@ -3,9 +3,9 @@ import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 
 import { Container } from '../_dsfr';
-import { Group } from '../../models/Group';
 import styles from './group-card.module.scss';
 import HousingCount from '../HousingCount/HousingCount';
+import type { Group } from '../../models/Group';
 
 interface GroupCardProps {
   group: Group;

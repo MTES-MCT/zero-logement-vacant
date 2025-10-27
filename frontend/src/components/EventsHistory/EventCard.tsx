@@ -5,12 +5,13 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
 import localeFR from 'date-fns/locale/fr';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useToggle } from 'react-use';
 import { match } from 'ts-pattern';
 
 import { useAvailableEstablishments } from '../../hooks/useAvailableEstablishments';
-import { ADMIN_LABEL, formatAuthor, User } from '../../models/User';
+import { ADMIN_LABEL, formatAuthor } from '../../models/User';
+import type { User } from '../../models/User';
 import AppBadge from '../_app/AppBadge/AppBadge';
 import HistoryCard from './HistoryCard';
 

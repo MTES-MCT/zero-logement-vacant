@@ -2,12 +2,11 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
-  AddressKinds,
-  CampaignDTO,
-  DraftDTO,
-  HousingDTO,
-  OwnerDTO,
-  SenderDTO
+  type CampaignDTO,
+  type DraftDTO,
+  type HousingDTO,
+  type OwnerDTO,
+  type SenderDTO
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
@@ -52,8 +51,6 @@ describe('Campaign view', () => {
       street: '1 rue de la vallée',
       postalCode: '85130',
       city: 'Tiffauges',
-      refId: faker.string.uuid(),
-      addressKind: AddressKinds.Owner,
       label: 'Home Address',
       score: 0.7
     };

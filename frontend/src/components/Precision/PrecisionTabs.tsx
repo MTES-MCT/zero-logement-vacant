@@ -1,9 +1,10 @@
 import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import Grid from '@mui/material/Grid';
 
-import { Precision } from '@zerologementvacant/models';
+import type { Precision } from '@zerologementvacant/models';
 import { List } from 'immutable';
-import { ChangeEvent, ReactElement, useMemo } from 'react';
+import type { ChangeEvent, ReactElement } from 'react';
+import { useMemo } from 'react';
 import PrecisionColumn from './PrecisionColumn';
 
 interface PrecisionTabs {

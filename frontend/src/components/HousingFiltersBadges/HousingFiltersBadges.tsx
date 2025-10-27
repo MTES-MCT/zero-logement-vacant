@@ -1,21 +1,24 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import {
-  CadastralClassification,
-  DataFileYear,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
-  isPrecisionMechanismCategory,
-  Precision
+  isPrecisionMechanismCategory
 } from '@zerologementvacant/models';
 import { Struct } from 'effect';
 import { match, Pattern } from 'ts-pattern';
+import type {
+  CadastralClassification,
+  DataFileYear,
+  Precision
+} from '@zerologementvacant/models';
 
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useIntercommunalities } from '../../hooks/useIntercommunalities';
 import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
 import { geoPerimeterOptions } from '../../models/GeoPerimeter';
+import type { HousingFilters } from '../../models/HousingFilters';
 import {
   allOccupancyOptions,
   beneficiaryCountOptions,
@@ -30,7 +33,6 @@ import {
   getIntercommunalityOptions,
   housingAreaOptions,
   housingCountOptions,
-  HousingFilters,
   housingKindOptions,
   LAST_MUTATION_TYPE_SELECT_OPTIONS,
   LAST_MUTATION_YEAR_SELECT_OPTIONS,

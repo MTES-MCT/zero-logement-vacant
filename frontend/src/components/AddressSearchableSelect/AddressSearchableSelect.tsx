@@ -1,13 +1,13 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Input, { InputProps } from '@codegouvfr/react-dsfr/Input';
+import Input, { type InputProps } from '@codegouvfr/react-dsfr/Input';
 import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid';
 import { useDebounce, useList, usePreviousDistinct } from 'react-use';
 import type { MarkOptional } from 'ts-essentials';
-import { Address } from '../../models/Address';
+import type { Address } from '../../models/Address';
 
 import addressService, {
-  AddressSearchResult
+  type AddressSearchResult
 } from '../../services/address.service';
 
 interface Props extends MarkOptional<InputProps.RegularInput, 'label'> {

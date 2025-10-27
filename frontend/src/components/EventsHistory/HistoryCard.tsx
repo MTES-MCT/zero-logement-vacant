@@ -1,7 +1,8 @@
-import { fr, FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import { fr } from '@codegouvfr/react-dsfr';
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 
 export type HistoryCardProps = PropsWithChildren<{
   icon: FrIconClassName | RiIconClassName;

@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import { format } from 'date-fns';
-import React, { ReactElement } from 'react';
+import React from 'react';
+import type { ReactElement } from 'react';
 import { isDefined } from '../../utils/compareUtils';
 
 import styles from './dpe.module.scss';

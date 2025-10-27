@@ -10,11 +10,11 @@ import {
   type FieldValues
 } from 'react-hook-form';
 
-import { Housing } from '../../models/Housing';
 import { getSubStatusOptions } from '../../models/HousingState';
 import HousingStatusSelect from '../HousingListFilters/HousingStatusSelect';
 import HousingSubStatusSelect from '../HousingListFilters/HousingSubStatusSelect';
 import PrecisionLists from '../Precision/PrecisionLists';
+import type { Housing } from '../../models/Housing';
 
 interface Props {
   housingId: Housing['id'] | null;

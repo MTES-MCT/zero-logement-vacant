@@ -196,7 +196,7 @@ function HousingOwnersModal({
   ) => {
     changeOwnerInputs({
       ...ownerInput,
-      banAddress: addressSearchResult
+      banAddress: addressSearchResult ?? null
     });
   };
 

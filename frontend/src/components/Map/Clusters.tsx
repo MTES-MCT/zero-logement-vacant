@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf';
-import { Feature, GeoJsonProperties, Point } from 'geojson';
-import { Layer, MapRef, Source } from 'react-map-gl/maplibre';
+import { Layer, Source } from 'react-map-gl/maplibre';
+import type { Feature, GeoJsonProperties, Point } from 'geojson';
+import type { MapRef } from 'react-map-gl/maplibre';
 
 import { useMapLayerClick } from '../../hooks/useMapLayerClick';
 import HousingPoints from './HousingPoints';

@@ -1,6 +1,7 @@
 import { fr } from '@codegouvfr/react-dsfr';
-import Typography, { TypographyProps } from '@mui/material/Typography';
-import { PropsWithChildren } from 'react';
+import Typography from '@mui/material/Typography';
+import type { TypographyProps } from '@mui/material/Typography';
+import type { PropsWithChildren } from 'react';
 
 type LabelProps = TypographyProps;
 

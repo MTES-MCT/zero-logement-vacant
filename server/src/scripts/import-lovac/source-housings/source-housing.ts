@@ -1,10 +1,12 @@
 import {
+  CADASTRAL_CLASSIFICATION_VALUES,
   HOUSING_KIND_VALUES,
   HousingKind,
   Occupancy,
   OCCUPANCY_VALUES,
   OWNERSHIP_KIND_INTERNAL_VALUES,
-  OwnershipKindInternal
+  OwnershipKindInternal,
+  type CadastralClassification
 } from '@zerologementvacant/models';
 import { boolean, date, number, object, ObjectSchema, string } from 'yup';
 
@@ -30,7 +32,7 @@ export interface SourceHousing {
   living_area: number | null;
   rooms_count: number | null;
   uncomfortable: boolean | null;
-  cadastral_classification: number | null;
+  cadastral_classification: CadastralClassification | null;
   cadastral_reference: string | null;
   taxed: boolean;
   rental_value: number | null;
@@ -106,10 +108,10 @@ export const sourceHousingSchema: ObjectSchema<SourceHousing> = object({
     .defined('uncomfortable must be defined')
     .nullable()
     .default(false),
-  cadastral_classification: number()
+  cadastral_classification: number<CadastralClassification>()
     .defined('cadastral_classification must be defined')
     .nullable()
-    .min(0),
+    .oneOf(CADASTRAL_CLASSIFICATION_VALUES),
   cadastral_reference: string()
     .defined('cadastral_reference must be defined')
     .nullable()

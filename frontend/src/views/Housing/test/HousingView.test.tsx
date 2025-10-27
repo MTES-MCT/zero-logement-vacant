@@ -21,11 +21,11 @@ import {
 import { format, subYears } from 'date-fns';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { genAuthUser, genNote, genUser } from '../../../../test/fixtures';
+import { genAuthUser, genNote, genUser } from '../../../test/fixtures';
 import data from '../../../mocks/handlers/data';
 import { type Note, toNoteDTO } from '../../../models/Note';
 import { fromUserDTO, type User } from '../../../models/User';
-import configureTestStore from '../../../utils/test/storeUtils';
+import configureTestStore from '../../../utils/storeUtils';
 import HousingView from '../HousingView';
 
 describe('Housing view', () => {

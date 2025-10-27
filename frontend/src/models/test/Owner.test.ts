@@ -1,6 +1,6 @@
 import type { OwnerRank } from '@zerologementvacant/models';
 
-import { genOwner } from '../../../test/fixtures';
+import { genOwner } from '../../test/fixtures';
 import {
   byRank,
   hasOwnerChanges,

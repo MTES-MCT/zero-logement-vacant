@@ -1,7 +1,7 @@
 import { isEqual, isEqualWith, pick, pickBy } from 'lodash-es';
 
-import { getOccupancy, Housing } from './Housing';
-import { Owner } from './Owner';
+import { getOccupancy, type Housing } from './Housing';
+import type { Owner } from './Owner';
 
 export interface Diff<T> {
   old: Partial<T>;

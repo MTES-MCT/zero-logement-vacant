@@ -1,6 +1,6 @@
-import { GeoJsonProperties } from 'geojson';
+import type { GeoJsonProperties } from 'geojson';
 import { useEffect } from 'react';
-import { MapRef } from 'react-map-gl/maplibre';
+import type { MapRef } from 'react-map-gl/maplibre';
 
 import { deserialize } from '../utils/jsonUtils';
 

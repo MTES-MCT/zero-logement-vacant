@@ -1,12 +1,12 @@
-import {
+import type {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftPreviewPayloadDTO,
   DraftUpdatePayloadDTO
 } from '@zerologementvacant/models';
-import { DeepNonNullable } from 'ts-essentials';
+import type { DeepNonNullable } from 'ts-essentials';
 
-import { SenderPayload } from './Sender';
+import type { SenderPayload } from './Sender';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Draft extends DraftDTO {}

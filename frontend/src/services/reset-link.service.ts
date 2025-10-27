@@ -1,6 +1,6 @@
 import config from '../utils/config';
 import authService from './auth.service';
-import { ResetLink } from '../models/ResetLink';
+import { type ResetLink } from '../models/ResetLink';
 
 const sendResetEmail = async (email: string): Promise<void> => {
   const { status } = await fetch(`${config.apiEndpoint}/api/reset-links`, {

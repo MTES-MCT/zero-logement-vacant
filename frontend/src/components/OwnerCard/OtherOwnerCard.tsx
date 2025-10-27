@@ -1,4 +1,4 @@
-import { getHousingOwnerRankLabel, HousingOwner } from '../../models/Owner';
+import { getHousingOwnerRankLabel, type HousingOwner } from '../../models/Owner';
 
 import styles from './owner-card.module.scss';
 import classNames from 'classnames';

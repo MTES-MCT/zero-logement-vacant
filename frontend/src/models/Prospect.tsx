@@ -1,4 +1,4 @@
-import { Establishment } from './Establishment';
+import type { Establishment } from './Establishment';
 
 type PartialEstablishment = Pick<Establishment, 'id' | 'siren'>;
 

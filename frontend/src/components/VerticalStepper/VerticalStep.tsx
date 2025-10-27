@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import styles from './vertical-stepper.module.scss';
 import classNames from 'classnames';
 import { Icon, Text } from '../_dsfr';
@@ -18,7 +18,7 @@ interface VerticalStepProps {
 function VerticalStep(props: VerticalStepProps) {
   const stepClasses = classNames(styles.step, {
     [styles.disabled]: props.disabled,
-    [styles.completed]: props.completed,
+    [styles.completed]: props.completed
   });
 
   return (

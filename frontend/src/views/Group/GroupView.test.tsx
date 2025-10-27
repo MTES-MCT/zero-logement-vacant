@@ -24,7 +24,7 @@ import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import data from '~/mocks/handlers/data';
-import configureTestStore from '~/utils/test/storeUtils';
+import configureTestStore from '~/utils/storeUtils';
 import GroupView from './GroupView';
 
 interface RenderViewOptions {

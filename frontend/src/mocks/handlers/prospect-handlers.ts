@@ -1,7 +1,7 @@
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
 
-import { ProspectDTO } from '@zerologementvacant/models';
+import type { ProspectDTO } from '@zerologementvacant/models';
 import config from '../../utils/config';
 import data from './data';
 

@@ -1,7 +1,7 @@
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import { Text } from '../../_dsfr';
-import { ButtonProps } from '@codegouvfr/react-dsfr/Button';
-import { Campaign } from '../../../models/Campaign';
+import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import type { Campaign } from '../../../models/Campaign';
 
 interface Props {
   campaigns?: Campaign[];

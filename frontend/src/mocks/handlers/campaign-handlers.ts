@@ -5,18 +5,18 @@ import {
   bySentAt,
   byStatus,
   byTitle,
-  CampaignCreationPayloadDTO,
-  CampaignDTO,
-  CampaignUpdatePayloadDTO,
-  HousingDTO
+  type CampaignCreationPayloadDTO,
+  type CampaignDTO,
+  type CampaignUpdatePayloadDTO,
+  type HousingDTO
 } from '@zerologementvacant/models';
-import { combineAll, desc, Ord } from '@zerologementvacant/utils';
+import { combineAll, desc, type Ord } from '@zerologementvacant/utils';
 import { Array, pipe } from 'effect';
 import { identity } from 'effect/Function';
 import { constants } from 'http2';
 import { List } from 'immutable';
 import { http, HttpResponse, RequestHandler } from 'msw';
-import { CampaignSortable, isCampaignSortable } from '../../models/Campaign';
+import { type CampaignSortable, isCampaignSortable } from '../../models/Campaign';
 import { isDefined } from '../../utils/compareUtils';
 import config from '../../utils/config';
 import data from './data';

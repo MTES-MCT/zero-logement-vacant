@@ -1,4 +1,4 @@
-import { UserAccount } from '../models/User';
+import type { UserAccount } from '../models/User';
 import { zlvApi } from './api.service';
 
 export const userAccountApi = zlvApi.injectEndpoints({

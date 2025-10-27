@@ -21,14 +21,16 @@ export interface HousingSubStatus {
 /**
  * @deprecated See {@link HousingStatusDTO}
  */
-export enum HousingStatus {
-  NeverContacted = HousingStatusDTO.NEVER_CONTACTED,
-  Waiting = HousingStatusDTO.WAITING,
-  FirstContact = HousingStatusDTO.FIRST_CONTACT,
-  InProgress = HousingStatusDTO.IN_PROGRESS,
-  Completed = HousingStatusDTO.COMPLETED,
-  Blocked = HousingStatusDTO.BLOCKED
-}
+export const HousingStatus = {
+  NeverContacted: HousingStatusDTO.NEVER_CONTACTED,
+  Waiting: HousingStatusDTO.WAITING,
+  FirstContact: HousingStatusDTO.FIRST_CONTACT,
+  InProgress: HousingStatusDTO.IN_PROGRESS,
+  Completed: HousingStatusDTO.COMPLETED,
+  Blocked: HousingStatusDTO.BLOCKED
+} as const;
+
+export type HousingStatus = (typeof HousingStatus)[keyof typeof HousingStatus];
 
 export const HousingStates: HousingState[] = [
   {

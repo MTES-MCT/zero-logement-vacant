@@ -1,4 +1,4 @@
-import { genHousing } from '../../../test/fixtures';
+import { genHousing } from '../../test/fixtures';
 import { Compare } from '../../utils/compareUtils';
 import { byAddress, getSource, type Housing } from '../Housing';
 

@@ -1,10 +1,10 @@
-import { Identifiable } from '../../models/Identifiable';
+import { type Identifiable } from '../../models/Identifiable';
 import {
   exclude,
   include,
   includeExclude,
   includeExcludeWith,
-  includeWith,
+  includeWith
 } from '../arrayUtils';
 
 describe('Array utils', () => {

@@ -1,5 +1,6 @@
-import { fromUserDTO, User } from './User';
-import { GroupDTO } from '@zerologementvacant/models';
+import { fromUserDTO } from './User';
+import type { User } from './User';
+import type { GroupDTO } from '@zerologementvacant/models';
 
 export interface Group {
   id: string;
@@ -20,5 +21,5 @@ export const fromGroupDTO = (group: GroupDTO): Group => ({
   ownerCount: group.ownerCount,
   createdAt: new Date(group.createdAt),
   createdBy: group.createdBy ? fromUserDTO(group.createdBy) : undefined,
-  archivedAt: group.archivedAt ? new Date(group.archivedAt) : null,
+  archivedAt: group.archivedAt ? new Date(group.archivedAt) : null
 });

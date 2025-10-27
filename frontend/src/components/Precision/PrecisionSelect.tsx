@@ -2,8 +2,8 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { Precision, PrecisionCategory } from '@zerologementvacant/models';
-import { ReactNode } from 'react';
+import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
+import type { ReactNode } from 'react';
 import { PRECISION_CATEGORY_LABELS } from '../../models/Precision';
 import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
-import {
+import type {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO

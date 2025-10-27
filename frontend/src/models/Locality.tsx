@@ -4,21 +4,25 @@ export interface Locality {
   taxKind: TaxKinds;
   taxRate?: number;
 }
-export enum LocalityKinds {
-  ACV = 'ACV',
-  PVD = 'PVD'
-}
+export const LocalityKinds = {
+  ACV: 'ACV',
+  PVD: 'PVD'
+} as const;
+
+export type LocalityKinds = (typeof LocalityKinds)[keyof typeof LocalityKinds];
 
 export const LocalityKindLabels = {
   [LocalityKinds.ACV]: 'Action Cœur de Ville',
   [LocalityKinds.PVD]: 'Petites Villes de Demain'
 };
 
-export enum TaxKinds {
-  TLV = 'TLV',
-  THLV = 'THLV',
-  None = 'None'
-}
+export const TaxKinds = {
+  TLV: 'TLV',
+  THLV: 'THLV',
+  None: 'None'
+} as const;
+
+export type TaxKinds = (typeof TaxKinds)[keyof typeof TaxKinds];
 export const TaxKindsLabels = {
   [TaxKinds.TLV]: 'TLV appliquée',
   [TaxKinds.THLV]: 'THLV appliquée',

@@ -1,4 +1,4 @@
-import { Mutation } from '@zerologementvacant/models';
+import type { Mutation } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 
 import { birthdate } from '../utils/dateUtils';

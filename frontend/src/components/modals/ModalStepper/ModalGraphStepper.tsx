@@ -1,16 +1,16 @@
-import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
-import { createModal, ModalProps } from '@codegouvfr/react-dsfr/Modal';
+import Button, { type ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import { createModal, type ModalProps } from '@codegouvfr/react-dsfr/Modal';
 import {
-  ForwardRefExoticComponent,
-  PropsWithoutRef,
-  RefAttributes,
+  type ForwardRefExoticComponent,
+  type PropsWithoutRef,
+  type RefAttributes,
   useRef,
   useState
 } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useGraphStepper } from '../../../hooks/useGraphStepper';
-import { Identifiable } from '../../../models/Identifiable';
+import type { Identifiable } from '../../../models/Identifiable';
 
 interface Props
   extends Pick<

@@ -1,6 +1,6 @@
 import styles from './badge.module.scss';
 import classNames from 'classnames';
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 
 interface BadgeProps {
   content: number;

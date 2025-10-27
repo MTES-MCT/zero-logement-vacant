@@ -211,6 +211,7 @@ export const housingHandlers: RequestHandler[] = [
           : Struct.pick(
               owner,
               'id',
+              'idpersonne',
               'rawAddress',
               'fullName',
               'administrator',
@@ -221,6 +222,7 @@ export const housingHandlers: RequestHandler[] = [
               'additionalAddress',
               'kind',
               'kindDetail',
+              'siren',
               'createdAt',
               'updatedAt'
             )

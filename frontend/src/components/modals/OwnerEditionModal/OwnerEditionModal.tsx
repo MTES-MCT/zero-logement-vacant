@@ -13,7 +13,7 @@ import {
   useForm
 } from '../../../hooks/useForm';
 import { useUser } from '../../../hooks/useUser';
-import { Owner } from '../../../models/Owner';
+import { type Owner } from '../../../models/Owner';
 import { useUpdateOwnerMutation } from '../../../services/owner.service';
 import { parseDateInput } from '../../../utils/dateUtils';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';

@@ -1,4 +1,4 @@
-import { Owner } from '../../../models/Owner';
+import type { Owner } from '../../../models/Owner';
 import AppSearchBar from '../../_app/AppSearchBar/AppSearchBar';
 import HousingAdditionalOwnerSearchResults from './HousingAdditionalOwnerSearchResults';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';

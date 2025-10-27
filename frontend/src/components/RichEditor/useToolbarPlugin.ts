@@ -4,7 +4,7 @@ import {
   $getSelection,
   $isElementNode,
   $isRangeSelection,
-  LexicalEditor
+  type LexicalEditor
 } from 'lexical';
 import { useCallback, useEffect, useState } from 'react';
 

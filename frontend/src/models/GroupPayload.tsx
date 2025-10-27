@@ -1,5 +1,5 @@
-import { Group } from './Group';
-import { HousingFilters } from './HousingFilters';
+import type { Group } from './Group';
+import type { HousingFilters } from './HousingFilters';
 
 export interface GroupPayload extends Pick<Group, 'title' | 'description'> {
   housing?: {

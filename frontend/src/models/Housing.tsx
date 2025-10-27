@@ -179,17 +179,19 @@ export function hasCoordinates(
  */
 export const lastUpdate = (): string | null => null;
 
-export enum OccupancyKind {
-  Vacant = 'V',
-  Rent = 'L',
-  ShortRent = 'B',
-  PrimaryResidence = 'P',
-  SecondaryResidence = 'RS',
-  CommercialOrOffice = 'T',
-  Dependency = 'N',
-  DemolishedOrDivided = 'D',
-  Others = 'A'
-}
+export const OccupancyKind = {
+  Vacant: 'V',
+  Rent: 'L',
+  ShortRent: 'B',
+  PrimaryResidence: 'P',
+  SecondaryResidence: 'RS',
+  CommercialOrOffice: 'T',
+  Dependency: 'N',
+  DemolishedOrDivided: 'D',
+  Others: 'A'
+} as const;
+
+export type OccupancyKind = (typeof OccupancyKind)[keyof typeof OccupancyKind];
 
 export const OccupancyUnknown = 'inconnu';
 

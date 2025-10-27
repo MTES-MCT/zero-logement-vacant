@@ -96,6 +96,7 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
       email: housingOwner?.email ?? null,
       phone: housingOwner?.phone ?? null
     },
+    // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
     resolver: yupResolver(schema)
   });
 
@@ -241,6 +242,7 @@ function HousingOwnerEditionAside(props: HousingOwnerEditionAsideProps) {
                       render={({ field, fieldState }) => (
                         <HousingOwnerInactiveSelect
                           error={fieldState.error?.message}
+                          // @ts-expect-error: typescript resolves types from yup (v0) instead of yup-next (v1)
                           value={field.value}
                           onChange={field.onChange}
                         />

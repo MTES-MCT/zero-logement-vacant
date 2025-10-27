@@ -1157,7 +1157,7 @@ describe('Housing list view', () => {
             ...genHousingOwnerDTO(owner),
             housingId: housing.id,
             ownerId: owner.id,
-            rank: 1
+            rank: 1 as const
           };
         });
         const campaigns = faker.helpers.multiple(() => genCampaignDTO());

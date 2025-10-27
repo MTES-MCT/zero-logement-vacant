@@ -3,8 +3,11 @@ import { EventEmitter } from 'node:events';
 export const sources: Map<string, EventEmitter> = new Map();
 
 export class EventSourceMock {
-  constructor(public url: string) {
+  readonly url: string;
+
+  constructor(url: string) {
     sources.set(url, new EventEmitter());
+    this.url = url;
   }
 
   addEventListener(

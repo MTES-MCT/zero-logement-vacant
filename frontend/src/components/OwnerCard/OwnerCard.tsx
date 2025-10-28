@@ -6,9 +6,9 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 
 import { formatAddress } from '@zerologementvacant/models';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { isBanEligible } from '../../models/Address';
-import { HousingOwner, Owner } from '../../models/Owner';
+import type { HousingOwner, Owner } from '../../models/Owner';
 import { age, birthdate } from '../../utils/dateUtils';
 import { mailto } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';

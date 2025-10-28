@@ -1,4 +1,4 @@
-import { Variable } from './Variable';
+import type { Variable } from './Variable';
 
 export const VARIABLE_OPTIONS: Variable[] = [
   {

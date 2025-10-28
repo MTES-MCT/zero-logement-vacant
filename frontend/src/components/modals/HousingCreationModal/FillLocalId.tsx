@@ -1,5 +1,5 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import { InputProps } from '@codegouvfr/react-dsfr/Input';
+import { type InputProps } from '@codegouvfr/react-dsfr/Input';
 import Grid from '@mui/material/Grid';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import * as yup from 'yup';
@@ -10,7 +10,7 @@ import { datafoncierApi } from '../../../services/datafoncier.service';
 import { housingApi } from '../../../services/housing.service';
 import { useAppDispatch } from '../../../hooks/useStore';
 import housingSlice from '../../../store/reducers/housingReducer';
-import { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
+import type { Step, StepProps } from '../ModalStepper/ModalGraphStepper';
 
 const FillLocalId = forwardRef((_: StepProps, ref) => {
   const [localId, setLocalId] = useState('');

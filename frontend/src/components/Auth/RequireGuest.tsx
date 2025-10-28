@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { useUser } from '../../hooks/useUser';
 import { Navigate } from 'react-router-dom';

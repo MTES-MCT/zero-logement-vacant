@@ -3,10 +3,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Grid, Typography } from '@mui/material';
 import { useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { InferType, number, object, string } from 'yup';
+import { type InferType, number, object, string } from 'yup';
 
 import { useNotification } from '../../hooks/useNotification';
-import { Owner } from '../../models/Owner';
+import type { Owner } from '../../models/Owner';
 import { useUpdateOwnerMutation } from '../../services/owner.service';
 import AppTextInputNext from '../_app/AppTextInput/AppTextInputNext';
 import AsideNext from '../Aside/AsideNext';

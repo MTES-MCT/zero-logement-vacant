@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import { useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useOutsideClick } from '../../../hooks/useOutsideClick';
-import { SelectOption } from '../../../models/SelectOption';
+import type { SelectOption } from '../../../models/SelectOption';
 import AppMultiSelectOption from './AppMultiSelectOption';
 
 interface AppMultiSelectProps<Value extends string> {

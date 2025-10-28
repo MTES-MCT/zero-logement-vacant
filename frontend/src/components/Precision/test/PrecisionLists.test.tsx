@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { HousingDTO, HousingOwnerDTO } from '@zerologementvacant/models';
+import type { HousingDTO, HousingOwnerDTO } from '@zerologementvacant/models';
 import {
   genHousingDTO,
   genHousingOwnerDTO,
@@ -8,7 +8,7 @@ import {
 import { Provider } from 'react-redux';
 
 import data from '../../../mocks/handlers/data';
-import configureTestStore from '../../../utils/test/storeUtils';
+import configureTestStore from '../../../utils/storeUtils';
 import PrecisionLists from '../PrecisionLists';
 
 describe('PrecisionLists', () => {

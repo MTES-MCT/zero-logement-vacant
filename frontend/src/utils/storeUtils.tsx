@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import { AuthUser } from '../../models/User';
+import { type AuthUser } from '../models/User';
 import { applicationMiddlewares, applicationReducer } from '~/store/store';
 
 interface Options {

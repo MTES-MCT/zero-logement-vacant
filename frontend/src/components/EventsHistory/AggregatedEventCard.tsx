@@ -1,8 +1,8 @@
 import { Array, Order, Predicate } from 'effect';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { match } from 'ts-pattern';
 
-import { Event } from '../../models/Event';
+import type { Event } from '../../models/Event';
 import EventCard from './EventCard';
 import { formatHousingCampaignAttachedDifferences } from './events/HousingCampaignAttachedEventCard';
 import { formatHousingCampaignDetachedDifferences } from './events/HousingCampaignDetachedEventCard';

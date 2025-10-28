@@ -1,8 +1,7 @@
 import { Array, pipe } from 'effect';
-import { GeoPerimeter } from '../../models/GeoPerimeter';
-import SearchableSelectNext, {
-  SearchableSelectNextProps
-} from '../SearchableSelectNext/SearchableSelectNext';
+import type { GeoPerimeter } from '../../models/GeoPerimeter';
+import SearchableSelectNext from '../SearchableSelectNext/SearchableSelectNext';
+import type { SearchableSelectNextProps } from '../SearchableSelectNext/SearchableSelectNext';
 
 export type PerimeterSearchableSelectProps<Multiple extends boolean> = Pick<
   SearchableSelectNextProps<GeoPerimeter['kind'], Multiple, false, false>,

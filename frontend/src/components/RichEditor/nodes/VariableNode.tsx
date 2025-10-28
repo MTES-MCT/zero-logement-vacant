@@ -1,17 +1,17 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import {
   DecoratorNode,
-  DOMConversionMap,
-  DOMConversionOutput,
-  DOMExportOutput,
-  LexicalNode,
-  NodeKey,
-  SerializedLexicalNode,
-  Spread
+  type DOMConversionMap,
+  type DOMConversionOutput,
+  type DOMExportOutput,
+  type LexicalNode,
+  type NodeKey,
+  type SerializedLexicalNode,
+  type Spread
 } from 'lexical';
 
-import { Variable } from '../Variable';
-import { VariableOption } from '@zerologementvacant/models';
+import type { Variable } from '../Variable';
+import type { VariableOption } from '@zerologementvacant/models';
 
 interface VariableProps {
   children: string;
@@ -71,11 +71,11 @@ export class VariableNode extends DecoratorNode<JSX.Element> {
     return $createVariableNode(serializedNode.variable);
   }
 
-  constructor(
-    private variable: Variable,
-    key?: NodeKey
-  ) {
+  private variable: Variable;
+
+  constructor(variable: Variable, key?: NodeKey) {
     super(key);
+    this.variable = variable;
   }
 
   createDOM(): HTMLElement {

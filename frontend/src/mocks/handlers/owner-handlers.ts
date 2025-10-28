@@ -87,6 +87,7 @@ export const ownerHandlers: RequestHandler[] = [
         birthDate: payload.birthDate,
         email: payload.email,
         phone: payload.phone,
+        siren: null,
         createdAt: new Date().toJSON(),
         updatedAt: new Date().toJSON()
       };

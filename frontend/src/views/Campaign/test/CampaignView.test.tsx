@@ -2,12 +2,11 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
-  AddressKinds,
-  CampaignDTO,
-  DraftDTO,
-  HousingDTO,
-  OwnerDTO,
-  SenderDTO
+  type CampaignDTO,
+  type DraftDTO,
+  type HousingDTO,
+  type OwnerDTO,
+  type SenderDTO
 } from '@zerologementvacant/models';
 import {
   genCampaignDTO,
@@ -18,13 +17,13 @@ import {
 } from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { sources } from '../../../../test/event-source-mock';
+import { sources } from '../../../test/event-source-mock';
 import Notification from '../../../components/Notification/Notification';
 
 import data from '../../../mocks/handlers/data';
 import config from '../../../utils/config';
 
-import configureTestStore from '../../../utils/test/storeUtils';
+import configureTestStore from '../../../utils/storeUtils';
 import CampaignView from '../CampaignView';
 
 interface RenderViewOptions {
@@ -52,8 +51,6 @@ describe('Campaign view', () => {
       street: '1 rue de la vallée',
       postalCode: '85130',
       city: 'Tiffauges',
-      refId: faker.string.uuid(),
-      addressKind: AddressKinds.Owner,
       label: 'Home Address',
       score: 0.7
     };

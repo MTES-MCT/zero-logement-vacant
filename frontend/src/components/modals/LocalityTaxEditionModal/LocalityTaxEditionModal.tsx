@@ -1,9 +1,9 @@
-import { ChangeEvent, useMemo, useState } from 'react';
+import { type ChangeEvent, useMemo, useState } from 'react';
 import { Col, Container, Row } from '../../_dsfr';
 
 import * as yup from 'yup';
 import { useForm } from '../../../hooks/useForm';
-import { Locality, TaxKinds, TaxKindsLabels } from '../../../models/Locality';
+import { type Locality, TaxKinds, TaxKindsLabels } from '../../../models/Locality';
 import AppHelp from '../../_app/AppHelp/AppHelp';
 import AppTextInput from '../../_app/AppTextInput/AppTextInput';
 import { createModal } from '@codegouvfr/react-dsfr/Modal';

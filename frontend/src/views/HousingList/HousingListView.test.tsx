@@ -36,7 +36,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { vi } from 'vitest';
 
 import data from '../../mocks/handlers/data';
-import configureTestStore from '../../utils/test/storeUtils';
+import configureTestStore from '../../utils/storeUtils';
 import CampaignView from '../Campaign/CampaignView';
 import HousingListTabsProvider from './HousingListTabsProvider';
 import HousingListView from './HousingListView';
@@ -1157,7 +1157,7 @@ describe('Housing list view', () => {
             ...genHousingOwnerDTO(owner),
             housingId: housing.id,
             ownerId: owner.id,
-            rank: 1
+            rank: 1 as const
           };
         });
         const campaigns = faker.helpers.multiple(() => genCampaignDTO());

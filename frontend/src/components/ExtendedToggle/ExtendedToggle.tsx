@@ -4,10 +4,10 @@ import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import styles from './extended-toggle.module.scss';
-import { ToggleSwitchProps } from '@codegouvfr/react-dsfr/ToggleSwitch';
-import {
+import type { ToggleSwitchProps } from '@codegouvfr/react-dsfr/ToggleSwitch';
+import type {
   FrIconClassName,
-  RiIconClassName,
+  RiIconClassName
 } from '@codegouvfr/react-dsfr/src/fr/generatedFromCss/classNames';
 
 type Props = ToggleSwitchProps & {

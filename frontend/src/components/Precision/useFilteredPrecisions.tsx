@@ -1,4 +1,4 @@
-import { Precision, PrecisionCategory } from '@zerologementvacant/models';
+import type { Precision, PrecisionCategory } from '@zerologementvacant/models';
 
 interface UseFilteredPrecisionsOptions {
   predicate(category: PrecisionCategory): boolean;

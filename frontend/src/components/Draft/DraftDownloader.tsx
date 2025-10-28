@@ -1,9 +1,9 @@
 import Tile from '@codegouvfr/react-dsfr/Tile';
 
 import styles from './draft-downloader.module.scss';
-import { Campaign } from '../../models/Campaign';
 import config from '../../utils/config';
 import authService from '../../services/auth.service';
+import type { Campaign } from '../../models/Campaign';
 
 interface Props {
   campaign: Campaign;

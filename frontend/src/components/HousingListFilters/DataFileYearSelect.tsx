@@ -1,13 +1,11 @@
-import { DataFileYear } from '@zerologementvacant/models';
-
 import {
   DATA_FILE_YEAR_EXCLUDED_OPTIONS,
   DATA_FILE_YEAR_INCLUDED_OPTIONS,
   EMPTY_OPTION
 } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { DataFileYear } from '@zerologementvacant/models';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type DataFileYearSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<DataFileYear | null, Multiple>,

@@ -7,12 +7,14 @@ import Grid from '@mui/material/Grid';
 import { isSameDay } from 'date-fns';
 import { Array, Order, pipe, Predicate, Record } from 'effect';
 
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 
 import NoEvent from '../../assets/images/no-event.svg';
-import { Event } from '../../models/Event';
-import { Note } from '../../models/Note';
-import { formatAuthor, User, USER_EQUIVALENCE } from '../../models/User';
+import type { Event } from '../../models/Event';
+import type { Note } from '../../models/Note';
+import { formatAuthor, USER_EQUIVALENCE } from '../../models/User';
+import type { User } from '../../models/User';
 import { useFindEstablishmentsQuery } from '../../services/establishment.service';
 import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 import { useHousingEdition } from '../HousingEdition/useHousingEdition';

@@ -1,9 +1,9 @@
-import { Pagination } from '@zerologementvacant/models';
+import type { Pagination } from '@zerologementvacant/models';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { usePagination } from '../../../hooks/usePagination';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useStore';
-import { Owner } from '../../../models/Owner';
+import type { Owner } from '../../../models/Owner';
 import { useFindOwnersQuery } from '../../../services/owner.service';
 import housingSlice, {
   DefaultPagination

@@ -7,6 +7,7 @@ import { MutationType } from './Mutation';
 import { Occupancy } from './Occupancy';
 import { OwnerDTO } from './OwnerDTO';
 import type { HousingFiltersDTO } from './HousingFiltersDTO';
+import type { CadastralClassification } from './CadastralClassification';
 
 export interface HousingDTO {
   id: string;
@@ -17,7 +18,7 @@ export interface HousingDTO {
   campaignIds?: string[] | null;
   longitude: number | null;
   latitude: number | null;
-  cadastralClassification: number | null;
+  cadastralClassification: CadastralClassification | null;
   cadastralReference: string | null;
   uncomfortable: boolean;
   vacancyStartYear: number | null;

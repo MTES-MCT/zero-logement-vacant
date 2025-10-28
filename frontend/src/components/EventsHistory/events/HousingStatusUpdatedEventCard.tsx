@@ -1,7 +1,7 @@
 import { Predicate } from 'effect';
 
-import { Event } from '../../../models/Event';
 import EventCard from '../EventCard';
+import type { Event } from '../../../models/Event';
 
 interface HousingStatusEventCardProps {
   event: Event<'housing:status-updated'>;

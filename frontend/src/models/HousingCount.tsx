@@ -1,4 +1,4 @@
-import { HousingStatus } from '@zerologementvacant/models';
+import type { HousingStatus } from '@zerologementvacant/models';
 import { displayCount } from '../utils/stringUtils';
 
 export interface HousingCount {

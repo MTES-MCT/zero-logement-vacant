@@ -5,8 +5,8 @@ import {
 } from '@zerologementvacant/models';
 import { match } from 'ts-pattern';
 
-import { Event } from '../../../models/Event';
 import EventCard from '../EventCard';
+import type { Event } from '../../../models/Event';
 
 interface Props {
   event: Event<'housing:precision-detached'>;

@@ -1,4 +1,7 @@
-import { ContactPoint, DraftContactPoint } from '@zerologementvacant/models';
+import type {
+  ContactPoint,
+  DraftContactPoint
+} from '@zerologementvacant/models';
 import { zlvApi } from './api.service';
 
 export const contactPointsApi = zlvApi.injectEndpoints({
@@ -39,7 +42,9 @@ export const contactPointsApi = zlvApi.injectEndpoints({
         method: 'PUT',
         body
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'ContactPoint', id }]
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'ContactPoint', id }
+      ]
     }),
     removeContactPoint: builder.mutation<void, string>({
       query: (contactPointId) => ({

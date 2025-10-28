@@ -1,4 +1,4 @@
-import { GeoPerimeter } from '../models/GeoPerimeter';
+import type { GeoPerimeter } from '../models/GeoPerimeter';
 import { zlvApi } from './api.service';
 
 export const geoPerimetersApi = zlvApi.injectEndpoints({

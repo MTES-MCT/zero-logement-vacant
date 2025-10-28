@@ -1,8 +1,8 @@
-import { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
 import Accordion from '@codegouvfr/react-dsfr/Accordion';
 import Button from '@codegouvfr/react-dsfr/Button';
 import MuiDrawer from '@mui/material/Drawer';
-import { CSSObject, styled, Theme } from '@mui/material/styles';
+import { type CSSObject, styled, type Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import {
@@ -10,9 +10,9 @@ import {
   HOUSING_STATUS_VALUES,
   isPrecisionBlockingPointCategory,
   isPrecisionEvolutionCategory,
-  isPrecisionMechanismCategory,
-  Occupancy
+  isPrecisionMechanismCategory
 } from '@zerologementvacant/models';
+import { Occupancy } from '@zerologementvacant/models';
 import { isDefined } from '@zerologementvacant/utils';
 import classNames from 'classnames';
 import { Set } from 'immutable';
@@ -23,7 +23,7 @@ import { useLocalityList } from '../../hooks/useLocalityList';
 import { useAppSelector } from '../../hooks/useStore';
 import { useToggle } from '../../hooks/useToggle';
 import { useUser } from '../../hooks/useUser';
-import { HousingFilters } from '../../models/HousingFilters';
+import type { HousingFilters } from '../../models/HousingFilters';
 import { getSubStatuses } from '../../models/HousingState';
 import { getCity, getDistricts } from '../../models/Locality';
 import { getPrecision } from '../../models/Precision';

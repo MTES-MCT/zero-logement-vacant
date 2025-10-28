@@ -1,5 +1,6 @@
-import { fr, FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
-import Button, { ButtonProps } from '@codegouvfr/react-dsfr/Button';
+import { fr } from '@codegouvfr/react-dsfr';
+import type { FrIconClassName, RiIconClassName } from '@codegouvfr/react-dsfr';
+import Button, { type ButtonProps } from '@codegouvfr/react-dsfr/Button';
 
 interface Props extends ButtonProps.Common, ButtonProps.IconOnly {
   iconId: FrIconClassName | RiIconClassName;
@@ -22,7 +23,7 @@ function IconToggle(props: Readonly<Props>) {
       style={{
         color: active
           ? undefined
-          : fr.colors.decisions.text.default.grey.default,
+          : fr.colors.decisions.text.default.grey.default
       }}
       size={props.size}
       title={props.title}

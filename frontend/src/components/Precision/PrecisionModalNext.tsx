@@ -1,9 +1,9 @@
 import { useIsModalOpen } from '@codegouvfr/react-dsfr/Modal/useIsModalOpen';
 
-import { Precision } from '@zerologementvacant/models';
+import type { Precision } from '@zerologementvacant/models';
 import { useState } from 'react';
 import {
-  ConfirmationModalProps,
+  type ConfirmationModalProps,
   createConfirmationModal
 } from '../modals/ConfirmationModal/ConfirmationModalNext';
 import PrecisionTabs from './PrecisionTabs';

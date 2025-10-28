@@ -1,13 +1,13 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
-import {
+import type {
   DraftCreationPayloadDTO,
   DraftDTO,
   DraftUpdatePayloadDTO
 } from '@zerologementvacant/models';
+import { Predicate } from 'effect';
 import { http, HttpResponse, RequestHandler } from 'msw';
 import { constants } from 'node:http2';
-import { isDefined } from '../../utils/compareUtils';
 import config from '../../utils/config';
 import data from './data';
 
@@ -31,7 +31,7 @@ export const draftHandlers: RequestHandler[] = [
         data.campaignDrafts
           .get(campaignId)
           ?.map(({ id }) => data.drafts.find((draft) => draft.id === id))
-          ?.filter(isDefined) ?? [];
+          ?.filter(Predicate.isNotUndefined) ?? [];
       return HttpResponse.json(drafts);
     }
   ),

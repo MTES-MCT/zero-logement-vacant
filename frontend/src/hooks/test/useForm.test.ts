@@ -1,7 +1,7 @@
 import * as yup from 'yup';
-import { ObjectShape } from 'yup/lib/object';
+import { type ObjectShape } from 'yup/lib/object';
 
-import { entriesDeep, keysDeep } from '../useForm.tsx';
+import { entriesDeep, keysDeep } from '../useForm';
 
 describe('useForm', () => {
   describe('keysDeep', () => {

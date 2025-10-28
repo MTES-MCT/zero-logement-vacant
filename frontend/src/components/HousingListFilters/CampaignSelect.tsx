@@ -1,9 +1,8 @@
-import { CampaignStatus } from '@zerologementvacant/models';
-import { Campaign } from '../../models/Campaign';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
 import CampaignStatusBadge from '../Campaign/CampaignStatusBadge';
+import type { CampaignStatus } from '@zerologementvacant/models';
+import type { Campaign } from '../../models/Campaign';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 type CampaignSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<Campaign | null, Multiple>,

@@ -1,11 +1,8 @@
-import {
-  HOUSING_BY_BUILDING_VALUES,
-  HousingByBuilding
-} from '@zerologementvacant/models';
+import { HOUSING_BY_BUILDING_VALUES } from '@zerologementvacant/models';
 import { HOUSING_COUNT_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { HousingByBuilding } from '@zerologementvacant/models';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type HousingCountSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<HousingByBuilding, Multiple>,

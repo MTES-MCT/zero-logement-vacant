@@ -1,11 +1,8 @@
-import {
-  BENEFIARY_COUNT_VALUES,
-  BeneficiaryCount
-} from '@zerologementvacant/models';
+import { BENEFIARY_COUNT_VALUES } from '@zerologementvacant/models';
+import type { BeneficiaryCount } from '@zerologementvacant/models';
 import { BENEFICIARY_COUNT_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type SecondaryOwnerSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<BeneficiaryCount, Multiple>,

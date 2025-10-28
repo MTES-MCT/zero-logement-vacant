@@ -15,7 +15,6 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
 import * as yup from 'yup';
 import { useNotification } from '../../hooks/useNotification';
-import { Housing, HousingUpdate } from '../../models/Housing';
 import { HousingStates } from '../../models/HousingState';
 import { useUpdateHousingMutation } from '../../services/housing.service';
 import { useCreateNoteByHousingMutation } from '../../services/note.service';
@@ -25,7 +24,9 @@ import OccupancySelect from '../HousingListFilters/OccupancySelect';
 import AsideNext from '../Aside/AsideNext';
 import LabelNext from '../Label/LabelNext';
 import HousingEditionMobilizationTab from './HousingEditionMobilizationTab';
-import { HousingEditionContext, useHousingEdition } from './useHousingEdition';
+import { useHousingEdition } from './useHousingEdition';
+import type { Housing, HousingUpdate } from '../../models/Housing';
+import type { HousingEditionContext } from './useHousingEdition';
 
 interface HousingEditionSideMenuProps {
   housing: Housing | null;

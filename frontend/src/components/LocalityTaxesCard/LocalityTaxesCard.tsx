@@ -1,5 +1,5 @@
 import { Col, Icon, Row, Text } from '../_dsfr';
-import { Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
+import { type Locality, TaxKinds, TaxKindsLabels } from '../../models/Locality';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import Card from '@codegouvfr/react-dsfr/Card';
 import LocalityTaxEditionModal from '../modals/LocalityTaxEditionModal/LocalityTaxEditionModal';

@@ -1,9 +1,9 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Select from '@codegouvfr/react-dsfr/Select';
-import { OwnerRank } from '@zerologementvacant/models';
-import { ChangeEvent, useState } from 'react';
-import { HousingOwner, Owner } from '../../../models/Owner';
-import { SelectOption } from '../../../models/SelectOption';
+import type { OwnerRank } from '@zerologementvacant/models';
+import { type ChangeEvent, useState } from 'react';
+import type { HousingOwner, Owner } from '../../../models/Owner';
+import type { SelectOption } from '../../../models/SelectOption';
 import styles from './housing-owner-modal.module.scss';
 import HousingAdditionalOwnerCreation from './HousingAdditionalOwnerCreation';
 import HousingAdditionalOwnerSearch from './HousingAdditionalOwnerSearch';

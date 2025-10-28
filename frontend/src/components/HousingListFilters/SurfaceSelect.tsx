@@ -1,8 +1,8 @@
-import { LIVING_AREA_VALUES, LivingArea } from '@zerologementvacant/models';
+import { LIVING_AREA_VALUES } from '@zerologementvacant/models';
+import type { LivingArea } from '@zerologementvacant/models';
 import { LIVING_AREA_OPTIONS } from '../../models/HousingFilters';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 
 export type SurfaceSelectProps<Multiple extends boolean> = Pick<
   AppSelectNextProps<LivingArea, Multiple>,

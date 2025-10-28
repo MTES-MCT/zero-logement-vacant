@@ -5,19 +5,21 @@ import {
   bySentAt,
   byStatus,
   byTitle,
-  CampaignCreationPayloadDTO,
-  CampaignDTO,
-  CampaignUpdatePayloadDTO,
-  HousingDTO
+  type CampaignCreationPayloadDTO,
+  type CampaignDTO,
+  type CampaignUpdatePayloadDTO,
+  type HousingDTO
 } from '@zerologementvacant/models';
-import { combineAll, desc, Ord } from '@zerologementvacant/utils';
-import { Array, pipe } from 'effect';
+import { combineAll, desc, type Ord } from '@zerologementvacant/utils';
+import { Array, pipe, Predicate } from 'effect';
 import { identity } from 'effect/Function';
 import { constants } from 'http2';
 import { List } from 'immutable';
 import { http, HttpResponse, RequestHandler } from 'msw';
-import { CampaignSortable, isCampaignSortable } from '../../models/Campaign';
-import { isDefined } from '../../utils/compareUtils';
+import {
+  type CampaignSortable,
+  isCampaignSortable
+} from '../../models/Campaign';
 import config from '../../utils/config';
 import data from './data';
 
@@ -194,7 +196,7 @@ export const campaignHandlers: RequestHandler[] = [
         data.campaignHousings
           .get(campaign.id)
           ?.map(({ id }) => data.housings.find((housing) => housing.id === id))
-          ?.filter(isDefined) ?? [];
+          ?.filter(Predicate.isNotUndefined) ?? [];
       const updated: HousingDTO[] = payload.all
         ? housings.filter((housing) => payload.ids.includes(housing.id))
         : housings.filter((housing) => !payload.ids.includes(housing.id));

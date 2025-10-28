@@ -1,12 +1,11 @@
 import { fr } from '@codegouvfr/react-dsfr';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { HousingStatus } from '@zerologementvacant/models';
+import type { HousingStatus } from '@zerologementvacant/models';
 
 import { getHousingState } from '../../models/HousingState';
-import AppSelectNext, {
-  AppSelectNextProps
-} from '../_app/AppSelect/AppSelectNext';
+import AppSelectNext from '../_app/AppSelect/AppSelectNext';
+import type { AppSelectNextProps } from '../_app/AppSelect/AppSelectNext';
 import HousingStatusBadge from '../HousingStatusBadge/HousingStatusBadge';
 
 export type HousingStatusSelectProps<Multiple extends boolean> = Pick<

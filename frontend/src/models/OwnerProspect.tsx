@@ -1,4 +1,4 @@
-import { Sort } from './Sort';
+import type { Sort } from './Sort';
 
 export interface OwnerProspect {
   id?: string;

@@ -20,6 +20,7 @@ import styles from '~/components/OwnerCard/owner-card.module.scss';
 import { isBanEligible, type Address } from '~/models/Address';
 import { age, birthdate } from '~/utils/dateUtils';
 import { mailto } from '~/utils/stringUtils';
+import PropertyRightTag from './PropertyRightTag';
 
 interface OwnerCardProps {
   title?: string;
@@ -115,14 +116,15 @@ function OwnerCardNext(props: OwnerCardProps) {
           ))}
 
         {match(props.propertyRight)
-          .with(undefined, () => null)
-          .otherwise((value) => (
+          .with(Pattern.nonNullable, (value) => (
             <OwnerAttribute
               icon="ri-auction-line"
               label="Nature du droit sur le bien"
-              value={value}
+              value={<PropertyRightTag value={value} />}
             />
-          ))}
+          ))
+          .otherwise(() => null)
+        }
 
         {match({ kind: props.kind, siren: props.siren })
           .with({ kind: Pattern.not('Particulier') }, ({ siren }) => (

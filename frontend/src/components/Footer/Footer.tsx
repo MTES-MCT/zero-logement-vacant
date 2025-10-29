@@ -15,8 +15,10 @@ function Footer() {
       }}
       brandTop={
         <>
-          Ministère<br />
-          chargé de la Ville<br />
+          Ministère
+          <br />
+          chargé de la Ville
+          <br />
           et du Logement
         </>
       }
@@ -101,7 +103,7 @@ function Footer() {
               text: 'Statistiques'
             }
           ]
-        },
+        }
       ]}
       partnersLogos={{
         sub: [
@@ -122,6 +124,9 @@ function Footer() {
             }
           }
         ]
+      }}
+      websiteMapLinkProps={{
+        to: '/plan-du-site'
       }}
     />
   );

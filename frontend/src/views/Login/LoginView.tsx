@@ -71,13 +71,10 @@ const LoginView = () => {
   const isAdminView = pathname === '/admin';
 
   return (
-    <Container as="main" className="grow-container" spacing="py-4w">
+    <Container className="grow-container" spacing="py-4w">
       <Row gutters alignItems="middle">
         <Col>
-          {auth.isLoggedOut && (
-            <Col n="12">
-            </Col>
-          )}
+          {auth.isLoggedOut && <Col n="12"></Col>}
           {auth.logIn.isError ? (
             <Col n="12">
               <div data-testid="alert-error" className="fr-my-2w">

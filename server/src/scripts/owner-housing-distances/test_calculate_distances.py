@@ -250,13 +250,13 @@ class TestProcessSinglePair:
         """Test pair where addresses have no coordinates but are in France."""
         address_cache = {
             ('owner123', 'Owner'): ('75001', '123 Rue de Rivoli', None, None),
-            ('housing456', 'Housing'): ('75015', '456 Rue de Vaugirard', None, None)
+            ('housing456', 'Housing'): ('75001', '456 Rue de Rivoli', None, None)
         }
 
         distance, classification = calculator.process_single_pair('owner123', 'housing456', address_cache)
 
         assert distance is None  # No coordinates, so no distance
-        assert classification == 2  # Same department (75)
+        assert classification == 1  # Same postal code (75001)
         assert calculator.stats['geographic_rules_applied'] == 1
 
 

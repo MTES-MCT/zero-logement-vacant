@@ -26,7 +26,7 @@ class TestHaversineDistance:
     def test_same_location(self):
         """Distance between same coordinates should be 0."""
         distance = DistanceCalculator.haversine_distance(48.8566, 2.3522, 48.8566, 2.3522)
-        assert distance == 0.0
+        assert distance == pytest.approx(0.0, abs=1e-10)
 
     def test_paris_marseille(self):
         """Distance between Paris and Marseille should be ~660 km."""
